@@ -86,7 +86,7 @@ jobs:
           command: poetry install --no-root --no-interaction --no-ansi
       - run:
           name: Check python Lint
-          command: poetry run ruff check . --fix
+          command: poetry run ruff check .
       - run:
           name: Check Python complexity
           command: bin/reports.sh ci
