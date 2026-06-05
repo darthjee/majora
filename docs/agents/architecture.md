@@ -1,0 +1,116 @@
+# Architecture
+
+## Overview
+
+Majora is structured as two independent applications — a Django REST backend and a React/Vite frontend — served together through the Tent proxy. The backend owns all data and business logic; the frontend is a purely static single-page application that consumes the backend API. Tent is the single entry point: it routes requests to the correct upstream and caches backend responses.
+
+## Tent Proxy (`majora_proxy`)
+
+Tent ([GitHub](https://github.com/darthjee/tent), [Docker Hub](https://hub.docker.com/r/darthjee/tent)) is a PHP-based reverse proxy and static file server. It listens on port 3000 and is the only service exposed to end users. See [HOW_TO_USE_DARTHJEE-TENT.md](HOW_TO_USE_DARTHJEE-TENT.md) for the full configuration reference.
+
+Routing rules live in `docker_volumes/proxy_configuration/`:
+
+```
+proxy_configuration/
+├── configure.php        # entry point — loads all rule files
+└── rules/
+    ├── backend.php      # routes *.json requests to the Django backend (cached)
+    ├── frontend.php     # routes frontend requests (dev server or static files)
+    └── redirects.php    # catch-all redirect: GET /path → /#/path
+```
+
+### Development mode (`FRONTEND_DEV_MODE=true`)
+
+Tent proxies live frontend requests directly to the Vite dev server (`majora_fe:8080`). HMR works end-to-end:
+
+| Path pattern | Handler |
+|---|---|
+| `GET /` | Vite dev server |
+| `GET /assets/js/*` | Vite dev server |
+| `GET /assets/css/*` | Vite dev server |
+| `GET /assets/images/*` | Vite dev server |
+| `GET /@vite/*` | Vite dev server (HMR) |
+| `GET /node_modules/*` | Vite dev server |
+| `GET /@react-refresh` | Vite dev server (HMR) |
+| `GET /*.json` | Django backend (cached, `default_proxy`) |
+| `GET /<path>` (no match) | Redirected to `/#/<path>` (302) |
+
+### Production / static mode (`FRONTEND_DEV_MODE=false` or unset)
+
+Tent serves all frontend assets from its static folder:
+
+| Path pattern | Handler |
+|---|---|
+| `GET /` | Serves `/index.html` statically (via `SetPathMiddleware`) |
+| `GET /assets/*` | Served statically from `/var/www/html/static` |
+| `GET /*.json` | Django backend (cached, `default_proxy`) |
+| `GET /<path>` (no match) | Redirected to `/#/<path>` (302) |
+
+## Shared Volume: Frontend Build Output
+
+`docker_volumes/static/` is mounted into both `majora_fe` and `majora_proxy`:
+
+- In `majora_fe`: mounted as `/home/node/app/dist` — Vite's `outDir`, so `npm run build` writes here.
+- In `majora_proxy`: mounted into `/var/www/html/static/` — Tent serves these files directly.
+
+This means a frontend build is immediately available to Tent without any copy step.
+
+## Backend (`source/`)
+
+All Django source code lives under `source/`.
+
+### `majora_project/`
+
+Django project package: `settings.py`, root `urls.py`, `wsgi.py`. Entry point for the Django application.
+
+### `games/`
+
+The core Django app. Contains all domain models, REST views, and serializers for RPG campaign data.
+
+- `models.py` — Domain models: `Game`, `Player`, `Character`, `Photo`, `Link`.
+- `views.py` — Function-based API views using `@api_view`.
+- `serializers.py` — DRF serializers (list and detail variants per resource).
+- `urls.py` — URL routing for the games app.
+- `migrations/` — Django database migrations.
+- `tests/` — Unit and integration tests (`models_test.py`, `views_test.py`).
+- `admin.py` — Django Admin registrations.
+
+### API Endpoints
+
+| Method | URL | Description |
+|--------|-----|-------------|
+| `GET` | `/games.json` | List all games |
+| `GET` | `/games/<slug>.json` | Game detail (includes links) |
+| `GET` | `/games/<slug>/pcs.json` | Player Characters for a game |
+| `GET` | `/games/<slug>/npcs.json` | Non-Player Characters for a game |
+| `GET` | `/games/<slug>/characters/<id>.json` | Character detail (includes photos) |
+
+### Domain Models
+
+| Model | Key fields | Notes |
+|-------|-----------|-------|
+| `Game` | `name`, `game_slug` | Slug auto-generated from name |
+| `Player` | `name`, `games` (M2M) | Human player; linked to one or more games |
+| `Character` | `name`, `game`, `player`, `character_class`, `level`, `description` | PC if `player` is set; NPC if `player` is null |
+| `Photo` | `url`, `character` (FK) | Image gallery entry for a character |
+| `Link` | `text`, `url`, `game` (FK) | External link related to a game |
+
+## Frontend (`frontend/`)
+
+All React source code lives under `frontend/`. See [frontend.md](frontend.md) for the full component architecture, conventions, and how to add new pages and elements.
+
+### `assets/`
+
+Static asset sources — CSS (`assets/css/`), JavaScript/JSX (`assets/js/`), and images (`assets/images/`).
+
+### `spec/`
+
+Jasmine test files. Mirror the `assets/js/` directory structure.
+
+### `index.html`
+
+SPA entry point consumed by Vite.
+
+### `vite.config.js`
+
+Vite bundler configuration.

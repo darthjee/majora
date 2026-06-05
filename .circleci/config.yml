@@ -19,6 +19,13 @@ workflows:
           filters:
             tags:
               only: /.*/
+      - upload_proxy_files:
+          requires: [pytest, jasmine, frontend-checks, checks]
+          filters:
+            tags:
+              only: /\d+\.\d+\.\d+/
+            branches:
+              ignore: /.*/
       - build-and-release:
           requires: [pytest, jasmine, frontend-checks, checks]
           filters:
@@ -105,6 +112,19 @@ jobs:
       - run:
           name: Check JS Lint
           command: npm run lint
+
+  upload_proxy_files:
+    docker:
+      - image: darthjee/tent:0.7.4
+    workdir: /var/www/html
+    steps:
+      - checkout
+      - run:
+          name: Generate key file
+          command: deploy_frontend.sh generate_key_file
+      - run:
+          name: Upload proxy configuration
+          command: TARGET=configuration/ SOURCE=docker_volumes/proxy_configuration/ deploy_frontend.sh copy_files
 
   build-and-release:
     machine: true
