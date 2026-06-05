@@ -65,7 +65,7 @@ jobs:
       - checkout
       - run:
           name: Set folder
-          command: rm source -rf; cp frontend/* frontend/.??* ./ -r; rm frontend -rf
+          command: rm source -rf; cp frontend/* ./ -r; rm frontend -rf
       - run:
           name: Yarn install
           command: yarn install
