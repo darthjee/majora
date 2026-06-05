@@ -1,0 +1,115 @@
+version: 2
+workflows:
+  version: 2
+  test:
+    jobs:
+      - pytest:
+          filters:
+            tags:
+              only: /.*/
+      - jasmine:
+          filters:
+            tags:
+              only: /.*/
+      - checks:
+          filters:
+            tags:
+              only: /.*/
+      - frontend-checks:
+          filters:
+            tags:
+              only: /.*/
+      - build-and-release:
+          requires: [pytest, jasmine, frontend-checks, checks]
+          filters:
+            tags:
+              only: /\d+\.\d+\.\d+/
+            branches:
+              ignore: /.*/
+jobs:
+  pytest:
+    docker:
+      - image: darthjee/circleci_majora-base:0.0.1
+        environment:
+          MAJORA_MYSQL_HOST: mysql
+          MAJORA_MYSQL_PORT: 3306
+          MAJORA_MYSQL_USER: root
+          MAJORA_MYSQL_NAME: majora
+          MAJORA_MYSQL_PASSWORD: majora
+      - image: cimg/mysql:8.0
+        name: mysql
+        environment:
+          MYSQL_DATABASE: majora
+          MYSQL_USER: majora
+          MYSQL_PASSWORD: majora
+          MYSQL_ROOT_PASSWORD: majora
+    steps:
+      - checkout
+      - run:
+          name: Set folder
+          command: rm frontend -rf; cp source/* ./ -r; rm source -rf
+      - run:
+          name: Poetry Install
+          command: poetry install --no-root --no-interaction --no-ansi
+      - run:
+          name: migrate
+          command: bin/configure_database.sh all
+      - run:
+          name: Tests
+          command: poetry run pytest
+
+  jasmine:
+    docker:
+      - image: darthjee/circleci_node:0.2.1
+    steps:
+      - checkout
+      - run:
+          name: Set folder
+          command: rm source -rf; cp frontend/* ./ -r; rm frontend -rf
+      - run:
+          name: Yarn install
+          command: yarn install
+      - run:
+          name: Tests
+          command: npm test
+
+  checks:
+    docker:
+      - image: darthjee/circleci_majora-base:0.0.1
+    steps:
+      - checkout
+      - run:
+          name: Set folder
+          command: rm frontend -rf; cp source/* ./ -r; rm source -rf
+      - run:
+          name: Poetry Install
+          command: poetry install --no-root --no-interaction --no-ansi
+      - run:
+          name: Check python Lint
+          command: poetry run ruff check .
+      - run:
+          name: Check Python complexity
+          command: bin/reports.sh ci
+
+  frontend-checks:
+    docker:
+      - image: darthjee/circleci_node:0.2.1
+    steps:
+      - checkout
+      - run:
+          name: Set folder
+          command: rm source -rf; cp frontend/* ./ -r; rm frontend -rf
+      - run:
+          name: Yarn install
+          command: yarn install
+      - run:
+          name: Check JS Lint
+          command: npm run lint
+
+  build-and-release:
+    machine: true
+    steps:
+      - checkout
+      - run:
+          name: Trigger Deploy
+          command: scripts/deploy.sh deploy
