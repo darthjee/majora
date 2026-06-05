@@ -1,6 +1,6 @@
 /**
  * Node.js loader for Jasmine tests.
- * Transforms JSX modules with Babel and stubs stylesheet imports.
+ * Transforms JSX modules with Babel and stubs CSS imports.
  */
 
 import { transformSync } from '@babel/core';
