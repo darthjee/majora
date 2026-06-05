@@ -1,6 +1,6 @@
 /**
  * JSX loader for Jasmine tests running in Node.js.
- * Transforms .jsx files to plain JS using a simple regex approach.
+ * Transforms .jsx files to plain JS using Babel.
  */
 
 import { transformSync } from '@babel/core';
@@ -46,6 +46,7 @@ export async function load(url, context, nextLoad) {
     };
   }
   if (url.endsWith('.css')) {
+    // Frontend entrypoints import stylesheets, but Node-based specs only need the JS module graph.
     return {
       format: 'module',
       source: 'export default {};',
