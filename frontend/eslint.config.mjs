@@ -51,7 +51,7 @@ export default [
   },
   {
     // Test files: relax JSDoc rules and enable Jasmine globals
-    files: ['spec/**/*.{js,jsx,mjs}'],
+    files: ['specs/**/*.{js,jsx,mjs}'],
     plugins: { jasmine },
     languageOptions: { globals: { ...globals.jasmine } },
     rules: {

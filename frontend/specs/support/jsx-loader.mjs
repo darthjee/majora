@@ -45,5 +45,12 @@ export async function load(url, context, nextLoad) {
       shortCircuit: true,
     };
   }
+  if (url.endsWith('.css')) {
+    return {
+      format: 'module',
+      source: 'export default {};',
+      shortCircuit: true,
+    };
+  }
   return nextLoad(url, context);
 }

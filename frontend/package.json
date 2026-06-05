@@ -7,10 +7,10 @@
   "scripts": {
     "build": "vite build",
     "server": "vite dev --host 0.0.0.0 --port 8080",
-    "test": "NODE_OPTIONS='--loader ./spec/support/jsx-loader.mjs' nyc npx jasmine spec/**/*.js",
-    "coverage": "NODE_OPTIONS='--loader ./spec/support/jsx-loader.mjs' npx c8 --reporter=lcov jasmine spec/**/*.js",
-    "lint": "eslint assets spec",
-    "lint_fix": "eslint assets spec --fix"
+    "test": "NODE_OPTIONS='--loader ./specs/support/jsx-loader.mjs' nyc npx jasmine \"specs/**/*[sS]pec.js\"",
+    "coverage": "NODE_OPTIONS='--loader ./specs/support/jsx-loader.mjs' npx c8 --reporter=lcov jasmine \"specs/**/*[sS]pec.js\"",
+    "lint": "eslint assets specs",
+    "lint_fix": "eslint assets specs --fix"
   },
   "author": "darthjee",
   "license": "MIT",
@@ -23,6 +23,8 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/preset-react": "^7.28.5",
     "@eslint/js": "^9.39.2",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
@@ -42,19 +44,28 @@
     "vite": "^7.3.2"
   },
   "jasmine": {
-    "spec_dir": "spec",
+    "spec_dir": "specs",
     "spec_files": [
       "**/*[sS]pec.js"
     ]
   },
   "c8": {
-    "reporter": ["text", "html"],
-    "extension": [".js", ".jsx"],
+    "reporter": [
+      "text",
+      "html"
+    ],
+    "extension": [
+      ".js",
+      ".jsx"
+    ],
     "include": [
       "assets/js/**/*.js",
       "assets/js/**/*.jsx"
     ],
-    "exclude": ["spec/**", "coverage/**"],
+    "exclude": [
+      "specs/**",
+      "coverage/**"
+    ],
     "all": true,
     "check-coverage": false
   }
