@@ -33,8 +33,8 @@ export function renderApplication(container) {
   return root;
 }
 
-const container = globalThis.document?.getElementById('root') ?? null;
+const container = globalThis.document?.getElementById('root');
 
-if (container !== null) {
+if (container) {
   renderApplication(container);
 }
