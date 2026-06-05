@@ -47,7 +47,7 @@ Backend runs on port `3030`, frontend dev server on `3010`, full stack proxy on 
 - All documentation and code comments must be written in **English**.
 - Backend code lives in `source/`, frontend in `frontend/`.
 - Django apps are organized under `source/` (e.g. `source/games/`).
-- Frontend JS/JSX lives under `frontend/assets/js/`, specs under `frontend/spec/`.
+- Frontend JS/JSX lives under `frontend/assets/js/`, specs under `frontend/specs/`.
 - Max line length: 100 characters (backend); enforced by ruff.
 - Keep backend views thin — business logic belongs in models or serializers.
 

@@ -103,9 +103,17 @@ All React source code lives under `frontend/`. See [frontend.md](frontend.md) fo
 
 Static asset sources — CSS (`assets/css/`), JavaScript/JSX (`assets/js/`), and images (`assets/images/`).
 
-### `spec/`
+### `specs/`
 
 Jasmine test files. Mirror the `assets/js/` directory structure.
+
+### Frontend test commands
+
+From `/frontend`:
+
+- `npm test` — run Jasmine specs under `specs/`
+- `npm run coverage` — generate frontend coverage with `c8`
+- `npm run lint` — lint frontend source and specs
 
 ### `index.html`
 

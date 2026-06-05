@@ -28,7 +28,7 @@
 | Subdirectory / File | Description |
 |---------------------|-------------|
 | `assets/` | Static source files: JS/JSX components (`assets/js/`), CSS (`assets/css/`), images (`assets/images/`). |
-| `spec/` | Jasmine test files for frontend components (mirrors `assets/js/` structure). |
+| `specs/` | Jasmine test files for frontend components (mirrors `assets/js/` structure). |
 | `index.html` | Vite HTML entry point. |
 | `vite.config.js` | Vite build configuration. |
 | `eslint.config.mjs` | ESLint configuration. |

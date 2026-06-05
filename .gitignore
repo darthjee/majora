@@ -21,6 +21,8 @@ source/staticfiles/
 # Node
 frontend/node_modules/
 frontend/dist/
+frontend/.nyc_output/
+frontend/coverage/
 docker_volumes/node_modules/
 docker_volumes/static/
 
