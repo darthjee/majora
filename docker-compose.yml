@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  base: &base
+    image: darthjee/majora
+    volumes:
+      - ./source:/home/app/app
+    links:
+      - majora_mysql:mysql
+    env_file: .env
+
+  base_build:
+    <<: *base
+    build:
+      context: .
+      dockerfile: dockerfiles/majora/Dockerfile
+    command: echo done
+
+  majora_app:
+    <<: *base
+    container_name: majora_app
+    depends_on:
+      - base_build
+      - majora_mysql
+    ports:
+      - 0.0.0.0:3030:8080
+    environment:
+      - MAJORA_MYSQL_PORT=3306
+
+  majora_tests:
+    <<: *base
+    container_name: majora_tests
+    depends_on:
+      - base_build
+
+  base_prod: &base_prod
+    image: darthjee/production_majora
+    links:
+      - majora_mysql:mysql
+    env_file: .env.prod
+
+  base_prod_build:
+    <<: *base_prod
+    build:
+      context: .
+      dockerfile: dockerfiles/production_majora/Dockerfile
+    command: echo done
+
+  majora_prod_app:
+    <<: *base_prod
+    container_name: majora_prod_app
+    depends_on:
+      - base_prod_build
+      - majora_mysql
+    ports:
+      - 0.0.0.0:3030:8080
+    environment:
+      - MAJORA_MYSQL_PORT=3306
+      - STAGE=production
+
+  majora_mysql:
+    image: mysql:8.0
+    container_name: majora_mysql
+    environment:
+      MYSQL_DATABASE: majora
+      MYSQL_USER: majora
+      MYSQL_PASSWORD: majora
+      MYSQL_ROOT_PASSWORD: majora
+    volumes:
+      - majora_mysql_data:/var/lib/mysql
+
+  majora_fe:
+    container_name: majora_fe
+    build:
+      context: .
+      dockerfile: dockerfiles/vite_majora/Dockerfile
+    volumes:
+      - ./frontend:/home/node/app
+      - ./docker_volumes/node_modules:/home/node/app/node_modules
+      - ./docker_volumes/static:/home/node/app/dist
+    ports:
+      - 0.0.0.0:3010:8080
+    env_file: .env
+
+  majora_proxy:
+    image: darthjee/tent:0.7.3
+    container_name: majora_proxy
+    env_file: .env
+    volumes:
+      - ./docker_volumes/static/:/var/www/html/static/
+      - ./docker_volumes/proxy_configuration:/var/www/html/configuration/
+      - ./docker_volumes/proxy_cache:/var/www/html/cache/
+    links:
+      - majora_app:backend
+      - majora_fe:frontend
+    depends_on:
+      - majora_app
+      - majora_fe
+    ports:
+      - 0.0.0.0:3000:80
+
+volumes:
+  majora_mysql_data:
