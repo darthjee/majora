@@ -1,5 +1,7 @@
 import Route from './Route.js';
 
+const TEMP_PAGE = '_internal_extract_params_';
+
 /**
  * Route registry and resolver.
  */
@@ -37,6 +39,6 @@ export default class Router {
    */
   static extractParams(path, hash = '') {
     const normalizedHash = String(hash).split('?')[0].replace(/^#/, '');
-    return new Route(path, 'tmp').params(normalizedHash);
+    return new Route(path, TEMP_PAGE).params(normalizedHash);
   }
 }

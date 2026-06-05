@@ -1,4 +1,14 @@
 /**
+ * Escape regex special chars from static route segments.
+ *
+ * @param {string} value - Static route segment.
+ * @returns {string} Escaped segment.
+ */
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Route model to match hash paths and extract dynamic params.
  */
 export default class Route {
@@ -13,7 +23,17 @@ export default class Route {
    * @param {string} page - Page identifier.
    */
   constructor(path, page) {
-    const pattern = path.replace(/:([^/]+)/g, (_, name) => `(?<${name}>[^/]+)`);
+    const pattern = path
+      .split('/')
+      .map((segment) => {
+        if (segment.startsWith(':')) {
+          return `(?<${segment.slice(1)}>[^/]+)`;
+        }
+
+        return escapeRegex(segment);
+      })
+      .join('/');
+
     this.#regex = new RegExp(`^${pattern}/?$`);
     this.#page = page;
   }
