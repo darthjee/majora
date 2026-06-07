@@ -1,6 +1,22 @@
 version: '3.8'
 
 services:
+  majora_mysql:
+    image: mysql:9.3.0
+    container_name: majora_mysql
+    env_file: .env
+    environment:
+      MYSQL_DATABASE: majora
+      MYSQL_USER: majora
+      MYSQL_PASSWORD: majora
+      MYSQL_ROOT_PASSWORD: majora
+    ports:
+      - 0.0.0.0:$MAJORA_MYSQL_PORT:3306
+    volumes:
+      - ./docker_volumes/mysql_data:/var/lib/mysql
+
+  #################### Base  ####################
+
   base: &base
     image: darthjee/majora
     volumes:
@@ -16,6 +32,21 @@ services:
       dockerfile: dockerfiles/majora/Dockerfile
     command: echo done
 
+  base_prod: &base_prod
+    image: darthjee/production_majora
+    links:
+      - majora_mysql:mysql
+    env_file: .env.prod
+
+  base_prod_build:
+    <<: *base_prod
+    build:
+      context: .
+      dockerfile: dockerfiles/production_majora/Dockerfile
+    command: echo done
+
+  #################### DEV CONTAINERS ####################
+  
   majora_app:
     <<: *base
     container_name: majora_app
@@ -33,19 +64,6 @@ services:
     depends_on:
       - base_build
 
-  base_prod: &base_prod
-    image: darthjee/production_majora
-    links:
-      - majora_mysql:mysql
-    env_file: .env.prod
-
-  base_prod_build:
-    <<: *base_prod
-    build:
-      context: .
-      dockerfile: dockerfiles/production_majora/Dockerfile
-    command: echo done
-
   majora_prod_app:
     <<: *base_prod
     container_name: majora_prod_app
@@ -57,17 +75,6 @@ services:
     environment:
       - MAJORA_MYSQL_PORT=3306
       - STAGE=production
-
-  majora_mysql:
-    image: mysql:8.0
-    container_name: majora_mysql
-    environment:
-      MYSQL_DATABASE: majora
-      MYSQL_USER: majora
-      MYSQL_PASSWORD: majora
-      MYSQL_ROOT_PASSWORD: majora
-    volumes:
-      - majora_mysql_data:/var/lib/mysql
 
   majora_fe:
     container_name: majora_fe
@@ -98,6 +105,3 @@ services:
       - majora_fe
     ports:
       - 0.0.0.0:3000:80
-
-volumes:
-  majora_mysql_data:
