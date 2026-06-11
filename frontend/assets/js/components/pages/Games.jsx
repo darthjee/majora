@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import GamesController from './controllers/GamesController.js';
+import GamesHelper from './helpers/GamesHelper.jsx';
 
 /**
  * Render games index page.
@@ -20,12 +21,12 @@ export default function Games() {
   useEffect(() => controller.buildEffect()(), [controller]);
 
   if (loading) {
-    return <div>Loading games...</div>;
+    return GamesHelper.renderLoading();
   }
 
   if (error) {
-    return <div>{error}</div>;
+    return GamesHelper.renderError(error);
   }
 
-  return <div>Games ({games.length}) - page {pagination.page}</div>;
+  return GamesHelper.render(games, pagination);
 }

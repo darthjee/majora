@@ -26,7 +26,7 @@ class GameListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Game
-        fields = ['name', 'game_slug']
+        fields = ['name', 'game_slug', 'photo']
 
 
 class GameDetailSerializer(serializers.ModelSerializer):
@@ -36,7 +36,7 @@ class GameDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Game
-        fields = ['name', 'game_slug', 'links']
+        fields = ['name', 'game_slug', 'photo', 'links']
 
 
 class CharacterListSerializer(serializers.ModelSerializer):
