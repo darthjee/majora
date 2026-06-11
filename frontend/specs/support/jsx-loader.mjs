@@ -7,6 +7,8 @@ import { transformSync } from '@babel/core';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 
+const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'];
+
 /**
  * Resolve hook for the Node.js module loader.
  *
@@ -16,6 +18,10 @@ import { fileURLToPath } from 'url';
  * @returns {Promise<object>} The resolved module.
  */
 export async function resolve(specifier, context, nextResolve) {
+  if (IMAGE_EXTENSIONS.some((ext) => specifier.endsWith(ext))) {
+    // Return a synthetic URL so the load hook can intercept it without Node trying to find the file.
+    return { url: `stub:image:${specifier.split('/').pop()}`, shortCircuit: true };
+  }
   return nextResolve(specifier, context);
 }
 
@@ -58,6 +64,15 @@ export async function load(url, context, nextLoad) {
     return {
       format: 'module',
       source: 'export default {};',
+      shortCircuit: true,
+    };
+  }
+  if (url.startsWith('stub:image:')) {
+    // Static image imports are resolved by Vite at build time; return a fixed filename stub for specs.
+    const filename = url.slice('stub:image:'.length);
+    return {
+      format: 'module',
+      source: `export default '${filename}';`,
       shortCircuit: true,
     };
   }

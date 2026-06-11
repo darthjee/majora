@@ -13,10 +13,11 @@ describe('GameCardHelper', function() {
       expect(renderToStaticMarkup(GameCardHelper.render(game))).toContain('href="#/games/dragon-quest"');
     });
 
-    it('renders a placeholder when photo is null', function() {
+    it('renders the default game photo when photo is null', function() {
       const html = renderToStaticMarkup(GameCardHelper.render(game));
-      expect(html).toContain('No image');
-      expect(html).not.toContain('<img');
+      expect(html).toContain('<img');
+      expect(html).toContain('default_game.png');
+      expect(html).not.toContain('No image');
     });
 
     it('renders an image when photo is provided', function() {
