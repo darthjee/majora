@@ -20,26 +20,29 @@ describe('CardPhoto', function() {
     expect(html).toContain('img-fluid');
   });
 
-  it('renders a placeholder when url is null', function() {
+  it('renders the default game photo when url is null', function() {
     const html = renderToStaticMarkup(
       React.createElement(CardPhoto, { url: null, alt: 'My Game' })
     );
-    expect(html).toContain('No image');
-    expect(html).not.toContain('<img');
+    expect(html).toContain('<img');
+    expect(html).toContain('default_game.png');
+    expect(html).not.toContain('No image');
   });
 
-  it('renders a placeholder when url is undefined', function() {
+  it('renders the default game photo when url is undefined', function() {
     const html = renderToStaticMarkup(
       React.createElement(CardPhoto, { alt: 'My Game' })
     );
-    expect(html).toContain('No image');
-    expect(html).not.toContain('<img');
+    expect(html).toContain('<img');
+    expect(html).toContain('default_game.png');
+    expect(html).not.toContain('No image');
   });
 
-  it('applies card-img-top class to the placeholder', function() {
+  it('applies card-img-top and img-fluid classes to the default photo', function() {
     const html = renderToStaticMarkup(
       React.createElement(CardPhoto, { url: null, alt: 'My Game' })
     );
     expect(html).toContain('card-img-top');
+    expect(html).toContain('img-fluid');
   });
 });
