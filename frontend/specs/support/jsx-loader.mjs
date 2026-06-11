@@ -53,5 +53,13 @@ export async function load(url, context, nextLoad) {
       shortCircuit: true,
     };
   }
+  if (url.includes('/bootstrap/dist/js/')) {
+    // Bootstrap JS bundle requires a browser DOM; stub it out for Node-based specs.
+    return {
+      format: 'module',
+      source: 'export default {};',
+      shortCircuit: true,
+    };
+  }
   return nextLoad(url, context);
 }

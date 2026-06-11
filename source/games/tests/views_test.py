@@ -30,6 +30,20 @@ class TestGamesListView:
         assert 'game-one' in slugs
         assert 'game-two' in slugs
 
+    def test_returns_photo_field(self, client):
+        """Test that the photo field is included in the list response."""
+        Game.objects.create(name='Visual Game', game_slug='visual-game', photo='http://example.com/cover.png')
+        response = client.get('/games.json')
+        data = json.loads(response.content)
+        assert data[0]['photo'] == 'http://example.com/cover.png'
+
+    def test_photo_field_is_null_when_not_set(self, client):
+        """Test that photo is null in the response when not set."""
+        Game.objects.create(name='No Photo', game_slug='no-photo')
+        response = client.get('/games.json')
+        data = json.loads(response.content)
+        assert data[0]['photo'] is None
+
     def test_url_by_name(self, client):
         """Test that the view is accessible by URL name."""
         url = reverse('games-list')
@@ -52,6 +66,7 @@ class TestGameDetailView:
         data = json.loads(response.content)
         assert data['name'] == 'Epic Quest'
         assert data['game_slug'] == 'epic-quest'
+        assert 'photo' in data
 
     def test_returns_404_for_unknown_slug(self, client):
         """Test that 404 is returned for a non-existent game_slug."""
