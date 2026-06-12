@@ -1,36 +1,40 @@
 import React from 'react';
+import CharacterCard from '../../elements/CharacterCard.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
-import GameCard from '../../elements/GameCard.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import Pagination from '../../elements/Pagination.jsx';
 
 /**
- * Rendering helper for the Games listing page.
+ * Rendering helper shared by the GamePcs and GameNpcs pages.
  */
-export default class GamesHelper {
+export default class GameCharactersHelper {
   /**
-   * Render the games grid with pagination.
+   * Render a character grid with pagination.
    *
-   * @param {object[]} games - List of game objects.
+   * @param {object[]} characters - List of character objects.
    * @param {object} pagination - Pagination metadata.
    * @param {number} pagination.page - Current page.
    * @param {number} pagination.pages - Total pages.
    * @param {number} pagination.perPage - Items per page.
-   * @returns {React.ReactElement} Games grid with pagination.
+   * @param {string} basePath - Base hash path used for pagination links (e.g. "#/games/slug/pcs").
+   * @param {string} gameSlug - Game slug passed to each CharacterCard for its detail link.
+   * @param {string} title - Page heading (e.g. "Player Characters").
+   * @returns {React.ReactElement} Characters grid with pagination.
    */
-  static render(games, pagination) {
+  static render(characters, pagination, basePath, gameSlug, title) {
     return (
       <div className="container mt-4">
+        <h1 className="mb-4">{title}</h1>
         <div className="row">
-          {games.map((game) => (
-            <GameCard key={game.game_slug} game={game} />
+          {characters.map((character) => (
+            <CharacterCard key={character.id} character={character} gameSlug={gameSlug} />
           ))}
         </div>
         <Pagination
           currentPage={pagination.page}
           totalPages={pagination.pages}
           perPage={pagination.perPage}
-          basePath="#/games"
+          basePath={basePath}
         />
       </div>
     );
@@ -42,7 +46,7 @@ export default class GamesHelper {
    * @returns {React.ReactElement} Loading message.
    */
   static renderLoading() {
-    return <LoadingMessage message="Loading games..." />;
+    return <LoadingMessage message="Loading..." />;
   }
 
   /**
