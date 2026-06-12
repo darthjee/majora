@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import CharacterController from './controllers/CharacterController.js';
+import CharacterHelper from './helpers/CharacterHelper.jsx';
 
 /**
- * Render character detail page.
+ * Character detail page.
  *
- * @returns {React.ReactElement} Character page.
+ * @returns {React.ReactElement} Character detail page element.
  */
 export default function Character() {
   const [character, setCharacter] = useState(null);
@@ -18,13 +19,7 @@ export default function Character() {
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
-  if (loading) {
-    return <div>Loading character...</div>;
-  }
-
-  if (error) {
-    return <div>{error}</div>;
-  }
-
-  return <div>{character?.name ?? 'Character'}</div>;
+  if (loading) return CharacterHelper.renderLoading();
+  if (error) return CharacterHelper.renderError(error);
+  return CharacterHelper.render(character);
 }

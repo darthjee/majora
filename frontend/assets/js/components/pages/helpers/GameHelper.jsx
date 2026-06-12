@@ -1,6 +1,8 @@
 import React from 'react';
 import CardPhoto from '../../elements/CardPhoto.jsx';
+import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import GameNavLinks from '../../elements/GameNavLinks.jsx';
+import LoadingMessage from '../../elements/LoadingMessage.jsx';
 
 /**
  * Rendering helper for the Game detail page.
@@ -41,11 +43,7 @@ export default class GameHelper {
    * @returns {React.ReactElement} Loading message.
    */
   static renderLoading() {
-    return (
-      <div className="container mt-4 text-center">
-        <p className="text-muted">Loading game...</p>
-      </div>
-    );
+    return <LoadingMessage message="Loading game..." />;
   }
 
   /**
@@ -55,10 +53,6 @@ export default class GameHelper {
    * @returns {React.ReactElement} Error alert.
    */
   static renderError(error) {
-    return (
-      <div className="container mt-4">
-        <div className="alert alert-danger" role="alert">{error}</div>
-      </div>
-    );
+    return <ErrorAlert error={error} />;
   }
 }

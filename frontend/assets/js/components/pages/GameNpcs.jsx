@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import GameNpcsController from './controllers/GameNpcsController.js';
+import { useEffect, useMemo, useState } from 'react';
+import GameNpcsController, { getGameSlugFromNpcsHash } from './controllers/GameNpcsController.js';
+import GameCharactersHelper from './helpers/GameCharactersHelper.jsx';
 
 /**
- * Render game NPCs page.
+ * Game Non-Player Characters index page.
  *
- * @returns {React.ReactElement} Game NPCs page.
+ * @returns {React.ReactElement} Game NPCs page element.
  */
 export default function GameNpcs() {
   const [npcs, setNpcs] = useState([]);
@@ -19,13 +20,10 @@ export default function GameNpcs() {
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
-  if (loading) {
-    return <div>Loading NPCs...</div>;
-  }
+  const gameSlug = getGameSlugFromNpcsHash(window.location.hash);
+  const basePath = `#/games/${gameSlug}/npcs`;
 
-  if (error) {
-    return <div>{error}</div>;
-  }
-
-  return <div>Game NPCs ({npcs.length}) - page {pagination.page}</div>;
+  if (loading) return GameCharactersHelper.renderLoading();
+  if (error) return GameCharactersHelper.renderError(error);
+  return GameCharactersHelper.render(npcs, pagination, basePath, gameSlug, 'Non-Player Characters');
 }

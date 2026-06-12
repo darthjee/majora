@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import GamePcsController from './controllers/GamePcsController.js';
+import { useEffect, useMemo, useState } from 'react';
+import GamePcsController, { getGameSlugFromPcsHash } from './controllers/GamePcsController.js';
+import GameCharactersHelper from './helpers/GameCharactersHelper.jsx';
 
 /**
- * Render game PCs page.
+ * Game Player Characters index page.
  *
- * @returns {React.ReactElement} Game PCs page.
+ * @returns {React.ReactElement} Game PCs page element.
  */
 export default function GamePcs() {
   const [pcs, setPcs] = useState([]);
@@ -19,13 +20,10 @@ export default function GamePcs() {
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
-  if (loading) {
-    return <div>Loading PCs...</div>;
-  }
+  const gameSlug = getGameSlugFromPcsHash(window.location.hash);
+  const basePath = `#/games/${gameSlug}/pcs`;
 
-  if (error) {
-    return <div>{error}</div>;
-  }
-
-  return <div>Game PCs ({pcs.length}) - page {pagination.page}</div>;
+  if (loading) return GameCharactersHelper.renderLoading();
+  if (error) return GameCharactersHelper.renderError(error);
+  return GameCharactersHelper.render(pcs, pagination, basePath, gameSlug, 'Player Characters');
 }
