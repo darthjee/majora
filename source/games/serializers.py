@@ -36,7 +36,7 @@ class GameDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Game
-        fields = ['name', 'game_slug', 'photo', 'links']
+        fields = ['name', 'game_slug', 'photo', 'description', 'links']
 
 
 class CharacterListSerializer(serializers.ModelSerializer):

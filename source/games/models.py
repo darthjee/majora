@@ -10,6 +10,7 @@ class Game(models.Model):
     name = models.CharField(max_length=200)
     game_slug = models.SlugField(unique=True, max_length=200)
     photo = models.URLField(null=True, blank=True)
+    description = models.TextField(blank=True, default='')
 
     class Meta:
         ordering = ['name']

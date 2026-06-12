@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import GameController from './controllers/GameController.js';
+import GameHelper from './helpers/GameHelper.jsx';
 
 /**
- * Render game detail page.
+ * Game detail page.
  *
- * @returns {React.ReactElement} Game page.
+ * @returns {React.ReactElement} Game detail page element.
  */
 export default function Game() {
   const [game, setGame] = useState(null);
@@ -18,13 +19,7 @@ export default function Game() {
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
-  if (loading) {
-    return <div>Loading game...</div>;
-  }
-
-  if (error) {
-    return <div>{error}</div>;
-  }
-
-  return <div>{game?.name ?? 'Game'}</div>;
+  if (loading) return GameHelper.renderLoading();
+  if (error) return GameHelper.renderError(error);
+  return GameHelper.render(game);
 }
