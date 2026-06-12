@@ -1,5 +1,7 @@
 import React from 'react';
 import CardAvatar from '../../elements/CardAvatar.jsx';
+import CharacterInfo from '../../elements/CharacterInfo.jsx';
+import CharacterPhotos from '../../elements/CharacterPhotos.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 
@@ -26,28 +28,14 @@ export default class CharacterHelper {
           <div className="col-md-4">
             <CardAvatar url={character.avatar_url} alt={character.name} />
           </div>
-          <div className="col-md-8">
-            <h1>{character.name}</h1>
-            {character.character_class && (
-              <p className="text-muted mb-1">
-                <strong>Class:</strong> {character.character_class}
-                {character.level !== null && character.level !== undefined && <span> &mdash; Level {character.level}</span>}
-              </p>
-            )}
-            {character.description && (
-              <p className="mt-3">{character.description}</p>
-            )}
-          </div>
+          <CharacterInfo
+            name={character.name}
+            character_class={character.character_class}
+            level={character.level}
+            description={character.description}
+          />
         </div>
-        {character.photos && character.photos.length > 0 && (
-          <div className="row mt-4">
-            {character.photos.map((photo) => (
-              <div key={photo.id} className="col-sm-6 col-md-4 mb-3">
-                <img src={photo.url} className="img-fluid rounded" alt={character.name} />
-              </div>
-            ))}
-          </div>
-        )}
+        <CharacterPhotos photos={character.photos} alt={character.name} />
       </div>
     );
   }
