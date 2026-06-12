@@ -1,4 +1,5 @@
 import React from 'react';
+import CharacterPhoto from './CharacterPhoto.jsx';
 
 /**
  * Gallery of additional character photos.
@@ -17,9 +18,7 @@ export default function CharacterPhotos({ photos, alt }) {
   return (
     <div className="row mt-4">
       {photos.map((photo) => (
-        <div key={photo.id} className="col-sm-6 col-md-4 mb-3">
-          <img src={photo.url} className="img-fluid rounded" alt={alt} />
-        </div>
+        <CharacterPhoto key={photo.id} url={photo.url} alt={alt} />
       ))}
     </div>
   );
