@@ -94,6 +94,21 @@ Delegate all rendering to `CharacterHelper`.
 - `frontend/assets/js/components/pages/GameNpcs.jsx`
 - `frontend/assets/js/components/pages/Character.jsx`
 
+### Step 9 — Review all pages and components for extraction opportunities
+
+After all new code is in place, review the full set of helpers and components — both new and
+existing — and extract any repetitive or complex HTML blocks into reusable elements.
+
+Candidates to evaluate:
+- Loading and error states: `renderLoading` and `renderError` appear in every page helper
+  with nearly identical markup — consider a shared `LoadingMessage` and `ErrorAlert` element.
+- Photo/avatar column layout in `GameHelper` (`col-md-4` + `CardPhoto`) may match a pattern
+  used in `CharacterHelper`.
+- Any other repeated Bootstrap structures across helpers.
+
+Only extract when the block is genuinely reused in two or more places or is complex enough to
+warrant its own component. Add specs for any new elements extracted.
+
 ## CI Checks
 
 Before opening a PR:
