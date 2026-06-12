@@ -68,6 +68,20 @@ class TestGameDetailView:
         assert data['game_slug'] == 'epic-quest'
         assert 'photo' in data
 
+    def test_returns_description_field(self, client):
+        """Test that description is included in the detail response."""
+        self.game.description = 'A heroic adventure in Middle Earth.'
+        self.game.save()
+        response = client.get('/games/epic-quest.json')
+        data = json.loads(response.content)
+        assert data['description'] == 'A heroic adventure in Middle Earth.'
+
+    def test_description_is_empty_string_when_not_set(self, client):
+        """Test that description defaults to empty string."""
+        response = client.get('/games/epic-quest.json')
+        data = json.loads(response.content)
+        assert data['description'] == ''
+
     def test_returns_404_for_unknown_slug(self, client):
         """Test that 404 is returned for a non-existent game_slug."""
         response = client.get('/games/unknown-game.json')
