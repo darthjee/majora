@@ -1,5 +1,6 @@
 import React from 'react';
 import CardPhoto from '../../elements/CardPhoto.jsx';
+import GameNavLinks from '../../elements/GameNavLinks.jsx';
 
 /**
  * Rendering helper for the Game detail page.
@@ -27,26 +28,7 @@ export default class GameHelper {
             {game.description && (
               <p className="mt-3">{game.description}</p>
             )}
-            <div className="mt-4 d-flex flex-wrap gap-2">
-              <a
-                href={`#/games/${game.game_slug}/pcs`}
-                className="btn btn-outline-primary"
-              >
-                Player Characters
-              </a>
-              <a
-                href={`#/games/${game.game_slug}/npcs`}
-                className="btn btn-outline-secondary"
-              >
-                Non-Player Characters
-              </a>
-              <a
-                href={`#/games/${game.game_slug}/players`}
-                className="btn btn-outline-success"
-              >
-                Players
-              </a>
-            </div>
+            <GameNavLinks gameSlug={game.game_slug} />
           </div>
         </div>
       </div>
