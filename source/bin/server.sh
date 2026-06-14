@@ -2,6 +2,8 @@
 
 if [ "$CREATE_DB" = "true" ]; then
   bin/configure_database.sh all
+else
+  bin/configure_database.sh migrate
 fi
 
 if [ "$STAGE" = "production" ]; then
