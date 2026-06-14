@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RENDER_SERVICE_NAME="majora"
+RENDER_SERVICE_NAME="${RENDER_SERVICE_NAME:-majora}"
 
 function request() {
   METHOD=$1
