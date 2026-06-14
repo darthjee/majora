@@ -145,7 +145,7 @@ jobs:
           command: deploy_frontend.sh generate_key_file
       - run:
           name: Upload proxy configuration
-          command: TARGET=configuration/ SOURCE=docker_volumes/proxy_configuration/ deploy_frontend.sh copy_files
+          command: TARGET=configuration/ deploy_frontend.sh copy_files
 
   upload_fe_files:
     docker:
@@ -182,7 +182,7 @@ jobs:
           command: deploy_frontend.sh generate_key_file
       - run:
           name: Copy photos
-          command: TARGET=photos/ SOURCE=photos/ deploy_frontend.sh copy_files
+          command: TARGET=photos/ deploy_frontend.sh copy_files
 
   build-and-release:
     machine: true
