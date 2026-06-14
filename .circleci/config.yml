@@ -19,6 +19,13 @@ workflows:
           filters:
             tags:
               only: /.*/
+      - build-and-release:
+          requires: [pytest, jasmine, frontend-checks, checks]
+          filters:
+            tags:
+              only: /\d+\.\d+\.\d+/
+            branches:
+              ignore: /.*/
       - upload_proxy_files:
           requires: [pytest, jasmine, frontend-checks, checks]
           filters:
@@ -26,8 +33,22 @@ workflows:
               only: /\d+\.\d+\.\d+/
             branches:
               ignore: /.*/
-      - build-and-release:
+      - upload_fe_files:
           requires: [pytest, jasmine, frontend-checks, checks]
+          filters:
+            tags:
+              only: /\d+\.\d+\.\d+/
+            branches:
+              ignore: /.*/
+      - upload_photos:
+          requires: [pytest, jasmine, frontend-checks, checks]
+          filters:
+            tags:
+              only: /\d+\.\d+\.\d+/
+            branches:
+              ignore: /.*/
+      - release:
+          requires: [build-and-release, upload_proxy_files, upload_fe_files, upload_photos]
           filters:
             tags:
               only: /\d+\.\d+\.\d+/
@@ -115,7 +136,7 @@ jobs:
 
   upload_proxy_files:
     docker:
-      - image: darthjee/tent:0.7.5
+      - image: darthjee/tent:0.7.6
     workdir: /var/www/html
     steps:
       - checkout
@@ -124,7 +145,44 @@ jobs:
           command: deploy_frontend.sh generate_key_file
       - run:
           name: Upload proxy configuration
-          command: TARGET=configuration/ SOURCE=docker_volumes/proxy_configuration/ deploy_frontend.sh copy_files
+          command: TARGET=configuration/ deploy_frontend.sh copy_files
+
+  upload_fe_files:
+    docker:
+      - image: darthjee/vite_majora-base:0.0.1
+    steps:
+      - checkout
+      - run:
+          name: Set folder
+          command: rm source -rf; cp frontend/* ./ -r; rm frontend -rf
+      - run:
+          name: Yarn install
+          command: yarn install
+      - run:
+          name: Build assets
+          command: deploy_frontend.sh build
+      - run:
+          name: Generate key file
+          command: deploy_frontend.sh generate_key_file
+      - run:
+          name: Generate folder
+          command: SSH_REMOTE_TEMP_DIR=$SSH_REMOTE_TEMP_DIR/static/ deploy_frontend.sh generate_folder
+      - run:
+          name: Upload assets
+          command: SOURCE=dist/ SSH_REMOTE_TEMP_DIR=$SSH_REMOTE_TEMP_DIR/static/ deploy_frontend.sh upload
+
+  upload_photos:
+    docker:
+      - image: darthjee/tent:0.7.6
+    workdir: /var/www/html
+    steps:
+      - checkout
+      - run:
+          name: Generate key file
+          command: deploy_frontend.sh generate_key_file
+      - run:
+          name: Copy photos
+          command: TARGET=photos/ deploy_frontend.sh copy_files
 
   build-and-release:
     machine: true
@@ -133,3 +191,15 @@ jobs:
       - run:
           name: Trigger Deploy
           command: scripts/deploy.sh deploy
+
+  release:
+    docker:
+      - image: darthjee/vite_majora-base:0.0.1
+    steps:
+      - checkout
+      - run:
+          name: Generate key file
+          command: deploy_frontend.sh generate_key_file
+      - run:
+          name: Release assets
+          command: deploy_frontend.sh release
