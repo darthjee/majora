@@ -40,7 +40,7 @@ workflows:
               only: /\d+\.\d+\.\d+/
             branches:
               ignore: /.*/
-      - upload_photos:
+      - link_photos:
           requires: [pytest, jasmine, frontend-checks, checks]
           filters:
             tags:
@@ -48,7 +48,7 @@ workflows:
             branches:
               ignore: /.*/
       - release:
-          requires: [build-and-release, upload_proxy_files, upload_fe_files, upload_photos]
+          requires: [build-and-release, upload_proxy_files, upload_fe_files, link_photos]
           filters:
             tags:
               only: /\d+\.\d+\.\d+/
@@ -174,7 +174,7 @@ jobs:
           name: Upload assets
           command: SOURCE=dist/ SSH_REMOTE_TEMP_DIR=$SSH_REMOTE_TEMP_DIR/static/ deploy_frontend.sh upload
 
-  upload_photos:
+  link_photos:
     docker:
       - image: darthjee/tent:0.7.8
     workdir: /var/www/html
@@ -187,7 +187,7 @@ jobs:
           name: Generate folder
           command: deploy_frontend.sh generate_folder
       - run:
-          name: Copy photos
+          name: Link photos
           command: SOURCE=$HOME/photos TARGET=$SSH_REMOTE_TEMP_DIR/photos deploy_frontend.sh link
 
   build-and-release:
