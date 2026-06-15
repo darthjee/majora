@@ -184,6 +184,9 @@ jobs:
           name: Generate key file
           command: deploy_frontend.sh generate_key_file
       - run:
+          name: Generate folder
+          command: deploy_frontend.sh generate_folder
+      - run:
           name: Copy photos
           command: SOURCE=$HOME/photos TARGET=$SSH_REMOTE_TEMP_DIR/photos deploy_frontend.sh link
 
