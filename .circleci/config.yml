@@ -144,6 +144,9 @@ jobs:
           name: Generate key file
           command: deploy_frontend.sh generate_key_file
       - run:
+          name: Upload proxy files
+          command: SOURCE=/var/www/html/ deploy_frontend.sh upload
+      - run:
           name: Upload proxy configuration
           command: TARGET=configuration/ deploy_frontend.sh copy_files
 
