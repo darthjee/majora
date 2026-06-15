@@ -136,7 +136,7 @@ jobs:
 
   upload_proxy_files:
     docker:
-      - image: darthjee/tent:0.7.6
+      - image: darthjee/tent:0.7.8
     workdir: /var/www/html
     steps:
       - checkout
@@ -176,7 +176,7 @@ jobs:
 
   upload_photos:
     docker:
-      - image: darthjee/tent:0.7.6
+      - image: darthjee/tent:0.7.8
     workdir: /var/www/html
     steps:
       - checkout
