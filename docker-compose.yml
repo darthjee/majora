@@ -91,7 +91,7 @@ services:
     env_file: .env
 
   majora_proxy:
-    image: darthjee/tent:0.7.5
+    image: darthjee/tent:0.7.8
     container_name: majora_proxy
     env_file: .env
     volumes:

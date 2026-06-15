@@ -136,13 +136,16 @@ jobs:
 
   upload_proxy_files:
     docker:
-      - image: darthjee/tent:0.7.6
+      - image: darthjee/tent:0.7.8
     workdir: /var/www/html
     steps:
       - checkout
       - run:
           name: Generate key file
           command: deploy_frontend.sh generate_key_file
+      - run:
+          name: Upload proxy files
+          command: SOURCE=/var/www/html/ deploy_frontend.sh upload
       - run:
           name: Upload proxy configuration
           command: TARGET=configuration/ deploy_frontend.sh copy_files
@@ -173,7 +176,7 @@ jobs:
 
   upload_photos:
     docker:
-      - image: darthjee/tent:0.7.6
+      - image: darthjee/tent:0.7.8
     workdir: /var/www/html
     steps:
       - checkout
@@ -182,7 +185,7 @@ jobs:
           command: deploy_frontend.sh generate_key_file
       - run:
           name: Copy photos
-          command: TARGET=photos/ deploy_frontend.sh copy_files
+          command: SOURCE=$HOME/photos TARGET=$SSH_REMOTE_TEMP_DIR/photos deploy_frontend.sh link
 
   build-and-release:
     machine: true
