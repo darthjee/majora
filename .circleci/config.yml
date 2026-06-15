@@ -185,7 +185,7 @@ jobs:
           command: deploy_frontend.sh generate_key_file
       - run:
           name: Copy photos
-          command: TARGET=photos/ deploy_frontend.sh copy_files
+          command: SOURCE=$HOME/photos TARGET=$SSH_REMOTE_TEMP_DIR/photos deploy_frontend.sh link
 
   build-and-release:
     machine: true
