@@ -188,7 +188,7 @@ jobs:
           command: deploy_frontend.sh generate_folder
       - run:
           name: Link photos
-          command: SOURCE=$HOME/photos TARGET=$SSH_REMOTE_TEMP_DIR/photos deploy_frontend.sh link
+          command: SOURCE=$REMOTE_HOME/photos TARGET=$SSH_REMOTE_TEMP_DIR/photos deploy_frontend.sh link
 
   build-and-release:
     machine: true
