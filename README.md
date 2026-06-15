@@ -9,3 +9,35 @@ Repository for information for RP games
 **Current Version:** [0.0.1](https://github.com/darthjee/majora/releases/tag/0.0.1)
 
 **Next Release:** [0.0.2](https://github.com/darthjee/majora/compare/0.0.1...main)
+
+## About
+
+## Technology Stack
+
+- **Python/Django** — Main application framework
+- **MySQL 9.3.0** — Relational database
+- **React + Bootstrap** - Frontend
+- **Docker & Docker Compose** — Containerization and orchestration
+
+## Project Structure
+
+## Development Setup
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) installed
+
+### First Time Setup
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/darthjee/majora.git
+   cd oak
+   ```
+
+2. Run project setup (creates `.env` from `.env.example`, installs dependencies, and prepares the database):
+   ```bash
+   make setup
+   ```
+
+3. Review and adjust `.env` values if needed.
