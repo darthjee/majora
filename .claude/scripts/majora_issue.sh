@@ -156,7 +156,7 @@ case ${1:-} in
 
     branch=""
     if [[ -f "$plan_file" ]]; then
-      branch=$(grep -A1 '^## Branch' "$plan_file" | tail -1 | tr -d '`[:space:]' || true)
+      branch=$(grep -A2 '^## Branch' "$plan_file" | tail -1 | tr -d '`[:space:]' || true)
     fi
 
     if [[ -z "$branch" ]]; then
@@ -339,12 +339,17 @@ Fixes #${id}"
         exit 0
       fi
 
-      # Check for approval from the PR owner
-      approved=$(echo "$pr_data" | jq -r \
-        "[.reviews[] | select(.author.login == \"${pr_owner}\" and .state == \"APPROVED\")] | length" \
+      if [[ "$state" == "CLOSED" ]]; then
+        echo "closed"
+        exit 0
+      fi
+
+      # Check approval: only the LATEST review from the owner counts
+      latest_review_state=$(echo "$pr_data" | jq -r \
+        "[.reviews[] | select(.author.login == \"${pr_owner}\")] | sort_by(.submittedAt) | last | .state" \
         2>/dev/null) || { sleep 5; continue; }
 
-      if [[ "$approved" -gt 0 ]]; then
+      if [[ "$latest_review_state" == "APPROVED" ]]; then
         echo "approved"
         exit 0
       fi

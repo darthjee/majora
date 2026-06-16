@@ -77,7 +77,7 @@ Run:
 bash .claude/scripts/majora_issue.sh monitor-pr <id>
 ```
 
-This command **blocks** — it loops internally (5s sleep between checks, retries on error) until the PR is merged, approved, or the owner comments. The first output line is `merged`, `approved`, or `commented`.
+This command **blocks** — it loops internally (5s sleep between checks, retries on error) until the PR is merged, approved, closed, or the owner comments. The first output line is `merged`, `approved`, `closed`, or `commented`.
 
 ---
 
@@ -88,6 +88,19 @@ bash .claude/scripts/majora_queue.sh pop
 ```
 
 Go to **Step 2** to process the next issue.
+
+---
+
+#### If `closed`
+
+The PR was closed without merging. Ask the user:
+
+> PR #<num> for issue <id> was closed without merging. What would you like to do?
+> 1. Reimplement from scratch (checkout from main and restart the pipeline for this issue)
+> 2. Skip this issue and move on to the next one
+
+- If **reimplement**: pop the queue, re-add this ID to the front, go to **Step 2**.
+- If **skip**: pop the queue, go to **Step 2**.
 
 ---
 
