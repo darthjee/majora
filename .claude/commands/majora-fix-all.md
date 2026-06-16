@@ -99,7 +99,7 @@ The PR was closed without merging. Ask the user:
 > 1. Reimplement from scratch (checkout from main and restart the pipeline for this issue)
 > 2. Skip this issue and move on to the next one
 
-- If **reimplement**: pop the queue, re-add this ID to the front, go to **Step 2**.
+- If **reimplement**: go directly to **Step 2** (the ID stays at the front of the queue).
 - If **skip**: pop the queue, go to **Step 2**.
 
 ---

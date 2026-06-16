@@ -131,6 +131,10 @@ case ${1:-} in
     git fetch origin
     git checkout main
     git pull origin main
+    if git show-ref --verify --quiet "refs/heads/issue-${id}"; then
+      git branch -D "issue-${id}"
+    fi
+    git push origin --delete "issue-${id}" 2>/dev/null || true
     git checkout -b "issue-${id}"
     echo "issue-${id}"
     ;;
