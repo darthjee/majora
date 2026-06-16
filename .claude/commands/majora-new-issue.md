@@ -79,7 +79,14 @@ Create the file at the path returned in step 3 with this structure:
 When content came from a GitHub issue, adapt the `body` into this structure rather than copying it verbatim.
 When no GitHub content is available, fill in the best description you can infer from the title, leaving acceptance criteria as `- [ ] TODO`.
 
-### 5. Sync to GitHub
+### 5. Commit the issue file
+
+Run:
+```
+bash .claude/scripts/majora_issue.sh commit-issue <id>
+```
+
+### 6. Sync to GitHub
 
 Run:
 ```

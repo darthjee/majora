@@ -183,6 +183,13 @@ environment variables, Docker changes. Omit if infra works in isolation.>
 
 ---
 
-### 7. Done
+### 7. Commit the plan
 
-Do not ask for confirmation. The plan is complete when all relevant files are written.
+Run:
+```
+bash .claude/scripts/majora_issue.sh commit-plan <id>
+```
+
+### 8. Done
+
+Do not ask for confirmation. The plan is complete when all relevant files are committed.

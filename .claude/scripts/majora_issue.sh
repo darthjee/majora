@@ -7,19 +7,26 @@
 #   x-prefixed (x01)    — local-only issue, no GitHub counterpart
 #
 # Commands:
-#   next-id             — next numeric ID from existing issue files
-#   next-local-id       — next x-prefixed ID (x01, x02, ...) from existing issue files
-#   filename <id> <title> — canonical path: docs/agents/issues/<id>_<slug>.md
-#   plan-dir <id>       — canonical plan directory: docs/agents/plans/<id>_<slug>
-#   read-github <id>    — fetch GitHub issue JSON (number, title, body); numeric IDs only
-#   write-github <id>   — update GitHub issue from local file; skips silently for x-prefixed IDs
-#   create-branch <id>  — create and checkout the branch defined in plan.md, or issue-<id>
-#   draft-pr <id>       — push current branch and open a draft PR linked to the issue
+#   next-id                — next numeric ID from existing issue files
+#   next-local-id          — next x-prefixed ID (x01, x02, ...) from existing issue files
+#   filename <id> <title>  — canonical path: docs/agents/issues/<id>_<slug>.md
+#   plan-dir <id>          — canonical plan directory: docs/agents/plans/<id>_<slug>
+#   read-github <id>       — fetch GitHub issue JSON (number, title, body); numeric IDs only
+#   write-github <id>      — update GitHub issue from local file; skips silently for x-prefixed IDs
+#   checkout-from-main <id>— fetch + pull main + checkout -b issue-<id>
+#   commit-issue <id>      — git add + commit the issue file
+#   commit-plan <id>       — git add + commit the plan directory
+#   create-branch <id>     — create and checkout the branch defined in plan.md, or issue-<id>
+#   draft-pr <id>          — push current branch, open a draft PR, save PR URL to .claude/state/
+#   monitor-pr <id>        — check PR status: outputs "merged", "commented", or "waiting"
+#                            on "commented", subsequent lines are the new comment bodies (author: darthjee only)
 
 set -euo pipefail
 
 ISSUES_DIR="docs/agents/issues"
 REPO="darthjee/majora"
+PR_OWNER="darthjee"
+STATE_DIR=".claude/state"
 
 _is_local_id() {
   [[ "$1" =~ ^x ]]
@@ -43,7 +50,6 @@ _extract_title() {
 
 _extract_body() {
   local file="$1"
-  tail -n +2 "$file" | sed '/^$/d' | head -1 > /dev/null
   tail -n +2 "$file"
 }
 
@@ -97,6 +103,29 @@ case ${1:-} in
     gh issue edit "$id" --repo "$REPO" --title "$title" --body "$body"
     ;;
 
+  checkout-from-main)
+    id=${2:?checkout-from-main requires an id}
+    git fetch origin
+    git checkout main
+    git pull origin main
+    git checkout -b "issue-${id}"
+    echo "issue-${id}"
+    ;;
+
+  commit-issue)
+    id=${2:?commit-issue requires an id}
+    file=$(_find_issue_file "$id")
+    git add "$file"
+    git commit -m "docs: add issue ${id}"
+    ;;
+
+  commit-plan)
+    id=${2:?commit-plan requires an id}
+    plan_dir=$(bash "$0" plan-dir "$id")
+    git add "$plan_dir"
+    git commit -m "docs: add plan for issue ${id}"
+    ;;
+
   create-branch)
     id=${2:?create-branch requires an id}
     plan_dir=$(bash "$0" plan-dir "$id")
@@ -141,16 +170,63 @@ $(cat "$plan_file")"
     fi
 
     git push -u origin "$branch"
-    gh pr create \
+    pr_url=$(gh pr create \
       --repo "$REPO" \
       --draft \
       --title "$title" \
       --body "$pr_body" \
-      --head "$branch"
+      --head "$branch")
+
+    mkdir -p "$STATE_DIR"
+    echo "$pr_url" > "${STATE_DIR}/${id}_pr.txt"
+    echo "$pr_url"
+    ;;
+
+  monitor-pr)
+    id=${2:?monitor-pr requires an id}
+    pr_file="${STATE_DIR}/${id}_pr.txt"
+
+    if [[ ! -f "$pr_file" ]]; then
+      echo "Error: no PR URL found for issue '${id}' — was draft-pr run?" >&2
+      exit 1
+    fi
+
+    pr_url=$(cat "$pr_file")
+    pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
+
+    # Check merge state
+    state=$(gh pr view "$pr_num" --repo "$REPO" --json state --jq '.state')
+    if [[ "$state" == "MERGED" ]]; then
+      echo "merged"
+      exit 0
+    fi
+
+    # Check for new comments from the repo owner only
+    last_time_file="${STATE_DIR}/${id}_last_comment_time.txt"
+    last_time=$(cat "$last_time_file" 2>/dev/null || echo "1970-01-01T00:00:00Z")
+
+    new_comments=$(gh pr view "$pr_num" --repo "$REPO" --json comments \
+      --jq "[.comments[] | select(.author.login == \"${PR_OWNER}\" and .createdAt > \"${last_time}\")]")
+
+    count=$(gh pr view "$pr_num" --repo "$REPO" --json comments \
+      --jq "[.comments[] | select(.author.login == \"${PR_OWNER}\" and .createdAt > \"${last_time}\")] | length")
+
+    if [[ "$count" -gt 0 ]]; then
+      latest_time=$(gh pr view "$pr_num" --repo "$REPO" --json comments \
+        --jq "[.comments[] | select(.author.login == \"${PR_OWNER}\" and .createdAt > \"${last_time}\")] | map(.createdAt) | max")
+      mkdir -p "$STATE_DIR"
+      echo "$latest_time" > "$last_time_file"
+      echo "commented"
+      gh pr view "$pr_num" --repo "$REPO" --json comments \
+        --jq "[.comments[] | select(.author.login == \"${PR_OWNER}\" and .createdAt > \"${last_time}\")] | .[] | \"---\n\" + .body"
+      exit 0
+    fi
+
+    echo "waiting"
     ;;
 
   *)
-    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|write-github <id>|create-branch <id>|draft-pr <id>}" >&2
+    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|write-github <id>|checkout-from-main <id>|commit-issue <id>|commit-plan <id>|create-branch <id>|draft-pr <id>|monitor-pr <id>}" >&2
     exit 1
     ;;
 esac
