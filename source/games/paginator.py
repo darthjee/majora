@@ -10,10 +10,17 @@ class Paginator:
 
     def __init__(self, request, queryset):
         """Initialise with the incoming request and the full queryset."""
+        self.request = request
         self.queryset = queryset.order_by('id')
-        self.page = self._parse_int(request.GET.get('page'), default=1)
-        self.per_page = self._parse_int(
-            request.GET.get('per_page'),
+
+    def page(self):
+        """Return the current page number parsed from the request, defaulting to 1."""
+        return self._parse_int(self.request.GET.get('page'), default=1)
+
+    def per_page(self):
+        """Return the page size parsed from the request, defaulting to Settings.pagination_size."""
+        return self._parse_int(
+            self.request.GET.get('per_page'),
             default=Settings.pagination_size(),
         )
 
@@ -26,22 +33,22 @@ class Paginator:
 
     def _total_pages(self, total):
         """Return the total number of pages for *total* items."""
-        if self.per_page <= 0:
+        if self.per_page() <= 0:
             return 1
-        return max(1, math.ceil(total / self.per_page))
+        return max(1, math.ceil(total / self.per_page()))
 
     def _slice_bounds(self):
         """Return (start, end) indices for the current page slice."""
-        start = (self.page - 1) * self.per_page
-        end = start + self.per_page
+        start = (self.page() - 1) * self.per_page()
+        end = start + self.per_page()
         return start, end
 
     def _headers(self, total, pages):
         """Build the pagination response headers dict."""
         return {
-            'page': self.page,
+            'page': self.page(),
             'pages': pages,
-            'per_page': self.per_page,
+            'per_page': self.per_page(),
             'total': total,
         }
 
