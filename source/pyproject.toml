@@ -15,6 +15,7 @@ django-cors-headers = "^4.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0"
+pytest-cov = "^6.0"
 pytest-django = "^4.8"
 ruff = "^0.3"
 radon = "^6.0"
@@ -24,6 +25,13 @@ lizard = "^1.17"
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "majora_project.settings"
 pythonpath = ["."]
+
+[tool.coverage.run]
+source = ["games"]
+omit = ["*/migrations/*", "*/tests/*"]
+
+[tool.coverage.report]
+omit = ["*/migrations/*", "*/tests/*"]
 
 [tool.ruff]
 line-length = 100

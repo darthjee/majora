@@ -107,6 +107,17 @@ services:
     ports:
       - 0.0.0.0:3000:80
 
+  majora_navi:
+    image: darthjee/navi-hey:latest
+    volumes:
+      - .circleci/:/home/node/app
+    command: navi-hey --config navi_config.yaml
+    environment:
+      - MAJORA_PRODUCTION_URL=$MAJORA_PRODUCTION_URL
+      - NAVI_PORT=3000
+    ports:
+      - 0.0.0.0:3100:3000
+
   majora_phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: majora_phpmyadmin

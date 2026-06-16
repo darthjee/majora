@@ -9,8 +9,9 @@
 | `dockerfiles/` | Dockerfiles for each service image (backend, frontend, production variants). |
 | `docker_volumes/` | Bind-mounted volumes used by Docker services (static assets, proxy config, node_modules, etc.). |
 | `docs/` | Project documentation for agents and contributors. |
+| `.circleci/` | CircleCI pipeline config (`config.yml`) and Navi cache-warmer config (`navi_config.yaml`). |
 | `Makefile` | Common development commands (`make dev-up`, `make tests`, `make setup`, etc.). |
-| `docker-compose.yml` | Full stack service definitions (app, frontend, proxy, MySQL). |
+| `docker-compose.yml` | Full stack service definitions (app, frontend, proxy, MySQL, Navi cache warmer). |
 | `README.md` | Project overview. |
 
 ## `source/` — Backend

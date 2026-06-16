@@ -60,6 +60,8 @@ All project documentation lives under [`docs/agents/`](docs/agents/):
 | [Folder Structure](docs/agents/folder-structure.md) | Top-level directory layout and the role of each folder. |
 | [Architecture](docs/agents/architecture.md) | Source layout, modules, code style, and implementation guidelines. |
 | [Flow](docs/agents/flow.md) | Main runtime flow of the application. |
+| [Cache Warmer](docs/agents/cache-warmer.md) | Navi setup for warming the proxy cache after release (CI and local). |
+| [How to Use Navi](docs/agents/HOW_TO_USE_NAVI.md) | Full Navi reference: config format, chaining, pagination, CLI flags. |
 | [Plans](docs/agents/plans/) | Implementation plans for ongoing or upcoming features. |
 | [Issues](docs/agents/issues/) | Detailed specs for open issues. |
 

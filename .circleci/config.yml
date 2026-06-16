@@ -19,6 +19,11 @@ workflows:
           filters:
             tags:
               only: /.*/
+      - coverage-final:
+          requires: [pytest, jasmine]
+          filters:
+            tags:
+              only: /.*/
       - build-and-release:
           requires: [pytest, jasmine, frontend-checks, checks]
           filters:
@@ -54,6 +59,13 @@ workflows:
               only: /\d+\.\d+\.\d+/
             branches:
               ignore: /.*/
+      - warm-up-cache:
+          requires: [release]
+          filters:
+            tags:
+              only: /\d+\.\d+\.\d+/
+            branches:
+              ignore: /.*/
 jobs:
   pytest:
     docker:
@@ -84,7 +96,10 @@ jobs:
           command: bin/configure_database.sh all
       - run:
           name: Tests
-          command: poetry run pytest
+          command: poetry run pytest --cov --cov-report=lcov:coverage/lcov.info
+      - run:
+          name: Upload coverage to Codacy (partial)
+          command: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --partial -r coverage/lcov.info
 
   jasmine:
     docker:
@@ -99,7 +114,18 @@ jobs:
           command: yarn install
       - run:
           name: Tests
-          command: npm test
+          command: npm run coverage
+      - run:
+          name: Upload coverage to Codacy (partial)
+          command: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --partial -r coverage/lcov.info
+
+  coverage-final:
+    docker:
+      - image: darthjee/circleci_node:0.2.1
+    steps:
+      - run:
+          name: Finalize coverage on Codacy
+          command: bash <(curl -Ls https://coverage.codacy.com/get.sh) final
 
   checks:
     docker:
@@ -209,3 +235,12 @@ jobs:
       - run:
           name: Release assets
           command: deploy_frontend.sh release
+
+  warm-up-cache:
+    docker:
+      - image: darthjee/navi-hey:latest
+    steps:
+      - checkout
+      - run:
+          name: Warm up proxy cache
+          command: navi-hey --config .circleci/navi_config.yaml

@@ -1,0 +1,54 @@
+web:
+  port: $NAVI_PORT
+workers:
+  quantity: 5
+  retry_cooldown: 10000
+  sleep: 500
+  max-retries: 50
+
+failure:
+  threshold: 0.0
+
+clients:
+  default:
+    base_url: $MAJORA_PRODUCTION_URL
+    timeout: 20000
+
+resources:
+  games:
+    - url: /games.json
+      status: 200
+      actions:
+        - resource: game_detail
+          parameters:
+            slug: parsedBody.game_slug
+        - resource: game_pcs
+          parameters:
+            slug: parsedBody.game_slug
+        - resource: game_npcs
+          parameters:
+            slug: parsedBody.game_slug
+
+  game_detail:
+    - url: /games/{:slug}.json
+      status: 200
+
+  game_pcs:
+    - url: /games/{:slug}/pcs.json
+      status: 200
+      actions:
+        - resource: character
+          parameters:
+            id: parsedBody.id
+
+  game_npcs:
+    - url: /games/{:slug}/npcs.json
+      status: 200
+      actions:
+        - resource: character
+          parameters:
+            id: parsedBody.id
+
+  character:
+    - url: /games/{:slug}/characters/{:id}.json
+      status: 200
