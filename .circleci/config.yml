@@ -59,6 +59,13 @@ workflows:
               only: /\d+\.\d+\.\d+/
             branches:
               ignore: /.*/
+      - warm-up-cache:
+          requires: [release]
+          filters:
+            tags:
+              only: /\d+\.\d+\.\d+/
+            branches:
+              ignore: /.*/
 jobs:
   pytest:
     docker:
@@ -228,3 +235,12 @@ jobs:
       - run:
           name: Release assets
           command: deploy_frontend.sh release
+
+  warm-up-cache:
+    docker:
+      - image: darthjee/navi-hey:latest
+    steps:
+      - checkout
+      - run:
+          name: Warm up proxy cache
+          command: navi-hey --config .circleci/navi_config.yaml
