@@ -19,8 +19,9 @@
 #   create-branch <id>     — create and checkout the branch defined in plan.md, or issue-<id>
 #   draft-pr <id>          — push current branch, open a draft PR, save PR URL to .claude/state/
 #   mark-ready <id>        — convert the existing draft PR to ready for review
-#   monitor-pr <id>        — check PR status: outputs "merged", "commented", or "waiting"
-#                            on "commented", subsequent lines are the new comment bodies (author: darthjee only)
+#   cleanup-artifacts <id> — git rm issue file + plan dir and commit (called on approval)
+#   monitor-pr <id>        — blocking loop: outputs "merged", "approved", or "commented"
+#                            on "commented", subsequent lines are the new comment bodies
 
 set -euo pipefail
 
@@ -226,6 +227,19 @@ Fixes #${id}"
     echo "$pr_url"
     ;;
 
+  cleanup-artifacts)
+    id=${2:?cleanup-artifacts requires an id}
+    issue_file=$(ls "${ISSUES_DIR}/${id}_"*.md 2>/dev/null | head -1 || true)
+    if [[ -n "$issue_file" ]]; then
+      plan_dir=$(bash "$0" plan-dir "$id")
+      [[ -n "$(git ls-files "$issue_file")" ]] && git rm "$issue_file"
+      if [[ -d "$plan_dir" ]] && [[ -n "$(git ls-files "$plan_dir")" ]]; then
+        git rm -r "$plan_dir"
+      fi
+      git diff --cached --quiet || git commit -m "chore: remove planning artifacts for issue ${id}"
+    fi
+    ;;
+
   monitor-pr)
     id=${2:?monitor-pr requires an id}
     pr_file="${STATE_DIR}/${id}_pr.txt"
@@ -241,7 +255,7 @@ Fixes #${id}"
     last_time_file="${STATE_DIR}/${id}_last_comment_time.txt"
 
     while true; do
-      pr_data=$(gh pr view "$pr_num" --repo "$REPO" --json state,comments 2>/dev/null) || {
+      pr_data=$(gh pr view "$pr_num" --repo "$REPO" --json state,comments,reviews 2>/dev/null) || {
         sleep 5
         continue
       }
@@ -250,6 +264,16 @@ Fixes #${id}"
 
       if [[ "$state" == "MERGED" ]]; then
         echo "merged"
+        exit 0
+      fi
+
+      # Check for approval from the PR owner
+      approved=$(echo "$pr_data" | jq -r \
+        "[.reviews[] | select(.author.login == \"${pr_owner}\" and .state == \"APPROVED\")] | length" \
+        2>/dev/null) || { sleep 5; continue; }
+
+      if [[ "$approved" -gt 0 ]]; then
+        echo "approved"
         exit 0
       fi
 
@@ -290,7 +314,7 @@ Fixes #${id}"
     ;;
 
   *)
-    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|write-github <id>|checkout-from-main <id>|commit-issue <id>|commit-plan <id>|create-branch <id>|draft-pr <id>|mark-ready <id>|monitor-pr <id>}" >&2
+    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|write-github <id>|checkout-from-main <id>|commit-issue <id>|commit-plan <id>|create-branch <id>|draft-pr <id>|mark-ready <id>|cleanup-artifacts <id>|monitor-pr <id>}" >&2
     exit 1
     ;;
 esac

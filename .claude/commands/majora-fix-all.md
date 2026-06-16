@@ -77,7 +77,7 @@ Run:
 bash .claude/scripts/majora_issue.sh monitor-pr <id>
 ```
 
-This command **blocks** — it loops internally (5s sleep between checks, retries on error) until the PR is merged or the owner comments. The first output line is `merged` or `commented`.
+This command **blocks** — it loops internally (5s sleep between checks, retries on error) until the PR is merged, approved, or the owner comments. The first output line is `merged`, `approved`, or `commented`.
 
 ---
 
@@ -88,6 +88,21 @@ bash .claude/scripts/majora_queue.sh pop
 ```
 
 Go to **Step 2** to process the next issue.
+
+---
+
+#### If `approved`
+
+1. Remove planning artifacts and commit:
+   ```
+   bash .claude/scripts/majora_issue.sh cleanup-artifacts <id>
+   ```
+2. Push the cleanup commit:
+   ```
+   git push
+   ```
+3. Wait 5 seconds, then check CI status (see **Step 4**).
+4. If all checks pass: merge the PR, then pop the queue and go to **Step 2**.
 
 ---
 
@@ -114,4 +129,4 @@ For each comment:
    ```
 6. Go back to **Step 3** to resume monitoring.
 
-> **Note:** Only a merge triggers moving to the next issue. New comments always return to monitoring.
+> **Note:** Only a merge triggers moving to the next issue. Approvals trigger cleanup + merge. Comments always return to monitoring.
