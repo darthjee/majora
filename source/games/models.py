@@ -53,7 +53,7 @@ class Character(models.Model):
         related_name='characters',
     )
     avatar_url = models.URLField(null=True, blank=True)
-    character_class = models.CharField(max_length=200, blank=True)
+    character_class = models.CharField(max_length=200, blank=True, null=True)
     level = models.IntegerField(null=True, blank=True)
     description = models.TextField(blank=True)
     npc = models.BooleanField(default=True)

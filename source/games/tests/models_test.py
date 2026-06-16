@@ -119,6 +119,14 @@ class TestCharacter:
         assert character.level == 10
         assert 'elf ranger' in character.description
 
+    def test_character_class_can_be_null(self):
+        """Test that character_class can be set to None."""
+        character = Character.objects.create(
+            name='Mystery NPC', game=self.game, character_class=None
+        )
+        character.refresh_from_db()
+        assert character.character_class is None
+
     def test_character_str(self):
         """Test string representation of a character."""
         character = Character(name='Gimli', game=self.game)

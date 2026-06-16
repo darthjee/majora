@@ -208,3 +208,11 @@ class TestCharacterDetailView:
         data = json.loads(response.content)
         assert len(data['photos']) == 1
         assert data['photos'][0]['url'] == 'http://example.com/aragorn.png'
+
+    def test_character_class_is_null_when_not_set(self, client):
+        """Test that character_class is null in the response when not set."""
+        npc = Character.objects.create(name='Unnamed NPC', game=self.game, character_class=None)
+        response = client.get(f'/games/test-game/characters/{npc.id}.json')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['character_class'] is None
