@@ -13,7 +13,7 @@ class Game(models.Model):
     description = models.TextField(blank=True, default='')
 
     class Meta:
-        ordering = ['name']
+        ordering = ['id']
 
     def save(self, *args, **kwargs):
         """Save the game, generating game_slug from name if not set."""
@@ -59,7 +59,7 @@ class Character(models.Model):
     npc = models.BooleanField(default=True)
 
     class Meta:
-        ordering = ['name']
+        ordering = ['id']
 
     @property
     def is_pc(self):

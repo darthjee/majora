@@ -11,25 +11,38 @@ class Paginator:
     def __init__(self, request, queryset):
         """Initialise with the incoming request and the full queryset."""
         self.request = request
-        self.queryset = queryset.order_by('id')
+        self.queryset = queryset
 
-    def page(self):
-        """Return the current page number parsed from the request, defaulting to 1."""
+    def request_page(self):
+        """Return the raw page query param from the request, parsed as a positive integer."""
         return self._parse_int(self.request.GET.get('page'), default=1)
 
-    def per_page(self):
-        """Return the page size parsed from the request, defaulting to Settings.pagination_size."""
+    def page(self):
+        """Return the current page number, defaulting to 1."""
+        return self.request_page()
+
+    def request_per_page(self):
+        """Return the raw per_page query param from the request, parsed as a positive integer."""
         return self._parse_int(
             self.request.GET.get('per_page'),
             default=Settings.pagination_size(),
         )
 
+    def per_page(self):
+        """Return the page size, defaulting to Settings.pagination_size."""
+        return self.request_per_page()
+
+    def total(self):
+        """Return the total item count, memoizing the result after the first call."""
+        if not hasattr(self, '_total'):
+            self._total = self.queryset.count()
+        return self._total
+
     def paginate(self):
         """Return (page_queryset, headers_dict) for the current page."""
-        total = self.queryset.count()
-        pages = self._total_pages(total)
+        pages = self._total_pages(self.total())
         start, end = self._slice_bounds()
-        return self.queryset[start:end], self._headers(total, pages)
+        return self.queryset[start:end], self._headers(self.total(), pages)
 
     def _total_pages(self, total):
         """Return the total number of pages for *total* items."""

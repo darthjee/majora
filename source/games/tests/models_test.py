@@ -36,12 +36,12 @@ class TestGame:
         assert str(game) == 'My Game'
 
     def test_game_ordering(self):
-        """Test that games are ordered by name."""
-        Game.objects.create(name='Zebra Game', game_slug='zebra-game')
-        Game.objects.create(name='Alpha Game', game_slug='alpha-game')
+        """Test that games are ordered by id."""
+        first = Game.objects.create(name='Zebra Game', game_slug='zebra-game')
+        second = Game.objects.create(name='Alpha Game', game_slug='alpha-game')
         games = list(Game.objects.all())
-        assert games[0].name == 'Alpha Game'
-        assert games[1].name == 'Zebra Game'
+        assert games[0].id == first.id
+        assert games[1].id == second.id
 
 
 @pytest.mark.django_db
