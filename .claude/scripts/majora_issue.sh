@@ -221,21 +221,35 @@ $(cat "$plan_file")"
         exit 0
       fi
 
+      # Fetch inline review comments (different endpoint, different field names)
+      review_comments=$(gh api "repos/${REPO}/pulls/${pr_num}/comments" 2>/dev/null) || {
+        sleep 5
+        continue
+      }
+
+      # Normalize both sources to {login, createdAt, body}
+      all_comments=$(jq -n \
+        --argjson conv "$pr_data" \
+        --argjson inline "$review_comments" \
+        '[$conv.comments[] | {login: .author.login, createdAt: .createdAt, body: .body}] +
+         [$inline[] | {login: .user.login, createdAt: .created_at, body: .body}]' \
+        2>/dev/null) || { sleep 5; continue; }
+
       last_time=$(cat "$last_time_file" 2>/dev/null || echo "1970-01-01T00:00:00Z")
 
-      count=$(echo "$pr_data" | jq -r \
-        "[.comments[] | select(.author.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")] | length" \
+      count=$(echo "$all_comments" | jq -r \
+        "[.[] | select(.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")] | length" \
         2>/dev/null) || { sleep 5; continue; }
 
       if [[ "$count" -gt 0 ]]; then
-        latest_time=$(echo "$pr_data" | jq -r \
-          "[.comments[] | select(.author.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")] | map(.createdAt) | max" \
+        latest_time=$(echo "$all_comments" | jq -r \
+          "[.[] | select(.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")] | map(.createdAt) | max" \
           2>/dev/null) || { sleep 5; continue; }
         mkdir -p "$STATE_DIR"
         echo "$latest_time" > "$last_time_file"
         echo "commented"
-        echo "$pr_data" | jq -r \
-          "[.comments[] | select(.author.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")] | .[] | \"---\n\" + .body"
+        echo "$all_comments" | jq -r \
+          "[.[] | select(.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")] | .[] | \"---\n\" + .body"
         exit 0
       fi
 
