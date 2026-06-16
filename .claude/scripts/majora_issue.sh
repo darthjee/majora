@@ -18,6 +18,7 @@
 #   commit-plan <id>       — git add + commit the plan directory
 #   create-branch <id>     — create and checkout the branch defined in plan.md, or issue-<id>
 #   draft-pr <id>          — push current branch, open a draft PR, save PR URL to .claude/state/
+#   mark-ready <id>        — convert the existing draft PR to ready for review
 #   monitor-pr <id>        — check PR status: outputs "merged", "commented", or "waiting"
 #                            on "commented", subsequent lines are the new comment bodies (author: darthjee only)
 
@@ -194,6 +195,19 @@ $(cat "$plan_file")"
     echo "$pr_url"
     ;;
 
+  mark-ready)
+    id=${2:?mark-ready requires an id}
+    pr_file="${STATE_DIR}/${id}_pr.txt"
+    if [[ ! -f "$pr_file" ]]; then
+      echo "Error: no PR URL found for issue '${id}' — was draft-pr run?" >&2
+      exit 1
+    fi
+    pr_url=$(cat "$pr_file")
+    pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
+    gh pr ready "$pr_num" --repo "$REPO"
+    echo "$pr_url"
+    ;;
+
   monitor-pr)
     id=${2:?monitor-pr requires an id}
     pr_file="${STATE_DIR}/${id}_pr.txt"
@@ -258,7 +272,7 @@ $(cat "$plan_file")"
     ;;
 
   *)
-    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|write-github <id>|checkout-from-main <id>|commit-issue <id>|commit-plan <id>|create-branch <id>|draft-pr <id>|monitor-pr <id>}" >&2
+    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|write-github <id>|checkout-from-main <id>|commit-issue <id>|commit-plan <id>|create-branch <id>|draft-pr <id>|mark-ready <id>|monitor-pr <id>}" >&2
     exit 1
     ;;
 esac

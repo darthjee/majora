@@ -70,11 +70,20 @@ When all agents report back:
 
 If anything is wrong or missing, send the relevant agent back to fix it (step 3, single agent this time). Repeat until the implementation is correct and complete.
 
-### 6. Open the draft PR
+### 6. Publish the PR
 
-When the implementation is correct and all agents have committed their work, run:
+When the implementation is correct and all agents have committed their work:
+
+If `.claude/state/<id>_pr.txt` already exists (a draft PR was opened earlier):
+```
+bash .claude/scripts/majora_issue.sh mark-ready <id>
+```
+This marks the existing draft PR as ready for review.
+
+Otherwise (no PR yet):
 ```
 bash .claude/scripts/majora_issue.sh draft-pr <id>
 ```
+This pushes the current branch and opens a draft PR.
 
-This pushes the current branch and opens a draft PR on GitHub with the issue and plan as the description. Report the PR URL.
+Report the PR URL.

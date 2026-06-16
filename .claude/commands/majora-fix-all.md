@@ -55,10 +55,18 @@ The final step in that skill commits the issue file.
 Read `.claude/commands/majora-plan-issue.md` and follow all its steps for `<id>`.
 The final step in that skill commits the plan files.
 
-#### 2e. Implement and open PR
+#### 2e. Open draft PR
+
+```
+bash .claude/scripts/majora_issue.sh draft-pr <id>
+```
+
+This pushes the branch and opens a draft PR with the committed issue and plan as the description. The PR URL is saved to `.claude/state/<id>_pr.txt`.
+
+#### 2f. Implement and mark ready
 
 Read `.claude/commands/majora-fix-issue.md` and follow all its steps for `<id>`.
-The final step opens a draft PR and saves the PR URL to `.claude/state/<id>_pr.txt`.
+Since `.claude/state/<id>_pr.txt` already exists, the final step will call `mark-ready <id>` to convert the draft PR to ready for review.
 
 ---
 
