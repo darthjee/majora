@@ -107,11 +107,66 @@ JSDoc is **not required** in `specs/` files.
 - Never use `fdescribe` / `fit` (focused tests — ESLint will error).
 - Avoid `xdescribe` / `xit` (disabled tests — ESLint will warn).
 
+## When to extract JSX into a component vs. a helper method
+
+Whenever JSX contains a conditional, decide where to put it using these rules:
+
+### Extract to a new component when ANY of these apply:
+
+1. **The parent is a composition of smaller named pieces.**
+   The parent's job is to assemble things; each piece has a clear identity of its own.
+   Example: `CharacterHelper.render` assembles `CardAvatar` + `CharacterInfo` + `CharacterPhotos`.
+   Each child is a standalone concept, not just a fragment of the parent.
+
+2. **The piece has conditional behaviour at its root.**
+   The component itself decides whether to render or return `null` based on its props.
+   Example: `CharacterPhotos` returns `null` when the photos array is empty.
+   Example: `CardAvatar` / `CardPhoto` encapsulate the fallback-image logic.
+
+3. **The piece is reused across multiple helpers or components.**
+   Example: `CardAvatar` is used in both `CharacterCardHelper` and `CharacterHelper`.
+   Example: `PageLink` is used in several methods of `PaginationHelper`.
+
+### Extract to a private `#renderX` static method in the helper when:
+
+- The conditional is an **optional block inside** a larger render, specific to that one helper.
+  Example: `CharacterInfoHelper.#renderClassLevel` — returns `null` if no class is set.
+  Example: `CharacterInfoHelper.#renderDescription` — returns `null` if no description.
+  Example: `PaginationHelper.#renderPreviousButton` — disabled vs. active link.
+
+### Quick decision guide
+
+```
+Is the JSX a standalone concept with its own identity?        → new component
+Does it render conditionally at the root (may return null)?   → new component
+Is it reused in more than one place?                          → new component
+Is it a conditional block inside an existing helper render?   → private #renderX method
+```
+
+## Development cycle
+
+Every change must go through this loop until both checks are clean and no refactoring is needed:
+
+```
+1. Implement
+   └─ write or edit components, helpers, specs
+
+2. Check
+   ├─ docker-compose run --rm majora_fe yarn test
+   └─ docker-compose run --rm majora_fe yarn lint_fix
+
+3. Analyze
+   └─ review the new/changed JSX against the extraction rules above
+      ├─ needs extraction? → refactor (go to step 1)
+      └─ clean? → done
+```
+
+Never stop after step 2 without doing step 3. Never consider the task done while tests are failing or lint errors remain.
+
 ## What to do
 
 - Write and edit React components and helpers following the existing patterns.
 - Keep components thin — complex logic belongs in controllers or helpers.
+- Apply the extraction rules above whenever JSX contains conditionals.
 - Write Jasmine specs for every new module, mirroring the source path.
-- Run `yarn lint` after edits and fix any errors before finishing.
-- Run `yarn test` to verify specs pass.
 - Keep JSDoc complete and accurate on all public exports.
