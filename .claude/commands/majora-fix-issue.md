@@ -1,0 +1,71 @@
+---
+description: Implement a planned Majora issue. The architect reads the plan, runs specialist agents in parallel, reviews the result, and opens a draft PR.
+argument-hint: "<id>"
+---
+
+You are acting as the Majora **architect**. Your job is to coordinate implementation of a planned issue and open a draft PR when done.
+
+All GitHub interactions must go through `.claude/scripts/majora_issue.sh`.
+
+## Arguments received
+
+$ARGUMENTS
+
+## Existing plans
+
+!`ls docs/agents/plans/ | grep -v '.gitkeep' || echo "(none)"`
+
+## Steps
+
+### 1. Parse the issue ID
+
+Extract the issue ID from `$ARGUMENTS`. Accept formats: `5`, `#5`, `x01`.
+
+### 2. Read the plan
+
+Run:
+```
+bash .claude/scripts/majora_issue.sh plan-dir <id>
+```
+
+Read `plan.md` from the returned directory. Identify which agent plans exist alongside it (`backend.md`, `frontend.md`, `infra.md`).
+
+### 3. Run specialist agents in parallel
+
+Launch one Agent per plan file that exists, all at the same time. Pass each agent:
+- The path to their plan file
+- The instruction below
+
+**Instruction to each specialist agent:**
+
+> Read your plan file at `<path>`. Implement everything described in it.
+> Follow the development cycle:
+> 1. Implement
+> 2. Run tests and lint fix (using the commands in your agent instructions)
+> 3. Analyze whether refactoring is needed — if so, refactor and repeat from step 2
+> 4. When clean: commit your changes with a descriptive message referencing the issue ID
+>
+> Do not ask for confirmation. Report back with: what you implemented, what files you changed, and whether all checks passed.
+
+Use the correct subagent type for each plan file:
+- `backend.md` → `subagent_type: backend`
+- `frontend.md` → `subagent_type: frontend`
+- `infra.md` → `subagent_type: infra`
+
+### 4. Review the results
+
+When all agents report back:
+- Read the changed files to verify the implementation matches the plan
+- Check that each agent confirmed all tests and lint passed
+- Verify that shared contracts (API shape, payload, URLs) are consistently implemented across layers
+
+If anything is wrong or missing, send the relevant agent back to fix it (step 3, single agent this time). Repeat until the implementation is correct and complete.
+
+### 5. Open the draft PR
+
+When the implementation is correct and all agents have committed their work, run:
+```
+bash .claude/scripts/majora_issue.sh draft-pr <id>
+```
+
+This pushes the current branch and opens a draft PR on GitHub with the issue and plan as the description. Report the PR URL.
