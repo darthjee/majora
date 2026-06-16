@@ -55,10 +55,18 @@ The final step in that skill commits the issue file.
 Read `.claude/commands/majora-plan-issue.md` and follow all its steps for `<id>`.
 The final step in that skill commits the plan files.
 
-#### 2e. Implement and open PR
+#### 2e. Open draft PR
+
+```
+bash .claude/scripts/majora_issue.sh draft-pr <id>
+```
+
+This pushes the branch and opens a draft PR with the committed issue and plan as the description. The PR URL is saved to `.claude/state/<id>_pr.txt`.
+
+#### 2f. Implement and mark ready
 
 Read `.claude/commands/majora-fix-issue.md` and follow all its steps for `<id>`.
-The final step opens a draft PR and saves the PR URL to `.claude/state/<id>_pr.txt`.
+Since `.claude/state/<id>_pr.txt` already exists, the final step will call `mark-ready <id>` to convert the draft PR to ready for review.
 
 ---
 
@@ -69,7 +77,7 @@ Run:
 bash .claude/scripts/majora_issue.sh monitor-pr <id>
 ```
 
-This command **blocks** — it loops internally (5s sleep between checks, retries on error) until the PR is merged or the owner comments. The first output line is `merged` or `commented`.
+This command **blocks** — it loops internally (5s sleep between checks, retries on error) until the PR is merged, approved, closed, or the owner comments. The first output line is `merged`, `approved`, `closed`, or `commented`.
 
 ---
 
@@ -80,6 +88,63 @@ bash .claude/scripts/majora_queue.sh pop
 ```
 
 Go to **Step 2** to process the next issue.
+
+---
+
+#### If `closed`
+
+The PR was closed without merging. Ask the user:
+
+> PR #<num> for issue <id> was closed without merging. What would you like to do?
+> 1. Reimplement from scratch (checkout from main and restart the pipeline for this issue)
+> 2. Skip this issue and move on to the next one
+
+- If **reimplement**: go directly to **Step 2** (the ID stays at the front of the queue).
+- If **skip**: pop the queue, go to **Step 2**.
+
+---
+
+#### If `approved`
+
+1. Remove planning artifacts and commit:
+   ```
+   bash .claude/scripts/majora_issue.sh cleanup-artifacts <id>
+   ```
+2. Push:
+   ```
+   git push
+   ```
+3. Wait for CircleCI checks:
+   ```
+   bash .claude/scripts/majora_issue.sh wait-ci <id>
+   ```
+   This blocks until all CircleCI checks complete. The first output line is `passed` or `failed`.
+   Subsequent lines (on `failed`) are the names of the failed CircleCI jobs.
+
+##### If CI `passed`
+
+Merge the PR:
+```
+bash .claude/scripts/majora_issue.sh merge-pr <id>
+```
+Then pop the queue and go to **Step 2**.
+
+##### If CI `failed`
+
+The subsequent lines contain the names of the failed CircleCI jobs. Use the job name to identify the responsible agent:
+- `pytest` or `checks` → `backend` agent
+- `jasmine` or `frontend-checks` → `frontend` agent
+- anything else → handle yourself as architect
+
+Dispatch the responsible agent(s) in parallel with:
+- The names of the failed jobs
+- The instruction to investigate the CI failure, fix it, run the full dev cycle locally, and commit
+
+After all agents commit, push:
+```
+git push
+```
+Then go back to step 3 (`wait-ci`) to re-check.
 
 ---
 
@@ -106,4 +171,4 @@ For each comment:
    ```
 6. Go back to **Step 3** to resume monitoring.
 
-> **Note:** Only a merge triggers moving to the next issue. New comments always return to monitoring.
+> **Note:** Only a merge triggers moving to the next issue. Approvals trigger cleanup + merge. Comments always return to monitoring.
