@@ -69,6 +69,10 @@ Create the directory returned by `plan-dir`. Then create the following files:
 
 Issue: [<id>_<slug>.md](../issues/<id>_<slug>.md)
 
+## Branch
+
+`issue-<id>-<short-slug>`
+
 ## Overview
 
 <approach: what will be built and why, in 2–4 sentences>

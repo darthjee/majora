@@ -21,7 +21,16 @@ $ARGUMENTS
 
 Extract the issue ID from `$ARGUMENTS`. Accept formats: `5`, `#5`, `x01`.
 
-### 2. Read the plan
+### 2. Create the branch
+
+Run:
+```
+bash .claude/scripts/majora_issue.sh create-branch <id>
+```
+
+This reads the branch name from `## Branch` in `plan.md`, or falls back to `issue-<id>`. All subsequent work happens on this branch.
+
+### 3. Read the plan
 
 Run:
 ```
@@ -30,7 +39,7 @@ bash .claude/scripts/majora_issue.sh plan-dir <id>
 
 Read `plan.md` from the returned directory. Identify which agent plans exist alongside it (`backend.md`, `frontend.md`, `infra.md`).
 
-### 3. Run specialist agents in parallel
+### 4. Run specialist agents in parallel
 
 Launch one Agent per plan file that exists, all at the same time. Pass each agent:
 - The path to their plan file
@@ -52,7 +61,7 @@ Use the correct subagent type for each plan file:
 - `frontend.md` → `subagent_type: frontend`
 - `infra.md` → `subagent_type: infra`
 
-### 4. Review the results
+### 5. Review the results
 
 When all agents report back:
 - Read the changed files to verify the implementation matches the plan
@@ -61,7 +70,7 @@ When all agents report back:
 
 If anything is wrong or missing, send the relevant agent back to fix it (step 3, single agent this time). Repeat until the implementation is correct and complete.
 
-### 5. Open the draft PR
+### 6. Open the draft PR
 
 When the implementation is correct and all agents have committed their work, run:
 ```

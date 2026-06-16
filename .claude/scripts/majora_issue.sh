@@ -13,6 +13,7 @@
 #   plan-dir <id>       — canonical plan directory: docs/agents/plans/<id>_<slug>
 #   read-github <id>    — fetch GitHub issue JSON (number, title, body); numeric IDs only
 #   write-github <id>   — update GitHub issue from local file; skips silently for x-prefixed IDs
+#   create-branch <id>  — create and checkout the branch defined in plan.md, or issue-<id>
 #   draft-pr <id>       — push current branch and open a draft PR linked to the issue
 
 set -euo pipefail
@@ -96,6 +97,29 @@ case ${1:-} in
     gh issue edit "$id" --repo "$REPO" --title "$title" --body "$body"
     ;;
 
+  create-branch)
+    id=${2:?create-branch requires an id}
+    plan_dir=$(bash "$0" plan-dir "$id")
+    plan_file="${plan_dir}/plan.md"
+
+    branch=""
+    if [[ -f "$plan_file" ]]; then
+      branch=$(grep -A1 '^## Branch' "$plan_file" | tail -1 | tr -d '`[:space:]' || true)
+    fi
+
+    if [[ -z "$branch" ]]; then
+      branch="issue-${id}"
+    fi
+
+    if git show-ref --verify --quiet "refs/heads/${branch}"; then
+      git checkout "$branch"
+    else
+      git checkout -b "$branch"
+    fi
+
+    echo "$branch"
+    ;;
+
   draft-pr)
     id=${2:?draft-pr requires an id}
     issue_file=$(_find_issue_file "$id")
@@ -126,7 +150,7 @@ $(cat "$plan_file")"
     ;;
 
   *)
-    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|write-github <id>|draft-pr <id>}" >&2
+    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|write-github <id>|create-branch <id>|draft-pr <id>}" >&2
     exit 1
     ;;
 esac
