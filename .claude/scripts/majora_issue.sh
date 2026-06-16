@@ -20,6 +20,9 @@
 #   draft-pr <id>          — push current branch, open a draft PR, save PR URL to .claude/state/
 #   mark-ready <id>        — convert the existing draft PR to ready for review
 #   cleanup-artifacts <id> — git rm issue file + plan dir and commit (called on approval)
+#   wait-ci <id>           — blocking loop: waits for CircleCI checks on PR head commit
+#                            outputs "passed" or "failed"; on "failed", subsequent lines are job names
+#   merge-pr <id>          — squash-merge the PR
 #   monitor-pr <id>        — blocking loop: outputs "merged", "approved", or "commented"
 #                            on "commented", subsequent lines are the new comment bodies
 
@@ -240,6 +243,75 @@ Fixes #${id}"
     fi
     ;;
 
+  wait-ci)
+    id=${2:?wait-ci requires an id}
+    pr_file="${STATE_DIR}/${id}_pr.txt"
+    if [[ ! -f "$pr_file" ]]; then
+      echo "Error: no PR URL found for issue '${id}' — was draft-pr run?" >&2
+      exit 1
+    fi
+    pr_url=$(cat "$pr_file")
+    pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
+
+    while true; do
+      sha=$(gh pr view "$pr_num" --repo "$REPO" --json headRefOid -q '.headRefOid' 2>/dev/null) || {
+        sleep 5; continue
+      }
+
+      checks=$(gh api "repos/${REPO}/commits/${sha}/check-runs?per_page=100" 2>/dev/null) || {
+        sleep 5; continue
+      }
+
+      # Filter for CircleCI check runs only
+      circleci=$(echo "$checks" | jq \
+        '[.check_runs[] | select(.app.slug == "circleci-checks")]' \
+        2>/dev/null) || { sleep 5; continue; }
+
+      total=$(echo "$circleci" | jq 'length' 2>/dev/null) || { sleep 5; continue; }
+
+      # No checks registered yet — keep waiting
+      if [[ "$total" -eq 0 ]]; then
+        sleep 5; continue
+      fi
+
+      failed=$(echo "$circleci" | jq \
+        '[.[] | select(.status == "completed" and (.conclusion == "failure" or .conclusion == "cancelled" or .conclusion == "timed_out"))] | length' \
+        2>/dev/null) || { sleep 5; continue; }
+
+      if [[ "$failed" -gt 0 ]]; then
+        echo "failed"
+        echo "$circleci" | jq -r \
+          '.[] | select(.status == "completed" and (.conclusion == "failure" or .conclusion == "cancelled" or .conclusion == "timed_out")) | .name'
+        exit 0
+      fi
+
+      passed=$(echo "$circleci" | jq \
+        '[.[] | select(.status == "completed" and .conclusion == "success")] | length' \
+        2>/dev/null) || { sleep 5; continue; }
+
+      if [[ "$passed" -eq "$total" ]]; then
+        echo "passed"
+        exit 0
+      fi
+
+      # Still pending — keep waiting
+      sleep 5
+    done
+    ;;
+
+  merge-pr)
+    id=${2:?merge-pr requires an id}
+    pr_file="${STATE_DIR}/${id}_pr.txt"
+    if [[ ! -f "$pr_file" ]]; then
+      echo "Error: no PR URL found for issue '${id}' — was draft-pr run?" >&2
+      exit 1
+    fi
+    pr_url=$(cat "$pr_file")
+    pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
+    gh pr merge "$pr_num" --repo "$REPO" --squash
+    echo "$pr_url"
+    ;;
+
   monitor-pr)
     id=${2:?monitor-pr requires an id}
     pr_file="${STATE_DIR}/${id}_pr.txt"
@@ -314,7 +386,7 @@ Fixes #${id}"
     ;;
 
   *)
-    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|write-github <id>|checkout-from-main <id>|commit-issue <id>|commit-plan <id>|create-branch <id>|draft-pr <id>|mark-ready <id>|cleanup-artifacts <id>|monitor-pr <id>}" >&2
+    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|write-github <id>|checkout-from-main <id>|commit-issue <id>|commit-plan <id>|create-branch <id>|draft-pr <id>|mark-ready <id>|cleanup-artifacts <id>|wait-ci <id>|merge-pr <id>|monitor-pr <id>}" >&2
     exit 1
     ;;
 esac

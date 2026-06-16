@@ -97,12 +97,41 @@ Go to **Step 2** to process the next issue.
    ```
    bash .claude/scripts/majora_issue.sh cleanup-artifacts <id>
    ```
-2. Push the cleanup commit:
+2. Push:
    ```
    git push
    ```
-3. Wait 5 seconds, then check CI status (see **Step 4**).
-4. If all checks pass: merge the PR, then pop the queue and go to **Step 2**.
+3. Wait for CircleCI checks:
+   ```
+   bash .claude/scripts/majora_issue.sh wait-ci <id>
+   ```
+   This blocks until all CircleCI checks complete. The first output line is `passed` or `failed`.
+   Subsequent lines (on `failed`) are the names of the failed CircleCI jobs.
+
+##### If CI `passed`
+
+Merge the PR:
+```
+bash .claude/scripts/majora_issue.sh merge-pr <id>
+```
+Then pop the queue and go to **Step 2**.
+
+##### If CI `failed`
+
+The subsequent lines contain the names of the failed CircleCI jobs. Use the job name to identify the responsible agent:
+- `pytest` or `checks` → `backend` agent
+- `jasmine` or `frontend-checks` → `frontend` agent
+- anything else → handle yourself as architect
+
+Dispatch the responsible agent(s) in parallel with:
+- The names of the failed jobs
+- The instruction to investigate the CI failure, fix it, run the full dev cycle locally, and commit
+
+After all agents commit, push:
+```
+git push
+```
+Then go back to step 3 (`wait-ci`) to re-check.
 
 ---
 
