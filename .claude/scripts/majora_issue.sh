@@ -66,6 +66,12 @@ _extract_body() {
   tail -n +2 "$file"
 }
 
+_extract_section() {
+  local file="$1"
+  local section="$2"
+  awk -v sec="## ${section}" '$0==sec{found=1; next} found && /^## /{exit} found{print}' "$file"
+}
+
 case ${1:-} in
   next-id)
     max=$(ls "$ISSUES_DIR" 2>/dev/null | grep -oE '^[0-9]+' | sort -n | tail -1 || true)
@@ -170,17 +176,29 @@ case ${1:-} in
     plan_file="${plan_dir}/plan.md"
     branch=$(git branch --show-current)
 
-    pr_body="## Issue
+    problem=$(_extract_section "$issue_file" "Context")
+    solution=$(_extract_section "$issue_file" "What needs to be done")
 
-$(cat "$issue_file")"
+    pr_body="## Summary
+
+${title}
+
+## Problem
+${problem}
+## Solution
+${solution}"
 
     if [[ -f "$plan_file" ]]; then
-      pr_body="${pr_body}
-
-## Plan
-
-$(cat "$plan_file")"
+      overview=$(_extract_section "$plan_file" "Overview")
+      if [[ -n "$overview" ]]; then
+        pr_body="${pr_body}
+## Details
+${overview}"
+      fi
     fi
+
+    pr_body="${pr_body}
+Fixes #${id}"
 
     git push -u origin "$branch"
     pr_url=$(gh pr create \
