@@ -25,8 +25,20 @@ set -euo pipefail
 
 ISSUES_DIR="docs/agents/issues"
 REPO="darthjee/majora"
-PR_OWNER="darthjee"
 STATE_DIR=".claude/state"
+
+_pr_owner() {
+  local owner
+  owner=$(git config user.ghuser 2>/dev/null || true)
+  if [[ -z "$owner" ]]; then
+    owner=$(git config --global user.ghuser 2>/dev/null || true)
+  fi
+  if [[ -z "$owner" ]]; then
+    echo "Error: git config user.ghuser is not set (local or global)" >&2
+    exit 1
+  fi
+  echo "$owner"
+}
 
 _is_local_id() {
   [[ "$1" =~ ^x ]]
@@ -191,6 +203,7 @@ $(cat "$plan_file")"
       exit 1
     fi
 
+    pr_owner=$(_pr_owner)
     pr_url=$(cat "$pr_file")
     pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
 
@@ -201,24 +214,21 @@ $(cat "$plan_file")"
       exit 0
     fi
 
-    # Check for new comments from the repo owner only
+    # Check for new comments from the configured GitHub user only
     last_time_file="${STATE_DIR}/${id}_last_comment_time.txt"
     last_time=$(cat "$last_time_file" 2>/dev/null || echo "1970-01-01T00:00:00Z")
 
-    new_comments=$(gh pr view "$pr_num" --repo "$REPO" --json comments \
-      --jq "[.comments[] | select(.author.login == \"${PR_OWNER}\" and .createdAt > \"${last_time}\")]")
-
     count=$(gh pr view "$pr_num" --repo "$REPO" --json comments \
-      --jq "[.comments[] | select(.author.login == \"${PR_OWNER}\" and .createdAt > \"${last_time}\")] | length")
+      --jq "[.comments[] | select(.author.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")] | length")
 
     if [[ "$count" -gt 0 ]]; then
       latest_time=$(gh pr view "$pr_num" --repo "$REPO" --json comments \
-        --jq "[.comments[] | select(.author.login == \"${PR_OWNER}\" and .createdAt > \"${last_time}\")] | map(.createdAt) | max")
+        --jq "[.comments[] | select(.author.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")] | map(.createdAt) | max")
       mkdir -p "$STATE_DIR"
       echo "$latest_time" > "$last_time_file"
       echo "commented"
       gh pr view "$pr_num" --repo "$REPO" --json comments \
-        --jq "[.comments[] | select(.author.login == \"${PR_OWNER}\" and .createdAt > \"${last_time}\")] | .[] | \"---\n\" + .body"
+        --jq "[.comments[] | select(.author.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")] | .[] | \"---\n\" + .body"
       exit 0
     fi
 
