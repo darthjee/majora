@@ -66,6 +66,10 @@ This pushes the branch and opens a draft PR with the committed issue and plan as
 #### 2f. Implement and mark ready
 
 Read `.claude/commands/majora-fix-issue.md` and follow all its steps for `<id>`.
+After all agents have committed, push the implementation commits before marking ready:
+```
+git push
+```
 Since `.claude/state/<id>_pr.txt` already exists, the final step will call `mark-ready <id>` to convert the draft PR to ready for review.
 
 ---
