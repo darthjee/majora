@@ -14,23 +14,20 @@ class Paginator:
         self.queryset = queryset
 
     def request_page(self):
-        """Return the raw page query param from the request, parsed as a positive integer."""
-        return self._parse_int(self.request.GET.get('page'), default=1)
+        """Return the raw page query param string from the request."""
+        return self.request.GET.get('page')
 
     def page(self):
         """Return the current page number, defaulting to 1."""
-        return self.request_page()
+        return self._parse_int(self.request_page(), default=1)
 
     def request_per_page(self):
-        """Return the raw per_page query param from the request, parsed as a positive integer."""
-        return self._parse_int(
-            self.request.GET.get('per_page'),
-            default=Settings.pagination_size(),
-        )
+        """Return the raw per_page query param string from the request."""
+        return self.request.GET.get('per_page')
 
     def per_page(self):
         """Return the page size, defaulting to Settings.pagination_size."""
-        return self.request_per_page()
+        return self._parse_int(self.request_per_page(), default=Settings.pagination_size())
 
     def total(self):
         """Return the total item count, memoizing the result after the first call."""
