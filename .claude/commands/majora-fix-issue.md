@@ -74,6 +74,11 @@ If anything is wrong or missing, send the relevant agent back to fix it (step 3,
 
 When the implementation is correct and all agents have committed their work:
 
+Push all commits:
+```
+git push
+```
+
 If `.claude/state/<id>_pr.txt` already exists (a draft PR was opened earlier):
 ```
 bash .claude/scripts/majora_issue.sh mark-ready <id>
