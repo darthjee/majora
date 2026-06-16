@@ -35,17 +35,19 @@ class Paginator:
             self._total = self.queryset.count()
         return self._total
 
+    def pages(self):
+        """Return the total number of pages, memoizing the result."""
+        if not hasattr(self, '_pages'):
+            if self.per_page() <= 0:
+                self._pages = 1
+            else:
+                self._pages = max(1, math.ceil(self.total() / self.per_page()))
+        return self._pages
+
     def paginate(self):
         """Return (page_queryset, headers_dict) for the current page."""
-        pages = self._total_pages(self.total())
         start, end = self._slice_bounds()
-        return self.queryset[start:end], self._headers(self.total(), pages)
-
-    def _total_pages(self, total):
-        """Return the total number of pages for *total* items."""
-        if self.per_page() <= 0:
-            return 1
-        return max(1, math.ceil(total / self.per_page()))
+        return self.queryset[start:end], self._headers()
 
     def _slice_bounds(self):
         """Return (start, end) indices for the current page slice."""
@@ -53,13 +55,13 @@ class Paginator:
         end = start + self.per_page()
         return start, end
 
-    def _headers(self, total, pages):
+    def _headers(self):
         """Build the pagination response headers dict."""
         return {
             'page': self.page(),
-            'pages': pages,
+            'pages': self.pages(),
             'per_page': self.per_page(),
-            'total': total,
+            'total': self.total(),
         }
 
     @staticmethod
