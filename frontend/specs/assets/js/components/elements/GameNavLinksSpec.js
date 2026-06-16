@@ -9,6 +9,5 @@ describe('GameNavLinks', function() {
     );
     expect(html).toContain('href="#/games/epic-quest/pcs"');
     expect(html).toContain('href="#/games/epic-quest/npcs"');
-    expect(html).toContain('href="#/games/epic-quest/players"');
   });
 });

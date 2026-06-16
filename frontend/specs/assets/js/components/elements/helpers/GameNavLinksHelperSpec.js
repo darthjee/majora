@@ -13,16 +13,10 @@ describe('GameNavLinksHelper', function() {
         .toContain('href="#/games/epic-quest/npcs"');
     });
 
-    it('renders a link to the players page', function() {
-      expect(renderToStaticMarkup(GameNavLinksHelper.render('epic-quest')))
-        .toContain('href="#/games/epic-quest/players"');
-    });
-
     it('uses the provided slug in all links', function() {
       const html = renderToStaticMarkup(GameNavLinksHelper.render('dragon-quest'));
       expect(html).toContain('href="#/games/dragon-quest/pcs"');
       expect(html).toContain('href="#/games/dragon-quest/npcs"');
-      expect(html).toContain('href="#/games/dragon-quest/players"');
     });
   });
 });

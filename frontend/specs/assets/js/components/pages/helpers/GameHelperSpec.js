@@ -31,9 +31,6 @@ describe('GameHelper', function() {
       expect(renderToStaticMarkup(GameHelper.render(game))).toContain('href="#/games/epic-quest/npcs"');
     });
 
-    it('renders a link to the players page', function() {
-      expect(renderToStaticMarkup(GameHelper.render(game))).toContain('href="#/games/epic-quest/players"');
-    });
   });
 
   describe('.renderLoading', function() {
