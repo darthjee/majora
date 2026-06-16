@@ -206,33 +206,41 @@ $(cat "$plan_file")"
     pr_owner=$(_pr_owner)
     pr_url=$(cat "$pr_file")
     pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
-
-    # Check merge state
-    state=$(gh pr view "$pr_num" --repo "$REPO" --json state --jq '.state')
-    if [[ "$state" == "MERGED" ]]; then
-      echo "merged"
-      exit 0
-    fi
-
-    # Check for new comments from the configured GitHub user only
     last_time_file="${STATE_DIR}/${id}_last_comment_time.txt"
-    last_time=$(cat "$last_time_file" 2>/dev/null || echo "1970-01-01T00:00:00Z")
 
-    count=$(gh pr view "$pr_num" --repo "$REPO" --json comments \
-      --jq "[.comments[] | select(.author.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")] | length")
+    while true; do
+      pr_data=$(gh pr view "$pr_num" --repo "$REPO" --json state,comments 2>/dev/null) || {
+        sleep 5
+        continue
+      }
 
-    if [[ "$count" -gt 0 ]]; then
-      latest_time=$(gh pr view "$pr_num" --repo "$REPO" --json comments \
-        --jq "[.comments[] | select(.author.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")] | map(.createdAt) | max")
-      mkdir -p "$STATE_DIR"
-      echo "$latest_time" > "$last_time_file"
-      echo "commented"
-      gh pr view "$pr_num" --repo "$REPO" --json comments \
-        --jq "[.comments[] | select(.author.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")] | .[] | \"---\n\" + .body"
-      exit 0
-    fi
+      state=$(echo "$pr_data" | jq -r '.state' 2>/dev/null) || { sleep 5; continue; }
 
-    echo "waiting"
+      if [[ "$state" == "MERGED" ]]; then
+        echo "merged"
+        exit 0
+      fi
+
+      last_time=$(cat "$last_time_file" 2>/dev/null || echo "1970-01-01T00:00:00Z")
+
+      count=$(echo "$pr_data" | jq -r \
+        "[.comments[] | select(.author.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")] | length" \
+        2>/dev/null) || { sleep 5; continue; }
+
+      if [[ "$count" -gt 0 ]]; then
+        latest_time=$(echo "$pr_data" | jq -r \
+          "[.comments[] | select(.author.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")] | map(.createdAt) | max" \
+          2>/dev/null) || { sleep 5; continue; }
+        mkdir -p "$STATE_DIR"
+        echo "$latest_time" > "$last_time_file"
+        echo "commented"
+        echo "$pr_data" | jq -r \
+          "[.comments[] | select(.author.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")] | .[] | \"---\n\" + .body"
+        exit 0
+      fi
+
+      sleep 5
+    done
     ;;
 
   *)
