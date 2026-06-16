@@ -82,15 +82,25 @@ class TestCharacter:
         assert character.name == 'Aragorn'
         assert character.game == self.game
 
+    def test_character_npc_defaults_to_true(self):
+        """Test that npc defaults to True on new characters."""
+        character = Character.objects.create(name='Gandalf', game=self.game)
+        assert character.npc is True
+
     def test_character_is_npc_when_no_player(self):
         """Test that a character without a player is an NPC."""
         character = Character.objects.create(name='Gandalf', game=self.game)
         assert character.is_pc is False
 
+    def test_character_is_pc_when_npc_false(self):
+        """Test that is_pc returns True when npc is False."""
+        character = Character.objects.create(name='Frodo', game=self.game, npc=False)
+        assert character.is_pc is True
+
     def test_character_is_pc_when_player_set(self):
         """Test that a character with a player is a PC."""
         character = Character.objects.create(
-            name='Frodo', game=self.game, player=self.player
+            name='Frodo', game=self.game, player=self.player, npc=False
         )
         assert character.is_pc is True
 

@@ -33,7 +33,7 @@ def game_detail(request, game_slug):
 def game_pcs(request, game_slug):
     """Return list of Player Characters (PCs) for a specific game."""
     game = get_object_or_404(Game, game_slug=game_slug)
-    pcs = game.characters.filter(player__isnull=False)
+    pcs = game.characters.filter(npc=False)
     serializer = CharacterListSerializer(pcs, many=True)
     return Response(serializer.data)
 
@@ -42,7 +42,7 @@ def game_pcs(request, game_slug):
 def game_npcs(request, game_slug):
     """Return list of Non-Player Characters (NPCs) for a specific game."""
     game = get_object_or_404(Game, game_slug=game_slug)
-    npcs = game.characters.filter(player__isnull=True)
+    npcs = game.characters.filter(npc=True)
     serializer = CharacterListSerializer(npcs, many=True)
     return Response(serializer.data)
 

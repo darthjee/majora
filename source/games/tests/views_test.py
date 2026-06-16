@@ -106,8 +106,8 @@ class TestGamePcsView:
         self.player = Player.objects.create(name='Alice')
 
     def test_returns_only_pcs(self, client):
-        """Test that only Player Characters are returned."""
-        Character.objects.create(name='Hero', game=self.game, player=self.player)
+        """Test that only characters with npc=False are returned."""
+        Character.objects.create(name='Hero', game=self.game, player=self.player, npc=False)
         Character.objects.create(name='Villain', game=self.game)
         response = client.get('/games/test-game/pcs.json')
         assert response.status_code == 200
@@ -137,8 +137,8 @@ class TestGameNpcsView:
         self.player = Player.objects.create(name='Alice')
 
     def test_returns_only_npcs(self, client):
-        """Test that only Non-Player Characters are returned."""
-        Character.objects.create(name='Hero', game=self.game, player=self.player)
+        """Test that only characters with npc=True are returned."""
+        Character.objects.create(name='Hero', game=self.game, player=self.player, npc=False)
         Character.objects.create(name='Villain', game=self.game)
         response = client.get('/games/test-game/npcs.json')
         assert response.status_code == 200
@@ -168,6 +168,7 @@ class TestCharacterDetailView:
             character_class='Ranger',
             level=20,
             description='The future king of Gondor.',
+            npc=False,
         )
 
     def test_returns_character_detail(self, client):

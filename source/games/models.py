@@ -56,6 +56,7 @@ class Character(models.Model):
     character_class = models.CharField(max_length=200, blank=True)
     level = models.IntegerField(null=True, blank=True)
     description = models.TextField(blank=True)
+    npc = models.BooleanField(default=True)
 
     class Meta:
         ordering = ['name']
@@ -63,7 +64,7 @@ class Character(models.Model):
     @property
     def is_pc(self):
         """Return True if the character is a Player Character (PC)."""
-        return self.player is not None
+        return not self.npc
 
     def __str__(self):
         """Return string representation of the character."""
