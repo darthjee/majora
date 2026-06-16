@@ -10,6 +10,7 @@
 #   next-id             — next numeric ID from existing issue files
 #   next-local-id       — next x-prefixed ID (x01, x02, ...) from existing issue files
 #   filename <id> <title> — canonical path: docs/agents/issues/<id>_<slug>.md
+#   plan-dir <id>       — canonical plan directory: docs/agents/plans/<id>_<slug>
 #   read-github <id>    — fetch GitHub issue JSON (number, title, body); numeric IDs only
 #   write-github <id>   — update GitHub issue from local file; skips silently for x-prefixed IDs
 
@@ -67,6 +68,13 @@ case ${1:-} in
     echo "${ISSUES_DIR}/${id}_${slug}.md"
     ;;
 
+  plan-dir)
+    id=${2:?plan-dir requires an id}
+    file=$(_find_issue_file "$id")
+    slug=$(basename "$file" .md | sed "s/^${id}_//")
+    echo "docs/agents/plans/${id}_${slug}"
+    ;;
+
   read-github)
     id=${2:?read-github requires an id}
     if _is_local_id "$id"; then
@@ -88,7 +96,7 @@ case ${1:-} in
     ;;
 
   *)
-    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|read-github <id>|write-github <id>}" >&2
+    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|write-github <id>}" >&2
     exit 1
     ;;
 esac
