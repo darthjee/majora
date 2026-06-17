@@ -9,5 +9,9 @@ import defaultGamePhoto from '../../../images/default_game.png';
  * @returns {React.ReactElement} Image element.
  */
 export default function CardPhoto({ url, alt }) {
-  return <img src={url || defaultGamePhoto} className="card-img-top img-fluid" alt={alt} />;
+  return (
+    <div className="card-photo-square">
+      <img src={url || defaultGamePhoto} className="card-img-top" alt={alt} />
+    </div>
+  );
 }

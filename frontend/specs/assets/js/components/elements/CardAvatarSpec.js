@@ -12,12 +12,18 @@ describe('CardAvatar', function() {
     expect(html).toContain('alt="Hero"');
   });
 
-  it('applies card-img-top and img-fluid classes', function() {
+  it('applies the card-img-top class', function() {
     const html = renderToStaticMarkup(
       React.createElement(CardAvatar, { url: 'http://example.com/avatar.png', alt: 'Hero' })
     );
     expect(html).toContain('card-img-top');
-    expect(html).toContain('img-fluid');
+  });
+
+  it('wraps the image in a card-photo-square container', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(CardAvatar, { url: 'http://example.com/avatar.png', alt: 'Hero' })
+    );
+    expect(html).toContain('card-photo-square');
   });
 
   it('renders the default character photo when url is null', function() {
@@ -37,11 +43,17 @@ describe('CardAvatar', function() {
     expect(html).toContain('default_character.png');
   });
 
-  it('applies card-img-top and img-fluid classes to the default photo', function() {
+  it('applies the card-img-top class to the default photo', function() {
     const html = renderToStaticMarkup(
       React.createElement(CardAvatar, { url: null, alt: 'Hero' })
     );
     expect(html).toContain('card-img-top');
-    expect(html).toContain('img-fluid');
+  });
+
+  it('wraps the default photo in a card-photo-square container', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(CardAvatar, { url: null, alt: 'Hero' })
+    );
+    expect(html).toContain('card-photo-square');
   });
 });

@@ -9,5 +9,9 @@ import defaultCharacterPhoto from '../../../images/default_character.png';
  * @returns {React.ReactElement} Image element.
  */
 export default function CardAvatar({ url, alt }) {
-  return <img src={url || defaultCharacterPhoto} className="card-img-top img-fluid" alt={alt} />;
+  return (
+    <div className="card-photo-square">
+      <img src={url || defaultCharacterPhoto} className="card-img-top" alt={alt} />
+    </div>
+  );
 }
