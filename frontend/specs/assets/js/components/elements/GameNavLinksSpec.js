@@ -7,7 +7,7 @@ describe('GameNavLinks', function() {
     const html = renderToStaticMarkup(
       React.createElement(GameNavLinks, { gameSlug: 'epic-quest' })
     );
-    expect(html).toContain('href="#/games/epic-quest/pcs"');
+    expect(html).not.toContain('href="#/games/epic-quest/pcs"');
     expect(html).toContain('href="#/games/epic-quest/npcs"');
   });
 });
