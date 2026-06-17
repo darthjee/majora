@@ -147,6 +147,7 @@ class TestGamePcsView:
         data = json.loads(response.content)
         assert len(data) == 1
         assert data[0]['name'] == 'Hero'
+        assert data[0]['game_slug'] == 'test-game'
 
     def test_returns_empty_list_when_no_pcs(self, client):
         """Test that an empty list is returned when there are no PCs."""
@@ -215,6 +216,7 @@ class TestGameNpcsView:
         data = json.loads(response.content)
         assert len(data) == 1
         assert data[0]['name'] == 'Villain'
+        assert data[0]['game_slug'] == 'test-game'
 
     def test_returns_empty_list_when_no_npcs(self, client):
         """Test that an empty list is returned when there are no NPCs."""
@@ -299,6 +301,7 @@ class TestGameNpcDetailView:
         assert data['character_class'] == 'Wizard'
         assert data['level'] == 20
         assert data['is_pc'] is False
+        assert data['game_slug'] == 'test-game'
 
     def test_returns_404_for_unknown_character(self, client):
         """Test that 404 is returned for a non-existent character_id."""
@@ -365,6 +368,7 @@ class TestGamePcDetailView:
         assert data['character_class'] == 'Ranger'
         assert data['level'] == 20
         assert data['is_pc'] is True
+        assert data['game_slug'] == 'test-game'
 
     def test_returns_404_for_unknown_character(self, client):
         """Test that 404 is returned for a non-existent character_id."""
