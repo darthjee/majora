@@ -18,7 +18,8 @@ export default class HashRouteResolver {
     this.#hashProvider = hashProvider;
     this.#router = new Router();
 
-    this.#router.register('/games/:game_slug/characters/:character_id', 'character');
+    this.#router.register('/games/:game_slug/npcs/:character_id', 'npcCharacter');
+    this.#router.register('/games/:game_slug/pcs/:character_id', 'pcCharacter');
     this.#router.register('/games/:game_slug/pcs', 'gamePcs');
     this.#router.register('/games/:game_slug/npcs', 'gameNpcs');
     this.#router.register('/games/:game_slug', 'game');

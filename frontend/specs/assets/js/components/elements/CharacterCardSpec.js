@@ -7,9 +7,9 @@ describe('CharacterCard', function() {
 
   it('delegates rendering to CharacterCardHelper', function() {
     const html = renderToStaticMarkup(
-      React.createElement(CharacterCard, { character, gameSlug: 'epic-quest' })
+      React.createElement(CharacterCard, { character, gameSlug: 'epic-quest', characterType: 'pc' })
     );
     expect(html).toContain('Aragorn');
-    expect(html).toContain('href="#/games/epic-quest/characters/42"');
+    expect(html).toContain('href="#/games/epic-quest/pcs/42"');
   });
 });

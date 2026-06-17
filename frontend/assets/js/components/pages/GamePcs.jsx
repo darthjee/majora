@@ -22,8 +22,11 @@ export default function GamePcs() {
 
   const gameSlug = getGameSlugFromPcsHash(window.location.hash);
   const basePath = `#/games/${gameSlug}/pcs`;
+  const backHref = `#/games/${gameSlug}`;
 
   if (loading) return GameCharactersHelper.renderLoading();
   if (error) return GameCharactersHelper.renderError(error);
-  return GameCharactersHelper.render(pcs, pagination, basePath, gameSlug, 'Player Characters');
+  return GameCharactersHelper.render(
+    pcs, pagination, basePath, gameSlug, 'Player Characters', 'pc', backHref,
+  );
 }

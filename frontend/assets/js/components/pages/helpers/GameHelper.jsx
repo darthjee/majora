@@ -1,4 +1,5 @@
 import React from 'react';
+import BackButton from '../../elements/BackButton.jsx';
 import CardPhoto from '../../elements/CardPhoto.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import GameNavLinks from '../../elements/GameNavLinks.jsx';
@@ -21,6 +22,7 @@ export default class GameHelper {
   static render(game) {
     return (
       <div className="container mt-4">
+        <BackButton href="#/games" />
         <div className="row">
           <div className="col-md-4">
             <CardPhoto url={game.photo} alt={game.name} />

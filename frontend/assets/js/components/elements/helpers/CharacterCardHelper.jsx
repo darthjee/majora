@@ -13,13 +13,14 @@ export default class CharacterCardHelper {
    * @param {string} character.name - Character name.
    * @param {string|null} [character.avatar_url] - Optional avatar URL.
    * @param {string} gameSlug - Game slug used to build the detail link.
+   * @param {string} characterType - Character type, either 'pc' or 'npc'.
    * @returns {React.ReactElement} Character card element.
    */
-  static render(character, gameSlug) {
+  static render(character, gameSlug, characterType) {
     return (
       <div className="col-sm-6 col-md-4 col-lg-3 mb-4">
         <a
-          href={`#/games/${gameSlug}/characters/${character.id}`}
+          href={`#/games/${gameSlug}/${characterType}s/${character.id}`}
           className="text-decoration-none text-dark"
         >
           <div className="card h-100">

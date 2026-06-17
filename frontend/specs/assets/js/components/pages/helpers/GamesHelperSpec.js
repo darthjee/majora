@@ -27,6 +27,13 @@ describe('GamesHelper', function() {
       const html = renderToStaticMarkup(GamesHelper.render(games, pagination));
       expect(html).not.toContain('pagination');
     });
+
+    it('renders a back button to the home page', function() {
+      const games = [{ name: 'Game A', game_slug: 'game-a', photo: null }];
+      const pagination = { page: 1, pages: 1, perPage: 10 };
+      const html = renderToStaticMarkup(GamesHelper.render(games, pagination));
+      expect(html).toContain('href="#/"');
+    });
   });
 
   describe('.renderLoading', function() {
