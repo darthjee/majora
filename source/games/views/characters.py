@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from ..models import Character, Game
+from ..paginator import Paginator
 from ..serializers import CharacterDetailSerializer, CharacterListSerializer
 
 
@@ -22,8 +23,9 @@ def game_npcs(request, game_slug):
     """Return list of Non-Player Characters (NPCs) for a specific game."""
     game = get_object_or_404(Game, game_slug=game_slug)
     npcs = game.characters.filter(npc=True)
-    serializer = CharacterListSerializer(npcs, many=True)
-    return Response(serializer.data)
+    page_npcs, headers = Paginator(request, npcs).paginate()
+    serializer = CharacterListSerializer(page_npcs, many=True)
+    return Response(serializer.data, headers=headers)
 
 
 @api_view(['GET'])

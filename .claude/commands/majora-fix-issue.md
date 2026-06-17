@@ -52,7 +52,13 @@ Launch one Agent per plan file that exists, all at the same time. Pass each agen
 > 1. Implement
 > 2. Run tests and lint fix (using the commands in your agent instructions)
 > 3. Analyze whether refactoring is needed — if so, refactor and repeat from step 2
-> 4. When clean: commit your changes with a descriptive message referencing the issue ID
+> 4. When clean: commit your changes using the template at `.github/commit_message_template.md`.
+>    - `<type>`: `feat`, `fix`, `refactor`, `docs`, `test`, or `chore`
+>    - `<scope>`: your layer (`backend`, `frontend`, or `infra`)
+>    - `<id>`: the issue number
+>    - `<AI model name>` and `<AI model email>`: the model you are running on and its canonical noreply email (e.g. `Claude Sonnet 4.6` / `noreply@anthropic.com`)
+>    - `<agent>`: your agent role (`backend`, `frontend`, or `infra`)
+>    - Fill in `<subject>` and optionally the body; remove placeholder lines that are not used
 >
 > Do not ask for confirmation. Report back with: what you implemented, what files you changed, and whether all checks passed.
 

@@ -152,6 +152,56 @@ class TestGameNpcsView:
         assert response.status_code == 200
         assert json.loads(response.content) == []
 
+    def test_response_includes_page_header(self, client):
+        """Test that the response includes the page header."""
+        response = client.get('/games/test-game/npcs.json')
+        assert response['page'] == '1'
+
+    def test_response_includes_pages_header(self, client):
+        """Test that the response includes the total pages header."""
+        response = client.get('/games/test-game/npcs.json')
+        assert response['pages'] == '1'
+
+    def test_response_includes_per_page_header(self, client):
+        """Test that the response includes the per_page header."""
+        response = client.get('/games/test-game/npcs.json?per_page=5')
+        assert response['per_page'] == '5'
+
+    def test_response_includes_total_header(self, client):
+        """Test that the response includes the total item count header."""
+        for i in range(3):
+            Character.objects.create(name=f'NPC {i}', game=self.game, npc=True)
+        response = client.get('/games/test-game/npcs.json')
+        assert response['total'] == '3'
+
+    def test_respects_page_param(self, client):
+        """Test that ?page=N returns the correct page of results."""
+        for i in range(5):
+            Character.objects.create(name=f'NPC {i}', game=self.game, npc=True)
+        response = client.get('/games/test-game/npcs.json?page=2&per_page=3')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 2
+
+    def test_respects_per_page_param(self, client):
+        """Test that ?per_page=N limits the number of results returned."""
+        for i in range(5):
+            Character.objects.create(name=f'NPC {i}', game=self.game, npc=True)
+        response = client.get('/games/test-game/npcs.json?per_page=2')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 2
+
+    def test_default_page_size_uses_settings(self, client, monkeypatch):
+        """Test that default per_page comes from Settings.pagination_size()."""
+        monkeypatch.setenv('MAJORA_PAGINATION_SIZE', '3')
+        for i in range(5):
+            Character.objects.create(name=f'NPC {i}', game=self.game, npc=True)
+        response = client.get('/games/test-game/npcs.json')
+        assert response['per_page'] == '3'
+        data = json.loads(response.content)
+        assert len(data) == 3
+
 
 @pytest.mark.django_db
 class TestCharacterDetailView:

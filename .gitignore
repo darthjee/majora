@@ -45,3 +45,5 @@ docker_volumes/mysql_data/
 # OS
 .DS_Store
 Thumbs.db
+
+.claude/state
