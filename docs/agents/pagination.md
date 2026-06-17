@@ -46,6 +46,8 @@ Results are ordered by `id` via the model's `Meta.ordering`.
 
 | Endpoint | View |
 |----------|------|
+| `GET /games.json` | `games_list` |
+| `GET /games/:game_slug/pcs.json` | `game_pcs` |
 | `GET /games/:game_slug/npcs.json` | `game_npcs` |
 
 ---
