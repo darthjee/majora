@@ -42,9 +42,11 @@ class GameDetailSerializer(serializers.ModelSerializer):
 class CharacterListSerializer(serializers.ModelSerializer):
     """Serializer for character list items."""
 
+    game_slug = serializers.ReadOnlyField(source='game.game_slug')
+
     class Meta:
         model = Character
-        fields = ['id', 'name', 'avatar_url']
+        fields = ['id', 'name', 'avatar_url', 'game_slug']
 
 
 class CharacterDetailSerializer(serializers.ModelSerializer):
@@ -52,6 +54,7 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
 
     photos = PhotoSerializer(many=True, read_only=True)
     is_pc = serializers.ReadOnlyField()
+    game_slug = serializers.ReadOnlyField(source='game.game_slug')
 
     class Meta:
         model = Character
@@ -64,4 +67,5 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
             'description',
             'is_pc',
             'photos',
+            'game_slug',
         ]
