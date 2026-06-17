@@ -14,12 +14,18 @@
 #   read-github <id>       — fetch GitHub issue JSON (number, title, body); numeric IDs only
 #   write-github <id>      — update GitHub issue from local file; skips silently for x-prefixed IDs
 #   checkout-from-main <id>— fetch + pull main + checkout -b issue-<id>
-#   commit-issue <id>      — git add + commit the issue file
-#   commit-plan <id>       — git add + commit the plan directory
+#   commit <type> <scope> <id> <subject> <agent> <model-name> <model-email> [body]
+#                          — build a message from .github/commit_message_template.md and commit
+#                            staged changes; every commit in this pipeline goes through this
+#   commit-issue <id> <model-name> <model-email>
+#                          — git add + commit the issue file (via `commit`)
+#   commit-plan <id> <model-name> <model-email>
+#                          — git add + commit the plan directory (via `commit`)
 #   create-branch <id>     — create and checkout the branch defined in plan.md, or issue-<id>
 #   draft-pr <id>          — push current branch, open a draft PR, save PR URL to .claude/state/
 #   mark-ready <id>        — convert the existing draft PR to ready for review
-#   cleanup-artifacts <id> — git rm issue file + plan dir and commit (called on approval)
+#   cleanup-artifacts <id> <model-name> <model-email>
+#                          — git rm issue file + plan dir and commit (called on approval, via `commit`)
 #   wait-ci <id>           — blocking loop: waits for CircleCI checks on PR head commit
 #                            outputs "passed" or "failed"; on "failed", subsequent lines are job names
 #   merge-pr <id>          — squash-merge the PR
@@ -140,18 +146,44 @@ case ${1:-} in
     echo "issue-${id}"
     ;;
 
+  commit)
+    type=${2:?commit requires a type}
+    scope=${3:?commit requires a scope}
+    id=${4:?commit requires an id}
+    subject=${5:?commit requires a subject}
+    agent=${6:?commit requires an agent}
+    model_name=${7:?commit requires an AI model name}
+    model_email=${8:?commit requires an AI model email}
+    body=${9:-}
+
+    {
+      echo "${type}(${scope}): ${subject} (issue #${id})"
+      if [[ -n "$body" ]]; then
+        echo
+        echo "$body"
+      fi
+      echo
+      echo "Co-Authored-By: ${model_name} <${model_email}>"
+      echo "Co-Authored-By: ${agent} agent <${model_email}>"
+    } | git commit -F -
+    ;;
+
   commit-issue)
     id=${2:?commit-issue requires an id}
+    model_name=${3:?commit-issue requires an AI model name}
+    model_email=${4:?commit-issue requires an AI model email}
     file=$(_find_issue_file "$id")
     git add "$file"
-    git commit -m "docs: add issue ${id}"
+    bash "$0" commit docs issue "$id" "add issue file" architect "$model_name" "$model_email"
     ;;
 
   commit-plan)
     id=${2:?commit-plan requires an id}
+    model_name=${3:?commit-plan requires an AI model name}
+    model_email=${4:?commit-plan requires an AI model email}
     plan_dir=$(bash "$0" plan-dir "$id")
     git add "$plan_dir"
-    git commit -m "docs: add plan for issue ${id}"
+    bash "$0" commit docs plan "$id" "add implementation plan" architect "$model_name" "$model_email"
     ;;
 
   create-branch)
@@ -237,6 +269,8 @@ Fixes #${id}"
 
   cleanup-artifacts)
     id=${2:?cleanup-artifacts requires an id}
+    model_name=${3:?cleanup-artifacts requires an AI model name}
+    model_email=${4:?cleanup-artifacts requires an AI model email}
     issue_file=$(ls "${ISSUES_DIR}/${id}_"*.md 2>/dev/null | head -1 || true)
     if [[ -n "$issue_file" ]]; then
       plan_dir=$(bash "$0" plan-dir "$id")
@@ -244,7 +278,9 @@ Fixes #${id}"
       if [[ -d "$plan_dir" ]] && [[ -n "$(git ls-files "$plan_dir")" ]]; then
         git rm -r "$plan_dir"
       fi
-      git diff --cached --quiet || git commit -m "chore: remove planning artifacts for issue ${id}"
+      if ! git diff --cached --quiet; then
+        bash "$0" commit chore docs "$id" "remove planning artifacts" architect "$model_name" "$model_email"
+      fi
     fi
     ;;
 
@@ -406,7 +442,7 @@ Fixes #${id}"
     ;;
 
   *)
-    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|write-github <id>|checkout-from-main <id>|commit-issue <id>|commit-plan <id>|create-branch <id>|draft-pr <id>|mark-ready <id>|cleanup-artifacts <id>|wait-ci <id>|merge-pr <id>|monitor-pr <id>}" >&2
+    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|write-github <id>|checkout-from-main <id>|commit <type> <scope> <id> <subject> <agent> <model-name> <model-email> [body]|commit-issue <id> <model-name> <model-email>|commit-plan <id> <model-name> <model-email>|create-branch <id>|draft-pr <id>|mark-ready <id>|cleanup-artifacts <id> <model-name> <model-email>|wait-ci <id>|merge-pr <id>|monitor-pr <id>}" >&2
     exit 1
     ;;
 esac

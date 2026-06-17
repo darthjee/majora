@@ -110,9 +110,9 @@ The PR was closed without merging. Ask the user:
 
 #### If `approved`
 
-1. Remove planning artifacts and commit:
+1. Remove planning artifacts and commit (this commits via the template at `.github/commit_message_template.md` — never commit by hand):
    ```
-   bash .claude/scripts/majora_issue.sh cleanup-artifacts <id>
+   bash .claude/scripts/majora_issue.sh cleanup-artifacts <id> "<your AI model name>" "<your AI model noreply email>"
    ```
 2. Push:
    ```

@@ -185,9 +185,9 @@ environment variables, Docker changes. Omit if infra works in isolation.>
 
 ### 7. Commit the plan
 
-Run:
+This commits using the template at `.github/commit_message_template.md` (the script builds the message and runs `git commit` — never commit by hand). Run:
 ```
-bash .claude/scripts/majora_issue.sh commit-plan <id>
+bash .claude/scripts/majora_issue.sh commit-plan <id> "<your AI model name>" "<your AI model noreply email>"
 ```
 
 ### 8. Done
