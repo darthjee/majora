@@ -18,6 +18,8 @@
 #                            write {"issue_id": <id>, "tags": [...]} to .claude/state/metadata/issue_<id>.json
 #   write-github <id>      — update GitHub issue from local file; skips silently for x-prefixed IDs
 #   checkout-from-main <id>— fetch + pull main + checkout -b issue-<id>
+#   metadata <id> <field>  — read a field (e.g. pr_url, pr_number, tags) from
+#                            .claude/state/metadata/issue_<id>.json
 #   commit <type> <scope> <id> <subject> <agent> <model-name> <model-email> [body]
 #                          — build a message from .github/commit_message_template.md and commit
 #                            staged changes; every commit in this pipeline goes through this
@@ -26,7 +28,8 @@
 #   commit-plan <id> <model-name> <model-email>
 #                          — git add + commit the plan directory (via `commit`)
 #   create-branch <id>     — create and checkout the branch defined in plan.md, or issue-<id>
-#   draft-pr <id>          — push current branch, open a draft PR, save PR URL to .claude/state/
+#   draft-pr <id>          — push current branch, open a draft PR, save pr_url/pr_number
+#                            into .claude/state/metadata/issue_<id>.json
 #   mark-ready <id>        — convert the existing draft PR to ready for review
 #   cleanup-artifacts <id> <model-name> <model-email>
 #                          — git rm issue file + plan dir and commit (called on approval, via `commit`)
@@ -87,6 +90,48 @@ _extract_section() {
   awk -v sec="## ${section}" '$0==sec{found=1; next} found && /^## /{exit} found{print}' "$file"
 }
 
+_metadata_file() {
+  local id="$1"
+  echo "${STATE_DIR}/metadata/issue_${id}.json"
+}
+
+_ensure_metadata() {
+  local id="$1"
+  local file
+  file=$(_metadata_file "$id")
+  mkdir -p "$(dirname "$file")"
+  if [[ ! -f "$file" ]]; then
+    jq -n --arg id "$id" '{issue_id: $id, tags: []}' > "$file"
+  fi
+  echo "$file"
+}
+
+_set_pr_metadata() {
+  local id="$1" pr_url="$2" pr_number="$3"
+  local file
+  file=$(_ensure_metadata "$id")
+  jq --arg url "$pr_url" --argjson num "$pr_number" '.pr_url = $url | .pr_number = $num' \
+    "$file" > "${file}.tmp"
+  mv "${file}.tmp" "$file"
+}
+
+_get_metadata_field() {
+  local id="$1" field="$2"
+  local file
+  file=$(_metadata_file "$id")
+  if [[ ! -f "$file" ]]; then
+    echo "Error: no metadata found for issue '${id}'" >&2
+    exit 1
+  fi
+  local value
+  value=$(jq -r ".${field} // empty" "$file")
+  if [[ -z "$value" ]]; then
+    echo "Error: no '${field}' found in metadata for issue '${id}'" >&2
+    exit 1
+  fi
+  echo "$value"
+}
+
 case ${1:-} in
   next-id)
     max=$(ls "$ISSUES_DIR" 2>/dev/null | grep -oE '^[0-9]+' | sort -n | tail -1 || true)
@@ -131,8 +176,6 @@ case ${1:-} in
   save-metadata)
     id=${2:?save-metadata requires an id}
     body=${3:-}
-    metadata_dir="${STATE_DIR}/metadata"
-    mkdir -p "$metadata_dir"
     tags_line=$(echo "$body" | grep -im1 '^tags:' || true)
     tags_json="[]"
     if [[ -n "$tags_line" ]]; then
@@ -142,8 +185,16 @@ case ${1:-} in
         | tr '[:upper:]' '[:lower:]' \
         | jq -R . | jq -s .)
     fi
-    jq -n --arg id "$id" --argjson tags "$tags_json" '{issue_id: $id, tags: $tags}' \
-      > "${metadata_dir}/issue_${id}.json"
+    file=$(_ensure_metadata "$id")
+    jq --arg id "$id" --argjson tags "$tags_json" '.issue_id = $id | .tags = $tags' \
+      "$file" > "${file}.tmp"
+    mv "${file}.tmp" "$file"
+    ;;
+
+  metadata)
+    id=${2:?metadata requires an id}
+    field=${3:?metadata requires a field}
+    _get_metadata_field "$id" "$field"
     ;;
 
   write-github)
@@ -272,23 +323,17 @@ Fixes #${id}"
       --title "$title" \
       --body "$pr_body" \
       --head "$branch")
+    pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
 
-    mkdir -p "$STATE_DIR"
-    echo "$pr_url" > "${STATE_DIR}/${id}_pr.txt"
+    _set_pr_metadata "$id" "$pr_url" "$pr_num"
     echo "$pr_url"
     ;;
 
   mark-ready)
     id=${2:?mark-ready requires an id}
-    pr_file="${STATE_DIR}/${id}_pr.txt"
-    if [[ ! -f "$pr_file" ]]; then
-      echo "Error: no PR URL found for issue '${id}' — was draft-pr run?" >&2
-      exit 1
-    fi
-    pr_url=$(cat "$pr_file")
-    pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
+    pr_num=$(_get_metadata_field "$id" pr_number)
     gh pr ready "$pr_num" --repo "$REPO"
-    echo "$pr_url"
+    _get_metadata_field "$id" pr_url
     ;;
 
   cleanup-artifacts)
@@ -310,13 +355,7 @@ Fixes #${id}"
 
   wait-ci)
     id=${2:?wait-ci requires an id}
-    pr_file="${STATE_DIR}/${id}_pr.txt"
-    if [[ ! -f "$pr_file" ]]; then
-      echo "Error: no PR URL found for issue '${id}' — was draft-pr run?" >&2
-      exit 1
-    fi
-    pr_url=$(cat "$pr_file")
-    pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
+    pr_num=$(_get_metadata_field "$id" pr_number)
 
     while true; do
       sha=$(gh pr view "$pr_num" --repo "$REPO" --json headRefOid -q '.headRefOid' 2>/dev/null) || {
@@ -366,13 +405,8 @@ Fixes #${id}"
 
   merge-pr)
     id=${2:?merge-pr requires an id}
-    pr_file="${STATE_DIR}/${id}_pr.txt"
-    if [[ ! -f "$pr_file" ]]; then
-      echo "Error: no PR URL found for issue '${id}' — was draft-pr run?" >&2
-      exit 1
-    fi
-    pr_url=$(cat "$pr_file")
-    pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
+    pr_num=$(_get_metadata_field "$id" pr_number)
+    pr_url=$(_get_metadata_field "$id" pr_url)
     pr_title=$(gh pr view "$pr_num" --repo "$REPO" --json title -q '.title')
     gh pr merge "$pr_num" --repo "$REPO" --squash --subject "${pr_title} (#${pr_num})" --body ""
     echo "$pr_url"
@@ -380,16 +414,8 @@ Fixes #${id}"
 
   monitor-pr)
     id=${2:?monitor-pr requires an id}
-    pr_file="${STATE_DIR}/${id}_pr.txt"
-
-    if [[ ! -f "$pr_file" ]]; then
-      echo "Error: no PR URL found for issue '${id}' — was draft-pr run?" >&2
-      exit 1
-    fi
-
     pr_owner=$(_pr_owner)
-    pr_url=$(cat "$pr_file")
-    pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
+    pr_num=$(_get_metadata_field "$id" pr_number)
     last_time_file="${STATE_DIR}/${id}_last_comment_time.txt"
 
     while true; do
@@ -466,7 +492,7 @@ Fixes #${id}"
     ;;
 
   *)
-    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|save-metadata <id> <body>|write-github <id>|checkout-from-main <id>|commit <type> <scope> <id> <subject> <agent> <model-name> <model-email> [body]|commit-issue <id> <model-name> <model-email>|commit-plan <id> <model-name> <model-email>|create-branch <id>|draft-pr <id>|mark-ready <id>|cleanup-artifacts <id> <model-name> <model-email>|wait-ci <id>|merge-pr <id>|monitor-pr <id>}" >&2
+    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|save-metadata <id> <body>|metadata <id> <field>|write-github <id>|checkout-from-main <id>|commit <type> <scope> <id> <subject> <agent> <model-name> <model-email> [body]|commit-issue <id> <model-name> <model-email>|commit-plan <id> <model-name> <model-email>|create-branch <id>|draft-pr <id>|mark-ready <id>|cleanup-artifacts <id> <model-name> <model-email>|wait-ci <id>|merge-pr <id>|monitor-pr <id>}" >&2
     exit 1
     ;;
 esac

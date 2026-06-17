@@ -88,7 +88,7 @@ Push all commits:
 git push
 ```
 
-If `.claude/state/<id>_pr.txt` already exists (a draft PR was opened earlier):
+If `.claude/state/metadata/issue_<id>.json` already has a `pr_url` (a draft PR was opened earlier):
 ```
 bash .claude/scripts/majora_issue.sh mark-ready <id>
 ```

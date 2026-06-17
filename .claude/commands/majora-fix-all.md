@@ -61,7 +61,7 @@ The final step in that skill commits the plan files.
 bash .claude/scripts/majora_issue.sh draft-pr <id>
 ```
 
-This pushes the branch and opens a draft PR with the committed issue and plan as the description. The PR URL is saved to `.claude/state/<id>_pr.txt`.
+This pushes the branch and opens a draft PR with the committed issue and plan as the description. The PR's `pr_url`/`pr_number` are saved into `.claude/state/metadata/issue_<id>.json`.
 
 #### 2f. Implement and mark ready
 
@@ -70,7 +70,7 @@ After all agents have committed, push the implementation commits before marking 
 ```
 git push
 ```
-Since `.claude/state/<id>_pr.txt` already exists, the final step will call `mark-ready <id>` to convert the draft PR to ready for review.
+Since the metadata file already has a `pr_url`, the final step will call `mark-ready <id>` to convert the draft PR to ready for review.
 
 ---
 
