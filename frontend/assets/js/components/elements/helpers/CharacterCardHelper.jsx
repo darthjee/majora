@@ -14,11 +14,16 @@ export default class CharacterCardHelper {
    * @param {string|null} [character.avatar_url] - Optional avatar URL.
    * @param {string} gameSlug - Game slug used to build the detail link.
    * @param {string} characterType - Character type, either 'pc' or 'npc'.
+   * @param {string} [size] - Card size, either 'normal' or 'small'.
    * @returns {React.ReactElement} Character card element.
    */
-  static render(character, gameSlug, characterType) {
+  static render(character, gameSlug, characterType, size = 'normal') {
+    const isSmall = size === 'small';
+    const columnClass = isSmall ? 'col-sm-4 col-md-3 col-lg-2' : 'col-sm-6 col-md-4 col-lg-3';
+    const HeadingTag = isSmall ? 'h6' : 'h5';
+
     return (
-      <div className="col-sm-6 col-md-4 col-lg-3 mb-4">
+      <div className={`${columnClass} mb-4`}>
         <a
           href={`#/games/${gameSlug}/${characterType}s/${character.id}`}
           className="text-decoration-none text-dark"
@@ -26,7 +31,7 @@ export default class CharacterCardHelper {
           <div className="card h-100">
             <CardAvatar url={character.avatar_url} alt={character.name} />
             <div className="card-body">
-              <h5 className="card-title">{character.name}</h5>
+              <HeadingTag className="card-title">{character.name}</HeadingTag>
             </div>
           </div>
         </a>

@@ -39,5 +39,17 @@ describe('CharacterCardHelper', function() {
       expect(html).toContain('card-body');
       expect(html).toContain('card-title');
     });
+
+    it('uses the normal column classes and h5 heading by default', function() {
+      const html = renderToStaticMarkup(CharacterCardHelper.render(character, gameSlug, 'pc'));
+      expect(html).toContain('col-sm-6 col-md-4 col-lg-3');
+      expect(html).toContain('<h5');
+    });
+
+    it('uses smaller column classes and h6 heading when size is small', function() {
+      const html = renderToStaticMarkup(CharacterCardHelper.render(character, gameSlug, 'pc', 'small'));
+      expect(html).toContain('col-sm-4 col-md-3 col-lg-2');
+      expect(html).toContain('<h6');
+    });
   });
 });

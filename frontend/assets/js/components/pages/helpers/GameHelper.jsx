@@ -1,6 +1,7 @@
 import React from 'react';
 import BackButton from '../../elements/BackButton.jsx';
 import CardPhoto from '../../elements/CardPhoto.jsx';
+import CharacterPreviewSection from '../../elements/CharacterPreviewSection.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import GameNavLinks from '../../elements/GameNavLinks.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
@@ -17,9 +18,10 @@ export default class GameHelper {
    * @param {string} game.game_slug - Game slug.
    * @param {string|null} [game.photo] - Optional cover image URL.
    * @param {string} [game.description] - Game description text.
+   * @param {object[]} [pcs] - PCs preview list.
    * @returns {React.ReactElement} Game detail element.
    */
-  static render(game) {
+  static render(game, pcs = []) {
     return (
       <div className="container mt-4">
         <BackButton href="#/games" />
@@ -35,6 +37,13 @@ export default class GameHelper {
             <GameNavLinks gameSlug={game.game_slug} />
           </div>
         </div>
+        <CharacterPreviewSection
+          characters={pcs}
+          gameSlug={game.game_slug}
+          characterType="pc"
+          title="Player Characters"
+          seeAllHref={`#/games/${game.game_slug}/pcs`}
+        />
       </div>
     );
   }

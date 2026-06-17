@@ -10,8 +10,9 @@ import CharacterCardHelper from './helpers/CharacterCardHelper.jsx';
  * @param {string|null} [props.character.avatar_url] - Optional avatar URL.
  * @param {string} props.gameSlug - Game slug used to build the detail link.
  * @param {string} props.characterType - Character type, either 'pc' or 'npc'.
+ * @param {string} [props.size] - Card size, either 'normal' or 'small'.
  * @returns {React.ReactElement} Character card element.
  */
-export default function CharacterCard({ character, gameSlug, characterType }) {
-  return CharacterCardHelper.render(character, gameSlug, characterType);
+export default function CharacterCard({ character, gameSlug, characterType, size = 'normal' }) {
+  return CharacterCardHelper.render(character, gameSlug, characterType, size);
 }

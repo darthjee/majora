@@ -11,9 +11,10 @@ export default function Game() {
   const [game, setGame] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [pcs, setPcs] = useState([]);
 
   const controller = useMemo(
-    () => new GameController(setGame, setLoading, setError),
+    () => new GameController(setGame, setLoading, setError, setPcs),
     [],
   );
 
@@ -21,5 +22,5 @@ export default function Game() {
 
   if (loading) return GameHelper.renderLoading();
   if (error) return GameHelper.renderError(error);
-  return GameHelper.render(game);
+  return GameHelper.render(game, pcs);
 }

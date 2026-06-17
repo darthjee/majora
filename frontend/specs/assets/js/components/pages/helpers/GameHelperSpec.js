@@ -23,16 +23,30 @@ describe('GameHelper', function() {
       expect(renderToStaticMarkup(GameHelper.render(gameNoDesc))).not.toContain('<p');
     });
 
-    it('renders a link to the PCs page', function() {
-      expect(renderToStaticMarkup(GameHelper.render(game))).toContain('href="#/games/epic-quest/pcs"');
-    });
-
     it('renders a link to the NPCs page', function() {
       expect(renderToStaticMarkup(GameHelper.render(game))).toContain('href="#/games/epic-quest/npcs"');
     });
 
     it('renders a back button to the games page', function() {
       expect(renderToStaticMarkup(GameHelper.render(game))).toContain('href="#/games"');
+    });
+
+    it('renders the player characters preview section', function() {
+      const pcs = [{ id: 1, name: 'Aragorn', avatar_url: null }];
+      const html = renderToStaticMarkup(GameHelper.render(game, pcs));
+      expect(html).toContain('Player Characters');
+      expect(html).toContain('Aragorn');
+      expect(html).toContain('href="#/games/epic-quest/pcs"');
+    });
+
+    it('renders the preview section with no characters when pcs is empty', function() {
+      const html = renderToStaticMarkup(GameHelper.render(game, []));
+      expect(html).toContain('Player Characters');
+      expect(html).toContain('href="#/games/epic-quest/pcs"');
+    });
+
+    it('renders the preview section when pcs is not provided', function() {
+      expect(renderToStaticMarkup(GameHelper.render(game))).toContain('Player Characters');
     });
   });
 
