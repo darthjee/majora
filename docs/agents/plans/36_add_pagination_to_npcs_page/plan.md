@@ -13,3 +13,15 @@ The frontend pagination infrastructure (Pagination component, PaginationHelper, 
 ## Agents involved
 
 - [Backend](backend.md)
+- [Frontend](frontend.md)
+
+## Shared contracts
+
+The `game_npcs` endpoint (`GET /games/:game_slug/npcs.json`) returns:
+- **Body**: JSON array of character objects (same shape as before)
+- **Response headers**:
+  - `page` — current page number (integer)
+  - `pages` — total number of pages (integer)
+  - `per_page` — items per page (integer)
+  - `total` — total item count (integer)
+- **Query params accepted**: `page` (integer), `per_page` (integer)
