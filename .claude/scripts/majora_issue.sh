@@ -132,6 +132,14 @@ _get_metadata_field() {
   echo "$value"
 }
 
+_set_last_comment_time() {
+  local id="$1" timestamp="$2"
+  local file
+  file=$(_ensure_metadata "$id")
+  jq --arg t "$timestamp" '.last_comment_time = $t' "$file" > "${file}.tmp"
+  mv "${file}.tmp" "$file"
+}
+
 case ${1:-} in
   next-id)
     max=$(ls "$ISSUES_DIR" 2>/dev/null | grep -oE '^[0-9]+' | sort -n | tail -1 || true)
@@ -416,7 +424,6 @@ Fixes #${id}"
     id=${2:?monitor-pr requires an id}
     pr_owner=$(_pr_owner)
     pr_num=$(_get_metadata_field "$id" pr_number)
-    last_time_file="${STATE_DIR}/${id}_last_comment_time.txt"
 
     while true; do
       pr_data=$(gh pr view "$pr_num" --repo "$REPO" --json state,comments,reviews 2>/dev/null) || {
@@ -460,7 +467,8 @@ Fixes #${id}"
          [$inline[] | {login: .user.login, createdAt: .created_at, body: .body}]' \
         2>/dev/null) || { sleep 5; continue; }
 
-      last_time=$(cat "$last_time_file" 2>/dev/null || echo "1970-01-01T00:00:00Z")
+      last_time=$(jq -r '.last_comment_time // "1970-01-01T00:00:00Z"' "$(_metadata_file "$id")" 2>/dev/null) \
+        || last_time="1970-01-01T00:00:00Z"
 
       new_comments=$(echo "$all_comments" | jq -r \
         "[.[] | select(.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")]" \
@@ -470,8 +478,7 @@ Fixes #${id}"
 
       if [[ "$count" -gt 0 ]]; then
         latest_time=$(echo "$new_comments" | jq -r '[.[].createdAt] | max' 2>/dev/null) || { sleep 5; continue; }
-        mkdir -p "$STATE_DIR"
-        echo "$latest_time" > "$last_time_file"
+        _set_last_comment_time "$id" "$latest_time"
 
         shipit_count=$(echo "$new_comments" | jq \
           '[.[] | select(.body | test("^[[:space:]]*:shipit:[[:space:]]*$"))] | length' \
