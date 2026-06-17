@@ -50,6 +50,39 @@ class TestGamesListView:
         response = client.get(url)
         assert response.status_code == 200
 
+    def test_response_includes_page_header(self, client):
+        """Test that the response includes the page header."""
+        response = client.get('/games.json')
+        assert response['page'] == '1'
+
+    def test_response_includes_pages_header(self, client):
+        """Test that the response includes the total pages header."""
+        response = client.get('/games.json')
+        assert response['pages'] == '1'
+
+    def test_response_includes_per_page_header(self, client):
+        """Test that the response includes the per_page header."""
+        response = client.get('/games.json?per_page=5')
+        assert response['per_page'] == '5'
+
+    def test_respects_page_param(self, client):
+        """Test that ?page=N returns the correct page of results."""
+        for i in range(5):
+            Game.objects.create(name=f'Game {i}', game_slug=f'game-{i}')
+        response = client.get('/games.json?page=2&per_page=3')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 2
+
+    def test_respects_per_page_param(self, client):
+        """Test that ?per_page=N limits the number of results returned."""
+        for i in range(5):
+            Game.objects.create(name=f'Game {i}', game_slug=f'game-{i}')
+        response = client.get('/games.json?per_page=2')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 2
+
 
 @pytest.mark.django_db
 class TestGameDetailView:
@@ -125,6 +158,43 @@ class TestGamePcsView:
         """Test that 404 is returned for a non-existent game_slug."""
         response = client.get('/games/unknown-game/pcs.json')
         assert response.status_code == 404
+
+    def test_response_includes_page_header(self, client):
+        """Test that the response includes the page header."""
+        response = client.get('/games/test-game/pcs.json')
+        assert response['page'] == '1'
+
+    def test_response_includes_pages_header(self, client):
+        """Test that the response includes the total pages header."""
+        response = client.get('/games/test-game/pcs.json')
+        assert response['pages'] == '1'
+
+    def test_response_includes_per_page_header(self, client):
+        """Test that the response includes the per_page header."""
+        response = client.get('/games/test-game/pcs.json?per_page=5')
+        assert response['per_page'] == '5'
+
+    def test_respects_page_param(self, client):
+        """Test that ?page=N returns the correct page of results."""
+        for i in range(5):
+            Character.objects.create(
+                name=f'Hero {i}', game=self.game, player=self.player, npc=False
+            )
+        response = client.get('/games/test-game/pcs.json?page=2&per_page=3')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 2
+
+    def test_respects_per_page_param(self, client):
+        """Test that ?per_page=N limits the number of results returned."""
+        for i in range(5):
+            Character.objects.create(
+                name=f'Hero {i}', game=self.game, player=self.player, npc=False
+            )
+        response = client.get('/games/test-game/pcs.json?per_page=2')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 2
 
 
 @pytest.mark.django_db
