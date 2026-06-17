@@ -72,6 +72,15 @@ git push
 ```
 Since the metadata file already has a `pr_url`, the final step will call `mark-ready <id>` to convert the draft PR to ready for review.
 
+#### 2g. Check for pre-approval
+
+```
+bash .claude/scripts/majora_issue.sh has-tag <id> shipit
+```
+
+If this exits **0**, the issue is pre-approved — skip Step 3 entirely and go straight to the **If `approved`** section below.
+If it exits **1**, continue to **Step 3** as normal.
+
 ---
 
 ### 3. Monitor the PR
@@ -108,7 +117,7 @@ The PR was closed without merging. Ask the user:
 
 ---
 
-#### If `approved`
+#### If `approved` (also reached directly from step 2g when the issue has the `shipit` tag)
 
 1. Remove planning artifacts and commit (this commits via the template at `.github/commit_message_template.md` — never commit by hand):
    ```

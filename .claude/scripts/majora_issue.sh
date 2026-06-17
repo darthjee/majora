@@ -20,6 +20,8 @@
 #   checkout-from-main <id>— fetch + pull main + checkout -b issue-<id>
 #   metadata <id> <field>  — read a field (e.g. pr_url, pr_number, tags) from
 #                            .claude/state/metadata/issue_<id>.json
+#   has-tag <id> <tag>     — exit 0 if <tag> is in the issue's metadata tags, exit 1 otherwise
+#                            (e.g. `shipit` means the issue is pre-approved)
 #   commit <type> <scope> <id> <subject> <agent> <model-name> <model-email> [body]
 #                          — build a message from .github/commit_message_template.md and commit
 #                            staged changes; every commit in this pipeline goes through this
@@ -203,6 +205,15 @@ case ${1:-} in
     id=${2:?metadata requires an id}
     field=${3:?metadata requires a field}
     _get_metadata_field "$id" "$field"
+    ;;
+
+  has-tag)
+    id=${2:?has-tag requires an id}
+    tag=${3:?has-tag requires a tag}
+    file=$(_metadata_file "$id")
+    [[ -f "$file" ]] || exit 1
+    tag_lower=$(echo "$tag" | tr '[:upper:]' '[:lower:]')
+    jq -e --arg t "$tag_lower" '(.tags // []) | index($t) != null' "$file" > /dev/null
     ;;
 
   write-github)
@@ -499,7 +510,7 @@ Fixes #${id}"
     ;;
 
   *)
-    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|save-metadata <id> <body>|metadata <id> <field>|write-github <id>|checkout-from-main <id>|commit <type> <scope> <id> <subject> <agent> <model-name> <model-email> [body]|commit-issue <id> <model-name> <model-email>|commit-plan <id> <model-name> <model-email>|create-branch <id>|draft-pr <id>|mark-ready <id>|cleanup-artifacts <id> <model-name> <model-email>|wait-ci <id>|merge-pr <id>|monitor-pr <id>}" >&2
+    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|save-metadata <id> <body>|metadata <id> <field>|has-tag <id> <tag>|write-github <id>|checkout-from-main <id>|commit <type> <scope> <id> <subject> <agent> <model-name> <model-email> [body]|commit-issue <id> <model-name> <model-email>|commit-plan <id> <model-name> <model-email>|create-branch <id>|draft-pr <id>|mark-ready <id>|cleanup-artifacts <id> <model-name> <model-email>|wait-ci <id>|merge-pr <id>|monitor-pr <id>}" >&2
     exit 1
     ;;
 esac
