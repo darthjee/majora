@@ -314,7 +314,7 @@ Fixes #${id}"
     pr_url=$(cat "$pr_file")
     pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
     pr_title=$(gh pr view "$pr_num" --repo "$REPO" --json title -q '.title')
-    gh pr merge "$pr_num" --repo "$REPO" --squash --subject "$pr_title" --body ""
+    gh pr merge "$pr_num" --repo "$REPO" --squash --subject "${pr_title} (#${pr_num})" --body ""
     echo "$pr_url"
     ;;
 
