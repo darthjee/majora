@@ -11,7 +11,11 @@
 #   next-local-id          — next x-prefixed ID (x01, x02, ...) from existing issue files
 #   filename <id> <title>  — canonical path: docs/agents/issues/<id>_<slug>.md
 #   plan-dir <id>          — canonical plan directory: docs/agents/plans/<id>_<slug>
-#   read-github <id>       — fetch GitHub issue JSON (number, title, body); numeric IDs only
+#   read-github <id>       — fetch GitHub issue JSON (number, title, body); numeric IDs only;
+#                            also extracts metadata (tags) from the body and saves it via save-metadata
+#   save-metadata <id> <body>
+#                          — parse a "Tags: :emoji: ..." line (case-insensitive) out of <body> and
+#                            write {"issue_id": <id>, "tags": [...]} to .claude/state/metadata/issue_<id>.json
 #   write-github <id>      — update GitHub issue from local file; skips silently for x-prefixed IDs
 #   checkout-from-main <id>— fetch + pull main + checkout -b issue-<id>
 #   commit <type> <scope> <id> <subject> <agent> <model-name> <model-email> [body]
@@ -119,7 +123,27 @@ case ${1:-} in
       echo "Error: '$id' is a local-only id — no GitHub counterpart" >&2
       exit 1
     fi
-    gh issue view "$id" --repo "$REPO" --json number,title,body
+    json=$(gh issue view "$id" --repo "$REPO" --json number,title,body)
+    bash "$0" save-metadata "$id" "$(echo "$json" | jq -r '.body')"
+    echo "$json"
+    ;;
+
+  save-metadata)
+    id=${2:?save-metadata requires an id}
+    body=${3:-}
+    metadata_dir="${STATE_DIR}/metadata"
+    mkdir -p "$metadata_dir"
+    tags_line=$(echo "$body" | grep -im1 '^tags:' || true)
+    tags_json="[]"
+    if [[ -n "$tags_line" ]]; then
+      tags_json=$(echo "$tags_line" \
+        | grep -oE ':[a-zA-Z0-9_+-]+:' \
+        | sed 's/^://;s/:$//' \
+        | tr '[:upper:]' '[:lower:]' \
+        | jq -R . | jq -s .)
+    fi
+    jq -n --arg id "$id" --argjson tags "$tags_json" '{issue_id: $id, tags: $tags}' \
+      > "${metadata_dir}/issue_${id}.json"
     ;;
 
   write-github)
@@ -442,7 +466,7 @@ Fixes #${id}"
     ;;
 
   *)
-    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|write-github <id>|checkout-from-main <id>|commit <type> <scope> <id> <subject> <agent> <model-name> <model-email> [body]|commit-issue <id> <model-name> <model-email>|commit-plan <id> <model-name> <model-email>|create-branch <id>|draft-pr <id>|mark-ready <id>|cleanup-artifacts <id> <model-name> <model-email>|wait-ci <id>|merge-pr <id>|monitor-pr <id>}" >&2
+    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|save-metadata <id> <body>|write-github <id>|checkout-from-main <id>|commit <type> <scope> <id> <subject> <agent> <model-name> <model-email> [body]|commit-issue <id> <model-name> <model-email>|commit-plan <id> <model-name> <model-email>|create-branch <id>|draft-pr <id>|mark-ready <id>|cleanup-artifacts <id> <model-name> <model-email>|wait-ci <id>|merge-pr <id>|monitor-pr <id>}" >&2
     exit 1
     ;;
 esac
