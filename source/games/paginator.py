@@ -35,14 +35,14 @@ class Paginator:
             self._total = self.queryset.count()
         return self._total
 
-    def pages(self):
+    def _pages(self):
         """Return the total number of pages, memoizing the result."""
-        if not hasattr(self, '_pages'):
+        if not hasattr(self, '_pages_cache'):
             if self.per_page() <= 0:
-                self._pages = 1
+                self._pages_cache = 1
             else:
-                self._pages = max(1, math.ceil(self.total() / self.per_page()))
-        return self._pages
+                self._pages_cache = max(1, math.ceil(self.total() / self.per_page()))
+        return self._pages_cache
 
     def paginate(self):
         """Return (page_queryset, headers_dict) for the current page."""
@@ -59,7 +59,7 @@ class Paginator:
         """Build the pagination response headers dict."""
         return {
             'page': self.page(),
-            'pages': self.pages(),
+            'pages': self._pages(),
             'per_page': self.per_page(),
             'total': self.total(),
         }
