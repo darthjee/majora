@@ -274,8 +274,73 @@ class TestGameNpcsView:
 
 
 @pytest.mark.django_db
-class TestCharacterDetailView:
-    """Tests for the character detail endpoint."""
+class TestGameNpcDetailView:
+    """Tests for the NPC detail endpoint."""
+
+    def setup_method(self):
+        """Set up common test fixtures."""
+        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.player = Player.objects.create(name='Bob')
+        self.npc = Character.objects.create(
+            name='Gandalf',
+            game=self.game,
+            character_class='Wizard',
+            level=20,
+            description='A wandering wizard.',
+            npc=True,
+        )
+
+    def test_returns_character_detail(self, client):
+        """Test that character detail is returned for a valid character_id."""
+        response = client.get(f'/games/test-game/npcs/{self.npc.id}.json')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['name'] == 'Gandalf'
+        assert data['character_class'] == 'Wizard'
+        assert data['level'] == 20
+        assert data['is_pc'] is False
+
+    def test_returns_404_for_unknown_character(self, client):
+        """Test that 404 is returned for a non-existent character_id."""
+        response = client.get('/games/test-game/npcs/99999.json')
+        assert response.status_code == 404
+
+    def test_returns_404_for_character_in_wrong_game(self, client):
+        """Test that 404 is returned when character belongs to a different game."""
+        Game.objects.create(name='Other Game', game_slug='other-game')
+        response = client.get(f'/games/other-game/npcs/{self.npc.id}.json')
+        assert response.status_code == 404
+
+    def test_returns_404_for_pc_id(self, client):
+        """Test that 404 is returned when the id belongs to a PC."""
+        pc = Character.objects.create(
+            name='Aragorn', game=self.game, player=self.player, npc=False
+        )
+        response = client.get(f'/games/test-game/npcs/{pc.id}.json')
+        assert response.status_code == 404
+
+    def test_includes_photos(self, client):
+        """Test that character detail includes associated photos."""
+        Photo.objects.create(url='http://example.com/gandalf.png', character=self.npc)
+        response = client.get(f'/games/test-game/npcs/{self.npc.id}.json')
+        data = json.loads(response.content)
+        assert len(data['photos']) == 1
+        assert data['photos'][0]['url'] == 'http://example.com/gandalf.png'
+
+    def test_character_class_is_null_when_not_set(self, client):
+        """Test that character_class is null in the response when not set."""
+        npc = Character.objects.create(
+            name='Unnamed NPC', game=self.game, character_class=None, npc=True
+        )
+        response = client.get(f'/games/test-game/npcs/{npc.id}.json')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['character_class'] is None
+
+
+@pytest.mark.django_db
+class TestGamePcDetailView:
+    """Tests for the PC detail endpoint."""
 
     def setup_method(self):
         """Set up common test fixtures."""
@@ -293,7 +358,7 @@ class TestCharacterDetailView:
 
     def test_returns_character_detail(self, client):
         """Test that character detail is returned for a valid character_id."""
-        response = client.get(f'/games/test-game/characters/{self.character.id}.json')
+        response = client.get(f'/games/test-game/pcs/{self.character.id}.json')
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['name'] == 'Aragorn'
@@ -303,36 +368,41 @@ class TestCharacterDetailView:
 
     def test_returns_404_for_unknown_character(self, client):
         """Test that 404 is returned for a non-existent character_id."""
-        response = client.get('/games/test-game/characters/99999.json')
+        response = client.get('/games/test-game/pcs/99999.json')
         assert response.status_code == 404
 
     def test_returns_404_for_character_in_wrong_game(self, client):
         """Test that 404 is returned when character belongs to a different game."""
         Game.objects.create(name='Other Game', game_slug='other-game')
-        response = client.get(f'/games/other-game/characters/{self.character.id}.json')
+        response = client.get(f'/games/other-game/pcs/{self.character.id}.json')
         assert response.status_code == 404
 
-    def test_npc_is_pc_is_false(self, client):
-        """Test that is_pc is False for NPCs."""
-        npc = Character.objects.create(name='Gandalf', game=self.game)
-        response = client.get(f'/games/test-game/characters/{npc.id}.json')
-        data = json.loads(response.content)
-        assert data['is_pc'] is False
+    def test_returns_404_for_npc_id(self, client):
+        """Test that 404 is returned when the id belongs to an NPC."""
+        npc = Character.objects.create(name='Gandalf', game=self.game, npc=True)
+        response = client.get(f'/games/test-game/pcs/{npc.id}.json')
+        assert response.status_code == 404
 
     def test_includes_photos(self, client):
         """Test that character detail includes associated photos."""
         Photo.objects.create(
             url='http://example.com/aragorn.png', character=self.character
         )
-        response = client.get(f'/games/test-game/characters/{self.character.id}.json')
+        response = client.get(f'/games/test-game/pcs/{self.character.id}.json')
         data = json.loads(response.content)
         assert len(data['photos']) == 1
         assert data['photos'][0]['url'] == 'http://example.com/aragorn.png'
 
     def test_character_class_is_null_when_not_set(self, client):
         """Test that character_class is null in the response when not set."""
-        npc = Character.objects.create(name='Unnamed NPC', game=self.game, character_class=None)
-        response = client.get(f'/games/test-game/characters/{npc.id}.json')
+        pc = Character.objects.create(
+            name='Unnamed PC',
+            game=self.game,
+            player=self.player,
+            character_class=None,
+            npc=False,
+        )
+        response = client.get(f'/games/test-game/pcs/{pc.id}.json')
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['character_class'] is None

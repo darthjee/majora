@@ -30,9 +30,18 @@ def game_npcs(request, game_slug):
 
 
 @api_view(['GET'])
-def character_detail(request, game_slug, character_id):
-    """Return detail for a specific character in a game."""
+def game_npc_detail(request, game_slug, character_id):
+    """Return detail for a specific NPC in a game."""
     game = get_object_or_404(Game, game_slug=game_slug)
-    character = get_object_or_404(Character, id=character_id, game=game)
+    character = get_object_or_404(Character, id=character_id, game=game, npc=True)
+    serializer = CharacterDetailSerializer(character)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+def game_pc_detail(request, game_slug, character_id):
+    """Return detail for a specific PC in a game."""
+    game = get_object_or_404(Game, game_slug=game_slug)
+    character = get_object_or_404(Character, id=character_id, game=game, npc=False)
     serializer = CharacterDetailSerializer(character)
     return Response(serializer.data)
