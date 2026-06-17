@@ -1,17 +1,19 @@
 import React from 'react';
 import Header from '../elements/Header.jsx';
-import Character from '../pages/Character.jsx';
 import Game from '../pages/Game.jsx';
 import GameNpcs from '../pages/GameNpcs.jsx';
 import GamePcs from '../pages/GamePcs.jsx';
 import Games from '../pages/Games.jsx';
+import NpcCharacter from '../pages/NpcCharacter.jsx';
+import PcCharacter from '../pages/PcCharacter.jsx';
 
 const PAGES = {
   games: <Games />,
   game: <Game />,
   gamePcs: <GamePcs />,
   gameNpcs: <GameNpcs />,
-  character: <Character />,
+  npcCharacter: <NpcCharacter />,
+  pcCharacter: <PcCharacter />,
   home: <Games />,
 };
 

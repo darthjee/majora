@@ -3,13 +3,13 @@ import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
 
 /**
- * Extract game slug and character id from hash.
+ * Extract game slug and character id from an NPC character hash.
  *
  * @param {string} hash - Current hash.
  * @returns {object} Character route params.
  */
-export function getCharacterParamsFromHash(hash = '') {
-  const params = Router.extractParams('/games/:game_slug/characters/:character_id', hash);
+export function getNpcCharacterParamsFromHash(hash = '') {
+  const params = Router.extractParams('/games/:game_slug/npcs/:character_id', hash);
 
   return {
     game_slug: params.game_slug ?? '',
@@ -18,11 +18,11 @@ export function getCharacterParamsFromHash(hash = '') {
 }
 
 /**
- * Controller for character detail page.
+ * Controller for NPC character detail page.
  */
-export default class CharacterController extends BasePageController {
+export default class NpcCharacterController extends BasePageController {
   /**
-   * Create a character controller.
+   * Create an NPC character controller.
    *
    * @param {Function} setCharacter - Character setter.
    * @param {Function} setLoading - Loading setter.
@@ -46,13 +46,13 @@ export default class CharacterController extends BasePageController {
     return () => {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
-      const params = getCharacterParamsFromHash(this.client.currentHash());
+      const params = getNpcCharacterParamsFromHash(this.client.currentHash());
 
       if (!params.game_slug || !params.character_id) {
         safeSet(this.setError, 'Unable to load character.');
         safeSet(this.setLoading, false);
       } else {
-        this.client.fetch(`/games/${params.game_slug}/characters/${params.character_id}.json`)
+        this.client.fetch(`/games/${params.game_slug}/npcs/${params.character_id}.json`)
           .then((character) => safeSet(this.setCharacter, character))
           .catch(() => safeSet(this.setError, 'Unable to load character.'))
           .finally(() => safeSet(this.setLoading, false));

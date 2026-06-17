@@ -22,8 +22,11 @@ export default function GameNpcs() {
 
   const gameSlug = getGameSlugFromNpcsHash(window.location.hash);
   const basePath = `#/games/${gameSlug}/npcs`;
+  const backHref = `#/games/${gameSlug}`;
 
   if (loading) return GameCharactersHelper.renderLoading();
   if (error) return GameCharactersHelper.renderError(error);
-  return GameCharactersHelper.render(npcs, pagination, basePath, gameSlug, 'Non-Player Characters');
+  return GameCharactersHelper.render(
+    npcs, pagination, basePath, gameSlug, 'Non-Player Characters', 'npc', backHref,
+  );
 }

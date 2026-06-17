@@ -4,7 +4,8 @@ import AppHelper from '../../../../../assets/js/components/helpers/AppHelper.jsx
 describe('AppHelper', function() {
   it('renders page content for known pages', function() {
     expect(renderToStaticMarkup(AppHelper.render('games', '#/games'))).toContain('Loading games...');
-    expect(renderToStaticMarkup(AppHelper.render('character', '#/games/demo/characters/1'))).toContain('Loading character...');
+    expect(renderToStaticMarkup(AppHelper.render('npcCharacter', '#/games/demo/npcs/1'))).toContain('Loading character...');
+    expect(renderToStaticMarkup(AppHelper.render('pcCharacter', '#/games/demo/pcs/1'))).toContain('Loading character...');
   });
 
   it('falls back to home page for unknown page key', function() {

@@ -31,6 +31,9 @@ describe('GameHelper', function() {
       expect(renderToStaticMarkup(GameHelper.render(game))).toContain('href="#/games/epic-quest/npcs"');
     });
 
+    it('renders a back button to the games page', function() {
+      expect(renderToStaticMarkup(GameHelper.render(game))).toContain('href="#/games"');
+    });
   });
 
   describe('.renderLoading', function() {

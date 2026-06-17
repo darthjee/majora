@@ -1,4 +1,5 @@
 import React from 'react';
+import BackButton from '../../elements/BackButton.jsx';
 import CardAvatar from '../../elements/CardAvatar.jsx';
 import CharacterInfo from '../../elements/CharacterInfo.jsx';
 import CharacterPhotos from '../../elements/CharacterPhotos.jsx';
@@ -19,11 +20,13 @@ export default class CharacterHelper {
    * @param {number|null} [character.level] - Character level.
    * @param {string} [character.description] - Character description.
    * @param {object[]} [character.photos] - Additional photos array.
+   * @param {string} backHref - Hash path to the character's index page.
    * @returns {React.ReactElement} Character detail element.
    */
-  static render(character) {
+  static render(character, backHref) {
     return (
       <div className="container mt-4">
+        <BackButton href={backHref} />
         <div className="row">
           <div className="col-md-4">
             <CardAvatar url={character.avatar_url} alt={character.name} />

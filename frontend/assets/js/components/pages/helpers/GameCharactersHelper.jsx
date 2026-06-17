@@ -1,4 +1,5 @@
 import React from 'react';
+import BackButton from '../../elements/BackButton.jsx';
 import CharacterCard from '../../elements/CharacterCard.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
@@ -19,15 +20,23 @@ export default class GameCharactersHelper {
    * @param {string} basePath - Base hash path used for pagination links (e.g. "#/games/slug/pcs").
    * @param {string} gameSlug - Game slug passed to each CharacterCard for its detail link.
    * @param {string} title - Page heading (e.g. "Player Characters").
+   * @param {string} characterType - Character type, either 'pc' or 'npc'.
+   * @param {string} backHref - Hash path to the parent game page.
    * @returns {React.ReactElement} Characters grid with pagination.
    */
-  static render(characters, pagination, basePath, gameSlug, title) {
+  static render(characters, pagination, basePath, gameSlug, title, characterType, backHref) {
     return (
       <div className="container mt-4">
+        <BackButton href={backHref} />
         <h1 className="mb-4">{title}</h1>
         <div className="row">
           {characters.map((character) => (
-            <CharacterCard key={character.id} character={character} gameSlug={gameSlug} />
+            <CharacterCard
+              key={character.id}
+              character={character}
+              gameSlug={gameSlug}
+              characterType={characterType}
+            />
           ))}
         </div>
         <Pagination

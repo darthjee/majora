@@ -6,7 +6,8 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/games/campaign').getPage()).toBe('game');
     expect(new HashRouteResolver(() => '#/games/campaign/pcs').getPage()).toBe('gamePcs');
     expect(new HashRouteResolver(() => '#/games/campaign/npcs').getPage()).toBe('gameNpcs');
-    expect(new HashRouteResolver(() => '#/games/campaign/characters/7').getPage()).toBe('character');
+    expect(new HashRouteResolver(() => '#/games/campaign/npcs/7').getPage()).toBe('npcCharacter');
+    expect(new HashRouteResolver(() => '#/games/campaign/pcs/7').getPage()).toBe('pcCharacter');
   });
 
   it('falls back to home for unknown routes', function() {

@@ -13,41 +13,47 @@ describe('CharacterHelper', function() {
 
   describe('.render', function() {
     it('renders the character name', function() {
-      expect(renderToStaticMarkup(CharacterHelper.render(character))).toContain('Aragorn');
+      expect(renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'))).toContain('Aragorn');
     });
 
     it('renders the character class', function() {
-      expect(renderToStaticMarkup(CharacterHelper.render(character))).toContain('Ranger');
+      expect(renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'))).toContain('Ranger');
     });
 
     it('renders the character level', function() {
-      expect(renderToStaticMarkup(CharacterHelper.render(character))).toContain('10');
+      expect(renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'))).toContain('10');
     });
 
     it('renders the description', function() {
-      expect(renderToStaticMarkup(CharacterHelper.render(character)))
+      expect(renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs')))
         .toContain('The future king of Gondor.');
     });
 
     it('does not render description when empty', function() {
       const c = { ...character, description: '' };
-      expect(renderToStaticMarkup(CharacterHelper.render(c))).not.toContain('The future king of Gondor.');
+      expect(renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs')))
+        .not.toContain('The future king of Gondor.');
     });
 
     it('renders the default avatar when avatar_url is null', function() {
-      const html = renderToStaticMarkup(CharacterHelper.render(character));
+      const html = renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'));
       expect(html).toContain('default_character.png');
     });
 
     it('renders photos when present', function() {
       const c = { ...character, photos: [{ id: 1, url: 'http://example.com/photo.png' }] };
-      expect(renderToStaticMarkup(CharacterHelper.render(c)))
+      expect(renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs')))
         .toContain('http://example.com/photo.png');
     });
 
     it('does not render photos section when photos are empty', function() {
-      const html = renderToStaticMarkup(CharacterHelper.render(character));
+      const html = renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'));
       expect(html).not.toContain('http://example.com/photo.png');
+    });
+
+    it('renders a back button to the provided backHref', function() {
+      const html = renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'));
+      expect(html).toContain('href="#/games/demo/pcs"');
     });
   });
 

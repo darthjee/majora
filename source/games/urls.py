@@ -10,8 +10,13 @@ urlpatterns = [
     path('games/<slug:game_slug>/pcs.json', views.game_pcs, name='game-pcs'),
     path('games/<slug:game_slug>/npcs.json', views.game_npcs, name='game-npcs'),
     path(
-        'games/<slug:game_slug>/characters/<int:character_id>.json',
-        views.character_detail,
-        name='character-detail',
+        'games/<slug:game_slug>/npcs/<int:character_id>.json',
+        views.game_npc_detail,
+        name='game-npc-detail',
+    ),
+    path(
+        'games/<slug:game_slug>/pcs/<int:character_id>.json',
+        views.game_pc_detail,
+        name='game-pc-detail',
     ),
 ]

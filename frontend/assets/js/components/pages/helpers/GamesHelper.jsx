@@ -1,4 +1,5 @@
 import React from 'react';
+import BackButton from '../../elements/BackButton.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import GameCard from '../../elements/GameCard.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
@@ -21,6 +22,7 @@ export default class GamesHelper {
   static render(games, pagination) {
     return (
       <div className="container mt-4">
+        <BackButton href="#/" />
         <div className="row">
           {games.map((game) => (
             <GameCard key={game.game_slug} game={game} />

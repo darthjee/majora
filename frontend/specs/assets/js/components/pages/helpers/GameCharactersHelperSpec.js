@@ -11,32 +11,59 @@ describe('GameCharactersHelper', function() {
   describe('.render', function() {
     it('renders the page title', function() {
       const html = renderToStaticMarkup(
-        GameCharactersHelper.render(characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters')
+        GameCharactersHelper.render(
+          characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters', 'pc', '#/games/eq',
+        )
       );
       expect(html).toContain('Player Characters');
     });
 
     it('renders each character name', function() {
       const html = renderToStaticMarkup(
-        GameCharactersHelper.render(characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters')
+        GameCharactersHelper.render(
+          characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters', 'pc', '#/games/eq',
+        )
       );
       expect(html).toContain('Aragorn');
       expect(html).toContain('Legolas');
     });
 
-    it('renders character links using gameSlug', function() {
+    it('renders character links using gameSlug and characterType', function() {
       const html = renderToStaticMarkup(
-        GameCharactersHelper.render(characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters')
+        GameCharactersHelper.render(
+          characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters', 'pc', '#/games/eq',
+        )
       );
-      expect(html).toContain('href="#/games/eq/characters/1"');
-      expect(html).toContain('href="#/games/eq/characters/2"');
+      expect(html).toContain('href="#/games/eq/pcs/1"');
+      expect(html).toContain('href="#/games/eq/pcs/2"');
+    });
+
+    it('renders npc character links when characterType is npc', function() {
+      const html = renderToStaticMarkup(
+        GameCharactersHelper.render(
+          characters, pagination, '#/games/eq/npcs', 'eq', 'Non-Player Characters', 'npc', '#/games/eq',
+        )
+      );
+      expect(html).toContain('href="#/games/eq/npcs/1"');
+      expect(html).toContain('href="#/games/eq/npcs/2"');
     });
 
     it('renders pagination', function() {
       const html = renderToStaticMarkup(
-        GameCharactersHelper.render(characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters')
+        GameCharactersHelper.render(
+          characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters', 'pc', '#/games/eq',
+        )
       );
       expect(html).toContain('pagination');
+    });
+
+    it('renders a back button to the parent game page', function() {
+      const html = renderToStaticMarkup(
+        GameCharactersHelper.render(
+          characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters', 'pc', '#/games/eq',
+        )
+      );
+      expect(html).toContain('href="#/games/eq"');
     });
   });
 
