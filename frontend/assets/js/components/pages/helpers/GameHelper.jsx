@@ -3,7 +3,6 @@ import BackButton from '../../elements/BackButton.jsx';
 import CardPhoto from '../../elements/CardPhoto.jsx';
 import CharacterPreviewSection from '../../elements/CharacterPreviewSection.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
-import GameNavLinks from '../../elements/GameNavLinks.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 
 /**
@@ -11,7 +10,7 @@ import LoadingMessage from '../../elements/LoadingMessage.jsx';
  */
 export default class GameHelper {
   /**
-   * Render the game detail view with description and navigation links.
+   * Render the game detail view with description and character previews.
    *
    * @param {object} game - Game data object.
    * @param {string} game.name - Game name.
@@ -19,9 +18,10 @@ export default class GameHelper {
    * @param {string|null} [game.photo] - Optional cover image URL.
    * @param {string} [game.description] - Game description text.
    * @param {object[]} [pcs] - PCs preview list.
+   * @param {object[]} [npcs] - NPCs preview list.
    * @returns {React.ReactElement} Game detail element.
    */
-  static render(game, pcs = []) {
+  static render(game, pcs = [], npcs = []) {
     return (
       <div className="container mt-4">
         <BackButton href="#/games" />
@@ -34,7 +34,6 @@ export default class GameHelper {
             {game.description && (
               <p className="mt-3">{game.description}</p>
             )}
-            <GameNavLinks gameSlug={game.game_slug} />
           </div>
         </div>
         <CharacterPreviewSection
@@ -43,6 +42,13 @@ export default class GameHelper {
           characterType="pc"
           title="Player Characters"
           seeAllHref={`#/games/${game.game_slug}/pcs`}
+        />
+        <CharacterPreviewSection
+          characters={npcs}
+          gameSlug={game.game_slug}
+          characterType="npc"
+          title="Non-Player Characters"
+          seeAllHref={`#/games/${game.game_slug}/npcs`}
         />
       </div>
     );

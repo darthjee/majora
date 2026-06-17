@@ -23,10 +23,6 @@ describe('GameHelper', function() {
       expect(renderToStaticMarkup(GameHelper.render(gameNoDesc))).not.toContain('<p');
     });
 
-    it('renders a link to the NPCs page', function() {
-      expect(renderToStaticMarkup(GameHelper.render(game))).toContain('href="#/games/epic-quest/npcs"');
-    });
-
     it('renders a back button to the games page', function() {
       expect(renderToStaticMarkup(GameHelper.render(game))).toContain('href="#/games"');
     });
@@ -47,6 +43,24 @@ describe('GameHelper', function() {
 
     it('renders the preview section when pcs is not provided', function() {
       expect(renderToStaticMarkup(GameHelper.render(game))).toContain('Player Characters');
+    });
+
+    it('renders the non-player characters preview section', function() {
+      const npcs = [{ id: 2, name: 'Gandalf', avatar_url: null }];
+      const html = renderToStaticMarkup(GameHelper.render(game, [], npcs));
+      expect(html).toContain('Non-Player Characters');
+      expect(html).toContain('Gandalf');
+      expect(html).toContain('href="#/games/epic-quest/npcs"');
+    });
+
+    it('renders the preview section with no characters when npcs is empty', function() {
+      const html = renderToStaticMarkup(GameHelper.render(game, [], []));
+      expect(html).toContain('Non-Player Characters');
+      expect(html).toContain('href="#/games/epic-quest/npcs"');
+    });
+
+    it('renders the npcs preview section when npcs is not provided', function() {
+      expect(renderToStaticMarkup(GameHelper.render(game))).toContain('Non-Player Characters');
     });
   });
 
