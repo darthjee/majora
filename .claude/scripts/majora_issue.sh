@@ -25,6 +25,7 @@
 #   merge-pr <id>          — squash-merge the PR
 #   monitor-pr <id>        — blocking loop: outputs "merged", "approved", or "commented"
 #                            on "commented", subsequent lines are the new comment bodies
+#                            a comment containing only ":shipit:" is treated as approval
 
 set -euo pipefail
 
@@ -374,19 +375,28 @@ Fixes #${id}"
 
       last_time=$(cat "$last_time_file" 2>/dev/null || echo "1970-01-01T00:00:00Z")
 
-      count=$(echo "$all_comments" | jq -r \
-        "[.[] | select(.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")] | length" \
+      new_comments=$(echo "$all_comments" | jq -r \
+        "[.[] | select(.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")]" \
         2>/dev/null) || { sleep 5; continue; }
 
+      count=$(echo "$new_comments" | jq 'length' 2>/dev/null) || { sleep 5; continue; }
+
       if [[ "$count" -gt 0 ]]; then
-        latest_time=$(echo "$all_comments" | jq -r \
-          "[.[] | select(.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")] | map(.createdAt) | max" \
-          2>/dev/null) || { sleep 5; continue; }
+        latest_time=$(echo "$new_comments" | jq -r '[.[].createdAt] | max' 2>/dev/null) || { sleep 5; continue; }
         mkdir -p "$STATE_DIR"
         echo "$latest_time" > "$last_time_file"
+
+        shipit_count=$(echo "$new_comments" | jq \
+          '[.[] | select(.body | test("^[[:space:]]*:shipit:[[:space:]]*$"))] | length' \
+          2>/dev/null) || { sleep 5; continue; }
+
+        if [[ "$shipit_count" -gt 0 ]]; then
+          echo "approved"
+          exit 0
+        fi
+
         echo "commented"
-        echo "$all_comments" | jq -r \
-          "[.[] | select(.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")] | .[] | \"---\n\" + .body"
+        echo "$new_comments" | jq -r '.[] | "---\n" + .body'
         exit 0
       fi
 
