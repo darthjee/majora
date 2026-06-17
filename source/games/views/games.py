@@ -5,15 +5,16 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from ..models import Game
+from ..paginator import Paginator
 from ..serializers import GameDetailSerializer, GameListSerializer
 
 
 @api_view(['GET'])
 def games_list(request):
     """Return a list of all games."""
-    games = Game.objects.all()
-    serializer = GameListSerializer(games, many=True)
-    return Response(serializer.data)
+    page_games, headers = Paginator(request, Game.objects.all()).paginate()
+    serializer = GameListSerializer(page_games, many=True)
+    return Response(serializer.data, headers=headers)
 
 
 @api_view(['GET'])

@@ -14,8 +14,9 @@ def game_pcs(request, game_slug):
     """Return list of Player Characters (PCs) for a specific game."""
     game = get_object_or_404(Game, game_slug=game_slug)
     pcs = game.characters.filter(npc=False)
-    serializer = CharacterListSerializer(pcs, many=True)
-    return Response(serializer.data)
+    page_pcs, headers = Paginator(request, pcs).paginate()
+    serializer = CharacterListSerializer(page_pcs, many=True)
+    return Response(serializer.data, headers=headers)
 
 
 @api_view(['GET'])
