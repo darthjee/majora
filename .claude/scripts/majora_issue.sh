@@ -11,15 +11,30 @@
 #   next-local-id          — next x-prefixed ID (x01, x02, ...) from existing issue files
 #   filename <id> <title>  — canonical path: docs/agents/issues/<id>_<slug>.md
 #   plan-dir <id>          — canonical plan directory: docs/agents/plans/<id>_<slug>
-#   read-github <id>       — fetch GitHub issue JSON (number, title, body); numeric IDs only
+#   read-github <id>       — fetch GitHub issue JSON (number, title, body); numeric IDs only;
+#                            also extracts metadata (tags) from the body and saves it via save-metadata
+#   save-metadata <id> <body>
+#                          — parse a "Tags: :emoji: ..." line (case-insensitive) out of <body> and
+#                            write {"issue_id": <id>, "tags": [...]} to .claude/state/metadata/issue_<id>.json
 #   write-github <id>      — update GitHub issue from local file; skips silently for x-prefixed IDs
 #   checkout-from-main <id>— fetch + pull main + checkout -b issue-<id>
-#   commit-issue <id>      — git add + commit the issue file
-#   commit-plan <id>       — git add + commit the plan directory
+#   metadata <id> <field>  — read a field (e.g. pr_url, pr_number, tags) from
+#                            .claude/state/metadata/issue_<id>.json
+#   has-tag <id> <tag>     — exit 0 if <tag> is in the issue's metadata tags, exit 1 otherwise
+#                            (e.g. `shipit` means the issue is pre-approved)
+#   commit <type> <scope> <id> <subject> <agent> <model-name> <model-email> [body]
+#                          — build a message from .github/commit_message_template.md and commit
+#                            staged changes; every commit in this pipeline goes through this
+#   commit-issue <id> <model-name> <model-email>
+#                          — git add + commit the issue file (via `commit`)
+#   commit-plan <id> <model-name> <model-email>
+#                          — git add + commit the plan directory (via `commit`)
 #   create-branch <id>     — create and checkout the branch defined in plan.md, or issue-<id>
-#   draft-pr <id>          — push current branch, open a draft PR, save PR URL to .claude/state/
+#   draft-pr <id>          — push current branch, open a draft PR, save pr_url/pr_number
+#                            into .claude/state/metadata/issue_<id>.json
 #   mark-ready <id>        — convert the existing draft PR to ready for review
-#   cleanup-artifacts <id> — git rm issue file + plan dir and commit (called on approval)
+#   cleanup-artifacts <id> <model-name> <model-email>
+#                          — git rm issue file + plan dir and commit (called on approval, via `commit`)
 #   wait-ci <id>           — blocking loop: waits for CircleCI checks on PR head commit
 #                            outputs "passed" or "failed"; on "failed", subsequent lines are job names
 #   merge-pr <id>          — squash-merge the PR
@@ -77,6 +92,56 @@ _extract_section() {
   awk -v sec="## ${section}" '$0==sec{found=1; next} found && /^## /{exit} found{print}' "$file"
 }
 
+_metadata_file() {
+  local id="$1"
+  echo "${STATE_DIR}/metadata/issue_${id}.json"
+}
+
+_ensure_metadata() {
+  local id="$1"
+  local file
+  file=$(_metadata_file "$id")
+  mkdir -p "$(dirname "$file")"
+  if [[ ! -f "$file" ]]; then
+    jq -n --arg id "$id" '{issue_id: $id, tags: []}' > "$file"
+  fi
+  echo "$file"
+}
+
+_set_pr_metadata() {
+  local id="$1" pr_url="$2" pr_number="$3"
+  local file
+  file=$(_ensure_metadata "$id")
+  jq --arg url "$pr_url" --argjson num "$pr_number" '.pr_url = $url | .pr_number = $num' \
+    "$file" > "${file}.tmp"
+  mv "${file}.tmp" "$file"
+}
+
+_get_metadata_field() {
+  local id="$1" field="$2"
+  local file
+  file=$(_metadata_file "$id")
+  if [[ ! -f "$file" ]]; then
+    echo "Error: no metadata found for issue '${id}'" >&2
+    exit 1
+  fi
+  local value
+  value=$(jq -r ".${field} // empty" "$file")
+  if [[ -z "$value" ]]; then
+    echo "Error: no '${field}' found in metadata for issue '${id}'" >&2
+    exit 1
+  fi
+  echo "$value"
+}
+
+_set_last_comment_time() {
+  local id="$1" timestamp="$2"
+  local file
+  file=$(_ensure_metadata "$id")
+  jq --arg t "$timestamp" '.last_comment_time = $t' "$file" > "${file}.tmp"
+  mv "${file}.tmp" "$file"
+}
+
 case ${1:-} in
   next-id)
     max=$(ls "$ISSUES_DIR" 2>/dev/null | grep -oE '^[0-9]+' | sort -n | tail -1 || true)
@@ -113,7 +178,42 @@ case ${1:-} in
       echo "Error: '$id' is a local-only id — no GitHub counterpart" >&2
       exit 1
     fi
-    gh issue view "$id" --repo "$REPO" --json number,title,body
+    json=$(gh issue view "$id" --repo "$REPO" --json number,title,body)
+    bash "$0" save-metadata "$id" "$(echo "$json" | jq -r '.body')"
+    echo "$json"
+    ;;
+
+  save-metadata)
+    id=${2:?save-metadata requires an id}
+    body=${3:-}
+    tags_line=$(echo "$body" | grep -im1 '^tags:' || true)
+    tags_json="[]"
+    if [[ -n "$tags_line" ]]; then
+      tags_json=$(echo "$tags_line" \
+        | grep -oE ':[a-zA-Z0-9_+-]+:' \
+        | sed 's/^://;s/:$//' \
+        | tr '[:upper:]' '[:lower:]' \
+        | jq -R . | jq -s .)
+    fi
+    file=$(_ensure_metadata "$id")
+    jq --arg id "$id" --argjson tags "$tags_json" '.issue_id = $id | .tags = $tags' \
+      "$file" > "${file}.tmp"
+    mv "${file}.tmp" "$file"
+    ;;
+
+  metadata)
+    id=${2:?metadata requires an id}
+    field=${3:?metadata requires a field}
+    _get_metadata_field "$id" "$field"
+    ;;
+
+  has-tag)
+    id=${2:?has-tag requires an id}
+    tag=${3:?has-tag requires a tag}
+    file=$(_metadata_file "$id")
+    [[ -f "$file" ]] || exit 1
+    tag_lower=$(echo "$tag" | tr '[:upper:]' '[:lower:]')
+    jq -e --arg t "$tag_lower" '(.tags // []) | index($t) != null' "$file" > /dev/null
     ;;
 
   write-github)
@@ -140,18 +240,44 @@ case ${1:-} in
     echo "issue-${id}"
     ;;
 
+  commit)
+    type=${2:?commit requires a type}
+    scope=${3:?commit requires a scope}
+    id=${4:?commit requires an id}
+    subject=${5:?commit requires a subject}
+    agent=${6:?commit requires an agent}
+    model_name=${7:?commit requires an AI model name}
+    model_email=${8:?commit requires an AI model email}
+    body=${9:-}
+
+    {
+      echo "${type}(${scope}): ${subject} (issue #${id})"
+      if [[ -n "$body" ]]; then
+        echo
+        echo "$body"
+      fi
+      echo
+      echo "Co-Authored-By: ${model_name} <${model_email}>"
+      echo "Co-Authored-By: ${agent} agent <${model_email}>"
+    } | git commit -F -
+    ;;
+
   commit-issue)
     id=${2:?commit-issue requires an id}
+    model_name=${3:?commit-issue requires an AI model name}
+    model_email=${4:?commit-issue requires an AI model email}
     file=$(_find_issue_file "$id")
     git add "$file"
-    git commit -m "docs: add issue ${id}"
+    bash "$0" commit docs issue "$id" "add issue file" architect "$model_name" "$model_email"
     ;;
 
   commit-plan)
     id=${2:?commit-plan requires an id}
+    model_name=${3:?commit-plan requires an AI model name}
+    model_email=${4:?commit-plan requires an AI model email}
     plan_dir=$(bash "$0" plan-dir "$id")
     git add "$plan_dir"
-    git commit -m "docs: add plan for issue ${id}"
+    bash "$0" commit docs plan "$id" "add implementation plan" architect "$model_name" "$model_email"
     ;;
 
   create-branch)
@@ -216,27 +342,23 @@ Fixes #${id}"
       --title "$title" \
       --body "$pr_body" \
       --head "$branch")
+    pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
 
-    mkdir -p "$STATE_DIR"
-    echo "$pr_url" > "${STATE_DIR}/${id}_pr.txt"
+    _set_pr_metadata "$id" "$pr_url" "$pr_num"
     echo "$pr_url"
     ;;
 
   mark-ready)
     id=${2:?mark-ready requires an id}
-    pr_file="${STATE_DIR}/${id}_pr.txt"
-    if [[ ! -f "$pr_file" ]]; then
-      echo "Error: no PR URL found for issue '${id}' — was draft-pr run?" >&2
-      exit 1
-    fi
-    pr_url=$(cat "$pr_file")
-    pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
+    pr_num=$(_get_metadata_field "$id" pr_number)
     gh pr ready "$pr_num" --repo "$REPO"
-    echo "$pr_url"
+    _get_metadata_field "$id" pr_url
     ;;
 
   cleanup-artifacts)
     id=${2:?cleanup-artifacts requires an id}
+    model_name=${3:?cleanup-artifacts requires an AI model name}
+    model_email=${4:?cleanup-artifacts requires an AI model email}
     issue_file=$(ls "${ISSUES_DIR}/${id}_"*.md 2>/dev/null | head -1 || true)
     if [[ -n "$issue_file" ]]; then
       plan_dir=$(bash "$0" plan-dir "$id")
@@ -244,19 +366,15 @@ Fixes #${id}"
       if [[ -d "$plan_dir" ]] && [[ -n "$(git ls-files "$plan_dir")" ]]; then
         git rm -r "$plan_dir"
       fi
-      git diff --cached --quiet || git commit -m "chore: remove planning artifacts for issue ${id}"
+      if ! git diff --cached --quiet; then
+        bash "$0" commit chore docs "$id" "remove planning artifacts" architect "$model_name" "$model_email"
+      fi
     fi
     ;;
 
   wait-ci)
     id=${2:?wait-ci requires an id}
-    pr_file="${STATE_DIR}/${id}_pr.txt"
-    if [[ ! -f "$pr_file" ]]; then
-      echo "Error: no PR URL found for issue '${id}' — was draft-pr run?" >&2
-      exit 1
-    fi
-    pr_url=$(cat "$pr_file")
-    pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
+    pr_num=$(_get_metadata_field "$id" pr_number)
 
     while true; do
       sha=$(gh pr view "$pr_num" --repo "$REPO" --json headRefOid -q '.headRefOid' 2>/dev/null) || {
@@ -306,13 +424,8 @@ Fixes #${id}"
 
   merge-pr)
     id=${2:?merge-pr requires an id}
-    pr_file="${STATE_DIR}/${id}_pr.txt"
-    if [[ ! -f "$pr_file" ]]; then
-      echo "Error: no PR URL found for issue '${id}' — was draft-pr run?" >&2
-      exit 1
-    fi
-    pr_url=$(cat "$pr_file")
-    pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
+    pr_num=$(_get_metadata_field "$id" pr_number)
+    pr_url=$(_get_metadata_field "$id" pr_url)
     pr_title=$(gh pr view "$pr_num" --repo "$REPO" --json title -q '.title')
     gh pr merge "$pr_num" --repo "$REPO" --squash --subject "${pr_title} (#${pr_num})" --body ""
     echo "$pr_url"
@@ -320,17 +433,8 @@ Fixes #${id}"
 
   monitor-pr)
     id=${2:?monitor-pr requires an id}
-    pr_file="${STATE_DIR}/${id}_pr.txt"
-
-    if [[ ! -f "$pr_file" ]]; then
-      echo "Error: no PR URL found for issue '${id}' — was draft-pr run?" >&2
-      exit 1
-    fi
-
     pr_owner=$(_pr_owner)
-    pr_url=$(cat "$pr_file")
-    pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
-    last_time_file="${STATE_DIR}/${id}_last_comment_time.txt"
+    pr_num=$(_get_metadata_field "$id" pr_number)
 
     while true; do
       pr_data=$(gh pr view "$pr_num" --repo "$REPO" --json state,comments,reviews 2>/dev/null) || {
@@ -374,7 +478,8 @@ Fixes #${id}"
          [$inline[] | {login: .user.login, createdAt: .created_at, body: .body}]' \
         2>/dev/null) || { sleep 5; continue; }
 
-      last_time=$(cat "$last_time_file" 2>/dev/null || echo "1970-01-01T00:00:00Z")
+      last_time=$(jq -r '.last_comment_time // "1970-01-01T00:00:00Z"' "$(_metadata_file "$id")" 2>/dev/null) \
+        || last_time="1970-01-01T00:00:00Z"
 
       new_comments=$(echo "$all_comments" | jq -r \
         "[.[] | select(.login == \"${pr_owner}\" and .createdAt > \"${last_time}\")]" \
@@ -384,8 +489,7 @@ Fixes #${id}"
 
       if [[ "$count" -gt 0 ]]; then
         latest_time=$(echo "$new_comments" | jq -r '[.[].createdAt] | max' 2>/dev/null) || { sleep 5; continue; }
-        mkdir -p "$STATE_DIR"
-        echo "$latest_time" > "$last_time_file"
+        _set_last_comment_time "$id" "$latest_time"
 
         shipit_count=$(echo "$new_comments" | jq \
           '[.[] | select(.body | test("^[[:space:]]*:shipit:[[:space:]]*$"))] | length' \
@@ -406,7 +510,7 @@ Fixes #${id}"
     ;;
 
   *)
-    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|write-github <id>|checkout-from-main <id>|commit-issue <id>|commit-plan <id>|create-branch <id>|draft-pr <id>|mark-ready <id>|cleanup-artifacts <id>|wait-ci <id>|merge-pr <id>|monitor-pr <id>}" >&2
+    echo "Usage: $0 {next-id|next-local-id|filename <id> <title>|plan-dir <id>|read-github <id>|save-metadata <id> <body>|metadata <id> <field>|has-tag <id> <tag>|write-github <id>|checkout-from-main <id>|commit <type> <scope> <id> <subject> <agent> <model-name> <model-email> [body]|commit-issue <id> <model-name> <model-email>|commit-plan <id> <model-name> <model-email>|create-branch <id>|draft-pr <id>|mark-ready <id>|cleanup-artifacts <id> <model-name> <model-email>|wait-ci <id>|merge-pr <id>|monitor-pr <id>}" >&2
     exit 1
     ;;
 esac

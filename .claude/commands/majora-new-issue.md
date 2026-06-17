@@ -81,9 +81,9 @@ When no GitHub content is available, fill in the best description you can infer 
 
 ### 5. Commit the issue file
 
-Run:
+This commits using the template at `.github/commit_message_template.md` (the script builds the message and runs `git commit` — never commit by hand). Run:
 ```
-bash .claude/scripts/majora_issue.sh commit-issue <id>
+bash .claude/scripts/majora_issue.sh commit-issue <id> "<your AI model name>" "<your AI model noreply email>"
 ```
 
 ### 6. Sync to GitHub

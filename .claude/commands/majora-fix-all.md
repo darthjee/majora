@@ -61,7 +61,7 @@ The final step in that skill commits the plan files.
 bash .claude/scripts/majora_issue.sh draft-pr <id>
 ```
 
-This pushes the branch and opens a draft PR with the committed issue and plan as the description. The PR URL is saved to `.claude/state/<id>_pr.txt`.
+This pushes the branch and opens a draft PR with the committed issue and plan as the description. The PR's `pr_url`/`pr_number` are saved into `.claude/state/metadata/issue_<id>.json`.
 
 #### 2f. Implement and mark ready
 
@@ -70,7 +70,16 @@ After all agents have committed, push the implementation commits before marking 
 ```
 git push
 ```
-Since `.claude/state/<id>_pr.txt` already exists, the final step will call `mark-ready <id>` to convert the draft PR to ready for review.
+Since the metadata file already has a `pr_url`, the final step will call `mark-ready <id>` to convert the draft PR to ready for review.
+
+#### 2g. Check for pre-approval
+
+```
+bash .claude/scripts/majora_issue.sh has-tag <id> shipit
+```
+
+If this exits **0**, the issue is pre-approved — skip Step 3 entirely and go straight to the **If `approved`** section below.
+If it exits **1**, continue to **Step 3** as normal.
 
 ---
 
@@ -108,11 +117,11 @@ The PR was closed without merging. Ask the user:
 
 ---
 
-#### If `approved`
+#### If `approved` (also reached directly from step 2g when the issue has the `shipit` tag)
 
-1. Remove planning artifacts and commit:
+1. Remove planning artifacts and commit (this commits via the template at `.github/commit_message_template.md` — never commit by hand):
    ```
-   bash .claude/scripts/majora_issue.sh cleanup-artifacts <id>
+   bash .claude/scripts/majora_issue.sh cleanup-artifacts <id> "<your AI model name>" "<your AI model noreply email>"
    ```
 2. Push:
    ```
