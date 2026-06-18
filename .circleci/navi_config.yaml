@@ -99,3 +99,7 @@ resources:
   pc:
     - url: /games/{:slug}/pcs/{:id}.json
       status: 200
+
+  npc:
+    - url: /games/{:slug}/npcs/{:id}.json
+      status: 200
