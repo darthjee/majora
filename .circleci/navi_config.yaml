@@ -18,6 +18,16 @@ resources:
   games:
     - url: /games.json
       status: 200
+      paginated_actions:
+        - resource: paginated_games
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_games:
+    - url: /games.json?page={:page}
+      status: 200
       actions:
         - resource: game_detail
           parameters:
