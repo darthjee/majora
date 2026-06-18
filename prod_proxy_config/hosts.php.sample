@@ -1,0 +1,4 @@
+<?php
+
+$backendHost = 'https://localhost:3030/';
+$redirectHost = 'https://localhost:3030/';
