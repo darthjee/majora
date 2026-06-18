@@ -174,7 +174,10 @@ jobs:
           command: SOURCE=/var/www/html/ deploy_frontend.sh upload
       - run:
           name: Upload proxy configuration
-          command: TARGET=configuration/ deploy_frontend.sh copy_files
+          command: SOURCE=prod_proxy_config/ SSH_REMOTE_TEMP_DIR=$SSH_REMOTE_TEMP_DIR/configuration/ deploy_frontend.sh upload
+      - run:
+          name: Setup hosts
+          command: TARGET=configuration/hosts.php deploy_frontend.sh copy_files
 
   upload_fe_files:
     docker:
