@@ -81,10 +81,6 @@ resources:
             id: parsedBody.id
             slug: parsedBody.game_slug
 
-  character:
-    - url: /games/{:slug}/characters/{:id}.json
-      status: 200
-
   pc:
     - url: /games/{:slug}/pcs/{:id}.json
       status: 200
