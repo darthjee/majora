@@ -65,10 +65,21 @@ resources:
   game_npcs:
     - url: /games/{:slug}/npcs.json
       status: 200
+      paginated_actions:
+        - resource: paginated_game_npcs
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_game_npcs:
+    - url: /games/{:slug}/npcs.json?page={:page}
+      status: 200
       actions:
-        - resource: character
+        - resource: npc
           parameters:
             id: parsedBody.id
+            slug: parsedBody.game_slug
 
   character:
     - url: /games/{:slug}/characters/{:id}.json
