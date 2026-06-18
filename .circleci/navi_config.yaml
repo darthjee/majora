@@ -18,6 +18,16 @@ resources:
   games:
     - url: /games.json
       status: 200
+      paginated_actions:
+        - resource: paginated_games
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_games:
+    - url: /games.json?page={:page}
+      status: 200
       actions:
         - resource: game_detail
           parameters:
@@ -32,23 +42,60 @@ resources:
   game_detail:
     - url: /games/{:slug}.json
       status: 200
+      actions:
+        - resource: short_game_pcs
+          parameters:
+            slug: parsedBody.game_slug
+        - resource: short_game_npcs
+          parameters:
+            slug: parsedBody.game_slug
+
+  short_game_pcs:
+    - url: /games/{:slug}/pcs.json?per_page=6
+      status: 200
+
+  short_game_npcs:
+    - url: /games/{:slug}/npcs.json?per_page=6
+      status: 200
 
   game_pcs:
     - url: /games/{:slug}/pcs.json
       status: 200
+      paginated_actions:
+        - resource: paginated_game_pcs
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_game_pcs:
+    - url: /games/{:slug}/pcs.json?page={:page}
+      status: 200
       actions:
-        - resource: character
+        - resource: pc
           parameters:
             id: parsedBody.id
+            slug: parsedBody.game_slug
 
   game_npcs:
     - url: /games/{:slug}/npcs.json
       status: 200
+      paginated_actions:
+        - resource: paginated_game_npcs
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_game_npcs:
+    - url: /games/{:slug}/npcs.json?page={:page}
+      status: 200
       actions:
-        - resource: character
+        - resource: npc
           parameters:
             id: parsedBody.id
+            slug: parsedBody.game_slug
 
-  character:
-    - url: /games/{:slug}/characters/{:id}.json
+  pc:
+    - url: /games/{:slug}/pcs/{:id}.json
       status: 200
