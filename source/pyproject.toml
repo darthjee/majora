@@ -33,6 +33,9 @@ omit = ["*/migrations/*", "*/tests/*"]
 [tool.coverage.report]
 omit = ["*/migrations/*", "*/tests/*"]
 
+[tool.bandit]
+exclude_dirs = ["games/tests", "source/games/tests"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py311"
