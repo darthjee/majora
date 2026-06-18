@@ -42,6 +42,21 @@ resources:
   game_detail:
     - url: /games/{:slug}.json
       status: 200
+      actions:
+        - resource: short_game_pcs
+          parameters:
+            slug: parsedBody.game_slug
+        - resource: short_game_npcs
+          parameters:
+            slug: parsedBody.game_slug
+
+  short_game_pcs:
+    - url: /games/{:slug}/pcs.json?per_page=6
+      status: 200
+
+  short_game_npcs:
+    - url: /games/{:slug}/npcs.json?per_page=6
+      status: 200
 
   game_pcs:
     - url: /games/{:slug}/pcs.json
