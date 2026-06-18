@@ -57,7 +57,7 @@ resources:
     - url: /games/{:slug}/pcs.json?page={:page}
       status: 200
       actions:
-        - resource: character
+        - resource: pc
           parameters:
             id: parsedBody.id
             slug: parsedBody.game_slug
@@ -72,4 +72,8 @@ resources:
 
   character:
     - url: /games/{:slug}/characters/{:id}.json
+      status: 200
+
+  pc:
+    - url: /games/{:slug}/pcs/{:id}.json
       status: 200
