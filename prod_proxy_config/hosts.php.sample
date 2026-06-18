@@ -1,0 +1,3 @@
+<?php
+
+$backendHost = 'https://localhost:3030/';
