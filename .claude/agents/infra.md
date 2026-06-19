@@ -76,8 +76,8 @@ Navi (`darthjee/navi-hey`) warms the Tent proxy cache by pre-fetching all API en
 **Current warm-up chain:**
 1. Fetch `/games.json` → for each game, chain to:
    - `/games/{slug}.json`
-   - `/games/{slug}/pcs.json` → for each PC, chain to `/games/{slug}/characters/{id}.json`
-   - `/games/{slug}/npcs.json` → for each NPC, chain to `/games/{slug}/characters/{id}.json`
+   - `/games/{slug}/pcs.json` → for each PC, chain to `/games/{slug}/pcs/{id}.json`
+   - `/games/{slug}/npcs.json` → for each NPC, chain to `/games/{slug}/npcs/{id}.json`
 
 Key config points:
 - `parsedBody` (camelCase) — never `parsed_body` — for path expressions in `actions[].parameters`
