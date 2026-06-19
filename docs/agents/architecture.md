@@ -68,11 +68,12 @@ Django project package: `settings.py`, root `urls.py`, `wsgi.py`. Entry point fo
 The core Django app. Contains all domain models, REST views, and serializers for RPG campaign data.
 
 - `models.py` — Domain models: `Game`, `Player`, `Character`, `Photo`, `Link`.
-- `views.py` — Function-based API views using `@api_view`.
+- `views/` — Function-based API views using `@api_view` (`games.py`, `characters.py`).
 - `serializers.py` — DRF serializers (list and detail variants per resource).
+- `paginator.py` — Custom pagination for list endpoints. See [pagination.md](pagination.md).
 - `urls.py` — URL routing for the games app.
 - `migrations/` — Django database migrations.
-- `tests/` — Unit and integration tests (`models_test.py`, `views_test.py`).
+- `tests/` — Unit and integration tests.
 - `admin.py` — Django Admin registrations.
 
 ### API Endpoints
@@ -83,15 +84,16 @@ The core Django app. Contains all domain models, REST views, and serializers for
 | `GET` | `/games/<slug>.json` | Game detail (includes links) |
 | `GET` | `/games/<slug>/pcs.json` | Player Characters for a game |
 | `GET` | `/games/<slug>/npcs.json` | Non-Player Characters for a game |
-| `GET` | `/games/<slug>/characters/<id>.json` | Character detail (includes photos) |
+| `GET` | `/games/<slug>/pcs/<id>.json` | PC detail (includes photos) |
+| `GET` | `/games/<slug>/npcs/<id>.json` | NPC detail (includes photos) |
 
 ### Domain Models
 
 | Model | Key fields | Notes |
 |-------|-----------|-------|
-| `Game` | `name`, `game_slug` | Slug auto-generated from name |
+| `Game` | `name`, `game_slug`, `photo`, `description` | Slug auto-generated from name |
 | `Player` | `name`, `games` (M2M) | Human player; linked to one or more games |
-| `Character` | `name`, `game`, `player`, `character_class`, `level`, `description` | PC if `player` is set; NPC if `player` is null |
+| `Character` | `name`, `game`, `player`, `avatar_url`, `character_class`, `level`, `description`, `npc` | PC if `npc` is `False`; NPC if `npc` is `True` (default) |
 | `Photo` | `url`, `character` (FK) | Image gallery entry for a character |
 | `Link` | `text`, `url`, `game` (FK) | External link related to a game |
 

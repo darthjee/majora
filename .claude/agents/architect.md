@@ -75,9 +75,9 @@ Majora is a Django REST backend + React SPA served through the Tent reverse prox
 
 | Model | Key fields | Notes |
 |-------|-----------|-------|
-| `Game` | `name`, `game_slug` | Slug auto-generated from name |
+| `Game` | `name`, `game_slug`, `photo`, `description` | Slug auto-generated from name |
 | `Player` | `name`, `games` (M2M) | Human player linked to one or more games |
-| `Character` | `name`, `game`, `player`, `character_class`, `level`, `description` | PC if `player` set; NPC if `player` is null |
+| `Character` | `name`, `game`, `player`, `avatar_url`, `character_class`, `level`, `description`, `npc` | PC if `npc` is `False`; NPC if `npc` is `True` (default) |
 | `Photo` | `url`, `character` (FK) | Image gallery entry for a character |
 | `Link` | `text`, `url`, `game` (FK) | External link related to a game |
 
@@ -89,4 +89,5 @@ Majora is a Django REST backend + React SPA served through the Tent reverse prox
 | `GET` | `/games/<slug>.json` | Game detail (with links) |
 | `GET` | `/games/<slug>/pcs.json` | Player Characters for a game |
 | `GET` | `/games/<slug>/npcs.json` | Non-Player Characters for a game |
-| `GET` | `/games/<slug>/characters/<id>.json` | Character detail (with photos) |
+| `GET` | `/games/<slug>/pcs/<id>.json` | PC detail (with photos) |
+| `GET` | `/games/<slug>/npcs/<id>.json` | NPC detail (with photos) |
