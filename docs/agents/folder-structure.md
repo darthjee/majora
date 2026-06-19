@@ -9,10 +9,15 @@
 | `dockerfiles/` | Dockerfiles for each service image (backend, frontend, production variants). |
 | `docker_volumes/` | Bind-mounted volumes used by Docker services (static assets, proxy config, node_modules, etc.). |
 | `docs/` | Project documentation for agents and contributors. |
+| `prod_proxy_config/` | Production proxy host configuration (PHP-based rules and host definitions for `darthjee/tent`). |
+| `scripts/` | Standalone shell scripts for releases (`bump_version.sh`, `deploy.sh`, `render.sh`). |
 | `.circleci/` | CircleCI pipeline config (`config.yml`) and Navi cache-warmer config (`navi_config.yaml`). |
+| `.claude/` | Claude Code project configuration: custom agents, slash commands, and skill state. |
+| `.github/` | GitHub PR/commit message templates and Copilot instructions pointer. |
 | `Makefile` | Common development commands (`make dev-up`, `make tests`, `make setup`, etc.). |
 | `docker-compose.yml` | Full stack service definitions (app, frontend, proxy, MySQL, Navi cache warmer). |
 | `README.md` | Project overview. |
+| `LICENSE` | Project license. |
 
 ## `source/` — Backend
 
@@ -40,6 +45,13 @@
 |--------------|-------------|
 | `proxy_configuration/` | Nginx/proxy configuration files served by the `tent` proxy image. |
 | `static/` | Built frontend assets (Vite output) served by the proxy. |
+
+## `.claude/` — Claude Code Configuration
+
+| Subdirectory | Description |
+|--------------|-------------|
+| `agents/` | Specialist subagent definitions (`architect`, `backend`, `frontend`, `infra`). |
+| `commands/` | Custom slash commands for the Majora issue/plan/fix workflow. |
 
 ## `dockerfiles/` — Service Images
 
