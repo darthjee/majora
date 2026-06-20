@@ -1,4 +1,4 @@
-import React from 'react';
+import HeaderHelper from './helpers/HeaderHelper.jsx';
 
 /**
  * Render application header.
@@ -6,10 +6,5 @@ import React from 'react';
  * @returns {React.ReactElement} Header element.
  */
 export default function Header() {
-  return (
-    <header>
-      <h1>Majora</h1>
-      <p>RPG Campaign Management System</p>
-    </header>
-  );
+  return HeaderHelper.render();
 }

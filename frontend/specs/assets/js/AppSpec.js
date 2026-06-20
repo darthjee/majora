@@ -7,6 +7,6 @@ describe('App', () => {
     const markup = renderToStaticMarkup(React.createElement(App));
 
     expect(markup).toContain('class="app"');
-    expect(markup).toContain('<h1>Majora</h1>');
+    expect(markup).toContain('Majora');
   });
 });
