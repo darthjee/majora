@@ -14,4 +14,5 @@ require_once __DIR__ . '/hosts.php';
 require_once __DIR__ . '/rules/frontend.php';
 require_once __DIR__ . '/rules/photos.php';
 require_once __DIR__ . '/rules/backend.php';
+require_once __DIR__ . '/rules/admin.php';
 require_once __DIR__ . '/rules/redirects.php';
