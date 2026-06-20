@@ -10,7 +10,8 @@ use Tent\Configuration;
 Configuration::buildRule([
     'handler' => [
         'type' => 'default_proxy',
-        'host' => $backendHost
+        'host' => $backendHost,
+        'skip_cache_header' => 'X-Skip-Cache'
     ],
     'matchers' => [
         ['method' => 'GET', 'pattern' => '/^\/(?!#\/)/', 'type' => 'regex'],
