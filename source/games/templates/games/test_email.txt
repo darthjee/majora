@@ -1,0 +1,3 @@
+Hello {{ username }},
+
+This is a test email from Majora to confirm that email sending is configured correctly.

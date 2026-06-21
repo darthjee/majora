@@ -54,4 +54,20 @@ export default class AuthClient {
       },
     });
   }
+
+  /**
+   * Requests a test email to be sent to the authenticated user.
+   *
+   * @param {string} token - Authentication token for the requesting user.
+   * @returns {Promise<Response>} fetch response from the test-email endpoint.
+   */
+  sendTestEmail(token) {
+    return fetch('/users/test-email.json', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Token ${token}`,
+      },
+    });
+  }
 }

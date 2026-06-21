@@ -27,4 +27,9 @@ describe('Header', function() {
     expect(html).toContain('data-testid="auth-control"');
     expect(html).toContain('Login');
   });
+
+  it('does not render the send-test-email link when logged out', function() {
+    const html = renderToStaticMarkup(React.createElement(Header));
+    expect(html).not.toContain('data-testid="send-test-email"');
+  });
 });

@@ -11,8 +11,9 @@ import AuthEvents from '../../utils/AuthEvents.js';
 export default function Header() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [testEmailStatus, setTestEmailStatus] = useState(null);
 
-  const controller = new HeaderController(setLoggedIn, setShowModal);
+  const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus);
 
   useEffect(() => {
     controller.checkStatus();
@@ -26,12 +27,13 @@ export default function Header() {
   }, []);
 
   return HeaderHelper.render(
-    { loggedIn, showModal },
+    { loggedIn, showModal, testEmailStatus },
     {
       onLoginClick: () => controller.handleLoginClick(),
       onLogoffClick: () => controller.handleLogoffClick(),
       onModalClose: () => controller.handleModalClose(),
       onLoginSuccess: () => controller.handleLoginSuccess(),
+      onSendTestEmailClick: () => controller.handleSendTestEmailClick(),
     }
   );
 }

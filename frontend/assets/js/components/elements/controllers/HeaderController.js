@@ -11,11 +11,13 @@ export default class HeaderController {
    *
    * @param {Function} setLoggedIn - state setter for the logged-in flag.
    * @param {Function} setShowModal - state setter for the login modal visibility.
+   * @param {Function} [setTestEmailStatus] - state setter for the test email status.
    * @param {AuthClient} [client] - HTTP client used for auth requests.
    */
-  constructor(setLoggedIn, setShowModal, client = new AuthClient()) {
+  constructor(setLoggedIn, setShowModal, setTestEmailStatus = () => {}, client = new AuthClient()) {
     this.setLoggedIn = setLoggedIn;
     this.setShowModal = setShowModal;
+    this.setTestEmailStatus = setTestEmailStatus;
     this.client = client;
   }
 
@@ -88,5 +90,21 @@ export default class HeaderController {
   handleLoginSuccess() {
     this.setLoggedIn(true);
     this.setShowModal(false);
+  }
+
+  /**
+   * Sends a test email for the currently authenticated user, updating
+   * the test email status state with the outcome.
+   *
+   * @returns {Promise<void>} resolves when the test email request finishes.
+   */
+  async handleSendTestEmailClick() {
+    try {
+      const response = await this.client.sendTestEmail(AuthStorage.getToken());
+
+      this.setTestEmailStatus(response.ok ? 'sent' : 'error');
+    } catch {
+      this.setTestEmailStatus('error');
+    }
   }
 }
