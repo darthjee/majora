@@ -26,3 +26,27 @@ class TestSettingsPaginationSize:
         """Test that the default is returned when the env var is an empty string."""
         monkeypatch.setenv('MAJORA_PAGINATION_SIZE', '')
         assert Settings.pagination_size() == 16
+
+
+class TestSettingsPasswordResetTokenExpirationMinutes:
+    """Tests for Settings.password_reset_token_expiration_minutes()."""
+
+    def test_returns_default_when_env_not_set(self, monkeypatch):
+        """Test that the default of 30 is returned when env var is absent."""
+        monkeypatch.delenv('MAJORA_PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES', raising=False)
+        assert Settings.password_reset_token_expiration_minutes() == 30
+
+    def test_reads_value_from_env(self, monkeypatch):
+        """Test that the value from MAJORA_PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES is used."""
+        monkeypatch.setenv('MAJORA_PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES', '45')
+        assert Settings.password_reset_token_expiration_minutes() == 45
+
+    def test_returns_default_when_env_is_invalid(self, monkeypatch):
+        """Test that the default is returned when the env var is not an integer."""
+        monkeypatch.setenv('MAJORA_PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES', 'not-a-number')
+        assert Settings.password_reset_token_expiration_minutes() == 30
+
+    def test_returns_default_when_env_is_empty(self, monkeypatch):
+        """Test that the default is returned when the env var is an empty string."""
+        monkeypatch.setenv('MAJORA_PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES', '')
+        assert Settings.password_reset_token_expiration_minutes() == 30

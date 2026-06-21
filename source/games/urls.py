@@ -24,4 +24,6 @@ urlpatterns = [
     path('users/register.json', views.register, name='users-register'),
     path('users/status.json', views.status, name='users-status'),
     path('users/test-email.json', views.test_email, name='users-test-email'),
+    path('users/recover.json', views.recover, name='users-recover'),
+    path('users/reset-password.json', views.reset_password, name='users-reset-password'),
 ]
