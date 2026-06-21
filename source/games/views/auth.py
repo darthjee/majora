@@ -2,8 +2,9 @@
 
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
@@ -47,3 +48,21 @@ def logout(request):
     """Revoke the requesting user's authentication token."""
     Token.objects.filter(user=request.user).delete()
     return Response(status=204)
+
+
+@api_view(['GET'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def status(request):
+    """Report whether the requesting token (if any) is logged in."""
+    auth = TokenAuthentication()
+    try:
+        result = auth.authenticate(request)
+    except Exception:
+        result = None
+
+    if result is None:
+        return Response({'logged_in': False})
+
+    user, _ = result
+    return Response({'logged_in': True, 'username': user.username})
