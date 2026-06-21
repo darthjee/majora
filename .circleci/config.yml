@@ -38,7 +38,7 @@ workflows:
       - release-image:
           name: release-majora-base
           image: majora-base
-          filters: &tags_only
+          filters: *tags_only
       - release-image:
           name: release-majora-base-arm64
           image: majora-base
