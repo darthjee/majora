@@ -72,4 +72,20 @@ describe('AuthClient', function() {
       });
     });
   });
+
+  describe('#sendTestEmail', function() {
+    it('posts to the test-email endpoint with the auth token', async function() {
+      const client = new AuthClient();
+
+      await client.sendTestEmail('abc123');
+
+      expect(fetchSpy).toHaveBeenCalledWith('/users/test-email.json', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          Authorization: 'Token abc123',
+        },
+      });
+    });
+  });
 });
