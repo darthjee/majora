@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import AppController from './AppController.js';
+import Translator from '../i18n/Translator.js';
 
 /**
  * Root application component.
@@ -9,6 +10,7 @@ import AppController from './AppController.js';
 export default function App() {
   const [page, setPage] = useState('home');
   const [hash, setHash] = useState(() => (typeof window === 'undefined' ? '' : window.location.hash));
+  const [lang, setLang] = useState(() => Translator.getLanguage());
 
   const controller = useMemo(() => {
     const defaultTarget = {
@@ -19,7 +21,7 @@ export default function App() {
     const eventTarget = typeof window === 'undefined' ? defaultTarget : window;
     const hashProvider = () => (typeof window === 'undefined' ? '' : window.location.hash);
 
-    return new AppController(setPage, eventTarget, hashProvider, setHash);
+    return new AppController(setPage, eventTarget, hashProvider, setHash, setLang);
   }, []);
 
   useEffect(() => {
@@ -28,5 +30,5 @@ export default function App() {
     return effect();
   }, [controller]);
 
-  return controller.renderPage(page, hash);
+  return controller.renderPage(page, hash, lang);
 }

@@ -28,13 +28,14 @@ export default class AppHelper {
    *
    * @param {string} page - Page key.
    * @param {string} hash - Current hash.
+   * @param {string} [lang] - Current language code.
    * @returns {React.ReactElement} App element tree.
    */
-  static render(page, hash = '') {
+  static render(page, hash = '', lang = '') {
     return (
       <div className="app">
         <Header />
-        <React.Fragment key={hash}>
+        <React.Fragment key={`${hash}:${lang}`}>
           {PAGES[page] ?? PAGES.home}
         </React.Fragment>
       </div>

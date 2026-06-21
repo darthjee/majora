@@ -12,4 +12,8 @@ describe('AppHelper', function() {
   it('falls back to home page for unknown page key', function() {
     expect(renderToStaticMarkup(AppHelper.render('unknown', '#/other'))).toContain('Loading games...');
   });
+
+  it('renders correctly when a language code is provided', function() {
+    expect(renderToStaticMarkup(AppHelper.render('games', '#/games', 'en'))).toContain('Loading games...');
+  });
 });

@@ -90,5 +90,13 @@ describe('HeaderHelper', function() {
 
       expect(html).not.toContain('data-testid="test-email-status"');
     });
+
+    it('renders the language selector', function() {
+      const html = renderToStaticMarkup(
+        HeaderHelper.render({ loggedIn: false, showModal: false, testEmailStatus: null }, buildHandlers())
+      );
+
+      expect(html).toContain('data-testid="language-selector"');
+    });
   });
 });

@@ -1,5 +1,6 @@
 import AppHelper from './helpers/AppHelper.jsx';
 import HashRouteResolver from '../utils/HashRouteResolver.js';
+import LanguageEvents from '../i18n/LanguageEvents.js';
 
 /**
  * Controller for application-level hash routing.
@@ -12,16 +13,19 @@ export default class AppController {
    * @param {EventTarget} eventTarget - Target used to bind events.
    * @param {Function} hashProvider - Function returning hash.
    * @param {Function|null} setHash - Optional hash state setter.
+   * @param {Function|null} setLang - Optional language state setter.
    */
   constructor(
     setPage,
     eventTarget = window,
     hashProvider = () => window.location.hash,
     setHash = null,
+    setLang = null,
   ) {
     this.setPage = setPage;
     this.eventTarget = eventTarget;
     this.setHash = setHash;
+    this.setLang = setLang;
     this.routeResolver = new HashRouteResolver(hashProvider);
   }
 
@@ -39,14 +43,15 @@ export default class AppController {
    *
    * @param {string} page - Page identifier.
    * @param {string} hash - Current hash.
+   * @param {string} [lang] - Current language code.
    * @returns {React.ReactElement} Rendered app tree.
    */
-  renderPage(page, hash = '') {
-    return AppHelper.render(page, hash);
+  renderPage(page, hash = '', lang = '') {
+    return AppHelper.render(page, hash, lang);
   }
 
   /**
-   * Build react effect that listens to hash changes.
+   * Build react effect that listens to hash changes and language changes.
    *
    * @returns {Function} Effect callback.
    */
@@ -57,10 +62,16 @@ export default class AppController {
         this.setHash?.(this.routeResolver.currentHash());
       };
 
+      const handleLanguageChange = (event) => {
+        this.setLang?.(event.detail?.language);
+      };
+
       this.eventTarget.addEventListener('hashchange', handleHashChange);
+      LanguageEvents.subscribe(handleLanguageChange);
 
       return () => {
         this.eventTarget.removeEventListener('hashchange', handleHashChange);
+        LanguageEvents.unsubscribe(handleLanguageChange);
       };
     };
   }
