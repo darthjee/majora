@@ -1,4 +1,5 @@
 import React from 'react';
+import Translator from '../../../i18n/Translator.js';
 
 /**
  * Rendering helper for the CharacterInfo element.
@@ -34,8 +35,10 @@ export default class CharacterInfoHelper {
     if (!character_class) return null;
     return (
       <p className="text-muted mb-1">
-        <strong>Class:</strong> {character_class}
-        {level !== null && level !== undefined && <span> &mdash; Level {level}</span>}
+        <strong>{Translator.t('character_info.class_label')}</strong> {character_class}
+        {level !== null && level !== undefined && (
+          <span> &mdash; {Translator.t('character_info.level_label')} {level}</span>
+        )}
       </p>
     );
   }

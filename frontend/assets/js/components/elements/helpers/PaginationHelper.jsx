@@ -1,6 +1,7 @@
 import React from 'react';
 import PaginationController from '../controllers/PaginationController.js';
 import PageLink from '../PageLink.jsx';
+import Translator from '../../../i18n/Translator.js';
 
 /**
  * Renders the Bootstrap pagination UI from raw pagination data.
@@ -28,7 +29,7 @@ export default class PaginationHelper {
     const linkTemplate = `${basePath}?page=:page&per_page=:perPage`;
 
     return (
-      <nav aria-label="Games pages" className="mt-4">
+      <nav aria-label={Translator.t('pagination.aria_label')} className="mt-4">
         <ul className="pagination justify-content-center">
           {this.#renderPreviousButton(page, itemsPerPage, linkTemplate)}
           {pageList.map((entry, index) =>
@@ -83,7 +84,12 @@ export default class PaginationHelper {
 
     return (
       <li className="page-item">
-        <PageLink urlTemplate={linkTemplate} page={currentPage - 1} perPage={perPage} ariaLabel="Previous">
+        <PageLink
+          urlTemplate={linkTemplate}
+          page={currentPage - 1}
+          perPage={perPage}
+          ariaLabel={Translator.t('pagination.previous')}
+        >
           <span aria-hidden="true">«</span>
         </PageLink>
       </li>
@@ -110,7 +116,12 @@ export default class PaginationHelper {
 
     return (
       <li className="page-item">
-        <PageLink urlTemplate={linkTemplate} page={currentPage + 1} perPage={perPage} ariaLabel="Next">
+        <PageLink
+          urlTemplate={linkTemplate}
+          page={currentPage + 1}
+          perPage={perPage}
+          ariaLabel={Translator.t('pagination.next')}
+        >
           <span aria-hidden="true">»</span>
         </PageLink>
       </li>

@@ -1,6 +1,7 @@
 import React from 'react';
 import CharacterCard from '../CharacterCard.jsx';
 import { MAX_PREVIEW_CHARACTERS } from '../characterPreviewConstants.js';
+import Translator from '../../../i18n/Translator.js';
 
 /**
  * Rendering helper for the CharacterPreviewSection element.
@@ -34,7 +35,7 @@ export default class CharacterPreviewSectionHelper {
             />
           ))}
         </div>
-        <a href={seeAllHref}>{`See all ${title}`}</a>
+        <a href={seeAllHref}>{Translator.t('character_preview_section.see_all').replace('{{title}}', title)}</a>
       </div>
     );
   }
