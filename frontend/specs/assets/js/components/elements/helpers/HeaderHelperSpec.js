@@ -8,6 +8,7 @@ describe('HeaderHelper', function() {
     onModalClose: jasmine.createSpy('onModalClose'),
     onLoginSuccess: jasmine.createSpy('onLoginSuccess'),
     onSendTestEmailClick: jasmine.createSpy('onSendTestEmailClick'),
+    onLanguageChange: jasmine.createSpy('onLanguageChange'),
   });
 
   describe('.render', function() {
@@ -97,6 +98,14 @@ describe('HeaderHelper', function() {
       );
 
       expect(html).toContain('data-testid="language-selector"');
+    });
+
+    it('passes onLanguageChange through to the language selector', function() {
+      const handlers = buildHandlers();
+
+      expect(() => renderToStaticMarkup(
+        HeaderHelper.render({ loggedIn: false, showModal: false, testEmailStatus: null }, handlers)
+      )).not.toThrow();
     });
   });
 });

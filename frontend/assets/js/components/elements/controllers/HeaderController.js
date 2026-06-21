@@ -1,6 +1,7 @@
 import AuthClient from '../../../client/AuthClient.js';
 import AuthEvents from '../../../utils/AuthEvents.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import Translator from '../../../i18n/Translator.js';
 
 /**
  * Manages authentication state and modal visibility for the Header element.
@@ -39,8 +40,24 @@ export default class HeaderController {
 
       this.setLoggedIn(Boolean(data.logged_in));
       AuthEvents.emit(Boolean(data.logged_in));
+      this.#applyLanguagePreference(data);
     } catch {
       // Ignore status check failures; default unauthenticated state remains.
+    }
+  }
+
+  /**
+   * Applies the favorite language preference from a status response, when
+   * present and different from the current translator language.
+   *
+   * @param {{settings: ({favorite_language: string}|undefined)}} data - status response payload.
+   * @returns {void}
+   */
+  #applyLanguagePreference(data) {
+    const favoriteLanguage = data.settings?.favorite_language;
+
+    if (favoriteLanguage && favoriteLanguage !== Translator.getLanguage()) {
+      Translator.setLanguage(favoriteLanguage);
     }
   }
 
@@ -105,6 +122,25 @@ export default class HeaderController {
       this.setTestEmailStatus(response.ok ? 'sent' : 'error');
     } catch {
       this.setTestEmailStatus('error');
+    }
+  }
+
+  /**
+   * Persists the given language as the user's favorite when logged in.
+   *
+   * @param {string} language - the newly selected language code.
+   * @param {boolean} loggedIn - whether the user is currently logged in.
+   * @returns {Promise<void>} resolves when the request finishes, if any.
+   */
+  async handleLanguageChange(language, loggedIn) {
+    if (!loggedIn) {
+      return;
+    }
+
+    try {
+      await this.client.setLanguagePreference(AuthStorage.getToken(), language);
+    } catch {
+      // Ignore failures persisting the language preference.
     }
   }
 }

@@ -99,4 +99,24 @@ export default class AuthClient {
       body: JSON.stringify({ token, password }),
     });
   }
+
+  /**
+   * Persists the authenticated user's favorite language preference.
+   *
+   * @param {string} token - Authentication token for the requesting user.
+   * @param {string} language - Language code to set as the favorite.
+   * @returns {Promise<Response>} fetch response from the language endpoint.
+   */
+  setLanguagePreference(token, language) {
+    return fetch('/users/language.json', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-Skip-Cache': '1',
+        Authorization: `Token ${token}`,
+      },
+      body: JSON.stringify({ language }),
+    });
+  }
 }

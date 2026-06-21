@@ -10,7 +10,7 @@ export default class HeaderHelper {
    * Render the application header with navigation and auth controls.
    *
    * @param {{loggedIn: boolean, showModal: boolean, testEmailStatus: (string|null)}} state - header auth state.
-   * @param {{onLoginClick: Function, onLogoffClick: Function, onModalClose: Function, onLoginSuccess: Function, onSendTestEmailClick: Function}} handlers - header event handlers.
+   * @param {{onLoginClick: Function, onLogoffClick: Function, onModalClose: Function, onLoginSuccess: Function, onSendTestEmailClick: Function, onLanguageChange: Function}} handlers - header event handlers.
    * @returns {React.ReactElement} Header element.
    */
   static render(state, handlers) {
@@ -27,7 +27,7 @@ export default class HeaderHelper {
             </li>
           </ul>
           {HeaderHelper.#renderAuthControl(state, handlers)}
-          <LanguageSelector />
+          <LanguageSelector onLanguageChange={handlers.onLanguageChange} />
         </nav>
         <LoginModal
           show={state.showModal}

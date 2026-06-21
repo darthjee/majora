@@ -12,9 +12,11 @@ export default class LanguageSelectorController {
    * Creates a new LanguageSelectorController instance.
    *
    * @param {Function} setLanguage - state setter for the current language code.
+   * @param {Function} [onLanguageChange] - optional callback invoked with the new language code.
    */
-  constructor(setLanguage) {
+  constructor(setLanguage, onLanguageChange = () => {}) {
     this.setLanguage = setLanguage;
+    this.onLanguageChange = onLanguageChange;
   }
 
   /**
@@ -40,5 +42,6 @@ export default class LanguageSelectorController {
   handleLanguageChange(language) {
     Translator.setLanguage(language);
     this.setLanguage(language);
+    this.onLanguageChange(language);
   }
 }
