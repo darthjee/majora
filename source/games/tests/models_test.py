@@ -1,9 +1,10 @@
 """Tests for games app models."""
 
 import pytest
+from django.contrib.auth.models import User
 from django.utils.text import slugify
 
-from games.models import Character, Game, Link, Photo, Player
+from games.models import Character, Game, Link, Photo, Player, UserProfile
 
 
 @pytest.mark.django_db
@@ -174,3 +175,31 @@ class TestLink:
         game = Game.objects.create(name='Test Game 3', game_slug='test-game-3')
         link = Link(text='Map', url='http://example.com/map', game=game)
         assert str(link) == 'Map'
+
+
+@pytest.mark.django_db
+class TestUserProfile:
+    """Tests for the UserProfile model."""
+
+    def setup_method(self):
+        """Set up common test fixtures."""
+        self.user = User.objects.create_user(username='alice', password='secret-password')
+
+    def test_default_favorite_language(self):
+        """Test that a new profile defaults to English."""
+        profile = UserProfile.objects.create(user=self.user)
+        assert profile.favorite_language == 'en'
+
+    def test_favorite_language_can_be_updated(self):
+        """Test that the favorite language can be changed and persisted."""
+        profile = UserProfile.objects.create(user=self.user)
+        profile.favorite_language = 'pt-BR'
+        profile.save()
+
+        profile.refresh_from_db()
+        assert profile.favorite_language == 'pt-BR'
+
+    def test_user_profile_str(self):
+        """Test string representation of a user profile."""
+        profile = UserProfile(user=self.user)
+        assert str(profile) == 'UserProfile(user=alice)'

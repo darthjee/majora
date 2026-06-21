@@ -11,6 +11,8 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from games.models import UserProfile
+
 
 def send_test_email(user):
     """Send a test email to the given user's address."""
@@ -79,7 +81,23 @@ def status(request):
         return Response({'logged_in': False})
 
     user, _ = result
-    return Response({'logged_in': True, 'username': user.username})
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    return Response({
+        'logged_in': True,
+        'username': user.username,
+        'settings': {'favorite_language': profile.favorite_language},
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def language(request):
+    """Persist the requesting user's favorite language preference."""
+    value = request.data.get('language', '')
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    profile.favorite_language = value
+    profile.save()
+    return Response({'favorite_language': profile.favorite_language})
 
 
 @api_view(['POST'])
