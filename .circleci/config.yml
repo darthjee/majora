@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 workflows:
   version: 2
   test:
@@ -59,8 +59,61 @@ workflows:
               only: /\d+\.\d+\.\d+/
             branches:
               ignore: /.*/
+      - release-image:
+          name: release-majora-base
+          image: majora-base
+          filters: &tag_only
+            tags:
+              only: /\d+\.\d+\.\d+/
+            branches:
+              ignore: /.*/
+      - release-image:
+          name: release-majora-base-arm64
+          image: majora-base
+          arch: arm64
+          filters: *tag_only
+      - release-image:
+          name: release-circleci_majora-base
+          image: circleci_majora-base
+          filters: *tag_only
+      - release-image:
+          name: release-circleci_majora-base-arm64
+          image: circleci_majora-base
+          arch: arm64
+          filters: *tag_only
+      - release-image:
+          name: release-production_majora-base
+          image: production_majora-base
+          filters: *tag_only
+      - release-image:
+          name: release-production_majora-base-arm64
+          image: production_majora-base
+          arch: arm64
+          filters: *tag_only
+      - release-image:
+          name: release-vite_majora-base
+          image: vite_majora-base
+          filters: *tag_only
+      - release-image:
+          name: release-vite_majora-base-arm64
+          image: vite_majora-base
+          arch: arm64
+          filters: *tag_only
       - release:
-          requires: [build-and-release, upload_proxy_files, upload_fe_files, link_photos, upload_admin_assets]
+          requires:
+            - build-and-release
+            - upload_proxy_files
+            - upload_fe_files
+            - link_photos
+            - upload_admin_assets
+            - release-majora-base
+            - release-majora-base-arm64
+            - release-circleci_majora-base
+            - release-circleci_majora-base-arm64
+            - release-production_majora-base
+            - release-production_majora-base-arm64
+            - release-vite_majora-base
+            - release-vite_majora-base-arm64
           filters:
             tags:
               only: /\d+\.\d+\.\d+/
@@ -74,6 +127,27 @@ workflows:
             branches:
               ignore: /.*/
 jobs:
+  release-image:
+    parameters:
+      image:
+        type: string
+      arch:
+        type: string
+        default: ""
+    machine: true
+    steps:
+      - checkout
+      - when:
+          condition:
+            equal: [arm64, << parameters.arch >>]
+          steps:
+            - run:
+                name: Set up QEMU
+                command: docker run --privileged --rm tonistiigi/binfmt --install all
+      - run:
+          name: Release
+          command: bin/image.sh push << parameters.image >> << parameters.arch >>
+
   pytest:
     docker:
       - image: darthjee/circleci_majora-base:0.0.1
