@@ -69,6 +69,14 @@ Tent (`darthjee/tent`) is the single entry point on port 3000. It routes request
 
 See [docs/agents/HOW_TO_USE_DARTHJEE-TENT.md] for the full Tent configuration reference.
 
+**PHP is not installed on the host or in any CI/check container** — it only ships inside the `darthjee/tent` image. Never shell out to a bare `php` command; always run it through docker, e.g.:
+
+```bash
+docker run --rm -v "$PWD":/repo darthjee/tent:0.7.8 sh -c 'php -l /repo/path/to/rule.php'
+```
+
+`check_infra.sh` already does this to lint every `*.php` file under `docker_volumes/proxy_configuration/` and `prod_proxy_config/`.
+
 ## Navi cache warmer
 
 Navi (`darthjee/navi-hey`) warms the Tent proxy cache by pre-fetching all API endpoints after a release. Configuration: `.circleci/navi_config.yaml`.

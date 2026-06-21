@@ -52,8 +52,15 @@ workflows:
               only: /\d+\.\d+\.\d+/
             branches:
               ignore: /.*/
+      - upload_admin_assets:
+          requires: [pytest, jasmine, frontend-checks, checks]
+          filters:
+            tags:
+              only: /\d+\.\d+\.\d+/
+            branches:
+              ignore: /.*/
       - release:
-          requires: [build-and-release, upload_proxy_files, upload_fe_files, link_photos]
+          requires: [build-and-release, upload_proxy_files, upload_fe_files, link_photos, upload_admin_assets]
           filters:
             tags:
               only: /\d+\.\d+\.\d+/
@@ -218,6 +225,30 @@ jobs:
       - run:
           name: Link photos
           command: SOURCE=$REMOTE_HOME/photos TARGET=$SSH_REMOTE_TEMP_DIR/photos deploy_frontend.sh link
+
+  upload_admin_assets:
+    docker:
+      - image: darthjee/circleci_majora-base:0.0.1
+    steps:
+      - checkout
+      - run:
+          name: Set folder
+          command: rm frontend -rf; cp source/* ./ -r; rm source -rf
+      - run:
+          name: Poetry Install
+          command: poetry install --no-root --no-interaction --no-ansi
+      - run:
+          name: Collect static files
+          command: poetry run python manage.py collectstatic --noinput
+      - run:
+          name: Generate key file
+          command: bin/deploy_frontend.sh generate_key_file
+      - run:
+          name: Generate folder
+          command: SSH_REMOTE_TEMP_DIR=$SSH_REMOTE_TEMP_DIR/static/assets/admin/ bin/deploy_frontend.sh generate_folder
+      - run:
+          name: Upload admin assets
+          command: SOURCE=staticfiles/admin/ SSH_REMOTE_TEMP_DIR=$SSH_REMOTE_TEMP_DIR/static/assets/admin/ bin/deploy_frontend.sh upload
 
   build-and-release:
     machine: true
