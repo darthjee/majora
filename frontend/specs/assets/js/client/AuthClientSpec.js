@@ -116,4 +116,23 @@ describe('AuthClient', function() {
       });
     });
   });
+
+  describe('#setLanguagePreference', function() {
+    it('posts the language to the language endpoint with the auth token', async function() {
+      const client = new AuthClient();
+
+      await client.setLanguagePreference('abc123', 'en');
+
+      expect(fetchSpy).toHaveBeenCalledWith('/users/language.json', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'X-Skip-Cache': '1',
+          Authorization: 'Token abc123',
+        },
+        body: JSON.stringify({ language: 'en' }),
+      });
+    });
+  });
 });

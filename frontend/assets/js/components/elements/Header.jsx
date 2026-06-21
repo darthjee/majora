@@ -34,6 +34,7 @@ export default function Header() {
       onModalClose: () => controller.handleModalClose(),
       onLoginSuccess: () => controller.handleLoginSuccess(),
       onSendTestEmailClick: () => controller.handleSendTestEmailClick(),
+      onLanguageChange: (language) => controller.handleLanguageChange(language, loggedIn),
     }
   );
 }

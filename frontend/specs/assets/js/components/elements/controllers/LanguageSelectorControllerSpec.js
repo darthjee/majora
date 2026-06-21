@@ -30,5 +30,22 @@ describe('LanguageSelectorController', function() {
       expect(Translator.setLanguage).toHaveBeenCalledWith('en');
       expect(setLanguage).toHaveBeenCalledWith('en');
     });
+
+    it('invokes the onLanguageChange callback when provided', function() {
+      spyOn(Translator, 'setLanguage');
+      const onLanguageChange = jasmine.createSpy('onLanguageChange');
+      const controller = new LanguageSelectorController(setLanguage, onLanguageChange);
+
+      controller.handleLanguageChange('en');
+
+      expect(onLanguageChange).toHaveBeenCalledWith('en');
+    });
+
+    it('does not throw when no onLanguageChange callback is provided', function() {
+      spyOn(Translator, 'setLanguage');
+      const controller = new LanguageSelectorController(setLanguage);
+
+      expect(() => controller.handleLanguageChange('en')).not.toThrow();
+    });
   });
 });

@@ -1,6 +1,7 @@
 import HeaderController from '../../../../../../assets/js/components/elements/controllers/HeaderController.js';
 import AuthEvents from '../../../../../../assets/js/utils/AuthEvents.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
+import Translator from '../../../../../../assets/js/i18n/Translator.js';
 
 describe('HeaderController', function() {
   let setLoggedIn;
@@ -16,7 +17,12 @@ describe('HeaderController', function() {
       status: jasmine.createSpy('status'),
       logout: jasmine.createSpy('logout'),
       sendTestEmail: jasmine.createSpy('sendTestEmail'),
+      setLanguagePreference: jasmine.createSpy('setLanguagePreference'),
     };
+  });
+
+  afterEach(function() {
+    Translator.setLanguage('en');
   });
 
   describe('#checkStatus', function() {
@@ -52,6 +58,50 @@ describe('HeaderController', function() {
       await controller.checkStatus();
 
       expect(setLoggedIn).not.toHaveBeenCalled();
+    });
+
+    it('applies the favorite language from settings when different from the current one', async function() {
+      spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
+      spyOn(Translator, 'getLanguage').and.returnValue('en');
+      spyOn(Translator, 'setLanguage');
+      client.status.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ logged_in: true, settings: { favorite_language: 'fr' } }),
+      }));
+
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      await controller.checkStatus();
+
+      expect(Translator.setLanguage).toHaveBeenCalledWith('fr');
+    });
+
+    it('does not apply the favorite language when it matches the current one', async function() {
+      spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
+      spyOn(Translator, 'getLanguage').and.returnValue('en');
+      spyOn(Translator, 'setLanguage');
+      client.status.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ logged_in: true, settings: { favorite_language: 'en' } }),
+      }));
+
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      await controller.checkStatus();
+
+      expect(Translator.setLanguage).not.toHaveBeenCalled();
+    });
+
+    it('does not apply a language when settings are absent', async function() {
+      spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
+      spyOn(Translator, 'setLanguage');
+      client.status.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ logged_in: false }),
+      }));
+
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      await controller.checkStatus();
+
+      expect(Translator.setLanguage).not.toHaveBeenCalled();
     });
   });
 
@@ -144,6 +194,34 @@ describe('HeaderController', function() {
       await controller.handleSendTestEmailClick();
 
       expect(setTestEmailStatus).toHaveBeenCalledWith('error');
+    });
+  });
+
+  describe('#handleLanguageChange', function() {
+    it('persists the language preference when logged in', async function() {
+      spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
+      client.setLanguagePreference.and.returnValue(Promise.resolve({ ok: true }));
+
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      await controller.handleLanguageChange('fr', true);
+
+      expect(client.setLanguagePreference).toHaveBeenCalledWith('tok-123', 'fr');
+    });
+
+    it('does nothing when not logged in', async function() {
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      await controller.handleLanguageChange('fr', false);
+
+      expect(client.setLanguagePreference).not.toHaveBeenCalled();
+    });
+
+    it('swallows errors persisting the language preference', async function() {
+      spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
+      client.setLanguagePreference.and.returnValue(Promise.reject(new Error('network')));
+
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+
+      await expectAsync(controller.handleLanguageChange('fr', true)).toBeResolved();
     });
   });
 });

@@ -9,4 +9,8 @@ describe('LanguageSelector', function() {
     expect(html).toContain('data-testid="language-selector"');
     expect(html).toContain('🇬🇧 en');
   });
+
+  it('renders without an onLanguageChange prop', function() {
+    expect(() => renderToStaticMarkup(React.createElement(LanguageSelector))).not.toThrow();
+  });
 });
