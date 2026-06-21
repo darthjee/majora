@@ -1,31 +1,40 @@
-.PHONY: build-base push-base build push build-fe-base push-fe-base build-fe push-fe dev dev-up setup tests
+.PHONY: build-base push-base build push build-fe-base push-fe-base build-fe push-fe build-circleci-base push-circleci-base build-production-base push-production-base dev dev-up setup tests
 
 PROJECT?=majora
 IMAGE?=$(PROJECT)
 BASE_VERSION?=0.0.1
-BASE_IMAGE?=$(DOCKER_ID_USER)/$(PROJECT)-base
-FE_BASE_IMAGE?=$(DOCKER_ID_USER)/vite_$(PROJECT)-base
 FE_IMAGE?=$(DOCKER_ID_USER)/vite_$(PROJECT)
 PUSH_IMAGE=$(DOCKER_ID_USER)/$(PROJECT)
-DOCKER_FILE_BASE=dockerfiles/$(PROJECT)-base/Dockerfile
 DOCKER_FILE=dockerfiles/$(PROJECT)/Dockerfile
-DOCKER_FILE_FE_BASE=dockerfiles/vite_$(PROJECT)-base/Dockerfile
 DOCKER_FILE_FE=dockerfiles/vite_$(PROJECT)/Dockerfile
 
-# ── Backend ──────────────────────────────────────────────────────────────────
+# ── Base images ────────────────────────────────────────────────────────────────
 
 build-base:
-	docker tag $(BASE_IMAGE):latest $(BASE_IMAGE):cached; \
-	docker rmi $(BASE_IMAGE):latest; \
-	docker build -f $(DOCKER_FILE_BASE) . -t $(BASE_IMAGE):latest -t $(BASE_IMAGE):$(BASE_VERSION); \
-	if (docker images | grep $(BASE_IMAGE) | grep cached); then \
-	  docker rmi $(BASE_IMAGE):cached; \
-	fi
+	bin/image.sh build majora-base
 
 push-base:
-	make build-base
-	docker push $(BASE_IMAGE)
-	docker push $(BASE_IMAGE):$(BASE_VERSION)
+	bin/image.sh push majora-base
+
+build-circleci-base:
+	bin/image.sh build circleci_majora-base
+
+push-circleci-base:
+	bin/image.sh push circleci_majora-base
+
+build-production-base:
+	bin/image.sh build production_majora-base
+
+push-production-base:
+	bin/image.sh push production_majora-base
+
+build-fe-base:
+	bin/image.sh build vite_majora-base
+
+push-fe-base:
+	bin/image.sh push vite_majora-base
+
+# ── Backend ──────────────────────────────────────────────────────────────────
 
 build:
 	docker build -f $(DOCKER_FILE) . -t $(IMAGE) -t $(PUSH_IMAGE) -t $(PUSH_IMAGE):$(BASE_VERSION)
@@ -36,19 +45,6 @@ push:
 	docker push $(PUSH_IMAGE):$(BASE_VERSION)
 
 # ── Frontend ─────────────────────────────────────────────────────────────────
-
-build-fe-base:
-	docker tag $(FE_BASE_IMAGE):latest $(FE_BASE_IMAGE):cached; \
-	docker rmi $(FE_BASE_IMAGE):latest; \
-	docker build -f $(DOCKER_FILE_FE_BASE) . -t $(FE_BASE_IMAGE):latest -t $(FE_BASE_IMAGE):$(BASE_VERSION); \
-	if (docker images | grep $(FE_BASE_IMAGE) | grep cached); then \
-	  docker rmi $(FE_BASE_IMAGE):cached; \
-	fi
-
-push-fe-base:
-	make build-fe-base
-	docker push $(FE_BASE_IMAGE)
-	docker push $(FE_BASE_IMAGE):$(BASE_VERSION)
 
 build-fe:
 	docker build -f $(DOCKER_FILE_FE) . -t $(FE_IMAGE) -t $(FE_IMAGE):$(BASE_VERSION)
