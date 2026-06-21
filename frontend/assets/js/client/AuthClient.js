@@ -70,4 +70,33 @@ export default class AuthClient {
       },
     });
   }
+
+  /**
+   * Requests a password recovery email for the given address.
+   *
+   * @param {string} email - Email address to send the recovery link to.
+   * @returns {Promise<Response>} fetch response from the recover endpoint.
+   */
+  recoverPassword(email) {
+    return fetch('/users/recover.json', {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  /**
+   * Submits a new password using a password recovery token.
+   *
+   * @param {string} token - Password recovery token.
+   * @param {string} password - New password to set.
+   * @returns {Promise<Response>} fetch response from the reset-password endpoint.
+   */
+  resetPassword(token, password) {
+    return fetch('/users/reset-password.json', {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, password }),
+    });
+  }
 }

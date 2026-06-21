@@ -13,17 +13,28 @@ export default function LoginModal({ show, onClose, onSuccess }) {
   const [password, setPassword] = useState('');
   const [incorrect, setIncorrect] = useState(false);
   const [error, setError] = useState(false);
+  const [mode, setMode] = useState('login');
+  const [email, setEmail] = useState('');
+  const [recoverySent, setRecoverySent] = useState(false);
 
   const controller = new LoginModalController(
     setUsername,
     setPassword,
     setIncorrect,
     setError,
-    onSuccess
+    onSuccess,
+    undefined,
+    setRecoverySent
   );
 
-  const handleClose = () => {
+  const handleClear = () => {
     controller.handleClear();
+    setMode('login');
+    setEmail('');
+  };
+
+  const handleClose = () => {
+    handleClear();
 
     if (typeof onClose === 'function') {
       onClose();
@@ -38,6 +49,14 @@ export default function LoginModal({ show, onClose, onSuccess }) {
     return controller.handleSubmit(username, password);
   };
 
+  const handleRecoverSubmit = (event) => {
+    if (event && typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+
+    return controller.handleRecoverSubmit(email);
+  };
+
   return LoginModalHelper.render(
     show,
     {
@@ -45,6 +64,9 @@ export default function LoginModal({ show, onClose, onSuccess }) {
       password,
       incorrect,
       error,
+      mode,
+      email,
+      recoverySent,
     },
     {
       onClose: handleClose,
@@ -52,6 +74,10 @@ export default function LoginModal({ show, onClose, onSuccess }) {
       onSubmit: handleSubmit,
       onUsernameChange: (event) => setUsername(event.target.value),
       onPasswordChange: (event) => setPassword(event.target.value),
+      onForgotPasswordClick: () => setMode('recover'),
+      onBackToLoginClick: () => setMode('login'),
+      onEmailChange: (event) => setEmail(event.target.value),
+      onRecoverSubmit: handleRecoverSubmit,
     }
   );
 }

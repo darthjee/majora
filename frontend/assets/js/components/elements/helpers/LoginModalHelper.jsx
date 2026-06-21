@@ -8,50 +8,122 @@ export default class LoginModalHelper {
    * Renders the login modal.
    *
    * @param {boolean} show - whether the modal is visible.
-   * @param {{username: string, password: string, incorrect: boolean, error: boolean}} state - modal state.
-   * @param {{onClose: Function, onCancel: Function, onSubmit: Function, onUsernameChange: Function, onPasswordChange: Function}} handlers - modal event handlers.
+   * @param {{username: string, password: string, incorrect: boolean, error: boolean,
+   *   mode: string, email: string, recoverySent: boolean}} state - modal state.
+   * @param {{onClose: Function, onCancel: Function, onSubmit: Function, onUsernameChange: Function,
+   *   onPasswordChange: Function, onForgotPasswordClick: Function, onBackToLoginClick: Function,
+   *   onEmailChange: Function, onRecoverSubmit: Function}} handlers - modal event handlers.
    * @returns {React.ReactElement} rendered login modal.
    */
   static render(show, state, handlers) {
     return (
       <Modal show={show} onHide={handlers.onClose}>
-        <form onSubmit={handlers.onSubmit}>
-          <Modal.Header closeButton>
-            <Modal.Title>Login</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            {LoginModalHelper.#renderError(state)}
-            <div className="mb-3">
-              <label htmlFor="username" className="form-label">Username</label>
-              <input
-                id="username"
-                type="text"
-                className="form-control"
-                value={state.username}
-                onChange={handlers.onUsernameChange}
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="password" className="form-label">Password</label>
-              <input
-                id="password"
-                type="password"
-                className="form-control"
-                value={state.password}
-                onChange={handlers.onPasswordChange}
-              />
-            </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <button className="btn btn-secondary" type="button" onClick={handlers.onCancel}>
-              Cancel
-            </button>
-            <button className="btn btn-primary" type="submit">
-              Login
-            </button>
-          </Modal.Footer>
-        </form>
+        {state.mode === 'recover'
+          ? LoginModalHelper.#renderRecover(state, handlers)
+          : LoginModalHelper.#renderLogin(state, handlers)}
       </Modal>
+    );
+  }
+
+  static #renderLogin(state, handlers) {
+    return (
+      <form onSubmit={handlers.onSubmit}>
+        <Modal.Header closeButton>
+          <Modal.Title>Login</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {LoginModalHelper.#renderError(state)}
+          <div className="mb-3">
+            <label htmlFor="username" className="form-label">Username</label>
+            <input
+              id="username"
+              type="text"
+              className="form-control"
+              value={state.username}
+              onChange={handlers.onUsernameChange}
+            />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="password" className="form-label">Password</label>
+            <input
+              id="password"
+              type="password"
+              className="form-control"
+              value={state.password}
+              onChange={handlers.onPasswordChange}
+            />
+          </div>
+          <button
+            className="btn btn-link p-0"
+            type="button"
+            onClick={handlers.onForgotPasswordClick}
+          >
+            Forgot password?
+          </button>
+        </Modal.Body>
+        <Modal.Footer>
+          <button className="btn btn-secondary" type="button" onClick={handlers.onCancel}>
+            Cancel
+          </button>
+          <button className="btn btn-primary" type="submit">
+            Login
+          </button>
+        </Modal.Footer>
+      </form>
+    );
+  }
+
+  static #renderRecover(state, handlers) {
+    if (state.recoverySent) {
+      return LoginModalHelper.#renderRecoverySentConfirmation(handlers);
+    }
+
+    return (
+      <form onSubmit={handlers.onRecoverSubmit}>
+        <Modal.Header closeButton>
+          <Modal.Title>Recover password</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="mb-3">
+            <label htmlFor="recover-email" className="form-label">Email</label>
+            <input
+              id="recover-email"
+              type="email"
+              className="form-control"
+              value={state.email}
+              onChange={handlers.onEmailChange}
+            />
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <button className="btn btn-secondary" type="button" onClick={handlers.onBackToLoginClick}>
+            Back to login
+          </button>
+          <button className="btn btn-primary" type="submit">
+            Send recovery email
+          </button>
+        </Modal.Footer>
+      </form>
+    );
+  }
+
+  static #renderRecoverySentConfirmation(handlers) {
+    return (
+      <>
+        <Modal.Header closeButton>
+          <Modal.Title>Recover password</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="alert alert-info">
+            If that email is registered, a recovery link has been sent.
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <button className="btn btn-secondary" type="button" onClick={handlers.onBackToLoginClick}>
+            Back to login
+          </button>
+        </Modal.Footer>
+      </>
     );
   }
 
