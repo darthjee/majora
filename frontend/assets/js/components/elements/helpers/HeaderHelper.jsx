@@ -1,4 +1,6 @@
+import LanguageSelector from '../LanguageSelector.jsx';
 import LoginModal from '../LoginModal.jsx';
+import Translator from '../../../i18n/Translator.js';
 
 /**
  * Rendering helper for the Header element.
@@ -15,16 +17,17 @@ export default class HeaderHelper {
     return (
       <header>
         <h1>
-          <a href="#/">Majora</a>
+          <a href="#/">{Translator.t('header.title')}</a>
         </h1>
-        <p>RPG Campaign Management System</p>
+        <p>{Translator.t('header.subtitle')}</p>
         <nav>
           <ul>
             <li>
-              <a href="#/games">Games</a>
+              <a href="#/games">{Translator.t('header.nav_games')}</a>
             </li>
           </ul>
           {HeaderHelper.#renderAuthControl(state, handlers)}
+          <LanguageSelector />
         </nav>
         <LoginModal
           show={state.showModal}
@@ -52,7 +55,7 @@ export default class HeaderHelper {
             data-testid="auth-control"
             onClick={handlers.onLogoffClick}
           >
-            Logoff
+            {Translator.t('header.logoff')}
           </button>
           <button
             type="button"
@@ -60,7 +63,7 @@ export default class HeaderHelper {
             data-testid="send-test-email"
             onClick={handlers.onSendTestEmailClick}
           >
-            Send test email
+            {Translator.t('header.send_test_email')}
           </button>
           {HeaderHelper.#renderTestEmailStatus(state)}
         </>
@@ -74,7 +77,7 @@ export default class HeaderHelper {
         data-testid="auth-control"
         onClick={handlers.onLoginClick}
       >
-        Login
+        {Translator.t('header.login')}
       </button>
     );
   }
@@ -87,11 +90,11 @@ export default class HeaderHelper {
    */
   static #renderTestEmailStatus(state) {
     if (state.testEmailStatus === 'sent') {
-      return <span data-testid="test-email-status">Test email sent</span>;
+      return <span data-testid="test-email-status">{Translator.t('header.test_email_sent')}</span>;
     }
 
     if (state.testEmailStatus === 'error') {
-      return <span data-testid="test-email-status">Failed to send test email</span>;
+      return <span data-testid="test-email-status">{Translator.t('header.test_email_error')}</span>;
     }
 
     return null;

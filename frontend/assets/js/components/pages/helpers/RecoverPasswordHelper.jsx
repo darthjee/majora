@@ -1,3 +1,5 @@
+import Translator from '../../../i18n/Translator.js';
+
 /**
  * Rendering helper for the recover-password page.
  */
@@ -12,7 +14,7 @@ export default class RecoverPasswordHelper {
   static render(state, handlers) {
     return (
       <div className="container mt-4">
-        <h1>Reset password</h1>
+        <h1>{Translator.t('recover_password_page.title')}</h1>
         {state.status === 'success'
           ? RecoverPasswordHelper.#renderSuccess()
           : RecoverPasswordHelper.#renderForm(state, handlers)}
@@ -25,7 +27,9 @@ export default class RecoverPasswordHelper {
       <form onSubmit={handlers.onSubmit}>
         {RecoverPasswordHelper.#renderError(state)}
         <div className="mb-3">
-          <label htmlFor="new-password" className="form-label">New password</label>
+          <label htmlFor="new-password" className="form-label">
+            {Translator.t('recover_password_page.new_password_label')}
+          </label>
           <input
             id="new-password"
             type="password"
@@ -35,7 +39,9 @@ export default class RecoverPasswordHelper {
           />
         </div>
         <div className="mb-3">
-          <label htmlFor="confirm-password" className="form-label">Confirm new password</label>
+          <label htmlFor="confirm-password" className="form-label">
+            {Translator.t('recover_password_page.confirm_password_label')}
+          </label>
           <input
             id="confirm-password"
             type="password"
@@ -45,7 +51,7 @@ export default class RecoverPasswordHelper {
           />
         </div>
         <button className="btn btn-primary" type="submit" disabled={state.status === 'submitting'}>
-          Reset password
+          {Translator.t('recover_password_page.submit')}
         </button>
       </form>
     );
@@ -62,8 +68,8 @@ export default class RecoverPasswordHelper {
   static #renderSuccess() {
     return (
       <div>
-        <div className="alert alert-success">Your password has been reset.</div>
-        <a className="btn btn-primary" href="#/">Back to home</a>
+        <div className="alert alert-success">{Translator.t('recover_password_page.success')}</div>
+        <a className="btn btn-primary" href="#/">{Translator.t('recover_password_page.back_to_home')}</a>
       </div>
     );
   }

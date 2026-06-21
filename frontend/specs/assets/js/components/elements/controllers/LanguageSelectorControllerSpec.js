@@ -1,0 +1,34 @@
+import LanguageSelectorController from '../../../../../../assets/js/components/elements/controllers/LanguageSelectorController.js';
+import Translator from '../../../../../../assets/js/i18n/Translator.js';
+
+describe('LanguageSelectorController', function() {
+  let setLanguage;
+
+  beforeEach(function() {
+    setLanguage = jasmine.createSpy('setLanguage');
+  });
+
+  afterEach(function() {
+    Translator.setLanguage('en');
+  });
+
+  describe('#getOptions', function() {
+    it('returns an option for every available language with a flag', function() {
+      const controller = new LanguageSelectorController(setLanguage);
+
+      expect(controller.getOptions()).toEqual([{ code: 'en', flag: '🇬🇧' }]);
+    });
+  });
+
+  describe('#handleLanguageChange', function() {
+    it('updates the Translator language and the local state', function() {
+      spyOn(Translator, 'setLanguage');
+      const controller = new LanguageSelectorController(setLanguage);
+
+      controller.handleLanguageChange('en');
+
+      expect(Translator.setLanguage).toHaveBeenCalledWith('en');
+      expect(setLanguage).toHaveBeenCalledWith('en');
+    });
+  });
+});

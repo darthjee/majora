@@ -1,4 +1,5 @@
 import React from 'react';
+import Translator from '../../../i18n/Translator.js';
 
 /**
  * Rendering helper for the BackButton element.
@@ -13,7 +14,7 @@ export default class BackButtonHelper {
   static render(href) {
     return (
       <a href={href} className="btn btn-outline-secondary mb-3">
-        &larr; Back
+        &larr; {Translator.t('back_button.label')}
       </a>
     );
   }

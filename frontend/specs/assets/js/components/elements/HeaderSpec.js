@@ -32,4 +32,9 @@ describe('Header', function() {
     const html = renderToStaticMarkup(React.createElement(Header));
     expect(html).not.toContain('data-testid="send-test-email"');
   });
+
+  it('renders the language selector', function() {
+    const html = renderToStaticMarkup(React.createElement(Header));
+    expect(html).toContain('data-testid="language-selector"');
+  });
 });

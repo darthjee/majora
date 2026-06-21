@@ -4,6 +4,7 @@ import CharacterCard from '../../elements/CharacterCard.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import Pagination from '../../elements/Pagination.jsx';
+import Translator from '../../../i18n/Translator.js';
 
 /**
  * Rendering helper shared by the GamePcs and GameNpcs pages.
@@ -55,7 +56,7 @@ export default class GameCharactersHelper {
    * @returns {React.ReactElement} Loading message.
    */
   static renderLoading() {
-    return <LoadingMessage message="Loading..." />;
+    return <LoadingMessage message={Translator.t('game_characters_page.loading')} />;
   }
 
   /**

@@ -22,6 +22,11 @@ export async function resolve(specifier, context, nextResolve) {
     // Return a synthetic URL so the load hook can intercept it without Node trying to find the file.
     return { url: `stub:image:${specifier.split('/').pop()}`, shortCircuit: true };
   }
+  if (specifier.endsWith('?raw')) {
+    // Vite resolves `?raw` imports to the file's text contents; replicate that for Node-based specs.
+    const resolved = await nextResolve(specifier.slice(0, -'?raw'.length), context);
+    return { ...resolved, url: `${resolved.url}?raw`, shortCircuit: true };
+  }
   return nextResolve(specifier, context);
 }
 
@@ -35,6 +40,15 @@ export async function resolve(specifier, context, nextResolve) {
  * @returns {Promise<object>} The loaded and transformed module source.
  */
 export async function load(url, context, nextLoad) {
+  if (url.endsWith('?raw')) {
+    const filePath = fileURLToPath(url.slice(0, -'?raw'.length));
+    const source = readFileSync(filePath, 'utf-8');
+    return {
+      format: 'module',
+      source: `export default ${JSON.stringify(source)};`,
+      shortCircuit: true,
+    };
+  }
   if (url.endsWith('.jsx')) {
     const filePath = fileURLToPath(url);
     const source = readFileSync(filePath, 'utf-8');

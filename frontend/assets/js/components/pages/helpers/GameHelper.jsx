@@ -4,6 +4,7 @@ import CardPhoto from '../../elements/CardPhoto.jsx';
 import CharacterPreviewSection from '../../elements/CharacterPreviewSection.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
+import Translator from '../../../i18n/Translator.js';
 
 /**
  * Rendering helper for the Game detail page.
@@ -40,14 +41,14 @@ export default class GameHelper {
           characters={pcs}
           gameSlug={game.game_slug}
           characterType="pc"
-          title="Player Characters"
+          title={Translator.t('game_page.player_characters')}
           seeAllHref={`#/games/${game.game_slug}/pcs`}
         />
         <CharacterPreviewSection
           characters={npcs}
           gameSlug={game.game_slug}
           characterType="npc"
-          title="Non-Player Characters"
+          title={Translator.t('game_page.non_player_characters')}
           seeAllHref={`#/games/${game.game_slug}/npcs`}
         />
       </div>
@@ -60,7 +61,7 @@ export default class GameHelper {
    * @returns {React.ReactElement} Loading message.
    */
   static renderLoading() {
-    return <LoadingMessage message="Loading game..." />;
+    return <LoadingMessage message={Translator.t('game_page.loading')} />;
   }
 
   /**

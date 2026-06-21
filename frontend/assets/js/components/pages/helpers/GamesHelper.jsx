@@ -4,6 +4,7 @@ import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import GameCard from '../../elements/GameCard.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import Pagination from '../../elements/Pagination.jsx';
+import Translator from '../../../i18n/Translator.js';
 
 /**
  * Rendering helper for the Games listing page.
@@ -44,7 +45,7 @@ export default class GamesHelper {
    * @returns {React.ReactElement} Loading message.
    */
   static renderLoading() {
-    return <LoadingMessage message="Loading games..." />;
+    return <LoadingMessage message={Translator.t('games_page.loading')} />;
   }
 
   /**

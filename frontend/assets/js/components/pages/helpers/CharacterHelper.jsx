@@ -5,6 +5,7 @@ import CharacterInfo from '../../elements/CharacterInfo.jsx';
 import CharacterPhotos from '../../elements/CharacterPhotos.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
+import Translator from '../../../i18n/Translator.js';
 
 /**
  * Rendering helper for the Character detail page.
@@ -49,7 +50,7 @@ export default class CharacterHelper {
    * @returns {React.ReactElement} Loading message.
    */
   static renderLoading() {
-    return <LoadingMessage message="Loading character..." />;
+    return <LoadingMessage message={Translator.t('character_page.loading')} />;
   }
 
   /**

@@ -1,4 +1,5 @@
 import Modal from 'react-bootstrap/cjs/Modal.js';
+import Translator from '../../../i18n/Translator.js';
 
 /**
  * Renders the login modal shell and form elements.
@@ -29,12 +30,12 @@ export default class LoginModalHelper {
     return (
       <form onSubmit={handlers.onSubmit}>
         <Modal.Header closeButton>
-          <Modal.Title>Login</Modal.Title>
+          <Modal.Title>{Translator.t('login_modal.title')}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {LoginModalHelper.#renderError(state)}
           <div className="mb-3">
-            <label htmlFor="username" className="form-label">Username</label>
+            <label htmlFor="username" className="form-label">{Translator.t('login_modal.username_label')}</label>
             <input
               id="username"
               type="text"
@@ -44,7 +45,7 @@ export default class LoginModalHelper {
             />
           </div>
           <div className="mb-3">
-            <label htmlFor="password" className="form-label">Password</label>
+            <label htmlFor="password" className="form-label">{Translator.t('login_modal.password_label')}</label>
             <input
               id="password"
               type="password"
@@ -58,15 +59,15 @@ export default class LoginModalHelper {
             type="button"
             onClick={handlers.onForgotPasswordClick}
           >
-            Forgot password?
+            {Translator.t('login_modal.forgot_password')}
           </button>
         </Modal.Body>
         <Modal.Footer>
           <button className="btn btn-secondary" type="button" onClick={handlers.onCancel}>
-            Cancel
+            {Translator.t('login_modal.cancel')}
           </button>
           <button className="btn btn-primary" type="submit">
-            Login
+            {Translator.t('login_modal.submit')}
           </button>
         </Modal.Footer>
       </form>
@@ -81,11 +82,11 @@ export default class LoginModalHelper {
     return (
       <form onSubmit={handlers.onRecoverSubmit}>
         <Modal.Header closeButton>
-          <Modal.Title>Recover password</Modal.Title>
+          <Modal.Title>{Translator.t('login_modal.recover_title')}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="mb-3">
-            <label htmlFor="recover-email" className="form-label">Email</label>
+            <label htmlFor="recover-email" className="form-label">{Translator.t('login_modal.email_label')}</label>
             <input
               id="recover-email"
               type="email"
@@ -97,10 +98,10 @@ export default class LoginModalHelper {
         </Modal.Body>
         <Modal.Footer>
           <button className="btn btn-secondary" type="button" onClick={handlers.onBackToLoginClick}>
-            Back to login
+            {Translator.t('login_modal.back_to_login')}
           </button>
           <button className="btn btn-primary" type="submit">
-            Send recovery email
+            {Translator.t('login_modal.recover_submit')}
           </button>
         </Modal.Footer>
       </form>
@@ -111,16 +112,16 @@ export default class LoginModalHelper {
     return (
       <>
         <Modal.Header closeButton>
-          <Modal.Title>Recover password</Modal.Title>
+          <Modal.Title>{Translator.t('login_modal.recover_title')}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="alert alert-info">
-            If that email is registered, a recovery link has been sent.
+            {Translator.t('login_modal.recovery_sent')}
           </div>
         </Modal.Body>
         <Modal.Footer>
           <button className="btn btn-secondary" type="button" onClick={handlers.onBackToLoginClick}>
-            Back to login
+            {Translator.t('login_modal.back_to_login')}
           </button>
         </Modal.Footer>
       </>
@@ -135,11 +136,11 @@ export default class LoginModalHelper {
    */
   static #renderError(state) {
     if (state.incorrect) {
-      return <div className="alert alert-danger">User name or password incorrect.</div>;
+      return <div className="alert alert-danger">{Translator.t('login_modal.incorrect')}</div>;
     }
 
     if (state.error) {
-      return <div className="alert alert-danger">An unexpected error occurred, please try again later.</div>;
+      return <div className="alert alert-danger">{Translator.t('login_modal.error')}</div>;
     }
 
     return null;
