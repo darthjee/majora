@@ -53,14 +53,19 @@ frontend/
         pages/              # top-level route components
           controllers/      # page controllers (.js)
           helpers/          # page JSX helpers (.jsx)
+      i18n/                # translation singleton, storage, and events (.js)
       utils/              # non-JSX utility classes (.js)
       main.jsx            # SPA entry point
+    i18n/                 # bundled YAML translation files (en.yaml, ...)
   specs/                  # Jasmine tests (mirror assets/js/ structure)
   index.html
   package.json
   vite.config.js
   eslint.config.mjs
 ```
+
+See [Frontend i18n](i18n.md) for the translation layer (`Translator`,
+`LanguageStorage`, `LanguageEvents`, and the header language selector).
 
 ---
 

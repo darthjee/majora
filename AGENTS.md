@@ -62,6 +62,7 @@ All project documentation lives under [`docs/agents/`](docs/agents/):
 | [Contributing](docs/agents/contributing.md) | Commit guidelines, PR standards, code organization, and refactoring rules. |
 | [Flow](docs/agents/flow.md) | Main runtime flow of the application. |
 | [Cache Warmer](docs/agents/cache-warmer.md) | Navi setup for warming the proxy cache after release (CI and local). |
+| [Frontend i18n](docs/agents/i18n.md) | Frontend translation layer: YAML files, `Translator`, language selector, and how to add a new language. |
 | [How to Use Navi](docs/agents/HOW_TO_USE_NAVI.md) | Full Navi reference: config format, chaining, pagination, CLI flags. |
 | [Plans](docs/agents/plans/) | Implementation plans for ongoing or upcoming features. |
 | [Issues](docs/agents/issues/) | Detailed specs for open issues. |
