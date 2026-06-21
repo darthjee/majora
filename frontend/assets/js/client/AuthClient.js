@@ -1,7 +1,9 @@
+import BaseClient from './BaseClient.js';
+
 /**
  * HTTP client for authentication requests (login, logout, status).
  */
-export default class AuthClient {
+export default class AuthClient extends BaseClient {
   /**
    * Submits a login request with the given credentials.
    *
@@ -10,12 +12,11 @@ export default class AuthClient {
    * @returns {Promise<Response>} fetch response from the login endpoint.
    */
   login(username, password) {
-    return fetch('/users/login.json', {
+    return this.request('/users/login.json', {
       method: 'POST',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        'X-Skip-Cache': '1',
       },
       body: JSON.stringify({ username, password }),
     });
@@ -28,12 +29,11 @@ export default class AuthClient {
    * @returns {Promise<Response>} fetch response from the logout endpoint.
    */
   logout(token) {
-    return fetch('/users/logout.json', {
+    return this.request('/users/logout.json', {
       method: 'POST',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        'X-Skip-Cache': '1',
         Authorization: `Token ${token}`,
       },
     });
@@ -46,10 +46,9 @@ export default class AuthClient {
    * @returns {Promise<Response>} fetch response from the status endpoint.
    */
   status(token) {
-    return fetch('/users/status.json', {
+    return this.request('/users/status.json', {
       headers: {
         Accept: 'application/json',
-        'X-Skip-Cache': '1',
         ...(token ? { Authorization: `Token ${token}` } : {}),
       },
     });
@@ -62,7 +61,7 @@ export default class AuthClient {
    * @returns {Promise<Response>} fetch response from the test-email endpoint.
    */
   sendTestEmail(token) {
-    return fetch('/users/test-email.json', {
+    return this.request('/users/test-email.json', {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -78,7 +77,7 @@ export default class AuthClient {
    * @returns {Promise<Response>} fetch response from the recover endpoint.
    */
   recoverPassword(email) {
-    return fetch('/users/recover.json', {
+    return this.request('/users/recover.json', {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
@@ -93,7 +92,7 @@ export default class AuthClient {
    * @returns {Promise<Response>} fetch response from the reset-password endpoint.
    */
   resetPassword(token, password) {
-    return fetch('/users/reset-password.json', {
+    return this.request('/users/reset-password.json', {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
       body: JSON.stringify({ token, password }),
@@ -108,12 +107,11 @@ export default class AuthClient {
    * @returns {Promise<Response>} fetch response from the language endpoint.
    */
   setLanguagePreference(token, language) {
-    return fetch('/users/language.json', {
+    return this.request('/users/language.json', {
       method: 'POST',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        'X-Skip-Cache': '1',
         Authorization: `Token ${token}`,
       },
       body: JSON.stringify({ language }),
