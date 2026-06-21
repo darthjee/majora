@@ -105,3 +105,38 @@ class TestLogoutView:
         response = client.post('/users/logout.json', HTTP_AUTHORIZATION=f'Token {token.key}')
 
         assert response.status_code == 401
+
+
+@pytest.mark.django_db
+class TestStatusView:
+    """Tests for the status endpoint."""
+
+    def test_returns_logged_in_for_valid_token(self, client):
+        """Test that a valid token reports logged_in true with the username."""
+        user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        token = Token.objects.create(user=user)
+
+        response = client.get(
+            '/users/status.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        assert response.status_code == 200
+        assert json.loads(response.content) == {'logged_in': True, 'username': 'alice'}
+
+    def test_returns_logged_out_for_missing_token(self, client):
+        """Test that a missing Authorization header reports logged_in false."""
+        response = client.get('/users/status.json')
+
+        assert response.status_code == 200
+        assert json.loads(response.content) == {'logged_in': False}
+
+    def test_returns_logged_out_for_invalid_token(self, client):
+        """Test that an invalid token reports logged_in false instead of 401."""
+        response = client.get(
+            '/users/status.json',
+            HTTP_AUTHORIZATION='Token garbage-token-value',
+        )
+
+        assert response.status_code == 200
+        assert json.loads(response.content) == {'logged_in': False}
