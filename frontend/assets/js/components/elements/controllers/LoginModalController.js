@@ -15,6 +15,7 @@ export default class LoginModalController {
    * @param {Function} setError - state setter for unexpected errors.
    * @param {Function|null} [onSuccess] - callback invoked after a successful login.
    * @param {AuthClient} [client] - HTTP client used for login requests.
+   * @param {Function|null} [setRecoverySent] - state setter for the recovery-sent confirmation flag.
    */
   constructor(
     setUsername,
@@ -22,7 +23,8 @@ export default class LoginModalController {
     setIncorrect,
     setError,
     onSuccess = null,
-    client = new AuthClient()
+    client = new AuthClient(),
+    setRecoverySent = null
   ) {
     this.setUsername = setUsername;
     this.setPassword = setPassword;
@@ -30,6 +32,7 @@ export default class LoginModalController {
     this.setError = setError;
     this.onSuccess = onSuccess;
     this.client = client;
+    this.setRecoverySent = setRecoverySent;
   }
 
   /**
@@ -53,6 +56,28 @@ export default class LoginModalController {
   }
 
   /**
+   * Submits a password recovery request for the given email address.
+   *
+   * Regardless of the outcome, the backend always returns a generic
+   * confirmation, so this only distinguishes network-level failures.
+   *
+   * @param {string} email - email address to send the recovery link to.
+   * @returns {Promise<void>} resolves when the request handling finishes.
+   */
+  async handleRecoverSubmit(email) {
+    try {
+      await this.client.recoverPassword(email);
+    } catch {
+      // Network-level failures are intentionally not surfaced: the backend
+      // always returns a generic confirmation, regardless of outcome.
+    } finally {
+      if (typeof this.setRecoverySent === 'function') {
+        this.setRecoverySent(true);
+      }
+    }
+  }
+
+  /**
    * Clears the login modal form state.
    *
    * @returns {void}
@@ -62,6 +87,10 @@ export default class LoginModalController {
     this.setPassword('');
     this.setIncorrect(false);
     this.setError(false);
+
+    if (typeof this.setRecoverySent === 'function') {
+      this.setRecoverySent(false);
+    }
   }
 
   async #handleResponse(response) {

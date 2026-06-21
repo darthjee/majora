@@ -6,6 +6,7 @@ describe('AppHelper', function() {
     expect(renderToStaticMarkup(AppHelper.render('games', '#/games'))).toContain('Loading games...');
     expect(renderToStaticMarkup(AppHelper.render('npcCharacter', '#/games/demo/npcs/1'))).toContain('Loading character...');
     expect(renderToStaticMarkup(AppHelper.render('pcCharacter', '#/games/demo/pcs/1'))).toContain('Loading character...');
+    expect(renderToStaticMarkup(AppHelper.render('recoverPassword', '#/recover-password'))).toContain('Reset password');
   });
 
   it('falls back to home page for unknown page key', function() {

@@ -24,6 +24,9 @@ describe('LoginModal', function() {
           password: '',
           incorrect: false,
           error: false,
+          mode: 'login',
+          email: '',
+          recoverySent: false,
         },
         jasmine.objectContaining({
           onClose: jasmine.any(Function),
@@ -31,6 +34,10 @@ describe('LoginModal', function() {
           onSubmit: jasmine.any(Function),
           onUsernameChange: jasmine.any(Function),
           onPasswordChange: jasmine.any(Function),
+          onForgotPasswordClick: jasmine.any(Function),
+          onBackToLoginClick: jasmine.any(Function),
+          onEmailChange: jasmine.any(Function),
+          onRecoverSubmit: jasmine.any(Function),
         })
       );
     });

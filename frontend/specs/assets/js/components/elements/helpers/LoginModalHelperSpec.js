@@ -36,16 +36,25 @@ describe('LoginModalHelper', function() {
     onSubmit: jasmine.createSpy('onSubmit'),
     onUsernameChange: jasmine.createSpy('onUsernameChange'),
     onPasswordChange: jasmine.createSpy('onPasswordChange'),
+    onForgotPasswordClick: jasmine.createSpy('onForgotPasswordClick'),
+    onBackToLoginClick: jasmine.createSpy('onBackToLoginClick'),
+    onEmailChange: jasmine.createSpy('onEmailChange'),
+    onRecoverSubmit: jasmine.createSpy('onRecoverSubmit'),
+  });
+  const buildState = (overrides = {}) => ({
+    username: '',
+    password: '',
+    incorrect: false,
+    error: false,
+    mode: 'login',
+    email: '',
+    recoverySent: false,
+    ...overrides,
   });
 
   describe('.render', function() {
     it('renders the username and password fields and buttons', function() {
-      const element = LoginModalHelper.render(true, {
-        username: '',
-        password: '',
-        incorrect: false,
-        error: false,
-      }, buildHandlers());
+      const element = LoginModalHelper.render(true, buildState(), buildHandlers());
       const usernameField = findElement(
         element,
         (child) => child.type === 'input' && child.props.id === 'username'
@@ -65,12 +74,7 @@ describe('LoginModalHelper', function() {
     });
 
     it('renders the incorrect credentials alert', function() {
-      const element = LoginModalHelper.render(true, {
-        username: '',
-        password: '',
-        incorrect: true,
-        error: false,
-      }, buildHandlers());
+      const element = LoginModalHelper.render(true, buildState({ incorrect: true }), buildHandlers());
       const alert = findElement(
         element,
         (child) => child.type === 'div' && child.props.className === 'alert alert-danger'
@@ -80,12 +84,7 @@ describe('LoginModalHelper', function() {
     });
 
     it('renders the unexpected error alert', function() {
-      const element = LoginModalHelper.render(true, {
-        username: '',
-        password: '',
-        incorrect: false,
-        error: true,
-      }, buildHandlers());
+      const element = LoginModalHelper.render(true, buildState({ error: true }), buildHandlers());
       const alert = findElement(
         element,
         (child) => child.type === 'div' && child.props.className === 'alert alert-danger'
@@ -95,12 +94,7 @@ describe('LoginModalHelper', function() {
     });
 
     it('renders no alert when there is no error state', function() {
-      const element = LoginModalHelper.render(true, {
-        username: '',
-        password: '',
-        incorrect: false,
-        error: false,
-      }, buildHandlers());
+      const element = LoginModalHelper.render(true, buildState(), buildHandlers());
       const alert = findElement(
         element,
         (child) => child.type === 'div' && child.props.className === 'alert alert-danger'
@@ -111,12 +105,7 @@ describe('LoginModalHelper', function() {
 
     it('wires modal close, cancel, and submit handlers', function() {
       const handlers = buildHandlers();
-      const element = LoginModalHelper.render(true, {
-        username: '',
-        password: '',
-        incorrect: false,
-        error: false,
-      }, handlers);
+      const element = LoginModalHelper.render(true, buildState(), handlers);
       const modal = findElement(element, (child) => child.type === Modal);
       const cancelButton = findElement(
         element,
@@ -136,12 +125,7 @@ describe('LoginModalHelper', function() {
 
     it('wires username and password change handlers', function() {
       const handlers = buildHandlers();
-      const element = LoginModalHelper.render(true, {
-        username: '',
-        password: '',
-        incorrect: false,
-        error: false,
-      }, handlers);
+      const element = LoginModalHelper.render(true, buildState(), handlers);
       const usernameField = findElement(
         element,
         (child) => child.type === 'input' && child.props.id === 'username'
@@ -157,6 +141,99 @@ describe('LoginModalHelper', function() {
 
       expect(handlers.onUsernameChange).toHaveBeenCalledWith(changeEvent);
       expect(handlers.onPasswordChange).toHaveBeenCalledWith(changeEvent);
+    });
+
+    it('wires the forgot password link', function() {
+      const handlers = buildHandlers();
+      const element = LoginModalHelper.render(true, buildState(), handlers);
+      const forgotLink = findElement(
+        element,
+        (child) => child.type === 'button' && child.props.children === 'Forgot password?'
+      );
+
+      forgotLink.props.onClick();
+
+      expect(handlers.onForgotPasswordClick).toHaveBeenCalled();
+    });
+
+    it('renders the recover-password email form in recover mode', function() {
+      const element = LoginModalHelper.render(true, buildState({ mode: 'recover' }), buildHandlers());
+      const emailField = findElement(
+        element,
+        (child) => child.type === 'input' && child.props.id === 'recover-email'
+      );
+      const sendButton = findElement(
+        element,
+        (child) => child.type === 'button' && child.props.children === 'Send recovery email'
+      );
+      const backButton = findElement(
+        element,
+        (child) => child.type === 'button' && child.props.children === 'Back to login'
+      );
+
+      expect(emailField.props.type).toBe('email');
+      expect(sendButton).not.toBeNull();
+      expect(backButton).not.toBeNull();
+    });
+
+    it('wires recover-mode email change, submit, and back handlers', function() {
+      const handlers = buildHandlers();
+      const element = LoginModalHelper.render(true, buildState({ mode: 'recover' }), handlers);
+      const emailField = findElement(
+        element,
+        (child) => child.type === 'input' && child.props.id === 'recover-email'
+      );
+      const backButton = findElement(
+        element,
+        (child) => child.type === 'button' && child.props.children === 'Back to login'
+      );
+      const form = findElement(element, (child) => child.type === 'form');
+      const changeEvent = { target: { value: 'user@example.com' } };
+      const submitEvent = { preventDefault: jasmine.createSpy('preventDefault') };
+
+      emailField.props.onChange(changeEvent);
+      backButton.props.onClick();
+      form.props.onSubmit(submitEvent);
+
+      expect(handlers.onEmailChange).toHaveBeenCalledWith(changeEvent);
+      expect(handlers.onBackToLoginClick).toHaveBeenCalled();
+      expect(handlers.onRecoverSubmit).toHaveBeenCalledWith(submitEvent);
+    });
+
+    it('renders the confirmation message when the recovery email has been sent', function() {
+      const element = LoginModalHelper.render(
+        true,
+        buildState({ mode: 'recover', recoverySent: true }),
+        buildHandlers()
+      );
+      const confirmation = findElement(
+        element,
+        (child) => child.type === 'div' && child.props.className === 'alert alert-info'
+      );
+      const emailField = findElement(
+        element,
+        (child) => child.type === 'input' && child.props.id === 'recover-email'
+      );
+
+      expect(confirmation.props.children).toBe('If that email is registered, a recovery link has been sent.');
+      expect(emailField).toBeNull();
+    });
+
+    it('wires the back-to-login handler on the confirmation screen', function() {
+      const handlers = buildHandlers();
+      const element = LoginModalHelper.render(
+        true,
+        buildState({ mode: 'recover', recoverySent: true }),
+        handlers
+      );
+      const backButton = findElement(
+        element,
+        (child) => child.type === 'button' && child.props.children === 'Back to login'
+      );
+
+      backButton.props.onClick();
+
+      expect(handlers.onBackToLoginClick).toHaveBeenCalled();
     });
   });
 });
