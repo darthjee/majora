@@ -1,10 +1,11 @@
 import HashRouteResolver from '../utils/HashRouteResolver.js';
 import hashQueryParams from '../utils/hashQueryParams.js';
+import BaseClient from './BaseClient.js';
 
 /**
  * Generic HTTP client used by page controllers.
  */
-export default class GenericClient {
+export default class GenericClient extends BaseClient {
   #hashProvider;
 
   #resolver;
@@ -15,6 +16,7 @@ export default class GenericClient {
    * @param {Function} hashProvider - Function returning current hash.
    */
   constructor(hashProvider = () => (typeof window === 'undefined' ? '' : window.location.hash)) {
+    super();
     this.#hashProvider = hashProvider;
     this.#resolver = new HashRouteResolver(hashProvider);
   }
@@ -47,7 +49,7 @@ export default class GenericClient {
    */
   async fetchIndex(path) {
     const url = this.#buildUrl(path, this.#resolver.getPaginationParams());
-    const response = await fetch(url, { headers: { Accept: 'application/json' } });
+    const response = await this.request(url, { headers: { Accept: 'application/json' } });
 
     if (!response.ok) {
       throw new Error(`Request failed for ${path}`);
@@ -126,7 +128,7 @@ export default class GenericClient {
    * @returns {Promise<object>} Parsed JSON.
    */
   async #request(path, options, originalPath) {
-    const response = await fetch(path, options);
+    const response = await this.request(path, options);
 
     if (!response.ok) {
       throw new Error(`Request failed for ${originalPath}`);

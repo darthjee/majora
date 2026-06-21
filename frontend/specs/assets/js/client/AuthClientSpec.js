@@ -40,6 +40,7 @@ describe('AuthClient', function() {
           'X-Skip-Cache': '1',
           Authorization: 'Token abc123',
         },
+        body: undefined,
       });
     });
   });
@@ -51,11 +52,13 @@ describe('AuthClient', function() {
       await client.status('abc123');
 
       expect(fetchSpy).toHaveBeenCalledWith('/users/status.json', {
+        method: 'GET',
         headers: {
           Accept: 'application/json',
           'X-Skip-Cache': '1',
           Authorization: 'Token abc123',
         },
+        body: undefined,
       });
     });
 
@@ -65,10 +68,12 @@ describe('AuthClient', function() {
       await client.status(null);
 
       expect(fetchSpy).toHaveBeenCalledWith('/users/status.json', {
+        method: 'GET',
         headers: {
           Accept: 'application/json',
           'X-Skip-Cache': '1',
         },
+        body: undefined,
       });
     });
   });
@@ -85,6 +90,7 @@ describe('AuthClient', function() {
           Accept: 'application/json',
           Authorization: 'Token abc123',
         },
+        body: undefined,
       });
     });
   });
