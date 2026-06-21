@@ -4,69 +4,41 @@ workflows:
   test:
     jobs:
       - pytest:
-          filters:
+          filters: &all_tags
             tags:
               only: /.*/
       - jasmine:
-          filters:
-            tags:
-              only: /.*/
+          filters: *all_tags
       - checks:
-          filters:
-            tags:
-              only: /.*/
+          filters: *all_tags
       - frontend-checks:
-          filters:
-            tags:
-              only: /.*/
+          filters: *all_tags
       - coverage-final:
           requires: [pytest, jasmine]
-          filters:
-            tags:
-              only: /.*/
+          filters: *all_tags
       - build-and-release:
           requires: [pytest, jasmine, frontend-checks, checks]
-          filters:
+          filters: &tags_only
             tags:
               only: /\d+\.\d+\.\d+/
             branches:
               ignore: /.*/
       - upload_proxy_files:
           requires: [pytest, jasmine, frontend-checks, checks]
-          filters:
-            tags:
-              only: /\d+\.\d+\.\d+/
-            branches:
-              ignore: /.*/
+          filters: *tags_only
       - upload_fe_files:
           requires: [pytest, jasmine, frontend-checks, checks]
-          filters:
-            tags:
-              only: /\d+\.\d+\.\d+/
-            branches:
-              ignore: /.*/
+          filters: *tags_only
       - link_photos:
           requires: [pytest, jasmine, frontend-checks, checks]
-          filters:
-            tags:
-              only: /\d+\.\d+\.\d+/
-            branches:
-              ignore: /.*/
+          filters: *tags_only
       - upload_admin_assets:
           requires: [pytest, jasmine, frontend-checks, checks]
-          filters:
-            tags:
-              only: /\d+\.\d+\.\d+/
-            branches:
-              ignore: /.*/
+          filters: *tags_only
       - release-image:
           name: release-majora-base
           image: majora-base
           filters: &tag_only
-            tags:
-              only: /\d+\.\d+\.\d+/
-            branches:
-              ignore: /.*/
       - release-image:
           name: release-majora-base-arm64
           image: majora-base
@@ -114,18 +86,10 @@ workflows:
             - release-production_majora-base-arm64
             - release-vite_majora-base
             - release-vite_majora-base-arm64
-          filters:
-            tags:
-              only: /\d+\.\d+\.\d+/
-            branches:
-              ignore: /.*/
+          filters: *tag_only
       - warm-up-cache:
           requires: [release]
-          filters:
-            tags:
-              only: /\d+\.\d+\.\d+/
-            branches:
-              ignore: /.*/
+          filters: *tag_only
 jobs:
   release-image:
     parameters:
