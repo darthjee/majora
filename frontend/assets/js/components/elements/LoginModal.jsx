@@ -57,6 +57,14 @@ export default function LoginModal({ show, onClose, onSuccess }) {
     return controller.handleRecoverSubmit(email);
   };
 
+  const handleRegisterClick = () => {
+    handleClose();
+
+    if (typeof window !== 'undefined') {
+      window.location.hash = '/users/register';
+    }
+  };
+
   return LoginModalHelper.render(
     show,
     {
@@ -75,6 +83,7 @@ export default function LoginModal({ show, onClose, onSuccess }) {
       onUsernameChange: (event) => setUsername(event.target.value),
       onPasswordChange: (event) => setPassword(event.target.value),
       onForgotPasswordClick: () => setMode('recover'),
+      onRegisterClick: handleRegisterClick,
       onBackToLoginClick: () => setMode('login'),
       onEmailChange: (event) => setEmail(event.target.value),
       onRecoverSubmit: handleRecoverSubmit,

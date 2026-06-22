@@ -37,6 +37,7 @@ describe('LoginModalHelper', function() {
     onUsernameChange: jasmine.createSpy('onUsernameChange'),
     onPasswordChange: jasmine.createSpy('onPasswordChange'),
     onForgotPasswordClick: jasmine.createSpy('onForgotPasswordClick'),
+    onRegisterClick: jasmine.createSpy('onRegisterClick'),
     onBackToLoginClick: jasmine.createSpy('onBackToLoginClick'),
     onEmailChange: jasmine.createSpy('onEmailChange'),
     onRecoverSubmit: jasmine.createSpy('onRecoverSubmit'),
@@ -154,6 +155,19 @@ describe('LoginModalHelper', function() {
       forgotLink.props.onClick();
 
       expect(handlers.onForgotPasswordClick).toHaveBeenCalled();
+    });
+
+    it('wires the register link', function() {
+      const handlers = buildHandlers();
+      const element = LoginModalHelper.render(true, buildState(), handlers);
+      const registerLink = findElement(
+        element,
+        (child) => child.type === 'button' && child.props.children === 'Create an account'
+      );
+
+      registerLink.props.onClick();
+
+      expect(handlers.onRegisterClick).toHaveBeenCalled();
     });
 
     it('renders the recover-password email form in recover mode', function() {

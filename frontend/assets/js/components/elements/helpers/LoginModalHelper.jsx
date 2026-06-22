@@ -12,8 +12,8 @@ export default class LoginModalHelper {
    * @param {{username: string, password: string, incorrect: boolean, error: boolean,
    *   mode: string, email: string, recoverySent: boolean}} state - modal state.
    * @param {{onClose: Function, onCancel: Function, onSubmit: Function, onUsernameChange: Function,
-   *   onPasswordChange: Function, onForgotPasswordClick: Function, onBackToLoginClick: Function,
-   *   onEmailChange: Function, onRecoverSubmit: Function}} handlers - modal event handlers.
+   *   onPasswordChange: Function, onForgotPasswordClick: Function, onRegisterClick: Function,
+   *   onBackToLoginClick: Function, onEmailChange: Function, onRecoverSubmit: Function}} handlers - modal event handlers.
    * @returns {React.ReactElement} rendered login modal.
    */
   static render(show, state, handlers) {
@@ -60,6 +60,13 @@ export default class LoginModalHelper {
             onClick={handlers.onForgotPasswordClick}
           >
             {Translator.t('login_modal.forgot_password')}
+          </button>
+          <button
+            className="btn btn-link p-0 d-block"
+            type="button"
+            onClick={handlers.onRegisterClick}
+          >
+            {Translator.t('login_modal.register_link')}
           </button>
         </Modal.Body>
         <Modal.Footer>

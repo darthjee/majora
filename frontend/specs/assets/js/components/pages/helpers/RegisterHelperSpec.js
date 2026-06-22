@@ -1,0 +1,48 @@
+import { renderToStaticMarkup } from 'react-dom/server';
+import RegisterHelper from '../../../../../../assets/js/components/pages/helpers/RegisterHelper.jsx';
+
+describe('RegisterHelper', function() {
+  const buildHandlers = () => ({
+    onSubmit: jasmine.createSpy('onSubmit'),
+    onNameChange: jasmine.createSpy('onNameChange'),
+    onEmailChange: jasmine.createSpy('onEmailChange'),
+    onPasswordChange: jasmine.createSpy('onPasswordChange'),
+    onPasswordConfirmationChange: jasmine.createSpy('onPasswordConfirmationChange'),
+  });
+  const buildState = (overrides = {}) => ({
+    name: '',
+    email: '',
+    password: '',
+    passwordConfirmation: '',
+    status: 'idle',
+    errorMessage: '',
+    ...overrides,
+  });
+
+  describe('.render', function() {
+    it('renders the name, email, password, and confirmation fields', function() {
+      const html = renderToStaticMarkup(RegisterHelper.render(buildState(), buildHandlers()));
+
+      expect(html).toContain('id="register-name"');
+      expect(html).toContain('id="register-email"');
+      expect(html).toContain('id="register-password"');
+      expect(html).toContain('id="register-password-confirmation"');
+      expect(html).toContain('Register');
+    });
+
+    it('renders the error message when status is error', function() {
+      const html = renderToStaticMarkup(
+        RegisterHelper.render(buildState({ status: 'error', errorMessage: 'Email is already taken' }), buildHandlers())
+      );
+
+      expect(html).toContain('Email is already taken');
+      expect(html).toContain('alert-danger');
+    });
+
+    it('renders no error message when status is idle', function() {
+      const html = renderToStaticMarkup(RegisterHelper.render(buildState(), buildHandlers()));
+
+      expect(html).not.toContain('alert-danger');
+    });
+  });
+});

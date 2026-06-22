@@ -77,14 +77,19 @@ export default class HeaderHelper {
     }
 
     return (
-      <button
-        type="button"
-        className="btn btn-link nav-link"
-        data-testid="auth-control"
-        onClick={handlers.onLoginClick}
-      >
-        {Translator.t('header.login')}
-      </button>
+      <>
+        <button
+          type="button"
+          className="btn btn-link nav-link"
+          data-testid="auth-control"
+          onClick={handlers.onLoginClick}
+        >
+          {Translator.t('header.login')}
+        </button>
+        <Nav.Link href="#/users/register" data-testid="register-control">
+          {Translator.t('header.register')}
+        </Nav.Link>
+      </>
     );
   }
 
