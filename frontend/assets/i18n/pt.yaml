@@ -7,6 +7,7 @@ header:
   send_test_email: Enviar e-mail de teste
   test_email_sent: E-mail de teste enviado
   test_email_error: Falha ao enviar e-mail de teste
+  register: Registrar
 login_modal:
   title: Login
   username_label: Usuario
@@ -21,6 +22,7 @@ login_modal:
   recover_submit: Enviar email de recuperação
   back_to_login: Voltar ao login
   recovery_sent: Caso o e-mail esteja registrado, o link de recuperaçao será enviado.
+  register_link: Criar uma conta
 back_button:
   label: Voltar
 pagination:
@@ -50,5 +52,13 @@ recover_password_page:
   submit: Resetar senha
   success: Sua senha foi resetada.
   back_to_home: Voltar à página inicial
+register_page:
+  title: Registrar
+  name_label: Nome
+  email_label: E-mail
+  password_label: Senha
+  password_confirmation_label: Confirmar senha
+  submit: Registrar
+  error: Um erro inesperado ocorreu, tente novamente mais tarde.
 language_selector:
   label: Idioma
