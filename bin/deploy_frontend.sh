@@ -30,6 +30,12 @@ function run_upload() {
     rsync -avz -e "$SSH_COMMAND" "$SOURCE" "$SSH_USER"@"$SSH_HOST":"$SSH_REMOTE_TEMP_DIR"
 }
 
+function run_link() {
+    SSH_COMMAND="ssh -i $SSH_KEY_FILE_PATH -p $SSH_PORT -o StrictHostKeyChecking=no"
+
+    $SSH_COMMAND "$SSH_USER"@"$SSH_HOST" "ln -sfn $SOURCE $TARGET"
+}
+
 function run_release() {
     SSH_COMMAND="ssh -i $SSH_KEY_FILE_PATH -p $SSH_PORT -o StrictHostKeyChecking=no"
     OLD_SSH_REMOTE_DIR="$SSH_REMOTE_DIR""_old_$(date +%s)"
@@ -55,6 +61,9 @@ case "$ACTION" in
     ;;
   "upload")
     run_upload
+    ;;
+  "link")
+    run_link
     ;;
   "release")
     run_release

@@ -4,124 +4,105 @@ Issue: [92-extract-deployment-scripts.md](../../issues/92-extract-deployment-scr
 
 ## Overview
 
-`.circleci/config.yml` drives every deployment step (uploading static files,
-deploying the proxy application, copying remote files, creating remote links)
-through `deploy_frontend.sh`, a script baked into the external
-`darthjee/scripts` image and copied into the `vite_majora-base` /
-`darthjee/tent` images at build time (see
-`dockerfiles/vite_majora-base/Dockerfile`, `COPY --from=scripts
-/home/scripts/sbin/deploy_frontend.sh`). Because that script lives outside
-this repository, changing common deployment behavior requires changes in an
-unrelated repo/image and a version bump here just to pick them up.
+A previous fix (#90) already extracted most `deploy_frontend.sh` deployment
+logic into `source/bin/deploy_frontend.sh` and wired the `upload_admin_assets`
+CI job to call it as `bin/deploy_frontend.sh` (after the job's "Set folder"
+step copies `source/*` to the working directory root). However, the other
+deployment jobs — `upload_proxy_files`, `upload_fe_files`, `link_photos`,
+`release` — still call a bare `deploy_frontend.sh`, which resolves via `PATH`
+to a *different* copy baked into the `darthjee/tent` / `vite_majora-base`
+images from the external `darthjee/scripts` image
+(`dockerfiles/vite_majora-base/Dockerfile`). That external copy also lacks a
+`link` subcommand entirely in our repo's version, even though `link_photos`
+depends on one.
 
-This plan extracts the subcommands actually used by the CI jobs
-(`generate_key_file`, `upload`, `copy_files`, `build`, `generate_folder`,
-`link`, `release`) into a new script versioned inside this repo
-(`scripts/deploy_frontend.sh`), and repoints every CircleCI job currently
-calling `deploy_frontend.sh` / `bin/deploy_frontend.sh` to call the local
-script instead.
+This plan finishes the extraction: relocate the script to a location that
+survives every job's "Set folder" step (which deletes either `source/` or
+`frontend/`), add the missing `link` subcommand, repoint every CI job at the
+single in-repo script, and drop the now-unused copy baked into the
+`vite_majora-base` image.
 
 ## Context
 
-Current usages in `.circleci/config.yml` (jobs `upload_proxy_files`,
-`upload_fe_files`, `link_photos`, `upload_admin_assets`, `release`):
-
-- `deploy_frontend.sh generate_key_file`
-- `SOURCE=<dir> deploy_frontend.sh upload`
-- `SOURCE=<dir> SSH_REMOTE_TEMP_DIR=<dir> deploy_frontend.sh upload`
-- `TARGET=<file> SSH_REMOTE_TEMP_DIR=<dir> deploy_frontend.sh copy_files`
-- `deploy_frontend.sh build`
-- `SSH_REMOTE_TEMP_DIR=<dir> deploy_frontend.sh generate_folder`
-- `SOURCE=<dir> TARGET=<dir> deploy_frontend.sh link`
-- `deploy_frontend.sh release`
-
-The exact internals of the original `deploy_frontend.sh` (from the external
-`darthjee/scripts` image) are not available in this repository, so the new
-script must be reconstructed from the observed CLI contract (subcommands +
-env vars) rather than copied verbatim — see Notes.
+- `source/bin/deploy_frontend.sh` implements `build`, `generate_key_file`,
+  `generate_folder`, `copy_files`, `upload`, `release` — but not `link`.
+- It currently only works for `upload_admin_assets` because that job's "Set
+  folder" step (`rm frontend -rf; cp source/* ./ -r; rm source -rf`) places it
+  at `bin/deploy_frontend.sh` relative to the job's working directory.
+- `upload_fe_files` and `release` run a "Set folder" step that does the
+  opposite (`rm source -rf; cp frontend/* ./ -r; rm frontend -rf`), which
+  would delete `source/bin/deploy_frontend.sh` before it could be used — so
+  the script cannot stay under `source/bin/` if every job is to share it.
+- `upload_proxy_files` and `link_photos` (image `darthjee/tent:0.7.8`) run no
+  "Set folder" step at all; they just `checkout`.
+- The top-level `bin/` folder (currently just `image.sh`) and `scripts/`
+  folder (currently `deploy.sh`, `render.sh`, `bump_version.sh`) are both
+  untouched by any "Set folder" step, since those only `rm`/`cp` the
+  `frontend/` and `source/` directories. Moving the script to top-level `bin/`
+  makes it available, unchanged, to every job after `checkout`.
 
 ## Implementation Steps
 
-### Step 1 — Create `scripts/deploy_frontend.sh`
+### Step 1 — Relocate the script and add the missing subcommand
 
-Follow the style already used by `scripts/deploy.sh` and `scripts/render.sh`
-(bash, one `function` per subcommand, dispatch via a trailing `case`).
-Implement each subcommand currently invoked from CI, using `SOURCE`, `TARGET`,
-and `SSH_REMOTE_TEMP_DIR` as environment-variable inputs (matching current
-call sites), plus whatever SSH/key env vars (`SSH_HOST`, `SSH_USER`,
-`SSH_KEY`, `REMOTE_HOME`, etc.) are implied by usage in
-`upload_proxy_files`/`link_photos`:
+Move `source/bin/deploy_frontend.sh` to `bin/deploy_frontend.sh` (top-level),
+keeping its existing style (`function` per subcommand, `case` dispatch on
+`$1`). Add a `link` subcommand, matching the SSH style already used by
+`run_copy_files`/`run_generate_folder`, consuming `SOURCE` and `TARGET` (the
+env vars `link_photos` already sets):
 
-- `generate_key_file` — write the SSH private key (from an env var such as
-  `SSH_KEY` / `DEPLOY_SSH_KEY`) to disk with `chmod 600`, ready for `ssh`/`rsync`.
-- `generate_folder` — `ssh` into the remote host and `mkdir -p` the path given
-  by `SSH_REMOTE_TEMP_DIR`.
-- `upload` — `rsync`/`scp` the contents of `SOURCE` to the remote path
-  (`SSH_REMOTE_TEMP_DIR` when set, otherwise a default upload target).
-- `copy_files` — copy a single `TARGET` file into `SSH_REMOTE_TEMP_DIR` on the
-  remote host.
-- `link` — `ssh` into the remote host and `ln -sfn` from `SOURCE` to `TARGET`.
-- `build` — run the frontend build (`yarn build` or equivalent) used before
-  `upload_fe_files` uploads `dist/`.
-- `release` — swap the uploaded temp directory into the live path (e.g. move
-  `SSH_REMOTE_TEMP_DIR` into place), the final step of each deploy job.
+```bash
+function run_link() {
+    SSH_COMMAND="ssh -i $SSH_KEY_FILE_PATH -p $SSH_PORT -o StrictHostKeyChecking=no"
 
-Use `set -euo pipefail` and fail fast with a clear `Usage:` message for an
-unknown subcommand, consistent with `bin/image.sh`.
+    $SSH_COMMAND "$SSH_USER"@"$SSH_HOST" "ln -sfn $SOURCE $TARGET"
+}
+```
 
-### Step 2 — Point CircleCI jobs at the local script
+and a matching `"link") run_link ;;` case branch.
 
-In `.circleci/config.yml`, replace every call to `deploy_frontend.sh` /
-`bin/deploy_frontend.sh` with `scripts/deploy_frontend.sh`, keeping the same
-env var prefixes (`SOURCE=...`, `TARGET=...`, `SSH_REMOTE_TEMP_DIR=...`)
-unchanged so no other behavior shifts. This affects the `upload_proxy_files`,
-`upload_fe_files`, `link_photos`, `upload_admin_assets`, and `release` jobs.
+### Step 2 — Repoint every CI job at the single script
 
-### Step 3 — Drop the dependency on the externally-baked script
+In `.circleci/config.yml`, replace every bare `deploy_frontend.sh` call (in
+`upload_proxy_files`, `upload_fe_files`, `link_photos`, `release`) and the
+existing `bin/deploy_frontend.sh` call (in `upload_admin_assets`) so all five
+jobs consistently call `bin/deploy_frontend.sh` — env var prefixes
+(`SOURCE=`, `TARGET=`, `SSH_REMOTE_TEMP_DIR=`) stay exactly as they are today.
 
-In `dockerfiles/vite_majora-base/Dockerfile`, remove the
-`COPY --from=scripts /home/scripts/sbin/deploy_frontend.sh /usr/local/sbin/`
-line (and the `darthjee/scripts` build stage if nothing else in that
-Dockerfile still needs it) now that the script is checked out with the repo
-via `checkout` in every job that uses it. Check `dockerfiles/` for any other
-Dockerfile copying `deploy_frontend.sh` from the `scripts` image and remove
-those too.
+### Step 3 — Drop the externally-baked copy
 
-### Step 4 — Verify CI still has what it needs
+In `dockerfiles/vite_majora-base/Dockerfile`, remove the line:
 
-Every job calling `scripts/deploy_frontend.sh` already runs `checkout` first,
-so the script is present on disk; no extra `chmod +x` step should be needed
-since the script is committed executable (`chmod +x
-scripts/deploy_frontend.sh`).
+```
+COPY --chown=node:node --from=scripts \
+  /home/scripts/sbin/deploy_frontend.sh /usr/local/sbin/
+```
+
+Keep the rest of the `scripts` build stage (still needed for
+`yarn_builder.sh`).
 
 ## Files to Change
 
-- `scripts/deploy_frontend.sh` — new script implementing `generate_key_file`,
-  `generate_folder`, `upload`, `copy_files`, `link`, `build`, `release`.
-- `.circleci/config.yml` — repoint `upload_proxy_files`, `upload_fe_files`,
-  `link_photos`, `upload_admin_assets`, `release` jobs at
-  `scripts/deploy_frontend.sh`.
+- `bin/deploy_frontend.sh` — relocated from `source/bin/deploy_frontend.sh`,
+  with a new `link` subcommand added.
+- `source/bin/deploy_frontend.sh` — removed (superseded by the top-level copy).
+- `.circleci/config.yml` — `upload_proxy_files`, `upload_fe_files`,
+  `link_photos`, `upload_admin_assets`, `release` jobs all call
+  `bin/deploy_frontend.sh` consistently.
 - `dockerfiles/vite_majora-base/Dockerfile` — remove the now-unused
-  `COPY --from=scripts .../deploy_frontend.sh` step (and any other Dockerfile
-  doing the same).
+  `COPY --from=scripts .../deploy_frontend.sh` line.
 
 ## CI Checks
 
-- root: no dedicated lint/test job covers `.circleci/config.yml` or
-  `scripts/*.sh`; validate `.circleci/config.yml` locally with the CircleCI
-  CLI (`circleci config validate`) if available, and `bash -n
-  scripts/deploy_frontend.sh` for a syntax check.
+- No dedicated lint/test job covers `.circleci/config.yml` or `bin/*.sh`.
+  Sanity-check with `bash -n bin/deploy_frontend.sh` and, if available,
+  `circleci config validate`.
 
 ## Notes
 
-- The original `deploy_frontend.sh` source (in the external `darthjee/scripts`
-  image) is not visible from this repo, so its exact flags/behavior for
-  `generate_key_file`/`upload`/`link`/`release` had to be inferred from how
-  CircleCI calls it. The infra agent should double-check required secrets
-  (env var names for SSH host/user/key) against the actual CircleCI project
-  settings before finalizing the script, since those names aren't visible in
-  `config.yml` itself.
-- Once this script is proven to work in CI, the `darthjee/scripts` image
-  dependency for `deploy_frontend.sh` becomes fully obsolete for this repo;
-  removing it from the Dockerfile is in scope, removing/changing the external
-  `darthjee/scripts` image itself is not.
+- The `darthjee/tent` image used by `upload_proxy_files`/`link_photos` is
+  external (not built from this repo's `dockerfiles/`) and is expected to
+  already have `ssh`/`rsync` available, since it previously ran the same
+  commands via its own baked-in copy of the script.
+- Removing/changing the external `darthjee/scripts` image itself is out of
+  scope — only the `COPY` of `deploy_frontend.sh` from it is removed here.
