@@ -18,6 +18,8 @@ You own everything inside `frontend/`:
 
 Do NOT touch `source/` (Django backend) or any file outside `frontend/`.
 
+Translation content under `frontend/assets/i18n/*.yaml` is owned by the `translator` agent, not by you — you still own the `check_i18n` script that verifies those files (since it's part of the frontend toolchain), but not their content.
+
 ## Stack
 
 - React 19 + React Bootstrap 5
