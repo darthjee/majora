@@ -42,6 +42,13 @@ make setup
 
 Backend runs on port `3030`, frontend dev server on `3010`, full stack proxy on `3000`.
 
+**Always run project commands through `docker-compose`.** Never install packages or invoke tooling (`yarn`, `npm`, `poetry`, `pip`, `php`, etc.) directly on the host machine — the host may not even have the required runtime installed, and dependencies must stay reproducible inside the project's containers. Examples:
+
+```bash
+docker-compose run --rm majora_fe yarn lint
+docker-compose run --rm majora_tests pytest
+```
+
 ## Conventions
 
 - All documentation and code comments must be written in **English**.

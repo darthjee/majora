@@ -58,7 +58,7 @@ frontend/specs/                   # mirrors assets/js/ structure
 
 ## Commands
 
-All yarn commands must be run via docker-compose from the project root (never call `yarn` directly):
+**Never install packages or run `yarn`/`npm` directly on the host** — the host may not even have Node installed. All yarn commands must be run via docker-compose from the project root:
 
 ```bash
 docker-compose run --rm majora_fe yarn test        # run Jasmine specs
