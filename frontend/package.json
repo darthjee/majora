@@ -10,7 +10,8 @@
     "test": "NODE_OPTIONS='--loader ./specs/support/jsx-loader.mjs' nyc npx jasmine \"specs/**/*[sS]pec.js\"",
     "coverage": "NODE_OPTIONS='--loader ./specs/support/jsx-loader.mjs' npx c8 --reporter=lcov jasmine \"specs/**/*[sS]pec.js\"",
     "lint": "eslint assets specs",
-    "lint_fix": "eslint assets specs --fix"
+    "lint_fix": "eslint assets specs --fix",
+    "check_i18n": "node scripts/check_i18n.js"
   },
   "author": "darthjee",
   "license": "MIT",
