@@ -1,11 +1,15 @@
 #!/bin/bash
 SSH_KEY_FILE_PATH=~/ssh_key
 
+function workspace_temp_dir() {
+    echo "${SSH_REMOTE_TEMP_DIR%/}-$CIRCLE_WORKFLOW_WORKSPACE_ID"
+}
+
 function remote_temp_dir() {
     if [ -n "$DEPLOY_PATH" ]; then
-        echo "${SSH_REMOTE_TEMP_DIR%/}/$DEPLOY_PATH"
+        echo "$(workspace_temp_dir)/$DEPLOY_PATH"
     else
-        echo "$SSH_REMOTE_TEMP_DIR"
+        echo "$(workspace_temp_dir)"
     fi
 }
 
@@ -48,7 +52,7 @@ function run_release() {
     SSH_COMMAND="ssh -i $SSH_KEY_FILE_PATH -p $SSH_PORT -o StrictHostKeyChecking=no"
     OLD_SSH_REMOTE_DIR="$SSH_REMOTE_DIR""_old_$(date +%s)"
 
-    COMMANDS="rm -rf $OLD_SSH_REMOTE_DIR && mv $SSH_REMOTE_DIR $OLD_SSH_REMOTE_DIR && mv $SSH_REMOTE_TEMP_DIR $SSH_REMOTE_DIR && rm -rf $OLD_SSH_REMOTE_DIR"
+    COMMANDS="rm -rf $OLD_SSH_REMOTE_DIR && mv $SSH_REMOTE_DIR $OLD_SSH_REMOTE_DIR && mv $(workspace_temp_dir) $SSH_REMOTE_DIR && rm -rf $OLD_SSH_REMOTE_DIR"
     $SSH_COMMAND "$SSH_USER"@"$SSH_HOST" "$COMMANDS"
 }
 
