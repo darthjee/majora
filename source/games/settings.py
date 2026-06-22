@@ -21,3 +21,8 @@ class Settings:
             return int(os.environ.get('MAJORA_PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES', 30))
         except (ValueError, TypeError):
             return 30
+
+    @staticmethod
+    def emails_enabled():
+        """Return True only when email sending has been explicitly enabled."""
+        return os.environ.get('EMAILS_ENABLED', 'false').lower() == 'true'

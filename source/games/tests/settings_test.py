@@ -50,3 +50,32 @@ class TestSettingsPasswordResetTokenExpirationMinutes:
         """Test that the default is returned when the env var is an empty string."""
         monkeypatch.setenv('MAJORA_PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES', '')
         assert Settings.password_reset_token_expiration_minutes() == 30
+
+
+class TestSettingsEmailsEnabled:
+    """Tests for Settings.emails_enabled()."""
+
+    def test_returns_false_when_env_not_set(self, monkeypatch):
+        """Test that emails are disabled by default when the env var is absent."""
+        monkeypatch.delenv('EMAILS_ENABLED', raising=False)
+        assert Settings.emails_enabled() is False
+
+    def test_returns_true_when_env_is_true(self, monkeypatch):
+        """Test that emails are enabled when the env var is 'true'."""
+        monkeypatch.setenv('EMAILS_ENABLED', 'true')
+        assert Settings.emails_enabled() is True
+
+    def test_returns_true_when_env_is_mixed_case(self, monkeypatch):
+        """Test that the comparison is case-insensitive."""
+        monkeypatch.setenv('EMAILS_ENABLED', 'True')
+        assert Settings.emails_enabled() is True
+
+    def test_returns_false_when_env_is_false(self, monkeypatch):
+        """Test that emails are disabled when the env var is 'false'."""
+        monkeypatch.setenv('EMAILS_ENABLED', 'false')
+        assert Settings.emails_enabled() is False
+
+    def test_returns_false_when_env_is_other_value(self, monkeypatch):
+        """Test that emails are disabled for any value other than 'true'."""
+        monkeypatch.setenv('EMAILS_ENABLED', 'yes')
+        assert Settings.emails_enabled() is False
