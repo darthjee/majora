@@ -131,7 +131,7 @@ describe('AuthClient', function() {
 
       expect(fetchSpy).toHaveBeenCalledWith('/users/register.json', {
         method: 'POST',
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Skip-Cache': '1' },
         body: JSON.stringify({
           name: 'Jane Doe',
           email: 'jane@example.com',
