@@ -7,6 +7,7 @@ import Games from '../pages/Games.jsx';
 import NpcCharacter from '../pages/NpcCharacter.jsx';
 import PcCharacter from '../pages/PcCharacter.jsx';
 import RecoverPassword from '../pages/RecoverPassword.jsx';
+import Register from '../pages/Register.jsx';
 
 const PAGES = {
   games: <Games />,
@@ -16,6 +17,7 @@ const PAGES = {
   npcCharacter: <NpcCharacter />,
   pcCharacter: <PcCharacter />,
   recoverPassword: <RecoverPassword />,
+  register: <Register />,
   home: <Games />,
 };
 

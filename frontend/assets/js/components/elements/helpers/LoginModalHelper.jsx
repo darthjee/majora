@@ -1,4 +1,5 @@
 import Modal from 'react-bootstrap/cjs/Modal.js';
+import FormField from '../FormField.jsx';
 import Translator from '../../../i18n/Translator.js';
 
 /**
@@ -12,8 +13,8 @@ export default class LoginModalHelper {
    * @param {{username: string, password: string, incorrect: boolean, error: boolean,
    *   mode: string, email: string, recoverySent: boolean}} state - modal state.
    * @param {{onClose: Function, onCancel: Function, onSubmit: Function, onUsernameChange: Function,
-   *   onPasswordChange: Function, onForgotPasswordClick: Function, onBackToLoginClick: Function,
-   *   onEmailChange: Function, onRecoverSubmit: Function}} handlers - modal event handlers.
+   *   onPasswordChange: Function, onForgotPasswordClick: Function, onRegisterClick: Function,
+   *   onBackToLoginClick: Function, onEmailChange: Function, onRecoverSubmit: Function}} handlers - modal event handlers.
    * @returns {React.ReactElement} rendered login modal.
    */
   static render(show, state, handlers) {
@@ -34,32 +35,33 @@ export default class LoginModalHelper {
         </Modal.Header>
         <Modal.Body>
           {LoginModalHelper.#renderError(state)}
-          <div className="mb-3">
-            <label htmlFor="username" className="form-label">{Translator.t('login_modal.username_label')}</label>
-            <input
-              id="username"
-              type="text"
-              className="form-control"
-              value={state.username}
-              onChange={handlers.onUsernameChange}
-            />
-          </div>
-          <div className="mb-3">
-            <label htmlFor="password" className="form-label">{Translator.t('login_modal.password_label')}</label>
-            <input
-              id="password"
-              type="password"
-              className="form-control"
-              value={state.password}
-              onChange={handlers.onPasswordChange}
-            />
-          </div>
+          <FormField
+            id="username"
+            type="text"
+            label={Translator.t('login_modal.username_label')}
+            value={state.username}
+            onChange={handlers.onUsernameChange}
+          />
+          <FormField
+            id="password"
+            type="password"
+            label={Translator.t('login_modal.password_label')}
+            value={state.password}
+            onChange={handlers.onPasswordChange}
+          />
           <button
             className="btn btn-link p-0"
             type="button"
             onClick={handlers.onForgotPasswordClick}
           >
             {Translator.t('login_modal.forgot_password')}
+          </button>
+          <button
+            className="btn btn-link p-0 d-block"
+            type="button"
+            onClick={handlers.onRegisterClick}
+          >
+            {Translator.t('login_modal.register_link')}
           </button>
         </Modal.Body>
         <Modal.Footer>
@@ -85,16 +87,13 @@ export default class LoginModalHelper {
           <Modal.Title>{Translator.t('login_modal.recover_title')}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div className="mb-3">
-            <label htmlFor="recover-email" className="form-label">{Translator.t('login_modal.email_label')}</label>
-            <input
-              id="recover-email"
-              type="email"
-              className="form-control"
-              value={state.email}
-              onChange={handlers.onEmailChange}
-            />
-          </div>
+          <FormField
+            id="recover-email"
+            type="email"
+            label={Translator.t('login_modal.email_label')}
+            value={state.email}
+            onChange={handlers.onEmailChange}
+          />
         </Modal.Body>
         <Modal.Footer>
           <button className="btn btn-secondary" type="button" onClick={handlers.onBackToLoginClick}>

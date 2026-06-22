@@ -100,6 +100,28 @@ export default class AuthClient extends BaseClient {
   }
 
   /**
+   * Submits a registration request for a new user account.
+   *
+   * @param {string} name - Name to register, used as the username.
+   * @param {string} email - Email address to register.
+   * @param {string} password - Password to register.
+   * @param {string} passwordConfirmation - Confirmation of the password.
+   * @returns {Promise<Response>} fetch response from the register endpoint.
+   */
+  register(name, email, password, passwordConfirmation) {
+    return this.request('/users/register.json', {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+        password_confirmation: passwordConfirmation,
+      }),
+    });
+  }
+
+  /**
    * Persists the authenticated user's favorite language preference.
    *
    * @param {string} token - Authentication token for the requesting user.

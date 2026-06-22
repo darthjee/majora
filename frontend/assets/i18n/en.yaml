@@ -7,6 +7,7 @@ header:
   send_test_email: Send test email
   test_email_sent: Test email sent
   test_email_error: Failed to send test email
+  register: Register
 login_modal:
   title: Login
   username_label: Username
@@ -21,6 +22,7 @@ login_modal:
   recover_submit: Send recovery email
   back_to_login: Back to login
   recovery_sent: If that email is registered, a recovery link has been sent.
+  register_link: Create an account
 back_button:
   label: Back
 pagination:
@@ -50,5 +52,13 @@ recover_password_page:
   submit: Reset password
   success: Your password has been reset.
   back_to_home: Back to home
+register_page:
+  title: Register
+  name_label: Name
+  email_label: Email
+  password_label: Password
+  password_confirmation_label: Confirm password
+  submit: Register
+  error: An unexpected error occurred, please try again later.
 language_selector:
   label: Language

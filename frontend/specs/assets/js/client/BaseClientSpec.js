@@ -36,6 +36,19 @@ describe('BaseClient', function() {
     });
   });
 
+  it('adds X-Skip-Cache to the register endpoint', async function() {
+    await client.request('/users/register.json', {
+      method: 'POST',
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/users/register.json', {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'X-Skip-Cache': '1' },
+      body: undefined,
+    });
+  });
+
   it('matches a configured endpoint by pathname only, ignoring the query string', async function() {
     await client.request('/users/status.json?foo=bar', {
       headers: { Accept: 'application/json' },

@@ -35,11 +35,42 @@ describe('LoginModal', function() {
           onUsernameChange: jasmine.any(Function),
           onPasswordChange: jasmine.any(Function),
           onForgotPasswordClick: jasmine.any(Function),
+          onRegisterClick: jasmine.any(Function),
           onBackToLoginClick: jasmine.any(Function),
           onEmailChange: jasmine.any(Function),
           onRecoverSubmit: jasmine.any(Function),
         })
       );
+    });
+
+    it('navigates to the register page and closes the modal when registering', function() {
+      const onClose = jasmine.createSpy('onClose');
+      let capturedHandlers;
+      const fakeWindow = { location: { hash: '' } };
+
+      spyOn(LoginModalHelper, 'render').and.callFake((show, state, handlers) => {
+        capturedHandlers = handlers;
+        return React.createElement('div', null, 'modal');
+      });
+
+      renderToStaticMarkup(
+        React.createElement(LoginModal, {
+          show: true,
+          onClose,
+          onSuccess: jasmine.createSpy('onSuccess'),
+        })
+      );
+
+      globalThis.window = fakeWindow;
+
+      try {
+        capturedHandlers.onRegisterClick();
+
+        expect(onClose).toHaveBeenCalled();
+        expect(fakeWindow.location.hash).toBe('/users/register');
+      } finally {
+        delete globalThis.window;
+      }
     });
   });
 });

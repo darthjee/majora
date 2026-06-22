@@ -23,6 +23,9 @@ def _build_recovery_url(token):
 
 def send_password_reset_email(user, token):
     """Send a password recovery email containing the reset link to the user."""
+    if not Settings.emails_enabled():
+        return
+
     message = render_to_string(
         'games/password_reset_email.txt',
         {

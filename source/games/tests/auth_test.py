@@ -43,36 +43,118 @@ class TestLoginView:
 class TestRegisterView:
     """Tests for the register endpoint."""
 
-    def test_creates_user(self, client):
-        """Test that a new user is created."""
-        response = client.post(
-            '/users/register.json',
-            data=json.dumps(
-                {'username': 'bob', 'password': TEST_PASSWORD, 'email': 'bob@example.com'}
-            ),
-            content_type='application/json',
-        )
-        assert response.status_code == 201
-        assert User.objects.filter(username='bob').exists()
+    def setup_method(self):
+        """Set up common test fixtures."""
+        mail.outbox = []
+        self.valid_payload = {
+            'name': 'bob',
+            'email': 'bob@example.com',
+            'password': TEST_PASSWORD,
+            'password_confirmation': TEST_PASSWORD,
+        }
 
-    def test_rejects_duplicate_username(self, client):
-        """Test that registering an existing username fails."""
-        User.objects.create_user(username='bob', password=TEST_PASSWORD)
-        response = client.post(
+    def _post(self, client, payload):
+        """Post a registration payload to the endpoint."""
+        return client.post(
             '/users/register.json',
-            data=json.dumps({'username': 'bob', 'password': TEST_PASSWORD}),
+            data=json.dumps(payload),
             content_type='application/json',
         )
+
+    def test_creates_user_and_returns_token(self, client):
+        """Test that a new user is created and a token is returned for auto-login."""
+        response = self._post(client, self.valid_payload)
+
+        assert response.status_code == 201
+        data = json.loads(response.content)
+        assert data['username'] == 'bob'
+        assert 'token' in data
+        assert User.objects.filter(username='bob', email='bob@example.com').exists()
+        assert Token.objects.filter(key=data['token'], user__username='bob').exists()
+
+    def test_rejects_missing_name(self, client):
+        """Test that registering without a name fails."""
+        payload = {**self.valid_payload, 'name': ''}
+        response = self._post(client, payload)
+        assert response.status_code == 400
+
+    def test_rejects_missing_email(self, client):
+        """Test that registering without an email fails."""
+        payload = {**self.valid_payload, 'email': ''}
+        response = self._post(client, payload)
         assert response.status_code == 400
 
     def test_rejects_missing_password(self, client):
         """Test that registering without a password fails."""
-        response = client.post(
-            '/users/register.json',
-            data=json.dumps({'username': 'bob'}),
-            content_type='application/json',
-        )
+        payload = {**self.valid_payload, 'password': ''}
+        response = self._post(client, payload)
         assert response.status_code == 400
+
+    def test_rejects_missing_password_confirmation(self, client):
+        """Test that registering without a password confirmation fails."""
+        payload = {**self.valid_payload, 'password_confirmation': ''}
+        response = self._post(client, payload)
+        assert response.status_code == 400
+
+    def test_rejects_mismatched_password_confirmation(self, client):
+        """Test that registering with a mismatched confirmation fails."""
+        payload = {**self.valid_payload, 'password_confirmation': 'something-else'}
+        response = self._post(client, payload)
+        assert response.status_code == 400
+
+    def test_rejects_invalid_email_format(self, client):
+        """Test that registering with an invalid email format fails."""
+        payload = {**self.valid_payload, 'email': 'not-an-email'}
+        response = self._post(client, payload)
+        assert response.status_code == 400
+
+    def test_rejects_duplicate_email(self, client):
+        """Test that registering with an already-used email fails."""
+        User.objects.create_user(
+            username='alice', password=TEST_PASSWORD, email='bob@example.com'
+        )
+        response = self._post(client, self.valid_payload)
+        assert response.status_code == 400
+
+    def test_rejects_duplicate_name(self, client):
+        """Test that registering with an already-used name fails."""
+        User.objects.create_user(username='bob', password=TEST_PASSWORD)
+        response = self._post(client, self.valid_payload)
+        assert response.status_code == 400
+
+    def test_rejects_unexpected_extra_field(self, client):
+        """Test that registering with an unexpected extra field fails."""
+        payload = {**self.valid_payload, 'is_admin': True}
+        response = self._post(client, payload)
+        assert response.status_code == 400
+
+    def test_sends_welcome_email_when_emails_enabled(self, client, settings, monkeypatch):
+        """Test that a welcome email is sent on success when EMAILS_ENABLED is true."""
+        monkeypatch.setenv('EMAILS_ENABLED', 'true')
+        response = self._post(client, self.valid_payload)
+
+        assert response.status_code == 201
+        assert len(mail.outbox) == 1
+        assert mail.outbox[0].to == ['bob@example.com']
+        assert 'bob' in mail.outbox[0].body
+
+    def test_does_not_send_welcome_email_when_emails_disabled(self, client, monkeypatch):
+        """Test that no welcome email is sent when EMAILS_ENABLED is unset."""
+        monkeypatch.delenv('EMAILS_ENABLED', raising=False)
+        response = self._post(client, self.valid_payload)
+
+        assert response.status_code == 201
+        assert mail.outbox == []
+
+    def test_does_not_send_welcome_email_when_emails_explicitly_disabled(
+        self, client, monkeypatch
+    ):
+        """Test that no welcome email is sent when EMAILS_ENABLED is false."""
+        monkeypatch.setenv('EMAILS_ENABLED', 'false')
+        response = self._post(client, self.valid_payload)
+
+        assert response.status_code == 201
+        assert mail.outbox == []
 
 
 @pytest.mark.django_db
@@ -155,8 +237,9 @@ class TestTestEmailView:
         """Set up common test fixtures."""
         mail.outbox = []
 
-    def test_sends_email_for_user_with_email(self, client):
+    def test_sends_email_for_user_with_email(self, client, monkeypatch):
         """Test that an email is sent to the authenticated user's address."""
+        monkeypatch.setenv('EMAILS_ENABLED', 'true')
         user = User.objects.create_user(
             username='alice', password=TEST_PASSWORD, email='alice@example.com'
         )
@@ -172,6 +255,23 @@ class TestTestEmailView:
         assert len(mail.outbox) == 1
         assert mail.outbox[0].to == ['alice@example.com']
         assert 'alice' in mail.outbox[0].body
+
+    def test_does_not_send_email_when_emails_disabled(self, client, monkeypatch):
+        """Test that no email is sent when EMAILS_ENABLED is unset."""
+        monkeypatch.delenv('EMAILS_ENABLED', raising=False)
+        user = User.objects.create_user(
+            username='alice', password=TEST_PASSWORD, email='alice@example.com'
+        )
+        token = Token.objects.create(user=user)
+
+        response = client.post(
+            '/users/test-email.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        assert response.status_code == 200
+        assert json.loads(response.content) == {'sent': True}
+        assert mail.outbox == []
 
     def test_rejects_user_without_email(self, client):
         """Test that no email is sent when the user has no email configured."""

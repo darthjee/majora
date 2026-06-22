@@ -123,6 +123,25 @@ describe('AuthClient', function() {
     });
   });
 
+  describe('#register', function() {
+    it('posts the registration fields to the register endpoint', async function() {
+      const client = new AuthClient();
+
+      await client.register('Jane Doe', 'jane@example.com', 'secret', 'secret');
+
+      expect(fetchSpy).toHaveBeenCalledWith('/users/register.json', {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Skip-Cache': '1' },
+        body: JSON.stringify({
+          name: 'Jane Doe',
+          email: 'jane@example.com',
+          password: 'secret',
+          password_confirmation: 'secret',
+        }),
+      });
+    });
+  });
+
   describe('#setLanguagePreference', function() {
     it('posts the language to the language endpoint with the auth token', async function() {
       const client = new AuthClient();

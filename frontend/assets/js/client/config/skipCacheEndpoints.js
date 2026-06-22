@@ -9,4 +9,5 @@ export default new Set([
   '/users/logout.json',
   '/users/status.json',
   '/users/language.json',
+  '/users/register.json',
 ]);

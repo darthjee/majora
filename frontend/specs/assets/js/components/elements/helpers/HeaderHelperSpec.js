@@ -31,6 +31,24 @@ describe('HeaderHelper', function() {
       expect(html).toContain('Logoff');
     });
 
+    it('renders a register control when logged out', function() {
+      const html = renderToStaticMarkup(
+        HeaderHelper.render({ loggedIn: false, showModal: false, testEmailStatus: null }, buildHandlers())
+      );
+
+      expect(html).toContain('data-testid="register-control"');
+      expect(html).toContain('href="#/users/register"');
+      expect(html).toContain('Register');
+    });
+
+    it('does not render the register control when logged in', function() {
+      const html = renderToStaticMarkup(
+        HeaderHelper.render({ loggedIn: true, showModal: false, testEmailStatus: null }, buildHandlers())
+      );
+
+      expect(html).not.toContain('data-testid="register-control"');
+    });
+
     it('renders a home link on the title', function() {
       const html = renderToStaticMarkup(
         HeaderHelper.render({ loggedIn: false, showModal: false, testEmailStatus: null }, buildHandlers())
