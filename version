@@ -1,4 +1,4 @@
-majora-base=0.0.1
-circleci_majora-base=0.0.1
-production_majora-base=0.0.1
-vite_majora-base=0.0.1
+majora-base=0.1.0
+circleci_majora-base=0.1.0
+production_majora-base=0.1.0
+vite_majora-base=0.1.0

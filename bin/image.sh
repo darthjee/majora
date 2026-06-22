@@ -7,6 +7,40 @@ function image_version() {
   cat version | grep "^${image}=" | sed -e "s/${image}=//g"
 }
 
+function skip_if_not_tag() {
+  if [ -z "$CIRCLE_TAG" ]; then
+    echo "Not a tag build, skipping."
+    exit 0
+  fi
+}
+
+function skip_if_unchanged() {
+  local image=$1
+
+  local prev_tag
+  prev_tag=$(git tag --sort=-creatordate | awk 'NR==2{print; exit}')
+
+  if [ -z "$prev_tag" ]; then
+    echo "No previous tag found, proceeding with release of ${image}."
+    return 0
+  fi
+
+  if git diff --quiet "$prev_tag"..HEAD -- "dockerfiles/${image}/"; then
+    echo "No changes in dockerfiles/${image}/ since ${prev_tag}, skipping."
+    exit 0
+  fi
+}
+
+function setup_qemu() {
+  local image=$1
+
+  skip_if_not_tag
+
+  skip_if_unchanged "$image"
+
+  docker run --privileged --rm tonistiigi/binfmt --install all
+}
+
 function build() {
   local image=$1
   local arch=$2
@@ -44,6 +78,10 @@ function push() {
   version=$(image_version "$image")
   [ -n "$arch" ] && tag_suffix="-$arch" || tag_suffix=""
 
+  skip_if_not_tag
+
+  skip_if_unchanged "$image"
+
   echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
 
   build "$image" "$arch"
@@ -58,9 +96,10 @@ ARCH=${3:-}
 case $ACTION in
   "build") build "$IMAGE_NAME" "$ARCH" ;;
   "push")  push "$IMAGE_NAME" "$ARCH" ;;
+  "qemu")  setup_qemu "$IMAGE_NAME" ;;
   *)
     echo "Usage: $0 <action> <image_name> [arch]"
-    echo "Actions: build, push"
+    echo "Actions: build, push, qemu"
     exit 1
     ;;
 esac

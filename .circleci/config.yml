@@ -4,101 +4,77 @@ workflows:
   test:
     jobs:
       - pytest:
-          filters:
+          filters: &all_tags
             tags:
               only: /.*/
+          requires: [release-circleci_majora-base, release-circleci_majora-base-arm64]
       - jasmine:
-          filters:
-            tags:
-              only: /.*/
+          filters: *all_tags
+          requires: [release-vite_majora-base, release-vite_majora-base-arm64]
       - checks:
-          filters:
-            tags:
-              only: /.*/
+          filters: *all_tags
+          requires: [release-circleci_majora-base, release-circleci_majora-base-arm64]
       - frontend-checks:
-          filters:
-            tags:
-              only: /.*/
+          filters: *all_tags
+          requires: [release-vite_majora-base, release-vite_majora-base-arm64]
       - coverage-final:
           requires: [pytest, jasmine]
-          filters:
-            tags:
-              only: /.*/
+          filters: *all_tags
+      - release-image:
+          name: release-majora-base
+          image: majora-base
+          filters: *all_tags
+      - release-image:
+          name: release-majora-base-arm64
+          image: majora-base
+          arch: arm64
+          filters: *all_tags
+      - release-image:
+          name: release-circleci_majora-base
+          image: circleci_majora-base
+          filters: *all_tags
+      - release-image:
+          name: release-circleci_majora-base-arm64
+          image: circleci_majora-base
+          arch: arm64
+          filters: *all_tags
+      - release-image:
+          name: release-production_majora-base
+          image: production_majora-base
+          filters: *all_tags
+      - release-image:
+          name: release-production_majora-base-arm64
+          image: production_majora-base
+          arch: arm64
+          filters: *all_tags
+      - release-image:
+          name: release-vite_majora-base
+          image: vite_majora-base
+          filters: *all_tags
+      - release-image:
+          name: release-vite_majora-base-arm64
+          image: vite_majora-base
+          arch: arm64
+          filters: *all_tags
       - build-and-release:
-          requires: [pytest, jasmine, frontend-checks, checks]
-          filters:
+          requires: [pytest, jasmine, frontend-checks, checks, release-production_majora-base, release-production_majora-base-arm64]
+          filters: &tags_only
             tags:
               only: /\d+\.\d+\.\d+/
             branches:
               ignore: /.*/
       - upload_proxy_files:
           requires: [pytest, jasmine, frontend-checks, checks]
-          filters:
-            tags:
-              only: /\d+\.\d+\.\d+/
-            branches:
-              ignore: /.*/
+          filters: *tags_only
       - upload_fe_files:
-          requires: [pytest, jasmine, frontend-checks, checks]
-          filters:
-            tags:
-              only: /\d+\.\d+\.\d+/
-            branches:
-              ignore: /.*/
+          requires: [pytest, jasmine, frontend-checks, checks, release-vite_majora-base, release-vite_majora-base-arm64]
+          filters: *tags_only
       - link_photos:
           requires: [pytest, jasmine, frontend-checks, checks]
-          filters:
-            tags:
-              only: /\d+\.\d+\.\d+/
-            branches:
-              ignore: /.*/
+          filters: *tags_only
       - upload_admin_assets:
-          requires: [pytest, jasmine, frontend-checks, checks]
-          filters:
-            tags:
-              only: /\d+\.\d+\.\d+/
-            branches:
-              ignore: /.*/
-      - release-image:
-          name: release-majora-base
-          image: majora-base
-          filters: &tag_only
-            tags:
-              only: /\d+\.\d+\.\d+/
-            branches:
-              ignore: /.*/
-      - release-image:
-          name: release-majora-base-arm64
-          image: majora-base
-          arch: arm64
-          filters: *tag_only
-      - release-image:
-          name: release-circleci_majora-base
-          image: circleci_majora-base
-          filters: *tag_only
-      - release-image:
-          name: release-circleci_majora-base-arm64
-          image: circleci_majora-base
-          arch: arm64
-          filters: *tag_only
-      - release-image:
-          name: release-production_majora-base
-          image: production_majora-base
-          filters: *tag_only
-      - release-image:
-          name: release-production_majora-base-arm64
-          image: production_majora-base
-          arch: arm64
-          filters: *tag_only
-      - release-image:
-          name: release-vite_majora-base
-          image: vite_majora-base
-          filters: *tag_only
-      - release-image:
-          name: release-vite_majora-base-arm64
-          image: vite_majora-base
-          arch: arm64
-          filters: *tag_only
+          requires: [pytest, jasmine, frontend-checks, checks, release-circleci_majora-base]
+          filters: *tags_only
       - release:
           requires:
             - build-and-release
@@ -114,18 +90,10 @@ workflows:
             - release-production_majora-base-arm64
             - release-vite_majora-base
             - release-vite_majora-base-arm64
-          filters:
-            tags:
-              only: /\d+\.\d+\.\d+/
-            branches:
-              ignore: /.*/
+          filters: *tags_only
       - warm-up-cache:
           requires: [release]
-          filters:
-            tags:
-              only: /\d+\.\d+\.\d+/
-            branches:
-              ignore: /.*/
+          filters: *tags_only
 jobs:
   release-image:
     parameters:
@@ -137,13 +105,9 @@ jobs:
     machine: true
     steps:
       - checkout
-      - when:
-          condition:
-            equal: [arm64, << parameters.arch >>]
-          steps:
-            - run:
-                name: Set up QEMU
-                command: docker run --privileged --rm tonistiigi/binfmt --install all
+      - run:
+          name: Set up QEMU
+          command: bin/image.sh qemu << parameters.image >>
       - run:
           name: Release
           command: bin/image.sh push << parameters.image >> << parameters.arch >>
@@ -244,7 +208,7 @@ jobs:
   upload_proxy_files:
     docker:
       - image: darthjee/tent:0.7.8
-    working_directory: /var/www/html
+    working_directory: /home/app/app
     steps:
       - checkout
       - run:
@@ -287,7 +251,7 @@ jobs:
   link_photos:
     docker:
       - image: darthjee/tent:0.7.8
-    working_directory: /var/www/html
+    working_directory: /home/app/app
     steps:
       - checkout
       - run:
