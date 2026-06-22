@@ -18,7 +18,6 @@ describe('Register', function() {
           password: '',
           passwordConfirmation: '',
           status: 'idle',
-          errorMessage: '',
         },
         jasmine.objectContaining({
           onSubmit: jasmine.any(Function),

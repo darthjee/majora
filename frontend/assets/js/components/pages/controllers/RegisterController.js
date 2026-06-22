@@ -10,12 +10,10 @@ export default class RegisterController {
    * Create a register controller.
    *
    * @param {Function} setStatus - status setter (`'idle' | 'submitting' | 'error'`).
-   * @param {Function} setErrorMessage - error message setter.
    * @param {AuthClient} [client] - HTTP client override.
    */
-  constructor(setStatus, setErrorMessage, client = new AuthClient()) {
+  constructor(setStatus, client = new AuthClient()) {
     this.setStatus = setStatus;
-    this.setErrorMessage = setErrorMessage;
     this.client = client;
   }
 
@@ -32,7 +30,6 @@ export default class RegisterController {
    * @returns {Promise<void>} resolves when the request handling finishes.
    */
   async handleSubmit(name, email, password, passwordConfirmation) {
-    this.setErrorMessage('');
     this.setStatus('submitting');
 
     try {
@@ -41,7 +38,6 @@ export default class RegisterController {
       await this.#handleResponse(response);
     } catch {
       this.setStatus('error');
-      this.setErrorMessage('An unexpected error occurred, please try again later.');
     }
   }
 
@@ -51,10 +47,7 @@ export default class RegisterController {
       return;
     }
 
-    const data = await response.json().catch(() => ({}));
-
     this.setStatus('error');
-    this.setErrorMessage(data.error ?? 'An unexpected error occurred, please try again later.');
   }
 
   async #handleSuccess(response) {

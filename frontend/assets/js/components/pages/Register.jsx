@@ -14,10 +14,9 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [status, setStatus] = useState('idle');
-  const [errorMessage, setErrorMessage] = useState('');
 
   const controller = useMemo(
-    () => new RegisterController(setStatus, setErrorMessage),
+    () => new RegisterController(setStatus),
     [],
   );
 
@@ -36,7 +35,6 @@ export default function Register() {
       password,
       passwordConfirmation,
       status,
-      errorMessage,
     },
     {
       onSubmit: handleSubmit,

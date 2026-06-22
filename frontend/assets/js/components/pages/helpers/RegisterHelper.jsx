@@ -8,7 +8,7 @@ export default class RegisterHelper {
    * Render the register page.
    *
    * @param {{name: string, email: string, password: string, passwordConfirmation: string,
-   *   status: string, errorMessage: string}} state - page state.
+   *   status: string}} state - page state.
    * @param {{onSubmit: Function, onNameChange: Function, onEmailChange: Function,
    *   onPasswordChange: Function, onPasswordConfirmationChange: Function}} handlers - event handlers.
    * @returns {React.ReactElement} rendered register page.
@@ -80,6 +80,6 @@ export default class RegisterHelper {
       return null;
     }
 
-    return <div className="alert alert-danger">{state.errorMessage}</div>;
+    return <div className="alert alert-danger">{Translator.t('register_page.error')}</div>;
   }
 }

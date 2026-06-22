@@ -5,12 +5,10 @@ import AuthEvents from '../../../../../../assets/js/utils/AuthEvents.js';
 describe('RegisterController', function() {
   describe('#handleSubmit', function() {
     let setStatus;
-    let setErrorMessage;
     let client;
 
     beforeEach(function() {
       setStatus = jasmine.createSpy('setStatus');
-      setErrorMessage = jasmine.createSpy('setErrorMessage');
       client = jasmine.createSpyObj('client', ['register']);
       spyOn(AuthStorage, 'setToken');
       spyOn(AuthEvents, 'emit');
@@ -22,7 +20,7 @@ describe('RegisterController', function() {
         json: () => Promise.resolve({ username: 'jane', token: 'tok-abc' }),
       }));
 
-      const controller = new RegisterController(setStatus, setErrorMessage, client);
+      const controller = new RegisterController(setStatus, client);
       const fakeWindow = { location: { hash: '' } };
 
       globalThis.window = fakeWindow;
@@ -41,44 +39,41 @@ describe('RegisterController', function() {
       }
     });
 
-    it('surfaces the server error message when the request fails', async function() {
+    it('marks an error without leaking the raw server message when the request fails', async function() {
       client.register.and.returnValue(Promise.resolve({
         ok: false,
         json: () => Promise.resolve({ error: 'Email is already taken' }),
       }));
 
-      const controller = new RegisterController(setStatus, setErrorMessage, client);
+      const controller = new RegisterController(setStatus, client);
 
       await controller.handleSubmit('Jane Doe', 'jane@example.com', 'secret', 'secret');
 
       expect(setStatus).toHaveBeenCalledWith('error');
-      expect(setErrorMessage).toHaveBeenCalledWith('Email is already taken');
       expect(AuthStorage.setToken).not.toHaveBeenCalled();
     });
 
-    it('falls back to a generic error message when the server omits one', async function() {
+    it('marks an error when the server omits a message', async function() {
       client.register.and.returnValue(Promise.resolve({
         ok: false,
         json: () => Promise.resolve({}),
       }));
 
-      const controller = new RegisterController(setStatus, setErrorMessage, client);
+      const controller = new RegisterController(setStatus, client);
 
       await controller.handleSubmit('Jane Doe', 'jane@example.com', 'secret', 'secret');
 
       expect(setStatus).toHaveBeenCalledWith('error');
-      expect(setErrorMessage).toHaveBeenCalledWith('An unexpected error occurred, please try again later.');
     });
 
     it('marks an unexpected error when the client rejects', async function() {
       client.register.and.returnValue(Promise.reject(new Error('network')));
 
-      const controller = new RegisterController(setStatus, setErrorMessage, client);
+      const controller = new RegisterController(setStatus, client);
 
       await controller.handleSubmit('Jane Doe', 'jane@example.com', 'secret', 'secret');
 
       expect(setStatus).toHaveBeenCalledWith('error');
-      expect(setErrorMessage).toHaveBeenCalledWith('An unexpected error occurred, please try again later.');
     });
   });
 });

@@ -15,7 +15,6 @@ describe('RegisterHelper', function() {
     password: '',
     passwordConfirmation: '',
     status: 'idle',
-    errorMessage: '',
     ...overrides,
   });
 
@@ -30,12 +29,12 @@ describe('RegisterHelper', function() {
       expect(html).toContain('Register');
     });
 
-    it('renders the error message when status is error', function() {
+    it('renders a translated error message when status is error', function() {
       const html = renderToStaticMarkup(
-        RegisterHelper.render(buildState({ status: 'error', errorMessage: 'Email is already taken' }), buildHandlers())
+        RegisterHelper.render(buildState({ status: 'error' }), buildHandlers())
       );
 
-      expect(html).toContain('Email is already taken');
+      expect(html).toContain('An unexpected error occurred, please try again later.');
       expect(html).toContain('alert-danger');
     });
 
