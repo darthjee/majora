@@ -202,6 +202,9 @@ jobs:
           name: Yarn install
           command: yarn install
       - run:
+          name: Check translations
+          command: npm run check_i18n
+      - run:
           name: Check JS Lint
           command: npm run lint
 
