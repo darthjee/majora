@@ -1,54 +1,54 @@
 header:
   title: Majora
-  subtitle: RPG Campaign Management System
-  nav_games: Games
+  subtitle: Sistema de gerenciamento de campanhas de RPG
+  nav_games: Campanhas
   login: Login
   logoff: Logoff
-  send_test_email: Send test email
-  test_email_sent: Test email sent
-  test_email_error: Failed to send test email
+  send_test_email: Enviar e-mail de teste
+  test_email_sent: E-mail de teste enviado
+  test_email_error: Falha ao enviar e-mail de teste
 login_modal:
   title: Login
-  username_label: Username
-  password_label: Password
-  cancel: Cancel
+  username_label: Usuario
+  password_label: Senha
+  cancel: Cancelar
   submit: Login
-  forgot_password: Forgot password?
-  incorrect: User name or password incorrect.
-  error: An unexpected error occurred, please try again later.
-  recover_title: Recover password
-  email_label: Email
-  recover_submit: Send recovery email
-  back_to_login: Back to login
-  recovery_sent: If that email is registered, a recovery link has been sent.
+  forgot_password: Esqueci a senha
+  incorrect: Credenciais inválidas.
+  error: Um erro inesperado ocorreu, tente novamente mais tarde.
+  recover_title: Recuperar a senha
+  email_label: E-mail
+  recover_submit: Enviar email de recuperação
+  back_to_login: Voltar ao login
+  recovery_sent: Caso o e-mail esteja registrado, o link de recuperaçao será enviado.
 back_button:
-  label: Back
+  label: Voltar
 pagination:
-  aria_label: Games pages
-  previous: Previous
-  next: Next
+  aria_label: Pagina de Jogos
+  previous: Anterior
+  next: Próximo
 games_page:
-  loading: Loading games...
-  back_href_label: Back
+  loading: Carregando jogos...
+  back_href_label: Voltar
 game_page:
-  loading: Loading game...
-  player_characters: Player Characters
-  non_player_characters: Non-Player Characters
+  loading: Carregando jogo...
+  player_characters: Personagens
+  non_player_characters: NPCs
 game_characters_page:
-  loading: Loading...
+  loading: Carregando...
 character_page:
-  loading: Loading character...
+  loading: Carregando personagem...
 character_info:
-  class_label: 'Class:'
-  level_label: Level
+  class_label: 'Classe:'
+  level_label: Nível
 character_preview_section:
-  see_all: See all {{title}}
+  see_all: Ver todos {{title}}
 recover_password_page:
-  title: Reset password
-  new_password_label: New password
-  confirm_password_label: Confirm new password
-  submit: Reset password
-  success: Your password has been reset.
-  back_to_home: Back to home
+  title: Resetar senha
+  new_password_label: Nova senha
+  confirm_password_label: Confirmar nova senha
+  submit: Resetar senha
+  success: Sua senha foi resetada.
+  back_to_home: Voltar à página inicial
 language_selector:
-  label: Language
+  label: Idioma
