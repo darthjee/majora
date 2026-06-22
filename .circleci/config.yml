@@ -60,7 +60,9 @@ workflows:
           requires: [pytest, jasmine, frontend-checks, checks, release-production_majora-base, release-production_majora-base-arm64]
           filters: &tags_only
             tags:
-              only: /.*/
+              only: /\d+\.\d+\.\d+/
+            branches:
+              ignore: /.*/
       - upload_proxy_files:
           requires: [pytest, jasmine, frontend-checks, checks]
           filters: *tags_only
