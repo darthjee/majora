@@ -38,7 +38,7 @@ function lookup(map, key) {
  * registering it in the `TRANSLATIONS` table.
  */
 export default class Translator {
-  static #language = LanguageStorage.getLanguage() || DEFAULT_LANGUAGE;
+  static #language = LanguageStorage.getLanguage(Object.keys(TRANSLATIONS)) || DEFAULT_LANGUAGE;
 
   /**
    * Returns the list of language codes available for selection.
