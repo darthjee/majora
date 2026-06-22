@@ -1,3 +1,6 @@
+import Navbar from 'react-bootstrap/cjs/Navbar.js';
+import Nav from 'react-bootstrap/cjs/Nav.js';
+import Container from 'react-bootstrap/cjs/Container.js';
 import LanguageSelector from '../LanguageSelector.jsx';
 import LoginModal from '../LoginModal.jsx';
 import Translator from '../../../i18n/Translator.js';
@@ -15,26 +18,29 @@ export default class HeaderHelper {
    */
   static render(state, handlers) {
     return (
-      <header>
-        <h1>
-          <a href="#/">{Translator.t('header.title')}</a>
-        </h1>
-        <p>{Translator.t('header.subtitle')}</p>
-        <nav>
-          <ul>
-            <li>
-              <a href="#/games">{Translator.t('header.nav_games')}</a>
-            </li>
-          </ul>
-          {HeaderHelper.#renderAuthControl(state, handlers)}
-          <LanguageSelector onLanguageChange={handlers.onLanguageChange} />
-        </nav>
+      <Navbar bg="light" expand="md">
+        <Container fluid>
+          <Navbar.Brand href="#/">
+            {Translator.t('header.title')}
+            <small className="d-block text-muted">{Translator.t('header.subtitle')}</small>
+          </Navbar.Brand>
+          <Navbar.Toggle aria-controls="header-navbar" />
+          <Navbar.Collapse id="header-navbar">
+            <Nav className="me-auto">
+              <Nav.Link href="#/games">{Translator.t('header.nav_games')}</Nav.Link>
+            </Nav>
+            <Nav className="align-items-center">
+              {HeaderHelper.#renderAuthControl(state, handlers)}
+              <LanguageSelector onLanguageChange={handlers.onLanguageChange} />
+            </Nav>
+          </Navbar.Collapse>
+        </Container>
         <LoginModal
           show={state.showModal}
           onClose={handlers.onModalClose}
           onSuccess={handlers.onLoginSuccess}
         />
-      </header>
+      </Navbar>
     );
   }
 
@@ -51,7 +57,7 @@ export default class HeaderHelper {
         <>
           <button
             type="button"
-            className="btn btn-link"
+            className="btn btn-link nav-link"
             data-testid="auth-control"
             onClick={handlers.onLogoffClick}
           >
@@ -59,7 +65,7 @@ export default class HeaderHelper {
           </button>
           <button
             type="button"
-            className="btn btn-link"
+            className="btn btn-link nav-link"
             data-testid="send-test-email"
             onClick={handlers.onSendTestEmailClick}
           >
@@ -73,7 +79,7 @@ export default class HeaderHelper {
     return (
       <button
         type="button"
-        className="btn btn-link"
+        className="btn btn-link nav-link"
         data-testid="auth-control"
         onClick={handlers.onLoginClick}
       >
