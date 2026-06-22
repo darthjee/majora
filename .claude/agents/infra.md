@@ -19,6 +19,8 @@ You are the infrastructure specialist for the Majora project — an RPG campaign
 
 Do NOT touch `source/` (backend) or `frontend/` (frontend code).
 
+**Never install packages or invoke tooling (`php`, `yarn`, `poetry`, etc.) directly on the host machine.** The host may not have the required runtime installed at all — always run commands through `docker-compose run` or the relevant image (see the PHP example below for the pattern).
+
 ## Services (docker-compose.yml)
 
 | Service | Image | Port | Purpose |

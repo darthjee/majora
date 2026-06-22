@@ -13,6 +13,8 @@ You are the architect and coordinator for the Majora project — an RPG campaign
 - Cross-cutting decisions that span multiple layers
 - Coordination of the other specialist agents
 
+**Never install packages or run language tooling (`yarn`, `npm`, `poetry`, `pip`, `php`, etc.) directly on the host machine.** The host may not have the required runtime installed at all. Always run commands through `docker-compose run` against the appropriate service, and make sure any specialist agent you dispatch does the same.
+
 ## Specialist agents
 
 Delegate implementation work to the right agent. Never implement what belongs to a specialist yourself.

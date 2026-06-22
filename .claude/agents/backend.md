@@ -50,7 +50,7 @@ source/
 
 ## Commands
 
-All commands must be run via docker-compose from the project root (never run pytest or ruff directly):
+**Never install packages or run `pytest`/`ruff`/`poetry`/`pip` directly on the host** — the host may not even have Python/Poetry installed. All commands must be run via docker-compose from the project root:
 
 ```bash
 docker-compose run --rm majora_tests pytest              # run all tests
