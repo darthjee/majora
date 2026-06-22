@@ -19,7 +19,7 @@ export default class CharacterCardHelper {
    */
   static render(character, gameSlug, characterType, size = 'normal') {
     const isSmall = size === 'small';
-    const columnClass = isSmall ? 'col-sm-4 col-md-3 col-lg-2' : 'col-sm-6 col-md-4 col-lg-3';
+    const columnClass = isSmall ? 'col-sm-3 col-md-2 col-lg-1' : 'col-sm-6 col-md-4 col-lg-3';
     const HeadingTag = isSmall ? 'h6' : 'h5';
 
     return (
@@ -30,9 +30,11 @@ export default class CharacterCardHelper {
         >
           <div className="card h-100">
             <CardAvatar url={character.avatar_url} alt={character.name} />
-            <div className="card-body">
-              <HeadingTag className="card-title">{character.name}</HeadingTag>
-            </div>
+            {!isSmall && (
+              <div className="card-body">
+                <HeadingTag className="card-title">{character.name}</HeadingTag>
+              </div>
+            )}
           </div>
         </a>
       </div>

@@ -27,7 +27,7 @@ describe('CharacterCard', function() {
         CharacterCard, { character, gameSlug: 'epic-quest', characterType: 'pc', size: 'small' },
       )
     );
-    expect(html).toContain('col-sm-4 col-md-3 col-lg-2');
-    expect(html).toContain('<h6');
+    expect(html).toContain('col-sm-3 col-md-2 col-lg-1');
+    expect(html).not.toContain('card-title');
   });
 });

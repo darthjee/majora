@@ -46,10 +46,20 @@ describe('CharacterCardHelper', function() {
       expect(html).toContain('<h5');
     });
 
-    it('uses smaller column classes and h6 heading when size is small', function() {
+    it('uses smaller column classes when size is small', function() {
       const html = renderToStaticMarkup(CharacterCardHelper.render(character, gameSlug, 'pc', 'small'));
-      expect(html).toContain('col-sm-4 col-md-3 col-lg-2');
-      expect(html).toContain('<h6');
+      expect(html).toContain('col-sm-3 col-md-2 col-lg-1');
+    });
+
+    it('does not render the visible character name when size is small', function() {
+      const html = renderToStaticMarkup(CharacterCardHelper.render(character, gameSlug, 'pc', 'small'));
+      expect(html).not.toContain('card-title');
+      expect(html).not.toContain('>Aragorn<');
+    });
+
+    it('keeps the character name as the image alt text when size is small', function() {
+      const html = renderToStaticMarkup(CharacterCardHelper.render(character, gameSlug, 'pc', 'small'));
+      expect(html).toContain('alt="Aragorn"');
     });
   });
 });
