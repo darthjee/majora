@@ -1,6 +1,14 @@
 #!/bin/bash
 SSH_KEY_FILE_PATH=~/ssh_key
 
+function remote_temp_dir() {
+    if [ -n "$DEPLOY_PATH" ]; then
+        echo "${SSH_REMOTE_TEMP_DIR%/}/$DEPLOY_PATH"
+    else
+        echo "$SSH_REMOTE_TEMP_DIR"
+    fi
+}
+
 function run_build() {
     npm run build
     rsync -r assets/images/ dist/assets/images/
@@ -15,25 +23,25 @@ function run_generate_ssh_key_file() {
 function run_generate_folder() {
     SSH_COMMAND="ssh -i $SSH_KEY_FILE_PATH -p $SSH_PORT -o StrictHostKeyChecking=no"
 
-    $SSH_COMMAND "$SSH_USER"@"$SSH_HOST" "mkdir -p $SSH_REMOTE_TEMP_DIR"
+    $SSH_COMMAND "$SSH_USER"@"$SSH_HOST" "mkdir -p $(remote_temp_dir)"
 }
 
 function run_copy_files() {
     SSH_COMMAND="ssh -i $SSH_KEY_FILE_PATH -p $SSH_PORT -o StrictHostKeyChecking=no"
 
-    $SSH_COMMAND "$SSH_USER"@"$SSH_HOST" "cp -R  $SSH_REMOTE_DIR/$TARGET $SSH_REMOTE_TEMP_DIR/"
+    $SSH_COMMAND "$SSH_USER"@"$SSH_HOST" "cp -R  $SSH_REMOTE_DIR/$TARGET $(remote_temp_dir)/"
 }
 
 function run_upload() {
     SSH_COMMAND="ssh -i $SSH_KEY_FILE_PATH -p $SSH_PORT -o StrictHostKeyChecking=no"
 
-    rsync -avz -e "$SSH_COMMAND" "$SOURCE" "$SSH_USER"@"$SSH_HOST":"$SSH_REMOTE_TEMP_DIR"
+    rsync -avz -e "$SSH_COMMAND" "$SOURCE" "$SSH_USER"@"$SSH_HOST":"$(remote_temp_dir)"
 }
 
 function run_link() {
     SSH_COMMAND="ssh -i $SSH_KEY_FILE_PATH -p $SSH_PORT -o StrictHostKeyChecking=no"
 
-    $SSH_COMMAND "$SSH_USER"@"$SSH_HOST" "ln -sfn $SOURCE $TARGET"
+    $SSH_COMMAND "$SSH_USER"@"$SSH_HOST" "ln -sfn $SOURCE $(remote_temp_dir)"
 }
 
 function run_release() {
