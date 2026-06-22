@@ -1,4 +1,5 @@
 import LoginModalHelper from '../../../../../../assets/js/components/elements/helpers/LoginModalHelper.jsx';
+import FormField from '../../../../../../assets/js/components/elements/FormField.jsx';
 import Modal from 'react-bootstrap/cjs/Modal.js';
 
 const findElement = (node, matcher) => {
@@ -58,11 +59,11 @@ describe('LoginModalHelper', function() {
       const element = LoginModalHelper.render(true, buildState(), buildHandlers());
       const usernameField = findElement(
         element,
-        (child) => child.type === 'input' && child.props.id === 'username'
+        (child) => child.type === FormField && child.props.id === 'username'
       );
       const passwordField = findElement(
         element,
-        (child) => child.type === 'input' && child.props.id === 'password'
+        (child) => child.type === FormField && child.props.id === 'password'
       );
       const cancelButton = findElement(
         element,
@@ -129,11 +130,11 @@ describe('LoginModalHelper', function() {
       const element = LoginModalHelper.render(true, buildState(), handlers);
       const usernameField = findElement(
         element,
-        (child) => child.type === 'input' && child.props.id === 'username'
+        (child) => child.type === FormField && child.props.id === 'username'
       );
       const passwordField = findElement(
         element,
-        (child) => child.type === 'input' && child.props.id === 'password'
+        (child) => child.type === FormField && child.props.id === 'password'
       );
       const changeEvent = { target: { value: 'x' } };
 
@@ -174,7 +175,7 @@ describe('LoginModalHelper', function() {
       const element = LoginModalHelper.render(true, buildState({ mode: 'recover' }), buildHandlers());
       const emailField = findElement(
         element,
-        (child) => child.type === 'input' && child.props.id === 'recover-email'
+        (child) => child.type === FormField && child.props.id === 'recover-email'
       );
       const sendButton = findElement(
         element,
@@ -195,7 +196,7 @@ describe('LoginModalHelper', function() {
       const element = LoginModalHelper.render(true, buildState({ mode: 'recover' }), handlers);
       const emailField = findElement(
         element,
-        (child) => child.type === 'input' && child.props.id === 'recover-email'
+        (child) => child.type === FormField && child.props.id === 'recover-email'
       );
       const backButton = findElement(
         element,
@@ -226,7 +227,7 @@ describe('LoginModalHelper', function() {
       );
       const emailField = findElement(
         element,
-        (child) => child.type === 'input' && child.props.id === 'recover-email'
+        (child) => child.type === FormField && child.props.id === 'recover-email'
       );
 
       expect(confirmation.props.children).toBe('If that email is registered, a recovery link has been sent.');

@@ -1,3 +1,4 @@
+import FormField from '../../elements/FormField.jsx';
 import Translator from '../../../i18n/Translator.js';
 
 /**
@@ -19,54 +20,34 @@ export default class RegisterHelper {
         <h1>{Translator.t('register_page.title')}</h1>
         <form onSubmit={handlers.onSubmit}>
           {RegisterHelper.#renderError(state)}
-          <div className="mb-3">
-            <label htmlFor="register-name" className="form-label">
-              {Translator.t('register_page.name_label')}
-            </label>
-            <input
-              id="register-name"
-              type="text"
-              className="form-control"
-              value={state.name}
-              onChange={handlers.onNameChange}
-            />
-          </div>
-          <div className="mb-3">
-            <label htmlFor="register-email" className="form-label">
-              {Translator.t('register_page.email_label')}
-            </label>
-            <input
-              id="register-email"
-              type="email"
-              className="form-control"
-              value={state.email}
-              onChange={handlers.onEmailChange}
-            />
-          </div>
-          <div className="mb-3">
-            <label htmlFor="register-password" className="form-label">
-              {Translator.t('register_page.password_label')}
-            </label>
-            <input
-              id="register-password"
-              type="password"
-              className="form-control"
-              value={state.password}
-              onChange={handlers.onPasswordChange}
-            />
-          </div>
-          <div className="mb-3">
-            <label htmlFor="register-password-confirmation" className="form-label">
-              {Translator.t('register_page.password_confirmation_label')}
-            </label>
-            <input
-              id="register-password-confirmation"
-              type="password"
-              className="form-control"
-              value={state.passwordConfirmation}
-              onChange={handlers.onPasswordConfirmationChange}
-            />
-          </div>
+          <FormField
+            id="register-name"
+            type="text"
+            label={Translator.t('register_page.name_label')}
+            value={state.name}
+            onChange={handlers.onNameChange}
+          />
+          <FormField
+            id="register-email"
+            type="email"
+            label={Translator.t('register_page.email_label')}
+            value={state.email}
+            onChange={handlers.onEmailChange}
+          />
+          <FormField
+            id="register-password"
+            type="password"
+            label={Translator.t('register_page.password_label')}
+            value={state.password}
+            onChange={handlers.onPasswordChange}
+          />
+          <FormField
+            id="register-password-confirmation"
+            type="password"
+            label={Translator.t('register_page.password_confirmation_label')}
+            value={state.passwordConfirmation}
+            onChange={handlers.onPasswordConfirmationChange}
+          />
           <button className="btn btn-primary" type="submit" disabled={state.status === 'submitting'}>
             {Translator.t('register_page.submit')}
           </button>

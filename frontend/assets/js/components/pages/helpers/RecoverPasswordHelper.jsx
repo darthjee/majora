@@ -1,3 +1,4 @@
+import FormField from '../../elements/FormField.jsx';
 import Translator from '../../../i18n/Translator.js';
 
 /**
@@ -26,30 +27,20 @@ export default class RecoverPasswordHelper {
     return (
       <form onSubmit={handlers.onSubmit}>
         {RecoverPasswordHelper.#renderError(state)}
-        <div className="mb-3">
-          <label htmlFor="new-password" className="form-label">
-            {Translator.t('recover_password_page.new_password_label')}
-          </label>
-          <input
-            id="new-password"
-            type="password"
-            className="form-control"
-            value={state.password}
-            onChange={handlers.onPasswordChange}
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="confirm-password" className="form-label">
-            {Translator.t('recover_password_page.confirm_password_label')}
-          </label>
-          <input
-            id="confirm-password"
-            type="password"
-            className="form-control"
-            value={state.confirmPassword}
-            onChange={handlers.onConfirmPasswordChange}
-          />
-        </div>
+        <FormField
+          id="new-password"
+          type="password"
+          label={Translator.t('recover_password_page.new_password_label')}
+          value={state.password}
+          onChange={handlers.onPasswordChange}
+        />
+        <FormField
+          id="confirm-password"
+          type="password"
+          label={Translator.t('recover_password_page.confirm_password_label')}
+          value={state.confirmPassword}
+          onChange={handlers.onConfirmPasswordChange}
+        />
         <button className="btn btn-primary" type="submit" disabled={state.status === 'submitting'}>
           {Translator.t('recover_password_page.submit')}
         </button>
