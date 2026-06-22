@@ -8,6 +8,7 @@ describe('LanguageSelector', function() {
 
     expect(html).toContain('data-testid="language-selector"');
     expect(html).toContain('🇬🇧 en');
+    expect(html).toContain('🇧🇷 pt');
   });
 
   it('renders without an onLanguageChange prop', function() {

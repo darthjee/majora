@@ -1,10 +1,12 @@
 import { load } from 'js-yaml';
 import enYaml from '../../i18n/en.yaml?raw';
+import ptYaml from '../../i18n/pt.yaml?raw';
 import LanguageEvents from './LanguageEvents.js';
 import LanguageStorage from './LanguageStorage.js';
 
 const TRANSLATIONS = {
   en: load(enYaml),
+  pt: load(ptYaml),
 };
 
 const DEFAULT_LANGUAGE = 'en';
@@ -31,7 +33,7 @@ function lookup(map, key) {
  * module load time and exposes a `t(key)` dot-path lookup, plus language
  * selection backed by `LanguageStorage`/`LanguageEvents`.
  *
- * Only `en` is bundled today; adding a new language means adding a new
+ * `en` and `pt` are bundled today; adding a new language means adding a new
  * `<code>.yaml` file under `frontend/assets/i18n/`, importing it above, and
  * registering it in the `TRANSLATIONS` table.
  */

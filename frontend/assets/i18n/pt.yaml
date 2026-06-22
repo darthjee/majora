@@ -1,0 +1,54 @@
+header:
+  title: Majora
+  subtitle: Sistema de gerenciamento de campanhas de RPG
+  nav_games: Campanhas
+  login: Login
+  logoff: Logoff
+  send_test_email: Enviar e-mail de teste
+  test_email_sent: E-mail de teste enviado
+  test_email_error: Falha ao enviar e-mail de teste
+login_modal:
+  title: Login
+  username_label: Usuario
+  password_label: Senha
+  cancel: Cancelar
+  submit: Login
+  forgot_password: Esqueci a senha
+  incorrect: Credenciais inválidas.
+  error: Um erro inesperado ocorreu, tente novamente mais tarde.
+  recover_title: Recuperar a senha
+  email_label: E-mail
+  recover_submit: Enviar email de recuperação
+  back_to_login: Voltar ao login
+  recovery_sent: Caso o e-mail esteja registrado, o link de recuperaçao será enviado.
+back_button:
+  label: Voltar
+pagination:
+  aria_label: Pagina de Jogos
+  previous: Anterior
+  next: Próximo
+games_page:
+  loading: Carregando jogos...
+  back_href_label: Voltar
+game_page:
+  loading: Carregando jogo...
+  player_characters: Personagens
+  non_player_characters: NPCs
+game_characters_page:
+  loading: Carregando...
+character_page:
+  loading: Carregando personagem...
+character_info:
+  class_label: 'Classe:'
+  level_label: Nível
+character_preview_section:
+  see_all: Ver todos {{title}}
+recover_password_page:
+  title: Resetar senha
+  new_password_label: Nova senha
+  confirm_password_label: Confirmar nova senha
+  submit: Resetar senha
+  success: Sua senha foi resetada.
+  back_to_home: Voltar à página inicial
+language_selector:
+  label: Idioma

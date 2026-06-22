@@ -16,7 +16,10 @@ describe('LanguageSelectorController', function() {
     it('returns an option for every available language with a flag', function() {
       const controller = new LanguageSelectorController(setLanguage);
 
-      expect(controller.getOptions()).toEqual([{ code: 'en', flag: '🇬🇧' }]);
+      expect(controller.getOptions()).toEqual([
+        { code: 'en', flag: '🇬🇧' },
+        { code: 'pt', flag: '🇧🇷' },
+      ]);
     });
   });
 

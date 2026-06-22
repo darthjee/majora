@@ -2,6 +2,7 @@ import Translator from '../../../i18n/Translator.js';
 
 const FLAGS = {
   en: '🇬🇧',
+  pt: '🇧🇷',
 };
 
 /**
