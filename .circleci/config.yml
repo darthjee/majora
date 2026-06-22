@@ -213,16 +213,16 @@ jobs:
       - checkout
       - run:
           name: Generate key file
-          command: deploy_frontend.sh generate_key_file
+          command: bin/deploy_frontend.sh generate_key_file
       - run:
           name: Upload proxy files
-          command: SOURCE=/var/www/html/ deploy_frontend.sh upload
+          command: SOURCE=/var/www/html/ bin/deploy_frontend.sh upload
       - run:
           name: Upload proxy configuration
-          command: SOURCE=prod_proxy_config/ SSH_REMOTE_TEMP_DIR=$SSH_REMOTE_TEMP_DIR/configuration/ deploy_frontend.sh upload
+          command: SOURCE=prod_proxy_config/ DEPLOY_PATH=configuration/ bin/deploy_frontend.sh upload
       - run:
           name: Setup hosts
-          command: TARGET=configuration/hosts.php SSH_REMOTE_TEMP_DIR=$SSH_REMOTE_TEMP_DIR/configuration/ deploy_frontend.sh copy_files
+          command: TARGET=configuration/hosts.php DEPLOY_PATH=configuration/ bin/deploy_frontend.sh copy_files
 
   upload_fe_files:
     docker:
@@ -237,16 +237,16 @@ jobs:
           command: yarn install
       - run:
           name: Build assets
-          command: deploy_frontend.sh build
+          command: bin/deploy_frontend.sh build
       - run:
           name: Generate key file
-          command: deploy_frontend.sh generate_key_file
+          command: bin/deploy_frontend.sh generate_key_file
       - run:
           name: Generate folder
-          command: SSH_REMOTE_TEMP_DIR=$SSH_REMOTE_TEMP_DIR/static/ deploy_frontend.sh generate_folder
+          command: DEPLOY_PATH=static/ bin/deploy_frontend.sh generate_folder
       - run:
           name: Upload assets
-          command: SOURCE=dist/ SSH_REMOTE_TEMP_DIR=$SSH_REMOTE_TEMP_DIR/static/ deploy_frontend.sh upload
+          command: SOURCE=dist/ DEPLOY_PATH=static/ bin/deploy_frontend.sh upload
 
   link_photos:
     docker:
@@ -256,13 +256,13 @@ jobs:
       - checkout
       - run:
           name: Generate key file
-          command: deploy_frontend.sh generate_key_file
+          command: bin/deploy_frontend.sh generate_key_file
       - run:
           name: Generate folder
-          command: deploy_frontend.sh generate_folder
+          command: bin/deploy_frontend.sh generate_folder
       - run:
           name: Link photos
-          command: SOURCE=$REMOTE_HOME/photos TARGET=$SSH_REMOTE_TEMP_DIR/photos deploy_frontend.sh link
+          command: SOURCE=$REMOTE_HOME/photos DEPLOY_PATH=photos bin/deploy_frontend.sh link
 
   upload_admin_assets:
     docker:
@@ -283,10 +283,10 @@ jobs:
           command: bin/deploy_frontend.sh generate_key_file
       - run:
           name: Generate folder
-          command: SSH_REMOTE_TEMP_DIR=$SSH_REMOTE_TEMP_DIR/static/assets/admin/ bin/deploy_frontend.sh generate_folder
+          command: DEPLOY_PATH=static/assets/admin/ bin/deploy_frontend.sh generate_folder
       - run:
           name: Upload admin assets
-          command: SOURCE=staticfiles/admin/ SSH_REMOTE_TEMP_DIR=$SSH_REMOTE_TEMP_DIR/static/assets/admin/ bin/deploy_frontend.sh upload
+          command: SOURCE=staticfiles/admin/ DEPLOY_PATH=static/assets/admin/ bin/deploy_frontend.sh upload
 
   build-and-release:
     machine: true
@@ -303,10 +303,10 @@ jobs:
       - checkout
       - run:
           name: Generate key file
-          command: deploy_frontend.sh generate_key_file
+          command: bin/deploy_frontend.sh generate_key_file
       - run:
           name: Release assets
-          command: deploy_frontend.sh release
+          command: bin/deploy_frontend.sh release
 
   warm-up-cache:
     docker:

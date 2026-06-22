@@ -10,6 +10,7 @@
 | `docker_volumes/` | Bind-mounted volumes used by Docker services (static assets, proxy config, node_modules, etc.). |
 | `docs/` | Project documentation for agents and contributors. |
 | `prod_proxy_config/` | Production proxy host configuration (PHP-based rules and host definitions for `darthjee/tent`). |
+| `bin/` | Standalone shell scripts shared across CI jobs regardless of language/runtime (`image.sh`, `deploy_frontend.sh`). |
 | `scripts/` | Standalone shell scripts for releases (`bump_version.sh`, `deploy.sh`, `render.sh`). |
 | `.circleci/` | CircleCI pipeline config (`config.yml`) and Navi cache-warmer config (`navi_config.yaml`). |
 | `.claude/` | Claude Code project configuration: custom agents, slash commands, and skill state. |

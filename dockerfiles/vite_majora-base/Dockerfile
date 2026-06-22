@@ -8,8 +8,6 @@ USER node
 COPY --chown=node:node \
   ./frontend/package.json frontend/yarn.lock \
   /home/node/app/
-COPY --chown=node:node --from=scripts \
-  /home/scripts/sbin/deploy_frontend.sh /usr/local/sbin/
 
 ######################################
 
