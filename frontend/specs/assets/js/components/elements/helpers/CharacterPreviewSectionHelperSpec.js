@@ -43,7 +43,7 @@ describe('CharacterPreviewSectionHelper', function() {
       const html = renderToStaticMarkup(
         CharacterPreviewSectionHelper.render(buildCharacters(1), gameSlug, 'pc', title, seeAllHref)
       );
-      expect(html).toContain('col-sm-4 col-md-3 col-lg-2');
+      expect(html).toContain('col-sm-3 col-md-2 col-lg-1');
     });
 
     it('renders a see all link with the provided href', function() {
