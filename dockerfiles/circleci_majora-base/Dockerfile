@@ -1,6 +1,10 @@
 FROM darthjee/scripts:0.8.0 as scripts
 FROM darthjee/circleci_django:0.0.2 as base
 
+USER root
+RUN apt-get update && apt-get install -y rsync && rm -rf /var/lib/apt/lists/*
+USER circleci
+
 ######################################
 
 FROM base as builder
