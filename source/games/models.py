@@ -37,6 +37,13 @@ class Player(models.Model):
 
     name = models.CharField(max_length=200)
     games = models.ManyToManyField(Game, blank=True, related_name='players')
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='players_accounts',
+    )
 
     class Meta:
         ordering = ['name']
@@ -71,6 +78,14 @@ class Character(models.Model):
     def is_pc(self):
         """Return True if the character is a Player Character (PC)."""
         return not self.npc
+
+    def can_be_edited_by(self, user):
+        """Return True if `user` may edit this character (its player or a superuser)."""
+        if not user or not user.is_authenticated:
+            return False
+        if user.is_superuser:
+            return True
+        return self.player_id is not None and self.player.user_id == user.id
 
     def __str__(self):
         """Return string representation of the character."""

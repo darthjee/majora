@@ -3,7 +3,9 @@
 import json
 
 import pytest
+from django.contrib.auth.models import User
 from django.urls import reverse
+from rest_framework.authtoken.models import Token
 
 from games.models import Character, Game, Link, Photo, Player
 
@@ -410,3 +412,166 @@ class TestGamePcDetailView:
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['character_class'] is None
+
+    def test_can_edit_is_false_for_anonymous_request(self, client):
+        """Test that can_edit is false when the request has no token."""
+        response = client.get(f'/games/test-game/pcs/{self.character.id}.json')
+        data = json.loads(response.content)
+        assert data['can_edit'] is False
+
+    def test_can_edit_is_true_for_connected_player_user(self, client):
+        """Test that can_edit is true when the token belongs to the character's player's user."""
+        user = User.objects.create_user(username='owner', password='secret-password')
+        self.player.user = user
+        self.player.save()
+        token = Token.objects.create(user=user)
+
+        response = client.get(
+            f'/games/test-game/pcs/{self.character.id}.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        data = json.loads(response.content)
+        assert data['can_edit'] is True
+
+    def test_can_edit_is_true_for_superuser(self, client):
+        """Test that can_edit is true when the token belongs to a superuser."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+
+        response = client.get(
+            f'/games/test-game/pcs/{self.character.id}.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        data = json.loads(response.content)
+        assert data['can_edit'] is True
+
+
+@pytest.mark.django_db
+class TestGamePcUpdateView:
+    """Tests for the PC update (PATCH) endpoint."""
+
+    def setup_method(self):
+        """Set up common test fixtures."""
+        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.player = Player.objects.create(name='Bob')
+        self.owner = User.objects.create_user(username='owner', password='secret-password')
+        self.player.user = self.owner
+        self.player.save()
+        self.character = Character.objects.create(
+            name='Aragorn',
+            game=self.game,
+            player=self.player,
+            character_class='Ranger',
+            level=20,
+            description='The future king of Gondor.',
+            npc=False,
+        )
+
+    def _patch(self, client, payload, token=None):
+        """Issue a PATCH request to the PC detail endpoint, optionally with a token."""
+        extra = {}
+        if token is not None:
+            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
+        return client.patch(
+            f'/games/test-game/pcs/{self.character.id}.json',
+            data=json.dumps(payload),
+            content_type='application/json',
+            **extra,
+        )
+
+    def test_patch_without_token_returns_401(self, client):
+        """Test that PATCH without a token is rejected with 401."""
+        response = self._patch(client, {'name': 'Strider'})
+        assert response.status_code == 401
+
+    def test_patch_with_unrelated_user_returns_403(self, client):
+        """Test that PATCH from an unrelated user's token is rejected with 403."""
+        other_user = User.objects.create_user(username='other', password='secret-password')
+        token = Token.objects.create(user=other_user)
+
+        response = self._patch(client, {'name': 'Strider'}, token=token)
+
+        assert response.status_code == 403
+        self.character.refresh_from_db()
+        assert self.character.name == 'Aragorn'
+
+    def test_patch_with_owner_token_updates_character(self, client):
+        """Test that PATCH from the connected player's user's token updates fields."""
+        token = Token.objects.create(user=self.owner)
+
+        response = self._patch(
+            client,
+            {
+                'name': 'Strider',
+                'avatar_url': 'http://example.com/strider.png',
+                'character_class': 'Ranger King',
+                'level': 21,
+                'description': 'King of Gondor.',
+            },
+            token=token,
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['name'] == 'Strider'
+        assert data['avatar_url'] == 'http://example.com/strider.png'
+        assert data['character_class'] == 'Ranger King'
+        assert data['level'] == 21
+        assert data['description'] == 'King of Gondor.'
+
+        self.character.refresh_from_db()
+        assert self.character.name == 'Strider'
+        assert self.character.level == 21
+
+    def test_patch_with_superuser_token_returns_200(self, client):
+        """Test that PATCH from a superuser's token is allowed."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+
+        response = self._patch(client, {'name': 'Strider'}, token=token)
+
+        assert response.status_code == 200
+        self.character.refresh_from_db()
+        assert self.character.name == 'Strider'
+
+    def test_patch_ignores_non_editable_fields(self, client):
+        """Test that fields outside the allowed set are silently ignored."""
+        token = Token.objects.create(user=self.owner)
+        other_game = Game.objects.create(name='Other Game', game_slug='other-game')
+
+        response = self._patch(
+            client,
+            {'name': 'Strider', 'npc': True, 'game': other_game.id},
+            token=token,
+        )
+
+        assert response.status_code == 200
+        self.character.refresh_from_db()
+        assert self.character.name == 'Strider'
+        assert self.character.npc is False
+        assert self.character.game_id == self.game.id
+
+    def test_patch_with_invalid_value_returns_400(self, client):
+        """Test that an invalid field value is rejected with 400 and leaves data unchanged."""
+        token = Token.objects.create(user=self.owner)
+
+        response = self._patch(client, {'level': 'not-a-number'}, token=token)
+
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'level' in data['errors']
+        self.character.refresh_from_db()
+        assert self.character.level == 20
+
+    def test_patch_partial_body_only_changes_given_fields(self, client):
+        """Test that a partial PATCH body only updates the provided field."""
+        token = Token.objects.create(user=self.owner)
+
+        response = self._patch(client, {'name': 'Strider'}, token=token)
+
+        assert response.status_code == 200
+        self.character.refresh_from_db()
+        assert self.character.name == 'Strider'
+        assert self.character.character_class == 'Ranger'
+        assert self.character.level == 20
+        assert self.character.description == 'The future king of Gondor.'

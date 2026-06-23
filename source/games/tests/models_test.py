@@ -1,7 +1,7 @@
 """Tests for games app models."""
 
 import pytest
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AnonymousUser, User
 from django.utils.text import slugify
 
 from games.models import Character, Game, Link, Photo, Player, UserProfile
@@ -132,6 +132,46 @@ class TestCharacter:
         """Test string representation of a character."""
         character = Character(name='Gimli', game=self.game)
         assert str(character) == 'Gimli'
+
+    def test_can_be_edited_by_returns_false_for_anonymous_user(self):
+        """Test that an anonymous (None) user cannot edit a character."""
+        character = Character.objects.create(name='Frodo', game=self.game, player=self.player)
+        assert character.can_be_edited_by(None) is False
+
+    def test_can_be_edited_by_returns_false_for_unauthenticated_user(self):
+        """Test that an unauthenticated user cannot edit a character."""
+        character = Character.objects.create(name='Frodo', game=self.game, player=self.player)
+        anonymous_user = AnonymousUser()
+        assert character.can_be_edited_by(anonymous_user) is False
+
+    def test_can_be_edited_by_returns_true_for_superuser(self):
+        """Test that a superuser can edit any character."""
+        character = Character.objects.create(name='Frodo', game=self.game)
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        assert character.can_be_edited_by(superuser) is True
+
+    def test_can_be_edited_by_returns_true_for_matching_player_user(self):
+        """Test that the user linked to the character's player can edit it."""
+        user = User.objects.create_user(username='owner', password='secret-password')
+        self.player.user = user
+        self.player.save()
+        character = Character.objects.create(name='Frodo', game=self.game, player=self.player)
+        assert character.can_be_edited_by(user) is True
+
+    def test_can_be_edited_by_returns_false_for_unrelated_user(self):
+        """Test that a user not linked to the character's player cannot edit it."""
+        owner = User.objects.create_user(username='owner', password='secret-password')
+        self.player.user = owner
+        self.player.save()
+        other_user = User.objects.create_user(username='other', password='secret-password')
+        character = Character.objects.create(name='Frodo', game=self.game, player=self.player)
+        assert character.can_be_edited_by(other_user) is False
+
+    def test_can_be_edited_by_returns_false_when_no_player(self):
+        """Test that a character without a player cannot be edited by a non-superuser."""
+        user = User.objects.create_user(username='someone', password='secret-password')
+        character = Character.objects.create(name='Gandalf', game=self.game)
+        assert character.can_be_edited_by(user) is False
 
 
 @pytest.mark.django_db

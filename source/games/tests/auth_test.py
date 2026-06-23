@@ -208,6 +208,7 @@ class TestStatusView:
         assert json.loads(response.content) == {
             'logged_in': True,
             'username': 'alice',
+            'user_id': user.id,
             'settings': {'favorite_language': 'en'},
         }
 
