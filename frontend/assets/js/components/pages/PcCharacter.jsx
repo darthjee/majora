@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import PcCharacterController, { getPcCharacterParamsFromHash }
   from './controllers/PcCharacterController.js';
 import CharacterHelper from './helpers/CharacterHelper.jsx';
+import AuthEvents from '../../utils/AuthEvents.js';
 
 /**
  * PC character detail page.
@@ -19,6 +20,12 @@ export default function PcCharacter() {
   );
 
   useEffect(() => controller.buildEffect()(), [controller]);
+
+  useEffect(() => {
+    const handleAuthChanged = () => controller.buildEffect()();
+    AuthEvents.subscribe(handleAuthChanged);
+    return () => AuthEvents.unsubscribe(handleAuthChanged);
+  }, [controller]);
 
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
   const { game_slug: gameSlug } = getPcCharacterParamsFromHash(currentHash);

@@ -40,6 +40,7 @@ game_characters_page:
   loading: Carregando...
 character_page:
   loading: Carregando personagem...
+  edit: Editar
 character_info:
   class_label: 'Classe:'
   level_label: Nível
@@ -60,5 +61,14 @@ register_page:
   password_confirmation_label: Confirmar senha
   submit: Registrar
   error: Um erro inesperado ocorreu, tente novamente mais tarde.
+pc_edit_page:
+  title: Editar personagem
+  name_label: Nome
+  avatar_url_label: URL do avatar
+  character_class_label: Classe
+  level_label: Nível
+  description_label: Descrição
+  submit: Salvar alterações
+  error: Falha ao salvar o personagem. Tente novamente.
 language_selector:
   label: Idioma

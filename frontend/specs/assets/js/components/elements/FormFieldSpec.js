@@ -48,4 +48,35 @@ describe('FormField', function() {
     expect(html).toContain('class="mb-3"');
     expect(html).toContain('class="form-control"');
   });
+
+  it('renders nothing extra when errors is empty', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(FormField, {
+        id: 'level',
+        type: 'number',
+        label: 'Level',
+        value: '1',
+        onChange: () => {},
+      })
+    );
+
+    expect(html).not.toContain('alert-danger');
+  });
+
+  it('renders one alert per message when errors are provided', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(FormField, {
+        id: 'level',
+        type: 'number',
+        label: 'Level',
+        value: '1',
+        onChange: () => {},
+        errors: ['must be positive', 'must be an integer'],
+      })
+    );
+
+    expect(html.match(/alert-danger/g).length).toBe(2);
+    expect(html).toContain('must be positive');
+    expect(html).toContain('must be an integer');
+  });
 });

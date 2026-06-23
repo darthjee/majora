@@ -55,6 +55,7 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
     photos = PhotoSerializer(many=True, read_only=True)
     is_pc = serializers.ReadOnlyField()
     game_slug = serializers.ReadOnlyField(source='game.game_slug')
+    can_edit = serializers.SerializerMethodField()
 
     class Meta:
         model = Character
@@ -68,4 +69,20 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
             'is_pc',
             'photos',
             'game_slug',
+            'can_edit',
         ]
+
+    def get_can_edit(self, obj):
+        """Return whether the requesting user (from context) may edit this character."""
+        request = self.context.get('request')
+        user = request.user if request else None
+        return obj.can_be_edited_by(user)
+
+
+class CharacterUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for the limited set of fields a player may edit on their PC."""
+
+    class Meta:
+        model = Character
+        fields = ['name', 'avatar_url', 'character_class', 'level', 'description']
+        extra_kwargs = {field: {'required': False} for field in fields}

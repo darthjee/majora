@@ -1,3 +1,5 @@
+import FieldErrors from './FieldErrors.jsx';
+
 /**
  * Labeled form input wrapped in the project's standard `mb-3` spacing,
  * reused across login, registration, and password-recovery forms.
@@ -8,9 +10,10 @@
  * @param {string} props.label - Translated label text.
  * @param {string} props.value - Current input value.
  * @param {Function} props.onChange - Change handler for the input.
+ * @param {string[]} [props.errors] - Field-level error messages to display below the input.
  * @returns {React.ReactElement} Labeled form field.
  */
-export default function FormField({ id, type, label, value, onChange }) {
+export default function FormField({ id, type, label, value, onChange, errors = [] }) {
   return (
     <div className="mb-3">
       <label htmlFor={id} className="form-label">{label}</label>
@@ -21,6 +24,7 @@ export default function FormField({ id, type, label, value, onChange }) {
         value={value}
         onChange={onChange}
       />
+      <FieldErrors errors={errors} />
     </div>
   );
 }

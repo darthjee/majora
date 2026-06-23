@@ -139,6 +139,7 @@ def status(request):
     return Response({
         'logged_in': True,
         'username': user.username,
+        'user_id': user.id,
         'settings': {'favorite_language': profile.favorite_language},
     })
 
