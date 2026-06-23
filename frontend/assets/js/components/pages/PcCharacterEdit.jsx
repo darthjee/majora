@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import PcCharacterEditController, { getPcCharacterEditParamsFromHash, resolveLoadedCharacter }
+import PcCharacterEditController, { getPcCharacterEditParamsFromHash }
   from './controllers/PcCharacterEditController.js';
 import PcCharacterEditHelper from './helpers/PcCharacterEditHelper.jsx';
 import CharacterHelper from './helpers/CharacterHelper.jsx';
@@ -32,22 +32,13 @@ export default function PcCharacterEdit() {
   useEffect(() => controller.buildEffect()(), [controller]);
 
   useEffect(() => {
-    const { redirect, fields } = resolveLoadedCharacter(character);
-
-    if (redirect) {
-      if (typeof window !== 'undefined') {
-        window.location.hash = `/games/${gameSlug}/pcs/${characterId}`;
-      }
-      return;
-    }
-
-    if (fields) {
-      setName(fields.name);
-      setAvatarUrl(fields.avatar_url);
-      setCharacterClass(fields.character_class);
-      setLevel(fields.level);
-      setDescription(fields.description);
-    }
+    controller.applyLoadedCharacter(character, gameSlug, characterId, {
+      setName,
+      setAvatarUrl,
+      setCharacterClass,
+      setLevel,
+      setDescription,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [character]);
 

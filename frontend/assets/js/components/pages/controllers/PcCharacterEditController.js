@@ -111,6 +111,34 @@ export default class PcCharacterEditController extends BasePageController {
 
     window.location.hash = `/games/${gameSlug}/pcs/${characterId}`;
   }
+
+  /**
+   * Apply a loaded character to the edit page, either redirecting away
+   * (when the character is not editable) or seeding the form fields.
+   *
+   * @param {object|null} character - Loaded character, or null while still loading.
+   * @param {string} gameSlug - Game slug, used to build the redirect hash.
+   * @param {string|number} characterId - Character id, used to build the redirect hash.
+   * @param {{setName: Function, setAvatarUrl: Function, setCharacterClass: Function,
+   *   setLevel: Function, setDescription: Function}} setters - Form field setters.
+   * @returns {void}
+   */
+  applyLoadedCharacter(character, gameSlug, characterId, setters) {
+    const { redirect, fields } = resolveLoadedCharacter(character);
+
+    if (redirect) {
+      this.#redirectToShow(gameSlug, characterId);
+      return;
+    }
+
+    if (fields) {
+      setters.setName(fields.name);
+      setters.setAvatarUrl(fields.avatar_url);
+      setters.setCharacterClass(fields.character_class);
+      setters.setLevel(fields.level);
+      setters.setDescription(fields.description);
+    }
+  }
 }
 
 /**
