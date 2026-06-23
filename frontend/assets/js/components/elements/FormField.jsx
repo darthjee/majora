@@ -1,4 +1,16 @@
 /**
+ * Render the field-level error alerts below the input.
+ *
+ * @param {string[]} errors - Field-level error messages to display.
+ * @returns {React.ReactElement[]} Rendered error alert elements.
+ */
+function renderErrors(errors) {
+  return errors.map((message) => (
+    <div key={message} className="alert alert-danger mt-1 mb-0 py-1">{message}</div>
+  ));
+}
+
+/**
  * Labeled form input wrapped in the project's standard `mb-3` spacing,
  * reused across login, registration, and password-recovery forms.
  *
@@ -22,9 +34,7 @@ export default function FormField({ id, type, label, value, onChange, errors = [
         value={value}
         onChange={onChange}
       />
-      {errors.map((message) => (
-        <div key={message} className="alert alert-danger mt-1 mb-0 py-1">{message}</div>
-      ))}
+      {renderErrors(errors)}
     </div>
   );
 }
