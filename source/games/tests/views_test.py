@@ -342,6 +342,171 @@ class TestGameNpcDetailView:
         data = json.loads(response.content)
         assert data['character_class'] is None
 
+    def test_can_edit_is_false_for_anonymous_request(self, client):
+        """Test that can_edit is false when the request has no token."""
+        response = client.get(f'/games/test-game/npcs/{self.npc.id}.json')
+        data = json.loads(response.content)
+        assert data['can_edit'] is False
+
+    def test_can_edit_is_false_for_regular_user_with_connected_player(self, client):
+        """Test that can_edit is false for a regular user even if they own a Player."""
+        user = User.objects.create_user(username='owner', password='secret-password')
+        self.player.user = user
+        self.player.save()
+        token = Token.objects.create(user=user)
+
+        response = client.get(
+            f'/games/test-game/npcs/{self.npc.id}.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        data = json.loads(response.content)
+        assert data['can_edit'] is False
+
+    def test_can_edit_is_true_for_superuser(self, client):
+        """Test that can_edit is true when the token belongs to a superuser."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+
+        response = client.get(
+            f'/games/test-game/npcs/{self.npc.id}.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        data = json.loads(response.content)
+        assert data['can_edit'] is True
+
+
+@pytest.mark.django_db
+class TestGameNpcUpdateView:
+    """Tests for the NPC update (PATCH) endpoint."""
+
+    def setup_method(self):
+        """Set up common test fixtures."""
+        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.player = Player.objects.create(name='Bob')
+        self.npc = Character.objects.create(
+            name='Gandalf',
+            game=self.game,
+            character_class='Wizard',
+            level=20,
+            description='A wandering wizard.',
+            npc=True,
+        )
+
+    def _patch(self, client, payload, token=None):
+        """Issue a PATCH request to the NPC detail endpoint, optionally with a token."""
+        extra = {}
+        if token is not None:
+            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
+        return client.patch(
+            f'/games/test-game/npcs/{self.npc.id}.json',
+            data=json.dumps(payload),
+            content_type='application/json',
+            **extra,
+        )
+
+    def test_patch_without_token_returns_401(self, client):
+        """Test that PATCH without a token is rejected with 401."""
+        response = self._patch(client, {'name': 'Saruman'})
+        assert response.status_code == 401
+
+    def test_patch_with_regular_user_returns_403(self, client):
+        """Test that PATCH from a regular (non-superuser) user's token is rejected with 403."""
+        other_user = User.objects.create_user(username='other', password='secret-password')
+        token = Token.objects.create(user=other_user)
+
+        response = self._patch(client, {'name': 'Saruman'}, token=token)
+
+        assert response.status_code == 403
+        self.npc.refresh_from_db()
+        assert self.npc.name == 'Gandalf'
+
+    def test_patch_with_connected_player_user_returns_403(self, client):
+        """Test that owning a Player never grants edit access to an NPC."""
+        owner = User.objects.create_user(username='owner', password='secret-password')
+        self.player.user = owner
+        self.player.save()
+        token = Token.objects.create(user=owner)
+
+        response = self._patch(client, {'name': 'Saruman'}, token=token)
+
+        assert response.status_code == 403
+        self.npc.refresh_from_db()
+        assert self.npc.name == 'Gandalf'
+
+    def test_patch_with_superuser_token_returns_200(self, client):
+        """Test that PATCH from a superuser's token is allowed."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+
+        response = self._patch(
+            client,
+            {
+                'name': 'Saruman',
+                'avatar_url': 'http://example.com/saruman.png',
+                'character_class': 'Wizard',
+                'level': 25,
+                'description': 'The White Wizard.',
+            },
+            token=token,
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['name'] == 'Saruman'
+        assert data['avatar_url'] == 'http://example.com/saruman.png'
+        assert data['character_class'] == 'Wizard'
+        assert data['level'] == 25
+        assert data['description'] == 'The White Wizard.'
+
+        self.npc.refresh_from_db()
+        assert self.npc.name == 'Saruman'
+        assert self.npc.level == 25
+
+    def test_patch_ignores_non_editable_fields(self, client):
+        """Test that fields outside the allowed set are silently ignored."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+        other_game = Game.objects.create(name='Other Game', game_slug='other-game')
+
+        response = self._patch(
+            client,
+            {'name': 'Saruman', 'npc': False, 'game': other_game.id},
+            token=token,
+        )
+
+        assert response.status_code == 200
+        self.npc.refresh_from_db()
+        assert self.npc.name == 'Saruman'
+        assert self.npc.npc is True
+        assert self.npc.game_id == self.game.id
+
+    def test_patch_with_invalid_value_returns_400(self, client):
+        """Test that an invalid field value is rejected with 400 and leaves data unchanged."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+
+        response = self._patch(client, {'level': 'not-a-number'}, token=token)
+
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'level' in data['errors']
+        self.npc.refresh_from_db()
+        assert self.npc.level == 20
+
+    def test_patch_partial_body_only_changes_given_fields(self, client):
+        """Test that a partial PATCH body only updates the provided field."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+
+        response = self._patch(client, {'name': 'Saruman'}, token=token)
+
+        assert response.status_code == 200
+        self.npc.refresh_from_db()
+        assert self.npc.name == 'Saruman'
+        assert self.npc.character_class == 'Wizard'
+        assert self.npc.level == 20
+        assert self.npc.description == 'A wandering wizard.'
+
 
 @pytest.mark.django_db
 class TestGamePcDetailView:

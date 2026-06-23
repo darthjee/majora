@@ -35,11 +35,17 @@ def game_npcs(request, game_slug):
     return Response(serializer.data, headers=headers)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'PATCH'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([AllowAny])
 def game_npc_detail(request, game_slug, character_id):
-    """Return detail for a specific NPC in a game."""
+    """Return or update detail for a specific NPC in a game."""
     game = get_object_or_404(Game, game_slug=game_slug)
     character = get_object_or_404(Character, id=character_id, game=game, npc=True)
+
+    if request.method == 'PATCH':
+        return _update_character(request, character)
+
     serializer = CharacterDetailSerializer(character, context={'request': request})
     return Response(serializer.data)
 
@@ -53,14 +59,14 @@ def game_pc_detail(request, game_slug, character_id):
     character = get_object_or_404(Character, id=character_id, game=game, npc=False)
 
     if request.method == 'PATCH':
-        return _update_pc(request, character)
+        return _update_character(request, character)
 
     serializer = CharacterDetailSerializer(character, context={'request': request})
     return Response(serializer.data)
 
 
-def _update_pc(request, character):
-    """Validate permissions and payload, then persist updates to a PC."""
+def _update_character(request, character):
+    """Validate permissions and payload, then persist updates to a character."""
     if not request.user or not request.user.is_authenticated:
         return Response({'errors': {'detail': ['authentication required']}}, status=401)
     if not character.can_be_edited_by(request.user):
