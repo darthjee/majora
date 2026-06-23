@@ -173,6 +173,50 @@ class TestCharacter:
         character = Character.objects.create(name='Gandalf', game=self.game)
         assert character.can_be_edited_by(user) is False
 
+    def test_can_be_edited_by_returns_true_for_game_master(self):
+        """Test that a DM of the character's game can edit the character."""
+        dm_user = User.objects.create_user(username='dm', password='secret-password')
+        GameMaster.objects.create(game=self.game, user=dm_user)
+        character = Character.objects.create(name='Frodo', game=self.game)
+        assert character.can_be_edited_by(dm_user) is True
+
+    def test_can_be_edited_by_returns_false_for_dm_of_different_game(self):
+        """Test that a DM of a different game cannot edit the character."""
+        other_game = Game.objects.create(name='Other Game', game_slug='other-game')
+        dm_user = User.objects.create_user(username='dm', password='secret-password')
+        GameMaster.objects.create(game=other_game, user=dm_user)
+        character = Character.objects.create(name='Frodo', game=self.game)
+        assert character.can_be_edited_by(dm_user) is False
+
+    def test_editors_includes_player_user(self):
+        """Test that the editors queryset includes the character's player's user."""
+        user = User.objects.create_user(username='player_user', password='secret-password')
+        self.player.user = user
+        self.player.save()
+        character = Character.objects.create(name='Frodo', game=self.game, player=self.player)
+        assert user in character.editors
+
+    def test_editors_includes_game_masters(self):
+        """Test that the editors queryset includes all DM users of the game."""
+        dm1 = User.objects.create_user(username='dm1', password='secret-password')
+        dm2 = User.objects.create_user(username='dm2', password='secret-password')
+        GameMaster.objects.create(game=self.game, user=dm1)
+        GameMaster.objects.create(game=self.game, user=dm2)
+        character = Character.objects.create(name='Frodo', game=self.game)
+        assert dm1 in character.editors
+        assert dm2 in character.editors
+
+    def test_editors_excludes_unrelated_users(self):
+        """Test that the editors queryset does not include unrelated users."""
+        unrelated = User.objects.create_user(username='nobody', password='secret-password')
+        character = Character.objects.create(name='Frodo', game=self.game)
+        assert unrelated not in character.editors
+
+    def test_editors_is_empty_when_no_player_and_no_dms(self):
+        """Test that editors is empty for a character with no player and no DMs."""
+        character = Character.objects.create(name='Gandalf', game=self.game)
+        assert character.editors.count() == 0
+
 
 @pytest.mark.django_db
 class TestPhoto:

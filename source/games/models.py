@@ -79,13 +79,23 @@ class Character(models.Model):
         """Return True if the character is a Player Character (PC)."""
         return not self.npc
 
+    @property
+    def editors(self):
+        """Return queryset of users with explicit edit rights (player + DMs, no superusers)."""
+        from django.db.models import Q
+        dm_ids = self.game.game_masters.values_list('user_id', flat=True)
+        q = Q(id__in=dm_ids)
+        if self.player_id is not None and self.player.user_id is not None:
+            q |= Q(id=self.player.user_id)
+        return User.objects.filter(q)
+
     def can_be_edited_by(self, user):
-        """Return True if `user` may edit this character (its player or a superuser)."""
+        """Return True if `user` may edit this character (its player, a DM, or a superuser)."""
         if not user or not user.is_authenticated:
             return False
         if user.is_superuser:
             return True
-        return self.player_id is not None and self.player.user_id == user.id
+        return self.editors.filter(id=user.id).exists()
 
     def __str__(self):
         """Return string representation of the character."""
