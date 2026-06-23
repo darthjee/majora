@@ -44,13 +44,17 @@ class Character(models.Model):
             q |= Q(id=self.player.user_id)
         return User.objects.filter(q)
 
+    def is_editor(self, user):
+        """Return True if `user` has explicit edit rights (player or DM, not superuser)."""
+        return self.editors.filter(id=user.id).exists()
+
     def can_be_edited_by(self, user):
         """Return True if `user` may edit this character (its player, a DM, or a superuser)."""
         if not user or not user.is_authenticated:
             return False
         if user.is_superuser:
             return True
-        return self.editors.filter(id=user.id).exists()
+        return self.is_editor(user)
 
     def __str__(self):
         """Return string representation of the character."""

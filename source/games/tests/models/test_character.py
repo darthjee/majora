@@ -154,3 +154,30 @@ class TestCharacter:
         """Test that editors is empty for a character with no player and no DMs."""
         character = Character.objects.create(name='Gandalf', game=self.game)
         assert character.editors.count() == 0
+
+    def test_is_editor_returns_true_for_player_user(self):
+        """Test that the player's linked user is an editor."""
+        user = User.objects.create_user(username='player_user', password='secret-password')
+        self.player.user = user
+        self.player.save()
+        character = Character.objects.create(name='Frodo', game=self.game, player=self.player)
+        assert character.is_editor(user) is True
+
+    def test_is_editor_returns_true_for_game_master(self):
+        """Test that a DM of the game is an editor."""
+        dm_user = User.objects.create_user(username='dm', password='secret-password')
+        GameMaster.objects.create(game=self.game, user=dm_user)
+        character = Character.objects.create(name='Frodo', game=self.game)
+        assert character.is_editor(dm_user) is True
+
+    def test_is_editor_returns_false_for_unrelated_user(self):
+        """Test that an unrelated user is not an editor."""
+        unrelated = User.objects.create_user(username='nobody', password='secret-password')
+        character = Character.objects.create(name='Frodo', game=self.game)
+        assert character.is_editor(unrelated) is False
+
+    def test_is_editor_returns_false_for_superuser(self):
+        """Test that superusers are not in editors (access is implicit via can_be_edited_by)."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        character = Character.objects.create(name='Frodo', game=self.game)
+        assert character.is_editor(superuser) is False
