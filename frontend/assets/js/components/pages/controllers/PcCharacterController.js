@@ -1,3 +1,4 @@
+import CharacterClient from '../../../client/CharacterClient.js';
 import GenericClient from '../../../client/GenericClient.js';
 import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
@@ -28,9 +29,10 @@ export default class PcCharacterController extends BasePageController {
    * @param {Function} setCharacter - Character setter.
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
-   * @param {GenericClient|null} client - Client override.
+   * @param {GenericClient|null} client - Client override, used for hash resolution.
    * @param {Function} [paramsFromHash] - Hash param extractor override, used by
    *   subclasses/composed controllers whose route shape differs (e.g. the edit page).
+   * @param {CharacterClient|null} [characterClient] - Character client override.
    */
   constructor(
     setCharacter,
@@ -38,6 +40,7 @@ export default class PcCharacterController extends BasePageController {
     setError,
     client = null,
     paramsFromHash = getPcCharacterParamsFromHash,
+    characterClient = null,
   ) {
     super();
     this.setCharacter = setCharacter;
@@ -45,6 +48,7 @@ export default class PcCharacterController extends BasePageController {
     this.setError = setError;
     this.client = client ?? new GenericClient();
     this.paramsFromHash = paramsFromHash;
+    this.characterClient = characterClient ?? new CharacterClient();
   }
 
   /**
@@ -64,12 +68,7 @@ export default class PcCharacterController extends BasePageController {
       } else {
         const token = AuthStorage.getToken();
 
-        this.client.request(`/games/${params.game_slug}/pcs/${params.character_id}.json`, {
-          headers: {
-            Accept: 'application/json',
-            ...(token ? { Authorization: `Token ${token}` } : {}),
-          },
-        })
+        this.characterClient.fetchPc(params.game_slug, params.character_id, token)
           .then((response) => {
             if (!response.ok) throw new Error('Unable to load character.');
             return response.json();

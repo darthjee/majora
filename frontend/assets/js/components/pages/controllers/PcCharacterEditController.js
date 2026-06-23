@@ -1,3 +1,4 @@
+import CharacterClient from '../../../client/CharacterClient.js';
 import GenericClient from '../../../client/GenericClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
@@ -30,21 +31,31 @@ export default class PcCharacterEditController extends BasePageController {
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
-   * @param {GenericClient|null} client - Client override.
+   * @param {GenericClient|null} client - Client override, used for hash resolution.
+   * @param {CharacterClient|null} [characterClient] - Character client override.
    */
-  constructor(setCharacter, setLoading, setError, setFieldErrors = () => {}, client = null) {
+  constructor(
+    setCharacter,
+    setLoading,
+    setError,
+    setFieldErrors = () => {},
+    client = null,
+    characterClient = null,
+  ) {
     super();
     this.setCharacter = setCharacter;
     this.setLoading = setLoading;
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;
     this.client = client ?? new GenericClient();
+    this.characterClient = characterClient ?? new CharacterClient();
     this.loadController = new PcCharacterController(
       setCharacter,
       setLoading,
       setError,
       this.client,
       getPcCharacterEditParamsFromHash,
+      this.characterClient,
     );
   }
 
@@ -71,15 +82,7 @@ export default class PcCharacterEditController extends BasePageController {
     const token = AuthStorage.getToken();
 
     try {
-      const response = await this.client.request(`/games/${gameSlug}/pcs/${characterId}.json`, {
-        method: 'PATCH',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Token ${token}` } : {}),
-        },
-        body: JSON.stringify(fields),
-      });
+      const response = await this.characterClient.updatePc(gameSlug, characterId, token, fields);
 
       await this.#handleResponse(response, gameSlug, characterId);
     } catch {

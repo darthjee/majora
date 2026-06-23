@@ -9,6 +9,7 @@ describe('PcCharacterEditController#submitForm', function() {
   let setFieldErrors;
   let setStatus;
   let client;
+  let characterClient;
 
   afterEach(function() {
     AuthStorage.clearToken();
@@ -20,9 +21,10 @@ describe('PcCharacterEditController#submitForm', function() {
     setError = jasmine.createSpy('setError');
     setFieldErrors = jasmine.createSpy('setFieldErrors');
     setStatus = jasmine.createSpy('setStatus');
-    client = jasmine.createSpyObj('client', ['currentHash', 'request']);
+    client = jasmine.createSpyObj('client', ['currentHash']);
+    characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'updatePc']);
     spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
-    client.request.and.returnValue(Promise.resolve({
+    characterClient.updatePc.and.returnValue(Promise.resolve({
       ok: true,
       status: 200,
       json: () => Promise.resolve({ id: 2, can_edit: true }),
@@ -36,6 +38,7 @@ describe('PcCharacterEditController#submitForm', function() {
       setError,
       setFieldErrors,
       client,
+      characterClient,
     );
     const event = jasmine.createSpyObj('event', ['preventDefault']);
     const fakeWindow = { location: { hash: '' } };
@@ -59,21 +62,18 @@ describe('PcCharacterEditController#submitForm', function() {
       expect(event.preventDefault).toHaveBeenCalled();
       expect(setStatus).toHaveBeenCalledWith('submitting');
       expect(setFieldErrors).toHaveBeenCalledWith({});
-      expect(client.request).toHaveBeenCalledWith('/games/demo/pcs/2.json', {
-        method: 'PATCH',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          Authorization: 'Token tok-abc',
-        },
-        body: JSON.stringify({
+      expect(characterClient.updatePc).toHaveBeenCalledWith(
+        'demo',
+        '2',
+        'tok-abc',
+        {
           name: 'Aragorn',
           avatar_url: 'http://example.com/a.png',
           character_class: 'Ranger',
           level: 10,
           description: 'King',
-        }),
-      });
+        },
+      );
     } finally {
       delete globalThis.window;
     }
@@ -86,6 +86,7 @@ describe('PcCharacterEditController#submitForm', function() {
       setError,
       setFieldErrors,
       client,
+      characterClient,
     );
     const fakeWindow = { location: { hash: '' } };
     globalThis.window = fakeWindow;
