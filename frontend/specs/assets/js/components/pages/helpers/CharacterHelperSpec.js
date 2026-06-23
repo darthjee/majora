@@ -55,6 +55,24 @@ describe('CharacterHelper', function() {
       const html = renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'));
       expect(html).toContain('href="#/games/demo/pcs"');
     });
+
+    it('renders an edit button when can_edit is true', function() {
+      const c = { ...character, can_edit: true, game_slug: 'demo', id: 7 };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).toContain('href="#/games/demo/pcs/7/edit"');
+      expect(html).toContain('Edit');
+    });
+
+    it('does not render an edit button when can_edit is false', function() {
+      const c = { ...character, can_edit: false };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).not.toContain('/edit"');
+    });
+
+    it('does not render an edit button when can_edit is absent', function() {
+      const html = renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'));
+      expect(html).not.toContain('/edit"');
+    });
   });
 
   describe('.renderLoading', function() {

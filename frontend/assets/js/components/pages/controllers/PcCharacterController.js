@@ -1,6 +1,7 @@
 import GenericClient from '../../../client/GenericClient.js';
 import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
+import AuthStorage from '../../../utils/AuthStorage.js';
 
 /**
  * Extract game slug and character id from a PC character hash.
@@ -28,13 +29,22 @@ export default class PcCharacterController extends BasePageController {
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
    * @param {GenericClient|null} client - Client override.
+   * @param {Function} [paramsFromHash] - Hash param extractor override, used by
+   *   subclasses/composed controllers whose route shape differs (e.g. the edit page).
    */
-  constructor(setCharacter, setLoading, setError, client = null) {
+  constructor(
+    setCharacter,
+    setLoading,
+    setError,
+    client = null,
+    paramsFromHash = getPcCharacterParamsFromHash,
+  ) {
     super();
     this.setCharacter = setCharacter;
     this.setLoading = setLoading;
     this.setError = setError;
     this.client = client ?? new GenericClient();
+    this.paramsFromHash = paramsFromHash;
   }
 
   /**
@@ -46,13 +56,24 @@ export default class PcCharacterController extends BasePageController {
     return () => {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
-      const params = getPcCharacterParamsFromHash(this.client.currentHash());
+      const params = this.paramsFromHash(this.client.currentHash());
 
       if (!params.game_slug || !params.character_id) {
         safeSet(this.setError, 'Unable to load character.');
         safeSet(this.setLoading, false);
       } else {
-        this.client.fetch(`/games/${params.game_slug}/pcs/${params.character_id}.json`)
+        const token = AuthStorage.getToken();
+
+        this.client.request(`/games/${params.game_slug}/pcs/${params.character_id}.json`, {
+          headers: {
+            Accept: 'application/json',
+            ...(token ? { Authorization: `Token ${token}` } : {}),
+          },
+        })
+          .then((response) => {
+            if (!response.ok) throw new Error('Unable to load character.');
+            return response.json();
+          })
           .then((character) => safeSet(this.setCharacter, character))
           .catch(() => safeSet(this.setError, 'Unable to load character.'))
           .finally(() => safeSet(this.setLoading, false));
