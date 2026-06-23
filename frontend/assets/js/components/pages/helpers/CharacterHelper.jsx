@@ -22,6 +22,8 @@ export default class CharacterHelper {
    * @param {string} [character.description] - Character description.
    * @param {object[]} [character.photos] - Additional photos array.
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
+   * @param {boolean} [character.is_pc] - Whether the character is a PC (vs. an NPC), used
+   *   to build the correct edit link segment.
    * @param {string} [character.game_slug] - Slug of the game the character belongs to.
    * @param {number|string} [character.id] - Character id.
    * @param {string} backHref - Hash path to the character's index page.
@@ -78,10 +80,12 @@ export default class CharacterHelper {
       return null;
     }
 
+    const segment = character.is_pc ? 'pcs' : 'npcs';
+
     return (
       <a
         className="btn btn-secondary mt-2"
-        href={`#/games/${character.game_slug}/pcs/${character.id}/edit`}
+        href={`#/games/${character.game_slug}/${segment}/${character.id}/edit`}
       >
         {Translator.t('character_page.edit')}
       </a>

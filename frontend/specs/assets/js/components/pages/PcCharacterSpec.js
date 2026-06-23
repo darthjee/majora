@@ -22,6 +22,7 @@ describe('PcCharacter', function() {
       name: 'Aragorn',
       game_slug: 'demo',
       can_edit: true,
+      is_pc: true,
       photos: [],
     };
     const html = renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'));
