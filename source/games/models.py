@@ -115,6 +115,21 @@ class Link(models.Model):
         return self.text
 
 
+class GameMaster(models.Model):
+    """Model representing a DM (Dungeon Master) role for a game."""
+
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='game_masters')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='game_master_roles')
+
+    class Meta:
+        unique_together = [('game', 'user')]
+        ordering = ['id']
+
+    def __str__(self):
+        """Return string representation of the game master."""
+        return f'GameMaster(game={self.game.name}, user={self.user.username})'
+
+
 class PasswordResetToken(models.Model):
     """Model representing a single-use password recovery token for a user."""
 

@@ -2,7 +2,7 @@
 
 from rest_framework import serializers
 
-from .models import Character, Game, Link, Photo
+from .models import Character, Game, GameMaster, Link, Photo
 
 
 class LinkSerializer(serializers.ModelSerializer):
@@ -77,6 +77,14 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         user = request.user if request else None
         return obj.can_be_edited_by(user)
+
+
+class GameMasterSerializer(serializers.ModelSerializer):
+    """Serializer for game master (DM) assignments."""
+
+    class Meta:
+        model = GameMaster
+        fields = ['id', 'user']
 
 
 class CharacterUpdateSerializer(serializers.ModelSerializer):
