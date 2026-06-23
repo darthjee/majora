@@ -19,6 +19,16 @@ urlpatterns = [
         views.game_pc_detail,
         name='game-pc-detail',
     ),
+    path(
+        'games/<slug:game_slug>/game-masters.json',
+        views.game_masters_list,
+        name='game-masters-list',
+    ),
+    path(
+        'games/<slug:game_slug>/game-masters/<int:game_master_id>.json',
+        views.game_master_detail,
+        name='game-master-detail',
+    ),
     path('users/login.json', views.login, name='users-login'),
     path('users/logout.json', views.logout, name='users-logout'),
     path('users/register.json', views.register, name='users-register'),
