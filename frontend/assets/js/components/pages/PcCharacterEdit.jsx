@@ -42,22 +42,13 @@ export default function PcCharacterEdit() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [character]);
 
-  const handleSubmit = (event) => {
-    if (event && typeof event.preventDefault === 'function') {
-      event.preventDefault();
-    }
-
-    setStatus('submitting');
-    setFieldErrors({});
-
-    return controller.handleSubmit(gameSlug, characterId, {
-      name,
-      avatar_url: avatarUrl,
-      character_class: characterClass,
-      level,
-      description,
-    });
-  };
+  const handleSubmit = (event) => controller.submitForm(
+    event,
+    gameSlug,
+    characterId,
+    { name, avatarUrl, characterClass, level, description },
+    { setStatus, setFieldErrors },
+  );
 
   if (loading) return CharacterHelper.renderLoading();
   if (error) return CharacterHelper.renderError(error);

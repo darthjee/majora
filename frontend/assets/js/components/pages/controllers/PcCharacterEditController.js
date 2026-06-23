@@ -87,6 +87,36 @@ export default class PcCharacterEditController extends BasePageController {
     }
   }
 
+  /**
+   * Handle the edit form submission: prevent the default browser submit,
+   * reset the page status/errors, build the fields payload, and delegate
+   * to {@link PcCharacterEditController#handleSubmit}.
+   *
+   * @param {Event|undefined} event - Form submit event, if any.
+   * @param {string} gameSlug - Game slug.
+   * @param {string|number} characterId - Character id.
+   * @param {{name: string, avatarUrl: string, characterClass: string,
+   *   level: string, description: string}} formValues - Raw form field values.
+   * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
+   * @returns {Promise<void>} resolves when the request handling finishes.
+   */
+  submitForm(event, gameSlug, characterId, formValues, setters) {
+    if (event && typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+
+    setters.setStatus('submitting');
+    setters.setFieldErrors({});
+
+    return this.handleSubmit(gameSlug, characterId, {
+      name: formValues.name,
+      avatar_url: formValues.avatarUrl,
+      character_class: formValues.characterClass,
+      level: formValues.level,
+      description: formValues.description,
+    });
+  }
+
   async #handleResponse(response, gameSlug, characterId) {
     if (response.ok) {
       this.#redirectToShow(gameSlug, characterId);
