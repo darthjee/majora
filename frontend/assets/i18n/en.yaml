@@ -70,5 +70,14 @@ pc_edit_page:
   description_label: Description
   submit: Save changes
   error: Failed to save character. Please try again.
+npc_edit_page:
+  title: Edit character
+  name_label: Name
+  avatar_url_label: Avatar URL
+  character_class_label: Class
+  level_label: Level
+  description_label: Description
+  submit: Save changes
+  error: Failed to save character. Please try again.
 language_selector:
   label: Language

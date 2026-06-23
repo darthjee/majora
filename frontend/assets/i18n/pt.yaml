@@ -70,5 +70,14 @@ pc_edit_page:
   description_label: Descrição
   submit: Salvar alterações
   error: Falha ao salvar o personagem. Tente novamente.
+npc_edit_page:
+  title: Editar personagem
+  name_label: Nome
+  avatar_url_label: URL do avatar
+  character_class_label: Classe
+  level_label: Nível
+  description_label: Descrição
+  submit: Salvar alterações
+  error: Falha ao salvar o personagem. Tente novamente.
 language_selector:
   label: Idioma
