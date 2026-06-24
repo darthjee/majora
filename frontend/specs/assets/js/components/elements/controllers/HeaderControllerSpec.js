@@ -42,6 +42,32 @@ describe('HeaderController', function() {
       expect(AuthEvents.emit).toHaveBeenCalledWith(true);
     });
 
+    it('stores the token from the status response when present', async function() {
+      spyOn(AuthStorage, 'setToken');
+      client.status.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ logged_in: true, token: 'new-tok-456' }),
+      }));
+
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      await controller.checkStatus();
+
+      expect(AuthStorage.setToken).toHaveBeenCalledWith('new-tok-456');
+    });
+
+    it('does not call setToken when the status response has no token field', async function() {
+      spyOn(AuthStorage, 'setToken');
+      client.status.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ logged_in: true }),
+      }));
+
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      await controller.checkStatus();
+
+      expect(AuthStorage.setToken).not.toHaveBeenCalled();
+    });
+
     it('does nothing when the status response is not ok', async function() {
       client.status.and.returnValue(Promise.resolve({ ok: false }));
 
