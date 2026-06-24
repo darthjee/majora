@@ -38,6 +38,10 @@ export default class HeaderController {
 
       const data = await response.json();
 
+      if (data.token) {
+        AuthStorage.setToken(data.token);
+      }
+
       this.setLoggedIn(Boolean(data.logged_in));
       AuthEvents.emit(Boolean(data.logged_in));
       this.#applyLanguagePreference(data);

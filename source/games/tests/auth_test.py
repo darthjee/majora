@@ -38,6 +38,17 @@ class TestLoginView:
         )
         assert response.status_code == 401
 
+    def test_stores_token_in_session_on_success(self, client):
+        """Test that a successful login stores the auth token in the session."""
+        User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        response = client.post(
+            '/users/login.json',
+            data=json.dumps({'username': 'alice', 'password': TEST_PASSWORD}),
+            content_type='application/json',
+        )
+        data = json.loads(response.content)
+        assert client.session['auth_token'] == data['token']
+
 
 @pytest.mark.django_db
 class TestRegisterView:
@@ -71,6 +82,13 @@ class TestRegisterView:
         assert 'token' in data
         assert User.objects.filter(username='bob', email='bob@example.com').exists()
         assert Token.objects.filter(key=data['token'], user__username='bob').exists()
+
+    def test_stores_token_in_session_on_success(self, client):
+        """Test that a successful registration stores the auth token in the session."""
+        response = self._post(client, self.valid_payload)
+
+        data = json.loads(response.content)
+        assert client.session['auth_token'] == data['token']
 
     def test_rejects_missing_name(self, client):
         """Test that registering without a name fails."""
@@ -189,6 +207,18 @@ class TestLogoutView:
 
         assert response.status_code == 401
 
+    def test_flushes_session_on_logout(self, client):
+        """Test that logout flushes the session so no auth_token remains."""
+        user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        token = Token.objects.create(user=user)
+        session = client.session
+        session['auth_token'] = token.key
+        session.save()
+
+        client.post('/users/logout.json', HTTP_AUTHORIZATION=f'Token {token.key}')
+
+        assert 'auth_token' not in client.session
+
 
 @pytest.mark.django_db
 class TestStatusView:
@@ -225,6 +255,36 @@ class TestStatusView:
             '/users/status.json',
             HTTP_AUTHORIZATION='Token garbage-token-value',
         )
+
+        assert response.status_code == 200
+        assert json.loads(response.content) == {'logged_in': False}
+
+    def test_returns_logged_in_via_session_and_includes_token(self, client):
+        """Test that a valid session cookie (no Authorization header) returns logged_in true."""
+        user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        token = Token.objects.create(user=user)
+        session = client.session
+        session['auth_token'] = token.key
+        session.save()
+
+        response = client.get('/users/status.json')
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['logged_in'] is True
+        assert data['username'] == 'alice'
+        assert data['token'] == token.key
+
+    def test_returns_logged_out_for_stale_session_token(self, client):
+        """Test that a session referencing a deleted token returns logged_in false."""
+        user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        token = Token.objects.create(user=user)
+        session = client.session
+        session['auth_token'] = token.key
+        session.save()
+        token.delete()
+
+        response = client.get('/users/status.json')
 
         assert response.status_code == 200
         assert json.loads(response.content) == {'logged_in': False}

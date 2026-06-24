@@ -95,6 +95,7 @@ def login(request):
         return Response({'error': 'Invalid credentials'}, status=401)
 
     token, _ = Token.objects.get_or_create(user=user)
+    request.session['auth_token'] = token.key
     return Response({'token': token.key})
 
 
@@ -107,6 +108,7 @@ def register(request):
         return Response({'error': error}, status=400)
 
     user, token = _create_registered_user(request.data)
+    request.session['auth_token'] = token.key
     send_welcome_email(user)
 
     return Response({'username': user.username, 'token': token.key}, status=201)
@@ -115,8 +117,9 @@ def register(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def logout(request):
-    """Revoke the requesting user's authentication token."""
+    """Revoke the requesting user's authentication token and flush the session."""
     Token.objects.filter(user=request.user).delete()
+    request.session.flush()
     return Response(status=204)
 
 
@@ -131,17 +134,41 @@ def status(request):
     except Exception:
         result = None
 
+    session_auth = False
+    if result is None:
+        result, session_auth = _authenticate_from_session(request)
+
     if result is None:
         return Response({'logged_in': False})
 
-    user, _ = result
+    user, token_obj = result
     profile, _ = UserProfile.objects.get_or_create(user=user)
-    return Response({
+    payload = {
         'logged_in': True,
         'username': user.username,
         'user_id': user.id,
         'settings': {'favorite_language': profile.favorite_language},
-    })
+    }
+    if session_auth:
+        payload['token'] = token_obj.key
+    return Response(payload)
+
+
+def _authenticate_from_session(request):
+    """Try to authenticate from a session-stored token key.
+
+    Returns a (result, session_auth) tuple where result is (user, token) or None,
+    and session_auth is True when authentication succeeded via the session.
+    """
+    session_token_key = request.session.get('auth_token')
+    if not session_token_key:
+        return None, False
+    try:
+        token_obj = Token.objects.select_related('user').get(key=session_token_key)
+        return (token_obj.user, token_obj), True
+    except Token.DoesNotExist:
+        request.session.flush()
+        return None, False
 
 
 @api_view(['POST'])
