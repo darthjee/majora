@@ -7,7 +7,9 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/pcs').getPage()).toBe('gamePcs');
     expect(new HashRouteResolver(() => '#/games/campaign/npcs').getPage()).toBe('gameNpcs');
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7').getPage()).toBe('npcCharacter');
+    expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/full').getPage()).toBe('npcCharacterFull');
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7').getPage()).toBe('pcCharacter');
+    expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/full').getPage()).toBe('pcCharacterFull');
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/edit').getPage()).toBe('pcCharacterEdit');
     expect(new HashRouteResolver(() => '#/recover-password?token=abc').getPage()).toBe('recoverPassword');
     expect(new HashRouteResolver(() => '#/users/register').getPage()).toBe('register');

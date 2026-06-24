@@ -85,23 +85,27 @@ describe('NpcCharacterFullController', function() {
     client.currentHash.and.returnValue('#/games/demo/npcs/2/full');
     characterClient.fetchNpcFull.and.returnValue(Promise.resolve({ ok: false, status: 403 }));
 
-    const originalHash = window.location.hash;
+    const fakeWindow = { location: { hash: '' } };
+    globalThis.window = fakeWindow;
 
-    const cleanup = new NpcCharacterFullController(
-      setCharacter,
-      setLoading,
-      setError,
-      client,
-      characterClient,
-    ).buildEffect()();
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    try {
+      const cleanup = new NpcCharacterFullController(
+        setCharacter,
+        setLoading,
+        setError,
+        client,
+        characterClient,
+      ).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(window.location.hash).toBe('#/games/demo/npcs/2');
-    expect(setCharacter).not.toHaveBeenCalled();
-    expect(setError).not.toHaveBeenCalled();
+      expect(fakeWindow.location.hash).toBe('/games/demo/npcs/2');
+      expect(setCharacter).not.toHaveBeenCalled();
+      expect(setError).not.toHaveBeenCalled();
 
-    window.location.hash = originalHash;
-    cleanup();
+      cleanup();
+    } finally {
+      delete globalThis.window;
+    }
   });
 
   it('sets an error when the request fails (non-403)', async function() {

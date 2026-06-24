@@ -39,6 +39,37 @@ describe('CharacterClient', function() {
     });
   });
 
+  describe('#fetchPcFull', function() {
+    it('requests the full endpoint with the auth token when present', async function() {
+      const client = new CharacterClient();
+
+      await client.fetchPcFull('demo', '2', 'abc123');
+
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/full.json', {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          Authorization: 'Token abc123',
+        },
+        body: undefined,
+      });
+    });
+
+    it('omits the Authorization header when there is no token', async function() {
+      const client = new CharacterClient();
+
+      await client.fetchPcFull('demo', '2', null);
+
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/full.json', {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+        body: undefined,
+      });
+    });
+  });
+
   describe('#updatePc', function() {
     it('sends the fields and auth token when present', async function() {
       const client = new CharacterClient();
@@ -94,6 +125,37 @@ describe('CharacterClient', function() {
       await client.fetchNpc('demo', '2', null);
 
       expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/2.json', {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+        body: undefined,
+      });
+    });
+  });
+
+  describe('#fetchNpcFull', function() {
+    it('requests the full endpoint with the auth token when present', async function() {
+      const client = new CharacterClient();
+
+      await client.fetchNpcFull('demo', '2', 'abc123');
+
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/2/full.json', {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          Authorization: 'Token abc123',
+        },
+        body: undefined,
+      });
+    });
+
+    it('omits the Authorization header when there is no token', async function() {
+      const client = new CharacterClient();
+
+      await client.fetchNpcFull('demo', '2', null);
+
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/2/full.json', {
         method: 'GET',
         headers: {
           Accept: 'application/json',
