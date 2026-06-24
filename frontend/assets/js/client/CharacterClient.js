@@ -17,6 +17,18 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
+   * Fetches the full details of a PC character (editor-only endpoint).
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @returns {Promise<Response>} fetch response from the character full endpoint.
+   */
+  fetchPcFull(gameSlug, characterId, token) {
+    return this.#fetchCharacter('pcs', gameSlug, characterId, token, 'full');
+  }
+
+  /**
    * Submits a partial update for a PC character.
    *
    * @param {string} gameSlug - Game slug the character belongs to.
@@ -42,6 +54,18 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
+   * Fetches the full details of an NPC character (editor-only endpoint).
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @returns {Promise<Response>} fetch response from the character full endpoint.
+   */
+  fetchNpcFull(gameSlug, characterId, token) {
+    return this.#fetchCharacter('npcs', gameSlug, characterId, token, 'full');
+  }
+
+  /**
    * Submits a partial update for an NPC character.
    *
    * @param {string} gameSlug - Game slug the character belongs to.
@@ -54,8 +78,11 @@ export default class CharacterClient extends BaseClient {
     return this.#updateCharacter('npcs', gameSlug, characterId, token, fields);
   }
 
-  #fetchCharacter(segment, gameSlug, characterId, token) {
-    return this.request(`/games/${gameSlug}/${segment}/${characterId}.json`, {
+  #fetchCharacter(segment, gameSlug, characterId, token, suffix = null) {
+    const base = `/games/${gameSlug}/${segment}/${characterId}`;
+    const path = suffix ? `${base}/${suffix}.json` : `${base}.json`;
+
+    return this.request(path, {
       headers: {
         Accept: 'application/json',
         ...(token ? { Authorization: `Token ${token}` } : {}),

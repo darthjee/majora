@@ -19,7 +19,7 @@ export default class CharacterHelper {
    * @param {string|null} [character.avatar_url] - Optional avatar URL.
    * @param {string} [character.character_class] - Character class.
    * @param {number|null} [character.level] - Character level.
-   * @param {string} [character.description] - Character description.
+   * @param {string} [character.public_description] - Character public description.
    * @param {object[]} [character.photos] - Additional photos array.
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
    * @param {boolean} [character.is_pc] - Whether the character is a PC (vs. an NPC), used
@@ -42,7 +42,7 @@ export default class CharacterHelper {
             name={character.name}
             character_class={character.character_class}
             level={character.level}
-            description={character.description}
+            description={character.public_description}
           />
         </div>
         <CharacterPhotos photos={character.photos} alt={character.name} />

@@ -13,10 +13,10 @@ export default class PcCharacterEditHelper {
    * Render the edit form.
    *
    * @param {{name: string, avatar_url: string, character_class: string, level: string,
-   *   description: string, status: string, fieldErrors: object}} state - page state.
+   *   description: string, privateDescription: string, status: string, fieldErrors: object}} state - page state.
    * @param {{onSubmit: Function, onNameChange: Function, onAvatarUrlChange: Function,
    *   onCharacterClassChange: Function, onLevelChange: Function,
-   *   onDescriptionChange: Function}} handlers - event handlers.
+   *   onDescriptionChange: Function, onPrivateDescriptionChange: Function}} handlers - event handlers.
    * @returns {React.ReactElement} rendered edit page.
    */
   static render(state, handlers) {
@@ -68,7 +68,15 @@ export default class PcCharacterEditHelper {
                 label={Translator.t('pc_edit_page.description_label')}
                 value={state.description}
                 onChange={handlers.onDescriptionChange}
-                errors={state.fieldErrors.description ?? []}
+                errors={state.fieldErrors.public_description ?? []}
+              />
+              <FormField
+                id="pc-edit-private-description"
+                type="text"
+                label={Translator.t('pc_edit_page.private_description_label')}
+                value={state.privateDescription}
+                onChange={handlers.onPrivateDescriptionChange}
+                errors={state.fieldErrors.private_description ?? []}
               />
               <button className="btn btn-primary" type="submit" disabled={state.status === 'submitting'}>
                 {Translator.t('pc_edit_page.submit')}
