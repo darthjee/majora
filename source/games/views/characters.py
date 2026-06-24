@@ -10,6 +10,7 @@ from ..models import Character, Game
 from ..paginator import Paginator
 from ..serializers import (
     CharacterDetailSerializer,
+    CharacterFullSerializer,
     CharacterListSerializer,
     CharacterUpdateSerializer,
 )
@@ -62,6 +63,36 @@ def game_pc_detail(request, game_slug, character_id):
         return _update_character(request, character)
 
     serializer = CharacterDetailSerializer(character, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([AllowAny])
+def game_npc_full(request, game_slug, character_id):
+    """Return full detail (including private description) for a specific NPC."""
+    game = get_object_or_404(Game, game_slug=game_slug)
+    character = get_object_or_404(Character, id=character_id, game=game, npc=True)
+    if not request.user or not request.user.is_authenticated:
+        return Response({'errors': {'detail': ['authentication required']}}, status=401)
+    if not character.can_be_edited_by(request.user):
+        return Response({'errors': {'detail': ['not allowed']}}, status=403)
+    serializer = CharacterFullSerializer(character, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([AllowAny])
+def game_pc_full(request, game_slug, character_id):
+    """Return full detail (including private description) for a specific PC."""
+    game = get_object_or_404(Game, game_slug=game_slug)
+    character = get_object_or_404(Character, id=character_id, game=game, npc=False)
+    if not request.user or not request.user.is_authenticated:
+        return Response({'errors': {'detail': ['authentication required']}}, status=401)
+    if not character.can_be_edited_by(request.user):
+        return Response({'errors': {'detail': ['not allowed']}}, status=403)
+    serializer = CharacterFullSerializer(character, context={'request': request})
     return Response(serializer.data)
 
 

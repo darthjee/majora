@@ -290,7 +290,7 @@ class TestGameNpcDetailView:
             game=self.game,
             character_class='Wizard',
             level=20,
-            description='A wandering wizard.',
+            public_description='A wandering wizard.',
             npc=True,
         )
 
@@ -388,7 +388,7 @@ class TestGameNpcUpdateView:
             game=self.game,
             character_class='Wizard',
             level=20,
-            description='A wandering wizard.',
+            public_description='A wandering wizard.',
             npc=True,
         )
 
@@ -445,7 +445,7 @@ class TestGameNpcUpdateView:
                 'avatar_url': 'http://example.com/saruman.png',
                 'character_class': 'Wizard',
                 'level': 25,
-                'description': 'The White Wizard.',
+                'public_description': 'The White Wizard.',
             },
             token=token,
         )
@@ -456,11 +456,22 @@ class TestGameNpcUpdateView:
         assert data['avatar_url'] == 'http://example.com/saruman.png'
         assert data['character_class'] == 'Wizard'
         assert data['level'] == 25
-        assert data['description'] == 'The White Wizard.'
+        assert data['public_description'] == 'The White Wizard.'
 
         self.npc.refresh_from_db()
         assert self.npc.name == 'Saruman'
         assert self.npc.level == 25
+
+    def test_patch_private_description_saves(self, client):
+        """Test that PATCH with private_description saves the value."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+
+        response = self._patch(client, {'private_description': 'Secret wizard lore.'}, token=token)
+
+        assert response.status_code == 200
+        self.npc.refresh_from_db()
+        assert self.npc.private_description == 'Secret wizard lore.'
 
     def test_patch_ignores_non_editable_fields(self, client):
         """Test that fields outside the allowed set are silently ignored."""
@@ -505,7 +516,7 @@ class TestGameNpcUpdateView:
         assert self.npc.name == 'Saruman'
         assert self.npc.character_class == 'Wizard'
         assert self.npc.level == 20
-        assert self.npc.description == 'A wandering wizard.'
+        assert self.npc.public_description == 'A wandering wizard.'
 
 
 @pytest.mark.django_db
@@ -522,7 +533,7 @@ class TestGamePcDetailView:
             player=self.player,
             character_class='Ranger',
             level=20,
-            description='The future king of Gondor.',
+            public_description='The future king of Gondor.',
             npc=False,
         )
 
@@ -628,7 +639,7 @@ class TestGamePcUpdateView:
             player=self.player,
             character_class='Ranger',
             level=20,
-            description='The future king of Gondor.',
+            public_description='The future king of Gondor.',
             npc=False,
         )
 
@@ -671,7 +682,7 @@ class TestGamePcUpdateView:
                 'avatar_url': 'http://example.com/strider.png',
                 'character_class': 'Ranger King',
                 'level': 21,
-                'description': 'King of Gondor.',
+                'public_description': 'King of Gondor.',
             },
             token=token,
         )
@@ -682,7 +693,7 @@ class TestGamePcUpdateView:
         assert data['avatar_url'] == 'http://example.com/strider.png'
         assert data['character_class'] == 'Ranger King'
         assert data['level'] == 21
-        assert data['description'] == 'King of Gondor.'
+        assert data['public_description'] == 'King of Gondor.'
 
         self.character.refresh_from_db()
         assert self.character.name == 'Strider'
@@ -739,6 +750,196 @@ class TestGamePcUpdateView:
         assert self.character.name == 'Strider'
         assert self.character.character_class == 'Ranger'
         assert self.character.level == 20
+
+    def test_patch_private_description_saves(self, client):
+        """Test that PATCH with private_description saves the value."""
+        token = Token.objects.create(user=self.owner)
+
+        response = self._patch(client, {'private_description': 'Secret backstory.'}, token=token)
+
+        assert response.status_code == 200
+        self.character.refresh_from_db()
+        assert self.character.private_description == 'Secret backstory.'
+
+
+@pytest.mark.django_db
+class TestGameNpcFullView:
+    """Tests for the NPC full detail endpoint."""
+
+    def setup_method(self):
+        """Set up common test fixtures."""
+        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
+        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.npc = Character.objects.create(
+            name='Gandalf',
+            game=self.game,
+            character_class='Wizard',
+            level=20,
+            public_description='A wandering wizard.',
+            private_description='The secret guardian of Middle Earth.',
+            npc=True,
+        )
+
+    def _get(self, client, token=None):
+        """Issue a GET request to the NPC full endpoint, optionally with a token."""
+        extra = {}
+        if token is not None:
+            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
+        return client.get(f'/games/test-game/npcs/{self.npc.id}/full.json', **extra)
+
+    def test_returns_401_for_unauthenticated(self, client):
+        """Test that unauthenticated request returns 401."""
+        response = self._get(client)
+        assert response.status_code == 401
+
+    def test_returns_403_for_non_editor(self, client):
+        """Test that authenticated non-editor returns 403."""
+        other_user = User.objects.create_user(username='other', password='secret-password')
+        token = Token.objects.create(user=other_user)
+        response = self._get(client, token=token)
+        assert response.status_code == 403
+
+    def test_returns_403_for_pc_player_who_is_not_dm(self, client):
+        """Test that a PC player (not a DM) cannot access NPC full detail."""
+        player = Player.objects.create(name='Alice')
+        pc_user = User.objects.create_user(username='alice', password='secret-password')
+        player.user = pc_user
+        player.save()
+        Character.objects.create(name='Frodo', game=self.game, player=player, npc=False)
+        token = Token.objects.create(user=pc_user)
+        response = self._get(client, token=token)
+        assert response.status_code == 403
+
+    def test_returns_200_with_descriptions_for_dm(self, client):
+        """Test that a DM gets full detail including both descriptions."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get(client, token=token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['public_description'] == 'A wandering wizard.'
+        assert data['private_description'] == 'The secret guardian of Middle Earth.'
+
+    def test_returns_200_with_descriptions_for_superuser(self, client):
+        """Test that a superuser gets full detail including both descriptions."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+        response = self._get(client, token=token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['public_description'] == 'A wandering wizard.'
+        assert data['private_description'] == 'The secret guardian of Middle Earth.'
+
+    def test_returns_404_for_unknown_character(self, client):
+        """Test that 404 is returned for a non-existent character_id."""
+        token = Token.objects.create(user=self.dm_user)
+        response = client.get(
+            '/games/test-game/npcs/99999/full.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response.status_code == 404
+
+    def test_returns_404_for_pc_id(self, client):
+        """Test that 404 is returned when the id belongs to a PC."""
+        player = Player.objects.create(name='Alice')
+        pc = Character.objects.create(name='Frodo', game=self.game, player=player, npc=False)
+        token = Token.objects.create(user=self.dm_user)
+        response = client.get(
+            f'/games/test-game/npcs/{pc.id}/full.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestGamePcFullView:
+    """Tests for the PC full detail endpoint."""
+
+    def setup_method(self):
+        """Set up common test fixtures."""
+        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.player = Player.objects.create(name='Bob')
+        self.owner = User.objects.create_user(username='owner', password='secret-password')
+        self.player.user = self.owner
+        self.player.save()
+        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
+        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.character = Character.objects.create(
+            name='Aragorn',
+            game=self.game,
+            player=self.player,
+            character_class='Ranger',
+            level=20,
+            public_description='The future king of Gondor.',
+            private_description='Secret heir to the throne.',
+            npc=False,
+        )
+
+    def _get(self, client, token=None):
+        """Issue a GET request to the PC full endpoint, optionally with a token."""
+        extra = {}
+        if token is not None:
+            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
+        return client.get(f'/games/test-game/pcs/{self.character.id}/full.json', **extra)
+
+    def test_returns_401_for_unauthenticated(self, client):
+        """Test that unauthenticated request returns 401."""
+        response = self._get(client)
+        assert response.status_code == 401
+
+    def test_returns_403_for_non_editor(self, client):
+        """Test that authenticated non-editor returns 403."""
+        other_user = User.objects.create_user(username='other', password='secret-password')
+        token = Token.objects.create(user=other_user)
+        response = self._get(client, token=token)
+        assert response.status_code == 403
+
+    def test_returns_200_with_descriptions_for_player_owner(self, client):
+        """Test that the PC's owning player gets full detail including both descriptions."""
+        token = Token.objects.create(user=self.owner)
+        response = self._get(client, token=token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['public_description'] == 'The future king of Gondor.'
+        assert data['private_description'] == 'Secret heir to the throne.'
+
+    def test_returns_200_with_descriptions_for_dm(self, client):
+        """Test that a DM gets full detail including both descriptions."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get(client, token=token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['public_description'] == 'The future king of Gondor.'
+        assert data['private_description'] == 'Secret heir to the throne.'
+
+    def test_returns_200_with_descriptions_for_superuser(self, client):
+        """Test that a superuser gets full detail including both descriptions."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+        response = self._get(client, token=token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['public_description'] == 'The future king of Gondor.'
+        assert data['private_description'] == 'Secret heir to the throne.'
+
+    def test_returns_404_for_unknown_character(self, client):
+        """Test that 404 is returned for a non-existent character_id."""
+        token = Token.objects.create(user=self.owner)
+        response = client.get(
+            '/games/test-game/pcs/99999/full.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response.status_code == 404
+
+    def test_returns_404_for_npc_id(self, client):
+        """Test that 404 is returned when the id belongs to an NPC."""
+        npc = Character.objects.create(name='Gandalf', game=self.game, npc=True)
+        token = Token.objects.create(user=self.owner)
+        response = client.get(
+            f'/games/test-game/pcs/{npc.id}/full.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response.status_code == 404
 
 
 @pytest.mark.django_db

@@ -65,7 +65,7 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
             'avatar_url',
             'character_class',
             'level',
-            'description',
+            'public_description',
             'is_pc',
             'photos',
             'game_slug',
@@ -92,5 +92,12 @@ class CharacterUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Character
-        fields = ['name', 'avatar_url', 'character_class', 'level', 'description']
+        fields = ['name', 'avatar_url', 'character_class', 'level', 'public_description', 'private_description']
         extra_kwargs = {field: {'required': False} for field in fields}
+
+
+class CharacterFullSerializer(CharacterDetailSerializer):
+    """Serializer for full character detail including the private description."""
+
+    class Meta(CharacterDetailSerializer.Meta):
+        fields = CharacterDetailSerializer.Meta.fields + ['private_description']
