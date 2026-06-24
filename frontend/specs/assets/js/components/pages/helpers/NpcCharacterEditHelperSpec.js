@@ -9,6 +9,7 @@ describe('NpcCharacterEditHelper', function() {
     onCharacterClassChange: jasmine.createSpy('onCharacterClassChange'),
     onLevelChange: jasmine.createSpy('onLevelChange'),
     onDescriptionChange: jasmine.createSpy('onDescriptionChange'),
+    onPrivateDescriptionChange: jasmine.createSpy('onPrivateDescriptionChange'),
   });
   const buildState = (overrides = {}) => ({
     name: 'Goblin King',
@@ -16,6 +17,7 @@ describe('NpcCharacterEditHelper', function() {
     character_class: 'Brute',
     level: '5',
     description: 'Ruler of the cave.',
+    privateDescription: 'Secret DM notes.',
     status: 'idle',
     fieldErrors: {},
     ...overrides,
@@ -30,8 +32,10 @@ describe('NpcCharacterEditHelper', function() {
       expect(html).toContain('id="npc-edit-character-class"');
       expect(html).toContain('id="npc-edit-level"');
       expect(html).toContain('id="npc-edit-description"');
+      expect(html).toContain('id="npc-edit-private-description"');
       expect(html).toContain('value="Goblin King"');
       expect(html).toContain('value="Brute"');
+      expect(html).toContain('value="Secret DM notes."');
     });
 
     it('renders a live avatar preview reflecting the current avatar_url', function() {

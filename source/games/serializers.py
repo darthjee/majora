@@ -92,7 +92,14 @@ class CharacterUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Character
-        fields = ['name', 'avatar_url', 'character_class', 'level', 'public_description', 'private_description']
+        fields = [
+            'name',
+            'avatar_url',
+            'character_class',
+            'level',
+            'public_description',
+            'private_description',
+        ]
         extra_kwargs = {field: {'required': False} for field in fields}
 
 
