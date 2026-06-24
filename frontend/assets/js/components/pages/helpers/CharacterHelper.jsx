@@ -20,6 +20,7 @@ export default class CharacterHelper {
    * @param {string} [character.character_class] - Character class.
    * @param {number|null} [character.level] - Character level.
    * @param {string} [character.public_description] - Character public description.
+   * @param {string} [character.private_description] - Character private description (DM notes).
    * @param {object[]} [character.photos] - Additional photos array.
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
    * @param {boolean} [character.is_pc] - Whether the character is a PC (vs. an NPC), used
@@ -45,6 +46,7 @@ export default class CharacterHelper {
             description={character.public_description}
           />
         </div>
+        {CharacterHelper.#renderPrivateDescription(character.private_description)}
         <CharacterPhotos photos={character.photos} alt={character.name} />
       </div>
     );
@@ -67,6 +69,23 @@ export default class CharacterHelper {
    */
   static renderError(error) {
     return <ErrorAlert error={error} />;
+  }
+
+  /**
+   * Render the DM notes section when private_description is non-empty.
+   *
+   * @param {string} [privateDescription] - Private description text.
+   * @returns {React.ReactElement|null} DM notes section, or null.
+   */
+  static #renderPrivateDescription(privateDescription) {
+    if (!privateDescription) return null;
+
+    return (
+      <div className="mt-4">
+        <h5>{Translator.t('character_full_page.private_description_label')}</h5>
+        <p>{privateDescription}</p>
+      </div>
+    );
   }
 
   /**

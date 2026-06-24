@@ -73,7 +73,22 @@ export default class NpcCharacterController extends BasePageController {
             if (!response.ok) throw new Error('Unable to load character.');
             return response.json();
           })
-          .then((character) => safeSet(this.setCharacter, character))
+          .then((character) => {
+            if (!character.can_edit) {
+              safeSet(this.setCharacter, character);
+              return;
+            }
+            return this.characterClient.fetchNpcFull(params.game_slug, params.character_id, token)
+              .then((fullResponse) => {
+                if (fullResponse.ok) {
+                  return fullResponse.json().then((full) => {
+                    safeSet(this.setCharacter, { ...character, private_description: full.private_description });
+                  });
+                }
+                safeSet(this.setCharacter, character);
+              })
+              .catch(() => safeSet(this.setCharacter, character));
+          })
           .catch(() => safeSet(this.setError, 'Unable to load character.'))
           .finally(() => safeSet(this.setLoading, false));
       }

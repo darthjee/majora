@@ -5,9 +5,7 @@ describe('AppHelper', function() {
   it('renders page content for known pages', function() {
     expect(renderToStaticMarkup(AppHelper.render('games', '#/games'))).toContain('Loading games...');
     expect(renderToStaticMarkup(AppHelper.render('npcCharacter', '#/games/demo/npcs/1'))).toContain('Loading character...');
-    expect(renderToStaticMarkup(AppHelper.render('npcCharacterFull', '#/games/demo/npcs/1/full'))).toContain('Loading character...');
     expect(renderToStaticMarkup(AppHelper.render('pcCharacter', '#/games/demo/pcs/1'))).toContain('Loading character...');
-    expect(renderToStaticMarkup(AppHelper.render('pcCharacterFull', '#/games/demo/pcs/1/full'))).toContain('Loading character...');
     expect(renderToStaticMarkup(AppHelper.render('pcCharacterEdit', '#/games/demo/pcs/1/edit'))).toContain('Loading character...');
     expect(renderToStaticMarkup(AppHelper.render('recoverPassword', '#/recover-password'))).toContain('Reset password');
     expect(renderToStaticMarkup(AppHelper.render('register', '#/users/register'))).toContain('Register');
