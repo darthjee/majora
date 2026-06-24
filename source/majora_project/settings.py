@@ -91,6 +91,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+SESSION_COOKIE_HTTPONLY = True  # already Django default, made explicit
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'false').lower() == 'true'
+
 # Email settings. In production, set DJANGO_EMAIL_BACKEND to the SMTP backend
 # (django.core.mail.backends.smtp.EmailBackend) along with real credentials via
 # environment variables. The console backend default keeps local dev safe by
