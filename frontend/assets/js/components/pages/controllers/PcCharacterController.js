@@ -52,6 +52,24 @@ export default class PcCharacterController extends BasePageController {
   }
 
   /**
+   * Handle the full character response, merging the private description
+   * into the base character when available.
+   *
+   * @param {Response} fullResponse - Response from fetchPcFull.
+   * @param {object} character - Base character data already loaded.
+   * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
+   * @returns {Promise<void>} Resolves once the character state is updated.
+   */
+  handleFullResponse(fullResponse, character, safeSet) {
+    if (fullResponse.ok) {
+      return fullResponse.json().then((full) => {
+        safeSet(this.setCharacter, { ...character, private_description: full.private_description });
+      });
+    }
+    safeSet(this.setCharacter, character);
+  }
+
+  /**
    * Build page loading effect.
    *
    * @returns {Function} Effect callback.
@@ -79,14 +97,7 @@ export default class PcCharacterController extends BasePageController {
               return;
             }
             return this.characterClient.fetchPcFull(params.game_slug, params.character_id, token)
-              .then((fullResponse) => {
-                if (fullResponse.ok) {
-                  return fullResponse.json().then((full) => {
-                    safeSet(this.setCharacter, { ...character, private_description: full.private_description });
-                  });
-                }
-                safeSet(this.setCharacter, character);
-              })
+              .then((fullResponse) => this.handleFullResponse(fullResponse, character, safeSet))
               .catch(() => safeSet(this.setCharacter, character));
           })
           .catch(() => safeSet(this.setError, 'Unable to load character.'))
