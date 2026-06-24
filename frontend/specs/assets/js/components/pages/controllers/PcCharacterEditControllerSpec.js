@@ -33,7 +33,8 @@ describe('PcCharacterEditController', function() {
         avatar_url: 'http://example.com/a.png',
         character_class: 'Ranger',
         level: 10,
-        description: 'King',
+        public_description: 'King',
+        private_description: 'Secret notes',
         can_edit: true,
       };
 
@@ -44,7 +45,8 @@ describe('PcCharacterEditController', function() {
           avatar_url: 'http://example.com/a.png',
           character_class: 'Ranger',
           level: 10,
-          description: 'King',
+          public_description: 'King',
+          private_description: 'Secret notes',
         },
       });
     });
@@ -57,7 +59,8 @@ describe('PcCharacterEditController', function() {
           avatar_url: '',
           character_class: '',
           level: '',
-          description: '',
+          public_description: '',
+          private_description: '',
         },
       });
     });
@@ -81,6 +84,7 @@ describe('PcCharacterEditController', function() {
         setCharacterClass: jasmine.createSpy('setCharacterClass'),
         setLevel: jasmine.createSpy('setLevel'),
         setDescription: jasmine.createSpy('setDescription'),
+        setPrivateDescription: jasmine.createSpy('setPrivateDescription'),
       };
     });
 
@@ -99,6 +103,7 @@ describe('PcCharacterEditController', function() {
       expect(setters.setCharacterClass).not.toHaveBeenCalled();
       expect(setters.setLevel).not.toHaveBeenCalled();
       expect(setters.setDescription).not.toHaveBeenCalled();
+      expect(setters.setPrivateDescription).not.toHaveBeenCalled();
     });
 
     it('redirects to the show page when the loaded character cannot be edited', function() {
@@ -134,7 +139,8 @@ describe('PcCharacterEditController', function() {
         avatar_url: 'http://example.com/a.png',
         character_class: 'Ranger',
         level: 10,
-        description: 'King',
+        public_description: 'King',
+        private_description: 'Secret',
         can_edit: true,
       };
 
@@ -145,6 +151,7 @@ describe('PcCharacterEditController', function() {
       expect(setters.setCharacterClass).toHaveBeenCalledWith('Ranger');
       expect(setters.setLevel).toHaveBeenCalledWith(10);
       expect(setters.setDescription).toHaveBeenCalledWith('King');
+      expect(setters.setPrivateDescription).toHaveBeenCalledWith('Secret');
     });
   });
 

@@ -7,7 +7,7 @@ describe('CharacterHelper', function() {
     avatar_url: null,
     character_class: 'Ranger',
     level: 10,
-    description: 'The future king of Gondor.',
+    public_description: 'The future king of Gondor.',
     photos: [],
   };
 
@@ -30,7 +30,7 @@ describe('CharacterHelper', function() {
     });
 
     it('does not render description when empty', function() {
-      const c = { ...character, description: '' };
+      const c = { ...character, public_description: '' };
       expect(renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs')))
         .not.toContain('The future king of Gondor.');
     });

@@ -33,7 +33,8 @@ describe('NpcCharacterEditController', function() {
         avatar_url: 'http://example.com/a.png',
         character_class: 'Brute',
         level: 5,
-        description: 'Ruler of the cave',
+        public_description: 'Ruler of the cave',
+        private_description: 'Secret notes',
         can_edit: true,
       };
 
@@ -44,7 +45,8 @@ describe('NpcCharacterEditController', function() {
           avatar_url: 'http://example.com/a.png',
           character_class: 'Brute',
           level: 5,
-          description: 'Ruler of the cave',
+          public_description: 'Ruler of the cave',
+          private_description: 'Secret notes',
         },
       });
     });
@@ -57,7 +59,8 @@ describe('NpcCharacterEditController', function() {
           avatar_url: '',
           character_class: '',
           level: '',
-          description: '',
+          public_description: '',
+          private_description: '',
         },
       });
     });
@@ -81,6 +84,7 @@ describe('NpcCharacterEditController', function() {
         setCharacterClass: jasmine.createSpy('setCharacterClass'),
         setLevel: jasmine.createSpy('setLevel'),
         setDescription: jasmine.createSpy('setDescription'),
+        setPrivateDescription: jasmine.createSpy('setPrivateDescription'),
       };
     });
 
@@ -99,6 +103,7 @@ describe('NpcCharacterEditController', function() {
       expect(setters.setCharacterClass).not.toHaveBeenCalled();
       expect(setters.setLevel).not.toHaveBeenCalled();
       expect(setters.setDescription).not.toHaveBeenCalled();
+      expect(setters.setPrivateDescription).not.toHaveBeenCalled();
     });
 
     it('redirects to the show page when the loaded character cannot be edited', function() {
@@ -134,7 +139,8 @@ describe('NpcCharacterEditController', function() {
         avatar_url: 'http://example.com/a.png',
         character_class: 'Brute',
         level: 5,
-        description: 'Ruler of the cave',
+        public_description: 'Ruler of the cave',
+        private_description: 'Secret',
         can_edit: true,
       };
 
@@ -145,6 +151,7 @@ describe('NpcCharacterEditController', function() {
       expect(setters.setCharacterClass).toHaveBeenCalledWith('Brute');
       expect(setters.setLevel).toHaveBeenCalledWith(5);
       expect(setters.setDescription).toHaveBeenCalledWith('Ruler of the cave');
+      expect(setters.setPrivateDescription).toHaveBeenCalledWith('Secret');
     });
   });
 
