@@ -50,6 +50,20 @@ When a task spans multiple agents:
 1. `infra` — update docker-compose / Dockerfiles / Makefile
 2. Update `docs/agents/` if the change affects how agents should run commands
 
+### Data access control review
+
+Invoke the `data-access` agent after `backend` finishes whenever an issue involves any of:
+
+- A new API endpoint
+- New or removed fields in a serializer
+- Changes to authentication, permission, or visibility logic in views or serializers
+- A new model that is exposed by an endpoint
+
+Dispatch `data-access` with the list of changed files. If it reports violations, delegate
+the required corrections to `backend` (or the relevant specialist) before opening the PR.
+Update `docs/agents/access-control.md` in the same PR whenever a new model or endpoint is
+introduced.
+
 ## Documentation (`docs/agents/`)
 
 | File | Contents |
