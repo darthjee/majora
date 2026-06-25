@@ -70,6 +70,37 @@ describe('CharacterClient', function() {
     });
   });
 
+  describe('#fetchPcAccess', function() {
+    it('requests the access endpoint with the auth token when present', async function() {
+      const client = new CharacterClient();
+
+      await client.fetchPcAccess('demo', '2', 'abc123');
+
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/access.json', {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          Authorization: 'Token abc123',
+        },
+        body: undefined,
+      });
+    });
+
+    it('omits the Authorization header when there is no token', async function() {
+      const client = new CharacterClient();
+
+      await client.fetchPcAccess('demo', '2', null);
+
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/access.json', {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+        body: undefined,
+      });
+    });
+  });
+
   describe('#updatePc', function() {
     it('sends the fields and auth token when present', async function() {
       const client = new CharacterClient();
@@ -156,6 +187,37 @@ describe('CharacterClient', function() {
       await client.fetchNpcFull('demo', '2', null);
 
       expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/2/full.json', {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+        body: undefined,
+      });
+    });
+  });
+
+  describe('#fetchNpcAccess', function() {
+    it('requests the access endpoint with the auth token when present', async function() {
+      const client = new CharacterClient();
+
+      await client.fetchNpcAccess('demo', '2', 'abc123');
+
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/2/access.json', {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          Authorization: 'Token abc123',
+        },
+        body: undefined,
+      });
+    });
+
+    it('omits the Authorization header when there is no token', async function() {
+      const client = new CharacterClient();
+
+      await client.fetchNpcAccess('demo', '2', null);
+
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/2/access.json', {
         method: 'GET',
         headers: {
           Accept: 'application/json',

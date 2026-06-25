@@ -161,12 +161,16 @@ describe('NpcCharacterEditController', function() {
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
       const client = jasmine.createSpyObj('client', ['currentHash']);
-      const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'updateNpc']);
+      const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess', 'updateNpc']);
 
       client.currentHash.and.returnValue('#/games/demo/npcs/2/edit');
       characterClient.fetchNpc.and.returnValue(Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ id: 2, can_edit: true }),
+        json: () => Promise.resolve({ id: 2, can_edit: false }),
+      }));
+      characterClient.fetchNpcAccess.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ can_edit: true }),
       }));
       characterClient.fetchNpcFull.and.returnValue(Promise.resolve({
         ok: true,

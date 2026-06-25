@@ -124,7 +124,15 @@ export default class PcCharacterController extends BasePageController {
             if (!response.ok) throw new Error('Unable to load character.');
             return response.json();
           })
-          .then((character) => this.loadFullCharacter(character, params, token, safeSet))
+          .then((character) => {
+            return this.characterClient.fetchPcAccess(params.game_slug, params.character_id, token)
+              .then((accessResponse) => {
+                if (!accessResponse.ok) return character;
+                return accessResponse.json().then((access) => ({ ...character, can_edit: access.can_edit }));
+              })
+              .catch(() => character)
+              .then((characterWithAccess) => this.loadFullCharacter(characterWithAccess, params, token, safeSet));
+          })
           .catch(() => safeSet(this.setError, 'Unable to load character.'))
           .finally(() => safeSet(this.setLoading, false));
       }

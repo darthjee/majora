@@ -25,13 +25,14 @@ describe('PcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull', 'fetchPcAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/pcs/2');
     characterClient.fetchPc.and.returnValue(Promise.resolve({
       ok: true,
       json: () => Promise.resolve({ id: 2 }),
     }));
+    characterClient.fetchPcAccess.and.returnValue(Promise.resolve({ ok: false }));
 
     const cleanup = buildEffectController(setCharacter, setLoading, setError, client, characterClient)
       .buildEffect()();
@@ -53,12 +54,16 @@ describe('PcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull', 'fetchPcAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/pcs/2');
     characterClient.fetchPc.and.returnValue(Promise.resolve({
       ok: true,
       json: () => Promise.resolve({ id: 2, can_edit: false }),
+    }));
+    characterClient.fetchPcAccess.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ can_edit: false }),
     }));
 
     const cleanup = buildEffectController(setCharacter, setLoading, setError, client, characterClient)
@@ -66,6 +71,7 @@ describe('PcCharacterController', function() {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(characterClient.fetchPc).toHaveBeenCalledWith('demo', '2', 'tok-abc');
+    expect(characterClient.fetchPcAccess).toHaveBeenCalledWith('demo', '2', 'tok-abc');
     expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: false });
 
     cleanup();
@@ -78,19 +84,21 @@ describe('PcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull', 'fetchPcAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/pcs/2');
     characterClient.fetchPc.and.returnValue(Promise.resolve({
       ok: true,
       json: () => Promise.resolve({ id: 2 }),
     }));
+    characterClient.fetchPcAccess.and.returnValue(Promise.resolve({ ok: false }));
 
     const cleanup = buildEffectController(setCharacter, setLoading, setError, client, characterClient)
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(characterClient.fetchPc).toHaveBeenCalledWith('demo', '2', null);
+    expect(characterClient.fetchPcAccess).toHaveBeenCalledWith('demo', '2', null);
 
     cleanup();
   });
@@ -100,12 +108,16 @@ describe('PcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull', 'fetchPcAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/pcs/2');
     characterClient.fetchPc.and.returnValue(Promise.resolve({
       ok: true,
-      json: () => Promise.resolve({ id: 2, can_edit: true }),
+      json: () => Promise.resolve({ id: 2, can_edit: false }),
+    }));
+    characterClient.fetchPcAccess.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ can_edit: true }),
     }));
     characterClient.fetchPcFull.and.returnValue(Promise.resolve({
       ok: true,
@@ -127,12 +139,16 @@ describe('PcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull', 'fetchPcAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/pcs/2');
     characterClient.fetchPc.and.returnValue(Promise.resolve({
       ok: true,
-      json: () => Promise.resolve({ id: 2, can_edit: false }),
+      json: () => Promise.resolve({ id: 2, can_edit: true }),
+    }));
+    characterClient.fetchPcAccess.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ can_edit: false }),
     }));
 
     const cleanup = buildEffectController(setCharacter, setLoading, setError, client, characterClient)
@@ -150,12 +166,16 @@ describe('PcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull', 'fetchPcAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/pcs/2');
     characterClient.fetchPc.and.returnValue(Promise.resolve({
       ok: true,
-      json: () => Promise.resolve({ id: 2, can_edit: true }),
+      json: () => Promise.resolve({ id: 2, can_edit: false }),
+    }));
+    characterClient.fetchPcAccess.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ can_edit: true }),
     }));
     characterClient.fetchPcFull.and.returnValue(Promise.resolve({ ok: false, status: 403 }));
 
@@ -174,7 +194,7 @@ describe('PcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull', 'fetchPcAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/pcs/2');
     characterClient.fetchPc.and.returnValue(Promise.resolve({ ok: false }));
@@ -194,7 +214,7 @@ describe('PcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull', 'fetchPcAccess']);
 
     client.currentHash.and.returnValue('#/other');
 
@@ -205,6 +225,82 @@ describe('PcCharacterController', function() {
     expect(setError).toHaveBeenCalledWith('Unable to load character.');
     expect(setLoading).toHaveBeenCalledWith(false);
     expect(characterClient.fetchPc).not.toHaveBeenCalled();
+
+    cleanup();
+  });
+
+  it('falls back to original can_edit when access endpoint returns non-ok', async function() {
+    const setCharacter = jasmine.createSpy('setCharacter');
+    const setLoading = jasmine.createSpy('setLoading');
+    const setError = jasmine.createSpy('setError');
+    const client = jasmine.createSpyObj('client', ['currentHash']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull', 'fetchPcAccess']);
+
+    client.currentHash.and.returnValue('#/games/demo/pcs/2');
+    characterClient.fetchPc.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ id: 2, can_edit: false }),
+    }));
+    characterClient.fetchPcAccess.and.returnValue(Promise.resolve({ ok: false, status: 404 }));
+
+    const cleanup = buildEffectController(setCharacter, setLoading, setError, client, characterClient)
+      .buildEffect()();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: false });
+    expect(characterClient.fetchPcFull).not.toHaveBeenCalled();
+
+    cleanup();
+  });
+
+  it('falls back to original can_edit when access endpoint throws', async function() {
+    const setCharacter = jasmine.createSpy('setCharacter');
+    const setLoading = jasmine.createSpy('setLoading');
+    const setError = jasmine.createSpy('setError');
+    const client = jasmine.createSpyObj('client', ['currentHash']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull', 'fetchPcAccess']);
+
+    client.currentHash.and.returnValue('#/games/demo/pcs/2');
+    characterClient.fetchPc.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ id: 2, can_edit: false }),
+    }));
+    characterClient.fetchPcAccess.and.returnValue(Promise.reject(new Error('Network error')));
+
+    const cleanup = buildEffectController(setCharacter, setLoading, setError, client, characterClient)
+      .buildEffect()();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: false });
+    expect(setError).not.toHaveBeenCalled();
+
+    cleanup();
+  });
+
+  it('always calls the access endpoint with the current token', async function() {
+    spyOn(AuthStorage, 'getToken').and.returnValue('tok-xyz');
+
+    const setCharacter = jasmine.createSpy('setCharacter');
+    const setLoading = jasmine.createSpy('setLoading');
+    const setError = jasmine.createSpy('setError');
+    const client = jasmine.createSpyObj('client', ['currentHash']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull', 'fetchPcAccess']);
+
+    client.currentHash.and.returnValue('#/games/demo/pcs/2');
+    characterClient.fetchPc.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ id: 2, can_edit: false }),
+    }));
+    characterClient.fetchPcAccess.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ can_edit: false }),
+    }));
+
+    const cleanup = buildEffectController(setCharacter, setLoading, setError, client, characterClient)
+      .buildEffect()();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(characterClient.fetchPcAccess).toHaveBeenCalledWith('demo', '2', 'tok-xyz');
 
     cleanup();
   });

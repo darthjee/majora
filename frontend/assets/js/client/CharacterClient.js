@@ -29,6 +29,18 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
+   * Fetches the access permissions for a PC character.
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @returns {Promise<Response>} fetch response from the character access endpoint.
+   */
+  fetchPcAccess(gameSlug, characterId, token) {
+    return this.#fetchCharacter('pcs', gameSlug, characterId, token, 'access');
+  }
+
+  /**
    * Submits a partial update for a PC character.
    *
    * @param {string} gameSlug - Game slug the character belongs to.
@@ -63,6 +75,18 @@ export default class CharacterClient extends BaseClient {
    */
   fetchNpcFull(gameSlug, characterId, token) {
     return this.#fetchCharacter('npcs', gameSlug, characterId, token, 'full');
+  }
+
+  /**
+   * Fetches the access permissions for an NPC character.
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @returns {Promise<Response>} fetch response from the character access endpoint.
+   */
+  fetchNpcAccess(gameSlug, characterId, token) {
+    return this.#fetchCharacter('npcs', gameSlug, characterId, token, 'access');
   }
 
   /**
