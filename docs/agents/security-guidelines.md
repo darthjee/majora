@@ -50,6 +50,10 @@ Refer to this document whenever reviewing a diff that touches API endpoints, aut
 - Rules that proxy to the Django backend must not forward the raw `Authorization` header from the client to Django unless Django explicitly expects and validates it.
 - Rules should restrict forwarded HTTP methods to those the upstream handler actually uses; do not forward `PUT`, `DELETE`, or `PATCH` to an endpoint that only handles `GET`.
 - If Tent is configured to cache a route, confirm that the route serves identical content to all clients (unauthenticated public data) — never cache responses that contain user-specific data.
+- **`X-Skip-Cache` header (cache bypass):** Majora's proxy rules set `'skip_cache_header' => 'X-Skip-Cache'`, meaning any inbound request carrying this header bypasses the Tent cache entirely (no cache read, no cache write). Verify the following whenever a route is cached or authentication is introduced:
+  - On routes that serve public, identical-for-all-users data, allowing clients to send `X-Skip-Cache` is low risk but exposes a potential DoS vector (forcing repeated upstream hits). Strip this header from untrusted clients at the proxy boundary if DoS is a concern.
+  - On routes that serve user-specific data, `X-Skip-Cache` **must** be stripped from inbound requests before reaching the cache layer. If a client sends `X-Skip-Cache`, the resulting fresh response must not be written to a shared cache that other users could read; failure to strip the header or to scope the cache key per-user will leak private data across accounts.
+  - Never introduce a cached route for user-specific data without also ensuring that the `X-Skip-Cache` header is either stripped from external requests or that the cache key includes a user identity token.
 
 ## 7. Input Validation
 
