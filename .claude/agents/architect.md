@@ -23,7 +23,8 @@ Delegate implementation work to the right agent. Never implement what belongs to
 |-------|-------|
 | `frontend` | `frontend/` — React components, Jasmine specs, ESLint, Vite, CSS |
 | `backend` | `source/` — Django models, views, serializers, migrations, pytest |
-| `infra` | `docker-compose.yml`, `dockerfiles/`, `.circleci/`, `scripts/`, `Makefile`, Tent proxy config, Navi config |
+| `infra` | `docker-compose.yml`, `dockerfiles/`, `.circleci/`, `scripts/`, `Makefile`, Navi config |
+| `proxy` | `proxy/` — PHP Tent proxy configuration, custom middleware, and tests |
 | `translator` | `frontend/assets/i18n/*.yaml` — translation content and key-parity checks |
 
 ## How to coordinate

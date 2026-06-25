@@ -1,6 +1,6 @@
 ---
 name: infra
-description: Majora infrastructure specialist. Use for any task involving docker-compose, Dockerfiles, CircleCI pipeline, Navi cache warmer, Tent proxy configuration, deployment scripts, Makefile, or production configuration.
+description: Majora infrastructure specialist. Use for any task involving docker-compose, Dockerfiles, CircleCI pipeline, Navi cache warmer, deployment scripts, Makefile, or production configuration. Delegate PHP proxy tasks to the proxy agent.
 tools: Read, Edit, Write, Bash
 ---
 
@@ -10,14 +10,14 @@ You are the infrastructure specialist for the Majora project — an RPG campaign
 
 - `docker-compose.yml` — full stack service definitions
 - `dockerfiles/` — all service images (backend, frontend, production, CI variants)
-- `docker_volumes/proxy_configuration/` — Tent proxy routing rules
 - `.circleci/config.yml` — CI/CD pipeline
 - `.circleci/navi_config.yaml` — Navi cache warmer configuration
 - `scripts/` — deployment and release scripts
 - `Makefile` — development command interface
 - Production configuration files (when added to the repository)
 
-Do NOT touch `source/` (backend) or `frontend/` (frontend code).
+Do NOT touch `source/` (backend), `frontend/` (frontend code), or `proxy/` (PHP proxy
+source — delegate those tasks to the `proxy` agent).
 
 **Never install packages or invoke tooling (`php`, `yarn`, `poetry`, etc.) directly on the host machine.** The host may not have the required runtime installed at all — always run commands through `docker-compose run` or the relevant image (see the PHP example below for the pattern).
 
@@ -57,27 +57,14 @@ Do NOT touch `source/` (backend) or `frontend/` (frontend code).
 
 ## Tent proxy
 
-Tent (`darthjee/tent`) is the single entry point on port 3000. It routes requests based on rules in `docker_volumes/proxy_configuration/rules/`:
+Tent (`darthjee/tent`) is the single entry point on port 3000. The `infra` agent owns the
+Docker service definitions for `majora_proxy` and `proxy_tests` in `docker-compose.yml`
+and the CI jobs that upload proxy files (`upload_proxy_files`).
 
-| File | Purpose |
-|------|---------|
-| `configure.php` | Entry point — loads all rule files |
-| `rules/backend.php` | Routes `*.json` requests to Django (cached) |
-| `rules/frontend.php` | Routes frontend requests to Vite or static files |
-| `rules/redirects.php` | Catch-all: `GET /path` → `/#/path` (302) |
-
-**Dev mode** (`FRONTEND_DEV_MODE=true`): Tent proxies frontend requests live to the Vite dev server (`majora_fe:8080`).  
-**Production / static mode**: Tent serves built assets from `docker_volumes/static/`.
+**PHP proxy source files (`proxy/`) are owned by the `proxy` agent** — delegate any task
+involving routing rules, custom middleware, or PHP tests to it.
 
 See [docs/agents/HOW_TO_USE_DARTHJEE-TENT.md] for the full Tent configuration reference.
-
-**PHP is not installed on the host or in any CI/check container** — it only ships inside the `darthjee/tent` image. Never shell out to a bare `php` command; always run it through docker, e.g.:
-
-```bash
-docker run --rm -v "$PWD":/repo darthjee/tent:0.7.8 sh -c 'php -l /repo/path/to/rule.php'
-```
-
-`check_infra.sh` already does this to lint every `*.php` file under `docker_volumes/proxy_configuration/` and `prod_proxy_config/`.
 
 ## Navi cache warmer
 
