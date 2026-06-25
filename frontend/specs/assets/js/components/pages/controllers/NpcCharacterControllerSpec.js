@@ -7,6 +7,12 @@ describe('NpcCharacterController', function() {
     AuthStorage.clearToken();
   });
 
+  const buildEffectController = (setCharacter, setLoading, setError, client, characterClient) => (
+    new NpcCharacterController(
+      setCharacter, setLoading, setError, client, getNpcCharacterParamsFromHash, characterClient,
+    )
+  );
+
   it('extracts character params from hash', function() {
     expect(getNpcCharacterParamsFromHash('#/games/demo/npcs/1')).toEqual({
       game_slug: 'demo',
@@ -27,14 +33,8 @@ describe('NpcCharacterController', function() {
       json: () => Promise.resolve({ id: 2 }),
     }));
 
-    const cleanup = new NpcCharacterController(
-      setCharacter,
-      setLoading,
-      setError,
-      client,
-      getNpcCharacterParamsFromHash,
-      characterClient,
-    ).buildEffect()();
+    const cleanup = buildEffectController(setCharacter, setLoading, setError, client, characterClient)
+      .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(characterClient.fetchNpc).toHaveBeenCalledWith('demo', '2', null);
@@ -61,14 +61,8 @@ describe('NpcCharacterController', function() {
       json: () => Promise.resolve({ id: 2, can_edit: false }),
     }));
 
-    const cleanup = new NpcCharacterController(
-      setCharacter,
-      setLoading,
-      setError,
-      client,
-      getNpcCharacterParamsFromHash,
-      characterClient,
-    ).buildEffect()();
+    const cleanup = buildEffectController(setCharacter, setLoading, setError, client, characterClient)
+      .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(characterClient.fetchNpc).toHaveBeenCalledWith('demo', '2', 'tok-abc');
@@ -92,14 +86,8 @@ describe('NpcCharacterController', function() {
       json: () => Promise.resolve({ id: 2 }),
     }));
 
-    const cleanup = new NpcCharacterController(
-      setCharacter,
-      setLoading,
-      setError,
-      client,
-      getNpcCharacterParamsFromHash,
-      characterClient,
-    ).buildEffect()();
+    const cleanup = buildEffectController(setCharacter, setLoading, setError, client, characterClient)
+      .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(characterClient.fetchNpc).toHaveBeenCalledWith('demo', '2', null);
@@ -124,14 +112,8 @@ describe('NpcCharacterController', function() {
       json: () => Promise.resolve({ id: 2, can_edit: true, private_description: 'Secret lore.' }),
     }));
 
-    const cleanup = new NpcCharacterController(
-      setCharacter,
-      setLoading,
-      setError,
-      client,
-      getNpcCharacterParamsFromHash,
-      characterClient,
-    ).buildEffect()();
+    const cleanup = buildEffectController(setCharacter, setLoading, setError, client, characterClient)
+      .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(characterClient.fetchNpcFull).toHaveBeenCalledWith('demo', '2', null);
@@ -153,14 +135,8 @@ describe('NpcCharacterController', function() {
       json: () => Promise.resolve({ id: 2, can_edit: false }),
     }));
 
-    const cleanup = new NpcCharacterController(
-      setCharacter,
-      setLoading,
-      setError,
-      client,
-      getNpcCharacterParamsFromHash,
-      characterClient,
-    ).buildEffect()();
+    const cleanup = buildEffectController(setCharacter, setLoading, setError, client, characterClient)
+      .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(characterClient.fetchNpcFull).not.toHaveBeenCalled();
@@ -183,14 +159,8 @@ describe('NpcCharacterController', function() {
     }));
     characterClient.fetchNpcFull.and.returnValue(Promise.resolve({ ok: false, status: 403 }));
 
-    const cleanup = new NpcCharacterController(
-      setCharacter,
-      setLoading,
-      setError,
-      client,
-      getNpcCharacterParamsFromHash,
-      characterClient,
-    ).buildEffect()();
+    const cleanup = buildEffectController(setCharacter, setLoading, setError, client, characterClient)
+      .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: true });
@@ -209,14 +179,8 @@ describe('NpcCharacterController', function() {
     client.currentHash.and.returnValue('#/games/demo/npcs/2');
     characterClient.fetchNpc.and.returnValue(Promise.resolve({ ok: false }));
 
-    const cleanup = new NpcCharacterController(
-      setCharacter,
-      setLoading,
-      setError,
-      client,
-      getNpcCharacterParamsFromHash,
-      characterClient,
-    ).buildEffect()();
+    const cleanup = buildEffectController(setCharacter, setLoading, setError, client, characterClient)
+      .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(setError).toHaveBeenCalledWith('Unable to load character.');
@@ -234,14 +198,8 @@ describe('NpcCharacterController', function() {
 
     client.currentHash.and.returnValue('#/other');
 
-    const cleanup = new NpcCharacterController(
-      setCharacter,
-      setLoading,
-      setError,
-      client,
-      getNpcCharacterParamsFromHash,
-      characterClient,
-    ).buildEffect()();
+    const cleanup = buildEffectController(setCharacter, setLoading, setError, client, characterClient)
+      .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(setError).toHaveBeenCalledWith('Unable to load character.');
@@ -249,5 +207,55 @@ describe('NpcCharacterController', function() {
     expect(characterClient.fetchNpc).not.toHaveBeenCalled();
 
     cleanup();
+  });
+
+  const safeSet = (setter, value) => setter(value);
+  const buildController = (setCharacter, characterClient) => (
+    new NpcCharacterController(setCharacter, () => {}, () => {}, null, undefined, characterClient)
+  );
+
+  describe('#mergePrivateDescription', function() {
+    it('merges the private description into the character', async function() {
+      const setCharacter = jasmine.createSpy('setCharacter');
+      const controller = buildController(setCharacter);
+      const fullResponse = { json: () => Promise.resolve({ private_description: 'Secret lore.' }) };
+
+      await controller.mergePrivateDescription(fullResponse, { id: 2 }, safeSet);
+
+      expect(setCharacter).toHaveBeenCalledWith({ id: 2, private_description: 'Secret lore.' });
+    });
+  });
+
+  describe('#loadFullCharacter', function() {
+    const params = { game_slug: 'demo', character_id: '2' };
+
+    it('sets the character without fetching full detail when can_edit is false', function() {
+      const setCharacter = jasmine.createSpy('setCharacter');
+      const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpcFull']);
+      const result = buildController(setCharacter, characterClient)
+        .loadFullCharacter({ id: 2, can_edit: false }, params, null, safeSet);
+
+      expect(characterClient.fetchNpcFull).not.toHaveBeenCalled();
+      expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: false });
+      expect(result).toBeUndefined();
+    });
+
+    it('fetches full detail when can_edit is true', async function() {
+      const setCharacter = jasmine.createSpy('setCharacter');
+      const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpcFull']);
+
+      characterClient.fetchNpcFull.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ private_description: 'Secret lore.' }),
+      }));
+
+      await buildController(setCharacter, characterClient)
+        .loadFullCharacter({ id: 2, can_edit: true }, params, 'tok', safeSet);
+
+      expect(characterClient.fetchNpcFull).toHaveBeenCalledWith('demo', '2', 'tok');
+      expect(setCharacter).toHaveBeenCalledWith({
+        id: 2, can_edit: true, private_description: 'Secret lore.',
+      });
+    });
   });
 });
