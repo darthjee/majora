@@ -64,6 +64,21 @@ the required corrections to `backend` (or the relevant specialist) before openin
 Update `docs/agents/access-control.md` in the same PR whenever a new model or endpoint is
 introduced.
 
+### Security review
+
+Invoke the `security` agent after `backend` or `infra` finishes whenever an issue involves
+any of:
+
+- A new API endpoint
+- Authentication or authorization logic changes
+- Tent proxy rule changes (`docker_volumes/proxy_configuration/`)
+- User input handling (new serializer fields, new query parameters, new form processing)
+
+Dispatch `security` with the list of changed files (and optionally a diff). If it reports
+findings, delegate the required corrections to the appropriate specialist agent (`backend`
+for Django code, `infra` for proxy rules), then re-invoke `security` to confirm all
+findings are resolved before merging the PR.
+
 ## Documentation (`docs/agents/`)
 
 | File | Contents |
