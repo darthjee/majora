@@ -20,6 +20,16 @@ urlpatterns = [
         name='game-pc-detail',
     ),
     path(
+        'games/<slug:game_slug>/npcs/<int:character_id>/full.json',
+        views.game_npc_full,
+        name='game-npc-full',
+    ),
+    path(
+        'games/<slug:game_slug>/pcs/<int:character_id>/full.json',
+        views.game_pc_full,
+        name='game-pc-full',
+    ),
+    path(
         'games/<slug:game_slug>/game-masters.json',
         views.game_masters_list,
         name='game-masters-list',

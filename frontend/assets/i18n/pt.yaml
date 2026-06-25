@@ -41,6 +41,9 @@ game_characters_page:
 character_page:
   loading: Carregando personagem...
   edit: Editar
+character_full_page:
+  loading: Carregando personagem...
+  private_description_label: Notas do Mestre
 character_info:
   class_label: 'Classe:'
   level_label: Nível
@@ -68,6 +71,7 @@ pc_edit_page:
   character_class_label: Classe
   level_label: Nível
   description_label: Descrição
+  private_description_label: Notas do Mestre
   submit: Salvar alterações
   error: Falha ao salvar o personagem. Tente novamente.
 npc_edit_page:
@@ -77,6 +81,7 @@ npc_edit_page:
   character_class_label: Classe
   level_label: Nível
   description_label: Descrição
+  private_description_label: Notas do Mestre
   submit: Salvar alterações
   error: Falha ao salvar o personagem. Tente novamente.
 language_selector:

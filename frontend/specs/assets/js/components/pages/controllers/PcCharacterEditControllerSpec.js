@@ -33,7 +33,8 @@ describe('PcCharacterEditController', function() {
         avatar_url: 'http://example.com/a.png',
         character_class: 'Ranger',
         level: 10,
-        description: 'King',
+        public_description: 'King',
+        private_description: 'Secret notes',
         can_edit: true,
       };
 
@@ -44,7 +45,8 @@ describe('PcCharacterEditController', function() {
           avatar_url: 'http://example.com/a.png',
           character_class: 'Ranger',
           level: 10,
-          description: 'King',
+          public_description: 'King',
+          private_description: 'Secret notes',
         },
       });
     });
@@ -57,7 +59,8 @@ describe('PcCharacterEditController', function() {
           avatar_url: '',
           character_class: '',
           level: '',
-          description: '',
+          public_description: '',
+          private_description: '',
         },
       });
     });
@@ -81,6 +84,7 @@ describe('PcCharacterEditController', function() {
         setCharacterClass: jasmine.createSpy('setCharacterClass'),
         setLevel: jasmine.createSpy('setLevel'),
         setDescription: jasmine.createSpy('setDescription'),
+        setPrivateDescription: jasmine.createSpy('setPrivateDescription'),
       };
     });
 
@@ -99,6 +103,7 @@ describe('PcCharacterEditController', function() {
       expect(setters.setCharacterClass).not.toHaveBeenCalled();
       expect(setters.setLevel).not.toHaveBeenCalled();
       expect(setters.setDescription).not.toHaveBeenCalled();
+      expect(setters.setPrivateDescription).not.toHaveBeenCalled();
     });
 
     it('redirects to the show page when the loaded character cannot be edited', function() {
@@ -134,7 +139,8 @@ describe('PcCharacterEditController', function() {
         avatar_url: 'http://example.com/a.png',
         character_class: 'Ranger',
         level: 10,
-        description: 'King',
+        public_description: 'King',
+        private_description: 'Secret',
         can_edit: true,
       };
 
@@ -145,6 +151,7 @@ describe('PcCharacterEditController', function() {
       expect(setters.setCharacterClass).toHaveBeenCalledWith('Ranger');
       expect(setters.setLevel).toHaveBeenCalledWith(10);
       expect(setters.setDescription).toHaveBeenCalledWith('King');
+      expect(setters.setPrivateDescription).toHaveBeenCalledWith('Secret');
     });
   });
 
@@ -154,12 +161,16 @@ describe('PcCharacterEditController', function() {
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
       const client = jasmine.createSpyObj('client', ['currentHash']);
-      const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'updatePc']);
+      const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull', 'updatePc']);
 
       client.currentHash.and.returnValue('#/games/demo/pcs/2/edit');
       characterClient.fetchPc.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ id: 2, can_edit: true }),
+      }));
+      characterClient.fetchPcFull.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ id: 2, can_edit: true, private_description: 'Secret.' }),
       }));
 
       const controller = new PcCharacterEditController(
@@ -174,7 +185,7 @@ describe('PcCharacterEditController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(characterClient.fetchPc).toHaveBeenCalledWith('demo', '2', null);
-      expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: true });
+      expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: true, private_description: 'Secret.' });
 
       cleanup();
     });

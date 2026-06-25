@@ -20,6 +20,7 @@ export default function PcCharacterEdit() {
   const [characterClass, setCharacterClass] = useState('');
   const [level, setLevel] = useState('');
   const [description, setDescription] = useState('');
+  const [privateDescription, setPrivateDescription] = useState('');
 
   const controller = useMemo(
     () => new PcCharacterEditController(setCharacter, setLoading, setError, setFieldErrors),
@@ -38,6 +39,7 @@ export default function PcCharacterEdit() {
       setCharacterClass,
       setLevel,
       setDescription,
+      setPrivateDescription,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [character]);
@@ -46,7 +48,7 @@ export default function PcCharacterEdit() {
     event,
     gameSlug,
     characterId,
-    { name, avatarUrl, characterClass, level, description },
+    { name, avatarUrl, characterClass, level, description, privateDescription },
     { setStatus, setFieldErrors },
   );
 
@@ -61,6 +63,7 @@ export default function PcCharacterEdit() {
       character_class: characterClass,
       level,
       description,
+      privateDescription,
       status,
       fieldErrors,
     },
@@ -71,6 +74,7 @@ export default function PcCharacterEdit() {
       onCharacterClassChange: (event) => setCharacterClass(event.target.value),
       onLevelChange: (event) => setLevel(event.target.value),
       onDescriptionChange: (event) => setDescription(event.target.value),
+      onPrivateDescriptionChange: (event) => setPrivateDescription(event.target.value),
     }
   );
 }

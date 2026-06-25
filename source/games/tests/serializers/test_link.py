@@ -1,0 +1,38 @@
+"""Tests for the LinkSerializer."""
+
+import pytest
+
+from games.models import Game, Link
+from games.serializers import LinkSerializer
+
+
+@pytest.mark.django_db
+class TestLinkSerializer:
+    """Tests for the LinkSerializer."""
+
+    def setup_method(self):
+        """Set up common test fixtures."""
+        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.link = Link.objects.create(
+            text='Official Wiki', url='http://example.com/wiki', game=self.game
+        )
+
+    def test_serializes_id(self):
+        """Test that the id field is serialized."""
+        data = LinkSerializer(self.link).data
+        assert data['id'] == self.link.id
+
+    def test_serializes_text(self):
+        """Test that the text field is serialized."""
+        data = LinkSerializer(self.link).data
+        assert data['text'] == 'Official Wiki'
+
+    def test_serializes_url(self):
+        """Test that the url field is serialized."""
+        data = LinkSerializer(self.link).data
+        assert data['url'] == 'http://example.com/wiki'
+
+    def test_does_not_include_game(self):
+        """Test that the game field is not exposed."""
+        data = LinkSerializer(self.link).data
+        assert 'game' not in data

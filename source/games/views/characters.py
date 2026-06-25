@@ -8,8 +8,10 @@ from rest_framework.response import Response
 
 from ..models import Character, Game
 from ..paginator import Paginator
+from ..permissions import CharacterEditPermission
 from ..serializers import (
     CharacterDetailSerializer,
+    CharacterFullSerializer,
     CharacterListSerializer,
     CharacterUpdateSerializer,
 )
@@ -65,14 +67,39 @@ def game_pc_detail(request, game_slug, character_id):
     return Response(serializer.data)
 
 
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([AllowAny])
+def game_npc_full(request, game_slug, character_id):
+    """Return full detail (including private description) for a specific NPC."""
+    game = get_object_or_404(Game, game_slug=game_slug)
+    character = get_object_or_404(Character, id=character_id, game=game, npc=True)
+    error_response = CharacterEditPermission.check(request, character)
+    if error_response:
+        return error_response
+    serializer = CharacterFullSerializer(character, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([AllowAny])
+def game_pc_full(request, game_slug, character_id):
+    """Return full detail (including private description) for a specific PC."""
+    game = get_object_or_404(Game, game_slug=game_slug)
+    character = get_object_or_404(Character, id=character_id, game=game, npc=False)
+    error_response = CharacterEditPermission.check(request, character)
+    if error_response:
+        return error_response
+    serializer = CharacterFullSerializer(character, context={'request': request})
+    return Response(serializer.data)
+
+
 def _update_character(request, character):
     """Validate permissions and payload, then persist updates to a character."""
-    if not request.user or not request.user.is_authenticated:
-        return Response({'errors': {'detail': ['authentication required']}}, status=401)
-    if not character.can_be_edited_by(request.user):
-        return Response(
-            {'errors': {'detail': ['not allowed to edit this character']}}, status=403
-        )
+    error_response = CharacterEditPermission.check(request, character)
+    if error_response:
+        return error_response
 
     serializer = CharacterUpdateSerializer(character, data=request.data, partial=True)
     if not serializer.is_valid():

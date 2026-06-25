@@ -22,7 +22,8 @@ class Character(models.Model):
     avatar_url = models.URLField(null=True, blank=True)
     character_class = models.CharField(max_length=200, blank=True, null=True)
     level = models.IntegerField(null=True, blank=True)
-    description = models.TextField(blank=True)
+    public_description = models.TextField(blank=True)
+    private_description = models.TextField(blank=True)
     npc = models.BooleanField(default=True)
 
     class Meta:

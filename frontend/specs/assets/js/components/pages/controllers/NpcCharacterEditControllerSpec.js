@@ -33,7 +33,8 @@ describe('NpcCharacterEditController', function() {
         avatar_url: 'http://example.com/a.png',
         character_class: 'Brute',
         level: 5,
-        description: 'Ruler of the cave',
+        public_description: 'Ruler of the cave',
+        private_description: 'Secret notes',
         can_edit: true,
       };
 
@@ -44,7 +45,8 @@ describe('NpcCharacterEditController', function() {
           avatar_url: 'http://example.com/a.png',
           character_class: 'Brute',
           level: 5,
-          description: 'Ruler of the cave',
+          public_description: 'Ruler of the cave',
+          private_description: 'Secret notes',
         },
       });
     });
@@ -57,7 +59,8 @@ describe('NpcCharacterEditController', function() {
           avatar_url: '',
           character_class: '',
           level: '',
-          description: '',
+          public_description: '',
+          private_description: '',
         },
       });
     });
@@ -81,6 +84,7 @@ describe('NpcCharacterEditController', function() {
         setCharacterClass: jasmine.createSpy('setCharacterClass'),
         setLevel: jasmine.createSpy('setLevel'),
         setDescription: jasmine.createSpy('setDescription'),
+        setPrivateDescription: jasmine.createSpy('setPrivateDescription'),
       };
     });
 
@@ -99,6 +103,7 @@ describe('NpcCharacterEditController', function() {
       expect(setters.setCharacterClass).not.toHaveBeenCalled();
       expect(setters.setLevel).not.toHaveBeenCalled();
       expect(setters.setDescription).not.toHaveBeenCalled();
+      expect(setters.setPrivateDescription).not.toHaveBeenCalled();
     });
 
     it('redirects to the show page when the loaded character cannot be edited', function() {
@@ -134,7 +139,8 @@ describe('NpcCharacterEditController', function() {
         avatar_url: 'http://example.com/a.png',
         character_class: 'Brute',
         level: 5,
-        description: 'Ruler of the cave',
+        public_description: 'Ruler of the cave',
+        private_description: 'Secret',
         can_edit: true,
       };
 
@@ -145,6 +151,7 @@ describe('NpcCharacterEditController', function() {
       expect(setters.setCharacterClass).toHaveBeenCalledWith('Brute');
       expect(setters.setLevel).toHaveBeenCalledWith(5);
       expect(setters.setDescription).toHaveBeenCalledWith('Ruler of the cave');
+      expect(setters.setPrivateDescription).toHaveBeenCalledWith('Secret');
     });
   });
 
@@ -154,12 +161,16 @@ describe('NpcCharacterEditController', function() {
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
       const client = jasmine.createSpyObj('client', ['currentHash']);
-      const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'updateNpc']);
+      const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'updateNpc']);
 
       client.currentHash.and.returnValue('#/games/demo/npcs/2/edit');
       characterClient.fetchNpc.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ id: 2, can_edit: true }),
+      }));
+      characterClient.fetchNpcFull.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ id: 2, can_edit: true, private_description: 'Secret.' }),
       }));
 
       const controller = new NpcCharacterEditController(
@@ -174,7 +185,7 @@ describe('NpcCharacterEditController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(characterClient.fetchNpc).toHaveBeenCalledWith('demo', '2', null);
-      expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: true });
+      expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: true, private_description: 'Secret.' });
 
       cleanup();
     });

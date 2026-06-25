@@ -78,7 +78,7 @@ export default class NpcCharacterEditController extends BasePageController {
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
    * @param {object} fields - Fields to update
-   *   (`name`, `avatar_url`, `character_class`, `level`, `description`).
+   *   (`name`, `avatar_url`, `character_class`, `level`, `public_description`, `private_description`).
    * @returns {Promise<void>} resolves when the request handling finishes.
    */
   async handleSubmit(gameSlug, characterId, fields) {
@@ -102,7 +102,7 @@ export default class NpcCharacterEditController extends BasePageController {
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
    * @param {{name: string, avatarUrl: string, characterClass: string,
-   *   level: string, description: string}} formValues - Raw form field values.
+   *   level: string, description: string, privateDescription: string}} formValues - Raw form field values.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} resolves when the request handling finishes.
    */
@@ -119,7 +119,8 @@ export default class NpcCharacterEditController extends BasePageController {
       avatar_url: formValues.avatarUrl,
       character_class: formValues.characterClass,
       level: formValues.level,
-      description: formValues.description,
+      public_description: formValues.description,
+      private_description: formValues.privateDescription,
     });
   }
 
@@ -156,7 +157,7 @@ export default class NpcCharacterEditController extends BasePageController {
    * @param {string} gameSlug - Game slug, used to build the redirect hash.
    * @param {string|number} characterId - Character id, used to build the redirect hash.
    * @param {{setName: Function, setAvatarUrl: Function, setCharacterClass: Function,
-   *   setLevel: Function, setDescription: Function}} setters - Form field setters.
+   *   setLevel: Function, setDescription: Function, setPrivateDescription: Function}} setters - Form field setters.
    * @returns {void}
    */
   applyLoadedCharacter(character, gameSlug, characterId, setters) {
@@ -172,7 +173,8 @@ export default class NpcCharacterEditController extends BasePageController {
       setters.setAvatarUrl(fields.avatar_url);
       setters.setCharacterClass(fields.character_class);
       setters.setLevel(fields.level);
-      setters.setDescription(fields.description);
+      setters.setDescription(fields.public_description);
+      setters.setPrivateDescription(fields.private_description);
     }
   }
 }
