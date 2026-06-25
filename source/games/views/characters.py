@@ -95,6 +95,32 @@ def game_pc_full(request, game_slug, character_id):
     return Response(serializer.data)
 
 
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([AllowAny])
+def game_pc_access(request, game_slug, character_id):
+    """Return whether the requesting user may edit a specific PC."""
+    game = get_object_or_404(Game, game_slug=game_slug)
+    character = get_object_or_404(Character, id=character_id, game=game, npc=False)
+    can_edit = character.can_be_edited_by(request.user)
+    response = Response({'can_edit': can_edit})
+    response['X-Skip-Cache'] = 'true'
+    return response
+
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([AllowAny])
+def game_npc_access(request, game_slug, character_id):
+    """Return whether the requesting user may edit a specific NPC."""
+    game = get_object_or_404(Game, game_slug=game_slug)
+    character = get_object_or_404(Character, id=character_id, game=game, npc=True)
+    can_edit = character.can_be_edited_by(request.user)
+    response = Response({'can_edit': can_edit})
+    response['X-Skip-Cache'] = 'true'
+    return response
+
+
 def _update_character(request, character):
     """Validate permissions and payload, then persist updates to a character."""
     error_response = CharacterEditPermission.check(request, character)

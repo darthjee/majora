@@ -161,12 +161,16 @@ describe('PcCharacterEditController', function() {
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
       const client = jasmine.createSpyObj('client', ['currentHash']);
-      const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull', 'updatePc']);
+      const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull', 'fetchPcAccess', 'updatePc']);
 
       client.currentHash.and.returnValue('#/games/demo/pcs/2/edit');
       characterClient.fetchPc.and.returnValue(Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ id: 2, can_edit: true }),
+        json: () => Promise.resolve({ id: 2, can_edit: false }),
+      }));
+      characterClient.fetchPcAccess.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ can_edit: true }),
       }));
       characterClient.fetchPcFull.and.returnValue(Promise.resolve({
         ok: true,
