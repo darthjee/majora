@@ -1,6 +1,6 @@
 # Security Guidelines
 
-This document is the authoritative checklist used by the `security` agent to review changes in the Majora project. It covers vulnerability patterns relevant to the Django backend (`source/`) and the Tent PHP proxy (`docker_volumes/proxy_configuration/`).
+This document is the authoritative checklist used by the `security` agent to review changes in the Majora project. It covers vulnerability patterns relevant to the Django backend (`source/`) and the Tent PHP proxy (`proxy/`).
 
 Refer to this document whenever reviewing a diff that touches API endpoints, authentication/authorization logic, proxy configuration, or user-facing input handling.
 
@@ -22,7 +22,7 @@ Refer to this document whenever reviewing a diff that touches API endpoints, aut
 
 ### PHP Proxy (Tent)
 
-- Proxy rule files (`rules/*.php`) must not interpolate HTTP request data (headers, query params, body) into shell commands, `exec()`, `eval()`, `system()`, or dynamic `include`/`require` paths.
+- Proxy rule files (`proxy/*/rules/*.php`) must not interpolate HTTP request data (headers, query params, body) into shell commands, `exec()`, `eval()`, `system()`, or dynamic `include`/`require` paths.
 - Host-based routing in `configure.php` must use exact-match comparisons, not substring matches, to prevent header injection attacks via the `Host` header.
 
 ## 3. Insecure Headers
@@ -46,7 +46,7 @@ Refer to this document whenever reviewing a diff that touches API endpoints, aut
 
 ## 6. Insecure Proxy Rules
 
-- Tent proxy rules (`docker_volumes/proxy_configuration/rules/*.php`) must route only the intended URL patterns to each upstream — overly broad patterns (e.g. `.*` matching everything) can expose unintended paths.
+- Tent proxy rules (`proxy/*/rules/*.php`) must route only the intended URL patterns to each upstream — overly broad patterns (e.g. `.*` matching everything) can expose unintended paths.
 - Rules that proxy to the Django backend must not forward the raw `Authorization` header from the client to Django unless Django explicitly expects and validates it.
 - Rules should restrict forwarded HTTP methods to those the upstream handler actually uses; do not forward `PUT`, `DELETE`, or `PATCH` to an endpoint that only handles `GET`.
 - If Tent is configured to cache a route, confirm that the route serves identical content to all clients (unauthenticated public data) — never cache responses that contain user-specific data.
