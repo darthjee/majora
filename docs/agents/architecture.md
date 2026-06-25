@@ -8,15 +8,20 @@ Majora is structured as two independent applications — a Django REST backend a
 
 Tent ([GitHub](https://github.com/darthjee/tent), [Docker Hub](https://hub.docker.com/r/darthjee/tent)) is a PHP-based reverse proxy and static file server. It listens on port 3000 and is the only service exposed to end users. See [HOW_TO_USE_DARTHJEE-TENT.md](HOW_TO_USE_DARTHJEE-TENT.md) for the full configuration reference.
 
-Routing rules live in `docker_volumes/proxy_configuration/`:
+All proxy-related files live under the top-level `proxy/` directory:
 
 ```
-proxy_configuration/
-├── configure.php        # entry point — loads all rule files
-└── rules/
-    ├── backend.php      # routes *.json requests to the Django backend (cached)
-    ├── frontend.php     # routes frontend requests (dev server or static files)
-    └── redirects.php    # catch-all redirect: GET /path → /#/path
+proxy/
+├── dev_configuration/   # dev routing rules (mounted into Tent at /var/www/html/configuration/)
+│   ├── configure.php    # entry point — loads all rule files
+│   └── rules/
+│       ├── backend.php  # routes *.json requests to the Django backend (cached)
+│       ├── frontend.php # routes frontend requests (dev server or static files)
+│       └── redirects.php# catch-all redirect: GET /path → /#/path
+├── prod_configuration/  # production routing rules (uploaded to the remote server)
+└── custom/
+    ├── extend/          # custom Tent middleware PHP classes (Tent\ namespace)
+    └── tests/           # PHPUnit tests for custom middleware
 ```
 
 ### Development mode (`FRONTEND_DEV_MODE=true`)

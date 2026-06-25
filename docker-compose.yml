@@ -96,7 +96,7 @@ services:
     env_file: .env
     volumes:
       - ./docker_volumes/static/:/var/www/html/static/
-      - ./docker_volumes/proxy_configuration:/var/www/html/configuration/
+      - ./proxy/dev_configuration:/var/www/html/configuration/
       - ./docker_volumes/proxy_cache:/var/www/html/cache/
     links:
       - majora_app:backend
@@ -106,6 +106,12 @@ services:
       - majora_fe
     ports:
       - 0.0.0.0:3000:80
+
+  proxy_tests:
+    image: darthjee/tent:0.7.8
+    volumes:
+      - ./proxy/custom:/var/www/html/custom
+    command: vendor/bin/phpunit custom/tests
 
   majora_navi:
     image: darthjee/navi-hey:latest

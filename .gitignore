@@ -36,7 +36,7 @@ docker_volumes/mysql_data/
 .env.production
 
 # Production proxy host configuration (set only on production servers)
-prod_proxy_config/hosts.php
+proxy/prod_configuration/hosts.php
 
 # Editor
 .vscode/

@@ -222,7 +222,7 @@ jobs:
           command: SOURCE=/var/www/html/ bin/deploy_frontend.sh upload
       - run:
           name: Upload proxy configuration
-          command: SOURCE=prod_proxy_config/ DEPLOY_PATH=configuration/ bin/deploy_frontend.sh upload
+          command: SOURCE=proxy/prod_configuration/ DEPLOY_PATH=configuration/ bin/deploy_frontend.sh upload
       - run:
           name: Setup hosts
           command: TARGET=configuration/hosts.php DEPLOY_PATH=configuration/ bin/deploy_frontend.sh copy_files
