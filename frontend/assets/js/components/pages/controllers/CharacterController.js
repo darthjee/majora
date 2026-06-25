@@ -161,6 +161,35 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
+   * Parse the character fetch response, throwing on non-ok status.
+   *
+   * @param {Response} response - Fetch response from fetchCharacter.
+   * @returns {Promise<object>} Parsed character JSON.
+   */
+  handleCharacterResponse(response) {
+    if (!response.ok) throw new Error('Unable to load character.');
+    return response.json();
+  }
+
+  /**
+   * Load the character using the stored token, parse the response,
+   * merge access permissions, and update loading state.
+   *
+   * @param {object} params - Route params with game_slug and character_id.
+   * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
+   * @returns {Promise<void>} Resolves once the character state is updated.
+   */
+  loadCharacter(params, safeSet) {
+    const token = AuthStorage.getToken();
+
+    return this.fetchCharacter(params.game_slug, params.character_id, token)
+      .then((response) => this.handleCharacterResponse(response))
+      .then((character) => this.fetchAndMergeAccess(character, params, token, safeSet))
+      .catch(() => safeSet(this.setError, 'Unable to load character.'))
+      .finally(() => safeSet(this.setLoading, false));
+  }
+
+  /**
    * Build page loading effect.
    *
    * @returns {Function} Effect callback.
@@ -175,16 +204,7 @@ export default class CharacterController extends BasePageController {
         safeSet(this.setError, 'Unable to load character.');
         safeSet(this.setLoading, false);
       } else {
-        const token = AuthStorage.getToken();
-
-        this.fetchCharacter(params.game_slug, params.character_id, token)
-          .then((response) => {
-            if (!response.ok) throw new Error('Unable to load character.');
-            return response.json();
-          })
-          .then((character) => this.fetchAndMergeAccess(character, params, token, safeSet))
-          .catch(() => safeSet(this.setError, 'Unable to load character.'))
-          .finally(() => safeSet(this.setLoading, false));
+        this.loadCharacter(params, safeSet);
       }
 
       return () => {

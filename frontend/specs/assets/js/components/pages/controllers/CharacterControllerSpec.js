@@ -49,6 +49,84 @@ describe('CharacterController', function() {
     return controller;
   };
 
+  describe('#handleCharacterResponse', function() {
+    it('returns the parsed JSON when the response is ok', async function() {
+      const controller = buildController(jasmine.createSpy('setCharacter'));
+      const response = {
+        ok: true,
+        json: () => Promise.resolve({ id: 2, name: 'Hero' }),
+      };
+
+      const result = await controller.handleCharacterResponse(response);
+
+      expect(result).toEqual({ id: 2, name: 'Hero' });
+    });
+
+    it('throws when the response is not ok', function() {
+      const controller = buildController(jasmine.createSpy('setCharacter'));
+      const response = { ok: false };
+
+      expect(() => controller.handleCharacterResponse(response)).toThrowError('Unable to load character.');
+    });
+  });
+
+  describe('#loadCharacter', function() {
+    const params = { game_slug: 'demo', character_id: '2' };
+
+    it('fetches the character and merges access on success', async function() {
+      const setCharacter = jasmine.createSpy('setCharacter');
+      const controller = buildController(setCharacter, {
+        fetchCharacter: () => Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ id: 2 }),
+        }),
+        fetchCharacterAccess: () => Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ can_edit: false }),
+        }),
+        fetchCharacterFull: () => Promise.resolve({ ok: false }),
+      });
+
+      await controller.loadCharacter(params, safeSet);
+
+      expect(controller.fetchCharacter).toHaveBeenCalledWith('demo', '2', null);
+      expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: false });
+    });
+
+    it('calls setError when the character fetch response is not ok', async function() {
+      const setError = jasmine.createSpy('setError');
+      const setCharacter = jasmine.createSpy('setCharacter');
+      const controller = new StubCharacterController(
+        setCharacter,
+        () => {},
+        setError,
+        () => params,
+        null,
+      );
+      spyOn(controller, 'fetchCharacter').and.returnValue(Promise.resolve({ ok: false }));
+
+      await controller.loadCharacter(params, safeSet);
+
+      expect(setError).toHaveBeenCalledWith('Unable to load character.');
+    });
+
+    it('calls setLoading with false after the fetch chain completes', async function() {
+      const setLoading = jasmine.createSpy('setLoading');
+      const controller = new StubCharacterController(
+        () => {},
+        setLoading,
+        () => {},
+        () => params,
+        null,
+      );
+      spyOn(controller, 'fetchCharacter').and.returnValue(Promise.resolve({ ok: false }));
+
+      await controller.loadCharacter(params, safeSet);
+
+      expect(setLoading).toHaveBeenCalledWith(false);
+    });
+  });
+
   describe('#handleAccessResponse', function() {
     it('overlays can_edit onto the character when the response is ok', async function() {
       const controller = buildController(jasmine.createSpy('setCharacter'));
