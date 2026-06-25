@@ -52,6 +52,19 @@ export default class NpcCharacterController extends BasePageController {
   }
 
   /**
+   * Handle the access endpoint response, overlaying can_edit onto the character.
+   * Falls back to the original character when the response is not ok.
+   *
+   * @param {Response} accessResponse - Response from fetchNpcAccess.
+   * @param {object} character - Base character data already loaded.
+   * @returns {Promise<object>} Resolves to the character with can_edit applied.
+   */
+  handleAccessResponse(accessResponse, character) {
+    if (!accessResponse.ok) return Promise.resolve(character);
+    return accessResponse.json().then((access) => ({ ...character, can_edit: access.can_edit }));
+  }
+
+  /**
    * Handle the full character response, merging the private description
    * into the base character when available.
    *
@@ -126,10 +139,7 @@ export default class NpcCharacterController extends BasePageController {
           })
           .then((character) => {
             return this.characterClient.fetchNpcAccess(params.game_slug, params.character_id, token)
-              .then((accessResponse) => {
-                if (!accessResponse.ok) return character;
-                return accessResponse.json().then((access) => ({ ...character, can_edit: access.can_edit }));
-              })
+              .then((accessResponse) => this.handleAccessResponse(accessResponse, character))
               .catch(() => character)
               .then((characterWithAccess) => this.loadFullCharacter(characterWithAccess, params, token, safeSet));
           })
