@@ -345,6 +345,72 @@ describe('PcCharacterController', function() {
     });
   });
 
+  describe('#fetchAndMergeAccess', function() {
+    const params = { game_slug: 'demo', character_id: '2' };
+
+    it('fetches access and merges can_edit onto the character', async function() {
+      const setCharacter = jasmine.createSpy('setCharacter');
+      const characterClient = jasmine.createSpyObj('characterClient', ['fetchPcAccess', 'fetchPcFull']);
+
+      characterClient.fetchPcAccess.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ can_edit: false }),
+      }));
+
+      await buildController(setCharacter, characterClient)
+        .fetchAndMergeAccess({ id: 2, can_edit: true }, params, 'tok', safeSet);
+
+      expect(characterClient.fetchPcAccess).toHaveBeenCalledWith('demo', '2', 'tok');
+      expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: false });
+    });
+
+    it('falls back to original character when access endpoint returns non-ok', async function() {
+      const setCharacter = jasmine.createSpy('setCharacter');
+      const characterClient = jasmine.createSpyObj('characterClient', ['fetchPcAccess', 'fetchPcFull']);
+
+      characterClient.fetchPcAccess.and.returnValue(Promise.resolve({ ok: false }));
+
+      await buildController(setCharacter, characterClient)
+        .fetchAndMergeAccess({ id: 2, can_edit: false }, params, null, safeSet);
+
+      expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: false });
+      expect(characterClient.fetchPcFull).not.toHaveBeenCalled();
+    });
+
+    it('falls back to original character when access endpoint throws', async function() {
+      const setCharacter = jasmine.createSpy('setCharacter');
+      const characterClient = jasmine.createSpyObj('characterClient', ['fetchPcAccess', 'fetchPcFull']);
+
+      characterClient.fetchPcAccess.and.returnValue(Promise.reject(new Error('Network error')));
+
+      await buildController(setCharacter, characterClient)
+        .fetchAndMergeAccess({ id: 2, can_edit: false }, params, null, safeSet);
+
+      expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: false });
+      expect(characterClient.fetchPcFull).not.toHaveBeenCalled();
+    });
+
+    it('calls loadFullCharacter with the merged character', async function() {
+      const setCharacter = jasmine.createSpy('setCharacter');
+      const characterClient = jasmine.createSpyObj('characterClient', ['fetchPcAccess', 'fetchPcFull']);
+
+      characterClient.fetchPcAccess.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ can_edit: true }),
+      }));
+      characterClient.fetchPcFull.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ private_description: 'Secret notes.' }),
+      }));
+
+      await buildController(setCharacter, characterClient)
+        .fetchAndMergeAccess({ id: 2, can_edit: false }, params, 'tok', safeSet);
+
+      expect(characterClient.fetchPcFull).toHaveBeenCalledWith('demo', '2', 'tok');
+      expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: true, private_description: 'Secret notes.' });
+    });
+  });
+
   describe('#loadFullCharacter', function() {
     const params = { game_slug: 'demo', character_id: '2' };
 

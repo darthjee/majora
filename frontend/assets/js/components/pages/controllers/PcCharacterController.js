@@ -96,6 +96,23 @@ export default class PcCharacterController extends BasePageController {
   }
 
   /**
+   * Fetch the access endpoint and merge the result into the character,
+   * then load the full character detail if editing is permitted.
+   *
+   * @param {object} character - Base character data already loaded.
+   * @param {object} params - Route params with game_slug and character_id.
+   * @param {string|null} token - Authentication token.
+   * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
+   * @returns {Promise<void>} Resolves once the character state is updated.
+   */
+  fetchAndMergeAccess(character, params, token, safeSet) {
+    return this.characterClient.fetchPcAccess(params.game_slug, params.character_id, token)
+      .then((accessResponse) => this.handleAccessResponse(accessResponse, character))
+      .catch(() => character)
+      .then((characterWithAccess) => this.loadFullCharacter(characterWithAccess, params, token, safeSet));
+  }
+
+  /**
    * Load the full character detail when the current user can edit it,
    * merging the private description into the character state.
    *
@@ -137,12 +154,7 @@ export default class PcCharacterController extends BasePageController {
             if (!response.ok) throw new Error('Unable to load character.');
             return response.json();
           })
-          .then((character) => {
-            return this.characterClient.fetchPcAccess(params.game_slug, params.character_id, token)
-              .then((accessResponse) => this.handleAccessResponse(accessResponse, character))
-              .catch(() => character)
-              .then((characterWithAccess) => this.loadFullCharacter(characterWithAccess, params, token, safeSet));
-          })
+          .then((character) => this.fetchAndMergeAccess(character, params, token, safeSet))
           .catch(() => safeSet(this.setError, 'Unable to load character.'))
           .finally(() => safeSet(this.setLoading, false));
       }
