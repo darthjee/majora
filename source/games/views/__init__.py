@@ -2,9 +2,11 @@
 
 from .auth import language, login, logout, register, status, test_email
 from .characters import (
+    game_npc_access,
     game_npc_detail,
     game_npc_full,
     game_npcs,
+    game_pc_access,
     game_pc_detail,
     game_pc_full,
     game_pcs,
@@ -18,8 +20,10 @@ __all__ = [
     'game_detail',
     'game_pcs',
     'game_npcs',
+    'game_npc_access',
     'game_npc_detail',
     'game_npc_full',
+    'game_pc_access',
     'game_pc_detail',
     'game_pc_full',
     'game_masters_list',
