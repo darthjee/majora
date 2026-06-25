@@ -50,10 +50,11 @@ Refer to this document whenever reviewing a diff that touches API endpoints, aut
 - Rules that proxy to the Django backend must not forward the raw `Authorization` header from the client to Django unless Django explicitly expects and validates it.
 - Rules should restrict forwarded HTTP methods to those the upstream handler actually uses; do not forward `PUT`, `DELETE`, or `PATCH` to an endpoint that only handles `GET`.
 - If Tent is configured to cache a route, confirm that the route serves identical content to all clients (unauthenticated public data) — never cache responses that contain user-specific data.
-- **`X-Skip-Cache` header (cache bypass):** Majora's proxy rules set `'skip_cache_header' => 'X-Skip-Cache'`, meaning any inbound request carrying this header bypasses the Tent cache entirely (no cache read, no cache write). Verify the following whenever a route is cached or authentication is introduced:
-  - On routes that serve public, identical-for-all-users data, allowing clients to send `X-Skip-Cache` is low risk but exposes a potential DoS vector (forcing repeated upstream hits). Strip this header from untrusted clients at the proxy boundary if DoS is a concern.
-  - On routes that serve user-specific data, `X-Skip-Cache` **must** be stripped from inbound requests before reaching the cache layer. If a client sends `X-Skip-Cache`, the resulting fresh response must not be written to a shared cache that other users could read; failure to strip the header or to scope the cache key per-user will leak private data across accounts.
-  - Never introduce a cached route for user-specific data without also ensuring that the `X-Skip-Cache` header is either stripped from external requests or that the cache key includes a user identity token.
+- **`X-Skip-Cache` header (cache bypass):** Majora's proxy rules set `'skip_cache_header' => 'X-Skip-Cache'`, meaning any request that carries this header bypasses the Tent cache entirely (no cache read, no cache write). This is the mechanism for preventing user-specific data from leaking between accounts via the shared cache. Verify the following whenever a route serves — or might in the future serve — user-specific data:
+  - The **backend** must set the `X-Skip-Cache` response header on any response that contains user-specific data (data that differs per authenticated user). Tent will then skip writing that response to the shared cache.
+  - The **frontend** must include the `X-Skip-Cache` request header on any API call that is expected to return user-specific data. This ensures Tent does not serve a cached response from a different user for that request.
+  - Both sides acting together is the correct pattern: the frontend opts out of the cache on the way in, and the backend opts out on the way out.
+  - Never introduce a new cached endpoint that returns per-user data without adding `X-Skip-Cache` handling in both the backend response and the frontend request; omitting it will cause Tent to store one user's data in the shared cache and serve it to a subsequent user who requests the same URL.
 
 ## 7. Input Validation
 
