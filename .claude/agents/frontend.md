@@ -113,7 +113,7 @@ JSDoc is **not required** in `specs/` files.
 
 Whenever JSX contains a conditional, decide where to put it using these rules:
 
-### Extract to a new component when ANY of these apply:
+### Extract to a new component when ANY of these apply
 
 1. **The parent is a composition of smaller named pieces.**
    The parent's job is to assemble things; each piece has a clear identity of its own.
@@ -129,7 +129,7 @@ Whenever JSX contains a conditional, decide where to put it using these rules:
    Example: `CardAvatar` is used in both `CharacterCardHelper` and `CharacterHelper`.
    Example: `PageLink` is used in several methods of `PaginationHelper`.
 
-### Extract to a private `#renderX` static method in the helper when:
+### Extract to a private `#renderX` static method in the helper when
 
 - The conditional is an **optional block inside** a larger render, specific to that one helper.
   Example: `CharacterInfoHelper.#renderClassLevel` — returns `null` if no class is set.
