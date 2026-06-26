@@ -4,7 +4,8 @@ Majora is an RPG campaign management system. It allows users to organize tableto
 
 ## Stack
 
-**Backend**
+### Backend
+
 - Python 3.11
 - Django 5 + Django REST Framework
 - MySQL 8
@@ -13,14 +14,16 @@ Majora is an RPG campaign management system. It allows users to organize tableto
 - pytest + pytest-django (tests)
 - ruff (linting, line length 100)
 
-**Frontend**
+### Frontend
+
 - React 19 + React Bootstrap 5
 - Vite (build tool)
 - Jasmine + c8 (tests and coverage)
 - ESLint (linting)
 - Yarn (package manager)
 
-**Infrastructure**
+### Infrastructure
+
 - Docker + Docker Compose
 - Reverse proxy via `darthjee/tent`
 
@@ -42,7 +45,9 @@ make setup
 
 Backend runs on port `3030`, frontend dev server on `3010`, full stack proxy on `3000`.
 
-**Always run project commands through `docker-compose`.** Never install packages or invoke tooling (`yarn`, `npm`, `poetry`, `pip`, `php`, etc.) directly on the host machine — the host may not even have the required runtime installed, and dependencies must stay reproducible inside the project's containers. Examples:
+**Always run project commands through `docker-compose`.** (unless the user says otherwise).
+Never install packages or invoke tooling (`yarn`, `npm`, `poetry`, `pip`, `php`, etc.) directly on the host machine (unless the users says otherwise).
+the host may not even have the required runtime installed, and dependencies must stay reproducible inside the project's containers. Examples:
 
 ```bash
 docker-compose run --rm majora_fe yarn lint
