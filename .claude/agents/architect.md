@@ -39,15 +39,18 @@ When a task spans multiple agents:
 ### Typical cross-cutting flows
 
 **New feature (full stack):**
+
 1. `backend` — add model, migration, serializer, view, tests
 2. `frontend` — add client call, components, specs
 3. `infra` — add new endpoints to `.circleci/navi_config.yaml` warm-up chain
 
 **New API endpoint:**
+
 1. `backend` — implement and test
 2. `infra` — add to Navi config
 
 **Infrastructure change affecting development workflow:**
+
 1. `infra` — update docker-compose / Dockerfiles / Makefile
 2. Update `docs/agents/` if the change affects how agents should run commands
 
