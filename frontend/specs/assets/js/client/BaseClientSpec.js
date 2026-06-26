@@ -72,4 +72,52 @@ describe('BaseClient', function() {
       body: undefined,
     });
   });
+
+  it('adds X-Skip-Cache to an endpoint matching a configured suffix', async function() {
+    await client.request('/games/demo/pcs/2/access.json', {
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/access.json', {
+      method: 'GET',
+      headers: { Accept: 'application/json', 'X-Skip-Cache': '1' },
+      body: undefined,
+    });
+  });
+
+  it('adds X-Skip-Cache to an NPC access endpoint matching a configured suffix', async function() {
+    await client.request('/games/demo/npcs/5/access.json', {
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/5/access.json', {
+      method: 'GET',
+      headers: { Accept: 'application/json', 'X-Skip-Cache': '1' },
+      body: undefined,
+    });
+  });
+
+  it('adds X-Skip-Cache to a suffix-matched endpoint that also has a query string', async function() {
+    await client.request('/games/demo/pcs/2/access.json?foo=bar', {
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/access.json?foo=bar', {
+      method: 'GET',
+      headers: { Accept: 'application/json', 'X-Skip-Cache': '1' },
+      body: undefined,
+    });
+  });
+
+  it('does not add X-Skip-Cache to a path that merely contains a suffix but does not end with it', async function() {
+    await client.request('/games/demo/pcs/2/access.json/extra', {
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/access.json/extra', {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      body: undefined,
+    });
+  });
 });

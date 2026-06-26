@@ -81,6 +81,7 @@ describe('CharacterClient', function() {
         headers: {
           Accept: 'application/json',
           Authorization: 'Token abc123',
+          'X-Skip-Cache': '1',
         },
         body: undefined,
       });
@@ -95,6 +96,7 @@ describe('CharacterClient', function() {
         method: 'GET',
         headers: {
           Accept: 'application/json',
+          'X-Skip-Cache': '1',
         },
         body: undefined,
       });
@@ -207,6 +209,7 @@ describe('CharacterClient', function() {
         headers: {
           Accept: 'application/json',
           Authorization: 'Token abc123',
+          'X-Skip-Cache': '1',
         },
         body: undefined,
       });
@@ -221,6 +224,7 @@ describe('CharacterClient', function() {
         method: 'GET',
         headers: {
           Accept: 'application/json',
+          'X-Skip-Cache': '1',
         },
         body: undefined,
       });

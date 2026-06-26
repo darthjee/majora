@@ -910,6 +910,19 @@ class TestGamePcAccessView:
         response = client.get(f'/games/test-game/pcs/{npc.id}/access.json')
         assert response.status_code == 404
 
+    def test_dm_who_is_also_owner_returns_can_edit_true(self, client):
+        """Test that a user who is both DM and character owner returns can_edit true."""
+        dm_player = Player.objects.create(name='DM Player')
+        dm_player.user = self.dm_user
+        dm_player.save()
+        self.character.player = dm_player
+        self.character.save()
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get(client, token=token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is True
+
 
 @pytest.mark.django_db
 class TestGameNpcAccessView:
@@ -1002,3 +1015,15 @@ class TestGameNpcAccessView:
         )
         response = client.get(f'/games/test-game/npcs/{pc.id}/access.json')
         assert response.status_code == 404
+
+    def test_dm_who_is_also_pc_owner_returns_can_edit_true(self, client):
+        """Test that a DM who also owns a PC in the game returns can_edit true for NPC."""
+        dm_player = Player.objects.create(name='DM Player')
+        dm_player.user = self.dm_user
+        dm_player.save()
+        Character.objects.create(name='DM PC', game=self.game, player=dm_player, npc=False)
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get(client, token=token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is True
