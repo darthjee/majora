@@ -50,7 +50,7 @@ To test the cache warmer locally, set `MAJORA_PRODUCTION_URL` in your `.env` fil
 docker-compose up majora_navi
 ```
 
-The Navi web UI will be available at http://localhost:3100 while the container is running.
+The Navi web UI will be available at <http://localhost:3100> while the container is running.
 To point it at production instead of localhost, override the variable:
 
 ```bash
