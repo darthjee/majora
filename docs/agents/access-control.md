@@ -82,6 +82,7 @@ Unauthenticated → 401. Authenticated but not an editor → 403.
 ### Edit rights logic
 
 `Character.can_be_edited_by(user)` returns `True` when:
+
 1. `user.is_superuser` is `True`, OR
 2. The user is the character's linked `Player` user (`player.user == user`), OR
 3. The user has a `GameMaster` row for the same game as the character.

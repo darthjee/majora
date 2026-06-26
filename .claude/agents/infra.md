@@ -71,12 +71,14 @@ See [docs/agents/HOW_TO_USE_DARTHJEE-TENT.md] for the full Tent configuration re
 Navi (`darthjee/navi-hey`) warms the Tent proxy cache by pre-fetching all API endpoints after a release. Configuration: `.circleci/navi_config.yaml`.
 
 **Current warm-up chain:**
+
 1. Fetch `/games.json` → for each game, chain to:
    - `/games/{slug}.json`
    - `/games/{slug}/pcs.json` → for each PC, chain to `/games/{slug}/pcs/{id}.json`
    - `/games/{slug}/npcs.json` → for each NPC, chain to `/games/{slug}/npcs/{id}.json`
 
 Key config points:
+
 - `parsedBody` (camelCase) — never `parsed_body` — for path expressions in `actions[].parameters`
 - `workers.quantity: 5` — concurrent workers
 - `failure.threshold: 0.0` — any dead job fails the CI step
@@ -142,6 +144,7 @@ Both backend and frontend CI jobs copy their respective subdirectory to the work
 ### bump_version.sh
 
 Updates the version string in three places atomically:
+
 - `README.md` — Current Version and Next Release links
 - `frontend/package.json` — `"version"` field
 - `source/pyproject.toml` — `version =` field
