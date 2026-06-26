@@ -37,7 +37,7 @@ export default class CharacterClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the character access endpoint.
    */
   fetchPcAccess(gameSlug, characterId, token) {
-    return this.#fetchCharacter('pcs', gameSlug, characterId, token, 'access');
+    return this.#fetchCharacter('pcs', gameSlug, characterId, token, 'access', { 'X-Skip-Cache': '1' });
   }
 
   /**
@@ -86,7 +86,7 @@ export default class CharacterClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the character access endpoint.
    */
   fetchNpcAccess(gameSlug, characterId, token) {
-    return this.#fetchCharacter('npcs', gameSlug, characterId, token, 'access');
+    return this.#fetchCharacter('npcs', gameSlug, characterId, token, 'access', { 'X-Skip-Cache': '1' });
   }
 
   /**
@@ -102,7 +102,7 @@ export default class CharacterClient extends BaseClient {
     return this.#updateCharacter('npcs', gameSlug, characterId, token, fields);
   }
 
-  #fetchCharacter(segment, gameSlug, characterId, token, suffix = null) {
+  #fetchCharacter(segment, gameSlug, characterId, token, suffix = null, extraHeaders = {}) {
     const base = `/games/${gameSlug}/${segment}/${characterId}`;
     const path = suffix ? `${base}/${suffix}.json` : `${base}.json`;
 
@@ -110,6 +110,7 @@ export default class CharacterClient extends BaseClient {
       headers: {
         Accept: 'application/json',
         ...(token ? { Authorization: `Token ${token}` } : {}),
+        ...extraHeaders,
       },
     });
   }
