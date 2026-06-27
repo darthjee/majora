@@ -62,6 +62,24 @@ describe('GameHelper', function() {
     it('renders the npcs preview section when npcs is not provided', function() {
       expect(renderToStaticMarkup(GameHelper.render(game))).toContain('Non-Player Characters');
     });
+
+    it('renders photo URLs when game.photos contains items', function() {
+      const gameWithPhotos = { ...game, photos: [{ id: 1, url: 'http://example.com/photo1.jpg' }] };
+      const html = renderToStaticMarkup(GameHelper.render(gameWithPhotos));
+      expect(html).toContain('http://example.com/photo1.jpg');
+    });
+
+    it('renders nothing for photos when game.photos is empty', function() {
+      const gameEmptyPhotos = { ...game, photos: [] };
+      const html = renderToStaticMarkup(GameHelper.render(gameEmptyPhotos));
+      expect(html).not.toContain('img-fluid');
+    });
+
+    it('renders nothing for photos when game.photos is undefined', function() {
+      const gameNoPhotos = { ...game, photos: undefined };
+      const html = renderToStaticMarkup(GameHelper.render(gameNoPhotos));
+      expect(html).not.toContain('img-fluid');
+    });
   });
 
   describe('.renderLoading', function() {
