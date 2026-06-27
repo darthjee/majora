@@ -50,6 +50,11 @@ urlpatterns = [
         views.game_master_detail,
         name='game-master-detail',
     ),
+    path(
+        'games/<slug:game_slug>/photo_upload.json',
+        views.photo_upload,
+        name='game-photo-upload',
+    ),
     path('users/login.json', views.login, name='users-login'),
     path('users/logout.json', views.logout, name='users-logout'),
     path('users/register.json', views.register, name='users-register'),

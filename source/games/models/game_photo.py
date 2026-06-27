@@ -8,7 +8,9 @@ from games.models.game import Game
 class GamePhoto(models.Model):
     """Model representing a photo associated with a game."""
 
-    url = models.URLField()
+    url = models.URLField(blank=True, default='')
+    path = models.CharField(max_length=512, blank=True, default='')
+    ready = models.BooleanField(default=False)
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='photos')
 
     def __str__(self):
