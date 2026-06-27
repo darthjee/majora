@@ -25,3 +25,6 @@ A PO agent is declared in `.claude/agents/product-owner.md` (read-only, tools: R
 - Single source of truth for product concepts; specialist agents and the architect no longer need to re-derive ownership rules from model code
 - Edge cases (nullable ownership chain) are explicitly documented, reducing inconsistency across implementations
 - Architect consults PO during issue discussion, ensuring new features align with product definitions from the start
+
+---
+tags: :shipit:
