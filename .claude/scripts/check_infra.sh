@@ -3,7 +3,7 @@ set -euo pipefail
 set -x
 
 docker-compose config -q
-docker-compose run --rm majora_tests python -c "import yaml; yaml.safe_load(open('.circleci/config.yml'))"
+python3 -c "import yaml; yaml.safe_load(open('.circleci/config.yml'))"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

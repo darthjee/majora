@@ -29,6 +29,7 @@ docker_volumes/static/
 # Docker volumes
 docker_volumes/proxy_cache/
 docker_volumes/mysql_data/
+docker_volumes/photos/
 
 # Environment files
 .env
