@@ -11,6 +11,7 @@ from games.serializers.game_photo import GamePhotoSerializer
 from games.serializers.game_update import GameUpdateSerializer
 from games.serializers.link import LinkSerializer
 from games.serializers.photo import PhotoSerializer
+from games.serializers.photo_upload import PhotoUploadSerializer
 
 __all__ = [
     'CharacterDetailSerializer',
@@ -24,4 +25,5 @@ __all__ = [
     'GameUpdateSerializer',
     'LinkSerializer',
     'PhotoSerializer',
+    'PhotoUploadSerializer',
 ]
