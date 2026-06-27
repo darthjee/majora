@@ -210,7 +210,7 @@ jobs:
 
   upload_proxy_files:
     docker:
-      - image: darthjee/tent:0.7.8
+      - image: darthjee/tent:0.8.0
     working_directory: /home/app/app
     steps:
       - checkout
@@ -253,7 +253,7 @@ jobs:
 
   link_photos:
     docker:
-      - image: darthjee/tent:0.7.8
+      - image: darthjee/tent:0.8.0
     working_directory: /home/app/app
     steps:
       - checkout
