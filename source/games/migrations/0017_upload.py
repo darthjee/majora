@@ -16,12 +16,29 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Upload',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(
+                    auto_created=True,
+                    primary_key=True,
+                    serialize=False,
+                    verbose_name='ID',
+                )),
                 ('token', models.CharField(max_length=64, unique=True)),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('uploading', 'Uploading'), ('uploaded', 'Uploaded')], default='pending', max_length=16)),
+                ('status', models.CharField(
+                    choices=[
+                        ('pending', 'Pending'),
+                        ('uploading', 'Uploading'),
+                        ('uploaded', 'Uploaded'),
+                    ],
+                    default='pending',
+                    max_length=16,
+                )),
                 ('file_path', models.CharField(max_length=512)),
                 ('expiration_time', models.DateTimeField()),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='uploads', to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='uploads',
+                    to=settings.AUTH_USER_MODEL,
+                )),
             ],
         ),
     ]
