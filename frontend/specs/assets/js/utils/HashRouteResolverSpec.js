@@ -4,6 +4,7 @@ describe('HashRouteResolver', function() {
   it('resolves known pages', function() {
     expect(new HashRouteResolver(() => '#/games').getPage()).toBe('games');
     expect(new HashRouteResolver(() => '#/games/campaign').getPage()).toBe('game');
+    expect(new HashRouteResolver(() => '#/games/campaign/edit').getPage()).toBe('gameEdit');
     expect(new HashRouteResolver(() => '#/games/campaign/pcs').getPage()).toBe('gamePcs');
     expect(new HashRouteResolver(() => '#/games/campaign/npcs').getPage()).toBe('gameNpcs');
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7').getPage()).toBe('npcCharacter');
@@ -11,6 +12,14 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/edit').getPage()).toBe('pcCharacterEdit');
     expect(new HashRouteResolver(() => '#/recover-password?token=abc').getPage()).toBe('recoverPassword');
     expect(new HashRouteResolver(() => '#/users/register').getPage()).toBe('register');
+  });
+
+  it('resolves /games/:game_slug/edit to gameEdit, not game', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/edit').getPage()).toBe('gameEdit');
+  });
+
+  it('still resolves /games/:game_slug to game', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign').getPage()).toBe('game');
   });
 
   it('falls back to home for unknown routes', function() {

@@ -84,5 +84,12 @@ npc_edit_page:
   private_description_label: Notas do Mestre
   submit: Salvar alterações
   error: Falha ao salvar o personagem. Tente novamente.
+game_edit_page:
+  title: Editar jogo
+  name_label: Nome
+  photo_label: URL da foto
+  description_label: Descrição
+  submit: Salvar alterações
+  error: Falha ao salvar o jogo. Por favor, tente novamente.
 language_selector:
   label: Idioma

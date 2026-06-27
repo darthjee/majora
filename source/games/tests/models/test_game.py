@@ -1,9 +1,10 @@
 """Tests for the Game model."""
 
 import pytest
+from django.contrib.auth.models import AnonymousUser, User
 from django.utils.text import slugify
 
-from games.models import Game
+from games.models import Game, GameMaster
 
 
 @pytest.mark.django_db
@@ -42,3 +43,36 @@ class TestGame:
         games = list(Game.objects.all())
         assert games[0].id == first.id
         assert games[1].id == second.id
+
+
+@pytest.mark.django_db
+class TestGameCanBeEditedBy:
+    """Tests for Game.can_be_edited_by()."""
+
+    def setup_method(self):
+        """Set up a game and a DM user."""
+        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
+        GameMaster.objects.create(game=self.game, user=self.dm_user)
+
+    def test_superuser_can_edit(self):
+        """Test that a superuser may edit the game."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        assert self.game.can_be_edited_by(superuser) is True
+
+    def test_dm_can_edit(self):
+        """Test that a DM of the game may edit it."""
+        assert self.game.can_be_edited_by(self.dm_user) is True
+
+    def test_non_dm_user_cannot_edit(self):
+        """Test that a regular user who is not a DM cannot edit the game."""
+        other = User.objects.create_user(username='other', password='secret-password')
+        assert self.game.can_be_edited_by(other) is False
+
+    def test_none_user_cannot_edit(self):
+        """Test that None as user returns False."""
+        assert self.game.can_be_edited_by(None) is False
+
+    def test_anonymous_user_cannot_edit(self):
+        """Test that an anonymous user returns False."""
+        assert self.game.can_be_edited_by(AnonymousUser()) is False

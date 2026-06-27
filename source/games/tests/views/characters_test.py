@@ -893,22 +893,28 @@ class TestGamePcAccessView:
         response = self._get(client)
         assert response['X-Skip-Cache'] == 'true'
 
-    def test_returns_404_for_unknown_character(self, client):
-        """Test that 404 is returned for a non-existent character_id."""
+    def test_returns_200_with_can_edit_false_for_unknown_character(self, client):
+        """Test that 200 with can_edit false is returned for a non-existent character_id."""
         response = client.get('/games/test-game/pcs/99999/access.json')
-        assert response.status_code == 404
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is False
 
-    def test_returns_404_for_character_in_wrong_game(self, client):
-        """Test that 404 is returned when character belongs to a different game."""
+    def test_returns_200_with_can_edit_false_for_character_in_wrong_game(self, client):
+        """Test that 200 with can_edit false is returned when character belongs to another game."""
         Game.objects.create(name='Other Game', game_slug='other-game')
         response = client.get(f'/games/other-game/pcs/{self.character.id}/access.json')
-        assert response.status_code == 404
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is False
 
-    def test_returns_404_for_npc_id(self, client):
-        """Test that 404 is returned when the id belongs to an NPC."""
+    def test_returns_200_with_can_edit_false_for_npc_id(self, client):
+        """Test that 200 with can_edit false is returned when the id belongs to an NPC."""
         npc = Character.objects.create(name='Gandalf', game=self.game, npc=True)
         response = client.get(f'/games/test-game/pcs/{npc.id}/access.json')
-        assert response.status_code == 404
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is False
 
     def test_dm_who_is_also_owner_returns_can_edit_true(self, client):
         """Test that a user who is both DM and character owner returns can_edit true."""
@@ -997,24 +1003,30 @@ class TestGameNpcAccessView:
         response = self._get(client)
         assert response['X-Skip-Cache'] == 'true'
 
-    def test_returns_404_for_unknown_character(self, client):
-        """Test that 404 is returned for a non-existent character_id."""
+    def test_returns_200_with_can_edit_false_for_unknown_character(self, client):
+        """Test that 200 with can_edit false is returned for a non-existent character_id."""
         response = client.get('/games/test-game/npcs/99999/access.json')
-        assert response.status_code == 404
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is False
 
-    def test_returns_404_for_character_in_wrong_game(self, client):
-        """Test that 404 is returned when character belongs to a different game."""
+    def test_returns_200_with_can_edit_false_for_character_in_wrong_game(self, client):
+        """Test that 200 with can_edit false is returned when character belongs to another game."""
         Game.objects.create(name='Other Game', game_slug='other-game')
         response = client.get(f'/games/other-game/npcs/{self.npc.id}/access.json')
-        assert response.status_code == 404
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is False
 
-    def test_returns_404_for_pc_id(self, client):
-        """Test that 404 is returned when the id belongs to a PC."""
+    def test_returns_200_with_can_edit_false_for_pc_id(self, client):
+        """Test that 200 with can_edit false is returned when the id belongs to a PC."""
         pc = Character.objects.create(
             name='Aragorn', game=self.game, player=self.player, npc=False
         )
         response = client.get(f'/games/test-game/npcs/{pc.id}/access.json')
-        assert response.status_code == 404
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is False
 
     def test_dm_who_is_also_pc_owner_returns_can_edit_true(self, client):
         """Test that a DM who also owns a PC in the game returns can_edit true for NPC."""
