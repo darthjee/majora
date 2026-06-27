@@ -38,12 +38,51 @@ A user may simultaneously be a GameMaster for one game and a Player for another.
 
 ## GamePhoto
 
-Game photos are read-only through the game detail endpoint (`photos` array in
-`GameDetailSerializer`). No direct photo create/update/delete endpoint exists.
+Game photos are readable through the game detail endpoint (`photos` array in
+`GameDetailSerializer`).
 
 **Exposed fields** (read): `id`, `url` — visible to anyone who can read the game detail.
+The `path` and `ready` fields are internal and are never serialised or returned by any endpoint.
 
-**Write access:** superuser only (via Django admin, out of scope).
+**Write access:**
+- `POST /games/<slug>/photo_upload.json` — GameMaster of that game, or superuser. Creates
+  a `GamePhoto` row with `ready=False` as part of the upload initialisation flow (issue #160).
+  The record is not yet visible in the game detail until the upload is finalised and `ready`
+  is set to `True` (issue #161).
+- All other write operations: superuser only (via Django admin, out of scope).
+
+---
+
+## Upload
+
+The `Upload` model tracks the lifecycle of a game photo upload (pending → uploading → uploaded).
+
+| Action | Who can |
+|--------|---------|
+| Create (`POST /games/<slug>/photo_upload.json`) | GameMaster of that game, or superuser |
+| Read | Only the user who initiated the upload (indirectly, via the 201 response at creation time) |
+| Update / Delete | No public endpoint; status transitions are handled internally |
+
+**Exposed fields:**
+- `id` (int) and `token` (secret string) — returned in the 201 response to the authenticated
+  initiator only.
+- `token` is a `secrets.token_urlsafe(32)` value and must never be exposed to any user
+  other than the one who created the upload, or through any endpoint other than the
+  init response.
+- All other fields (`file_path`, `expiration_time`, `status`, `user`) are internal and are
+  never returned by any endpoint.
+
+---
+
+## Photo upload init endpoint
+
+| Endpoint | Method | Who can call | Response fields |
+|----------|--------|-------------|-----------------|
+| `/games/<slug>/photo_upload.json` | POST | GameMaster of that game, or superuser | `id`, `token` |
+
+- Unauthenticated → 401. Authenticated but not a GameMaster or superuser → 403.
+- Unknown `game_slug` → 404.
+- Missing or invalid `filename` body field → 400.
 
 ---
 
