@@ -7,6 +7,7 @@ from games.serializers.character_update import CharacterUpdateSerializer
 from games.serializers.game_detail import GameDetailSerializer
 from games.serializers.game_list import GameListSerializer
 from games.serializers.game_master import GameMasterSerializer
+from games.serializers.game_photo import GamePhotoSerializer
 from games.serializers.link import LinkSerializer
 from games.serializers.photo import PhotoSerializer
 
@@ -18,6 +19,7 @@ __all__ = [
     'GameDetailSerializer',
     'GameListSerializer',
     'GameMasterSerializer',
+    'GamePhotoSerializer',
     'LinkSerializer',
     'PhotoSerializer',
 ]

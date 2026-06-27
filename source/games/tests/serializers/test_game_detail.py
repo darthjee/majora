@@ -2,7 +2,7 @@
 
 import pytest
 
-from games.models import Game, Link
+from games.models import Game, GamePhoto, Link
 from games.serializers import GameDetailSerializer
 
 
@@ -53,3 +53,21 @@ class TestGameDetailSerializer:
         texts = [link['text'] for link in data['links']]
         assert 'Wiki' in texts
         assert 'Forum' in texts
+
+    def test_serializes_empty_photos(self):
+        """Test that photos is an empty list when the game has no photos."""
+        data = GameDetailSerializer(self.game).data
+        assert data['photos'] == []
+
+    def test_serializes_nested_photos(self):
+        """Test that nested photos are serialized with id and url fields."""
+        GamePhoto.objects.create(url='http://example.com/img1.jpg', game=self.game)
+        GamePhoto.objects.create(url='http://example.com/img2.jpg', game=self.game)
+        data = GameDetailSerializer(self.game).data
+        assert len(data['photos']) == 2
+        urls = [photo['url'] for photo in data['photos']]
+        assert 'http://example.com/img1.jpg' in urls
+        assert 'http://example.com/img2.jpg' in urls
+        for photo in data['photos']:
+            assert 'id' in photo
+            assert 'url' in photo
