@@ -98,6 +98,7 @@ services:
       - ./docker_volumes/static/:/var/www/html/static/
       - ./proxy/dev_configuration:/var/www/html/configuration/
       - ./docker_volumes/proxy_cache:/var/www/html/cache/
+      - ./docker_volumes/photos:/var/www/html/photos
     links:
       - majora_app:backend
       - majora_fe:frontend
