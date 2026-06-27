@@ -1,4 +1,6 @@
 import GenericClient from '../../../client/GenericClient.js';
+import GameClient from '../../../client/GameClient.js';
+import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
 import { MAX_PREVIEW_CHARACTERS } from '../../elements/characterPreviewConstants.js';
@@ -26,8 +28,17 @@ export default class GameController extends BasePageController {
    * @param {Function} [setPcs] - PCs preview setter.
    * @param {Function} [setNpcs] - NPCs preview setter.
    * @param {GenericClient|null} client - Client override.
+   * @param {GameClient|null} [gameClient] - Game client override for access check.
    */
-  constructor(setGame, setLoading, setError, setPcs = () => {}, setNpcs = () => {}, client = null) {
+  constructor(
+    setGame,
+    setLoading,
+    setError,
+    setPcs = () => {},
+    setNpcs = () => {},
+    client = null,
+    gameClient = null,
+  ) {
     super();
     this.setGame = setGame;
     this.setLoading = setLoading;
@@ -35,6 +46,7 @@ export default class GameController extends BasePageController {
     this.setPcs = setPcs;
     this.setNpcs = setNpcs;
     this.client = client ?? new GenericClient();
+    this.gameClient = gameClient ?? new GameClient();
   }
 
   /**
@@ -52,11 +64,7 @@ export default class GameController extends BasePageController {
         safeSet(this.setError, 'Unable to load game.');
         safeSet(this.setLoading, false);
       } else {
-        this.client.fetch(`/games/${gameSlug}.json`)
-          .then((game) => safeSet(this.setGame, game))
-          .catch(() => safeSet(this.setError, 'Unable to load game.'))
-          .finally(() => safeSet(this.setLoading, false));
-
+        this.#fetchGame(gameSlug, safeSet);
         this.#fetchPcsPreview(gameSlug, safeSet);
         this.#fetchNpcsPreview(gameSlug, safeSet);
       }
@@ -65,6 +73,28 @@ export default class GameController extends BasePageController {
         mounted = false;
       };
     };
+  }
+
+  #fetchGame(gameSlug, safeSet) {
+    this.client.fetch(`/games/${gameSlug}.json`)
+      .then((game) => this.#mergeAccess(gameSlug, game))
+      .then((game) => safeSet(this.setGame, game))
+      .catch(() => safeSet(this.setError, 'Unable to load game.'))
+      .finally(() => safeSet(this.setLoading, false));
+  }
+
+  #mergeAccess(gameSlug, game) {
+    const token = AuthStorage.getToken();
+
+    return this.gameClient.fetchGameAccess(gameSlug, token)
+      .then((response) => {
+        if (!response.ok) {
+          return { ...game, can_edit: false };
+        }
+
+        return response.json().then((access) => ({ ...game, ...access }));
+      })
+      .catch(() => ({ ...game, can_edit: false }));
   }
 
   /**

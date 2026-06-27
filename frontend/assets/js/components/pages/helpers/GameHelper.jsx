@@ -20,6 +20,7 @@ export default class GameHelper {
    * @param {string|null} [game.photo] - Optional cover image URL.
    * @param {string} [game.description] - Game description text.
    * @param {object[]} [game.photos] - Additional photo objects with id and url.
+   * @param {boolean} [game.can_edit] - Whether the current user can edit this game.
    * @param {object[]} [pcs] - PCs preview list.
    * @param {object[]} [npcs] - NPCs preview list.
    * @returns {React.ReactElement} Game detail element.
@@ -33,7 +34,10 @@ export default class GameHelper {
             <CardPhoto url={game.photo} alt={game.name} />
           </div>
           <div className="col-md-8">
-            <h1>{game.name}</h1>
+            <h1>
+              {game.name}
+              {GameHelper.#renderEditLink(game)}
+            </h1>
             {game.description && (
               <p className="mt-3">{game.description}</p>
             )}
@@ -75,5 +79,17 @@ export default class GameHelper {
    */
   static renderError(error) {
     return <ErrorAlert error={error} />;
+  }
+
+  static #renderEditLink(game) {
+    if (!game.can_edit) {
+      return null;
+    }
+
+    return (
+      <a href={`#/games/${game.game_slug}/edit`} className="btn btn-secondary ms-2">
+        {Translator.t('character_page.edit')}
+      </a>
+    );
   }
 }

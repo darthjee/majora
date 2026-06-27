@@ -80,6 +80,23 @@ describe('GameHelper', function() {
       const html = renderToStaticMarkup(GameHelper.render(gameNoPhotos));
       expect(html).not.toContain('img-fluid');
     });
+
+    it('renders an edit link when can_edit is true', function() {
+      const editableGame = { ...game, can_edit: true };
+      const html = renderToStaticMarkup(GameHelper.render(editableGame));
+      expect(html).toContain(`href="#/games/${game.game_slug}/edit"`);
+    });
+
+    it('does not render an edit link when can_edit is false', function() {
+      const nonEditableGame = { ...game, can_edit: false };
+      const html = renderToStaticMarkup(GameHelper.render(nonEditableGame));
+      expect(html).not.toContain('/edit');
+    });
+
+    it('does not render an edit link when can_edit is absent', function() {
+      const html = renderToStaticMarkup(GameHelper.render(game));
+      expect(html).not.toContain('/edit');
+    });
   });
 
   describe('.renderLoading', function() {
