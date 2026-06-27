@@ -100,9 +100,9 @@ def game_pc_full(request, game_slug, character_id):
 @permission_classes([AllowAny])
 def game_pc_access(request, game_slug, character_id):
     """Return whether the requesting user may edit a specific PC."""
-    game = get_object_or_404(Game, game_slug=game_slug)
-    character = get_object_or_404(Character, id=character_id, game=game, npc=False)
-    can_edit = character.can_be_edited_by(request.user)
+    game = Game.objects.filter(game_slug=game_slug).first()
+    character = _find_character(game, character_id, npc=False)
+    can_edit = _character_can_edit(request, character)
     response = Response({'can_edit': can_edit})
     response['X-Skip-Cache'] = 'true'
     return response
@@ -113,12 +113,26 @@ def game_pc_access(request, game_slug, character_id):
 @permission_classes([AllowAny])
 def game_npc_access(request, game_slug, character_id):
     """Return whether the requesting user may edit a specific NPC."""
-    game = get_object_or_404(Game, game_slug=game_slug)
-    character = get_object_or_404(Character, id=character_id, game=game, npc=True)
-    can_edit = character.can_be_edited_by(request.user)
+    game = Game.objects.filter(game_slug=game_slug).first()
+    character = _find_character(game, character_id, npc=True)
+    can_edit = _character_can_edit(request, character)
     response = Response({'can_edit': can_edit})
     response['X-Skip-Cache'] = 'true'
     return response
+
+
+def _find_character(game, character_id, npc):
+    """Return the character matching game/id/npc, or None if not found."""
+    if game is None:
+        return None
+    return Character.objects.filter(id=character_id, game=game, npc=npc).first()
+
+
+def _character_can_edit(request, character):
+    """Return True if request.user may edit character, False if character is None."""
+    if character is None:
+        return False
+    return character.can_be_edited_by(request.user)
 
 
 def _update_character(request, character):

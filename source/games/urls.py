@@ -7,6 +7,7 @@ from . import views
 urlpatterns = [
     path('games.json', views.games_list, name='games-list'),
     path('games/<slug:game_slug>.json', views.game_detail, name='game-detail'),
+    path('games/<slug:game_slug>/access.json', views.game_access, name='game-access'),
     path('games/<slug:game_slug>/pcs.json', views.game_pcs, name='game-pcs'),
     path('games/<slug:game_slug>/npcs.json', views.game_npcs, name='game-npcs'),
     path(

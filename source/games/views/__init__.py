@@ -12,12 +12,13 @@ from .characters import (
     game_pcs,
 )
 from .game_masters import game_master_detail, game_masters_list
-from .games import game_detail, games_list
+from .games import game_access, game_detail, games_list
 from .password_reset import recover, reset_password
 
 __all__ = [
     'games_list',
     'game_detail',
+    'game_access',
     'game_pcs',
     'game_npcs',
     'game_npc_access',

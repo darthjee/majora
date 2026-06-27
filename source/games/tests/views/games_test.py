@@ -3,9 +3,11 @@
 import json
 
 import pytest
+from django.contrib.auth.models import User
 from django.urls import reverse
+from rest_framework.authtoken.models import Token
 
-from games.models import Game, Link
+from games.models import Game, GameMaster, Link
 
 
 @pytest.mark.django_db
@@ -127,3 +129,161 @@ class TestGameDetailView:
         data = json.loads(response.content)
         assert len(data['links']) == 1
         assert data['links'][0]['text'] == 'Rulebook'
+
+
+@pytest.mark.django_db
+class TestGameDetailPatchView:
+    """Tests for the PATCH game detail endpoint."""
+
+    def setup_method(self):
+        """Set up a game, a DM, and a non-DM user."""
+        self.game = Game.objects.create(
+            name='Epic Quest',
+            game_slug='epic-quest',
+            description='Original description.',
+        )
+        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
+        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.dm_token = Token.objects.create(user=self.dm_user)
+
+    def _patch(self, client, payload, token=None):
+        """Issue a PATCH request to the game detail endpoint, optionally with a token."""
+        extra = {}
+        if token is not None:
+            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
+        return client.patch(
+            '/games/epic-quest.json',
+            data=json.dumps(payload),
+            content_type='application/json',
+            **extra,
+        )
+
+    def test_patch_without_token_returns_401(self, client):
+        """Test that PATCH without a token is rejected with 401."""
+        response = self._patch(client, {'name': 'New Name'})
+        assert response.status_code == 401
+
+    def test_patch_with_non_dm_user_returns_403(self, client):
+        """Test that PATCH from a regular non-DM user is rejected with 403."""
+        other = User.objects.create_user(username='other', password='secret-password')
+        token = Token.objects.create(user=other)
+        response = self._patch(client, {'name': 'New Name'}, token=token)
+        assert response.status_code == 403
+        self.game.refresh_from_db()
+        assert self.game.name == 'Epic Quest'
+
+    def test_patch_with_dm_token_returns_200(self, client):
+        """Test that PATCH from a DM's token updates the game and returns 200."""
+        response = self._patch(
+            client,
+            {
+                'name': 'Updated Quest',
+                'description': 'Updated description.',
+                'photo': 'http://example.com/new.png',
+            },
+            token=self.dm_token,
+        )
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['name'] == 'Updated Quest'
+        assert data['description'] == 'Updated description.'
+        self.game.refresh_from_db()
+        assert self.game.name == 'Updated Quest'
+
+    def test_patch_with_superuser_token_returns_200(self, client):
+        """Test that PATCH from a superuser's token updates the game and returns 200."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+        response = self._patch(client, {'name': 'Super Quest'}, token=token)
+        assert response.status_code == 200
+        self.game.refresh_from_db()
+        assert self.game.name == 'Super Quest'
+
+    def test_patch_with_invalid_payload_returns_400(self, client):
+        """Test that an invalid payload is rejected with 400."""
+        response = self._patch(
+            client, {'photo': 'not-a-url'}, token=self.dm_token
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'photo' in data['errors']
+
+    def test_patch_does_not_change_game_slug(self, client):
+        """Test that game_slug is not changed even if included in the payload."""
+        response = self._patch(
+            client, {'name': 'New Name', 'game_slug': 'hacked-slug'}, token=self.dm_token
+        )
+        assert response.status_code == 200
+        self.game.refresh_from_db()
+        assert self.game.game_slug == 'epic-quest'
+
+    def test_patch_partial_body_only_changes_given_fields(self, client):
+        """Test that a partial PATCH body only updates the provided field."""
+        response = self._patch(client, {'name': 'Partial Update'}, token=self.dm_token)
+        assert response.status_code == 200
+        self.game.refresh_from_db()
+        assert self.game.name == 'Partial Update'
+        assert self.game.description == 'Original description.'
+
+
+@pytest.mark.django_db
+class TestGameAccessView:
+    """Tests for the game access endpoint."""
+
+    def setup_method(self):
+        """Set up a game and a DM user."""
+        self.game = Game.objects.create(name='Epic Quest', game_slug='epic-quest')
+        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
+        GameMaster.objects.create(game=self.game, user=self.dm_user)
+
+    def _get(self, client, token=None):
+        """Issue a GET request to the game access endpoint, optionally with a token."""
+        extra = {}
+        if token is not None:
+            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
+        return client.get('/games/epic-quest/access.json', **extra)
+
+    def test_non_existent_slug_returns_200_with_can_edit_false(self, client):
+        """Test that a non-existent game slug returns 200 with can_edit false."""
+        response = client.get('/games/no-such-game/access.json')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is False
+
+    def test_unauthenticated_returns_200_with_can_edit_false(self, client):
+        """Test that an unauthenticated request returns 200 with can_edit false."""
+        response = self._get(client)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is False
+
+    def test_dm_returns_200_with_can_edit_true(self, client):
+        """Test that the game DM returns 200 with can_edit true."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get(client, token=token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is True
+
+    def test_non_dm_user_returns_200_with_can_edit_false(self, client):
+        """Test that a non-DM authenticated user returns 200 with can_edit false."""
+        other = User.objects.create_user(username='other', password='secret-password')
+        token = Token.objects.create(user=other)
+        response = self._get(client, token=token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is False
+
+    def test_superuser_returns_200_with_can_edit_true(self, client):
+        """Test that a superuser returns 200 with can_edit true."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+        response = self._get(client, token=token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is True
+
+    def test_response_includes_x_skip_cache_header(self, client):
+        """Test that the response includes the X-Skip-Cache: true header."""
+        response = self._get(client)
+        assert response['X-Skip-Cache'] == 'true'

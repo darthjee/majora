@@ -21,6 +21,14 @@ class Game(models.Model):
             self.game_slug = slugify(self.name)
         super().save(*args, **kwargs)
 
+    def can_be_edited_by(self, user):
+        """Return True if `user` may edit this game (a DM or superuser)."""
+        if not user or not user.is_authenticated:
+            return False
+        if user.is_superuser:
+            return True
+        return self.game_masters.filter(user=user).exists()
+
     def __str__(self):
         """Return string representation of the game."""
         return self.name
