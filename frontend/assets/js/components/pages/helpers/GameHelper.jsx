@@ -1,6 +1,7 @@
 import React from 'react';
 import BackButton from '../../elements/BackButton.jsx';
 import CardPhoto from '../../elements/CardPhoto.jsx';
+import CharacterPhotos from '../../elements/CharacterPhotos.jsx';
 import CharacterPreviewSection from '../../elements/CharacterPreviewSection.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
@@ -18,6 +19,7 @@ export default class GameHelper {
    * @param {string} game.game_slug - Game slug.
    * @param {string|null} [game.photo] - Optional cover image URL.
    * @param {string} [game.description] - Game description text.
+   * @param {object[]} [game.photos] - Additional photo objects with id and url.
    * @param {object[]} [pcs] - PCs preview list.
    * @param {object[]} [npcs] - NPCs preview list.
    * @returns {React.ReactElement} Game detail element.
@@ -37,6 +39,7 @@ export default class GameHelper {
             )}
           </div>
         </div>
+        <CharacterPhotos photos={game.photos} alt={game.name} />
         <CharacterPreviewSection
           characters={pcs}
           gameSlug={game.game_slug}

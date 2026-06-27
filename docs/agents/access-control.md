@@ -32,7 +32,18 @@ A user may simultaneously be a GameMaster for one game and a Player for another.
 | Detail (`GET /games/<slug>.json`) | Anyone |
 | Create / Update / Delete | Superuser only (no public write endpoint) |
 
-**Exposed fields** (read): `name`, `game_slug`, `photo`, `description`, links list.
+**Exposed fields** (read): `name`, `game_slug`, `photo`, `description`, links list, photos list.
+
+---
+
+## GamePhoto
+
+Game photos are read-only through the game detail endpoint (`photos` array in
+`GameDetailSerializer`). No direct photo create/update/delete endpoint exists.
+
+**Exposed fields** (read): `id`, `url` — visible to anyone who can read the game detail.
+
+**Write access:** superuser only (via Django admin, out of scope).
 
 ---
 

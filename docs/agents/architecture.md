@@ -100,6 +100,7 @@ The core Django app. Contains all domain models, REST views, and serializers for
 | `Player` | `name`, `games` (M2M) | Human player; linked to one or more games |
 | `Character` | `name`, `game`, `player`, `avatar_url`, `character_class`, `level`, `description`, `npc` | PC if `npc` is `False`; NPC if `npc` is `True` (default) |
 | `Photo` | `url`, `character` (FK) | Image gallery entry for a character |
+| `GamePhoto` | `url`, `game` (FK) | Image gallery entry for a game |
 | `Link` | `text`, `url`, `game` (FK) | External link related to a game |
 
 ## Frontend (`frontend/`)
