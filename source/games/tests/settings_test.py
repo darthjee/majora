@@ -79,3 +79,27 @@ class TestSettingsEmailsEnabled:
         """Test that emails are disabled for any value other than 'true'."""
         monkeypatch.setenv('EMAILS_ENABLED', 'yes')
         assert Settings.emails_enabled() is False
+
+
+class TestSettingsUploadExpirationMinutes:
+    """Tests for Settings.upload_expiration_minutes()."""
+
+    def test_returns_default_when_env_not_set(self, monkeypatch):
+        """Test that the default of 60 is returned when env var is absent."""
+        monkeypatch.delenv('MAJORA_UPLOAD_EXPIRATION_MINUTES', raising=False)
+        assert Settings.upload_expiration_minutes() == 60
+
+    def test_reads_value_from_env(self, monkeypatch):
+        """Test that the value from MAJORA_UPLOAD_EXPIRATION_MINUTES is used."""
+        monkeypatch.setenv('MAJORA_UPLOAD_EXPIRATION_MINUTES', '90')
+        assert Settings.upload_expiration_minutes() == 90
+
+    def test_returns_default_when_env_is_invalid(self, monkeypatch):
+        """Test that the default is returned when the env var is not an integer."""
+        monkeypatch.setenv('MAJORA_UPLOAD_EXPIRATION_MINUTES', 'not-a-number')
+        assert Settings.upload_expiration_minutes() == 60
+
+    def test_returns_default_when_env_is_empty(self, monkeypatch):
+        """Test that the default is returned when the env var is an empty string."""
+        monkeypatch.setenv('MAJORA_UPLOAD_EXPIRATION_MINUTES', '')
+        assert Settings.upload_expiration_minutes() == 60

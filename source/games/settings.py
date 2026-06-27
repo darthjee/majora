@@ -23,6 +23,14 @@ class Settings:
             return 30
 
     @staticmethod
+    def upload_expiration_minutes():
+        """Return the upload token expiration duration, in minutes."""
+        try:
+            return int(os.environ.get('MAJORA_UPLOAD_EXPIRATION_MINUTES', 60))
+        except (ValueError, TypeError):
+            return 60
+
+    @staticmethod
     def emails_enabled():
         """Return True only when email sending has been explicitly enabled."""
         return os.environ.get('EMAILS_ENABLED', 'false').lower() == 'true'
