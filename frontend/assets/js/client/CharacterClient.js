@@ -102,6 +102,27 @@ export default class CharacterClient extends BaseClient {
     return this.#updateCharacter('npcs', gameSlug, characterId, token, fields);
   }
 
+  /**
+   * Fetches all NPCs (including hidden) for a game (DM-only endpoint).
+   * Returns a raw Response so callers can inspect the status code
+   * and fall back gracefully on 401 or 403.
+   *
+   * @param {string} gameSlug - Game slug the NPCs belong to.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {object} [params] - Query parameters (e.g. { per_page: 6 }).
+   * @returns {Promise<Response>} fetch response from the npcs/all endpoint.
+   */
+  fetchNpcsAll(gameSlug, token, params = {}) {
+    const query = new URLSearchParams(params).toString();
+    const path = `/games/${gameSlug}/npcs/all.json${query ? `?${query}` : ''}`;
+    return this.request(path, {
+      headers: {
+        Accept: 'application/json',
+        ...(token ? { Authorization: `Token ${token}` } : {}),
+      },
+    });
+  }
+
   #fetchCharacter(segment, gameSlug, characterId, token, suffix = null) {
     const base = `/games/${gameSlug}/${segment}/${characterId}`;
     const path = suffix ? `${base}/${suffix}.json` : `${base}.json`;

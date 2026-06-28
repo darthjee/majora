@@ -1,5 +1,6 @@
 import GenericClient from '../../../client/GenericClient.js';
 import GameClient from '../../../client/GameClient.js';
+import CharacterClient from '../../../client/CharacterClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
@@ -29,6 +30,7 @@ export default class GameController extends BasePageController {
    * @param {Function} [setNpcs] - NPCs preview setter.
    * @param {GenericClient|null} client - Client override.
    * @param {GameClient|null} [gameClient] - Game client override for access check.
+   * @param {CharacterClient|null} [characterClient] - Character client override.
    */
   constructor(
     setGame,
@@ -38,6 +40,7 @@ export default class GameController extends BasePageController {
     setNpcs = () => {},
     client = null,
     gameClient = null,
+    characterClient = null,
   ) {
     super();
     this.setGame = setGame;
@@ -47,6 +50,7 @@ export default class GameController extends BasePageController {
     this.setNpcs = setNpcs;
     this.client = client ?? new GenericClient();
     this.gameClient = gameClient ?? new GameClient();
+    this.characterClient = characterClient ?? new CharacterClient();
   }
 
   /**
@@ -112,16 +116,39 @@ export default class GameController extends BasePageController {
   }
 
   /**
-   * Fetch the NPCs preview list, resolving to an empty list on failure so
-   * the secondary fetch never blocks rendering of the game page.
+   * Fetch the NPCs preview list, preferring the authenticated all.json result
+   * when a token is available and the request succeeds, otherwise falling back
+   * to the public listing. Never blocks rendering of the game page.
    *
    * @param {string} gameSlug - Game slug.
    * @param {Function} safeSet - Setter wrapper that only updates while mounted.
    * @returns {void}
    */
   #fetchNpcsPreview(gameSlug, safeSet) {
-    this.client.fetch(`/games/${gameSlug}/npcs.json?per_page=${MAX_PREVIEW_CHARACTERS}`)
-      .then((npcs) => safeSet(this.setNpcs, Array.isArray(npcs) ? npcs : []))
+    const token = AuthStorage.getToken();
+    const publicFetch = this.client.fetch(
+      `/games/${gameSlug}/npcs.json?per_page=${MAX_PREVIEW_CHARACTERS}`,
+    );
+    const allFetch = token
+      ? this.characterClient.fetchNpcsAll(gameSlug, token, { per_page: MAX_PREVIEW_CHARACTERS })
+      : Promise.resolve(null);
+
+    Promise.allSettled([publicFetch, allFetch])
+      .then(([publicResult, allResult]) =>
+        this.#applyNpcsPreviewResult(publicResult, allResult, safeSet))
       .catch(() => safeSet(this.setNpcs, []));
+  }
+
+  async #applyNpcsPreviewResult(publicResult, allResult, safeSet) {
+    if (allResult.status === 'fulfilled' && allResult.value?.ok) {
+      const data = await allResult.value.json().catch(() => null);
+      if (Array.isArray(data)) {
+        safeSet(this.setNpcs, data);
+        return;
+      }
+    }
+
+    const fallback = publicResult.status === 'fulfilled' ? publicResult.value : [];
+    safeSet(this.setNpcs, Array.isArray(fallback) ? fallback : []);
   }
 }
