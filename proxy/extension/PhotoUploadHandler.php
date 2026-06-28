@@ -89,16 +89,11 @@ class PhotoUploadHandler extends RequestHandler
             return new Response(['httpCode' => 422, 'body' => 'Unprocessable Entity']);
         }
 
-        // 3. Extract forwarded headers
-        $headers = $request->headers();
-        $authorization = $headers['Authorization'] ?? '';
-        $uploadToken   = $headers['X-Upload-Token'] ?? '';
-
-        $backendHeaders = [
-            'Authorization' => $authorization,
-            'X-Upload-Token' => $uploadToken,
-            'Content-Type'  => 'application/json',
-        ];
+        // 3. Build backend headers — forward all incoming headers, overriding Content-Type
+        $backendHeaders = array_merge(
+            $request->headers(),
+            ['Content-Type' => 'application/json']
+        );
 
         // 4. Call backend: status=uploading → receive file_path
         $uploadingResult = $this->httpClient->request(
