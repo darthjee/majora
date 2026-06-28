@@ -407,3 +407,26 @@ class TestGameAccessView:
         assert data['username'] == 'other'
         assert data['is_superuser'] is False
         assert data['is_dm'] is False
+
+    def test_dm_via_session_returns_can_edit_true(self, client):
+        """Test that the game DM authenticated via session cookie returns can_edit true."""
+        token = Token.objects.create(user=self.dm_user)
+        session = client.session
+        session['auth_token'] = token.key
+        session.save()
+        response = client.get('/games/epic-quest/access.json')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is True
+
+    def test_non_dm_user_via_session_returns_can_edit_false(self, client):
+        """Test that a non-DM user authenticated via session cookie returns can_edit false."""
+        other = User.objects.create_user(username='other', password='secret-password')
+        token = Token.objects.create(user=other)
+        session = client.session
+        session['auth_token'] = token.key
+        session.save()
+        response = client.get('/games/epic-quest/access.json')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is False
