@@ -109,7 +109,7 @@ Characters are scoped to a game. Access is symmetric for PCs and NPCs unless not
 
 | Endpoint | Who can read | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs/<id>.json` | Anyone | `id`, `name`, `avatar_url`, `character_class`, `level`, `public_description`, `is_pc`, `photos`, `game_slug`, `can_edit` |
+| `GET /games/<slug>/pcs/<id>.json` | Anyone | `id`, `name`, `avatar_url`, `character_class`, `level`, `public_description`, `is_pc`, `photos`, `links`, `game_slug`, `can_edit` |
 | `GET /games/<slug>/npcs/<id>.json` | Anyone | same as above |
 
 ### Full detail (includes `private_description`)
@@ -191,6 +191,20 @@ Photos are read-only through the character detail endpoint (`photos` array in
 
 Links are read-only through the game detail endpoint (`links` array in
 `GameDetailSerializer`). No direct link create/update/delete endpoint exists.
+
+**Write access:** superuser only (via Django admin, out of scope).
+
+---
+
+## CharacterLink
+
+Character links are read-only through the character detail endpoints (`links` array in
+`CharacterDetailSerializer` and, by inheritance, `CharacterFullSerializer`). No direct
+character link create/update/delete endpoint exists.
+
+**Exposed fields** (read): `id`, `text`, `url` — visible to anyone who can read the
+character detail (i.e., anyone, since both PC and NPC detail endpoints are publicly
+accessible).
 
 **Write access:** superuser only (via Django admin, out of scope).
 
