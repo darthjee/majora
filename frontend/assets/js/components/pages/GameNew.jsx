@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import AuthStorage from '../../utils/AuthStorage.js';
 import GameNewController from './controllers/GameNewController.js';
 import GameNewHelper from './helpers/GameNewHelper.jsx';
 
@@ -20,15 +19,7 @@ export default function GameNew() {
     [],
   );
 
-  useEffect(() => {
-    const token = AuthStorage.getToken();
-
-    if (!token) {
-      if (typeof window !== 'undefined') {
-        window.location.hash = '/users/register';
-      }
-    }
-  }, []);
+  useEffect(() => controller.buildEffect()(), [controller]);
 
   const handleSubmit = (event) => controller.submitForm(
     event,

@@ -19,6 +19,39 @@ describe('GameNewController', function() {
     AuthStorage.clearToken();
   });
 
+  describe('#buildEffect', function() {
+    it('redirects to register when no token is present', function() {
+      const fakeWindow = { location: { hash: '' } };
+      globalThis.window = fakeWindow;
+
+      const controller = new GameNewController(setError, setFieldErrors, gameClient);
+
+      try {
+        controller.buildEffect()();
+
+        expect(fakeWindow.location.hash).toBe('/users/register');
+      } finally {
+        delete globalThis.window;
+      }
+    });
+
+    it('does not redirect when a token is present', function() {
+      AuthStorage.setToken('tok-abc');
+      const fakeWindow = { location: { hash: '' } };
+      globalThis.window = fakeWindow;
+
+      const controller = new GameNewController(setError, setFieldErrors, gameClient);
+
+      try {
+        controller.buildEffect()();
+
+        expect(fakeWindow.location.hash).toBe('');
+      } finally {
+        delete globalThis.window;
+      }
+    });
+  });
+
   describe('#submitForm', function() {
     it('prevents default, resets status/errors, and submits the fields payload', async function() {
       AuthStorage.setToken('tok-abc');

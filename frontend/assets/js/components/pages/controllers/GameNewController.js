@@ -21,6 +21,25 @@ export default class GameNewController extends BasePageController {
   }
 
   /**
+   * Build the page mount effect.
+   *
+   * @description Returns a callback that checks for an auth token and
+   *   redirects to the register page when none is found.
+   * @returns {Function} Effect callback.
+   */
+  buildEffect() {
+    return () => {
+      const token = AuthStorage.getToken();
+
+      if (!token) {
+        if (typeof window !== 'undefined') {
+          window.location.hash = '/users/register';
+        }
+      }
+    };
+  }
+
+  /**
    * Submit the new game form.
    *
    * @description Prevents the default form submission, resets status and
