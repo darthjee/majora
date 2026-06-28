@@ -99,6 +99,7 @@ services:
       - ./proxy/dev_configuration:/var/www/html/configuration/
       - ./docker_volumes/proxy_cache:/var/www/html/cache/
       - ./docker_volumes/photos:/var/www/html/photos
+      - ./proxy/extension:/var/www/html/extension
     links:
       - majora_app:backend
       - majora_fe:frontend
@@ -111,8 +112,8 @@ services:
   proxy_tests:
     image: darthjee/tent:0.8.0
     volumes:
-      - ./proxy/custom:/var/www/html/custom
-    command: vendor/bin/phpunit custom/tests
+      - ./proxy/extension:/var/www/html/extension
+    command: vendor/bin/phpunit extension/tests
 
   majora_navi:
     image: darthjee/navi-hey:latest
