@@ -179,4 +179,93 @@ class PhotoUploadHandlerTest extends TestCase
 
         unlink($tmpFile);
     }
+
+    /**
+     * build() derives photosBasePath from $_SERVER['DOCUMENT_ROOT'] so that
+     * uploaded photos land in the correct directory regardless of where Tent is
+     * installed.
+     */
+    public function testBuildDerivesPhotosBasePathFromDocumentRoot(): void
+    {
+        $originalDocumentRoot = $_SERVER['DOCUMENT_ROOT'] ?? null;
+
+        // Point DOCUMENT_ROOT at our temporary directory
+        $_SERVER['DOCUMENT_ROOT'] = $this->photosDir;
+
+        try {
+            $handler = PhotoUploadHandler::build(['host' => 'http://backend:8080']);
+
+            $tmpFile = $this->makeTmpFile();
+            $httpClient = $this->createMock(HttpClientInterface::class);
+
+            // We cannot inject the mock after build(), so we verify the path
+            // indirectly by constructing an equivalent handler with the same
+            // photosBasePath and confirming the file lands in <photosDir>/photos/.
+            $expectedPhotosDir = $this->photosDir . '/photos';
+            mkdir($expectedPhotosDir, 0755, true);
+
+            $handlerWithMock = new PhotoUploadHandler(
+                'http://backend:8080',
+                $httpClient,
+                $expectedPhotosDir
+            );
+
+            $request = $this->makeRequest(
+                '/uploads/7/submit',
+                ['tmp_name' => $tmpFile, 'type' => 'image/png', 'name' => 'img.png', 'size' => 5, 'error' => 0],
+                ['Authorization' => 'Bearer tok', 'X-Upload-Token' => 'up-tok']
+            );
+
+            $httpClient->expects($this->exactly(2))
+                ->method('request')
+                ->willReturnOnConsecutiveCalls(
+                    ['httpCode' => 200, 'body' => '{"file_path":"7/img.png"}', 'headers' => []],
+                    ['httpCode' => 200, 'body' => '{}', 'headers' => []]
+                );
+
+            $response = $handlerWithMock->handleRequest($request);
+            $this->assertSame(200, $response->httpCode());
+            $this->assertFileExists($expectedPhotosDir . '/7/img.png');
+
+            // Also verify that build() itself resolves the path correctly by
+            // checking the constructed photosBasePath equals <DOCUMENT_ROOT>/photos.
+            // We do this by inspecting the handler via reflection.
+            $reflection = new \ReflectionClass($handler);
+            $prop       = $reflection->getProperty('photosBasePath');
+            $prop->setAccessible(true);
+            $this->assertSame($this->photosDir . '/photos', $prop->getValue($handler));
+
+            unlink($tmpFile);
+        } finally {
+            if ($originalDocumentRoot === null) {
+                unset($_SERVER['DOCUMENT_ROOT']);
+            } else {
+                $_SERVER['DOCUMENT_ROOT'] = $originalDocumentRoot;
+            }
+        }
+    }
+
+    /**
+     * build() falls back to /var/www/html/photos when DOCUMENT_ROOT is absent.
+     */
+    public function testBuildFallsBackToDefaultWhenDocumentRootAbsent(): void
+    {
+        $originalDocumentRoot = $_SERVER['DOCUMENT_ROOT'] ?? null;
+        unset($_SERVER['DOCUMENT_ROOT']);
+
+        try {
+            $handler = PhotoUploadHandler::build(['host' => 'http://backend:8080']);
+
+            $reflection = new \ReflectionClass($handler);
+            $prop       = $reflection->getProperty('photosBasePath');
+            $prop->setAccessible(true);
+            $this->assertSame('/var/www/html/photos', $prop->getValue($handler));
+        } finally {
+            if ($originalDocumentRoot === null) {
+                unset($_SERVER['DOCUMENT_ROOT']);
+            } else {
+                $_SERVER['DOCUMENT_ROOT'] = $originalDocumentRoot;
+            }
+        }
+    }
 }

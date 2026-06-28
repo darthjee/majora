@@ -43,12 +43,21 @@ class PhotoUploadHandler extends RequestHandler
     /**
      * Builds a PhotoUploadHandler from configuration parameters.
      *
+     * The photos base path is derived at runtime from the web server's document
+     * root ($_SERVER['DOCUMENT_ROOT']), so that photos are always written
+     * relative to wherever Tent is installed, regardless of the host filesystem
+     * layout. Falls back to '/var/www/html/photos' when DOCUMENT_ROOT is not
+     * set (e.g. during CLI test runs).
+     *
      * @param array $params Must contain 'host' (string).
      * @return self
      */
     public static function build(array $params): self
     {
-        return new self($params['host'] ?? '');
+        $documentRoot   = rtrim($_SERVER['DOCUMENT_ROOT'] ?? '', '/');
+        $photosBasePath = ($documentRoot !== '' ? $documentRoot : '/var/www/html') . '/photos';
+
+        return new self($params['host'] ?? '', null, $photosBasePath);
     }
 
     /**
