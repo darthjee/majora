@@ -10,10 +10,12 @@ from ..models import Character, Game
 from ..paginator import Paginator
 from ..permissions import CharacterEditPermission, GameEditPermission
 from ..serializers import (
+    CharacterAccessSerializer,
     CharacterDetailSerializer,
     CharacterFullSerializer,
     CharacterListSerializer,
     CharacterUpdateSerializer,
+    PcAccessSerializer,
 )
 
 
@@ -122,8 +124,8 @@ def game_pc_access(request, game_slug, character_id):
     """Return whether the requesting user may edit a specific PC."""
     game = Game.objects.filter(game_slug=game_slug).first()
     character = _find_character(game, character_id, npc=False)
-    can_edit = _character_can_edit(request, character)
-    response = Response({'can_edit': can_edit})
+    serializer = PcAccessSerializer(character, context={'request': request, 'game': game})
+    response = Response(serializer.data)
     response['X-Skip-Cache'] = 'true'
     return response
 
@@ -135,8 +137,8 @@ def game_npc_access(request, game_slug, character_id):
     """Return whether the requesting user may edit a specific NPC."""
     game = Game.objects.filter(game_slug=game_slug).first()
     character = _find_character(game, character_id, npc=True)
-    can_edit = _character_can_edit(request, character)
-    response = Response({'can_edit': can_edit})
+    serializer = CharacterAccessSerializer(character, context={'request': request, 'game': game})
+    response = Response(serializer.data)
     response['X-Skip-Cache'] = 'true'
     return response
 
@@ -146,13 +148,6 @@ def _find_character(game, character_id, npc):
     if game is None:
         return None
     return Character.objects.filter(id=character_id, game=game, npc=npc).first()
-
-
-def _character_can_edit(request, character):
-    """Return True if request.user may edit character, False if character is None."""
-    if character is None:
-        return False
-    return character.can_be_edited_by(request.user)
 
 
 def _update_character(request, character):

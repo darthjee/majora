@@ -370,3 +370,40 @@ class TestGameAccessView:
         """Test that the response includes the X-Skip-Cache: true header."""
         response = self._get(client)
         assert response['X-Skip-Cache'] == 'true'
+
+    def test_unauthenticated_returns_null_user_context_fields(self, client):
+        """Test that unauthenticated request returns null for username, is_superuser, is_dm."""
+        response = self._get(client)
+        data = json.loads(response.content)
+        assert data['username'] is None
+        assert data['is_superuser'] is None
+        assert data['is_dm'] is None
+
+    def test_dm_returns_correct_user_context_fields(self, client):
+        """Test that DM request returns correct username, is_superuser=False, is_dm=True."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get(client, token=token)
+        data = json.loads(response.content)
+        assert data['username'] == 'dm_user'
+        assert data['is_superuser'] is False
+        assert data['is_dm'] is True
+
+    def test_superuser_returns_correct_user_context_fields(self, client):
+        """Test that superuser request returns correct username, is_superuser=True, is_dm=False."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+        response = self._get(client, token=token)
+        data = json.loads(response.content)
+        assert data['username'] == 'admin'
+        assert data['is_superuser'] is True
+        assert data['is_dm'] is False
+
+    def test_non_dm_user_returns_correct_user_context_fields(self, client):
+        """Test non-DM user returns correct username, is_superuser=False, is_dm=False."""
+        other = User.objects.create_user(username='other', password='secret-password')
+        token = Token.objects.create(user=other)
+        response = self._get(client, token=token)
+        data = json.loads(response.content)
+        assert data['username'] == 'other'
+        assert data['is_superuser'] is False
+        assert data['is_dm'] is False

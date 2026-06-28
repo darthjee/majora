@@ -38,8 +38,26 @@ source/
     wsgi.py
   games/
     models.py          # domain models: Game, Player, Character, Photo, Link
-    views.py           # function-based API views (@api_view)
-    serializers.py     # DRF serializers (list and detail variants)
+    views/             # function-based API views (@api_view): games.py, characters.py
+    serializers/       # DRF serializers (one class per file)
+      __init__.py
+      character_access.py   # CharacterAccessSerializer (NPC access)
+      character_detail.py   # CharacterDetailSerializer
+      character_full.py     # CharacterFullSerializer
+      character_link.py     # CharacterLinkSerializer
+      character_list.py     # CharacterListSerializer
+      character_update.py   # CharacterUpdateSerializer
+      game_access.py        # GameAccessSerializer
+      game_create.py        # GameCreateSerializer
+      game_detail.py        # GameDetailSerializer
+      game_list.py          # GameListSerializer
+      game_master.py        # GameMasterSerializer
+      game_photo.py         # GamePhotoSerializer
+      game_update.py        # GameUpdateSerializer
+      link.py               # LinkSerializer
+      pc_access.py          # PcAccessSerializer (PC access, extends CharacterAccessSerializer)
+      photo.py              # PhotoSerializer
+      photo_upload.py       # PhotoUploadSerializer
     urls.py            # URL routing
     admin.py
     migrations/

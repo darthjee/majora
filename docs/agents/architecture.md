@@ -74,7 +74,7 @@ The core Django app. Contains all domain models, REST views, and serializers for
 
 - `models.py` — Domain models: `Game`, `Player`, `Character`, `Photo`, `Link`.
 - `views/` — Function-based API views using `@api_view` (`games.py`, `characters.py`).
-- `serializers.py` — DRF serializers (list and detail variants per resource).
+- `serializers/` — DRF serializers (one class per file): `game_access.py` (`GameAccessSerializer`), `character_access.py` (`CharacterAccessSerializer`), `pc_access.py` (`PcAccessSerializer`), plus list/detail/update serializers per resource.
 - `paginator.py` — Custom pagination for list endpoints. See [pagination.md](pagination.md).
 - `urls.py` — URL routing for the games app.
 - `migrations/` — Django database migrations.
