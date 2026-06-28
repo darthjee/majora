@@ -10,6 +10,7 @@ from ..models import Game
 from ..paginator import Paginator
 from ..permissions import GameEditPermission
 from ..serializers import (
+    GameAccessSerializer,
     GameCreateSerializer,
     GameDetailSerializer,
     GameListSerializer,
@@ -66,31 +67,10 @@ def game_detail(request, game_slug):
 def game_access(request, game_slug):
     """Return whether the requesting user may edit a specific game."""
     game = Game.objects.filter(game_slug=game_slug).first()
-    can_edit = _resolve_can_edit(request, game)
-    data = {'can_edit': can_edit}
-    data.update(_user_game_context(request, game))
-    response = Response(data)
+    serializer = GameAccessSerializer(game, context={'request': request})
+    response = Response(serializer.data)
     response['X-Skip-Cache'] = 'true'
     return response
-
-
-def _resolve_can_edit(request, game):
-    """Return True if request.user may edit game, False otherwise."""
-    if game is None:
-        return False
-    return game.can_be_edited_by(request.user)
-
-
-def _user_game_context(request, game):
-    """Return user context fields for game access response."""
-    user = request.user
-    if not user or not user.is_authenticated:
-        return {'username': None, 'is_superuser': None, 'is_dm': None}
-    return {
-        'username': user.username,
-        'is_superuser': user.is_superuser,
-        'is_dm': game.game_masters.filter(user=user).exists() if game else False,
-    }
 
 
 def _update_game(request, game):
