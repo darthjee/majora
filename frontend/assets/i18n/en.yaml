@@ -37,6 +37,7 @@ pagination:
 games_page:
   loading: Loading games...
   back_href_label: Back
+  new_game: New Game
 game_page:
   loading: Loading game...
   player_characters: Player Characters
@@ -97,5 +98,12 @@ game_edit_page:
   submit: Save changes
   error: Failed to save game. Please try again.
   upload_photo_button: Upload Photo
+game_new_page:
+  title: New Game
+  name_label: Name
+  photo_label: Photo URL
+  description_label: Description
+  submit: Create Game
+  error: Failed to create game. Please try again.
 language_selector:
   label: Language
