@@ -39,6 +39,9 @@ docker_volumes/photos/
 # Production proxy host configuration (set only on production servers)
 proxy/prod_configuration/hosts.php
 
+# Composer vendor directory for proxy extension (installed locally before running tests)
+proxy/extension/vendor/
+
 # Editor
 .vscode/
 .idea/
