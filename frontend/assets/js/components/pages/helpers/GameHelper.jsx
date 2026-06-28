@@ -20,6 +20,7 @@ export default class GameHelper {
    * @param {string|null} [game.photo] - Optional cover image URL.
    * @param {string} [game.description] - Game description text.
    * @param {object[]} [game.photos] - Additional photo objects with id and url.
+   * @param {object[]} [game.links] - External link objects with text and url.
    * @param {boolean} [game.can_edit] - Whether the current user can edit this game.
    * @param {object[]} [pcs] - PCs preview list.
    * @param {object[]} [npcs] - NPCs preview list.
@@ -41,6 +42,7 @@ export default class GameHelper {
             {game.description && (
               <p className="mt-3">{game.description}</p>
             )}
+            {GameHelper.#renderLinks(game)}
           </div>
         </div>
         <CharacterPhotos photos={game.photos} alt={game.name} />
@@ -90,6 +92,22 @@ export default class GameHelper {
       <a href={`#/games/${game.game_slug}/edit`} className="btn btn-secondary ms-2">
         {Translator.t('character_page.edit')}
       </a>
+    );
+  }
+
+  static #renderLinks(game) {
+    if (!game.links || game.links.length === 0) {
+      return null;
+    }
+
+    return (
+      <ul>
+        {game.links.map((link) => (
+          <li key={link.url}>
+            <a href={link.url} target="_blank" rel="noreferrer">{link.text}</a>
+          </li>
+        ))}
+      </ul>
     );
   }
 }
