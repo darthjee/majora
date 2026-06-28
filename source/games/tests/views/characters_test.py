@@ -1039,3 +1039,181 @@ class TestGameNpcAccessView:
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['can_edit'] is True
+
+
+@pytest.mark.django_db
+class TestGameNpcsHiddenFilter:
+    """Tests that game_npcs excludes hidden NPCs from the public listing."""
+
+    def setup_method(self):
+        """Set up common test fixtures."""
+        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+
+    def test_hidden_npc_excluded_from_listing(self, client):
+        """Test that an NPC with hidden=True is not returned by the public listing."""
+        Character.objects.create(name='Visible NPC', game=self.game, npc=True, hidden=False)
+        Character.objects.create(name='Hidden NPC', game=self.game, npc=True, hidden=True)
+        response = client.get('/games/test-game/npcs.json')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Visible NPC'
+
+    def test_visible_npc_included_in_listing(self, client):
+        """Test that an NPC with hidden=False is returned by the public listing."""
+        Character.objects.create(name='Visible NPC', game=self.game, npc=True, hidden=False)
+        response = client.get('/games/test-game/npcs.json')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 1
+
+    def test_total_header_excludes_hidden_npcs(self, client):
+        """Test that the total header reflects only visible NPCs."""
+        Character.objects.create(name='Visible NPC', game=self.game, npc=True, hidden=False)
+        Character.objects.create(name='Hidden NPC', game=self.game, npc=True, hidden=True)
+        response = client.get('/games/test-game/npcs.json')
+        assert response['total'] == '1'
+
+
+@pytest.mark.django_db
+class TestGameNpcDetailHidden:
+    """Tests for the hidden-NPC visibility gate in game_npc_detail."""
+
+    def setup_method(self):
+        """Set up common test fixtures."""
+        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
+        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.hidden_npc = Character.objects.create(
+            name='Secret NPC', game=self.game, npc=True, hidden=True
+        )
+
+    def test_hidden_npc_returns_404_for_anonymous(self, client):
+        """Test that an anonymous request to a hidden NPC gets 404."""
+        response = client.get(f'/games/test-game/npcs/{self.hidden_npc.id}.json')
+        assert response.status_code == 404
+
+    def test_hidden_npc_returns_404_for_regular_user(self, client):
+        """Test that a non-DM authenticated user gets 404 for a hidden NPC."""
+        other_user = User.objects.create_user(username='other', password='secret-password')
+        token = Token.objects.create(user=other_user)
+        response = client.get(
+            f'/games/test-game/npcs/{self.hidden_npc.id}.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response.status_code == 404
+
+    def test_hidden_npc_returns_200_for_dm(self, client):
+        """Test that a DM can access a hidden NPC detail."""
+        token = Token.objects.create(user=self.dm_user)
+        response = client.get(
+            f'/games/test-game/npcs/{self.hidden_npc.id}.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['name'] == 'Secret NPC'
+
+    def test_hidden_npc_returns_200_for_superuser(self, client):
+        """Test that a superuser can access a hidden NPC detail."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+        response = client.get(
+            f'/games/test-game/npcs/{self.hidden_npc.id}.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['name'] == 'Secret NPC'
+
+    def test_visible_npc_returns_200_for_anonymous(self, client):
+        """Test that a visible NPC is still accessible to anonymous users."""
+        visible_npc = Character.objects.create(
+            name='Visible NPC', game=self.game, npc=True, hidden=False
+        )
+        response = client.get(f'/games/test-game/npcs/{visible_npc.id}.json')
+        assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestGameNpcsAllView:
+    """Tests for the game_npcs_all endpoint (DM/superuser only, includes hidden NPCs)."""
+
+    def setup_method(self):
+        """Set up common test fixtures."""
+        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
+        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.visible_npc = Character.objects.create(
+            name='Visible NPC', game=self.game, npc=True, hidden=False
+        )
+        self.hidden_npc = Character.objects.create(
+            name='Hidden NPC', game=self.game, npc=True, hidden=True
+        )
+
+    def _get(self, client, token=None):
+        """Issue a GET request to the npcs/all endpoint, optionally with a token."""
+        extra = {}
+        if token is not None:
+            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
+        return client.get('/games/test-game/npcs/all.json', **extra)
+
+    def test_returns_401_for_unauthenticated(self, client):
+        """Test that unauthenticated request returns 401."""
+        response = self._get(client)
+        assert response.status_code == 401
+
+    def test_returns_403_for_non_dm_authenticated_user(self, client):
+        """Test that an authenticated user who is not a DM gets 403."""
+        other_user = User.objects.create_user(username='other', password='secret-password')
+        token = Token.objects.create(user=other_user)
+        response = self._get(client, token=token)
+        assert response.status_code == 403
+
+    def test_returns_200_for_dm_with_all_npcs(self, client):
+        """Test that a DM gets 200 with both visible and hidden NPCs."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get(client, token=token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        names = [item['name'] for item in data]
+        assert 'Visible NPC' in names
+        assert 'Hidden NPC' in names
+
+    def test_returns_200_for_superuser_with_all_npcs(self, client):
+        """Test that a superuser gets 200 with both visible and hidden NPCs."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+        response = self._get(client, token=token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 2
+
+    def test_returns_404_for_unknown_game(self, client):
+        """Test that 404 is returned for a non-existent game_slug."""
+        token = Token.objects.create(user=self.dm_user)
+        response = client.get(
+            '/games/unknown-game/npcs/all.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response.status_code == 404
+
+    def test_response_includes_pagination_headers(self, client):
+        """Test that the response includes page/pages/per_page/total headers."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get(client, token=token)
+        assert response['page'] == '1'
+        assert response['pages'] == '1'
+        assert 'per_page' in response
+        assert response['total'] == '2'
+
+    def test_does_not_include_pcs(self, client):
+        """Test that the endpoint only returns NPCs, not PCs."""
+        player = Player.objects.create(name='Alice')
+        Character.objects.create(name='Alice PC', game=self.game, player=player, npc=False)
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get(client, token=token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        names = [item['name'] for item in data]
+        assert 'Alice PC' not in names

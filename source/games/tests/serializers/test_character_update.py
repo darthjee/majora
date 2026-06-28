@@ -60,3 +60,17 @@ class TestCharacterUpdateSerializer:
         updated = serializer.save()
         assert updated.name == 'Samwise'
         assert updated.game == self.game
+
+    def test_hidden_field_is_writable(self):
+        """Test that the hidden field is included and writable."""
+        serializer = CharacterUpdateSerializer(
+            self.character, data={'hidden': True}, partial=True
+        )
+        assert serializer.is_valid()
+        updated = serializer.save()
+        assert updated.hidden is True
+
+    def test_hidden_field_defaults_to_false(self):
+        """Test that hidden is False by default and serialized correctly."""
+        data = CharacterUpdateSerializer(self.character).data
+        assert data['hidden'] is False
