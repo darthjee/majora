@@ -217,8 +217,8 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Copy proxy extension
-          command: cp -r proxy/extension /var/www/html/extension
+          name: Copy proxy extension/
+          command: cp -r proxy/extension/* /var/www/html/extension
       - run:
           name: Composer install
           command: cd /var/www/html/extension && composer install --no-interaction
