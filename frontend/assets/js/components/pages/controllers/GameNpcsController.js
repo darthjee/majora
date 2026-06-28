@@ -83,6 +83,10 @@ export default class GameNpcsController extends BasePageController {
       return;
     }
 
+    this.#applyPublicNpcs(publicResult, safeSet);
+  }
+
+  #applyPublicNpcs(publicResult, safeSet) {
     if (publicResult.status === 'fulfilled') {
       const { data, pagination } = publicResult.value;
       safeSet(this.setNpcs, Array.isArray(data) ? data : []);
