@@ -79,10 +79,7 @@ export default class GameNpcsController extends BasePageController {
     const authNpcs = await this.#tryGetAuthNpcs(allResult);
 
     if (authNpcs !== null) {
-      safeSet(this.setNpcs, authNpcs);
-      if (publicResult.status === 'fulfilled') {
-        safeSet(this.setPagination, publicResult.value.pagination);
-      }
+      this.#applyAuthNpcs(authNpcs, publicResult, safeSet);
       return;
     }
 
@@ -92,6 +89,13 @@ export default class GameNpcsController extends BasePageController {
       safeSet(this.setPagination, pagination);
     } else {
       throw new Error('Unable to load NPCs.');
+    }
+  }
+
+  #applyAuthNpcs(authNpcs, publicResult, safeSet) {
+    safeSet(this.setNpcs, authNpcs);
+    if (publicResult.status === 'fulfilled') {
+      safeSet(this.setPagination, publicResult.value.pagination);
     }
   }
 
