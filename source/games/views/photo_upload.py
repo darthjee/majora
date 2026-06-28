@@ -33,7 +33,9 @@ def photo_upload(request, game_slug):
     file_path = _build_file_path(game_slug, filename)
 
     upload = Upload.objects.create(user=request.user, file_path=file_path)
-    GamePhoto.objects.create(game=game, path=file_path, ready=False)
+    game_photo = GamePhoto.objects.create(game=game, path=file_path, ready=False)
+    upload.content_object = game_photo
+    upload.save()
 
     return Response({'id': upload.id, 'token': upload.token}, status=201)
 

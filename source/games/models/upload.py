@@ -4,6 +4,8 @@ import secrets
 from datetime import timedelta
 
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 
@@ -32,6 +34,11 @@ class Upload(models.Model):
     )
     file_path = models.CharField(max_length=512)
     expiration_time = models.DateTimeField()
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, null=True, blank=True
+    )
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
 
     def save(self, *args, **kwargs):
         """Persist the upload record, enforcing immutability after upload."""
