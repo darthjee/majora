@@ -14,7 +14,8 @@ export default class GameEditHelper {
    * @param {{name: string, photo: string, description: string,
    *   status: string, fieldErrors: object}} formState - Form state.
    * @param {{onSubmit: Function, onNameChange: Function,
-   *   onPhotoChange: Function, onDescriptionChange: Function}} handlers - Event handlers.
+   *   onPhotoChange: Function, onDescriptionChange: Function,
+   *   onOpenUploadModal: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered edit page.
    */
   static render(formState, handlers) {
@@ -39,6 +40,13 @@ export default class GameEditHelper {
             onChange={handlers.onPhotoChange}
             errors={formState.fieldErrors.photo ?? []}
           />
+          <button
+            className="btn btn-secondary"
+            type="button"
+            onClick={handlers.onOpenUploadModal}
+          >
+            {Translator.t('game_edit_page.upload_photo_button')}
+          </button>
           <FormField
             id="game-edit-description"
             type="text"

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import GameEditController, { getGameSlugFromEditHash } from './controllers/GameEditController.js';
 import GameEditHelper from './helpers/GameEditHelper.jsx';
 import GameHelper from './helpers/GameHelper.jsx';
+import PhotoUploadModal from '../elements/PhotoUploadModal.jsx';
 
 /**
  * Game edit page.
@@ -17,6 +18,7 @@ export default function GameEdit() {
   const [name, setName] = useState('');
   const [photo, setPhoto] = useState('');
   const [description, setDescription] = useState('');
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   const controller = useMemo(
     () => new GameEditController(setGame, setLoading, setError, setFieldErrors),
@@ -54,13 +56,24 @@ export default function GameEdit() {
   if (loading) return GameEditHelper.renderLoading();
   if (error) return GameHelper.renderError(error);
 
-  return GameEditHelper.render(
-    { name, photo, description, status, fieldErrors },
-    {
-      onSubmit: handleSubmit,
-      onNameChange: (event) => setName(event.target.value),
-      onPhotoChange: (event) => setPhoto(event.target.value),
-      onDescriptionChange: (event) => setDescription(event.target.value),
-    },
+  return (
+    <>
+      {GameEditHelper.render(
+        { name, photo, description, status, fieldErrors },
+        {
+          onSubmit: handleSubmit,
+          onNameChange: (event) => setName(event.target.value),
+          onPhotoChange: (event) => setPhoto(event.target.value),
+          onDescriptionChange: (event) => setDescription(event.target.value),
+          onOpenUploadModal: () => setShowUploadModal(true),
+        },
+      )}
+      <PhotoUploadModal
+        show={showUploadModal}
+        gameSlug={gameSlug}
+        onClose={() => setShowUploadModal(false)}
+        onSuccess={() => setShowUploadModal(false)}
+      />
+    </>
   );
 }

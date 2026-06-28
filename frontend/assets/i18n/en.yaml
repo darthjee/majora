@@ -23,6 +23,11 @@ login_modal:
   back_to_login: Back to login
   recovery_sent: If that email is registered, a recovery link has been sent.
   register_link: Create an account
+photo_upload_modal:
+  cancel: Cancel
+  error: Failed to upload photo. Please try again.
+  submit: Upload
+  title: Upload Photo
 back_button:
   label: Back
 pagination:
@@ -91,5 +96,6 @@ game_edit_page:
   description_label: Description
   submit: Save changes
   error: Failed to save game. Please try again.
+  upload_photo_button: Upload Photo
 language_selector:
   label: Language
