@@ -18,6 +18,12 @@ class PhotoUploadHandlerTest extends TestCase
     /** @var string Temporary directory used as the photos base path */
     private string $photosDir;
 
+    /** @var string|null Saved value of $_SERVER['DOCUMENT_ROOT'] before any test modifies it */
+    private ?string $savedDocumentRoot = null;
+
+    /** @var bool Whether $_SERVER['DOCUMENT_ROOT'] was set before the save */
+    private bool $documentRootWasSet = false;
+
     protected function setUp(): void
     {
         $this->photosDir = sys_get_temp_dir() . '/test_photos_' . uniqid();
@@ -32,6 +38,41 @@ class PhotoUploadHandlerTest extends TestCase
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
+
+    /**
+     * Saves the current value (or absence) of $_SERVER['DOCUMENT_ROOT'] so that
+     * restoreDocumentRoot() can put it back after a test modifies it.
+     */
+    private function saveDocumentRoot(): void
+    {
+        $this->documentRootWasSet = isset($_SERVER['DOCUMENT_ROOT']);
+        $this->savedDocumentRoot  = $_SERVER['DOCUMENT_ROOT'] ?? null;
+    }
+
+    /**
+     * Restores $_SERVER['DOCUMENT_ROOT'] to the state captured by saveDocumentRoot().
+     */
+    private function restoreDocumentRoot(): void
+    {
+        if ($this->documentRootWasSet) {
+            $_SERVER['DOCUMENT_ROOT'] = $this->savedDocumentRoot;
+        } else {
+            unset($_SERVER['DOCUMENT_ROOT']);
+        }
+    }
+
+    /**
+     * Returns the value of the private $photosBasePath property of $handler via
+     * reflection, so tests can assert on it without changing the visibility of
+     * the property itself.
+     */
+    private function photosBasePathOf(PhotoUploadHandler $handler): string
+    {
+        $reflection = new \ReflectionClass($handler);
+        $prop       = $reflection->getProperty('photosBasePath');
+        $prop->setAccessible(true);
+        return (string) $prop->getValue($handler);
+    }
 
     /**
      * Recursively removes a directory and all its contents.
@@ -178,5 +219,65 @@ class PhotoUploadHandlerTest extends TestCase
         $this->assertEmpty($files);
 
         unlink($tmpFile);
+    }
+
+    /**
+     * build() sets photosBasePath to <DOCUMENT_ROOT>/photos when DOCUMENT_ROOT
+     * is present, so photos always land relative to the actual Tent installation.
+     */
+    public function testBuildSetsPhotosBasePathFromDocumentRoot(): void
+    {
+        $this->saveDocumentRoot();
+        $_SERVER['DOCUMENT_ROOT'] = $this->photosDir;
+
+        try {
+            $handler = PhotoUploadHandler::build(['host' => 'http://backend:8080']);
+
+            $this->assertSame(
+                $this->photosDir . '/photos',
+                $this->photosBasePathOf($handler)
+            );
+        } finally {
+            $this->restoreDocumentRoot();
+        }
+    }
+
+    /**
+     * build() strips a trailing slash from DOCUMENT_ROOT before appending /photos,
+     * so the path is always clean regardless of how the server reports it.
+     */
+    public function testBuildStripsTrailingSlashFromDocumentRoot(): void
+    {
+        $this->saveDocumentRoot();
+        $_SERVER['DOCUMENT_ROOT'] = $this->photosDir . '/';
+
+        try {
+            $handler = PhotoUploadHandler::build(['host' => 'http://backend:8080']);
+
+            $this->assertSame(
+                $this->photosDir . '/photos',
+                $this->photosBasePathOf($handler)
+            );
+        } finally {
+            $this->restoreDocumentRoot();
+        }
+    }
+
+    /**
+     * build() falls back to /var/www/html/photos when DOCUMENT_ROOT is absent
+     * (e.g. during CLI test runs where no web server is present).
+     */
+    public function testBuildFallsBackToDefaultWhenDocumentRootAbsent(): void
+    {
+        $this->saveDocumentRoot();
+        unset($_SERVER['DOCUMENT_ROOT']);
+
+        try {
+            $handler = PhotoUploadHandler::build(['host' => 'http://backend:8080']);
+
+            $this->assertSame('/var/www/html/photos', $this->photosBasePathOf($handler));
+        } finally {
+            $this->restoreDocumentRoot();
+        }
     }
 }
