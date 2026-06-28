@@ -19,6 +19,8 @@ from ..serializers import (
 
 @api_view(['GET', 'POST'])
 @authentication_classes([TokenAuthentication])
+# AllowAny: GET is an intentionally public listing; POST authentication is enforced
+# inline inside _create_game so that unauthenticated callers receive a proper 401.
 @permission_classes([AllowAny])
 def games_list(request):
     """Return a list of all games or create a new game."""
