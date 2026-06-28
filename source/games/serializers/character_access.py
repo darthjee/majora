@@ -1,4 +1,4 @@
-"""Character access serializers for the games app."""
+"""Character access serializer for the games app."""
 
 from rest_framework import serializers
 
@@ -61,22 +61,3 @@ class CharacterAccessSerializer(serializers.Serializer):
         game = self._game()
         user = self._user()
         return game.game_masters.filter(user=user).exists() if game else False
-
-
-class PcAccessSerializer(CharacterAccessSerializer):
-    """Serializes access context fields for a PC access response, including is_owner."""
-
-    def to_representation(self, character):
-        """Extend the character access response with the is_owner field."""
-        data = super().to_representation(character)
-        data['is_owner'] = self._get_is_owner(character)
-        return data
-
-    def _get_is_owner(self, character):
-        """Return whether the requesting user owns this PC, or None if unauthenticated."""
-        if not self._is_authenticated():
-            return None
-        user = self._user()
-        if character is None or character.player is None or character.player.user_id is None:
-            return False
-        return character.player.user_id == user.id

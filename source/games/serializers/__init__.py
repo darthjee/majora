@@ -1,6 +1,6 @@
 """Serializers package for the games app."""
 
-from games.serializers.character_access import CharacterAccessSerializer, PcAccessSerializer
+from games.serializers.character_access import CharacterAccessSerializer
 from games.serializers.character_detail import CharacterDetailSerializer
 from games.serializers.character_full import CharacterFullSerializer
 from games.serializers.character_link import CharacterLinkSerializer
@@ -14,6 +14,7 @@ from games.serializers.game_master import GameMasterSerializer
 from games.serializers.game_photo import GamePhotoSerializer
 from games.serializers.game_update import GameUpdateSerializer
 from games.serializers.link import LinkSerializer
+from games.serializers.pc_access import PcAccessSerializer
 from games.serializers.photo import PhotoSerializer
 from games.serializers.photo_upload import PhotoUploadSerializer
 
