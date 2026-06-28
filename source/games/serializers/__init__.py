@@ -4,6 +4,7 @@ from games.serializers.character_detail import CharacterDetailSerializer
 from games.serializers.character_full import CharacterFullSerializer
 from games.serializers.character_list import CharacterListSerializer
 from games.serializers.character_update import CharacterUpdateSerializer
+from games.serializers.game_create import GameCreateSerializer
 from games.serializers.game_detail import GameDetailSerializer
 from games.serializers.game_list import GameListSerializer
 from games.serializers.game_master import GameMasterSerializer
@@ -18,6 +19,7 @@ __all__ = [
     'CharacterFullSerializer',
     'CharacterListSerializer',
     'CharacterUpdateSerializer',
+    'GameCreateSerializer',
     'GameDetailSerializer',
     'GameListSerializer',
     'GameMasterSerializer',

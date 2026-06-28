@@ -37,6 +37,7 @@ pagination:
 games_page:
   loading: Carregando jogos...
   back_href_label: Voltar
+  new_game: Novo Jogo
 game_page:
   loading: Carregando jogo...
   player_characters: Personagens
@@ -97,5 +98,12 @@ game_edit_page:
   submit: Salvar alterações
   error: Falha ao salvar o jogo. Por favor, tente novamente.
   upload_photo_button: Enviar Foto
+game_new_page:
+  title: Novo Jogo
+  name_label: Nome
+  photo_label: URL da Foto
+  description_label: Descrição
+  submit: Criar Jogo
+  error: Falha ao criar jogo. Por favor, tente novamente.
 language_selector:
   label: Idioma

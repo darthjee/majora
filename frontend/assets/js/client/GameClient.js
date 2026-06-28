@@ -37,6 +37,25 @@ export default class GameClient extends BaseClient {
   }
 
   /**
+   * Creates a new game.
+   *
+   * @param {string|null} token - Authentication token, if any.
+   * @param {object} fields - Fields for the new game.
+   * @returns {Promise<Response>} fetch response from the games endpoint.
+   */
+  createGame(token, fields) {
+    return this.request('/games.json', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Token ${token}` } : {}),
+      },
+      body: JSON.stringify(fields),
+    });
+  }
+
+  /**
    * Submits a partial update for a game.
    *
    * @param {string} gameSlug - Game slug.

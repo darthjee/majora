@@ -6,58 +6,50 @@ import Translator from '../../../i18n/Translator.js';
 import GameHelper from './GameHelper.jsx';
 
 /**
- * Rendering helper for the game edit page.
+ * Rendering helper for the game creation page.
  */
-export default class GameEditHelper {
+export default class GameNewHelper {
   /**
-   * Render the game edit form.
+   * Render the game creation form.
    *
    * @param {{name: string, photo: string, description: string,
    *   status: string, fieldErrors: object}} formState - Form state.
    * @param {{onSubmit: Function, onNameChange: Function,
-   *   onPhotoChange: Function, onDescriptionChange: Function,
-   *   onOpenUploadModal: Function}} handlers - Event handlers.
-   * @returns {React.ReactElement} Rendered edit page.
+   *   onPhotoChange: Function, onDescriptionChange: Function}} handlers - Event handlers.
+   * @returns {React.ReactElement} Rendered new game page.
    */
   static render(formState, handlers) {
     return (
       <div className="container mt-4">
-        <h1>{Translator.t('game_edit_page.title')}</h1>
-        {GameEditHelper.#renderError(formState)}
+        <h1>{Translator.t('game_new_page.title')}</h1>
+        {GameNewHelper.#renderError(formState)}
         <form onSubmit={handlers.onSubmit}>
           <FormField
-            id="game-edit-name"
+            id="game-new-name"
             type="text"
-            label={Translator.t('game_edit_page.name_label')}
+            label={Translator.t('game_new_page.name_label')}
             value={formState.name}
             onChange={handlers.onNameChange}
             errors={formState.fieldErrors.name ?? []}
           />
           <FormField
-            id="game-edit-photo"
+            id="game-new-photo"
             type="text"
-            label={Translator.t('game_edit_page.photo_label')}
+            label={Translator.t('game_new_page.photo_label')}
             value={formState.photo}
             onChange={handlers.onPhotoChange}
             errors={formState.fieldErrors.photo ?? []}
           />
-          <button
-            className="btn btn-secondary"
-            type="button"
-            onClick={handlers.onOpenUploadModal}
-          >
-            {Translator.t('game_edit_page.upload_photo_button')}
-          </button>
           <FormField
-            id="game-edit-description"
+            id="game-new-description"
             type="text"
-            label={Translator.t('game_edit_page.description_label')}
+            label={Translator.t('game_new_page.description_label')}
             value={formState.description}
             onChange={handlers.onDescriptionChange}
             errors={formState.fieldErrors.description ?? []}
           />
           <SubmitButton disabled={formState.status === 'submitting'}>
-            {Translator.t('game_edit_page.submit')}
+            {Translator.t('game_new_page.submit')}
           </SubmitButton>
         </form>
       </div>
@@ -78,6 +70,6 @@ export default class GameEditHelper {
       return null;
     }
 
-    return <ErrorAlert error={Translator.t('game_edit_page.error')} />;
+    return <ErrorAlert error={Translator.t('game_new_page.error')} />;
   }
 }

@@ -72,6 +72,39 @@ describe('GameClient', function() {
     });
   });
 
+  describe('#createGame', function() {
+    it('sends a POST request with the fields and auth token when present', async function() {
+      const client = new GameClient();
+
+      await client.createGame('tok-abc', { name: 'New Game' });
+
+      expect(fetchSpy).toHaveBeenCalledWith('/games.json', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: 'Token tok-abc',
+        },
+        body: JSON.stringify({ name: 'New Game' }),
+      });
+    });
+
+    it('omits the Authorization header when there is no token', async function() {
+      const client = new GameClient();
+
+      await client.createGame(null, { name: 'New Game' });
+
+      expect(fetchSpy).toHaveBeenCalledWith('/games.json', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: 'New Game' }),
+      });
+    });
+  });
+
   describe('#updateGame', function() {
     it('sends a PATCH request with the fields and auth token when present', async function() {
       const client = new GameClient();

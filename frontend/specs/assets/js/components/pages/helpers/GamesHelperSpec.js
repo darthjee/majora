@@ -34,6 +34,14 @@ describe('GamesHelper', function() {
       const html = renderToStaticMarkup(GamesHelper.render(games, pagination));
       expect(html).toContain('href="#/"');
     });
+
+    it('renders a New Game link', function() {
+      const games = [{ name: 'Game A', game_slug: 'game-a', photo: null }];
+      const pagination = { page: 1, pages: 1, perPage: 10 };
+      const html = renderToStaticMarkup(GamesHelper.render(games, pagination));
+      expect(html).toContain('href="#/games/new"');
+      expect(html).toContain('New Game');
+    });
   });
 
   describe('.renderLoading', function() {
