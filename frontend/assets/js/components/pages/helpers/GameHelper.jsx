@@ -4,6 +4,7 @@ import CardPhoto from '../../elements/CardPhoto.jsx';
 import CharacterPhotos from '../../elements/CharacterPhotos.jsx';
 import CharacterPreviewSection from '../../elements/CharacterPreviewSection.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
+import LinkList from '../../elements/LinkList.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import Translator from '../../../i18n/Translator.js';
 
@@ -42,7 +43,7 @@ export default class GameHelper {
             {game.description && (
               <p className="mt-3">{game.description}</p>
             )}
-            {GameHelper.#renderLinks(game)}
+            <LinkList links={game.links} />
           </div>
         </div>
         <CharacterPhotos photos={game.photos} alt={game.name} />
@@ -95,19 +96,4 @@ export default class GameHelper {
     );
   }
 
-  static #renderLinks(game) {
-    if (!game.links || game.links.length === 0) {
-      return null;
-    }
-
-    return (
-      <ul>
-        {game.links.map((link) => (
-          <li key={link.url}>
-            <a href={link.url} target="_blank" rel="noreferrer">{link.text}</a>
-          </li>
-        ))}
-      </ul>
-    );
-  }
 }

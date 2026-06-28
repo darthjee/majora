@@ -4,6 +4,7 @@ import CardAvatar from '../../elements/CardAvatar.jsx';
 import CharacterInfo from '../../elements/CharacterInfo.jsx';
 import CharacterPhotos from '../../elements/CharacterPhotos.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
+import LinkList from '../../elements/LinkList.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import Translator from '../../../i18n/Translator.js';
 
@@ -22,6 +23,7 @@ export default class CharacterHelper {
    * @param {string} [character.public_description] - Character public description.
    * @param {string} [character.private_description] - Character private description (DM notes).
    * @param {object[]} [character.photos] - Additional photos array.
+   * @param {object[]} [character.links] - External link objects with text and url.
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
    * @param {boolean} [character.is_pc] - Whether the character is a PC (vs. an NPC), used
    *   to build the correct edit link segment.
@@ -48,6 +50,7 @@ export default class CharacterHelper {
         </div>
         {CharacterHelper.#renderPrivateDescription(character.private_description)}
         <CharacterPhotos photos={character.photos} alt={character.name} />
+        <LinkList links={character.links} />
       </div>
     );
   }
@@ -110,4 +113,5 @@ export default class CharacterHelper {
       </a>
     );
   }
+
 }

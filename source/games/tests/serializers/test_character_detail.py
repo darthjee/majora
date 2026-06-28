@@ -4,7 +4,7 @@ import pytest
 from django.contrib.auth.models import AnonymousUser, User
 from rest_framework.test import APIRequestFactory
 
-from games.models import Character, Game, GameMaster, Photo, Player
+from games.models import Character, CharacterLink, Game, GameMaster, Photo, Player
 from games.serializers import CharacterDetailSerializer
 
 
@@ -87,6 +87,25 @@ class TestCharacterDetailSerializer:
         urls = [photo['url'] for photo in data['photos']]
         assert 'http://example.com/1.png' in urls
         assert 'http://example.com/2.png' in urls
+
+    def test_serializes_empty_links(self):
+        """Test that links is an empty list when the character has no links."""
+        data = self._serialize()
+        assert data['links'] == []
+
+    def test_serializes_nested_links(self):
+        """Test that nested links are serialized with their fields."""
+        CharacterLink.objects.create(
+            text='Wiki', url='http://example.com/wiki', character=self.character
+        )
+        CharacterLink.objects.create(
+            text='Map', url='http://example.com/map', character=self.character
+        )
+        data = self._serialize()
+        assert len(data['links']) == 2
+        texts = [link['text'] for link in data['links']]
+        assert 'Wiki' in texts
+        assert 'Map' in texts
 
     def test_does_not_include_private_description(self):
         """Test that the private_description field is not exposed."""

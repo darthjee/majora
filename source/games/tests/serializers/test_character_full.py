@@ -48,5 +48,5 @@ class TestCharacterFullSerializer:
         """Test that all CharacterDetailSerializer fields are still present."""
         data = self._serialize()
         for field in ['id', 'avatar_url', 'character_class', 'level', 'is_pc', 'photos',
-                      'game_slug', 'can_edit']:
+                      'links', 'game_slug', 'can_edit']:
             assert field in data
