@@ -23,6 +23,11 @@ login_modal:
   back_to_login: Voltar ao login
   recovery_sent: Caso o e-mail esteja registrado, o link de recuperaçao será enviado.
   register_link: Criar uma conta
+photo_upload_modal:
+  cancel: Cancelar
+  error: Falha ao enviar foto. Por favor, tente novamente.
+  submit: Enviar
+  title: Enviar Foto
 back_button:
   label: Voltar
 pagination:
@@ -91,5 +96,6 @@ game_edit_page:
   description_label: Descrição
   submit: Salvar alterações
   error: Falha ao salvar o jogo. Por favor, tente novamente.
+  upload_photo_button: Enviar Foto
 language_selector:
   label: Idioma
