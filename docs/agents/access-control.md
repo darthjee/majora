@@ -30,9 +30,17 @@ A user may simultaneously be a GameMaster for one game and a Player for another.
 |--------|---------|
 | List (`GET /games.json`) | Anyone |
 | Detail (`GET /games/<slug>.json`) | Anyone |
-| Create / Update / Delete | Superuser only (no public write endpoint) |
+| Create (`POST /games.json`) | Any authenticated user |
+| Update (`PATCH /games/<slug>.json`) | GameMaster of that game, or superuser |
+| Delete | Superuser only (via Django admin, out of scope) |
 
 **Exposed fields** (read): `name`, `game_slug`, `photo`, `description`, links list, photos list.
+
+**Write fields** (create/update): `name` (required for create, optional for update), `photo` (optional, nullable URL), `description` (optional).
+
+**Create response:** HTTP 201 with `GameDetailSerializer` body — `name`, `game_slug`, `photo`, `description`, `links`, `photos`. The `game_slug` is auto-generated from `name` by the model; it cannot be set by the client.
+
+Unauthenticated `POST /games.json` → 401. Authenticated `PATCH /games/<slug>.json` by a non-GameMaster → 403.
 
 ---
 
