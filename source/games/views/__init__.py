@@ -15,6 +15,7 @@ from .game_masters import game_master_detail, game_masters_list
 from .games import game_access, game_detail, games_list
 from .password_reset import recover, reset_password
 from .photo_upload import photo_upload
+from .upload_finalize import upload_finalize
 
 __all__ = [
     'games_list',
@@ -39,4 +40,5 @@ __all__ = [
     'recover',
     'reset_password',
     'photo_upload',
+    'upload_finalize',
 ]

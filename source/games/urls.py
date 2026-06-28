@@ -55,6 +55,7 @@ urlpatterns = [
         views.photo_upload,
         name='game-photo-upload',
     ),
+    path('uploads/<int:upload_id>.json', views.upload_finalize, name='upload-finalize'),
     path('users/login.json', views.login, name='users-login'),
     path('users/logout.json', views.logout, name='users-logout'),
     path('users/register.json', views.register, name='users-register'),
