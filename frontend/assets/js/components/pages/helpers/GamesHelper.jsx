@@ -3,6 +3,7 @@ import BackButton from '../../elements/BackButton.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import GameCard from '../../elements/GameCard.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
+import NewButton from '../../elements/NewButton.jsx';
 import Pagination from '../../elements/Pagination.jsx';
 import Translator from '../../../i18n/Translator.js';
 
@@ -24,9 +25,9 @@ export default class GamesHelper {
     return (
       <div className="container mt-4">
         <BackButton href="#/" />
-        <a href="#/games/new" className="btn btn-primary mb-3">
+        <NewButton href="#/games/new">
           {Translator.t('games_page.new_game')}
-        </a>
+        </NewButton>
         <div className="row">
           {games.map((game) => (
             <GameCard key={game.game_slug} game={game} />

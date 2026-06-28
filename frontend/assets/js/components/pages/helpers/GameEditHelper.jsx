@@ -1,6 +1,7 @@
 import React from 'react';
 import FormField from '../../elements/FormField.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
+import SubmitButton from '../../elements/SubmitButton.jsx';
 import Translator from '../../../i18n/Translator.js';
 import GameHelper from './GameHelper.jsx';
 
@@ -55,13 +56,9 @@ export default class GameEditHelper {
             onChange={handlers.onDescriptionChange}
             errors={formState.fieldErrors.description ?? []}
           />
-          <button
-            className="btn btn-primary"
-            type="submit"
-            disabled={formState.status === 'submitting'}
-          >
+          <SubmitButton disabled={formState.status === 'submitting'}>
             {Translator.t('game_edit_page.submit')}
-          </button>
+          </SubmitButton>
         </form>
       </div>
     );

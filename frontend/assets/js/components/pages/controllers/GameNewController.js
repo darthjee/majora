@@ -49,16 +49,24 @@ export default class GameNewController extends BasePageController {
     }
 
     try {
-      const response = await this.gameClient.createGame(token, {
-        name: formValues.name,
-        photo: formValues.photo,
-        description: formValues.description,
-      });
-
-      await this.#handleResponse(response, setters);
+      await this.#performCreate(token, formValues, setters);
     } catch {
-      setters.setStatus('error');
+      this.#handleNetworkError(setters);
     }
+  }
+
+  async #performCreate(token, formValues, setters) {
+    const response = await this.gameClient.createGame(token, {
+      name: formValues.name,
+      photo: formValues.photo,
+      description: formValues.description,
+    });
+
+    await this.#handleResponse(response, setters);
+  }
+
+  #handleNetworkError(setters) {
+    setters.setStatus('error');
   }
 
   async #handleResponse(response, setters) {
