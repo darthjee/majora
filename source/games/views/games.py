@@ -9,15 +9,39 @@ from rest_framework.response import Response
 from ..models import Game
 from ..paginator import Paginator
 from ..permissions import GameEditPermission
-from ..serializers import GameDetailSerializer, GameListSerializer, GameUpdateSerializer
+from ..serializers import (
+    GameCreateSerializer,
+    GameDetailSerializer,
+    GameListSerializer,
+    GameUpdateSerializer,
+)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([AllowAny])
 def games_list(request):
-    """Return a list of all games."""
+    """Return a list of all games or create a new game."""
+    if request.method == 'POST':
+        return _create_game(request)
+
     page_games, headers = Paginator(request, Game.objects.all()).paginate()
     serializer = GameListSerializer(page_games, many=True)
     return Response(serializer.data, headers=headers)
+
+
+def _create_game(request):
+    """Validate request and create a new game, returning 201 with detail data."""
+    if not request.user or not request.user.is_authenticated:
+        return Response({'errors': {'detail': ['authentication required']}}, status=401)
+
+    serializer = GameCreateSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response({'errors': serializer.errors}, status=400)
+
+    game = serializer.save()
+    detail = GameDetailSerializer(game)
+    return Response(detail.data, status=201)
 
 
 @api_view(['GET', 'PATCH'])

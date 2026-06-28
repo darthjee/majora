@@ -87,6 +87,89 @@ class TestGamesListView:
 
 
 @pytest.mark.django_db
+class TestGamesCreateView:
+    """Tests for the POST /games.json endpoint."""
+
+    def setup_method(self):
+        """Set up an authenticated user and token."""
+        self.user = User.objects.create_user(username='creator', password='secret-password')
+        self.token = Token.objects.create(user=self.user)
+
+    def _post(self, client, payload, token=None):
+        """Issue a POST request to the games list endpoint, optionally with a token."""
+        extra = {}
+        if token is not None:
+            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
+        return client.post(
+            '/games.json',
+            data=json.dumps(payload),
+            content_type='application/json',
+            **extra,
+        )
+
+    def test_valid_post_returns_201(self, client):
+        """Test that a valid POST returns HTTP 201."""
+        response = self._post(client, {'name': 'New Adventure'}, token=self.token)
+        assert response.status_code == 201
+
+    def test_valid_post_returns_game_detail_body(self, client):
+        """Test that the response body matches GameDetailSerializer output."""
+        response = self._post(client, {'name': 'New Adventure'}, token=self.token)
+        data = json.loads(response.content)
+        assert data['name'] == 'New Adventure'
+        assert 'game_slug' in data
+        assert 'photo' in data
+        assert 'description' in data
+        assert 'links' in data
+        assert 'photos' in data
+
+    def test_game_slug_is_auto_generated(self, client):
+        """Test that game_slug is generated from name automatically."""
+        response = self._post(client, {'name': 'My Epic Campaign'}, token=self.token)
+        data = json.loads(response.content)
+        assert data['game_slug'] == 'my-epic-campaign'
+
+    def test_post_without_name_returns_400(self, client):
+        """Test that omitting name returns HTTP 400 with field errors."""
+        response = self._post(client, {'description': 'No name given'}, token=self.token)
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'name' in data['errors']
+
+    def test_post_without_token_returns_401(self, client):
+        """Test that a POST without an auth token returns HTTP 401."""
+        response = self._post(client, {'name': 'Unauthorized Game'})
+        assert response.status_code == 401
+        data = json.loads(response.content)
+        assert 'detail' in data['errors']
+
+    def test_url_accessible_by_name(self, client):
+        """Test that the games-list URL name resolves correctly for POST."""
+        url = reverse('games-list')
+        assert url == '/games.json'
+
+    def test_post_with_optional_fields(self, client):
+        """Test that optional fields photo and description are accepted."""
+        payload = {
+            'name': 'Full Game',
+            'photo': 'http://example.com/cover.png',
+            'description': 'A detailed campaign.',
+        }
+        response = self._post(client, payload, token=self.token)
+        assert response.status_code == 201
+        data = json.loads(response.content)
+        assert data['photo'] == 'http://example.com/cover.png'
+        assert data['description'] == 'A detailed campaign.'
+
+    def test_post_with_null_photo(self, client):
+        """Test that photo can be explicitly set to null."""
+        response = self._post(client, {'name': 'No Photo Game', 'photo': None}, token=self.token)
+        assert response.status_code == 201
+        data = json.loads(response.content)
+        assert data['photo'] is None
+
+
+@pytest.mark.django_db
 class TestGameDetailView:
     """Tests for the game detail endpoint."""
 

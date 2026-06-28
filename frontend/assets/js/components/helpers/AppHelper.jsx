@@ -2,6 +2,7 @@ import React from 'react';
 import Header from '../elements/Header.jsx';
 import Game from '../pages/Game.jsx';
 import GameEdit from '../pages/GameEdit.jsx';
+import GameNew from '../pages/GameNew.jsx';
 import GameNpcs from '../pages/GameNpcs.jsx';
 import GamePcs from '../pages/GamePcs.jsx';
 import Games from '../pages/Games.jsx';
@@ -16,6 +17,7 @@ const PAGES = {
   games: <Games />,
   game: <Game />,
   gameEdit: <GameEdit />,
+  gameNew: <GameNew />,
   gamePcs: <GamePcs />,
   gameNpcs: <GameNpcs />,
   npcCharacter: <NpcCharacter />,

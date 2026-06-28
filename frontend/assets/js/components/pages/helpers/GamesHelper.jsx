@@ -24,6 +24,9 @@ export default class GamesHelper {
     return (
       <div className="container mt-4">
         <BackButton href="#/" />
+        <a href="#/games/new" className="btn btn-primary mb-3">
+          {Translator.t('games_page.new_game')}
+        </a>
         <div className="row">
           {games.map((game) => (
             <GameCard key={game.game_slug} game={game} />
