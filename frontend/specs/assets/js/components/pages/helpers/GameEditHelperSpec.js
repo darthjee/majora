@@ -1,12 +1,41 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameEditHelper from '../../../../../../assets/js/components/pages/helpers/GameEditHelper.jsx';
 
+const findElement = (node, matcher) => {
+  if (!node) {
+    return null;
+  }
+
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findElement(child, matcher);
+
+      if (match) {
+        return match;
+      }
+    }
+
+    return null;
+  }
+
+  if (typeof node !== 'object') {
+    return null;
+  }
+
+  if (matcher(node)) {
+    return node;
+  }
+
+  return findElement(node.props?.children, matcher);
+};
+
 describe('GameEditHelper', function() {
   const buildHandlers = () => ({
     onSubmit: jasmine.createSpy('onSubmit'),
     onNameChange: jasmine.createSpy('onNameChange'),
     onPhotoChange: jasmine.createSpy('onPhotoChange'),
     onDescriptionChange: jasmine.createSpy('onDescriptionChange'),
+    onOpenUploadModal: jasmine.createSpy('onOpenUploadModal'),
   });
 
   const buildState = (overrides = {}) => ({
@@ -87,6 +116,25 @@ describe('GameEditHelper', function() {
       const html = renderToStaticMarkup(GameEditHelper.render(buildState(), buildHandlers()));
 
       expect(html).not.toContain('Failed to save game.');
+    });
+
+    it('renders the upload photo button', function() {
+      const html = renderToStaticMarkup(GameEditHelper.render(buildState(), buildHandlers()));
+
+      expect(html).toContain('Upload Photo');
+    });
+
+    it('wires the upload photo button to the open upload modal handler', function() {
+      const handlers = buildHandlers();
+      const element = GameEditHelper.render(buildState(), handlers);
+      const uploadButton = findElement(
+        element,
+        (child) => child.type === 'button' && child.props.className === 'btn btn-secondary'
+      );
+
+      uploadButton.props.onClick();
+
+      expect(handlers.onOpenUploadModal).toHaveBeenCalled();
     });
   });
 
