@@ -111,9 +111,10 @@ services:
 
   proxy_tests:
     image: darthjee/tent:0.8.0
+    working_dir: /var/www/html/extension
     volumes:
       - ./proxy/extension:/var/www/html/extension
-    command: vendor/bin/phpunit extension/tests
+    command: vendor/bin/phpunit
 
   majora_navi:
     image: darthjee/navi-hey:latest
