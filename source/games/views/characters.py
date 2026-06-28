@@ -123,7 +123,14 @@ def game_pc_access(request, game_slug, character_id):
     game = Game.objects.filter(game_slug=game_slug).first()
     character = _find_character(game, character_id, npc=False)
     can_edit = _character_can_edit(request, character)
-    response = Response({'can_edit': can_edit})
+    data = {'can_edit': can_edit}
+    data.update(_user_character_context(request, game))
+    user = request.user
+    if user and user.is_authenticated:
+        data['is_owner'] = _is_owner(user, character)
+    else:
+        data['is_owner'] = None
+    response = Response(data)
     response['X-Skip-Cache'] = 'true'
     return response
 
@@ -136,7 +143,9 @@ def game_npc_access(request, game_slug, character_id):
     game = Game.objects.filter(game_slug=game_slug).first()
     character = _find_character(game, character_id, npc=True)
     can_edit = _character_can_edit(request, character)
-    response = Response({'can_edit': can_edit})
+    data = {'can_edit': can_edit}
+    data.update(_user_character_context(request, game))
+    response = Response(data)
     response['X-Skip-Cache'] = 'true'
     return response
 
@@ -153,6 +162,25 @@ def _character_can_edit(request, character):
     if character is None:
         return False
     return character.can_be_edited_by(request.user)
+
+
+def _user_character_context(request, game):
+    """Return user context fields (username, is_superuser, is_dm) for character access."""
+    user = request.user
+    if not user or not user.is_authenticated:
+        return {'username': None, 'is_superuser': None, 'is_dm': None}
+    return {
+        'username': user.username,
+        'is_superuser': user.is_superuser,
+        'is_dm': game.game_masters.filter(user=user).exists() if game else False,
+    }
+
+
+def _is_owner(user, character):
+    """Return True if user is the player who owns this character."""
+    if character is None or character.player is None or character.player.user_id is None:
+        return False
+    return character.player.user_id == user.id
 
 
 def _update_character(request, character):

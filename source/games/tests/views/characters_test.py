@@ -929,6 +929,57 @@ class TestGamePcAccessView:
         data = json.loads(response.content)
         assert data['can_edit'] is True
 
+    def test_anonymous_returns_null_user_context_fields(self, client):
+        """Test unauthenticated request returns null for username, is_superuser, is_dm, is_owner."""
+        response = self._get(client)
+        data = json.loads(response.content)
+        assert data['username'] is None
+        assert data['is_superuser'] is None
+        assert data['is_dm'] is None
+        assert data['is_owner'] is None
+
+    def test_owner_returns_correct_user_context_fields(self, client):
+        """Test that owner returns username, is_superuser=False, is_dm=False, is_owner=True."""
+        token = Token.objects.create(user=self.owner)
+        response = self._get(client, token=token)
+        data = json.loads(response.content)
+        assert data['username'] == 'owner'
+        assert data['is_superuser'] is False
+        assert data['is_dm'] is False
+        assert data['is_owner'] is True
+
+    def test_dm_returns_correct_user_context_fields(self, client):
+        """Test that DM returns username, is_superuser=False, is_dm=True, is_owner=False."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get(client, token=token)
+        data = json.loads(response.content)
+        assert data['username'] == 'dm_user'
+        assert data['is_superuser'] is False
+        assert data['is_dm'] is True
+        assert data['is_owner'] is False
+
+    def test_superuser_returns_correct_user_context_fields(self, client):
+        """Test that superuser returns username, is_superuser=True, is_dm=False, is_owner=False."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+        response = self._get(client, token=token)
+        data = json.loads(response.content)
+        assert data['username'] == 'admin'
+        assert data['is_superuser'] is True
+        assert data['is_dm'] is False
+        assert data['is_owner'] is False
+
+    def test_unrelated_user_returns_correct_user_context_fields(self, client):
+        """Test unrelated user returns username, is_superuser=False, is_dm=False, is_owner=False."""
+        other = User.objects.create_user(username='other', password='secret-password')
+        token = Token.objects.create(user=other)
+        response = self._get(client, token=token)
+        data = json.loads(response.content)
+        assert data['username'] == 'other'
+        assert data['is_superuser'] is False
+        assert data['is_dm'] is False
+        assert data['is_owner'] is False
+
 
 @pytest.mark.django_db
 class TestGameNpcAccessView:
@@ -1039,6 +1090,43 @@ class TestGameNpcAccessView:
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['can_edit'] is True
+
+    def test_anonymous_returns_null_user_context_fields(self, client):
+        """Test that unauthenticated request returns null for username, is_superuser, is_dm."""
+        response = self._get(client)
+        data = json.loads(response.content)
+        assert data['username'] is None
+        assert data['is_superuser'] is None
+        assert data['is_dm'] is None
+
+    def test_dm_returns_correct_user_context_fields(self, client):
+        """Test that DM returns username, is_superuser=False, is_dm=True."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get(client, token=token)
+        data = json.loads(response.content)
+        assert data['username'] == 'dm_user'
+        assert data['is_superuser'] is False
+        assert data['is_dm'] is True
+
+    def test_superuser_returns_correct_user_context_fields(self, client):
+        """Test that superuser returns username, is_superuser=True, is_dm=False."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+        response = self._get(client, token=token)
+        data = json.loads(response.content)
+        assert data['username'] == 'admin'
+        assert data['is_superuser'] is True
+        assert data['is_dm'] is False
+
+    def test_non_dm_user_returns_correct_user_context_fields(self, client):
+        """Test that non-DM authenticated user returns username, is_superuser=False, is_dm=False."""
+        other = User.objects.create_user(username='other', password='secret-password')
+        token = Token.objects.create(user=other)
+        response = self._get(client, token=token)
+        data = json.loads(response.content)
+        assert data['username'] == 'other'
+        assert data['is_superuser'] is False
+        assert data['is_dm'] is False
 
 
 @pytest.mark.django_db
