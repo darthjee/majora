@@ -980,6 +980,29 @@ class TestGamePcAccessView:
         assert data['is_dm'] is False
         assert data['is_owner'] is False
 
+    def test_owner_via_session_returns_can_edit_true(self, client):
+        """Test that the PC owner authenticated via session cookie returns can_edit true."""
+        token = Token.objects.create(user=self.owner)
+        session = client.session
+        session['auth_token'] = token.key
+        session.save()
+        response = client.get(f'/games/test-game/pcs/{self.character.id}/access.json')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is True
+
+    def test_unrelated_user_via_session_returns_can_edit_false(self, client):
+        """Test that an unrelated user authenticated via session cookie returns can_edit false."""
+        other = User.objects.create_user(username='other', password='secret-password')
+        token = Token.objects.create(user=other)
+        session = client.session
+        session['auth_token'] = token.key
+        session.save()
+        response = client.get(f'/games/test-game/pcs/{self.character.id}/access.json')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is False
+
 
 @pytest.mark.django_db
 class TestGameNpcAccessView:
@@ -1127,6 +1150,29 @@ class TestGameNpcAccessView:
         assert data['username'] == 'other'
         assert data['is_superuser'] is False
         assert data['is_dm'] is False
+
+    def test_dm_via_session_returns_can_edit_true(self, client):
+        """Test that the DM authenticated via session cookie returns can_edit true."""
+        token = Token.objects.create(user=self.dm_user)
+        session = client.session
+        session['auth_token'] = token.key
+        session.save()
+        response = client.get(f'/games/test-game/npcs/{self.npc.id}/access.json')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is True
+
+    def test_non_dm_user_via_session_returns_can_edit_false(self, client):
+        """Test that a non-DM user authenticated via session cookie returns can_edit false."""
+        other = User.objects.create_user(username='other', password='secret-password')
+        token = Token.objects.create(user=other)
+        session = client.session
+        session['auth_token'] = token.key
+        session.save()
+        response = client.get(f'/games/test-game/npcs/{self.npc.id}/access.json')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['can_edit'] is False
 
 
 @pytest.mark.django_db

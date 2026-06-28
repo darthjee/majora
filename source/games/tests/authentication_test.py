@@ -1,0 +1,76 @@
+"""Tests for the CookieTokenAuthentication class."""
+
+import pytest
+from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
+from rest_framework.test import APIRequestFactory
+
+from games.authentication import CookieTokenAuthentication
+
+
+@pytest.mark.django_db
+class TestCookieTokenAuthentication:
+    """Tests for CookieTokenAuthentication."""
+
+    def setup_method(self):
+        """Set up a user and token for tests."""
+        self.user = User.objects.create_user(username='alice', password='secret')
+        self.token = Token.objects.create(user=self.user)
+        self.auth = CookieTokenAuthentication()
+        self.factory = APIRequestFactory()
+
+    def _request_with_header(self):
+        """Return a DRF request authenticated via Authorization header."""
+        request = self.factory.get('/')
+        request.META['HTTP_AUTHORIZATION'] = f'Token {self.token.key}'
+        return request
+
+    def _request_with_session(self, token_key=None):
+        """Return a DRF request with an auth_token stored in the session."""
+        request = self.factory.get('/')
+        request.session = {'auth_token': token_key or self.token.key}
+        return request
+
+    def _request_anonymous(self):
+        """Return a DRF request with no authentication."""
+        request = self.factory.get('/')
+        request.session = {}
+        return request
+
+    def test_authenticates_via_header(self):
+        """Token header authentication returns the correct user."""
+        request = self._request_with_header()
+        result = self.auth.authenticate(request)
+        assert result is not None
+        user, token = result
+        assert user == self.user
+        assert token == self.token
+
+    def test_authenticates_via_session(self):
+        """Session-based fallback returns the correct user when no header is present."""
+        request = self._request_with_session()
+        result = self.auth.authenticate(request)
+        assert result is not None
+        user, token = result
+        assert user == self.user
+        assert token == self.token
+
+    def test_returns_none_when_no_auth(self):
+        """Anonymous request (no header, no session token) returns None."""
+        request = self._request_anonymous()
+        result = self.auth.authenticate(request)
+        assert result is None
+
+    def test_returns_none_for_missing_session_key(self):
+        """Session with no auth_token entry returns None."""
+        request = self.factory.get('/')
+        request.session = {}
+        result = self.auth.authenticate(request)
+        assert result is None
+
+    def test_returns_none_for_stale_session_token(self):
+        """Session referencing a deleted token returns None."""
+        self.token.delete()
+        request = self._request_with_session()
+        result = self.auth.authenticate(request)
+        assert result is None

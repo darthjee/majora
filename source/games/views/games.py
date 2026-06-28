@@ -1,11 +1,11 @@
 """Views for game-level endpoints."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from ..authentication import CookieTokenAuthentication
 from ..models import Game
 from ..paginator import Paginator
 from ..permissions import GameEditPermission
@@ -19,7 +19,7 @@ from ..serializers import (
 
 
 @api_view(['GET', 'POST'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is an intentionally public listing; POST authentication is enforced
 # inline inside _create_game so that unauthenticated callers receive a proper 401.
 @permission_classes([AllowAny])
@@ -48,7 +48,7 @@ def _create_game(request):
 
 
 @api_view(['GET', 'PATCH'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([CookieTokenAuthentication])
 @permission_classes([AllowAny])
 def game_detail(request, game_slug):
     """Return or update detail for a specific game identified by game_slug."""
@@ -62,7 +62,7 @@ def game_detail(request, game_slug):
 
 
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([CookieTokenAuthentication])
 @permission_classes([AllowAny])
 def game_access(request, game_slug):
     """Return whether the requesting user may edit a specific game."""

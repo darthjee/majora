@@ -1,11 +1,11 @@
 """Views for character-level endpoints."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from ..authentication import CookieTokenAuthentication
 from ..models import Character, Game
 from ..paginator import Paginator
 from ..permissions import CharacterEditPermission, GameEditPermission
@@ -40,7 +40,7 @@ def game_npcs(request, game_slug):
 
 
 @api_view(['GET', 'PATCH'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([CookieTokenAuthentication])
 @permission_classes([AllowAny])
 def game_npc_detail(request, game_slug, character_id):
     """Return or update detail for a specific NPC in a game."""
@@ -60,7 +60,7 @@ def game_npc_detail(request, game_slug, character_id):
 
 
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([CookieTokenAuthentication])
 @permission_classes([AllowAny])
 def game_npcs_all(request, game_slug):
     """Return all NPCs (including hidden) for a game — DM/superuser only."""
@@ -75,7 +75,7 @@ def game_npcs_all(request, game_slug):
 
 
 @api_view(['GET', 'PATCH'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([CookieTokenAuthentication])
 @permission_classes([AllowAny])
 def game_pc_detail(request, game_slug, character_id):
     """Return or update detail for a specific PC in a game."""
@@ -90,7 +90,7 @@ def game_pc_detail(request, game_slug, character_id):
 
 
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([CookieTokenAuthentication])
 @permission_classes([AllowAny])
 def game_npc_full(request, game_slug, character_id):
     """Return full detail (including private description) for a specific NPC."""
@@ -104,7 +104,7 @@ def game_npc_full(request, game_slug, character_id):
 
 
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([CookieTokenAuthentication])
 @permission_classes([AllowAny])
 def game_pc_full(request, game_slug, character_id):
     """Return full detail (including private description) for a specific PC."""
@@ -118,7 +118,7 @@ def game_pc_full(request, game_slug, character_id):
 
 
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([CookieTokenAuthentication])
 @permission_classes([AllowAny])
 def game_pc_access(request, game_slug, character_id):
     """Return whether the requesting user may edit a specific PC."""
@@ -131,7 +131,7 @@ def game_pc_access(request, game_slug, character_id):
 
 
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([CookieTokenAuthentication])
 @permission_classes([AllowAny])
 def game_npc_access(request, game_slug, character_id):
     """Return whether the requesting user may edit a specific NPC."""
