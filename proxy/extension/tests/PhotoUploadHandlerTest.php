@@ -154,6 +154,55 @@ class PhotoUploadHandlerTest extends TestCase
     }
 
     /**
+     * All incoming request headers are forwarded to both backend PATCH calls,
+     * with Content-Type overridden to application/json regardless of what the
+     * client sent.
+     */
+    public function testAllRequestHeadersAreForwardedToBackend(): void
+    {
+        $tmpFile    = $this->makeTmpFile();
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = new PhotoUploadHandler('http://backend:8080', $httpClient, $this->photosDir);
+
+        $request = $this->makeRequest(
+            '/uploads/7/submit',
+            ['tmp_name' => $tmpFile, 'type' => 'image/png', 'name' => 'img.png', 'size' => 8, 'error' => 0],
+            [
+                'Authorization'  => 'Bearer tok',
+                'X-Upload-Token' => 'up-tok',
+                'X-Trace-Id'     => 'trace-abc',
+                'Content-Type'   => 'multipart/form-data',
+            ]
+        );
+
+        $expectedHeaders = [
+            'Authorization'  => 'Bearer tok',
+            'X-Upload-Token' => 'up-tok',
+            'X-Trace-Id'     => 'trace-abc',
+            'Content-Type'   => 'application/json',
+        ];
+
+        $httpClient->expects($this->exactly(2))
+            ->method('request')
+            ->with(
+                $this->anything(),
+                $this->anything(),
+                $expectedHeaders,
+                $this->anything()
+            )
+            ->willReturnOnConsecutiveCalls(
+                ['httpCode' => 200, 'body' => '{"file_path":"7/img.png"}', 'headers' => []],
+                ['httpCode' => 200, 'body' => '{}', 'headers' => []]
+            );
+
+        $response = $handler->handleRequest($request);
+
+        $this->assertSame(200, $response->httpCode());
+
+        unlink($tmpFile);
+    }
+
+    /**
      * Invalid file type: 422 is returned and no backend call is made.
      */
     public function testInvalidFileTypeReturnsUnprocessableEntity(): void
