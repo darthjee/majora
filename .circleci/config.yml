@@ -17,8 +17,10 @@ workflows:
       - frontend-checks:
           filters: *all_tags
           requires: [release-vite_majora-base, release-vite_majora-base-arm64]
+      - proxy-tests:
+          filters: *all_tags
       - coverage-final:
-          requires: [pytest, jasmine]
+          requires: [pytest, jasmine, proxy-tests]
           filters: *all_tags
       - release-image:
           name: release-majora-base
@@ -207,6 +209,25 @@ jobs:
       - run:
           name: Check JS Lint
           command: npm run lint
+
+  proxy-tests:
+    docker:
+      - image: darthjee/tent:0.8.0
+    working_directory: /home/app/app
+    steps:
+      - checkout
+      - run:
+          name: Copy proxy extension
+          command: cp -r proxy/extension /var/www/html/extension
+      - run:
+          name: Composer install
+          command: cd /var/www/html/extension && composer install --no-interaction
+      - run:
+          name: Run PHPUnit
+          command: cd /var/www/html/extension && XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-clover /tmp/coverage.xml
+      - run:
+          name: Upload coverage to Codacy (partial)
+          command: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --partial -l PHP -r /tmp/coverage.xml
 
   upload_proxy_files:
     docker:
