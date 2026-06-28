@@ -17,5 +17,6 @@ class CharacterUpdateSerializer(serializers.ModelSerializer):
             'level',
             'public_description',
             'private_description',
+            'hidden',
         ]
         extra_kwargs = {field: {'required': False} for field in fields}

@@ -25,6 +25,7 @@ class Character(models.Model):
     public_description = models.TextField(blank=True)
     private_description = models.TextField(blank=True)
     npc = models.BooleanField(default=True)
+    hidden = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['id']

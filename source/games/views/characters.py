@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 from ..models import Character, Game
 from ..paginator import Paginator
-from ..permissions import CharacterEditPermission
+from ..permissions import CharacterEditPermission, GameEditPermission
 from ..serializers import (
     CharacterDetailSerializer,
     CharacterFullSerializer,
@@ -29,9 +29,9 @@ def game_pcs(request, game_slug):
 
 @api_view(['GET'])
 def game_npcs(request, game_slug):
-    """Return list of Non-Player Characters (NPCs) for a specific game."""
+    """Return list of Non-Player Characters (NPCs) for a specific game (hidden excluded)."""
     game = get_object_or_404(Game, game_slug=game_slug)
-    npcs = game.characters.filter(npc=True)
+    npcs = game.characters.filter(npc=True, hidden=False)
     page_npcs, headers = Paginator(request, npcs).paginate()
     serializer = CharacterListSerializer(page_npcs, many=True)
     return Response(serializer.data, headers=headers)
@@ -42,14 +42,34 @@ def game_npcs(request, game_slug):
 @permission_classes([AllowAny])
 def game_npc_detail(request, game_slug, character_id):
     """Return or update detail for a specific NPC in a game."""
+    from django.http import Http404
+
     game = get_object_or_404(Game, game_slug=game_slug)
     character = get_object_or_404(Character, id=character_id, game=game, npc=True)
+
+    if character.hidden and not character.can_be_edited_by(request.user):
+        raise Http404
 
     if request.method == 'PATCH':
         return _update_character(request, character)
 
     serializer = CharacterDetailSerializer(character, context={'request': request})
     return Response(serializer.data)
+
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([AllowAny])
+def game_npcs_all(request, game_slug):
+    """Return all NPCs (including hidden) for a game — DM/superuser only."""
+    game = get_object_or_404(Game, game_slug=game_slug)
+    error_response = GameEditPermission.check(request, game)
+    if error_response:
+        return error_response
+    npcs = game.characters.filter(npc=True)
+    page_npcs, headers = Paginator(request, npcs).paginate()
+    serializer = CharacterListSerializer(page_npcs, many=True)
+    return Response(serializer.data, headers=headers)
 
 
 @api_view(['GET', 'PATCH'])

@@ -1,4 +1,6 @@
 import GenericClient from '../../../client/GenericClient.js';
+import CharacterClient from '../../../client/CharacterClient.js';
+import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
 
@@ -24,14 +26,16 @@ export default class GameNpcsController extends BasePageController {
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
    * @param {GenericClient|null} client - Client override.
+   * @param {CharacterClient|null} characterClient - Character client override.
    */
-  constructor(setNpcs, setPagination, setLoading, setError, client = null) {
+  constructor(setNpcs, setPagination, setLoading, setError, client = null, characterClient = null) {
     super();
     this.setNpcs = setNpcs;
     this.setPagination = setPagination;
     this.setLoading = setLoading;
     this.setError = setError;
     this.client = client ?? new GenericClient();
+    this.characterClient = characterClient ?? new CharacterClient();
   }
 
   /**
@@ -49,18 +53,62 @@ export default class GameNpcsController extends BasePageController {
         safeSet(this.setError, 'Unable to load NPCs.');
         safeSet(this.setLoading, false);
       } else {
-        this.client.fetchIndex(`/games/${gameSlug}/npcs.json`)
-          .then(({ data, pagination }) => {
-            safeSet(this.setNpcs, Array.isArray(data) ? data : []);
-            safeSet(this.setPagination, pagination);
-          })
-          .catch(() => safeSet(this.setError, 'Unable to load NPCs.'))
-          .finally(() => safeSet(this.setLoading, false));
+        this.#fetchNpcs(gameSlug, safeSet);
       }
 
       return () => {
         mounted = false;
       };
     };
+  }
+
+  #fetchNpcs(gameSlug, safeSet) {
+    const token = AuthStorage.getToken();
+    const publicFetch = this.client.fetchIndex(`/games/${gameSlug}/npcs.json`);
+    const allFetch = token
+      ? this.characterClient.fetchNpcsAll(gameSlug, token)
+      : Promise.resolve(null);
+
+    Promise.allSettled([publicFetch, allFetch])
+      .then(([publicResult, allResult]) => this.#applyNpcsResult(publicResult, allResult, safeSet))
+      .catch(() => safeSet(this.setError, 'Unable to load NPCs.'))
+      .finally(() => safeSet(this.setLoading, false));
+  }
+
+  async #applyNpcsResult(publicResult, allResult, safeSet) {
+    const authNpcs = await this.#tryGetAuthNpcs(allResult);
+
+    if (authNpcs !== null) {
+      this.#applyAuthNpcs(authNpcs, publicResult, safeSet);
+      return;
+    }
+
+    this.#applyPublicNpcs(publicResult, safeSet);
+  }
+
+  #applyPublicNpcs(publicResult, safeSet) {
+    if (publicResult.status === 'fulfilled') {
+      const { data, pagination } = publicResult.value;
+      safeSet(this.setNpcs, Array.isArray(data) ? data : []);
+      safeSet(this.setPagination, pagination);
+    } else {
+      throw new Error('Unable to load NPCs.');
+    }
+  }
+
+  #applyAuthNpcs(authNpcs, publicResult, safeSet) {
+    safeSet(this.setNpcs, authNpcs);
+    if (publicResult.status === 'fulfilled') {
+      safeSet(this.setPagination, publicResult.value.pagination);
+    }
+  }
+
+  #tryGetAuthNpcs(allResult) {
+    if (allResult.status !== 'fulfilled' || !allResult.value?.ok) {
+      return Promise.resolve(null);
+    }
+    return allResult.value.json()
+      .then((data) => (Array.isArray(data) ? data : null))
+      .catch(() => null);
   }
 }
