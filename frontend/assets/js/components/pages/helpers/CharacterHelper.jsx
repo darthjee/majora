@@ -4,6 +4,7 @@ import CardAvatar from '../../elements/CardAvatar.jsx';
 import CharacterInfo from '../../elements/CharacterInfo.jsx';
 import CharacterPhotos from '../../elements/CharacterPhotos.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
+import LinkList from '../../elements/LinkList.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import Translator from '../../../i18n/Translator.js';
 
@@ -49,7 +50,7 @@ export default class CharacterHelper {
         </div>
         {CharacterHelper.#renderPrivateDescription(character.private_description)}
         <CharacterPhotos photos={character.photos} alt={character.name} />
-        {CharacterHelper.#renderLinks(character)}
+        <LinkList links={character.links} />
       </div>
     );
   }
@@ -113,19 +114,4 @@ export default class CharacterHelper {
     );
   }
 
-  static #renderLinks(character) {
-    if (!character.links || character.links.length === 0) {
-      return null;
-    }
-
-    return (
-      <ul>
-        {character.links.map((link) => (
-          <li key={link.url}>
-            <a href={link.url} target="_blank" rel="noreferrer">{link.text}</a>
-          </li>
-        ))}
-      </ul>
-    );
-  }
 }
