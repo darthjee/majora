@@ -7,6 +7,7 @@ from rest_framework.response import Response
 
 @api_view(['GET'])
 @authentication_classes([])
+# Public endpoint: returns static status data only; no authentication required.
 @permission_classes([AllowAny])
 def health(request):
     """Return a simple health check response."""
