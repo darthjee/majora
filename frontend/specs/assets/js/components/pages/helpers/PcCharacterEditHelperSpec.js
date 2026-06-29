@@ -35,7 +35,7 @@ describe('PcCharacterEditHelper', function() {
       expect(html).toContain('id="pc-edit-private-description"');
       expect(html).toContain('value="Aragorn"');
       expect(html).toContain('value="Ranger"');
-      expect(html).toContain('value="Secret DM notes."');
+      expect(html).toContain('Secret DM notes.');
     });
 
     it('renders a live avatar preview reflecting the current avatar_url', function() {

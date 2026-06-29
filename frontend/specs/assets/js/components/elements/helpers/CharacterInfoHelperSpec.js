@@ -32,8 +32,9 @@ describe('CharacterInfoHelper', function() {
     });
 
     it('renders description when present', function() {
-      expect(renderToStaticMarkup(CharacterInfoHelper.render('Aragorn', '', null, 'The future king.')))
-        .toContain('The future king.');
+      const html = renderToStaticMarkup(CharacterInfoHelper.render('Aragorn', '', null, 'The future king.'));
+      expect(html).toContain('The future king.');
+      expect(html).toContain('border');
     });
 
     it('does not render description when empty', function() {

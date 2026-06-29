@@ -1,6 +1,7 @@
 import React from 'react';
 import CardAvatar from '../../elements/CardAvatar.jsx';
 import FormField from '../../elements/FormField.jsx';
+import TextareaField from '../../elements/TextareaField.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import Translator from '../../../i18n/Translator.js';
@@ -78,17 +79,15 @@ export default class BaseCharacterEditHelper {
                 onChange={handlers.onLevelChange}
                 errors={state.fieldErrors.level ?? []}
               />
-              <FormField
+              <TextareaField
                 id={`${idPrefix}-edit-description`}
-                type="text"
                 label={Translator.t(`${i18nNamespace}.description_label`)}
                 value={state.description}
                 onChange={handlers.onDescriptionChange}
                 errors={state.fieldErrors.public_description ?? []}
               />
-              <FormField
+              <TextareaField
                 id={`${idPrefix}-edit-private-description`}
-                type="text"
                 label={Translator.t(`${i18nNamespace}.private_description_label`)}
                 value={state.privateDescription}
                 onChange={handlers.onPrivateDescriptionChange}
