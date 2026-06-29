@@ -8,8 +8,7 @@ describe('BaseCharacterEditHelper', function() {
     onSubmit: jasmine.createSpy('onSubmit'),
     onNameChange: jasmine.createSpy('onNameChange'),
     onAvatarUrlChange: jasmine.createSpy('onAvatarUrlChange'),
-    onCharacterClassChange: jasmine.createSpy('onCharacterClassChange'),
-    onLevelChange: jasmine.createSpy('onLevelChange'),
+    onRoleChange: jasmine.createSpy('onRoleChange'),
     onDescriptionChange: jasmine.createSpy('onDescriptionChange'),
     onPrivateDescriptionChange: jasmine.createSpy('onPrivateDescriptionChange'),
   });
@@ -17,8 +16,7 @@ describe('BaseCharacterEditHelper', function() {
   const buildState = (overrides = {}) => ({
     name: 'Test Character',
     avatar_url: '',
-    character_class: 'Fighter',
-    level: '3',
+    role: 'Fighter',
     description: 'A brave warrior.',
     privateDescription: 'DM notes.',
     status: 'idle',
@@ -32,8 +30,7 @@ describe('BaseCharacterEditHelper', function() {
 
       expect(html).toContain('id="test-edit-name"');
       expect(html).toContain('id="test-edit-avatar-url"');
-      expect(html).toContain('id="test-edit-character-class"');
-      expect(html).toContain('id="test-edit-level"');
+      expect(html).toContain('id="test-edit-role"');
       expect(html).toContain('id="test-edit-description"');
       expect(html).toContain('id="test-edit-private-description"');
       expect(html).toContain('value="Test Character"');
@@ -61,12 +58,12 @@ describe('BaseCharacterEditHelper', function() {
     it('renders per-field errors', function() {
       const html = renderToStaticMarkup(
         helper.render(
-          buildState({ fieldErrors: { level: ['must be a positive integer'] } }),
+          buildState({ fieldErrors: { role: ['must not be blank'] } }),
           buildHandlers()
         )
       );
 
-      expect(html).toContain('must be a positive integer');
+      expect(html).toContain('must not be blank');
       expect(html).toContain('alert-danger');
     });
 

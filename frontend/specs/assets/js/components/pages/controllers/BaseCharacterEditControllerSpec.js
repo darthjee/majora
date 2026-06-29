@@ -51,7 +51,7 @@ describe('BaseCharacterEditController', function() {
     it('returns seed fields when the loaded character can be edited', function() {
       const character = {
         id: 1, name: 'Test Hero', avatar_url: 'http://example.com/a.png',
-        character_class: 'Fighter', level: 3,
+        role: 'Fighter',
         public_description: 'A brave hero', private_description: 'DM notes', can_edit: true,
       };
 
@@ -59,7 +59,7 @@ describe('BaseCharacterEditController', function() {
         redirect: false,
         fields: {
           name: 'Test Hero', avatar_url: 'http://example.com/a.png',
-          character_class: 'Fighter', level: 3,
+          role: 'Fighter',
           public_description: 'A brave hero', private_description: 'DM notes',
         },
       });
@@ -69,8 +69,8 @@ describe('BaseCharacterEditController', function() {
       expect(resolveLoadedCharacter({ id: 1, can_edit: true })).toEqual({
         redirect: false,
         fields: {
-          name: '', avatar_url: '', character_class: '',
-          level: '', public_description: '', private_description: '',
+          name: '', avatar_url: '', role: '',
+          public_description: '', private_description: '',
         },
       });
     });
@@ -83,8 +83,7 @@ describe('BaseCharacterEditController', function() {
       setters = {
         setName: jasmine.createSpy('setName'),
         setAvatarUrl: jasmine.createSpy('setAvatarUrl'),
-        setCharacterClass: jasmine.createSpy('setCharacterClass'),
-        setLevel: jasmine.createSpy('setLevel'),
+        setRole: jasmine.createSpy('setRole'),
         setDescription: jasmine.createSpy('setDescription'),
         setPrivateDescription: jasmine.createSpy('setPrivateDescription'),
       };
@@ -124,7 +123,7 @@ describe('BaseCharacterEditController', function() {
       );
       const character = {
         id: 1, name: 'Test Hero', avatar_url: 'http://example.com/a.png',
-        character_class: 'Fighter', level: 3,
+        role: 'Fighter',
         public_description: 'A brave hero', private_description: 'DM notes', can_edit: true,
       };
 
@@ -132,8 +131,7 @@ describe('BaseCharacterEditController', function() {
 
       expect(setters.setName).toHaveBeenCalledWith('Test Hero');
       expect(setters.setAvatarUrl).toHaveBeenCalledWith('http://example.com/a.png');
-      expect(setters.setCharacterClass).toHaveBeenCalledWith('Fighter');
-      expect(setters.setLevel).toHaveBeenCalledWith(3);
+      expect(setters.setRole).toHaveBeenCalledWith('Fighter');
       expect(setters.setDescription).toHaveBeenCalledWith('A brave hero');
       expect(setters.setPrivateDescription).toHaveBeenCalledWith('DM notes');
     });
@@ -163,7 +161,7 @@ describe('BaseCharacterEditController', function() {
           event, 'demo', '1',
           {
             name: 'Test Hero', avatarUrl: 'http://example.com/a.png',
-            characterClass: 'Fighter', level: 3,
+            role: 'Fighter',
             description: 'A brave hero', privateDescription: 'DM notes',
           },
           { setStatus, setFieldErrors },
@@ -176,7 +174,7 @@ describe('BaseCharacterEditController', function() {
           'demo', '1', 'tok-test',
           {
             name: 'Test Hero', avatar_url: 'http://example.com/a.png',
-            character_class: 'Fighter', level: 3,
+            role: 'Fighter',
             public_description: 'A brave hero', private_description: 'DM notes',
           },
         );
@@ -188,7 +186,7 @@ describe('BaseCharacterEditController', function() {
     it('sets per-field errors on a 400 response without redirecting', async function() {
       characterClient.updateNpc.and.returnValue(Promise.resolve({
         ok: false, status: 400,
-        json: () => Promise.resolve({ errors: { level: ['must be a positive integer'] } }),
+        json: () => Promise.resolve({ errors: { role: ['is invalid'] } }),
       }));
 
       const controller = new TestCharacterEditController(
@@ -200,11 +198,11 @@ describe('BaseCharacterEditController', function() {
       try {
         await controller.submitForm(
           undefined, 'demo', '1',
-          { name: '', avatarUrl: '', characterClass: '', level: -1, description: '', privateDescription: '' },
+          { name: '', avatarUrl: '', role: '', description: '', privateDescription: '' },
           { setStatus, setFieldErrors },
         );
 
-        expect(setFieldErrors).toHaveBeenCalledWith({ level: ['must be a positive integer'] });
+        expect(setFieldErrors).toHaveBeenCalledWith({ role: ['is invalid'] });
         expect(setError).not.toHaveBeenCalled();
         expect(fakeWindow.location.hash).toBe('');
       } finally {

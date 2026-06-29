@@ -9,36 +9,31 @@ export default class CharacterInfoHelper {
    * Render the character info panel.
    *
    * @param {string} name - Character name.
-   * @param {string} [character_class] - Character class.
-   * @param {number|null} [level] - Character level.
+   * @param {string} [role] - Character role.
    * @param {string} [description] - Character description.
    * @returns {React.ReactElement} Character info element.
    */
-  static render(name, character_class, level, description) {
+  static render(name, role, description) {
     return (
       <div className="col-md-8">
         <h1>{name}</h1>
-        {CharacterInfoHelper.#renderClassLevel(character_class, level)}
+        {CharacterInfoHelper.#renderRole(role)}
         {CharacterInfoHelper.#renderDescription(description)}
       </div>
     );
   }
 
   /**
-   * Render the class and level line, or null if class is absent.
+   * Render the role line, or null if role is absent.
    *
-   * @param {string} [character_class] - Character class.
-   * @param {number|null} [level] - Character level.
-   * @returns {React.ReactElement|null} Class/level paragraph or null.
+   * @param {string} [role] - Character role.
+   * @returns {React.ReactElement|null} Role paragraph or null.
    */
-  static #renderClassLevel(character_class, level) {
-    if (!character_class) return null;
+  static #renderRole(role) {
+    if (!role) return null;
     return (
       <p className="text-muted mb-1">
-        <strong>{Translator.t('character_info.class_label')}</strong> {character_class}
-        {level !== null && level !== undefined && (
-          <span> &mdash; {Translator.t('character_info.level_label')} {level}</span>
-        )}
+        <strong>{Translator.t('character_info.role_label')}</strong> {role}
       </p>
     );
   }

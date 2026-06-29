@@ -7,14 +7,12 @@ describe('CharacterInfo', function() {
     const html = renderToStaticMarkup(
       React.createElement(CharacterInfo, {
         name: 'Aragorn',
-        character_class: 'Ranger',
-        level: 10,
+        role: 'Ranger',
         description: 'The future king.',
       })
     );
     expect(html).toContain('Aragorn');
     expect(html).toContain('Ranger');
-    expect(html).toContain('10');
     expect(html).toContain('The future king.');
   });
 });

@@ -52,8 +52,7 @@ character_full_page:
   loading: Carregando personagem...
   private_description_label: Notas do Mestre
 character_info:
-  class_label: 'Classe:'
-  level_label: Nível
+  role_label: 'Função:'
 character_preview_section:
   see_all: Ver todos {{title}}
 recover_password_page:
@@ -75,8 +74,7 @@ pc_edit_page:
   title: Editar personagem
   name_label: Nome
   avatar_url_label: URL do avatar
-  character_class_label: Classe
-  level_label: Nível
+  role_label: Função
   description_label: Descrição
   private_description_label: Notas do Mestre
   submit: Salvar alterações
@@ -85,8 +83,7 @@ npc_edit_page:
   title: Editar personagem
   name_label: Nome
   avatar_url_label: URL do avatar
-  character_class_label: Classe
-  level_label: Nível
+  role_label: Função
   description_label: Descrição
   private_description_label: Notas do Mestre
   submit: Salvar alterações

@@ -27,10 +27,10 @@ export default class BaseCharacterEditHelper {
   /**
    * Render the edit form.
    *
-   * @param {{name: string, avatar_url: string, character_class: string, level: string,
+   * @param {{name: string, avatar_url: string, role: string,
    *   description: string, privateDescription: string, status: string, fieldErrors: object}} state - page state.
    * @param {{onSubmit: Function, onNameChange: Function, onAvatarUrlChange: Function,
-   *   onCharacterClassChange: Function, onLevelChange: Function,
+   *   onRoleChange: Function,
    *   onDescriptionChange: Function, onPrivateDescriptionChange: Function}} handlers - event handlers.
    * @returns {React.ReactElement} rendered edit page.
    */
@@ -64,20 +64,12 @@ export default class BaseCharacterEditHelper {
                 errors={state.fieldErrors.avatar_url ?? []}
               />
               <FormField
-                id={`${idPrefix}-edit-character-class`}
+                id={`${idPrefix}-edit-role`}
                 type="text"
-                label={Translator.t(`${i18nNamespace}.character_class_label`)}
-                value={state.character_class}
-                onChange={handlers.onCharacterClassChange}
-                errors={state.fieldErrors.character_class ?? []}
-              />
-              <FormField
-                id={`${idPrefix}-edit-level`}
-                type="number"
-                label={Translator.t(`${i18nNamespace}.level_label`)}
-                value={state.level}
-                onChange={handlers.onLevelChange}
-                errors={state.fieldErrors.level ?? []}
+                label={Translator.t(`${i18nNamespace}.role_label`)}
+                value={state.role}
+                onChange={handlers.onRoleChange}
+                errors={state.fieldErrors.role ?? []}
               />
               <TextareaField
                 id={`${idPrefix}-edit-description`}

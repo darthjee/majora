@@ -6,16 +6,14 @@ describe('NpcCharacterEditHelper', function() {
     onSubmit: jasmine.createSpy('onSubmit'),
     onNameChange: jasmine.createSpy('onNameChange'),
     onAvatarUrlChange: jasmine.createSpy('onAvatarUrlChange'),
-    onCharacterClassChange: jasmine.createSpy('onCharacterClassChange'),
-    onLevelChange: jasmine.createSpy('onLevelChange'),
+    onRoleChange: jasmine.createSpy('onRoleChange'),
     onDescriptionChange: jasmine.createSpy('onDescriptionChange'),
     onPrivateDescriptionChange: jasmine.createSpy('onPrivateDescriptionChange'),
   });
   const buildState = (overrides = {}) => ({
     name: 'Goblin King',
     avatar_url: '',
-    character_class: 'Brute',
-    level: '5',
+    role: 'Brute',
     description: 'Ruler of the cave.',
     privateDescription: 'Secret DM notes.',
     status: 'idle',
@@ -29,8 +27,7 @@ describe('NpcCharacterEditHelper', function() {
 
       expect(html).toContain('id="npc-edit-name"');
       expect(html).toContain('id="npc-edit-avatar-url"');
-      expect(html).toContain('id="npc-edit-character-class"');
-      expect(html).toContain('id="npc-edit-level"');
+      expect(html).toContain('id="npc-edit-role"');
       expect(html).toContain('id="npc-edit-description"');
       expect(html).toContain('id="npc-edit-private-description"');
       expect(html).toContain('value="Goblin King"');
@@ -58,12 +55,12 @@ describe('NpcCharacterEditHelper', function() {
     it('renders per-field errors', function() {
       const html = renderToStaticMarkup(
         NpcCharacterEditHelper.render(
-          buildState({ fieldErrors: { level: ['must be a positive integer'] } }),
+          buildState({ fieldErrors: { role: ['must not be blank'] } }),
           buildHandlers()
         )
       );
 
-      expect(html).toContain('must be a positive integer');
+      expect(html).toContain('must not be blank');
       expect(html).toContain('alert-danger');
     });
 

@@ -18,8 +18,7 @@ export default class CharacterHelper {
    * @param {object} character - Character data object.
    * @param {string} character.name - Character name.
    * @param {string|null} [character.avatar_url] - Optional avatar URL.
-   * @param {string} [character.character_class] - Character class.
-   * @param {number|null} [character.level] - Character level.
+   * @param {string} [character.role] - Character role.
    * @param {string} [character.public_description] - Character public description.
    * @param {string} [character.private_description] - Character private description (DM notes).
    * @param {object[]} [character.photos] - Additional photos array.
@@ -43,8 +42,7 @@ export default class CharacterHelper {
           </div>
           <CharacterInfo
             name={character.name}
-            character_class={character.character_class}
-            level={character.level}
+            role={character.role}
             description={character.public_description}
           />
         </div>

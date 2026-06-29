@@ -43,8 +43,7 @@ describe('CharacterEdit', function() {
     const state = {
       name: 'Test Character',
       avatar_url: '',
-      character_class: 'Fighter',
-      level: '3',
+      role: 'Fighter',
       description: 'A brave hero.',
       privateDescription: 'DM notes.',
       status: 'idle',
@@ -54,8 +53,7 @@ describe('CharacterEdit', function() {
       onSubmit: () => {},
       onNameChange: () => {},
       onAvatarUrlChange: () => {},
-      onCharacterClassChange: () => {},
-      onLevelChange: () => {},
+      onRoleChange: () => {},
       onDescriptionChange: () => {},
       onPrivateDescriptionChange: () => {},
     };

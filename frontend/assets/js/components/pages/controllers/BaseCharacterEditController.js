@@ -24,8 +24,7 @@ export function resolveLoadedCharacter(character) {
     fields: {
       name: character.name ?? '',
       avatar_url: character.avatar_url ?? '',
-      character_class: character.character_class ?? '',
-      level: character.level ?? '',
+      role: character.role ?? '',
       public_description: character.public_description ?? '',
       private_description: character.private_description ?? '',
     },
@@ -102,7 +101,7 @@ export default class BaseCharacterEditController extends BasePageController {
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
    * @param {object} fields - Fields to update
-   *   (`name`, `avatar_url`, `character_class`, `level`, `public_description`, `private_description`).
+   *   (`name`, `avatar_url`, `role`, `public_description`, `private_description`).
    * @returns {Promise<void>} resolves when the request handling finishes.
    */
   async handleSubmit(gameSlug, characterId, fields) {
@@ -127,8 +126,8 @@ export default class BaseCharacterEditController extends BasePageController {
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
-   * @param {{name: string, avatarUrl: string, characterClass: string,
-   *   level: string, description: string, privateDescription: string}} formValues - Raw form field values.
+   * @param {{name: string, avatarUrl: string, role: string,
+   *   description: string, privateDescription: string}} formValues - Raw form field values.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} resolves when the request handling finishes.
    */
@@ -143,8 +142,7 @@ export default class BaseCharacterEditController extends BasePageController {
     return this.handleSubmit(gameSlug, characterId, {
       name: formValues.name,
       avatar_url: formValues.avatarUrl,
-      character_class: formValues.characterClass,
-      level: formValues.level,
+      role: formValues.role,
       public_description: formValues.description,
       private_description: formValues.privateDescription,
     });
@@ -157,8 +155,8 @@ export default class BaseCharacterEditController extends BasePageController {
    * @param {object|null} character - Loaded character, or null while still loading.
    * @param {string} gameSlug - Game slug, used to build the redirect hash.
    * @param {string|number} characterId - Character id, used to build the redirect hash.
-   * @param {{setName: Function, setAvatarUrl: Function, setCharacterClass: Function,
-   *   setLevel: Function, setDescription: Function, setPrivateDescription: Function}} setters - Form field setters.
+   * @param {{setName: Function, setAvatarUrl: Function, setRole: Function,
+   *   setDescription: Function, setPrivateDescription: Function}} setters - Form field setters.
    * @returns {void}
    */
   applyLoadedCharacter(character, gameSlug, characterId, setters) {
@@ -172,8 +170,7 @@ export default class BaseCharacterEditController extends BasePageController {
     if (fields) {
       setters.setName(fields.name);
       setters.setAvatarUrl(fields.avatar_url);
-      setters.setCharacterClass(fields.character_class);
-      setters.setLevel(fields.level);
+      setters.setRole(fields.role);
       setters.setDescription(fields.public_description);
       setters.setPrivateDescription(fields.private_description);
     }
