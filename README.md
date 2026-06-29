@@ -7,9 +7,9 @@ Repository for information for RP games
 
 ![majora](https://raw.githubusercontent.com/darthjee/majora/master/majora.png)
 
-**Current Version:** [0.10.7](https://github.com/darthjee/majora/releases/tag/0.10.7)
+**Current Version:** [0.11.0](https://github.com/darthjee/majora/releases/tag/0.11.0)
 
-**Next Release:** [0.10.8](https://github.com/darthjee/majora/compare/0.10.7...main)
+**Next Release:** [0.11.1](https://github.com/darthjee/majora/compare/0.11.0...main)
 
 ## About
 
