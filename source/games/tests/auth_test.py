@@ -184,7 +184,7 @@ class TestLogoutView:
         user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
         token = Token.objects.create(user=user)
 
-        response = client.post(
+        response = client.delete(
             '/users/logout.json',
             HTTP_AUTHORIZATION=f'Token {token.key}',
         )
@@ -194,7 +194,7 @@ class TestLogoutView:
 
     def test_requires_authentication(self, client):
         """Test that logout without a token is rejected."""
-        response = client.post('/users/logout.json')
+        response = client.delete('/users/logout.json')
         assert response.status_code == 401
 
     def test_subsequent_request_with_deleted_token_fails(self, client):
@@ -202,8 +202,8 @@ class TestLogoutView:
         user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
         token = Token.objects.create(user=user)
 
-        client.post('/users/logout.json', HTTP_AUTHORIZATION=f'Token {token.key}')
-        response = client.post('/users/logout.json', HTTP_AUTHORIZATION=f'Token {token.key}')
+        client.delete('/users/logout.json', HTTP_AUTHORIZATION=f'Token {token.key}')
+        response = client.delete('/users/logout.json', HTTP_AUTHORIZATION=f'Token {token.key}')
 
         assert response.status_code == 401
 
@@ -215,9 +215,21 @@ class TestLogoutView:
         session['auth_token'] = token.key
         session.save()
 
-        client.post('/users/logout.json', HTTP_AUTHORIZATION=f'Token {token.key}')
+        client.delete('/users/logout.json', HTTP_AUTHORIZATION=f'Token {token.key}')
 
         assert 'auth_token' not in client.session
+
+    def test_post_returns_method_not_allowed(self, client):
+        """Test that POST to the logout endpoint returns 405 Method Not Allowed."""
+        user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        token = Token.objects.create(user=user)
+
+        response = client.post(
+            '/users/logout.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        assert response.status_code == 405
 
 
 @pytest.mark.django_db
