@@ -133,3 +133,15 @@ class TestPhotoUploadView:
         token = Token.objects.create(user=superuser)
         response = self._post(client, {'filename': 'cover.jpg'}, token=token)
         assert response.status_code == 201
+
+    def test_dm_authenticated_via_session_cookie_returns_201(self, client):
+        """Test that a DM authenticated via session cookie (no Authorization header) succeeds."""
+        session = client.session
+        session['auth_token'] = self.dm_token.key
+        session.save()
+        response = client.post(
+            '/games/epic-quest/photo_upload.json',
+            data='{"filename": "session.png"}',
+            content_type='application/json',
+        )
+        assert response.status_code == 201
