@@ -20,6 +20,12 @@ Configuration::buildRule([
             'class'    => 'Tent\\Middlewares\\CacheCleanupMiddleware',
             'location' => './cache',
             'clear'    => ['collection', 'entity']
+        ],
+        [
+            'class' => 'Tent\\Middlewares\\CacheStalenessMiddleware',
+            'location' => './cache',
+            'host' => $backendHost,
+            'maxAgeSeconds' => 10
         ]
     ]
 ]);
