@@ -14,6 +14,7 @@ from .characters import (
 )
 from .game_masters import game_master_detail, game_masters_list
 from .games import game_access, game_detail, game_treasures, games_list
+from .health import health
 from .password_reset import recover, reset_password
 from .photo_upload import photo_upload
 from .treasures import treasure_access, treasure_detail, treasures_list
@@ -48,4 +49,5 @@ __all__ = [
     'treasure_detail',
     'treasures_list',
     'upload_finalize',
+    'health',
 ]

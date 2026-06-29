@@ -69,4 +69,5 @@ urlpatterns = [
     path('users/recover.json', views.recover, name='users-recover'),
     path('users/reset-password.json', views.reset_password, name='users-reset-password'),
     path('users/language.json', views.language, name='users-language'),
+    path('health.json', views.health, name='health'),
 ]
