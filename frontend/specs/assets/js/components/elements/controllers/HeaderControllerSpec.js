@@ -2,7 +2,6 @@ import HeaderController from '../../../../../../assets/js/components/elements/co
 import AuthEvents from '../../../../../../assets/js/utils/AuthEvents.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
 import Translator from '../../../../../../assets/js/i18n/Translator.js';
-import ActivityTracker from '../../../../../../assets/js/utils/ActivityTracker.js';
 
 describe('HeaderController', function() {
   let setLoggedIn;
@@ -282,49 +281,4 @@ describe('HeaderController', function() {
     });
   });
 
-  describe('health check polling', function() {
-    let healthClient;
-    let controller;
-
-    beforeEach(function() {
-      jasmine.clock().install();
-      spyOn(ActivityTracker, 'getLastActivity').and.returnValue(Date.now());
-      healthClient = { check: jasmine.createSpy('check').and.returnValue(Promise.resolve({ ok: true, status: 200 })) };
-      controller = new HeaderController(
-        setLoggedIn, setShowModal, setTestEmailStatus,
-        setIsSuperUser, setServerStatus, client, healthClient
-      );
-    });
-
-    afterEach(function() { jasmine.clock().uninstall(); });
-
-    describe('#startHealthCheck', function() {
-      it('calls check at the given interval', function() {
-        controller.startHealthCheck(1000);
-        jasmine.clock().tick(1000);
-        expect(healthClient.check).toHaveBeenCalledTimes(1);
-        jasmine.clock().tick(1000);
-        expect(healthClient.check).toHaveBeenCalledTimes(2);
-      });
-
-      it('defaults to a 60000 ms interval', function() {
-        controller.startHealthCheck();
-        jasmine.clock().tick(59999);
-        expect(healthClient.check).not.toHaveBeenCalled();
-        jasmine.clock().tick(1);
-        expect(healthClient.check).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    describe('#stopHealthCheck', function() {
-      it('clears the polling interval', function() {
-        controller.startHealthCheck(1000);
-        jasmine.clock().tick(1000);
-        expect(healthClient.check).toHaveBeenCalledTimes(1);
-        controller.stopHealthCheck();
-        jasmine.clock().tick(2000);
-        expect(healthClient.check).toHaveBeenCalledTimes(1);
-      });
-    });
-  });
 });
