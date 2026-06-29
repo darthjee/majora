@@ -107,3 +107,21 @@ game_new_page:
   error: Failed to create game. Please try again.
 language_selector:
   label: Language
+treasures_page:
+  loading: Loading treasures...
+  new_treasure: New Treasure
+treasure_page:
+  loading: Loading treasure...
+  edit: Edit
+treasure_new_page:
+  title: New Treasure
+  name_label: Name
+  value_label: Value
+  submit: Create Treasure
+  error: Failed to create treasure. Please try again.
+treasure_edit_page:
+  title: Edit Treasure
+  name_label: Name
+  value_label: Value
+  submit: Save changes
+  error: Failed to save treasure. Please try again.
