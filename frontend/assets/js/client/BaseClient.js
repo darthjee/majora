@@ -27,20 +27,11 @@ export default class BaseClient {
     const pathname = path.split('?')[0];
     const finalHeaders = { ...headers };
 
-    const matchesSuffix = [...SKIP_CACHE_SUFFIXES].some(
-      (suffix) => pathname.endsWith(suffix)
-    );
-
-    if (SKIP_CACHE_ENDPOINTS.has(pathname) || matchesSuffix) {
+    if (this.#shouldSkipCache(pathname)) {
       finalHeaders['X-Skip-Cache'] = '1';
     }
 
-    const isWriteMethod = method === 'POST' || method === 'PATCH' || method === 'DELETE';
-    const isActivityGet = method === 'GET' && [...ACTIVITY_ENDPOINT_PREFIXES].some(
-      (prefix) => pathname.startsWith(prefix)
-    );
-
-    if (isWriteMethod || isActivityGet) {
+    if (this.#shouldRegisterActivity(method, pathname)) {
       ActivityTracker.register();
     }
 
@@ -51,5 +42,35 @@ export default class BaseClient {
     }
 
     return fetch(path, fetchOptions);
+  }
+
+  /**
+   * Returns true when the request path requires the X-Skip-Cache header.
+   *
+   * @param {string} pathname - The request pathname without query string.
+   * @returns {boolean} Whether the X-Skip-Cache header should be added.
+   */
+  #shouldSkipCache(pathname) {
+    const matchesSuffix = [...SKIP_CACHE_SUFFIXES].some(
+      (suffix) => pathname.endsWith(suffix)
+    );
+    return SKIP_CACHE_ENDPOINTS.has(pathname) || matchesSuffix;
+  }
+
+  /**
+   * Returns true when the request should register user activity in ActivityTracker.
+   * Applies to all write methods and allowlisted GET endpoints.
+   *
+   * @param {string} method - The HTTP method (GET, POST, PATCH, DELETE, etc.).
+   * @param {string} pathname - The request pathname without query string.
+   * @returns {boolean} Whether ActivityTracker.register() should be called.
+   */
+  #shouldRegisterActivity(method, pathname) {
+    if (method === 'POST' || method === 'PATCH' || method === 'DELETE') {
+      return true;
+    }
+    return method === 'GET' && [...ACTIVITY_ENDPOINT_PREFIXES].some(
+      (prefix) => pathname.startsWith(prefix)
+    );
   }
 }
