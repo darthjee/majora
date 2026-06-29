@@ -30,7 +30,7 @@ export default class AuthClient extends BaseClient {
    */
   logout(token) {
     return this.request('/users/logout.json', {
-      method: 'POST',
+      method: 'DELETE',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',

@@ -27,13 +27,13 @@ describe('AuthClient', function() {
   });
 
   describe('#logout', function() {
-    it('posts to the logout endpoint with the auth token', async function() {
+    it('sends a DELETE to the logout endpoint with the auth token', async function() {
       const client = new AuthClient();
 
       await client.logout('abc123');
 
       expect(fetchSpy).toHaveBeenCalledWith('/users/logout.json', {
-        method: 'POST',
+        method: 'DELETE',
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
