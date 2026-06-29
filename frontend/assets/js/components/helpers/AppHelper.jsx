@@ -5,6 +5,7 @@ import GameEdit from '../pages/GameEdit.jsx';
 import GameNew from '../pages/GameNew.jsx';
 import GameNpcs from '../pages/GameNpcs.jsx';
 import GamePcs from '../pages/GamePcs.jsx';
+import GameTreasures from '../pages/GameTreasures.jsx';
 import Games from '../pages/Games.jsx';
 import NpcCharacter from '../pages/NpcCharacter.jsx';
 import NpcCharacterEdit from '../pages/NpcCharacterEdit.jsx';
@@ -24,6 +25,7 @@ const PAGES = {
   gameNew: <GameNew />,
   gamePcs: <GamePcs />,
   gameNpcs: <GameNpcs />,
+  gameTreasures: <GameTreasures />,
   npcCharacter: <NpcCharacter />,
   npcCharacterEdit: <NpcCharacterEdit />,
   pcCharacter: <PcCharacter />,

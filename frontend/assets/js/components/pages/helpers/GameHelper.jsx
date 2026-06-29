@@ -13,11 +13,11 @@ import Translator from '../../../i18n/Translator.js';
  */
 export default class GameHelper {
   /**
-   * Render the game detail view with description and character previews.
+   * Render the game detail view with description, character previews, and treasures link.
    *
    * @param {object} game - Game data object.
    * @param {string} game.name - Game name.
-   * @param {string} game.game_slug - Game slug.
+   * @param {string} game.game_slug - Game slug used to build the treasures href.
    * @param {string|null} [game.photo] - Optional cover image URL.
    * @param {string} [game.description] - Game description text.
    * @param {object[]} [game.photos] - Additional photo objects with id and url.
@@ -61,6 +61,11 @@ export default class GameHelper {
           title={Translator.t('game_page.non_player_characters')}
           seeAllHref={`#/games/${game.game_slug}/npcs`}
         />
+        <div className="mt-3">
+          <a href={`#/games/${game.game_slug}/treasures`} className="btn btn-outline-secondary">
+            {Translator.t('game_page.treasures')}
+          </a>
+        </div>
       </div>
     );
   }
