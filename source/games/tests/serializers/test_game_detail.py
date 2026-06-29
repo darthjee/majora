@@ -46,8 +46,8 @@ class TestGameDetailSerializer:
 
     def test_serializes_nested_links(self):
         """Test that nested links are serialized with their fields."""
-        Link.objects.create(text='Wiki', url='http://example.com/wiki', game=self.game)
-        Link.objects.create(text='Forum', url='http://example.com/forum', game=self.game)
+        Link.objects.create(text='Wiki', url='http://example.com/wiki', content_object=self.game)
+        Link.objects.create(text='Forum', url='http://example.com/forum', content_object=self.game)
         data = GameDetailSerializer(self.game).data
         assert len(data['links']) == 2
         texts = [link['text'] for link in data['links']]
