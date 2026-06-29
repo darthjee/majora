@@ -14,47 +14,39 @@ class TestCharacterFullSerializer:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name="Test Game", game_slug="test-game")
+        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
         self.character = Character.objects.create(
-            name="Frodo",
+            name='Frodo',
             game=self.game,
-            public_description="A brave hobbit.",
-            private_description="Secretly carries the ring.",
+            public_description='A brave hobbit.',
+            private_description='Secretly carries the ring.',
         )
         self.factory = APIRequestFactory()
 
     def _serialize(self):
         """Build an anonymous request and serialize the character."""
-        request = self.factory.get("/")
+        request = self.factory.get('/')
         request.user = AnonymousUser()
-        return CharacterFullSerializer(self.character, context={"request": request}).data
+        return CharacterFullSerializer(self.character, context={'request': request}).data
 
     def test_serializes_name(self):
         """Test that the name field is serialized."""
         data = self._serialize()
-        assert data["name"] == "Frodo"
+        assert data['name'] == 'Frodo'
 
     def test_serializes_public_description(self):
         """Test that the public_description field is serialized."""
         data = self._serialize()
-        assert data["public_description"] == "A brave hobbit."
+        assert data['public_description'] == 'A brave hobbit.'
 
     def test_serializes_private_description(self):
         """Test that the private_description field is included, unlike the detail serializer."""
         data = self._serialize()
-        assert data["private_description"] == "Secretly carries the ring."
+        assert data['private_description'] == 'Secretly carries the ring.'
 
     def test_inherits_detail_fields(self):
         """Test that all CharacterDetailSerializer fields are still present."""
         data = self._serialize()
-        for field in [
-            "id",
-            "avatar_url",
-            "role",
-            "is_pc",
-            "photos",
-            "links",
-            "game_slug",
-            "can_edit",
-        ]:
+        for field in ['id', 'avatar_url', 'character_class', 'level', 'is_pc', 'photos',
+                      'links', 'game_slug', 'can_edit']:
             assert field in data

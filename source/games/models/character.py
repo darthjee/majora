@@ -11,23 +11,24 @@ class Character(models.Model):
     """Model representing a character in a game."""
 
     name = models.CharField(max_length=200)
-    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="characters")
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='characters')
     player = models.ForeignKey(
         Player,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="characters",
+        related_name='characters',
     )
     avatar_url = models.URLField(null=True, blank=True)
-    role = models.CharField(max_length=200, null=True, blank=True)
+    character_class = models.CharField(max_length=200, blank=True, null=True)
+    level = models.IntegerField(null=True, blank=True)
     public_description = models.TextField(blank=True)
     private_description = models.TextField(blank=True)
     npc = models.BooleanField(default=True)
     hidden = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ["id"]
+        ordering = ['id']
 
     @property
     def is_pc(self):
@@ -39,7 +40,7 @@ class Character(models.Model):
         """Return queryset of users with explicit edit rights (player + DMs, no superusers)."""
         from django.db.models import Q
 
-        dm_ids = self.game.game_masters.values_list("user_id", flat=True)
+        dm_ids = self.game.game_masters.values_list('user_id', flat=True)
         q = Q(id__in=dm_ids)
         if self.player_id is not None and self.player.user_id is not None:
             q |= Q(id=self.player.user_id)

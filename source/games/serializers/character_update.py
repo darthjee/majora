@@ -11,11 +11,12 @@ class CharacterUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Character
         fields = [
-            "name",
-            "avatar_url",
-            "role",
-            "public_description",
-            "private_description",
-            "hidden",
+            'name',
+            'avatar_url',
+            'character_class',
+            'level',
+            'public_description',
+            'private_description',
+            'hidden',
         ]
-        extra_kwargs = {field: {"required": False} for field in fields}
+        extra_kwargs = {field: {'required': False} for field in fields}
