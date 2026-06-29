@@ -86,7 +86,7 @@ export default class CharacterHelper {
     return (
       <div className="mt-4">
         <h5>{Translator.t('character_full_page.private_description_label')}</h5>
-        <p>{privateDescription}</p>
+        <div className="p-3 border rounded bg-light">{privateDescription}</div>
       </div>
     );
   }

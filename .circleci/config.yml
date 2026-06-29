@@ -77,10 +77,18 @@ workflows:
       - upload_admin_assets:
           requires: [pytest, jasmine, frontend-checks, checks, release-circleci_majora-base]
           filters: *tags_only
+      - upload_extension:
+          requires: [upload_proxy_files]
+          filters: *tags_only
+      - upload_proxy_configuration:
+          requires: [upload_proxy_files]
+          filters: *tags_only
       - release:
           requires:
             - build-and-release
+            - upload_extension
             - upload_proxy_files
+            - upload_proxy_configuration
             - upload_fe_files
             - link_photos
             - upload_admin_assets
@@ -241,12 +249,38 @@ jobs:
       - run:
           name: Upload proxy files
           command: SOURCE=/var/www/html/ bin/deploy_frontend.sh upload
+
+  upload_proxy_configuration:
+    docker:
+      - image: darthjee/tent:0.8.0
+    working_directory: /home/app/app
+    steps:
+      - checkout
+      - run:
+          name: Generate key file
+          command: bin/deploy_frontend.sh generate_key_file
       - run:
           name: Upload proxy configuration
           command: SOURCE=proxy/prod_configuration/ DEPLOY_PATH=configuration/ bin/deploy_frontend.sh upload
       - run:
           name: Setup hosts
           command: TARGET=configuration/hosts.php DEPLOY_PATH=configuration/ bin/deploy_frontend.sh copy_files
+
+  upload_extension:
+    docker:
+      - image: darthjee/tent:0.8.0
+    working_directory: /home/app/app
+    steps:
+      - checkout
+      - run:
+          name: Generate key file
+          command: bin/deploy_frontend.sh generate_key_file
+      - run:
+          name: Remove test files
+          command: rm -rm proxy/extension/tests/
+      - run:
+          name: Upload proxy extension
+          command: SOURCE=proxy/extension/ DEPLOY_PATH=extension/ bin/deploy_frontend.sh upload
 
   upload_fe_files:
     docker:

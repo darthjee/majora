@@ -15,6 +15,28 @@ clients:
     timeout: 20000
 
 resources:
+  treasures:
+    - url: /treasures.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_treasures
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_treasures:
+    - url: /treasures.json?page={:page}
+      status: 200
+      actions:
+        - resource: treasure_detail
+          parameters:
+            id: parsedBody.id
+
+  treasure_detail:
+    - url: /treasures/{:id}.json
+      status: 200
+
   games:
     - url: /games.json
       status: 200
@@ -36,6 +58,9 @@ resources:
           parameters:
             slug: parsedBody.game_slug
         - resource: game_npcs
+          parameters:
+            slug: parsedBody.game_slug
+        - resource: game_treasures
           parameters:
             slug: parsedBody.game_slug
 
@@ -95,6 +120,20 @@ resources:
           parameters:
             id: parsedBody.id
             slug: parsedBody.game_slug
+
+  game_treasures:
+    - url: /games/{:slug}/treasures.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_treasures
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_game_treasures:
+    - url: /games/{:slug}/treasures.json?page={:page}
+      status: 200
 
   pc:
     - url: /games/{:slug}/pcs/{:id}.json

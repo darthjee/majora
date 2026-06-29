@@ -207,7 +207,9 @@ class TestGameDetailView:
 
     def test_includes_links(self, client):
         """Test that game detail includes associated links."""
-        Link.objects.create(text='Rulebook', url='http://example.com/rules', game=self.game)
+        Link.objects.create(
+            text='Rulebook', url='http://example.com/rules', content_object=self.game
+        )
         response = client.get('/games/epic-quest.json')
         data = json.loads(response.content)
         assert len(data['links']) == 1

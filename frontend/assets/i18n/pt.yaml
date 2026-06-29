@@ -42,6 +42,7 @@ game_page:
   loading: Carregando jogo...
   player_characters: Personagens
   non_player_characters: NPCs
+  treasures: Tesouros
 game_characters_page:
   loading: Carregando...
 character_page:
@@ -107,3 +108,25 @@ game_new_page:
   error: Falha ao criar jogo. Por favor, tente novamente.
 language_selector:
   label: Idioma
+treasures_page:
+  loading: Carregando tesouros...
+  new_treasure: Novo Tesouro
+treasure_page:
+  loading: Carregando tesouro...
+  edit: Editar
+treasure_new_page:
+  title: Novo Tesouro
+  name_label: Nome
+  value_label: Valor
+  submit: Criar Tesouro
+  error: Falha ao criar tesouro. Tente novamente.
+treasure_edit_page:
+  title: Editar Tesouro
+  name_label: Nome
+  value_label: Valor
+  submit: Salvar alterações
+  error: Falha ao salvar tesouro. Tente novamente.
+game_treasures_page:
+  loading: Carregando tesouros...
+  title: Tesouros
+  treasures: Tesouros

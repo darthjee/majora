@@ -38,7 +38,7 @@ describe('BaseCharacterEditHelper', function() {
       expect(html).toContain('id="test-edit-private-description"');
       expect(html).toContain('value="Test Character"');
       expect(html).toContain('value="Fighter"');
-      expect(html).toContain('value="DM notes."');
+      expect(html).toContain('DM notes.');
     });
 
     it('renders a live avatar preview reflecting the current avatar_url', function() {

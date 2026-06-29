@@ -1,5 +1,6 @@
 """Game model for Majora RPG Campaign Management System."""
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils.text import slugify
 
@@ -11,6 +12,8 @@ class Game(models.Model):
     game_slug = models.SlugField(unique=True, max_length=200)
     photo = models.URLField(null=True, blank=True)
     description = models.TextField(blank=True, default='')
+    links = GenericRelation('games.Link')
+    treasures = models.ManyToManyField('Treasure', blank=True)
 
     class Meta:
         ordering = ['id']

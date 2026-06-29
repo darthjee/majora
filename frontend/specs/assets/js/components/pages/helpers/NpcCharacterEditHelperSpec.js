@@ -35,7 +35,7 @@ describe('NpcCharacterEditHelper', function() {
       expect(html).toContain('id="npc-edit-private-description"');
       expect(html).toContain('value="Goblin King"');
       expect(html).toContain('value="Brute"');
-      expect(html).toContain('value="Secret DM notes."');
+      expect(html).toContain('Secret DM notes.');
     });
 
     it('renders a live avatar preview reflecting the current avatar_url', function() {

@@ -1,0 +1,79 @@
+import BaseClient from './BaseClient.js';
+
+/**
+ * HTTP client for treasure requests (fetch, access check, create, and update).
+ */
+export default class TreasureClient extends BaseClient {
+  /**
+   * Fetches the details of a treasure.
+   *
+   * @param {number|string} id - Treasure id.
+   * @param {string|null} token - Authentication token, if any.
+   * @returns {Promise<Response>} fetch response from the treasure endpoint.
+   */
+  fetchTreasure(id, token) {
+    return this.request(`/treasures/${id}.json`, {
+      headers: {
+        Accept: 'application/json',
+        ...(token ? { Authorization: `Token ${token}` } : {}),
+      },
+    });
+  }
+
+  /**
+   * Fetches the access permissions for a treasure.
+   *
+   * @param {number|string} id - Treasure id.
+   * @param {string|null} token - Authentication token, if any.
+   * @returns {Promise<Response>} fetch response from the treasure access endpoint.
+   */
+  fetchTreasureAccess(id, token) {
+    return this.request(`/treasures/${id}/access.json`, {
+      headers: {
+        Accept: 'application/json',
+        ...(token ? { Authorization: `Token ${token}` } : {}),
+      },
+    });
+  }
+
+  /**
+   * Creates a new treasure.
+   *
+   * @param {string|null} token - Authentication token, if any.
+   * @param {object} fields - Fields for the new treasure.
+   * @param {string} fields.name - Treasure name.
+   * @param {number} fields.value - Treasure value.
+   * @returns {Promise<Response>} fetch response from the treasures endpoint.
+   */
+  createTreasure(token, fields) {
+    return this.request('/treasures.json', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Token ${token}` } : {}),
+      },
+      body: JSON.stringify(fields),
+    });
+  }
+
+  /**
+   * Submits a partial update for a treasure.
+   *
+   * @param {number|string} id - Treasure id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {object} fields - Fields to update.
+   * @returns {Promise<Response>} fetch response from the treasure endpoint.
+   */
+  updateTreasure(id, token, fields) {
+    return this.request(`/treasures/${id}.json`, {
+      method: 'PATCH',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Token ${token}` } : {}),
+      },
+      body: JSON.stringify(fields),
+    });
+  }
+}
