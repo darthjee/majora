@@ -52,8 +52,7 @@ describe('PcCharacterEditController#submitForm', function() {
         {
           name: 'Aragorn',
           avatarUrl: 'http://example.com/a.png',
-          characterClass: 'Ranger',
-          level: 10,
+          role: 'Ranger',
           description: 'King',
           privateDescription: 'Secret notes',
         },
@@ -70,8 +69,7 @@ describe('PcCharacterEditController#submitForm', function() {
         {
           name: 'Aragorn',
           avatar_url: 'http://example.com/a.png',
-          character_class: 'Ranger',
-          level: 10,
+          role: 'Ranger',
           public_description: 'King',
           private_description: 'Secret notes',
         },
@@ -98,7 +96,7 @@ describe('PcCharacterEditController#submitForm', function() {
         undefined,
         'demo',
         '2',
-        { name: 'Aragorn', avatarUrl: '', characterClass: '', level: '', description: '', privateDescription: '' },
+        { name: 'Aragorn', avatarUrl: '', role: '', description: '', privateDescription: '' },
         { setStatus, setFieldErrors },
       );
 

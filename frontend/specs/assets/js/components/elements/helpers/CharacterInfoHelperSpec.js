@@ -8,37 +8,24 @@ describe('CharacterInfoHelper', function() {
         .toContain('Aragorn');
     });
 
-    it('renders class and level when both are present', function() {
-      const html = renderToStaticMarkup(CharacterInfoHelper.render('Aragorn', 'Ranger', 10, ''));
+    it('renders the role when present', function() {
+      const html = renderToStaticMarkup(CharacterInfoHelper.render('Aragorn', 'Ranger', ''));
       expect(html).toContain('Ranger');
-      expect(html).toContain('10');
     });
 
-    it('renders class without level when level is null', function() {
-      const html = renderToStaticMarkup(CharacterInfoHelper.render('Aragorn', 'Ranger', null, ''));
-      expect(html).toContain('Ranger');
-      expect(html).not.toContain('Level');
-    });
-
-    it('renders class without level when level is undefined', function() {
-      const html = renderToStaticMarkup(CharacterInfoHelper.render('Aragorn', 'Ranger', undefined, ''));
-      expect(html).toContain('Ranger');
-      expect(html).not.toContain('Level');
-    });
-
-    it('does not render class section when character_class is absent', function() {
+    it('does not render role section when role is absent', function() {
       expect(renderToStaticMarkup(CharacterInfoHelper.render('Aragorn')))
-        .not.toContain('Class:');
+        .not.toContain('Role:');
     });
 
     it('renders description when present', function() {
-      const html = renderToStaticMarkup(CharacterInfoHelper.render('Aragorn', '', null, 'The future king.'));
+      const html = renderToStaticMarkup(CharacterInfoHelper.render('Aragorn', '', 'The future king.'));
       expect(html).toContain('The future king.');
       expect(html).toContain('border');
     });
 
     it('does not render description when empty', function() {
-      expect(renderToStaticMarkup(CharacterInfoHelper.render('Aragorn', '', null, '')))
+      expect(renderToStaticMarkup(CharacterInfoHelper.render('Aragorn', '', '')))
         .not.toContain('mt-3');
     });
   });

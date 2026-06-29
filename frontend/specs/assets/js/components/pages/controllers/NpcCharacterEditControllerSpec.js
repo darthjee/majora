@@ -31,8 +31,7 @@ describe('NpcCharacterEditController', function() {
         id: 1,
         name: 'Goblin King',
         avatar_url: 'http://example.com/a.png',
-        character_class: 'Brute',
-        level: 5,
+        role: 'Brute',
         public_description: 'Ruler of the cave',
         private_description: 'Secret notes',
         can_edit: true,
@@ -43,8 +42,7 @@ describe('NpcCharacterEditController', function() {
         fields: {
           name: 'Goblin King',
           avatar_url: 'http://example.com/a.png',
-          character_class: 'Brute',
-          level: 5,
+          role: 'Brute',
           public_description: 'Ruler of the cave',
           private_description: 'Secret notes',
         },
@@ -57,8 +55,7 @@ describe('NpcCharacterEditController', function() {
         fields: {
           name: '',
           avatar_url: '',
-          character_class: '',
-          level: '',
+          role: '',
           public_description: '',
           private_description: '',
         },
@@ -81,8 +78,7 @@ describe('NpcCharacterEditController', function() {
       setters = {
         setName: jasmine.createSpy('setName'),
         setAvatarUrl: jasmine.createSpy('setAvatarUrl'),
-        setCharacterClass: jasmine.createSpy('setCharacterClass'),
-        setLevel: jasmine.createSpy('setLevel'),
+        setRole: jasmine.createSpy('setRole'),
         setDescription: jasmine.createSpy('setDescription'),
         setPrivateDescription: jasmine.createSpy('setPrivateDescription'),
       };
@@ -100,8 +96,7 @@ describe('NpcCharacterEditController', function() {
 
       expect(setters.setName).not.toHaveBeenCalled();
       expect(setters.setAvatarUrl).not.toHaveBeenCalled();
-      expect(setters.setCharacterClass).not.toHaveBeenCalled();
-      expect(setters.setLevel).not.toHaveBeenCalled();
+      expect(setters.setRole).not.toHaveBeenCalled();
       expect(setters.setDescription).not.toHaveBeenCalled();
       expect(setters.setPrivateDescription).not.toHaveBeenCalled();
     });
@@ -137,8 +132,7 @@ describe('NpcCharacterEditController', function() {
         id: 1,
         name: 'Goblin King',
         avatar_url: 'http://example.com/a.png',
-        character_class: 'Brute',
-        level: 5,
+        role: 'Brute',
         public_description: 'Ruler of the cave',
         private_description: 'Secret',
         can_edit: true,
@@ -148,8 +142,7 @@ describe('NpcCharacterEditController', function() {
 
       expect(setters.setName).toHaveBeenCalledWith('Goblin King');
       expect(setters.setAvatarUrl).toHaveBeenCalledWith('http://example.com/a.png');
-      expect(setters.setCharacterClass).toHaveBeenCalledWith('Brute');
-      expect(setters.setLevel).toHaveBeenCalledWith(5);
+      expect(setters.setRole).toHaveBeenCalledWith('Brute');
       expect(setters.setDescription).toHaveBeenCalledWith('Ruler of the cave');
       expect(setters.setPrivateDescription).toHaveBeenCalledWith('Secret');
     });

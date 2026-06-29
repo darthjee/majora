@@ -5,8 +5,7 @@ describe('CharacterHelper', function() {
   const character = {
     name: 'Aragorn',
     avatar_url: null,
-    character_class: 'Ranger',
-    level: 10,
+    role: 'Ranger',
     public_description: 'The future king of Gondor.',
     photos: [],
   };
@@ -16,12 +15,8 @@ describe('CharacterHelper', function() {
       expect(renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'))).toContain('Aragorn');
     });
 
-    it('renders the character class', function() {
+    it('renders the character role', function() {
       expect(renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'))).toContain('Ranger');
-    });
-
-    it('renders the character level', function() {
-      expect(renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'))).toContain('10');
     });
 
     it('renders the description', function() {

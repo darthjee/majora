@@ -52,8 +52,7 @@ describe('NpcCharacterEditController#submitForm', function() {
         {
           name: 'Goblin King',
           avatarUrl: 'http://example.com/a.png',
-          characterClass: 'Brute',
-          level: 5,
+          role: 'Brute',
           description: 'Ruler of the cave',
           privateDescription: 'Secret notes',
         },
@@ -70,8 +69,7 @@ describe('NpcCharacterEditController#submitForm', function() {
         {
           name: 'Goblin King',
           avatar_url: 'http://example.com/a.png',
-          character_class: 'Brute',
-          level: 5,
+          role: 'Brute',
           public_description: 'Ruler of the cave',
           private_description: 'Secret notes',
         },
@@ -98,7 +96,7 @@ describe('NpcCharacterEditController#submitForm', function() {
         undefined,
         'demo',
         '2',
-        { name: 'Goblin King', avatarUrl: '', characterClass: '', level: '', description: '', privateDescription: '' },
+        { name: 'Goblin King', avatarUrl: '', role: '', description: '', privateDescription: '' },
         { setStatus, setFieldErrors },
       );
 

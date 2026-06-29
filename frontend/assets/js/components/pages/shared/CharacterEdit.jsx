@@ -21,8 +21,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
   const [status, setStatus] = useState('idle');
   const [name, setName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
-  const [characterClass, setCharacterClass] = useState('');
-  const [level, setLevel] = useState('');
+  const [role, setRole] = useState('');
   const [description, setDescription] = useState('');
   const [privateDescription, setPrivateDescription] = useState('');
 
@@ -41,8 +40,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
     controller.applyLoadedCharacter(character, gameSlug, characterId, {
       setName,
       setAvatarUrl,
-      setCharacterClass,
-      setLevel,
+      setRole,
       setDescription,
       setPrivateDescription,
     });
@@ -53,7 +51,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
     event,
     gameSlug,
     characterId,
-    { name, avatarUrl, characterClass, level, description, privateDescription },
+    { name, avatarUrl, role, description, privateDescription },
     { setStatus, setFieldErrors },
   );
 
@@ -65,8 +63,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
     {
       name,
       avatar_url: avatarUrl,
-      character_class: characterClass,
-      level,
+      role,
       description,
       privateDescription,
       status,
@@ -76,8 +73,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
       onSubmit: handleSubmit,
       onNameChange: (event) => setName(event.target.value),
       onAvatarUrlChange: (event) => setAvatarUrl(event.target.value),
-      onCharacterClassChange: (event) => setCharacterClass(event.target.value),
-      onLevelChange: (event) => setLevel(event.target.value),
+      onRoleChange: (event) => setRole(event.target.value),
       onDescriptionChange: (event) => setDescription(event.target.value),
       onPrivateDescriptionChange: (event) => setPrivateDescription(event.target.value),
     }
