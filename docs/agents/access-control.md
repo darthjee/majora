@@ -228,6 +228,36 @@ success/failure. They are listed here for completeness.
 
 ---
 
+## Treasure
+
+Treasures are a global resource, not scoped to any game. All read endpoints are public; write endpoints (create and update) are restricted to superusers.
+
+| Action | Who can |
+|--------|---------|
+| List (`GET /treasures.json`) | Anyone (no authentication required) |
+| Detail (`GET /treasures/<id>.json`) | Anyone (no authentication required) |
+| Create (`POST /treasures.json`) | Superuser only — unauthenticated → 401, authenticated non-superuser → 403 |
+| Update (`PATCH /treasures/<id>.json`) | Superuser only — unauthenticated → 401, authenticated non-superuser → 403 |
+| Delete | Superuser only (via Django admin, out of scope) |
+
+**Exposed fields** (read): `id`, `name`, `value` — all fields are non-sensitive and safe to return to anonymous callers.
+
+**Write fields** (create/update): `name` (required for create, optional for update), `value` (required for create, optional for update).
+
+### Edit access status
+
+| Endpoint | Who can read | Response |
+|----------|-------------|----------|
+| `GET /treasures/<id>/access.json` | Anyone | `{ "can_edit": true/false }` — cache-skipped |
+
+The access endpoint always sets `X-Skip-Cache: true`. The path ends with `/access.json`, which is already listed in `frontend/assets/js/client/config/skipCacheSuffixes.js`, so no additional frontend config is needed.
+
+### Edit rights logic
+
+`Treasure.can_be_edited_by(user)` returns `True` when `user` is authenticated and `user.is_superuser` is `True`. No game-scoped roles (GameMaster, Player) grant write access to Treasures.
+
+---
+
 ## Adding a new model
 
 When a new model is introduced, add it to this document in the same PR:
