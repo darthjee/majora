@@ -251,8 +251,46 @@ class TestStatusView:
             'logged_in': True,
             'username': 'alice',
             'user_id': user.id,
+            'is_superuser': False,
             'settings': {'favorite_language': 'en'},
         }
+
+    def test_returns_is_superuser_false_for_regular_user(self, client):
+        """Test that a non-superuser's status response includes is_superuser false."""
+        user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        token = Token.objects.create(user=user)
+
+        response = client.get(
+            '/users/status.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        assert response.status_code == 200
+        assert json.loads(response.content)['is_superuser'] is False
+
+    def test_returns_is_superuser_true_for_superuser(self, client):
+        """Test that a superuser's status response includes is_superuser true."""
+        user = User.objects.create_user(username='admin', password=TEST_PASSWORD)
+        user.is_superuser = True
+        user.save()
+        token = Token.objects.create(user=user)
+
+        response = client.get(
+            '/users/status.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        assert response.status_code == 200
+        assert json.loads(response.content)['is_superuser'] is True
+
+    def test_logged_out_response_has_no_is_superuser(self, client):
+        """Test that the logged-out status response does not include is_superuser."""
+        response = client.get('/users/status.json')
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data == {'logged_in': False}
+        assert 'is_superuser' not in data
 
     def test_returns_logged_out_for_missing_token(self, client):
         """Test that a missing Authorization header reports logged_in false."""

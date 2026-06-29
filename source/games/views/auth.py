@@ -147,6 +147,7 @@ def status(request):
         'logged_in': True,
         'username': user.username,
         'user_id': user.id,
+        'is_superuser': user.is_superuser,
         'settings': {'favorite_language': profile.favorite_language},
     }
     if session_auth:
