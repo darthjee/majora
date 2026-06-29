@@ -17,15 +17,13 @@ class TestCharacterUpdateSerializer:
 
     def test_serializes_editable_fields(self):
         """Test that all editable fields are serialized."""
-        self.character.character_class = 'Hobbit'
-        self.character.level = 3
+        self.character.role = 'Hobbit'
         self.character.public_description = 'A brave hobbit.'
         self.character.private_description = 'Secretly carries the ring.'
         self.character.save()
         data = CharacterUpdateSerializer(self.character).data
         assert data['name'] == 'Frodo'
-        assert data['character_class'] == 'Hobbit'
-        assert data['level'] == 3
+        assert data['role'] == 'Hobbit'
         assert data['public_description'] == 'A brave hobbit.'
         assert data['private_description'] == 'Secretly carries the ring.'
 
@@ -42,7 +40,7 @@ class TestCharacterUpdateSerializer:
     def test_all_fields_are_optional(self):
         """Test that a partial payload with a single field is valid."""
         serializer = CharacterUpdateSerializer(
-            self.character, data={'level': 7}, partial=True
+            self.character, data={'role': 'Hobbit'}, partial=True
         )
         assert serializer.is_valid()
 

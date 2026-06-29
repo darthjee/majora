@@ -19,8 +19,7 @@ class TestCharacterDetailSerializer:
             name='Frodo',
             game=self.game,
             avatar_url='http://example.com/frodo.png',
-            character_class='Hobbit',
-            level=5,
+            role='Hobbit',
             public_description='A brave hobbit.',
             private_description='Secretly carries the ring.',
             npc=False,
@@ -48,15 +47,10 @@ class TestCharacterDetailSerializer:
         data = self._serialize()
         assert data['avatar_url'] == 'http://example.com/frodo.png'
 
-    def test_serializes_character_class(self):
-        """Test that the character_class field is serialized."""
+    def test_serializes_role(self):
+        """Test that the role field is serialized."""
         data = self._serialize()
-        assert data['character_class'] == 'Hobbit'
-
-    def test_serializes_level(self):
-        """Test that the level field is serialized."""
-        data = self._serialize()
-        assert data['level'] == 5
+        assert data['role'] == 'Hobbit'
 
     def test_serializes_public_description(self):
         """Test that the public_description field is serialized."""

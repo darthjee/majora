@@ -49,14 +49,12 @@ class TestCharacter:
             name='Legolas',
             game=self.game,
             avatar_url='http://example.com/legolas.png',
-            character_class='Ranger',
-            level=10,
+            role='Ranger',
             public_description='An elf ranger from Mirkwood.',
             private_description='A spy sent by Thranduil.',
         )
         assert character.avatar_url == 'http://example.com/legolas.png'
-        assert character.character_class == 'Ranger'
-        assert character.level == 10
+        assert character.role == 'Ranger'
         assert 'elf ranger' in character.public_description
         assert character.private_description == 'A spy sent by Thranduil.'
 
@@ -70,13 +68,13 @@ class TestCharacter:
         character = Character.objects.create(name='Mystery', game=self.game)
         assert character.private_description == ''
 
-    def test_character_class_can_be_null(self):
-        """Test that character_class can be set to None."""
+    def test_role_can_be_null(self):
+        """Test that role can be set to None."""
         character = Character.objects.create(
-            name='Mystery NPC', game=self.game, character_class=None
+            name='Mystery NPC', game=self.game, role=None
         )
         character.refresh_from_db()
-        assert character.character_class is None
+        assert character.role is None
 
     def test_character_str(self):
         """Test string representation of a character."""

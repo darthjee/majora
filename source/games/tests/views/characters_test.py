@@ -166,8 +166,7 @@ class TestGameNpcDetailView:
         self.npc = Character.objects.create(
             name='Gandalf',
             game=self.game,
-            character_class='Wizard',
-            level=20,
+            role='Wizard',
             public_description='A wandering wizard.',
             npc=True,
         )
@@ -178,8 +177,7 @@ class TestGameNpcDetailView:
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['name'] == 'Gandalf'
-        assert data['character_class'] == 'Wizard'
-        assert data['level'] == 20
+        assert data['role'] == 'Wizard'
         assert data['is_pc'] is False
         assert data['game_slug'] == 'test-game'
 
@@ -210,15 +208,15 @@ class TestGameNpcDetailView:
         assert len(data['photos']) == 1
         assert data['photos'][0]['url'] == 'http://example.com/gandalf.png'
 
-    def test_character_class_is_null_when_not_set(self, client):
-        """Test that character_class is null in the response when not set."""
+    def test_role_is_null_when_not_set(self, client):
+        """Test that role is null in the response when not set."""
         npc = Character.objects.create(
-            name='Unnamed NPC', game=self.game, character_class=None, npc=True
+            name='Unnamed NPC', game=self.game, role=None, npc=True
         )
         response = client.get(f'/games/test-game/npcs/{npc.id}.json')
         assert response.status_code == 200
         data = json.loads(response.content)
-        assert data['character_class'] is None
+        assert data['role'] is None
 
     def test_can_edit_is_false_for_anonymous_request(self, client):
         """Test that can_edit is false when the request has no token."""
@@ -264,8 +262,7 @@ class TestGameNpcUpdateView:
         self.npc = Character.objects.create(
             name='Gandalf',
             game=self.game,
-            character_class='Wizard',
-            level=20,
+            role='Wizard',
             public_description='A wandering wizard.',
             npc=True,
         )
@@ -321,8 +318,7 @@ class TestGameNpcUpdateView:
             {
                 'name': 'Saruman',
                 'avatar_url': 'http://example.com/saruman.png',
-                'character_class': 'Wizard',
-                'level': 25,
+                'role': 'Wizard',
                 'public_description': 'The White Wizard.',
             },
             token=token,
@@ -332,13 +328,11 @@ class TestGameNpcUpdateView:
         data = json.loads(response.content)
         assert data['name'] == 'Saruman'
         assert data['avatar_url'] == 'http://example.com/saruman.png'
-        assert data['character_class'] == 'Wizard'
-        assert data['level'] == 25
+        assert data['role'] == 'Wizard'
         assert data['public_description'] == 'The White Wizard.'
 
         self.npc.refresh_from_db()
         assert self.npc.name == 'Saruman'
-        assert self.npc.level == 25
 
     def test_patch_private_description_saves(self, client):
         """Test that PATCH with private_description saves the value."""
@@ -374,13 +368,13 @@ class TestGameNpcUpdateView:
         superuser = User.objects.create_superuser(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
 
-        response = self._patch(client, {'level': 'not-a-number'}, token=token)
+        response = self._patch(client, {'avatar_url': 'not-a-url'}, token=token)
 
         assert response.status_code == 400
         data = json.loads(response.content)
-        assert 'level' in data['errors']
+        assert 'avatar_url' in data['errors']
         self.npc.refresh_from_db()
-        assert self.npc.level == 20
+        assert self.npc.avatar_url is None
 
     def test_patch_partial_body_only_changes_given_fields(self, client):
         """Test that a partial PATCH body only updates the provided field."""
@@ -392,8 +386,7 @@ class TestGameNpcUpdateView:
         assert response.status_code == 200
         self.npc.refresh_from_db()
         assert self.npc.name == 'Saruman'
-        assert self.npc.character_class == 'Wizard'
-        assert self.npc.level == 20
+        assert self.npc.role == 'Wizard'
         assert self.npc.public_description == 'A wandering wizard.'
 
 
@@ -409,8 +402,7 @@ class TestGamePcDetailView:
             name='Aragorn',
             game=self.game,
             player=self.player,
-            character_class='Ranger',
-            level=20,
+            role='Ranger',
             public_description='The future king of Gondor.',
             npc=False,
         )
@@ -421,8 +413,7 @@ class TestGamePcDetailView:
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['name'] == 'Aragorn'
-        assert data['character_class'] == 'Ranger'
-        assert data['level'] == 20
+        assert data['role'] == 'Ranger'
         assert data['is_pc'] is True
         assert data['game_slug'] == 'test-game'
 
@@ -453,19 +444,19 @@ class TestGamePcDetailView:
         assert len(data['photos']) == 1
         assert data['photos'][0]['url'] == 'http://example.com/aragorn.png'
 
-    def test_character_class_is_null_when_not_set(self, client):
-        """Test that character_class is null in the response when not set."""
+    def test_role_is_null_when_not_set(self, client):
+        """Test that role is null in the response when not set."""
         pc = Character.objects.create(
             name='Unnamed PC',
             game=self.game,
             player=self.player,
-            character_class=None,
+            role=None,
             npc=False,
         )
         response = client.get(f'/games/test-game/pcs/{pc.id}.json')
         assert response.status_code == 200
         data = json.loads(response.content)
-        assert data['character_class'] is None
+        assert data['role'] is None
 
     def test_can_edit_is_false_for_anonymous_request(self, client):
         """Test that can_edit is false when the request has no token."""
@@ -515,8 +506,7 @@ class TestGamePcUpdateView:
             name='Aragorn',
             game=self.game,
             player=self.player,
-            character_class='Ranger',
-            level=20,
+            role='Ranger',
             public_description='The future king of Gondor.',
             npc=False,
         )
@@ -558,8 +548,7 @@ class TestGamePcUpdateView:
             {
                 'name': 'Strider',
                 'avatar_url': 'http://example.com/strider.png',
-                'character_class': 'Ranger King',
-                'level': 21,
+                'role': 'Ranger King',
                 'public_description': 'King of Gondor.',
             },
             token=token,
@@ -569,13 +558,11 @@ class TestGamePcUpdateView:
         data = json.loads(response.content)
         assert data['name'] == 'Strider'
         assert data['avatar_url'] == 'http://example.com/strider.png'
-        assert data['character_class'] == 'Ranger King'
-        assert data['level'] == 21
+        assert data['role'] == 'Ranger King'
         assert data['public_description'] == 'King of Gondor.'
 
         self.character.refresh_from_db()
         assert self.character.name == 'Strider'
-        assert self.character.level == 21
 
     def test_patch_with_superuser_token_returns_200(self, client):
         """Test that PATCH from a superuser's token is allowed."""
@@ -609,13 +596,13 @@ class TestGamePcUpdateView:
         """Test that an invalid field value is rejected with 400 and leaves data unchanged."""
         token = Token.objects.create(user=self.owner)
 
-        response = self._patch(client, {'level': 'not-a-number'}, token=token)
+        response = self._patch(client, {'avatar_url': 'not-a-url'}, token=token)
 
         assert response.status_code == 400
         data = json.loads(response.content)
-        assert 'level' in data['errors']
+        assert 'avatar_url' in data['errors']
         self.character.refresh_from_db()
-        assert self.character.level == 20
+        assert self.character.avatar_url is None
 
     def test_patch_partial_body_only_changes_given_fields(self, client):
         """Test that a partial PATCH body only updates the provided field."""
@@ -626,8 +613,7 @@ class TestGamePcUpdateView:
         assert response.status_code == 200
         self.character.refresh_from_db()
         assert self.character.name == 'Strider'
-        assert self.character.character_class == 'Ranger'
-        assert self.character.level == 20
+        assert self.character.role == 'Ranger'
 
     def test_patch_private_description_saves(self, client):
         """Test that PATCH with private_description saves the value."""
@@ -652,8 +638,7 @@ class TestGameNpcFullView:
         self.npc = Character.objects.create(
             name='Gandalf',
             game=self.game,
-            character_class='Wizard',
-            level=20,
+            role='Wizard',
             public_description='A wandering wizard.',
             private_description='The secret guardian of Middle Earth.',
             npc=True,
@@ -746,8 +731,7 @@ class TestGamePcFullView:
             name='Aragorn',
             game=self.game,
             player=self.player,
-            character_class='Ranger',
-            level=20,
+            role='Ranger',
             public_description='The future king of Gondor.',
             private_description='Secret heir to the throne.',
             npc=False,
