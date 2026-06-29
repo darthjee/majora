@@ -210,6 +210,18 @@ accessible).
 
 ---
 
+## Health check endpoint
+
+| Endpoint | Method | Who can call | Response |
+|----------|--------|-------------|----------|
+| `/health.json` | GET | Anyone (no authentication required) | `{"status": "ok"}` |
+
+This endpoint returns no model data and no user data. It is used by the frontend to
+periodically verify backend connectivity. Authentication classes are explicitly empty
+(`@authentication_classes([])`) and permissions are `AllowAny`.
+
+---
+
 ## Authentication endpoints
 
 These endpoints manage identity; they do not expose domain data beyond confirmation of

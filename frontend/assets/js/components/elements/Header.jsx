@@ -17,12 +17,16 @@ export default function Header() {
 
   useEffect(() => {
     controller.checkStatus();
+    controller.startHealthCheck();
 
     const handleAuthChanged = (event) => setLoggedIn(Boolean(event.detail?.loggedIn));
 
     AuthEvents.subscribe(handleAuthChanged);
 
-    return () => AuthEvents.unsubscribe(handleAuthChanged);
+    return () => {
+      controller.stopHealthCheck();
+      AuthEvents.unsubscribe(handleAuthChanged);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
