@@ -51,6 +51,8 @@ def _create_treasure(request):
 
 @api_view(['GET', 'PATCH'])
 @authentication_classes([CookieTokenAuthentication])
+# AllowAny: GET is intentionally public; PATCH authentication/authorisation is
+# enforced inline in _update_treasure via TreasureEditPermission.check().
 @permission_classes([AllowAny])
 def treasure_detail(request, treasure_id):
     """Return or update detail for a specific treasure identified by treasure_id."""
@@ -68,6 +70,8 @@ def treasure_detail(request, treasure_id):
 
 @api_view(['GET'])
 @authentication_classes([CookieTokenAuthentication])
+# AllowAny: this endpoint returns only a boolean capability flag and no sensitive
+# data; it is intentionally open so the UI can adapt before the user logs in.
 @permission_classes([AllowAny])
 def treasure_access(request, treasure_id):
     """Return whether the requesting user may edit a specific treasure."""
