@@ -11,6 +11,7 @@ from .models import (
     Link,
     Photo,
     Player,
+    Treasure,
     Upload,
 )
 
@@ -22,4 +23,5 @@ admin.site.register(Photo)
 admin.site.register(Link)
 admin.site.register(GameMaster)
 admin.site.register(GamePhoto)
+admin.site.register(Treasure)
 admin.site.register(Upload)
