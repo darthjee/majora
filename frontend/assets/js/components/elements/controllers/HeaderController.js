@@ -1,4 +1,5 @@
 import AuthClient from '../../../client/AuthClient.js';
+import HealthClient from '../../../client/HealthClient.js';
 import AuthEvents from '../../../utils/AuthEvents.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import Translator from '../../../i18n/Translator.js';
@@ -14,12 +15,44 @@ export default class HeaderController {
    * @param {Function} setShowModal - state setter for the login modal visibility.
    * @param {Function} [setTestEmailStatus] - state setter for the test email status.
    * @param {AuthClient} [client] - HTTP client used for auth requests.
+   * @param {HealthClient} [healthClient] - HTTP client used for health-check polling.
    */
-  constructor(setLoggedIn, setShowModal, setTestEmailStatus = () => {}, client = new AuthClient()) {
+  constructor(
+    setLoggedIn,
+    setShowModal,
+    setTestEmailStatus = () => {},
+    client = new AuthClient(),
+    healthClient = new HealthClient()
+  ) {
     this.setLoggedIn = setLoggedIn;
     this.setShowModal = setShowModal;
     this.setTestEmailStatus = setTestEmailStatus;
     this.client = client;
+    this.healthClient = healthClient;
+    this.healthIntervalId = null;
+  }
+
+  /**
+   * Starts polling the health-check endpoint at the given interval.
+   *
+   * @description Stores the interval ID so it can be cancelled later via stopHealthCheck.
+   * @param {number} [intervalMs=30000] - Polling interval in milliseconds.
+   * @returns {void}
+   */
+  startHealthCheck(intervalMs = 30000) {
+    this.healthIntervalId = setInterval(() => {
+      this.healthClient.check().catch(() => {});
+    }, intervalMs);
+  }
+
+  /**
+   * Stops the health-check polling interval.
+   *
+   * @description Clears the interval started by startHealthCheck.
+   * @returns {void}
+   */
+  stopHealthCheck() {
+    clearInterval(this.healthIntervalId);
   }
 
   /**
