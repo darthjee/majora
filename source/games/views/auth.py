@@ -114,7 +114,7 @@ def register(request):
     return Response({'username': user.username, 'token': token.key}, status=201)
 
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def logout(request):
     """Revoke the requesting user's authentication token and flush the session."""
