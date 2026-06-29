@@ -10,6 +10,7 @@ urlpatterns = [
     path('games/<slug:game_slug>/access.json', views.game_access, name='game-access'),
     path('games/<slug:game_slug>/pcs.json', views.game_pcs, name='game-pcs'),
     path('games/<slug:game_slug>/npcs.json', views.game_npcs, name='game-npcs'),
+    path('games/<slug:game_slug>/treasures.json', views.game_treasures, name='game-treasures'),
     path('games/<slug:game_slug>/npcs/all.json', views.game_npcs_all, name='game-npcs-all'),
     path(
         'games/<slug:game_slug>/npcs/<int:character_id>.json',

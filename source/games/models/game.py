@@ -13,6 +13,7 @@ class Game(models.Model):
     photo = models.URLField(null=True, blank=True)
     description = models.TextField(blank=True, default='')
     links = GenericRelation('games.Link')
+    treasures = models.ManyToManyField('Treasure', blank=True)
 
     class Meta:
         ordering = ['id']

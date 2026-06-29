@@ -34,7 +34,7 @@ A user may simultaneously be a GameMaster for one game and a Player for another.
 | Update (`PATCH /games/<slug>.json`) | GameMaster of that game, or superuser |
 | Delete | Superuser only (via Django admin, out of scope) |
 
-**Exposed fields** (read): `name`, `game_slug`, `photo`, `description`, links list, photos list.
+**Exposed fields** (read): `name`, `game_slug`, `photo`, `description`, links list, photos list, treasures list (via `GET /games/<slug>/treasures.json`).
 
 **Write fields** (create/update): `name` (required for create, optional for update), `photo` (optional, nullable URL), `description` (optional).
 
@@ -230,12 +230,13 @@ success/failure. They are listed here for completeness.
 
 ## Treasure
 
-Treasures are a global resource, not scoped to any game. All read endpoints are public; write endpoints (create and update) are restricted to superusers.
+Treasures are a global resource, not scoped to any game. All read endpoints are public; write endpoints (create and update) are restricted to superusers. Treasures may also be associated with games via a M2M relationship and retrieved through the game-scoped endpoint below.
 
 | Action | Who can |
 |--------|---------|
 | List (`GET /treasures.json`) | Anyone (no authentication required) |
 | Detail (`GET /treasures/<id>.json`) | Anyone (no authentication required) |
+| List by game (`GET /games/<slug>/treasures.json`) | Anyone — returns only treasures linked to that game; 404 if game slug unknown |
 | Create (`POST /treasures.json`) | Superuser only — unauthenticated → 401, authenticated non-superuser → 403 |
 | Update (`PATCH /treasures/<id>.json`) | Superuser only — unauthenticated → 401, authenticated non-superuser → 403 |
 | Delete | Superuser only (via Django admin, out of scope) |

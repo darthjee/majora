@@ -42,6 +42,7 @@ game_page:
   loading: Loading game...
   player_characters: Player Characters
   non_player_characters: Non-Player Characters
+  treasures: Treasures
 game_characters_page:
   loading: Loading...
 character_page:
@@ -125,3 +126,7 @@ treasure_edit_page:
   value_label: Value
   submit: Save changes
   error: Failed to save treasure. Please try again.
+game_treasures_page:
+  loading: Loading treasures...
+  title: Treasures
+  treasures: Treasures
