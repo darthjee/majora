@@ -15,6 +15,7 @@ from ..serializers import (
     GameDetailSerializer,
     GameListSerializer,
     GameUpdateSerializer,
+    TreasureListSerializer,
 )
 
 
@@ -86,3 +87,14 @@ def _update_game(request, game):
     serializer.save()
     detail = GameDetailSerializer(game)
     return Response(detail.data)
+
+
+@api_view(['GET'])
+@authentication_classes([CookieTokenAuthentication])
+@permission_classes([AllowAny])
+def game_treasures(request, game_slug):
+    """Return a paginated list of treasures for a specific game."""
+    game = get_object_or_404(Game, game_slug=game_slug)
+    page_treasures, headers = Paginator(request, game.treasures.all()).paginate()
+    serializer = TreasureListSerializer(page_treasures, many=True)
+    return Response(serializer.data, headers=headers)
