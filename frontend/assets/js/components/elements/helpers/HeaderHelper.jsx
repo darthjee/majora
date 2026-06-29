@@ -12,7 +12,7 @@ export default class HeaderHelper {
   /**
    * Render the application header with navigation and auth controls.
    *
-   * @param {{loggedIn: boolean, showModal: boolean, testEmailStatus: (string|null)}} state - header auth state.
+   * @param {{loggedIn: boolean, showModal: boolean, testEmailStatus: (string|null), isSuperUser: boolean, serverStatus: (string|null)}} state - header auth state.
    * @param {{onLoginClick: Function, onLogoffClick: Function, onModalClose: Function, onLoginSuccess: Function, onSendTestEmailClick: Function, onLanguageChange: Function}} handlers - header event handlers.
    * @returns {React.ReactElement} Header element.
    */
@@ -30,6 +30,7 @@ export default class HeaderHelper {
               <Nav.Link href="#/games">{Translator.t('header.nav_games')}</Nav.Link>
             </Nav>
             <Nav className="align-items-center">
+              {HeaderHelper.#renderServerStatus(state)}
               {HeaderHelper.#renderAuthControl(state, handlers)}
               <LanguageSelector onLanguageChange={handlers.onLanguageChange} />
             </Nav>
@@ -42,6 +43,28 @@ export default class HeaderHelper {
         />
       </Navbar>
     );
+  }
+
+  /**
+   * Renders the server status indicator for superusers.
+   *
+   * @param {{isSuperUser: boolean, serverStatus: (string|null)}} state - header auth state.
+   * @returns {React.ReactElement|null} server status indicator, or null when not applicable.
+   */
+  static #renderServerStatus(state) {
+    if (!state.isSuperUser) {
+      return null;
+    }
+
+    if (state.serverStatus === 'up') {
+      return <span className="server-status up" data-testid="server-status">&#9679;</span>;
+    }
+
+    if (state.serverStatus === 'down') {
+      return <span className="server-status down" data-testid="server-status">&#9679;</span>;
+    }
+
+    return null;
   }
 
   /**

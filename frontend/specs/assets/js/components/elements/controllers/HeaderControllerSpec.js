@@ -2,17 +2,22 @@ import HeaderController from '../../../../../../assets/js/components/elements/co
 import AuthEvents from '../../../../../../assets/js/utils/AuthEvents.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
 import Translator from '../../../../../../assets/js/i18n/Translator.js';
+import ActivityTracker from '../../../../../../assets/js/utils/ActivityTracker.js';
 
 describe('HeaderController', function() {
   let setLoggedIn;
   let setShowModal;
   let setTestEmailStatus;
+  let setIsSuperUser;
+  let setServerStatus;
   let client;
 
   beforeEach(function() {
     setLoggedIn = jasmine.createSpy('setLoggedIn');
     setShowModal = jasmine.createSpy('setShowModal');
     setTestEmailStatus = jasmine.createSpy('setTestEmailStatus');
+    setIsSuperUser = jasmine.createSpy('setIsSuperUser');
+    setServerStatus = jasmine.createSpy('setServerStatus');
     client = {
       status: jasmine.createSpy('status'),
       logout: jasmine.createSpy('logout'),
@@ -34,12 +39,38 @@ describe('HeaderController', function() {
         json: () => Promise.resolve({ logged_in: true, username: 'majora-user' }),
       }));
 
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
       await controller.checkStatus();
 
       expect(client.status).toHaveBeenCalledWith('tok-123');
       expect(setLoggedIn).toHaveBeenCalledWith(true);
       expect(AuthEvents.emit).toHaveBeenCalledWith(true);
+    });
+
+    it('calls setIsSuperUser with the superuser flag from the status response', async function() {
+      spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
+      client.status.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ logged_in: true, is_superuser: true }),
+      }));
+
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
+      await controller.checkStatus();
+
+      expect(setIsSuperUser).toHaveBeenCalledWith(true);
+    });
+
+    it('calls setIsSuperUser with false when is_superuser is absent', async function() {
+      spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
+      client.status.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ logged_in: false }),
+      }));
+
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
+      await controller.checkStatus();
+
+      expect(setIsSuperUser).toHaveBeenCalledWith(false);
     });
 
     it('stores the token from the status response when present', async function() {
@@ -49,7 +80,7 @@ describe('HeaderController', function() {
         json: () => Promise.resolve({ logged_in: true, token: 'new-tok-456' }),
       }));
 
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
       await controller.checkStatus();
 
       expect(AuthStorage.setToken).toHaveBeenCalledWith('new-tok-456');
@@ -62,7 +93,7 @@ describe('HeaderController', function() {
         json: () => Promise.resolve({ logged_in: true }),
       }));
 
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
       await controller.checkStatus();
 
       expect(AuthStorage.setToken).not.toHaveBeenCalled();
@@ -71,7 +102,7 @@ describe('HeaderController', function() {
     it('does nothing when the status response is not ok', async function() {
       client.status.and.returnValue(Promise.resolve({ ok: false }));
 
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
       await controller.checkStatus();
 
       expect(setLoggedIn).not.toHaveBeenCalled();
@@ -80,7 +111,7 @@ describe('HeaderController', function() {
     it('swallows unexpected errors', async function() {
       client.status.and.returnValue(Promise.reject(new Error('network')));
 
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
       await controller.checkStatus();
 
       expect(setLoggedIn).not.toHaveBeenCalled();
@@ -95,7 +126,7 @@ describe('HeaderController', function() {
         json: () => Promise.resolve({ logged_in: true, settings: { favorite_language: 'fr' } }),
       }));
 
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
       await controller.checkStatus();
 
       expect(Translator.setLanguage).toHaveBeenCalledWith('fr');
@@ -110,7 +141,7 @@ describe('HeaderController', function() {
         json: () => Promise.resolve({ logged_in: true, settings: { favorite_language: 'en' } }),
       }));
 
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
       await controller.checkStatus();
 
       expect(Translator.setLanguage).not.toHaveBeenCalled();
@@ -124,7 +155,7 @@ describe('HeaderController', function() {
         json: () => Promise.resolve({ logged_in: false }),
       }));
 
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
       await controller.checkStatus();
 
       expect(Translator.setLanguage).not.toHaveBeenCalled();
@@ -133,7 +164,7 @@ describe('HeaderController', function() {
 
   describe('#handleLoginClick', function() {
     it('opens the login modal', function() {
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
       controller.handleLoginClick();
 
       expect(setShowModal).toHaveBeenCalledWith(true);
@@ -147,7 +178,7 @@ describe('HeaderController', function() {
       spyOn(AuthStorage, 'clearToken');
       client.logout.and.returnValue(Promise.resolve({ ok: true }));
 
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
       await controller.handleLogoffClick();
 
       expect(client.logout).toHaveBeenCalledWith('tok-123');
@@ -162,7 +193,7 @@ describe('HeaderController', function() {
       spyOn(AuthStorage, 'clearToken');
       client.logout.and.returnValue(Promise.reject(new Error('network')));
 
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
       await controller.handleLogoffClick();
 
       expect(AuthStorage.clearToken).toHaveBeenCalled();
@@ -173,7 +204,7 @@ describe('HeaderController', function() {
 
   describe('#handleModalClose', function() {
     it('closes the login modal', function() {
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
       controller.handleModalClose();
 
       expect(setShowModal).toHaveBeenCalledWith(false);
@@ -182,7 +213,7 @@ describe('HeaderController', function() {
 
   describe('#handleLoginSuccess', function() {
     it('marks the user logged in and closes the modal', function() {
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
       controller.handleLoginSuccess();
 
       expect(setLoggedIn).toHaveBeenCalledWith(true);
@@ -195,7 +226,7 @@ describe('HeaderController', function() {
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
       client.sendTestEmail.and.returnValue(Promise.resolve({ ok: true }));
 
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
       await controller.handleSendTestEmailClick();
 
       expect(client.sendTestEmail).toHaveBeenCalledWith('tok-123');
@@ -206,7 +237,7 @@ describe('HeaderController', function() {
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
       client.sendTestEmail.and.returnValue(Promise.resolve({ ok: false }));
 
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
       await controller.handleSendTestEmailClick();
 
       expect(setTestEmailStatus).toHaveBeenCalledWith('error');
@@ -216,7 +247,7 @@ describe('HeaderController', function() {
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
       client.sendTestEmail.and.returnValue(Promise.reject(new Error('network')));
 
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
       await controller.handleSendTestEmailClick();
 
       expect(setTestEmailStatus).toHaveBeenCalledWith('error');
@@ -228,14 +259,14 @@ describe('HeaderController', function() {
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
       client.setLanguagePreference.and.returnValue(Promise.resolve({ ok: true }));
 
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
       await controller.handleLanguageChange('fr', true);
 
       expect(client.setLanguagePreference).toHaveBeenCalledWith('tok-123', 'fr');
     });
 
     it('does nothing when not logged in', async function() {
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
       await controller.handleLanguageChange('fr', false);
 
       expect(client.setLanguagePreference).not.toHaveBeenCalled();
@@ -245,7 +276,7 @@ describe('HeaderController', function() {
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
       client.setLanguagePreference.and.returnValue(Promise.reject(new Error('network')));
 
-      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client);
+      const controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client);
 
       await expectAsync(controller.handleLanguageChange('fr', true)).toBeResolved();
     });
@@ -257,8 +288,12 @@ describe('HeaderController', function() {
 
     beforeEach(function() {
       jasmine.clock().install();
-      healthClient = { check: jasmine.createSpy('check').and.returnValue(Promise.resolve({ ok: true })) };
-      controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client, healthClient);
+      spyOn(ActivityTracker, 'getLastActivity').and.returnValue(Date.now());
+      healthClient = { check: jasmine.createSpy('check').and.returnValue(Promise.resolve({ ok: true, status: 200 })) };
+      controller = new HeaderController(
+        setLoggedIn, setShowModal, setTestEmailStatus,
+        setIsSuperUser, setServerStatus, client, healthClient
+      );
     });
 
     afterEach(function() { jasmine.clock().uninstall(); });
@@ -272,9 +307,9 @@ describe('HeaderController', function() {
         expect(healthClient.check).toHaveBeenCalledTimes(2);
       });
 
-      it('defaults to a 30000 ms interval', function() {
+      it('defaults to a 60000 ms interval', function() {
         controller.startHealthCheck();
-        jasmine.clock().tick(29999);
+        jasmine.clock().tick(59999);
         expect(healthClient.check).not.toHaveBeenCalled();
         jasmine.clock().tick(1);
         expect(healthClient.check).toHaveBeenCalledTimes(1);

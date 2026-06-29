@@ -11,7 +11,7 @@ describe('Header', function() {
       Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: false }) })
     );
     spyOn(HealthClient.prototype, 'check').and.returnValue(
-      Promise.resolve({ ok: true })
+      Promise.resolve({ ok: true, status: 200 })
     );
     spyOn(HeaderController.prototype, 'startHealthCheck');
     spyOn(HeaderController.prototype, 'stopHealthCheck');
@@ -49,5 +49,10 @@ describe('Header', function() {
   it('renders the language selector', function() {
     const html = renderToStaticMarkup(React.createElement(Header));
     expect(html).toContain('data-testid="language-selector"');
+  });
+
+  it('does not render the server status indicator by default', function() {
+    const html = renderToStaticMarkup(React.createElement(Header));
+    expect(html).not.toContain('data-testid="server-status"');
   });
 });
