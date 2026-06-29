@@ -256,7 +256,7 @@ jobs:
           command: bin/deploy_frontend.sh generate_key_file
       - run:
           name: Remove test files
-          command: rm -rm proxy/extension/tests/
+          command: rm -rf proxy/extension/tests/
       - run:
           name: Upload proxy extension
           command: SOURCE=proxy/extension/ DEPLOY_PATH=extension/ bin/deploy_frontend.sh upload
