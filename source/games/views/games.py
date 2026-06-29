@@ -91,6 +91,8 @@ def _update_game(request, game):
 
 @api_view(['GET'])
 @authentication_classes([CookieTokenAuthentication])
+# AllowAny: this is a read-only endpoint that returns a public list of treasures for a given
+# game; no user-specific data is exposed and there are no write operations.
 @permission_classes([AllowAny])
 def game_treasures(request, game_slug):
     """Return a paginated list of treasures for a specific game."""
