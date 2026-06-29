@@ -18,6 +18,10 @@ export default class HashRouteResolver {
     this.#hashProvider = hashProvider;
     this.#router = new Router();
 
+    this.#router.register('/treasures/new', 'treasureNew');
+    this.#router.register('/treasures/:id/edit', 'treasureEdit');
+    this.#router.register('/treasures/:id', 'treasure');
+    this.#router.register('/treasures', 'treasures');
     this.#router.register('/games/:game_slug/npcs/:character_id/edit', 'npcCharacterEdit');
     this.#router.register('/games/:game_slug/npcs/:character_id', 'npcCharacter');
     this.#router.register('/games/:game_slug/pcs/:character_id/edit', 'pcCharacterEdit');

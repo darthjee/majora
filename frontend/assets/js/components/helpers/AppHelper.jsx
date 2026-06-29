@@ -12,6 +12,10 @@ import PcCharacter from '../pages/PcCharacter.jsx';
 import PcCharacterEdit from '../pages/PcCharacterEdit.jsx';
 import RecoverPassword from '../pages/RecoverPassword.jsx';
 import Register from '../pages/Register.jsx';
+import Treasure from '../pages/Treasure.jsx';
+import TreasureEdit from '../pages/TreasureEdit.jsx';
+import TreasureNew from '../pages/TreasureNew.jsx';
+import Treasures from '../pages/Treasures.jsx';
 
 const PAGES = {
   games: <Games />,
@@ -26,6 +30,10 @@ const PAGES = {
   pcCharacterEdit: <PcCharacterEdit />,
   recoverPassword: <RecoverPassword />,
   register: <Register />,
+  treasures: <Treasures />,
+  treasure: <Treasure />,
+  treasureNew: <TreasureNew />,
+  treasureEdit: <TreasureEdit />,
   home: <Games />,
 };
 
