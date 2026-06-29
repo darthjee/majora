@@ -4,18 +4,18 @@ import os
 import uuid
 
 from django.shortcuts import get_object_or_404
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from ..authentication import CookieTokenAuthentication
 from ..models import Game, GamePhoto, Upload
 from ..permissions import GameEditPermission
 from ..serializers import PhotoUploadSerializer
 
 
 @api_view(['POST'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([CookieTokenAuthentication])
 @permission_classes([IsAuthenticated])
 def photo_upload(request, game_slug):
     """Initialise a game photo upload and return the upload id and token."""
