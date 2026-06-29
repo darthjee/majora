@@ -51,6 +51,6 @@ export default class CharacterInfoHelper {
    */
   static #renderDescription(description) {
     if (!description) return null;
-    return <p className="mt-3">{description}</p>;
+    return <div className="mt-3 p-3 border rounded bg-light">{description}</div>;
   }
 }
