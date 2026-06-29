@@ -15,6 +15,28 @@ clients:
     timeout: 20000
 
 resources:
+  treasures:
+    - url: /treasures.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_treasures
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_treasures:
+    - url: /treasures.json?page={:page}
+      status: 200
+      actions:
+        - resource: treasure_detail
+          parameters:
+            id: parsedBody.id
+
+  treasure_detail:
+    - url: /treasures/{:id}.json
+      status: 200
+
   games:
     - url: /games.json
       status: 200
