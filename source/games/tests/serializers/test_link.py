@@ -14,7 +14,7 @@ class TestLinkSerializer:
         """Set up common test fixtures."""
         self.game = Game.objects.create(name='Test Game', game_slug='test-game')
         self.link = Link.objects.create(
-            text='Official Wiki', url='http://example.com/wiki', game=self.game
+            text='Official Wiki', url='http://example.com/wiki', content_object=self.game
         )
 
     def test_serializes_id(self):
@@ -32,7 +32,7 @@ class TestLinkSerializer:
         data = LinkSerializer(self.link).data
         assert data['url'] == 'http://example.com/wiki'
 
-    def test_does_not_include_game(self):
-        """Test that the game field is not exposed."""
+    def test_does_not_include_content_type(self):
+        """Test that the content_type field is not exposed."""
         data = LinkSerializer(self.link).data
-        assert 'game' not in data
+        assert 'content_type' not in data
