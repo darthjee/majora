@@ -2,12 +2,19 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
 import Header from '../../../../../assets/js/components/elements/Header.jsx';
 import AuthClient from '../../../../../assets/js/client/AuthClient.js';
+import HealthClient from '../../../../../assets/js/client/HealthClient.js';
+import HeaderController from '../../../../../assets/js/components/elements/controllers/HeaderController.js';
 
 describe('Header', function() {
   beforeEach(function() {
     spyOn(AuthClient.prototype, 'status').and.returnValue(
       Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: false }) })
     );
+    spyOn(HealthClient.prototype, 'check').and.returnValue(
+      Promise.resolve({ ok: true })
+    );
+    spyOn(HeaderController.prototype, 'startHealthCheck');
+    spyOn(HeaderController.prototype, 'stopHealthCheck');
   });
 
   it('renders a home link on the title', function() {

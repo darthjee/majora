@@ -250,4 +250,46 @@ describe('HeaderController', function() {
       await expectAsync(controller.handleLanguageChange('fr', true)).toBeResolved();
     });
   });
+
+  describe('health check polling', function() {
+    let healthClient;
+    let controller;
+
+    beforeEach(function() {
+      jasmine.clock().install();
+      healthClient = { check: jasmine.createSpy('check').and.returnValue(Promise.resolve({ ok: true })) };
+      controller = new HeaderController(setLoggedIn, setShowModal, setTestEmailStatus, client, healthClient);
+    });
+
+    afterEach(function() { jasmine.clock().uninstall(); });
+
+    describe('#startHealthCheck', function() {
+      it('calls check at the given interval', function() {
+        controller.startHealthCheck(1000);
+        jasmine.clock().tick(1000);
+        expect(healthClient.check).toHaveBeenCalledTimes(1);
+        jasmine.clock().tick(1000);
+        expect(healthClient.check).toHaveBeenCalledTimes(2);
+      });
+
+      it('defaults to a 30000 ms interval', function() {
+        controller.startHealthCheck();
+        jasmine.clock().tick(29999);
+        expect(healthClient.check).not.toHaveBeenCalled();
+        jasmine.clock().tick(1);
+        expect(healthClient.check).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('#stopHealthCheck', function() {
+      it('clears the polling interval', function() {
+        controller.startHealthCheck(1000);
+        jasmine.clock().tick(1000);
+        expect(healthClient.check).toHaveBeenCalledTimes(1);
+        controller.stopHealthCheck();
+        jasmine.clock().tick(2000);
+        expect(healthClient.check).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
 });
