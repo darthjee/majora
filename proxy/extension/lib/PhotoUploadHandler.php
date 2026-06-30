@@ -2,6 +2,7 @@
 
 namespace Tent\RequestHandlers;
 
+use InvalidArgumentException;
 use Tent\Http\CurlHttpClient;
 use Tent\Http\HttpClientInterface;
 use Tent\Log\Logger;
@@ -73,11 +74,11 @@ class PhotoUploadHandler extends RequestHandler
     protected function processsRequest(RequestInterface $request): Response
     {
         // 1. Extract upload id from path: /uploads/:id/submit
-        $path = $request->requestPath();
-        if (!preg_match('#^/uploads/(\d+)/submit$#', $path, $matches)) {
+        try {
+            $uploadId = $this->extractUploadId($request);
+        } catch (InvalidArgumentException $e) {
             return new Response(['httpCode' => 400, 'body' => 'Bad Request']);
         }
-        $uploadId = $matches[1];
 
         // 2. Validate the uploaded file
         $files = $request->uploadedFiles();
@@ -125,6 +126,23 @@ class PhotoUploadHandler extends RequestHandler
         }
 
         return new Response(['httpCode' => 200, 'body' => '']);
+    }
+
+    /**
+     * Extracts the upload id from the request path /uploads/:id/submit.
+     *
+     * @param RequestInterface $request The incoming HTTP request.
+     * @return string The upload id.
+     * @throws InvalidArgumentException When the path doesn't match /uploads/:id/submit.
+     */
+    private function extractUploadId(RequestInterface $request): string
+    {
+        $path = $request->requestPath();
+        if (!preg_match('#^/uploads/(\d+)/submit$#', $path, $matches)) {
+            throw new InvalidArgumentException('Invalid upload path: ' . $path);
+        }
+
+        return $matches[1];
     }
 
     /**
