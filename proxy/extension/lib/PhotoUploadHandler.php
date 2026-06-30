@@ -75,31 +75,19 @@ class PhotoUploadHandler extends RequestHandler
     {
         // 1. Extract upload id from path: /uploads/:id/submit
         // 2. Validate the uploaded file
+        // 3. Call backend: status=uploading → receive file_path
         try {
             $uploadId = $this->extractUploadId($request);
             $file = $this->validateUploadedFile($request);
+
+            $headers = $request->headers();
+            $filePath = $this->requestUploadingStatus($uploadId, $headers);
         } catch (UnprocessableUploadException $e) {
             return $this->unprocessableEntityResponse($e->getMessage(), $e->file());
+        } catch (BackendErrorException $e) {
+            return new Response(['httpCode' => $e->httpCode(), 'body' => $e->body()]);
         } catch (InvalidArgumentException $e) {
             return new Response(['httpCode' => 400, 'body' => 'Bad Request']);
-        }
-
-        $headers = $request->headers();
-
-        // 3. Call backend: status=uploading → receive file_path
-        $uploadingResult = $this->backendClient->updateStatus($uploadId, 'uploading', $headers);
-
-        if ($uploadingResult['httpCode'] !== 200) {
-            return new Response([
-                'httpCode' => $uploadingResult['httpCode'],
-                'body'     => $uploadingResult['body'],
-            ]);
-        }
-
-        $body     = json_decode($uploadingResult['body'], true);
-        $filePath = $body['file_path'] ?? null;
-        if ($filePath === null) {
-            return new Response(['httpCode' => 500, 'body' => 'Internal Server Error']);
         }
 
         // 4. Write file to photos volume
@@ -158,6 +146,33 @@ class PhotoUploadHandler extends RequestHandler
         }
 
         return $file;
+    }
+
+    /**
+     * Calls the backend with status=uploading and returns the file_path from
+     * the response.
+     *
+     * @param string $uploadId The upload id.
+     * @param array  $headers  Incoming request headers to forward.
+     * @return string The file_path returned by the backend.
+     * @throws BackendErrorException When the backend call fails, or the
+     *                                response doesn't include a file_path.
+     */
+    private function requestUploadingStatus(string $uploadId, array $headers): string
+    {
+        $result = $this->backendClient->updateStatus($uploadId, 'uploading', $headers);
+
+        if ($result['httpCode'] !== 200) {
+            throw new BackendErrorException($result['httpCode'], $result['body']);
+        }
+
+        $body     = json_decode($result['body'], true);
+        $filePath = $body['file_path'] ?? null;
+        if ($filePath === null) {
+            throw new BackendErrorException(500, 'Internal Server Error');
+        }
+
+        return $filePath;
     }
 
     /**
