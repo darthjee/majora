@@ -203,7 +203,9 @@ class PhotoUploadHandlerTest extends TestCase
     }
 
     /**
-     * Invalid file type: 422 is returned and no backend call is made.
+     * Invalid file type (both unsupported MIME type and extension): 422 is
+     * returned with a structured JSON body reporting 'unsupported_mime_type'
+     * (MIME type takes precedence over extension), and no backend call is made.
      */
     public function testInvalidFileTypeReturnsUnprocessableEntity(): void
     {
@@ -220,6 +222,73 @@ class PhotoUploadHandlerTest extends TestCase
         $response = $handler->handleRequest($request);
 
         $this->assertSame(422, $response->httpCode());
+        $this->assertContains('Content-Type: application/json', $response->headers());
+        $this->assertSame(
+            [
+                'error'    => 'Unprocessable Entity',
+                'reason'   => 'unsupported_mime_type',
+                'filename' => 'doc.pdf',
+                'mimeType' => 'application/pdf',
+            ],
+            json_decode($response->body(), true)
+        );
+    }
+
+    /**
+     * No file sent at all: 422 is returned with reason 'missing_file' and
+     * empty filename/mimeType, and no backend call is made.
+     */
+    public function testMissingFileReturnsUnprocessableEntity(): void
+    {
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = new PhotoUploadHandler('http://backend:8080', $httpClient, $this->photosDir);
+
+        $request = $this->makeRequest('/uploads/42/submit', []);
+
+        $httpClient->expects($this->never())->method('request');
+
+        $response = $handler->handleRequest($request);
+
+        $this->assertSame(422, $response->httpCode());
+        $this->assertSame(
+            [
+                'error'    => 'Unprocessable Entity',
+                'reason'   => 'missing_file',
+                'filename' => '',
+                'mimeType' => '',
+            ],
+            json_decode($response->body(), true)
+        );
+    }
+
+    /**
+     * Valid MIME type but unsupported extension: 422 is returned with reason
+     * 'unsupported_extension', and no backend call is made.
+     */
+    public function testUnsupportedExtensionReturnsUnprocessableEntity(): void
+    {
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = new PhotoUploadHandler('http://backend:8080', $httpClient, $this->photosDir);
+
+        $request = $this->makeRequest(
+            '/uploads/42/submit',
+            ['tmp_name' => '/tmp/x', 'type' => 'image/jpeg', 'name' => 'photo.txt', 'size' => 10, 'error' => 0]
+        );
+
+        $httpClient->expects($this->never())->method('request');
+
+        $response = $handler->handleRequest($request);
+
+        $this->assertSame(422, $response->httpCode());
+        $this->assertSame(
+            [
+                'error'    => 'Unprocessable Entity',
+                'reason'   => 'unsupported_extension',
+                'filename' => 'photo.txt',
+                'mimeType' => 'image/jpeg',
+            ],
+            json_decode($response->body(), true)
+        );
     }
 
     /**
