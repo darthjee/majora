@@ -20,8 +20,10 @@ class CacheControlMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
 
-        # Do not add Cache-Control when the view already asked to skip caching.
+        # Authorization/status endpoints opt out of caching via X-Skip-Cache: true.
+        # Respond with no-store so no client or proxy caches the result.
         if response.get('X-Skip-Cache') == 'true':
+            response['Cache-Control'] = 'no-store'
             return response
 
         # Do not add Cache-Control to the health check endpoint.

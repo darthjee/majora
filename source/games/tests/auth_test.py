@@ -467,5 +467,24 @@ class TestLanguageView:
             data=json.dumps({'language': 'fr'}),
             content_type='application/json',
         )
-
         assert response.status_code == 401
+
+
+@pytest.mark.django_db
+class TestStatusViewCacheControl:
+    """Cache-Control header for the status endpoint."""
+
+    def test_unauthenticated_status_returns_no_store(self, client):
+        """Unauthenticated GET /users/status.json must carry Cache-Control: no-store."""
+        response = client.get('/users/status.json')
+        assert response['Cache-Control'] == 'no-store'
+
+    def test_authenticated_status_returns_no_store(self, client):
+        """Authenticated GET /users/status.json must carry Cache-Control: no-store."""
+        user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        token = Token.objects.create(user=user)
+        response = client.get(
+            '/users/status.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response['Cache-Control'] == 'no-store'
