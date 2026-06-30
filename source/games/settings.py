@@ -34,3 +34,19 @@ class Settings:
     def emails_enabled():
         """Return True only when email sending has been explicitly enabled."""
         return os.environ.get('EMAILS_ENABLED', 'false').lower() == 'true'
+
+    @staticmethod
+    def cache_control_anonymous_max_age():
+        """Return the Cache-Control max-age for unauthenticated requests, in seconds."""
+        try:
+            return int(os.environ.get('MAJORA_CACHE_CONTROL_ANONYMOUS_SECONDS', 3600))
+        except (ValueError, TypeError):
+            return 3600
+
+    @staticmethod
+    def cache_control_authenticated_max_age():
+        """Return the Cache-Control max-age for authenticated requests, in seconds."""
+        try:
+            return int(os.environ.get('MAJORA_CACHE_CONTROL_AUTHENTICATED_SECONDS', 10))
+        except (ValueError, TypeError):
+            return 10
