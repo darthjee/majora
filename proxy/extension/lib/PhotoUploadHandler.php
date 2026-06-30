@@ -81,12 +81,10 @@ class PhotoUploadHandler extends RequestHandler
         }
 
         // 2. Validate the uploaded file
-        $files = $request->uploadedFiles();
-        $file = $files['file'] ?? null;
-        $reason = $this->imageRejectionReason($file);
-
-        if ($reason !== null) {
-            return $this->unprocessableEntityResponse($reason, $file);
+        try {
+            $file = $this->validateUploadedFile($request);
+        } catch (UnprocessableUploadException $e) {
+            return $this->unprocessableEntityResponse($e->getMessage(), $e->file());
         }
 
         $headers = $request->headers();
@@ -143,6 +141,26 @@ class PhotoUploadHandler extends RequestHandler
         }
 
         return $matches[1];
+    }
+
+    /**
+     * Extracts the uploaded file from the request and validates it.
+     *
+     * @param RequestInterface $request The incoming HTTP request.
+     * @return array The validated raw $_FILES entry.
+     * @throws UnprocessableUploadException When the file is missing or unsupported.
+     */
+    private function validateUploadedFile(RequestInterface $request): array
+    {
+        $files = $request->uploadedFiles();
+        $file = $files['file'] ?? null;
+        $reason = $this->imageRejectionReason($file);
+
+        if ($reason !== null) {
+            throw new UnprocessableUploadException($reason, $file);
+        }
+
+        return $file;
     }
 
     /**
