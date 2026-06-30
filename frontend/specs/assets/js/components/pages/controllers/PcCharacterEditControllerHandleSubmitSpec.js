@@ -7,6 +7,8 @@ describe('PcCharacterEditController#handleSubmit', function() {
   let setLoading;
   let setError;
   let setFieldErrors;
+  let setStatus;
+  let setters;
   let client;
   let characterClient;
 
@@ -19,6 +21,8 @@ describe('PcCharacterEditController#handleSubmit', function() {
     setLoading = jasmine.createSpy('setLoading');
     setError = jasmine.createSpy('setError');
     setFieldErrors = jasmine.createSpy('setFieldErrors');
+    setStatus = jasmine.createSpy('setStatus');
+    setters = { setStatus, setFieldErrors };
     client = jasmine.createSpyObj('client', ['currentHash']);
     characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'updatePc']);
     spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
@@ -43,7 +47,7 @@ describe('PcCharacterEditController#handleSubmit', function() {
     globalThis.window = fakeWindow;
 
     try {
-      await controller.handleSubmit('demo', '2', { name: 'Aragorn' });
+      await controller.handleSubmit('demo', '2', { name: 'Aragorn' }, setters);
 
       expect(characterClient.updatePc).toHaveBeenCalledWith(
         'demo', '2', 'tok-abc', { name: 'Aragorn' },
@@ -75,7 +79,7 @@ describe('PcCharacterEditController#handleSubmit', function() {
     globalThis.window = fakeWindow;
 
     try {
-      await controller.handleSubmit('demo', '2', { level: -1 });
+      await controller.handleSubmit('demo', '2', { level: -1 }, setters);
 
       expect(setFieldErrors).toHaveBeenCalledWith({ level: ['must be a positive integer'] });
       expect(setError).not.toHaveBeenCalled();
@@ -85,7 +89,7 @@ describe('PcCharacterEditController#handleSubmit', function() {
     }
   });
 
-  it('sets a general error on a 401 response', async function() {
+  it('sets status to error on a 401 response', async function() {
     characterClient.updatePc.and.returnValue(Promise.resolve({
       ok: false,
       status: 401,
@@ -101,13 +105,14 @@ describe('PcCharacterEditController#handleSubmit', function() {
       characterClient,
     );
 
-    await controller.handleSubmit('demo', '2', { name: 'Aragorn' });
+    await controller.handleSubmit('demo', '2', { name: 'Aragorn' }, setters);
 
-    expect(setError).toHaveBeenCalledWith('Unable to save character.');
+    expect(setStatus).toHaveBeenCalledWith('error');
+    expect(setError).not.toHaveBeenCalled();
     expect(setFieldErrors).not.toHaveBeenCalled();
   });
 
-  it('sets a general error on a 403 response', async function() {
+  it('sets status to error on a 403 response', async function() {
     characterClient.updatePc.and.returnValue(Promise.resolve({
       ok: false,
       status: 403,
@@ -123,13 +128,14 @@ describe('PcCharacterEditController#handleSubmit', function() {
       characterClient,
     );
 
-    await controller.handleSubmit('demo', '2', { name: 'Aragorn' });
+    await controller.handleSubmit('demo', '2', { name: 'Aragorn' }, setters);
 
-    expect(setError).toHaveBeenCalledWith('Unable to save character.');
+    expect(setStatus).toHaveBeenCalledWith('error');
+    expect(setError).not.toHaveBeenCalled();
     expect(setFieldErrors).not.toHaveBeenCalled();
   });
 
-  it('sets a general error when the request rejects', async function() {
+  it('sets status to error when the request rejects', async function() {
     characterClient.updatePc.and.returnValue(Promise.reject(new Error('network')));
 
     const controller = new PcCharacterEditController(
@@ -141,8 +147,9 @@ describe('PcCharacterEditController#handleSubmit', function() {
       characterClient,
     );
 
-    await controller.handleSubmit('demo', '2', { name: 'Aragorn' });
+    await controller.handleSubmit('demo', '2', { name: 'Aragorn' }, setters);
 
-    expect(setError).toHaveBeenCalledWith('Unable to save character.');
+    expect(setStatus).toHaveBeenCalledWith('error');
+    expect(setError).not.toHaveBeenCalled();
   });
 });

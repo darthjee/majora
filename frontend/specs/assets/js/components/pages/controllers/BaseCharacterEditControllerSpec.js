@@ -209,6 +209,50 @@ describe('BaseCharacterEditController', function() {
         delete globalThis.window;
       }
     });
+
+    it('sets status to error on a non-400 failure response without redirecting', async function() {
+      characterClient.updateNpc.and.returnValue(Promise.resolve({
+        ok: false, status: 500,
+        json: () => Promise.resolve({ errors: {} }),
+      }));
+
+      const controller = new TestCharacterEditController(
+        setCharacter, setLoading, setError, setFieldErrors, client, characterClient,
+      );
+      const fakeWindow = { location: { hash: '' } };
+      globalThis.window = fakeWindow;
+
+      try {
+        await controller.submitForm(
+          undefined, 'demo', '1',
+          { name: '', avatarUrl: '', role: '', description: '', privateDescription: '' },
+          { setStatus, setFieldErrors },
+        );
+
+        expect(setStatus).toHaveBeenCalledWith('error');
+        expect(setError).not.toHaveBeenCalled();
+        expect(fakeWindow.location.hash).toBe('');
+      } finally {
+        delete globalThis.window;
+      }
+    });
+
+    it('sets status to error when the request throws', async function() {
+      characterClient.updateNpc.and.returnValue(Promise.reject(new Error('network')));
+
+      const controller = new TestCharacterEditController(
+        setCharacter, setLoading, setError, setFieldErrors, client, characterClient,
+      );
+
+      await controller.submitForm(
+        undefined, 'demo', '1',
+        { name: '', avatarUrl: '', role: '', description: '', privateDescription: '' },
+        { setStatus, setFieldErrors },
+      );
+
+      expect(setStatus).toHaveBeenCalledWith('error');
+      expect(setError).not.toHaveBeenCalled();
+    });
   });
 
   describe('#buildEffect', function() {

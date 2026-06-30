@@ -43,6 +43,7 @@ describe('PhotoUploadModalController', function() {
       await controller.handleSubmit('my-game', file, 'auth-token');
 
       expect(setError).toHaveBeenCalledWith(true);
+      expect(setUploading).toHaveBeenCalledWith(false);
       expect(client.submitUpload).not.toHaveBeenCalled();
       expect(onSuccess).not.toHaveBeenCalled();
     });
@@ -59,6 +60,7 @@ describe('PhotoUploadModalController', function() {
       await controller.handleSubmit('my-game', file, 'auth-token');
 
       expect(setError).toHaveBeenCalledWith(true);
+      expect(setUploading).toHaveBeenCalledWith(false);
       expect(onSuccess).not.toHaveBeenCalled();
     });
 
@@ -70,6 +72,7 @@ describe('PhotoUploadModalController', function() {
       await controller.handleSubmit('my-game', file, 'auth-token');
 
       expect(setError).toHaveBeenCalledWith(true);
+      expect(setUploading).toHaveBeenCalledWith(false);
       expect(onSuccess).not.toHaveBeenCalled();
     });
   });

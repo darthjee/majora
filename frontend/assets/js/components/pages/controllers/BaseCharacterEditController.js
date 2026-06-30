@@ -102,9 +102,10 @@ export default class BaseCharacterEditController extends BasePageController {
    * @param {string|number} characterId - Character id.
    * @param {object} fields - Fields to update
    *   (`name`, `avatar_url`, `role`, `public_description`, `private_description`).
+   * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} resolves when the request handling finishes.
    */
-  async handleSubmit(gameSlug, characterId, fields) {
+  async handleSubmit(gameSlug, characterId, fields, setters) {
     const token = AuthStorage.getToken();
 
     try {
@@ -112,9 +113,9 @@ export default class BaseCharacterEditController extends BasePageController {
         gameSlug, characterId, token, fields,
       );
 
-      await this.#handleResponse(response, gameSlug, characterId);
+      await this.#handleResponse(response, gameSlug, characterId, setters);
     } catch {
-      this.setError('Unable to save character.');
+      setters.setStatus('error');
     }
   }
 
@@ -145,7 +146,7 @@ export default class BaseCharacterEditController extends BasePageController {
       role: formValues.role,
       public_description: formValues.description,
       private_description: formValues.privateDescription,
-    });
+    }, setters);
   }
 
   /**
@@ -176,7 +177,7 @@ export default class BaseCharacterEditController extends BasePageController {
     }
   }
 
-  async #handleResponse(response, gameSlug, characterId) {
+  async #handleResponse(response, gameSlug, characterId, setters) {
     if (response.ok) {
       this.#redirectToShow(gameSlug, characterId);
       return;
@@ -186,11 +187,11 @@ export default class BaseCharacterEditController extends BasePageController {
     const errors = data.errors ?? {};
 
     if (response.status === 400) {
-      this.setFieldErrors(errors);
+      setters.setFieldErrors(errors);
       return;
     }
 
-    this.setError('Unable to save character.');
+    setters.setStatus('error');
   }
 
   #redirectToShow(gameSlug, characterId) {
