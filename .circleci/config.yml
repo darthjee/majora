@@ -3,10 +3,13 @@ workflows:
   version: 2
   test:
     jobs:
-      - pytest:
+      - pytest_views:
           filters: &all_tags
             tags:
               only: /.*/
+          requires: [release-circleci_majora-base, release-circleci_majora-base-arm64]
+      - pytest_all:
+          filters: *all_tags
           requires: [release-circleci_majora-base, release-circleci_majora-base-arm64]
       - jasmine:
           filters: *all_tags
@@ -18,7 +21,7 @@ workflows:
           filters: *all_tags
           requires: [release-vite_majora-base, release-vite_majora-base-arm64]
       - coverage-final:
-          requires: [pytest, jasmine]
+          requires: [pytest_views, pytest_all, jasmine]
           filters: *all_tags
       - release-image:
           name: release-majora-base
@@ -57,23 +60,23 @@ workflows:
           arch: arm64
           filters: *all_tags
       - build-and-release:
-          requires: [pytest, jasmine, frontend-checks, checks, release-production_majora-base, release-production_majora-base-arm64]
+          requires: [pytest_views, pytest_all, jasmine, frontend-checks, checks, release-production_majora-base, release-production_majora-base-arm64]
           filters: &tags_only
             tags:
               only: /\d+\.\d+\.\d+/
             branches:
               ignore: /.*/
       - upload_proxy_files:
-          requires: [pytest, jasmine, frontend-checks, checks]
+          requires: [pytest_views, pytest_all, jasmine, frontend-checks, checks]
           filters: *tags_only
       - upload_fe_files:
-          requires: [pytest, jasmine, frontend-checks, checks, release-vite_majora-base, release-vite_majora-base-arm64]
+          requires: [pytest_views, pytest_all, jasmine, frontend-checks, checks, release-vite_majora-base, release-vite_majora-base-arm64]
           filters: *tags_only
       - link_photos:
-          requires: [pytest, jasmine, frontend-checks, checks]
+          requires: [pytest_views, pytest_all, jasmine, frontend-checks, checks]
           filters: *tags_only
       - upload_admin_assets:
-          requires: [pytest, jasmine, frontend-checks, checks, release-circleci_majora-base]
+          requires: [pytest_views, pytest_all, jasmine, frontend-checks, checks, release-circleci_majora-base]
           filters: *tags_only
       - upload_extension:
           requires: [upload_proxy_files]
@@ -120,7 +123,7 @@ jobs:
           name: Release
           command: bin/image.sh push << parameters.image >> << parameters.arch >>
 
-  pytest:
+  pytest_views:
     docker:
       - image: darthjee/circleci_majora-base:0.1.0
         environment:
@@ -136,11 +139,10 @@ jobs:
           MYSQL_USER: majora
           MYSQL_PASSWORD: majora
           MYSQL_ROOT_PASSWORD: majora
+    working_directory: ~/project/source
     steps:
-      - checkout
-      - run:
-          name: Set folder
-          command: rm frontend -rf; cp source/* ./ -r; rm source -rf
+      - checkout:
+          path: ~/project
       - run:
           name: Poetry Install
           command: poetry install --no-root --no-interaction --no-ansi
@@ -149,7 +151,40 @@ jobs:
           command: bin/configure_database.sh all
       - run:
           name: Tests
-          command: poetry run pytest --cov --cov-report=lcov:coverage/lcov.info
+          command: poetry run pytest games/tests/views/ --cov --cov-report=lcov:coverage/lcov.info
+      - run:
+          name: Upload coverage to Codacy (partial)
+          command: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --partial -r coverage/lcov.info
+
+  pytest_all:
+    docker:
+      - image: darthjee/circleci_majora-base:0.1.0
+        environment:
+          MAJORA_MYSQL_HOST: mysql
+          MAJORA_MYSQL_PORT: 3306
+          MAJORA_MYSQL_USER: root
+          MAJORA_MYSQL_NAME: majora
+          MAJORA_MYSQL_PASSWORD: majora
+      - image: cimg/mysql:8.0
+        name: mysql
+        environment:
+          MYSQL_DATABASE: majora
+          MYSQL_USER: majora
+          MYSQL_PASSWORD: majora
+          MYSQL_ROOT_PASSWORD: majora
+    working_directory: ~/project/source
+    steps:
+      - checkout:
+          path: ~/project
+      - run:
+          name: Poetry Install
+          command: poetry install --no-root --no-interaction --no-ansi
+      - run:
+          name: migrate
+          command: bin/configure_database.sh all
+      - run:
+          name: Tests
+          command: poetry run pytest --ignore=games/tests/views/ --cov --cov-report=lcov:coverage/lcov.info
       - run:
           name: Upload coverage to Codacy (partial)
           command: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --partial -r coverage/lcov.info
