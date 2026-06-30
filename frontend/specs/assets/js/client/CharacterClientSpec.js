@@ -81,7 +81,7 @@ describe('CharacterClient', function() {
         headers: {
           Accept: 'application/json',
           Authorization: 'Token abc123',
-          'X-Skip-Cache': '1',
+          'X-Skip-Cache': 'true',
         },
         body: undefined,
       });
@@ -96,7 +96,7 @@ describe('CharacterClient', function() {
         method: 'GET',
         headers: {
           Accept: 'application/json',
-          'X-Skip-Cache': '1',
+          'X-Skip-Cache': 'true',
         },
         body: undefined,
       });
@@ -115,6 +115,7 @@ describe('CharacterClient', function() {
           Accept: 'application/json',
           'Content-Type': 'application/json',
           Authorization: 'Token abc123',
+          'X-Skip-Cache': 'true',
         },
         body: JSON.stringify({ name: 'Aragorn' }),
       });
@@ -130,6 +131,7 @@ describe('CharacterClient', function() {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
+          'X-Skip-Cache': 'true',
         },
         body: JSON.stringify({ name: 'Aragorn' }),
       });
@@ -209,7 +211,7 @@ describe('CharacterClient', function() {
         headers: {
           Accept: 'application/json',
           Authorization: 'Token abc123',
-          'X-Skip-Cache': '1',
+          'X-Skip-Cache': 'true',
         },
         body: undefined,
       });
@@ -224,7 +226,7 @@ describe('CharacterClient', function() {
         method: 'GET',
         headers: {
           Accept: 'application/json',
-          'X-Skip-Cache': '1',
+          'X-Skip-Cache': 'true',
         },
         body: undefined,
       });
@@ -243,6 +245,7 @@ describe('CharacterClient', function() {
           Accept: 'application/json',
           'Content-Type': 'application/json',
           Authorization: 'Token abc123',
+          'X-Skip-Cache': 'true',
         },
         body: JSON.stringify({ name: 'Goblin King' }),
       });
@@ -258,6 +261,7 @@ describe('CharacterClient', function() {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
+          'X-Skip-Cache': 'true',
         },
         body: JSON.stringify({ name: 'Goblin King' }),
       });

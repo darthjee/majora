@@ -10,10 +10,11 @@ import ACTIVITY_ENDPOINT_PREFIXES from '../utils/config/activityEndpoints.js';
  */
 export default class BaseClient {
   /**
-   * Perform an HTTP request, adding `X-Skip-Cache: 1` automatically when
-   * the request path matches a configured skip-cache endpoint or ends with
-   * a configured skip-cache suffix. Also registers user activity for
-   * POST/PATCH/DELETE requests and allowlisted GET endpoints.
+   * Perform an HTTP request, adding `X-Skip-Cache: true` automatically when
+   * the HTTP method is POST, PATCH, or DELETE, or when the request path
+   * matches a configured skip-cache endpoint or ends with a configured
+   * skip-cache suffix. Also registers user activity for POST/PATCH/DELETE
+   * requests and allowlisted GET endpoints.
    *
    * @param {string} path - Request path, optionally including a query string.
    * @param {object} options - Request options.
@@ -27,8 +28,8 @@ export default class BaseClient {
     const pathname = path.split('?')[0];
     const finalHeaders = { ...headers };
 
-    if (this.#shouldSkipCache(pathname)) {
-      finalHeaders['X-Skip-Cache'] = '1';
+    if (this.#shouldSkipCache(method, pathname)) {
+      finalHeaders['X-Skip-Cache'] = 'true';
     }
 
     if (this.#shouldRegisterActivity(method, pathname)) {
@@ -45,12 +46,19 @@ export default class BaseClient {
   }
 
   /**
-   * Returns true when the request path requires the X-Skip-Cache header.
+   * Returns true when the request requires the X-Skip-Cache: true header.
+   * Always returns true for POST, PATCH, and DELETE methods. For GET
+   * requests, returns true when the pathname matches a configured
+   * skip-cache endpoint or ends with a configured skip-cache suffix.
    *
+   * @param {string} method - The HTTP method (GET, POST, PATCH, DELETE, etc.).
    * @param {string} pathname - The request pathname without query string.
    * @returns {boolean} Whether the X-Skip-Cache header should be added.
    */
-  #shouldSkipCache(pathname) {
+  #shouldSkipCache(method, pathname) {
+    if (method === 'POST' || method === 'PATCH' || method === 'DELETE') {
+      return true;
+    }
     const matchesSuffix = [...SKIP_CACHE_SUFFIXES].some(
       (suffix) => pathname.endsWith(suffix)
     );

@@ -1,6 +1,6 @@
 /**
  * Set of endpoint pathnames (without query string) that must always send
- * the `X-Skip-Cache: 1` header on requests.
+ * the `X-Skip-Cache: true` header on requests.
  *
  * @type {Set<string>}
  */

@@ -21,12 +21,25 @@ describe('BaseClient', function() {
 
     expect(fetchSpy).toHaveBeenCalledWith('/users/login.json', {
       method: 'POST',
-      headers: { Accept: 'application/json', 'X-Skip-Cache': '1' },
+      headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
     });
   });
 
   it('does not add X-Skip-Cache to a non-configured endpoint', async function() {
+    await client.request('/some/other.json', {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/some/other.json', {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      body: undefined,
+    });
+  });
+
+  it('adds X-Skip-Cache to a POST request to an unconfigured endpoint', async function() {
     await client.request('/some/other.json', {
       method: 'POST',
       headers: { Accept: 'application/json' },
@@ -34,7 +47,33 @@ describe('BaseClient', function() {
 
     expect(fetchSpy).toHaveBeenCalledWith('/some/other.json', {
       method: 'POST',
+      headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
+      body: undefined,
+    });
+  });
+
+  it('adds X-Skip-Cache to a PATCH request to an unconfigured endpoint', async function() {
+    await client.request('/some/other.json', {
+      method: 'PATCH',
       headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/some/other.json', {
+      method: 'PATCH',
+      headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
+      body: undefined,
+    });
+  });
+
+  it('adds X-Skip-Cache to a DELETE request to an unconfigured endpoint', async function() {
+    await client.request('/some/other.json', {
+      method: 'DELETE',
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/some/other.json', {
+      method: 'DELETE',
+      headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
     });
   });
@@ -47,7 +86,7 @@ describe('BaseClient', function() {
 
     expect(fetchSpy).toHaveBeenCalledWith('/users/register.json', {
       method: 'POST',
-      headers: { Accept: 'application/json', 'X-Skip-Cache': '1' },
+      headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
     });
   });
@@ -59,7 +98,7 @@ describe('BaseClient', function() {
 
     expect(fetchSpy).toHaveBeenCalledWith('/users/status.json?foo=bar', {
       method: 'GET',
-      headers: { Accept: 'application/json', 'X-Skip-Cache': '1' },
+      headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
     });
   });
@@ -83,7 +122,7 @@ describe('BaseClient', function() {
 
     expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/access.json', {
       method: 'GET',
-      headers: { Accept: 'application/json', 'X-Skip-Cache': '1' },
+      headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
     });
   });
@@ -95,7 +134,7 @@ describe('BaseClient', function() {
 
     expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/5/access.json', {
       method: 'GET',
-      headers: { Accept: 'application/json', 'X-Skip-Cache': '1' },
+      headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
     });
   });
@@ -107,7 +146,7 @@ describe('BaseClient', function() {
 
     expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/access.json?foo=bar', {
       method: 'GET',
-      headers: { Accept: 'application/json', 'X-Skip-Cache': '1' },
+      headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
     });
   });

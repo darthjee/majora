@@ -19,7 +19,7 @@ describe('AuthClient', function() {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'X-Skip-Cache': '1',
+          'X-Skip-Cache': 'true',
         },
         body: JSON.stringify({ username: 'majora-user', password: 'secret' }),
       });
@@ -37,7 +37,7 @@ describe('AuthClient', function() {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'X-Skip-Cache': '1',
+          'X-Skip-Cache': 'true',
           Authorization: 'Token abc123',
         },
         body: undefined,
@@ -55,7 +55,7 @@ describe('AuthClient', function() {
         method: 'GET',
         headers: {
           Accept: 'application/json',
-          'X-Skip-Cache': '1',
+          'X-Skip-Cache': 'true',
           Authorization: 'Token abc123',
         },
         body: undefined,
@@ -71,7 +71,7 @@ describe('AuthClient', function() {
         method: 'GET',
         headers: {
           Accept: 'application/json',
-          'X-Skip-Cache': '1',
+          'X-Skip-Cache': 'true',
         },
         body: undefined,
       });
@@ -89,6 +89,7 @@ describe('AuthClient', function() {
         headers: {
           Accept: 'application/json',
           Authorization: 'Token abc123',
+          'X-Skip-Cache': 'true',
         },
         body: undefined,
       });
@@ -103,7 +104,7 @@ describe('AuthClient', function() {
 
       expect(fetchSpy).toHaveBeenCalledWith('/users/recover.json', {
         method: 'POST',
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Skip-Cache': 'true' },
         body: JSON.stringify({ email: 'user@example.com' }),
       });
     });
@@ -117,7 +118,7 @@ describe('AuthClient', function() {
 
       expect(fetchSpy).toHaveBeenCalledWith('/users/reset-password.json', {
         method: 'POST',
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Skip-Cache': 'true' },
         body: JSON.stringify({ token: 'tok-123', password: 'new-secret' }),
       });
     });
@@ -131,7 +132,7 @@ describe('AuthClient', function() {
 
       expect(fetchSpy).toHaveBeenCalledWith('/users/register.json', {
         method: 'POST',
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Skip-Cache': '1' },
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Skip-Cache': 'true' },
         body: JSON.stringify({
           name: 'Jane Doe',
           email: 'jane@example.com',
@@ -153,7 +154,7 @@ describe('AuthClient', function() {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'X-Skip-Cache': '1',
+          'X-Skip-Cache': 'true',
           Authorization: 'Token abc123',
         },
         body: JSON.stringify({ language: 'en' }),

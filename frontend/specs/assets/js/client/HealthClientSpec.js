@@ -24,13 +24,13 @@ describe('HealthClient', function() {
       }));
     });
 
-    it('includes the X-Skip-Cache: 1 header', async function() {
+    it('includes the X-Skip-Cache: true header', async function() {
       const client = new HealthClient();
 
       await client.check();
 
       expect(fetchSpy).toHaveBeenCalledWith('/health.json', jasmine.objectContaining({
-        headers: jasmine.objectContaining({ 'X-Skip-Cache': '1' }),
+        headers: jasmine.objectContaining({ 'X-Skip-Cache': 'true' }),
       }));
     });
 

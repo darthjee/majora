@@ -19,6 +19,7 @@ describe('UploadClient', function() {
         headers: {
           'Content-Type': 'application/json',
           Authorization: 'Token tok-abc',
+          'X-Skip-Cache': 'true',
         },
         body: JSON.stringify({ filename: 'cover.png' }),
       });
@@ -46,7 +47,7 @@ describe('UploadClient', function() {
 
       expect(url).toBe('/uploads/42/submit');
       expect(options.method).toBe('PATCH');
-      expect(options.headers).toEqual({ 'X-Upload-Token': 'up-token' });
+      expect(options.headers).toEqual({ 'X-Upload-Token': 'up-token', 'X-Skip-Cache': 'true' });
       expect(options.body).toBeInstanceOf(FormData);
       expect(options.body.get('file')).toBe(file);
     });
