@@ -17,11 +17,8 @@ use Tent\Models\Response;
  */
 class PhotoUploadHandler extends RequestHandler
 {
-    /** @var string Backend host URL (e.g. http://backend:8080) */
-    private string $host;
-
-    /** @var HttpClientInterface HTTP client used for backend calls */
-    private HttpClientInterface $httpClient;
+    /** @var UploadBackendClient Client used to update Upload status on the backend */
+    private UploadBackendClient $backendClient;
 
     /** @var string Base path where photos are written */
     private string $photosBasePath;
@@ -36,8 +33,7 @@ class PhotoUploadHandler extends RequestHandler
         ?HttpClientInterface $httpClient = null,
         string $photosBasePath = '/var/www/html/photos'
     ) {
-        $this->host = $host;
-        $this->httpClient = $httpClient ?? new CurlHttpClient();
+        $this->backendClient = new UploadBackendClient($host, $httpClient ?? new CurlHttpClient());
         $this->photosBasePath = $photosBasePath;
     }
 
@@ -92,19 +88,10 @@ class PhotoUploadHandler extends RequestHandler
             return $this->unprocessableEntityResponse($reason, $file);
         }
 
-        // 3. Build backend headers — forward all incoming headers, overriding Content-Type
-        $backendHeaders = array_merge(
-            $request->headers(),
-            ['Content-Type' => 'application/json']
-        );
+        $headers = $request->headers();
 
-        // 4. Call backend: status=uploading → receive file_path
-        $uploadingResult = $this->httpClient->request(
-            'PATCH',
-            $this->host . '/uploads/' . $uploadId . '.json',
-            $backendHeaders,
-            json_encode(['status' => 'uploading'])
-        );
+        // 3. Call backend: status=uploading → receive file_path
+        $uploadingResult = $this->backendClient->updateStatus($uploadId, 'uploading', $headers);
 
         if ($uploadingResult['httpCode'] !== 200) {
             return new Response([
@@ -119,7 +106,7 @@ class PhotoUploadHandler extends RequestHandler
             return new Response(['httpCode' => 500, 'body' => 'Internal Server Error']);
         }
 
-        // 5. Write file to photos volume
+        // 4. Write file to photos volume
         $destination = $this->photosBasePath . '/' . $filePath;
         $dir = dirname($destination);
         if (!is_dir($dir)) {
@@ -128,12 +115,7 @@ class PhotoUploadHandler extends RequestHandler
         file_put_contents($destination, file_get_contents($file['tmp_name']));
 
         // 6. Call backend: status=uploaded
-        $uploadedResult = $this->httpClient->request(
-            'PATCH',
-            $this->host . '/uploads/' . $uploadId . '.json',
-            $backendHeaders,
-            json_encode(['status' => 'uploaded'])
-        );
+        $uploadedResult = $this->backendClient->updateStatus($uploadId, 'uploaded', $headers);
 
         if ($uploadedResult['httpCode'] !== 200) {
             return new Response([
