@@ -77,6 +77,7 @@ class PhotoUploadHandler extends RequestHandler
         // 2. Validate the uploaded file
         // 3. Call backend: status=uploading → receive file_path
         // 4. Write file to photos volume
+        // 5. Call backend: status=uploaded
         try {
             $uploadId = $this->extractUploadId($request);
             $file = $this->validateUploadedFile($request);
@@ -85,22 +86,14 @@ class PhotoUploadHandler extends RequestHandler
             $filePath = $this->requestUploadingStatus($uploadId, $headers);
 
             $this->writePhotoFile($filePath, $file);
+
+            $this->requestUploadedStatus($uploadId, $headers);
         } catch (UnprocessableUploadException $e) {
             return $this->unprocessableEntityResponse($e->getMessage(), $e->file());
         } catch (BackendErrorException $e) {
             return new Response(['httpCode' => $e->httpCode(), 'body' => $e->body()]);
         } catch (InvalidArgumentException $e) {
             return new Response(['httpCode' => 400, 'body' => 'Bad Request']);
-        }
-
-        // 5. Call backend: status=uploaded
-        $uploadedResult = $this->backendClient->updateStatus($uploadId, 'uploaded', $headers);
-
-        if ($uploadedResult['httpCode'] !== 200) {
-            return new Response([
-                'httpCode' => $uploadedResult['httpCode'],
-                'body'     => $uploadedResult['body'],
-            ]);
         }
 
         return new Response(['httpCode' => 200, 'body' => '']);
@@ -168,6 +161,23 @@ class PhotoUploadHandler extends RequestHandler
         }
 
         return $filePath;
+    }
+
+    /**
+     * Calls the backend with status=uploaded.
+     *
+     * @param string $uploadId The upload id.
+     * @param array  $headers  Incoming request headers to forward.
+     * @return void
+     * @throws BackendErrorException When the backend call fails.
+     */
+    private function requestUploadedStatus(string $uploadId, array $headers): void
+    {
+        $result = $this->backendClient->updateStatus($uploadId, 'uploaded', $headers);
+
+        if ($result['httpCode'] !== 200) {
+            throw new BackendErrorException($result['httpCode'], $result['body']);
+        }
     }
 
     /**
