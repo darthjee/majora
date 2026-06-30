@@ -9,7 +9,7 @@ describe('GamesHelper', function() {
         { name: 'Game B', game_slug: 'game-b', photo: null },
       ];
       const pagination = { page: 1, pages: 1, perPage: 10 };
-      const html = renderToStaticMarkup(GamesHelper.render(games, pagination));
+      const html = renderToStaticMarkup(GamesHelper.render(games, pagination, true));
       expect(html).toContain('Game A');
       expect(html).toContain('Game B');
     });
@@ -17,30 +17,37 @@ describe('GamesHelper', function() {
     it('renders pagination when there are multiple pages', function() {
       const games = [{ name: 'Game A', game_slug: 'game-a', photo: null }];
       const pagination = { page: 1, pages: 5, perPage: 10 };
-      const html = renderToStaticMarkup(GamesHelper.render(games, pagination));
+      const html = renderToStaticMarkup(GamesHelper.render(games, pagination, true));
       expect(html).toContain('pagination');
     });
 
     it('does not render pagination for a single page', function() {
       const games = [{ name: 'Game A', game_slug: 'game-a', photo: null }];
       const pagination = { page: 1, pages: 1, perPage: 10 };
-      const html = renderToStaticMarkup(GamesHelper.render(games, pagination));
+      const html = renderToStaticMarkup(GamesHelper.render(games, pagination, true));
       expect(html).not.toContain('pagination');
     });
 
     it('renders a back button to the home page', function() {
       const games = [{ name: 'Game A', game_slug: 'game-a', photo: null }];
       const pagination = { page: 1, pages: 1, perPage: 10 };
-      const html = renderToStaticMarkup(GamesHelper.render(games, pagination));
+      const html = renderToStaticMarkup(GamesHelper.render(games, pagination, true));
       expect(html).toContain('href="#/"');
     });
 
     it('renders a New Game link', function() {
       const games = [{ name: 'Game A', game_slug: 'game-a', photo: null }];
       const pagination = { page: 1, pages: 1, perPage: 10 };
-      const html = renderToStaticMarkup(GamesHelper.render(games, pagination));
+      const html = renderToStaticMarkup(GamesHelper.render(games, pagination, true));
       expect(html).toContain('href="#/games/new"');
       expect(html).toContain('New Game');
+    });
+
+    it('does not render a New Game link when not logged in', function() {
+      const games = [{ name: 'Game A', game_slug: 'game-a', photo: null }];
+      const pagination = { page: 1, pages: 1, perPage: 10 };
+      const html = renderToStaticMarkup(GamesHelper.render(games, pagination, false));
+      expect(html).not.toContain('href="#/games/new"');
     });
   });
 

@@ -168,6 +168,18 @@ class TestGamesCreateView:
         data = json.loads(response.content)
         assert data['photo'] is None
 
+    def test_post_creates_game_master_for_creator(self, client):
+        """Test that a GameMaster record is created for the authenticated creator."""
+        response = self._post(client, {'name': 'DM Game'}, token=self.token)
+        assert response.status_code == 201
+        data = json.loads(response.content)
+        assert GameMaster.objects.filter(game__game_slug=data['game_slug'], user=self.user).exists()
+
+    def test_post_creates_exactly_one_game_master(self, client):
+        """Test that exactly one GameMaster record is created after a single POST."""
+        self._post(client, {'name': 'Solo Campaign'}, token=self.token)
+        assert GameMaster.objects.filter(user=self.user).count() == 1
+
 
 @pytest.mark.django_db
 class TestGameDetailView:

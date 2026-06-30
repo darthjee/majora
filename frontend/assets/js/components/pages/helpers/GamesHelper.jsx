@@ -19,15 +19,18 @@ export default class GamesHelper {
    * @param {number} pagination.page - Current page.
    * @param {number} pagination.pages - Total pages.
    * @param {number} pagination.perPage - Items per page.
+   * @param {boolean} loggedIn - Whether the user is currently logged in.
    * @returns {React.ReactElement} Games grid with pagination.
    */
-  static render(games, pagination) {
+  static render(games, pagination, loggedIn) {
     return (
       <div className="container mt-4">
         <PageActions backHref="#/">
-          <NewButton href="#/games/new">
-            {Translator.t('games_page.new_game')}
-          </NewButton>
+          {loggedIn && (
+            <NewButton href="#/games/new">
+              {Translator.t('games_page.new_game')}
+            </NewButton>
+          )}
         </PageActions>
         <div className="row">
           {games.map((game) => (
