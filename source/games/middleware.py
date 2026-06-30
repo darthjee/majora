@@ -31,8 +31,10 @@ class CacheControlMiddleware:
         if request.user.is_authenticated:
             max_age = Settings.cache_control_authenticated_max_age()
             response['Cache-Control'] = f'private, max-age={max_age}'
-        else:
+        elif 200 <= response.status_code < 300:
             max_age = Settings.cache_control_anonymous_max_age()
             response['Cache-Control'] = f'public, max-age={max_age}'
+        else:
+            response['Cache-Control'] = 'no-store'
 
         return response
