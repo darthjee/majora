@@ -231,6 +231,19 @@ class TestLogoutView:
 
         assert response.status_code == 405
 
+    def test_revokes_token_via_session_cookie(self, client):
+        """Test that logout works for cookie-only users (no Authorization header)."""
+        user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        token = Token.objects.create(user=user)
+        session = client.session
+        session['auth_token'] = token.key
+        session.save()
+
+        response = client.delete('/users/logout.json')
+
+        assert response.status_code == 204
+        assert not Token.objects.filter(user=user).exists()
+
 
 @pytest.mark.django_db
 class TestStatusView:

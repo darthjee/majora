@@ -161,3 +161,18 @@ class TestUploadFinalizeView:
             upload_token=self.upload.token,
         )
         assert response.status_code == 401
+
+    def test_uploading_status_via_session_cookie(self, client):
+        """Test that status=uploading succeeds for a cookie-authenticated DM."""
+        session = client.session
+        session['auth_token'] = self.dm_token.key
+        session.save()
+        response = self._patch(
+            client,
+            self.upload.id,
+            {'status': 'uploading'},
+            upload_token=self.upload.token,
+        )
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['file_path'] == self.upload.file_path
