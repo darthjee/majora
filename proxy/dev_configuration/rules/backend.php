@@ -14,7 +14,7 @@ Configuration::buildRule([
     ],
     'matchers' => [
         ['uri' => '.json', 'type' => 'ends_with']
-    ],,
+    ],
     'middlewares' => [
         [
             'class'    => 'Tent\\Middlewares\\CacheCleanupMiddleware',
