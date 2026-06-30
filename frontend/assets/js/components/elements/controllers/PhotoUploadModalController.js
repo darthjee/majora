@@ -36,6 +36,7 @@ export default class PhotoUploadModalController {
 
       if (!initResponse.ok) {
         this.setError(true);
+        this.setUploading(false);
         return;
       }
 
@@ -44,12 +45,14 @@ export default class PhotoUploadModalController {
 
       if (!submitResponse.ok) {
         this.setError(true);
+        this.setUploading(false);
         return;
       }
 
       this.onSuccess();
     } catch {
       this.setError(true);
+      this.setUploading(false);
     }
   }
 
