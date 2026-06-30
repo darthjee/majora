@@ -4,6 +4,7 @@ namespace Tent\RequestHandlers;
 
 use Tent\Http\CurlHttpClient;
 use Tent\Http\HttpClientInterface;
+use Tent\Log\Logger;
 use Tent\Models\RequestInterface;
 use Tent\Models\Response;
 
@@ -85,8 +86,10 @@ class PhotoUploadHandler extends RequestHandler
         // 2. Validate the uploaded file
         $files = $request->uploadedFiles();
         $file = $files['file'] ?? null;
-        if ($file === null || !$this->isValidImage($file)) {
-            return new Response(['httpCode' => 422, 'body' => 'Unprocessable Entity']);
+        $reason = $this->imageRejectionReason($file);
+
+        if ($reason !== null) {
+            return $this->unprocessableEntityResponse($reason, $file);
         }
 
         // 3. Build backend headers — forward all incoming headers, overriding Content-Type
@@ -143,22 +146,70 @@ class PhotoUploadHandler extends RequestHandler
     }
 
     /**
-     * Validates that the uploaded file is a supported image.
+     * Determines why an uploaded file would be rejected, if at all.
      *
-     * Checks both the MIME type and file extension.
+     * Checks the MIME type and file extension independently — either one
+     * can be the actual cause of rejection — so the specific reason can be
+     * surfaced in both logs and the HTTP response, instead of a plain
+     * boolean. The MIME type is checked first, so when both checks would
+     * fail, 'unsupported_mime_type' takes precedence.
      *
-     * @param array $file A single entry from $request->uploadedFiles() (raw $_FILES format).
-     * @return bool
+     * @param array|null $file A single entry from $request->uploadedFiles() (raw
+     *                         $_FILES format), or null when no file was sent.
+     * @return string|null One of 'missing_file', 'unsupported_mime_type',
+     *                      'unsupported_extension', or null when the file is valid.
      */
-    private function isValidImage(array $file): bool
+    private function imageRejectionReason(?array $file): ?string
     {
+        if ($file === null) {
+            return 'missing_file';
+        }
+
         $allowedMimeTypes  = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
         $mimeType = $file['type'] ?? '';
         $ext      = strtolower(pathinfo($file['name'] ?? '', PATHINFO_EXTENSION));
 
-        return in_array($mimeType, $allowedMimeTypes, true)
-            && in_array($ext, $allowedExtensions, true);
+        if (!in_array($mimeType, $allowedMimeTypes, true)) {
+            return 'unsupported_mime_type';
+        }
+
+        if (!in_array($ext, $allowedExtensions, true)) {
+            return 'unsupported_extension';
+        }
+
+        return null;
+    }
+
+    /**
+     * Logs the rejection reason and builds the structured 422 JSON response
+     * for a rejected image upload.
+     *
+     * @param string     $reason One of 'missing_file', 'unsupported_mime_type',
+     *                           'unsupported_extension'.
+     * @param array|null $file   The raw $_FILES entry, or null when missing.
+     * @return Response
+     */
+    private function unprocessableEntityResponse(string $reason, ?array $file): Response
+    {
+        $filename = $file['name'] ?? '';
+        $mimeType = $file['type'] ?? '';
+
+        Logger::warn(
+            '[upload] - rejected image upload, reason: ' . $reason .
+            ', filename: ' . $filename . ', mimeType: ' . $mimeType
+        );
+
+        return new Response([
+            'httpCode' => 422,
+            'headers'  => ['Content-Type: application/json'],
+            'body'     => json_encode([
+                'error'    => 'Unprocessable Entity',
+                'reason'   => $reason,
+                'filename' => $filename,
+                'mimeType' => $mimeType,
+            ]),
+        ]);
     }
 }
