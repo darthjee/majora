@@ -2,6 +2,7 @@
 
 namespace Tent\RequestHandlers;
 
+use InvalidArgumentException;
 use Tent\Http\CurlHttpClient;
 use Tent\Http\HttpClientInterface;
 use Tent\Log\Logger;
@@ -9,7 +10,12 @@ use Tent\Models\RequestInterface;
 use Tent\Models\Response;
 
 /**
- * Handles multipart photo uploads for the PATCH /uploads/:id/submit route.
+ * Handles multipart photo uploads for the POST /uploads/:id/submit route.
+ *
+ * The client-facing route uses POST (not PATCH) because PHP only
+ * auto-populates $_FILES for multipart/form-data bodies sent over POST;
+ * for PATCH/PUT the body is never parsed into $_FILES, leaving uploaded
+ * files undetectable regardless of a valid Content-Disposition part.
  *
  * Validates the uploaded file, orchestrates two backend PATCH calls to advance
  * the Upload state machine (uploading → uploaded), and writes the file to the
@@ -17,11 +23,8 @@ use Tent\Models\Response;
  */
 class PhotoUploadHandler extends RequestHandler
 {
-    /** @var string Backend host URL (e.g. http://backend:8080) */
-    private string $host;
-
-    /** @var HttpClientInterface HTTP client used for backend calls */
-    private HttpClientInterface $httpClient;
+    /** @var UploadBackendClient Client used to update Upload status on the backend */
+    private UploadBackendClient $backendClient;
 
     /** @var string Base path where photos are written */
     private string $photosBasePath;
@@ -36,8 +39,7 @@ class PhotoUploadHandler extends RequestHandler
         ?HttpClientInterface $httpClient = null,
         string $photosBasePath = '/var/www/html/photos'
     ) {
-        $this->host = $host;
-        $this->httpClient = $httpClient ?? new CurlHttpClient();
+        $this->backendClient = new UploadBackendClient($host, $httpClient ?? new CurlHttpClient());
         $this->photosBasePath = $photosBasePath;
     }
 
@@ -77,72 +79,127 @@ class PhotoUploadHandler extends RequestHandler
     protected function processsRequest(RequestInterface $request): Response
     {
         // 1. Extract upload id from path: /uploads/:id/submit
-        $path = $request->requestPath();
-        if (!preg_match('#^/uploads/(\d+)/submit$#', $path, $matches)) {
+        // 2. Validate the uploaded file
+        // 3. Call backend: status=uploading → receive file_path
+        // 4. Write file to photos volume
+        // 5. Call backend: status=uploaded
+        try {
+            $uploadId = $this->extractUploadId($request);
+            $file = $this->validateUploadedFile($request);
+
+            $headers = $request->headers();
+            $filePath = $this->requestUploadingStatus($uploadId, $headers);
+
+            $this->writePhotoFile($filePath, $file);
+
+            $this->requestUploadedStatus($uploadId, $headers);
+        } catch (UnprocessableUploadException $e) {
+            return $this->unprocessableEntityResponse($e->getMessage(), $e->file());
+        } catch (BackendErrorException $e) {
+            return new Response(['httpCode' => $e->httpCode(), 'body' => $e->body()]);
+        } catch (InvalidArgumentException $e) {
             return new Response(['httpCode' => 400, 'body' => 'Bad Request']);
         }
-        $uploadId = $matches[1];
 
-        // 2. Validate the uploaded file
+        return new Response(['httpCode' => 200, 'body' => '']);
+    }
+
+    /**
+     * Extracts the upload id from the request path /uploads/:id/submit.
+     *
+     * @param RequestInterface $request The incoming HTTP request.
+     * @return string The upload id.
+     * @throws InvalidArgumentException When the path doesn't match /uploads/:id/submit.
+     */
+    private function extractUploadId(RequestInterface $request): string
+    {
+        $path = $request->requestPath();
+        if (!preg_match('#^/uploads/(\d+)/submit$#', $path, $matches)) {
+            throw new InvalidArgumentException('Invalid upload path: ' . $path);
+        }
+
+        return $matches[1];
+    }
+
+    /**
+     * Extracts the uploaded file from the request and validates it.
+     *
+     * @param RequestInterface $request The incoming HTTP request.
+     * @return array The validated raw $_FILES entry.
+     * @throws UnprocessableUploadException When the file is missing or unsupported.
+     */
+    private function validateUploadedFile(RequestInterface $request): array
+    {
         $files = $request->uploadedFiles();
         $file = $files['file'] ?? null;
         $reason = $this->imageRejectionReason($file);
 
         if ($reason !== null) {
-            return $this->unprocessableEntityResponse($reason, $file);
+            throw new UnprocessableUploadException($reason, $file);
         }
 
-        // 3. Build backend headers — forward all incoming headers, overriding Content-Type
-        $backendHeaders = array_merge(
-            $request->headers(),
-            ['Content-Type' => 'application/json']
-        );
+        return $file;
+    }
 
-        // 4. Call backend: status=uploading → receive file_path
-        $uploadingResult = $this->httpClient->request(
-            'PATCH',
-            $this->host . '/uploads/' . $uploadId . '.json',
-            $backendHeaders,
-            json_encode(['status' => 'uploading'])
-        );
+    /**
+     * Calls the backend with status=uploading and returns the file_path from
+     * the response.
+     *
+     * @param string $uploadId The upload id.
+     * @param array  $headers  Incoming request headers to forward.
+     * @return string The file_path returned by the backend.
+     * @throws BackendErrorException When the backend call fails, or the
+     *                                response doesn't include a file_path.
+     */
+    private function requestUploadingStatus(string $uploadId, array $headers): string
+    {
+        $result = $this->backendClient->updateStatus($uploadId, 'uploading', $headers);
 
-        if ($uploadingResult['httpCode'] !== 200) {
-            return new Response([
-                'httpCode' => $uploadingResult['httpCode'],
-                'body'     => $uploadingResult['body'],
-            ]);
+        if ($result['httpCode'] !== 200) {
+            throw new BackendErrorException($result['httpCode'], $result['body']);
         }
 
-        $body     = json_decode($uploadingResult['body'], true);
+        $body     = json_decode($result['body'], true);
         $filePath = $body['file_path'] ?? null;
         if ($filePath === null) {
-            return new Response(['httpCode' => 500, 'body' => 'Internal Server Error']);
+            throw new BackendErrorException(500, 'Internal Server Error');
         }
 
-        // 5. Write file to photos volume
+        return $filePath;
+    }
+
+    /**
+     * Calls the backend with status=uploaded.
+     *
+     * @param string $uploadId The upload id.
+     * @param array  $headers  Incoming request headers to forward.
+     * @return void
+     * @throws BackendErrorException When the backend call fails.
+     */
+    private function requestUploadedStatus(string $uploadId, array $headers): void
+    {
+        $result = $this->backendClient->updateStatus($uploadId, 'uploaded', $headers);
+
+        if ($result['httpCode'] !== 200) {
+            throw new BackendErrorException($result['httpCode'], $result['body']);
+        }
+    }
+
+    /**
+     * Writes the uploaded file to <photosBasePath>/<filePath>.
+     *
+     * @param string $filePath The file_path returned by the backend.
+     * @param array  $file     The raw $_FILES entry for the uploaded file.
+     * @return void
+     */
+    private function writePhotoFile(string $filePath, array $file): void
+    {
         $destination = $this->photosBasePath . '/' . $filePath;
         $dir = dirname($destination);
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
         file_put_contents($destination, file_get_contents($file['tmp_name']));
-
-        // 6. Call backend: status=uploaded
-        $uploadedResult = $this->httpClient->request(
-            'PATCH',
-            $this->host . '/uploads/' . $uploadId . '.json',
-            $backendHeaders,
-            json_encode(['status' => 'uploaded'])
-        );
-
-        if ($uploadedResult['httpCode'] !== 200) {
-            return new Response([
-                'httpCode' => $uploadedResult['httpCode'],
-                'body'     => $uploadedResult['body'],
-            ]);
-        }
-
-        return new Response(['httpCode' => 200, 'body' => '']);
     }
 
     /**

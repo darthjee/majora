@@ -37,7 +37,7 @@ describe('UploadClient', function() {
   });
 
   describe('#submitUpload', function() {
-    it('sends a PATCH multipart request with the upload token and file', async function() {
+    it('sends a POST multipart request with the upload token and file', async function() {
       const client = new UploadClient();
       const file = new File(['content'], 'photo.jpg', { type: 'image/jpeg' });
 
@@ -46,7 +46,7 @@ describe('UploadClient', function() {
       const [url, options] = fetchSpy.calls.mostRecent().args;
 
       expect(url).toBe('/uploads/42/submit');
-      expect(options.method).toBe('PATCH');
+      expect(options.method).toBe('POST');
       expect(options.headers).toEqual({ 'X-Upload-Token': 'up-token', 'X-Skip-Cache': 'true' });
       expect(options.body).toBeInstanceOf(FormData);
       expect(options.body.get('file')).toBe(file);

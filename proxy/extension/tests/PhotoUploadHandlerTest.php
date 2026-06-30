@@ -103,7 +103,7 @@ class PhotoUploadHandlerTest extends TestCase
     }
 
     /**
-     * Builds a ProcessingRequest for a valid image PATCH /uploads/:id/submit.
+     * Builds a ProcessingRequest for a valid image POST /uploads/:id/submit.
      */
     private function makeRequest(
         string $path,
@@ -112,7 +112,7 @@ class PhotoUploadHandlerTest extends TestCase
     ): ProcessingRequest {
         return new ProcessingRequest([
             'requestPath'   => $path,
-            'requestMethod' => 'PATCH',
+            'requestMethod' => 'POST',
             'headers'       => $headers,
             'uploadedFiles' => $fileEntry ? ['file' => $fileEntry] : [],
             'postFields'    => [],
