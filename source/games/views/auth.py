@@ -139,7 +139,9 @@ def status(request):
         result, session_auth = _authenticate_from_session(request)
 
     if result is None:
-        return Response({'logged_in': False})
+        response = Response({'logged_in': False})
+        response['X-Skip-Cache'] = 'true'
+        return response
 
     user, token_obj = result
     profile, _ = UserProfile.objects.get_or_create(user=user)
@@ -152,7 +154,9 @@ def status(request):
     }
     if session_auth:
         payload['token'] = token_obj.key
-    return Response(payload)
+    response = Response(payload)
+    response['X-Skip-Cache'] = 'true'
+    return response
 
 
 def _authenticate_from_session(request):

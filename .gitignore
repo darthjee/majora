@@ -54,3 +54,4 @@ proxy/extension/vendor/
 Thumbs.db
 
 .claude/state
+proxy/extension/.phpunit.result.cache

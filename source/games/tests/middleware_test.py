@@ -56,10 +56,10 @@ class TestCacheControlMiddlewareAuthenticated:
 
 @pytest.mark.django_db
 class TestCacheControlMiddlewareSkipCache:
-    """Middleware skips responses that already have X-Skip-Cache: true."""
+    """Middleware sets Cache-Control: no-store for responses with X-Skip-Cache: true."""
 
-    def test_no_cache_control_when_x_skip_cache_present(self, client):
-        """Responses with X-Skip-Cache: true do not get a Cache-Control header."""
+    def test_no_store_cache_control_when_x_skip_cache_present(self, client):
+        """Responses with X-Skip-Cache: true receive Cache-Control: no-store."""
         user = User.objects.create_user(username='writer', password='secret')
         token = Token.objects.create(user=user)
         game = Game.objects.create(name='Skip Game', game_slug='skip-game')
@@ -70,7 +70,7 @@ class TestCacheControlMiddlewareSkipCache:
         )
         assert 'X-Skip-Cache' in response
         assert response['X-Skip-Cache'] == 'true'
-        assert 'Cache-Control' not in response
+        assert response['Cache-Control'] == 'no-store'
 
 
 @pytest.mark.django_db
