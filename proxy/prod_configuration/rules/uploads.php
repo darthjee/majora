@@ -8,6 +8,6 @@ Configuration::buildRule([
         'host'  => 'http://backend:8080',
     ],
     'matchers' => [
-        ['method' => 'PATCH', 'uri' => '/uploads/', 'type' => 'begins_with'],
+        ['method' => 'POST', 'uri' => '/uploads/', 'type' => 'begins_with'],
     ],
 ]);

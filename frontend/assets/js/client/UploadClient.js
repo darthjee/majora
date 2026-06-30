@@ -28,9 +28,11 @@ export default class UploadClient extends BaseClient {
   /**
    * Submits the selected file to complete the upload.
    *
-   * @description Sends a multipart PATCH request with the file data.
+   * @description Sends a multipart POST request with the file data.
    *   The Content-Type header must NOT be set manually so the browser can
-   *   compute the multipart boundary automatically.
+   *   compute the multipart boundary automatically. POST is required here
+   *   even though this conceptually advances the upload's state, because
+   *   PHP only auto-populates $_FILES for multipart bodies sent over POST.
    * @param {number|string} id - Upload ID returned by initUpload.
    * @param {string} uploadToken - Upload token returned by initUpload.
    * @param {File} file - File to upload.
@@ -40,7 +42,7 @@ export default class UploadClient extends BaseClient {
     const formData = new FormData();
     formData.append('file', file);
     return this.request(`/uploads/${id}/submit`, {
-      method: 'PATCH',
+      method: 'POST',
       headers: {
         'X-Upload-Token': uploadToken,
       },

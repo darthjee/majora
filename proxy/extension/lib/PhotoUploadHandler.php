@@ -10,7 +10,12 @@ use Tent\Models\RequestInterface;
 use Tent\Models\Response;
 
 /**
- * Handles multipart photo uploads for the PATCH /uploads/:id/submit route.
+ * Handles multipart photo uploads for the POST /uploads/:id/submit route.
+ *
+ * The client-facing route uses POST (not PATCH) because PHP only
+ * auto-populates $_FILES for multipart/form-data bodies sent over POST;
+ * for PATCH/PUT the body is never parsed into $_FILES, leaving uploaded
+ * files undetectable regardless of a valid Content-Disposition part.
  *
  * Validates the uploaded file, orchestrates two backend PATCH calls to advance
  * the Upload state machine (uploading → uploaded), and writes the file to the
