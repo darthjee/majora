@@ -82,3 +82,19 @@ class TestCacheControlMiddlewareHealthCheck:
         response = client.get('/health.json')
         assert response.status_code == 200
         assert 'Cache-Control' not in response
+
+
+@pytest.mark.django_db
+class TestCacheControlMiddlewareErrorResponses:
+    """Middleware sets no-store on non-2xx responses."""
+
+    def test_401_response_gets_no_store(self, client):
+        """Unauthenticated write requests receive Cache-Control: no-store."""
+        game = Game.objects.create(name='Test Game', game_slug='test-game')
+        response = client.patch(
+            f'/games/{game.game_slug}.json',
+            data='{"name": "Updated"}',
+            content_type='application/json',
+        )
+        assert response.status_code == 401
+        assert response['Cache-Control'] == 'no-store'

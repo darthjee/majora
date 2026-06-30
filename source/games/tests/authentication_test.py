@@ -74,3 +74,19 @@ class TestCookieTokenAuthentication:
         request = self._request_with_session()
         result = self.auth.authenticate(request)
         assert result is None
+
+    def test_falls_through_to_session_when_header_token_is_stale(self):
+        """Stale Authorization header falls through to a valid session token."""
+        stale_key = self.token.key
+        self.token.delete()
+        # Create a fresh token for the same user
+        new_token = Token.objects.create(user=self.user)
+        # Request carries the stale key in the header but the new key in session
+        request = self.factory.get('/')
+        request.META['HTTP_AUTHORIZATION'] = f'Token {stale_key}'
+        request.session = {'auth_token': new_token.key}
+        result = self.auth.authenticate(request)
+        assert result is not None
+        user, token = result
+        assert user == self.user
+        assert token == new_token
