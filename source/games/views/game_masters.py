@@ -1,17 +1,17 @@
 """Views for game master (DM) endpoints."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from ..authentication import CookieTokenAuthentication
 from ..models import Game, GameMaster
 from ..serializers import GameMasterSerializer
 
 
 @api_view(['GET', 'POST'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([CookieTokenAuthentication])
 @permission_classes([AllowAny])
 def game_masters_list(request, game_slug):
     """Return all DM assignments for a game, or create a new one."""
@@ -32,7 +32,7 @@ def game_masters_list(request, game_slug):
 
 
 @api_view(['DELETE'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([CookieTokenAuthentication])
 @permission_classes([AllowAny])
 def game_master_detail(request, game_slug, game_master_id):
     """Remove a DM assignment."""

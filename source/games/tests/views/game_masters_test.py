@@ -76,6 +76,17 @@ class TestGameMastersListView:
         response = self._post(client, token=token, game_slug='unknown-game')
         assert response.status_code == 404
 
+    def test_post_creates_game_master_via_session_cookie(self, client):
+        """Test that POST creates a game master for a cookie-authenticated user."""
+        Token.objects.create(user=self.user)
+        session = client.session
+        session['auth_token'] = Token.objects.get(user=self.user).key
+        session.save()
+        url = f'/games/{self.game.game_slug}/game-masters.json'
+        response = client.post(url, content_type='application/json')
+        assert response.status_code == 201
+        assert GameMaster.objects.filter(game=self.game, user=self.user).exists()
+
 
 @pytest.mark.django_db
 class TestGameMasterDetailView:
@@ -125,3 +136,14 @@ class TestGameMasterDetailView:
         token = Token.objects.create(user=self.user)
         response = self._delete(client, token=token, game_master_id=99999)
         assert response.status_code == 404
+
+    def test_delete_removes_game_master_via_session_cookie(self, client):
+        """Test that DELETE removes the game master for a cookie-authenticated user."""
+        token = Token.objects.create(user=self.user)
+        session = client.session
+        session['auth_token'] = token.key
+        session.save()
+        url = f'/games/{self.game.game_slug}/game-masters/{self.game_master.id}.json'
+        response = client.delete(url)
+        assert response.status_code == 204
+        assert not GameMaster.objects.filter(id=self.game_master.id).exists()
