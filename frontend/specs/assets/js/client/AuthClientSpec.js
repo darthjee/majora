@@ -89,6 +89,7 @@ describe('AuthClient', function() {
         headers: {
           Accept: 'application/json',
           Authorization: 'Token abc123',
+          'X-Skip-Cache': '1',
         },
         body: undefined,
       });
@@ -103,7 +104,7 @@ describe('AuthClient', function() {
 
       expect(fetchSpy).toHaveBeenCalledWith('/users/recover.json', {
         method: 'POST',
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Skip-Cache': '1' },
         body: JSON.stringify({ email: 'user@example.com' }),
       });
     });
@@ -117,7 +118,7 @@ describe('AuthClient', function() {
 
       expect(fetchSpy).toHaveBeenCalledWith('/users/reset-password.json', {
         method: 'POST',
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Skip-Cache': '1' },
         body: JSON.stringify({ token: 'tok-123', password: 'new-secret' }),
       });
     });

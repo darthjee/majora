@@ -28,13 +28,52 @@ describe('BaseClient', function() {
 
   it('does not add X-Skip-Cache to a non-configured endpoint', async function() {
     await client.request('/some/other.json', {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/some/other.json', {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      body: undefined,
+    });
+  });
+
+  it('adds X-Skip-Cache to a POST request to an unconfigured endpoint', async function() {
+    await client.request('/some/other.json', {
       method: 'POST',
       headers: { Accept: 'application/json' },
     });
 
     expect(fetchSpy).toHaveBeenCalledWith('/some/other.json', {
       method: 'POST',
+      headers: { Accept: 'application/json', 'X-Skip-Cache': '1' },
+      body: undefined,
+    });
+  });
+
+  it('adds X-Skip-Cache to a PATCH request to an unconfigured endpoint', async function() {
+    await client.request('/some/other.json', {
+      method: 'PATCH',
       headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/some/other.json', {
+      method: 'PATCH',
+      headers: { Accept: 'application/json', 'X-Skip-Cache': '1' },
+      body: undefined,
+    });
+  });
+
+  it('adds X-Skip-Cache to a DELETE request to an unconfigured endpoint', async function() {
+    await client.request('/some/other.json', {
+      method: 'DELETE',
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/some/other.json', {
+      method: 'DELETE',
+      headers: { Accept: 'application/json', 'X-Skip-Cache': '1' },
       body: undefined,
     });
   });

@@ -115,6 +115,7 @@ describe('CharacterClient', function() {
           Accept: 'application/json',
           'Content-Type': 'application/json',
           Authorization: 'Token abc123',
+          'X-Skip-Cache': '1',
         },
         body: JSON.stringify({ name: 'Aragorn' }),
       });
@@ -130,6 +131,7 @@ describe('CharacterClient', function() {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
+          'X-Skip-Cache': '1',
         },
         body: JSON.stringify({ name: 'Aragorn' }),
       });
@@ -243,6 +245,7 @@ describe('CharacterClient', function() {
           Accept: 'application/json',
           'Content-Type': 'application/json',
           Authorization: 'Token abc123',
+          'X-Skip-Cache': '1',
         },
         body: JSON.stringify({ name: 'Goblin King' }),
       });
@@ -258,6 +261,7 @@ describe('CharacterClient', function() {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
+          'X-Skip-Cache': '1',
         },
         body: JSON.stringify({ name: 'Goblin King' }),
       });

@@ -84,6 +84,7 @@ describe('GameClient', function() {
           Accept: 'application/json',
           'Content-Type': 'application/json',
           Authorization: 'Token tok-abc',
+          'X-Skip-Cache': '1',
         },
         body: JSON.stringify({ name: 'New Game' }),
       });
@@ -99,6 +100,7 @@ describe('GameClient', function() {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
+          'X-Skip-Cache': '1',
         },
         body: JSON.stringify({ name: 'New Game' }),
       });
@@ -117,6 +119,7 @@ describe('GameClient', function() {
           Accept: 'application/json',
           'Content-Type': 'application/json',
           Authorization: 'Token tok-abc',
+          'X-Skip-Cache': '1',
         },
         body: JSON.stringify({ name: 'New Name' }),
       });
@@ -132,6 +135,7 @@ describe('GameClient', function() {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
+          'X-Skip-Cache': '1',
         },
         body: JSON.stringify({ name: 'New Name' }),
       });
