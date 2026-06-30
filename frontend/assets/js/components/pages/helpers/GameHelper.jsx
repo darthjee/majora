@@ -1,6 +1,7 @@
 import React from 'react';
-import BackButton from '../../elements/BackButton.jsx';
 import CardPhoto from '../../elements/CardPhoto.jsx';
+import EditButton from '../../elements/EditButton.jsx';
+import PageActions from '../../elements/PageActions.jsx';
 import CharacterPhotos from '../../elements/CharacterPhotos.jsx';
 import CharacterPreviewSection from '../../elements/CharacterPreviewSection.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
@@ -30,7 +31,13 @@ export default class GameHelper {
   static render(game, pcs = [], npcs = []) {
     return (
       <div className="container mt-4">
-        <BackButton href="#/games" />
+        <PageActions backHref="#/games">
+          {game.can_edit && (
+            <EditButton href={`#/games/${game.game_slug}/edit`}>
+              {Translator.t('character_page.edit')}
+            </EditButton>
+          )}
+        </PageActions>
         <div className="row">
           <div className="col-md-4">
             <CardPhoto url={game.photo} alt={game.name} />
@@ -38,7 +45,6 @@ export default class GameHelper {
           <div className="col-md-8">
             <h1>
               {game.name}
-              {GameHelper.#renderEditLink(game)}
             </h1>
             {game.description && (
               <p className="mt-3">{game.description}</p>
@@ -87,18 +93,6 @@ export default class GameHelper {
    */
   static renderError(error) {
     return <ErrorAlert error={error} />;
-  }
-
-  static #renderEditLink(game) {
-    if (!game.can_edit) {
-      return null;
-    }
-
-    return (
-      <a href={`#/games/${game.game_slug}/edit`} className="btn btn-secondary ms-2">
-        {Translator.t('character_page.edit')}
-      </a>
-    );
   }
 
 }
