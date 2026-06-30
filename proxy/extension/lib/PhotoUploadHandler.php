@@ -76,12 +76,15 @@ class PhotoUploadHandler extends RequestHandler
         // 1. Extract upload id from path: /uploads/:id/submit
         // 2. Validate the uploaded file
         // 3. Call backend: status=uploading → receive file_path
+        // 4. Write file to photos volume
         try {
             $uploadId = $this->extractUploadId($request);
             $file = $this->validateUploadedFile($request);
 
             $headers = $request->headers();
             $filePath = $this->requestUploadingStatus($uploadId, $headers);
+
+            $this->writePhotoFile($filePath, $file);
         } catch (UnprocessableUploadException $e) {
             return $this->unprocessableEntityResponse($e->getMessage(), $e->file());
         } catch (BackendErrorException $e) {
@@ -90,15 +93,7 @@ class PhotoUploadHandler extends RequestHandler
             return new Response(['httpCode' => 400, 'body' => 'Bad Request']);
         }
 
-        // 4. Write file to photos volume
-        $destination = $this->photosBasePath . '/' . $filePath;
-        $dir = dirname($destination);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-        file_put_contents($destination, file_get_contents($file['tmp_name']));
-
-        // 6. Call backend: status=uploaded
+        // 5. Call backend: status=uploaded
         $uploadedResult = $this->backendClient->updateStatus($uploadId, 'uploaded', $headers);
 
         if ($uploadedResult['httpCode'] !== 200) {
@@ -173,6 +168,23 @@ class PhotoUploadHandler extends RequestHandler
         }
 
         return $filePath;
+    }
+
+    /**
+     * Writes the uploaded file to <photosBasePath>/<filePath>.
+     *
+     * @param string $filePath The file_path returned by the backend.
+     * @param array  $file     The raw $_FILES entry for the uploaded file.
+     * @return void
+     */
+    private function writePhotoFile(string $filePath, array $file): void
+    {
+        $destination = $this->photosBasePath . '/' . $filePath;
+        $dir = dirname($destination);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        file_put_contents($destination, file_get_contents($file['tmp_name']));
     }
 
     /**
