@@ -50,7 +50,7 @@ describe('TreasureClient', function() {
         headers: {
           Accept: 'application/json',
           Authorization: 'Token tok-abc',
-          'X-Skip-Cache': '1',
+          'X-Skip-Cache': 'true',
         },
         body: undefined,
       });
@@ -65,7 +65,7 @@ describe('TreasureClient', function() {
         method: 'GET',
         headers: {
           Accept: 'application/json',
-          'X-Skip-Cache': '1',
+          'X-Skip-Cache': 'true',
         },
         body: undefined,
       });
@@ -84,7 +84,7 @@ describe('TreasureClient', function() {
           Accept: 'application/json',
           'Content-Type': 'application/json',
           Authorization: 'Token tok-abc',
-          'X-Skip-Cache': '1',
+          'X-Skip-Cache': 'true',
         },
         body: JSON.stringify({ name: 'Sword', value: 100 }),
       });
@@ -100,7 +100,7 @@ describe('TreasureClient', function() {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'X-Skip-Cache': '1',
+          'X-Skip-Cache': 'true',
         },
         body: JSON.stringify({ name: 'Sword', value: 100 }),
       });
@@ -119,7 +119,7 @@ describe('TreasureClient', function() {
           Accept: 'application/json',
           'Content-Type': 'application/json',
           Authorization: 'Token tok-abc',
-          'X-Skip-Cache': '1',
+          'X-Skip-Cache': 'true',
         },
         body: JSON.stringify({ name: 'Golden Sword' }),
       });
@@ -135,7 +135,7 @@ describe('TreasureClient', function() {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'X-Skip-Cache': '1',
+          'X-Skip-Cache': 'true',
         },
         body: JSON.stringify({ name: 'Golden Sword' }),
       });

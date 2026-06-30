@@ -10,7 +10,7 @@ import ACTIVITY_ENDPOINT_PREFIXES from '../utils/config/activityEndpoints.js';
  */
 export default class BaseClient {
   /**
-   * Perform an HTTP request, adding `X-Skip-Cache: 1` automatically when
+   * Perform an HTTP request, adding `X-Skip-Cache: true` automatically when
    * the HTTP method is POST, PATCH, or DELETE, or when the request path
    * matches a configured skip-cache endpoint or ends with a configured
    * skip-cache suffix. Also registers user activity for POST/PATCH/DELETE
@@ -29,7 +29,7 @@ export default class BaseClient {
     const finalHeaders = { ...headers };
 
     if (this.#shouldSkipCache(method, pathname)) {
-      finalHeaders['X-Skip-Cache'] = '1';
+      finalHeaders['X-Skip-Cache'] = 'true';
     }
 
     if (this.#shouldRegisterActivity(method, pathname)) {
@@ -46,7 +46,7 @@ export default class BaseClient {
   }
 
   /**
-   * Returns true when the request requires the X-Skip-Cache header.
+   * Returns true when the request requires the X-Skip-Cache: true header.
    * Always returns true for POST, PATCH, and DELETE methods. For GET
    * requests, returns true when the pathname matches a configured
    * skip-cache endpoint or ends with a configured skip-cache suffix.
