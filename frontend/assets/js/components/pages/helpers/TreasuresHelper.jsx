@@ -1,8 +1,8 @@
 import React from 'react';
-import BackButton from '../../elements/BackButton.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import NewButton from '../../elements/NewButton.jsx';
+import PageActions from '../../elements/PageActions.jsx';
 import Pagination from '../../elements/Pagination.jsx';
 import Translator from '../../../i18n/Translator.js';
 
@@ -23,10 +23,11 @@ export default class TreasuresHelper {
   static render(treasures, pagination) {
     return (
       <div className="container mt-4">
-        <BackButton href="#/" />
-        <NewButton href="#/treasures/new">
-          {Translator.t('treasures_page.new_treasure')}
-        </NewButton>
+        <PageActions backHref="#/">
+          <NewButton href="#/treasures/new">
+            {Translator.t('treasures_page.new_treasure')}
+          </NewButton>
+        </PageActions>
         <ul className="list-group mb-3">
           {treasures.map((treasure) => (
             <li key={treasure.id} className="list-group-item">

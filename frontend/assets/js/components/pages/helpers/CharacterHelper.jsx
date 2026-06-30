@@ -1,6 +1,7 @@
 import React from 'react';
-import BackButton from '../../elements/BackButton.jsx';
 import CardAvatar from '../../elements/CardAvatar.jsx';
+import EditButton from '../../elements/EditButton.jsx';
+import PageActions from '../../elements/PageActions.jsx';
 import CharacterInfo from '../../elements/CharacterInfo.jsx';
 import CharacterPhotos from '../../elements/CharacterPhotos.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
@@ -32,10 +33,17 @@ export default class CharacterHelper {
    * @returns {React.ReactElement} Character detail element.
    */
   static render(character, backHref) {
+    const segment = character.is_pc ? 'pcs' : 'npcs';
+
     return (
       <div className="container mt-4">
-        <BackButton href={backHref} />
-        {CharacterHelper.#renderEditButton(character)}
+        <PageActions backHref={backHref}>
+          {character.can_edit && (
+            <EditButton href={`#/games/${character.game_slug}/${segment}/${character.id}/edit`}>
+              {Translator.t('character_page.edit')}
+            </EditButton>
+          )}
+        </PageActions>
         <div className="row">
           <div className="col-md-4">
             <CardAvatar url={character.avatar_url} alt={character.name} />
@@ -86,29 +94,6 @@ export default class CharacterHelper {
         <h5>{Translator.t('character_full_page.private_description_label')}</h5>
         <div className="p-3 border rounded bg-light">{privateDescription}</div>
       </div>
-    );
-  }
-
-  /**
-   * Render the edit button when the current user can edit the character.
-   *
-   * @param {object} character - Character data object.
-   * @returns {React.ReactElement|null} Edit button element, or null.
-   */
-  static #renderEditButton(character) {
-    if (!character.can_edit) {
-      return null;
-    }
-
-    const segment = character.is_pc ? 'pcs' : 'npcs';
-
-    return (
-      <a
-        className="btn btn-secondary mt-2"
-        href={`#/games/${character.game_slug}/${segment}/${character.id}/edit`}
-      >
-        {Translator.t('character_page.edit')}
-      </a>
     );
   }
 

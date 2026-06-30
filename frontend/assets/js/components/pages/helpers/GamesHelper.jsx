@@ -1,9 +1,9 @@
 import React from 'react';
-import BackButton from '../../elements/BackButton.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import GameCard from '../../elements/GameCard.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import NewButton from '../../elements/NewButton.jsx';
+import PageActions from '../../elements/PageActions.jsx';
 import Pagination from '../../elements/Pagination.jsx';
 import Translator from '../../../i18n/Translator.js';
 
@@ -24,10 +24,11 @@ export default class GamesHelper {
   static render(games, pagination) {
     return (
       <div className="container mt-4">
-        <BackButton href="#/" />
-        <NewButton href="#/games/new">
-          {Translator.t('games_page.new_game')}
-        </NewButton>
+        <PageActions backHref="#/">
+          <NewButton href="#/games/new">
+            {Translator.t('games_page.new_game')}
+          </NewButton>
+        </PageActions>
         <div className="row">
           {games.map((game) => (
             <GameCard key={game.game_slug} game={game} />

@@ -76,6 +76,12 @@ describe('CharacterHelper', function() {
       expect(html).not.toContain('/edit"');
     });
 
+    it('does not use mt-2 class on the edit button', function() {
+      const c = { ...character, can_edit: true, is_pc: true, game_slug: 'demo', id: 7 };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).not.toContain('mt-2');
+    });
+
     it('renders the private description when present', function() {
       const c = { ...character, private_description: 'Secret DM notes.' };
       expect(renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs')))

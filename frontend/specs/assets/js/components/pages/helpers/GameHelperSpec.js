@@ -98,6 +98,12 @@ describe('GameHelper', function() {
       expect(html).not.toContain('/edit');
     });
 
+    it('renders the game name in h1 without a button inside', function() {
+      const editableGame = { ...game, can_edit: true };
+      const html = renderToStaticMarkup(GameHelper.render(editableGame));
+      expect(html).toMatch(/<h1>[^<]*Epic Quest[^<]*<\/h1>/);
+    });
+
     it('renders links when game.links contains items', function() {
       const gameWithLinks = {
         ...game,
