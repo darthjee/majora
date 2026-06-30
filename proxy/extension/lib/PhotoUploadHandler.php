@@ -74,17 +74,14 @@ class PhotoUploadHandler extends RequestHandler
     protected function processsRequest(RequestInterface $request): Response
     {
         // 1. Extract upload id from path: /uploads/:id/submit
-        try {
-            $uploadId = $this->extractUploadId($request);
-        } catch (InvalidArgumentException $e) {
-            return new Response(['httpCode' => 400, 'body' => 'Bad Request']);
-        }
-
         // 2. Validate the uploaded file
         try {
+            $uploadId = $this->extractUploadId($request);
             $file = $this->validateUploadedFile($request);
         } catch (UnprocessableUploadException $e) {
             return $this->unprocessableEntityResponse($e->getMessage(), $e->file());
+        } catch (InvalidArgumentException $e) {
+            return new Response(['httpCode' => 400, 'body' => 'Bad Request']);
         }
 
         $headers = $request->headers();
