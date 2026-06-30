@@ -81,6 +81,54 @@ class TestSettingsEmailsEnabled:
         assert Settings.emails_enabled() is False
 
 
+class TestSettingsCacheControlAnonymousMaxAge:
+    """Tests for Settings.cache_control_anonymous_max_age()."""
+
+    def test_returns_default_when_env_not_set(self, monkeypatch):
+        """Test that the default of 3600 is returned when env var is absent."""
+        monkeypatch.delenv('MAJORA_CACHE_CONTROL_ANONYMOUS_SECONDS', raising=False)
+        assert Settings.cache_control_anonymous_max_age() == 3600
+
+    def test_reads_value_from_env(self, monkeypatch):
+        """Test that the value from MAJORA_CACHE_CONTROL_ANONYMOUS_SECONDS is used."""
+        monkeypatch.setenv('MAJORA_CACHE_CONTROL_ANONYMOUS_SECONDS', '7200')
+        assert Settings.cache_control_anonymous_max_age() == 7200
+
+    def test_returns_default_when_env_is_invalid(self, monkeypatch):
+        """Test that the default is returned when the env var is not an integer."""
+        monkeypatch.setenv('MAJORA_CACHE_CONTROL_ANONYMOUS_SECONDS', 'not-a-number')
+        assert Settings.cache_control_anonymous_max_age() == 3600
+
+    def test_returns_default_when_env_is_empty(self, monkeypatch):
+        """Test that the default is returned when the env var is an empty string."""
+        monkeypatch.setenv('MAJORA_CACHE_CONTROL_ANONYMOUS_SECONDS', '')
+        assert Settings.cache_control_anonymous_max_age() == 3600
+
+
+class TestSettingsCacheControlAuthenticatedMaxAge:
+    """Tests for Settings.cache_control_authenticated_max_age()."""
+
+    def test_returns_default_when_env_not_set(self, monkeypatch):
+        """Test that the default of 10 is returned when env var is absent."""
+        monkeypatch.delenv('MAJORA_CACHE_CONTROL_AUTHENTICATED_SECONDS', raising=False)
+        assert Settings.cache_control_authenticated_max_age() == 10
+
+    def test_reads_value_from_env(self, monkeypatch):
+        """Test that the value from MAJORA_CACHE_CONTROL_AUTHENTICATED_SECONDS is used."""
+        monkeypatch.setenv('MAJORA_CACHE_CONTROL_AUTHENTICATED_SECONDS', '30')
+        assert Settings.cache_control_authenticated_max_age() == 30
+
+    def test_returns_default_when_env_is_invalid(self, monkeypatch):
+        """Test that the default is returned when the env var is not an integer."""
+        monkeypatch.setenv('MAJORA_CACHE_CONTROL_AUTHENTICATED_SECONDS', 'not-a-number')
+        assert Settings.cache_control_authenticated_max_age() == 10
+
+    def test_returns_default_when_env_is_empty(self, monkeypatch):
+        """Test that the default is returned when the env var is an empty string."""
+        monkeypatch.setenv('MAJORA_CACHE_CONTROL_AUTHENTICATED_SECONDS', '')
+        assert Settings.cache_control_authenticated_max_age() == 10
+
+
 class TestSettingsUploadExpirationMinutes:
     """Tests for Settings.upload_expiration_minutes()."""
 
