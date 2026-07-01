@@ -22,7 +22,6 @@ def populate_content_type(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     """Make Link polymorphic: replace game FK with ContentType/object_id."""
 
     dependencies = [

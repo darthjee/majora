@@ -8,7 +8,6 @@ from games.models import Character, Game, GameMaster, Player
 
 @pytest.mark.django_db
 class TestCharacter:
-
     """Tests for the Character model."""
 
     def setup_method(self):

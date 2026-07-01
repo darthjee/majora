@@ -7,7 +7,6 @@ import pytest
 
 @pytest.mark.django_db
 class TestHealthView:
-
     """Tests for the health check endpoint."""
 
     def test_returns_200(self, client):

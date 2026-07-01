@@ -6,7 +6,6 @@ from games.models import Link
 
 
 class LinkSerializer(serializers.ModelSerializer):
-
     """Serializer for game links."""
 
     class Meta:

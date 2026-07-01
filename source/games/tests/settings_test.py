@@ -5,7 +5,6 @@ from games.settings import Settings
 
 
 class TestSettingsPaginationSize:
-
     """Tests for Settings.pagination_size()."""
 
     def test_returns_default_when_env_not_set(self, monkeypatch):
@@ -30,7 +29,6 @@ class TestSettingsPaginationSize:
 
 
 class TestSettingsPasswordResetTokenExpirationMinutes:
-
     """Tests for Settings.password_reset_token_expiration_minutes()."""
 
     def test_returns_default_when_env_not_set(self, monkeypatch):
@@ -55,7 +53,6 @@ class TestSettingsPasswordResetTokenExpirationMinutes:
 
 
 class TestSettingsEmailsEnabled:
-
     """Tests for Settings.emails_enabled()."""
 
     def test_returns_false_when_env_not_set(self, monkeypatch):
@@ -85,7 +82,6 @@ class TestSettingsEmailsEnabled:
 
 
 class TestSettingsCacheControlAnonymousMaxAge:
-
     """Tests for Settings.cache_control_anonymous_max_age()."""
 
     def test_returns_default_when_env_not_set(self, monkeypatch):
@@ -110,7 +106,6 @@ class TestSettingsCacheControlAnonymousMaxAge:
 
 
 class TestSettingsCacheControlAuthenticatedMaxAge:
-
     """Tests for Settings.cache_control_authenticated_max_age()."""
 
     def test_returns_default_when_env_not_set(self, monkeypatch):
@@ -135,7 +130,6 @@ class TestSettingsCacheControlAuthenticatedMaxAge:
 
 
 class TestSettingsUploadExpirationMinutes:
-
     """Tests for Settings.upload_expiration_minutes()."""
 
     def test_returns_default_when_env_not_set(self, monkeypatch):

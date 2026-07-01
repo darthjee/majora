@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     """Add npc BooleanField to Character and backfill from player_id."""
 
     dependencies = [

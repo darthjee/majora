@@ -11,7 +11,6 @@ from games.models import Character, Game, GameMaster, Photo, Player
 
 @pytest.mark.django_db
 class TestGamePcsView:
-
     """Tests for the game PCs list endpoint."""
 
     def setup_method(self):
@@ -81,7 +80,6 @@ class TestGamePcsView:
 
 @pytest.mark.django_db
 class TestGameNpcsView:
-
     """Tests for the game NPCs list endpoint."""
 
     def setup_method(self):
@@ -159,7 +157,6 @@ class TestGameNpcsView:
 
 @pytest.mark.django_db
 class TestGameNpcDetailView:
-
     """Tests for the NPC detail endpoint."""
 
     def setup_method(self):
@@ -256,7 +253,6 @@ class TestGameNpcDetailView:
 
 @pytest.mark.django_db
 class TestGameNpcUpdateView:
-
     """Tests for the NPC update (PATCH) endpoint."""
 
     def setup_method(self):
@@ -396,7 +392,6 @@ class TestGameNpcUpdateView:
 
 @pytest.mark.django_db
 class TestGamePcDetailView:
-
     """Tests for the PC detail endpoint."""
 
     def setup_method(self):
@@ -498,7 +493,6 @@ class TestGamePcDetailView:
 
 @pytest.mark.django_db
 class TestGamePcUpdateView:
-
     """Tests for the PC update (PATCH) endpoint."""
 
     def setup_method(self):
@@ -634,7 +628,6 @@ class TestGamePcUpdateView:
 
 @pytest.mark.django_db
 class TestGameNpcFullView:
-
     """Tests for the NPC full detail endpoint."""
 
     def setup_method(self):
@@ -723,7 +716,6 @@ class TestGameNpcFullView:
 
 @pytest.mark.django_db
 class TestGamePcFullView:
-
     """Tests for the PC full detail endpoint."""
 
     def setup_method(self):
@@ -814,7 +806,6 @@ class TestGamePcFullView:
 
 @pytest.mark.django_db
 class TestGamePcAccessView:
-
     """Tests for the PC access endpoint."""
 
     def setup_method(self):
@@ -999,7 +990,6 @@ class TestGamePcAccessView:
 
 @pytest.mark.django_db
 class TestGameNpcAccessView:
-
     """Tests for the NPC access endpoint."""
 
     def setup_method(self):
@@ -1171,7 +1161,6 @@ class TestGameNpcAccessView:
 
 @pytest.mark.django_db
 class TestGameNpcsHiddenFilter:
-
     """Tests that game_npcs excludes hidden NPCs from the public listing."""
 
     def setup_method(self):
@@ -1206,7 +1195,6 @@ class TestGameNpcsHiddenFilter:
 
 @pytest.mark.django_db
 class TestGameNpcDetailHidden:
-
     """Tests for the hidden-NPC visibility gate in game_npc_detail."""
 
     def setup_method(self):
@@ -1267,7 +1255,6 @@ class TestGameNpcDetailHidden:
 
 @pytest.mark.django_db
 class TestGameNpcsAllView:
-
     """Tests for the game_npcs_all endpoint (DM/superuser only, includes hidden NPCs)."""
 
     def setup_method(self):

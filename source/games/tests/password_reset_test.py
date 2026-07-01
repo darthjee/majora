@@ -17,7 +17,6 @@ INVALID_TOKEN_RESPONSE = {'error': 'Invalid or expired token'}
 
 @pytest.mark.django_db
 class TestRecoverView:
-
     """Tests for the recover endpoint."""
 
     def setup_method(self):
@@ -77,7 +76,6 @@ class TestRecoverView:
 
 @pytest.mark.django_db
 class TestResetPasswordView:
-
     """Tests for the reset-password endpoint."""
 
     def setup_method(self):

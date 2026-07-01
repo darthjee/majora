@@ -12,7 +12,6 @@ from games.models import Game, GameMaster, Link
 
 @pytest.mark.django_db
 class TestGamesListView:
-
     """Tests for the games list endpoint."""
 
     def test_returns_empty_list(self, client):
@@ -89,7 +88,6 @@ class TestGamesListView:
 
 @pytest.mark.django_db
 class TestGamesCreateView:
-
     """Tests for the POST /games.json endpoint."""
 
     def setup_method(self):
@@ -185,7 +183,6 @@ class TestGamesCreateView:
 
 @pytest.mark.django_db
 class TestGameDetailView:
-
     """Tests for the game detail endpoint."""
 
     def setup_method(self):
@@ -233,7 +230,6 @@ class TestGameDetailView:
 
 @pytest.mark.django_db
 class TestGameDetailPatchView:
-
     """Tests for the PATCH game detail endpoint."""
 
     def setup_method(self):
@@ -329,7 +325,6 @@ class TestGameDetailPatchView:
 
 @pytest.mark.django_db
 class TestGameAccessView:
-
     """Tests for the game access endpoint."""
 
     def setup_method(self):

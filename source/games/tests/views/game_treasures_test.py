@@ -10,7 +10,6 @@ from games.models import Game, Treasure
 
 @pytest.mark.django_db
 class TestGameTreasuresView:
-
     """Tests for the GET /games/<slug>/treasures.json endpoint."""
 
     def setup_method(self):
