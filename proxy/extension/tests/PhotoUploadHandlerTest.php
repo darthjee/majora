@@ -121,6 +121,11 @@ class PhotoUploadHandlerTest extends TestCase
         $response = $handler->handleRequest($request);
 
         $this->assertSame(200, $response->httpCode());
+        $this->assertContains('Content-Type: application/json', $response->headers());
+        $this->assertSame(
+            ['file_path' => $this->photosDir . '/42/photo.jpg'],
+            json_decode($response->body(), true)
+        );
 
         unlink($tmpFile);
     }
@@ -170,6 +175,10 @@ class PhotoUploadHandlerTest extends TestCase
         $response = $handler->handleRequest($request);
 
         $this->assertSame(200, $response->httpCode());
+        $this->assertSame(
+            ['file_path' => $this->photosDir . '/7/img.png'],
+            json_decode($response->body(), true)
+        );
 
         unlink($tmpFile);
     }
