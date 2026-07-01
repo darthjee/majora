@@ -12,6 +12,7 @@ TEST_PASSWORD = get_random_string(20)
 
 @pytest.mark.django_db
 class TestStatusView:
+
     """Tests for the status endpoint."""
 
     def test_returns_logged_in_for_valid_token(self, client):
@@ -120,6 +121,7 @@ class TestStatusView:
 
 @pytest.mark.django_db
 class TestStatusViewCacheControl:
+
     """Cache-Control header for the status endpoint."""
 
     def test_unauthenticated_status_returns_no_store(self, client):

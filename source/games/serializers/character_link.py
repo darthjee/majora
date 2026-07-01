@@ -6,6 +6,7 @@ from games.models import CharacterLink
 
 
 class CharacterLinkSerializer(serializers.ModelSerializer):
+
     """Serializer for character links."""
 
     class Meta:

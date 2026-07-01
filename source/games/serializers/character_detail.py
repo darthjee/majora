@@ -8,6 +8,7 @@ from games.serializers.photo import PhotoSerializer
 
 
 class CharacterDetailSerializer(serializers.ModelSerializer):
+
     """Serializer for character detail view including photos and links."""
 
     photos = PhotoSerializer(many=True, read_only=True)

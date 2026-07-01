@@ -4,6 +4,7 @@ from rest_framework.response import Response
 
 
 class _EditPermission:
+
     """Encapsulate the authentication/authorization checks for editing an object."""
 
     @classmethod
@@ -32,12 +33,15 @@ class _EditPermission:
 
 
 class GameEditPermission(_EditPermission):
+
     """Encapsulate the authentication/authorization checks for editing a game."""
 
 
 class CharacterEditPermission(_EditPermission):
+
     """Encapsulate the authentication/authorization checks for editing a character."""
 
 
 class TreasureEditPermission(_EditPermission):
+
     """Encapsulate the authentication/authorization checks for editing a treasure."""

@@ -9,6 +9,7 @@ from games.models import Game
 
 @pytest.mark.django_db
 class TestCacheControlMiddlewareAnonymous:
+
     """Cache-Control header for unauthenticated requests."""
 
     def test_adds_public_cache_control_header(self, client):
@@ -28,6 +29,7 @@ class TestCacheControlMiddlewareAnonymous:
 
 @pytest.mark.django_db
 class TestCacheControlMiddlewareAuthenticated:
+
     """Cache-Control header for authenticated requests."""
 
     def test_adds_private_cache_control_header(self, client):
@@ -56,6 +58,7 @@ class TestCacheControlMiddlewareAuthenticated:
 
 @pytest.mark.django_db
 class TestCacheControlMiddlewareSkipCache:
+
     """Middleware sets Cache-Control: no-store for responses with X-Skip-Cache: true."""
 
     def test_no_store_cache_control_when_x_skip_cache_present(self, client):
@@ -75,6 +78,7 @@ class TestCacheControlMiddlewareSkipCache:
 
 @pytest.mark.django_db
 class TestCacheControlMiddlewareHealthCheck:
+
     """Middleware skips the health check endpoint."""
 
     def test_no_cache_control_for_health_endpoint(self, client):
@@ -86,6 +90,7 @@ class TestCacheControlMiddlewareHealthCheck:
 
 @pytest.mark.django_db
 class TestCacheControlMiddlewareErrorResponses:
+
     """Middleware sets no-store on non-2xx responses."""
 
     def test_401_response_gets_no_store(self, client):

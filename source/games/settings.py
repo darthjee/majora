@@ -4,6 +4,7 @@ import os
 
 
 class Settings:
+
     """Reads configuration from environment variables with sensible defaults."""
 
     @staticmethod

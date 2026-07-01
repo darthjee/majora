@@ -12,6 +12,7 @@ TEST_PASSWORD = get_random_string(20)
 
 @pytest.mark.django_db
 class TestLoginView:
+
     """Tests for the login endpoint."""
 
     def test_returns_token_for_valid_credentials(self, client):

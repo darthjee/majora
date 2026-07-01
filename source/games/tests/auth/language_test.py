@@ -12,6 +12,7 @@ TEST_PASSWORD = get_random_string(20)
 
 @pytest.mark.django_db
 class TestLanguageView:
+
     """Tests for the language preference endpoint."""
 
     def test_updates_favorite_language(self, client):

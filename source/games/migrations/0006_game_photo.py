@@ -4,6 +4,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     """Add photo URL field to Game."""
 
     dependencies = [

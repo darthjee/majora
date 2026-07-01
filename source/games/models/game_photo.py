@@ -6,6 +6,7 @@ from games.models.game import Game
 
 
 class GamePhoto(models.Model):
+
     """Model representing a photo associated with a game."""
 
     url = models.URLField(blank=True, default='')

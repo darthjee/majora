@@ -13,6 +13,7 @@ from games.settings import Settings
 
 
 class Upload(models.Model):
+
     """Model tracking the lifecycle of a game photo upload."""
 
     STATUS_PENDING = 'pending'

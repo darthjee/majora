@@ -9,6 +9,7 @@ from games.models import Game, GamePhoto, Upload
 
 @pytest.mark.django_db
 class TestUpload:
+
     """Tests for the Upload model."""
 
     def setup_method(self):

@@ -8,6 +8,7 @@ from games.models import UserProfile
 
 @pytest.mark.django_db
 class TestUserProfile:
+
     """Tests for the UserProfile model."""
 
     def setup_method(self):

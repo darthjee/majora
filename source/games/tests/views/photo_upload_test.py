@@ -11,6 +11,7 @@ from games.models import Game, GameMaster, GamePhoto, Upload
 
 @pytest.mark.django_db
 class TestPhotoUploadView:
+
     """Tests for POST /games/<game_slug>/photo_upload.json."""
 
     def setup_method(self):

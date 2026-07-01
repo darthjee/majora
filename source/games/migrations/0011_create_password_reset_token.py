@@ -6,6 +6,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     """Create the PasswordResetToken model used by the password recovery flow."""
 
     dependencies = [

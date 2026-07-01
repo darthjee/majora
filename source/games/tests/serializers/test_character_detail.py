@@ -10,6 +10,7 @@ from games.serializers import CharacterDetailSerializer
 
 @pytest.mark.django_db
 class TestCharacterDetailSerializer:
+
     """Tests for the CharacterDetailSerializer."""
 
     def setup_method(self):
