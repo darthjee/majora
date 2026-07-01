@@ -132,8 +132,8 @@ class PhotoUploadHandlerTest extends TestCase
 
     /**
      * All incoming request headers are forwarded to both backend PATCH calls,
-     * with Content-Type overridden to application/json regardless of what the
-     * client sent.
+     * with Content-Type overridden to application/json and Host overridden to
+     * the backend's own host, regardless of what the client sent.
      */
     public function testAllRequestHeadersAreForwardedToBackend(): void
     {
@@ -157,6 +157,7 @@ class PhotoUploadHandlerTest extends TestCase
             'X-Upload-Token' => 'up-tok',
             'X-Trace-Id'     => 'trace-abc',
             'Content-Type'   => 'application/json',
+            'Host'           => 'backend',
         ];
 
         $httpClient->expects($this->exactly(2))
