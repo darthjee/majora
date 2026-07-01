@@ -1,3 +1,4 @@
 <?php
 
 $backendHost = 'https://localhost:3030/';
+$photosPath = '/var/www/html';

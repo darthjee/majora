@@ -18,12 +18,6 @@ class PhotoUploadHandlerTest extends TestCase
     /** @var string Temporary directory used as the photos base path */
     private string $photosDir;
 
-    /** @var string|null Saved value of $_SERVER['DOCUMENT_ROOT'] before any test modifies it */
-    private ?string $savedDocumentRoot = null;
-
-    /** @var bool Whether $_SERVER['DOCUMENT_ROOT'] was set before the save */
-    private bool $documentRootWasSet = false;
-
     protected function setUp(): void
     {
         $this->photosDir = sys_get_temp_dir() . '/test_photos_' . uniqid();
@@ -38,28 +32,6 @@ class PhotoUploadHandlerTest extends TestCase
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
-
-    /**
-     * Saves the current value (or absence) of $_SERVER['DOCUMENT_ROOT'] so that
-     * restoreDocumentRoot() can put it back after a test modifies it.
-     */
-    private function saveDocumentRoot(): void
-    {
-        $this->documentRootWasSet = isset($_SERVER['DOCUMENT_ROOT']);
-        $this->savedDocumentRoot  = $_SERVER['DOCUMENT_ROOT'] ?? null;
-    }
-
-    /**
-     * Restores $_SERVER['DOCUMENT_ROOT'] to the state captured by saveDocumentRoot().
-     */
-    private function restoreDocumentRoot(): void
-    {
-        if ($this->documentRootWasSet) {
-            $_SERVER['DOCUMENT_ROOT'] = $this->savedDocumentRoot;
-        } else {
-            unset($_SERVER['DOCUMENT_ROOT']);
-        }
-    }
 
     /**
      * Returns the value of the private $photosBasePath property of $handler via
@@ -340,63 +312,19 @@ class PhotoUploadHandlerTest extends TestCase
     }
 
     /**
-     * build() sets photosBasePath to DOCUMENT_ROOT when DOCUMENT_ROOT
-     * is present, so photos always land in the same directory as the
-     * deployed index.
+     * build() sets photosBasePath from the 'photos_path' configuration
+     * parameter.
      */
-    public function testBuildSetsPhotosBasePathFromDocumentRoot(): void
+    public function testBuildSetsPhotosBasePathFromParams(): void
     {
-        $this->saveDocumentRoot();
-        $_SERVER['DOCUMENT_ROOT'] = $this->photosDir;
+        $handler = PhotoUploadHandler::build([
+            'host'        => 'http://backend:8080',
+            'photos_path' => $this->photosDir,
+        ]);
 
-        try {
-            $handler = PhotoUploadHandler::build(['host' => 'http://backend:8080']);
-
-            $this->assertSame(
-                $this->photosDir,
-                $this->photosBasePathOf($handler)
-            );
-        } finally {
-            $this->restoreDocumentRoot();
-        }
-    }
-
-    /**
-     * build() strips a trailing slash from DOCUMENT_ROOT, so the path is
-     * always clean regardless of how the server reports it.
-     */
-    public function testBuildStripsTrailingSlashFromDocumentRoot(): void
-    {
-        $this->saveDocumentRoot();
-        $_SERVER['DOCUMENT_ROOT'] = $this->photosDir . '/';
-
-        try {
-            $handler = PhotoUploadHandler::build(['host' => 'http://backend:8080']);
-
-            $this->assertSame(
-                $this->photosDir,
-                $this->photosBasePathOf($handler)
-            );
-        } finally {
-            $this->restoreDocumentRoot();
-        }
-    }
-
-    /**
-     * build() falls back to /var/www/html when DOCUMENT_ROOT is absent
-     * (e.g. during CLI test runs where no web server is present).
-     */
-    public function testBuildFallsBackToDefaultWhenDocumentRootAbsent(): void
-    {
-        $this->saveDocumentRoot();
-        unset($_SERVER['DOCUMENT_ROOT']);
-
-        try {
-            $handler = PhotoUploadHandler::build(['host' => 'http://backend:8080']);
-
-            $this->assertSame('/var/www/html', $this->photosBasePathOf($handler));
-        } finally {
-            $this->restoreDocumentRoot();
-        }
+        $this->assertSame(
+            $this->photosDir,
+            $this->photosBasePathOf($handler)
+        );
     }
 }
