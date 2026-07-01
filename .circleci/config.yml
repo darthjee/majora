@@ -277,8 +277,8 @@ jobs:
           name: Upload proxy configuration
           command: SOURCE=proxy/prod_configuration/ DEPLOY_PATH=configuration/ bin/deploy_frontend.sh upload
       - run:
-          name: Setup hosts
-          command: TARGET=configuration/hosts.php DEPLOY_PATH=configuration/ bin/deploy_frontend.sh copy_files
+          name: Setup locals
+          command: TARGET=configuration/locals.php DEPLOY_PATH=configuration/ bin/deploy_frontend.sh copy_files
 
   upload_extension:
     docker:

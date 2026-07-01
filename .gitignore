@@ -37,7 +37,7 @@ docker_volumes/photos/
 .env.production
 
 # Production proxy host configuration (set only on production servers)
-proxy/prod_configuration/hosts.php
+proxy/prod_configuration/locals.php
 
 # Composer vendor directory for proxy extension (installed locally before running tests)
 proxy/extension/vendor/
