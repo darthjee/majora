@@ -187,11 +187,12 @@ class PhotoUploadHandler extends RequestHandler
     {
         $destination = $this->photosBasePath . '/' . $filePath;
         $dir = dirname($destination);
+
+        Logger::error('[upload] - saving photo file to: ' . $destination);
+
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
-
-        Logger::info('[upload] - saving photo file to: ' . $destination);
 
         file_put_contents($destination, file_get_contents($file['tmp_name']));
     }
