@@ -340,8 +340,9 @@ class PhotoUploadHandlerTest extends TestCase
     }
 
     /**
-     * build() sets photosBasePath to <DOCUMENT_ROOT>/photos when DOCUMENT_ROOT
-     * is present, so photos always land relative to the actual Tent installation.
+     * build() sets photosBasePath to DOCUMENT_ROOT when DOCUMENT_ROOT
+     * is present, so photos always land in the same directory as the
+     * deployed index.
      */
     public function testBuildSetsPhotosBasePathFromDocumentRoot(): void
     {
@@ -352,7 +353,7 @@ class PhotoUploadHandlerTest extends TestCase
             $handler = PhotoUploadHandler::build(['host' => 'http://backend:8080']);
 
             $this->assertSame(
-                $this->photosDir . '/photos',
+                $this->photosDir,
                 $this->photosBasePathOf($handler)
             );
         } finally {
@@ -361,8 +362,8 @@ class PhotoUploadHandlerTest extends TestCase
     }
 
     /**
-     * build() strips a trailing slash from DOCUMENT_ROOT before appending /photos,
-     * so the path is always clean regardless of how the server reports it.
+     * build() strips a trailing slash from DOCUMENT_ROOT, so the path is
+     * always clean regardless of how the server reports it.
      */
     public function testBuildStripsTrailingSlashFromDocumentRoot(): void
     {
@@ -373,7 +374,7 @@ class PhotoUploadHandlerTest extends TestCase
             $handler = PhotoUploadHandler::build(['host' => 'http://backend:8080']);
 
             $this->assertSame(
-                $this->photosDir . '/photos',
+                $this->photosDir,
                 $this->photosBasePathOf($handler)
             );
         } finally {
@@ -382,7 +383,7 @@ class PhotoUploadHandlerTest extends TestCase
     }
 
     /**
-     * build() falls back to /var/www/html/photos when DOCUMENT_ROOT is absent
+     * build() falls back to /var/www/html when DOCUMENT_ROOT is absent
      * (e.g. during CLI test runs where no web server is present).
      */
     public function testBuildFallsBackToDefaultWhenDocumentRootAbsent(): void
@@ -393,7 +394,7 @@ class PhotoUploadHandlerTest extends TestCase
         try {
             $handler = PhotoUploadHandler::build(['host' => 'http://backend:8080']);
 
-            $this->assertSame('/var/www/html/photos', $this->photosBasePathOf($handler));
+            $this->assertSame('/var/www/html', $this->photosBasePathOf($handler));
         } finally {
             $this->restoreDocumentRoot();
         }
