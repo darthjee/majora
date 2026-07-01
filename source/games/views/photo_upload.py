@@ -12,6 +12,7 @@ from ..authentication import CookieTokenAuthentication
 from ..models import Game, GamePhoto, Upload
 from ..permissions import GameEditPermission
 from ..serializers import PhotoUploadSerializer
+from .common import validated_or_error
 
 
 @api_view(['POST'])
@@ -26,8 +27,9 @@ def photo_upload(request, game_slug):
         return error_response
 
     serializer = PhotoUploadSerializer(data=request.data)
-    if not serializer.is_valid():
-        return Response({'errors': serializer.errors}, status=400)
+    error_response = validated_or_error(serializer)
+    if error_response:
+        return error_response
 
     filename = serializer.validated_data['filename']
     file_path = _build_file_path(game_slug, filename)
