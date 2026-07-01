@@ -5,7 +5,7 @@ use Tent\Configuration;
 Configuration::buildRule([
     'handler' => [
         'class'       => 'Tent\RequestHandlers\PhotoUploadHandler',
-        'host'        => 'http://backend:8080',
+        'host'        => $backendHost,
         'photos_path' => $photosPath,
     ],
     'matchers' => [
