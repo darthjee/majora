@@ -73,7 +73,7 @@ Django project package: `settings.py`, root `urls.py`, `wsgi.py`. Entry point fo
 The core Django app. Contains all domain models, REST views, and serializers for RPG campaign data.
 
 - `models.py` — Domain models: `Game`, `Player`, `Character`, `Photo`, `Link`.
-- `views/` — Function-based API views using `@api_view` (`games.py`, `characters.py`).
+- `views/` — Function-based API views using `@api_view`, one file per view/route, grouped into per-resource packages (`characters/`, `games/`, `treasures/`, `game_masters/`, `auth/`, `password_reset/`); shared auth/validation/pagination/access helpers live in `views/common.py`.
 - `serializers/` — DRF serializers (one class per file): `game_access.py` (`GameAccessSerializer`), `character_access.py` (`CharacterAccessSerializer`), `pc_access.py` (`PcAccessSerializer`), plus list/detail/update serializers per resource.
 - `paginator.py` — Custom pagination for list endpoints. See [pagination.md](pagination.md).
 - `urls.py` — URL routing for the games app.
