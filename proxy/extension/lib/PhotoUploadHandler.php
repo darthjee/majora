@@ -62,7 +62,8 @@ class PhotoUploadHandler extends RequestHandler
      * 3. Calls PATCH /uploads/:id.json with status=uploading; reads file_path from response.
      * 4. Writes the uploaded file to <photosBasePath>/<file_path>.
      * 5. Calls PATCH /uploads/:id.json with status=uploaded.
-     * 6. Returns 200 on success, or forwards the error code on failure.
+     * 6. Returns 200 with the saved file_path as JSON on success, or forwards
+     *    the error code on failure.
      *
      * @param RequestInterface $request The incoming HTTP request.
      * @return Response
@@ -81,7 +82,7 @@ class PhotoUploadHandler extends RequestHandler
             $headers = $request->headers();
             $filePath = $this->requestUploadingStatus($uploadId, $headers);
 
-            $this->writePhotoFile($filePath, $file);
+            $destination = $this->writePhotoFile($filePath, $file);
 
             $this->requestUploadedStatus($uploadId, $headers);
         } catch (UnprocessableUploadException $e) {
@@ -92,7 +93,11 @@ class PhotoUploadHandler extends RequestHandler
             return new Response(['httpCode' => 400, 'body' => 'Bad Request']);
         }
 
-        return new Response(['httpCode' => 200, 'body' => '']);
+        return new Response([
+            'httpCode' => 200,
+            'headers'  => ['Content-Type: application/json'],
+            'body'     => json_encode(['file_path' => $destination]),
+        ]);
     }
 
     /**
@@ -181,9 +186,9 @@ class PhotoUploadHandler extends RequestHandler
      *
      * @param string $filePath The file_path returned by the backend.
      * @param array  $file     The raw $_FILES entry for the uploaded file.
-     * @return void
+     * @return string The full destination path the file was written to.
      */
-    private function writePhotoFile(string $filePath, array $file): void
+    private function writePhotoFile(string $filePath, array $file): string
     {
         $destination = $this->photosBasePath . '/' . $filePath;
         $dir = dirname($destination);
@@ -195,6 +200,8 @@ class PhotoUploadHandler extends RequestHandler
         }
 
         file_put_contents($destination, file_get_contents($file['tmp_name']));
+
+        return $destination;
     }
 
     /**
