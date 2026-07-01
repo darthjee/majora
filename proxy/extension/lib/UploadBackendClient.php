@@ -36,12 +36,16 @@ class UploadBackendClient
      * @param string $uploadId The upload id.
      * @param string $status   The new status (e.g. 'uploading', 'uploaded').
      * @param array  $headers  Incoming request headers to forward; Content-Type
-     *                         is overridden to application/json.
+     *                         is overridden to application/json and Host is
+     *                         overridden to the backend's own host.
      * @return array{body: string, httpCode: int, headers: string[]}
      */
     public function updateStatus(string $uploadId, string $status, array $headers): array
     {
-        $backendHeaders = array_merge($headers, ['Content-Type' => 'application/json']);
+        $backendHeaders = array_merge($headers, [
+            'Content-Type' => 'application/json',
+            'Host'         => $this->backendHost(),
+        ]);
 
         return $this->httpClient->request(
             'PATCH',
@@ -49,5 +53,24 @@ class UploadBackendClient
             $backendHeaders,
             json_encode(['status' => $status])
         );
+    }
+
+    /**
+     * Derives the bare host (no scheme, no trailing path) the backend actually
+     * expects in the Host header.
+     *
+     * The incoming request's original Host header (e.g. the browser-facing
+     * `moria.ffavs.net`) must never be forwarded as-is when the backend lives
+     * behind a different host (e.g. `moria-api.ffavs.net`) — edge providers
+     * like Cloudflare reject that mismatch with a 403 before the request ever
+     * reaches the application. This mirrors what Tent's
+     * DefaultProxyRequestHandler already does for every other backend-proxied
+     * route via RenameHeaderMiddleware + SetHeadersMiddleware.
+     *
+     * @return string The backend host, e.g. 'moria-api.ffavs.net'.
+     */
+    private function backendHost(): string
+    {
+        return parse_url($this->host, PHP_URL_HOST) ?? $this->host;
     }
 }
