@@ -13,6 +13,7 @@ TEST_PASSWORD = get_random_string(20)
 
 @pytest.mark.django_db
 class TestLoginView:
+
     """Tests for the login endpoint."""
 
     def test_returns_token_for_valid_credentials(self, client):
@@ -52,6 +53,7 @@ class TestLoginView:
 
 @pytest.mark.django_db
 class TestRegisterView:
+
     """Tests for the register endpoint."""
 
     def setup_method(self):
@@ -177,6 +179,7 @@ class TestRegisterView:
 
 @pytest.mark.django_db
 class TestLogoutView:
+
     """Tests for the logout endpoint."""
 
     def test_revokes_token(self, client):
@@ -247,6 +250,7 @@ class TestLogoutView:
 
 @pytest.mark.django_db
 class TestStatusView:
+
     """Tests for the status endpoint."""
 
     def test_returns_logged_in_for_valid_token(self, client):
@@ -355,6 +359,7 @@ class TestStatusView:
 
 @pytest.mark.django_db
 class TestTestEmailView:
+
     """Tests for the test-email endpoint."""
 
     def setup_method(self):
@@ -423,6 +428,7 @@ class TestTestEmailView:
 
 @pytest.mark.django_db
 class TestLanguageView:
+
     """Tests for the language preference endpoint."""
 
     def test_updates_favorite_language(self, client):
@@ -472,6 +478,7 @@ class TestLanguageView:
 
 @pytest.mark.django_db
 class TestStatusViewCacheControl:
+
     """Cache-Control header for the status endpoint."""
 
     def test_unauthenticated_status_returns_no_store(self, client):

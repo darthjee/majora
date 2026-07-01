@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 
 class GameAccessSerializer(serializers.Serializer):
+
     """Serializes access context fields for a game access response."""
 
     @property

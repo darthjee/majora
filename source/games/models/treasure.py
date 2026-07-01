@@ -4,6 +4,7 @@ from django.db import models
 
 
 class Treasure(models.Model):
+
     """Model representing a treasure item in an RPG campaign."""
 
     name = models.CharField(max_length=200)

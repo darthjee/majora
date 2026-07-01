@@ -11,6 +11,7 @@ from games.models import Game, GameMaster
 
 @pytest.mark.django_db
 class TestGameMastersListView:
+
     """Tests for the game masters list endpoint."""
 
     def setup_method(self):
@@ -90,6 +91,7 @@ class TestGameMastersListView:
 
 @pytest.mark.django_db
 class TestGameMasterDetailView:
+
     """Tests for the game master detail (DELETE) endpoint."""
 
     def setup_method(self):

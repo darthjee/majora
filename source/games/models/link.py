@@ -6,6 +6,7 @@ from django.db import models
 
 
 class Link(models.Model):
+
     """Model representing an external link related to any game object."""
 
     text = models.CharField(max_length=200)

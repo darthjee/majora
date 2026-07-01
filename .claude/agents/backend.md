@@ -83,7 +83,8 @@ docker-compose run --rm majora_tests /bin/bash
 ## Code conventions
 
 - **Line length**: 100 characters (enforced by ruff)
-- **ruff rules**: E, F, W, I (pycodestyle, pyflakes, warnings, isort)
+- **ruff rules**: E, F, W, I, D203 (pycodestyle, pyflakes, warnings, isort, one-blank-line-before-class-docstring)
+- **Class docstrings**: separated from the `class` line by a blank line (PEP 257 / ruff `D203`)
 - **Views**: thin — business logic belongs in models or serializers, not views
 - **Docstrings**: required on all classes and public methods (one-line is fine)
 - **Private methods**: prefixed with `_` (single underscore)
@@ -100,6 +101,7 @@ Example structure:
 ```python
 @pytest.mark.django_db
 class TestGame:
+
     """Tests for the Game model."""
 
     def setup_method(self):

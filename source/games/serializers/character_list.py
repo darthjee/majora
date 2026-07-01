@@ -6,6 +6,7 @@ from games.models import Character
 
 
 class CharacterListSerializer(serializers.ModelSerializer):
+
     """Serializer for character list items."""
 
     game_slug = serializers.ReadOnlyField(source='game.game_slug')

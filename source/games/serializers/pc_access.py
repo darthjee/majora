@@ -4,6 +4,7 @@ from games.serializers.character_access import CharacterAccessSerializer
 
 
 class PcAccessSerializer(CharacterAccessSerializer):
+
     """Serializes access context fields for a PC access response, including is_owner."""
 
     def to_representation(self, character):

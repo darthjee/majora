@@ -6,6 +6,7 @@ from django.utils.text import slugify
 
 
 class Game(models.Model):
+
     """Model representing an RPG game/campaign."""
 
     name = models.CharField(max_length=200)
