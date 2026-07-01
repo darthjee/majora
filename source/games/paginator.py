@@ -6,6 +6,7 @@ from .settings import Settings
 
 
 class Paginator:
+
     """Paginates a queryset based on query params from the request."""
 
     def __init__(self, request, queryset):

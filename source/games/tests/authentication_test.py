@@ -10,6 +10,7 @@ from games.authentication import CookieTokenAuthentication
 
 @pytest.mark.django_db
 class TestCookieTokenAuthentication:
+
     """Tests for CookieTokenAuthentication."""
 
     def setup_method(self):

@@ -8,6 +8,7 @@ ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
 
 
 class PhotoUploadSerializer(serializers.Serializer):
+
     """Validates the filename submitted to the photo upload init endpoint."""
 
     filename = serializers.CharField(max_length=255, allow_blank=False)
