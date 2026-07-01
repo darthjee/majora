@@ -19,7 +19,7 @@ use Tent\Models\Response;
  *
  * Validates the uploaded file, orchestrates two backend PATCH calls to advance
  * the Upload state machine (uploading → uploaded), and writes the file to the
- * photos volume at <DOCUMENT_ROOT>/<file_path>.
+ * photos volume at <photos_path>/<file_path>.
  */
 class PhotoUploadHandler extends RequestHandler
 {
@@ -46,21 +46,12 @@ class PhotoUploadHandler extends RequestHandler
     /**
      * Builds a PhotoUploadHandler from configuration parameters.
      *
-     * The photos base path is derived at runtime from the web server's document
-     * root ($_SERVER['DOCUMENT_ROOT']), so that photos are always written into
-     * the same directory as the deployed index, regardless of the host
-     * filesystem layout. Falls back to '/var/www/html' when DOCUMENT_ROOT is
-     * not set (e.g. during CLI test runs).
-     *
-     * @param array $params Must contain 'host' (string).
+     * @param array $params Must contain 'host' (string) and 'photos_path' (string).
      * @return self
      */
     public static function build(array $params): self
     {
-        $documentRoot   = rtrim($_SERVER['DOCUMENT_ROOT'] ?? '', '/');
-        $photosBasePath = $documentRoot !== '' ? $documentRoot : '/var/www/html';
-
-        return new self($params['host'] ?? '', null, $photosBasePath);
+        return new self($params['host'] ?? '', null, $params['photos_path'] ?? '');
     }
 
     /**
