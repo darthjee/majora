@@ -6,6 +6,7 @@ from games.models import Game
 
 
 class GameListSerializer(serializers.ModelSerializer):
+
     """Serializer for game list items."""
 
     class Meta:

@@ -100,6 +100,7 @@ Example structure:
 ```python
 @pytest.mark.django_db
 class TestGame:
+
     """Tests for the Game model."""
 
     def setup_method(self):

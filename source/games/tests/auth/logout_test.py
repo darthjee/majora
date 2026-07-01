@@ -10,6 +10,7 @@ TEST_PASSWORD = get_random_string(20)
 
 @pytest.mark.django_db
 class TestLogoutView:
+
     """Tests for the logout endpoint."""
 
     def test_revokes_token(self, client):

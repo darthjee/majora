@@ -8,6 +8,7 @@ from games.serializers import GameCreateSerializer
 
 @pytest.mark.django_db
 class TestGameCreateSerializer:
+
     """Tests for GameCreateSerializer."""
 
     def test_valid_name_only(self):

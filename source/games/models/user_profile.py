@@ -5,6 +5,7 @@ from django.db import models
 
 
 class UserProfile(models.Model):
+
     """Model representing a user's account-level preferences."""
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')

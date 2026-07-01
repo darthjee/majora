@@ -6,6 +6,7 @@ from games.models import Treasure
 
 
 class TreasureCreateSerializer(serializers.ModelSerializer):
+
     """Serializer for creating a new treasure."""
 
     class Meta:

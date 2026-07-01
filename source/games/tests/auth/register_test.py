@@ -13,6 +13,7 @@ TEST_PASSWORD = get_random_string(20)
 
 @pytest.mark.django_db
 class TestRegisterView:
+
     """Tests for the register endpoint."""
 
     def setup_method(self):

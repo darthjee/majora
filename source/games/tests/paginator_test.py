@@ -20,6 +20,7 @@ def _make_request(page=None, per_page=None):
 
 @pytest.mark.django_db
 class TestPaginatorPaginate:
+
     """Tests for Paginator.paginate()."""
 
     def setup_method(self):

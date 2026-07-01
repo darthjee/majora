@@ -11,6 +11,7 @@ from games.models import Character, Game, GameMaster, Player
 
 @pytest.mark.django_db
 class TestGameNpcsAllView:
+
     """Tests for the game_npcs_all endpoint (DM/superuser only, includes hidden NPCs)."""
 
     def setup_method(self):

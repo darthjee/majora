@@ -14,6 +14,7 @@ TEST_PASSWORD = get_random_string(20)
 
 @pytest.mark.django_db
 class TestRecoverView:
+
     """Tests for the recover endpoint."""
 
     def setup_method(self):

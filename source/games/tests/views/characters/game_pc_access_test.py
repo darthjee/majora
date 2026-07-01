@@ -11,6 +11,7 @@ from games.models import Character, Game, GameMaster, Player
 
 @pytest.mark.django_db
 class TestGamePcAccessView:
+
     """Tests for the PC access endpoint."""
 
     def setup_method(self):

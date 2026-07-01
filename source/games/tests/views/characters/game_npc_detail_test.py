@@ -11,6 +11,7 @@ from games.models import Character, Game, GameMaster, Photo, Player
 
 @pytest.mark.django_db
 class TestGameNpcDetailView:
+
     """Tests for the NPC detail endpoint."""
 
     def setup_method(self):
@@ -107,6 +108,7 @@ class TestGameNpcDetailView:
 
 @pytest.mark.django_db
 class TestGameNpcUpdateView:
+
     """Tests for the NPC update (PATCH) endpoint."""
 
     def setup_method(self):
@@ -246,6 +248,7 @@ class TestGameNpcUpdateView:
 
 @pytest.mark.django_db
 class TestGameNpcDetailHidden:
+
     """Tests for the hidden-NPC visibility gate in game_npc_detail."""
 
     def setup_method(self):
