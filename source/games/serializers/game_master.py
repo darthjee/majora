@@ -6,7 +6,6 @@ from games.models import GameMaster
 
 
 class GameMasterSerializer(serializers.ModelSerializer):
-
     """Serializer for game master (DM) assignments."""
 
     class Meta:

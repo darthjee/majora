@@ -7,7 +7,6 @@ from games.models import Character, Game, Photo
 
 @pytest.mark.django_db
 class TestPhoto:
-
     """Tests for the Photo model."""
 
     def test_photo_creation(self):

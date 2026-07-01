@@ -4,7 +4,6 @@ from rest_framework import serializers
 
 
 class TreasureAccessSerializer(serializers.Serializer):
-
     """Serializes access context fields for a treasure access response."""
 
     @property

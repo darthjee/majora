@@ -8,7 +8,6 @@ from games.serializers import TreasureListSerializer
 
 @pytest.mark.django_db
 class TestTreasureListSerializer:
-
     """Tests for the TreasureListSerializer."""
 
     def setup_method(self):

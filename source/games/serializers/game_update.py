@@ -6,7 +6,6 @@ from games.models import Game
 
 
 class GameUpdateSerializer(serializers.ModelSerializer):
-
     """Serializer for the limited set of fields that may be edited on a game."""
 
     class Meta:

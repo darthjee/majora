@@ -6,7 +6,6 @@ from games.models import GamePhoto
 
 
 class GamePhotoSerializer(serializers.ModelSerializer):
-
     """Serializer for game photos."""
 
     class Meta:

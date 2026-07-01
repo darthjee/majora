@@ -7,7 +7,6 @@ from games.models.game import Game
 
 
 class GameMaster(models.Model):
-
     """Model representing a DM (Dungeon Master) role for a game."""
 
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='game_masters')

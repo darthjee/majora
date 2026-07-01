@@ -6,7 +6,6 @@ from games.models.character import Character
 
 
 class Photo(models.Model):
-
     """Model representing a photo in a character's gallery."""
 
     url = models.URLField()

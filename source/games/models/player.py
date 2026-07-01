@@ -7,7 +7,6 @@ from games.models.game import Game
 
 
 class Player(models.Model):
-
     """Model representing a player participating in games."""
 
     name = models.CharField(max_length=200)

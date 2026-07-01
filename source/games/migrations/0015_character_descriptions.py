@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     """Rename description field and add private_description to Character."""
 
     dependencies = [

@@ -8,7 +8,6 @@ from games.models import Game, Link
 
 @pytest.mark.django_db
 class TestLink:
-
     """Tests for the Link model."""
 
     def setup_method(self):

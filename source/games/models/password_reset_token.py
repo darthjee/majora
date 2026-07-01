@@ -10,7 +10,6 @@ from games.settings import Settings
 
 
 class PasswordResetToken(models.Model):
-
     """Model representing a single-use password recovery token for a user."""
 
     user = models.ForeignKey(
