@@ -67,31 +67,44 @@ workflows:
             branches:
               ignore: /.*/
       - upload_proxy_files:
-          requires: []
-          filters: *all_tags
+          requires: [pytest_views, pytest_all, jasmine, frontend-checks, checks]
+          filters: *tags_only
       - upload_fe_files:
-          requires: []
-          filters: *all_tags
+          requires: [pytest_views, pytest_all, jasmine, frontend-checks, checks, release-vite_majora-base, release-vite_majora-base-arm64]
+          filters: *tags_only
       - link_photos:
-          requires: []
-          filters: *all_tags
+          requires: [pytest_views, pytest_all, jasmine, frontend-checks, checks]
+          filters: *tags_only
       - upload_admin_assets:
-          requires: []
-          filters: *all_tags
+          requires: [pytest_views, pytest_all, jasmine, frontend-checks, checks, release-circleci_majora-base]
+          filters: *tags_only
       - upload_extension:
           requires: [upload_proxy_files]
-          filters: *all_tags
+          filters: *tags_only
       - copy_proxy_configuration:
           requires: [upload_proxy_files]
-          filters: *all_tags
+          filters: *tags_only
       - release:
           requires:
+            - build-and-release
             - upload_extension
+            - upload_proxy_files
             - copy_proxy_configuration
-          filters: *all_tags
+            - upload_fe_files
+            - link_photos
+            - upload_admin_assets
+            - release-majora-base
+            - release-majora-base-arm64
+            - release-circleci_majora-base
+            - release-circleci_majora-base-arm64
+            - release-production_majora-base
+            - release-production_majora-base-arm64
+            - release-vite_majora-base
+            - release-vite_majora-base-arm64
+          filters: *tags_only
       - warm-up-cache:
           requires: [release]
-          filters: *all_tags
+          filters: *tags_only
 jobs:
   release-image:
     parameters:
