@@ -134,9 +134,11 @@ class PhotoUploadHandlerTest extends TestCase
      * Only allow-listed headers are forwarded to both backend PATCH calls,
      * with Content-Type overridden to application/json and Host overridden to
      * the backend's own host, regardless of what the client sent.
-     * Non-allow-listed headers (e.g. X-Trace-Id) must be dropped before
-     * reaching the backend, while allow-listed ones such as Authorization
-     * and X-Upload-Token are forwarded as-is.
+     * Non-allow-listed headers (e.g. X-Trace-Id and Accept-Encoding) must be
+     * dropped before reaching the backend, while allow-listed ones such as
+     * Authorization and X-Upload-Token are forwarded as-is. Accept-Encoding
+     * is deliberately not forwarded so the backend never compresses these
+     * internal-only response bodies.
      */
     public function testOnlyAllowListedHeadersAreForwardedToBackend(): void
     {
@@ -167,7 +169,6 @@ class PhotoUploadHandlerTest extends TestCase
             'Cookie'          => 'session=abc',
             'X-Skip-Cache'    => '1',
             'Referer'         => 'http://client/upload',
-            'Accept-Encoding' => 'gzip',
             'Accept-Language' => 'en-US',
             'Accept'          => 'application/json',
             'Content-Type'    => 'application/json',

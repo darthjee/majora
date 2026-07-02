@@ -31,6 +31,14 @@ class PhotoUploadHandler extends RequestHandler
      * header not on this list (e.g. X-Trace-Id) is dropped before the
      * backend request is issued.
      *
+     * Accept-Encoding is intentionally excluded: these two PATCH calls are
+     * internal to the proxy, and their JSON responses are parsed by
+     * requestUploadingStatus()/requestUploadedStatus() and never re-sent to
+     * the browser. Forwarding the client's Accept-Encoding would let the
+     * backend (or an intermediary in front of it) return a gzip-compressed
+     * body that Tent\Http\CurlHttpClient never decompresses, which breaks
+     * json_decode() and trips a spurious BackendErrorException(500).
+     *
      * @var string[]
      */
     private const ALLOWED_FORWARD_HEADERS = [
@@ -39,7 +47,6 @@ class PhotoUploadHandler extends RequestHandler
         'Cookie',
         'X-Skip-Cache',
         'Referer',
-        'Accept-Encoding',
         'Accept-Language',
         'Accept',
         'Content-Type',
