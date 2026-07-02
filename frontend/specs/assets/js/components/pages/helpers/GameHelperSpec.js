@@ -63,6 +63,17 @@ describe('GameHelper', function() {
       expect(renderToStaticMarkup(GameHelper.render(game))).toContain('Non-Player Characters');
     });
 
+    it('prefers cover_photo_path over photo when both are provided', function() {
+      const gameWithBoth = {
+        ...game,
+        cover_photo_path: 'http://example.com/cover_photo.png',
+        photo: 'http://example.com/cover.png',
+      };
+      const html = renderToStaticMarkup(GameHelper.render(gameWithBoth));
+      expect(html).toContain('http://example.com/cover_photo.png');
+      expect(html).not.toContain('http://example.com/cover.png');
+    });
+
     it('renders photo URLs when game.photos contains items', function() {
       const gameWithPhotos = { ...game, photos: [{ id: 1, url: 'http://example.com/photo1.jpg' }] };
       const html = renderToStaticMarkup(GameHelper.render(gameWithPhotos));
