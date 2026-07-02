@@ -28,8 +28,8 @@ class PhotoUploadHandler extends RequestHandler
     /**
      * Allow-list of header names forwarded to the backend on both PATCH
      * calls in updateStatus(). Matching is case-insensitive; any incoming
-     * header not on this list (e.g. Authorization, X-Upload-Token) is
-     * dropped before the backend request is issued.
+     * header not on this list (e.g. X-Trace-Id) is dropped before the
+     * backend request is issued.
      *
      * @var string[]
      */
@@ -43,6 +43,8 @@ class PhotoUploadHandler extends RequestHandler
         'Accept-Language',
         'Accept',
         'Content-Type',
+        'Authorization',
+        'X-Upload-Token',
     ];
 
     /** @var string Backend host URL (e.g. http://backend:8080) */

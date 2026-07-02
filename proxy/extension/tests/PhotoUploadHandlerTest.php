@@ -134,8 +134,9 @@ class PhotoUploadHandlerTest extends TestCase
      * Only allow-listed headers are forwarded to both backend PATCH calls,
      * with Content-Type overridden to application/json and Host overridden to
      * the backend's own host, regardless of what the client sent.
-     * Non-allow-listed headers (e.g. Authorization, X-Upload-Token,
-     * X-Trace-Id) must be dropped before reaching the backend.
+     * Non-allow-listed headers (e.g. X-Trace-Id) must be dropped before
+     * reaching the backend, while allow-listed ones such as Authorization
+     * and X-Upload-Token are forwarded as-is.
      */
     public function testOnlyAllowListedHeadersAreForwardedToBackend(): void
     {
@@ -161,6 +162,8 @@ class PhotoUploadHandlerTest extends TestCase
         );
 
         $expectedHeaders = [
+            'Authorization'   => 'Bearer tok',
+            'X-Upload-Token'  => 'up-tok',
             'Cookie'          => 'session=abc',
             'X-Skip-Cache'    => '1',
             'Referer'         => 'http://client/upload',
@@ -199,6 +202,8 @@ class PhotoUploadHandlerTest extends TestCase
      * Allow-listed headers are matched case-insensitively: non-canonical
      * casing (e.g. lowercase 'cookie', uppercase 'REFERER') is still
      * forwarded to the backend, under the casing the client sent it as.
+     * A genuinely non-allow-listed header (X-Trace-Id) is still dropped
+     * regardless of casing.
      */
     public function testAllowListedHeadersAreMatchedCaseInsensitively(): void
     {
@@ -212,7 +217,7 @@ class PhotoUploadHandlerTest extends TestCase
             [
                 'cookie'         => 'session=abc',
                 'REFERER'        => 'http://client/upload',
-                'authorization'  => 'Bearer tok',
+                'x-trace-id'     => 'trace-abc',
             ]
         );
 
