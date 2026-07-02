@@ -11,7 +11,8 @@ export default class GameCardHelper {
    * @param {object} game - Game data object.
    * @param {string} game.name - Game name.
    * @param {string} game.game_slug - Slug used for the detail link.
-   * @param {string|null} [game.photo] - Optional cover image URL.
+   * @param {string|null} [game.cover_photo_path] - Optional cover photo URL, takes precedence over game.photo.
+   * @param {string|null} [game.photo] - Optional cover image URL, used as a fallback.
    * @returns {React.ReactElement} Game card element.
    */
   static render(game) {
@@ -19,7 +20,7 @@ export default class GameCardHelper {
       <div className="col-sm-6 col-md-4 col-lg-3 mb-4">
         <a href={`#/games/${game.game_slug}`} className="text-decoration-none text-dark">
           <div className="card h-100">
-            <CardPhoto url={game.photo} alt={game.name} />
+            <CardPhoto url={game.cover_photo_path || game.photo} alt={game.name} />
             <div className="card-body">
               <h5 className="card-title">{game.name}</h5>
             </div>

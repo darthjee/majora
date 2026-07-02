@@ -28,6 +28,17 @@ describe('GameCardHelper', function() {
       expect(html).not.toContain('No image');
     });
 
+    it('prefers cover_photo_path over photo when both are provided', function() {
+      const gameWithBoth = {
+        ...game,
+        cover_photo_path: 'http://example.com/cover_photo.png',
+        photo: 'http://example.com/cover.png',
+      };
+      const html = renderToStaticMarkup(GameCardHelper.render(gameWithBoth));
+      expect(html).toContain('http://example.com/cover_photo.png');
+      expect(html).not.toContain('http://example.com/cover.png');
+    });
+
     it('applies Bootstrap card classes', function() {
       const html = renderToStaticMarkup(GameCardHelper.render(game));
       expect(html).toContain('card');

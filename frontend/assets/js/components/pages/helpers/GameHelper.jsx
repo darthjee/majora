@@ -19,7 +19,8 @@ export default class GameHelper {
    * @param {object} game - Game data object.
    * @param {string} game.name - Game name.
    * @param {string} game.game_slug - Game slug used to build the treasures href.
-   * @param {string|null} [game.photo] - Optional cover image URL.
+   * @param {string|null} [game.cover_photo_path] - Optional cover photo URL, takes precedence over game.photo.
+   * @param {string|null} [game.photo] - Optional cover image URL, used as a fallback.
    * @param {string} [game.description] - Game description text.
    * @param {object[]} [game.photos] - Additional photo objects with id and url.
    * @param {object[]} [game.links] - External link objects with text and url.
@@ -40,7 +41,7 @@ export default class GameHelper {
         </PageActions>
         <div className="row">
           <div className="col-md-4">
-            <CardPhoto url={game.photo} alt={game.name} />
+            <CardPhoto url={game.cover_photo_path || game.photo} alt={game.name} />
           </div>
           <div className="col-md-8">
             <h1>

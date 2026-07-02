@@ -15,6 +15,9 @@ class Game(models.Model):
     description = models.TextField(blank=True, default='')
     links = GenericRelation('games.Link')
     treasures = models.ManyToManyField('Treasure', blank=True)
+    cover_photo = models.ForeignKey(
+        'games.GamePhoto', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
+    )
 
     class Meta:
         ordering = ['id']
