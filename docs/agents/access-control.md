@@ -34,9 +34,15 @@ A user may simultaneously be a GameMaster for one game and a Player for another.
 | Update (`PATCH /games/<slug>.json`) | GameMaster of that game, or superuser |
 | Delete | Superuser only (via Django admin, out of scope) |
 
-**Exposed fields** (read): `name`, `game_slug`, `photo`, `description`, links list, photos list, treasures list (via `GET /games/<slug>/treasures.json`).
+**Exposed fields** (read): `name`, `game_slug`, `photo`, `description`, links list, photos list, treasures list (via `GET /games/<slug>/treasures.json`), `cover_photo_path`.
 
-**Write fields** (create/update): `name` (required for create, optional for update), `photo` (optional, nullable URL), `description` (optional).
+`cover_photo_path` (added in issue #254) is `game.cover_photo.path` — the raw relative storage
+key of the `GamePhoto` automatically selected as the game's cover (see the "GamePhoto" and
+"Upload" sections below) — or `null` when the game has no cover photo yet. It is returned on
+both `GET /games.json` and `GET /games/<slug>.json`, to anyone (same visibility as `photo`).
+The frontend prefers it over the legacy `photo` URL field when present.
+
+**Write fields** (create/update): `name` (required for create, optional for update), `photo` (optional, nullable URL), `description` (optional). `cover_photo_path` is read-only and cannot be set directly by any client — it is only ever assigned server-side (see "Upload" below).
 
 **Create response:** HTTP 201 with `GameDetailSerializer` body — `name`, `game_slug`, `photo`, `description`, `links`, `photos`. The `game_slug` is auto-generated from `name` by the model; it cannot be set by the client.
 
@@ -49,8 +55,12 @@ Unauthenticated `POST /games.json` → 401. Authenticated `PATCH /games/<slug>.j
 Game photos are readable through the game detail endpoint (`photos` array in
 `GameDetailSerializer`).
 
-**Exposed fields** (read): `id`, `url` — visible to anyone who can read the game detail.
-The `path` and `ready` fields are internal and are never serialised or returned by any endpoint.
+**Exposed fields** (read): `id` — visible to anyone who can read the game detail. The `url`
+field was removed in issue #254 (it was dead — never populated by the production upload flow).
+The `ready` field remains internal and is never serialised or returned by `GamePhotoSerializer`.
+The `path` field is also not serialised by `GamePhotoSerializer` itself, but as of issue #254 it
+**is** indirectly exposed to anyone: once a `GamePhoto` becomes a game's `cover_photo`, its raw
+`path` is returned publicly as `Game.cover_photo_path` (see the "Game" section above).
 
 **Write access:**
 - `POST /games/<slug>/photo_upload.json` — GameMaster of that game, or superuser. Creates
@@ -79,6 +89,13 @@ The `Upload` model tracks the lifecycle of a game photo upload (pending → uplo
   init response.
 - All other fields (`file_path`, `expiration_time`, `status`, `user`) are internal and are
   never returned by any endpoint.
+
+**Side effect on finalisation (issue #254):** `PATCH /uploads/<id>.json` with
+`status=uploaded` marks the linked `GamePhoto` as `ready=True` and, if the photo's game does
+not already have a `cover_photo`, also sets `Game.cover_photo` to that photo. This write to
+`Game` is gated by the same checks already enforced earlier in the same request (upload
+token match, requesting user must be the upload's owner, and `GameEditPermission` — i.e.
+GameMaster of that game, or superuser) — no new authorization path is introduced.
 
 ---
 
