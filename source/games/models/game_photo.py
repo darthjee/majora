@@ -9,11 +9,10 @@ class GamePhoto(models.Model):
 
     """Model representing a photo associated with a game."""
 
-    url = models.URLField(blank=True, default='')
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='photos')
     path = models.CharField(max_length=512, blank=True, default='')
     ready = models.BooleanField(default=False)
 
     def __str__(self):
         """Return string representation of the game photo."""
-        return self.url
+        return self.path

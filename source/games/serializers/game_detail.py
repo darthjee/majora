@@ -13,7 +13,18 @@ class GameDetailSerializer(serializers.ModelSerializer):
 
     links = LinkSerializer(many=True, read_only=True)
     photos = GamePhotoSerializer(many=True, read_only=True)
+    cover_photo_path = serializers.CharField(
+        source='cover_photo.path', default=None, read_only=True
+    )
 
     class Meta:
         model = Game
-        fields = ['name', 'game_slug', 'photo', 'description', 'links', 'photos']
+        fields = [
+            'name',
+            'game_slug',
+            'photo',
+            'description',
+            'links',
+            'photos',
+            'cover_photo_path',
+        ]

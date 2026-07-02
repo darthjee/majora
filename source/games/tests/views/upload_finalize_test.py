@@ -148,6 +148,27 @@ class TestUploadFinalizeView:
         self.game_photo.refresh_from_db()
         assert self.game_photo.ready is True
 
+    def test_uploaded_status_sets_game_cover_photo(self, client):
+        """Test that status=uploaded sets game.cover_photo when it was unset."""
+        self._valid_patch(client, {'status': 'uploaded'})
+        self.game.refresh_from_db()
+        assert self.game.cover_photo == self.game_photo
+
+    def test_uploaded_status_does_not_overwrite_existing_cover_photo(self, client):
+        """Test that status=uploaded does not overwrite an existing game.cover_photo."""
+        existing_cover = GamePhoto.objects.create(
+            game=self.game,
+            path='photos/games/epic-quest/existing.jpg',
+            ready=True,
+        )
+        self.game.cover_photo = existing_cover
+        self.game.save()
+
+        self._valid_patch(client, {'status': 'uploaded'})
+
+        self.game.refresh_from_db()
+        assert self.game.cover_photo == existing_cover
+
     def test_invalid_status_value_returns_400(self, client):
         """Test that an invalid status value returns 400."""
         response = self._valid_patch(client, {'status': 'invalid'})

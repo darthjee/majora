@@ -80,7 +80,16 @@ def _build_response(upload, new_status):
 
 
 def _mark_content_object_ready(upload):
-    """Set the upload's content object to ready and persist it."""
+    """Set the upload's content object to ready and persist it, updating the game's cover photo."""
     content_object = upload.content_object
     content_object.ready = True
     content_object.save()
+    _set_cover_photo_if_unset(content_object)
+
+
+def _set_cover_photo_if_unset(game_photo):
+    """Set the game's cover photo to `game_photo` if it does not already have one."""
+    game = game_photo.game
+    if game.cover_photo_id is None:
+        game.cover_photo = game_photo
+        game.save()
