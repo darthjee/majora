@@ -25,6 +25,28 @@ use Tent\Models\Response;
  */
 class PhotoUploadHandler extends RequestHandler
 {
+    /**
+     * Allow-list of header names forwarded to the backend on both PATCH
+     * calls in updateStatus(). Matching is case-insensitive; any incoming
+     * header not on this list (e.g. X-Trace-Id) is dropped before the
+     * backend request is issued.
+     *
+     * @var string[]
+     */
+    private const ALLOWED_FORWARD_HEADERS = [
+        'Host',
+        'X-Forwarded-Host',
+        'Cookie',
+        'X-Skip-Cache',
+        'Referer',
+        'Accept-Encoding',
+        'Accept-Language',
+        'Accept',
+        'Content-Type',
+        'Authorization',
+        'X-Upload-Token',
+    ];
+
     /** @var string Backend host URL (e.g. http://backend:8080) */
     private string $host;
 
@@ -201,16 +223,19 @@ class PhotoUploadHandler extends RequestHandler
      *
      * @param string $uploadId The upload id.
      * @param string $status   The new status (e.g. 'uploading', 'uploaded').
-     * @param array  $headers  Incoming request headers to forward; Content-Type
-     *                         is overridden to application/json since the
-     *                         backend expects a JSON body regardless of how the
-     *                         original multipart request was encoded. Host is
-     *                         already overridden by the middlewares added in
-     *                         the constructor.
+     * @param array  $headers  Incoming request headers to forward; filtered
+     *                         down to PhotoUploadHandler::ALLOWED_FORWARD_HEADERS
+     *                         before Content-Type is overridden to
+     *                         application/json, since the backend expects a
+     *                         JSON body regardless of how the original
+     *                         multipart request was encoded. Host is already
+     *                         overridden by the middlewares added in the
+     *                         constructor.
      * @return array{body: string, httpCode: int, headers: string[]}
      */
     private function updateStatus(string $uploadId, string $status, array $headers): array
     {
+        $headers = $this->filterHeaders($headers);
         $headers['Content-Type'] = 'application/json';
 
         return $this->httpClient->request(
@@ -218,6 +243,26 @@ class PhotoUploadHandler extends RequestHandler
             $this->host . '/uploads/' . $uploadId . '.json',
             $headers,
             json_encode(['status' => $status])
+        );
+    }
+
+    /**
+     * Filters $headers down to the entries whose name matches (case-
+     * insensitively) one of PhotoUploadHandler::ALLOWED_FORWARD_HEADERS.
+     *
+     * @param array $headers Associative array of header name => value, as
+     *                        returned by $request->headers().
+     * @return array The filtered associative array, preserving the original
+     *                casing of the keys that pass the filter.
+     */
+    private function filterHeaders(array $headers): array
+    {
+        $allowed = array_map('strtolower', self::ALLOWED_FORWARD_HEADERS);
+
+        return array_filter(
+            $headers,
+            fn (string $name): bool => in_array(strtolower($name), $allowed, true),
+            ARRAY_FILTER_USE_KEY
         );
     }
 

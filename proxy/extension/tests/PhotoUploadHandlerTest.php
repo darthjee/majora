@@ -131,11 +131,14 @@ class PhotoUploadHandlerTest extends TestCase
     }
 
     /**
-     * All incoming request headers are forwarded to both backend PATCH calls,
+     * Only allow-listed headers are forwarded to both backend PATCH calls,
      * with Content-Type overridden to application/json and Host overridden to
      * the backend's own host, regardless of what the client sent.
+     * Non-allow-listed headers (e.g. X-Trace-Id) must be dropped before
+     * reaching the backend, while allow-listed ones such as Authorization
+     * and X-Upload-Token are forwarded as-is.
      */
-    public function testAllRequestHeadersAreForwardedToBackend(): void
+    public function testOnlyAllowListedHeadersAreForwardedToBackend(): void
     {
         $tmpFile    = $this->makeTmpFile();
         $httpClient = $this->createMock(HttpClientInterface::class);
@@ -145,19 +148,84 @@ class PhotoUploadHandlerTest extends TestCase
             '/uploads/7/submit',
             ['tmp_name' => $tmpFile, 'type' => 'image/png', 'name' => 'img.png', 'size' => 8, 'error' => 0],
             [
-                'Authorization'  => 'Bearer tok',
-                'X-Upload-Token' => 'up-tok',
-                'X-Trace-Id'     => 'trace-abc',
-                'Content-Type'   => 'multipart/form-data',
+                'Authorization'   => 'Bearer tok',
+                'X-Upload-Token'  => 'up-tok',
+                'X-Trace-Id'      => 'trace-abc',
+                'Content-Type'    => 'multipart/form-data',
+                'Cookie'          => 'session=abc',
+                'X-Skip-Cache'    => '1',
+                'Referer'         => 'http://client/upload',
+                'Accept-Encoding' => 'gzip',
+                'Accept-Language' => 'en-US',
+                'Accept'          => 'application/json',
             ]
         );
 
         $expectedHeaders = [
-            'Authorization'  => 'Bearer tok',
-            'X-Upload-Token' => 'up-tok',
-            'X-Trace-Id'     => 'trace-abc',
-            'Content-Type'   => 'application/json',
-            'Host'           => 'backend',
+            'Authorization'   => 'Bearer tok',
+            'X-Upload-Token'  => 'up-tok',
+            'Cookie'          => 'session=abc',
+            'X-Skip-Cache'    => '1',
+            'Referer'         => 'http://client/upload',
+            'Accept-Encoding' => 'gzip',
+            'Accept-Language' => 'en-US',
+            'Accept'          => 'application/json',
+            'Content-Type'    => 'application/json',
+            'Host'            => 'backend',
+        ];
+
+        $httpClient->expects($this->exactly(2))
+            ->method('request')
+            ->with(
+                $this->anything(),
+                $this->anything(),
+                $expectedHeaders,
+                $this->anything()
+            )
+            ->willReturnOnConsecutiveCalls(
+                ['httpCode' => 200, 'body' => '{"file_path":"7/img.png"}', 'headers' => []],
+                ['httpCode' => 200, 'body' => '{}', 'headers' => []]
+            );
+
+        $response = $handler->handleRequest($request);
+
+        $this->assertSame(200, $response->httpCode());
+        $this->assertSame(
+            ['file_path' => $this->photosDir . '/7/img.png'],
+            json_decode($response->body(), true)
+        );
+
+        unlink($tmpFile);
+    }
+
+    /**
+     * Allow-listed headers are matched case-insensitively: non-canonical
+     * casing (e.g. lowercase 'cookie', uppercase 'REFERER') is still
+     * forwarded to the backend, under the casing the client sent it as.
+     * A genuinely non-allow-listed header (X-Trace-Id) is still dropped
+     * regardless of casing.
+     */
+    public function testAllowListedHeadersAreMatchedCaseInsensitively(): void
+    {
+        $tmpFile    = $this->makeTmpFile();
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = new PhotoUploadHandler('http://backend:8080', $httpClient, $this->photosDir);
+
+        $request = $this->makeRequest(
+            '/uploads/7/submit',
+            ['tmp_name' => $tmpFile, 'type' => 'image/png', 'name' => 'img.png', 'size' => 8, 'error' => 0],
+            [
+                'cookie'         => 'session=abc',
+                'REFERER'        => 'http://client/upload',
+                'x-trace-id'     => 'trace-abc',
+            ]
+        );
+
+        $expectedHeaders = [
+            'cookie'       => 'session=abc',
+            'REFERER'      => 'http://client/upload',
+            'Content-Type' => 'application/json',
+            'Host'         => 'backend',
         ];
 
         $httpClient->expects($this->exactly(2))
