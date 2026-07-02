@@ -6,6 +6,8 @@ use InvalidArgumentException;
 use Tent\Http\CurlHttpClient;
 use Tent\Http\HttpClientInterface;
 use Tent\Log\Logger;
+use Tent\Middlewares\RenameHeaderMiddleware;
+use Tent\Middlewares\SetHeadersMiddleware;
 use Tent\Models\RequestInterface;
 use Tent\Models\Response;
 
@@ -23,8 +25,11 @@ use Tent\Models\Response;
  */
 class PhotoUploadHandler extends RequestHandler
 {
-    /** @var UploadBackendClient Client used to update Upload status on the backend */
-    private UploadBackendClient $backendClient;
+    /** @var string Backend host URL (e.g. http://backend:8080) */
+    private string $host;
+
+    /** @var HttpClientInterface HTTP client used for backend calls */
+    private HttpClientInterface $httpClient;
 
     /** @var string Base path where photos are written */
     private string $photosBasePath;
@@ -39,8 +44,18 @@ class PhotoUploadHandler extends RequestHandler
         ?HttpClientInterface $httpClient = null,
         string $photosBasePath
     ) {
-        $this->backendClient = new UploadBackendClient($host, $httpClient ?? new CurlHttpClient());
+        $this->host = $host;
+        $this->httpClient = $httpClient ?? new CurlHttpClient();
         $this->photosBasePath = $photosBasePath;
+
+        // The incoming request's original Host header (e.g. the browser-facing
+        // `moria.ffavs.net`) must never be forwarded as-is when the backend lives
+        // behind a different host (e.g. `moria-api.ffavs.net`) — edge providers
+        // like Cloudflare reject that mismatch with a 403 before the request ever
+        // reaches the application. This mirrors what Tent's
+        // DefaultProxyRequestHandler does for every other backend-proxied route.
+        $this->addMiddleware(new RenameHeaderMiddleware('Host', 'X-Forwarded-Host'));
+        $this->addMiddleware(new SetHeadersMiddleware(['Host' => $this->backendHost()]));
     }
 
     /**
@@ -149,7 +164,7 @@ class PhotoUploadHandler extends RequestHandler
      */
     private function requestUploadingStatus(string $uploadId, array $headers): string
     {
-        $result = $this->backendClient->updateStatus($uploadId, 'uploading', $headers);
+        $result = $this->updateStatus($uploadId, 'uploading', $headers);
 
         if ($result['httpCode'] !== 200) {
             throw new BackendErrorException($result['httpCode'], $result['body']);
@@ -174,11 +189,47 @@ class PhotoUploadHandler extends RequestHandler
      */
     private function requestUploadedStatus(string $uploadId, array $headers): void
     {
-        $result = $this->backendClient->updateStatus($uploadId, 'uploaded', $headers);
+        $result = $this->updateStatus($uploadId, 'uploaded', $headers);
 
         if ($result['httpCode'] !== 200) {
             throw new BackendErrorException($result['httpCode'], $result['body']);
         }
+    }
+
+    /**
+     * Updates the status of an upload via PATCH /uploads/:id.json.
+     *
+     * @param string $uploadId The upload id.
+     * @param string $status   The new status (e.g. 'uploading', 'uploaded').
+     * @param array  $headers  Incoming request headers to forward; Content-Type
+     *                         is overridden to application/json since the
+     *                         backend expects a JSON body regardless of how the
+     *                         original multipart request was encoded. Host is
+     *                         already overridden by the middlewares added in
+     *                         the constructor.
+     * @return array{body: string, httpCode: int, headers: string[]}
+     */
+    private function updateStatus(string $uploadId, string $status, array $headers): array
+    {
+        $headers['Content-Type'] = 'application/json';
+
+        return $this->httpClient->request(
+            'PATCH',
+            $this->host . '/uploads/' . $uploadId . '.json',
+            $headers,
+            json_encode(['status' => $status])
+        );
+    }
+
+    /**
+     * Derives the bare host (no scheme, no trailing path) the backend actually
+     * expects in the Host header.
+     *
+     * @return string The backend host, e.g. 'moria-api.ffavs.net'.
+     */
+    private function backendHost(): string
+    {
+        return parse_url($this->host, PHP_URL_HOST) ?? $this->host;
     }
 
     /**
