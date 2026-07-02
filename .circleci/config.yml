@@ -280,6 +280,9 @@ jobs:
           name: Remove test files
           command: rm -rf proxy/extension/tests/
       - run:
+          name: Debug
+          command: cat proxy/extension/lib/UploadBackendClient.php
+      - run:
           name: Upload proxy extension
           command: SOURCE=proxy/extension/ DEPLOY_PATH=extension/ bin/deploy_frontend.sh upload
 
