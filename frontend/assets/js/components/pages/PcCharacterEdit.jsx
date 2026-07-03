@@ -14,6 +14,7 @@ export default function PcCharacterEdit() {
       ControllerClass={PcCharacterEditController}
       getParamsFromHash={getPcCharacterEditParamsFromHash}
       EditHelper={PcCharacterEditHelper}
+      characterKind="pcs"
     />
   );
 }

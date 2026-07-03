@@ -1,6 +1,34 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import BaseCharacterEditHelper from '../../../../../../assets/js/components/pages/helpers/BaseCharacterEditHelper.jsx';
 
+const findElement = (node, matcher) => {
+  if (!node) {
+    return null;
+  }
+
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findElement(child, matcher);
+
+      if (match) {
+        return match;
+      }
+    }
+
+    return null;
+  }
+
+  if (typeof node !== 'object') {
+    return null;
+  }
+
+  if (matcher(node)) {
+    return node;
+  }
+
+  return findElement(node.props?.children, matcher);
+};
+
 describe('BaseCharacterEditHelper', function() {
   const helper = new BaseCharacterEditHelper('test', 'npc_edit_page');
 
@@ -11,6 +39,7 @@ describe('BaseCharacterEditHelper', function() {
     onRoleChange: jasmine.createSpy('onRoleChange'),
     onDescriptionChange: jasmine.createSpy('onDescriptionChange'),
     onPrivateDescriptionChange: jasmine.createSpy('onPrivateDescriptionChange'),
+    onOpenUploadModal: jasmine.createSpy('onOpenUploadModal'),
   });
 
   const buildState = (overrides = {}) => ({
@@ -87,6 +116,25 @@ describe('BaseCharacterEditHelper', function() {
       );
 
       expect(html).toContain('disabled=""');
+    });
+
+    it('renders the upload photo button', function() {
+      const html = renderToStaticMarkup(helper.render(buildState(), buildHandlers()));
+
+      expect(html).toContain('Upload Photo');
+    });
+
+    it('wires the upload photo button to the open upload modal handler', function() {
+      const handlers = buildHandlers();
+      const element = helper.render(buildState(), handlers);
+      const uploadButton = findElement(
+        element,
+        (child) => child.type === 'button' && child.props.className === 'btn btn-secondary'
+      );
+
+      uploadButton.props.onClick();
+
+      expect(handlers.onOpenUploadModal).toHaveBeenCalled();
     });
   });
 

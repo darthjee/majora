@@ -6,10 +6,10 @@ import PhotoUploadModalHelper from './helpers/PhotoUploadModalHelper.jsx';
 /**
  * Photo upload modal component.
  *
- * @param {{show: boolean, gameSlug: string, onClose: Function, onSuccess: Function}} props - Component props.
+ * @param {{show: boolean, uploadPath: string, onClose: Function, onSuccess: Function}} props - Component props.
  * @returns {React.ReactElement} Rendered photo upload modal.
  */
-export default function PhotoUploadModal({ show, gameSlug, onClose, onSuccess }) {
+export default function PhotoUploadModal({ show, uploadPath, onClose, onSuccess }) {
   const [file, setFile] = useState(null);
   const [error, setError] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -31,7 +31,7 @@ export default function PhotoUploadModal({ show, gameSlug, onClose, onSuccess })
   const handleSubmit = () => {
     setUploading(true);
     const token = AuthStorage.getToken();
-    controller.handleSubmit(gameSlug, file, token);
+    controller.handleSubmit(uploadPath, file, token);
   };
 
   const handleFileChange = (event) => {

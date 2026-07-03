@@ -70,7 +70,7 @@ export default function GameEdit() {
       )}
       <PhotoUploadModal
         show={showUploadModal}
-        gameSlug={gameSlug}
+        uploadPath={`/games/${gameSlug}/photo_upload.json`}
         onClose={() => setShowUploadModal(false)}
         onSuccess={() => setShowUploadModal(false)}
       />
