@@ -73,7 +73,6 @@ register_page:
 pc_edit_page:
   title: Edit character
   name_label: Name
-  avatar_url_label: Avatar URL
   role_label: Role
   description_label: Description
   private_description_label: DM Notes
@@ -83,7 +82,6 @@ pc_edit_page:
 npc_edit_page:
   title: Edit character
   name_label: Name
-  avatar_url_label: Avatar URL
   role_label: Role
   description_label: Description
   private_description_label: DM Notes
@@ -93,7 +91,6 @@ npc_edit_page:
 game_edit_page:
   title: Edit game
   name_label: Name
-  photo_label: Photo URL
   description_label: Description
   submit: Save changes
   error: Failed to save game. Please try again.
@@ -101,7 +98,6 @@ game_edit_page:
 game_new_page:
   title: New Game
   name_label: Name
-  photo_label: Photo URL
   description_label: Description
   submit: Create Game
   error: Failed to create game. Please try again.
