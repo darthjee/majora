@@ -4,18 +4,21 @@ from rest_framework import serializers
 
 from games.models import Character
 from games.serializers.character_link import CharacterLinkSerializer
-from games.serializers.photo import PhotoSerializer
+from games.serializers.character_photo import CharacterPhotoSerializer
 
 
 class CharacterDetailSerializer(serializers.ModelSerializer):
 
     """Serializer for character detail view including photos and links."""
 
-    photos = PhotoSerializer(many=True, read_only=True)
+    photos = CharacterPhotoSerializer(many=True, read_only=True)
     links = CharacterLinkSerializer(many=True, read_only=True)
     is_pc = serializers.ReadOnlyField()
     game_slug = serializers.ReadOnlyField(source='game.game_slug')
     can_edit = serializers.SerializerMethodField()
+    profile_photo_path = serializers.CharField(
+        source='profile_photo.path', default=None, read_only=True
+    )
 
     class Meta:
         model = Character
@@ -30,6 +33,7 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
             'links',
             'game_slug',
             'can_edit',
+            'profile_photo_path',
         ]
 
     def get_can_edit(self, obj):

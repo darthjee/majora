@@ -4,7 +4,7 @@ import pytest
 from django.contrib.auth.models import AnonymousUser, User
 from rest_framework.test import APIRequestFactory
 
-from games.models import Character, CharacterLink, Game, GameMaster, Photo, Player
+from games.models import Character, CharacterLink, CharacterPhoto, Game, GameMaster, Player
 from games.serializers import CharacterDetailSerializer
 
 
@@ -74,14 +74,18 @@ class TestCharacterDetailSerializer:
         assert data['photos'] == []
 
     def test_serializes_nested_photos(self):
-        """Test that nested photos are serialized with their fields."""
-        Photo.objects.create(url='http://example.com/1.png', character=self.character)
-        Photo.objects.create(url='http://example.com/2.png', character=self.character)
+        """Test that nested photos are serialized with an id field."""
+        photo1 = CharacterPhoto.objects.create(
+            path='photos/games/test-game/characters/1/img1.jpg', character=self.character
+        )
+        photo2 = CharacterPhoto.objects.create(
+            path='photos/games/test-game/characters/1/img2.jpg', character=self.character
+        )
         data = self._serialize()
         assert len(data['photos']) == 2
-        urls = [photo['url'] for photo in data['photos']]
-        assert 'http://example.com/1.png' in urls
-        assert 'http://example.com/2.png' in urls
+        ids = [photo['id'] for photo in data['photos']]
+        assert photo1.id in ids
+        assert photo2.id in ids
 
     def test_serializes_empty_links(self):
         """Test that links is an empty list when the character has no links."""
@@ -144,3 +148,18 @@ class TestCharacterDetailSerializer:
         """Test that can_edit is false when no request is present in the context."""
         data = CharacterDetailSerializer(self.character, context={}).data
         assert data['can_edit'] is False
+
+    def test_serializes_profile_photo_path_as_none_when_unset(self):
+        """Test that profile_photo_path is null when the character has no profile photo."""
+        data = self._serialize()
+        assert data['profile_photo_path'] is None
+
+    def test_serializes_profile_photo_path_when_set(self):
+        """Test that profile_photo_path equals the profile photo's path when set."""
+        photo = CharacterPhoto.objects.create(
+            path='photos/games/test-game/characters/1/profile.jpg', character=self.character
+        )
+        self.character.profile_photo = photo
+        self.character.save()
+        data = self._serialize()
+        assert data['profile_photo_path'] == 'photos/games/test-game/characters/1/profile.jpg'

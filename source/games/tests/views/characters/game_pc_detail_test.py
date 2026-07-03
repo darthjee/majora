@@ -6,7 +6,7 @@ import pytest
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 
-from games.models import Character, Game, Photo, Player
+from games.models import Character, CharacterPhoto, Game, Player
 
 
 @pytest.mark.django_db
@@ -56,13 +56,13 @@ class TestGamePcDetailView:
 
     def test_includes_photos(self, client):
         """Test that character detail includes associated photos."""
-        Photo.objects.create(
-            url='http://example.com/aragorn.png', character=self.character
+        photo = CharacterPhoto.objects.create(
+            path='photos/games/test-game/characters/1/aragorn.png', character=self.character
         )
         response = client.get(f'/games/test-game/pcs/{self.character.id}.json')
         data = json.loads(response.content)
         assert len(data['photos']) == 1
-        assert data['photos'][0]['url'] == 'http://example.com/aragorn.png'
+        assert data['photos'][0]['id'] == photo.id
 
     def test_role_is_null_when_not_set(self, client):
         """Test that role is null in the response when not set."""
