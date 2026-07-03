@@ -4,6 +4,7 @@ import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import NewButton from '../../elements/NewButton.jsx';
 import PageActions from '../../elements/PageActions.jsx';
 import Pagination from '../../elements/Pagination.jsx';
+import TreasureCard from '../../elements/TreasureCard.jsx';
 import Translator from '../../../i18n/Translator.js';
 
 /**
@@ -28,14 +29,11 @@ export default class TreasuresHelper {
             {Translator.t('treasures_page.new_treasure')}
           </NewButton>
         </PageActions>
-        <ul className="list-group mb-3">
+        <div className="row">
           {treasures.map((treasure) => (
-            <li key={treasure.id} className="list-group-item">
-              <a href={`#/treasures/${treasure.id}`}>{treasure.name}</a>
-              <span className="ms-2 text-muted">{treasure.value}</span>
-            </li>
+            <TreasureCard key={treasure.id} treasure={treasure} />
           ))}
-        </ul>
+        </div>
         <Pagination
           currentPage={pagination.page}
           totalPages={pagination.pages}

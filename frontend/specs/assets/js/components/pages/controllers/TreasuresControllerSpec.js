@@ -1,19 +1,34 @@
 import TreasuresController from '../../../../../../assets/js/components/pages/controllers/TreasuresController.js';
 
 describe('TreasuresController', function() {
-  it('fetches treasures and pagination', async function() {
-    const setTreasures = jasmine.createSpy('setTreasures');
-    const setPagination = jasmine.createSpy('setPagination');
-    const setLoading = jasmine.createSpy('setLoading');
-    const setError = jasmine.createSpy('setError');
-    const client = jasmine.createSpyObj('client', ['fetchIndex']);
+  let setTreasures;
+  let setPagination;
+  let setLoading;
+  let setError;
+  let client;
+  let authClient;
+
+  beforeEach(function() {
+    setTreasures = jasmine.createSpy('setTreasures');
+    setPagination = jasmine.createSpy('setPagination');
+    setLoading = jasmine.createSpy('setLoading');
+    setError = jasmine.createSpy('setError');
+    client = jasmine.createSpyObj('client', ['fetchIndex']);
+    authClient = jasmine.createSpyObj('authClient', ['status']);
+  });
+
+  it('fetches treasures and pagination when the user is a superuser', async function() {
+    authClient.status.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ is_superuser: true }),
+    }));
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [{ id: 1, name: 'Sword', value: 100 }],
       pagination: { page: 1, pages: 1, perPage: 10 },
     }));
 
     const cleanup = new TreasuresController(
-      setTreasures, setPagination, setLoading, setError, client,
+      setTreasures, setPagination, setLoading, setError, client, authClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -27,15 +42,14 @@ describe('TreasuresController', function() {
   });
 
   it('sets error when the fetch fails', async function() {
-    const setTreasures = jasmine.createSpy('setTreasures');
-    const setPagination = jasmine.createSpy('setPagination');
-    const setLoading = jasmine.createSpy('setLoading');
-    const setError = jasmine.createSpy('setError');
-    const client = jasmine.createSpyObj('client', ['fetchIndex']);
+    authClient.status.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ is_superuser: true }),
+    }));
     client.fetchIndex.and.returnValue(Promise.reject(new Error('network error')));
 
     const cleanup = new TreasuresController(
-      setTreasures, setPagination, setLoading, setError, client,
+      setTreasures, setPagination, setLoading, setError, client, authClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -43,5 +57,28 @@ describe('TreasuresController', function() {
     expect(setLoading).toHaveBeenCalledWith(false);
 
     cleanup();
+  });
+
+  it('redirects to home and does not fetch when the user is not a superuser', async function() {
+    authClient.status.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ is_superuser: false }),
+    }));
+    const fakeWindow = { location: { hash: '' } };
+    globalThis.window = fakeWindow;
+
+    try {
+      const cleanup = new TreasuresController(
+        setTreasures, setPagination, setLoading, setError, client, authClient,
+      ).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(fakeWindow.location.hash).toBe('/');
+      expect(client.fetchIndex).not.toHaveBeenCalled();
+
+      cleanup();
+    } finally {
+      delete globalThis.window;
+    }
   });
 });

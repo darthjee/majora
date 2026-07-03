@@ -1,4 +1,6 @@
+import AuthClient from '../../../client/AuthClient.js';
 import TreasureClient from '../../../client/TreasureClient.js';
+import AdminAccess from '../../../utils/AdminAccess.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
 
@@ -12,30 +14,32 @@ export default class TreasureNewController extends BasePageController {
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
    * @param {TreasureClient|null} [treasureClient] - Treasure client override.
+   * @param {AuthClient|null} [authClient] - Auth client override.
    */
-  constructor(setError, setFieldErrors = () => {}, treasureClient = null) {
+  constructor(setError, setFieldErrors = () => {}, treasureClient = null, authClient = null) {
     super();
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;
     this.treasureClient = treasureClient ?? new TreasureClient();
+    this.authClient = authClient ?? new AuthClient();
   }
 
   /**
    * Build the page mount effect.
    *
-   * @description Returns a callback that checks for an auth token and
-   *   redirects to the treasures page when none is found.
+   * @description Returns a callback that checks whether the current user is
+   *   a superuser and redirects to the home page when they are not.
    * @returns {Function} Effect callback.
    */
   buildEffect() {
     return () => {
-      const token = AuthStorage.getToken();
-
-      if (!token) {
-        if (typeof window !== 'undefined') {
-          window.location.hash = '/treasures';
+      AdminAccess.isSuperUser(this.authClient).then((isSuperUser) => {
+        if (!isSuperUser) {
+          if (typeof window !== 'undefined') {
+            window.location.hash = '/';
+          }
         }
-      }
+      });
     };
   }
 
@@ -58,14 +62,16 @@ export default class TreasureNewController extends BasePageController {
     setters.setStatus('submitting');
     setters.setFieldErrors({});
 
-    const token = AuthStorage.getToken();
+    const isSuperUser = await AdminAccess.isSuperUser(this.authClient);
 
-    if (!token) {
+    if (!isSuperUser) {
       if (typeof window !== 'undefined') {
-        window.location.hash = '/treasures';
+        window.location.hash = '/';
       }
       return;
     }
+
+    const token = AuthStorage.getToken();
 
     try {
       await this.#performCreate(token, formValues, setters);

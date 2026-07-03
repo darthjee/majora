@@ -28,6 +28,7 @@ export default class HeaderHelper {
           <Navbar.Collapse id="header-navbar">
             <Nav className="me-auto">
               <Nav.Link href="#/games">{Translator.t('header.nav_games')}</Nav.Link>
+              {HeaderHelper.#renderTreasuresNavLink(state)}
             </Nav>
             <Nav className="align-items-center">
               {HeaderHelper.#renderServerStatus(state)}
@@ -43,6 +44,20 @@ export default class HeaderHelper {
         />
       </Navbar>
     );
+  }
+
+  /**
+   * Renders the admin-only Treasures nav link.
+   *
+   * @param {{isSuperUser: boolean}} state - header auth state.
+   * @returns {React.ReactElement|null} treasures nav link, or null for non-superusers.
+   */
+  static #renderTreasuresNavLink(state) {
+    if (!state.isSuperUser) {
+      return null;
+    }
+
+    return <Nav.Link href="#/treasures">{Translator.t('header.nav_treasures')}</Nav.Link>;
   }
 
   /**

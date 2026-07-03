@@ -2,6 +2,7 @@ header:
   title: Majora
   subtitle: RPG Campaign Management System
   nav_games: Games
+  nav_treasures: Treasures
   login: Login
   logoff: Logoff
   send_test_email: Send test email

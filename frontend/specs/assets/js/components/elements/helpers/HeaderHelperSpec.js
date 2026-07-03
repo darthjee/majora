@@ -76,6 +76,23 @@ describe('HeaderHelper', function() {
       expect(html).toContain('Games');
     });
 
+    it('renders a Treasures nav link when the user is a superuser', function() {
+      const html = renderToStaticMarkup(
+        HeaderHelper.render(buildState({ isSuperUser: true }), buildHandlers())
+      );
+
+      expect(html).toContain('href="#/treasures"');
+      expect(html).toContain('Treasures');
+    });
+
+    it('does not render the Treasures nav link when the user is not a superuser', function() {
+      const html = renderToStaticMarkup(
+        HeaderHelper.render(buildState({ isSuperUser: false }), buildHandlers())
+      );
+
+      expect(html).not.toContain('href="#/treasures"');
+    });
+
     it('does not render the send-test-email link when logged out', function() {
       const html = renderToStaticMarkup(
         HeaderHelper.render(buildState(), buildHandlers())

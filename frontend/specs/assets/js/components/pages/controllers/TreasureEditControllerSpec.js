@@ -16,16 +16,27 @@ describe('TreasureEditController', function() {
   });
 
   describe('#buildEffect', function() {
-    it('fetches treasure and access in parallel and calls setTreasure with merged result', async function() {
-      const setTreasure = jasmine.createSpy('setTreasure');
-      const setLoading = jasmine.createSpy('setLoading');
-      const setError = jasmine.createSpy('setError');
-      const treasureClient = jasmine.createSpyObj('treasureClient', [
+    let setTreasure;
+    let setLoading;
+    let setError;
+    let treasureClient;
+    let authClient;
+    let fakeWindow;
+
+    beforeEach(function() {
+      setTreasure = jasmine.createSpy('setTreasure');
+      setLoading = jasmine.createSpy('setLoading');
+      setError = jasmine.createSpy('setError');
+      treasureClient = jasmine.createSpyObj('treasureClient', [
         'fetchTreasure', 'fetchTreasureAccess',
       ]);
-      const fakeWindow = { location: { hash: '#/treasures/1/edit' } };
+      authClient = jasmine.createSpyObj('authClient', ['status']);
+      authClient.status.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ is_superuser: true }),
+      }));
+      fakeWindow = { location: { hash: '#/treasures/1/edit' } };
       globalThis.window = fakeWindow;
-
       treasureClient.fetchTreasure.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ id: 1, name: 'Sword', value: 100 }),
@@ -34,130 +45,84 @@ describe('TreasureEditController', function() {
         ok: true,
         json: () => Promise.resolve({ can_edit: true }),
       }));
+    });
 
-      try {
-        const controller = new TreasureEditController(
-          setTreasure, setLoading, setError, () => {}, treasureClient,
-        );
-        const cleanup = controller.buildEffect()();
-        await new Promise((resolve) => setTimeout(resolve, 0));
+    afterEach(function() {
+      delete globalThis.window;
+    });
 
-        expect(treasureClient.fetchTreasure).toHaveBeenCalledWith('1', null);
-        expect(treasureClient.fetchTreasureAccess).toHaveBeenCalledWith('1', null);
-        expect(setTreasure).toHaveBeenCalledWith(
-          { id: 1, name: 'Sword', value: 100, can_edit: true },
-        );
-        expect(setLoading).toHaveBeenCalledWith(false);
-        expect(setError).not.toHaveBeenCalled();
+    const buildController = () => new TreasureEditController(
+      setTreasure, setLoading, setError, () => {}, treasureClient, authClient,
+    );
 
-        cleanup();
-      } finally {
-        delete globalThis.window;
-      }
+    it('fetches treasure and access in parallel and calls setTreasure with merged result', async function() {
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(treasureClient.fetchTreasure).toHaveBeenCalledWith('1', null);
+      expect(treasureClient.fetchTreasureAccess).toHaveBeenCalledWith('1', null);
+      expect(setTreasure).toHaveBeenCalledWith(
+        { id: 1, name: 'Sword', value: 100, can_edit: true },
+      );
+      expect(setLoading).toHaveBeenCalledWith(false);
+      expect(setError).not.toHaveBeenCalled();
+
+      cleanup();
     });
 
     it('sets can_edit to false when access response is not ok', async function() {
-      const setTreasure = jasmine.createSpy('setTreasure');
-      const setLoading = jasmine.createSpy('setLoading');
-      const setError = jasmine.createSpy('setError');
-      const treasureClient = jasmine.createSpyObj('treasureClient', [
-        'fetchTreasure', 'fetchTreasureAccess',
-      ]);
-      const fakeWindow = { location: { hash: '#/treasures/1/edit' } };
-      globalThis.window = fakeWindow;
-
-      treasureClient.fetchTreasure.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ id: 1, name: 'Sword', value: 100 }),
-      }));
       treasureClient.fetchTreasureAccess.and.returnValue(Promise.resolve({ ok: false }));
 
-      try {
-        const controller = new TreasureEditController(
-          setTreasure, setLoading, setError, () => {}, treasureClient,
-        );
-        const cleanup = controller.buildEffect()();
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(setTreasure).toHaveBeenCalledWith(
-          jasmine.objectContaining({ can_edit: false }),
-        );
-        expect(setError).not.toHaveBeenCalled();
+      expect(setTreasure).toHaveBeenCalledWith(
+        jasmine.objectContaining({ can_edit: false }),
+      );
+      expect(setError).not.toHaveBeenCalled();
 
-        cleanup();
-      } finally {
-        delete globalThis.window;
-      }
+      cleanup();
     });
 
     it('sets error when the treasure fetch fails', async function() {
-      const setTreasure = jasmine.createSpy('setTreasure');
-      const setLoading = jasmine.createSpy('setLoading');
-      const setError = jasmine.createSpy('setError');
-      const treasureClient = jasmine.createSpyObj('treasureClient', [
-        'fetchTreasure', 'fetchTreasureAccess',
-      ]);
-      const fakeWindow = { location: { hash: '#/treasures/1/edit' } };
-      globalThis.window = fakeWindow;
-
       treasureClient.fetchTreasure.and.returnValue(Promise.resolve({ ok: false }));
-      treasureClient.fetchTreasureAccess.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ can_edit: true }),
-      }));
 
-      try {
-        const controller = new TreasureEditController(
-          setTreasure, setLoading, setError, () => {}, treasureClient,
-        );
-        const cleanup = controller.buildEffect()();
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(setTreasure).not.toHaveBeenCalled();
-        expect(setError).toHaveBeenCalledWith('Unable to load treasure.');
-        expect(setLoading).toHaveBeenCalledWith(false);
+      expect(setTreasure).not.toHaveBeenCalled();
+      expect(setError).toHaveBeenCalledWith('Unable to load treasure.');
+      expect(setLoading).toHaveBeenCalledWith(false);
 
-        cleanup();
-      } finally {
-        delete globalThis.window;
-      }
+      cleanup();
     });
 
     it('sends the token when the user is authenticated', async function() {
-      const setTreasure = jasmine.createSpy('setTreasure');
-      const setLoading = jasmine.createSpy('setLoading');
-      const setError = jasmine.createSpy('setError');
-      const treasureClient = jasmine.createSpyObj('treasureClient', [
-        'fetchTreasure', 'fetchTreasureAccess',
-      ]);
-      const fakeWindow = { location: { hash: '#/treasures/1/edit' } };
-      globalThis.window = fakeWindow;
-
       AuthStorage.setToken('tok-abc');
 
-      treasureClient.fetchTreasure.and.returnValue(Promise.resolve({
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(treasureClient.fetchTreasure).toHaveBeenCalledWith('1', 'tok-abc');
+      expect(treasureClient.fetchTreasureAccess).toHaveBeenCalledWith('1', 'tok-abc');
+
+      cleanup();
+    });
+
+    it('redirects to home and does not fetch when the user is not a superuser', async function() {
+      authClient.status.and.returnValue(Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ id: 1, name: 'Sword', value: 100 }),
-      }));
-      treasureClient.fetchTreasureAccess.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ can_edit: true }),
+        json: () => Promise.resolve({ is_superuser: false }),
       }));
 
-      try {
-        const controller = new TreasureEditController(
-          setTreasure, setLoading, setError, () => {}, treasureClient,
-        );
-        const cleanup = controller.buildEffect()();
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(treasureClient.fetchTreasure).toHaveBeenCalledWith('1', 'tok-abc');
-        expect(treasureClient.fetchTreasureAccess).toHaveBeenCalledWith('1', 'tok-abc');
+      expect(fakeWindow.location.hash).toBe('/');
+      expect(treasureClient.fetchTreasure).not.toHaveBeenCalled();
+      expect(treasureClient.fetchTreasureAccess).not.toHaveBeenCalled();
 
-        cleanup();
-      } finally {
-        delete globalThis.window;
-      }
+      cleanup();
     });
   });
 
