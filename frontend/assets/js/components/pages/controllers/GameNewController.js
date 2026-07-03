@@ -46,7 +46,7 @@ export default class GameNewController extends BasePageController {
    *   field errors, sends a POST request, then redirects on success,
    *   sets field errors on 400, or sets error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
-   * @param {{name: string, photo: string, description: string}} formValues - Raw form field values.
+   * @param {{name: string, description: string}} formValues - Raw form field values.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
@@ -77,7 +77,6 @@ export default class GameNewController extends BasePageController {
   async #performCreate(token, formValues, setters) {
     const response = await this.gameClient.createGame(token, {
       name: formValues.name,
-      photo: formValues.photo,
       description: formValues.description,
     });
 

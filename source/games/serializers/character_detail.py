@@ -25,7 +25,6 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'name',
-            'avatar_url',
             'role',
             'public_description',
             'is_pc',

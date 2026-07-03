@@ -15,4 +15,4 @@ class GameListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Game
-        fields = ['name', 'game_slug', 'photo', 'cover_photo_path']
+        fields = ['name', 'game_slug', 'cover_photo_path']

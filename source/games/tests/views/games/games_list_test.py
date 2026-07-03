@@ -33,20 +33,6 @@ class TestGamesListView:
         assert 'game-one' in slugs
         assert 'game-two' in slugs
 
-    def test_returns_photo_field(self, client):
-        """Test that the photo field is included in the list response."""
-        Game.objects.create(name='Visual Game', game_slug='visual-game', photo='http://example.com/cover.png')
-        response = client.get('/games.json')
-        data = json.loads(response.content)
-        assert data[0]['photo'] == 'http://example.com/cover.png'
-
-    def test_photo_field_is_null_when_not_set(self, client):
-        """Test that photo is null in the response when not set."""
-        Game.objects.create(name='No Photo', game_slug='no-photo')
-        response = client.get('/games.json')
-        data = json.loads(response.content)
-        assert data[0]['photo'] is None
-
     def test_url_by_name(self, client):
         """Test that the view is accessible by URL name."""
         url = reverse('games-list')
@@ -120,7 +106,6 @@ class TestGamesCreateView:
         data = json.loads(response.content)
         assert data['name'] == 'New Adventure'
         assert 'game_slug' in data
-        assert 'photo' in data
         assert 'description' in data
         assert 'links' in data
         assert 'photos' in data
@@ -151,24 +136,15 @@ class TestGamesCreateView:
         assert url == '/games.json'
 
     def test_post_with_optional_fields(self, client):
-        """Test that optional fields photo and description are accepted."""
+        """Test that the optional description field is accepted."""
         payload = {
             'name': 'Full Game',
-            'photo': 'http://example.com/cover.png',
             'description': 'A detailed campaign.',
         }
         response = self._post(client, payload, token=self.token)
         assert response.status_code == 201
         data = json.loads(response.content)
-        assert data['photo'] == 'http://example.com/cover.png'
         assert data['description'] == 'A detailed campaign.'
-
-    def test_post_with_null_photo(self, client):
-        """Test that photo can be explicitly set to null."""
-        response = self._post(client, {'name': 'No Photo Game', 'photo': None}, token=self.token)
-        assert response.status_code == 201
-        data = json.loads(response.content)
-        assert data['photo'] is None
 
     def test_post_creates_game_master_for_creator(self, client):
         """Test that a GameMaster record is created for the authenticated creator."""

@@ -10,7 +10,7 @@ describe('CharacterPreviewSectionHelper', function() {
   const buildCharacters = (count) => Array.from({ length: count }, (_, index) => ({
     id: index + 1,
     name: `Character ${index + 1}`,
-    avatar_url: null,
+    profile_photo_path: null,
   }));
 
   describe('.render', function() {

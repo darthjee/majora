@@ -5,7 +5,7 @@ describe('GameHelper', function() {
   const game = {
     name: 'Epic Quest',
     game_slug: 'epic-quest',
-    photo: null,
+    cover_photo_path: null,
     description: 'A heroic adventure.',
   };
 
@@ -28,7 +28,7 @@ describe('GameHelper', function() {
     });
 
     it('renders the player characters preview section', function() {
-      const pcs = [{ id: 1, name: 'Aragorn', avatar_url: null }];
+      const pcs = [{ id: 1, name: 'Aragorn', profile_photo_path: null }];
       const html = renderToStaticMarkup(GameHelper.render(game, pcs));
       expect(html).toContain('Player Characters');
       expect(html).toContain('Aragorn');
@@ -46,7 +46,7 @@ describe('GameHelper', function() {
     });
 
     it('renders the non-player characters preview section', function() {
-      const npcs = [{ id: 2, name: 'Gandalf', avatar_url: null }];
+      const npcs = [{ id: 2, name: 'Gandalf', profile_photo_path: null }];
       const html = renderToStaticMarkup(GameHelper.render(game, [], npcs));
       expect(html).toContain('Non-Player Characters');
       expect(html).toContain('Gandalf');
@@ -63,15 +63,13 @@ describe('GameHelper', function() {
       expect(renderToStaticMarkup(GameHelper.render(game))).toContain('Non-Player Characters');
     });
 
-    it('prefers cover_photo_path over photo when both are provided', function() {
-      const gameWithBoth = {
+    it('renders the cover photo when cover_photo_path is provided', function() {
+      const gameWithPhoto = {
         ...game,
         cover_photo_path: 'http://example.com/cover_photo.png',
-        photo: 'http://example.com/cover.png',
       };
-      const html = renderToStaticMarkup(GameHelper.render(gameWithBoth));
+      const html = renderToStaticMarkup(GameHelper.render(gameWithPhoto));
       expect(html).toContain('http://example.com/cover_photo.png');
-      expect(html).not.toContain('http://example.com/cover.png');
     });
 
     it('renders photo URLs when game.photos contains items', function() {

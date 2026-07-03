@@ -5,14 +5,13 @@ describe('PcCharacterEditHelper', function() {
   const buildHandlers = () => ({
     onSubmit: jasmine.createSpy('onSubmit'),
     onNameChange: jasmine.createSpy('onNameChange'),
-    onAvatarUrlChange: jasmine.createSpy('onAvatarUrlChange'),
     onRoleChange: jasmine.createSpy('onRoleChange'),
     onDescriptionChange: jasmine.createSpy('onDescriptionChange'),
     onPrivateDescriptionChange: jasmine.createSpy('onPrivateDescriptionChange'),
   });
   const buildState = (overrides = {}) => ({
     name: 'Aragorn',
-    avatar_url: '',
+    profile_photo_path: null,
     role: 'Ranger',
     description: 'The future king of Gondor.',
     privateDescription: 'Secret DM notes.',
@@ -26,7 +25,6 @@ describe('PcCharacterEditHelper', function() {
       const html = renderToStaticMarkup(PcCharacterEditHelper.render(buildState(), buildHandlers()));
 
       expect(html).toContain('id="pc-edit-name"');
-      expect(html).toContain('id="pc-edit-avatar-url"');
       expect(html).toContain('id="pc-edit-role"');
       expect(html).toContain('id="pc-edit-description"');
       expect(html).toContain('id="pc-edit-private-description"');
@@ -35,10 +33,10 @@ describe('PcCharacterEditHelper', function() {
       expect(html).toContain('Secret DM notes.');
     });
 
-    it('renders a live avatar preview reflecting the current avatar_url', function() {
+    it('renders an avatar preview reflecting the loaded profile_photo_path', function() {
       const html = renderToStaticMarkup(
         PcCharacterEditHelper.render(
-          buildState({ avatar_url: 'http://example.com/avatar.png' }),
+          buildState({ profile_photo_path: 'http://example.com/avatar.png' }),
           buildHandlers()
         )
       );
@@ -46,7 +44,7 @@ describe('PcCharacterEditHelper', function() {
       expect(html).toContain('http://example.com/avatar.png');
     });
 
-    it('renders the default avatar when avatar_url is empty', function() {
+    it('renders the default avatar when profile_photo_path is null', function() {
       const html = renderToStaticMarkup(PcCharacterEditHelper.render(buildState(), buildHandlers()));
 
       expect(html).toContain('default_character.png');

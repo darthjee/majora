@@ -175,7 +175,6 @@ class TestGameNpcUpdateView:
             client,
             {
                 'name': 'Saruman',
-                'avatar_url': 'http://example.com/saruman.png',
                 'role': 'Wizard',
                 'public_description': 'The White Wizard.',
             },
@@ -185,7 +184,6 @@ class TestGameNpcUpdateView:
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['name'] == 'Saruman'
-        assert data['avatar_url'] == 'http://example.com/saruman.png'
         assert data['role'] == 'Wizard'
         assert data['public_description'] == 'The White Wizard.'
 
@@ -226,13 +224,13 @@ class TestGameNpcUpdateView:
         superuser = User.objects.create_superuser(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
 
-        response = self._patch(client, {'avatar_url': 'not-a-url'}, token=token)
+        response = self._patch(client, {'name': 'x' * 201}, token=token)
 
         assert response.status_code == 400
         data = json.loads(response.content)
-        assert 'avatar_url' in data['errors']
+        assert 'name' in data['errors']
         self.npc.refresh_from_db()
-        assert self.npc.avatar_url is None
+        assert self.npc.name == 'Gandalf'
 
     def test_patch_partial_body_only_changes_given_fields(self, client):
         """Test that a partial PATCH body only updates the provided field."""

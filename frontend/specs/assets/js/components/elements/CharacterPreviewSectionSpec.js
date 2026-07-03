@@ -4,8 +4,8 @@ import CharacterPreviewSection from '../../../../../assets/js/components/element
 
 describe('CharacterPreviewSection', function() {
   const characters = [
-    { id: 1, name: 'Aragorn', avatar_url: null },
-    { id: 2, name: 'Legolas', avatar_url: null },
+    { id: 1, name: 'Aragorn', profile_photo_path: null },
+    { id: 2, name: 'Legolas', profile_photo_path: null },
   ];
 
   it('delegates rendering to CharacterPreviewSectionHelper', function() {

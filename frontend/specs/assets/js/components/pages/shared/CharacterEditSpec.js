@@ -62,7 +62,7 @@ describe('CharacterEdit', function() {
   it('renders the edit form via EditHelper.render when the character is loaded', function() {
     const state = {
       name: 'Test Character',
-      avatar_url: '',
+      profile_photo_path: null,
       role: 'Fighter',
       description: 'A brave hero.',
       privateDescription: 'DM notes.',
@@ -72,7 +72,6 @@ describe('CharacterEdit', function() {
     const handlers = {
       onSubmit: () => {},
       onNameChange: () => {},
-      onAvatarUrlChange: () => {},
       onRoleChange: () => {},
       onDescriptionChange: () => {},
       onPrivateDescriptionChange: () => {},

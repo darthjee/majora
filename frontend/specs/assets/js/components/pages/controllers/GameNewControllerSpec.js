@@ -68,7 +68,7 @@ describe('GameNewController', function() {
       try {
         await controller.submitForm(
           event,
-          { name: 'New Game', photo: 'http://example.com/p.png', description: 'An adventure.' },
+          { name: 'New Game', description: 'An adventure.' },
           { setStatus, setFieldErrors },
         );
 
@@ -77,7 +77,7 @@ describe('GameNewController', function() {
         expect(setFieldErrors).toHaveBeenCalledWith({});
         expect(gameClient.createGame).toHaveBeenCalledWith(
           'tok-abc',
-          { name: 'New Game', photo: 'http://example.com/p.png', description: 'An adventure.' },
+          { name: 'New Game', description: 'An adventure.' },
         );
       } finally {
         delete globalThis.window;
@@ -98,7 +98,7 @@ describe('GameNewController', function() {
       try {
         await controller.submitForm(
           undefined,
-          { name: 'New Game', photo: '', description: '' },
+          { name: 'New Game', description: '' },
           { setStatus, setFieldErrors },
         );
 
@@ -119,7 +119,7 @@ describe('GameNewController', function() {
 
       await controller.submitForm(
         undefined,
-        { name: 'X', photo: '', description: '' },
+        { name: 'X', description: '' },
         { setStatus, setFieldErrors },
       );
 
@@ -137,7 +137,7 @@ describe('GameNewController', function() {
 
       await controller.submitForm(
         undefined,
-        { name: 'New Game', photo: '', description: '' },
+        { name: 'New Game', description: '' },
         { setStatus, setFieldErrors },
       );
 
@@ -153,7 +153,7 @@ describe('GameNewController', function() {
       try {
         await controller.submitForm(
           undefined,
-          { name: 'New Game', photo: '', description: '' },
+          { name: 'New Game', description: '' },
           { setStatus, setFieldErrors },
         );
 
@@ -172,7 +172,7 @@ describe('GameNewController', function() {
 
       await controller.submitForm(
         undefined,
-        { name: 'New Game', photo: '', description: '' },
+        { name: 'New Game', description: '' },
         { setStatus, setFieldErrors },
       );
 
@@ -193,7 +193,7 @@ describe('GameNewController', function() {
       try {
         await controller.submitForm(
           undefined,
-          { name: 'Demo', photo: '', description: '' },
+          { name: 'Demo', description: '' },
           { setStatus, setFieldErrors },
         );
 

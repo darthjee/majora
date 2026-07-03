@@ -16,7 +16,6 @@ class TestGameUpdateSerializer:
         self.game = Game.objects.create(
             name='Epic Quest',
             game_slug='epic-quest',
-            photo='http://example.com/cover.png',
             description='An adventure in Middle Earth.',
         )
 
@@ -26,15 +25,6 @@ class TestGameUpdateSerializer:
         assert serializer.is_valid()
         game = serializer.save()
         assert game.name == 'New Quest'
-
-    def test_valid_partial_photo_update(self):
-        """Test that a partial update with only photo is valid."""
-        serializer = GameUpdateSerializer(
-            self.game, data={'photo': 'http://example.com/new.png'}, partial=True
-        )
-        assert serializer.is_valid()
-        game = serializer.save()
-        assert game.photo == 'http://example.com/new.png'
 
     def test_valid_partial_description_update(self):
         """Test that a partial update with only description is valid."""
@@ -57,10 +47,10 @@ class TestGameUpdateSerializer:
         serializer = GameUpdateSerializer(self.game, data={}, partial=True)
         assert serializer.is_valid()
 
-    def test_invalid_photo_url(self):
-        """Test that an invalid URL for photo is rejected."""
+    def test_invalid_name_too_long(self):
+        """Test that a name exceeding max_length is rejected."""
         serializer = GameUpdateSerializer(
-            self.game, data={'photo': 'not-a-url'}, partial=True
+            self.game, data={'name': 'x' * 201}, partial=True
         )
         assert not serializer.is_valid()
-        assert 'photo' in serializer.errors
+        assert 'name' in serializer.errors

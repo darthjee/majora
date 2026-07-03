@@ -25,7 +25,6 @@ class TestGameDetailView:
         data = json.loads(response.content)
         assert data['name'] == 'Epic Quest'
         assert data['game_slug'] == 'epic-quest'
-        assert 'photo' in data
 
     def test_returns_description_field(self, client):
         """Test that description is included in the detail response."""
@@ -106,7 +105,6 @@ class TestGameDetailPatchView:
             {
                 'name': 'Updated Quest',
                 'description': 'Updated description.',
-                'photo': 'http://example.com/new.png',
             },
             token=self.dm_token,
         )
@@ -129,11 +127,11 @@ class TestGameDetailPatchView:
     def test_patch_with_invalid_payload_returns_400(self, client):
         """Test that an invalid payload is rejected with 400."""
         response = self._patch(
-            client, {'photo': 'not-a-url'}, token=self.dm_token
+            client, {'name': 'x' * 201}, token=self.dm_token
         )
         assert response.status_code == 400
         data = json.loads(response.content)
-        assert 'photo' in data['errors']
+        assert 'name' in data['errors']
 
     def test_patch_does_not_change_game_slug(self, client):
         """Test that game_slug is not changed even if included in the payload."""

@@ -73,7 +73,6 @@ register_page:
 pc_edit_page:
   title: Editar personagem
   name_label: Nome
-  avatar_url_label: URL do avatar
   role_label: Função
   description_label: Descrição
   private_description_label: Notas do Mestre
@@ -83,7 +82,6 @@ pc_edit_page:
 npc_edit_page:
   title: Editar personagem
   name_label: Nome
-  avatar_url_label: URL do avatar
   role_label: Função
   description_label: Descrição
   private_description_label: Notas do Mestre
@@ -93,7 +91,6 @@ npc_edit_page:
 game_edit_page:
   title: Editar jogo
   name_label: Nome
-  photo_label: URL da foto
   description_label: Descrição
   submit: Salvar alterações
   error: Falha ao salvar o jogo. Por favor, tente novamente.
@@ -101,7 +98,6 @@ game_edit_page:
 game_new_page:
   title: Novo Jogo
   name_label: Nome
-  photo_label: URL da Foto
   description_label: Descrição
   submit: Criar Jogo
   error: Falha ao criar jogo. Por favor, tente novamente.

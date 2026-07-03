@@ -5,13 +5,11 @@ describe('GameNewHelper', function() {
   const buildHandlers = () => ({
     onSubmit: jasmine.createSpy('onSubmit'),
     onNameChange: jasmine.createSpy('onNameChange'),
-    onPhotoChange: jasmine.createSpy('onPhotoChange'),
     onDescriptionChange: jasmine.createSpy('onDescriptionChange'),
   });
 
   const buildState = (overrides = {}) => ({
     name: '',
-    photo: '',
     description: '',
     status: 'idle',
     fieldErrors: {},
@@ -23,20 +21,18 @@ describe('GameNewHelper', function() {
       const html = renderToStaticMarkup(GameNewHelper.render(buildState(), buildHandlers()));
 
       expect(html).toContain('id="game-new-name"');
-      expect(html).toContain('id="game-new-photo"');
       expect(html).toContain('id="game-new-description"');
     });
 
     it('renders the current field values', function() {
       const html = renderToStaticMarkup(
         GameNewHelper.render(
-          buildState({ name: 'Epic Quest', photo: 'http://example.com/p.png', description: 'An adventure.' }),
+          buildState({ name: 'Epic Quest', description: 'An adventure.' }),
           buildHandlers(),
         ),
       );
 
       expect(html).toContain('value="Epic Quest"');
-      expect(html).toContain('value="http://example.com/p.png"');
       expect(html).toContain('value="An adventure."');
     });
 

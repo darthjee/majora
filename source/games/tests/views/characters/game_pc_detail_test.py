@@ -168,7 +168,6 @@ class TestGamePcUpdateView:
             client,
             {
                 'name': 'Strider',
-                'avatar_url': 'http://example.com/strider.png',
                 'role': 'Ranger King',
                 'public_description': 'King of Gondor.',
             },
@@ -178,7 +177,6 @@ class TestGamePcUpdateView:
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['name'] == 'Strider'
-        assert data['avatar_url'] == 'http://example.com/strider.png'
         assert data['role'] == 'Ranger King'
         assert data['public_description'] == 'King of Gondor.'
 
@@ -217,13 +215,13 @@ class TestGamePcUpdateView:
         """Test that an invalid field value is rejected with 400 and leaves data unchanged."""
         token = Token.objects.create(user=self.owner)
 
-        response = self._patch(client, {'avatar_url': 'not-a-url'}, token=token)
+        response = self._patch(client, {'name': 'x' * 201}, token=token)
 
         assert response.status_code == 400
         data = json.loads(response.content)
-        assert 'avatar_url' in data['errors']
+        assert 'name' in data['errors']
         self.character.refresh_from_db()
-        assert self.character.avatar_url is None
+        assert self.character.name == 'Aragorn'
 
     def test_patch_partial_body_only_changes_given_fields(self, client):
         """Test that a partial PATCH body only updates the provided field."""

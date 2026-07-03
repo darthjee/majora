@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterCardHelper from '../../../../../../assets/js/components/elements/helpers/CharacterCardHelper.jsx';
 
 describe('CharacterCardHelper', function() {
-  const character = { id: 42, name: 'Aragorn', avatar_url: null };
+  const character = { id: 42, name: 'Aragorn', profile_photo_path: null };
   const gameSlug = 'epic-quest';
 
   describe('.render', function() {
@@ -21,27 +21,16 @@ describe('CharacterCardHelper', function() {
         .toContain('href="#/games/epic-quest/npcs/42"');
     });
 
-    it('renders the default avatar when avatar_url is null', function() {
+    it('renders the default avatar when profile_photo_path is null', function() {
       const html = renderToStaticMarkup(CharacterCardHelper.render(character, gameSlug, 'pc'));
       expect(html).toContain('<img');
       expect(html).toContain('default_character.png');
     });
 
-    it('renders the avatar image when avatar_url is provided', function() {
-      const c = { ...character, avatar_url: 'http://example.com/aragorn.png' };
+    it('renders the avatar image when profile_photo_path is provided', function() {
+      const c = { ...character, profile_photo_path: 'http://example.com/aragorn.png' };
       const html = renderToStaticMarkup(CharacterCardHelper.render(c, gameSlug, 'pc'));
       expect(html).toContain('http://example.com/aragorn.png');
-    });
-
-    it('prefers profile_photo_path over avatar_url when both are provided', function() {
-      const c = {
-        ...character,
-        profile_photo_path: 'http://example.com/profile_photo.png',
-        avatar_url: 'http://example.com/aragorn.png',
-      };
-      const html = renderToStaticMarkup(CharacterCardHelper.render(c, gameSlug, 'pc'));
-      expect(html).toContain('http://example.com/profile_photo.png');
-      expect(html).not.toContain('http://example.com/aragorn.png');
     });
 
     it('applies Bootstrap card classes', function() {

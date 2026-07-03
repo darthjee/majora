@@ -34,17 +34,16 @@ A user may simultaneously be a GameMaster for one game and a Player for another.
 | Update (`PATCH /games/<slug>.json`) | GameMaster of that game, or superuser |
 | Delete | Superuser only (via Django admin, out of scope) |
 
-**Exposed fields** (read): `name`, `game_slug`, `photo`, `description`, links list, photos list, treasures list (via `GET /games/<slug>/treasures.json`), `cover_photo_path`.
+**Exposed fields** (read): `name`, `game_slug`, `description`, links list, photos list, treasures list (via `GET /games/<slug>/treasures.json`), `cover_photo_path`.
 
 `cover_photo_path` (added in issue #254) is `game.cover_photo.path` — the raw relative storage
 key of the `GamePhoto` automatically selected as the game's cover (see the "GamePhoto" and
 "Upload" sections below) — or `null` when the game has no cover photo yet. It is returned on
-both `GET /games.json` and `GET /games/<slug>.json`, to anyone (same visibility as `photo`).
-The frontend prefers it over the legacy `photo` URL field when present.
+both `GET /games.json` and `GET /games/<slug>.json`, to anyone.
 
-**Write fields** (create/update): `name` (required for create, optional for update), `photo` (optional, nullable URL), `description` (optional). `cover_photo_path` is read-only and cannot be set directly by any client — it is only ever assigned server-side (see "Upload" below).
+**Write fields** (create/update): `name` (required for create, optional for update), `description` (optional). `cover_photo_path` is read-only and cannot be set directly by any client — it is only ever assigned server-side (see "Upload" below).
 
-**Create response:** HTTP 201 with `GameDetailSerializer` body — `name`, `game_slug`, `photo`, `description`, `links`, `photos`. The `game_slug` is auto-generated from `name` by the model; it cannot be set by the client.
+**Create response:** HTTP 201 with `GameDetailSerializer` body — `name`, `game_slug`, `description`, `links`, `photos`. The `game_slug` is auto-generated from `name` by the model; it cannot be set by the client.
 
 Unauthenticated `POST /games.json` → 401. Authenticated `PATCH /games/<slug>.json` by a non-GameMaster → 403.
 
@@ -153,22 +152,21 @@ Characters are scoped to a game. Access is symmetric for PCs and NPCs unless not
 
 | Endpoint | Who can read | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs.json` | Anyone | `id`, `name`, `avatar_url`, `game_slug`, `profile_photo_path` |
-| `GET /games/<slug>/npcs.json` | Anyone | `id`, `name`, `avatar_url`, `game_slug`, `profile_photo_path` |
+| `GET /games/<slug>/pcs.json` | Anyone | `id`, `name`, `game_slug`, `profile_photo_path` |
+| `GET /games/<slug>/npcs.json` | Anyone | `id`, `name`, `game_slug`, `profile_photo_path` |
 
 ### Detail
 
 | Endpoint | Who can read | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs/<id>.json` | Anyone | `id`, `name`, `avatar_url`, `role`, `public_description`, `is_pc`, `photos`, `links`, `game_slug`, `can_edit`, `profile_photo_path` |
+| `GET /games/<slug>/pcs/<id>.json` | Anyone | `id`, `name`, `role`, `public_description`, `is_pc`, `photos`, `links`, `game_slug`, `can_edit`, `profile_photo_path` |
 | `GET /games/<slug>/npcs/<id>.json` | Anyone | same as above |
 
 `profile_photo_path` (added in issue #255) is `character.profile_photo.path` — the raw
 relative storage key of the `CharacterPhoto` automatically selected as the character's
 profile photo (see the "CharacterPhoto" and "Upload" sections below) — or `null` when the
 character has no profile photo yet. It is returned on the list, detail, and full-detail
-endpoints, to anyone (same visibility as `avatar_url`). The frontend prefers it over the
-legacy `avatar_url` field when present.
+endpoints, to anyone.
 
 ### Full detail (includes `private_description`)
 

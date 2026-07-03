@@ -11,9 +11,8 @@ class GameCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Game
-        fields = ['name', 'photo', 'description']
+        fields = ['name', 'description']
         extra_kwargs = {
             'name': {'required': True},
-            'photo': {'required': False, 'allow_null': True},
             'description': {'required': False},
         }

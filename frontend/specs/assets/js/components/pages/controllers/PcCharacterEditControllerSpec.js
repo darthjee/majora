@@ -30,7 +30,6 @@ describe('PcCharacterEditController', function() {
       const character = {
         id: 1,
         name: 'Aragorn',
-        avatar_url: 'http://example.com/a.png',
         role: 'Ranger',
         public_description: 'King',
         private_description: 'Secret notes',
@@ -41,7 +40,6 @@ describe('PcCharacterEditController', function() {
         redirect: false,
         fields: {
           name: 'Aragorn',
-          avatar_url: 'http://example.com/a.png',
           role: 'Ranger',
           public_description: 'King',
           private_description: 'Secret notes',
@@ -54,7 +52,6 @@ describe('PcCharacterEditController', function() {
         redirect: false,
         fields: {
           name: '',
-          avatar_url: '',
           role: '',
           public_description: '',
           private_description: '',
@@ -77,7 +74,6 @@ describe('PcCharacterEditController', function() {
       setFieldErrors = jasmine.createSpy('setFieldErrors');
       setters = {
         setName: jasmine.createSpy('setName'),
-        setAvatarUrl: jasmine.createSpy('setAvatarUrl'),
         setRole: jasmine.createSpy('setRole'),
         setDescription: jasmine.createSpy('setDescription'),
         setPrivateDescription: jasmine.createSpy('setPrivateDescription'),
@@ -95,7 +91,6 @@ describe('PcCharacterEditController', function() {
       controller.applyLoadedCharacter(null, 'demo', '2', setters);
 
       expect(setters.setName).not.toHaveBeenCalled();
-      expect(setters.setAvatarUrl).not.toHaveBeenCalled();
       expect(setters.setRole).not.toHaveBeenCalled();
       expect(setters.setDescription).not.toHaveBeenCalled();
       expect(setters.setPrivateDescription).not.toHaveBeenCalled();
@@ -131,7 +126,6 @@ describe('PcCharacterEditController', function() {
       const character = {
         id: 1,
         name: 'Aragorn',
-        avatar_url: 'http://example.com/a.png',
         role: 'Ranger',
         public_description: 'King',
         private_description: 'Secret',
@@ -141,7 +135,6 @@ describe('PcCharacterEditController', function() {
       controller.applyLoadedCharacter(character, 'demo', '2', setters);
 
       expect(setters.setName).toHaveBeenCalledWith('Aragorn');
-      expect(setters.setAvatarUrl).toHaveBeenCalledWith('http://example.com/a.png');
       expect(setters.setRole).toHaveBeenCalledWith('Ranger');
       expect(setters.setDescription).toHaveBeenCalledWith('King');
       expect(setters.setPrivateDescription).toHaveBeenCalledWith('Secret');

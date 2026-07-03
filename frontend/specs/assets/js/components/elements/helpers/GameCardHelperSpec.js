@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import GameCardHelper from '../../../../../../assets/js/components/elements/helpers/GameCardHelper.jsx';
 
 describe('GameCardHelper', function() {
-  const game = { name: 'Dragon Quest', game_slug: 'dragon-quest', photo: null };
+  const game = { name: 'Dragon Quest', game_slug: 'dragon-quest', cover_photo_path: null };
 
   describe('.render', function() {
     it('renders the game name', function() {
@@ -13,30 +13,19 @@ describe('GameCardHelper', function() {
       expect(renderToStaticMarkup(GameCardHelper.render(game))).toContain('href="#/games/dragon-quest"');
     });
 
-    it('renders the default game photo when photo is null', function() {
+    it('renders the default game photo when cover_photo_path is null', function() {
       const html = renderToStaticMarkup(GameCardHelper.render(game));
       expect(html).toContain('<img');
       expect(html).toContain('default_game.png');
       expect(html).not.toContain('No image');
     });
 
-    it('renders an image when photo is provided', function() {
-      const gameWithPhoto = { ...game, photo: 'http://example.com/cover.png' };
+    it('renders an image when cover_photo_path is provided', function() {
+      const gameWithPhoto = { ...game, cover_photo_path: 'http://example.com/cover_photo.png' };
       const html = renderToStaticMarkup(GameCardHelper.render(gameWithPhoto));
       expect(html).toContain('<img');
-      expect(html).toContain('http://example.com/cover.png');
-      expect(html).not.toContain('No image');
-    });
-
-    it('prefers cover_photo_path over photo when both are provided', function() {
-      const gameWithBoth = {
-        ...game,
-        cover_photo_path: 'http://example.com/cover_photo.png',
-        photo: 'http://example.com/cover.png',
-      };
-      const html = renderToStaticMarkup(GameCardHelper.render(gameWithBoth));
       expect(html).toContain('http://example.com/cover_photo.png');
-      expect(html).not.toContain('http://example.com/cover.png');
+      expect(html).not.toContain('No image');
     });
 
     it('applies Bootstrap card classes', function() {

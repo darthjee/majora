@@ -12,10 +12,10 @@ export default class GameNewHelper {
   /**
    * Render the game creation form.
    *
-   * @param {{name: string, photo: string, description: string,
+   * @param {{name: string, description: string,
    *   status: string, fieldErrors: object}} formState - Form state.
    * @param {{onSubmit: Function, onNameChange: Function,
-   *   onPhotoChange: Function, onDescriptionChange: Function}} handlers - Event handlers.
+   *   onDescriptionChange: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered new game page.
    */
   static render(formState, handlers) {
@@ -31,14 +31,6 @@ export default class GameNewHelper {
             value={formState.name}
             onChange={handlers.onNameChange}
             errors={formState.fieldErrors.name ?? []}
-          />
-          <FormField
-            id="game-new-photo"
-            type="text"
-            label={Translator.t('game_new_page.photo_label')}
-            value={formState.photo}
-            onChange={handlers.onPhotoChange}
-            errors={formState.fieldErrors.photo ?? []}
           />
           <FormField
             id="game-new-description"

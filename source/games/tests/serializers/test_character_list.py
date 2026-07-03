@@ -14,9 +14,7 @@ class TestCharacterListSerializer:
     def setup_method(self):
         """Set up common test fixtures."""
         self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.character = Character.objects.create(
-            name='Frodo', game=self.game, avatar_url='http://example.com/frodo.png'
-        )
+        self.character = Character.objects.create(name='Frodo', game=self.game)
 
     def test_serializes_id(self):
         """Test that the id field is serialized."""
@@ -27,11 +25,6 @@ class TestCharacterListSerializer:
         """Test that the name field is serialized."""
         data = CharacterListSerializer(self.character).data
         assert data['name'] == 'Frodo'
-
-    def test_serializes_avatar_url(self):
-        """Test that the avatar_url field is serialized."""
-        data = CharacterListSerializer(self.character).data
-        assert data['avatar_url'] == 'http://example.com/frodo.png'
 
     def test_serializes_game_slug(self):
         """Test that the game_slug field is sourced from the related game."""

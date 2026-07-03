@@ -37,27 +37,6 @@ class TestGameCreateSerializer:
         assert not serializer.is_valid()
         assert 'name' in serializer.errors
 
-    def test_photo_is_optional(self):
-        """Test that omitting photo is valid."""
-        serializer = GameCreateSerializer(data={'name': 'No Photo Game'})
-        assert serializer.is_valid()
-
-    def test_photo_null_is_accepted(self):
-        """Test that null photo is accepted."""
-        serializer = GameCreateSerializer(data={'name': 'Null Photo Game', 'photo': None})
-        assert serializer.is_valid()
-        game = serializer.save()
-        assert game.photo is None
-
-    def test_photo_url_is_accepted(self):
-        """Test that a valid URL for photo is accepted."""
-        serializer = GameCreateSerializer(
-            data={'name': 'Photo Game', 'photo': 'http://example.com/cover.png'}
-        )
-        assert serializer.is_valid()
-        game = serializer.save()
-        assert game.photo == 'http://example.com/cover.png'
-
     def test_description_is_optional(self):
         """Test that omitting description is valid."""
         serializer = GameCreateSerializer(data={'name': 'No Desc Game'})

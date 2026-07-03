@@ -13,7 +13,6 @@ class CharacterUpdateSerializer(serializers.ModelSerializer):
         model = Character
         fields = [
             'name',
-            'avatar_url',
             'role',
             'public_description',
             'private_description',

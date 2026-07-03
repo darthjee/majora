@@ -7,7 +7,7 @@ import CharacterCardHelper from './helpers/CharacterCardHelper.jsx';
  * @param {object} props.character - Character data object.
  * @param {number} props.character.id - Character ID.
  * @param {string} props.character.name - Character name.
- * @param {string|null} [props.character.avatar_url] - Optional avatar URL.
+ * @param {string|null} [props.character.profile_photo_path] - Optional profile photo path.
  * @param {string} props.gameSlug - Game slug used to build the detail link.
  * @param {string} props.characterType - Character type, either 'pc' or 'npc'.
  * @param {string} [props.size] - Card size, either 'normal' or 'small'.

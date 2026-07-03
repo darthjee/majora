@@ -50,7 +50,7 @@ describe('BaseCharacterEditController', function() {
 
     it('returns seed fields when the loaded character can be edited', function() {
       const character = {
-        id: 1, name: 'Test Hero', avatar_url: 'http://example.com/a.png',
+        id: 1, name: 'Test Hero',
         role: 'Fighter',
         public_description: 'A brave hero', private_description: 'DM notes', can_edit: true,
       };
@@ -58,7 +58,7 @@ describe('BaseCharacterEditController', function() {
       expect(resolveLoadedCharacter(character)).toEqual({
         redirect: false,
         fields: {
-          name: 'Test Hero', avatar_url: 'http://example.com/a.png',
+          name: 'Test Hero',
           role: 'Fighter',
           public_description: 'A brave hero', private_description: 'DM notes',
         },
@@ -69,7 +69,7 @@ describe('BaseCharacterEditController', function() {
       expect(resolveLoadedCharacter({ id: 1, can_edit: true })).toEqual({
         redirect: false,
         fields: {
-          name: '', avatar_url: '', role: '',
+          name: '', role: '',
           public_description: '', private_description: '',
         },
       });
@@ -82,7 +82,6 @@ describe('BaseCharacterEditController', function() {
     beforeEach(function() {
       setters = {
         setName: jasmine.createSpy('setName'),
-        setAvatarUrl: jasmine.createSpy('setAvatarUrl'),
         setRole: jasmine.createSpy('setRole'),
         setDescription: jasmine.createSpy('setDescription'),
         setPrivateDescription: jasmine.createSpy('setPrivateDescription'),
@@ -97,7 +96,6 @@ describe('BaseCharacterEditController', function() {
       controller.applyLoadedCharacter(null, 'demo', '1', setters);
 
       expect(setters.setName).not.toHaveBeenCalled();
-      expect(setters.setAvatarUrl).not.toHaveBeenCalled();
     });
 
     it('redirects to the show page when the loaded character cannot be edited', function() {
@@ -122,7 +120,7 @@ describe('BaseCharacterEditController', function() {
         setCharacter, setLoading, setError, setFieldErrors, client, characterClient,
       );
       const character = {
-        id: 1, name: 'Test Hero', avatar_url: 'http://example.com/a.png',
+        id: 1, name: 'Test Hero',
         role: 'Fighter',
         public_description: 'A brave hero', private_description: 'DM notes', can_edit: true,
       };
@@ -130,7 +128,6 @@ describe('BaseCharacterEditController', function() {
       controller.applyLoadedCharacter(character, 'demo', '1', setters);
 
       expect(setters.setName).toHaveBeenCalledWith('Test Hero');
-      expect(setters.setAvatarUrl).toHaveBeenCalledWith('http://example.com/a.png');
       expect(setters.setRole).toHaveBeenCalledWith('Fighter');
       expect(setters.setDescription).toHaveBeenCalledWith('A brave hero');
       expect(setters.setPrivateDescription).toHaveBeenCalledWith('DM notes');
@@ -160,7 +157,7 @@ describe('BaseCharacterEditController', function() {
         await controller.submitForm(
           event, 'demo', '1',
           {
-            name: 'Test Hero', avatarUrl: 'http://example.com/a.png',
+            name: 'Test Hero',
             role: 'Fighter',
             description: 'A brave hero', privateDescription: 'DM notes',
           },
@@ -173,7 +170,7 @@ describe('BaseCharacterEditController', function() {
         expect(characterClient.updateNpc).toHaveBeenCalledWith(
           'demo', '1', 'tok-test',
           {
-            name: 'Test Hero', avatar_url: 'http://example.com/a.png',
+            name: 'Test Hero',
             role: 'Fighter',
             public_description: 'A brave hero', private_description: 'DM notes',
           },
@@ -198,7 +195,7 @@ describe('BaseCharacterEditController', function() {
       try {
         await controller.submitForm(
           undefined, 'demo', '1',
-          { name: '', avatarUrl: '', role: '', description: '', privateDescription: '' },
+          { name: '', role: '', description: '', privateDescription: '' },
           { setStatus, setFieldErrors },
         );
 
@@ -225,7 +222,7 @@ describe('BaseCharacterEditController', function() {
       try {
         await controller.submitForm(
           undefined, 'demo', '1',
-          { name: '', avatarUrl: '', role: '', description: '', privateDescription: '' },
+          { name: '', role: '', description: '', privateDescription: '' },
           { setStatus, setFieldErrors },
         );
 
@@ -246,7 +243,7 @@ describe('BaseCharacterEditController', function() {
 
       await controller.submitForm(
         undefined, 'demo', '1',
-        { name: '', avatarUrl: '', role: '', description: '', privateDescription: '' },
+        { name: '', role: '', description: '', privateDescription: '' },
         { setStatus, setFieldErrors },
       );
 

@@ -51,7 +51,6 @@ describe('PcCharacterEditController#submitForm', function() {
         '2',
         {
           name: 'Aragorn',
-          avatarUrl: 'http://example.com/a.png',
           role: 'Ranger',
           description: 'King',
           privateDescription: 'Secret notes',
@@ -68,7 +67,6 @@ describe('PcCharacterEditController#submitForm', function() {
         'tok-abc',
         {
           name: 'Aragorn',
-          avatar_url: 'http://example.com/a.png',
           role: 'Ranger',
           public_description: 'King',
           private_description: 'Secret notes',
@@ -96,7 +94,7 @@ describe('PcCharacterEditController#submitForm', function() {
         undefined,
         'demo',
         '2',
-        { name: 'Aragorn', avatarUrl: '', role: '', description: '', privateDescription: '' },
+        { name: 'Aragorn', role: '', description: '', privateDescription: '' },
         { setStatus, setFieldErrors },
       );
 

@@ -84,7 +84,7 @@ class TestValidatedOrError:
 
     def test_returns_400_response_for_invalid_serializer(self):
         """Test that an invalid serializer returns a 400 errors Response."""
-        serializer = GameUpdateSerializer(self.game, data={'photo': 'not-a-url'}, partial=True)
+        serializer = GameUpdateSerializer(self.game, data={'name': 'x' * 201}, partial=True)
         response = validated_or_error(serializer)
         assert response.status_code == 400
         assert 'errors' in response.data
@@ -122,7 +122,7 @@ class TestDetailOrUpdate:
 
     def test_patch_with_invalid_payload_returns_400(self):
         """Test that a PATCH with an invalid payload returns a 400 errors Response."""
-        request = _make_request(method='PATCH', user=self.dm_user, data={'photo': 'not-a-url'})
+        request = _make_request(method='PATCH', user=self.dm_user, data={'name': 'x' * 201})
         response = self._call(request)
         assert response.status_code == 400
         assert 'errors' in response.data

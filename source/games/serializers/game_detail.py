@@ -22,7 +22,6 @@ class GameDetailSerializer(serializers.ModelSerializer):
         fields = [
             'name',
             'game_slug',
-            'photo',
             'description',
             'links',
             'photos',

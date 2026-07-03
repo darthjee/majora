@@ -16,7 +16,6 @@ class TestGameDetailSerializer:
         self.game = Game.objects.create(
             name='Test Game',
             game_slug='test-game',
-            photo='http://example.com/cover.png',
             description='A grand adventure.',
         )
 
@@ -29,11 +28,6 @@ class TestGameDetailSerializer:
         """Test that the game_slug field is serialized."""
         data = GameDetailSerializer(self.game).data
         assert data['game_slug'] == 'test-game'
-
-    def test_serializes_photo(self):
-        """Test that the photo field is serialized."""
-        data = GameDetailSerializer(self.game).data
-        assert data['photo'] == 'http://example.com/cover.png'
 
     def test_serializes_description(self):
         """Test that the description field is serialized."""
