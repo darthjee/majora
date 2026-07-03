@@ -4,7 +4,7 @@ import CharacterHelper from '../../../../../../assets/js/components/pages/helper
 describe('CharacterHelper', function() {
   const character = {
     name: 'Aragorn',
-    avatar_url: null,
+    profile_photo_path: null,
     role: 'Ranger',
     public_description: 'The future king of Gondor.',
     photos: [],
@@ -30,20 +30,18 @@ describe('CharacterHelper', function() {
         .not.toContain('The future king of Gondor.');
     });
 
-    it('renders the default avatar when avatar_url is null', function() {
+    it('renders the default avatar when profile_photo_path is null', function() {
       const html = renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'));
       expect(html).toContain('default_character.png');
     });
 
-    it('prefers profile_photo_path over avatar_url when both are provided', function() {
+    it('renders the profile photo when profile_photo_path is provided', function() {
       const c = {
         ...character,
         profile_photo_path: 'http://example.com/profile_photo.png',
-        avatar_url: 'http://example.com/aragorn.png',
       };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
       expect(html).toContain('http://example.com/profile_photo.png');
-      expect(html).not.toContain('http://example.com/aragorn.png');
     });
 
     it('renders photos when present', function() {

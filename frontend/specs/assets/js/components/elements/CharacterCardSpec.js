@@ -3,7 +3,7 @@ import React from 'react';
 import CharacterCard from '../../../../../assets/js/components/elements/CharacterCard.jsx';
 
 describe('CharacterCard', function() {
-  const character = { id: 42, name: 'Aragorn', avatar_url: null };
+  const character = { id: 42, name: 'Aragorn', profile_photo_path: null };
 
   it('delegates rendering to CharacterCardHelper', function() {
     const html = renderToStaticMarkup(

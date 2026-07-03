@@ -3,8 +3,8 @@ import GameCharactersHelper from '../../../../../../assets/js/components/pages/h
 
 describe('GameCharactersHelper', function() {
   const characters = [
-    { id: 1, name: 'Aragorn', avatar_url: null },
-    { id: 2, name: 'Legolas', avatar_url: null },
+    { id: 1, name: 'Aragorn', profile_photo_path: null },
+    { id: 2, name: 'Legolas', profile_photo_path: null },
   ];
   const pagination = { page: 1, pages: 3, perPage: 10 };
 
