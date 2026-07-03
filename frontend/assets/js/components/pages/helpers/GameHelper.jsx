@@ -1,5 +1,5 @@
 import React from 'react';
-import CardPhoto from '../../elements/CardPhoto.jsx';
+import PhotoUploadOverlay from '../../elements/PhotoUploadOverlay.jsx';
 import EditButton from '../../elements/EditButton.jsx';
 import PageActions from '../../elements/PageActions.jsx';
 import CharacterPhotos from '../../elements/CharacterPhotos.jsx';
@@ -26,9 +26,10 @@ export default class GameHelper {
    * @param {boolean} [game.can_edit] - Whether the current user can edit this game.
    * @param {object[]} [pcs] - PCs preview list.
    * @param {object[]} [npcs] - NPCs preview list.
+   * @param {{onOpenUploadModal: Function}} [handlers] - Event handlers.
    * @returns {React.ReactElement} Game detail element.
    */
-  static render(game, pcs = [], npcs = []) {
+  static render(game, pcs = [], npcs = [], handlers = {}) {
     return (
       <div className="container mt-4">
         <PageActions backHref="#/games">
@@ -40,7 +41,12 @@ export default class GameHelper {
         </PageActions>
         <div className="row">
           <div className="col-md-4">
-            <CardPhoto url={game.cover_photo_path} alt={game.name} />
+            <PhotoUploadOverlay
+              url={game.cover_photo_path}
+              alt={game.name}
+              canEdit={game.can_edit}
+              onClick={handlers.onOpenUploadModal}
+            />
           </div>
           <div className="col-md-8">
             <h1>

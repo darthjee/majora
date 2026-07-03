@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import GameController from './controllers/GameController.js';
 import GameHelper from './helpers/GameHelper.jsx';
+import PhotoUploadModal from '../elements/PhotoUploadModal.jsx';
 
 /**
  * Game detail page.
@@ -13,6 +14,7 @@ export default function Game() {
   const [error, setError] = useState('');
   const [pcs, setPcs] = useState([]);
   const [npcs, setNpcs] = useState([]);
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   const controller = useMemo(
     () => new GameController(setGame, setLoading, setError, setPcs, setNpcs),
@@ -21,7 +23,23 @@ export default function Game() {
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
+  const handleUploadSuccess = () => {
+    setShowUploadModal(false);
+    controller.buildEffect()();
+  };
+
   if (loading) return GameHelper.renderLoading();
   if (error) return GameHelper.renderError(error);
-  return GameHelper.render(game, pcs, npcs);
+
+  return (
+    <>
+      {GameHelper.render(game, pcs, npcs, { onOpenUploadModal: () => setShowUploadModal(true) })}
+      <PhotoUploadModal
+        show={showUploadModal}
+        uploadPath={`/games/${game.game_slug}/photo_upload.json`}
+        onClose={() => setShowUploadModal(false)}
+        onSuccess={handleUploadSuccess}
+      />
+    </>
+  );
 }

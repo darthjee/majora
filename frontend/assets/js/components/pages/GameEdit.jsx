@@ -44,6 +44,11 @@ export default function GameEdit() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game]);
 
+  const handleUploadSuccess = () => {
+    setShowUploadModal(false);
+    controller.buildEffect()();
+  };
+
   const handleSubmit = (event) => controller.submitForm(
     event,
     gameSlug,
@@ -57,7 +62,7 @@ export default function GameEdit() {
   return (
     <>
       {GameEditHelper.render(
-        { name, description, status, fieldErrors },
+        { name, description, cover_photo_path: game?.cover_photo_path, status, fieldErrors },
         {
           onSubmit: handleSubmit,
           onNameChange: (event) => setName(event.target.value),
@@ -69,7 +74,7 @@ export default function GameEdit() {
         show={showUploadModal}
         uploadPath={`/games/${gameSlug}/photo_upload.json`}
         onClose={() => setShowUploadModal(false)}
-        onSuccess={() => setShowUploadModal(false)}
+        onSuccess={handleUploadSuccess}
       />
     </>
   );

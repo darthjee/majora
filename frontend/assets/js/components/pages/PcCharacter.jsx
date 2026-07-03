@@ -3,6 +3,7 @@ import PcCharacterController, { getPcCharacterParamsFromHash }
   from './controllers/PcCharacterController.js';
 import CharacterHelper from './helpers/CharacterHelper.jsx';
 import AuthEvents from '../../utils/AuthEvents.js';
+import PhotoUploadModal from '../elements/PhotoUploadModal.jsx';
 
 /**
  * PC character detail page.
@@ -13,6 +14,7 @@ export default function PcCharacter() {
   const [character, setCharacter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   const controller = useMemo(
     () => new PcCharacterController(setCharacter, setLoading, setError),
@@ -31,7 +33,23 @@ export default function PcCharacter() {
   const { game_slug: gameSlug } = getPcCharacterParamsFromHash(currentHash);
   const backHref = `#/games/${gameSlug}/pcs`;
 
+  const handleUploadSuccess = () => {
+    setShowUploadModal(false);
+    controller.buildEffect()();
+  };
+
   if (loading) return CharacterHelper.renderLoading();
   if (error) return CharacterHelper.renderError(error);
-  return CharacterHelper.render(character, backHref);
+
+  return (
+    <>
+      {CharacterHelper.render(character, backHref, { onOpenUploadModal: () => setShowUploadModal(true) })}
+      <PhotoUploadModal
+        show={showUploadModal}
+        uploadPath={`/games/${gameSlug}/pcs/${character.id}/photo_upload.json`}
+        onClose={() => setShowUploadModal(false)}
+        onSuccess={handleUploadSuccess}
+      />
+    </>
+  );
 }
