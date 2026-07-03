@@ -77,6 +77,7 @@ pc_edit_page:
   role_label: Função
   description_label: Descrição
   private_description_label: Notas do Mestre
+  money_label: Dinheiro (peças de cobre)
   submit: Salvar alterações
   error: Falha ao salvar o personagem. Tente novamente.
   upload_photo_button: Enviar Foto
@@ -86,6 +87,7 @@ npc_edit_page:
   role_label: Função
   description_label: Descrição
   private_description_label: Notas do Mestre
+  money_label: Dinheiro (peças de cobre)
   submit: Salvar alterações
   error: Falha ao salvar o personagem. Tente novamente.
   upload_photo_button: Enviar Foto
@@ -126,3 +128,18 @@ game_treasures_page:
   loading: Carregando tesouros...
   title: Tesouros
   treasures: Tesouros
+money:
+  platinum_coin: moeda(s) de platina
+  gold_coin: moeda(s) de ouro
+  silver_coin: moeda(s) de prata
+  copper_coin: moeda(s) de cobre
+  platinum_piece: peça(s) de platina
+  gold_piece: peça(s) de ouro
+  silver_piece: peça(s) de prata
+  copper_piece: peça(s) de cobre
+  gems: gemas
+  gp_in_gems: PO em gemas
+  pp_abbreviation: PL
+  gp_abbreviation: PO
+  sp_abbreviation: PP
+  cp_abbreviation: PC
