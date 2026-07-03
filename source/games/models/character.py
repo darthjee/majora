@@ -20,7 +20,6 @@ class Character(models.Model):
         blank=True,
         related_name='characters',
     )
-    avatar_url = models.URLField(null=True, blank=True)
     role = models.CharField(max_length=200, null=True, blank=True)
     public_description = models.TextField(blank=True)
     private_description = models.TextField(blank=True)

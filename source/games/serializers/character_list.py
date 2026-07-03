@@ -16,4 +16,4 @@ class CharacterListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Character
-        fields = ['id', 'name', 'avatar_url', 'game_slug', 'profile_photo_path']
+        fields = ['id', 'name', 'game_slug', 'profile_photo_path']
