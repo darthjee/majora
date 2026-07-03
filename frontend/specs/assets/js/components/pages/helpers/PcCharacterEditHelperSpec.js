@@ -12,6 +12,7 @@ describe('PcCharacterEditHelper', function() {
   const buildState = (overrides = {}) => ({
     name: 'Aragorn',
     profile_photo_path: null,
+    links: [],
     role: 'Ranger',
     description: 'The future king of Gondor.',
     privateDescription: 'Secret DM notes.',
@@ -82,6 +83,18 @@ describe('PcCharacterEditHelper', function() {
       );
 
       expect(html).toContain('disabled=""');
+    });
+
+    it('renders the character links as a read-only LinkList', function() {
+      const html = renderToStaticMarkup(
+        PcCharacterEditHelper.render(
+          buildState({ links: [{ text: 'Wiki', url: 'https://example.com/wiki' }] }),
+          buildHandlers()
+        )
+      );
+
+      expect(html).toContain('href="https://example.com/wiki"');
+      expect(html).toContain('Wiki');
     });
   });
 

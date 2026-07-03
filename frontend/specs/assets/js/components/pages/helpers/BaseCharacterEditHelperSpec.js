@@ -45,6 +45,7 @@ describe('BaseCharacterEditHelper', function() {
   const buildState = (overrides = {}) => ({
     name: 'Test Character',
     profile_photo_path: null,
+    links: [],
     role: 'Fighter',
     description: 'A brave warrior.',
     privateDescription: 'DM notes.',
@@ -121,6 +122,36 @@ describe('BaseCharacterEditHelper', function() {
       const html = renderToStaticMarkup(helper.render(buildState(), buildHandlers()));
 
       expect(html).toContain('Upload Photo');
+    });
+
+    it('renders the character links as a read-only LinkList', function() {
+      const html = renderToStaticMarkup(
+        helper.render(
+          buildState({ links: [{ text: 'Wiki', url: 'https://example.com/wiki' }] }),
+          buildHandlers()
+        )
+      );
+
+      expect(html).toContain('href="https://example.com/wiki"');
+      expect(html).toContain('Wiki');
+    });
+
+    it('does not render any link elements when links is empty', function() {
+      const html = renderToStaticMarkup(helper.render(buildState(), buildHandlers()));
+
+      expect(html).not.toContain('<a href="http');
+    });
+
+    it('wraps all form fields in a single form element so submission still works', function() {
+      const html = renderToStaticMarkup(helper.render(buildState(), buildHandlers()));
+      const formStart = html.indexOf('<form');
+      const formEnd = html.indexOf('</form>');
+
+      expect(formStart).toBeGreaterThan(-1);
+      expect(html.indexOf('id="test-edit-name"')).toBeGreaterThan(formStart);
+      expect(html.indexOf('id="test-edit-name"')).toBeLessThan(formEnd);
+      expect(html.indexOf('id="test-edit-role"')).toBeGreaterThan(formStart);
+      expect(html.indexOf('id="test-edit-role"')).toBeLessThan(formEnd);
     });
 
     it('renders the photo overlay bound to the open upload modal handler and always editable', function() {

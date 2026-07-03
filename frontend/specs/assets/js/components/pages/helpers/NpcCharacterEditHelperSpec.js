@@ -12,6 +12,7 @@ describe('NpcCharacterEditHelper', function() {
   const buildState = (overrides = {}) => ({
     name: 'Goblin King',
     profile_photo_path: null,
+    links: [],
     role: 'Brute',
     description: 'Ruler of the cave.',
     privateDescription: 'Secret DM notes.',
@@ -82,6 +83,18 @@ describe('NpcCharacterEditHelper', function() {
       );
 
       expect(html).toContain('disabled=""');
+    });
+
+    it('renders the character links as a read-only LinkList', function() {
+      const html = renderToStaticMarkup(
+        NpcCharacterEditHelper.render(
+          buildState({ links: [{ text: 'Wiki', url: 'https://example.com/wiki' }] }),
+          buildHandlers()
+        )
+      );
+
+      expect(html).toContain('href="https://example.com/wiki"');
+      expect(html).toContain('Wiki');
     });
   });
 
