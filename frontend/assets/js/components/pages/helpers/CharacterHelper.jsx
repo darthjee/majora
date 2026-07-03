@@ -18,7 +18,8 @@ export default class CharacterHelper {
    *
    * @param {object} character - Character data object.
    * @param {string} character.name - Character name.
-   * @param {string|null} [character.avatar_url] - Optional avatar URL.
+   * @param {string|null} [character.profile_photo_path] - Optional profile photo path, takes precedence over character.avatar_url.
+   * @param {string|null} [character.avatar_url] - Optional avatar URL, used as a fallback.
    * @param {string} [character.role] - Character role.
    * @param {string} [character.public_description] - Character public description.
    * @param {string} [character.private_description] - Character private description (DM notes).
@@ -46,7 +47,7 @@ export default class CharacterHelper {
         </PageActions>
         <div className="row">
           <div className="col-md-4">
-            <CardAvatar url={character.avatar_url} alt={character.name} />
+            <CardAvatar url={character.profile_photo_path || character.avatar_url} alt={character.name} />
           </div>
           <CharacterInfo
             name={character.name}
