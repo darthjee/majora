@@ -5,17 +5,18 @@ import BaseClient from './BaseClient.js';
  */
 export default class UploadClient extends BaseClient {
   /**
-   * Initialises a photo upload for a game.
+   * Initialises a photo upload.
    *
    * @description Sends a POST request with the filename to reserve an upload slot,
    *   returning an id and upload token to be used in the submit step.
-   * @param {string} gameSlug - The game slug.
+   * @param {string} path - Full path to the photo upload init endpoint
+   *   (e.g. `/games/my-game/photo_upload.json` or `/games/my-game/pcs/7/photo_upload.json`).
    * @param {string} filename - The original file name of the photo to upload.
    * @param {string} token - Authentication token.
    * @returns {Promise<Response>} fetch response from the photo upload init endpoint.
    */
-  initUpload(gameSlug, filename, token) {
-    return this.request(`/games/${gameSlug}/photo_upload.json`, {
+  initUpload(path, filename, token) {
+    return this.request(path, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

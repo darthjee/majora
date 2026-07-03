@@ -27,9 +27,9 @@ describe('PhotoUploadModalController', function() {
 
       const controller = new PhotoUploadModalController(setError, setUploading, onSuccess, client);
 
-      await controller.handleSubmit('my-game', file, 'auth-token');
+      await controller.handleSubmit('/games/my-game/photo_upload.json', file, 'auth-token');
 
-      expect(client.initUpload).toHaveBeenCalledWith('my-game', 'photo.jpg', 'auth-token');
+      expect(client.initUpload).toHaveBeenCalledWith('/games/my-game/photo_upload.json', 'photo.jpg', 'auth-token');
       expect(client.submitUpload).toHaveBeenCalledWith(1, 'up-token', file);
       expect(onSuccess).toHaveBeenCalled();
       expect(setError).not.toHaveBeenCalledWith(true);
@@ -40,7 +40,7 @@ describe('PhotoUploadModalController', function() {
 
       const controller = new PhotoUploadModalController(setError, setUploading, onSuccess, client);
 
-      await controller.handleSubmit('my-game', file, 'auth-token');
+      await controller.handleSubmit('/games/my-game/photo_upload.json', file, 'auth-token');
 
       expect(setError).toHaveBeenCalledWith(true);
       expect(setUploading).toHaveBeenCalledWith(false);
@@ -57,7 +57,7 @@ describe('PhotoUploadModalController', function() {
 
       const controller = new PhotoUploadModalController(setError, setUploading, onSuccess, client);
 
-      await controller.handleSubmit('my-game', file, 'auth-token');
+      await controller.handleSubmit('/games/my-game/photo_upload.json', file, 'auth-token');
 
       expect(setError).toHaveBeenCalledWith(true);
       expect(setUploading).toHaveBeenCalledWith(false);
@@ -69,7 +69,7 @@ describe('PhotoUploadModalController', function() {
 
       const controller = new PhotoUploadModalController(setError, setUploading, onSuccess, client);
 
-      await controller.handleSubmit('my-game', file, 'auth-token');
+      await controller.handleSubmit('/games/my-game/photo_upload.json', file, 'auth-token');
 
       expect(setError).toHaveBeenCalledWith(true);
       expect(setUploading).toHaveBeenCalledWith(false);

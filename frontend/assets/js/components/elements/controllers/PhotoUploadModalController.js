@@ -25,14 +25,14 @@ export default class PhotoUploadModalController {
    * @description Calls initUpload to obtain an upload id and token, then calls
    *   submitUpload with the file. On success, invokes onSuccess. On any
    *   non-ok response or thrown error, sets the error flag.
-   * @param {string} gameSlug - The game slug.
+   * @param {string} uploadPath - Full path to the photo upload init endpoint.
    * @param {File} file - File to upload.
    * @param {string} token - Authentication token.
    * @returns {Promise<void>} Resolves when the upload handling finishes.
    */
-  async handleSubmit(gameSlug, file, token) {
+  async handleSubmit(uploadPath, file, token) {
     try {
-      const initResponse = await this.client.initUpload(gameSlug, file.name, token);
+      const initResponse = await this.client.initUpload(uploadPath, file.name, token);
 
       if (!initResponse.ok) {
         this.setError(true);

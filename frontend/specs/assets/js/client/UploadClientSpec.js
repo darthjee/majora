@@ -12,7 +12,7 @@ describe('UploadClient', function() {
     it('sends a POST request with the filename and auth token', async function() {
       const client = new UploadClient();
 
-      await client.initUpload('demo', 'cover.png', 'tok-abc');
+      await client.initUpload('/games/demo/photo_upload.json', 'cover.png', 'tok-abc');
 
       expect(fetchSpy).toHaveBeenCalledWith('/games/demo/photo_upload.json', {
         method: 'POST',
@@ -25,14 +25,24 @@ describe('UploadClient', function() {
       });
     });
 
-    it('includes the game slug in the URL', async function() {
+    it('posts to the exact path given for a game', async function() {
       const client = new UploadClient();
 
-      await client.initUpload('my-game', 'photo.jpg', 'tok-xyz');
+      await client.initUpload('/games/my-game/photo_upload.json', 'photo.jpg', 'tok-xyz');
 
       const [url] = fetchSpy.calls.mostRecent().args;
 
       expect(url).toBe('/games/my-game/photo_upload.json');
+    });
+
+    it('posts to the exact path given for a character', async function() {
+      const client = new UploadClient();
+
+      await client.initUpload('/games/my-game/pcs/7/photo_upload.json', 'photo.jpg', 'tok-xyz');
+
+      const [url] = fetchSpy.calls.mostRecent().args;
+
+      expect(url).toBe('/games/my-game/pcs/7/photo_upload.json');
     });
   });
 

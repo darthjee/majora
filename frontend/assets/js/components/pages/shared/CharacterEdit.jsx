@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import CharacterHelper from '../helpers/CharacterHelper.jsx';
+import PhotoUploadModal from '../../elements/PhotoUploadModal.jsx';
 
 /**
  * Shared character edit page component.
@@ -11,9 +12,10 @@ import CharacterHelper from '../helpers/CharacterHelper.jsx';
  * @param {Function} props.getParamsFromHash - Hash-parsing function for this character type.
  * @param {import('../helpers/BaseCharacterEditHelper.jsx').default} props.EditHelper - Edit helper instance
  *   with `render` and `renderLoading` methods.
+ * @param {string} props.characterKind - Character kind URL segment (`'pcs'` or `'npcs'`).
  * @returns {React.ReactElement} Character edit page element.
  */
-export default function CharacterEdit({ ControllerClass, getParamsFromHash, EditHelper }) {
+export default function CharacterEdit({ ControllerClass, getParamsFromHash, EditHelper, characterKind }) {
   const [character, setCharacter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -24,6 +26,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
   const [role, setRole] = useState('');
   const [description, setDescription] = useState('');
   const [privateDescription, setPrivateDescription] = useState('');
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   const controller = useMemo(
     () => new ControllerClass(setCharacter, setLoading, setError, setFieldErrors),
@@ -59,23 +62,36 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
   if (error) return CharacterHelper.renderError(error);
   if (!character || !character.can_edit) return EditHelper.renderLoading();
 
-  return EditHelper.render(
-    {
-      name,
-      avatar_url: avatarUrl,
-      role,
-      description,
-      privateDescription,
-      status,
-      fieldErrors,
-    },
-    {
-      onSubmit: handleSubmit,
-      onNameChange: (event) => setName(event.target.value),
-      onAvatarUrlChange: (event) => setAvatarUrl(event.target.value),
-      onRoleChange: (event) => setRole(event.target.value),
-      onDescriptionChange: (event) => setDescription(event.target.value),
-      onPrivateDescriptionChange: (event) => setPrivateDescription(event.target.value),
-    }
+  const uploadPath = `/games/${gameSlug}/${characterKind}/${characterId}/photo_upload.json`;
+
+  return (
+    <>
+      {EditHelper.render(
+        {
+          name,
+          avatar_url: avatarUrl,
+          role,
+          description,
+          privateDescription,
+          status,
+          fieldErrors,
+        },
+        {
+          onSubmit: handleSubmit,
+          onNameChange: (event) => setName(event.target.value),
+          onAvatarUrlChange: (event) => setAvatarUrl(event.target.value),
+          onRoleChange: (event) => setRole(event.target.value),
+          onDescriptionChange: (event) => setDescription(event.target.value),
+          onPrivateDescriptionChange: (event) => setPrivateDescription(event.target.value),
+          onOpenUploadModal: () => setShowUploadModal(true),
+        }
+      )}
+      <PhotoUploadModal
+        show={showUploadModal}
+        uploadPath={uploadPath}
+        onClose={() => setShowUploadModal(false)}
+        onSuccess={() => setShowUploadModal(false)}
+      />
+    </>
   );
 }

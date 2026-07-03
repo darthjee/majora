@@ -14,6 +14,7 @@ export default function NpcCharacterEdit() {
       ControllerClass={NpcCharacterEditController}
       getParamsFromHash={getNpcCharacterEditParamsFromHash}
       EditHelper={NpcCharacterEditHelper}
+      characterKind="npcs"
     />
   );
 }

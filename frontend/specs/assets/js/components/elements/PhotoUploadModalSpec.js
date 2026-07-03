@@ -16,7 +16,7 @@ describe('PhotoUploadModal', function() {
       renderToStaticMarkup(
         React.createElement(PhotoUploadModal, {
           show: true,
-          gameSlug: 'my-game',
+          uploadPath: '/games/my-game/photo_upload.json',
           onClose,
           onSuccess,
         })
@@ -53,7 +53,7 @@ describe('PhotoUploadModal', function() {
       renderToStaticMarkup(
         React.createElement(PhotoUploadModal, {
           show: true,
-          gameSlug: 'my-game',
+          uploadPath: '/games/my-game/photo_upload.json',
           onClose,
           onSuccess,
         })
@@ -77,7 +77,7 @@ describe('PhotoUploadModal', function() {
       renderToStaticMarkup(
         React.createElement(PhotoUploadModal, {
           show: false,
-          gameSlug: 'my-game',
+          uploadPath: '/games/my-game/photo_upload.json',
           onClose,
           onSuccess,
         })
@@ -99,7 +99,7 @@ describe('PhotoUploadModal', function() {
       renderToStaticMarkup(
         React.createElement(PhotoUploadModal, {
           show: false,
-          gameSlug: 'my-game',
+          uploadPath: '/games/my-game/photo_upload.json',
           onClose: jasmine.createSpy('onClose'),
           onSuccess: jasmine.createSpy('onSuccess'),
         })

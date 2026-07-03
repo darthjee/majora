@@ -31,7 +31,8 @@ export default class BaseCharacterEditHelper {
    *   description: string, privateDescription: string, status: string, fieldErrors: object}} state - page state.
    * @param {{onSubmit: Function, onNameChange: Function, onAvatarUrlChange: Function,
    *   onRoleChange: Function,
-   *   onDescriptionChange: Function, onPrivateDescriptionChange: Function}} handlers - event handlers.
+   *   onDescriptionChange: Function, onPrivateDescriptionChange: Function,
+   *   onOpenUploadModal: Function}} handlers - event handlers.
    * @returns {React.ReactElement} rendered edit page.
    */
   render(state, handlers) {
@@ -63,6 +64,13 @@ export default class BaseCharacterEditHelper {
                 onChange={handlers.onAvatarUrlChange}
                 errors={state.fieldErrors.avatar_url ?? []}
               />
+              <button
+                className="btn btn-secondary"
+                type="button"
+                onClick={handlers.onOpenUploadModal}
+              >
+                {Translator.t(`${i18nNamespace}.upload_photo_button`)}
+              </button>
               <FormField
                 id={`${idPrefix}-edit-role`}
                 type="text"
