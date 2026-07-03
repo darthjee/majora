@@ -38,6 +38,20 @@ describe('LinkList', function() {
     expect(html).toContain('rel="noreferrer"');
   });
 
+  it('renders each link as a card', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(LinkList, { links })
+    );
+    expect(html).toContain('class="card mb-2"');
+  });
+
+  it('renders a chain icon before each link', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(LinkList, { links })
+    );
+    expect(html).toContain('bi-link-45deg');
+  });
+
   it('renders nothing when links is an empty array', function() {
     const html = renderToStaticMarkup(
       React.createElement(LinkList, { links: [] })

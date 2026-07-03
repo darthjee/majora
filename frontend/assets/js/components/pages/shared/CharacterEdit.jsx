@@ -73,6 +73,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
         {
           name,
           profile_photo_path: character.profile_photo_path,
+          links: character.links,
           role,
           description,
           privateDescription,

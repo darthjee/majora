@@ -3,6 +3,7 @@ import PhotoUploadOverlay from '../../elements/PhotoUploadOverlay.jsx';
 import FormField from '../../elements/FormField.jsx';
 import TextareaField from '../../elements/TextareaField.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
+import LinkList from '../../elements/LinkList.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import Translator from '../../../i18n/Translator.js';
 
@@ -27,8 +28,9 @@ export default class BaseCharacterEditHelper {
   /**
    * Render the edit form.
    *
-   * @param {{name: string, profile_photo_path: string|null, role: string,
-   *   description: string, privateDescription: string, status: string, fieldErrors: object}} state - page state.
+   * @param {{name: string, profile_photo_path: string|null, links: object[],
+   *   role: string, description: string, privateDescription: string, status: string,
+   *   fieldErrors: object}} state - page state.
    * @param {{onSubmit: Function, onNameChange: Function,
    *   onRoleChange: Function,
    *   onDescriptionChange: Function, onPrivateDescriptionChange: Function,
@@ -42,18 +44,16 @@ export default class BaseCharacterEditHelper {
       <div className="container mt-4">
         <h1>{Translator.t(`${i18nNamespace}.title`)}</h1>
         {this.#renderError(state)}
-        <div className="row">
-          <div className="col-md-4">
-            <PhotoUploadOverlay
-              type="avatar"
-              url={state.profile_photo_path}
-              alt={state.name}
-              canEdit
-              onClick={handlers.onOpenUploadModal}
-            />
-          </div>
-          <div className="col-md-8">
-            <form onSubmit={handlers.onSubmit}>
+        <form onSubmit={handlers.onSubmit}>
+          <div className="row">
+            <div className="col-md-4">
+              <PhotoUploadOverlay
+                type="avatar"
+                url={state.profile_photo_path}
+                alt={state.name}
+                canEdit
+                onClick={handlers.onOpenUploadModal}
+              />
               <FormField
                 id={`${idPrefix}-edit-name`}
                 type="text"
@@ -62,6 +62,9 @@ export default class BaseCharacterEditHelper {
                 onChange={handlers.onNameChange}
                 errors={state.fieldErrors.name ?? []}
               />
+              <LinkList links={state.links} />
+            </div>
+            <div className="col-md-8">
               <FormField
                 id={`${idPrefix}-edit-role`}
                 type="text"
@@ -87,9 +90,9 @@ export default class BaseCharacterEditHelper {
               <button className="btn btn-primary" type="submit" disabled={state.status === 'submitting'}>
                 {Translator.t(`${i18nNamespace}.submit`)}
               </button>
-            </form>
+            </div>
           </div>
-        </div>
+        </form>
       </div>
     );
   }

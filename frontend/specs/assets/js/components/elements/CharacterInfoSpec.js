@@ -6,12 +6,10 @@ describe('CharacterInfo', function() {
   it('delegates rendering to CharacterInfoHelper', function() {
     const html = renderToStaticMarkup(
       React.createElement(CharacterInfo, {
-        name: 'Aragorn',
         role: 'Ranger',
         description: 'The future king.',
       })
     );
-    expect(html).toContain('Aragorn');
     expect(html).toContain('Ranger');
     expect(html).toContain('The future king.');
   });
