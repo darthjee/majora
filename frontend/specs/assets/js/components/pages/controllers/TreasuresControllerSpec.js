@@ -27,7 +27,7 @@ describe('TreasuresController', function() {
       pagination: { page: 1, pages: 1, perPage: 10 },
     }));
 
-    const cleanup = await new TreasuresController(
+    const cleanup = new TreasuresController(
       setTreasures, setPagination, setLoading, setError, client, authClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -48,7 +48,7 @@ describe('TreasuresController', function() {
     }));
     client.fetchIndex.and.returnValue(Promise.reject(new Error('network error')));
 
-    const cleanup = await new TreasuresController(
+    const cleanup = new TreasuresController(
       setTreasures, setPagination, setLoading, setError, client, authClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -68,9 +68,10 @@ describe('TreasuresController', function() {
     globalThis.window = fakeWindow;
 
     try {
-      const cleanup = await new TreasuresController(
+      const cleanup = new TreasuresController(
         setTreasures, setPagination, setLoading, setError, client, authClient,
       ).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(fakeWindow.location.hash).toBe('/');
       expect(client.fetchIndex).not.toHaveBeenCalled();

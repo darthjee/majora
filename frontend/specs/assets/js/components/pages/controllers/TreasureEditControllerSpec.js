@@ -56,7 +56,7 @@ describe('TreasureEditController', function() {
     );
 
     it('fetches treasure and access in parallel and calls setTreasure with merged result', async function() {
-      const cleanup = await buildController().buildEffect()();
+      const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(treasureClient.fetchTreasure).toHaveBeenCalledWith('1', null);
@@ -73,7 +73,7 @@ describe('TreasureEditController', function() {
     it('sets can_edit to false when access response is not ok', async function() {
       treasureClient.fetchTreasureAccess.and.returnValue(Promise.resolve({ ok: false }));
 
-      const cleanup = await buildController().buildEffect()();
+      const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(setTreasure).toHaveBeenCalledWith(
@@ -87,7 +87,7 @@ describe('TreasureEditController', function() {
     it('sets error when the treasure fetch fails', async function() {
       treasureClient.fetchTreasure.and.returnValue(Promise.resolve({ ok: false }));
 
-      const cleanup = await buildController().buildEffect()();
+      const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(setTreasure).not.toHaveBeenCalled();
@@ -100,7 +100,7 @@ describe('TreasureEditController', function() {
     it('sends the token when the user is authenticated', async function() {
       AuthStorage.setToken('tok-abc');
 
-      const cleanup = await buildController().buildEffect()();
+      const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(treasureClient.fetchTreasure).toHaveBeenCalledWith('1', 'tok-abc');
@@ -115,7 +115,8 @@ describe('TreasureEditController', function() {
         json: () => Promise.resolve({ is_superuser: false }),
       }));
 
-      const cleanup = await buildController().buildEffect()();
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(fakeWindow.location.hash).toBe('/');
       expect(treasureClient.fetchTreasure).not.toHaveBeenCalled();

@@ -32,14 +32,14 @@ export default class TreasureNewController extends BasePageController {
    * @returns {Function} Effect callback.
    */
   buildEffect() {
-    return async () => {
-      const isSuperUser = await AdminAccess.isSuperUser(this.authClient);
-
-      if (!isSuperUser) {
-        if (typeof window !== 'undefined') {
-          window.location.hash = '/';
+    return () => {
+      AdminAccess.isSuperUser(this.authClient).then((isSuperUser) => {
+        if (!isSuperUser) {
+          if (typeof window !== 'undefined') {
+            window.location.hash = '/';
+          }
         }
-      }
+      });
     };
   }
 

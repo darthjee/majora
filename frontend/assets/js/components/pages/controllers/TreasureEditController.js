@@ -49,30 +49,32 @@ export default class TreasureEditController extends BasePageController {
    * @returns {Function} Effect callback.
    */
   buildEffect() {
-    return async () => {
+    return () => {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
 
-      const isSuperUser = await AdminAccess.isSuperUser(this.authClient);
-
-      if (!isSuperUser) {
-        if (typeof window !== 'undefined') {
-          window.location.hash = '/';
+      AdminAccess.isSuperUser(this.authClient).then((isSuperUser) => {
+        if (!mounted) {
+          return;
         }
-        return () => {
-          mounted = false;
-        };
-      }
 
-      const hash = typeof window === 'undefined' ? '' : window.location.hash;
-      const id = getTreasureIdFromEditHash(hash);
+        if (!isSuperUser) {
+          if (typeof window !== 'undefined') {
+            window.location.hash = '/';
+          }
+          return;
+        }
 
-      if (!id) {
-        safeSet(this.setError, 'Unable to load treasure.');
-        safeSet(this.setLoading, false);
-      } else {
-        this.#fetchTreasureWithAccess(id, safeSet);
-      }
+        const hash = typeof window === 'undefined' ? '' : window.location.hash;
+        const id = getTreasureIdFromEditHash(hash);
+
+        if (!id) {
+          safeSet(this.setError, 'Unable to load treasure.');
+          safeSet(this.setLoading, false);
+        } else {
+          this.#fetchTreasureWithAccess(id, safeSet);
+        }
+      });
 
       return () => {
         mounted = false;

@@ -35,28 +35,30 @@ export default class TreasuresController extends BasePageController {
    * @returns {Function} Effect callback.
    */
   buildEffect() {
-    return async () => {
+    return () => {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
 
-      const isSuperUser = await AdminAccess.isSuperUser(this.authClient);
-
-      if (!isSuperUser) {
-        if (typeof window !== 'undefined') {
-          window.location.hash = '/';
+      AdminAccess.isSuperUser(this.authClient).then((isSuperUser) => {
+        if (!mounted) {
+          return;
         }
-        return () => {
-          mounted = false;
-        };
-      }
 
-      this.client.fetchIndex('/treasures.json')
-        .then(({ data, pagination }) => {
-          safeSet(this.setTreasures, Array.isArray(data) ? data : []);
-          safeSet(this.setPagination, pagination);
-        })
-        .catch(() => safeSet(this.setError, 'Unable to load treasures.'))
-        .finally(() => safeSet(this.setLoading, false));
+        if (!isSuperUser) {
+          if (typeof window !== 'undefined') {
+            window.location.hash = '/';
+          }
+          return;
+        }
+
+        this.client.fetchIndex('/treasures.json')
+          .then(({ data, pagination }) => {
+            safeSet(this.setTreasures, Array.isArray(data) ? data : []);
+            safeSet(this.setPagination, pagination);
+          })
+          .catch(() => safeSet(this.setError, 'Unable to load treasures.'))
+          .finally(() => safeSet(this.setLoading, false));
+      });
 
       return () => {
         mounted = false;

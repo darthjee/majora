@@ -35,7 +35,8 @@ describe('TreasureNewController', function() {
       );
 
       try {
-        await controller.buildEffect()();
+        controller.buildEffect()();
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(fakeWindow.location.hash).toBe('/');
       } finally {
@@ -56,7 +57,8 @@ describe('TreasureNewController', function() {
       );
 
       try {
-        await controller.buildEffect()();
+        controller.buildEffect()();
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(fakeWindow.location.hash).toBe('');
       } finally {
