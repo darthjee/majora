@@ -201,6 +201,27 @@ describe('CharacterHelper', function() {
       const html = renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'));
       expect(html).not.toContain('<a href="http');
     });
+
+    it('renders the name and links inside the left column, and role/description in the right column', function() {
+      const c = {
+        ...character,
+        links: [{ text: 'Wiki', url: 'https://example.com/wiki' }],
+      };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      const leftColStart = html.indexOf('class="col-md-4"');
+      const rightColStart = html.indexOf('class="col-md-8"');
+      const nameIndex = html.indexOf('Aragorn');
+      const linkIndex = html.indexOf('href="https://example.com/wiki"');
+      const roleIndex = html.indexOf('Ranger');
+
+      expect(leftColStart).toBeGreaterThan(-1);
+      expect(rightColStart).toBeGreaterThan(leftColStart);
+      expect(nameIndex).toBeGreaterThan(leftColStart);
+      expect(nameIndex).toBeLessThan(rightColStart);
+      expect(linkIndex).toBeGreaterThan(leftColStart);
+      expect(linkIndex).toBeLessThan(rightColStart);
+      expect(roleIndex).toBeGreaterThan(rightColStart);
+    });
   });
 
   describe('.renderLoading', function() {

@@ -6,17 +6,15 @@ import Translator from '../../../i18n/Translator.js';
  */
 export default class CharacterInfoHelper {
   /**
-   * Render the character info panel.
+   * Render the character role/description panel.
    *
-   * @param {string} name - Character name.
    * @param {string} [role] - Character role.
    * @param {string} [description] - Character description.
    * @returns {React.ReactElement} Character info element.
    */
-  static render(name, role, description) {
+  static render(role, description) {
     return (
       <div className="col-md-8">
-        <h1>{name}</h1>
         {CharacterInfoHelper.#renderRole(role)}
         {CharacterInfoHelper.#renderDescription(description)}
       </div>

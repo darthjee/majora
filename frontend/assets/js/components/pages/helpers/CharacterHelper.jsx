@@ -54,16 +54,16 @@ export default class CharacterHelper {
               canEdit={character.can_edit}
               onClick={handlers.onOpenUploadModal}
             />
+            <h1>{character.name}</h1>
+            <LinkList links={character.links} />
           </div>
           <CharacterInfo
-            name={character.name}
             role={character.role}
             description={character.public_description}
           />
         </div>
         {CharacterHelper.#renderPrivateDescription(character.private_description)}
         <CharacterPhotos photos={character.photos} alt={character.name} />
-        <LinkList links={character.links} />
       </div>
     );
   }
