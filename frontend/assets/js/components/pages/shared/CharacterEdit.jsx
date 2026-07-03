@@ -25,6 +25,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
   const [role, setRole] = useState('');
   const [description, setDescription] = useState('');
   const [privateDescription, setPrivateDescription] = useState('');
+  const [money, setMoney] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
 
   const controller = useMemo(
@@ -44,6 +45,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
       setRole,
       setDescription,
       setPrivateDescription,
+      setMoney,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [character]);
@@ -52,7 +54,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
     event,
     gameSlug,
     characterId,
-    { name, role, description, privateDescription },
+    { name, role, description, privateDescription, money },
     { setStatus, setFieldErrors },
   );
 
@@ -77,6 +79,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
           role,
           description,
           privateDescription,
+          money,
           status,
           fieldErrors,
         },
@@ -86,6 +89,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
           onRoleChange: (event) => setRole(event.target.value),
           onDescriptionChange: (event) => setDescription(event.target.value),
           onPrivateDescriptionChange: (event) => setPrivateDescription(event.target.value),
+          onMoneyChange: (event) => setMoney(event.target.value),
           onOpenUploadModal: () => setShowUploadModal(true),
         }
       )}

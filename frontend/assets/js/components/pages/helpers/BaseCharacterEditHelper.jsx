@@ -29,12 +29,12 @@ export default class BaseCharacterEditHelper {
    * Render the edit form.
    *
    * @param {{name: string, profile_photo_path: string|null, links: object[],
-   *   role: string, description: string, privateDescription: string, status: string,
-   *   fieldErrors: object}} state - page state.
+   *   role: string, description: string, privateDescription: string, money: string,
+   *   status: string, fieldErrors: object}} state - page state.
    * @param {{onSubmit: Function, onNameChange: Function,
    *   onRoleChange: Function,
    *   onDescriptionChange: Function, onPrivateDescriptionChange: Function,
-   *   onOpenUploadModal: Function}} handlers - event handlers.
+   *   onMoneyChange: Function, onOpenUploadModal: Function}} handlers - event handlers.
    * @returns {React.ReactElement} rendered edit page.
    */
   render(state, handlers) {
@@ -63,6 +63,14 @@ export default class BaseCharacterEditHelper {
                 errors={state.fieldErrors.name ?? []}
               />
               <LinkList links={state.links} />
+              <FormField
+                id={`${idPrefix}-edit-money`}
+                type="number"
+                label={Translator.t(`${i18nNamespace}.money_label`)}
+                value={state.money}
+                onChange={handlers.onMoneyChange}
+                errors={state.fieldErrors.money ?? []}
+              />
             </div>
             <div className="col-md-8">
               <FormField

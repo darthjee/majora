@@ -54,6 +54,7 @@ describe('NpcCharacterEditController#submitForm', function() {
           role: 'Brute',
           description: 'Ruler of the cave',
           privateDescription: 'Secret notes',
+          money: '310',
         },
         { setStatus, setFieldErrors },
       );
@@ -70,6 +71,7 @@ describe('NpcCharacterEditController#submitForm', function() {
           role: 'Brute',
           public_description: 'Ruler of the cave',
           private_description: 'Secret notes',
+          money: 310,
         },
       );
     } finally {
@@ -94,7 +96,7 @@ describe('NpcCharacterEditController#submitForm', function() {
         undefined,
         'demo',
         '2',
-        { name: 'Goblin King', role: '', description: '', privateDescription: '' },
+        { name: 'Goblin King', role: '', description: '', privateDescription: '', money: '0' },
         { setStatus, setFieldErrors },
       );
 

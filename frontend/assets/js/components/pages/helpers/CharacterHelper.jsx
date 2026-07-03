@@ -3,6 +3,7 @@ import PhotoUploadOverlay from '../../elements/PhotoUploadOverlay.jsx';
 import EditButton from '../../elements/EditButton.jsx';
 import PageActions from '../../elements/PageActions.jsx';
 import CharacterInfo from '../../elements/CharacterInfo.jsx';
+import CharacterMoney from '../../elements/CharacterMoney.jsx';
 import CharacterPhotos from '../../elements/CharacterPhotos.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LinkList from '../../elements/LinkList.jsx';
@@ -24,6 +25,7 @@ export default class CharacterHelper {
    * @param {string} [character.private_description] - Character private description (DM notes).
    * @param {object[]} [character.photos] - Additional photos array.
    * @param {object[]} [character.links] - External link objects with text and url.
+   * @param {number} [character.money] - Total money, expressed in copper pieces.
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
    * @param {boolean} [character.is_pc] - Whether the character is a PC (vs. an NPC), used
    *   to build the correct edit link segment.
@@ -56,6 +58,7 @@ export default class CharacterHelper {
             />
             <h1>{character.name}</h1>
             <LinkList links={character.links} />
+            <CharacterMoney money={character.money} />
           </div>
           <CharacterInfo
             role={character.role}

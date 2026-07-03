@@ -53,6 +53,7 @@ describe('BaseCharacterEditController', function() {
         id: 1, name: 'Test Hero',
         role: 'Fighter',
         public_description: 'A brave hero', private_description: 'DM notes', can_edit: true,
+        money: 310,
       };
 
       expect(resolveLoadedCharacter(character)).toEqual({
@@ -61,16 +62,18 @@ describe('BaseCharacterEditController', function() {
           name: 'Test Hero',
           role: 'Fighter',
           public_description: 'A brave hero', private_description: 'DM notes',
+          money: '310',
         },
       });
     });
 
-    it('defaults missing fields to empty strings', function() {
+    it('defaults missing fields to empty strings and money to "0"', function() {
       expect(resolveLoadedCharacter({ id: 1, can_edit: true })).toEqual({
         redirect: false,
         fields: {
           name: '', role: '',
           public_description: '', private_description: '',
+          money: '0',
         },
       });
     });
@@ -85,6 +88,7 @@ describe('BaseCharacterEditController', function() {
         setRole: jasmine.createSpy('setRole'),
         setDescription: jasmine.createSpy('setDescription'),
         setPrivateDescription: jasmine.createSpy('setPrivateDescription'),
+        setMoney: jasmine.createSpy('setMoney'),
       };
     });
 
@@ -123,6 +127,7 @@ describe('BaseCharacterEditController', function() {
         id: 1, name: 'Test Hero',
         role: 'Fighter',
         public_description: 'A brave hero', private_description: 'DM notes', can_edit: true,
+        money: 310,
       };
 
       controller.applyLoadedCharacter(character, 'demo', '1', setters);
@@ -131,6 +136,7 @@ describe('BaseCharacterEditController', function() {
       expect(setters.setRole).toHaveBeenCalledWith('Fighter');
       expect(setters.setDescription).toHaveBeenCalledWith('A brave hero');
       expect(setters.setPrivateDescription).toHaveBeenCalledWith('DM notes');
+      expect(setters.setMoney).toHaveBeenCalledWith('310');
     });
   });
 
@@ -160,6 +166,7 @@ describe('BaseCharacterEditController', function() {
             name: 'Test Hero',
             role: 'Fighter',
             description: 'A brave hero', privateDescription: 'DM notes',
+            money: '310',
           },
           { setStatus, setFieldErrors },
         );
@@ -173,6 +180,7 @@ describe('BaseCharacterEditController', function() {
             name: 'Test Hero',
             role: 'Fighter',
             public_description: 'A brave hero', private_description: 'DM notes',
+            money: 310,
           },
         );
       } finally {

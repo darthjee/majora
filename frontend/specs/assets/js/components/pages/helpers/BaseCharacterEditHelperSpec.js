@@ -39,6 +39,7 @@ describe('BaseCharacterEditHelper', function() {
     onRoleChange: jasmine.createSpy('onRoleChange'),
     onDescriptionChange: jasmine.createSpy('onDescriptionChange'),
     onPrivateDescriptionChange: jasmine.createSpy('onPrivateDescriptionChange'),
+    onMoneyChange: jasmine.createSpy('onMoneyChange'),
     onOpenUploadModal: jasmine.createSpy('onOpenUploadModal'),
   });
 
@@ -49,6 +50,7 @@ describe('BaseCharacterEditHelper', function() {
     role: 'Fighter',
     description: 'A brave warrior.',
     privateDescription: 'DM notes.',
+    money: '0',
     status: 'idle',
     fieldErrors: {},
     ...overrides,
@@ -62,9 +64,32 @@ describe('BaseCharacterEditHelper', function() {
       expect(html).toContain('id="test-edit-role"');
       expect(html).toContain('id="test-edit-description"');
       expect(html).toContain('id="test-edit-private-description"');
+      expect(html).toContain('id="test-edit-money"');
       expect(html).toContain('value="Test Character"');
       expect(html).toContain('value="Fighter"');
       expect(html).toContain('DM notes.');
+    });
+
+    it('renders the money field with the loaded value', function() {
+      const html = renderToStaticMarkup(
+        helper.render(buildState({ money: '310' }), buildHandlers())
+      );
+
+      expect(html).toContain('id="test-edit-money"');
+      expect(html).toContain('type="number"');
+      expect(html).toContain('value="310"');
+    });
+
+    it('renders money field errors', function() {
+      const html = renderToStaticMarkup(
+        helper.render(
+          buildState({ fieldErrors: { money: ['must be greater than or equal to 0'] } }),
+          buildHandlers()
+        )
+      );
+
+      expect(html).toContain('must be greater than or equal to 0');
+      expect(html).toContain('alert-danger');
     });
 
     it('renders an avatar preview reflecting the loaded profile_photo_path', function() {

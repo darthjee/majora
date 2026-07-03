@@ -54,6 +54,7 @@ describe('PcCharacterEditController#submitForm', function() {
           role: 'Ranger',
           description: 'King',
           privateDescription: 'Secret notes',
+          money: '310',
         },
         { setStatus, setFieldErrors },
       );
@@ -70,6 +71,7 @@ describe('PcCharacterEditController#submitForm', function() {
           role: 'Ranger',
           public_description: 'King',
           private_description: 'Secret notes',
+          money: 310,
         },
       );
     } finally {
@@ -94,7 +96,7 @@ describe('PcCharacterEditController#submitForm', function() {
         undefined,
         'demo',
         '2',
-        { name: 'Aragorn', role: '', description: '', privateDescription: '' },
+        { name: 'Aragorn', role: '', description: '', privateDescription: '', money: '0' },
         { setStatus, setFieldErrors },
       );
 
