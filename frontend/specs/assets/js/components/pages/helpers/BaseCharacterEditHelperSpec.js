@@ -35,7 +35,6 @@ describe('BaseCharacterEditHelper', function() {
   const buildHandlers = () => ({
     onSubmit: jasmine.createSpy('onSubmit'),
     onNameChange: jasmine.createSpy('onNameChange'),
-    onAvatarUrlChange: jasmine.createSpy('onAvatarUrlChange'),
     onRoleChange: jasmine.createSpy('onRoleChange'),
     onDescriptionChange: jasmine.createSpy('onDescriptionChange'),
     onPrivateDescriptionChange: jasmine.createSpy('onPrivateDescriptionChange'),
@@ -44,7 +43,7 @@ describe('BaseCharacterEditHelper', function() {
 
   const buildState = (overrides = {}) => ({
     name: 'Test Character',
-    avatar_url: '',
+    profile_photo_path: null,
     role: 'Fighter',
     description: 'A brave warrior.',
     privateDescription: 'DM notes.',
@@ -58,7 +57,6 @@ describe('BaseCharacterEditHelper', function() {
       const html = renderToStaticMarkup(helper.render(buildState(), buildHandlers()));
 
       expect(html).toContain('id="test-edit-name"');
-      expect(html).toContain('id="test-edit-avatar-url"');
       expect(html).toContain('id="test-edit-role"');
       expect(html).toContain('id="test-edit-description"');
       expect(html).toContain('id="test-edit-private-description"');
@@ -67,10 +65,10 @@ describe('BaseCharacterEditHelper', function() {
       expect(html).toContain('DM notes.');
     });
 
-    it('renders a live avatar preview reflecting the current avatar_url', function() {
+    it('renders an avatar preview reflecting the loaded profile_photo_path', function() {
       const html = renderToStaticMarkup(
         helper.render(
-          buildState({ avatar_url: 'http://example.com/avatar.png' }),
+          buildState({ profile_photo_path: 'http://example.com/avatar.png' }),
           buildHandlers()
         )
       );
@@ -78,7 +76,7 @@ describe('BaseCharacterEditHelper', function() {
       expect(html).toContain('http://example.com/avatar.png');
     });
 
-    it('renders the default avatar when avatar_url is empty', function() {
+    it('renders the default avatar when profile_photo_path is null', function() {
       const html = renderToStaticMarkup(helper.render(buildState(), buildHandlers()));
 
       expect(html).toContain('default_character.png');

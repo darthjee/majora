@@ -51,7 +51,6 @@ describe('NpcCharacterEditController#submitForm', function() {
         '2',
         {
           name: 'Goblin King',
-          avatarUrl: 'http://example.com/a.png',
           role: 'Brute',
           description: 'Ruler of the cave',
           privateDescription: 'Secret notes',
@@ -68,7 +67,6 @@ describe('NpcCharacterEditController#submitForm', function() {
         'tok-abc',
         {
           name: 'Goblin King',
-          avatar_url: 'http://example.com/a.png',
           role: 'Brute',
           public_description: 'Ruler of the cave',
           private_description: 'Secret notes',
@@ -96,7 +94,7 @@ describe('NpcCharacterEditController#submitForm', function() {
         undefined,
         'demo',
         '2',
-        { name: 'Goblin King', avatarUrl: '', role: '', description: '', privateDescription: '' },
+        { name: 'Goblin King', role: '', description: '', privateDescription: '' },
         { setStatus, setFieldErrors },
       );
 

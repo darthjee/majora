@@ -176,7 +176,7 @@ describe('GameEditController', function() {
         await controller.submitForm(
           event,
           'demo',
-          { name: 'New Name', photo: 'http://example.com/p.png', description: 'Great game' },
+          { name: 'New Name', description: 'Great game' },
           { setStatus, setFieldErrors },
         );
 
@@ -186,7 +186,7 @@ describe('GameEditController', function() {
         expect(gameClient.updateGame).toHaveBeenCalledWith(
           'demo',
           'tok-abc',
-          { name: 'New Name', photo: 'http://example.com/p.png', description: 'Great game' },
+          { name: 'New Name', description: 'Great game' },
         );
       } finally {
         delete globalThis.window;
@@ -202,7 +202,7 @@ describe('GameEditController', function() {
         await controller.submitForm(
           undefined,
           'demo',
-          { name: 'New Name', photo: '', description: '' },
+          { name: 'New Name', description: '' },
           { setStatus, setFieldErrors },
         );
 
@@ -224,7 +224,7 @@ describe('GameEditController', function() {
       await controller.submitForm(
         undefined,
         'demo',
-        { name: 'X', photo: '', description: '' },
+        { name: 'X', description: '' },
         { setStatus, setFieldErrors },
       );
 
@@ -243,7 +243,7 @@ describe('GameEditController', function() {
       await controller.submitForm(
         undefined,
         'demo',
-        { name: 'New Name', photo: '', description: '' },
+        { name: 'New Name', description: '' },
         { setStatus, setFieldErrors },
       );
 
@@ -258,7 +258,7 @@ describe('GameEditController', function() {
       await controller.submitForm(
         undefined,
         'demo',
-        { name: 'New Name', photo: '', description: '' },
+        { name: 'New Name', description: '' },
         { setStatus, setFieldErrors },
       );
 
@@ -274,7 +274,7 @@ describe('GameEditController', function() {
         await controller.submitForm(
           undefined,
           'demo',
-          { name: 'Demo', photo: '', description: '' },
+          { name: 'Demo', description: '' },
           { setStatus, setFieldErrors },
         );
 

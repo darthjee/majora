@@ -11,7 +11,6 @@ export default function GameNew() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [status, setStatus] = useState('idle');
   const [name, setName] = useState('');
-  const [photo, setPhoto] = useState('');
   const [description, setDescription] = useState('');
 
   const controller = useMemo(
@@ -23,16 +22,15 @@ export default function GameNew() {
 
   const handleSubmit = (event) => controller.submitForm(
     event,
-    { name, photo, description },
+    { name, description },
     { setStatus, setFieldErrors },
   );
 
   return GameNewHelper.render(
-    { name, photo, description, status, fieldErrors },
+    { name, description, status, fieldErrors },
     {
       onSubmit: handleSubmit,
       onNameChange: (event) => setName(event.target.value),
-      onPhotoChange: (event) => setPhoto(event.target.value),
       onDescriptionChange: (event) => setDescription(event.target.value),
     },
   );

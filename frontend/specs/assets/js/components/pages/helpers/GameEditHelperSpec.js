@@ -33,14 +33,12 @@ describe('GameEditHelper', function() {
   const buildHandlers = () => ({
     onSubmit: jasmine.createSpy('onSubmit'),
     onNameChange: jasmine.createSpy('onNameChange'),
-    onPhotoChange: jasmine.createSpy('onPhotoChange'),
     onDescriptionChange: jasmine.createSpy('onDescriptionChange'),
     onOpenUploadModal: jasmine.createSpy('onOpenUploadModal'),
   });
 
   const buildState = (overrides = {}) => ({
     name: 'Epic Quest',
-    photo: 'http://example.com/cover.png',
     description: 'A heroic adventure.',
     status: 'idle',
     fieldErrors: {},
@@ -52,7 +50,6 @@ describe('GameEditHelper', function() {
       const html = renderToStaticMarkup(GameEditHelper.render(buildState(), buildHandlers()));
 
       expect(html).toContain('id="game-edit-name"');
-      expect(html).toContain('id="game-edit-photo"');
       expect(html).toContain('id="game-edit-description"');
     });
 
@@ -60,7 +57,6 @@ describe('GameEditHelper', function() {
       const html = renderToStaticMarkup(GameEditHelper.render(buildState(), buildHandlers()));
 
       expect(html).toContain('value="Epic Quest"');
-      expect(html).toContain('value="http://example.com/cover.png"');
       expect(html).toContain('value="A heroic adventure."');
     });
 

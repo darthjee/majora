@@ -22,7 +22,6 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
   const [fieldErrors, setFieldErrors] = useState({});
   const [status, setStatus] = useState('idle');
   const [name, setName] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
   const [role, setRole] = useState('');
   const [description, setDescription] = useState('');
   const [privateDescription, setPrivateDescription] = useState('');
@@ -42,7 +41,6 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
   useEffect(() => {
     controller.applyLoadedCharacter(character, gameSlug, characterId, {
       setName,
-      setAvatarUrl,
       setRole,
       setDescription,
       setPrivateDescription,
@@ -54,7 +52,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
     event,
     gameSlug,
     characterId,
-    { name, avatarUrl, role, description, privateDescription },
+    { name, role, description, privateDescription },
     { setStatus, setFieldErrors },
   );
 
@@ -69,7 +67,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
       {EditHelper.render(
         {
           name,
-          avatar_url: avatarUrl,
+          profile_photo_path: character.profile_photo_path,
           role,
           description,
           privateDescription,
@@ -79,7 +77,6 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
         {
           onSubmit: handleSubmit,
           onNameChange: (event) => setName(event.target.value),
-          onAvatarUrlChange: (event) => setAvatarUrl(event.target.value),
           onRoleChange: (event) => setRole(event.target.value),
           onDescriptionChange: (event) => setDescription(event.target.value),
           onPrivateDescriptionChange: (event) => setPrivateDescription(event.target.value),

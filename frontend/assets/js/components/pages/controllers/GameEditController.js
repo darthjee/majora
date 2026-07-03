@@ -68,7 +68,7 @@ export default class GameEditController extends BasePageController {
    *   sets field errors on 400, or sets error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
-   * @param {{name: string, photo: string, description: string}} formValues - Raw form field values.
+   * @param {{name: string, description: string}} formValues - Raw form field values.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
@@ -85,7 +85,6 @@ export default class GameEditController extends BasePageController {
     try {
       const response = await this.gameClient.updateGame(gameSlug, token, {
         name: formValues.name,
-        photo: formValues.photo,
         description: formValues.description,
       });
 

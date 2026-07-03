@@ -16,7 +16,6 @@ export default function GameEdit() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [status, setStatus] = useState('idle');
   const [name, setName] = useState('');
-  const [photo, setPhoto] = useState('');
   const [description, setDescription] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
 
@@ -41,7 +40,6 @@ export default function GameEdit() {
     }
 
     setName(game.name ?? '');
-    setPhoto(game.photo ?? '');
     setDescription(game.description ?? '');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game]);
@@ -49,7 +47,7 @@ export default function GameEdit() {
   const handleSubmit = (event) => controller.submitForm(
     event,
     gameSlug,
-    { name, photo, description },
+    { name, description },
     { setStatus, setFieldErrors },
   );
 
@@ -59,11 +57,10 @@ export default function GameEdit() {
   return (
     <>
       {GameEditHelper.render(
-        { name, photo, description, status, fieldErrors },
+        { name, description, status, fieldErrors },
         {
           onSubmit: handleSubmit,
           onNameChange: (event) => setName(event.target.value),
-          onPhotoChange: (event) => setPhoto(event.target.value),
           onDescriptionChange: (event) => setDescription(event.target.value),
           onOpenUploadModal: () => setShowUploadModal(true),
         },

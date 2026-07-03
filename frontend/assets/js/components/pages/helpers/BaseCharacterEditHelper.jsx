@@ -27,9 +27,9 @@ export default class BaseCharacterEditHelper {
   /**
    * Render the edit form.
    *
-   * @param {{name: string, avatar_url: string, role: string,
+   * @param {{name: string, profile_photo_path: string|null, role: string,
    *   description: string, privateDescription: string, status: string, fieldErrors: object}} state - page state.
-   * @param {{onSubmit: Function, onNameChange: Function, onAvatarUrlChange: Function,
+   * @param {{onSubmit: Function, onNameChange: Function,
    *   onRoleChange: Function,
    *   onDescriptionChange: Function, onPrivateDescriptionChange: Function,
    *   onOpenUploadModal: Function}} handlers - event handlers.
@@ -44,7 +44,7 @@ export default class BaseCharacterEditHelper {
         {this.#renderError(state)}
         <div className="row">
           <div className="col-md-4">
-            <CardAvatar url={state.avatar_url} alt={state.name} />
+            <CardAvatar url={state.profile_photo_path} alt={state.name} />
           </div>
           <div className="col-md-8">
             <form onSubmit={handlers.onSubmit}>
@@ -55,14 +55,6 @@ export default class BaseCharacterEditHelper {
                 value={state.name}
                 onChange={handlers.onNameChange}
                 errors={state.fieldErrors.name ?? []}
-              />
-              <FormField
-                id={`${idPrefix}-edit-avatar-url`}
-                type="text"
-                label={Translator.t(`${i18nNamespace}.avatar_url_label`)}
-                value={state.avatar_url}
-                onChange={handlers.onAvatarUrlChange}
-                errors={state.fieldErrors.avatar_url ?? []}
               />
               <button
                 className="btn btn-secondary"
