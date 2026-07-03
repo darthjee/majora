@@ -13,9 +13,7 @@ class TestGameListSerializer:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(
-            name='Test Game', game_slug='test-game', photo='http://example.com/cover.png'
-        )
+        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
 
     def test_serializes_name(self):
         """Test that the name field is serialized."""
@@ -26,11 +24,6 @@ class TestGameListSerializer:
         """Test that the game_slug field is serialized."""
         data = GameListSerializer(self.game).data
         assert data['game_slug'] == 'test-game'
-
-    def test_serializes_photo(self):
-        """Test that the photo field is serialized."""
-        data = GameListSerializer(self.game).data
-        assert data['photo'] == 'http://example.com/cover.png'
 
     def test_does_not_include_description(self):
         """Test that the description field is not exposed."""

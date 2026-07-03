@@ -49,12 +49,10 @@ class TestCharacter:
         character = Character.objects.create(
             name='Legolas',
             game=self.game,
-            avatar_url='http://example.com/legolas.png',
             role='Ranger',
             public_description='An elf ranger from Mirkwood.',
             private_description='A spy sent by Thranduil.',
         )
-        assert character.avatar_url == 'http://example.com/legolas.png'
         assert character.role == 'Ranger'
         assert 'elf ranger' in character.public_description
         assert character.private_description == 'A spy sent by Thranduil.'
