@@ -3,6 +3,7 @@ import BackButton from '../../elements/BackButton.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import Pagination from '../../elements/Pagination.jsx';
+import TreasureCard from '../../elements/TreasureCard.jsx';
 import Translator from '../../../i18n/Translator.js';
 
 /**
@@ -26,14 +27,11 @@ export default class GameTreasuresHelper {
       <div className="container mt-4">
         <BackButton href={backHref} />
         <h1 className="mb-4">{Translator.t('game_treasures_page.treasures')}</h1>
-        <ul className="list-group mb-3">
+        <div className="row">
           {treasures.map((treasure) => (
-            <li key={treasure.id} className="list-group-item">
-              <a href={`#/treasures/${treasure.id}`}>{treasure.name}</a>
-              <span className="ms-2 text-muted">{treasure.value}</span>
-            </li>
+            <TreasureCard key={treasure.id} treasure={treasure} />
           ))}
-        </ul>
+        </div>
         <Pagination
           currentPage={pagination.page}
           totalPages={pagination.pages}

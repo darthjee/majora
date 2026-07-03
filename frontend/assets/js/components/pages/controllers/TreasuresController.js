@@ -1,4 +1,6 @@
+import AuthClient from '../../../client/AuthClient.js';
 import GenericClient from '../../../client/GenericClient.js';
+import AdminAccess from '../../../utils/AdminAccess.js';
 import BasePageController from './BasePageController.js';
 
 /**
@@ -13,25 +15,40 @@ export default class TreasuresController extends BasePageController {
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
    * @param {GenericClient|null} client - Client override.
+   * @param {AuthClient|null} authClient - Auth client override.
    */
-  constructor(setTreasures, setPagination, setLoading, setError, client = null) {
+  constructor(setTreasures, setPagination, setLoading, setError, client = null, authClient = null) {
     super();
     this.setTreasures = setTreasures;
     this.setPagination = setPagination;
     this.setLoading = setLoading;
     this.setError = setError;
     this.client = client ?? new GenericClient();
+    this.authClient = authClient ?? new AuthClient();
   }
 
   /**
    * Build page loading effect.
    *
+   * @description Redirects non-superusers to the home page before fetching
+   *   the treasures index.
    * @returns {Function} Effect callback.
    */
   buildEffect() {
-    return () => {
+    return async () => {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
+
+      const isSuperUser = await AdminAccess.isSuperUser(this.authClient);
+
+      if (!isSuperUser) {
+        if (typeof window !== 'undefined') {
+          window.location.hash = '/';
+        }
+        return () => {
+          mounted = false;
+        };
+      }
 
       this.client.fetchIndex('/treasures.json')
         .then(({ data, pagination }) => {

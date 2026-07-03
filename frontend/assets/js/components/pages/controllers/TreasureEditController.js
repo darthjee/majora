@@ -1,4 +1,6 @@
+import AuthClient from '../../../client/AuthClient.js';
 import TreasureClient from '../../../client/TreasureClient.js';
+import AdminAccess from '../../../utils/AdminAccess.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
@@ -25,25 +27,43 @@ export default class TreasureEditController extends BasePageController {
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
    * @param {TreasureClient|null} [treasureClient] - Treasure client override.
+   * @param {AuthClient|null} [authClient] - Auth client override.
    */
-  constructor(setTreasure, setLoading, setError, setFieldErrors = () => {}, treasureClient = null) {
+  constructor(
+    setTreasure, setLoading, setError, setFieldErrors = () => {}, treasureClient = null, authClient = null,
+  ) {
     super();
     this.setTreasure = setTreasure;
     this.setLoading = setLoading;
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;
     this.treasureClient = treasureClient ?? new TreasureClient();
+    this.authClient = authClient ?? new AuthClient();
   }
 
   /**
    * Build page loading effect.
    *
+   * @description Redirects non-superusers to the home page before fetching
+   *   the treasure and its access.
    * @returns {Function} Effect callback.
    */
   buildEffect() {
-    return () => {
+    return async () => {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
+
+      const isSuperUser = await AdminAccess.isSuperUser(this.authClient);
+
+      if (!isSuperUser) {
+        if (typeof window !== 'undefined') {
+          window.location.hash = '/';
+        }
+        return () => {
+          mounted = false;
+        };
+      }
+
       const hash = typeof window === 'undefined' ? '' : window.location.hash;
       const id = getTreasureIdFromEditHash(hash);
 
