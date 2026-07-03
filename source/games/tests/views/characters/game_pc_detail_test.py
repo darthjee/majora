@@ -243,3 +243,27 @@ class TestGamePcUpdateView:
         assert response.status_code == 200
         self.character.refresh_from_db()
         assert self.character.private_description == 'Secret backstory.'
+
+    def test_patch_money_saves(self, client):
+        """Test that PATCH with money saves the value."""
+        token = Token.objects.create(user=self.owner)
+
+        response = self._patch(client, {'money': 150}, token=token)
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['money'] == 150
+        self.character.refresh_from_db()
+        assert self.character.money == 150
+
+    def test_patch_negative_money_returns_400(self, client):
+        """Test that PATCH with a negative money value is rejected with 400."""
+        token = Token.objects.create(user=self.owner)
+
+        response = self._patch(client, {'money': -1}, token=token)
+
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'money' in data['errors']
+        self.character.refresh_from_db()
+        assert self.character.money == 0

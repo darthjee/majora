@@ -73,3 +73,25 @@ class TestCharacterUpdateSerializer:
         """Test that hidden is False by default and serialized correctly."""
         data = CharacterUpdateSerializer(self.character).data
         assert data['hidden'] is False
+
+    def test_money_field_is_writable(self):
+        """Test that a valid money update is accepted and applied."""
+        serializer = CharacterUpdateSerializer(
+            self.character, data={'money': 150}, partial=True
+        )
+        assert serializer.is_valid()
+        updated = serializer.save()
+        assert updated.money == 150
+
+    def test_money_field_defaults_to_zero(self):
+        """Test that money is 0 by default and serialized correctly."""
+        data = CharacterUpdateSerializer(self.character).data
+        assert data['money'] == 0
+
+    def test_negative_money_is_invalid(self):
+        """Test that a negative money update produces a validation error on the money key."""
+        serializer = CharacterUpdateSerializer(
+            self.character, data={'money': -1}, partial=True
+        )
+        assert not serializer.is_valid()
+        assert 'money' in serializer.errors

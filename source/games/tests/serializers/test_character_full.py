@@ -49,6 +49,13 @@ class TestCharacterFullSerializer:
         """Test that all CharacterDetailSerializer fields are still present."""
         data = self._serialize()
         expected_fields = ['id', 'role', 'is_pc', 'photos', 'links', 'game_slug',
-                           'can_edit']
+                           'can_edit', 'money']
         for field in expected_fields:
             assert field in data
+
+    def test_serializes_money(self):
+        """Test that the money field is serialized."""
+        self.character.money = 250
+        self.character.save()
+        data = self._serialize()
+        assert data['money'] == 250

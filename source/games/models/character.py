@@ -25,6 +25,7 @@ class Character(models.Model):
     private_description = models.TextField(blank=True)
     npc = models.BooleanField(default=True)
     hidden = models.BooleanField(default=False)
+    money = models.PositiveIntegerField(default=0)
     profile_photo = models.ForeignKey(
         'games.CharacterPhoto', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
     )

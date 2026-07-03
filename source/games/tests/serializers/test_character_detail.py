@@ -157,3 +157,10 @@ class TestCharacterDetailSerializer:
         self.character.save()
         data = self._serialize()
         assert data['profile_photo_path'] == 'photos/games/test-game/characters/1/profile.jpg'
+
+    def test_serializes_money(self):
+        """Test that the money field is serialized."""
+        self.character.money = 150
+        self.character.save()
+        data = self._serialize()
+        assert data['money'] == 150

@@ -33,6 +33,7 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
             'game_slug',
             'can_edit',
             'profile_photo_path',
+            'money',
         ]
 
     def get_can_edit(self, obj):
