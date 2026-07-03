@@ -1,5 +1,5 @@
 import React from 'react';
-import CardAvatar from '../../elements/CardAvatar.jsx';
+import PhotoUploadOverlay from '../../elements/PhotoUploadOverlay.jsx';
 import FormField from '../../elements/FormField.jsx';
 import TextareaField from '../../elements/TextareaField.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
@@ -44,7 +44,13 @@ export default class BaseCharacterEditHelper {
         {this.#renderError(state)}
         <div className="row">
           <div className="col-md-4">
-            <CardAvatar url={state.profile_photo_path} alt={state.name} />
+            <PhotoUploadOverlay
+              type="avatar"
+              url={state.profile_photo_path}
+              alt={state.name}
+              canEdit
+              onClick={handlers.onOpenUploadModal}
+            />
           </div>
           <div className="col-md-8">
             <form onSubmit={handlers.onSubmit}>
@@ -56,13 +62,6 @@ export default class BaseCharacterEditHelper {
                 onChange={handlers.onNameChange}
                 errors={state.fieldErrors.name ?? []}
               />
-              <button
-                className="btn btn-secondary"
-                type="button"
-                onClick={handlers.onOpenUploadModal}
-              >
-                {Translator.t(`${i18nNamespace}.upload_photo_button`)}
-              </button>
               <FormField
                 id={`${idPrefix}-edit-role`}
                 type="text"

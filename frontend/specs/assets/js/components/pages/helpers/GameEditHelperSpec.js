@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameEditHelper from '../../../../../../assets/js/components/pages/helpers/GameEditHelper.jsx';
+import PhotoUploadOverlay from '../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -120,17 +121,26 @@ describe('GameEditHelper', function() {
       expect(html).toContain('Upload Photo');
     });
 
-    it('wires the upload photo button to the open upload modal handler', function() {
+    it('renders the photo overlay bound to the open upload modal handler and always editable', function() {
       const handlers = buildHandlers();
       const element = GameEditHelper.render(buildState(), handlers);
-      const uploadButton = findElement(
-        element,
-        (child) => child.type === 'button' && child.props.className === 'btn btn-secondary'
-      );
+      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
 
-      uploadButton.props.onClick();
+      expect(overlay.props.canEdit).toBe(true);
+
+      overlay.props.onClick();
 
       expect(handlers.onOpenUploadModal).toHaveBeenCalled();
+    });
+
+    it('passes the cover_photo_path through to the photo overlay', function() {
+      const element = GameEditHelper.render(
+        buildState({ cover_photo_path: 'http://example.com/cover.png' }),
+        buildHandlers(),
+      );
+      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+
+      expect(overlay.props.url).toBe('http://example.com/cover.png');
     });
   });
 

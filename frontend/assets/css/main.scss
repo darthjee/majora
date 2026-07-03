@@ -30,3 +30,20 @@ body {
     object-fit: cover;
   }
 }
+
+.photo-upload-overlay {
+  position: relative;
+
+  .photo-upload-overlay-button {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.15s ease-in-out;
+  }
+
+  &:hover .photo-upload-overlay-button {
+    opacity: 1;
+  }
+}

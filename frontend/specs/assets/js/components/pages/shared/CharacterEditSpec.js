@@ -165,5 +165,35 @@ describe('CharacterEdit', function() {
 
       expect(LoadedController.prototype.applyLoadedCharacter.calls.count()).toBe(callsBefore);
     });
+
+    it('refetches the character via buildEffect when the upload succeeds', function() {
+      spyOn(AuthStorage, 'getToken').and.returnValue('auth-tok');
+      spyOn(PhotoUploadModalController.prototype, 'handleSubmit').and.callFake(function() {
+        this.onSuccess();
+        return Promise.resolve();
+      });
+      const buildEffectSpy = spyOn(LoadedController.prototype, 'buildEffect')
+        .and.returnValue(() => () => {});
+      let capturedHandlers;
+      spyOn(PhotoUploadModalHelper, 'render').and.callFake((show, state, handlers) => {
+        capturedHandlers = handlers;
+        return null;
+      });
+
+      renderToStaticMarkup(
+        React.createElement(CharacterEdit, {
+          ControllerClass: LoadedController,
+          getParamsFromHash,
+          EditHelper,
+          characterKind: 'pcs',
+        })
+      );
+
+      const callsBefore = buildEffectSpy.calls.count();
+
+      capturedHandlers.onSubmit();
+
+      expect(buildEffectSpy.calls.count()).toBe(callsBefore + 1);
+    });
   });
 });

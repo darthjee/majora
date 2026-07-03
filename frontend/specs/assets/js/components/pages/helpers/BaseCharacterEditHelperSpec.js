@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import BaseCharacterEditHelper from '../../../../../../assets/js/components/pages/helpers/BaseCharacterEditHelper.jsx';
+import PhotoUploadOverlay from '../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -122,15 +123,15 @@ describe('BaseCharacterEditHelper', function() {
       expect(html).toContain('Upload Photo');
     });
 
-    it('wires the upload photo button to the open upload modal handler', function() {
+    it('renders the photo overlay bound to the open upload modal handler and always editable', function() {
       const handlers = buildHandlers();
       const element = helper.render(buildState(), handlers);
-      const uploadButton = findElement(
-        element,
-        (child) => child.type === 'button' && child.props.className === 'btn btn-secondary'
-      );
+      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
 
-      uploadButton.props.onClick();
+      expect(overlay.props.canEdit).toBe(true);
+      expect(overlay.props.type).toBe('avatar');
+
+      overlay.props.onClick();
 
       expect(handlers.onOpenUploadModal).toHaveBeenCalled();
     });

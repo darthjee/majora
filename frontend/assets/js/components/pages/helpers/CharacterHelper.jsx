@@ -1,5 +1,5 @@
 import React from 'react';
-import CardAvatar from '../../elements/CardAvatar.jsx';
+import PhotoUploadOverlay from '../../elements/PhotoUploadOverlay.jsx';
 import EditButton from '../../elements/EditButton.jsx';
 import PageActions from '../../elements/PageActions.jsx';
 import CharacterInfo from '../../elements/CharacterInfo.jsx';
@@ -30,9 +30,10 @@ export default class CharacterHelper {
    * @param {string} [character.game_slug] - Slug of the game the character belongs to.
    * @param {number|string} [character.id] - Character id.
    * @param {string} backHref - Hash path to the character's index page.
+   * @param {{onOpenUploadModal: Function}} [handlers] - Event handlers.
    * @returns {React.ReactElement} Character detail element.
    */
-  static render(character, backHref) {
+  static render(character, backHref, handlers = {}) {
     const segment = character.is_pc ? 'pcs' : 'npcs';
 
     return (
@@ -46,7 +47,13 @@ export default class CharacterHelper {
         </PageActions>
         <div className="row">
           <div className="col-md-4">
-            <CardAvatar url={character.profile_photo_path} alt={character.name} />
+            <PhotoUploadOverlay
+              type="avatar"
+              url={character.profile_photo_path}
+              alt={character.name}
+              canEdit={character.can_edit}
+              onClick={handlers.onOpenUploadModal}
+            />
           </div>
           <CharacterInfo
             name={character.name}

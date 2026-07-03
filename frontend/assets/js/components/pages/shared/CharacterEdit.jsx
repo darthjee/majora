@@ -62,6 +62,11 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
 
   const uploadPath = `/games/${gameSlug}/${characterKind}/${characterId}/photo_upload.json`;
 
+  const handleUploadSuccess = () => {
+    setShowUploadModal(false);
+    controller.buildEffect()();
+  };
+
   return (
     <>
       {EditHelper.render(
@@ -87,7 +92,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
         show={showUploadModal}
         uploadPath={uploadPath}
         onClose={() => setShowUploadModal(false)}
-        onSuccess={() => setShowUploadModal(false)}
+        onSuccess={handleUploadSuccess}
       />
     </>
   );

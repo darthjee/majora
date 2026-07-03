@@ -1,5 +1,34 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterHelper from '../../../../../../assets/js/components/pages/helpers/CharacterHelper.jsx';
+import PhotoUploadOverlay from '../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
+
+const findElement = (node, matcher) => {
+  if (!node) {
+    return null;
+  }
+
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findElement(child, matcher);
+
+      if (match) {
+        return match;
+      }
+    }
+
+    return null;
+  }
+
+  if (typeof node !== 'object') {
+    return null;
+  }
+
+  if (matcher(node)) {
+    return node;
+  }
+
+  return findElement(node.props?.children, matcher);
+};
 
 describe('CharacterHelper', function() {
   const character = {
@@ -42,6 +71,34 @@ describe('CharacterHelper', function() {
       };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
       expect(html).toContain('http://example.com/profile_photo.png');
+    });
+
+    it('renders the photo upload overlay button when can_edit is true', function() {
+      const c = { ...character, can_edit: true };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).toContain('photo-upload-overlay-button');
+    });
+
+    it('does not render the photo upload overlay button when can_edit is false', function() {
+      const c = { ...character, can_edit: false };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).not.toContain('photo-upload-overlay-button');
+    });
+
+    it('does not render the photo upload overlay button when can_edit is absent', function() {
+      const html = renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'));
+      expect(html).not.toContain('photo-upload-overlay-button');
+    });
+
+    it('invokes onOpenUploadModal when the overlay button is clicked', function() {
+      const onOpenUploadModal = jasmine.createSpy('onOpenUploadModal');
+      const c = { ...character, can_edit: true };
+      const element = CharacterHelper.render(c, '#/games/demo/pcs', { onOpenUploadModal });
+      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+
+      overlay.props.onClick();
+
+      expect(onOpenUploadModal).toHaveBeenCalled();
     });
 
     it('renders photos when present', function() {
