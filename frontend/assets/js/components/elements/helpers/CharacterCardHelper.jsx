@@ -11,7 +11,8 @@ export default class CharacterCardHelper {
    * @param {object} character - Character data object.
    * @param {number} character.id - Character ID.
    * @param {string} character.name - Character name.
-   * @param {string|null} [character.avatar_url] - Optional avatar URL.
+   * @param {string|null} [character.profile_photo_path] - Optional profile photo path, takes precedence over character.avatar_url.
+   * @param {string|null} [character.avatar_url] - Optional avatar URL, used as a fallback.
    * @param {string} gameSlug - Game slug used to build the detail link.
    * @param {string} characterType - Character type, either 'pc' or 'npc'.
    * @param {string} [size] - Card size, either 'normal' or 'small'.
@@ -29,7 +30,7 @@ export default class CharacterCardHelper {
           className="text-decoration-none text-dark"
         >
           <div className="card h-100">
-            <CardAvatar url={character.avatar_url} alt={character.name} />
+            <CardAvatar url={character.profile_photo_path || character.avatar_url} alt={character.name} />
             {CharacterCardHelper.#renderCardBody(character, isSmall, HeadingTag)}
           </div>
         </a>

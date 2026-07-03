@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
-from games.models import Game, GameMaster, GamePhoto, Upload
+from games.models import Character, CharacterPhoto, Game, GameMaster, GamePhoto, Player, Upload
 
 
 @pytest.mark.django_db
@@ -34,6 +34,27 @@ class TestUploadFinalizeView:
         self.upload.content_object = self.game_photo
         self.upload.save()
 
+        self.player = Player.objects.create(name='Bob')
+        self.owner = User.objects.create_user(username='owner', password='secret-password')
+        self.player.user = self.owner
+        self.player.save()
+        self.character = Character.objects.create(
+            name='Aragorn', game=self.game, player=self.player, npc=False
+        )
+        self.owner_token = Token.objects.create(user=self.owner)
+
+        self.character_upload = Upload.objects.create(
+            user=self.owner,
+            file_path='photos/games/epic-quest/characters/1/hero_abc.jpg',
+        )
+        self.character_photo = CharacterPhoto.objects.create(
+            character=self.character,
+            path='photos/games/epic-quest/characters/1/hero_abc.jpg',
+            ready=False,
+        )
+        self.character_upload.content_object = self.character_photo
+        self.character_upload.save()
+
     def _patch(self, client, upload_id, payload, token=None, upload_token=None):
         """Issue a PATCH request to the upload finalize endpoint."""
         extra = {}
@@ -58,6 +79,18 @@ class TestUploadFinalizeView:
             payload,
             token=self.dm_token,
             upload_token=self.upload.token,
+        )
+
+    def _valid_character_patch(self, client, payload=None):
+        """Issue a valid PATCH request for the character upload, owned by the owning player."""
+        if payload is None:
+            payload = {'status': 'uploading'}
+        return self._patch(
+            client,
+            self.character_upload.id,
+            payload,
+            token=self.owner_token,
+            upload_token=self.character_upload.token,
         )
 
     def test_nonexistent_upload_returns_403(self, client):
@@ -198,3 +231,52 @@ class TestUploadFinalizeView:
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['file_path'] == self.upload.file_path
+
+    def test_unrelated_user_returns_403_for_character_upload(self, client):
+        """Test that a user unrelated to the character is rejected on a CharacterPhoto upload."""
+        other_user = User.objects.create_user(username='other', password='secret-password')
+        other_token = Token.objects.create(user=other_user)
+        self.character_upload.user = other_user
+        Upload.objects.filter(pk=self.character_upload.pk).update(user=other_user)
+        response = self._patch(
+            client,
+            self.character_upload.id,
+            {'status': 'uploading'},
+            token=other_token,
+            upload_token=self.character_upload.token,
+        )
+        assert response.status_code == 403
+
+    def test_uploading_status_returns_200_for_character_upload(self, client):
+        """Test that status=uploading returns 200 for a CharacterPhoto-backed upload."""
+        response = self._valid_character_patch(client, {'status': 'uploading'})
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['file_path'] == self.character_upload.file_path
+
+    def test_uploaded_status_sets_character_photo_ready(self, client):
+        """Test that status=uploaded sets CharacterPhoto.ready to True."""
+        self._valid_character_patch(client, {'status': 'uploaded'})
+        self.character_photo.refresh_from_db()
+        assert self.character_photo.ready is True
+
+    def test_uploaded_status_sets_character_profile_photo(self, client):
+        """Test that status=uploaded sets character.profile_photo when it was unset."""
+        self._valid_character_patch(client, {'status': 'uploaded'})
+        self.character.refresh_from_db()
+        assert self.character.profile_photo == self.character_photo
+
+    def test_uploaded_status_does_not_overwrite_existing_profile_photo(self, client):
+        """Test that status=uploaded does not overwrite an existing character.profile_photo."""
+        existing_profile_photo = CharacterPhoto.objects.create(
+            character=self.character,
+            path='photos/games/epic-quest/characters/1/existing.jpg',
+            ready=True,
+        )
+        self.character.profile_photo = existing_profile_photo
+        self.character.save()
+
+        self._valid_character_patch(client, {'status': 'uploaded'})
+
+        self.character.refresh_from_db()
+        assert self.character.profile_photo == existing_profile_photo

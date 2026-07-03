@@ -33,6 +33,17 @@ describe('CharacterCardHelper', function() {
       expect(html).toContain('http://example.com/aragorn.png');
     });
 
+    it('prefers profile_photo_path over avatar_url when both are provided', function() {
+      const c = {
+        ...character,
+        profile_photo_path: 'http://example.com/profile_photo.png',
+        avatar_url: 'http://example.com/aragorn.png',
+      };
+      const html = renderToStaticMarkup(CharacterCardHelper.render(c, gameSlug, 'pc'));
+      expect(html).toContain('http://example.com/profile_photo.png');
+      expect(html).not.toContain('http://example.com/aragorn.png');
+    });
+
     it('applies Bootstrap card classes', function() {
       const html = renderToStaticMarkup(CharacterCardHelper.render(character, gameSlug, 'pc'));
       expect(html).toContain('card');

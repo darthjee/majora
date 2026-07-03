@@ -35,6 +35,17 @@ describe('CharacterHelper', function() {
       expect(html).toContain('default_character.png');
     });
 
+    it('prefers profile_photo_path over avatar_url when both are provided', function() {
+      const c = {
+        ...character,
+        profile_photo_path: 'http://example.com/profile_photo.png',
+        avatar_url: 'http://example.com/aragorn.png',
+      };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).toContain('http://example.com/profile_photo.png');
+      expect(html).not.toContain('http://example.com/aragorn.png');
+    });
+
     it('renders photos when present', function() {
       const c = { ...character, photos: [{ id: 1, url: 'http://example.com/photo.png' }] };
       expect(renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs')))

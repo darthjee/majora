@@ -10,7 +10,10 @@ class CharacterListSerializer(serializers.ModelSerializer):
     """Serializer for character list items."""
 
     game_slug = serializers.ReadOnlyField(source='game.game_slug')
+    profile_photo_path = serializers.CharField(
+        source='profile_photo.path', default=None, read_only=True
+    )
 
     class Meta:
         model = Character
-        fields = ['id', 'name', 'avatar_url', 'game_slug']
+        fields = ['id', 'name', 'avatar_url', 'game_slug', 'profile_photo_path']

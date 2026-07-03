@@ -26,6 +26,9 @@ class Character(models.Model):
     private_description = models.TextField(blank=True)
     npc = models.BooleanField(default=True)
     hidden = models.BooleanField(default=False)
+    profile_photo = models.ForeignKey(
+        'games.CharacterPhoto', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
+    )
 
     class Meta:
         ordering = ['id']

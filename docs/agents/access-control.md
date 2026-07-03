@@ -64,20 +64,23 @@ The `path` field is also not serialised by `GamePhotoSerializer` itself, but as 
 
 **Write access:**
 - `POST /games/<slug>/photo_upload.json` — GameMaster of that game, or superuser. Creates
-  a `GamePhoto` row with `ready=False` as part of the upload initialisation flow (issue #160).
-  The record is not yet visible in the game detail until the upload is finalised and `ready`
-  is set to `True` (issue #161).
+  a `GamePhoto` row with `ready=False` as part of the upload initialisation flow (issue #160,
+  see "Game photo upload init endpoint" below). The record is not yet visible in the game
+  detail until the upload is finalised and `ready` is set to `True` (issue #161).
 - All other write operations: superuser only (via Django admin, out of scope).
 
 ---
 
 ## Upload
 
-The `Upload` model tracks the lifecycle of a game photo upload (pending → uploading → uploaded).
+The `Upload` model tracks the lifecycle of a photo upload (pending → uploading → uploaded),
+generically for either a `GamePhoto` or, as of issue #255, a `CharacterPhoto` — via a
+`GenericForeignKey` (`content_type`/`object_id`/`content_object`).
 
 | Action | Who can |
 |--------|---------|
 | Create (`POST /games/<slug>/photo_upload.json`) | GameMaster of that game, or superuser |
+| Create (`POST /games/<slug>/pcs/<id>/photo_upload.json`, `POST /games/<slug>/npcs/<id>/photo_upload.json`) | Player of that character, any GameMaster of that game, or superuser |
 | Read | Only the user who initiated the upload (indirectly, via the 201 response at creation time) |
 | Update / Delete | No public endpoint; status transitions are handled internally |
 
@@ -87,19 +90,29 @@ The `Upload` model tracks the lifecycle of a game photo upload (pending → uplo
 - `token` is a `secrets.token_urlsafe(32)` value and must never be exposed to any user
   other than the one who created the upload, or through any endpoint other than the
   init response.
-- All other fields (`file_path`, `expiration_time`, `status`, `user`) are internal and are
-  never returned by any endpoint.
+- All other fields (`file_path`, `expiration_time`, `status`, `user`, `content_type`,
+  `object_id`) are internal and are never returned by any endpoint.
 
-**Side effect on finalisation (issue #254):** `PATCH /uploads/<id>.json` with
-`status=uploaded` marks the linked `GamePhoto` as `ready=True` and, if the photo's game does
-not already have a `cover_photo`, also sets `Game.cover_photo` to that photo. This write to
-`Game` is gated by the same checks already enforced earlier in the same request (upload
-token match, requesting user must be the upload's owner, and `GameEditPermission` — i.e.
-GameMaster of that game, or superuser) — no new authorization path is introduced.
+**Side effect on finalisation:** `PATCH /uploads/<id>.json` with `status=uploaded` marks the
+linked photo record as `ready=True` and, if its owner does not already have a primary photo,
+sets that primary photo reference. The exact behavior dispatches on the upload's
+`content_object` type:
+- **`GamePhoto`** (issue #254): if the photo's game does not already have a `cover_photo`,
+  sets `Game.cover_photo` to that photo. Gated by `GameEditPermission` (GameMaster of that
+  game, or superuser).
+- **`CharacterPhoto`** (issue #255): if the photo's character does not already have a
+  `profile_photo`, sets `Character.profile_photo` to that photo. Gated by
+  `CharacterEditPermission` (player of that character, any GameMaster of that game, or
+  superuser).
+
+Both cases reuse the same checks already enforced earlier in the same request (upload token
+match, requesting user must be the upload's owner) — no new authorization path is
+introduced; only the object-level permission class differs, chosen based on the
+`content_object`'s type.
 
 ---
 
-## Photo upload init endpoint
+## Game photo upload init endpoint
 
 | Endpoint | Method | Who can call | Response fields |
 |----------|--------|-------------|-----------------|
@@ -111,6 +124,27 @@ GameMaster of that game, or superuser) — no new authorization path is introduc
 
 ---
 
+## Character photo upload init endpoints
+
+| Endpoint | Method | Who can call | Response fields |
+|----------|--------|-------------|-----------------|
+| `/games/<slug>/pcs/<id>/photo_upload.json` | POST | Player of that character, any GameMaster of that game, or superuser | `id`, `token` |
+| `/games/<slug>/npcs/<id>/photo_upload.json` | POST | Player of that character, any GameMaster of that game, or superuser | `id`, `token` |
+
+Added in issue #255, mirroring the game photo upload init endpoint above but scoped to a
+single character and gated by `CharacterEditPermission` instead of `GameEditPermission`.
+
+- Unauthenticated → 401. Authenticated but not the character's player, a GameMaster of its
+  game, or a superuser → 403.
+- Unknown `game_slug` or `character_id` (or a `character_id` that does not belong to
+  `game_slug`, or is the wrong PC/NPC type for the endpoint) → 404.
+- Missing or invalid `filename` body field → 400.
+- Creates a `CharacterPhoto` row with `ready=False` as part of the upload initialisation
+  flow; the record is not visible in the character detail's `photos` list, and cannot become
+  `profile_photo`, until the upload is finalised and `ready` is set to `True`.
+
+---
+
 ## Character (PC and NPC)
 
 Characters are scoped to a game. Access is symmetric for PCs and NPCs unless noted.
@@ -119,15 +153,22 @@ Characters are scoped to a game. Access is symmetric for PCs and NPCs unless not
 
 | Endpoint | Who can read | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs.json` | Anyone | `id`, `name`, `avatar_url`, `character_class`, `level`, `npc` |
-| `GET /games/<slug>/npcs.json` | Anyone | `id`, `name`, `avatar_url`, `character_class`, `level`, `npc` |
+| `GET /games/<slug>/pcs.json` | Anyone | `id`, `name`, `avatar_url`, `game_slug`, `profile_photo_path` |
+| `GET /games/<slug>/npcs.json` | Anyone | `id`, `name`, `avatar_url`, `game_slug`, `profile_photo_path` |
 
 ### Detail
 
 | Endpoint | Who can read | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs/<id>.json` | Anyone | `id`, `name`, `avatar_url`, `character_class`, `level`, `public_description`, `is_pc`, `photos`, `links`, `game_slug`, `can_edit` |
+| `GET /games/<slug>/pcs/<id>.json` | Anyone | `id`, `name`, `avatar_url`, `role`, `public_description`, `is_pc`, `photos`, `links`, `game_slug`, `can_edit`, `profile_photo_path` |
 | `GET /games/<slug>/npcs/<id>.json` | Anyone | same as above |
+
+`profile_photo_path` (added in issue #255) is `character.profile_photo.path` — the raw
+relative storage key of the `CharacterPhoto` automatically selected as the character's
+profile photo (see the "CharacterPhoto" and "Upload" sections below) — or `null` when the
+character has no profile photo yet. It is returned on the list, detail, and full-detail
+endpoints, to anyone (same visibility as `avatar_url`). The frontend prefers it over the
+legacy `avatar_url` field when present.
 
 ### Full detail (includes `private_description`)
 
@@ -195,12 +236,27 @@ standalone resource; no write endpoint exists.
 
 ---
 
-## Photo
+## CharacterPhoto
 
-Photos are read-only through the character detail endpoint (`photos` array in
-`CharacterDetailSerializer`). No direct photo create/update/delete endpoint exists.
+Character photos are readable through the character detail endpoints (`photos` array in
+`CharacterDetailSerializer` and, by inheritance, `CharacterFullSerializer`). As of issue
+#255, `CharacterPhoto` fully replaces the legacy `Photo` model (which only had a bare `url`
+field and no upload/ready lifecycle) — serving both the character's photo gallery
+(`character.photos`) and, via `Character.profile_photo`, its profile picture.
 
-**Write access:** superuser only (via Django admin, out of scope).
+**Exposed fields** (read): `id` — visible to anyone who can read the character detail (i.e.
+anyone, since both PC and NPC detail endpoints are publicly accessible). The `ready` field is
+internal and never serialised by `CharacterPhotoSerializer`. The `path` field is also not
+serialised by `CharacterPhotoSerializer` itself, but it **is** indirectly exposed to anyone:
+once a `CharacterPhoto` becomes a character's `profile_photo`, its raw `path` is returned
+publicly as `Character.profile_photo_path` (see the "Character" section above).
+
+**Write access:**
+- `POST /games/<slug>/pcs/<id>/photo_upload.json`, `POST /games/<slug>/npcs/<id>/photo_upload.json` —
+  player of that character, any GameMaster of that game, or superuser. Creates a
+  `CharacterPhoto` row with `ready=False` as part of the upload initialisation flow (see
+  "Character photo upload init endpoints" above).
+- All other write operations: superuser only (via Django admin, out of scope).
 
 ---
 

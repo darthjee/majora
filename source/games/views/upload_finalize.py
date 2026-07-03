@@ -7,8 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from ..authentication import CookieTokenAuthentication
-from ..models import Upload
-from ..permissions import GameEditPermission
+from ..models import CharacterPhoto, Upload
+from ..permissions import CharacterEditPermission, GameEditPermission
 
 _FORBIDDEN = Response(status=status.HTTP_403_FORBIDDEN)
 _VALID_STATUSES = {Upload.STATUS_UPLOADING, Upload.STATUS_UPLOADED}
@@ -52,7 +52,7 @@ def _validate_upload(request, upload):
         return _FORBIDDEN
     if upload.status == Upload.STATUS_UPLOADED:
         return _FORBIDDEN
-    return _check_game_permission(request, upload)
+    return _check_permission(request, upload)
 
 
 def _token_matches(request, upload):
@@ -65,10 +65,12 @@ def _is_expired(upload):
     return timezone.now() >= upload.expiration_time
 
 
-def _check_game_permission(request, upload):
-    """Return a permission error Response if the user cannot edit the upload's game, else None."""
-    game = upload.content_object.game
-    return GameEditPermission.check(request, game)
+def _check_permission(request, upload):
+    """Return a permission error Response if the user may not edit the upload target, else None."""
+    content_object = upload.content_object
+    if isinstance(content_object, CharacterPhoto):
+        return CharacterEditPermission.check(request, content_object.character)
+    return GameEditPermission.check(request, content_object.game)
 
 
 def _build_response(upload, new_status):
@@ -80,11 +82,14 @@ def _build_response(upload, new_status):
 
 
 def _mark_content_object_ready(upload):
-    """Set the upload's content object to ready and persist it, updating the game's cover photo."""
+    """Set the upload's content object to ready and persist it, updating its owner's photo."""
     content_object = upload.content_object
     content_object.ready = True
     content_object.save()
-    _set_cover_photo_if_unset(content_object)
+    if isinstance(content_object, CharacterPhoto):
+        _set_profile_photo_if_unset(content_object)
+    else:
+        _set_cover_photo_if_unset(content_object)
 
 
 def _set_cover_photo_if_unset(game_photo):
@@ -93,3 +98,11 @@ def _set_cover_photo_if_unset(game_photo):
     if game.cover_photo_id is None:
         game.cover_photo = game_photo
         game.save()
+
+
+def _set_profile_photo_if_unset(character_photo):
+    """Set the character's profile photo to `character_photo` if it does not already have one."""
+    character = character_photo.character
+    if character.profile_photo_id is None:
+        character.profile_photo = character_photo
+        character.save()
