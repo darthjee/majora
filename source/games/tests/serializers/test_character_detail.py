@@ -158,6 +158,21 @@ class TestCharacterDetailSerializer:
         data = self._serialize()
         assert data['profile_photo_path'] == 'photos/games/test-game/characters/1/profile.jpg'
 
+    def test_serializes_profile_photo_id_as_none_when_unset(self):
+        """Test that profile_photo_id is null when the character has no profile photo."""
+        data = self._serialize()
+        assert data['profile_photo_id'] is None
+
+    def test_serializes_profile_photo_id_when_set(self):
+        """Test that profile_photo_id equals the profile photo's id when set."""
+        photo = CharacterPhoto.objects.create(
+            path='photos/games/test-game/characters/1/profile.jpg', character=self.character
+        )
+        self.character.profile_photo = photo
+        self.character.save()
+        data = self._serialize()
+        assert data['profile_photo_id'] == photo.id
+
     def test_serializes_money(self):
         """Test that the money field is serialized."""
         self.character.money = 150

@@ -19,6 +19,9 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
     profile_photo_path = serializers.CharField(
         source='profile_photo.path', default=None, read_only=True
     )
+    profile_photo_id = serializers.IntegerField(
+        source='profile_photo.id', default=None, read_only=True
+    )
 
     class Meta:
         model = Character
@@ -33,6 +36,7 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
             'game_slug',
             'can_edit',
             'profile_photo_path',
+            'profile_photo_id',
             'money',
         ]
 
