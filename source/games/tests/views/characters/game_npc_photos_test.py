@@ -3,9 +3,11 @@
 import json
 
 import pytest
+from django.contrib.auth.models import User
 from django.urls import reverse
+from rest_framework.authtoken.models import Token
 
-from games.models import Character, CharacterPhoto, Game
+from games.models import Character, CharacterPhoto, Game, GameMaster
 
 
 @pytest.mark.django_db
@@ -110,3 +112,76 @@ class TestGameNpcPhotosView:
         )
         response = client.get(url)
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestGameNpcPhotosHidden:
+
+    """Tests for the hidden-NPC visibility gate in game_npc_photos."""
+
+    def setup_method(self):
+        """Set up common test fixtures."""
+        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
+        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.hidden_npc = Character.objects.create(
+            name='Secret NPC', game=self.game, npc=True, hidden=True
+        )
+        CharacterPhoto.objects.create(
+            path='photos/games/test-game/characters/1/secret.png',
+            character=self.hidden_npc,
+            ready=True,
+        )
+
+    def test_hidden_npc_photos_returns_404_for_anonymous(self, client):
+        """Test that an anonymous request to a hidden NPC's photos gets 404."""
+        response = client.get(f'/games/test-game/npcs/{self.hidden_npc.id}/photos.json')
+        assert response.status_code == 404
+
+    def test_hidden_npc_photos_returns_404_for_regular_user(self, client):
+        """Test that a non-DM authenticated user gets 404 for a hidden NPC's photos."""
+        other_user = User.objects.create_user(username='other', password='secret-password')
+        token = Token.objects.create(user=other_user)
+        response = client.get(
+            f'/games/test-game/npcs/{self.hidden_npc.id}/photos.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response.status_code == 404
+
+    def test_hidden_npc_photos_returns_200_for_dm(self, client):
+        """Test that a DM can access a hidden NPC's photos."""
+        token = Token.objects.create(user=self.dm_user)
+        response = client.get(
+            f'/games/test-game/npcs/{self.hidden_npc.id}/photos.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 1
+
+    def test_hidden_npc_photos_returns_200_for_superuser(self, client):
+        """Test that a superuser can access a hidden NPC's photos."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+        response = client.get(
+            f'/games/test-game/npcs/{self.hidden_npc.id}/photos.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 1
+
+    def test_visible_npc_photos_returns_200_for_anonymous(self, client):
+        """Test that a visible NPC's photos are still accessible to anonymous users."""
+        visible_npc = Character.objects.create(
+            name='Visible NPC', game=self.game, npc=True, hidden=False
+        )
+        CharacterPhoto.objects.create(
+            path='photos/games/test-game/characters/2/visible.png',
+            character=visible_npc,
+            ready=True,
+        )
+        response = client.get(f'/games/test-game/npcs/{visible_npc.id}/photos.json')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 1
