@@ -62,3 +62,24 @@ Refer to this document whenever reviewing a diff that touches API endpoints, aut
 - Avoid `SerializerMethodField` that executes complex logic without input validation on data derived from the request.
 - File upload fields (if added in future) must validate MIME type, file extension, and maximum size server-side — never rely solely on client-supplied `Content-Type`.
 - Query parameters used for filtering or ordering must be validated against an allowlist of accepted field names; reject unknown parameter names with a `400` response.
+
+## 8. Mass Assignment / Field-Level Update Authorization
+
+- Update serializers (e.g. `CharacterUpdateSerializer`, `GameUpdateSerializer`,
+  `TreasureUpdateSerializer`) must declare an explicit `Meta.fields` allowlist. Never use
+  `fields = '__all__'`, and never rely on implicit exclusion via `Meta.exclude` — an
+  allowlist is the only pattern that keeps newly added model fields safe by default.
+- The allowlist must never include foreign keys that represent ownership/relationship
+  chains (e.g. `game`, `player`, `character`) or other server-managed fields (e.g. slugs,
+  ids, timestamps, computed fields). These must only ever be set server-side (on create,
+  or via a dedicated, explicitly-reviewed transfer/reassignment endpoint) — never through
+  a generic update payload.
+- Every update serializer must have a regression test proving at least one
+  disallowed/relationship field has no effect when included in an update payload
+  alongside valid fields (i.e. `serializer.save()` leaves it unchanged). See
+  `source/games/tests/serializers/test_character_update.py`,
+  `test_game_update.py`, and `test_treasure_update.py` for the pattern to follow
+  (`test_game_slug_is_not_included` is the reference example).
+- When reviewing a diff that adds or modifies an update serializer for a new or existing
+  entity, verify both of the above are true: an explicit allowlist with no
+  ownership/relationship fields, and at least one regression test covering it.
