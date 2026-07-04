@@ -9,6 +9,9 @@ class Treasure(models.Model):
 
     name = models.CharField(max_length=200)
     value = models.IntegerField()
+    photo = models.ForeignKey(
+        'games.TreasurePhoto', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
+    )
 
     class Meta:
         ordering = ['id']
