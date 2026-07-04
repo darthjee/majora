@@ -52,14 +52,16 @@ Unauthenticated `POST /games.json` → 401. Authenticated `PATCH /games/<slug>.j
 ## GamePhoto
 
 Game photos are readable through the game detail endpoint (`photos` array in
-`GameDetailSerializer`).
+`GameDetailSerializer`) and, as of issue #275, through a dedicated photo index endpoint.
 
-**Exposed fields** (read): `id` — visible to anyone who can read the game detail. The `url`
-field was removed in issue #254 (it was dead — never populated by the production upload flow).
-The `ready` field remains internal and is never serialised or returned by `GamePhotoSerializer`.
-The `path` field is also not serialised by `GamePhotoSerializer` itself, but as of issue #254 it
-**is** indirectly exposed to anyone: once a `GamePhoto` becomes a game's `cover_photo`, its raw
-`path` is returned publicly as `Game.cover_photo_path` (see the "Game" section above).
+**Exposed fields** (read): `id`, `path` — both visible to anyone who can read the game detail
+or the photo index endpoint below. The `url` field was removed in issue #254 (it was dead —
+never populated by the production upload flow). The `ready` field remains internal and is
+never serialised or returned by `GamePhotoSerializer`. As of issue #275, `path` is serialised
+directly by `GamePhotoSerializer` itself (`fields = ['id', 'path']`) — previously it was only
+indirectly exposed via `Game.cover_photo_path` once a `GamePhoto` became a game's
+`cover_photo` (see the "Game" section above); that indirect exposure still applies in addition
+to the direct one.
 
 **Write access:**
 - `POST /games/<slug>/photo_upload.json` — GameMaster of that game, or superuser. Creates
@@ -67,6 +69,16 @@ The `path` field is also not serialised by `GamePhotoSerializer` itself, but as 
   see "Game photo upload init endpoint" below). The record is not yet visible in the game
   detail until the upload is finalised and `ready` is set to `True` (issue #161).
 - All other write operations: superuser only (via Django admin, out of scope).
+
+### Photo index endpoint
+
+| Endpoint | Method | Who can call | Response |
+|----------|--------|-------------|----------|
+| `/games/<slug>/photos.json` | GET | Anyone (`AllowAny`, no authentication required) | Paginated list of `GamePhotoSerializer` objects (`id`, `path`) for photos where `ready=True` |
+
+Added in issue #275. Unknown `game_slug` → 404. Not-ready photos (still mid-upload) are
+excluded from the list. `Game` has no privacy/hidden concept, so this endpoint has no
+additional visibility gate beyond the game itself existing.
 
 ---
 
@@ -237,17 +249,21 @@ standalone resource; no write endpoint exists.
 ## CharacterPhoto
 
 Character photos are readable through the character detail endpoints (`photos` array in
-`CharacterDetailSerializer` and, by inheritance, `CharacterFullSerializer`). As of issue
+`CharacterDetailSerializer` and, by inheritance, `CharacterFullSerializer`) and, as of issue
+#275, through dedicated photo index endpoints (one for PCs, one for NPCs). As of issue
 #255, `CharacterPhoto` fully replaces the legacy `Photo` model (which only had a bare `url`
 field and no upload/ready lifecycle) — serving both the character's photo gallery
 (`character.photos`) and, via `Character.profile_photo`, its profile picture.
 
-**Exposed fields** (read): `id` — visible to anyone who can read the character detail (i.e.
-anyone, since both PC and NPC detail endpoints are publicly accessible). The `ready` field is
-internal and never serialised by `CharacterPhotoSerializer`. The `path` field is also not
-serialised by `CharacterPhotoSerializer` itself, but it **is** indirectly exposed to anyone:
-once a `CharacterPhoto` becomes a character's `profile_photo`, its raw `path` is returned
-publicly as `Character.profile_photo_path` (see the "Character" section above).
+**Exposed fields** (read): `id`, `path` — both visible to anyone who can read the character
+detail or photo index endpoint (i.e. anyone, since PC detail/index endpoints are publicly
+accessible, and NPC detail/index endpoints are publicly accessible for non-hidden NPCs — see
+"Photo index endpoints" below). The `ready` field is internal and never serialised by
+`CharacterPhotoSerializer`. As of issue #275, `path` is serialised directly by
+`CharacterPhotoSerializer` itself (`fields = ['id', 'path']`) — previously it was only
+indirectly exposed via `Character.profile_photo_path` once a `CharacterPhoto` became a
+character's `profile_photo` (see the "Character" section above); that indirect exposure still
+applies in addition to the direct one.
 
 **Write access:**
 - `POST /games/<slug>/pcs/<id>/photo_upload.json`, `POST /games/<slug>/npcs/<id>/photo_upload.json` —
@@ -255,6 +271,25 @@ publicly as `Character.profile_photo_path` (see the "Character" section above).
   `CharacterPhoto` row with `ready=False` as part of the upload initialisation flow (see
   "Character photo upload init endpoints" above).
 - All other write operations: superuser only (via Django admin, out of scope).
+
+### Photo index endpoints
+
+| Endpoint | Method | Who can call | Response |
+|----------|--------|-------------|----------|
+| `/games/<slug>/pcs/<id>/photos.json` | GET | Anyone (`AllowAny`, no authentication required) | Paginated list of `CharacterPhotoSerializer` objects (`id`, `path`) for photos where `ready=True` |
+| `/games/<slug>/npcs/<id>/photos.json` | GET | Anyone (`AllowAny`), but see hidden-NPC gate below | Paginated list of `CharacterPhotoSerializer` objects (`id`, `path`) for photos where `ready=True` |
+
+Added in issue #275. Unknown `game_slug` or `character_id` (or a `character_id` that does not
+belong to `game_slug`, or is the wrong PC/NPC type for the endpoint) → 404. Not-ready photos
+(still mid-upload) are excluded from the list.
+
+For `game_npc_photos`, the same hidden-NPC visibility gate used by the NPC detail and list
+endpoints applies: if `character.hidden` is `True` and the requesting user cannot edit the
+character (`not character.can_be_edited_by(request.user)`), the endpoint raises `Http404`
+instead of returning the photo list — hidden NPCs' photos are invisible to anonymous or
+non-editor requests, only visible to the character's player, a GameMaster of that game, or a
+superuser. `PC` characters have no `hidden` concept, so `game_pc_photos` has no equivalent
+gate.
 
 ---
 
