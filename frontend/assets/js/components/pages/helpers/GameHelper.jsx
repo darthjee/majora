@@ -2,7 +2,6 @@ import React from 'react';
 import PhotoUploadOverlay from '../../elements/PhotoUploadOverlay.jsx';
 import EditButton from '../../elements/EditButton.jsx';
 import PageActions from '../../elements/PageActions.jsx';
-import CharacterPhotos from '../../elements/CharacterPhotos.jsx';
 import CharacterPreviewSection from '../../elements/CharacterPreviewSection.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LinkList from '../../elements/LinkList.jsx';
@@ -21,7 +20,6 @@ export default class GameHelper {
    * @param {string} game.game_slug - Game slug used to build the treasures href.
    * @param {string|null} [game.cover_photo_path] - Optional cover photo URL.
    * @param {string} [game.description] - Game description text.
-   * @param {object[]} [game.photos] - Additional photo objects with id and url.
    * @param {object[]} [game.links] - External link objects with text and url.
    * @param {boolean} [game.can_edit] - Whether the current user can edit this game.
    * @param {object[]} [pcs] - PCs preview list.
@@ -58,7 +56,6 @@ export default class GameHelper {
             <LinkList links={game.links} />
           </div>
         </div>
-        <CharacterPhotos photos={game.photos} alt={game.name} />
         <CharacterPreviewSection
           characters={pcs}
           gameSlug={game.game_slug}
@@ -76,6 +73,9 @@ export default class GameHelper {
         <div className="mt-3">
           <a href={`#/games/${game.game_slug}/treasures`} className="btn btn-outline-secondary">
             {Translator.t('game_page.treasures')}
+          </a>
+          <a href={`#/games/${game.game_slug}/photos`} className="btn btn-outline-secondary ms-2">
+            {Translator.t('game_page.see_all_photos')}
           </a>
         </div>
       </div>

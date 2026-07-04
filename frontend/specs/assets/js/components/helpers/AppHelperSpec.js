@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import AppHelper from '../../../../../assets/js/components/helpers/AppHelper.jsx';
+import Translator from '../../../../../assets/js/i18n/Translator.js';
 
 describe('AppHelper', function() {
   it('renders page content for known pages', function() {
@@ -7,6 +8,8 @@ describe('AppHelper', function() {
     expect(renderToStaticMarkup(AppHelper.render('npcCharacter', '#/games/demo/npcs/1'))).toContain('Loading character...');
     expect(renderToStaticMarkup(AppHelper.render('pcCharacter', '#/games/demo/pcs/1'))).toContain('Loading character...');
     expect(renderToStaticMarkup(AppHelper.render('pcCharacterEdit', '#/games/demo/pcs/1/edit'))).toContain('Loading character...');
+    expect(renderToStaticMarkup(AppHelper.render('pcCharacterPhotos', '#/games/demo/pcs/1/photos'))).toContain(Translator.t('photos_page.loading'));
+    expect(renderToStaticMarkup(AppHelper.render('npcCharacterPhotos', '#/games/demo/npcs/1/photos'))).toContain(Translator.t('photos_page.loading'));
     expect(renderToStaticMarkup(AppHelper.render('recoverPassword', '#/recover-password'))).toContain('Reset password');
     expect(renderToStaticMarkup(AppHelper.render('register', '#/users/register'))).toContain('Register');
   });
