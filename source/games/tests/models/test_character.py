@@ -2,6 +2,7 @@
 
 import pytest
 from django.contrib.auth.models import AnonymousUser, User
+from django.core.exceptions import ValidationError
 
 from games.models import Character, Game, GameMaster, Player
 
@@ -74,6 +75,22 @@ class TestCharacter:
         )
         character.refresh_from_db()
         assert character.role is None
+
+    def test_money_defaults_to_zero(self):
+        """Test that money defaults to 0 on new characters."""
+        character = Character.objects.create(name='Gimli', game=self.game)
+        assert character.money == 0
+
+    def test_money_can_be_set(self):
+        """Test that money can be set to a positive value."""
+        character = Character.objects.create(name='Gimli', game=self.game, money=150)
+        assert character.money == 150
+
+    def test_negative_money_fails_validation(self):
+        """Test that a negative money value fails full_clean validation."""
+        character = Character(name='Gimli', game=self.game, money=-1)
+        with pytest.raises(ValidationError):
+            character.full_clean()
 
     def test_character_str(self):
         """Test string representation of a character."""

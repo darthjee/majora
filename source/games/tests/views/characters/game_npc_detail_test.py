@@ -201,6 +201,32 @@ class TestGameNpcUpdateView:
         self.npc.refresh_from_db()
         assert self.npc.private_description == 'Secret wizard lore.'
 
+    def test_patch_money_saves(self, client):
+        """Test that PATCH with money saves the value."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+
+        response = self._patch(client, {'money': 200}, token=token)
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['money'] == 200
+        self.npc.refresh_from_db()
+        assert self.npc.money == 200
+
+    def test_patch_negative_money_returns_400(self, client):
+        """Test that PATCH with a negative money value is rejected with 400."""
+        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+
+        response = self._patch(client, {'money': -1}, token=token)
+
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'money' in data['errors']
+        self.npc.refresh_from_db()
+        assert self.npc.money == 0
+
     def test_patch_ignores_non_editable_fields(self, client):
         """Test that fields outside the allowed set are silently ignored."""
         superuser = User.objects.create_superuser(username='admin', password='secret-password')

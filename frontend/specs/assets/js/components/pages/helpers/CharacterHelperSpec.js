@@ -48,6 +48,19 @@ describe('CharacterHelper', function() {
       expect(renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'))).toContain('Ranger');
     });
 
+    it('renders the character money breakdown', function() {
+      const c = { ...character, money: 310 };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).toContain('20 CP');
+      expect(html).toContain('29 SP');
+    });
+
+    it('does not render a money line when money is 0', function() {
+      const c = { ...character, money: 0 };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).not.toContain('character-money');
+    });
+
     it('renders the description', function() {
       expect(renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs')))
         .toContain('The future king of Gondor.');
@@ -202,16 +215,18 @@ describe('CharacterHelper', function() {
       expect(html).not.toContain('<a href="http');
     });
 
-    it('renders the name and links inside the left column, and role/description in the right column', function() {
+    it('renders the name, links and money inside the left column, and role/description in the right column', function() {
       const c = {
         ...character,
         links: [{ text: 'Wiki', url: 'https://example.com/wiki' }],
+        money: 310,
       };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
       const leftColStart = html.indexOf('class="col-md-4"');
       const rightColStart = html.indexOf('class="col-md-8"');
       const nameIndex = html.indexOf('Aragorn');
       const linkIndex = html.indexOf('href="https://example.com/wiki"');
+      const moneyIndex = html.indexOf('20 CP');
       const roleIndex = html.indexOf('Ranger');
 
       expect(leftColStart).toBeGreaterThan(-1);
@@ -220,6 +235,8 @@ describe('CharacterHelper', function() {
       expect(nameIndex).toBeLessThan(rightColStart);
       expect(linkIndex).toBeGreaterThan(leftColStart);
       expect(linkIndex).toBeLessThan(rightColStart);
+      expect(moneyIndex).toBeGreaterThan(leftColStart);
+      expect(moneyIndex).toBeLessThan(rightColStart);
       expect(roleIndex).toBeGreaterThan(rightColStart);
     });
   });

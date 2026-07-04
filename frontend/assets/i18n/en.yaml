@@ -77,6 +77,7 @@ pc_edit_page:
   role_label: Role
   description_label: Description
   private_description_label: DM Notes
+  money_label: Money (copper pieces)
   submit: Save changes
   error: Failed to save character. Please try again.
   upload_photo_button: Upload Photo
@@ -86,6 +87,7 @@ npc_edit_page:
   role_label: Role
   description_label: Description
   private_description_label: DM Notes
+  money_label: Money (copper pieces)
   submit: Save changes
   error: Failed to save character. Please try again.
   upload_photo_button: Upload Photo
@@ -126,3 +128,18 @@ game_treasures_page:
   loading: Loading treasures...
   title: Treasures
   treasures: Treasures
+money:
+  platinum_coin: platinum coin(s)
+  gold_coin: gold coin(s)
+  silver_coin: silver coin(s)
+  copper_coin: copper coin(s)
+  platinum_piece: platinum piece(s)
+  gold_piece: gold piece(s)
+  silver_piece: silver piece(s)
+  copper_piece: copper piece(s)
+  gems: gems
+  gp_in_gems: GP in gems
+  pp_abbreviation: PP
+  gp_abbreviation: GP
+  sp_abbreviation: SP
+  cp_abbreviation: CP

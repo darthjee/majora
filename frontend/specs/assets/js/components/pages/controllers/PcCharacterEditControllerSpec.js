@@ -34,6 +34,7 @@ describe('PcCharacterEditController', function() {
         public_description: 'King',
         private_description: 'Secret notes',
         can_edit: true,
+        money: 310,
       };
 
       expect(resolveLoadedCharacter(character)).toEqual({
@@ -43,11 +44,12 @@ describe('PcCharacterEditController', function() {
           role: 'Ranger',
           public_description: 'King',
           private_description: 'Secret notes',
+          money: '310',
         },
       });
     });
 
-    it('defaults missing fields to empty strings', function() {
+    it('defaults missing fields to empty strings and money to "0"', function() {
       expect(resolveLoadedCharacter({ id: 1, can_edit: true })).toEqual({
         redirect: false,
         fields: {
@@ -55,6 +57,7 @@ describe('PcCharacterEditController', function() {
           role: '',
           public_description: '',
           private_description: '',
+          money: '0',
         },
       });
     });
@@ -77,6 +80,7 @@ describe('PcCharacterEditController', function() {
         setRole: jasmine.createSpy('setRole'),
         setDescription: jasmine.createSpy('setDescription'),
         setPrivateDescription: jasmine.createSpy('setPrivateDescription'),
+        setMoney: jasmine.createSpy('setMoney'),
       };
     });
 
@@ -94,6 +98,7 @@ describe('PcCharacterEditController', function() {
       expect(setters.setRole).not.toHaveBeenCalled();
       expect(setters.setDescription).not.toHaveBeenCalled();
       expect(setters.setPrivateDescription).not.toHaveBeenCalled();
+      expect(setters.setMoney).not.toHaveBeenCalled();
     });
 
     it('redirects to the show page when the loaded character cannot be edited', function() {
@@ -130,6 +135,7 @@ describe('PcCharacterEditController', function() {
         public_description: 'King',
         private_description: 'Secret',
         can_edit: true,
+        money: 310,
       };
 
       controller.applyLoadedCharacter(character, 'demo', '2', setters);
@@ -138,6 +144,7 @@ describe('PcCharacterEditController', function() {
       expect(setters.setRole).toHaveBeenCalledWith('Ranger');
       expect(setters.setDescription).toHaveBeenCalledWith('King');
       expect(setters.setPrivateDescription).toHaveBeenCalledWith('Secret');
+      expect(setters.setMoney).toHaveBeenCalledWith('310');
     });
   });
 

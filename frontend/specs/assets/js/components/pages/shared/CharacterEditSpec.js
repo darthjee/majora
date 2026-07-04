@@ -66,6 +66,7 @@ describe('CharacterEdit', function() {
       role: 'Fighter',
       description: 'A brave hero.',
       privateDescription: 'DM notes.',
+      money: '310',
       status: 'idle',
       fieldErrors: {},
     };
@@ -75,6 +76,7 @@ describe('CharacterEdit', function() {
       onRoleChange: () => {},
       onDescriptionChange: () => {},
       onPrivateDescriptionChange: () => {},
+      onMoneyChange: () => {},
       onOpenUploadModal: () => {},
     };
 
@@ -82,6 +84,8 @@ describe('CharacterEdit', function() {
 
     expect(html).toContain('id="test-edit-name"');
     expect(html).toContain('value="Test Character"');
+    expect(html).toContain('id="test-edit-money"');
+    expect(html).toContain('value="310"');
   });
 
   describe('upload modal', function() {
