@@ -21,7 +21,7 @@ from .games import game_access, game_detail, game_photos, game_treasures, games_
 from .health import health
 from .password_reset import recover, reset_password
 from .photo_upload import photo_upload
-from .treasures import treasure_access, treasure_detail, treasures_list
+from .treasures import treasure_access, treasure_detail, treasure_photo_upload, treasures_list
 from .upload_finalize import upload_finalize
 
 __all__ = [
@@ -56,6 +56,7 @@ __all__ = [
     'photo_upload',
     'treasure_access',
     'treasure_detail',
+    'treasure_photo_upload',
     'treasures_list',
     'upload_finalize',
     'health',

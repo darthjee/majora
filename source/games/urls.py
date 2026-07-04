@@ -81,6 +81,11 @@ urlpatterns = [
     path('treasures.json', views.treasures_list, name='treasures-list'),
     path('treasures/<int:treasure_id>.json', views.treasure_detail, name='treasure-detail'),
     path('treasures/<int:treasure_id>/access.json', views.treasure_access, name='treasure-access'),
+    path(
+        'treasures/<int:treasure_id>/photo_upload.json',
+        views.treasure_photo_upload,
+        name='treasure-photo-upload',
+    ),
     path('uploads/<int:upload_id>.json', views.upload_finalize, name='upload-finalize'),
     path('users/login.json', views.login, name='users-login'),
     path('users/logout.json', views.logout, name='users-logout'),

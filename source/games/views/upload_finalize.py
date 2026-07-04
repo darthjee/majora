@@ -7,8 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from ..authentication import CookieTokenAuthentication
-from ..models import CharacterPhoto, Upload
-from ..permissions import CharacterEditPermission, GameEditPermission
+from ..models import CharacterPhoto, TreasurePhoto, Upload
+from ..permissions import CharacterEditPermission, GameEditPermission, TreasureEditPermission
 
 _FORBIDDEN = Response(status=status.HTTP_403_FORBIDDEN)
 _VALID_STATUSES = {Upload.STATUS_UPLOADING, Upload.STATUS_UPLOADED}
@@ -68,6 +68,8 @@ def _is_expired(upload):
 def _check_permission(request, upload):
     """Return a permission error Response if the user may not edit the upload target, else None."""
     content_object = upload.content_object
+    if isinstance(content_object, TreasurePhoto):
+        return TreasureEditPermission.check(request, content_object.treasure)
     if isinstance(content_object, CharacterPhoto):
         return CharacterEditPermission.check(request, content_object.character)
     return GameEditPermission.check(request, content_object.game)
@@ -86,7 +88,9 @@ def _mark_content_object_ready(upload):
     content_object = upload.content_object
     content_object.ready = True
     content_object.save()
-    if isinstance(content_object, CharacterPhoto):
+    if isinstance(content_object, TreasurePhoto):
+        _set_treasure_photo(content_object)
+    elif isinstance(content_object, CharacterPhoto):
         _set_profile_photo_if_unset(content_object)
     else:
         _set_cover_photo_if_unset(content_object)
@@ -106,3 +110,10 @@ def _set_profile_photo_if_unset(character_photo):
     if character.profile_photo_id is None:
         character.profile_photo = character_photo
         character.save()
+
+
+def _set_treasure_photo(treasure_photo):
+    """Set the treasure's photo to `treasure_photo`, always replacing any existing one."""
+    treasure = treasure_photo.treasure
+    treasure.photo = treasure_photo
+    treasure.save()

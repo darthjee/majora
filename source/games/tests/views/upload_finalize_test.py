@@ -7,7 +7,17 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
-from games.models import Character, CharacterPhoto, Game, GameMaster, GamePhoto, Player, Upload
+from games.models import (
+    Character,
+    CharacterPhoto,
+    Game,
+    GameMaster,
+    GamePhoto,
+    Player,
+    Treasure,
+    TreasurePhoto,
+    Upload,
+)
 
 
 @pytest.mark.django_db
@@ -55,6 +65,24 @@ class TestUploadFinalizeView:
         self.character_upload.content_object = self.character_photo
         self.character_upload.save()
 
+        self.superuser = User.objects.create_superuser(
+            username='admin', password='secret-password'
+        )
+        self.superuser_token = Token.objects.create(user=self.superuser)
+        self.treasure = Treasure.objects.create(name='Golden Crown', value=500)
+
+        self.treasure_upload = Upload.objects.create(
+            user=self.superuser,
+            file_path=f'photos/treasures/{self.treasure.id}/photo.jpg',
+        )
+        self.treasure_photo = TreasurePhoto.objects.create(
+            treasure=self.treasure,
+            path=f'photos/treasures/{self.treasure.id}/photo.jpg',
+            ready=False,
+        )
+        self.treasure_upload.content_object = self.treasure_photo
+        self.treasure_upload.save()
+
     def _patch(self, client, upload_id, payload, token=None, upload_token=None):
         """Issue a PATCH request to the upload finalize endpoint."""
         extra = {}
@@ -91,6 +119,18 @@ class TestUploadFinalizeView:
             payload,
             token=self.owner_token,
             upload_token=self.character_upload.token,
+        )
+
+    def _valid_treasure_patch(self, client, payload=None):
+        """Issue a valid PATCH request for the treasure upload, owned by the superuser."""
+        if payload is None:
+            payload = {'status': 'uploading'}
+        return self._patch(
+            client,
+            self.treasure_upload.id,
+            payload,
+            token=self.superuser_token,
+            upload_token=self.treasure_upload.token,
         )
 
     def test_nonexistent_upload_returns_403(self, client):
@@ -280,3 +320,63 @@ class TestUploadFinalizeView:
 
         self.character.refresh_from_db()
         assert self.character.profile_photo == existing_profile_photo
+
+    def test_unauthenticated_request_returns_401_for_treasure_upload(self, client):
+        """Test that an unauthenticated request on a TreasurePhoto upload returns 401."""
+        response = self._patch(
+            client,
+            self.treasure_upload.id,
+            {'status': 'uploading'},
+            upload_token=self.treasure_upload.token,
+        )
+        assert response.status_code == 401
+
+    def test_non_superuser_returns_403_for_treasure_upload(self, client):
+        """Test that a non-superuser is rejected on a TreasurePhoto upload with 403."""
+        other_user = User.objects.create_user(username='other', password='secret-password')
+        other_token = Token.objects.create(user=other_user)
+        self.treasure_upload.user = other_user
+        Upload.objects.filter(pk=self.treasure_upload.pk).update(user=other_user)
+        response = self._patch(
+            client,
+            self.treasure_upload.id,
+            {'status': 'uploading'},
+            token=other_token,
+            upload_token=self.treasure_upload.token,
+        )
+        assert response.status_code == 403
+
+    def test_uploading_status_returns_200_for_treasure_upload(self, client):
+        """Test that status=uploading returns 200 for a TreasurePhoto-backed upload."""
+        response = self._valid_treasure_patch(client, {'status': 'uploading'})
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['file_path'] == self.treasure_upload.file_path
+
+    def test_uploaded_status_sets_treasure_photo_ready(self, client):
+        """Test that status=uploaded sets TreasurePhoto.ready to True."""
+        self._valid_treasure_patch(client, {'status': 'uploaded'})
+        self.treasure_photo.refresh_from_db()
+        assert self.treasure_photo.ready is True
+
+    def test_uploaded_status_sets_treasure_photo(self, client):
+        """Test that status=uploaded sets treasure.photo when it was unset."""
+        self._valid_treasure_patch(client, {'status': 'uploaded'})
+        self.treasure.refresh_from_db()
+        assert self.treasure.photo == self.treasure_photo
+
+    def test_uploaded_status_replaces_existing_treasure_photo(self, client):
+        """Test that status=uploaded replaces an existing treasure.photo (no unset guard)."""
+        existing_photo = TreasurePhoto.objects.create(
+            treasure=self.treasure,
+            path=f'photos/treasures/{self.treasure.id}/old.jpg',
+            ready=True,
+        )
+        self.treasure.photo = existing_photo
+        self.treasure.save()
+
+        self._valid_treasure_patch(client, {'status': 'uploaded'})
+
+        self.treasure.refresh_from_db()
+        assert self.treasure.photo == self.treasure_photo
+        assert self.treasure.photo != existing_photo
