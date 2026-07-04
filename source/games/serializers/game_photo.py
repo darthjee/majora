@@ -11,4 +11,4 @@ class GamePhotoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GamePhoto
-        fields = ['id']
+        fields = ['id', 'path']

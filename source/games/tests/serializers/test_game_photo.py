@@ -27,3 +27,8 @@ class TestGamePhotoSerializer:
         """Test that the game field is not exposed."""
         data = GamePhotoSerializer(self.photo).data
         assert 'game' not in data
+
+    def test_serializes_path(self):
+        """Test that the path field is serialized."""
+        data = GamePhotoSerializer(self.photo).data
+        assert data['path'] == self.photo.path

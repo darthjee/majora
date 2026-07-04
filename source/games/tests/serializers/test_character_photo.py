@@ -28,3 +28,8 @@ class TestCharacterPhotoSerializer:
         """Test that the character field is not exposed."""
         data = CharacterPhotoSerializer(self.photo).data
         assert 'character' not in data
+
+    def test_serializes_path(self):
+        """Test that the path field is serialized."""
+        data = CharacterPhotoSerializer(self.photo).data
+        assert data['path'] == self.photo.path

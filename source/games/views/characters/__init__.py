@@ -4,12 +4,14 @@ from .game_npc_access import game_npc_access
 from .game_npc_detail import game_npc_detail
 from .game_npc_full import game_npc_full
 from .game_npc_photo_upload import game_npc_photo_upload
+from .game_npc_photos import game_npc_photos
 from .game_npcs import game_npcs
 from .game_npcs_all import game_npcs_all
 from .game_pc_access import game_pc_access
 from .game_pc_detail import game_pc_detail
 from .game_pc_full import game_pc_full
 from .game_pc_photo_upload import game_pc_photo_upload
+from .game_pc_photos import game_pc_photos
 from .game_pcs import game_pcs
 
 __all__ = [
@@ -24,4 +26,6 @@ __all__ = [
     'game_npc_access',
     'game_pc_photo_upload',
     'game_npc_photo_upload',
+    'game_pc_photos',
+    'game_npc_photos',
 ]
