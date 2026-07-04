@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameHelper from '../../../../../../assets/js/components/pages/helpers/GameHelper.jsx';
 import PhotoUploadOverlay from '../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
+import Translator from '../../../../../../assets/js/i18n/Translator.js';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -129,22 +130,15 @@ describe('GameHelper', function() {
       expect(onOpenUploadModal).toHaveBeenCalled();
     });
 
-    it('renders photo URLs when game.photos contains items', function() {
-      const gameWithPhotos = { ...game, photos: [{ id: 1, url: 'http://example.com/photo1.jpg' }] };
-      const html = renderToStaticMarkup(GameHelper.render(gameWithPhotos));
-      expect(html).toContain('http://example.com/photo1.jpg');
+    it('renders a see all photos link to the game photos index page', function() {
+      const html = renderToStaticMarkup(GameHelper.render(game));
+      expect(html).toContain(`href="#/games/${game.game_slug}/photos"`);
+      expect(html).toContain(Translator.t('game_page.see_all_photos'));
     });
 
-    it('renders nothing for photos when game.photos is empty', function() {
-      const gameEmptyPhotos = { ...game, photos: [] };
-      const html = renderToStaticMarkup(GameHelper.render(gameEmptyPhotos));
-      expect(html).not.toContain('img-fluid');
-    });
-
-    it('renders nothing for photos when game.photos is undefined', function() {
-      const gameNoPhotos = { ...game, photos: undefined };
-      const html = renderToStaticMarkup(GameHelper.render(gameNoPhotos));
-      expect(html).not.toContain('img-fluid');
+    it('does not render the old inline photo gallery', function() {
+      const html = renderToStaticMarkup(GameHelper.render(game));
+      expect(html).not.toContain('img-fluid rounded');
     });
 
     it('renders an edit link when can_edit is true', function() {

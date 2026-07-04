@@ -4,7 +4,6 @@ import EditButton from '../../elements/EditButton.jsx';
 import PageActions from '../../elements/PageActions.jsx';
 import CharacterInfo from '../../elements/CharacterInfo.jsx';
 import CharacterMoney from '../../elements/CharacterMoney.jsx';
-import CharacterPhotos from '../../elements/CharacterPhotos.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LinkList from '../../elements/LinkList.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
@@ -23,7 +22,6 @@ export default class CharacterHelper {
    * @param {string} [character.role] - Character role.
    * @param {string} [character.public_description] - Character public description.
    * @param {string} [character.private_description] - Character private description (DM notes).
-   * @param {object[]} [character.photos] - Additional photos array.
    * @param {object[]} [character.links] - External link objects with text and url.
    * @param {number} [character.money] - Total money, expressed in copper pieces.
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
@@ -66,7 +64,14 @@ export default class CharacterHelper {
           />
         </div>
         {CharacterHelper.#renderPrivateDescription(character.private_description)}
-        <CharacterPhotos photos={character.photos} alt={character.name} />
+        <div className="mt-3">
+          <a
+            href={`#/games/${character.game_slug}/${segment}/${character.id}/photos`}
+            className="btn btn-outline-secondary"
+          >
+            {Translator.t('character_page.see_all_photos')}
+          </a>
+        </div>
       </div>
     );
   }

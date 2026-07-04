@@ -22,13 +22,16 @@ export default class HashRouteResolver {
     this.#router.register('/treasures/:id/edit', 'treasureEdit');
     this.#router.register('/treasures/:id', 'treasure');
     this.#router.register('/treasures', 'treasures');
+    this.#router.register('/games/:game_slug/npcs/:character_id/photos', 'npcCharacterPhotos');
     this.#router.register('/games/:game_slug/npcs/:character_id/edit', 'npcCharacterEdit');
     this.#router.register('/games/:game_slug/npcs/:character_id', 'npcCharacter');
+    this.#router.register('/games/:game_slug/pcs/:character_id/photos', 'pcCharacterPhotos');
     this.#router.register('/games/:game_slug/pcs/:character_id/edit', 'pcCharacterEdit');
     this.#router.register('/games/:game_slug/pcs/:character_id', 'pcCharacter');
     this.#router.register('/games/:game_slug/pcs', 'gamePcs');
     this.#router.register('/games/:game_slug/npcs', 'gameNpcs');
     this.#router.register('/games/:game_slug/treasures', 'gameTreasures');
+    this.#router.register('/games/:game_slug/photos', 'gamePhotos');
     this.#router.register('/games/new', 'gameNew');
     this.#router.register('/games/:game_slug/edit', 'gameEdit');
     this.#router.register('/games/:game_slug', 'game');

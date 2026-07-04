@@ -11,4 +11,4 @@ class CharacterPhotoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CharacterPhoto
-        fields = ['id']
+        fields = ['id', 'path']

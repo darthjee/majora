@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterHelper from '../../../../../../assets/js/components/pages/helpers/CharacterHelper.jsx';
 import PhotoUploadOverlay from '../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
+import Translator from '../../../../../../assets/js/i18n/Translator.js';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -114,15 +115,22 @@ describe('CharacterHelper', function() {
       expect(onOpenUploadModal).toHaveBeenCalled();
     });
 
-    it('renders photos when present', function() {
-      const c = { ...character, photos: [{ id: 1, url: 'http://example.com/photo.png' }] };
-      expect(renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs')))
-        .toContain('http://example.com/photo.png');
+    it('renders a see all photos link to the pcs photos index page', function() {
+      const c = { ...character, game_slug: 'demo', id: 7, is_pc: true };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).toContain('href="#/games/demo/pcs/7/photos"');
+      expect(html).toContain(Translator.t('character_page.see_all_photos'));
     });
 
-    it('does not render photos section when photos are empty', function() {
+    it('renders a see all photos link to the npcs photos index page', function() {
+      const c = { ...character, game_slug: 'demo', id: 7, is_pc: false };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
+      expect(html).toContain('href="#/games/demo/npcs/7/photos"');
+    });
+
+    it('does not render the old inline photo gallery', function() {
       const html = renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'));
-      expect(html).not.toContain('http://example.com/photo.png');
+      expect(html).not.toContain('img-fluid rounded');
     });
 
     it('renders a back button to the provided backHref', function() {

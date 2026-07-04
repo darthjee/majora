@@ -44,11 +44,13 @@ game_page:
   player_characters: Personagens
   non_player_characters: NPCs
   treasures: Tesouros
+  see_all_photos: Ver todas as fotos
 game_characters_page:
   loading: Carregando...
 character_page:
   loading: Carregando personagem...
   edit: Editar
+  see_all_photos: Ver todas as fotos
 character_full_page:
   loading: Carregando personagem...
   private_description_label: Notas do Mestre
@@ -128,6 +130,18 @@ game_treasures_page:
   loading: Carregando tesouros...
   title: Tesouros
   treasures: Tesouros
+game_photos_page:
+  title: Fotos
+  loading: Carregando fotos...
+  upload: Enviar foto
+pc_character_photos_page:
+  title: Fotos
+  loading: Carregando fotos...
+  upload: Enviar foto
+npc_character_photos_page:
+  title: Fotos
+  loading: Carregando fotos...
+  upload: Enviar foto
 money:
   platinum_coin: moeda(s) de platina
   gold_coin: moeda(s) de ouro
