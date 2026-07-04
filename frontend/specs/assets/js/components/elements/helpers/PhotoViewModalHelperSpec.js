@@ -63,5 +63,50 @@ describe('PhotoViewModalHelper', function() {
 
       expect(img).toBeNull();
     });
+
+    it('renders no "set as profile photo" button when new props are omitted', function() {
+      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', () => {});
+      const button = findElement(element, (child) => child.type === 'button');
+
+      expect(button).toBeNull();
+    });
+
+    it('renders the "set as profile photo" button when canSetProfilePhoto is true and isProfilePhoto is false', function() {
+      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', () => {}, true, false, () => {});
+      const button = findElement(element, (child) => child.type === 'button');
+
+      expect(button).not.toBeNull();
+    });
+
+    it('renders no button when canSetProfilePhoto is false', function() {
+      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', () => {}, false, false, () => {});
+      const button = findElement(element, (child) => child.type === 'button');
+
+      expect(button).toBeNull();
+    });
+
+    it('renders no button when isProfilePhoto is true', function() {
+      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', () => {}, true, true, () => {});
+      const button = findElement(element, (child) => child.type === 'button');
+
+      expect(button).toBeNull();
+    });
+
+    it('renders no button when there is no photo, even when canSetProfilePhoto is true', function() {
+      const element = PhotoViewModalHelper.render(true, null, 'Demo Game', () => {}, true, false, () => {});
+      const button = findElement(element, (child) => child.type === 'button');
+
+      expect(button).toBeNull();
+    });
+
+    it('invokes onSetProfilePhoto with the photo id when the button is clicked', function() {
+      const onSetProfilePhoto = jasmine.createSpy('onSetProfilePhoto');
+      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', () => {}, true, false, onSetProfilePhoto);
+      const button = findElement(element, (child) => child.type === 'button');
+
+      button.props.onClick();
+
+      expect(onSetProfilePhoto).toHaveBeenCalledWith(photo.id);
+    });
   });
 });

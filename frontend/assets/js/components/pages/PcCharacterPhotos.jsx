@@ -37,6 +37,10 @@ export default function PcCharacterPhotos() {
     controller.buildEffect()();
   };
 
+  const handleSetProfilePhoto = (photoId) => {
+    controller.setProfilePhoto(gameSlug, characterId, photoId).catch(() => {});
+  };
+
   if (loading) return PcCharacterPhotosHelper.renderLoading();
   if (error) return PcCharacterPhotosHelper.renderError(error);
 
@@ -57,6 +61,9 @@ export default function PcCharacterPhotos() {
         photo={selectedPhoto}
         alt={alt}
         onClose={() => setSelectedPhoto(null)}
+        canSetProfilePhoto={character.can_edit}
+        isProfilePhoto={selectedPhoto?.id === character.profile_photo_id}
+        onSetProfilePhoto={handleSetProfilePhoto}
       />
     </>
   );

@@ -29,6 +29,8 @@ photo_upload_modal:
   error: Failed to upload photo. Please try again.
   submit: Upload
   title: Upload Photo
+photo_view_modal:
+  set_profile_photo: Set as profile photo
 back_button:
   label: Back
 pagination:
