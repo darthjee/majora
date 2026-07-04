@@ -21,7 +21,7 @@ describe('PhotoUploadModalController', function() {
     it('calls onSuccess when both upload steps succeed', async function() {
       client.initUpload.and.returnValue(Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ id: 1, token: 'up-token' }),
+        json: () => Promise.resolve({ upload_id: 1, token: 'up-token' }),
       }));
       client.submitUpload.and.returnValue(Promise.resolve({ ok: true }));
 
@@ -51,7 +51,7 @@ describe('PhotoUploadModalController', function() {
     it('sets error when submitUpload returns a non-ok response', async function() {
       client.initUpload.and.returnValue(Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ id: 2, token: 'up-token' }),
+        json: () => Promise.resolve({ upload_id: 2, token: 'up-token' }),
       }));
       client.submitUpload.and.returnValue(Promise.resolve({ ok: false, status: 500 }));
 
