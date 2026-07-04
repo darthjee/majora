@@ -39,7 +39,9 @@ def photo_upload(request, game_slug):
     upload.content_object = game_photo
     upload.save()
 
-    return Response({'id': upload.id, 'token': upload.token}, status=201)
+    return Response(
+        {'upload_id': upload.id, 'token': upload.token, 'game_id': game.id}, status=201
+    )
 
 
 def _build_file_path(game_slug, filename):

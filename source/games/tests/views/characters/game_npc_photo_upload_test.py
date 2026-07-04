@@ -93,19 +93,20 @@ class TestGameNpcPhotoUploadView:
         assert 'errors' in data
         assert 'filename' in data['errors']
 
-    def test_happy_path_returns_201_with_id_and_token(self, client):
-        """Test that a valid request from a DM returns 201 with id and token."""
+    def test_happy_path_returns_201_with_upload_id_token_and_character_id(self, client):
+        """Test that a valid request from a DM returns 201 with the expected body."""
         response = self._post(client, {'filename': 'hero.png'}, token=self.dm_token)
         assert response.status_code == 201
         data = json.loads(response.content)
-        assert isinstance(data['id'], int)
+        assert isinstance(data['upload_id'], int)
         assert data['token']
+        assert data['character_id'] == self.npc.id
 
     def test_happy_path_creates_upload_record(self, client):
         """Test that a valid request creates an Upload record with pending status."""
         response = self._post(client, {'filename': 'hero.png'}, token=self.dm_token)
         data = json.loads(response.content)
-        upload = Upload.objects.get(pk=data['id'])
+        upload = Upload.objects.get(pk=data['upload_id'])
         assert upload.status == Upload.STATUS_PENDING
         assert 'epic-quest' in upload.file_path
         assert str(self.npc.id) in upload.file_path
@@ -116,7 +117,7 @@ class TestGameNpcPhotoUploadView:
         """Test that a valid request creates a CharacterPhoto record with ready=False."""
         response = self._post(client, {'filename': 'hero.png'}, token=self.dm_token)
         data = json.loads(response.content)
-        upload = Upload.objects.get(pk=data['id'])
+        upload = Upload.objects.get(pk=data['upload_id'])
         photo = CharacterPhoto.objects.get(path=upload.file_path)
         assert photo.character == self.npc
         assert photo.ready is False
@@ -125,7 +126,7 @@ class TestGameNpcPhotoUploadView:
         """Test that the Upload and CharacterPhoto records share the same file_path/path."""
         response = self._post(client, {'filename': 'cover.jpg'}, token=self.dm_token)
         data = json.loads(response.content)
-        upload = Upload.objects.get(pk=data['id'])
+        upload = Upload.objects.get(pk=data['upload_id'])
         photo = CharacterPhoto.objects.get(character=self.npc)
         assert upload.file_path == photo.path
 

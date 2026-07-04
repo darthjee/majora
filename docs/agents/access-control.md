@@ -115,7 +115,7 @@ introduced; only the object-level permission class differs, chosen based on the
 
 | Endpoint | Method | Who can call | Response fields |
 |----------|--------|-------------|-----------------|
-| `/games/<slug>/photo_upload.json` | POST | GameMaster of that game, or superuser | `id`, `token` |
+| `/games/<slug>/photo_upload.json` | POST | GameMaster of that game, or superuser | `upload_id`, `token`, `game_id` |
 
 - Unauthenticated → 401. Authenticated but not a GameMaster or superuser → 403.
 - Unknown `game_slug` → 404.
@@ -127,8 +127,8 @@ introduced; only the object-level permission class differs, chosen based on the
 
 | Endpoint | Method | Who can call | Response fields |
 |----------|--------|-------------|-----------------|
-| `/games/<slug>/pcs/<id>/photo_upload.json` | POST | Player of that character, any GameMaster of that game, or superuser | `id`, `token` |
-| `/games/<slug>/npcs/<id>/photo_upload.json` | POST | Player of that character, any GameMaster of that game, or superuser | `id`, `token` |
+| `/games/<slug>/pcs/<id>/photo_upload.json` | POST | Player of that character, any GameMaster of that game, or superuser | `upload_id`, `token`, `character_id` |
+| `/games/<slug>/npcs/<id>/photo_upload.json` | POST | Player of that character, any GameMaster of that game, or superuser | `upload_id`, `token`, `character_id` |
 
 Added in issue #255, mirroring the game photo upload init endpoint above but scoped to a
 single character and gated by `CharacterEditPermission` instead of `GameEditPermission`.
