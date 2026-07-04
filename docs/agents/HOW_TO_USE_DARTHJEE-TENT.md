@@ -1,5 +1,7 @@
 # How to Use darthjee/tent
 
+**Minimum version:** [0.9.0](https://github.com/darthjee/tent/releases/tag/0.9.0)
+
 [Tent](https://github.com/darthjee/tent) is a PHP-based reverse proxy and static file server distributed as a Docker image. It acts as the single entry point for applications that combine a backend API and a frontend — routing, caching, and serving files through a simple PHP configuration layer.
 
 ---
@@ -28,6 +30,7 @@
   - [Manual FileCacheMiddleware setup](#manual-filecachemiddleware-setup)
 - [Frontend Dev Mode Flip](#frontend-dev-mode-flip)
 - [Static Files](#static-files)
+- [Extending Tent](#extending-tent)
 - [Complete Example Layout](#complete-example-layout)
 - [Reference](#reference)
 
@@ -338,7 +341,13 @@ Deletes stale `FileCacheMiddleware` cache directories when a mutating request (`
 [
     'class'    => 'Tent\Middlewares\CacheCleanupMiddleware',
     'location' => './cache',
-    'clear'    => ['collection', 'entity']
+    'clear'    => ['collection', 'entity'],
+    'custom'   => [
+        '/games/:game_slug/photo_upload' => [
+            '/games.json',
+            '/games/:game_slug.json',
+        ]
+    ]
 ]
 ```
 
@@ -346,6 +355,13 @@ Deletes stale `FileCacheMiddleware` cache directories when a mutating request (`
 - **`clear`** (optional) — which cache directories to delete. Defaults to `['collection']` on `POST`, and `['collection', 'entity']` on `PATCH`, `PUT`, `DELETE`.
   - `collection` — the parent-resource cache dir, e.g. a write to `/users/1` clears `{location}/users/GET/`.
   - `entity` — the cache dir for the specific resource path, e.g. `{location}/users/1/GET/`. Has no effect on single-segment paths (e.g. `/users`).
+- **`custom`** (optional) — maps a `:placeholder` route pattern to an explicit list of cache path templates to clear when a mutating request matches it. On a match, the captured placeholder values are substituted into every target template (e.g. the actual `game_slug` value fills in `:game_slug` in `/games/:game_slug.json`) before that concrete path's cache is cleared. More than one `custom` pattern may match the same request, and all matches apply. `custom` is additive — it never replaces `clear`'s `collection`/`entity` cleanup; both run for a matching mutating request.
+  - Supported placeholders (matched exactly or by suffix):
+    - `:slug` or `:xxx_slug` — letters, digits, dashes, underscores (`[A-Za-z0-9_-]+`).
+    - `:id` or `:xxx_id` — digits only (`[0-9]+`).
+    - `:uuid` or `:xxx_uuid` — canonical UUID shape (`[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`).
+  - Any other placeholder name is a configuration error.
+  - In the example above, a `POST /games/space-invaders/photo_upload` clears `{location}/games.json/GET/` and `{location}/games/space-invaders.json/GET/`, in addition to whatever `clear` targets apply.
 
 Place it **before** the handler so the cleanup happens ahead of the upstream call, allowing `FileCacheMiddleware` to re-cache the fresh response afterwards.
 
@@ -717,6 +733,58 @@ Configuration::buildRule([
         ['method' => 'PUT',    'uri' => '/api/', 'type' => 'begins_with'],
         ['method' => 'DELETE', 'uri' => '/api/', 'type' => 'begins_with'],
         ['method' => 'PATCH',  'uri' => '/api/', 'type' => 'begins_with']
+    ]
+]);
+```
+
+---
+
+## Extending Tent
+
+Tent supports custom PHP classes (matchers, middlewares, handlers) via a mount-based extension mechanism — no fork or image rebuild required.
+
+### How it works
+
+Tent automatically includes `/var/www/html/extension/loader.php` after all core classes are loaded and before `configuration/configure.php` runs. By default this file is a no-op (an empty PHP file). To add custom classes, mount a `loader.php` file at that path:
+
+```yaml
+services:
+  proxy:
+    image: darthjee/tent:latest
+    volumes:
+      - ./proxy/configuration/:/var/www/html/configuration/
+      - ./proxy/extension/:/var/www/html/extension/
+```
+
+### Extension loader
+
+Create `./proxy/extension/loader.php` with `require_once` calls for your custom classes:
+
+```php
+<?php
+
+require_once __DIR__ . '/MyCustomMatcher.php';
+require_once __DIR__ . '/MyCustomMiddleware.php';
+```
+
+Because the extension loader runs after all Tent core classes, your custom classes can extend any built-in class or implement any built-in interface.
+
+### Using custom classes in configuration
+
+Once loaded, your classes are available in `configure.php` by their fully-qualified name:
+
+```php
+<?php
+
+use Tent\Configuration;
+
+Configuration::buildRule([
+    'handler' => ['type' => 'proxy', 'host' => 'http://backend:80'],
+    'matchers' => [
+        ['class' => 'MyCustomMatcher', 'pattern' => '/api/v2/']
+    ],
+    'middlewares' => [
+        ['class' => 'MyCustomMiddleware']
     ]
 ]);
 ```
