@@ -85,13 +85,14 @@ additional visibility gate beyond the game itself existing.
 ## Upload
 
 The `Upload` model tracks the lifecycle of a photo upload (pending → uploading → uploaded),
-generically for either a `GamePhoto` or, as of issue #255, a `CharacterPhoto` — via a
-`GenericForeignKey` (`content_type`/`object_id`/`content_object`).
+generically for a `GamePhoto`, a `CharacterPhoto` (issue #255), or, as of issue #276, a
+`TreasurePhoto` — via a `GenericForeignKey` (`content_type`/`object_id`/`content_object`).
 
 | Action | Who can |
 |--------|---------|
 | Create (`POST /games/<slug>/photo_upload.json`) | GameMaster of that game, or superuser |
 | Create (`POST /games/<slug>/pcs/<id>/photo_upload.json`, `POST /games/<slug>/npcs/<id>/photo_upload.json`) | Player of that character, any GameMaster of that game, or superuser |
+| Create (`POST /treasures/<id>/photo_upload.json`) | Superuser only |
 | Read | Only the user who initiated the upload (indirectly, via the 201 response at creation time) |
 | Update / Delete | No public endpoint; status transitions are handled internally |
 
@@ -115,9 +116,13 @@ sets that primary photo reference. The exact behavior dispatches on the upload's
   `profile_photo`, sets `Character.profile_photo` to that photo. Gated by
   `CharacterEditPermission` (player of that character, any GameMaster of that game, or
   superuser).
+- **`TreasurePhoto`** (issue #276): unconditionally sets `Treasure.photo` to that photo — unlike
+  the `GamePhoto`/`CharacterPhoto` cases, there is no "if unset" guard, since a treasure has at
+  most one photo and re-uploading always replaces it. Gated by `TreasureEditPermission`
+  (superuser only).
 
-Both cases reuse the same checks already enforced earlier in the same request (upload token
-match, requesting user must be the upload's owner) — no new authorization path is
+All three cases reuse the same checks already enforced earlier in the same request (upload
+token match, requesting user must be the upload's owner) — no new authorization path is
 introduced; only the object-level permission class differs, chosen based on the
 `content_object`'s type.
 
@@ -153,6 +158,27 @@ single character and gated by `CharacterEditPermission` instead of `GameEditPerm
 - Creates a `CharacterPhoto` row with `ready=False` as part of the upload initialisation
   flow; the record is not visible in the character detail's `photos` list, and cannot become
   `profile_photo`, until the upload is finalised and `ready` is set to `True`.
+
+---
+
+## Treasure photo upload init endpoint
+
+| Endpoint | Method | Who can call | Response fields |
+|----------|--------|-------------|-----------------|
+| `/treasures/<id>/photo_upload.json` | POST | Superuser only | `upload_id`, `token`, `treasure_id` |
+
+Added in issue #276, mirroring the game/character photo upload init endpoints above but gated
+by `TreasureEditPermission` (superuser only) and using a fixed, deterministic storage path
+(`photos/treasures/<id>/photo.<ext>`, no random UUID) since a treasure has at most one photo.
+
+- Unauthenticated → 401. Authenticated non-superuser → 403.
+- Unknown `treasure_id` → 404.
+- Missing or invalid `filename` body field → 400.
+- If the treasure already has a `photo` (`treasure.photo_id` is set), the existing
+  `TreasurePhoto` row is reused: its `path` is updated and `ready` is reset to `False`, rather
+  than creating a second row. Otherwise a new `TreasurePhoto` row is created with `ready=False`.
+  Either way, the photo is not visible via `photo_path`, and does not become `Treasure.photo`,
+  until the upload is finalised and `ready` is set to `True` (see the "Upload" section above).
 
 ---
 
@@ -357,11 +383,19 @@ Treasures are a global resource, not scoped to any game. All read endpoints are 
 | List by game (`GET /games/<slug>/treasures.json`) | Anyone — returns only treasures linked to that game; 404 if game slug unknown |
 | Create (`POST /treasures.json`) | Superuser only — unauthenticated → 401, authenticated non-superuser → 403 |
 | Update (`PATCH /treasures/<id>.json`) | Superuser only — unauthenticated → 401, authenticated non-superuser → 403 |
+| Create photo (`POST /treasures/<id>/photo_upload.json`) | Superuser only — unauthenticated → 401, authenticated non-superuser → 403 |
 | Delete | Superuser only (via Django admin, out of scope) |
 
-**Exposed fields** (read): `id`, `name`, `value` — all fields are non-sensitive and safe to return to anonymous callers.
+**Exposed fields** (read): `id`, `name`, `value`, `photo_path` — all fields are non-sensitive and safe to return to anonymous callers.
 
-**Write fields** (create/update): `name` (required for create, optional for update), `value` (required for create, optional for update).
+`photo_path` (added in issue #276) is `treasure.photo.path` — the raw relative storage key of
+the `TreasurePhoto` currently attached to the treasure (see the "Treasure photo upload init
+endpoint" and "Upload" sections above) — or `null` when the treasure has no photo yet. It is
+returned on both `GET /treasures.json` and `GET /treasures/<id>.json`, to anyone. Unlike
+`Game.cover_photo` and `Character.profile_photo`, a treasure has at most one photo ever:
+re-uploading always replaces it rather than adding a second one.
+
+**Write fields** (create/update): `name` (required for create, optional for update), `value` (required for create, optional for update). `photo_path` is read-only and cannot be set directly by any client — it is only ever assigned server-side (see "Upload" below).
 
 ### Edit access status
 
