@@ -37,20 +37,20 @@ describe('GamePhotosHelper', function() {
       const html = renderToStaticMarkup(
         GamePhotosHelper.render(photos, pagination, '#/games/demo/photos', '#/games/demo', true, 'Demo', handlers)
       );
-      expect(html).toContain(Translator.t('photos_page.upload'));
+      expect(html).toContain(Translator.t('game_photos_page.upload'));
     });
 
     it('does not render the upload button when canEdit is false', function() {
       const html = renderToStaticMarkup(
         GamePhotosHelper.render(photos, pagination, '#/games/demo/photos', '#/games/demo', false, 'Demo', handlers)
       );
-      expect(html).not.toContain(Translator.t('photos_page.upload'));
+      expect(html).not.toContain(Translator.t('game_photos_page.upload'));
     });
   });
 
   describe('.renderLoading', function() {
     it('renders a loading message', function() {
-      expect(renderToStaticMarkup(GamePhotosHelper.renderLoading())).toContain(Translator.t('photos_page.loading'));
+      expect(renderToStaticMarkup(GamePhotosHelper.renderLoading())).toContain(Translator.t('game_photos_page.loading'));
     });
   });
 

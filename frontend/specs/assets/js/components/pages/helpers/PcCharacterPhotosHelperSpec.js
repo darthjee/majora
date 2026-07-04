@@ -45,7 +45,7 @@ describe('PcCharacterPhotosHelper', function() {
           photos, pagination, '#/games/demo/pcs/7/photos', '#/games/demo/pcs/7', true, 'Aragorn', handlers,
         )
       );
-      expect(html).toContain(Translator.t('photos_page.upload'));
+      expect(html).toContain(Translator.t('pc_character_photos_page.upload'));
     });
 
     it('does not render the upload button when canEdit is false', function() {
@@ -54,14 +54,14 @@ describe('PcCharacterPhotosHelper', function() {
           photos, pagination, '#/games/demo/pcs/7/photos', '#/games/demo/pcs/7', false, 'Aragorn', handlers,
         )
       );
-      expect(html).not.toContain(Translator.t('photos_page.upload'));
+      expect(html).not.toContain(Translator.t('pc_character_photos_page.upload'));
     });
   });
 
   describe('.renderLoading', function() {
     it('renders a loading message', function() {
       expect(renderToStaticMarkup(PcCharacterPhotosHelper.renderLoading()))
-        .toContain(Translator.t('photos_page.loading'));
+        .toContain(Translator.t('pc_character_photos_page.loading'));
     });
   });
 

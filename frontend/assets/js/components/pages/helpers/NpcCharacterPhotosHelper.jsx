@@ -31,7 +31,7 @@ export default class NpcCharacterPhotosHelper {
         <PageActions backHref={backHref}>
           {NpcCharacterPhotosHelper.#renderUploadButton(canEdit, handlers)}
         </PageActions>
-        <h1 className="mb-4">{Translator.t('photos_page.title')}</h1>
+        <h1 className="mb-4">{Translator.t('npc_character_photos_page.title')}</h1>
         <div className="row">
           {photos.map((photo) => (
             <PhotoCard key={photo.id} photo={photo} alt={alt} onClick={handlers.onSelectPhoto} />
@@ -53,7 +53,7 @@ export default class NpcCharacterPhotosHelper {
    * @returns {React.ReactElement} Loading message.
    */
   static renderLoading() {
-    return <LoadingMessage message={Translator.t('photos_page.loading')} />;
+    return <LoadingMessage message={Translator.t('npc_character_photos_page.loading')} />;
   }
 
   /**
@@ -78,7 +78,7 @@ export default class NpcCharacterPhotosHelper {
 
     return (
       <button type="button" className="btn btn-secondary" onClick={handlers.onOpenUploadModal}>
-        {Translator.t('photos_page.upload')}
+        {Translator.t('npc_character_photos_page.upload')}
       </button>
     );
   }
