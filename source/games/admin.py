@@ -9,6 +9,7 @@ from .models import (
     Game,
     GameMaster,
     GamePhoto,
+    GameSession,
     Link,
     Player,
     Treasure,
@@ -24,4 +25,5 @@ admin.site.register(Link)
 admin.site.register(GameMaster)
 admin.site.register(GamePhoto)
 admin.site.register(Treasure)
+admin.site.register(GameSession)
 admin.site.register(Upload)

@@ -17,6 +17,7 @@ from .characters import (
     game_pcs,
 )
 from .game_masters import game_master_detail, game_masters_list
+from .game_sessions import game_session_detail, game_sessions_list
 from .games import game_access, game_detail, game_photos, game_treasures, games_list
 from .health import health
 from .password_reset import recover, reset_password
@@ -45,6 +46,8 @@ __all__ = [
     'game_npc_photos',
     'game_masters_list',
     'game_master_detail',
+    'game_sessions_list',
+    'game_session_detail',
     'language',
     'login',
     'logout',
