@@ -1,4 +1,6 @@
+import AuthClient from '../../../client/AuthClient.js';
 import GenericClient from '../../../client/GenericClient.js';
+import AdminAccess from '../../../utils/AdminAccess.js';
 import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
 
@@ -24,14 +26,28 @@ export default class GameTreasuresController extends BasePageController {
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
    * @param {GenericClient|null} client - Client override.
+   * @param {Function} [setIsSuperUser] - Superuser flag setter, used to gate the
+   *   per-treasure upload button — this page has no superuser-only redirect,
+   *   unlike TreasuresController, since it is public.
+   * @param {AuthClient|null} authClient - Auth client override.
    */
-  constructor(setTreasures, setPagination, setLoading, setError, client = null) {
+  constructor(
+    setTreasures,
+    setPagination,
+    setLoading,
+    setError,
+    client = null,
+    setIsSuperUser = () => {},
+    authClient = null,
+  ) {
     super();
     this.setTreasures = setTreasures;
     this.setPagination = setPagination;
     this.setLoading = setLoading;
     this.setError = setError;
     this.client = client ?? new GenericClient();
+    this.setIsSuperUser = setIsSuperUser;
+    this.authClient = authClient ?? new AuthClient();
   }
 
   /**
@@ -44,6 +60,10 @@ export default class GameTreasuresController extends BasePageController {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
       const gameSlug = getGameSlugFromTreasuresHash(this.client.currentHash());
+
+      AdminAccess.isSuperUser(this.authClient).then((isSuperUser) => {
+        safeSet(this.setIsSuperUser, isSuperUser);
+      });
 
       if (!gameSlug) {
         safeSet(this.setError, 'Unable to load treasures.');

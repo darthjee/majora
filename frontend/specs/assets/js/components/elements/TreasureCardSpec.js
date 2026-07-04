@@ -20,4 +20,18 @@ describe('TreasureCard', function() {
     );
     expect(html).toContain('col-6 col-sm-4 col-md-3 col-lg-2');
   });
+
+  it('does not render the upload button when isSuperUser is false', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(TreasureCard, { treasure, isSuperUser: false })
+    );
+    expect(html).not.toContain('photo-upload-overlay-button');
+  });
+
+  it('renders the upload button when isSuperUser is true', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(TreasureCard, { treasure, isSuperUser: true, onUploadClick: () => {} })
+    );
+    expect(html).toContain('photo-upload-overlay-button');
+  });
 });

@@ -46,6 +46,25 @@ describe('GameTreasuresHelper', function() {
       );
       expect(html).toContain('pagination');
     });
+
+    it('does not render upload buttons when isSuperUser is false', function() {
+      const html = renderToStaticMarkup(
+        GameTreasuresHelper.render(
+          treasures, pagination, '#/games/demo/treasures', '#/games/demo', false, () => {}
+        )
+      );
+      expect(html).not.toContain('photo-upload-overlay-button');
+    });
+
+    it('renders an upload button per treasure when isSuperUser is true', function() {
+      const html = renderToStaticMarkup(
+        GameTreasuresHelper.render(
+          treasures, pagination, '#/games/demo/treasures', '#/games/demo', true, () => {}
+        )
+      );
+      const matches = html.match(/photo-upload-overlay-button/g) || [];
+      expect(matches.length).toBe(treasures.length);
+    });
   });
 
   describe('.renderLoading', function() {

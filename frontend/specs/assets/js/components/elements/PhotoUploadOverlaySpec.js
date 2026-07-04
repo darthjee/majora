@@ -45,6 +45,20 @@ describe('PhotoUploadOverlay', function() {
     expect(html).toContain('http://example.com/photo.png');
   });
 
+  it('renders a CardTreasureImage when type is treasure', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(PhotoUploadOverlay, {
+        type: 'treasure',
+        url: null,
+        alt: 'Golden Crown',
+        canEdit: true,
+        onClick: () => {},
+      })
+    );
+
+    expect(html).toContain('default_treasure.png');
+  });
+
   it('renders a CardAvatar when type is avatar', function() {
     const html = renderToStaticMarkup(
       React.createElement(PhotoUploadOverlay, {

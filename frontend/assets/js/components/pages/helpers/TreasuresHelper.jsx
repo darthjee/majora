@@ -19,9 +19,11 @@ export default class TreasuresHelper {
    * @param {number} pagination.page - Current page.
    * @param {number} pagination.pages - Total pages.
    * @param {number} pagination.perPage - Items per page.
+   * @param {boolean} [isSuperUser] - Whether the current user may upload treasure photos.
+   * @param {Function} [onUploadClick] - Handler invoked with a treasure when its upload button is clicked.
    * @returns {React.ReactElement} Treasures list with pagination.
    */
-  static render(treasures, pagination) {
+  static render(treasures, pagination, isSuperUser = false, onUploadClick = () => {}) {
     return (
       <div className="container mt-4">
         <PageActions backHref="#/">
@@ -31,7 +33,12 @@ export default class TreasuresHelper {
         </PageActions>
         <div className="row">
           {treasures.map((treasure) => (
-            <TreasureCard key={treasure.id} treasure={treasure} />
+            <TreasureCard
+              key={treasure.id}
+              treasure={treasure}
+              isSuperUser={isSuperUser}
+              onUploadClick={onUploadClick}
+            />
           ))}
         </div>
         <Pagination
