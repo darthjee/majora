@@ -2,7 +2,7 @@
 
 import pytest
 
-from games.models import Character, Game
+from games.models import Character, Game, Player
 from games.serializers import CharacterUpdateSerializer
 
 
@@ -95,3 +95,24 @@ class TestCharacterUpdateSerializer:
         )
         assert not serializer.is_valid()
         assert 'money' in serializer.errors
+
+    def test_game_and_player_are_not_changed(self):
+        """Test that game and player cannot be changed via update, even if supplied."""
+        other_game = Game.objects.create(name='Other Game', game_slug='other-game')
+        other_player = Player.objects.create(name='Other Player')
+        serializer = CharacterUpdateSerializer(
+            self.character,
+            data={
+                'name': 'Samwise',
+                'game': other_game.id,
+                'game_id': other_game.id,
+                'player': other_player.id,
+                'player_id': other_player.id,
+            },
+            partial=True,
+        )
+        assert serializer.is_valid()
+        updated = serializer.save()
+        assert updated.name == 'Samwise'
+        assert updated.game == self.game
+        assert updated.player is None
