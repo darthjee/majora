@@ -20,16 +20,23 @@ export default class GameTreasuresHelper {
    * @param {number} pagination.perPage - Items per page.
    * @param {string} basePath - Base hash path used for pagination links.
    * @param {string} backHref - Hash path to the parent game page.
+   * @param {boolean} [isSuperUser] - Whether the current user may upload treasure photos.
+   * @param {Function} [onUploadClick] - Handler invoked with a treasure when its upload button is clicked.
    * @returns {React.ReactElement} Treasures list with pagination.
    */
-  static render(treasures, pagination, basePath, backHref) {
+  static render(treasures, pagination, basePath, backHref, isSuperUser = false, onUploadClick = () => {}) {
     return (
       <div className="container mt-4">
         <BackButton href={backHref} />
         <h1 className="mb-4">{Translator.t('game_treasures_page.treasures')}</h1>
         <div className="row">
           {treasures.map((treasure) => (
-            <TreasureCard key={treasure.id} treasure={treasure} />
+            <TreasureCard
+              key={treasure.id}
+              treasure={treasure}
+              isSuperUser={isSuperUser}
+              onUploadClick={onUploadClick}
+            />
           ))}
         </div>
         <Pagination

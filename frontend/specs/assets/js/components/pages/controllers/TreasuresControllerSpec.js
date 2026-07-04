@@ -5,6 +5,7 @@ describe('TreasuresController', function() {
   let setPagination;
   let setLoading;
   let setError;
+  let setIsSuperUser;
   let client;
   let authClient;
 
@@ -13,6 +14,7 @@ describe('TreasuresController', function() {
     setPagination = jasmine.createSpy('setPagination');
     setLoading = jasmine.createSpy('setLoading');
     setError = jasmine.createSpy('setError');
+    setIsSuperUser = jasmine.createSpy('setIsSuperUser');
     client = jasmine.createSpyObj('client', ['fetchIndex']);
     authClient = jasmine.createSpyObj('authClient', ['status']);
   });
@@ -28,7 +30,7 @@ describe('TreasuresController', function() {
     }));
 
     const cleanup = new TreasuresController(
-      setTreasures, setPagination, setLoading, setError, client, authClient,
+      setTreasures, setPagination, setLoading, setError, client, authClient, setIsSuperUser,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -37,6 +39,7 @@ describe('TreasuresController', function() {
     expect(setPagination).toHaveBeenCalledWith({ page: 1, pages: 1, perPage: 10 });
     expect(setLoading).toHaveBeenCalledWith(false);
     expect(setError).not.toHaveBeenCalled();
+    expect(setIsSuperUser).toHaveBeenCalledWith(true);
 
     cleanup();
   });
@@ -75,6 +78,7 @@ describe('TreasuresController', function() {
 
       expect(fakeWindow.location.hash).toBe('/');
       expect(client.fetchIndex).not.toHaveBeenCalled();
+      expect(setIsSuperUser).not.toHaveBeenCalled();
 
       cleanup();
     } finally {

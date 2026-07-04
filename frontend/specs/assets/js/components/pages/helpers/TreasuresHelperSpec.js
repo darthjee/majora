@@ -41,6 +41,17 @@ describe('TreasuresHelper', function() {
       const html = renderToStaticMarkup(TreasuresHelper.render(treasures, pagination));
       expect(html).toContain('pagination');
     });
+
+    it('does not render upload buttons when isSuperUser is false', function() {
+      const html = renderToStaticMarkup(TreasuresHelper.render(treasures, pagination, false, () => {}));
+      expect(html).not.toContain('photo-upload-overlay-button');
+    });
+
+    it('renders an upload button per treasure when isSuperUser is true', function() {
+      const html = renderToStaticMarkup(TreasuresHelper.render(treasures, pagination, true, () => {}));
+      const matches = html.match(/photo-upload-overlay-button/g) || [];
+      expect(matches.length).toBe(treasures.length);
+    });
   });
 
   describe('.renderLoading', function() {

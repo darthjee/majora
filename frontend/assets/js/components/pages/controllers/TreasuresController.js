@@ -16,8 +16,19 @@ export default class TreasuresController extends BasePageController {
    * @param {Function} setError - Error setter.
    * @param {GenericClient|null} client - Client override.
    * @param {AuthClient|null} authClient - Auth client override.
+   * @param {Function} [setIsSuperUser] - Superuser flag setter, for consistency/testability
+   *   with GameTreasuresController — this page is only ever reached by superusers, since
+   *   non-superusers are redirected away below.
    */
-  constructor(setTreasures, setPagination, setLoading, setError, client = null, authClient = null) {
+  constructor(
+    setTreasures,
+    setPagination,
+    setLoading,
+    setError,
+    client = null,
+    authClient = null,
+    setIsSuperUser = () => {},
+  ) {
     super();
     this.setTreasures = setTreasures;
     this.setPagination = setPagination;
@@ -25,6 +36,7 @@ export default class TreasuresController extends BasePageController {
     this.setError = setError;
     this.client = client ?? new GenericClient();
     this.authClient = authClient ?? new AuthClient();
+    this.setIsSuperUser = setIsSuperUser;
   }
 
   /**
@@ -50,6 +62,8 @@ export default class TreasuresController extends BasePageController {
           }
           return;
         }
+
+        safeSet(this.setIsSuperUser, true);
 
         this.client.fetchIndex('/treasures.json')
           .then(({ data, pagination }) => {

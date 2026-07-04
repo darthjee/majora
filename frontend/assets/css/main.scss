@@ -41,6 +41,7 @@ body {
     transform: translateX(-50%);
     opacity: 0;
     transition: opacity 0.15s ease-in-out;
+    z-index: 2;
   }
 
   &:hover .photo-upload-overlay-button {
