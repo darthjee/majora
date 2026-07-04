@@ -191,6 +191,12 @@ describe('GameHelper', function() {
       const html = renderToStaticMarkup(GameHelper.render(gameNoLinks));
       expect(html).not.toContain('<a href="http');
     });
+
+    it('renders a sessions link to the game sessions index page', function() {
+      const html = renderToStaticMarkup(GameHelper.render(game));
+      expect(html).toContain(`href="#/games/${game.game_slug}/sessions"`);
+      expect(html).toContain(Translator.t('game_page.sessions'));
+    });
   });
 
   describe('.renderLoading', function() {

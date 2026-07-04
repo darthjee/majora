@@ -44,6 +44,7 @@ game_page:
   player_characters: Personagens
   non_player_characters: NPCs
   treasures: Tesouros
+  sessions: Sessões
   see_all_photos: Ver todas as fotos
 game_characters_page:
   loading: Carregando...
@@ -130,6 +131,26 @@ game_treasures_page:
   loading: Carregando tesouros...
   title: Tesouros
   treasures: Tesouros
+game_sessions_page:
+  loading: Carregando sessões...
+  title: Sessões
+  new_session: Nova Sessão
+game_session_page:
+  loading: Carregando sessão...
+  edit: Editar
+  no_date: Sem data
+game_session_new_page:
+  title: Nova Sessão
+  title_label: Título
+  date_label: Data
+  submit: Criar Sessão
+  error: Falha ao criar sessão. Tente novamente.
+game_session_edit_page:
+  title: Editar Sessão
+  title_label: Título
+  date_label: Data
+  submit: Salvar alterações
+  error: Falha ao salvar sessão. Tente novamente.
 game_photos_page:
   title: Fotos
   loading: Carregando fotos...

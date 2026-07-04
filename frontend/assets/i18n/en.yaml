@@ -44,6 +44,7 @@ game_page:
   player_characters: Player Characters
   non_player_characters: Non-Player Characters
   treasures: Treasures
+  sessions: Sessions
   see_all_photos: See all photos
 game_characters_page:
   loading: Loading...
@@ -130,6 +131,26 @@ game_treasures_page:
   loading: Loading treasures...
   title: Treasures
   treasures: Treasures
+game_sessions_page:
+  loading: Loading sessions...
+  title: Sessions
+  new_session: New Session
+game_session_page:
+  loading: Loading session...
+  edit: Edit
+  no_date: No date
+game_session_new_page:
+  title: New Session
+  title_label: Title
+  date_label: Date
+  submit: Create Session
+  error: Failed to create session. Please try again.
+game_session_edit_page:
+  title: Edit Session
+  title_label: Title
+  date_label: Date
+  submit: Save changes
+  error: Failed to save session. Please try again.
 game_photos_page:
   title: Photos
   loading: Loading photos...

@@ -6,6 +6,10 @@ import GameNew from '../pages/GameNew.jsx';
 import GameNpcs from '../pages/GameNpcs.jsx';
 import GamePcs from '../pages/GamePcs.jsx';
 import GamePhotos from '../pages/GamePhotos.jsx';
+import GameSession from '../pages/GameSession.jsx';
+import GameSessionEdit from '../pages/GameSessionEdit.jsx';
+import GameSessionNew from '../pages/GameSessionNew.jsx';
+import GameSessions from '../pages/GameSessions.jsx';
 import GameTreasures from '../pages/GameTreasures.jsx';
 import Games from '../pages/Games.jsx';
 import NpcCharacter from '../pages/NpcCharacter.jsx';
@@ -30,6 +34,10 @@ const PAGES = {
   gameNpcs: <GameNpcs />,
   gamePhotos: <GamePhotos />,
   gameTreasures: <GameTreasures />,
+  gameSessions: <GameSessions />,
+  gameSessionNew: <GameSessionNew />,
+  gameSession: <GameSession />,
+  gameSessionEdit: <GameSessionEdit />,
   npcCharacter: <NpcCharacter />,
   npcCharacterEdit: <NpcCharacterEdit />,
   npcCharacterPhotos: <NpcCharacterPhotos />,
