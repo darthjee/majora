@@ -87,25 +87,26 @@ class TestPhotoUploadView:
         )
         assert response.status_code == 201
         data = json.loads(response.content)
-        assert 'id' in data
-        upload = Upload.objects.get(pk=data['id'])
+        assert 'upload_id' in data
+        upload = Upload.objects.get(pk=data['upload_id'])
         # basename stripping removes the ../..; only 'evil' stem remains in the path
         assert 'evil_' in upload.file_path
         assert '..' not in upload.file_path
 
-    def test_happy_path_returns_201_with_id_and_token(self, client):
-        """Test that a valid request returns 201 with id and token."""
+    def test_happy_path_returns_201_with_upload_id_token_and_game_id(self, client):
+        """Test that a valid request returns 201 with upload_id, token, and game_id."""
         response = self._post(client, {'filename': 'hero.png'}, token=self.dm_token)
         assert response.status_code == 201
         data = json.loads(response.content)
-        assert isinstance(data['id'], int)
+        assert isinstance(data['upload_id'], int)
         assert data['token']
+        assert data['game_id'] == self.game.id
 
     def test_happy_path_creates_upload_record(self, client):
         """Test that a valid request creates an Upload record with pending status."""
         response = self._post(client, {'filename': 'hero.png'}, token=self.dm_token)
         data = json.loads(response.content)
-        upload = Upload.objects.get(pk=data['id'])
+        upload = Upload.objects.get(pk=data['upload_id'])
         assert upload.status == Upload.STATUS_PENDING
         assert 'epic-quest' in upload.file_path
         assert 'hero_' in upload.file_path
@@ -115,7 +116,7 @@ class TestPhotoUploadView:
         """Test that a valid request creates a GamePhoto record with ready=False."""
         response = self._post(client, {'filename': 'hero.png'}, token=self.dm_token)
         data = json.loads(response.content)
-        upload = Upload.objects.get(pk=data['id'])
+        upload = Upload.objects.get(pk=data['upload_id'])
         photo = GamePhoto.objects.get(path=upload.file_path)
         assert photo.game == self.game
         assert photo.ready is False
@@ -124,7 +125,7 @@ class TestPhotoUploadView:
         """Test that the Upload and GamePhoto records share the same file_path/path."""
         response = self._post(client, {'filename': 'cover.jpg'}, token=self.dm_token)
         data = json.loads(response.content)
-        upload = Upload.objects.get(pk=data['id'])
+        upload = Upload.objects.get(pk=data['upload_id'])
         photo = GamePhoto.objects.get(game=self.game)
         assert upload.file_path == photo.path
 

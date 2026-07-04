@@ -40,8 +40,8 @@ export default class PhotoUploadModalController {
         return;
       }
 
-      const { id, token: uploadToken } = await initResponse.json();
-      const submitResponse = await this.client.submitUpload(id, uploadToken, file);
+      const { upload_id: uploadId, token: uploadToken } = await initResponse.json();
+      const submitResponse = await this.client.submitUpload(uploadId, uploadToken, file);
 
       if (!submitResponse.ok) {
         this.setError(true);

@@ -54,4 +54,6 @@ def _create_upload(user, character, file_path):
     upload.content_object = character_photo
     upload.save()
 
-    return Response({'id': upload.id, 'token': upload.token}, status=201)
+    return Response(
+        {'upload_id': upload.id, 'token': upload.token, 'character_id': character.id}, status=201
+    )
