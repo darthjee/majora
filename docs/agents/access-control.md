@@ -411,6 +411,40 @@ The access endpoint always sets `X-Skip-Cache: true`. The path ends with `/acces
 
 ---
 
+## GameSession
+
+Sessions are scoped to a game and record when a session happened. There is no independent
+owner/player concept for sessions — write access mirrors `Game.can_be_edited_by` exactly.
+
+| Action | Who can |
+|--------|---------|
+| List (`GET /games/<slug>/sessions.json`) | Anyone — paginated, ordered by `id` (creation order, not `date`); 404 if game slug unknown |
+| Detail (`GET /games/<slug>/sessions/<id>.json`) | Anyone; 404 if game slug unknown, session id unknown, or the session does not belong to that game |
+| Create (`POST /games/<slug>/sessions.json`) | GameMaster of that game, or superuser — unauthenticated → 401, authenticated non-editor → 403 |
+| Update (`PATCH /games/<slug>/sessions/<id>.json`) | GameMaster of that game, or superuser — unauthenticated → 401, authenticated non-editor → 403 |
+| Delete | Superuser only (via Django admin, out of scope) |
+
+**Exposed fields** (list): `id`, `title`, `date`, `game_slug`.
+
+**Exposed fields** (detail): all list fields plus `can_edit` — computed the same way the
+`Character` detail serializer surfaces it (a `SerializerMethodField` evaluated against
+`request.user` from the serializer context), unlike `Treasure`, which uses a separate
+`access.json` endpoint instead. There is no separate
+`GET /games/<slug>/sessions/<id>/access.json` endpoint for sessions: since a session's edit
+rights are identical to its game's, the frontend can equally rely on the existing
+`GET /games/<slug>/access.json` endpoint already used for `GameEdit`.
+
+**Write fields** (create/update): `title` (required for create, optional for update), `date`
+(optional, nullable `YYYY-MM-DD`). `game` is never accepted from the request payload — it is
+always assigned server-side from the `game_slug` URL segment.
+
+### Edit rights logic
+
+`GameSession.can_be_edited_by(user)` delegates entirely to `self.game.can_be_edited_by(user)` —
+there is no independent `GameSession`-level ownership concept.
+
+---
+
 ## Adding a new model
 
 When a new model is introduced, add it to this document in the same PR:

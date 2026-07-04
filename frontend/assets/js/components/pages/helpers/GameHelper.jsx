@@ -74,6 +74,9 @@ export default class GameHelper {
           <a href={`#/games/${game.game_slug}/treasures`} className="btn btn-outline-secondary">
             {Translator.t('game_page.treasures')}
           </a>
+          <a href={`#/games/${game.game_slug}/sessions`} className="btn btn-outline-secondary ms-2">
+            {Translator.t('game_page.sessions')}
+          </a>
           <a href={`#/games/${game.game_slug}/photos`} className="btn btn-outline-secondary ms-2">
             {Translator.t('game_page.see_all_photos')}
           </a>

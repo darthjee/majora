@@ -1,4 +1,4 @@
-"""Shared authorization checks for character, game, and treasure editing endpoints."""
+"""Shared authorization checks for character, game, treasure, and session editing endpoints."""
 
 from rest_framework.response import Response
 
@@ -45,3 +45,8 @@ class CharacterEditPermission(_EditPermission):
 class TreasureEditPermission(_EditPermission):
 
     """Encapsulate the authentication/authorization checks for editing a treasure."""
+
+
+class GameSessionEditPermission(_EditPermission):
+
+    """Encapsulate the authentication/authorization checks for editing a game session."""

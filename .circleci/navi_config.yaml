@@ -63,6 +63,9 @@ resources:
         - resource: game_treasures
           parameters:
             slug: parsedBody.game_slug
+        - resource: game_sessions
+          parameters:
+            slug: parsedBody.game_slug
 
   game_detail:
     - url: /games/{:slug}.json
@@ -133,6 +136,29 @@ resources:
 
   paginated_game_treasures:
     - url: /games/{:slug}/treasures.json?page={:page}
+      status: 200
+
+  game_sessions:
+    - url: /games/{:slug}/sessions.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_sessions
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_game_sessions:
+    - url: /games/{:slug}/sessions.json?page={:page}
+      status: 200
+      actions:
+        - resource: session
+          parameters:
+            id: parsedBody.id
+            slug: parsedBody.game_slug
+
+  session:
+    - url: /games/{:slug}/sessions/{:id}.json
       status: 200
 
   pc:
