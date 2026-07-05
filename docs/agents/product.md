@@ -31,6 +31,10 @@ A **User** is a Django authentication account (`django.contrib.auth.models.User`
 `User` may be linked to at most one `Player` record per game (through the `Player.user`
 FK). Without a `Player` link, a `User` may still join a game as a GameMaster.
 
+A `User` is **not** scoped to any single game — unlike `Character`, `Player`, and
+`GameMaster`, a `User` is a global identity. Its "name" for management purposes is the
+Django `username` field; there is no separate first/last name field.
+
 ### Character
 
 A **Character** is an in-game persona that belongs to a single game. Characters are
@@ -83,6 +87,22 @@ any other game.
 
 ---
 
+## Staff Role
+
+A **Staff** account is a Django `User` with `is_staff is True` (Django's built-in field,
+introduced for product use by issue #286). Staff, like Superuser, is a **global** role —
+not scoped to any game.
+
+Staff accounts (`is_staff` or `is_superuser`) may list, view, and edit the `name`
+(`username`) and `email` of any `User` account, and may generate a password-recovery link
+for any user without needing access to that user's email inbox. This is strictly
+**additive**: `is_staff` grants authority only over this User-management surface. It does
+**not** grant any of the other Superuser-only capabilities described elsewhere in this
+document or in `access-control.md` (e.g. Treasure management) — those remain exclusive to
+`is_superuser`.
+
+---
+
 ## Editing Rules
 
 A user may edit a character when **any** of the following is true:
@@ -109,3 +129,4 @@ This logic is implemented in `Character.can_be_edited_by(user)` and
 | Editing rights | Superuser OR owner OR GameMaster of same game |
 | PC vs NPC | `npc=False` → PC (has player); `npc=True` → NPC (no player) |
 | Player account link | `Player.user` nullable — player without a login has no owner |
+| Staff role | `user.is_staff` — global, grants User-management access only (not other superuser actions) |
