@@ -89,13 +89,15 @@ describe('GameNpcsController', function() {
     const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpcsAll']);
     const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
     const authNpcs = [{ id: 10, name: 'Hidden NPC' }];
-    const pagination = { page: 1, pages: 2, perPage: 10 };
+    const publicPagination = { page: 1, pages: 2, perPage: 10 };
+    const authHeaders = { page: '3', pages: '5', per_page: '20' };
 
     client.currentHash.and.returnValue('#/games/demo/npcs');
-    client.fetchIndex.and.returnValue(Promise.resolve({ data: [{ id: 1 }], pagination }));
+    client.fetchIndex.and.returnValue(Promise.resolve({ data: [{ id: 1 }], pagination: publicPagination }));
     characterClient.fetchNpcsAll.and.returnValue(Promise.resolve({
       ok: true,
       json: () => Promise.resolve(authNpcs),
+      headers: { get: (key) => authHeaders[key] ?? null },
     }));
     gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
       ok: true,
@@ -108,9 +110,50 @@ describe('GameNpcsController', function() {
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(characterClient.fetchNpcsAll).toHaveBeenCalledWith('demo', 'mytoken');
+    expect(characterClient.fetchNpcsAll).toHaveBeenCalledWith('demo', 'mytoken', {});
     expect(setNpcs).toHaveBeenCalledWith(authNpcs);
-    expect(setPagination).toHaveBeenCalledWith(pagination);
+    expect(setPagination).toHaveBeenCalledWith({ page: 3, pages: 5, perPage: 20 });
+    expect(setPagination).not.toHaveBeenCalledWith(publicPagination);
+    expect(setError).not.toHaveBeenCalled();
+
+    cleanup();
+  });
+
+  it('forwards the current page/per_page to both the public and authenticated NPC requests', async function() {
+    const setNpcs = jasmine.createSpy('setNpcs');
+    const setPagination = jasmine.createSpy('setPagination');
+    const setLoading = jasmine.createSpy('setLoading');
+    const setError = jasmine.createSpy('setError');
+    const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpcsAll']);
+    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
+    const authNpcs = [{ id: 10, name: 'Hidden NPC' }];
+    const authHeaders = { page: '2', pages: '4', per_page: '16' };
+
+    client.currentHash.and.returnValue('#/games/demo/npcs?page=2&per_page=16');
+    client.fetchIndex.and.returnValue(Promise.resolve({
+      data: [{ id: 1 }],
+      pagination: { page: 2, pages: 4, perPage: 16 },
+    }));
+    characterClient.fetchNpcsAll.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve(authNpcs),
+      headers: { get: (key) => authHeaders[key] ?? null },
+    }));
+    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ can_edit: false }),
+    }));
+    AuthStorage.setToken('mytoken');
+
+    const cleanup = new GameNpcsController(
+      setNpcs, setPagination, setLoading, setError, client, characterClient, undefined, gameClient,
+    ).buildEffect()();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs.json');
+    expect(characterClient.fetchNpcsAll).toHaveBeenCalledWith('demo', 'mytoken', { page: '2', per_page: '16' });
+    expect(setPagination).toHaveBeenCalledWith({ page: 2, pages: 4, perPage: 16 });
     expect(setError).not.toHaveBeenCalled();
 
     cleanup();

@@ -5,6 +5,7 @@ import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
 import Noop from '../../../utils/Noop.js';
+import HashRouteResolver from '../../../utils/HashRouteResolver.js';
 
 /**
  * Extract game slug from NPCs hash route.
@@ -51,6 +52,7 @@ export default class GameNpcsController extends BasePageController {
     this.characterClient = characterClient ?? new CharacterClient();
     this.setCanEdit = setCanEdit;
     this.gameClient = gameClient ?? new GameClient();
+    this.hashResolver = new HashRouteResolver(() => this.client.currentHash());
   }
 
   /**
@@ -89,9 +91,10 @@ export default class GameNpcsController extends BasePageController {
 
   #fetchNpcs(gameSlug, safeSet) {
     const token = AuthStorage.getToken();
+    const paginationParams = Object.fromEntries(this.hashResolver.getPaginationParams());
     const publicFetch = this.client.fetchIndex(`/games/${gameSlug}/npcs.json`);
     const allFetch = token
-      ? this.characterClient.fetchNpcsAll(gameSlug, token)
+      ? this.characterClient.fetchNpcsAll(gameSlug, token, paginationParams)
       : Promise.resolve(null);
 
     Promise.allSettled([publicFetch, allFetch])
@@ -101,10 +104,10 @@ export default class GameNpcsController extends BasePageController {
   }
 
   async #applyNpcsResult(publicResult, allResult, safeSet) {
-    const authNpcs = await this.#tryGetAuthNpcs(allResult);
+    const authResult = await this.#tryGetAuthNpcs(allResult);
 
-    if (authNpcs !== null) {
-      this.#applyAuthNpcs(authNpcs, publicResult, safeSet);
+    if (authResult !== null) {
+      this.#applyAuthNpcs(authResult, safeSet);
       return;
     }
 
@@ -121,19 +124,33 @@ export default class GameNpcsController extends BasePageController {
     }
   }
 
-  #applyAuthNpcs(authNpcs, publicResult, safeSet) {
-    safeSet(this.setNpcs, authNpcs);
-    if (publicResult.status === 'fulfilled') {
-      safeSet(this.setPagination, publicResult.value.pagination);
-    }
+  #applyAuthNpcs(authResult, safeSet) {
+    safeSet(this.setNpcs, authResult.npcs);
+    safeSet(this.setPagination, authResult.pagination);
   }
 
   #tryGetAuthNpcs(allResult) {
     if (allResult.status !== 'fulfilled' || !allResult.value?.ok) {
       return Promise.resolve(null);
     }
-    return allResult.value.json()
-      .then((data) => (Array.isArray(data) ? data : null))
+    const response = allResult.value;
+    return response.json()
+      .then((data) => (
+        Array.isArray(data) ? { npcs: data, pagination: this.#parsePagination(response) } : null
+      ))
       .catch(() => null);
+  }
+
+  #parsePagination(response) {
+    return {
+      page: this.#parsePositiveInt(response.headers.get('page'), 1),
+      pages: this.#parsePositiveInt(response.headers.get('pages'), 1),
+      perPage: this.#parsePositiveInt(response.headers.get('per_page'), 10),
+    };
+  }
+
+  #parsePositiveInt(value, fallback) {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
   }
 }
