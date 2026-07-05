@@ -18,9 +18,11 @@ regardless of any other rule listed below.
 | **GameMaster** | Authenticated user with a `GameMaster` row linking them to a specific game |
 | **Player** | Authenticated user whose `Player` record has `user` set and is linked to a character |
 | **Superuser** | Django `is_superuser=True` — full access, no restrictions |
+| **Staff** | Django `is_staff=True` — global (not game-scoped); grants access to the User-management endpoints below only, nothing else |
 
 A user may simultaneously be a GameMaster for one game and a Player for another. The
-"GameMaster" and "Player" roles are always scoped to a specific game.
+"GameMaster" and "Player" roles are always scoped to a specific game. "Staff" and
+"Superuser" are global roles, not scoped to any game.
 
 ---
 
@@ -272,6 +274,41 @@ standalone resource; no write endpoint exists.
 
 ---
 
+## User (Staff Management)
+
+Introduced by issue #286. Unlike `Player`, the Django `User` model is exposed directly,
+but only to Staff/Superuser accounts (`user.is_staff or user.is_superuser`) — never
+publicly. All endpoints below require `CookieTokenAuthentication`; unauthenticated callers
+get 401, authenticated non-staff/non-superuser callers get 403 (enforced inline via
+`require_staff` in `source/games/views/common.py`, matching the `treasures_list.py`
+convention of enforcing auth inline rather than through DRF permission classes). All GET
+and write responses set `X-Skip-Cache: true` since the data is per-caller-authorization
+sensitive and must never be served from the Tent proxy cache.
+
+| Action | Who can |
+|--------|---------|
+| List (`GET /staff/users.json`) | Staff or Superuser only |
+| Detail (`GET /staff/users/<id>.json`) | Staff or Superuser only |
+| Update name/email (`PATCH /staff/users/<id>.json`) | Staff or Superuser only |
+| Generate/reuse recovery link (`POST /staff/users/<id>/recovery-link.json`) | Staff or Superuser only |
+
+**Exposed fields** (list and detail): `id`, `name` (Django `username`), `email`. No other
+`User` field (password, `is_staff`, `is_superuser`, `is_active`, etc.) is ever serialized.
+
+**Update rules**: only `name` and `email` may be changed; both are validated for
+uniqueness against other `User` rows (the underlying `username` field is unique at the DB
+level, `email` is not, so uniqueness is enforced in `StaffUserUpdateSerializer`). No
+endpoint exists to create a user, delete a user, change a password directly, or toggle
+`is_staff`/`is_superuser`/`is_active`.
+
+**Recovery-link endpoint**: reuses a valid (unexpired, unused) `PasswordResetToken` for the
+target user if one exists, otherwise creates a new one (`get_or_create_recovery_token` in
+`source/games/views/password_reset/_shared.py`), and returns its URL directly in the
+response body. Unlike `/users/recover.json`, it never sends an email — the URL is meant to
+be shared by staff directly with the user out-of-band.
+
+---
+
 ## CharacterPhoto
 
 Character photos are readable through the character detail endpoints (`photos` array in
@@ -364,7 +401,7 @@ success/failure. They are listed here for completeness.
 | `/users/login.json` | POST | Anyone |
 | `/users/logout.json` | POST | Authenticated (`IsAuthenticated`) |
 | `/users/register.json` | POST | Anyone |
-| `/users/status.json` | GET | Anyone (returns `logged_in: true/false`) |
+| `/users/status.json` | GET | Anyone (returns `logged_in`, and when true, `is_superuser`/`is_staff` for the requester) |
 | `/users/test-email.json` | POST | Authenticated |
 | `/users/recover.json` | POST | Anyone |
 | `/users/reset-password.json` | POST | Anyone (requires valid reset token) |

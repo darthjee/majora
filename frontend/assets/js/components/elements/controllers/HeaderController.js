@@ -21,6 +21,7 @@ export default class HeaderController {
    * @param {Function} [setServerStatus] - state setter for the server status ('up'|'down'|null).
    * @param {AuthClient} [client] - HTTP client used for auth requests.
    * @param {HealthClient} [healthClient] - HTTP client used for health-check polling.
+   * @param {Function} [setIsStaff] - state setter for the staff flag.
    */
   constructor(
     setLoggedIn,
@@ -29,7 +30,8 @@ export default class HeaderController {
     setIsSuperUser = () => {},
     setServerStatus = () => {},
     client = new AuthClient(),
-    healthClient = new HealthClient()
+    healthClient = new HealthClient(),
+    setIsStaff = () => {}
   ) {
     this.setLoggedIn = setLoggedIn;
     this.setShowModal = setShowModal;
@@ -38,6 +40,7 @@ export default class HeaderController {
     this.setServerStatus = setServerStatus;
     this.client = client;
     this.healthClient = healthClient;
+    this.setIsStaff = setIsStaff;
     this.healthIntervalId = null;
   }
 
@@ -103,6 +106,7 @@ export default class HeaderController {
 
       this.setLoggedIn(Boolean(data.logged_in));
       this.setIsSuperUser(Boolean(data.is_superuser));
+      this.setIsStaff(Boolean(data.is_staff));
       AuthEvents.emit(Boolean(data.logged_in));
       this.#applyLanguagePreference(data);
     } catch {

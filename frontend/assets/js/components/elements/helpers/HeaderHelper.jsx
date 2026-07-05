@@ -12,7 +12,7 @@ export default class HeaderHelper {
   /**
    * Render the application header with navigation and auth controls.
    *
-   * @param {{loggedIn: boolean, showModal: boolean, testEmailStatus: (string|null), isSuperUser: boolean, serverStatus: (string|null)}} state - header auth state.
+   * @param {{loggedIn: boolean, showModal: boolean, testEmailStatus: (string|null), isSuperUser: boolean, serverStatus: (string|null), isStaff: boolean}} state - header auth state.
    * @param {{onLoginClick: Function, onLogoffClick: Function, onModalClose: Function, onLoginSuccess: Function, onSendTestEmailClick: Function, onLanguageChange: Function}} handlers - header event handlers.
    * @returns {React.ReactElement} Header element.
    */
@@ -29,6 +29,7 @@ export default class HeaderHelper {
             <Nav className="me-auto">
               <Nav.Link href="#/games">{Translator.t('header.nav_games')}</Nav.Link>
               {HeaderHelper.#renderTreasuresNavLink(state)}
+              {HeaderHelper.#renderStaffUsersNavLink(state)}
             </Nav>
             <Nav className="align-items-center">
               {HeaderHelper.#renderServerStatus(state)}
@@ -58,6 +59,20 @@ export default class HeaderHelper {
     }
 
     return <Nav.Link href="#/treasures">{Translator.t('header.nav_treasures')}</Nav.Link>;
+  }
+
+  /**
+   * Renders the admin-or-staff-only Staff Users nav link.
+   *
+   * @param {{isSuperUser: boolean, isStaff: boolean}} state - header auth state.
+   * @returns {React.ReactElement|null} staff users nav link, or null for non-staff/non-superusers.
+   */
+  static #renderStaffUsersNavLink(state) {
+    if (!state.isSuperUser && !state.isStaff) {
+      return null;
+    }
+
+    return <Nav.Link href="#/staff/users">{Translator.t('header.nav_staff_users')}</Nav.Link>;
   }
 
   /**

@@ -21,6 +21,9 @@ from games.serializers.game_update import GameUpdateSerializer
 from games.serializers.link import LinkSerializer
 from games.serializers.pc_access import PcAccessSerializer
 from games.serializers.photo_upload import PhotoUploadSerializer
+from games.serializers.staff_user_detail import StaffUserDetailSerializer
+from games.serializers.staff_user_list import StaffUserListSerializer
+from games.serializers.staff_user_update import StaffUserUpdateSerializer
 from games.serializers.treasure_access import TreasureAccessSerializer
 from games.serializers.treasure_create import TreasureCreateSerializer
 from games.serializers.treasure_detail import TreasureDetailSerializer
@@ -49,6 +52,9 @@ __all__ = [
     'LinkSerializer',
     'PcAccessSerializer',
     'PhotoUploadSerializer',
+    'StaffUserDetailSerializer',
+    'StaffUserListSerializer',
+    'StaffUserUpdateSerializer',
     'TreasureAccessSerializer',
     'TreasureCreateSerializer',
     'TreasureDetailSerializer',

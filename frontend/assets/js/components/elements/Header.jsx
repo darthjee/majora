@@ -14,13 +14,17 @@ export default function Header() {
   const [testEmailStatus, setTestEmailStatus] = useState(null);
   const [isSuperUser, setIsSuperUser] = useState(false);
   const [serverStatus, setServerStatus] = useState(null);
+  const [isStaff, setIsStaff] = useState(false);
 
   const controller = new HeaderController(
     setLoggedIn,
     setShowModal,
     setTestEmailStatus,
     setIsSuperUser,
-    setServerStatus
+    setServerStatus,
+    undefined,
+    undefined,
+    setIsStaff
   );
 
   useEffect(() => {
@@ -39,7 +43,7 @@ export default function Header() {
   }, []);
 
   return HeaderHelper.render(
-    { loggedIn, showModal, testEmailStatus, isSuperUser, serverStatus },
+    { loggedIn, showModal, testEmailStatus, isSuperUser, serverStatus, isStaff },
     {
       onLoginClick: () => controller.handleLoginClick(),
       onLogoffClick: () => controller.handleLogoffClick(),

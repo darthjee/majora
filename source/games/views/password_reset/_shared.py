@@ -12,7 +12,7 @@ from games.settings import Settings
 INVALID_OR_EXPIRED_TOKEN_ERROR = {'error': 'Invalid or expired token'}
 
 
-def _build_recovery_url(token):
+def build_recovery_url(token):
     """Build the frontend URL the user follows to set a new password."""
     return f'{settings.FRONTEND_BASE_URL}/#/recover-password?token={token}'
 
@@ -25,7 +25,7 @@ def send_password_reset_email(user, token):
     message = render_to_string(
         'games/password_reset_email.txt',
         {
-            'recovery_url': _build_recovery_url(token),
+            'recovery_url': build_recovery_url(token),
             'expiration_minutes': Settings.password_reset_token_expiration_minutes(),
         },
     )
@@ -42,3 +42,14 @@ def _create_and_send_reset_token(user):
     token = secrets.token_urlsafe(32)
     PasswordResetToken.objects.create(user=user, token=token)
     send_password_reset_email(user, token)
+
+
+def get_or_create_recovery_token(user):
+    """Return a valid existing token's value for `user`, or create and return a new one."""
+    existing = PasswordResetToken.objects.filter(user=user).order_by('-created_at').first()
+    if existing is not None and existing.is_valid():
+        return existing.token
+
+    token = secrets.token_urlsafe(32)
+    PasswordResetToken.objects.create(user=user, token=token)
+    return token

@@ -14,6 +14,16 @@ def require_authenticated(request):
     return None
 
 
+def require_staff(request):
+    """Return a 401/403 Response if `request.user` may not access staff endpoints, else None."""
+    error_response = require_authenticated(request)
+    if error_response:
+        return error_response
+    if not (request.user.is_staff or request.user.is_superuser):
+        return Response({'errors': {'detail': ['not allowed']}}, status=403)
+    return None
+
+
 def validated_or_error(serializer):
     """Validate `serializer`; return a 400 `{'errors': ...}` Response on failure, else None."""
     if not serializer.is_valid():

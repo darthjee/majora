@@ -31,6 +31,7 @@ class TestStatusView:
             'username': 'alice',
             'user_id': user.id,
             'is_superuser': False,
+            'is_staff': False,
             'settings': {'favorite_language': 'en'},
         }
 
@@ -61,6 +62,34 @@ class TestStatusView:
 
         assert response.status_code == 200
         assert json.loads(response.content)['is_superuser'] is True
+
+    def test_returns_is_staff_false_for_regular_user(self, client):
+        """Test that a non-staff user's status response includes is_staff false."""
+        user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        token = Token.objects.create(user=user)
+
+        response = client.get(
+            '/users/status.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        assert response.status_code == 200
+        assert json.loads(response.content)['is_staff'] is False
+
+    def test_returns_is_staff_true_for_staff_user(self, client):
+        """Test that a staff user's status response includes is_staff true."""
+        user = User.objects.create_user(username='staffer', password=TEST_PASSWORD)
+        user.is_staff = True
+        user.save()
+        token = Token.objects.create(user=user)
+
+        response = client.get(
+            '/users/status.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        assert response.status_code == 200
+        assert json.loads(response.content)['is_staff'] is True
 
     def test_logged_out_response_has_no_is_superuser(self, client):
         """Test that the logged-out status response does not include is_superuser."""

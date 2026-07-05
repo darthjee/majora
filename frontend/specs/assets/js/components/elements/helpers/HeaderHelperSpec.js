@@ -17,6 +17,7 @@ describe('HeaderHelper', function() {
     testEmailStatus: null,
     isSuperUser: false,
     serverStatus: null,
+    isStaff: false,
     ...overrides,
   });
 
@@ -91,6 +92,31 @@ describe('HeaderHelper', function() {
       );
 
       expect(html).not.toContain('href="#/treasures"');
+    });
+
+    it('renders a Staff Users nav link when the user is a superuser', function() {
+      const html = renderToStaticMarkup(
+        HeaderHelper.render(buildState({ isSuperUser: true }), buildHandlers())
+      );
+
+      expect(html).toContain('href="#/staff/users"');
+      expect(html).toContain('Users');
+    });
+
+    it('renders a Staff Users nav link when the user is staff', function() {
+      const html = renderToStaticMarkup(
+        HeaderHelper.render(buildState({ isStaff: true }), buildHandlers())
+      );
+
+      expect(html).toContain('href="#/staff/users"');
+    });
+
+    it('does not render the Staff Users nav link when the user is neither staff nor a superuser', function() {
+      const html = renderToStaticMarkup(
+        HeaderHelper.render(buildState({ isSuperUser: false, isStaff: false }), buildHandlers())
+      );
+
+      expect(html).not.toContain('href="#/staff/users"');
     });
 
     it('does not render the send-test-email link when logged out', function() {

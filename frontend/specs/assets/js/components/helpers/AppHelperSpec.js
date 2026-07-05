@@ -12,6 +12,9 @@ describe('AppHelper', function() {
     expect(renderToStaticMarkup(AppHelper.render('npcCharacterPhotos', '#/games/demo/npcs/1/photos'))).toContain(Translator.t('npc_character_photos_page.loading'));
     expect(renderToStaticMarkup(AppHelper.render('recoverPassword', '#/recover-password'))).toContain('Reset password');
     expect(renderToStaticMarkup(AppHelper.render('register', '#/users/register'))).toContain('Register');
+    expect(renderToStaticMarkup(AppHelper.render('staffUsers', '#/staff/users'))).toContain(Translator.t('staff_users_page.loading'));
+    expect(renderToStaticMarkup(AppHelper.render('staffUser', '#/staff/users/1'))).toContain(Translator.t('staff_user_page.loading'));
+    expect(renderToStaticMarkup(AppHelper.render('staffUserEdit', '#/staff/users/1/edit'))).toContain(Translator.t('staff_user_page.loading'));
   });
 
   it('falls back to home page for unknown page key', function() {
