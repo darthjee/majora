@@ -19,7 +19,24 @@ Configuration::buildRule([
         [
             'class'    => 'Tent\\Middlewares\\CacheCleanupMiddleware',
             'location' => './cache',
-            'clear'    => ['collection', 'entity']
+            'clear'    => ['collection', 'entity'],
+            'custom'   => [
+                '/games/:game_slug/npcs.json' => [
+                    '/games/:game_slug/npcs.json',
+                    '/games/:game_slug/npcs/all.json',
+                ],
+                '/games/:game_slug/npcs/:character_id.json' => [
+                    '/games/:game_slug/npcs.json',
+                    '/games/:game_slug/npcs/all.json',
+                    '/games/:game_slug/npcs/:character_id.json',
+                    '/games/:game_slug/npcs/:character_id/full.json',
+                ],
+                '/games/:game_slug/pcs/:character_id.json' => [
+                    '/games/:game_slug/pcs.json',
+                    '/games/:game_slug/pcs/:character_id.json',
+                    '/games/:game_slug/pcs/:character_id/full.json',
+                ],
+            ]
         ],
         [
             'class' => 'Tent\\Middlewares\\CacheStalenessMiddleware',
