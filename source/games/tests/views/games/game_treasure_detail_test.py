@@ -134,3 +134,18 @@ class TestGameTreasureUpdateView:
         self.treasure.refresh_from_db()
         assert self.treasure.name == 'Golden Crown'
         assert self.treasure.value == 700
+
+    def test_patch_ignores_game_field(self, client):
+        """Test that a game field in the payload has no effect on the treasure's game."""
+        other_game = Game.objects.create(name='Other Game', game_slug='other-game')
+
+        response = self._patch(
+            client,
+            {'name': 'Silver Crown', 'game': other_game.id},
+            token=self.dm_token,
+        )
+
+        assert response.status_code == 200
+        self.treasure.refresh_from_db()
+        assert self.treasure.name == 'Silver Crown'
+        assert self.treasure.game_id == self.game.id
