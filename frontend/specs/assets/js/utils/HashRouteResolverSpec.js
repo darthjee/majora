@@ -71,4 +71,27 @@ describe('HashRouteResolver', function() {
     const params = new HashRouteResolver(() => '#/games?page=2&foo=bar&per_page=12').getPaginationParams();
     expect(params.toString()).toBe('page=2&per_page=12');
   });
+
+  describe('#getParams', function() {
+    it('extracts a single param for a matching path', function() {
+      const resolver = new HashRouteResolver(() => '#/games/campaign');
+      expect(resolver.getParams('/games/:game_slug')).toEqual({ game_slug: 'campaign' });
+    });
+
+    it('extracts multiple params for a matching path', function() {
+      const resolver = new HashRouteResolver(() => '#/games/campaign/pcs/7');
+      expect(resolver.getParams('/games/:game_slug/pcs/:character_id'))
+        .toEqual({ game_slug: 'campaign', character_id: '7' });
+    });
+
+    it('ignores query params when extracting', function() {
+      const resolver = new HashRouteResolver(() => '#/games/campaign?page=2');
+      expect(resolver.getParams('/games/:game_slug')).toEqual({ game_slug: 'campaign' });
+    });
+
+    it('returns an empty object when the path does not match the pattern', function() {
+      const resolver = new HashRouteResolver(() => '#/games/campaign/pcs/7');
+      expect(resolver.getParams('/games/:game_slug')).toEqual({});
+    });
+  });
 });

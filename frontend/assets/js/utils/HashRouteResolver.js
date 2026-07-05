@@ -70,6 +70,16 @@ export default class HashRouteResolver {
   }
 
   /**
+   * Extract route params for the given path pattern from the current hash.
+   *
+   * @param {string} path - Route pattern to parse (e.g. '/games/:game_slug').
+   * @returns {object} Route params map.
+   */
+  getParams(path) {
+    return Router.extractParams(path, this.currentHash());
+  }
+
+  /**
    * Return pagination query params from hash.
    *
    * @returns {URLSearchParams} Pagination params.

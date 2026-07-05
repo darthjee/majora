@@ -1,7 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterHelper from '../../../../../../assets/js/components/pages/helpers/CharacterHelper.jsx';
 import PhotoUploadOverlay from '../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
-import Translator from '../../../../../../assets/js/i18n/Translator.js';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -115,17 +114,10 @@ describe('CharacterHelper', function() {
       expect(onOpenUploadModal).toHaveBeenCalled();
     });
 
-    it('renders a see all photos link to the pcs photos index page', function() {
+    it('does not render a see all photos button at the bottom of the page', function() {
       const c = { ...character, game_slug: 'demo', id: 7, is_pc: true };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
-      expect(html).toContain('href="#/games/demo/pcs/7/photos"');
-      expect(html).toContain(Translator.t('character_page.see_all_photos'));
-    });
-
-    it('renders a see all photos link to the npcs photos index page', function() {
-      const c = { ...character, game_slug: 'demo', id: 7, is_pc: false };
-      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
-      expect(html).toContain('href="#/games/demo/npcs/7/photos"');
+      expect(html).not.toContain('href="#/games/demo/pcs/7/photos"');
     });
 
     it('does not render the old inline photo gallery', function() {

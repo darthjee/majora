@@ -1,7 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameHelper from '../../../../../../assets/js/components/pages/helpers/GameHelper.jsx';
 import PhotoUploadOverlay from '../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
-import Translator from '../../../../../../assets/js/i18n/Translator.js';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -130,12 +129,6 @@ describe('GameHelper', function() {
       expect(onOpenUploadModal).toHaveBeenCalled();
     });
 
-    it('renders a see all photos link to the game photos index page', function() {
-      const html = renderToStaticMarkup(GameHelper.render(game));
-      expect(html).toContain(`href="#/games/${game.game_slug}/photos"`);
-      expect(html).toContain(Translator.t('game_page.see_all_photos'));
-    });
-
     it('does not render the old inline photo gallery', function() {
       const html = renderToStaticMarkup(GameHelper.render(game));
       expect(html).not.toContain('img-fluid rounded');
@@ -192,10 +185,11 @@ describe('GameHelper', function() {
       expect(html).not.toContain('<a href="http');
     });
 
-    it('renders a sessions link to the game sessions index page', function() {
+    it('does not render the treasures/sessions/photos buttons at the bottom of the page', function() {
       const html = renderToStaticMarkup(GameHelper.render(game));
-      expect(html).toContain(`href="#/games/${game.game_slug}/sessions"`);
-      expect(html).toContain(Translator.t('game_page.sessions'));
+      expect(html).not.toContain(`href="#/games/${game.game_slug}/treasures"`);
+      expect(html).not.toContain(`href="#/games/${game.game_slug}/sessions"`);
+      expect(html).not.toContain(`href="#/games/${game.game_slug}/photos"`);
     });
   });
 

@@ -64,14 +64,6 @@ export default class CharacterHelper {
           />
         </div>
         {CharacterHelper.#renderPrivateDescription(character.private_description)}
-        <div className="mt-3">
-          <a
-            href={`#/games/${character.game_slug}/${segment}/${character.id}/photos`}
-            className="btn btn-outline-secondary"
-          >
-            {Translator.t('character_page.see_all_photos')}
-          </a>
-        </div>
       </div>
     );
   }
