@@ -55,4 +55,9 @@ describe('Header', function() {
     const html = renderToStaticMarkup(React.createElement(Header));
     expect(html).not.toContain('data-testid="server-status"');
   });
+
+  it('does not render the Staff Users nav link by default', function() {
+    const html = renderToStaticMarkup(React.createElement(Header));
+    expect(html).not.toContain('href="#/staff/users"');
+  });
 });

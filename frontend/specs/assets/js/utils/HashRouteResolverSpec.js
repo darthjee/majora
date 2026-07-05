@@ -16,6 +16,17 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/photos').getPage()).toBe('npcCharacterPhotos');
     expect(new HashRouteResolver(() => '#/recover-password?token=abc').getPage()).toBe('recoverPassword');
     expect(new HashRouteResolver(() => '#/users/register').getPage()).toBe('register');
+    expect(new HashRouteResolver(() => '#/staff/users').getPage()).toBe('staffUsers');
+    expect(new HashRouteResolver(() => '#/staff/users/7').getPage()).toBe('staffUser');
+    expect(new HashRouteResolver(() => '#/staff/users/7/edit').getPage()).toBe('staffUserEdit');
+  });
+
+  it('resolves /staff/users/:id/edit to staffUserEdit, not staffUser', function() {
+    expect(new HashRouteResolver(() => '#/staff/users/7/edit').getPage()).toBe('staffUserEdit');
+  });
+
+  it('still resolves /staff/users/:id to staffUser', function() {
+    expect(new HashRouteResolver(() => '#/staff/users/7').getPage()).toBe('staffUser');
   });
 
   it('resolves /games/new to gameNew, not game', function() {

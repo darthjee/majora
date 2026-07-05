@@ -20,6 +20,9 @@ import PcCharacterEdit from '../pages/PcCharacterEdit.jsx';
 import PcCharacterPhotos from '../pages/PcCharacterPhotos.jsx';
 import RecoverPassword from '../pages/RecoverPassword.jsx';
 import Register from '../pages/Register.jsx';
+import StaffUser from '../pages/StaffUser.jsx';
+import StaffUserEdit from '../pages/StaffUserEdit.jsx';
+import StaffUsers from '../pages/StaffUsers.jsx';
 import Treasure from '../pages/Treasure.jsx';
 import TreasureEdit from '../pages/TreasureEdit.jsx';
 import TreasureNew from '../pages/TreasureNew.jsx';
@@ -46,6 +49,9 @@ const PAGES = {
   pcCharacterPhotos: <PcCharacterPhotos />,
   recoverPassword: <RecoverPassword />,
   register: <Register />,
+  staffUsers: <StaffUsers />,
+  staffUser: <StaffUser />,
+  staffUserEdit: <StaffUserEdit />,
   treasures: <Treasures />,
   treasure: <Treasure />,
   treasureNew: <TreasureNew />,

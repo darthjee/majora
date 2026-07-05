@@ -26,4 +26,26 @@ export default class AdminAccess {
       return false;
     }
   }
+
+  /**
+   * Resolves whether the currently stored auth token belongs to a staff
+   * member or a superuser.
+   *
+   * @param {AuthClient} [client] - Auth client override, used for testing.
+   * @returns {Promise<boolean>} Resolves to true when the user is staff or a superuser.
+   */
+  static async isStaffOrSuperUser(client = new AuthClient()) {
+    try {
+      const response = await client.status(AuthStorage.getToken());
+
+      if (!response.ok) {
+        return false;
+      }
+
+      const data = await response.json();
+      return Boolean(data.is_superuser) || Boolean(data.is_staff);
+    } catch {
+      return false;
+    }
+  }
 }
