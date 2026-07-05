@@ -66,6 +66,13 @@ describe('CharacterHelper', function() {
         .toContain('The future king of Gondor.');
     });
 
+    it('renders the description with the text-pre-wrap class to preserve line breaks', function() {
+      const c = { ...character, public_description: 'Line one.\nLine two.' };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).toContain('text-pre-wrap');
+      expect(html).toContain('Line one.\nLine two.');
+    });
+
     it('does not render description when empty', function() {
       const c = { ...character, public_description: '' };
       expect(renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs')))
@@ -171,6 +178,13 @@ describe('CharacterHelper', function() {
       const c = { ...character, private_description: 'Secret DM notes.' };
       expect(renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs')))
         .toContain('DM Notes');
+    });
+
+    it('renders the private description with the text-pre-wrap class to preserve line breaks', function() {
+      const c = { ...character, private_description: 'Line one.\nLine two.' };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).toContain('text-pre-wrap');
+      expect(html).toContain('Line one.\nLine two.');
     });
 
     it('does not render the DM Notes section when private_description is absent', function() {
