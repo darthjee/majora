@@ -11,7 +11,6 @@ from games.models import Character, Game, GameMaster, Player
 
 @pytest.mark.django_db
 class TestGamePcFullView:
-
     """Tests for the PC full detail endpoint."""
 
     def setup_method(self):

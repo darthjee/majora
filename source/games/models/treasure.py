@@ -4,7 +4,6 @@ from django.db import models
 
 
 class Treasure(models.Model):
-
     """Model representing a treasure item in an RPG campaign."""
 
     name = models.CharField(max_length=200)
@@ -14,6 +13,8 @@ class Treasure(models.Model):
     )
 
     class Meta:
+        """Metadata for the Treasure model."""
+
         ordering = ['id']
 
     def can_be_edited_by(self, user):

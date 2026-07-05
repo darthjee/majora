@@ -6,7 +6,6 @@ from games.models.character import Character
 
 
 class CharacterPhoto(models.Model):
-
     """Model representing a photo associated with a character."""
 
     character = models.ForeignKey(Character, on_delete=models.CASCADE, related_name='photos')

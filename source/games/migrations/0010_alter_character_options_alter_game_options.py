@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     """Align model Meta ordering options with the existing model definitions."""
 
     dependencies = [

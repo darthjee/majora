@@ -6,10 +6,11 @@ from games.models import Treasure
 
 
 class TreasureUpdateSerializer(serializers.ModelSerializer):
-
     """Serializer for partial updates to a treasure."""
 
     class Meta:
+        """Metadata for the TreasureUpdateSerializer."""
+
         model = Treasure
         fields = ['name', 'value']
         extra_kwargs = {field: {'required': False} for field in fields}

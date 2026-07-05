@@ -12,7 +12,6 @@ from games.models import Treasure
 
 @pytest.mark.django_db
 class TestTreasureDetailView:
-
     """Tests for the GET /treasures/<id>.json endpoint."""
 
     def setup_method(self):
@@ -42,7 +41,6 @@ class TestTreasureDetailView:
 
 @pytest.mark.django_db
 class TestTreasureDetailPatchView:
-
     """Tests for the PATCH /treasures/<id>.json endpoint."""
 
     def setup_method(self):

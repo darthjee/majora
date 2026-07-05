@@ -5,11 +5,12 @@ from rest_framework import serializers
 
 
 class MyAccountDetailSerializer(serializers.ModelSerializer):
-
     """Serializer for the authenticated user's own account detail."""
 
     name = serializers.CharField(source='username', max_length=150)
 
     class Meta:
+        """Metadata for the MyAccountDetailSerializer."""
+
         model = User
         fields = ['name', 'email']

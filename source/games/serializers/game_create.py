@@ -6,10 +6,11 @@ from games.models import Game
 
 
 class GameCreateSerializer(serializers.ModelSerializer):
-
     """Serializer for creating a new game."""
 
     class Meta:
+        """Metadata for the GameCreateSerializer."""
+
         model = Game
         fields = ['name', 'description']
         extra_kwargs = {

@@ -8,7 +8,6 @@ from games.models import Game, GameMaster, GameSession
 
 @pytest.mark.django_db
 class TestGameSession:
-
     """Tests for the GameSession model."""
 
     def setup_method(self):
@@ -45,7 +44,6 @@ class TestGameSession:
 
 @pytest.mark.django_db
 class TestGameSessionCanBeEditedBy:
-
     """Tests for GameSession.can_be_edited_by()."""
 
     def setup_method(self):

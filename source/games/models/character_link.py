@@ -6,7 +6,6 @@ from games.models.character import Character
 
 
 class CharacterLink(models.Model):
-
     """Model representing an external link related to a character."""
 
     text = models.CharField(max_length=200)

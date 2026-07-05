@@ -6,7 +6,6 @@ from games.models import Game
 
 
 class GameListSerializer(serializers.ModelSerializer):
-
     """Serializer for game list items."""
 
     cover_photo_path = serializers.CharField(
@@ -14,5 +13,7 @@ class GameListSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
+        """Metadata for the GameListSerializer."""
+
         model = Game
         fields = ['name', 'game_slug', 'cover_photo_path']

@@ -11,7 +11,6 @@ from games.models import Game, GameMaster, Link
 
 @pytest.mark.django_db
 class TestGameDetailView:
-
     """Tests for the game detail endpoint."""
 
     def setup_method(self):
@@ -58,7 +57,6 @@ class TestGameDetailView:
 
 @pytest.mark.django_db
 class TestGameDetailPatchView:
-
     """Tests for the PATCH game detail endpoint."""
 
     def setup_method(self):

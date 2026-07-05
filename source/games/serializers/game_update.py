@@ -6,10 +6,11 @@ from games.models import Game
 
 
 class GameUpdateSerializer(serializers.ModelSerializer):
-
     """Serializer for the limited set of fields that may be edited on a game."""
 
     class Meta:
+        """Metadata for the GameUpdateSerializer."""
+
         model = Game
         fields = ['name', 'description']
         extra_kwargs = {field: {'required': False} for field in fields}

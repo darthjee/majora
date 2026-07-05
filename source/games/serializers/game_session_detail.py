@@ -6,13 +6,14 @@ from games.models import GameSession
 
 
 class GameSessionDetailSerializer(serializers.ModelSerializer):
-
     """Serializer for game session detail view."""
 
     game_slug = serializers.ReadOnlyField(source='game.game_slug')
     can_edit = serializers.SerializerMethodField()
 
     class Meta:
+        """Metadata for the GameSessionDetailSerializer."""
+
         model = GameSession
         fields = ['id', 'title', 'date', 'game_slug', 'can_edit']
 

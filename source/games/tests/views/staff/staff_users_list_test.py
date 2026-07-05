@@ -10,7 +10,6 @@ from rest_framework.authtoken.models import Token
 
 @pytest.mark.django_db
 class TestStaffUsersListView:
-
     """Tests for the GET /staff/users.json endpoint."""
 
     def setup_method(self):

@@ -12,7 +12,6 @@ from games.models import Treasure
 
 @pytest.mark.django_db
 class TestTreasuresListView:
-
     """Tests for the GET /treasures.json endpoint."""
 
     def test_returns_empty_list(self, client):
@@ -76,7 +75,6 @@ class TestTreasuresListView:
 
 @pytest.mark.django_db
 class TestTreasuresCreateView:
-
     """Tests for the POST /treasures.json endpoint."""
 
     def setup_method(self):

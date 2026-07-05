@@ -7,7 +7,6 @@ from games.models import Character, CharacterLink, Game
 
 @pytest.mark.django_db
 class TestCharacterLink:
-
     """Tests for the CharacterLink model."""
 
     def setup_method(self):

@@ -10,7 +10,6 @@ from rest_framework.authtoken.models import Token
 
 @pytest.mark.django_db
 class TestStaffUserDetailView:
-
     """Tests for the GET /staff/users/<id>.json endpoint."""
 
     def setup_method(self):
@@ -87,7 +86,6 @@ class TestStaffUserDetailView:
 
 @pytest.mark.django_db
 class TestStaffUserDetailPatchView:
-
     """Tests for the PATCH /staff/users/<id>.json endpoint."""
 
     def setup_method(self):

@@ -11,7 +11,6 @@ from games.models import Character, CharacterPhoto, Game, Player
 
 @pytest.mark.django_db
 class TestGamePcDetailView:
-
     """Tests for the PC detail endpoint."""
 
     def setup_method(self):
@@ -113,7 +112,6 @@ class TestGamePcDetailView:
 
 @pytest.mark.django_db
 class TestGamePcUpdateView:
-
     """Tests for the PC update (PATCH) endpoint."""
 
     def setup_method(self):

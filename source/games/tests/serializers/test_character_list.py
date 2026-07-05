@@ -8,7 +8,6 @@ from games.serializers import CharacterListSerializer
 
 @pytest.mark.django_db
 class TestCharacterListSerializer:
-
     """Tests for the CharacterListSerializer."""
 
     def setup_method(self):

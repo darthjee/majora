@@ -6,9 +6,10 @@ from games.models import CharacterPhoto
 
 
 class CharacterPhotoSerializer(serializers.ModelSerializer):
-
     """Serializer for character photos."""
 
     class Meta:
+        """Metadata for the CharacterPhotoSerializer."""
+
         model = CharacterPhoto
         fields = ['id', 'path']
