@@ -187,6 +187,20 @@ game_session_edit_page:
   date_label: Date
   submit: Save changes
   error: Failed to save session. Please try again.
+game_npcs_page:
+  loading: Loading...
+  title: Non-Player Characters
+  new_npc: New NPC
+game_npc_new_page:
+  title: New NPC
+  name_label: Name
+  role_label: Role
+  description_label: Description
+  private_description_label: DM Notes
+  hidden_label: Hidden
+  money_label: Money (copper pieces)
+  submit: Create NPC
+  error: Failed to create NPC. Please try again.
 game_photos_page:
   title: Photos
   loading: Loading photos...

@@ -187,6 +187,20 @@ game_session_edit_page:
   date_label: Data
   submit: Salvar alterações
   error: Falha ao salvar sessão. Tente novamente.
+game_npcs_page:
+  loading: Carregando...
+  title: NPCs
+  new_npc: Novo NPC
+game_npc_new_page:
+  title: Novo NPC
+  name_label: Nome
+  role_label: Função
+  description_label: Descrição
+  private_description_label: Notas do Mestre
+  hidden_label: Oculto
+  money_label: Dinheiro (peças de cobre)
+  submit: Criar NPC
+  error: Falha ao criar o personagem. Tente novamente.
 game_photos_page:
   title: Fotos
   loading: Carregando fotos...

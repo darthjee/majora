@@ -103,6 +103,27 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
+   * Creates a new NPC character for a game.
+   *
+   * @param {string} gameSlug - Game slug the NPC will belong to.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {object} fields - NPC fields (`name`, `role`, `public_description`,
+   *   `private_description`, `hidden`, `money`).
+   * @returns {Promise<Response>} fetch response from the npcs endpoint.
+   */
+  createNpc(gameSlug, token, fields) {
+    return this.request(`/games/${gameSlug}/npcs.json`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Token ${token}` } : {}),
+      },
+      body: JSON.stringify(fields),
+    });
+  }
+
+  /**
    * Fetches all NPCs (including hidden) for a game (DM-only endpoint).
    * Returns a raw Response so callers can inspect the status code
    * and fall back gracefully on 401 or 403.

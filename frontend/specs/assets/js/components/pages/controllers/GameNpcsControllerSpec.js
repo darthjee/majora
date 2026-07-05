@@ -17,11 +17,16 @@ describe('GameNpcsController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
+    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/npcs');
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [{ id: 1 }],
       pagination: { page: 2, pages: 3, perPage: 4 },
+    }));
+    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ can_edit: false }),
     }));
 
     const cleanup = new GameNpcsController(
@@ -30,6 +35,9 @@ describe('GameNpcsController', function() {
       setLoading,
       setError,
       client,
+      null,
+      undefined,
+      gameClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -49,14 +57,19 @@ describe('GameNpcsController', function() {
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
     const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpcsAll']);
+    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
     const publicNpcs = [{ id: 1 }];
     const pagination = { page: 1, pages: 2, perPage: 10 };
 
     client.currentHash.and.returnValue('#/games/demo/npcs');
     client.fetchIndex.and.returnValue(Promise.resolve({ data: publicNpcs, pagination }));
+    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ can_edit: false }),
+    }));
 
     const cleanup = new GameNpcsController(
-      setNpcs, setPagination, setLoading, setError, client, characterClient,
+      setNpcs, setPagination, setLoading, setError, client, characterClient, undefined, gameClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -74,6 +87,7 @@ describe('GameNpcsController', function() {
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
     const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpcsAll']);
+    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
     const authNpcs = [{ id: 10, name: 'Hidden NPC' }];
     const pagination = { page: 1, pages: 2, perPage: 10 };
 
@@ -83,10 +97,14 @@ describe('GameNpcsController', function() {
       ok: true,
       json: () => Promise.resolve(authNpcs),
     }));
+    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ can_edit: false }),
+    }));
     AuthStorage.setToken('mytoken');
 
     const cleanup = new GameNpcsController(
-      setNpcs, setPagination, setLoading, setError, client, characterClient,
+      setNpcs, setPagination, setLoading, setError, client, characterClient, undefined, gameClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -105,6 +123,7 @@ describe('GameNpcsController', function() {
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
     const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpcsAll']);
+    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
     const publicNpcs = [{ id: 1 }];
     const pagination = { page: 1, pages: 1, perPage: 10 };
 
@@ -114,10 +133,14 @@ describe('GameNpcsController', function() {
       ok: false,
       json: () => Promise.resolve({ error: 'Unauthorized' }),
     }));
+    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ can_edit: false }),
+    }));
     AuthStorage.setToken('mytoken');
 
     const cleanup = new GameNpcsController(
-      setNpcs, setPagination, setLoading, setError, client, characterClient,
+      setNpcs, setPagination, setLoading, setError, client, characterClient, undefined, gameClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -135,16 +158,21 @@ describe('GameNpcsController', function() {
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
     const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpcsAll']);
+    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
     const publicNpcs = [{ id: 1 }];
     const pagination = { page: 1, pages: 1, perPage: 10 };
 
     client.currentHash.and.returnValue('#/games/demo/npcs');
     client.fetchIndex.and.returnValue(Promise.resolve({ data: publicNpcs, pagination }));
     characterClient.fetchNpcsAll.and.returnValue(Promise.reject(new Error('network error')));
+    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ can_edit: false }),
+    }));
     AuthStorage.setToken('mytoken');
 
     const cleanup = new GameNpcsController(
-      setNpcs, setPagination, setLoading, setError, client, characterClient,
+      setNpcs, setPagination, setLoading, setError, client, characterClient, undefined, gameClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -153,5 +181,71 @@ describe('GameNpcsController', function() {
     expect(setError).not.toHaveBeenCalled();
 
     cleanup();
+  });
+
+  describe('canEdit', function() {
+    const buildController = (setCanEdit, gameClient) => {
+      const setNpcs = jasmine.createSpy('setNpcs');
+      const setPagination = jasmine.createSpy('setPagination');
+      const setLoading = jasmine.createSpy('setLoading');
+      const setError = jasmine.createSpy('setError');
+      const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
+
+      client.currentHash.and.returnValue('#/games/demo/npcs');
+      client.fetchIndex.and.returnValue(Promise.resolve({
+        data: [],
+        pagination: { page: 1, pages: 1, perPage: 10 },
+      }));
+
+      return new GameNpcsController(
+        setNpcs, setPagination, setLoading, setError, client, null, setCanEdit, gameClient,
+      );
+    };
+
+    it('sets canEdit to true when the game access response allows editing', async function() {
+      const setCanEdit = jasmine.createSpy('setCanEdit');
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
+
+      gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ can_edit: true }),
+      }));
+
+      const cleanup = buildController(setCanEdit, gameClient).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(gameClient.fetchGameAccess).toHaveBeenCalledWith('demo', null);
+      expect(setCanEdit).toHaveBeenCalledWith(true);
+
+      cleanup();
+    });
+
+    it('sets canEdit to false when the access response is not ok', async function() {
+      const setCanEdit = jasmine.createSpy('setCanEdit');
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
+
+      gameClient.fetchGameAccess.and.returnValue(Promise.resolve({ ok: false }));
+
+      const cleanup = buildController(setCanEdit, gameClient).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(setCanEdit).toHaveBeenCalledWith(false);
+
+      cleanup();
+    });
+
+    it('sets canEdit to false when the access request throws', async function() {
+      const setCanEdit = jasmine.createSpy('setCanEdit');
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
+
+      gameClient.fetchGameAccess.and.returnValue(Promise.reject(new Error('network error')));
+
+      const cleanup = buildController(setCanEdit, gameClient).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(setCanEdit).toHaveBeenCalledWith(false);
+
+      cleanup();
+    });
   });
 });

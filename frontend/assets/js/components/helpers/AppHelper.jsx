@@ -3,6 +3,7 @@ import Header from '../elements/Header.jsx';
 import Game from '../pages/Game.jsx';
 import GameEdit from '../pages/GameEdit.jsx';
 import GameNew from '../pages/GameNew.jsx';
+import GameNpcNew from '../pages/GameNpcNew.jsx';
 import GameNpcs from '../pages/GameNpcs.jsx';
 import GamePcs from '../pages/GamePcs.jsx';
 import GamePhotos from '../pages/GamePhotos.jsx';
@@ -36,6 +37,7 @@ const PAGES = {
   gameNew: <GameNew />,
   gamePcs: <GamePcs />,
   gameNpcs: <GameNpcs />,
+  gameNpcNew: <GameNpcNew />,
   gamePhotos: <GamePhotos />,
   gameTreasures: <GameTreasures />,
   gameSessions: <GameSessions />,

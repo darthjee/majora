@@ -27,6 +27,7 @@ export default class HashRouteResolver {
     this.#router.register('/staff/users', 'staffUsers');
     this.#router.register('/games/:game_slug/npcs/:character_id/photos', 'npcCharacterPhotos');
     this.#router.register('/games/:game_slug/npcs/:character_id/edit', 'npcCharacterEdit');
+    this.#router.register('/games/:game_slug/npcs/new', 'gameNpcNew');
     this.#router.register('/games/:game_slug/npcs/:character_id', 'npcCharacter');
     this.#router.register('/games/:game_slug/pcs/:character_id/photos', 'pcCharacterPhotos');
     this.#router.register('/games/:game_slug/pcs/:character_id/edit', 'pcCharacterEdit');

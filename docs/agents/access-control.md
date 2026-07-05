@@ -244,6 +244,24 @@ Access endpoints return user-specific data (`can_edit` reflects the requesting u
 
 Unauthenticated → 401. Authenticated but not an editor → 403.
 
+### Create
+
+| Endpoint | Who can write |
+|----------|--------------|
+| `POST /games/<slug>/npcs.json` | GameMaster of that game, or superuser — unauthenticated → 401, authenticated non-editor → 403 |
+
+There is no equivalent PC creation endpoint — issue #307 scoped NPC creation only.
+
+**Write fields**: `name` (required), `role`, `public_description`, `private_description`, `hidden`,
+`money` (all optional except `name`). `game` and `npc` are never accepted from the request
+payload — `game` is always assigned server-side from the `<slug>` URL segment, and `npc` is
+always forced to `True`. `player` is not accepted at all — NPCs created this way have no player.
+
+**Create response:** HTTP 201 with `CharacterDetailSerializer` body (same fields documented
+under "Detail" above) — note it does not include `private_description`, even though the create
+serializer accepts it as input, mirroring the existing PATCH behavior where
+`CharacterUpdateSerializer` is the input and `CharacterDetailSerializer` is the output.
+
 ### Edit rights logic
 
 `Character.can_be_edited_by(user)` returns `True` when:

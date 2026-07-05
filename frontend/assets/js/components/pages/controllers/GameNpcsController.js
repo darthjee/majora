@@ -1,8 +1,10 @@
+import GameClient from '../../../client/GameClient.js';
 import GenericClient from '../../../client/GenericClient.js';
 import CharacterClient from '../../../client/CharacterClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
+import Noop from '../../../utils/Noop.js';
 
 /**
  * Extract game slug from NPCs hash route.
@@ -27,8 +29,19 @@ export default class GameNpcsController extends BasePageController {
    * @param {Function} setError - Error setter.
    * @param {GenericClient|null} client - Client override.
    * @param {CharacterClient|null} characterClient - Character client override.
+   * @param {Function} [setCanEdit] - Can-edit flag setter, gates the "New NPC" button.
+   * @param {GameClient|null} [gameClient] - Game client override, used for the access check.
    */
-  constructor(setNpcs, setPagination, setLoading, setError, client = null, characterClient = null) {
+  constructor(
+    setNpcs,
+    setPagination,
+    setLoading,
+    setError,
+    client = null,
+    characterClient = null,
+    setCanEdit = Noop.noop,
+    gameClient = null,
+  ) {
     super();
     this.setNpcs = setNpcs;
     this.setPagination = setPagination;
@@ -36,6 +49,8 @@ export default class GameNpcsController extends BasePageController {
     this.setError = setError;
     this.client = client ?? new GenericClient();
     this.characterClient = characterClient ?? new CharacterClient();
+    this.setCanEdit = setCanEdit;
+    this.gameClient = gameClient ?? new GameClient();
   }
 
   /**
@@ -53,6 +68,7 @@ export default class GameNpcsController extends BasePageController {
         safeSet(this.setError, 'Unable to load NPCs.');
         safeSet(this.setLoading, false);
       } else {
+        this.#fetchAccess(gameSlug, safeSet);
         this.#fetchNpcs(gameSlug, safeSet);
       }
 
@@ -60,6 +76,15 @@ export default class GameNpcsController extends BasePageController {
         mounted = false;
       };
     };
+  }
+
+  #fetchAccess(gameSlug, safeSet) {
+    const token = AuthStorage.getToken();
+
+    this.gameClient.fetchGameAccess(gameSlug, token)
+      .then((response) => (response.ok ? response.json() : { can_edit: false }))
+      .then((access) => safeSet(this.setCanEdit, Boolean(access.can_edit)))
+      .catch(() => safeSet(this.setCanEdit, false));
   }
 
   #fetchNpcs(gameSlug, safeSet) {
