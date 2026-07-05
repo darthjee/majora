@@ -8,7 +8,6 @@ from games.serializers import MyAccountUpdateSerializer
 
 @pytest.mark.django_db
 class TestMyAccountUpdateSerializer:
-
     """Tests for MyAccountUpdateSerializer."""
 
     def setup_method(self):

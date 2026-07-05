@@ -30,7 +30,6 @@ def _make_request(method='GET', user=None, data=None):
 
 
 class GameListSerializer:
-
     """Minimal stand-in list serializer used to test paginated_list_response."""
 
     def __init__(self, instances, many=True):
@@ -45,7 +44,6 @@ class GameListSerializer:
 
 @pytest.mark.django_db
 class TestRequireAuthenticated:
-
     """Tests for require_authenticated()."""
 
     def test_returns_401_response_for_anonymous_user(self):
@@ -70,7 +68,6 @@ class TestRequireAuthenticated:
 
 @pytest.mark.django_db
 class TestValidatedOrError:
-
     """Tests for validated_or_error()."""
 
     def setup_method(self):
@@ -92,7 +89,6 @@ class TestValidatedOrError:
 
 @pytest.mark.django_db
 class TestDetailOrUpdate:
-
     """Tests for detail_or_update()."""
 
     def setup_method(self):
@@ -139,7 +135,6 @@ class TestDetailOrUpdate:
 
 @pytest.mark.django_db
 class TestPaginatedListResponse:
-
     """Tests for paginated_list_response()."""
 
     def setup_method(self):
@@ -161,7 +156,6 @@ class TestPaginatedListResponse:
 
 @pytest.mark.django_db
 class TestAccessResponse:
-
     """Tests for access_response()."""
 
     def setup_method(self):
@@ -184,7 +178,6 @@ class TestAccessResponse:
         captured_context = {}
 
         class ContextCapturingSerializer:
-
             """Test serializer that captures the context it was built with."""
 
             def __init__(self, instance, context=None):

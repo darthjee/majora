@@ -11,7 +11,6 @@ from games.models import Game, GameMaster
 
 @pytest.mark.django_db
 class TestGameAccessView:
-
     """Tests for the game access endpoint."""
 
     def setup_method(self):

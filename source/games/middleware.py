@@ -4,7 +4,6 @@ from games.settings import Settings
 
 
 class CacheControlMiddleware:
-
     """Add a Cache-Control header to every JSON response.
 
     - Skips responses that already carry ``X-Skip-Cache: true`` (these are

@@ -8,7 +8,6 @@ from games.serializers.character_photo import CharacterPhotoSerializer
 
 
 class CharacterDetailSerializer(serializers.ModelSerializer):
-
     """Serializer for character detail view including photos and links."""
 
     photos = CharacterPhotoSerializer(many=True, read_only=True)
@@ -24,6 +23,8 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
+        """Metadata for the CharacterDetailSerializer."""
+
         model = Character
         fields = [
             'id',

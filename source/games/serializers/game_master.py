@@ -6,9 +6,10 @@ from games.models import GameMaster
 
 
 class GameMasterSerializer(serializers.ModelSerializer):
-
     """Serializer for game master (DM) assignments."""
 
     class Meta:
+        """Metadata for the GameMasterSerializer."""
+
         model = GameMaster
         fields = ['id', 'user']

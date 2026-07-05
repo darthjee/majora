@@ -8,7 +8,6 @@ from games.models.player import Player
 
 
 class Character(models.Model):
-
     """Model representing a character in a game."""
 
     name = models.CharField(max_length=200)
@@ -31,6 +30,8 @@ class Character(models.Model):
     )
 
     class Meta:
+        """Metadata for the Character model."""
+
         ordering = ['id']
 
     @property

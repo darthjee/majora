@@ -18,7 +18,6 @@ def _make_request(user):
 
 @pytest.mark.django_db
 class TestTreasureAccessSerializer:
-
     """Tests for the TreasureAccessSerializer."""
 
     def setup_method(self):

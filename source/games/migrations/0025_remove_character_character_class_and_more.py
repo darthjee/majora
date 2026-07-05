@@ -13,7 +13,6 @@ def copy_character_class_to_role(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     """Migration to replace character_class and level fields with a single role field."""
 
     dependencies = [

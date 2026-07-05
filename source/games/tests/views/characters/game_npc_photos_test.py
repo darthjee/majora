@@ -12,7 +12,6 @@ from games.models import Character, CharacterPhoto, Game, GameMaster
 
 @pytest.mark.django_db
 class TestGameNpcPhotosView:
-
     """Tests for the GET /games/<slug>/npcs/<id>/photos.json endpoint."""
 
     def setup_method(self):
@@ -116,7 +115,6 @@ class TestGameNpcPhotosView:
 
 @pytest.mark.django_db
 class TestGameNpcPhotosHidden:
-
     """Tests for the hidden-NPC visibility gate in game_npc_photos."""
 
     def setup_method(self):

@@ -6,7 +6,6 @@ from games.models.treasure import Treasure
 
 
 class TreasurePhoto(models.Model):
-
     """Model representing a photo associated with a treasure."""
 
     treasure = models.ForeignKey(Treasure, on_delete=models.CASCADE, related_name='photos')

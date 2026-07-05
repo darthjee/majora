@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     """Create the UserProfile model used to store account-level preferences."""
 
     dependencies = [

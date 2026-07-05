@@ -6,7 +6,6 @@ from rest_framework import serializers
 
 
 class StaffUserUpdateSerializer(serializers.ModelSerializer):
-
     """Serializer for partial updates to a user's name and email by staff."""
 
     name = serializers.CharField(
@@ -15,6 +14,8 @@ class StaffUserUpdateSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
+        """Metadata for the StaffUserUpdateSerializer."""
+
         model = User
         fields = ['name', 'email']
         extra_kwargs = {'email': {'required': False}}

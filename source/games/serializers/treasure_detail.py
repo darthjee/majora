@@ -6,11 +6,12 @@ from games.models import Treasure
 
 
 class TreasureDetailSerializer(serializers.ModelSerializer):
-
     """Serializer for treasure detail view."""
 
     photo_path = serializers.CharField(source='photo.path', default=None, read_only=True)
 
     class Meta:
+        """Metadata for the TreasureDetailSerializer."""
+
         model = Treasure
         fields = ['id', 'name', 'value', 'photo_path']

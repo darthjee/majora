@@ -6,7 +6,6 @@ from rest_framework.exceptions import AuthenticationFailed
 
 
 class CookieTokenAuthentication(TokenAuthentication):
-
     """Authenticate via Authorization: Token header, falling back to session.
 
     First attempts standard token-header authentication. If no Authorization

@@ -6,9 +6,10 @@ from games.models import CharacterLink
 
 
 class CharacterLinkSerializer(serializers.ModelSerializer):
-
     """Serializer for character links."""
 
     class Meta:
+        """Metadata for the CharacterLinkSerializer."""
+
         model = CharacterLink
         fields = ['id', 'text', 'url']

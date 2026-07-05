@@ -4,7 +4,6 @@ from rest_framework import serializers
 
 
 class CharacterAccessSerializer(serializers.Serializer):
-
     """Serializes access context fields for a character (NPC) access response."""
 
     @property

@@ -12,7 +12,6 @@ from games.models import Game, GameMaster, GameSession
 
 @pytest.mark.django_db
 class TestGameSessionsListView:
-
     """Tests for the GET /games/<slug>/sessions.json endpoint."""
 
     def setup_method(self):
@@ -102,7 +101,6 @@ class TestGameSessionsListView:
 
 @pytest.mark.django_db
 class TestGameSessionsCreateView:
-
     """Tests for the POST /games/<slug>/sessions.json endpoint."""
 
     def setup_method(self):

@@ -9,7 +9,6 @@ from games.models import Character, Game, Player
 
 @pytest.mark.django_db
 class TestGameNpcsView:
-
     """Tests for the game NPCs list endpoint."""
 
     def setup_method(self):
@@ -87,7 +86,6 @@ class TestGameNpcsView:
 
 @pytest.mark.django_db
 class TestGameNpcsHiddenFilter:
-
     """Tests that game_npcs excludes hidden NPCs from the public listing."""
 
     def setup_method(self):

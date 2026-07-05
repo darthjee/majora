@@ -9,7 +9,6 @@ from games.models import Character, Game, Player
 
 @pytest.mark.django_db
 class TestGamePcsView:
-
     """Tests for the game PCs list endpoint."""
 
     def setup_method(self):

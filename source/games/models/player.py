@@ -7,7 +7,6 @@ from games.models.game import Game
 
 
 class Player(models.Model):
-
     """Model representing a player participating in games."""
 
     name = models.CharField(max_length=200)
@@ -21,6 +20,8 @@ class Player(models.Model):
     )
 
     class Meta:
+        """Metadata for the Player model."""
+
         ordering = ['name']
 
     def __str__(self):

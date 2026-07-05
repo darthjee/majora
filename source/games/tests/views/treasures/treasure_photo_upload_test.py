@@ -11,7 +11,6 @@ from games.models import Treasure, TreasurePhoto, Upload
 
 @pytest.mark.django_db
 class TestTreasurePhotoUploadView:
-
     """Tests for POST /treasures/<id>/photo_upload.json."""
 
     def setup_method(self):

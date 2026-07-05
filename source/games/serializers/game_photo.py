@@ -6,9 +6,10 @@ from games.models import GamePhoto
 
 
 class GamePhotoSerializer(serializers.ModelSerializer):
-
     """Serializer for game photos."""
 
     class Meta:
+        """Metadata for the GamePhotoSerializer."""
+
         model = GamePhoto
         fields = ['id', 'path']

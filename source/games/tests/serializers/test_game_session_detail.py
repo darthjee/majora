@@ -10,7 +10,6 @@ from games.serializers import GameSessionDetailSerializer
 
 @pytest.mark.django_db
 class TestGameSessionDetailSerializer:
-
     """Tests for the GameSessionDetailSerializer."""
 
     def setup_method(self):

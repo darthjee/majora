@@ -22,7 +22,6 @@ from games.models import (
 
 @pytest.mark.django_db
 class TestUploadFinalizeView:
-
     """Tests for PATCH /uploads/<upload_id>.json."""
 
     def setup_method(self):

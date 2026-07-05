@@ -12,7 +12,6 @@ from games.models import Treasure
 
 @pytest.mark.django_db
 class TestTreasureAccessView:
-
     """Tests for the GET /treasures/<id>/access.json endpoint."""
 
     def setup_method(self):

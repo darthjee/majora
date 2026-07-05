@@ -11,7 +11,6 @@ from games.models import Character, CharacterPhoto, Game, GameMaster, Player
 
 @pytest.mark.django_db
 class TestGameNpcPhotoSetView:
-
     """Tests for PATCH /games/<game_slug>/npcs/<character_id>/photos/<photo_id>/set.json."""
 
     def setup_method(self):

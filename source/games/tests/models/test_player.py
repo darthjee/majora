@@ -7,7 +7,6 @@ from games.models import Game, Player
 
 @pytest.mark.django_db
 class TestPlayer:
-
     """Tests for the Player model."""
 
     def test_player_creation(self):

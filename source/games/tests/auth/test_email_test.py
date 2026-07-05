@@ -13,7 +13,6 @@ TEST_PASSWORD = get_random_string(20)
 
 @pytest.mark.django_db
 class TestTestEmailView:
-
     """Tests for the test-email endpoint."""
 
     def setup_method(self):

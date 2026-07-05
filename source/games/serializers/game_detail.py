@@ -8,7 +8,6 @@ from games.serializers.link import LinkSerializer
 
 
 class GameDetailSerializer(serializers.ModelSerializer):
-
     """Serializer for game detail view including links and photos."""
 
     links = LinkSerializer(many=True, read_only=True)
@@ -18,6 +17,8 @@ class GameDetailSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
+        """Metadata for the GameDetailSerializer."""
+
         model = Game
         fields = [
             'name',

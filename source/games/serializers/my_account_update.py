@@ -6,7 +6,6 @@ from rest_framework import serializers
 
 
 class MyAccountUpdateSerializer(serializers.ModelSerializer):
-
     """Serializer for the authenticated user's own account update, including an optional
     password change."""
 
@@ -20,6 +19,8 @@ class MyAccountUpdateSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
+        """Metadata for the MyAccountUpdateSerializer."""
+
         model = User
         fields = ['name', 'email', 'password', 'password_confirmation']
 

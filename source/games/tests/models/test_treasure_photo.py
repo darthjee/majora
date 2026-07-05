@@ -7,7 +7,6 @@ from games.models import Treasure, TreasurePhoto
 
 @pytest.mark.django_db
 class TestTreasurePhoto:
-
     """Tests for the TreasurePhoto model."""
 
     def setup_method(self):

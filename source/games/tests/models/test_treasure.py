@@ -8,7 +8,6 @@ from games.models import Treasure
 
 @pytest.mark.django_db
 class TestTreasure:
-
     """Tests for the Treasure model."""
 
     def test_treasure_creation(self):
@@ -33,7 +32,6 @@ class TestTreasure:
 
 @pytest.mark.django_db
 class TestTreasureCanBeEditedBy:
-
     """Tests for Treasure.can_be_edited_by()."""
 
     def setup_method(self):

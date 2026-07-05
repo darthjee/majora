@@ -15,7 +15,6 @@ from games.models import PasswordResetToken
 
 @pytest.mark.django_db
 class TestStaffUserRecoveryLinkView:
-
     """Tests for the POST /staff/users/<id>/recovery-link.json endpoint."""
 
     def setup_method(self):

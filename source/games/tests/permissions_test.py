@@ -18,7 +18,6 @@ def _make_request(user):
 
 @pytest.mark.django_db
 class TestCharacterEditPermissionCheck:
-
     """Tests for CharacterEditPermission.check()."""
 
     def setup_method(self):
@@ -74,7 +73,6 @@ class TestCharacterEditPermissionCheck:
 
 @pytest.mark.django_db
 class TestGameEditPermissionCheck:
-
     """Tests for GameEditPermission.check()."""
 
     def setup_method(self):

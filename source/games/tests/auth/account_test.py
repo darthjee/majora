@@ -13,7 +13,6 @@ TEST_PASSWORD = get_random_string(20)
 
 @pytest.mark.django_db
 class TestAccountView:
-
     """Tests for the GET /users/account.json endpoint."""
 
     def setup_method(self):
@@ -65,7 +64,6 @@ class TestAccountView:
 
 @pytest.mark.django_db
 class TestAccountPatchView:
-
     """Tests for the PATCH /users/account.json endpoint."""
 
     def setup_method(self):
