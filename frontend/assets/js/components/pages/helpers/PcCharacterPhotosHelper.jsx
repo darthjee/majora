@@ -4,6 +4,7 @@ import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import Pagination from '../../elements/Pagination.jsx';
 import PhotoCard from '../../elements/PhotoCard.jsx';
+import UploadButton from '../../elements/UploadButton.jsx';
 import Translator from '../../../i18n/Translator.js';
 
 /**
@@ -77,9 +78,9 @@ export default class PcCharacterPhotosHelper {
     if (!canEdit) return null;
 
     return (
-      <button type="button" className="btn btn-secondary" onClick={handlers.onOpenUploadModal}>
+      <UploadButton onClick={handlers.onOpenUploadModal}>
         {Translator.t('pc_character_photos_page.upload')}
-      </button>
+      </UploadButton>
     );
   }
 }
