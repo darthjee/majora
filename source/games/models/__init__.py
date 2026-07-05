@@ -3,6 +3,7 @@
 from games.models.character import Character
 from games.models.character_link import CharacterLink
 from games.models.character_photo import CharacterPhoto
+from games.models.character_treasure import CharacterTreasure
 from games.models.game import Game
 from games.models.game_master import GameMaster
 from games.models.game_photo import GamePhoto
@@ -19,6 +20,7 @@ __all__ = [
     'Character',
     'CharacterLink',
     'CharacterPhoto',
+    'CharacterTreasure',
     'Game',
     'GameMaster',
     'GamePhoto',
