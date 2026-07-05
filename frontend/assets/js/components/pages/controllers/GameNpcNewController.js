@@ -1,0 +1,129 @@
+import CharacterClient from '../../../client/CharacterClient.js';
+import GameClient from '../../../client/GameClient.js';
+import AuthStorage from '../../../utils/AuthStorage.js';
+import BasePageController from './BasePageController.js';
+import Router from '../../../utils/Router.js';
+import Noop from '../../../utils/Noop.js';
+
+/**
+ * Extract game slug from an NPC creation hash.
+ *
+ * @param {string} hash - Current hash.
+ * @returns {string} Game slug.
+ */
+export function getGameSlugFromNpcNewHash(hash = '') {
+  return Router.extractParams('/games/:game_slug/npcs/new', hash).game_slug ?? '';
+}
+
+/**
+ * Controller for the game NPC creation page.
+ */
+export default class GameNpcNewController extends BasePageController {
+  /**
+   * Create a game NPC new controller.
+   *
+   * @param {Function} setError - General error setter.
+   * @param {Function} [setFieldErrors] - Per-field error setter.
+   * @param {CharacterClient|null} [characterClient] - Character client override.
+   * @param {GameClient|null} [gameClient] - Game client override, used for the access check.
+   */
+  constructor(setError, setFieldErrors = Noop.noop, characterClient = null, gameClient = null) {
+    super();
+    this.setError = setError;
+    this.setFieldErrors = setFieldErrors;
+    this.characterClient = characterClient ?? new CharacterClient();
+    this.gameClient = gameClient ?? new GameClient();
+  }
+
+  /**
+   * Build the page mount effect.
+   *
+   * @description Returns a callback that checks whether the current user may
+   *   edit the game and redirects to the NPCs index when they cannot.
+   * @returns {Function} Effect callback.
+   */
+  buildEffect() {
+    return () => {
+      const hash = typeof window === 'undefined' ? '' : window.location.hash;
+      const gameSlug = getGameSlugFromNpcNewHash(hash);
+      const token = AuthStorage.getToken();
+
+      this.gameClient.fetchGameAccess(gameSlug, token)
+        .then((response) => (response.ok ? response.json() : { can_edit: false }))
+        .then((access) => this.#redirectIfNotAllowed(access, gameSlug))
+        .catch(() => this.#redirectToNpcs(gameSlug));
+    };
+  }
+
+  /**
+   * Submit the new NPC form.
+   *
+   * @description Prevents the default form submission, resets status and
+   *   field errors, sends a POST request, then redirects on success,
+   *   sets field errors on 400, or sets error status on other failures.
+   * @param {Event|undefined} event - Form submit event, if any.
+   * @param {string} gameSlug - Game slug.
+   * @param {{name: string, role: string, description: string, privateDescription: string,
+   *   hidden: boolean, money: string}} formValues - Raw form field values.
+   * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
+   * @returns {Promise<void>} Resolves when the request handling finishes.
+   */
+  async submitForm(event, gameSlug, formValues, setters) {
+    if (event && typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+
+    setters.setStatus('submitting');
+    setters.setFieldErrors({});
+
+    const token = AuthStorage.getToken();
+
+    try {
+      const response = await this.characterClient.createNpc(gameSlug, token, {
+        name: formValues.name,
+        role: formValues.role,
+        public_description: formValues.description,
+        private_description: formValues.privateDescription,
+        hidden: formValues.hidden,
+        money: parseInt(formValues.money, 10),
+      });
+
+      await this.#handleResponse(response, gameSlug, setters);
+    } catch {
+      setters.setStatus('error');
+    }
+  }
+
+  #redirectIfNotAllowed(access, gameSlug) {
+    if (!access.can_edit) {
+      this.#redirectToNpcs(gameSlug);
+    }
+  }
+
+  #redirectToNpcs(gameSlug) {
+    if (typeof window !== 'undefined') {
+      window.location.hash = `/games/${gameSlug}/npcs`;
+    }
+  }
+
+  async #handleResponse(response, gameSlug, setters) {
+    if (response.status === 201) {
+      const data = await response.json();
+
+      if (typeof window !== 'undefined') {
+        window.location.hash = `/games/${gameSlug}/npcs/${data.id}`;
+      }
+      return;
+    }
+
+    const data = await response.json();
+    const errors = data.errors ?? {};
+
+    if (response.status === 400) {
+      setters.setFieldErrors(errors);
+      return;
+    }
+
+    setters.setStatus('error');
+  }
+}

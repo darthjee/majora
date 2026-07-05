@@ -65,6 +65,36 @@ describe('GameCharactersHelper', function() {
       );
       expect(html).toContain('href="#/games/eq"');
     });
+
+    it('does not render the new NPC button when canEdit is omitted', function() {
+      const html = renderToStaticMarkup(
+        GameCharactersHelper.render(
+          characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters', 'pc', '#/games/eq',
+        )
+      );
+      expect(html).not.toContain('New NPC');
+    });
+
+    it('does not render the new NPC button when canEdit is false', function() {
+      const html = renderToStaticMarkup(
+        GameCharactersHelper.render(
+          characters, pagination, '#/games/eq/npcs', 'eq', 'Non-Player Characters', 'npc', '#/games/eq',
+          false, '#/games/eq/npcs/new',
+        )
+      );
+      expect(html).not.toContain('New NPC');
+    });
+
+    it('renders the new NPC button when canEdit is true', function() {
+      const html = renderToStaticMarkup(
+        GameCharactersHelper.render(
+          characters, pagination, '#/games/eq/npcs', 'eq', 'Non-Player Characters', 'npc', '#/games/eq',
+          true, '#/games/eq/npcs/new',
+        )
+      );
+      expect(html).toContain('New NPC');
+      expect(html).toContain('href="#/games/eq/npcs/new"');
+    });
   });
 
   describe('.renderLoading', function() {

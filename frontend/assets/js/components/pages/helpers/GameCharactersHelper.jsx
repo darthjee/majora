@@ -1,8 +1,9 @@
 import React from 'react';
-import BackButton from '../../elements/BackButton.jsx';
 import CharacterCard from '../../elements/CharacterCard.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
+import NewButton from '../../elements/NewButton.jsx';
+import PageActions from '../../elements/PageActions.jsx';
 import Pagination from '../../elements/Pagination.jsx';
 import Translator from '../../../i18n/Translator.js';
 
@@ -23,12 +24,23 @@ export default class GameCharactersHelper {
    * @param {string} title - Page heading (e.g. "Player Characters").
    * @param {string} characterType - Character type, either 'pc' or 'npc'.
    * @param {string} backHref - Hash path to the parent game page.
+   * @param {boolean} [canEdit] - Whether the current user may create new characters.
+   * @param {string} [newHref] - Hash path to the new character form.
    * @returns {React.ReactElement} Characters grid with pagination.
    */
-  static render(characters, pagination, basePath, gameSlug, title, characterType, backHref) {
+  static render(
+    characters, pagination, basePath, gameSlug, title, characterType, backHref,
+    canEdit = false, newHref = '',
+  ) {
     return (
       <div className="container mt-4">
-        <BackButton href={backHref} />
+        <PageActions backHref={backHref}>
+          {canEdit && (
+            <NewButton href={newHref}>
+              {Translator.t('game_npcs_page.new_npc')}
+            </NewButton>
+          )}
+        </PageActions>
         <h1 className="mb-4">{title}</h1>
         <div className="row">
           {characters.map((character) => (

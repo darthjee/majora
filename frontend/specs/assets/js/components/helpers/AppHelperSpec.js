@@ -6,6 +6,7 @@ describe('AppHelper', function() {
   it('renders page content for known pages', function() {
     expect(renderToStaticMarkup(AppHelper.render('games', '#/games'))).toContain('Loading games...');
     expect(renderToStaticMarkup(AppHelper.render('npcCharacter', '#/games/demo/npcs/1'))).toContain('Loading character...');
+    expect(renderToStaticMarkup(AppHelper.render('gameNpcNew', '#/games/demo/npcs/new'))).toContain(Translator.t('game_npc_new_page.title'));
     expect(renderToStaticMarkup(AppHelper.render('pcCharacter', '#/games/demo/pcs/1'))).toContain('Loading character...');
     expect(renderToStaticMarkup(AppHelper.render('pcCharacterEdit', '#/games/demo/pcs/1/edit'))).toContain('Loading character...');
     expect(renderToStaticMarkup(AppHelper.render('pcCharacterPhotos', '#/games/demo/pcs/1/photos'))).toContain(Translator.t('pc_character_photos_page.loading'));

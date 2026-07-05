@@ -8,6 +8,7 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/edit').getPage()).toBe('gameEdit');
     expect(new HashRouteResolver(() => '#/games/campaign/pcs').getPage()).toBe('gamePcs');
     expect(new HashRouteResolver(() => '#/games/campaign/npcs').getPage()).toBe('gameNpcs');
+    expect(new HashRouteResolver(() => '#/games/campaign/npcs/new').getPage()).toBe('gameNpcNew');
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7').getPage()).toBe('npcCharacter');
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7').getPage()).toBe('pcCharacter');
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/edit').getPage()).toBe('pcCharacterEdit');
@@ -52,6 +53,14 @@ describe('HashRouteResolver', function() {
 
   it('resolves /games/:game_slug/photos to gamePhotos, not game', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/photos').getPage()).toBe('gamePhotos');
+  });
+
+  it('resolves /games/:game_slug/npcs/new to gameNpcNew, not npcCharacter', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/npcs/new').getPage()).toBe('gameNpcNew');
+  });
+
+  it('still resolves /games/:game_slug/npcs/:character_id to npcCharacter', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/npcs/7').getPage()).toBe('npcCharacter');
   });
 
   it('falls back to home for unknown routes', function() {
