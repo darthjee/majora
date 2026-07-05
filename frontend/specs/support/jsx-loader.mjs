@@ -65,7 +65,7 @@ export async function load(url, context, nextLoad) {
       shortCircuit: true,
     };
   }
-  if (url.endsWith('.css')) {
+  if (url.endsWith('.css') || url.endsWith('.scss')) {
     // Frontend entrypoints import stylesheets, but Node-based specs only need the JS module graph.
     return {
       format: 'module',
