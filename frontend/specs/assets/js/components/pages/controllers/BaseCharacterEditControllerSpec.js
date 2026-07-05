@@ -264,7 +264,7 @@ describe('BaseCharacterEditController', function() {
   describe('#buildEffect', function() {
     it('delegates to the load controller buildEffect', async function() {
       const fullCharacterClient = jasmine.createSpyObj('characterClient', [
-        'fetchNpc', 'fetchNpcFull', 'fetchNpcAccess', 'updateNpc',
+        'fetchNpc', 'fetchNpcFull', 'fetchNpcAccess', 'fetchNpcTreasures', 'updateNpc',
       ]);
 
       client.currentHash.and.returnValue('#/games/demo/npcs/1/edit');
@@ -273,6 +273,9 @@ describe('BaseCharacterEditController', function() {
       }));
       fullCharacterClient.fetchNpcAccess.and.returnValue(Promise.resolve({
         ok: true, json: () => Promise.resolve({ can_edit: true }),
+      }));
+      fullCharacterClient.fetchNpcTreasures.and.returnValue(Promise.resolve({
+        ok: true, json: () => Promise.resolve([]),
       }));
       fullCharacterClient.fetchNpcFull.and.returnValue(Promise.resolve({
         ok: true, json: () => Promise.resolve({ id: 1, can_edit: true, private_description: 'Notes.' }),
@@ -285,7 +288,9 @@ describe('BaseCharacterEditController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(fullCharacterClient.fetchNpc).toHaveBeenCalledWith('demo', '1', null);
-      expect(setCharacter).toHaveBeenCalledWith({ id: 1, can_edit: true, private_description: 'Notes.' });
+      expect(setCharacter).toHaveBeenCalledWith({
+        id: 1, treasures: [], can_edit: true, private_description: 'Notes.',
+      });
 
       cleanup();
     });

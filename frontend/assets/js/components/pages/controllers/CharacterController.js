@@ -80,6 +80,19 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
+   * Fetch a first page of the character's treasures from the API.
+   * Must be implemented by subclasses.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string} characterId - Character id.
+   * @param {string|null} token - Authentication token.
+   * @returns {Promise<Response>} Fetch response.
+   */
+  fetchCharacterTreasures(gameSlug, characterId, token) { // eslint-disable-line no-unused-vars
+    throw new Error('CharacterController#fetchCharacterTreasures must be implemented by subclass');
+  }
+
+  /**
    * Handle the access endpoint response, overlaying can_edit onto the character.
    * Falls back to the original character when the response is not ok.
    *
@@ -172,8 +185,26 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
+   * Fetch the character's treasures and merge them onto the character as
+   * `character.treasures`. Treasures are supplementary, not essential, so any
+   * failure (network error or non-ok response) degrades to an empty array
+   * rather than failing the whole character page load.
+   *
+   * @param {object} character - Base character data already loaded.
+   * @param {object} params - Route params with game_slug and character_id.
+   * @param {string|null} token - Authentication token.
+   * @returns {Promise<object>} Resolves to the character with treasures applied.
+   */
+  fetchAndMergeTreasures(character, params, token) {
+    return this.fetchCharacterTreasures(params.game_slug, params.character_id, token)
+      .then((response) => (response.ok ? response.json() : []))
+      .then((treasures) => ({ ...character, treasures: Array.isArray(treasures) ? treasures : [] }))
+      .catch(() => ({ ...character, treasures: [] }));
+  }
+
+  /**
    * Load the character using the stored token, parse the response,
-   * merge access permissions, and update loading state.
+   * merge treasures and access permissions, and update loading state.
    *
    * @param {object} params - Route params with game_slug and character_id.
    * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
@@ -184,6 +215,7 @@ export default class CharacterController extends BasePageController {
 
     return this.fetchCharacter(params.game_slug, params.character_id, token)
       .then((response) => this.handleCharacterResponse(response))
+      .then((character) => this.fetchAndMergeTreasures(character, params, token))
       .then((character) => this.fetchAndMergeAccess(character, params, token, safeSet))
       .catch(() => safeSet(this.setError, 'Unable to load character.'))
       .finally(() => safeSet(this.setLoading, false));

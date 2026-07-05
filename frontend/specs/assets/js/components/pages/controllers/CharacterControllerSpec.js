@@ -23,6 +23,10 @@ class StubCharacterController extends CharacterController {
   fetchCharacterAccess(gameSlug, characterId, token) { // eslint-disable-line no-unused-vars
     return Promise.resolve({ ok: false });
   }
+
+  fetchCharacterTreasures(gameSlug, characterId, token) { // eslint-disable-line no-unused-vars
+    return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+  }
 }
 
 describe('CharacterController', function() {
@@ -45,6 +49,9 @@ describe('CharacterController', function() {
     }
     if (overrides.fetchCharacterAccess) {
       spyOn(controller, 'fetchCharacterAccess').and.callFake(overrides.fetchCharacterAccess);
+    }
+    if (overrides.fetchCharacterTreasures) {
+      spyOn(controller, 'fetchCharacterTreasures').and.callFake(overrides.fetchCharacterTreasures);
     }
 
     return controller;
@@ -91,7 +98,7 @@ describe('CharacterController', function() {
       await controller.loadCharacter(params, safeSet);
 
       expect(controller.fetchCharacter).toHaveBeenCalledWith('demo', '2', null);
-      expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: false });
+      expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: false });
     });
 
     it('calls setError when the character fetch response is not ok', async function() {
@@ -125,6 +132,42 @@ describe('CharacterController', function() {
       await controller.loadCharacter(params, safeSet);
 
       expect(setLoading).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('#fetchAndMergeTreasures', function() {
+    const params = { game_slug: 'demo', character_id: '2' };
+
+    it('merges treasures onto the character on success', async function() {
+      const controller = buildController(jasmine.createSpy('setCharacter'), {
+        fetchCharacterTreasures: () => Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([{ id: 1, name: 'Sword', quantity: 1 }]),
+        }),
+      });
+
+      const result = await controller.fetchAndMergeTreasures({ id: 2 }, params, 'tok');
+
+      expect(controller.fetchCharacterTreasures).toHaveBeenCalledWith('demo', '2', 'tok');
+      expect(result).toEqual({ id: 2, treasures: [{ id: 1, name: 'Sword', quantity: 1 }] });
+    });
+
+    const degradedCases = [
+      ['response is not ok', () => Promise.resolve({ ok: false })],
+      ['request throws', () => Promise.reject(new Error('Network error'))],
+      ['response body is not an array', () => Promise.resolve({
+        ok: true, json: () => Promise.resolve({ unexpected: 'shape' }),
+      })],
+    ];
+
+    degradedCases.forEach(([description, fetchCharacterTreasures]) => {
+      it(`degrades to an empty array when the ${description}`, async function() {
+        const controller = buildController(jasmine.createSpy('setCharacter'), { fetchCharacterTreasures });
+
+        const result = await controller.fetchAndMergeTreasures({ id: 2 }, params, 'tok');
+
+        expect(result).toEqual({ id: 2, treasures: [] });
+      });
     });
   });
 

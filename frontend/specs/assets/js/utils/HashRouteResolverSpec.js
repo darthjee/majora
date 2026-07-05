@@ -18,6 +18,8 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/photos').getPage()).toBe('gamePhotos');
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/photos').getPage()).toBe('pcCharacterPhotos');
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/photos').getPage()).toBe('npcCharacterPhotos');
+    expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/treasures').getPage()).toBe('pcCharacterTreasures');
+    expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/treasures').getPage()).toBe('npcCharacterTreasures');
     expect(new HashRouteResolver(() => '#/recover-password?token=abc').getPage()).toBe('recoverPassword');
     expect(new HashRouteResolver(() => '#/users/register').getPage()).toBe('register');
     expect(new HashRouteResolver(() => '#/my_account').getPage()).toBe('myAccount');
@@ -52,6 +54,14 @@ describe('HashRouteResolver', function() {
 
   it('resolves /games/:game_slug/npcs/:character_id/photos to npcCharacterPhotos, not npcCharacter', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/photos').getPage()).toBe('npcCharacterPhotos');
+  });
+
+  it('resolves /games/:game_slug/pcs/:character_id/treasures to pcCharacterTreasures, not pcCharacter', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/treasures').getPage()).toBe('pcCharacterTreasures');
+  });
+
+  it('resolves /games/:game_slug/npcs/:character_id/treasures to npcCharacterTreasures, not npcCharacter', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/treasures').getPage()).toBe('npcCharacterTreasures');
   });
 
   it('resolves /games/:game_slug/photos to gamePhotos, not game', function() {

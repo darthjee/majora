@@ -79,4 +79,16 @@ export default class PcCharacterController extends CharacterController {
   fetchCharacterAccess(gameSlug, characterId, token) {
     return this.characterClient.fetchPcAccess(gameSlug, characterId, token);
   }
+
+  /**
+   * Fetch a first page of the PC character's treasures from the API.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string} characterId - Character id.
+   * @param {string|null} token - Authentication token.
+   * @returns {Promise<Response>} Fetch response.
+   */
+  fetchCharacterTreasures(gameSlug, characterId, token) {
+    return this.characterClient.fetchPcTreasures(gameSlug, characterId, token);
+  }
 }

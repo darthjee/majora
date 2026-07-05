@@ -13,6 +13,8 @@ describe('AppHelper', function() {
     expect(renderToStaticMarkup(AppHelper.render('pcCharacterEdit', '#/games/demo/pcs/1/edit'))).toContain('Loading character...');
     expect(renderToStaticMarkup(AppHelper.render('pcCharacterPhotos', '#/games/demo/pcs/1/photos'))).toContain(Translator.t('pc_character_photos_page.loading'));
     expect(renderToStaticMarkup(AppHelper.render('npcCharacterPhotos', '#/games/demo/npcs/1/photos'))).toContain(Translator.t('npc_character_photos_page.loading'));
+    expect(renderToStaticMarkup(AppHelper.render('pcCharacterTreasures', '#/games/demo/pcs/1/treasures'))).toContain(Translator.t('character_treasures_page.loading'));
+    expect(renderToStaticMarkup(AppHelper.render('npcCharacterTreasures', '#/games/demo/npcs/1/treasures'))).toContain(Translator.t('character_treasures_page.loading'));
     expect(renderToStaticMarkup(AppHelper.render('recoverPassword', '#/recover-password'))).toContain('Reset password');
     expect(renderToStaticMarkup(AppHelper.render('register', '#/users/register'))).toContain('Register');
     expect(renderToStaticMarkup(AppHelper.render('staffUsers', '#/staff/users'))).toContain(Translator.t('staff_users_page.loading'));

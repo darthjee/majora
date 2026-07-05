@@ -409,6 +409,44 @@ gate.
 
 ---
 
+## CharacterTreasure
+
+Added in issue #297. `CharacterTreasure` is a through model linking `Character` to
+`Treasure`, with its own `quantity` (non-negative integer, default `0`) — the first
+through-model-with-an-extra-field in the codebase (the pre-existing `Game`↔`Treasure`
+relationship is a bare M2M with no through model or extra fields). It is read-only through
+two dedicated index endpoints (one for PCs, one for NPCs), mirroring the `CharacterPhoto`
+index endpoints above. There is no create/update/delete endpoint for `CharacterTreasure` —
+management is superuser-only, via Django admin.
+
+### Treasure index endpoints
+
+| Endpoint | Method | Who can call | Response |
+|----------|--------|-------------|----------|
+| `/games/<slug>/pcs/<id>/treasures.json` | GET | Anyone (`AllowAny`, no authentication required) | Paginated list of `CharacterTreasureSerializer` objects (`id`, `name`, `quantity`, `value`) for that PC's `CharacterTreasure` rows |
+| `/games/<slug>/npcs/<id>/treasures.json` | GET | Anyone (`AllowAny`), but see hidden-NPC gate below | Paginated list of `CharacterTreasureSerializer` objects (`id`, `name`, `quantity`, `value`) for that NPC's `CharacterTreasure` rows |
+
+Unknown `game_slug` or `character_id` (or a `character_id` that does not belong to
+`game_slug`, or is the wrong PC/NPC type for the endpoint) → 404.
+
+For `game_npc_treasures`, the same hidden-NPC visibility gate used by the NPC detail,
+list, and photo index endpoints applies: if `character.hidden` is `True` and the
+requesting user cannot edit the character (`not character.can_be_edited_by(request.user)`),
+the endpoint raises `Http404` instead of returning the treasure list — hidden NPCs'
+treasures are invisible to anonymous or non-editor requests, only visible to the
+character's player, a GameMaster of that game, or a superuser. `PC` characters have no
+`hidden` concept, so `game_pc_treasures` has no equivalent gate.
+
+**Exposed fields** (read): `id` (the `CharacterTreasure` row id, not the `Treasure` id),
+`name` and `value` (sourced from the related `Treasure`), `quantity` (the through model's
+own field) — all non-sensitive and safe to return to anonymous callers under the same
+visibility rules as the endpoints above.
+
+**Write access:** superuser only (via Django admin, out of scope) — no create, update, or
+delete endpoint exists for `CharacterTreasure` as of issue #297.
+
+---
+
 ## Link
 
 Links are read-only through the game detail endpoint (`links` array in
