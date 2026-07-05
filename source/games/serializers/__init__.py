@@ -19,6 +19,8 @@ from games.serializers.game_session_list import GameSessionListSerializer
 from games.serializers.game_session_update import GameSessionUpdateSerializer
 from games.serializers.game_update import GameUpdateSerializer
 from games.serializers.link import LinkSerializer
+from games.serializers.my_account_detail import MyAccountDetailSerializer
+from games.serializers.my_account_update import MyAccountUpdateSerializer
 from games.serializers.pc_access import PcAccessSerializer
 from games.serializers.photo_upload import PhotoUploadSerializer
 from games.serializers.staff_user_detail import StaffUserDetailSerializer
@@ -50,6 +52,8 @@ __all__ = [
     'GameSessionUpdateSerializer',
     'GameUpdateSerializer',
     'LinkSerializer',
+    'MyAccountDetailSerializer',
+    'MyAccountUpdateSerializer',
     'PcAccessSerializer',
     'PhotoUploadSerializer',
     'StaffUserDetailSerializer',

@@ -1,6 +1,6 @@
 """Views package for the games app."""
 
-from .auth import language, login, logout, register, status, test_email
+from .auth import account, language, login, logout, register, status, test_email
 from .characters import (
     game_npc_access,
     game_npc_detail,
@@ -59,6 +59,7 @@ __all__ = [
     'register',
     'status',
     'test_email',
+    'account',
     'recover',
     'reset_password',
     'photo_upload',
