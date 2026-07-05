@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
 import PhotoUploadOverlay from '../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
+import Noop from '../../../../../assets/js/utils/Noop.js';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -37,7 +38,7 @@ describe('PhotoUploadOverlay', function() {
         url: 'http://example.com/photo.png',
         alt: 'Epic Quest',
         canEdit: true,
-        onClick: () => {},
+        onClick: Noop.noop,
       })
     );
 
@@ -52,7 +53,7 @@ describe('PhotoUploadOverlay', function() {
         url: null,
         alt: 'Golden Crown',
         canEdit: true,
-        onClick: () => {},
+        onClick: Noop.noop,
       })
     );
 
@@ -66,7 +67,7 @@ describe('PhotoUploadOverlay', function() {
         url: null,
         alt: 'Aragorn',
         canEdit: true,
-        onClick: () => {},
+        onClick: Noop.noop,
       })
     );
 
@@ -79,7 +80,7 @@ describe('PhotoUploadOverlay', function() {
         url: null,
         alt: 'Epic Quest',
         canEdit: true,
-        onClick: () => {},
+        onClick: Noop.noop,
       })
     );
 
@@ -92,7 +93,7 @@ describe('PhotoUploadOverlay', function() {
         url: null,
         alt: 'Epic Quest',
         canEdit: true,
-        onClick: () => {},
+        onClick: Noop.noop,
       })
     );
 
@@ -106,7 +107,7 @@ describe('PhotoUploadOverlay', function() {
         url: null,
         alt: 'Epic Quest',
         canEdit: false,
-        onClick: () => {},
+        onClick: Noop.noop,
       })
     );
 
@@ -119,7 +120,7 @@ describe('PhotoUploadOverlay', function() {
       React.createElement(PhotoUploadOverlay, {
         url: null,
         alt: 'Epic Quest',
-        onClick: () => {},
+        onClick: Noop.noop,
       })
     );
 

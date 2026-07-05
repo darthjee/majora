@@ -1,5 +1,6 @@
 import TreasureEditController, { getTreasureIdFromEditHash }
   from '../../../../../../assets/js/components/pages/controllers/TreasureEditController.js';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
 
 describe('TreasureEditController', function() {
@@ -52,7 +53,7 @@ describe('TreasureEditController', function() {
     });
 
     const buildController = () => new TreasureEditController(
-      setTreasure, setLoading, setError, () => {}, treasureClient, authClient,
+      setTreasure, setLoading, setError, Noop.noop, treasureClient, authClient,
     );
 
     it('fetches treasure and access in parallel and calls setTreasure with merged result', async function() {

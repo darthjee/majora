@@ -1,5 +1,6 @@
 import GameSessionEditController, { getSessionParamsFromEditHash }
   from '../../../../../../assets/js/components/pages/controllers/GameSessionEditController.js';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
 
 describe('GameSessionEditController', function() {
@@ -36,7 +37,7 @@ describe('GameSessionEditController', function() {
 
       try {
         const controller = new GameSessionEditController(
-          setSession, setLoading, setError, () => {}, sessionClient,
+          setSession, setLoading, setError, Noop.noop, sessionClient,
         );
         const cleanup = controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -66,7 +67,7 @@ describe('GameSessionEditController', function() {
 
       try {
         const controller = new GameSessionEditController(
-          setSession, setLoading, setError, () => {}, sessionClient,
+          setSession, setLoading, setError, Noop.noop, sessionClient,
         );
         const cleanup = controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -91,7 +92,7 @@ describe('GameSessionEditController', function() {
 
       try {
         const controller = new GameSessionEditController(
-          setSession, setLoading, setError, () => {}, sessionClient,
+          setSession, setLoading, setError, Noop.noop, sessionClient,
         );
         const cleanup = controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));

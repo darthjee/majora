@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
 import TextareaField from '../../../../../assets/js/components/elements/TextareaField.jsx';
+import Noop from '../../../../../assets/js/utils/Noop.js';
 
 describe('TextareaField', function() {
   it('renders a label linked to the textarea via id/htmlFor', function() {
@@ -9,7 +10,7 @@ describe('TextareaField', function() {
         id: 'description',
         label: 'Description',
         value: '',
-        onChange: () => {},
+        onChange: Noop.noop,
       })
     );
 
@@ -24,7 +25,7 @@ describe('TextareaField', function() {
         id: 'notes',
         label: 'Notes',
         value: 'Some multi-line text.',
-        onChange: () => {},
+        onChange: Noop.noop,
       })
     );
 
@@ -38,7 +39,7 @@ describe('TextareaField', function() {
         id: 'description',
         label: 'Description',
         value: '',
-        onChange: () => {},
+        onChange: Noop.noop,
       })
     );
 
@@ -52,7 +53,7 @@ describe('TextareaField', function() {
         id: 'description',
         label: 'Description',
         value: '',
-        onChange: () => {},
+        onChange: Noop.noop,
       })
     );
 
@@ -65,7 +66,7 @@ describe('TextareaField', function() {
         id: 'description',
         label: 'Description',
         value: '',
-        onChange: () => {},
+        onChange: Noop.noop,
         errors: ['cannot be blank', 'is too short'],
       })
     );

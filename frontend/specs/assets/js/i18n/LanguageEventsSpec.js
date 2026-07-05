@@ -1,4 +1,5 @@
 import LanguageEvents from '../../../../assets/js/i18n/LanguageEvents.js';
+import Noop from '../../../../assets/js/utils/Noop.js';
 
 describe('LanguageEvents', function() {
   describe('.emit', function() {
@@ -9,13 +10,13 @@ describe('LanguageEvents', function() {
 
   describe('.subscribe', function() {
     it('does not throw when window is unavailable', function() {
-      expect(() => LanguageEvents.subscribe(() => {})).not.toThrow();
+      expect(() => LanguageEvents.subscribe(Noop.noop)).not.toThrow();
     });
   });
 
   describe('.unsubscribe', function() {
     it('does not throw when window is unavailable', function() {
-      expect(() => LanguageEvents.unsubscribe(() => {})).not.toThrow();
+      expect(() => LanguageEvents.unsubscribe(Noop.noop)).not.toThrow();
     });
   });
 });

@@ -9,10 +9,13 @@ import PhotoUploadModalHelper
 import PhotoUploadModalController
   from '../../../../../../assets/js/components/elements/controllers/PhotoUploadModalController.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
 
 class FakeController {
-  buildEffect() { return () => () => {}; }
+  buildEffect() { return () => Noop.noop; }
+  // eslint-disable-next-line no-empty-function
   applyLoadedCharacter() {}
+  // eslint-disable-next-line no-empty-function
   submitForm() {}
 }
 
@@ -25,8 +28,10 @@ class LoadedController {
     setLoading(false);
   }
 
-  buildEffect() { return () => () => {}; }
+  buildEffect() { return () => Noop.noop; }
+  // eslint-disable-next-line no-empty-function
   applyLoadedCharacter() {}
+  // eslint-disable-next-line no-empty-function
   submitForm() {}
 }
 
@@ -71,13 +76,13 @@ describe('CharacterEdit', function() {
       fieldErrors: {},
     };
     const handlers = {
-      onSubmit: () => {},
-      onNameChange: () => {},
-      onRoleChange: () => {},
-      onDescriptionChange: () => {},
-      onPrivateDescriptionChange: () => {},
-      onMoneyChange: () => {},
-      onOpenUploadModal: () => {},
+      onSubmit: Noop.noop,
+      onNameChange: Noop.noop,
+      onRoleChange: Noop.noop,
+      onDescriptionChange: Noop.noop,
+      onPrivateDescriptionChange: Noop.noop,
+      onMoneyChange: Noop.noop,
+      onOpenUploadModal: Noop.noop,
     };
 
     const html = renderToStaticMarkup(EditHelper.render(state, handlers));
@@ -177,7 +182,7 @@ describe('CharacterEdit', function() {
         return Promise.resolve();
       });
       const buildEffectSpy = spyOn(LoadedController.prototype, 'buildEffect')
-        .and.returnValue(() => () => {});
+        .and.returnValue(() => Noop.noop);
       let capturedHandlers;
       spyOn(PhotoUploadModalHelper, 'render').and.callFake((show, state, handlers) => {
         capturedHandlers = handlers;

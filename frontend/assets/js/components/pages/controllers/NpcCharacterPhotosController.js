@@ -3,6 +3,7 @@ import CharacterClient from '../../../client/CharacterClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
+import Noop from '../../../utils/Noop.js';
 
 /**
  * Extract game slug and character id from the NPC character photos hash route.
@@ -86,7 +87,7 @@ export default class NpcCharacterPhotosController extends BasePageController {
 
     return this.characterClient.setNpcPhotoRoles(gameSlug, characterId, photoId, token, ['profile'])
       .then(() => this.#fetchCharacter(gameSlug, characterId, safeSet))
-      .catch(() => {});
+      .catch(Noop.noop);
   }
 
   #fetchPhotos(gameSlug, characterId, safeSet) {

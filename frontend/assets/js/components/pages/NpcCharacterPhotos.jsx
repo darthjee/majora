@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import NpcCharacterPhotosController, { getNpcCharacterPhotosParamsFromHash }
   from './controllers/NpcCharacterPhotosController.js';
+import Noop from '../../utils/Noop.js';
 import NpcCharacterPhotosHelper from './helpers/NpcCharacterPhotosHelper.jsx';
 import PhotoUploadModal from '../elements/PhotoUploadModal.jsx';
 import PhotoViewModal from '../elements/PhotoViewModal.jsx';
@@ -38,7 +39,7 @@ export default function NpcCharacterPhotos() {
   };
 
   const handleSetProfilePhoto = (photoId) => {
-    controller.setProfilePhoto(gameSlug, characterId, photoId).catch(() => {});
+    controller.setProfilePhoto(gameSlug, characterId, photoId).catch(Noop.noop);
   };
 
   if (loading) return NpcCharacterPhotosHelper.renderLoading();

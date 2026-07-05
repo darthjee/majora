@@ -3,6 +3,7 @@ import GameSessionClient from '../../../client/GameSessionClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
+import Noop from '../../../utils/Noop.js';
 
 /**
  * Extract game slug from a session creation hash.
@@ -26,7 +27,7 @@ export default class GameSessionNewController extends BasePageController {
    * @param {GameSessionClient|null} [sessionClient] - Session client override.
    * @param {GameClient|null} [gameClient] - Game client override, used for the access check.
    */
-  constructor(setError, setFieldErrors = () => {}, sessionClient = null, gameClient = null) {
+  constructor(setError, setFieldErrors = Noop.noop, sessionClient = null, gameClient = null) {
     super();
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;

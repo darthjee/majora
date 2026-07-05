@@ -5,6 +5,7 @@ import NpcCharacterController
 import { getNpcCharacterEditParamsFromHash }
   from '../../../../../../assets/js/components/pages/controllers/NpcCharacterEditController.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
 
 class TestCharacterEditController extends BaseCharacterEditController {
   constructor(setCharacter, setLoading, setError, setFieldErrors, client, characterClient) {
@@ -278,7 +279,7 @@ describe('BaseCharacterEditController', function() {
       }));
 
       const controller = new TestCharacterEditController(
-        setCharacter, setLoading, setError, () => {}, client, fullCharacterClient,
+        setCharacter, setLoading, setError, Noop.noop, client, fullCharacterClient,
       );
       const cleanup = controller.buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));

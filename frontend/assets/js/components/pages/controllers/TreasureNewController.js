@@ -3,6 +3,7 @@ import TreasureClient from '../../../client/TreasureClient.js';
 import AdminAccess from '../../../utils/AdminAccess.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
+import Noop from '../../../utils/Noop.js';
 
 /**
  * Controller for the treasure creation page.
@@ -16,7 +17,7 @@ export default class TreasureNewController extends BasePageController {
    * @param {TreasureClient|null} [treasureClient] - Treasure client override.
    * @param {AuthClient|null} [authClient] - Auth client override.
    */
-  constructor(setError, setFieldErrors = () => {}, treasureClient = null, authClient = null) {
+  constructor(setError, setFieldErrors = Noop.noop, treasureClient = null, authClient = null) {
     super();
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;

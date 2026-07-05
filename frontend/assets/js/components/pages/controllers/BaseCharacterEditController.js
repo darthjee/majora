@@ -2,6 +2,7 @@ import CharacterClient from '../../../client/CharacterClient.js';
 import GenericClient from '../../../client/GenericClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
+import Noop from '../../../utils/Noop.js';
 
 /**
  * Decide whether a loaded character should redirect away from the edit page
@@ -58,7 +59,7 @@ export default class BaseCharacterEditController extends BasePageController {
     setCharacter,
     setLoading,
     setError,
-    setFieldErrors = () => {},
+    setFieldErrors = Noop.noop,
     loadControllerClass,
     getParamsFromHash,
     routeSegment,

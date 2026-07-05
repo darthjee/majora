@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import NpcCharacterPhotosHelper from '../../../../../../assets/js/components/pages/helpers/NpcCharacterPhotosHelper.jsx';
 import Translator from '../../../../../../assets/js/i18n/Translator.js';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
 
 describe('NpcCharacterPhotosHelper', function() {
   const photos = [
@@ -8,7 +9,7 @@ describe('NpcCharacterPhotosHelper', function() {
     { id: 2, path: 'photos/npcs/7/b.jpg' },
   ];
   const pagination = { page: 1, pages: 2, perPage: 10 };
-  const handlers = { onOpenUploadModal: () => {}, onSelectPhoto: () => {} };
+  const handlers = { onOpenUploadModal: Noop.noop, onSelectPhoto: Noop.noop };
 
   describe('.render', function() {
     it('renders each photo', function() {

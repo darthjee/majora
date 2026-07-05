@@ -4,6 +4,7 @@ import AuthEvents from '../../../utils/AuthEvents.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import Translator from '../../../i18n/Translator.js';
 import ActivityTracker from '../../../utils/ActivityTracker.js';
+import Noop from '../../../utils/Noop.js';
 
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
 
@@ -26,12 +27,12 @@ export default class HeaderController {
   constructor(
     setLoggedIn,
     setShowModal,
-    setTestEmailStatus = () => {},
-    setIsSuperUser = () => {},
-    setServerStatus = () => {},
+    setTestEmailStatus = Noop.noop,
+    setIsSuperUser = Noop.noop,
+    setServerStatus = Noop.noop,
     client = new AuthClient(),
     healthClient = new HealthClient(),
-    setIsStaff = () => {}
+    setIsStaff = Noop.noop
   ) {
     this.setLoggedIn = setLoggedIn;
     this.setShowModal = setShowModal;

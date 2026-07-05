@@ -1,5 +1,6 @@
 import GameSessionNewController, { getGameSlugFromSessionNewHash }
   from '../../../../../../assets/js/components/pages/controllers/GameSessionNewController.js';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
 
 describe('GameSessionNewController', function() {
@@ -29,7 +30,7 @@ describe('GameSessionNewController', function() {
       }));
 
       try {
-        const controller = new GameSessionNewController(setError, () => {}, sessionClient, gameClient);
+        const controller = new GameSessionNewController(setError, Noop.noop, sessionClient, gameClient);
         controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -53,7 +54,7 @@ describe('GameSessionNewController', function() {
       }));
 
       try {
-        const controller = new GameSessionNewController(setError, () => {}, sessionClient, gameClient);
+        const controller = new GameSessionNewController(setError, Noop.noop, sessionClient, gameClient);
         controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -73,7 +74,7 @@ describe('GameSessionNewController', function() {
       gameClient.fetchGameAccess.and.returnValue(Promise.resolve({ ok: false }));
 
       try {
-        const controller = new GameSessionNewController(setError, () => {}, sessionClient, gameClient);
+        const controller = new GameSessionNewController(setError, Noop.noop, sessionClient, gameClient);
         controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -93,7 +94,7 @@ describe('GameSessionNewController', function() {
       gameClient.fetchGameAccess.and.returnValue(Promise.reject(new Error('network error')));
 
       try {
-        const controller = new GameSessionNewController(setError, () => {}, sessionClient, gameClient);
+        const controller = new GameSessionNewController(setError, Noop.noop, sessionClient, gameClient);
         controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 

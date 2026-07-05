@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import PcCharacterPhotosController, { getPcCharacterPhotosParamsFromHash }
   from './controllers/PcCharacterPhotosController.js';
+import Noop from '../../utils/Noop.js';
 import PcCharacterPhotosHelper from './helpers/PcCharacterPhotosHelper.jsx';
 import PhotoUploadModal from '../elements/PhotoUploadModal.jsx';
 import PhotoViewModal from '../elements/PhotoViewModal.jsx';
@@ -38,7 +39,7 @@ export default function PcCharacterPhotos() {
   };
 
   const handleSetProfilePhoto = (photoId) => {
-    controller.setProfilePhoto(gameSlug, characterId, photoId).catch(() => {});
+    controller.setProfilePhoto(gameSlug, characterId, photoId).catch(Noop.noop);
   };
 
   if (loading) return PcCharacterPhotosHelper.renderLoading();

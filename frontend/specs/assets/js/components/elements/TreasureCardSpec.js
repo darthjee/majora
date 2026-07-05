@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
 import TreasureCard from '../../../../../assets/js/components/elements/TreasureCard.jsx';
+import Noop from '../../../../../assets/js/utils/Noop.js';
 
 describe('TreasureCard', function() {
   const treasure = { id: 42, name: 'Golden Crown', value: 500 };
@@ -30,7 +31,7 @@ describe('TreasureCard', function() {
 
   it('renders the upload button when isSuperUser is true', function() {
     const html = renderToStaticMarkup(
-      React.createElement(TreasureCard, { treasure, isSuperUser: true, onUploadClick: () => {} })
+      React.createElement(TreasureCard, { treasure, isSuperUser: true, onUploadClick: Noop.noop })
     );
     expect(html).toContain('photo-upload-overlay-button');
   });

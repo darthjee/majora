@@ -4,6 +4,7 @@ import AdminAccess from '../../../utils/AdminAccess.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
+import Noop from '../../../utils/Noop.js';
 
 /**
  * Extract treasure id from a treasure edit hash.
@@ -30,7 +31,7 @@ export default class TreasureEditController extends BasePageController {
    * @param {AuthClient|null} [authClient] - Auth client override.
    */
   constructor(
-    setTreasure, setLoading, setError, setFieldErrors = () => {}, treasureClient = null, authClient = null,
+    setTreasure, setLoading, setError, setFieldErrors = Noop.noop, treasureClient = null, authClient = null,
   ) {
     super();
     this.setTreasure = setTreasure;

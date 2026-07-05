@@ -5,6 +5,7 @@ import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import Pagination from '../../elements/Pagination.jsx';
 import TreasureCard from '../../elements/TreasureCard.jsx';
 import Translator from '../../../i18n/Translator.js';
+import Noop from '../../../utils/Noop.js';
 
 /**
  * Rendering helper for the Game Treasures listing page.
@@ -24,7 +25,7 @@ export default class GameTreasuresHelper {
    * @param {Function} [onUploadClick] - Handler invoked with a treasure when its upload button is clicked.
    * @returns {React.ReactElement} Treasures list with pagination.
    */
-  static render(treasures, pagination, basePath, backHref, isSuperUser = false, onUploadClick = () => {}) {
+  static render(treasures, pagination, basePath, backHref, isSuperUser = false, onUploadClick = Noop.noop) {
     return (
       <div className="container mt-4">
         <BackButton href={backHref} />

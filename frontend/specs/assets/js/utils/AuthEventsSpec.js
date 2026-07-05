@@ -1,4 +1,5 @@
 import AuthEvents from '../../../../assets/js/utils/AuthEvents.js';
+import Noop from '../../../../assets/js/utils/Noop.js';
 
 describe('AuthEvents', function() {
   describe('.emit', function() {
@@ -9,13 +10,13 @@ describe('AuthEvents', function() {
 
   describe('.subscribe', function() {
     it('does not throw when window is unavailable', function() {
-      expect(() => AuthEvents.subscribe(() => {})).not.toThrow();
+      expect(() => AuthEvents.subscribe(Noop.noop)).not.toThrow();
     });
   });
 
   describe('.unsubscribe', function() {
     it('does not throw when window is unavailable', function() {
-      expect(() => AuthEvents.unsubscribe(() => {})).not.toThrow();
+      expect(() => AuthEvents.unsubscribe(Noop.noop)).not.toThrow();
     });
   });
 });

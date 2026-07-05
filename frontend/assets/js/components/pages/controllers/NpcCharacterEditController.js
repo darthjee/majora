@@ -1,6 +1,7 @@
 import NpcCharacterController from './NpcCharacterController.js';
 import BaseCharacterEditController, { resolveLoadedCharacter }
   from './BaseCharacterEditController.js';
+import Noop from '../../../utils/Noop.js';
 import Router from '../../../utils/Router.js';
 
 /**
@@ -39,7 +40,7 @@ export default class NpcCharacterEditController extends BaseCharacterEditControl
     setCharacter,
     setLoading,
     setError,
-    setFieldErrors = () => {},
+    setFieldErrors = Noop.noop,
     client = null,
     characterClient = null,
   ) {

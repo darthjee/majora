@@ -1,6 +1,7 @@
 import PcCharacterController from './PcCharacterController.js';
 import BaseCharacterEditController, { resolveLoadedCharacter }
   from './BaseCharacterEditController.js';
+import Noop from '../../../utils/Noop.js';
 import Router from '../../../utils/Router.js';
 
 /**
@@ -39,7 +40,7 @@ export default class PcCharacterEditController extends BaseCharacterEditControll
     setCharacter,
     setLoading,
     setError,
-    setFieldErrors = () => {},
+    setFieldErrors = Noop.noop,
     client = null,
     characterClient = null,
   ) {
