@@ -65,6 +65,11 @@ class TestStaffUsersListView:
         response = self._get(client, token=self.superuser_token)
         assert response['pages'] == '1'
 
+    def test_response_includes_skip_cache_header(self, client):
+        """Test that the response includes the X-Skip-Cache: true header."""
+        response = self._get(client, token=self.superuser_token)
+        assert response['X-Skip-Cache'] == 'true'
+
     def test_returns_expected_fields(self, client):
         """Test that list items include id, name, and email fields only."""
         response = self._get(client, token=self.superuser_token)

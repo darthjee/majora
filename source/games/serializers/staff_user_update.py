@@ -1,6 +1,7 @@
 """Staff user update serializer for the games app."""
 
 from django.contrib.auth.models import User
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from rest_framework import serializers
 
 
@@ -8,7 +9,10 @@ class StaffUserUpdateSerializer(serializers.ModelSerializer):
 
     """Serializer for partial updates to a user's name and email by staff."""
 
-    name = serializers.CharField(source='username', required=False)
+    name = serializers.CharField(
+        source='username', required=False, max_length=150,
+        validators=[UnicodeUsernameValidator()],
+    )
 
     class Meta:
         model = User

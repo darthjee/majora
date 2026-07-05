@@ -63,6 +63,21 @@ class TestStaffUserDetailView:
         response = self._get(client, 999999, token=self.superuser_token)
         assert response.status_code == 404
 
+    def test_unauthenticated_unknown_id_returns_401_not_404(self, client):
+        """Test that an unauthenticated request for an unknown id still returns 401."""
+        response = self._get(client, 999999)
+        assert response.status_code == 401
+
+    def test_non_staff_unknown_id_returns_403_not_404(self, client):
+        """Test that a non-staff request for an unknown id still returns 403."""
+        response = self._get(client, 999999, token=self.regular_token)
+        assert response.status_code == 403
+
+    def test_staff_user_response_includes_skip_cache_header(self, client):
+        """Test that the GET response includes the X-Skip-Cache: true header."""
+        response = self._get(client, self.target_user.id, token=self.staff_token)
+        assert response['X-Skip-Cache'] == 'true'
+
     def test_url_by_name(self, client):
         """Test that the view is accessible by URL name."""
         url = reverse('staff-user-detail', kwargs={'user_id': self.target_user.id})
@@ -150,6 +165,43 @@ class TestStaffUserDetailPatchView:
             client, 999999, {'name': 'ghost'}, token=self.superuser_token
         )
         assert response.status_code == 404
+
+    def test_patch_unauthenticated_unknown_id_returns_401_not_404(self, client):
+        """Test that an unauthenticated PATCH for an unknown id still returns 401."""
+        response = self._patch(client, 999999, {'name': 'hacked'})
+        assert response.status_code == 401
+
+    def test_patch_non_staff_unknown_id_returns_403_not_404(self, client):
+        """Test that a non-staff PATCH for an unknown id still returns 403."""
+        response = self._patch(
+            client, 999999, {'name': 'hacked'}, token=self.regular_token
+        )
+        assert response.status_code == 403
+
+    def test_patch_response_includes_skip_cache_header(self, client):
+        """Test that the PATCH response includes the X-Skip-Cache: true header."""
+        response = self._patch(
+            client, self.target_user.id, {'name': 'renamed'}, token=self.superuser_token
+        )
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_patch_name_too_long_returns_400(self, client):
+        """Test that a name longer than 150 characters returns 400, not 500."""
+        response = self._patch(
+            client, self.target_user.id, {'name': 'a' * 151}, token=self.superuser_token
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'name' in data['errors']
+
+    def test_patch_name_with_invalid_characters_returns_400(self, client):
+        """Test that a name with characters outside the username charset returns 400."""
+        response = self._patch(
+            client, self.target_user.id, {'name': 'invalid name!'}, token=self.superuser_token
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'name' in data['errors']
 
     def test_patch_duplicate_name_returns_400(self, client):
         """Test that PATCH with a name already used by another user returns 400."""

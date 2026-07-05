@@ -18,11 +18,13 @@ from ..password_reset._shared import build_recovery_url, get_or_create_recovery_
 @permission_classes([AllowAny])
 def staff_user_recovery_link(request, user_id):
     """Return a password-recovery URL for the given user, reusing a valid token if any."""
-    user = get_object_or_404(User, pk=user_id)
-
     error_response = require_staff(request)
     if error_response:
         return error_response
 
+    user = get_object_or_404(User, pk=user_id)
+
     token = get_or_create_recovery_token(user)
-    return Response({'url': build_recovery_url(token)})
+    response = Response({'url': build_recovery_url(token)})
+    response['X-Skip-Cache'] = 'true'
+    return response

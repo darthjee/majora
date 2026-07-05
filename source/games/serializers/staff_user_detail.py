@@ -8,7 +8,7 @@ class StaffUserDetailSerializer(serializers.ModelSerializer):
 
     """Serializer for staff-facing user detail view."""
 
-    name = serializers.CharField(source='username')
+    name = serializers.CharField(source='username', max_length=150)
 
     class Meta:
         model = User

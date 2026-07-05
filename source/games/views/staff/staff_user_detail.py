@@ -18,16 +18,16 @@ from ..common import require_staff, validated_or_error
 @permission_classes([AllowAny])
 def staff_user_detail(request, user_id):
     """Return or update detail for a specific user identified by user_id."""
-    user = get_object_or_404(User, pk=user_id)
-
     error_response = require_staff(request)
     if error_response:
         return error_response
 
+    user = get_object_or_404(User, pk=user_id)
+
     if request.method == 'PATCH':
         return _update_user(request, user)
 
-    return Response(StaffUserDetailSerializer(user).data)
+    return _skip_cache(Response(StaffUserDetailSerializer(user).data))
 
 
 def _update_user(request, user):
@@ -38,4 +38,10 @@ def _update_user(request, user):
         return error_response
 
     serializer.save()
-    return Response(StaffUserDetailSerializer(user).data)
+    return _skip_cache(Response(StaffUserDetailSerializer(user).data))
+
+
+def _skip_cache(response):
+    """Set the X-Skip-Cache header on `response` and return it."""
+    response['X-Skip-Cache'] = 'true'
+    return response

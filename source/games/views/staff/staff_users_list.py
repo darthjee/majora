@@ -20,6 +20,8 @@ def staff_users_list(request):
     if error_response:
         return error_response
 
-    return paginated_list_response(
+    response = paginated_list_response(
         request, User.objects.all().order_by('id'), StaffUserListSerializer
     )
+    response['X-Skip-Cache'] = 'true'
+    return response

@@ -8,7 +8,7 @@ class StaffUserListSerializer(serializers.ModelSerializer):
 
     """Serializer for staff-facing user list items."""
 
-    name = serializers.CharField(source='username')
+    name = serializers.CharField(source='username', max_length=150)
 
     class Meta:
         model = User

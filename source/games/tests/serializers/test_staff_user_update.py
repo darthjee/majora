@@ -78,3 +78,19 @@ class TestStaffUserUpdateSerializer:
             self.user, data={'email': 'alice@example.com'}, partial=True
         )
         assert serializer.is_valid()
+
+    def test_rejects_name_longer_than_150_characters(self):
+        """Test that a name over 150 characters is rejected instead of hitting the database."""
+        serializer = StaffUserUpdateSerializer(
+            self.user, data={'name': 'a' * 151}, partial=True
+        )
+        assert not serializer.is_valid()
+        assert 'name' in serializer.errors
+
+    def test_rejects_name_with_invalid_characters(self):
+        """Test that a name with characters outside the username charset is rejected."""
+        serializer = StaffUserUpdateSerializer(
+            self.user, data={'name': 'invalid name!'}, partial=True
+        )
+        assert not serializer.is_valid()
+        assert 'name' in serializer.errors

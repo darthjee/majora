@@ -55,6 +55,21 @@ class TestStaffUserRecoveryLinkView:
         response = self._post(client, 999999, token=self.superuser_token)
         assert response.status_code == 404
 
+    def test_unauthenticated_unknown_id_returns_401_not_404(self, client):
+        """Test that an unauthenticated request for an unknown id still returns 401."""
+        response = self._post(client, 999999)
+        assert response.status_code == 401
+
+    def test_non_staff_unknown_id_returns_403_not_404(self, client):
+        """Test that a non-staff request for an unknown id still returns 403."""
+        response = self._post(client, 999999, token=self.regular_token)
+        assert response.status_code == 403
+
+    def test_response_includes_skip_cache_header(self, client):
+        """Test that the response includes the X-Skip-Cache: true header."""
+        response = self._post(client, self.target_user.id, token=self.superuser_token)
+        assert response['X-Skip-Cache'] == 'true'
+
     def test_staff_user_creates_token_when_none_exists(self, client):
         """Test that a staff user gets a fresh token when the target has none."""
         assert PasswordResetToken.objects.filter(user=self.target_user).count() == 0
