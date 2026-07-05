@@ -107,6 +107,13 @@ urlpatterns = [
         name='treasure-photo-upload',
     ),
     path('uploads/<int:upload_id>.json', views.upload_finalize, name='upload-finalize'),
+    path('staff/users.json', views.staff_users_list, name='staff-users-list'),
+    path('staff/users/<int:user_id>.json', views.staff_user_detail, name='staff-user-detail'),
+    path(
+        'staff/users/<int:user_id>/recovery-link.json',
+        views.staff_user_recovery_link,
+        name='staff-user-recovery-link',
+    ),
     path('users/login.json', views.login, name='users-login'),
     path('users/logout.json', views.logout, name='users-logout'),
     path('users/register.json', views.register, name='users-register'),

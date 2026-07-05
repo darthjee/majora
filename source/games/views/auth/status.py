@@ -46,6 +46,7 @@ def _build_payload(user, token_obj, session_auth):
         'username': user.username,
         'user_id': user.id,
         'is_superuser': user.is_superuser,
+        'is_staff': user.is_staff,
         'settings': {'favorite_language': profile.favorite_language},
     }
     if session_auth:
