@@ -121,7 +121,9 @@ sets that primary photo reference. The exact behavior dispatches on the upload's
 - **`TreasurePhoto`** (issue #276): unconditionally sets `Treasure.photo` to that photo — unlike
   the `GamePhoto`/`CharacterPhoto` cases, there is no "if unset" guard, since a treasure has at
   most one photo and re-uploading always replaces it. Gated by `TreasureEditPermission`
-  (superuser only).
+  (superuser only) for a global treasure, or `GameEditPermission` (that game's GameMaster, or
+  superuser) when the treasure is exclusive to a game (issue #296) — see the "Treasure photo
+  upload init endpoint" section below.
 
 All three cases reuse the same checks already enforced earlier in the same request (upload
 token match, requesting user must be the upload's owner) — no new authorization path is
@@ -190,11 +192,15 @@ Since NPCs have no player by convention, `CharacterEditPermission` resolves in p
 
 | Endpoint | Method | Who can call | Response fields |
 |----------|--------|-------------|-----------------|
-| `/treasures/<id>/photo_upload.json` | POST | Superuser only | `upload_id`, `token`, `treasure_id` |
+| `/treasures/<id>/photo_upload.json` | POST | Superuser always; additionally that treasure's owning game's GameMaster, when `treasure.game_id` is set | `upload_id`, `token`, `treasure_id` |
 
-Added in issue #276, mirroring the game/character photo upload init endpoints above but gated
-by `TreasureEditPermission` (superuser only) and using a fixed, deterministic storage path
-(`photos/treasures/<id>/photo.<ext>`, no random UUID) since a treasure has at most one photo.
+Added in issue #276, mirroring the game/character photo upload init endpoints above and using a
+fixed, deterministic storage path (`photos/treasures/<id>/photo.<ext>`, no random UUID) since a
+treasure has at most one photo. As of issue #296, the permission check is DM-aware: if
+`treasure.game_id` is set, the check delegates to `GameEditPermission` against that game
+instead of the plain superuser-only `TreasureEditPermission`, so the owning game's GameMaster
+can also initiate an upload for a game-exclusive treasure; a global treasure (`game_id` is
+`None`) still requires a superuser.
 
 - Unauthenticated → 401. Authenticated non-superuser → 403.
 - Unknown `treasure_id` → 404.
@@ -459,19 +465,27 @@ success/failure. They are listed here for completeness.
 
 ## Treasure
 
-Treasures are a global resource, not scoped to any game. All read endpoints are public; write endpoints (create and update) are restricted to superusers. Treasures may also be associated with games via a M2M relationship and retrieved through the game-scoped endpoint below.
+Treasures are global by default, but may optionally be exclusive to one game via a `game` FK
+(issue #296). All read endpoints are public; write endpoints on the global routes (create and
+update) remain restricted to superusers. Treasures may also be associated with games via a
+separate, untouched M2M relationship and retrieved through the game-scoped list endpoint below —
+a treasure can be M2M-linked to any number of games *and/or* exclusively owned (via `game`) by
+at most one game, independently.
 
 | Action | Who can |
 |--------|---------|
-| List (`GET /treasures.json`) | Anyone (no authentication required) |
+| List (`GET /treasures.json`) | Anyone (no authentication required) — returns only global treasures (`game__isnull=True`); game-exclusive treasures are excluded |
 | Detail (`GET /treasures/<id>.json`) | Anyone (no authentication required) |
-| List by game (`GET /games/<slug>/treasures.json`) | Anyone — returns only treasures linked to that game; 404 if game slug unknown |
+| List by game (`GET /games/<slug>/treasures.json`) | Anyone — returns the union of treasures M2M-linked to that game and treasures whose `game` FK points at it; 404 if game slug unknown |
+| Create by game (`POST /games/<slug>/treasures.json`) | That game's GameMaster, or superuser (`GameEditPermission`) — unauthenticated → 401, authenticated non-editor → 403. `game` is set server-side from the resolved game and never accepted from the request body |
+| Detail by game (`GET /games/<slug>/treasures/<int:treasure_id>.json`) | Anyone — 404 if the treasure's `game` does not match the resolved game (including a global treasure id, or one exclusive to a different game) |
+| Update by game (`PATCH /games/<slug>/treasures/<int:treasure_id>.json`) | That game's GameMaster, or superuser (`GameEditPermission`) — unauthenticated → 401, authenticated non-editor → 403, same 404 rule as the detail endpoint above |
 | Create (`POST /treasures.json`) | Superuser only — unauthenticated → 401, authenticated non-superuser → 403 |
-| Update (`PATCH /treasures/<id>.json`) | Superuser only — unauthenticated → 401, authenticated non-superuser → 403 |
-| Create photo (`POST /treasures/<id>/photo_upload.json`) | Superuser only — unauthenticated → 401, authenticated non-superuser → 403 |
-| Delete | Superuser only (via Django admin, out of scope) |
+| Update (`PATCH /treasures/<id>.json`) | Superuser only — unauthenticated → 401, authenticated non-superuser → 403 (this includes the GameMaster of a game-exclusive treasure's own owning game — that asymmetry is intentional: the global endpoint stays superuser-only regardless of `game`) |
+| Create photo (`POST /treasures/<id>/photo_upload.json`) | Superuser always; additionally that treasure's owning game's GameMaster, when `treasure.game_id` is set — unauthenticated → 401, authenticated non-editor → 403 |
+| Delete | Superuser only (via Django admin, out of scope) — deleting a treasure's owning `Game` also cascade-deletes the treasure (mirrors `Character`'s cascade behavior); it does not delete treasures merely M2M-linked to that game |
 
-**Exposed fields** (read): `id`, `name`, `value`, `photo_path` — all fields are non-sensitive and safe to return to anonymous callers.
+**Exposed fields** (read): `id`, `name`, `value`, `photo_path`, `game_slug` — all fields are non-sensitive and safe to return to anonymous callers.
 
 `photo_path` (added in issue #276) is `treasure.photo.path` — the raw relative storage key of
 the `TreasurePhoto` currently attached to the treasure (see the "Treasure photo upload init
@@ -480,7 +494,12 @@ returned on both `GET /treasures.json` and `GET /treasures/<id>.json`, to anyone
 `Game.cover_photo` and `Character.profile_photo`, a treasure has at most one photo ever:
 re-uploading always replaces it rather than adding a second one.
 
-**Write fields** (create/update): `name` (required for create, optional for update), `value` (required for create, optional for update). `photo_path` is read-only and cannot be set directly by any client — it is only ever assigned server-side (see "Upload" below).
+`game_slug` (added in issue #296) is `treasure.game.game_slug` — the slug of the game the
+treasure is *exclusively* owned by (via the `game` FK), or `null` when the treasure is global
+or only M2M-linked to one or more games. It is returned on `GET /treasures.json`,
+`GET /treasures/<id>.json`, and the game-scoped list/detail endpoints, to anyone.
+
+**Write fields** (create/update): `name` (required for create, optional for update), `value` (required for create, optional for update). `photo_path` and `game_slug` are read-only and cannot be set directly by any client — `game` is only ever assigned server-side, either left `null` (global create) or set from the `<slug>` URL segment (game-scoped create); `photo_path` is only ever assigned via "Upload" below.
 
 ### Edit access status
 
@@ -490,9 +509,26 @@ re-uploading always replaces it rather than adding a second one.
 
 The access endpoint always sets `X-Skip-Cache: true`. The path ends with `/access.json`, which is already listed in `frontend/assets/js/client/config/skipCacheSuffixes.js`, so no additional frontend config is needed.
 
+As of issue #296, `can_edit` reports whether the requesting user can edit the treasure via
+*any* available path: the global superuser-only route, **or** the game-scoped route (that
+treasure's owning game's GameMaster, when `treasure.game_id` is set). This does not change
+`Treasure.can_be_edited_by` itself (see "Edit rights logic" below) — it is computed
+separately in `TreasureAccessSerializer`.
+
 ### Edit rights logic
 
-`Treasure.can_be_edited_by(user)` returns `True` when `user` is authenticated and `user.is_superuser` is `True`. No game-scoped roles (GameMaster, Player) grant write access to Treasures.
+`Treasure.can_be_edited_by(user)` returns `True` when `user` is authenticated and
+`user.is_superuser` is `True`. No game-scoped roles (GameMaster, Player) grant write access
+through this method — it remains superuser-only and is the sole permission check backing the
+global `PATCH /treasures/<id>.json` endpoint (via `TreasureEditPermission`).
+
+As of issue #296, the new game-scoped `POST`/`PATCH /games/<slug>/treasures[/...].json`
+endpoints, and the photo-upload endpoint when `treasure.game_id` is set, do **not** use
+`Treasure.can_be_edited_by` at all — they check `GameEditPermission`/`Game.can_be_edited_by`
+against the resolved game instead (that game's GameMaster, or superuser). This is a
+deliberate split: a treasure's own edit-rights method stays narrow (superuser-only), while
+broader, game-derived access is layered on top only for the routes that are explicitly
+scoped to a game.
 
 ---
 
