@@ -15,7 +15,7 @@ def account(request):
     if request.method == 'PATCH':
         return _update_account(request)
 
-    return Response(MyAccountDetailSerializer(request.user).data)
+    return _skip_cache(Response(MyAccountDetailSerializer(request.user).data))
 
 
 def _update_account(request):
@@ -26,4 +26,10 @@ def _update_account(request):
         return error_response
 
     serializer.save()
-    return Response(MyAccountDetailSerializer(request.user).data)
+    return _skip_cache(Response(MyAccountDetailSerializer(request.user).data))
+
+
+def _skip_cache(response):
+    """Set the X-Skip-Cache header on `response` and return it."""
+    response['X-Skip-Cache'] = 'true'
+    return response

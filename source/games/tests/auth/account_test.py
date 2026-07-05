@@ -57,6 +57,11 @@ class TestAccountView:
         response = client.get(url, HTTP_AUTHORIZATION=f'Token {self.token.key}')
         assert response.status_code == 200
 
+    def test_authenticated_returns_skip_cache_header(self, client):
+        """Test that the GET response includes the X-Skip-Cache: true header."""
+        response = self._get(client, token=self.token)
+        assert response['X-Skip-Cache'] == 'true'
+
 
 @pytest.mark.django_db
 class TestAccountPatchView:
@@ -204,6 +209,13 @@ class TestAccountPatchView:
             client, {'name': 'alice', 'email': 'alice@example.com'}, token=self.token
         )
         assert response.status_code == 200
+
+    def test_valid_update_returns_skip_cache_header(self, client):
+        """Test that the PATCH success response includes the X-Skip-Cache: true header."""
+        response = self._patch(
+            client, {'name': 'renamed', 'email': 'renamed@example.com'}, token=self.token
+        )
+        assert response['X-Skip-Cache'] == 'true'
 
     def test_never_updates_another_user(self, client):
         """Test that no user id is accepted, and the other user's account stays untouched."""
