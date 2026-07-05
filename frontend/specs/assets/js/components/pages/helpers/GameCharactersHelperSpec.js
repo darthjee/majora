@@ -1,5 +1,28 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameCharactersHelper from '../../../../../../assets/js/components/pages/helpers/GameCharactersHelper.jsx';
+import CharacterCard from '../../../../../../assets/js/components/elements/CharacterCard.jsx';
+
+const findElements = (node, matcher, found = []) => {
+  if (!node) {
+    return found;
+  }
+
+  if (Array.isArray(node)) {
+    node.forEach((child) => findElements(child, matcher, found));
+    return found;
+  }
+
+  if (typeof node !== 'object') {
+    return found;
+  }
+
+  if (matcher(node)) {
+    found.push(node);
+  }
+
+  findElements(node.props?.children, matcher, found);
+  return found;
+};
 
 describe('GameCharactersHelper', function() {
   const characters = [
@@ -94,6 +117,38 @@ describe('GameCharactersHelper', function() {
       );
       expect(html).toContain('New NPC');
       expect(html).toContain('href="#/games/eq/npcs/new"');
+    });
+
+    it('forwards canEdit and click handlers to CharacterCard for npc characterType', function() {
+      const onUploadClick = jasmine.createSpy('onUploadClick');
+      const onSlainClick = jasmine.createSpy('onSlainClick');
+      const element = GameCharactersHelper.render(
+        characters, pagination, '#/games/eq/npcs', 'eq', 'Non-Player Characters', 'npc', '#/games/eq',
+        true, '#/games/eq/npcs/new', onUploadClick, onSlainClick,
+      );
+      const cards = findElements(element, (child) => child.type === CharacterCard);
+
+      expect(cards.length).toBe(2);
+      cards.forEach((card) => {
+        expect(card.props.canEdit).toBe(true);
+        expect(card.props.onUploadClick).toBe(onUploadClick);
+        expect(card.props.onSlainClick).toBe(onSlainClick);
+      });
+    });
+
+    it('does not forward canEdit or click handlers to CharacterCard for pc characterType', function() {
+      const element = GameCharactersHelper.render(
+        characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters', 'pc', '#/games/eq',
+        true,
+      );
+      const cards = findElements(element, (child) => child.type === CharacterCard);
+
+      expect(cards.length).toBe(2);
+      cards.forEach((card) => {
+        expect(card.props.canEdit).toBeUndefined();
+        expect(card.props.onUploadClick).toBeUndefined();
+        expect(card.props.onSlainClick).toBeUndefined();
+      });
     });
   });
 

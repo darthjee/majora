@@ -6,6 +6,7 @@ import NewButton from '../../elements/NewButton.jsx';
 import PageActions from '../../elements/PageActions.jsx';
 import Pagination from '../../elements/Pagination.jsx';
 import Translator from '../../../i18n/Translator.js';
+import Noop from '../../../utils/Noop.js';
 
 /**
  * Rendering helper shared by the GamePcs and GameNpcs pages.
@@ -24,14 +25,21 @@ export default class GameCharactersHelper {
    * @param {string} title - Page heading (e.g. "Player Characters").
    * @param {string} characterType - Character type, either 'pc' or 'npc'.
    * @param {string} backHref - Hash path to the parent game page.
-   * @param {boolean} [canEdit] - Whether the current user may create new characters.
+   * @param {boolean} [canEdit] - Whether the current user may create new characters, and
+   *   (when characterType is 'npc') edit each individual NPC's photo/slain state.
    * @param {string} [newHref] - Hash path to the new character form.
+   * @param {Function} [onUploadClick] - Called with the character object when an NPC card's
+   *   upload overlay button is clicked (ignored for PCs).
+   * @param {Function} [onSlainClick] - Called with the character object when an NPC card's
+   *   slain/revive overlay button is clicked (ignored for PCs).
    * @returns {React.ReactElement} Characters grid with pagination.
    */
   static render(
     characters, pagination, basePath, gameSlug, title, characterType, backHref,
-    canEdit = false, newHref = '',
+    canEdit = false, newHref = '', onUploadClick = Noop.noop, onSlainClick = Noop.noop,
   ) {
+    const isNpc = characterType === 'npc';
+
     return (
       <div className="container mt-4">
         <PageActions backHref={backHref}>
@@ -49,6 +57,7 @@ export default class GameCharactersHelper {
               character={character}
               gameSlug={gameSlug}
               characterType={characterType}
+              {...(isNpc ? { canEdit, onUploadClick, onSlainClick } : {})}
             />
           ))}
         </div>

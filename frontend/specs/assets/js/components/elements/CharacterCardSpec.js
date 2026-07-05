@@ -30,4 +30,31 @@ describe('CharacterCard', function() {
     expect(html).toContain('col-sm-3 col-md-2 col-lg-1');
     expect(html).not.toContain('card-title');
   });
+
+  it('renders a plain CardAvatar for PCs, with no overlay buttons', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(CharacterCard, {
+        character, gameSlug: 'epic-quest', characterType: 'pc', canEdit: true,
+      })
+    );
+    expect(html).not.toContain('<button');
+  });
+
+  it('renders the upload overlay button for NPCs when canEdit is true', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(CharacterCard, {
+        character, gameSlug: 'epic-quest', characterType: 'npc', canEdit: true,
+      })
+    );
+    expect(html).toContain('photo-upload-overlay-button-left');
+  });
+
+  it('does not render overlay buttons for NPCs when canEdit is false', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(CharacterCard, {
+        character, gameSlug: 'epic-quest', characterType: 'npc',
+      })
+    );
+    expect(html).not.toContain('<button');
+  });
 });
