@@ -4,6 +4,7 @@ import Container from 'react-bootstrap/cjs/Container.js';
 import LanguageSelector from '../LanguageSelector.jsx';
 import LoginModal from '../LoginModal.jsx';
 import Translator from '../../../i18n/Translator.js';
+import myAccountIcon from '../../../../images/my_account.svg';
 
 /**
  * Rendering helper for the Header element.
@@ -125,6 +126,9 @@ export default class HeaderHelper {
             {Translator.t('header.send_test_email')}
           </button>
           {HeaderHelper.#renderTestEmailStatus(state)}
+          <Nav.Link href="#/my_account" data-testid="my-account-link">
+            <img src={myAccountIcon} alt={Translator.t('header.my_account_alt')} />
+          </Nav.Link>
         </>
       );
     }

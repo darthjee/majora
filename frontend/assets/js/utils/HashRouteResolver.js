@@ -45,6 +45,7 @@ export default class HashRouteResolver {
     this.#router.register('/games', 'games');
     this.#router.register('/recover-password', 'recoverPassword');
     this.#router.register('/users/register', 'register');
+    this.#router.register('/my_account', 'myAccount');
     this.#router.register('/', 'home');
   }
 

@@ -162,6 +162,23 @@ describe('HeaderHelper', function() {
       expect(html).not.toContain('data-testid="test-email-status"');
     });
 
+    it('does not render the my-account link when logged out', function() {
+      const html = renderToStaticMarkup(
+        HeaderHelper.render(buildState(), buildHandlers())
+      );
+
+      expect(html).not.toContain('data-testid="my-account-link"');
+    });
+
+    it('renders the my-account link when logged in', function() {
+      const html = renderToStaticMarkup(
+        HeaderHelper.render(buildState({ loggedIn: true }), buildHandlers())
+      );
+
+      expect(html).toContain('data-testid="my-account-link"');
+      expect(html).toContain('href="#/my_account"');
+    });
+
     it('renders the language selector', function() {
       const html = renderToStaticMarkup(
         HeaderHelper.render(buildState(), buildHandlers())
