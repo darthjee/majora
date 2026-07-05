@@ -5,6 +5,7 @@ import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
 import { MAX_PREVIEW_CHARACTERS } from '../../elements/characterPreviewConstants.js';
+import Noop from '../../../utils/Noop.js';
 
 /**
  * Extract game slug from hash.
@@ -36,8 +37,8 @@ export default class GameController extends BasePageController {
     setGame,
     setLoading,
     setError,
-    setPcs = () => {},
-    setNpcs = () => {},
+    setPcs = Noop.noop,
+    setNpcs = Noop.noop,
     client = null,
     gameClient = null,
     characterClient = null,

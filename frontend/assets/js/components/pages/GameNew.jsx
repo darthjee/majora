@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import GameNewController from './controllers/GameNewController.js';
 import GameNewHelper from './helpers/GameNewHelper.jsx';
+import Noop from '../../utils/Noop.js';
 
 /**
  * Game creation page.
@@ -14,7 +15,7 @@ export default function GameNew() {
   const [description, setDescription] = useState('');
 
   const controller = useMemo(
-    () => new GameNewController(() => {}, setFieldErrors),
+    () => new GameNewController(Noop.noop, setFieldErrors),
     [],
   );
 

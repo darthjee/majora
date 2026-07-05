@@ -1,5 +1,6 @@
 import PcCharacterEditController, { getPcCharacterEditParamsFromHash, resolveLoadedCharacter }
   from '../../../../../../assets/js/components/pages/controllers/PcCharacterEditController.js';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
 
 describe('PcCharacterEditController', function() {
@@ -174,7 +175,7 @@ describe('PcCharacterEditController', function() {
         setCharacter,
         setLoading,
         setError,
-        () => {},
+        Noop.noop,
         client,
         characterClient,
       );

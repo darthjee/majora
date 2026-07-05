@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import TreasureNewController from './controllers/TreasureNewController.js';
 import TreasureNewHelper from './helpers/TreasureNewHelper.jsx';
+import Noop from '../../utils/Noop.js';
 
 /**
  * Treasure creation page.
@@ -14,7 +15,7 @@ export default function TreasureNew() {
   const [value, setValue] = useState('');
 
   const controller = useMemo(
-    () => new TreasureNewController(() => {}, setFieldErrors),
+    () => new TreasureNewController(Noop.noop, setFieldErrors),
     [],
   );
 

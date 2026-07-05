@@ -1,5 +1,6 @@
 import CharacterController
   from '../../../../../../assets/js/components/pages/controllers/CharacterController.js';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
 
 /**
  * Minimal concrete subclass used to exercise CharacterController logic.
@@ -30,8 +31,8 @@ describe('CharacterController', function() {
   const buildController = (setCharacter, overrides = {}) => {
     const controller = new StubCharacterController(
       setCharacter,
-      () => {},
-      () => {},
+      Noop.noop,
+      Noop.noop,
       () => ({ game_slug: 'demo', character_id: '2' }),
       null,
     );
@@ -98,7 +99,7 @@ describe('CharacterController', function() {
       const setCharacter = jasmine.createSpy('setCharacter');
       const controller = new StubCharacterController(
         setCharacter,
-        () => {},
+        Noop.noop,
         setError,
         () => params,
         null,
@@ -113,9 +114,9 @@ describe('CharacterController', function() {
     it('calls setLoading with false after the fetch chain completes', async function() {
       const setLoading = jasmine.createSpy('setLoading');
       const controller = new StubCharacterController(
-        () => {},
+        Noop.noop,
         setLoading,
-        () => {},
+        Noop.noop,
         () => params,
         null,
       );

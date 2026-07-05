@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GamePhotosHelper from '../../../../../../assets/js/components/pages/helpers/GamePhotosHelper.jsx';
 import Translator from '../../../../../../assets/js/i18n/Translator.js';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
 
 describe('GamePhotosHelper', function() {
   const photos = [
@@ -8,7 +9,7 @@ describe('GamePhotosHelper', function() {
     { id: 2, path: 'photos/games/demo/b.jpg' },
   ];
   const pagination = { page: 1, pages: 3, perPage: 10 };
-  const handlers = { onOpenUploadModal: () => {}, onSelectPhoto: () => {} };
+  const handlers = { onOpenUploadModal: Noop.noop, onSelectPhoto: Noop.noop };
 
   describe('.render', function() {
     it('renders each photo', function() {

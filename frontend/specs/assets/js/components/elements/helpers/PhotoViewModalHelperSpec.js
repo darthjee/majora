@@ -1,5 +1,6 @@
 import PhotoViewModalHelper from '../../../../../../assets/js/components/elements/helpers/PhotoViewModalHelper.jsx';
 import Modal from 'react-bootstrap/cjs/Modal.js';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -34,7 +35,7 @@ describe('PhotoViewModalHelper', function() {
 
   describe('.render', function() {
     it('renders a Modal with the given show flag', function() {
-      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', () => {});
+      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', Noop.noop);
       expect(element.type).toBe(Modal);
       expect(element.props.show).toBe(true);
     });
@@ -49,7 +50,7 @@ describe('PhotoViewModalHelper', function() {
     });
 
     it('renders the photo image at full size using its path', function() {
-      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', () => {});
+      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', Noop.noop);
       const img = findElement(element, (child) => child.type === 'img');
 
       expect(img.props.src).toBe('photos/games/demo/photo.jpg');
@@ -58,42 +59,42 @@ describe('PhotoViewModalHelper', function() {
     });
 
     it('renders no image when photo is null', function() {
-      const element = PhotoViewModalHelper.render(true, null, 'Demo Game', () => {});
+      const element = PhotoViewModalHelper.render(true, null, 'Demo Game', Noop.noop);
       const img = findElement(element, (child) => child.type === 'img');
 
       expect(img).toBeNull();
     });
 
     it('renders no "set as profile photo" button when new props are omitted', function() {
-      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', () => {});
+      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', Noop.noop);
       const button = findElement(element, (child) => child.type === 'button');
 
       expect(button).toBeNull();
     });
 
     it('renders the "set as profile photo" button when canSetProfilePhoto is true and isProfilePhoto is false', function() {
-      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', () => {}, true, false, () => {});
+      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', Noop.noop, true, false, Noop.noop);
       const button = findElement(element, (child) => child.type === 'button');
 
       expect(button).not.toBeNull();
     });
 
     it('renders no button when canSetProfilePhoto is false', function() {
-      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', () => {}, false, false, () => {});
+      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', Noop.noop, false, false, Noop.noop);
       const button = findElement(element, (child) => child.type === 'button');
 
       expect(button).toBeNull();
     });
 
     it('renders no button when isProfilePhoto is true', function() {
-      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', () => {}, true, true, () => {});
+      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', Noop.noop, true, true, Noop.noop);
       const button = findElement(element, (child) => child.type === 'button');
 
       expect(button).toBeNull();
     });
 
     it('renders no button when there is no photo, even when canSetProfilePhoto is true', function() {
-      const element = PhotoViewModalHelper.render(true, null, 'Demo Game', () => {}, true, false, () => {});
+      const element = PhotoViewModalHelper.render(true, null, 'Demo Game', Noop.noop, true, false, Noop.noop);
       const button = findElement(element, (child) => child.type === 'button');
 
       expect(button).toBeNull();
@@ -101,7 +102,7 @@ describe('PhotoViewModalHelper', function() {
 
     it('invokes onSetProfilePhoto with the photo id when the button is clicked', function() {
       const onSetProfilePhoto = jasmine.createSpy('onSetProfilePhoto');
-      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', () => {}, true, false, onSetProfilePhoto);
+      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', Noop.noop, true, false, onSetProfilePhoto);
       const button = findElement(element, (child) => child.type === 'button');
 
       button.props.onClick();

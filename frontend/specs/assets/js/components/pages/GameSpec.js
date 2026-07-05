@@ -3,10 +3,11 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import Game from '../../../../../assets/js/components/pages/Game.jsx';
 import GameHelper from '../../../../../assets/js/components/pages/helpers/GameHelper.jsx';
 import GameController from '../../../../../assets/js/components/pages/controllers/GameController.js';
+import Noop from '../../../../../assets/js/utils/Noop.js';
 
 describe('Game', function() {
   it('renders the loading state while fetching', function() {
-    spyOn(GameController.prototype, 'buildEffect').and.returnValue(() => () => {});
+    spyOn(GameController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
     spyOn(GameHelper, 'renderLoading').and.returnValue(React.createElement('div', null, 'loading'));
 
     const html = renderToStaticMarkup(React.createElement(Game));
@@ -15,7 +16,7 @@ describe('Game', function() {
   });
 
   it('renders an edit button via GameHelper.render when the game can be edited', function() {
-    spyOn(GameController.prototype, 'buildEffect').and.returnValue(() => () => {});
+    spyOn(GameController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
 
     const game = {
       name: 'Epic Quest',

@@ -3,6 +3,7 @@ import GenericClient from '../../../client/GenericClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
+import Noop from '../../../utils/Noop.js';
 
 /**
  * Extract game slug from a sessions index hash.
@@ -35,7 +36,7 @@ export default class GameSessionsController extends BasePageController {
     setLoading,
     setError,
     client = null,
-    setCanEdit = () => {},
+    setCanEdit = Noop.noop,
     gameClient = null,
   ) {
     super();

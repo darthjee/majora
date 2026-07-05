@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import TreasureCardHelper from '../../../../../../assets/js/components/elements/helpers/TreasureCardHelper.jsx';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
 
 describe('TreasureCardHelper', function() {
   const treasure = { id: 42, name: 'Golden Crown', value: 500 };
@@ -57,7 +58,7 @@ describe('TreasureCardHelper', function() {
     });
 
     it('does not render the upload button when isSuperUser is false', function() {
-      const html = renderToStaticMarkup(TreasureCardHelper.render(treasure, false, () => {}));
+      const html = renderToStaticMarkup(TreasureCardHelper.render(treasure, false, Noop.noop));
       expect(html).not.toContain('photo-upload-overlay-button');
     });
 
@@ -67,7 +68,7 @@ describe('TreasureCardHelper', function() {
     });
 
     it('renders the upload button when isSuperUser is true', function() {
-      const html = renderToStaticMarkup(TreasureCardHelper.render(treasure, true, () => {}));
+      const html = renderToStaticMarkup(TreasureCardHelper.render(treasure, true, Noop.noop));
       expect(html).toContain('photo-upload-overlay-button');
     });
 

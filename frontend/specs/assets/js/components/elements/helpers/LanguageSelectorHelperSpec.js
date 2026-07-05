@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import LanguageSelectorHelper from '../../../../../../assets/js/components/elements/helpers/LanguageSelectorHelper.jsx';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
 
 describe('LanguageSelectorHelper', function() {
   describe('.render', function() {
@@ -7,7 +8,7 @@ describe('LanguageSelectorHelper', function() {
       const html = renderToStaticMarkup(
         LanguageSelectorHelper.render(
           { language: 'en', options: [{ code: 'en', flag: '🇬🇧' }] },
-          { onChange: () => {} }
+          { onChange: Noop.noop }
         )
       );
 

@@ -1,5 +1,6 @@
 import GameController, { getGameSlugFromHash }
   from '../../../../../../assets/js/components/pages/controllers/GameController.js';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
 
 describe('GameController', function() {
@@ -66,7 +67,7 @@ describe('GameController', function() {
       json: () => Promise.resolve({ can_edit: true }),
     }));
 
-    const cleanup = new GameController(setGame, setLoading, setError, () => {}, () => {}, client, gameClient)
+    const cleanup = new GameController(setGame, setLoading, setError, Noop.noop, Noop.noop, client, gameClient)
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -88,7 +89,7 @@ describe('GameController', function() {
 
     gameClient.fetchGameAccess.and.returnValue(Promise.reject(new Error('network error')));
 
-    const cleanup = new GameController(setGame, setLoading, setError, () => {}, () => {}, client, gameClient)
+    const cleanup = new GameController(setGame, setLoading, setError, Noop.noop, Noop.noop, client, gameClient)
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -111,7 +112,7 @@ describe('GameController', function() {
 
     gameClient.fetchGameAccess.and.returnValue(Promise.resolve({ ok: false }));
 
-    const cleanup = new GameController(setGame, setLoading, setError, () => {}, () => {}, client, gameClient)
+    const cleanup = new GameController(setGame, setLoading, setError, Noop.noop, Noop.noop, client, gameClient)
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -252,7 +253,7 @@ describe('GameController', function() {
     function makeController() {
       return new GameController(
         jasmine.createSpy(), jasmine.createSpy(), jasmine.createSpy(),
-        () => {}, setNpcs, client, gameClient, characterClient,
+        Noop.noop, setNpcs, client, gameClient, characterClient,
       );
     }
 

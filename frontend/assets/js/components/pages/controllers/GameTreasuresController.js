@@ -3,6 +3,7 @@ import GenericClient from '../../../client/GenericClient.js';
 import AdminAccess from '../../../utils/AdminAccess.js';
 import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
+import Noop from '../../../utils/Noop.js';
 
 /**
  * Extract game slug from treasures hash route.
@@ -37,7 +38,7 @@ export default class GameTreasuresController extends BasePageController {
     setLoading,
     setError,
     client = null,
-    setIsSuperUser = () => {},
+    setIsSuperUser = Noop.noop,
     authClient = null,
   ) {
     super();

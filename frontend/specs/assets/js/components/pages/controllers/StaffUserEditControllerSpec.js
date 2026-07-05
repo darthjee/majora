@@ -1,5 +1,6 @@
 import StaffUserEditController, { getStaffUserIdFromEditHash }
   from '../../../../../../assets/js/components/pages/controllers/StaffUserEditController.js';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
 
 describe('StaffUserEditController', function() {
@@ -46,7 +47,7 @@ describe('StaffUserEditController', function() {
     });
 
     const buildController = () => new StaffUserEditController(
-      setUser, setLoading, setError, () => {}, client, authClient,
+      setUser, setLoading, setError, Noop.noop, client, authClient,
     );
 
     it('fetches the user and calls setUser with the result', async function() {

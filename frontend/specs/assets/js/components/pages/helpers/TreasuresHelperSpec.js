@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import TreasuresHelper from '../../../../../../assets/js/components/pages/helpers/TreasuresHelper.jsx';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
 
 describe('TreasuresHelper', function() {
   const treasures = [
@@ -43,12 +44,12 @@ describe('TreasuresHelper', function() {
     });
 
     it('does not render upload buttons when isSuperUser is false', function() {
-      const html = renderToStaticMarkup(TreasuresHelper.render(treasures, pagination, false, () => {}));
+      const html = renderToStaticMarkup(TreasuresHelper.render(treasures, pagination, false, Noop.noop));
       expect(html).not.toContain('photo-upload-overlay-button');
     });
 
     it('renders an upload button per treasure when isSuperUser is true', function() {
-      const html = renderToStaticMarkup(TreasuresHelper.render(treasures, pagination, true, () => {}));
+      const html = renderToStaticMarkup(TreasuresHelper.render(treasures, pagination, true, Noop.noop));
       const matches = html.match(/photo-upload-overlay-button/g) || [];
       expect(matches.length).toBe(treasures.length);
     });

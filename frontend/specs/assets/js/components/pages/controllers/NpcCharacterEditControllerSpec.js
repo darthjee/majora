@@ -1,5 +1,6 @@
 import NpcCharacterEditController, { getNpcCharacterEditParamsFromHash, resolveLoadedCharacter }
   from '../../../../../../assets/js/components/pages/controllers/NpcCharacterEditController.js';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
 
 describe('NpcCharacterEditController', function() {
@@ -174,7 +175,7 @@ describe('NpcCharacterEditController', function() {
         setCharacter,
         setLoading,
         setError,
-        () => {},
+        Noop.noop,
         client,
         characterClient,
       );

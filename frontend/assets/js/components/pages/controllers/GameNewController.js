@@ -1,6 +1,7 @@
 import GameClient from '../../../client/GameClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
+import Noop from '../../../utils/Noop.js';
 
 /**
  * Controller for the game creation page.
@@ -13,7 +14,7 @@ export default class GameNewController extends BasePageController {
    * @param {Function} [setFieldErrors] - Per-field error setter.
    * @param {GameClient|null} [gameClient] - Game client override.
    */
-  constructor(setError, setFieldErrors = () => {}, gameClient = null) {
+  constructor(setError, setFieldErrors = Noop.noop, gameClient = null) {
     super();
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;

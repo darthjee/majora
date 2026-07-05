@@ -2,6 +2,7 @@ import GameClient from '../../../client/GameClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
+import Noop from '../../../utils/Noop.js';
 
 /**
  * Extract game slug from a game edit hash.
@@ -26,7 +27,7 @@ export default class GameEditController extends BasePageController {
    * @param {Function} [setFieldErrors] - Per-field error setter.
    * @param {GameClient|null} [gameClient] - Game client override.
    */
-  constructor(setGame, setLoading, setError, setFieldErrors = () => {}, gameClient = null) {
+  constructor(setGame, setLoading, setError, setFieldErrors = Noop.noop, gameClient = null) {
     super();
     this.setGame = setGame;
     this.setLoading = setLoading;

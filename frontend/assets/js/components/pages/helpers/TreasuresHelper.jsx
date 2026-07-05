@@ -6,6 +6,7 @@ import PageActions from '../../elements/PageActions.jsx';
 import Pagination from '../../elements/Pagination.jsx';
 import TreasureCard from '../../elements/TreasureCard.jsx';
 import Translator from '../../../i18n/Translator.js';
+import Noop from '../../../utils/Noop.js';
 
 /**
  * Rendering helper for the Treasures listing page.
@@ -23,7 +24,7 @@ export default class TreasuresHelper {
    * @param {Function} [onUploadClick] - Handler invoked with a treasure when its upload button is clicked.
    * @returns {React.ReactElement} Treasures list with pagination.
    */
-  static render(treasures, pagination, isSuperUser = false, onUploadClick = () => {}) {
+  static render(treasures, pagination, isSuperUser = false, onUploadClick = Noop.noop) {
     return (
       <div className="container mt-4">
         <PageActions backHref="#/">

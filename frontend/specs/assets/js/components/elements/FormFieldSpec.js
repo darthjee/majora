@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
 import FormField from '../../../../../assets/js/components/elements/FormField.jsx';
+import Noop from '../../../../../assets/js/utils/Noop.js';
 
 describe('FormField', function() {
   it('renders a label linked to the input via id/htmlFor', function() {
@@ -10,7 +11,7 @@ describe('FormField', function() {
         type: 'text',
         label: 'Username',
         value: '',
-        onChange: () => {},
+        onChange: Noop.noop,
       })
     );
 
@@ -26,7 +27,7 @@ describe('FormField', function() {
         type: 'password',
         label: 'Password',
         value: 'secret',
-        onChange: () => {},
+        onChange: Noop.noop,
       })
     );
 
@@ -41,7 +42,7 @@ describe('FormField', function() {
         type: 'email',
         label: 'Email',
         value: '',
-        onChange: () => {},
+        onChange: Noop.noop,
       })
     );
 
@@ -56,7 +57,7 @@ describe('FormField', function() {
         type: 'number',
         label: 'Level',
         value: '1',
-        onChange: () => {},
+        onChange: Noop.noop,
       })
     );
 
@@ -70,7 +71,7 @@ describe('FormField', function() {
         type: 'number',
         label: 'Level',
         value: '1',
-        onChange: () => {},
+        onChange: Noop.noop,
         errors: ['must be positive', 'must be an integer'],
       })
     );

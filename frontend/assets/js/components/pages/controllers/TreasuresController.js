@@ -2,6 +2,7 @@ import AuthClient from '../../../client/AuthClient.js';
 import GenericClient from '../../../client/GenericClient.js';
 import AdminAccess from '../../../utils/AdminAccess.js';
 import BasePageController from './BasePageController.js';
+import Noop from '../../../utils/Noop.js';
 
 /**
  * Controller for treasures index page.
@@ -27,7 +28,7 @@ export default class TreasuresController extends BasePageController {
     setError,
     client = null,
     authClient = null,
-    setIsSuperUser = () => {},
+    setIsSuperUser = Noop.noop,
   ) {
     super();
     this.setTreasures = setTreasures;

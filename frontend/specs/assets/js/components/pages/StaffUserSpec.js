@@ -3,10 +3,11 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import StaffUser from '../../../../../assets/js/components/pages/StaffUser.jsx';
 import StaffUserHelper from '../../../../../assets/js/components/pages/helpers/StaffUserHelper.jsx';
 import StaffUserController from '../../../../../assets/js/components/pages/controllers/StaffUserController.js';
+import Noop from '../../../../../assets/js/utils/Noop.js';
 
 describe('StaffUser', function() {
   it('renders the loading state while fetching', function() {
-    spyOn(StaffUserController.prototype, 'buildEffect').and.returnValue(() => () => {});
+    spyOn(StaffUserController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
     spyOn(StaffUserHelper, 'renderLoading').and.returnValue(React.createElement('div', null, 'loading'));
 
     const html = renderToStaticMarkup(React.createElement(StaffUser));
@@ -15,7 +16,7 @@ describe('StaffUser', function() {
   });
 
   it('renders the user detail via StaffUserHelper.render', function() {
-    spyOn(StaffUserController.prototype, 'buildEffect').and.returnValue(() => () => {});
+    spyOn(StaffUserController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
 
     const html = renderToStaticMarkup(
       StaffUserHelper.render({ id: 1, name: 'Jane', email: 'jane@example.com' })

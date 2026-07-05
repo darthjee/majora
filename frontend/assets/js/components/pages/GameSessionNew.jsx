@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import GameSessionNewController, { getGameSlugFromSessionNewHash }
   from './controllers/GameSessionNewController.js';
+import Noop from '../../utils/Noop.js';
 import GameSessionNewHelper from './helpers/GameSessionNewHelper.jsx';
 
 /**
@@ -15,7 +16,7 @@ export default function GameSessionNew() {
   const [date, setDate] = useState('');
 
   const controller = useMemo(
-    () => new GameSessionNewController(() => {}, setFieldErrors),
+    () => new GameSessionNewController(Noop.noop, setFieldErrors),
     [],
   );
 

@@ -1,4 +1,5 @@
 import Translator from '../../../i18n/Translator.js';
+import Noop from '../../../utils/Noop.js';
 
 const FLAGS = {
   en: '🇬🇧',
@@ -15,7 +16,7 @@ export default class LanguageSelectorController {
    * @param {Function} setLanguage - state setter for the current language code.
    * @param {Function} [onLanguageChange] - optional callback invoked with the new language code.
    */
-  constructor(setLanguage, onLanguageChange = () => {}) {
+  constructor(setLanguage, onLanguageChange = Noop.noop) {
     this.setLanguage = setLanguage;
     this.onLanguageChange = onLanguageChange;
   }

@@ -4,6 +4,7 @@ import AdminAccess from '../../../utils/AdminAccess.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
+import Noop from '../../../utils/Noop.js';
 
 /**
  * Extract user id from a staff user edit hash.
@@ -30,7 +31,7 @@ export default class StaffUserEditController extends BasePageController {
    * @param {AuthClient|null} [authClient] - Auth client override.
    */
   constructor(
-    setUser, setLoading, setError, setFieldErrors = () => {}, client = null, authClient = null,
+    setUser, setLoading, setError, setFieldErrors = Noop.noop, client = null, authClient = null,
   ) {
     super();
     this.setUser = setUser;

@@ -1,5 +1,6 @@
 import React from 'react';
 import PhotoUploadOverlay from '../PhotoUploadOverlay.jsx';
+import Noop from '../../../utils/Noop.js';
 
 /**
  * Rendering helper for the TreasureCard element.
@@ -21,7 +22,7 @@ export default class TreasureCardHelper {
    * @param {Function} [onUploadClick] - Handler invoked with the treasure when the upload button is clicked.
    * @returns {React.ReactElement} Treasure card element.
    */
-  static render(treasure, isSuperUser = false, onUploadClick = () => {}) {
+  static render(treasure, isSuperUser = false, onUploadClick = Noop.noop) {
     return (
       <div className="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">
         <div className="card h-100 position-relative">

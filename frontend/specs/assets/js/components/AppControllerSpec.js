@@ -1,10 +1,11 @@
 import AppController from '../../../../assets/js/components/AppController.js';
 import LanguageEvents from '../../../../assets/js/i18n/LanguageEvents.js';
+import Noop from '../../../../assets/js/utils/Noop.js';
 
 describe('AppController', function() {
   it('resolves page from current hash', function() {
     const eventTarget = jasmine.createSpyObj('eventTarget', ['addEventListener', 'removeEventListener']);
-    const controller = new AppController(() => {}, eventTarget, () => '#/games');
+    const controller = new AppController(Noop.noop, eventTarget, () => '#/games');
     expect(controller.getPage()).toBe('games');
   });
 
@@ -34,7 +35,7 @@ describe('AppController', function() {
     spyOn(LanguageEvents, 'subscribe');
     spyOn(LanguageEvents, 'unsubscribe');
 
-    const controller = new AppController(() => {}, eventTarget, () => '#/games', null, setLang);
+    const controller = new AppController(Noop.noop, eventTarget, () => '#/games', null, setLang);
     const cleanup = controller.buildEffect()();
 
     const handler = LanguageEvents.subscribe.calls.mostRecent().args[0];
@@ -49,7 +50,7 @@ describe('AppController', function() {
   describe('#renderPage', function() {
     it('passes the language code through to AppHelper', function() {
       const eventTarget = jasmine.createSpyObj('eventTarget', ['addEventListener', 'removeEventListener']);
-      const controller = new AppController(() => {}, eventTarget, () => '#/games');
+      const controller = new AppController(Noop.noop, eventTarget, () => '#/games');
       expect(() => controller.renderPage('games', '#/games', 'en')).not.toThrow();
     });
   });

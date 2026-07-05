@@ -4,10 +4,11 @@ import PcCharacterEdit from '../../../../../assets/js/components/pages/PcCharact
 import CharacterEdit from '../../../../../assets/js/components/pages/shared/CharacterEdit.jsx';
 import PcCharacterEditController from '../../../../../assets/js/components/pages/controllers/PcCharacterEditController.js';
 import CharacterHelper from '../../../../../assets/js/components/pages/helpers/CharacterHelper.jsx';
+import Noop from '../../../../../assets/js/utils/Noop.js';
 
 describe('PcCharacterEdit', function() {
   it('renders the loading state on initial render before the fetch resolves', function() {
-    spyOn(PcCharacterEditController.prototype, 'buildEffect').and.returnValue(() => () => {});
+    spyOn(PcCharacterEditController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
     spyOn(CharacterHelper, 'renderLoading').and.returnValue(React.createElement('div', null, 'loading'));
 
     const html = renderToStaticMarkup(React.createElement(PcCharacterEdit));

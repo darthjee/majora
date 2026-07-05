@@ -1,5 +1,6 @@
 import GameEditController, { getGameSlugFromEditHash }
   from '../../../../../../assets/js/components/pages/controllers/GameEditController.js';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
 
 describe('GameEditController', function() {
@@ -34,7 +35,7 @@ describe('GameEditController', function() {
       }));
 
       try {
-        const controller = new GameEditController(setGame, setLoading, setError, () => {}, gameClient);
+        const controller = new GameEditController(setGame, setLoading, setError, Noop.noop, gameClient);
         const cleanup = controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -65,7 +66,7 @@ describe('GameEditController', function() {
       gameClient.fetchGameAccess.and.returnValue(Promise.resolve({ ok: false }));
 
       try {
-        const controller = new GameEditController(setGame, setLoading, setError, () => {}, gameClient);
+        const controller = new GameEditController(setGame, setLoading, setError, Noop.noop, gameClient);
         const cleanup = controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -95,7 +96,7 @@ describe('GameEditController', function() {
       }));
 
       try {
-        const controller = new GameEditController(setGame, setLoading, setError, () => {}, gameClient);
+        const controller = new GameEditController(setGame, setLoading, setError, Noop.noop, gameClient);
         const cleanup = controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -129,7 +130,7 @@ describe('GameEditController', function() {
       }));
 
       try {
-        const controller = new GameEditController(setGame, setLoading, setError, () => {}, gameClient);
+        const controller = new GameEditController(setGame, setLoading, setError, Noop.noop, gameClient);
         const cleanup = controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
