@@ -51,7 +51,7 @@ export default class GameHelper {
               {game.name}
             </h1>
             {game.description && (
-              <p className="mt-3">{game.description}</p>
+              <p className="mt-3 text-pre-wrap">{game.description}</p>
             )}
             <LinkList links={game.links} />
           </div>

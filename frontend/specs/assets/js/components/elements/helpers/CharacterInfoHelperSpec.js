@@ -19,6 +19,12 @@ describe('CharacterInfoHelper', function() {
       expect(html).toContain('border');
     });
 
+    it('renders the description with the text-pre-wrap class to preserve line breaks', function() {
+      const html = renderToStaticMarkup(CharacterInfoHelper.render('', 'Line one.\nLine two.'));
+      expect(html).toContain('text-pre-wrap');
+      expect(html).toContain('Line one.\nLine two.');
+    });
+
     it('does not render description when empty', function() {
       expect(renderToStaticMarkup(CharacterInfoHelper.render('', '')))
         .not.toContain('mt-3');
