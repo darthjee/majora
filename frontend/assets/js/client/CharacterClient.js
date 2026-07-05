@@ -123,6 +123,34 @@ export default class CharacterClient extends BaseClient {
     });
   }
 
+  /**
+   * Sets the roles of a PC character photo (e.g. marking it as the profile photo).
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|number} photoId - Photo id to update.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {string[]} roles - Roles to assign to the photo (e.g. `['profile']`).
+   * @returns {Promise<Response>} fetch response from the photo set endpoint.
+   */
+  setPcPhotoRoles(gameSlug, characterId, photoId, token, roles) {
+    return this.#setPhotoRoles('pcs', gameSlug, characterId, photoId, token, roles);
+  }
+
+  /**
+   * Sets the roles of an NPC character photo (e.g. marking it as the profile photo).
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|number} photoId - Photo id to update.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {string[]} roles - Roles to assign to the photo (e.g. `['profile']`).
+   * @returns {Promise<Response>} fetch response from the photo set endpoint.
+   */
+  setNpcPhotoRoles(gameSlug, characterId, photoId, token, roles) {
+    return this.#setPhotoRoles('npcs', gameSlug, characterId, photoId, token, roles);
+  }
+
   #fetchCharacter(segment, gameSlug, characterId, token, suffix = null) {
     const base = `/games/${gameSlug}/${segment}/${characterId}`;
     const path = suffix ? `${base}/${suffix}.json` : `${base}.json`;
@@ -144,6 +172,18 @@ export default class CharacterClient extends BaseClient {
         ...(token ? { Authorization: `Token ${token}` } : {}),
       },
       body: JSON.stringify(fields),
+    });
+  }
+
+  #setPhotoRoles(segment, gameSlug, characterId, photoId, token, roles) {
+    return this.request(`/games/${gameSlug}/${segment}/${characterId}/photos/${photoId}/set.json`, {
+      method: 'PATCH',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Token ${token}` } : {}),
+      },
+      body: JSON.stringify({ roles }),
     });
   }
 }

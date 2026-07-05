@@ -71,6 +71,24 @@ export default class NpcCharacterPhotosController extends BasePageController {
     };
   }
 
+  /**
+   * Marks a photo as the character's profile photo, then refreshes the character state
+   * so `can_edit` and `profile_photo_id` reflect the change.
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|number} photoId - Id of the photo to mark as profile photo.
+   * @returns {Promise<void>} Resolves once the update (and character refresh) settle.
+   */
+  setProfilePhoto(gameSlug, characterId, photoId) {
+    const token = AuthStorage.getToken();
+    const safeSet = (setter, value) => setter(value);
+
+    return this.characterClient.setNpcPhotoRoles(gameSlug, characterId, photoId, token, ['profile'])
+      .then(() => this.#fetchCharacter(gameSlug, characterId, safeSet))
+      .catch(() => {});
+  }
+
   #fetchPhotos(gameSlug, characterId, safeSet) {
     this.client.fetchIndex(`/games/${gameSlug}/npcs/${characterId}/photos.json`)
       .then(({ data, pagination }) => {
@@ -84,7 +102,7 @@ export default class NpcCharacterPhotosController extends BasePageController {
   #fetchCharacter(gameSlug, characterId, safeSet) {
     const token = AuthStorage.getToken();
 
-    this.characterClient.fetchNpc(gameSlug, characterId, token)
+    return this.characterClient.fetchNpc(gameSlug, characterId, token)
       .then((response) => (response.ok ? response.json() : null))
       .then((character) => this.#mergeAccess(gameSlug, characterId, token, character, safeSet))
       .catch(() => safeSet(this.setCharacter, { can_edit: false }));

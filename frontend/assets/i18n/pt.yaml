@@ -29,6 +29,8 @@ photo_upload_modal:
   error: Falha ao enviar foto. Por favor, tente novamente.
   submit: Enviar
   title: Enviar Foto
+photo_view_modal:
+  set_profile_photo: Definir como foto de perfil
 back_button:
   label: Voltar
 pagination:
