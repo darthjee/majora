@@ -163,6 +163,29 @@ single character and gated by `CharacterEditPermission` instead of `GameEditPerm
 
 ---
 
+## Character slain-toggle endpoint
+
+| Endpoint | Method | Who can call | Request body | Response |
+|----------|--------|-------------|---------------|----------|
+| `/games/<slug>/npcs/<id>/slain.json` | PATCH | `CharacterEditPermission` (the character's player, any GameMaster of that game, or superuser) | `{"slain": true\|false}` | `200 {"slain": true\|false}` |
+
+Added in issue #315. There is no equivalent PC endpoint — `slain` is only ever toggled
+through this dedicated NPC route, mirroring the existing `hidden` NPC-only precedent (a
+field that lives on the shared `Character` model but is only meaningfully written for NPCs).
+Unlike `hidden`, `slain` is not part of `CharacterUpdateSerializer` or
+`CharacterCreateSerializer` at all — this action endpoint, validated by the dedicated
+`CharacterSlainUpdateSerializer`, is its only write path.
+
+Since NPCs have no player by convention, `CharacterEditPermission` resolves in practice to
+"superuser or GameMaster (DM) of that game" for this endpoint.
+
+- Unauthenticated → 401. Authenticated but not an editor of the NPC → 403.
+- Unknown `game_slug` or `character_id` (or a `character_id` that does not belong to
+  `game_slug`, or is a PC id used against this NPC-only route) → 404.
+- Missing `slain` in the body, or a non-boolean value → 400.
+
+---
+
 ## Treasure photo upload init endpoint
 
 | Endpoint | Method | Who can call | Response fields |
@@ -192,14 +215,14 @@ Characters are scoped to a game. Access is symmetric for PCs and NPCs unless not
 
 | Endpoint | Who can read | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs.json` | Anyone | `id`, `name`, `game_slug`, `profile_photo_path` |
-| `GET /games/<slug>/npcs.json` | Anyone | `id`, `name`, `game_slug`, `profile_photo_path` |
+| `GET /games/<slug>/pcs.json` | Anyone | `id`, `name`, `game_slug`, `profile_photo_path`, `slain` |
+| `GET /games/<slug>/npcs.json` | Anyone | `id`, `name`, `game_slug`, `profile_photo_path`, `slain` |
 
 ### Detail
 
 | Endpoint | Who can read | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs/<id>.json` | Anyone | `id`, `name`, `role`, `public_description`, `is_pc`, `photos`, `links`, `game_slug`, `can_edit`, `profile_photo_path` |
+| `GET /games/<slug>/pcs/<id>.json` | Anyone | `id`, `name`, `role`, `public_description`, `is_pc`, `photos`, `links`, `game_slug`, `can_edit`, `profile_photo_path`, `profile_photo_id`, `money`, `slain` |
 | `GET /games/<slug>/npcs/<id>.json` | Anyone | same as above |
 
 `profile_photo_path` (added in issue #255) is `character.profile_photo.path` — the raw
@@ -207,6 +230,12 @@ relative storage key of the `CharacterPhoto` automatically selected as the chara
 profile photo (see the "CharacterPhoto" and "Upload" sections below) — or `null` when the
 character has no profile photo yet. It is returned on the list, detail, and full-detail
 endpoints, to anyone.
+
+`slain` (added in issue #315) is a `BooleanField` (default `False`) shared by the `Character`
+model for both PCs and NPCs, and is returned read-only on the list and detail endpoints to
+anyone. Unlike `hidden`/`money`, it has no write path through `CharacterUpdateSerializer` or
+`CharacterCreateSerializer` — see the "Character slain-toggle endpoint" subsection below for
+its only write path.
 
 ### Full detail (includes `private_description`)
 

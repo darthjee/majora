@@ -178,3 +178,15 @@ class TestCharacterDetailSerializer:
         self.character.save()
         data = self._serialize()
         assert data['money'] == 150
+
+    def test_serializes_slain_as_false_by_default(self):
+        """Test that slain defaults to False."""
+        data = self._serialize()
+        assert data['slain'] is False
+
+    def test_serializes_slain_as_true_when_set(self):
+        """Test that slain reflects the model value when True."""
+        self.character.slain = True
+        self.character.save()
+        data = self._serialize()
+        assert data['slain'] is True

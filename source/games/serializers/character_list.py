@@ -12,9 +12,10 @@ class CharacterListSerializer(serializers.ModelSerializer):
     profile_photo_path = serializers.CharField(
         source='profile_photo.path', default=None, read_only=True
     )
+    slain = serializers.BooleanField(read_only=True)
 
     class Meta:
         """Metadata for the CharacterListSerializer."""
 
         model = Character
-        fields = ['id', 'name', 'game_slug', 'profile_photo_path']
+        fields = ['id', 'name', 'game_slug', 'profile_photo_path', 'slain']
