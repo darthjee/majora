@@ -65,6 +65,7 @@ character_page:
   see_all_photos: Fotos
   slain_button: Marcar como Morto
   revive_button: Reviver
+  treasures_title: Tesouros
 character_full_page:
   loading: Carregando personagem...
   private_description_label: Notas do Mestre
@@ -172,6 +173,12 @@ my_account_page:
   password_confirmation_label: Confirmar senha
   submit: Salvar alterações
   error: Falha ao salvar conta. Tente novamente.
+character_treasures_page:
+  loading: Carregando tesouros...
+  title: Tesouros
+  name_column: Nome
+  quantity_column: Quantidade
+  value_column: Valor
 game_treasures_page:
   loading: Carregando tesouros...
   title: Tesouros
