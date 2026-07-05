@@ -81,6 +81,12 @@ class TestGameNpcsAllView:
         assert 'per_page' in response
         assert response['total'] == '2'
 
+    def test_response_includes_x_skip_cache_header(self, client):
+        """Test that the response includes the X-Skip-Cache: true header."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get(client, token=token)
+        assert response['X-Skip-Cache'] == 'true'
+
     def test_does_not_include_pcs(self, client):
         """Test that the endpoint only returns NPCs, not PCs."""
         player = Player.objects.create(name='Alice')

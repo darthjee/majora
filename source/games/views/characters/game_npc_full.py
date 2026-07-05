@@ -22,4 +22,6 @@ def game_npc_full(request, game_slug, character_id):
     if error_response:
         return error_response
     serializer = CharacterFullSerializer(character, context={'request': request})
-    return Response(serializer.data)
+    response = Response(serializer.data)
+    response['X-Skip-Cache'] = 'true'
+    return response
