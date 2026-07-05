@@ -11,6 +11,11 @@ urlpatterns = [
     path('games/<slug:game_slug>/pcs.json', views.game_pcs, name='game-pcs'),
     path('games/<slug:game_slug>/npcs.json', views.game_npcs, name='game-npcs'),
     path('games/<slug:game_slug>/treasures.json', views.game_treasures, name='game-treasures'),
+    path(
+        'games/<slug:game_slug>/treasures/<int:treasure_id>.json',
+        views.game_treasure_detail,
+        name='game-treasure-detail',
+    ),
     path('games/<slug:game_slug>/photos.json', views.game_photos, name='game-photos'),
     path(
         'games/<slug:game_slug>/sessions.json',

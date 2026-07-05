@@ -9,9 +9,10 @@ class TreasureListSerializer(serializers.ModelSerializer):
     """Serializer for treasure list items."""
 
     photo_path = serializers.CharField(source='photo.path', default=None, read_only=True)
+    game_slug = serializers.CharField(source='game.game_slug', default=None, read_only=True)
 
     class Meta:
         """Metadata for the TreasureListSerializer."""
 
         model = Treasure
-        fields = ['id', 'name', 'value', 'photo_path']
+        fields = ['id', 'name', 'value', 'photo_path', 'game_slug']

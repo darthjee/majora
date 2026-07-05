@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from games.models import Treasure
+from games.models import Game, Treasure
 
 
 @pytest.mark.django_db
@@ -71,6 +71,17 @@ class TestTreasuresListView:
         assert response.status_code == 200
         data = json.loads(response.content)
         assert len(data) == 2
+
+    def test_excludes_game_exclusive_treasures(self, client):
+        """Test that treasures owned exclusively by a game are excluded from the global list."""
+        game = Game.objects.create(name='Test Game', game_slug='test-game')
+        Treasure.objects.create(name='Global Gem', value=100)
+        Treasure.objects.create(name='Exclusive Gem', value=200, game=game)
+        response = client.get('/treasures.json')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Global Gem'
 
 
 @pytest.mark.django_db

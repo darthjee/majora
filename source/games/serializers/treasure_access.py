@@ -23,7 +23,10 @@ class TreasureAccessSerializer(serializers.Serializer):
         return request.user if request else None
 
     def _get_can_edit(self, treasure):
-        """Return whether the requesting user may edit the treasure."""
+        """Return whether the requesting user may edit the treasure, via any available path."""
         if treasure is None:
             return False
-        return treasure.can_be_edited_by(self._user())
+        user = self._user()
+        if treasure.can_be_edited_by(user):
+            return True
+        return treasure.game_id is not None and treasure.game.can_be_edited_by(user)
