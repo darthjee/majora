@@ -172,6 +172,27 @@ export default class CharacterClient extends BaseClient {
     return this.#setPhotoRoles('npcs', gameSlug, characterId, photoId, token, roles);
   }
 
+  /**
+   * Sets the slain flag on an NPC character.
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {boolean} slain - Desired slain state.
+   * @returns {Promise<Response>} fetch response from the slain endpoint.
+   */
+  setNpcSlain(gameSlug, characterId, token, slain) {
+    return this.request(`/games/${gameSlug}/npcs/${characterId}/slain.json`, {
+      method: 'PATCH',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Token ${token}` } : {}),
+      },
+      body: JSON.stringify({ slain }),
+    });
+  }
+
   #fetchCharacter(segment, gameSlug, characterId, token, suffix = null) {
     const base = `/games/${gameSlug}/${segment}/${characterId}`;
     const path = suffix ? `${base}/${suffix}.json` : `${base}.json`;

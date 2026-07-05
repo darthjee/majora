@@ -49,3 +49,15 @@ class TestCharacterListSerializer:
         self.character.save()
         data = CharacterListSerializer(self.character).data
         assert data['profile_photo_path'] == 'photos/games/test-game/characters/1/profile.jpg'
+
+    def test_serializes_slain_as_false_by_default(self):
+        """Test that slain defaults to False."""
+        data = CharacterListSerializer(self.character).data
+        assert data['slain'] is False
+
+    def test_serializes_slain_as_true_when_set(self):
+        """Test that slain reflects the model value when True."""
+        self.character.slain = True
+        self.character.save()
+        data = CharacterListSerializer(self.character).data
+        assert data['slain'] is True

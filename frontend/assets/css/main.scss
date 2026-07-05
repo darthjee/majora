@@ -48,7 +48,31 @@ body {
     z-index: 2;
   }
 
-  &:hover .photo-upload-overlay-button {
+  .photo-upload-overlay-button-left {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.15s ease-in-out;
+    z-index: 2;
+  }
+
+  .photo-upload-overlay-button-right {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.15s ease-in-out;
+    z-index: 2;
+  }
+
+  &:hover .photo-upload-overlay-button,
+  &:hover .photo-upload-overlay-button-left,
+  &:hover .photo-upload-overlay-button-right {
     opacity: 1;
   }
+}
+
+.photo-grayscale .card-photo-square img {
+  filter: grayscale(100%);
 }

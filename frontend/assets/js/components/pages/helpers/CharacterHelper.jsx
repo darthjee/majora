@@ -26,11 +26,13 @@ export default class CharacterHelper {
    * @param {number} [character.money] - Total money, expressed in copper pieces.
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
    * @param {boolean} [character.is_pc] - Whether the character is a PC (vs. an NPC), used
-   *   to build the correct edit link segment.
+   *   to build the correct edit link segment and to gate the slain/revive button.
+   * @param {boolean} [character.slain] - Whether the character is slain, drives grayscale
+   *   rendering and the slain/revive button label.
    * @param {string} [character.game_slug] - Slug of the game the character belongs to.
    * @param {number|string} [character.id] - Character id.
    * @param {string} backHref - Hash path to the character's index page.
-   * @param {{onOpenUploadModal: Function}} [handlers] - Event handlers.
+   * @param {{onOpenUploadModal: Function, onOpenSlainModal: Function}} [handlers] - Event handlers.
    * @returns {React.ReactElement} Character detail element.
    */
   static render(character, backHref, handlers = {}) {
@@ -53,6 +55,8 @@ export default class CharacterHelper {
               alt={character.name}
               canEdit={character.can_edit}
               onClick={handlers.onOpenUploadModal}
+              grayscale={character.slain}
+              secondaryButton={CharacterHelper.#buildSecondaryButton(character, handlers)}
             />
             <h1>{character.name}</h1>
             <LinkList links={character.links} />
@@ -85,6 +89,32 @@ export default class CharacterHelper {
    */
   static renderError(error) {
     return <ErrorAlert error={error} />;
+  }
+
+  /**
+   * Build the slain/revive secondary button definition, only for NPCs the
+   * current user may edit.
+   *
+   * @param {object} character - Character data object.
+   * @param {boolean} [character.is_pc] - Whether the character is a PC.
+   * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
+   * @param {boolean} [character.slain] - Whether the character is currently slain.
+   * @param {{onOpenSlainModal: Function}} handlers - Event handlers.
+   * @returns {{label: string, variant: string, onClick: Function}|undefined} Secondary
+   *   button definition, or undefined when not applicable.
+   */
+  static #buildSecondaryButton(character, handlers) {
+    if (character.is_pc || !character.can_edit) {
+      return undefined;
+    }
+
+    return {
+      label: character.slain
+        ? Translator.t('character_page.revive_button')
+        : Translator.t('character_page.slain_button'),
+      variant: character.slain ? 'success' : 'danger',
+      onClick: handlers.onOpenSlainModal,
+    };
   }
 
   /**

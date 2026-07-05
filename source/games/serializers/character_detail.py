@@ -21,6 +21,7 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
     profile_photo_id = serializers.IntegerField(
         source='profile_photo.id', default=None, read_only=True
     )
+    slain = serializers.BooleanField(read_only=True)
 
     class Meta:
         """Metadata for the CharacterDetailSerializer."""
@@ -39,6 +40,7 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
             'profile_photo_path',
             'profile_photo_id',
             'money',
+            'slain',
         ]
 
     def get_can_edit(self, obj):

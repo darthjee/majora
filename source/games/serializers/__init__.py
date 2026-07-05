@@ -7,6 +7,7 @@ from games.serializers.character_full import CharacterFullSerializer
 from games.serializers.character_link import CharacterLinkSerializer
 from games.serializers.character_list import CharacterListSerializer
 from games.serializers.character_photo import CharacterPhotoSerializer
+from games.serializers.character_slain_update import CharacterSlainUpdateSerializer
 from games.serializers.character_update import CharacterUpdateSerializer
 from games.serializers.game_access import GameAccessSerializer
 from games.serializers.game_create import GameCreateSerializer
@@ -41,6 +42,7 @@ __all__ = [
     'CharacterLinkSerializer',
     'CharacterListSerializer',
     'CharacterPhotoSerializer',
+    'CharacterSlainUpdateSerializer',
     'CharacterUpdateSerializer',
     'GameAccessSerializer',
     'GameCreateSerializer',
