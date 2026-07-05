@@ -3,6 +3,7 @@ header:
   subtitle: RPG Campaign Management System
   nav_games: Games
   nav_treasures: Treasures
+  nav_staff_users: Users
   login: Login
   logoff: Logoff
   send_test_email: Send test email
@@ -129,6 +130,29 @@ treasure_edit_page:
   value_label: Value
   submit: Save changes
   error: Failed to save treasure. Please try again.
+staff_users_page:
+  loading: Loading users...
+  title: Users
+  name_column: Name
+  email_column: Email
+  edit: Edit
+  generate_link: Generate recovery link
+  copy_link: Copy link
+  copied: Copied!
+  link_error: Failed to generate recovery link. Please try again.
+staff_user_page:
+  loading: Loading user...
+  title: User
+  name_label: Name
+  email_label: Email
+  edit: Edit
+  error: Failed to load user. Please try again.
+staff_user_edit_page:
+  title: Edit User
+  name_label: Name
+  email_label: Email
+  submit: Save changes
+  error: Failed to save user. Please try again.
 game_treasures_page:
   loading: Loading treasures...
   title: Treasures

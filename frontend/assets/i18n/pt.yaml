@@ -3,6 +3,7 @@ header:
   subtitle: Sistema de gerenciamento de campanhas de RPG
   nav_games: Campanhas
   nav_treasures: Tesouros
+  nav_staff_users: Usuários
   login: Login
   logoff: Logoff
   send_test_email: Enviar e-mail de teste
@@ -129,6 +130,29 @@ treasure_edit_page:
   value_label: Valor
   submit: Salvar alterações
   error: Falha ao salvar tesouro. Tente novamente.
+staff_users_page:
+  loading: Carregando usuários...
+  title: Usuários
+  name_column: Nome
+  email_column: E-mail
+  edit: Editar
+  generate_link: Gerar link de recuperação
+  copy_link: Copiar link
+  copied: Copiado!
+  link_error: Falha ao gerar link de recuperação. Tente novamente.
+staff_user_page:
+  loading: Carregando usuário...
+  title: Usuário
+  name_label: Nome
+  email_label: E-mail
+  edit: Editar
+  error: Falha ao carregar usuário. Tente novamente.
+staff_user_edit_page:
+  title: Editar Usuário
+  name_label: Nome
+  email_label: E-mail
+  submit: Salvar alterações
+  error: Falha ao salvar usuário. Tente novamente.
 game_treasures_page:
   loading: Carregando tesouros...
   title: Tesouros
