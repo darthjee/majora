@@ -5,8 +5,30 @@ import AuthStorage from '../../../utils/AuthStorage.js';
 import Translator from '../../../i18n/Translator.js';
 import ActivityTracker from '../../../utils/ActivityTracker.js';
 import Noop from '../../../utils/Noop.js';
+import HashRouteResolver from '../../../utils/HashRouteResolver.js';
 
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
+
+const ROUTE_PATTERNS = {
+  game: '/games/:game_slug',
+  pcCharacter: '/games/:game_slug/pcs/:character_id',
+  npcCharacter: '/games/:game_slug/npcs/:character_id',
+};
+
+const NOOP_EVENT_TARGET = {
+  addEventListener: Noop.noop,
+  removeEventListener: Noop.noop,
+};
+
+/**
+ * Returns the global `window` object when available, or a no-op stand-in
+ * otherwise (e.g. when running in a non-browser test environment).
+ *
+ * @returns {EventTarget} the default event target for hash change listening.
+ */
+function defaultEventTarget() {
+  return typeof window === 'undefined' ? NOOP_EVENT_TARGET : window;
+}
 
 /**
  * Manages authentication state and modal visibility for the Header element.
@@ -23,6 +45,9 @@ export default class HeaderController {
    * @param {AuthClient} [client] - HTTP client used for auth requests.
    * @param {HealthClient} [healthClient] - HTTP client used for health-check polling.
    * @param {Function} [setIsStaff] - state setter for the staff flag.
+   * @param {Function} [setRoute] - state setter for the current route info.
+   * @param {HashRouteResolver} [routeResolver] - resolver used to derive the current route.
+   * @param {EventTarget} [eventTarget] - target used to listen for hash changes.
    */
   constructor(
     setLoggedIn,
@@ -32,7 +57,10 @@ export default class HeaderController {
     setServerStatus = Noop.noop,
     client = new AuthClient(),
     healthClient = new HealthClient(),
-    setIsStaff = Noop.noop
+    setIsStaff = Noop.noop,
+    setRoute = Noop.noop,
+    routeResolver = new HashRouteResolver(),
+    eventTarget = defaultEventTarget()
   ) {
     this.setLoggedIn = setLoggedIn;
     this.setShowModal = setShowModal;
@@ -42,7 +70,50 @@ export default class HeaderController {
     this.client = client;
     this.healthClient = healthClient;
     this.setIsStaff = setIsStaff;
+    this.setRoute = setRoute;
+    this.routeResolver = routeResolver;
+    this.eventTarget = eventTarget;
     this.healthIntervalId = null;
+  }
+
+  /**
+   * Resolves the current route (page identifier and its params) using the
+   * injected route resolver.
+   *
+   * @returns {{page: string, gameSlug: (string|undefined), characterId: (string|undefined)}} current route info.
+   */
+  getRoute() {
+    const page = this.routeResolver.getPage();
+    const pattern = ROUTE_PATTERNS[page];
+
+    if (!pattern) {
+      return { page };
+    }
+
+    const params = this.routeResolver.getParams(pattern);
+
+    return { page, gameSlug: params.game_slug, characterId: params.character_id };
+  }
+
+  /**
+   * Builds the effect used to keep the current route in sync with hash changes.
+   *
+   * @description Mirrors AppController#buildEffect: returns a start function that
+   *   subscribes to hashchange events and returns a cleanup function.
+   * @returns {Function} Effect callback returning a cleanup function.
+   */
+  buildRouteEffect() {
+    return () => {
+      const handleHashChange = () => {
+        this.setRoute(this.getRoute());
+      };
+
+      this.eventTarget.addEventListener('hashchange', handleHashChange);
+
+      return () => {
+        this.eventTarget.removeEventListener('hashchange', handleHashChange);
+      };
+    };
   }
 
   /**

@@ -60,4 +60,54 @@ describe('Header', function() {
     const html = renderToStaticMarkup(React.createElement(Header));
     expect(html).not.toContain('href="#/staff/users"');
   });
+
+  describe('route state', function() {
+    let originalWindow;
+
+    beforeEach(function() {
+      originalWindow = globalThis.window;
+    });
+
+    afterEach(function() {
+      globalThis.window = originalWindow;
+    });
+
+    it('initializes route from the current hash and renders the game nav links', function() {
+      globalThis.window = { location: { hash: '#/games/campaign' } };
+      const html = renderToStaticMarkup(React.createElement(Header));
+
+      expect(html).toContain('href="#/games/campaign/treasures"');
+      expect(html).toContain('href="#/games/campaign/sessions"');
+      expect(html).toContain('href="#/games/campaign/photos"');
+    });
+
+    it('renders the character photos nav link on a pc character route', function() {
+      globalThis.window = { location: { hash: '#/games/campaign/pcs/7' } };
+      const html = renderToStaticMarkup(React.createElement(Header));
+
+      expect(html).toContain('href="#/games/campaign/pcs/7/photos"');
+    });
+
+    it('does not render the game nav links on unrelated routes', function() {
+      globalThis.window = { location: { hash: '#/games' } };
+      const html = renderToStaticMarkup(React.createElement(Header));
+
+      expect(html).not.toContain('/treasures"');
+      expect(html).not.toContain('/sessions"');
+    });
+
+    it('does not render the game nav links when window is unavailable', function() {
+      delete globalThis.window;
+      const html = renderToStaticMarkup(React.createElement(Header));
+
+      expect(html).not.toContain('/treasures"');
+      expect(html).not.toContain('/sessions"');
+    });
+
+    it('wires the route effect lifecycle without throwing', function() {
+      globalThis.window = { location: { hash: '#/games/campaign' } };
+
+      expect(() => renderToStaticMarkup(React.createElement(Header))).not.toThrow();
+    });
+  });
 });

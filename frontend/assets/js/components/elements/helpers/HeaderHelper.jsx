@@ -13,7 +13,7 @@ export default class HeaderHelper {
   /**
    * Render the application header with navigation and auth controls.
    *
-   * @param {{loggedIn: boolean, showModal: boolean, testEmailStatus: (string|null), isSuperUser: boolean, serverStatus: (string|null), isStaff: boolean}} state - header auth state.
+   * @param {{loggedIn: boolean, showModal: boolean, testEmailStatus: (string|null), isSuperUser: boolean, serverStatus: (string|null), isStaff: boolean, route: ({page: string, gameSlug: (string|undefined), characterId: (string|undefined)}|undefined)}} state - header auth state.
    * @param {{onLoginClick: Function, onLogoffClick: Function, onModalClose: Function, onLoginSuccess: Function, onSendTestEmailClick: Function, onLanguageChange: Function}} handlers - header event handlers.
    * @returns {React.ReactElement} Header element.
    */
@@ -31,6 +31,8 @@ export default class HeaderHelper {
               <Nav.Link href="#/games">{Translator.t('header.nav_games')}</Nav.Link>
               {HeaderHelper.#renderTreasuresNavLink(state)}
               {HeaderHelper.#renderStaffUsersNavLink(state)}
+              {HeaderHelper.#renderGameNavLinks(state)}
+              {HeaderHelper.#renderCharacterPhotosNavLink(state)}
             </Nav>
             <Nav className="align-items-center">
               {HeaderHelper.#renderServerStatus(state)}
@@ -74,6 +76,51 @@ export default class HeaderHelper {
     }
 
     return <Nav.Link href="#/staff/users">{Translator.t('header.nav_staff_users')}</Nav.Link>;
+  }
+
+  /**
+   * Renders the contextual Treasures/Sessions/Photos nav links while viewing a game page.
+   *
+   * @param {{route: ({page: string, gameSlug: (string|undefined)}|undefined)}} state - header auth state.
+   * @returns {React.ReactElement|null} game nav links, or null when not on the game route.
+   */
+  static #renderGameNavLinks(state) {
+    if (state.route?.page !== 'game') {
+      return null;
+    }
+
+    const { gameSlug } = state.route;
+
+    return (
+      <>
+        <Nav.Link href={`#/games/${gameSlug}/treasures`}>{Translator.t('game_page.treasures')}</Nav.Link>
+        <Nav.Link href={`#/games/${gameSlug}/sessions`}>{Translator.t('game_page.sessions')}</Nav.Link>
+        <Nav.Link href={`#/games/${gameSlug}/photos`}>{Translator.t('game_page.see_all_photos')}</Nav.Link>
+      </>
+    );
+  }
+
+  /**
+   * Renders the contextual Photos nav link while viewing a PC or NPC character page.
+   *
+   * @param {{route: ({page: string, gameSlug: (string|undefined), characterId: (string|undefined)}|undefined)}} state - header auth state.
+   * @returns {React.ReactElement|null} photos nav link, or null when not on a character route.
+   */
+  static #renderCharacterPhotosNavLink(state) {
+    const page = state.route?.page;
+
+    if (page !== 'pcCharacter' && page !== 'npcCharacter') {
+      return null;
+    }
+
+    const segment = page === 'pcCharacter' ? 'pcs' : 'npcs';
+    const { gameSlug, characterId } = state.route;
+
+    return (
+      <Nav.Link href={`#/games/${gameSlug}/${segment}/${characterId}/photos`}>
+        {Translator.t('character_page.see_all_photos')}
+      </Nav.Link>
+    );
   }
 
   /**

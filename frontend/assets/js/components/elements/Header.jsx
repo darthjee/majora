@@ -15,6 +15,7 @@ export default function Header() {
   const [isSuperUser, setIsSuperUser] = useState(false);
   const [serverStatus, setServerStatus] = useState(null);
   const [isStaff, setIsStaff] = useState(false);
+  const [route, setRoute] = useState(() => new HeaderController().getRoute());
 
   const controller = new HeaderController(
     setLoggedIn,
@@ -24,7 +25,8 @@ export default function Header() {
     setServerStatus,
     undefined,
     undefined,
-    setIsStaff
+    setIsStaff,
+    setRoute
   );
 
   useEffect(() => {
@@ -35,15 +37,18 @@ export default function Header() {
 
     AuthEvents.subscribe(handleAuthChanged);
 
+    const cleanupRoute = controller.buildRouteEffect()();
+
     return () => {
       controller.stopHealthCheck();
       AuthEvents.unsubscribe(handleAuthChanged);
+      cleanupRoute();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return HeaderHelper.render(
-    { loggedIn, showModal, testEmailStatus, isSuperUser, serverStatus, isStaff },
+    { loggedIn, showModal, testEmailStatus, isSuperUser, serverStatus, isStaff, route },
     {
       onLoginClick: () => controller.handleLoginClick(),
       onLogoffClick: () => controller.handleLogoffClick(),

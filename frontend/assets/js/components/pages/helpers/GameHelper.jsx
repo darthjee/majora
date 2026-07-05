@@ -70,17 +70,6 @@ export default class GameHelper {
           title={Translator.t('game_page.non_player_characters')}
           seeAllHref={`#/games/${game.game_slug}/npcs`}
         />
-        <div className="mt-3">
-          <a href={`#/games/${game.game_slug}/treasures`} className="btn btn-outline-secondary">
-            {Translator.t('game_page.treasures')}
-          </a>
-          <a href={`#/games/${game.game_slug}/sessions`} className="btn btn-outline-secondary ms-2">
-            {Translator.t('game_page.sessions')}
-          </a>
-          <a href={`#/games/${game.game_slug}/photos`} className="btn btn-outline-secondary ms-2">
-            {Translator.t('game_page.see_all_photos')}
-          </a>
-        </div>
       </div>
     );
   }
