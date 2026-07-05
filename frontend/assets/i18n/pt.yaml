@@ -33,6 +33,13 @@ photo_upload_modal:
   title: Enviar Foto
 photo_view_modal:
   set_profile_photo: Definir como foto de perfil
+slain_confirm_modal:
+  slain_title: Marcar como Morto
+  revive_title: Reviver Personagem
+  slain_body: Tem certeza de que deseja marcar este personagem como morto?
+  revive_body: Tem certeza de que deseja reviver este personagem?
+  confirm: Confirmar
+  cancel: Cancelar
 back_button:
   label: Voltar
 pagination:
@@ -56,6 +63,8 @@ character_page:
   loading: Carregando personagem...
   edit: Editar
   see_all_photos: Fotos
+  slain_button: Marcar como Morto
+  revive_button: Reviver
 character_full_page:
   loading: Carregando personagem...
   private_description_label: Notas do Mestre
