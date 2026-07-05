@@ -5,6 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import '../../assets/css/styles.css';
+import '../../assets/css/main.scss';
 
 /**
  * Build the root React tree for the frontend application.
