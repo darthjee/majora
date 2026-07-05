@@ -9,10 +9,15 @@ import TreasureCardHelper from './helpers/TreasureCardHelper.jsx';
  * @param {string} props.treasure.name - Treasure name.
  * @param {number} props.treasure.value - Treasure value.
  * @param {string|null} [props.treasure.photo_path] - Optional treasure photo path.
- * @param {boolean} [props.isSuperUser] - Whether the current user may upload a photo.
+ * @param {boolean} [props.canManage] - Whether the current user may upload a photo and edit this treasure.
  * @param {Function} [props.onUploadClick] - Handler invoked with the treasure when the upload button is clicked.
+ * @param {string} [props.editHref] - Hash path to the treasure's edit page. When omitted, no
+ *   edit link is rendered even if `canManage` is true (used by the global, ownerless treasures
+ *   page, which has no game-scoped edit route).
  * @returns {React.ReactElement} Treasure card element.
  */
-export default function TreasureCard({ treasure, isSuperUser, onUploadClick }) {
-  return TreasureCardHelper.render(treasure, isSuperUser, onUploadClick);
+export default function TreasureCard({
+  treasure, canManage, onUploadClick, editHref,
+}) {
+  return TreasureCardHelper.render(treasure, canManage, onUploadClick, editHref);
 }

@@ -57,17 +57,17 @@ describe('TreasureCardHelper', function() {
       expect(html).toContain('alt="Golden Crown"');
     });
 
-    it('does not render the upload button when isSuperUser is false', function() {
+    it('does not render the upload button when canManage is false', function() {
       const html = renderToStaticMarkup(TreasureCardHelper.render(treasure, false, Noop.noop));
       expect(html).not.toContain('photo-upload-overlay-button');
     });
 
-    it('does not render the upload button when isSuperUser is omitted', function() {
+    it('does not render the upload button when canManage is omitted', function() {
       const html = renderToStaticMarkup(TreasureCardHelper.render(treasure));
       expect(html).not.toContain('photo-upload-overlay-button');
     });
 
-    it('renders the upload button when isSuperUser is true', function() {
+    it('renders the upload button when canManage is true', function() {
       const html = renderToStaticMarkup(TreasureCardHelper.render(treasure, true, Noop.noop));
       expect(html).toContain('photo-upload-overlay-button');
     });
@@ -80,6 +80,26 @@ describe('TreasureCardHelper', function() {
       overlay.props.onClick();
 
       expect(onUploadClick).toHaveBeenCalledWith(treasure);
+    });
+
+    it('does not render the edit link when editHref is omitted', function() {
+      const html = renderToStaticMarkup(TreasureCardHelper.render(treasure, true, Noop.noop));
+      expect(html).not.toContain('card-action-link');
+    });
+
+    it('does not render the edit link when canManage is false', function() {
+      const html = renderToStaticMarkup(
+        TreasureCardHelper.render(treasure, false, Noop.noop, '#/games/demo/treasures/42/edit')
+      );
+      expect(html).not.toContain('card-action-link');
+    });
+
+    it('renders the edit link when canManage is true and editHref is present', function() {
+      const html = renderToStaticMarkup(
+        TreasureCardHelper.render(treasure, true, Noop.noop, '#/games/demo/treasures/42/edit')
+      );
+      expect(html).toContain('card-action-link');
+      expect(html).toContain('href="#/games/demo/treasures/42/edit"');
     });
   });
 });

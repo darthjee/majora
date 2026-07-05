@@ -76,3 +76,8 @@ body {
 .photo-grayscale .card-photo-square img {
   filter: grayscale(100%);
 }
+
+.card-action-link {
+  position: relative;
+  z-index: 2;
+}

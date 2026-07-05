@@ -22,17 +22,42 @@ describe('TreasureCard', function() {
     expect(html).toContain('col-6 col-sm-4 col-md-3 col-lg-2');
   });
 
-  it('does not render the upload button when isSuperUser is false', function() {
+  it('does not render the upload button when canManage is false', function() {
     const html = renderToStaticMarkup(
-      React.createElement(TreasureCard, { treasure, isSuperUser: false })
+      React.createElement(TreasureCard, { treasure, canManage: false })
     );
     expect(html).not.toContain('photo-upload-overlay-button');
   });
 
-  it('renders the upload button when isSuperUser is true', function() {
+  it('renders the upload button when canManage is true', function() {
     const html = renderToStaticMarkup(
-      React.createElement(TreasureCard, { treasure, isSuperUser: true, onUploadClick: Noop.noop })
+      React.createElement(TreasureCard, { treasure, canManage: true, onUploadClick: Noop.noop })
     );
     expect(html).toContain('photo-upload-overlay-button');
+  });
+
+  it('does not render the edit link when canManage is true but editHref is omitted', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(TreasureCard, { treasure, canManage: true })
+    );
+    expect(html).not.toContain('Edit');
+  });
+
+  it('renders the edit link when canManage is true and editHref is present', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(TreasureCard, {
+        treasure, canManage: true, editHref: '#/games/demo/treasures/42/edit',
+      })
+    );
+    expect(html).toContain('href="#/games/demo/treasures/42/edit"');
+  });
+
+  it('does not render the edit link when canManage is false', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(TreasureCard, {
+        treasure, canManage: false, editHref: '#/games/demo/treasures/42/edit',
+      })
+    );
+    expect(html).not.toContain('href="#/games/demo/treasures/42/edit"');
   });
 });

@@ -1,7 +1,12 @@
 import GameTreasuresController, { getGameSlugFromTreasuresHash }
   from '../../../../../../assets/js/components/pages/controllers/GameTreasuresController.js';
+import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
 
 describe('GameTreasuresController', function() {
+  afterEach(function() {
+    AuthStorage.clearToken();
+  });
+
   it('extracts game slug from treasures hash', function() {
     expect(getGameSlugFromTreasuresHash('#/games/demo/treasures')).toBe('demo');
   });
@@ -15,18 +20,18 @@ describe('GameTreasuresController', function() {
     const setPagination = jasmine.createSpy('setPagination');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
-    const setIsSuperUser = jasmine.createSpy('setIsSuperUser');
+    const setCanEdit = jasmine.createSpy('setCanEdit');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
-    const authClient = jasmine.createSpyObj('authClient', ['status']);
+    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/treasures');
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [{ id: 1, name: 'Sword', value: 100 }],
       pagination: { page: 2, pages: 3, perPage: 4 },
     }));
-    authClient.status.and.returnValue(Promise.resolve({
+    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
       ok: true,
-      json: () => Promise.resolve({ is_superuser: false }),
+      json: () => Promise.resolve({ can_edit: false }),
     }));
 
     const cleanup = new GameTreasuresController(
@@ -35,8 +40,8 @@ describe('GameTreasuresController', function() {
       setLoading,
       setError,
       client,
-      setIsSuperUser,
-      authClient,
+      setCanEdit,
+      gameClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -54,15 +59,15 @@ describe('GameTreasuresController', function() {
     const setPagination = jasmine.createSpy('setPagination');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
-    const setIsSuperUser = jasmine.createSpy('setIsSuperUser');
+    const setCanEdit = jasmine.createSpy('setCanEdit');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
-    const authClient = jasmine.createSpyObj('authClient', ['status']);
+    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/treasures');
     client.fetchIndex.and.returnValue(Promise.reject(new Error('network error')));
-    authClient.status.and.returnValue(Promise.resolve({
+    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
       ok: true,
-      json: () => Promise.resolve({ is_superuser: false }),
+      json: () => Promise.resolve({ can_edit: false }),
     }));
 
     const cleanup = new GameTreasuresController(
@@ -71,8 +76,8 @@ describe('GameTreasuresController', function() {
       setLoading,
       setError,
       client,
-      setIsSuperUser,
-      authClient,
+      setCanEdit,
+      gameClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -87,14 +92,14 @@ describe('GameTreasuresController', function() {
     const setPagination = jasmine.createSpy('setPagination');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
-    const setIsSuperUser = jasmine.createSpy('setIsSuperUser');
+    const setCanEdit = jasmine.createSpy('setCanEdit');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
-    const authClient = jasmine.createSpyObj('authClient', ['status']);
+    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
 
     client.currentHash.and.returnValue('#/games');
-    authClient.status.and.returnValue(Promise.resolve({
+    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
       ok: true,
-      json: () => Promise.resolve({ is_superuser: false }),
+      json: () => Promise.resolve({ can_edit: false }),
     }));
 
     const cleanup = new GameTreasuresController(
@@ -103,8 +108,8 @@ describe('GameTreasuresController', function() {
       setLoading,
       setError,
       client,
-      setIsSuperUser,
-      authClient,
+      setCanEdit,
+      gameClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -120,18 +125,18 @@ describe('GameTreasuresController', function() {
     const setPagination = jasmine.createSpy('setPagination');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
-    const setIsSuperUser = jasmine.createSpy('setIsSuperUser');
+    const setCanEdit = jasmine.createSpy('setCanEdit');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
-    const authClient = jasmine.createSpyObj('authClient', ['status']);
+    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/treasures');
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [{ id: 1, name: 'Sword', value: 100 }],
       pagination: { page: 1, pages: 1, perPage: 10 },
     }));
-    authClient.status.and.returnValue(Promise.resolve({
+    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
       ok: true,
-      json: () => Promise.resolve({ is_superuser: false }),
+      json: () => Promise.resolve({ can_edit: false }),
     }));
 
     const cleanup = new GameTreasuresController(
@@ -140,8 +145,8 @@ describe('GameTreasuresController', function() {
       setLoading,
       setError,
       client,
-      setIsSuperUser,
-      authClient,
+      setCanEdit,
+      gameClient,
     ).buildEffect()();
 
     cleanup();
@@ -150,73 +155,72 @@ describe('GameTreasuresController', function() {
     expect(setTreasures).not.toHaveBeenCalled();
     expect(setPagination).not.toHaveBeenCalled();
     expect(setLoading).not.toHaveBeenCalled();
-    expect(setIsSuperUser).not.toHaveBeenCalled();
+    expect(setCanEdit).not.toHaveBeenCalled();
   });
 
-  it('sets isSuperUser to true when the current user is a superuser', async function() {
-    const setTreasures = jasmine.createSpy('setTreasures');
-    const setPagination = jasmine.createSpy('setPagination');
-    const setLoading = jasmine.createSpy('setLoading');
-    const setError = jasmine.createSpy('setError');
-    const setIsSuperUser = jasmine.createSpy('setIsSuperUser');
-    const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
-    const authClient = jasmine.createSpyObj('authClient', ['status']);
+  describe('canEdit', function() {
+    const buildController = (setCanEdit, gameClient) => {
+      const setTreasures = jasmine.createSpy('setTreasures');
+      const setPagination = jasmine.createSpy('setPagination');
+      const setLoading = jasmine.createSpy('setLoading');
+      const setError = jasmine.createSpy('setError');
+      const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
 
-    client.currentHash.and.returnValue('#/games/demo/treasures');
-    client.fetchIndex.and.returnValue(Promise.resolve({
-      data: [],
-      pagination: { page: 1, pages: 1, perPage: 10 },
-    }));
-    authClient.status.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ is_superuser: true }),
-    }));
+      client.currentHash.and.returnValue('#/games/demo/treasures');
+      client.fetchIndex.and.returnValue(Promise.resolve({
+        data: [],
+        pagination: { page: 1, pages: 1, perPage: 10 },
+      }));
 
-    const cleanup = new GameTreasuresController(
-      setTreasures,
-      setPagination,
-      setLoading,
-      setError,
-      client,
-      setIsSuperUser,
-      authClient,
-    ).buildEffect()();
-    await new Promise((resolve) => setTimeout(resolve, 0));
+      return new GameTreasuresController(
+        setTreasures, setPagination, setLoading, setError, client, setCanEdit, gameClient,
+      );
+    };
 
-    expect(setIsSuperUser).toHaveBeenCalledWith(true);
+    it('sets canEdit to true when the game access response allows editing', async function() {
+      const setCanEdit = jasmine.createSpy('setCanEdit');
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
 
-    cleanup();
-  });
+      gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ can_edit: true }),
+      }));
 
-  it('sets isSuperUser to false when the auth status check fails', async function() {
-    const setTreasures = jasmine.createSpy('setTreasures');
-    const setPagination = jasmine.createSpy('setPagination');
-    const setLoading = jasmine.createSpy('setLoading');
-    const setError = jasmine.createSpy('setError');
-    const setIsSuperUser = jasmine.createSpy('setIsSuperUser');
-    const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
-    const authClient = jasmine.createSpyObj('authClient', ['status']);
+      const cleanup = buildController(setCanEdit, gameClient).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-    client.currentHash.and.returnValue('#/games/demo/treasures');
-    client.fetchIndex.and.returnValue(Promise.resolve({
-      data: [],
-      pagination: { page: 1, pages: 1, perPage: 10 },
-    }));
-    authClient.status.and.returnValue(Promise.reject(new Error('network error')));
+      expect(gameClient.fetchGameAccess).toHaveBeenCalledWith('demo', null);
+      expect(setCanEdit).toHaveBeenCalledWith(true);
 
-    const cleanup = new GameTreasuresController(
-      setTreasures,
-      setPagination,
-      setLoading,
-      setError,
-      client,
-      setIsSuperUser,
-      authClient,
-    ).buildEffect()();
-    await new Promise((resolve) => setTimeout(resolve, 0));
+      cleanup();
+    });
 
-    expect(setIsSuperUser).toHaveBeenCalledWith(false);
+    it('sets canEdit to false when the access response is not ok', async function() {
+      const setCanEdit = jasmine.createSpy('setCanEdit');
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
 
-    cleanup();
+      gameClient.fetchGameAccess.and.returnValue(Promise.resolve({ ok: false }));
+
+      const cleanup = buildController(setCanEdit, gameClient).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(setCanEdit).toHaveBeenCalledWith(false);
+
+      cleanup();
+    });
+
+    it('sets canEdit to false when the access request throws', async function() {
+      const setCanEdit = jasmine.createSpy('setCanEdit');
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
+
+      gameClient.fetchGameAccess.and.returnValue(Promise.reject(new Error('network error')));
+
+      const cleanup = buildController(setCanEdit, gameClient).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(setCanEdit).toHaveBeenCalledWith(false);
+
+      cleanup();
+    });
   });
 });

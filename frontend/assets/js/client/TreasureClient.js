@@ -76,4 +76,64 @@ export default class TreasureClient extends BaseClient {
       body: JSON.stringify(fields),
     });
   }
+
+  /**
+   * Creates a new treasure exclusive to a game.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {object} fields - Fields for the new treasure.
+   * @param {string} fields.name - Treasure name.
+   * @param {number} fields.value - Treasure value.
+   * @returns {Promise<Response>} fetch response from the game treasures endpoint.
+   */
+  createGameTreasure(gameSlug, token, fields) {
+    return this.request(`/games/${gameSlug}/treasures.json`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Token ${token}` } : {}),
+      },
+      body: JSON.stringify(fields),
+    });
+  }
+
+  /**
+   * Fetches the details of a game-scoped treasure.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {number|string} id - Treasure id.
+   * @param {string|null} token - Authentication token, if any.
+   * @returns {Promise<Response>} fetch response from the game treasure endpoint.
+   */
+  fetchGameTreasure(gameSlug, id, token) {
+    return this.request(`/games/${gameSlug}/treasures/${id}.json`, {
+      headers: {
+        Accept: 'application/json',
+        ...(token ? { Authorization: `Token ${token}` } : {}),
+      },
+    });
+  }
+
+  /**
+   * Submits a partial update for a game-scoped treasure.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {number|string} id - Treasure id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {object} fields - Fields to update.
+   * @returns {Promise<Response>} fetch response from the game treasure endpoint.
+   */
+  updateGameTreasure(gameSlug, id, token, fields) {
+    return this.request(`/games/${gameSlug}/treasures/${id}.json`, {
+      method: 'PATCH',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Token ${token}` } : {}),
+      },
+      body: JSON.stringify(fields),
+    });
+  }
 }
