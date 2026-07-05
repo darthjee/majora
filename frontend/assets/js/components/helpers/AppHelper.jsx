@@ -11,6 +11,8 @@ import GameSession from '../pages/GameSession.jsx';
 import GameSessionEdit from '../pages/GameSessionEdit.jsx';
 import GameSessionNew from '../pages/GameSessionNew.jsx';
 import GameSessions from '../pages/GameSessions.jsx';
+import GameTreasureEdit from '../pages/GameTreasureEdit.jsx';
+import GameTreasureNew from '../pages/GameTreasureNew.jsx';
 import GameTreasures from '../pages/GameTreasures.jsx';
 import Games from '../pages/Games.jsx';
 import MyAccount from '../pages/MyAccount.jsx';
@@ -40,6 +42,8 @@ const PAGES = {
   gameNpcNew: <GameNpcNew />,
   gamePhotos: <GamePhotos />,
   gameTreasures: <GameTreasures />,
+  gameTreasureNew: <GameTreasureNew />,
+  gameTreasureEdit: <GameTreasureEdit />,
   gameSessions: <GameSessions />,
   gameSessionNew: <GameSessionNew />,
   gameSession: <GameSession />,

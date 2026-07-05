@@ -176,6 +176,20 @@ game_treasures_page:
   loading: Carregando tesouros...
   title: Tesouros
   treasures: Tesouros
+  new_treasure: Novo Tesouro
+  edit: Editar
+game_treasure_new_page:
+  title: Novo Tesouro
+  name_label: Nome
+  value_label: Valor
+  submit: Criar Tesouro
+  error: Falha ao criar tesouro. Tente novamente.
+game_treasure_edit_page:
+  title: Editar Tesouro
+  name_label: Nome
+  value_label: Valor
+  submit: Salvar alterações
+  error: Falha ao salvar tesouro. Tente novamente.
 game_sessions_page:
   loading: Carregando sessões...
   title: Sessões

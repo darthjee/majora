@@ -24,7 +24,8 @@ def treasures_list(request):
     if request.method == 'POST':
         return _create_treasure(request)
 
-    return paginated_list_response(request, Treasure.objects.all(), TreasureListSerializer)
+    treasures = Treasure.objects.filter(game__isnull=True)
+    return paginated_list_response(request, treasures, TreasureListSerializer)
 
 
 def _create_treasure(request):

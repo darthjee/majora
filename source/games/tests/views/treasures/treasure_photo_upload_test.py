@@ -6,7 +6,7 @@ import pytest
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 
-from games.models import Treasure, TreasurePhoto, Upload
+from games.models import Game, GameMaster, Treasure, TreasurePhoto, Upload
 
 
 @pytest.mark.django_db
@@ -154,3 +154,44 @@ class TestTreasurePhotoUploadView:
             content_type='application/json',
         )
         assert response.status_code == 201
+
+
+@pytest.mark.django_db
+class TestTreasurePhotoUploadGameExclusive:
+    """Tests for the DM-aware permission on a game-exclusive treasure."""
+
+    def setup_method(self):
+        """Set up a game, a DM, and a treasure exclusive to that game."""
+        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.treasure = Treasure.objects.create(
+            name='Game Gem', value=500, game=self.game
+        )
+        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
+        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.regular_user = User.objects.create_user(
+            username='player', password='secret-password'
+        )
+        self.regular_token = Token.objects.create(user=self.regular_user)
+
+    def _post(self, client, payload, token=None):
+        """Issue a POST request to the photo upload endpoint, optionally with a token."""
+        extra = {}
+        if token is not None:
+            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
+        return client.post(
+            f'/treasures/{self.treasure.id}/photo_upload.json',
+            data=json.dumps(payload),
+            content_type='application/json',
+            **extra,
+        )
+
+    def test_dm_of_owning_game_can_upload(self, client):
+        """Test that the DM of the treasure's owning game receives 201."""
+        response = self._post(client, {'filename': 'gem.png'}, token=self.dm_token)
+        assert response.status_code == 201
+
+    def test_non_dm_regular_user_returns_403(self, client):
+        """Test that a non-DM regular user is rejected with 403."""
+        response = self._post(client, {'filename': 'gem.png'}, token=self.regular_token)
+        assert response.status_code == 403

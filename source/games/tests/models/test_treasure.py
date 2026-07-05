@@ -3,7 +3,7 @@
 import pytest
 from django.contrib.auth.models import AnonymousUser, User
 
-from games.models import Treasure
+from games.models import Game, Treasure
 
 
 @pytest.mark.django_db
@@ -28,6 +28,32 @@ class TestTreasure:
         treasures = list(Treasure.objects.all())
         assert treasures[0].id == first.id
         assert treasures[1].id == second.id
+
+    def test_game_defaults_to_none(self):
+        """Test that a treasure has no owning game by default."""
+        treasure = Treasure.objects.create(name='Global Gem', value=10)
+        assert treasure.game is None
+
+    def test_treasure_can_be_exclusive_to_a_game(self):
+        """Test that a treasure can be created with an owning game."""
+        game = Game.objects.create(name='Test Game', game_slug='test-game')
+        treasure = Treasure.objects.create(name='Game Gem', value=10, game=game)
+        assert treasure.game == game
+
+    def test_deleting_game_cascades_to_exclusive_treasure(self):
+        """Test that deleting a game deletes its exclusive treasures."""
+        game = Game.objects.create(name='Test Game', game_slug='test-game')
+        treasure = Treasure.objects.create(name='Game Gem', value=10, game=game)
+        game.delete()
+        assert not Treasure.objects.filter(id=treasure.id).exists()
+
+    def test_deleting_game_does_not_delete_linked_only_treasure(self):
+        """Test that deleting a game does not delete a treasure merely M2M-linked to it."""
+        game = Game.objects.create(name='Test Game', game_slug='test-game')
+        treasure = Treasure.objects.create(name='Linked Gem', value=10)
+        game.treasures.add(treasure)
+        game.delete()
+        assert Treasure.objects.filter(id=treasure.id).exists()
 
 
 @pytest.mark.django_db

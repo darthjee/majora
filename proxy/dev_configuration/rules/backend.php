@@ -42,6 +42,15 @@ Configuration::buildRule([
                     '/games/:game_slug/pcs/:character_id.json',
                     '/games/:game_slug/pcs/:character_id/full.json',
                 ],
+                '/games/:game_slug/treasures.json' => [
+                    '/games/:game_slug/treasures.json',
+                    '/treasures.json',
+                ],
+                '/games/:game_slug/treasures/:treasure_id.json' => [
+                    '/games/:game_slug/treasures.json',
+                    '/games/:game_slug/treasures/:treasure_id.json',
+                    '/treasures/:treasure_id.json',
+                ],
             ]
         ],
         [

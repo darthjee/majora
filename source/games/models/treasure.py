@@ -11,6 +11,10 @@ class Treasure(models.Model):
     photo = models.ForeignKey(
         'games.TreasurePhoto', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
     )
+    game = models.ForeignKey(
+        'games.Game', on_delete=models.CASCADE, null=True, blank=True,
+        related_name='exclusive_treasures',
+    )
 
     class Meta:
         """Metadata for the Treasure model."""

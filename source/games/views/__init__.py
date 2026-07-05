@@ -21,7 +21,14 @@ from .characters import (
 )
 from .game_masters import game_master_detail, game_masters_list
 from .game_sessions import game_session_detail, game_sessions_list
-from .games import game_access, game_detail, game_photos, game_treasures, games_list
+from .games import (
+    game_access,
+    game_detail,
+    game_photos,
+    game_treasure_detail,
+    game_treasures,
+    games_list,
+)
 from .health import health
 from .password_reset import recover, reset_password
 from .photo_upload import photo_upload
@@ -34,6 +41,7 @@ __all__ = [
     'game_detail',
     'game_access',
     'game_treasures',
+    'game_treasure_detail',
     'game_photos',
     'game_pcs',
     'game_npcs',

@@ -1,6 +1,6 @@
-import AuthClient from '../../../client/AuthClient.js';
+import GameClient from '../../../client/GameClient.js';
 import GenericClient from '../../../client/GenericClient.js';
-import AdminAccess from '../../../utils/AdminAccess.js';
+import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
 import Router from '../../../utils/Router.js';
 import Noop from '../../../utils/Noop.js';
@@ -27,10 +27,9 @@ export default class GameTreasuresController extends BasePageController {
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
    * @param {GenericClient|null} client - Client override.
-   * @param {Function} [setIsSuperUser] - Superuser flag setter, used to gate the
-   *   per-treasure upload button — this page has no superuser-only redirect,
-   *   unlike TreasuresController, since it is public.
-   * @param {AuthClient|null} authClient - Auth client override.
+   * @param {Function} [setCanEdit] - Can-edit flag setter, used to gate the "New Treasure"
+   *   button and the per-treasure "Edit"/upload actions.
+   * @param {GameClient|null} [gameClient] - Game client override, used for the access check.
    */
   constructor(
     setTreasures,
@@ -38,8 +37,8 @@ export default class GameTreasuresController extends BasePageController {
     setLoading,
     setError,
     client = null,
-    setIsSuperUser = Noop.noop,
-    authClient = null,
+    setCanEdit = Noop.noop,
+    gameClient = null,
   ) {
     super();
     this.setTreasures = setTreasures;
@@ -47,8 +46,8 @@ export default class GameTreasuresController extends BasePageController {
     this.setLoading = setLoading;
     this.setError = setError;
     this.client = client ?? new GenericClient();
-    this.setIsSuperUser = setIsSuperUser;
-    this.authClient = authClient ?? new AuthClient();
+    this.setCanEdit = setCanEdit;
+    this.gameClient = gameClient ?? new GameClient();
   }
 
   /**
@@ -62,9 +61,7 @@ export default class GameTreasuresController extends BasePageController {
       const safeSet = this.buildSafeSetter(() => mounted);
       const gameSlug = getGameSlugFromTreasuresHash(this.client.currentHash());
 
-      AdminAccess.isSuperUser(this.authClient).then((isSuperUser) => {
-        safeSet(this.setIsSuperUser, isSuperUser);
-      });
+      this.#fetchAccess(gameSlug, safeSet);
 
       if (!gameSlug) {
         safeSet(this.setError, 'Unable to load treasures.');
@@ -83,5 +80,14 @@ export default class GameTreasuresController extends BasePageController {
         mounted = false;
       };
     };
+  }
+
+  #fetchAccess(gameSlug, safeSet) {
+    const token = AuthStorage.getToken();
+
+    this.gameClient.fetchGameAccess(gameSlug, token)
+      .then((response) => (response.ok ? response.json() : { can_edit: false }))
+      .then((access) => safeSet(this.setCanEdit, Boolean(access.can_edit)))
+      .catch(() => safeSet(this.setCanEdit, false));
   }
 }

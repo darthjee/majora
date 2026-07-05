@@ -37,7 +37,7 @@ export default class TreasuresHelper {
             <TreasureCard
               key={treasure.id}
               treasure={treasure}
-              isSuperUser={isSuperUser}
+              canManage={isSuperUser}
               onUploadClick={onUploadClick}
             />
           ))}

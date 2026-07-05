@@ -2,7 +2,7 @@
 
 import pytest
 
-from games.models import Treasure, TreasurePhoto
+from games.models import Game, Treasure, TreasurePhoto
 from games.serializers import TreasureDetailSerializer
 
 
@@ -30,9 +30,9 @@ class TestTreasureDetailSerializer:
         assert data['value'] == 200
 
     def test_only_exposes_expected_fields(self):
-        """Test that only id, name, value, and photo_path are exposed."""
+        """Test that only id, name, value, photo_path, and game_slug are exposed."""
         data = TreasureDetailSerializer(self.treasure).data
-        assert set(data.keys()) == {'id', 'name', 'value', 'photo_path'}
+        assert set(data.keys()) == {'id', 'name', 'value', 'photo_path', 'game_slug'}
 
     def test_photo_path_is_none_without_photo(self):
         """Test that photo_path is None when the treasure has no photo."""
@@ -48,3 +48,16 @@ class TestTreasureDetailSerializer:
         self.treasure.save()
         data = TreasureDetailSerializer(self.treasure).data
         assert data['photo_path'] == 'photos/treasures/1/photo.png'
+
+    def test_game_slug_is_none_without_owning_game(self):
+        """Test that game_slug is None when the treasure has no owning game."""
+        data = TreasureDetailSerializer(self.treasure).data
+        assert data['game_slug'] is None
+
+    def test_game_slug_reflects_owning_game(self):
+        """Test that game_slug reflects the owning game's slug when set."""
+        game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.treasure.game = game
+        self.treasure.save()
+        data = TreasureDetailSerializer(self.treasure).data
+        assert data['game_slug'] == 'test-game'

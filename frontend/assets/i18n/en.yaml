@@ -176,6 +176,20 @@ game_treasures_page:
   loading: Loading treasures...
   title: Treasures
   treasures: Treasures
+  new_treasure: New Treasure
+  edit: Edit
+game_treasure_new_page:
+  title: New Treasure
+  name_label: Name
+  value_label: Value
+  submit: Create Treasure
+  error: Failed to create treasure. Please try again.
+game_treasure_edit_page:
+  title: Edit Treasure
+  name_label: Name
+  value_label: Value
+  submit: Save changes
+  error: Failed to save treasure. Please try again.
 game_sessions_page:
   loading: Loading sessions...
   title: Sessions

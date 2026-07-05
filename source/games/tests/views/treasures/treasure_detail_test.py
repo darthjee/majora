@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from games.models import Treasure
+from games.models import Game, GameMaster, Treasure
 
 
 @pytest.mark.django_db
@@ -104,3 +104,16 @@ class TestTreasureDetailPatchView:
         self.treasure.refresh_from_db()
         assert self.treasure.name == 'Partial Update'
         assert self.treasure.value == 80
+
+    def test_patch_with_dm_of_owning_game_returns_403(self, client):
+        """Test that PATCH is still rejected with 403 for the DM of the treasure's game."""
+        game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.treasure.game = game
+        self.treasure.save()
+        dm_user = User.objects.create_user(username='dm_user', password='secret-password')
+        GameMaster.objects.create(game=game, user=dm_user)
+        dm_token = Token.objects.create(user=dm_user)
+        response = self._patch(client, {'name': 'Hacked Helmet'}, token=dm_token)
+        assert response.status_code == 403
+        self.treasure.refresh_from_db()
+        assert self.treasure.name == 'Old Helmet'

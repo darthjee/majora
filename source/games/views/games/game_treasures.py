@@ -1,21 +1,49 @@
-"""View for listing a game's treasures."""
+"""View for listing a game's treasures, or creating one exclusive to that game."""
 
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
 from ...authentication import CookieTokenAuthentication
-from ...models import Game
-from ...serializers import TreasureListSerializer
-from ..common import paginated_list_response
+from ...models import Game, Treasure
+from ...permissions import GameEditPermission
+from ...serializers import (
+    TreasureCreateSerializer,
+    TreasureDetailSerializer,
+    TreasureListSerializer,
+)
+from ..common import paginated_list_response, validated_or_error
 
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @authentication_classes([CookieTokenAuthentication])
-# AllowAny: this is a read-only endpoint that returns a public list of treasures for a given
-# game; no user-specific data is exposed and there are no write operations.
+# AllowAny: GET is intentionally public; POST authorization is enforced inline
+# inside _create_game_treasure via GameEditPermission.check().
 @permission_classes([AllowAny])
 def game_treasures(request, game_slug):
-    """Return a paginated list of treasures for a specific game."""
+    """Return a paginated list of treasures for a specific game, or create one."""
     game = get_object_or_404(Game, game_slug=game_slug)
-    return paginated_list_response(request, game.treasures.all(), TreasureListSerializer)
+
+    if request.method == 'POST':
+        return _create_game_treasure(request, game)
+
+    treasures = Treasure.objects.filter(Q(linked_game=game) | Q(game=game)).distinct()
+    return paginated_list_response(request, treasures, TreasureListSerializer)
+
+
+def _create_game_treasure(request, game):
+    """Validate the request and create a treasure exclusive to `game`, returning 201 detail."""
+    error_response = GameEditPermission.check(request, game)
+    if error_response:
+        return error_response
+
+    serializer = TreasureCreateSerializer(data=request.data)
+    error_response = validated_or_error(serializer)
+    if error_response:
+        return error_response
+
+    treasure = serializer.save(game=game)
+    detail = TreasureDetailSerializer(treasure)
+    return Response(detail.data, status=201)

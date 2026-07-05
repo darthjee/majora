@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 from ...authentication import CookieTokenAuthentication
 from ...models import Treasure, TreasurePhoto, Upload
-from ...permissions import TreasureEditPermission
+from ...permissions import GameEditPermission, TreasureEditPermission
 from ...serializers import PhotoUploadSerializer
 from ..common import validated_or_error
 
@@ -21,7 +21,7 @@ def treasure_photo_upload(request, treasure_id):
     """Initialise a treasure photo upload and return the upload id and token."""
     treasure = get_object_or_404(Treasure, pk=treasure_id)
 
-    error_response = TreasureEditPermission.check(request, treasure)
+    error_response = _check_photo_permission(request, treasure)
     if error_response:
         return error_response
 
@@ -35,6 +35,13 @@ def treasure_photo_upload(request, treasure_id):
     treasure_photo = _reuse_or_create_photo(treasure, file_path)
 
     return _create_upload(request.user, treasure, treasure_photo, file_path)
+
+
+def _check_photo_permission(request, treasure):
+    """Check edit permission via the treasure's owning game (if any), else the treasure itself."""
+    if treasure.game_id is not None:
+        return GameEditPermission.check(request, treasure.game)
+    return TreasureEditPermission.check(request, treasure)
 
 
 def _build_file_path(treasure_id, filename):

@@ -13,12 +13,12 @@ export default function GameTreasures() {
   const [pagination, setPagination] = useState({ page: 1, pages: 1, perPage: 10 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isSuperUser, setIsSuperUser] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedTreasure, setSelectedTreasure] = useState(null);
 
   const controller = useMemo(
-    () => new GameTreasuresController(setTreasures, setPagination, setLoading, setError, null, setIsSuperUser),
+    () => new GameTreasuresController(setTreasures, setPagination, setLoading, setError, null, setCanEdit),
     [],
   );
 
@@ -27,6 +27,7 @@ export default function GameTreasures() {
   const gameSlug = getGameSlugFromTreasuresHash(window.location.hash);
   const basePath = `#/games/${gameSlug}/treasures`;
   const backHref = `#/games/${gameSlug}`;
+  const newHref = `#/games/${gameSlug}/treasures/new`;
 
   const handleUploadClick = (treasure) => {
     setSelectedTreasure(treasure);
@@ -43,7 +44,9 @@ export default function GameTreasures() {
 
   return (
     <>
-      {GameTreasuresHelper.render(treasures, pagination, basePath, backHref, isSuperUser, handleUploadClick)}
+      {GameTreasuresHelper.render(
+        treasures, pagination, basePath, gameSlug, backHref, canEdit, newHref, handleUploadClick,
+      )}
       <PhotoUploadModal
         show={showUploadModal}
         uploadPath={`/treasures/${selectedTreasure?.id}/photo_upload.json`}

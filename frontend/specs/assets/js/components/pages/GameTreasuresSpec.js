@@ -26,15 +26,32 @@ describe('GameTreasures', function() {
     expect(html).toContain('loading');
   });
 
-  it('renders an upload button per treasure via GameTreasuresHelper.render when isSuperUser is true', function() {
+  it('renders an upload button per exclusive treasure via GameTreasuresHelper.render when canEdit is true', function() {
     spyOn(GameTreasuresController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
 
-    const treasures = [{ id: 1, name: 'Golden Crown', value: 500 }];
+    const treasures = [{ id: 1, name: 'Golden Crown', value: 500, game_slug: 'demo' }];
     const pagination = { page: 1, pages: 1, perPage: 10 };
     const html = renderToStaticMarkup(
-      GameTreasuresHelper.render(treasures, pagination, '#/games/demo/treasures', '#/games/demo', true, Noop.noop)
+      GameTreasuresHelper.render(
+        treasures, pagination, '#/games/demo/treasures', 'demo', '#/games/demo', true,
+        '#/games/demo/treasures/new', Noop.noop,
+      )
     );
 
     expect(html).toContain('photo-upload-overlay-button');
+  });
+
+  it('renders the new treasure button via GameTreasuresHelper.render when canEdit is true', function() {
+    spyOn(GameTreasuresController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
+
+    const html = renderToStaticMarkup(
+      GameTreasuresHelper.render(
+        [], { page: 1, pages: 1, perPage: 10 }, '#/games/demo/treasures', 'demo', '#/games/demo', true,
+        '#/games/demo/treasures/new',
+      ),
+    );
+
+    expect(html).toContain('New Treasure');
+    expect(html).toContain('href="#/games/demo/treasures/new"');
   });
 });
