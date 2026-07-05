@@ -41,6 +41,18 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
+   * Fetches a page of the PC character's treasures.
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @returns {Promise<Response>} fetch response from the character treasures endpoint.
+   */
+  fetchPcTreasures(gameSlug, characterId, token) {
+    return this.#fetchCharacter('pcs', gameSlug, characterId, token, 'treasures');
+  }
+
+  /**
    * Submits a partial update for a PC character.
    *
    * @param {string} gameSlug - Game slug the character belongs to.
@@ -87,6 +99,18 @@ export default class CharacterClient extends BaseClient {
    */
   fetchNpcAccess(gameSlug, characterId, token) {
     return this.#fetchCharacter('npcs', gameSlug, characterId, token, 'access');
+  }
+
+  /**
+   * Fetches a page of the NPC character's treasures.
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @returns {Promise<Response>} fetch response from the character treasures endpoint.
+   */
+  fetchNpcTreasures(gameSlug, characterId, token) {
+    return this.#fetchCharacter('npcs', gameSlug, characterId, token, 'treasures');
   }
 
   /**

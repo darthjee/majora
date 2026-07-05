@@ -19,9 +19,11 @@ import MyAccount from '../pages/MyAccount.jsx';
 import NpcCharacter from '../pages/NpcCharacter.jsx';
 import NpcCharacterEdit from '../pages/NpcCharacterEdit.jsx';
 import NpcCharacterPhotos from '../pages/NpcCharacterPhotos.jsx';
+import NpcCharacterTreasures from '../pages/NpcCharacterTreasures.jsx';
 import PcCharacter from '../pages/PcCharacter.jsx';
 import PcCharacterEdit from '../pages/PcCharacterEdit.jsx';
 import PcCharacterPhotos from '../pages/PcCharacterPhotos.jsx';
+import PcCharacterTreasures from '../pages/PcCharacterTreasures.jsx';
 import RecoverPassword from '../pages/RecoverPassword.jsx';
 import Register from '../pages/Register.jsx';
 import StaffUser from '../pages/StaffUser.jsx';
@@ -52,9 +54,11 @@ const PAGES = {
   npcCharacter: <NpcCharacter />,
   npcCharacterEdit: <NpcCharacterEdit />,
   npcCharacterPhotos: <NpcCharacterPhotos />,
+  npcCharacterTreasures: <NpcCharacterTreasures />,
   pcCharacter: <PcCharacter />,
   pcCharacterEdit: <PcCharacterEdit />,
   pcCharacterPhotos: <PcCharacterPhotos />,
+  pcCharacterTreasures: <PcCharacterTreasures />,
   recoverPassword: <RecoverPassword />,
   register: <Register />,
   staffUsers: <StaffUsers />,

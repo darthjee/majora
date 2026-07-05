@@ -255,6 +255,29 @@ describe('CharacterHelper', function() {
     });
   });
 
+  describe('treasures preview section', function() {
+    it('renders the heading and each treasure name and quantity, defaulting to an empty list', function() {
+      const withTreasures = { ...character, treasures: [{ id: 1, name: 'Potion of Healing', quantity: 3 }] };
+      const html = renderToStaticMarkup(CharacterHelper.render(withTreasures, '#/games/demo/pcs'));
+      expect(html).toContain('Treasures');
+      expect(html).toContain('Potion of Healing');
+      expect(html).toContain('>3<');
+      expect(renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'))).toContain('Treasures');
+    });
+
+    it('renders a see all link to the pcs treasures page', function() {
+      const c = { ...character, game_slug: 'demo', id: 7, is_pc: true, treasures: [] };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).toContain('href="#/games/demo/pcs/7/treasures"');
+    });
+
+    it('renders a see all link to the npcs treasures page', function() {
+      const c = { ...character, game_slug: 'demo', id: 7, is_pc: false, treasures: [] };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
+      expect(html).toContain('href="#/games/demo/npcs/7/treasures"');
+    });
+  });
+
   describe('.renderLoading', function() {
     it('renders a loading message', function() {
       expect(renderToStaticMarkup(CharacterHelper.renderLoading())).toContain('Loading character');

@@ -25,7 +25,8 @@ describe('NpcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess', 'fetchNpcTreasures']);
+    characterClient.fetchNpcTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
     client.currentHash.and.returnValue('#/games/demo/npcs/2');
     characterClient.fetchNpc.and.returnValue(Promise.resolve({
@@ -40,7 +41,8 @@ describe('NpcCharacterController', function() {
 
     expect(characterClient.fetchNpc).toHaveBeenCalledWith('demo', '2', null);
     expect(characterClient.fetchNpcFull).not.toHaveBeenCalled();
-    expect(setCharacter).toHaveBeenCalledWith({ id: 2 });
+    expect(characterClient.fetchNpcTreasures).toHaveBeenCalledWith('demo', '2', null);
+    expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [] });
     expect(setLoading).toHaveBeenCalledWith(false);
     expect(setError).not.toHaveBeenCalled();
 
@@ -54,7 +56,8 @@ describe('NpcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess', 'fetchNpcTreasures']);
+    characterClient.fetchNpcTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
     client.currentHash.and.returnValue('#/games/demo/npcs/2');
     characterClient.fetchNpc.and.returnValue(Promise.resolve({
@@ -72,7 +75,7 @@ describe('NpcCharacterController', function() {
 
     expect(characterClient.fetchNpc).toHaveBeenCalledWith('demo', '2', 'tok-abc');
     expect(characterClient.fetchNpcAccess).toHaveBeenCalledWith('demo', '2', 'tok-abc');
-    expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: false });
+    expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: false });
 
     cleanup();
   });
@@ -84,7 +87,8 @@ describe('NpcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess', 'fetchNpcTreasures']);
+    characterClient.fetchNpcTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
     client.currentHash.and.returnValue('#/games/demo/npcs/2');
     characterClient.fetchNpc.and.returnValue(Promise.resolve({
@@ -108,7 +112,8 @@ describe('NpcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess', 'fetchNpcTreasures']);
+    characterClient.fetchNpcTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
     client.currentHash.and.returnValue('#/games/demo/npcs/2');
     characterClient.fetchNpc.and.returnValue(Promise.resolve({
@@ -129,7 +134,9 @@ describe('NpcCharacterController', function() {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(characterClient.fetchNpcFull).toHaveBeenCalledWith('demo', '2', null);
-    expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: true, private_description: 'Secret lore.' });
+    expect(setCharacter).toHaveBeenCalledWith({
+      id: 2, treasures: [], can_edit: true, private_description: 'Secret lore.',
+    });
 
     cleanup();
   });
@@ -139,7 +146,8 @@ describe('NpcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess', 'fetchNpcTreasures']);
+    characterClient.fetchNpcTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
     client.currentHash.and.returnValue('#/games/demo/npcs/2');
     characterClient.fetchNpc.and.returnValue(Promise.resolve({
@@ -156,7 +164,7 @@ describe('NpcCharacterController', function() {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(characterClient.fetchNpcFull).not.toHaveBeenCalled();
-    expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: false });
+    expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: false });
 
     cleanup();
   });
@@ -166,7 +174,8 @@ describe('NpcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess', 'fetchNpcTreasures']);
+    characterClient.fetchNpcTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
     client.currentHash.and.returnValue('#/games/demo/npcs/2');
     characterClient.fetchNpc.and.returnValue(Promise.resolve({
@@ -183,7 +192,7 @@ describe('NpcCharacterController', function() {
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: true });
+    expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: true });
     expect(setError).not.toHaveBeenCalled();
 
     cleanup();
@@ -194,7 +203,8 @@ describe('NpcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess', 'fetchNpcTreasures']);
+    characterClient.fetchNpcTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
     client.currentHash.and.returnValue('#/games/demo/npcs/2');
     characterClient.fetchNpc.and.returnValue(Promise.resolve({ ok: false }));
@@ -214,7 +224,8 @@ describe('NpcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess', 'fetchNpcTreasures']);
+    characterClient.fetchNpcTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
     client.currentHash.and.returnValue('#/other');
 
@@ -234,7 +245,8 @@ describe('NpcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess', 'fetchNpcTreasures']);
+    characterClient.fetchNpcTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
     client.currentHash.and.returnValue('#/games/demo/npcs/2');
     characterClient.fetchNpc.and.returnValue(Promise.resolve({
@@ -247,7 +259,7 @@ describe('NpcCharacterController', function() {
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: false });
+    expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: false });
     expect(characterClient.fetchNpcFull).not.toHaveBeenCalled();
 
     cleanup();
@@ -258,7 +270,8 @@ describe('NpcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess', 'fetchNpcTreasures']);
+    characterClient.fetchNpcTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
     client.currentHash.and.returnValue('#/games/demo/npcs/2');
     characterClient.fetchNpc.and.returnValue(Promise.resolve({
@@ -271,7 +284,7 @@ describe('NpcCharacterController', function() {
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: false });
+    expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: false });
     expect(setError).not.toHaveBeenCalled();
 
     cleanup();
@@ -284,7 +297,8 @@ describe('NpcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess', 'fetchNpcTreasures']);
+    characterClient.fetchNpcTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
     client.currentHash.and.returnValue('#/games/demo/npcs/2');
     characterClient.fetchNpc.and.returnValue(Promise.resolve({
