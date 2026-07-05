@@ -139,4 +139,44 @@ export default class AuthClient extends BaseClient {
       body: JSON.stringify({ language }),
     });
   }
+
+  /**
+   * Fetches the authenticated user's own account details.
+   *
+   * @param {string} token - Authentication token for the requesting user.
+   * @returns {Promise<Response>} fetch response from the account endpoint.
+   */
+  fetchAccount(token) {
+    return this.request('/users/account.json', {
+      headers: {
+        Accept: 'application/json',
+        ...(token ? { Authorization: `Token ${token}` } : {}),
+      },
+    });
+  }
+
+  /**
+   * Updates the authenticated user's own account details.
+   *
+   * @param {string} token - Authentication token for the requesting user.
+   * @param {{name: string, email: string, password: (string|undefined),
+   *   passwordConfirmation: (string|undefined)}} account - Account field values.
+   * @returns {Promise<Response>} fetch response from the account endpoint.
+   */
+  updateAccount(token, { name, email, password, passwordConfirmation }) {
+    return this.request('/users/account.json', {
+      method: 'PATCH',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Token ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+        password_confirmation: passwordConfirmation,
+      }),
+    });
+  }
 }

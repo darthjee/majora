@@ -11,4 +11,5 @@ export default new Set([
   '/users/status.json',
   '/users/language.json',
   '/users/register.json',
+  '/users/account.json',
 ]);

@@ -1,5 +1,6 @@
 """Views for authentication endpoints (login, register, logout)."""
 
+from .account import account
 from .email import test_email
 from .language import language
 from .login import login
@@ -14,4 +15,5 @@ __all__ = [
     'status',
     'language',
     'test_email',
+    'account',
 ]

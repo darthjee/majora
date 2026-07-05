@@ -406,6 +406,7 @@ success/failure. They are listed here for completeness.
 | `/users/recover.json` | POST | Anyone |
 | `/users/reset-password.json` | POST | Anyone (requires valid reset token) |
 | `/users/language.json` | POST | Authenticated |
+| `/users/account.json` | GET/PATCH | Authenticated; always scoped to the requesting user, never a different user id |
 
 ---
 

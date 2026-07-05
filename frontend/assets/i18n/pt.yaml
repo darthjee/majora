@@ -10,6 +10,7 @@ header:
   test_email_sent: E-mail de teste enviado
   test_email_error: Falha ao enviar e-mail de teste
   register: Registrar
+  my_account_alt: Minha conta
 login_modal:
   title: Login
   username_label: Usuario
@@ -153,6 +154,15 @@ staff_user_edit_page:
   email_label: E-mail
   submit: Salvar alterações
   error: Falha ao salvar usuário. Tente novamente.
+my_account_page:
+  title: Minha Conta
+  loading: Carregando conta...
+  name_label: Nome
+  email_label: E-mail
+  password_label: Senha
+  password_confirmation_label: Confirmar senha
+  submit: Salvar alterações
+  error: Falha ao salvar conta. Tente novamente.
 game_treasures_page:
   loading: Carregando tesouros...
   title: Tesouros
