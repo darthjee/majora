@@ -63,6 +63,12 @@ class PhotoUploadHandler extends RequestHandler
     /** @var string Base path where photos are written */
     private string $photosBasePath;
 
+    /** @var SecurePhotoStorage Guards directory creation against path traversal. */
+    private SecurePhotoStorage $photoStorage;
+
+    /** @var UploadFilenameValidator Validates uploaded filenames against the extension allow-list. */
+    private UploadFilenameValidator $filenameValidator;
+
     /**
      * @param string                   $host           Backend host URL.
      * @param HttpClientInterface|null $httpClient     HTTP client (defaults to CurlHttpClient).
@@ -76,6 +82,8 @@ class PhotoUploadHandler extends RequestHandler
         $this->host = $host;
         $this->httpClient = $httpClient ?? new CurlHttpClient();
         $this->photosBasePath = $photosBasePath;
+        $this->photoStorage = new SecurePhotoStorage($photosBasePath);
+        $this->filenameValidator = new UploadFilenameValidator();
 
         // The incoming request's original Host header (e.g. the browser-facing
         // `moria.ffavs.net`) must never be forwarded as-is when the backend lives
@@ -290,17 +298,16 @@ class PhotoUploadHandler extends RequestHandler
      * @param string $filePath The file_path returned by the backend.
      * @param array  $file     The raw $_FILES entry for the uploaded file.
      * @return string The full destination path the file was written to.
+     * @throws InvalidArgumentException When the resolved destination would
+     *                                   escape photosBasePath.
      */
     private function writePhotoFile(string $filePath, array $file): string
     {
         $destination = $this->photosBasePath . '/' . $filePath;
-        $dir = dirname($destination);
 
         Logger::error('[upload] - saving photo file to: ' . $destination);
 
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
+        $this->photoStorage->ensureDirectoryFor($destination);
 
         file_put_contents($destination, file_get_contents($file['tmp_name']));
 
@@ -327,17 +334,16 @@ class PhotoUploadHandler extends RequestHandler
             return 'missing_file';
         }
 
-        $allowedMimeTypes  = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
         $mimeType = $file['type'] ?? '';
-        $ext      = strtolower(pathinfo($file['name'] ?? '', PATHINFO_EXTENSION));
+        $filename = $file['name'] ?? '';
 
         if (!in_array($mimeType, $allowedMimeTypes, true)) {
             return 'unsupported_mime_type';
         }
 
-        if (!in_array($ext, $allowedExtensions, true)) {
+        if (!$this->filenameValidator->isAllowed($filename)) {
             return 'unsupported_extension';
         }
 
