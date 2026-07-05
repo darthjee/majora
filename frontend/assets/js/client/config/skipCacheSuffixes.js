@@ -7,4 +7,6 @@
  */
 export default new Set([
   '/access.json',
+  '/all.json',
+  '/full.json',
 ]);
