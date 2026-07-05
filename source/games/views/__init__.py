@@ -9,6 +9,7 @@ from .characters import (
     game_npc_photo_upload,
     game_npc_photos,
     game_npc_slain_set,
+    game_npc_treasures,
     game_npcs,
     game_npcs_all,
     game_pc_access,
@@ -17,6 +18,7 @@ from .characters import (
     game_pc_photo_set,
     game_pc_photo_upload,
     game_pc_photos,
+    game_pc_treasures,
     game_pcs,
 )
 from .game_masters import game_master_detail, game_masters_list
@@ -59,6 +61,8 @@ __all__ = [
     'game_pc_photos',
     'game_npc_photos',
     'game_npc_slain_set',
+    'game_pc_treasures',
+    'game_npc_treasures',
     'game_masters_list',
     'game_master_detail',
     'game_sessions_list',
