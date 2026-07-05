@@ -49,13 +49,13 @@ game_page:
   non_player_characters: NPCs
   treasures: Tesouros
   sessions: Sessões
-  see_all_photos: Ver todas as fotos
+  see_all_photos: Fotos
 game_characters_page:
   loading: Carregando...
 character_page:
   loading: Carregando personagem...
   edit: Editar
-  see_all_photos: Ver todas as fotos
+  see_all_photos: Fotos
 character_full_page:
   loading: Carregando personagem...
   private_description_label: Notas do Mestre

@@ -49,13 +49,13 @@ game_page:
   non_player_characters: Non-Player Characters
   treasures: Treasures
   sessions: Sessions
-  see_all_photos: See all photos
+  see_all_photos: Photos
 game_characters_page:
   loading: Loading...
 character_page:
   loading: Loading character...
   edit: Edit
-  see_all_photos: See all photos
+  see_all_photos: Photos
 character_full_page:
   loading: Loading character...
   private_description_label: DM Notes
