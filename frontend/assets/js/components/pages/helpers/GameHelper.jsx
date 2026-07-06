@@ -2,6 +2,7 @@ import React from 'react';
 import PhotoUploadOverlay from '../../elements/PhotoUploadOverlay.jsx';
 import EditButton from '../../elements/EditButton.jsx';
 import PageActions from '../../elements/PageActions.jsx';
+import ConditionalComponent from '../../elements/ConditionalComponent.jsx';
 import CharacterPreviewSection from '../../elements/CharacterPreviewSection.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LinkList from '../../elements/LinkList.jsx';
@@ -31,11 +32,11 @@ export default class GameHelper {
     return (
       <div className="container mt-4">
         <PageActions backHref="#/games">
-          {game.can_edit && (
+          <ConditionalComponent render={game.can_edit}>
             <EditButton href={`#/games/${game.game_slug}/edit`}>
               {Translator.t('character_page.edit')}
             </EditButton>
-          )}
+          </ConditionalComponent>
         </PageActions>
         <div className="row">
           <div className="col-md-4">

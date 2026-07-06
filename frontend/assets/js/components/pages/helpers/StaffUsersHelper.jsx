@@ -1,4 +1,5 @@
 import React from 'react';
+import ConditionalComponent from '../../elements/ConditionalComponent.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import PageActions from '../../elements/PageActions.jsx';
@@ -104,9 +105,9 @@ export default class StaffUsersHelper {
 
     return (
       <>
-        {recovery.status === 'error' && (
+        <ConditionalComponent render={recovery.status === 'error'}>
           <span className="text-danger me-2">{Translator.t('staff_users_page.link_error')}</span>
-        )}
+        </ConditionalComponent>
         <button
           type="button"
           className="btn btn-primary btn-sm"

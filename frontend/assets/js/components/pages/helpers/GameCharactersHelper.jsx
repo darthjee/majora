@@ -1,5 +1,6 @@
 import React from 'react';
 import CharacterCard from '../../elements/CharacterCard.jsx';
+import ConditionalComponent from '../../elements/ConditionalComponent.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import NewButton from '../../elements/NewButton.jsx';
@@ -43,11 +44,11 @@ export default class GameCharactersHelper {
     return (
       <div className="container mt-4">
         <PageActions backHref={backHref}>
-          {canEdit && (
+          <ConditionalComponent render={canEdit}>
             <NewButton href={newHref}>
               {Translator.t('game_npcs_page.new_npc')}
             </NewButton>
-          )}
+          </ConditionalComponent>
         </PageActions>
         <h1 className="mb-4">{title}</h1>
         <div className="row">
