@@ -104,6 +104,26 @@ urlpatterns = [
         name='game-npc-treasures',
     ),
     path(
+        'games/<slug:game_slug>/pcs/<int:character_id>/treasures/acquire.json',
+        views.game_pc_treasure_acquire,
+        name='game-pc-treasure-acquire',
+    ),
+    path(
+        'games/<slug:game_slug>/pcs/<int:character_id>/treasures/sell.json',
+        views.game_pc_treasure_sell,
+        name='game-pc-treasure-sell',
+    ),
+    path(
+        'games/<slug:game_slug>/npcs/<int:character_id>/treasures/acquire.json',
+        views.game_npc_treasure_acquire,
+        name='game-npc-treasure-acquire',
+    ),
+    path(
+        'games/<slug:game_slug>/npcs/<int:character_id>/treasures/sell.json',
+        views.game_npc_treasure_sell,
+        name='game-npc-treasure-sell',
+    ),
+    path(
         'games/<slug:game_slug>/game-masters.json',
         views.game_masters_list,
         name='game-masters-list',
