@@ -24,9 +24,11 @@ export default class TreasureCardHelper {
    * @param {Function} [onUploadClick] - Handler invoked with the treasure when the upload button is clicked.
    * @param {string} [editHref] - Hash path to the treasure's edit page. When omitted, no edit
    *   link is rendered even if `canManage` is true.
+   * @param {number|null} [quantity] - Owned quantity, rendered as a `×<quantity>` badge in the
+   *   top-right corner when greater than 1, omitted entirely when 1 or unset.
    * @returns {React.ReactElement} Treasure card element.
    */
-  static render(treasure, canManage = false, onUploadClick = Noop.noop, editHref = '') {
+  static render(treasure, canManage = false, onUploadClick = Noop.noop, editHref = '', quantity = null) {
     return (
       <div className="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">
         <div className="card h-100 position-relative">
@@ -37,6 +39,7 @@ export default class TreasureCardHelper {
             canEdit={canManage}
             onClick={() => onUploadClick(treasure)}
           />
+          {TreasureCardHelper.#renderQuantityBadge(quantity)}
           <div className="card-body">
             <h6 className="card-title">
               <a
@@ -51,6 +54,18 @@ export default class TreasureCardHelper {
           </div>
         </div>
       </div>
+    );
+  }
+
+  static #renderQuantityBadge(quantity) {
+    if (!quantity || quantity <= 1) {
+      return null;
+    }
+
+    return (
+      <span className="badge bg-secondary position-absolute top-0 end-0 m-2">
+        {`×${quantity}`}
+      </span>
     );
   }
 

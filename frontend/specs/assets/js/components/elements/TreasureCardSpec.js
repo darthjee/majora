@@ -60,4 +60,18 @@ describe('TreasureCard', function() {
     );
     expect(html).not.toContain('href="#/games/demo/treasures/42/edit"');
   });
+
+  it('renders a quantity badge when quantity is greater than 1', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(TreasureCard, { treasure, quantity: 4 })
+    );
+    expect(html).toContain('×4');
+  });
+
+  it('does not render a quantity badge when quantity is 1', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(TreasureCard, { treasure, quantity: 1 })
+    );
+    expect(html).not.toContain('×');
+  });
 });

@@ -7,7 +7,7 @@ import CharacterMoney from '../../elements/CharacterMoney.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LinkList from '../../elements/LinkList.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
-import TreasurePreviewSection from '../../elements/TreasurePreviewSection.jsx';
+import CharacterTreasuresPreview from '../../elements/CharacterTreasuresPreview.jsx';
 import Translator from '../../../i18n/Translator.js';
 
 /**
@@ -33,7 +33,8 @@ export default class CharacterHelper {
    * @param {string} [character.game_slug] - Slug of the game the character belongs to.
    * @param {number|string} [character.id] - Character id.
    * @param {object[]} [character.treasures] - Preview list of the character's treasures
-   *   (`id`, `name`, `quantity`, `value`), with a link to the full list page.
+   *   (`id`, `treasure_id`, `name`, `quantity`, `value`, `photo_path`), rendered as a card
+   *   grid with a link to the full list page.
    * @param {string} backHref - Hash path to the character's index page.
    * @param {{onOpenUploadModal: Function, onOpenSlainModal: Function}} [handlers] - Event handlers.
    * @returns {React.ReactElement} Character detail element.
@@ -71,7 +72,7 @@ export default class CharacterHelper {
           />
         </div>
         {CharacterHelper.#renderPrivateDescription(character.private_description)}
-        <TreasurePreviewSection
+        <CharacterTreasuresPreview
           treasures={character.treasures ?? []}
           title={Translator.t('character_page.treasures_title')}
           seeAllHref={`#/games/${character.game_slug}/${segment}/${character.id}/treasures`}

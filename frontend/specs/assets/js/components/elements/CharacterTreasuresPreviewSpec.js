@@ -1,16 +1,16 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
-import TreasurePreviewSection from '../../../../../assets/js/components/elements/TreasurePreviewSection.jsx';
+import CharacterTreasuresPreview from '../../../../../assets/js/components/elements/CharacterTreasuresPreview.jsx';
 
-describe('TreasurePreviewSection', function() {
+describe('CharacterTreasuresPreview', function() {
   const treasures = [
-    { id: 1, name: 'Potion of Healing', quantity: 3 },
-    { id: 2, name: 'Golden Crown', quantity: 1 },
+    { id: 1, treasure_id: 11, name: 'Potion of Healing', quantity: 3, value: 50 },
+    { id: 2, treasure_id: 12, name: 'Golden Crown', quantity: 1, value: 500 },
   ];
 
-  it('delegates rendering to TreasurePreviewSectionHelper', function() {
+  it('delegates rendering to CharacterTreasuresPreviewHelper', function() {
     const html = renderToStaticMarkup(
-      React.createElement(TreasurePreviewSection, {
+      React.createElement(CharacterTreasuresPreview, {
         treasures,
         title: 'Treasures',
         seeAllHref: '#/games/epic-quest/pcs/1/treasures',

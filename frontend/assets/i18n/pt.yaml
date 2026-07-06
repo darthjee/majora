@@ -73,6 +73,8 @@ character_info:
   role_label: 'Função:'
 character_preview_section:
   see_all: Ver todos {{title}}
+character_treasures_preview:
+  empty: Nenhum tesouro ainda.
 recover_password_page:
   title: Resetar senha
   new_password_label: Nova senha

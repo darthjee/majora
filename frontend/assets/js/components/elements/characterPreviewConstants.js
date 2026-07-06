@@ -10,4 +10,4 @@ export const MAX_PREVIEW_CHARACTERS = 6;
  *
  * @type {number}
  */
-export const MAX_PREVIEW_TREASURES = 12;
+export const MAX_PREVIEW_TREASURES = 6;
