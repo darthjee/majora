@@ -1,7 +1,7 @@
 engines:
   bandit:
     exclude_paths:
-      - "source/games/tests/**
+      - "source/games/tests/**"
   phpmd:
     exclude_paths:
       - "source/games/tests/**"
