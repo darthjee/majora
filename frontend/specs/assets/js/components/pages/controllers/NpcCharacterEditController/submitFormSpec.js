@@ -1,6 +1,6 @@
 import NpcCharacterEditController
-  from '../../../../../../assets/js/components/pages/controllers/NpcCharacterEditController.js';
-import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
+  from '../../../../../../../assets/js/components/pages/controllers/NpcCharacterEditController.js';
+import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
 
 describe('NpcCharacterEditController#submitForm', function() {
   let setCharacter;

@@ -1,6 +1,6 @@
 import PcCharacterEditController
-  from '../../../../../../assets/js/components/pages/controllers/PcCharacterEditController.js';
-import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
+  from '../../../../../../../assets/js/components/pages/controllers/PcCharacterEditController.js';
+import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
 
 describe('PcCharacterEditController#submitForm', function() {
   let setCharacter;
