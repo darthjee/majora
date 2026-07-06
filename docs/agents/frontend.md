@@ -103,6 +103,32 @@ effects (see `pages/helpers/GamesHelper.jsx` for a reference example).
 
 ---
 
+## Avoiding Inline JSX Conditionals
+
+Render helpers should not mix conditional logic with large chunks of markup directly inline.
+Pick one of these four extraction patterns, depending on what the condition guards:
+
+1. **Condition wrapping a large block of HTML** — extract a dedicated component that receives
+   the relevant attributes, so the call site becomes `{canEdit && <EditableSomething ... />}`.
+   See `CharacterInfo.jsx` / `CardAvatar.jsx` for examples of components with conditional
+   behaviour at their root.
+2. **Condition wrapping a non-trivial existing component** — use
+   `components/elements/ConditionalComponent.jsx`, which takes a `render` boolean prop and
+   renders its `children` when true, `null` otherwise. The call site becomes
+   `<ConditionalComponent render={canEdit}>...</ConditionalComponent>`. See
+   `pages/helpers/GameHelper.jsx`, `pages/helpers/CharacterHelper.jsx`,
+   `pages/helpers/GameCharactersHelper.jsx`, and `pages/helpers/StaffUsersHelper.jsx`
+   (`#renderRecoveryAction`) for concrete usages.
+3. **Too many chained conditions** — extract the boolean expression into a named
+   helper/controller method (e.g. `shouldRender()`) so the JSX reads
+   `{shouldRender() && <SomeComponent />}`, instead of chaining several `&&` checks inline.
+4. **Large inline markup without a natural component boundary** — extract a private
+   `static renderXxx()` helper method following the existing convention in `helpers/*.jsx`
+   (e.g. `CharacterHelper.#renderPrivateDescription`, `StaffUsersHelper.#renderRecoveryAction`),
+   instead of writing the markup inline.
+
+---
+
 ## Pages vs Elements
 
 | Type | Location | Purpose |
