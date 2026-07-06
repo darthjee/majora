@@ -25,5 +25,5 @@ def game_npc_treasures(request, game_slug, character_id):
     if character.hidden and not character.can_be_edited_by(request.user):
         raise Http404
 
-    treasures = character.character_treasures.select_related('treasure').all()
+    treasures = character.character_treasures.select_related('treasure').filter(quantity__gt=0)
     return paginated_list_response(request, treasures, CharacterTreasureSerializer)

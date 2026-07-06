@@ -39,6 +39,13 @@ class TestGameNpcTreasuresView:
         assert data[0]['quantity'] == 1
         assert data[0]['value'] == 1000
 
+    def test_excludes_zero_quantity_treasures(self, client):
+        """Test that a CharacterTreasure row with quantity 0 is excluded from the response."""
+        treasure = Treasure.objects.create(name='Empty Pouch', value=10)
+        CharacterTreasure.objects.create(character=self.character, treasure=treasure, quantity=0)
+        response = client.get(f'/games/test-game/npcs/{self.character.id}/treasures.json')
+        assert json.loads(response.content) == []
+
     def test_returns_404_for_unknown_character(self, client):
         """Test that 404 is returned for a non-existent character_id."""
         response = client.get('/games/test-game/npcs/99999/treasures.json')

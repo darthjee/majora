@@ -19,5 +19,5 @@ def game_pc_treasures(request, game_slug, character_id):
     """Return a paginated list of treasures held by a specific PC in a game."""
     game = get_object_or_404(Game, game_slug=game_slug)
     character = get_object_or_404(Character, id=character_id, game=game, npc=False)
-    treasures = character.character_treasures.select_related('treasure').all()
+    treasures = character.character_treasures.select_related('treasure').filter(quantity__gt=0)
     return paginated_list_response(request, treasures, CharacterTreasureSerializer)
