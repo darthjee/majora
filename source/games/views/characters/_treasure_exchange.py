@@ -6,7 +6,7 @@ from django.http import Http404
 from rest_framework import serializers
 from rest_framework.response import Response
 
-from ...models import CharacterTreasure, Treasure
+from ...models import Character, CharacterTreasure, Treasure
 from ...permissions import CharacterEditPermission
 from ..common import validated_or_error
 
@@ -67,14 +67,13 @@ def _find_game_treasure(game, treasure_id):
 
 def _acquire(character, treasure, quantity):
     """Atomically add `quantity` of `treasure` to `character`, charging their money."""
-    cost = quantity * treasure.value
-    if cost > character.money:
-        return Response({'errors': {'quantity': ['insufficient funds']}}, status=400)
-
     with transaction.atomic():
-        character_treasure, _created = CharacterTreasure.objects.get_or_create(
-            character=character, treasure=treasure,
-        )
+        character = _lock_character(character)
+        cost = quantity * treasure.value
+        if cost > character.money:
+            return Response({'errors': {'quantity': ['insufficient funds']}}, status=400)
+
+        character_treasure = _lock_or_create_character_treasure(character, treasure)
         character_treasure.quantity += quantity
         character_treasure.save()
 
@@ -86,16 +85,15 @@ def _acquire(character, treasure, quantity):
 
 def _sell(character, treasure, quantity):
     """Atomically remove `quantity` of `treasure` from `character`, refunding their money."""
-    character_treasure = CharacterTreasure.objects.filter(
-        character=character, treasure=treasure,
-    ).first()
-    if character_treasure is None:
-        raise Http404
-
-    if quantity > character_treasure.quantity:
-        return Response({'errors': {'quantity': ['not enough owned']}}, status=400)
-
     with transaction.atomic():
+        character = _lock_character(character)
+        character_treasure = _lock_character_treasure(character, treasure)
+        if character_treasure is None:
+            raise Http404
+
+        if quantity > character_treasure.quantity:
+            return Response({'errors': {'quantity': ['not enough owned']}}, status=400)
+
         character_treasure.quantity -= quantity
         character_treasure.save()
 
@@ -103,3 +101,23 @@ def _sell(character, treasure, quantity):
         character.save()
 
     return Response({'quantity': character_treasure.quantity, 'money': character.money})
+
+
+def _lock_character(character):
+    """Return `character` re-fetched with a row lock, to guard against concurrent updates."""
+    return Character.objects.select_for_update().get(pk=character.pk)
+
+
+def _lock_character_treasure(character, treasure):
+    """Return the locked CharacterTreasure row for `character`/`treasure`, or `None`."""
+    return CharacterTreasure.objects.select_for_update().filter(
+        character=character, treasure=treasure,
+    ).first()
+
+
+def _lock_or_create_character_treasure(character, treasure):
+    """Return the locked CharacterTreasure row for `character`/`treasure`, creating it if needed."""
+    character_treasure = _lock_character_treasure(character, treasure)
+    if character_treasure is not None:
+        return character_treasure
+    return CharacterTreasure.objects.create(character=character, treasure=treasure)
