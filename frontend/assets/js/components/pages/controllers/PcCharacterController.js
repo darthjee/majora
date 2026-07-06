@@ -1,25 +1,22 @@
 import CharacterController from './CharacterController.js';
-import Router from '../../../utils/Router.js';
-
-/**
- * Extract game slug and character id from a PC character hash.
- *
- * @param {string} hash - Current hash.
- * @returns {object} Character route params.
- */
-export function getPcCharacterParamsFromHash(hash = '') {
-  const params = Router.extractParams('/games/:game_slug/pcs/:character_id', hash);
-
-  return {
-    game_slug: params.game_slug ?? '',
-    character_id: params.character_id ?? '',
-  };
-}
+import BasePageController from './BasePageController.js';
 
 /**
  * Controller for PC character detail page.
  */
 export default class PcCharacterController extends CharacterController {
+  /**
+   * Extract game slug and character id from a PC character hash.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {object} Character route params.
+   */
+  static getPcCharacterParamsFromHash(hash = '') {
+    return BasePageController.extractParams(
+      '/games/:game_slug/pcs/:character_id', hash, ['game_slug', 'character_id'],
+    );
+  }
+
   /**
    * Create a PC character controller.
    *
@@ -38,7 +35,7 @@ export default class PcCharacterController extends CharacterController {
     setLoading,
     setError,
     client = null,
-    paramsFromHash = getPcCharacterParamsFromHash,
+    paramsFromHash = PcCharacterController.getPcCharacterParamsFromHash,
     characterClient = null,
   ) {
     super(setCharacter, setLoading, setError, client, paramsFromHash, characterClient);

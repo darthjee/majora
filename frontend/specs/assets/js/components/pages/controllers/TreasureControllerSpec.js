@@ -1,4 +1,4 @@
-import TreasureController, { getTreasureIdFromHash }
+import TreasureController
   from '../../../../../../assets/js/components/pages/controllers/TreasureController.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
 
@@ -22,7 +22,7 @@ describe('TreasureController', function() {
   });
 
   it('extracts treasure id from hash', function() {
-    expect(getTreasureIdFromHash('#/treasures/42')).toBe('42');
+    expect(TreasureController.getTreasureIdFromHash('#/treasures/42')).toBe('42');
   });
 
   it('fetches treasure detail and access in parallel', async function() {

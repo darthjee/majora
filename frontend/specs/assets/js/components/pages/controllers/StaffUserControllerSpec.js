@@ -1,4 +1,4 @@
-import StaffUserController, { getStaffUserIdFromHash }
+import StaffUserController
   from '../../../../../../assets/js/components/pages/controllers/StaffUserController.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
 
@@ -8,11 +8,11 @@ describe('StaffUserController', function() {
   });
 
   it('extracts user id from a detail hash', function() {
-    expect(getStaffUserIdFromHash('#/staff/users/42')).toBe('42');
+    expect(StaffUserController.getStaffUserIdFromHash('#/staff/users/42')).toBe('42');
   });
 
   it('returns an empty string when the hash does not match the detail route', function() {
-    expect(getStaffUserIdFromHash('#/staff/users/42/edit')).toBe('');
+    expect(StaffUserController.getStaffUserIdFromHash('#/staff/users/42/edit')).toBe('');
   });
 
   describe('#buildEffect', function() {

@@ -2,22 +2,21 @@ import GenericClient from '../../../client/GenericClient.js';
 import GameClient from '../../../client/GameClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
-import Router from '../../../utils/Router.js';
-
-/**
- * Extract game slug from the game photos hash route.
- *
- * @param {string} hash - Current hash.
- * @returns {string} Game slug.
- */
-export function getGameSlugFromPhotosHash(hash = '') {
-  return Router.extractParams('/games/:game_slug/photos', hash).game_slug ?? '';
-}
 
 /**
  * Controller for the game photos index page.
  */
 export default class GamePhotosController extends BasePageController {
+  /**
+   * Extract game slug from the game photos hash route.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {string} Game slug.
+   */
+  static getGameSlugFromPhotosHash(hash = '') {
+    return BasePageController.extractParam('/games/:game_slug/photos', 'game_slug', hash);
+  }
+
   /**
    * Create a game photos controller.
    *
@@ -49,7 +48,7 @@ export default class GamePhotosController extends BasePageController {
     return () => {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
-      const gameSlug = getGameSlugFromPhotosHash(this.client.currentHash());
+      const gameSlug = GamePhotosController.getGameSlugFromPhotosHash(this.client.currentHash());
 
       if (!gameSlug) {
         safeSet(this.setError, 'Unable to load photos.');

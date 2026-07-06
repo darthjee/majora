@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import StaffUserEditController, { getStaffUserIdFromEditHash }
-  from './controllers/StaffUserEditController.js';
+import StaffUserEditController from './controllers/StaffUserEditController.js';
 import StaffUserEditHelper from './helpers/StaffUserEditHelper.jsx';
 import StaffUserHelper from './helpers/StaffUserHelper.jsx';
 
@@ -24,7 +23,7 @@ export default function StaffUserEdit() {
   );
 
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
-  const userId = getStaffUserIdFromEditHash(currentHash);
+  const userId = StaffUserEditController.getStaffUserIdFromEditHash(currentHash);
 
   useEffect(() => controller.buildEffect()(), [controller]);
 

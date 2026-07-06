@@ -1,29 +1,25 @@
 import CharacterClient from '../../../client/CharacterClient.js';
 import GenericClient from '../../../client/GenericClient.js';
 import BasePageController from './BasePageController.js';
-import Router from '../../../utils/Router.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import Noop from '../../../utils/Noop.js';
-
-/**
- * Extract game slug and character id from the NPC character treasures hash route.
- *
- * @param {string} hash - Current hash.
- * @returns {object} Route params with game_slug and character_id.
- */
-export function getNpcCharacterTreasuresParamsFromHash(hash = '') {
-  const params = Router.extractParams('/games/:game_slug/npcs/:character_id/treasures', hash);
-
-  return {
-    game_slug: params.game_slug ?? '',
-    character_id: params.character_id ?? '',
-  };
-}
 
 /**
  * Controller for the NPC character treasures index page.
  */
 export default class NpcCharacterTreasuresController extends BasePageController {
+  /**
+   * Extract game slug and character id from the NPC character treasures hash route.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {object} Route params with game_slug and character_id.
+   */
+  static getNpcCharacterTreasuresParamsFromHash(hash = '') {
+    return BasePageController.extractParams(
+      '/games/:game_slug/npcs/:character_id/treasures', hash, ['game_slug', 'character_id'],
+    );
+  }
+
   /**
    * Create an NPC character treasures controller.
    *
@@ -65,7 +61,7 @@ export default class NpcCharacterTreasuresController extends BasePageController 
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
       const { game_slug: gameSlug, character_id: characterId } =
-        getNpcCharacterTreasuresParamsFromHash(this.client.currentHash());
+        NpcCharacterTreasuresController.getNpcCharacterTreasuresParamsFromHash(this.client.currentHash());
 
       if (!gameSlug || !characterId) {
         safeSet(this.setError, 'Unable to load treasures.');

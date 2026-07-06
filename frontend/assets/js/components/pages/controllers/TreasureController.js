@@ -1,22 +1,21 @@
 import TreasureClient from '../../../client/TreasureClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
-import Router from '../../../utils/Router.js';
-
-/**
- * Extract treasure id from hash.
- *
- * @param {string} hash - Current hash.
- * @returns {string} Treasure id.
- */
-export function getTreasureIdFromHash(hash = '') {
-  return Router.extractParams('/treasures/:treasure_id', hash).treasure_id ?? '';
-}
 
 /**
  * Controller for treasure detail page.
  */
 export default class TreasureController extends BasePageController {
+  /**
+   * Extract treasure id from hash.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {string} Treasure id.
+   */
+  static getTreasureIdFromHash(hash = '') {
+    return BasePageController.extractParam('/treasures/:treasure_id', 'treasure_id', hash);
+  }
+
   /**
    * Create a treasure controller.
    *
@@ -43,7 +42,7 @@ export default class TreasureController extends BasePageController {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
       const hash = typeof window === 'undefined' ? '' : window.location.hash;
-      const id = getTreasureIdFromHash(hash);
+      const id = TreasureController.getTreasureIdFromHash(hash);
 
       if (!id) {
         safeSet(this.setError, 'Unable to load treasure.');

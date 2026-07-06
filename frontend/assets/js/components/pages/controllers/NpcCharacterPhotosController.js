@@ -2,28 +2,24 @@ import GenericClient from '../../../client/GenericClient.js';
 import CharacterClient from '../../../client/CharacterClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
-import Router from '../../../utils/Router.js';
 import Noop from '../../../utils/Noop.js';
-
-/**
- * Extract game slug and character id from the NPC character photos hash route.
- *
- * @param {string} hash - Current hash.
- * @returns {object} Route params with game_slug and character_id.
- */
-export function getNpcCharacterPhotosParamsFromHash(hash = '') {
-  const params = Router.extractParams('/games/:game_slug/npcs/:character_id/photos', hash);
-
-  return {
-    game_slug: params.game_slug ?? '',
-    character_id: params.character_id ?? '',
-  };
-}
 
 /**
  * Controller for the NPC character photos index page.
  */
 export default class NpcCharacterPhotosController extends BasePageController {
+  /**
+   * Extract game slug and character id from the NPC character photos hash route.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {object} Route params with game_slug and character_id.
+   */
+  static getNpcCharacterPhotosParamsFromHash(hash = '') {
+    return BasePageController.extractParams(
+      '/games/:game_slug/npcs/:character_id/photos', hash, ['game_slug', 'character_id'],
+    );
+  }
+
   /**
    * Create an NPC character photos controller.
    *
@@ -56,7 +52,7 @@ export default class NpcCharacterPhotosController extends BasePageController {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
       const { game_slug: gameSlug, character_id: characterId } =
-        getNpcCharacterPhotosParamsFromHash(this.client.currentHash());
+        NpcCharacterPhotosController.getNpcCharacterPhotosParamsFromHash(this.client.currentHash());
 
       if (!gameSlug || !characterId) {
         safeSet(this.setError, 'Unable to load photos.');

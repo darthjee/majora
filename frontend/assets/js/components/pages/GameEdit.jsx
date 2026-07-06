@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import GameEditController, { getGameSlugFromEditHash } from './controllers/GameEditController.js';
+import GameEditController from './controllers/GameEditController.js';
 import GameEditHelper from './helpers/GameEditHelper.jsx';
 import GameHelper from './helpers/GameHelper.jsx';
 import PhotoUploadModal from '../elements/PhotoUploadModal.jsx';
@@ -25,7 +25,7 @@ export default function GameEdit() {
   );
 
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
-  const gameSlug = getGameSlugFromEditHash(currentHash);
+  const gameSlug = GameEditController.getGameSlugFromEditHash(currentHash);
 
   useEffect(() => controller.buildEffect()(), [controller]);
 

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import GameTreasureEditController, { getGameTreasureEditParamsFromHash }
-  from './controllers/GameTreasureEditController.js';
+import GameTreasureEditController from './controllers/GameTreasureEditController.js';
 import GameTreasureEditHelper from './helpers/GameTreasureEditHelper.jsx';
 
 /**
@@ -23,7 +22,8 @@ export default function GameTreasureEdit() {
   );
 
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
-  const { game_slug: gameSlug, treasure_id: treasureId } = getGameTreasureEditParamsFromHash(currentHash);
+  const { game_slug: gameSlug, treasure_id: treasureId } =
+    GameTreasureEditController.getGameTreasureEditParamsFromHash(currentHash);
 
   useEffect(() => controller.buildEffect()(), [controller]);
 

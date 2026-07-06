@@ -1,23 +1,22 @@
 import GameClient from '../../../client/GameClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
-import Router from '../../../utils/Router.js';
 import Noop from '../../../utils/Noop.js';
-
-/**
- * Extract game slug from a game edit hash.
- *
- * @param {string} hash - Current hash.
- * @returns {string} Game slug.
- */
-export function getGameSlugFromEditHash(hash = '') {
-  return Router.extractParams('/games/:game_slug/edit', hash).game_slug ?? '';
-}
 
 /**
  * Controller for the game edit page.
  */
 export default class GameEditController extends BasePageController {
+  /**
+   * Extract game slug from a game edit hash.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {string} Game slug.
+   */
+  static getGameSlugFromEditHash(hash = '') {
+    return BasePageController.extractParam('/games/:game_slug/edit', 'game_slug', hash);
+  }
+
   /**
    * Create a game edit controller.
    *
@@ -46,7 +45,7 @@ export default class GameEditController extends BasePageController {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
       const hash = typeof window === 'undefined' ? '' : window.location.hash;
-      const gameSlug = getGameSlugFromEditHash(hash);
+      const gameSlug = GameEditController.getGameSlugFromEditHash(hash);
 
       if (!gameSlug) {
         safeSet(this.setError, 'Unable to load game.');

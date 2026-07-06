@@ -1,30 +1,24 @@
 import NpcCharacterController from './NpcCharacterController.js';
-import BaseCharacterEditController, { resolveLoadedCharacter }
-  from './BaseCharacterEditController.js';
+import BaseCharacterEditController from './BaseCharacterEditController.js';
+import BasePageController from './BasePageController.js';
 import Noop from '../../../utils/Noop.js';
-import Router from '../../../utils/Router.js';
-
-/**
- * Extract game slug and character id from an NPC character edit hash.
- *
- * @param {string} hash - Current hash.
- * @returns {object} Character route params.
- */
-export function getNpcCharacterEditParamsFromHash(hash = '') {
-  const params = Router.extractParams('/games/:game_slug/npcs/:character_id/edit', hash);
-
-  return {
-    game_slug: params.game_slug ?? '',
-    character_id: params.character_id ?? '',
-  };
-}
-
-export { resolveLoadedCharacter };
 
 /**
  * Controller for the NPC character edit page.
  */
 export default class NpcCharacterEditController extends BaseCharacterEditController {
+  /**
+   * Extract game slug and character id from an NPC character edit hash.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {object} Character route params.
+   */
+  static getNpcCharacterEditParamsFromHash(hash = '') {
+    return BasePageController.extractParams(
+      '/games/:game_slug/npcs/:character_id/edit', hash, ['game_slug', 'character_id'],
+    );
+  }
+
   /**
    * Create an NPC character edit controller.
    *
@@ -50,7 +44,7 @@ export default class NpcCharacterEditController extends BaseCharacterEditControl
       setError,
       setFieldErrors,
       NpcCharacterController,
-      getNpcCharacterEditParamsFromHash,
+      NpcCharacterEditController.getNpcCharacterEditParamsFromHash,
       'npcs',
       'updateNpc',
       client,

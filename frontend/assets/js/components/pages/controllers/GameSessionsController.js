@@ -2,23 +2,22 @@ import GameClient from '../../../client/GameClient.js';
 import GenericClient from '../../../client/GenericClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
-import Router from '../../../utils/Router.js';
 import Noop from '../../../utils/Noop.js';
-
-/**
- * Extract game slug from a sessions index hash.
- *
- * @param {string} hash - Current hash.
- * @returns {string} Game slug.
- */
-export function getGameSlugFromSessionsHash(hash = '') {
-  return Router.extractParams('/games/:game_slug/sessions', hash).game_slug ?? '';
-}
 
 /**
  * Controller for game sessions index page.
  */
 export default class GameSessionsController extends BasePageController {
+  /**
+   * Extract game slug from a sessions index hash.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {string} Game slug.
+   */
+  static getGameSlugFromSessionsHash(hash = '') {
+    return BasePageController.extractParam('/games/:game_slug/sessions', 'game_slug', hash);
+  }
+
   /**
    * Create a game sessions controller.
    *
@@ -58,7 +57,7 @@ export default class GameSessionsController extends BasePageController {
     return () => {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
-      const gameSlug = getGameSlugFromSessionsHash(this.client.currentHash());
+      const gameSlug = GameSessionsController.getGameSlugFromSessionsHash(this.client.currentHash());
 
       if (!gameSlug) {
         safeSet(this.setError, 'Unable to load sessions.');

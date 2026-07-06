@@ -1,25 +1,22 @@
 import CharacterController from './CharacterController.js';
-import Router from '../../../utils/Router.js';
-
-/**
- * Extract game slug and character id from an NPC character hash.
- *
- * @param {string} hash - Current hash.
- * @returns {object} Character route params.
- */
-export function getNpcCharacterParamsFromHash(hash = '') {
-  const params = Router.extractParams('/games/:game_slug/npcs/:character_id', hash);
-
-  return {
-    game_slug: params.game_slug ?? '',
-    character_id: params.character_id ?? '',
-  };
-}
+import BasePageController from './BasePageController.js';
 
 /**
  * Controller for NPC character detail page.
  */
 export default class NpcCharacterController extends CharacterController {
+  /**
+   * Extract game slug and character id from an NPC character hash.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {object} Character route params.
+   */
+  static getNpcCharacterParamsFromHash(hash = '') {
+    return BasePageController.extractParams(
+      '/games/:game_slug/npcs/:character_id', hash, ['game_slug', 'character_id'],
+    );
+  }
+
   /**
    * Create an NPC character controller.
    *
@@ -38,7 +35,7 @@ export default class NpcCharacterController extends CharacterController {
     setLoading,
     setError,
     client = null,
-    paramsFromHash = getNpcCharacterParamsFromHash,
+    paramsFromHash = NpcCharacterController.getNpcCharacterParamsFromHash,
     characterClient = null,
   ) {
     super(setCharacter, setLoading, setError, client, paramsFromHash, characterClient);

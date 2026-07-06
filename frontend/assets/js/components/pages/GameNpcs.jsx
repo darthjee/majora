@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import GameNpcsController, { getGameSlugFromNpcsHash } from './controllers/GameNpcsController.js';
+import GameNpcsController from './controllers/GameNpcsController.js';
 import GameCharactersHelper from './helpers/GameCharactersHelper.jsx';
 import Translator from '../../i18n/Translator.js';
 import AuthStorage from '../../utils/AuthStorage.js';
@@ -36,7 +36,7 @@ export default function GameNpcs() {
     [controller],
   );
 
-  const gameSlug = getGameSlugFromNpcsHash(window.location.hash);
+  const gameSlug = GameNpcsController.getGameSlugFromNpcsHash(window.location.hash);
   const basePath = `#/games/${gameSlug}/npcs`;
   const backHref = `#/games/${gameSlug}`;
   const newHref = `#/games/${gameSlug}/npcs/new`;

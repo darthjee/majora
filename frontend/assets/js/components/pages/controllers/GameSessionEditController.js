@@ -1,28 +1,24 @@
 import GameSessionClient from '../../../client/GameSessionClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
-import Router from '../../../utils/Router.js';
 import Noop from '../../../utils/Noop.js';
-
-/**
- * Extract game slug and session id from a session edit hash.
- *
- * @param {string} hash - Current hash.
- * @returns {{game_slug: string, id: string}} Session route params.
- */
-export function getSessionParamsFromEditHash(hash = '') {
-  const params = Router.extractParams('/games/:game_slug/sessions/:id/edit', hash);
-
-  return {
-    game_slug: params.game_slug ?? '',
-    id: params.id ?? '',
-  };
-}
 
 /**
  * Controller for the game session edit page.
  */
 export default class GameSessionEditController extends BasePageController {
+  /**
+   * Extract game slug and session id from a session edit hash.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {{game_slug: string, id: string}} Session route params.
+   */
+  static getSessionParamsFromEditHash(hash = '') {
+    return BasePageController.extractParams(
+      '/games/:game_slug/sessions/:id/edit', hash, ['game_slug', 'id'],
+    );
+  }
+
   /**
    * Create a game session edit controller.
    *
@@ -51,7 +47,7 @@ export default class GameSessionEditController extends BasePageController {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
       const hash = typeof window === 'undefined' ? '' : window.location.hash;
-      const { game_slug: gameSlug, id } = getSessionParamsFromEditHash(hash);
+      const { game_slug: gameSlug, id } = GameSessionEditController.getSessionParamsFromEditHash(hash);
 
       if (!gameSlug || !id) {
         safeSet(this.setError, 'Unable to load session.');

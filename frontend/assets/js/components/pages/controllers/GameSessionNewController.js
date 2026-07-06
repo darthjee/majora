@@ -2,23 +2,22 @@ import GameClient from '../../../client/GameClient.js';
 import GameSessionClient from '../../../client/GameSessionClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
-import Router from '../../../utils/Router.js';
 import Noop from '../../../utils/Noop.js';
-
-/**
- * Extract game slug from a session creation hash.
- *
- * @param {string} hash - Current hash.
- * @returns {string} Game slug.
- */
-export function getGameSlugFromSessionNewHash(hash = '') {
-  return Router.extractParams('/games/:game_slug/sessions/new', hash).game_slug ?? '';
-}
 
 /**
  * Controller for the game session creation page.
  */
 export default class GameSessionNewController extends BasePageController {
+  /**
+   * Extract game slug from a session creation hash.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {string} Game slug.
+   */
+  static getGameSlugFromSessionNewHash(hash = '') {
+    return BasePageController.extractParam('/games/:game_slug/sessions/new', 'game_slug', hash);
+  }
+
   /**
    * Create a game session new controller.
    *
@@ -45,7 +44,7 @@ export default class GameSessionNewController extends BasePageController {
   buildEffect() {
     return () => {
       const hash = typeof window === 'undefined' ? '' : window.location.hash;
-      const gameSlug = getGameSlugFromSessionNewHash(hash);
+      const gameSlug = GameSessionNewController.getGameSlugFromSessionNewHash(hash);
       const token = AuthStorage.getToken();
 
       this.gameClient.fetchGameAccess(gameSlug, token)

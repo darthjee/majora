@@ -2,7 +2,7 @@ import BaseCharacterEditController
   from '../../../../../../../assets/js/components/pages/controllers/BaseCharacterEditController.js';
 import NpcCharacterController
   from '../../../../../../../assets/js/components/pages/controllers/NpcCharacterController.js';
-import { getNpcCharacterEditParamsFromHash }
+import NpcCharacterEditController
   from '../../../../../../../assets/js/components/pages/controllers/NpcCharacterEditController.js';
 
 /**
@@ -22,7 +22,7 @@ export class TestCharacterEditController extends BaseCharacterEditController {
   constructor(setCharacter, setLoading, setError, setFieldErrors, client, characterClient) {
     super(
       setCharacter, setLoading, setError, setFieldErrors,
-      NpcCharacterController, getNpcCharacterEditParamsFromHash,
+      NpcCharacterController, NpcCharacterEditController.getNpcCharacterEditParamsFromHash,
       'npcs', 'updateNpc', client, characterClient,
     );
   }

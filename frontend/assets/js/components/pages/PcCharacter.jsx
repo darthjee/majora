@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import PcCharacterController, { getPcCharacterParamsFromHash }
-  from './controllers/PcCharacterController.js';
+import PcCharacterController from './controllers/PcCharacterController.js';
 import CharacterHelper from './helpers/CharacterHelper.jsx';
 import AuthEvents from '../../utils/AuthEvents.js';
 import PhotoUploadModal from '../elements/PhotoUploadModal.jsx';
@@ -30,7 +29,7 @@ export default function PcCharacter() {
   }, [controller]);
 
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
-  const { game_slug: gameSlug } = getPcCharacterParamsFromHash(currentHash);
+  const { game_slug: gameSlug } = PcCharacterController.getPcCharacterParamsFromHash(currentHash);
   const backHref = `#/games/${gameSlug}/pcs`;
 
   const handleUploadSuccess = () => {

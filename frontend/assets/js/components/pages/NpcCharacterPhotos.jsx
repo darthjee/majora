@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import NpcCharacterPhotosController, { getNpcCharacterPhotosParamsFromHash }
-  from './controllers/NpcCharacterPhotosController.js';
+import NpcCharacterPhotosController from './controllers/NpcCharacterPhotosController.js';
 import Noop from '../../utils/Noop.js';
 import NpcCharacterPhotosHelper from './helpers/NpcCharacterPhotosHelper.jsx';
 import PhotoUploadModal from '../elements/PhotoUploadModal.jsx';
@@ -28,7 +27,8 @@ export default function NpcCharacterPhotos() {
   useEffect(() => controller.buildEffect()(), [controller]);
 
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
-  const { game_slug: gameSlug, character_id: characterId } = getNpcCharacterPhotosParamsFromHash(currentHash);
+  const { game_slug: gameSlug, character_id: characterId } =
+    NpcCharacterPhotosController.getNpcCharacterPhotosParamsFromHash(currentHash);
   const basePath = `#/games/${gameSlug}/npcs/${characterId}/photos`;
   const backHref = `#/games/${gameSlug}/npcs/${characterId}`;
   const alt = character.name || '';

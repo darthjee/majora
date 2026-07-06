@@ -2,23 +2,22 @@ import GameClient from '../../../client/GameClient.js';
 import GenericClient from '../../../client/GenericClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
-import Router from '../../../utils/Router.js';
 import Noop from '../../../utils/Noop.js';
-
-/**
- * Extract game slug from treasures hash route.
- *
- * @param {string} hash - Current hash.
- * @returns {string} Game slug.
- */
-export function getGameSlugFromTreasuresHash(hash = '') {
-  return Router.extractParams('/games/:game_slug/treasures', hash).game_slug ?? '';
-}
 
 /**
  * Controller for game treasures page.
  */
 export default class GameTreasuresController extends BasePageController {
+  /**
+   * Extract game slug from treasures hash route.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {string} Game slug.
+   */
+  static getGameSlugFromTreasuresHash(hash = '') {
+    return BasePageController.extractParam('/games/:game_slug/treasures', 'game_slug', hash);
+  }
+
   /**
    * Create a game treasures controller.
    *
@@ -59,7 +58,7 @@ export default class GameTreasuresController extends BasePageController {
     return () => {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
-      const gameSlug = getGameSlugFromTreasuresHash(this.client.currentHash());
+      const gameSlug = GameTreasuresController.getGameSlugFromTreasuresHash(this.client.currentHash());
 
       this.#fetchAccess(gameSlug, safeSet);
 

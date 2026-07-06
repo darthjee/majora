@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import GameSessionNewController, { getGameSlugFromSessionNewHash }
-  from './controllers/GameSessionNewController.js';
+import GameSessionNewController from './controllers/GameSessionNewController.js';
 import Noop from '../../utils/Noop.js';
 import GameSessionNewHelper from './helpers/GameSessionNewHelper.jsx';
 
@@ -21,7 +20,7 @@ export default function GameSessionNew() {
   );
 
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
-  const gameSlug = getGameSlugFromSessionNewHash(currentHash);
+  const gameSlug = GameSessionNewController.getGameSlugFromSessionNewHash(currentHash);
 
   useEffect(() => controller.buildEffect()(), [controller]);
 

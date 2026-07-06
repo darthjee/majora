@@ -1,4 +1,4 @@
-import GameSessionController, { getSessionParamsFromHash }
+import GameSessionController
   from '../../../../../../assets/js/components/pages/controllers/GameSessionController.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
 
@@ -8,14 +8,14 @@ describe('GameSessionController', function() {
   });
 
   it('extracts game slug and id from a session hash', function() {
-    expect(getSessionParamsFromHash('#/games/demo/sessions/7')).toEqual({
+    expect(GameSessionController.getSessionParamsFromHash('#/games/demo/sessions/7')).toEqual({
       game_slug: 'demo',
       id: '7',
     });
   });
 
   it('returns empty strings when the hash does not match the session route', function() {
-    expect(getSessionParamsFromHash('#/games/demo')).toEqual({ game_slug: '', id: '' });
+    expect(GameSessionController.getSessionParamsFromHash('#/games/demo')).toEqual({ game_slug: '', id: '' });
   });
 
   describe('#buildEffect', function() {

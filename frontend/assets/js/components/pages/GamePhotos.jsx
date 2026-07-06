@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import GamePhotosController, { getGameSlugFromPhotosHash } from './controllers/GamePhotosController.js';
+import GamePhotosController from './controllers/GamePhotosController.js';
 import GamePhotosHelper from './helpers/GamePhotosHelper.jsx';
 import PhotoUploadModal from '../elements/PhotoUploadModal.jsx';
 import PhotoViewModal from '../elements/PhotoViewModal.jsx';
@@ -26,7 +26,7 @@ export default function GamePhotos() {
   useEffect(() => controller.buildEffect()(), [controller]);
 
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
-  const gameSlug = getGameSlugFromPhotosHash(currentHash);
+  const gameSlug = GamePhotosController.getGameSlugFromPhotosHash(currentHash);
   const basePath = `#/games/${gameSlug}/photos`;
   const backHref = `#/games/${gameSlug}`;
   const alt = game.name || gameSlug;

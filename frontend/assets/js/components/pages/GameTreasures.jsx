@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import GameTreasuresController, { getGameSlugFromTreasuresHash } from './controllers/GameTreasuresController.js';
+import GameTreasuresController from './controllers/GameTreasuresController.js';
 import GameTreasuresHelper from './helpers/GameTreasuresHelper.jsx';
 import PhotoUploadModal from '../elements/PhotoUploadModal.jsx';
 
@@ -24,7 +24,7 @@ export default function GameTreasures() {
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
-  const gameSlug = getGameSlugFromTreasuresHash(window.location.hash);
+  const gameSlug = GameTreasuresController.getGameSlugFromTreasuresHash(window.location.hash);
   const basePath = `#/games/${gameSlug}/treasures`;
   const backHref = `#/games/${gameSlug}`;
   const newHref = `#/games/${gameSlug}/treasures/new`;
