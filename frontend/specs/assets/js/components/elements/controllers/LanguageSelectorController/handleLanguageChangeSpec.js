@@ -1,5 +1,5 @@
-import LanguageSelectorController from '../../../../../../assets/js/components/elements/controllers/LanguageSelectorController.js';
-import Translator from '../../../../../../assets/js/i18n/Translator.js';
+import LanguageSelectorController from '../../../../../../../assets/js/components/elements/controllers/LanguageSelectorController.js';
+import Translator from '../../../../../../../assets/js/i18n/Translator.js';
 
 describe('LanguageSelectorController', function() {
   let setLanguage;
@@ -10,17 +10,6 @@ describe('LanguageSelectorController', function() {
 
   afterEach(function() {
     Translator.setLanguage('en');
-  });
-
-  describe('#getOptions', function() {
-    it('returns an option for every available language with a flag', function() {
-      const controller = new LanguageSelectorController(setLanguage);
-
-      expect(controller.getOptions()).toEqual([
-        { code: 'en', flag: '🇬🇧' },
-        { code: 'pt', flag: '🇧🇷' },
-      ]);
-    });
   });
 
   describe('#handleLanguageChange', function() {

@@ -1,6 +1,6 @@
-import LoginModalController from '../../../../../../assets/js/components/elements/controllers/LoginModalController.js';
-import AuthEvents from '../../../../../../assets/js/utils/AuthEvents.js';
-import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
+import LoginModalController from '../../../../../../../assets/js/components/elements/controllers/LoginModalController.js';
+import AuthEvents from '../../../../../../../assets/js/utils/AuthEvents.js';
+import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
 
 describe('LoginModalController', function() {
   let setUsername;
@@ -9,7 +9,6 @@ describe('LoginModalController', function() {
   let setError;
   let onSuccess;
   let client;
-  let setRecoverySent;
 
   beforeEach(function() {
     setUsername = jasmine.createSpy('setUsername');
@@ -17,7 +16,6 @@ describe('LoginModalController', function() {
     setIncorrect = jasmine.createSpy('setIncorrect');
     setError = jasmine.createSpy('setError');
     onSuccess = jasmine.createSpy('onSuccess');
-    setRecoverySent = jasmine.createSpy('setRecoverySent');
     client = {
       login: jasmine.createSpy('login'),
       recoverPassword: jasmine.createSpy('recoverPassword'),
@@ -111,81 +109,6 @@ describe('LoginModalController', function() {
       expect(setPassword).toHaveBeenCalledWith('');
       expect(setError).toHaveBeenCalledWith(true);
       expect(setIncorrect).not.toHaveBeenCalledWith(true);
-    });
-  });
-
-  describe('#handleClear', function() {
-    it('clears the form state', function() {
-      const controller = new LoginModalController(
-        setUsername,
-        setPassword,
-        setIncorrect,
-        setError,
-        onSuccess,
-        client
-      );
-
-      controller.handleClear();
-
-      expect(setUsername).toHaveBeenCalledWith('');
-      expect(setPassword).toHaveBeenCalledWith('');
-      expect(setIncorrect).toHaveBeenCalledWith(false);
-      expect(setError).toHaveBeenCalledWith(false);
-    });
-
-    it('clears the recovery-sent flag when a setter is provided', function() {
-      const controller = new LoginModalController(
-        setUsername,
-        setPassword,
-        setIncorrect,
-        setError,
-        onSuccess,
-        client,
-        setRecoverySent
-      );
-
-      controller.handleClear();
-
-      expect(setRecoverySent).toHaveBeenCalledWith(false);
-    });
-  });
-
-  describe('#handleRecoverSubmit', function() {
-    it('requests password recovery and marks the email as sent', async function() {
-      client.recoverPassword.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({ sent: true }) }));
-
-      const controller = new LoginModalController(
-        setUsername,
-        setPassword,
-        setIncorrect,
-        setError,
-        onSuccess,
-        client,
-        setRecoverySent
-      );
-
-      await controller.handleRecoverSubmit('user@example.com');
-
-      expect(client.recoverPassword).toHaveBeenCalledWith('user@example.com');
-      expect(setRecoverySent).toHaveBeenCalledWith(true);
-    });
-
-    it('still marks the email as sent when the request fails at the network level', async function() {
-      client.recoverPassword.and.returnValue(Promise.reject(new Error('network')));
-
-      const controller = new LoginModalController(
-        setUsername,
-        setPassword,
-        setIncorrect,
-        setError,
-        onSuccess,
-        client,
-        setRecoverySent
-      );
-
-      await controller.handleRecoverSubmit('user@example.com');
-
-      expect(setRecoverySent).toHaveBeenCalledWith(true);
     });
   });
 });

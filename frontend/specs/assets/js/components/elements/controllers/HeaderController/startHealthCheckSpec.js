@@ -1,5 +1,6 @@
-import HeaderController from '../../../../../../assets/js/components/elements/controllers/HeaderController.js';
-import ActivityTracker from '../../../../../../assets/js/utils/ActivityTracker.js';
+import HeaderController from '../../../../../../../assets/js/components/elements/controllers/HeaderController.js';
+import ActivityTracker from '../../../../../../../assets/js/utils/ActivityTracker.js';
+import { buildHealthCheckContext } from './support.js';
 
 describe('HeaderController', function() {
   let setLoggedIn;
@@ -11,22 +12,9 @@ describe('HeaderController', function() {
   let healthClient;
 
   beforeEach(function() {
-    setLoggedIn = jasmine.createSpy('setLoggedIn');
-    setShowModal = jasmine.createSpy('setShowModal');
-    setTestEmailStatus = jasmine.createSpy('setTestEmailStatus');
-    setIsSuperUser = jasmine.createSpy('setIsSuperUser');
-    setServerStatus = jasmine.createSpy('setServerStatus');
-    client = {
-      status: jasmine.createSpy('status'),
-      logout: jasmine.createSpy('logout'),
-      sendTestEmail: jasmine.createSpy('sendTestEmail'),
-      setLanguagePreference: jasmine.createSpy('setLanguagePreference'),
-    };
-    healthClient = {
-      check: jasmine.createSpy('check').and.returnValue(
-        Promise.resolve({ ok: true, status: 200 })
-      ),
-    };
+    ({
+      setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client, healthClient,
+    } = buildHealthCheckContext());
   });
 
   describe('#startHealthCheck', function() {
@@ -168,31 +156,6 @@ describe('HeaderController', function() {
 
       controller.startHealthCheck(1000);
       jasmine.clock().tick(1000);
-
-      expect(healthClient.check).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('#stopHealthCheck', function() {
-    beforeEach(function() {
-      jasmine.clock().install();
-      spyOn(ActivityTracker, 'getLastActivity').and.returnValue(Date.now());
-    });
-
-    afterEach(function() {
-      jasmine.clock().uninstall();
-    });
-
-    it('stops the interval so check() is no longer called', function() {
-      const controller = new HeaderController(
-        setLoggedIn, setShowModal, setTestEmailStatus,
-        setIsSuperUser, setServerStatus, client, healthClient
-      );
-
-      controller.startHealthCheck(1000);
-      jasmine.clock().tick(1000);
-      controller.stopHealthCheck();
-      jasmine.clock().tick(2000);
 
       expect(healthClient.check).toHaveBeenCalledTimes(1);
     });

@@ -1,4 +1,4 @@
-import PhotoUploadModalController from '../../../../../../assets/js/components/elements/controllers/PhotoUploadModalController.js';
+import PhotoUploadModalController from '../../../../../../../assets/js/components/elements/controllers/PhotoUploadModalController.js';
 
 describe('PhotoUploadModalController', function() {
   let setError;
@@ -74,17 +74,6 @@ describe('PhotoUploadModalController', function() {
       expect(setError).toHaveBeenCalledWith(true);
       expect(setUploading).toHaveBeenCalledWith(false);
       expect(onSuccess).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('#handleClear', function() {
-    it('resets the error and uploading flags', function() {
-      const controller = new PhotoUploadModalController(setError, setUploading, onSuccess, client);
-
-      controller.handleClear();
-
-      expect(setError).toHaveBeenCalledWith(false);
-      expect(setUploading).toHaveBeenCalledWith(false);
     });
   });
 });

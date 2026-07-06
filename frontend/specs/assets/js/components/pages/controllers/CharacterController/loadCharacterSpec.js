@@ -1,0 +1,61 @@
+import Noop from '../../../../../../../assets/js/utils/Noop.js';
+import { StubCharacterController, safeSet, buildController } from './support.js';
+
+describe('CharacterController', function() {
+  describe('#loadCharacter', function() {
+    const params = { game_slug: 'demo', character_id: '2' };
+
+    it('fetches the character and merges access on success', async function() {
+      const setCharacter = jasmine.createSpy('setCharacter');
+      const controller = buildController(setCharacter, {
+        fetchCharacter: () => Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ id: 2 }),
+        }),
+        fetchCharacterAccess: () => Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ can_edit: false }),
+        }),
+        fetchCharacterFull: () => Promise.resolve({ ok: false }),
+      });
+
+      await controller.loadCharacter(params, safeSet);
+
+      expect(controller.fetchCharacter).toHaveBeenCalledWith('demo', '2', null);
+      expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: false });
+    });
+
+    it('calls setError when the character fetch response is not ok', async function() {
+      const setError = jasmine.createSpy('setError');
+      const setCharacter = jasmine.createSpy('setCharacter');
+      const controller = new StubCharacterController(
+        setCharacter,
+        Noop.noop,
+        setError,
+        () => params,
+        null,
+      );
+      spyOn(controller, 'fetchCharacter').and.returnValue(Promise.resolve({ ok: false }));
+
+      await controller.loadCharacter(params, safeSet);
+
+      expect(setError).toHaveBeenCalledWith('Unable to load character.');
+    });
+
+    it('calls setLoading with false after the fetch chain completes', async function() {
+      const setLoading = jasmine.createSpy('setLoading');
+      const controller = new StubCharacterController(
+        Noop.noop,
+        setLoading,
+        Noop.noop,
+        () => params,
+        null,
+      );
+      spyOn(controller, 'fetchCharacter').and.returnValue(Promise.resolve({ ok: false }));
+
+      await controller.loadCharacter(params, safeSet);
+
+      expect(setLoading).toHaveBeenCalledWith(false);
+    });
+  });
+});
