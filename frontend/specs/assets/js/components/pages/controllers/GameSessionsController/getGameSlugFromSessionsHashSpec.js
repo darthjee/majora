@@ -1,0 +1,12 @@
+import { getGameSlugFromSessionsHash }
+  from '../../../../../../../assets/js/components/pages/controllers/GameSessionsController.js';
+
+describe('GameSessionsController', function() {
+  it('extracts game slug from sessions hash', function() {
+    expect(getGameSlugFromSessionsHash('#/games/demo/sessions')).toBe('demo');
+  });
+
+  it('returns empty string when hash does not match sessions route', function() {
+    expect(getGameSlugFromSessionsHash('#/games/demo')).toBe('');
+  });
+});

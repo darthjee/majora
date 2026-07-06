@@ -1,0 +1,12 @@
+import { getGameSlugFromTreasuresHash }
+  from '../../../../../../../assets/js/components/pages/controllers/GameTreasuresController.js';
+
+describe('GameTreasuresController', function() {
+  it('extracts game slug from treasures hash', function() {
+    expect(getGameSlugFromTreasuresHash('#/games/demo/treasures')).toBe('demo');
+  });
+
+  it('returns empty string when hash does not match treasures route', function() {
+    expect(getGameSlugFromTreasuresHash('#/games/demo')).toBe('');
+  });
+});
