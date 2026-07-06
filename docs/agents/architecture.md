@@ -24,32 +24,16 @@ proxy/
     └── tests/           # PHPUnit tests for custom middleware
 ```
 
-### Development mode (`FRONTEND_DEV_MODE=true`)
+### Routing modes
 
-Tent proxies live frontend requests directly to the Vite dev server (`majora_fe:8080`). HMR works end-to-end:
-
-| Path pattern | Handler |
-|---|---|
-| `GET /` | Vite dev server |
-| `GET /assets/js/*` | Vite dev server |
-| `GET /assets/css/*` | Vite dev server |
-| `GET /assets/images/*` | Vite dev server |
-| `GET /@vite/*` | Vite dev server (HMR) |
-| `GET /node_modules/*` | Vite dev server |
-| `GET /@react-refresh` | Vite dev server (HMR) |
-| `GET /*.json` | Django backend (cached, `default_proxy`) |
-| `GET /<path>` (no match) | Redirected to `/#/<path>` (302) |
-
-### Production / static mode (`FRONTEND_DEV_MODE=false` or unset)
-
-Tent serves all frontend assets from its static folder:
-
-| Path pattern | Handler |
-|---|---|
-| `GET /` | Serves `/index.html` statically (via `SetPathMiddleware`) |
-| `GET /assets/*` | Served statically from `/var/www/html/static` |
-| `GET /*.json` | Django backend (cached, `default_proxy`) |
-| `GET /<path>` (no match) | Redirected to `/#/<path>` (302) |
+In dev mode (`FRONTEND_DEV_MODE=true`), Tent proxies frontend requests directly to the Vite
+dev server (`majora_fe:8080`), including HMR paths (`/@vite/*`, `/@react-refresh`), so HMR
+works end-to-end. In production (or when the flag is unset), Tent instead serves frontend
+assets statically from its own static folder. Both modes share the same two remaining
+rules: any `*.json` path is routed to the Django backend (cached, `default_proxy`), and any
+other unmatched path is redirected to `/#/<path>` (302) — the SPA hash-routing catch-all.
+See `proxy/dev_configuration/rules/` and `proxy/prod_configuration/` for the exact rule
+definitions.
 
 ## Shared Volume: Frontend Build Output
 
@@ -72,7 +56,7 @@ Django project package: `settings.py`, root `urls.py`, `wsgi.py`. Entry point fo
 
 The core Django app. Contains all domain models, REST views, and serializers for RPG campaign data.
 
-- `models.py` — Domain models: `Game`, `Player`, `Character`, `Photo`, `Link`.
+- `models/` — Domain models (see `AGENTS.md` for the current list).
 - `views/` — Function-based API views using `@api_view`, one file per view/route, grouped into per-resource packages (`characters/`, `games/`, `treasures/`, `game_masters/`, `auth/`, `password_reset/`); shared auth/validation/pagination/access helpers live in `views/common.py`.
 - `serializers/` — DRF serializers (one class per file): `game_access.py` (`GameAccessSerializer`), `character_access.py` (`CharacterAccessSerializer`), `pc_access.py` (`PcAccessSerializer`), plus list/detail/update serializers per resource.
 - `paginator.py` — Custom pagination for list endpoints. See [pagination.md](pagination.md).
@@ -81,27 +65,8 @@ The core Django app. Contains all domain models, REST views, and serializers for
 - `tests/` — Unit and integration tests.
 - `admin.py` — Django Admin registrations.
 
-### API Endpoints
-
-| Method | URL | Description |
-|--------|-----|-------------|
-| `GET` | `/games.json` | List all games |
-| `GET` | `/games/<slug>.json` | Game detail (includes links) |
-| `GET` | `/games/<slug>/pcs.json` | Player Characters for a game |
-| `GET` | `/games/<slug>/npcs.json` | Non-Player Characters for a game |
-| `GET` | `/games/<slug>/pcs/<id>.json` | PC detail (includes photos) |
-| `GET` | `/games/<slug>/npcs/<id>.json` | NPC detail (includes photos) |
-
-### Domain Models
-
-| Model | Key fields | Notes |
-|-------|-----------|-------|
-| `Game` | `name`, `game_slug`, `photo`, `description` | Slug auto-generated from name |
-| `Player` | `name`, `games` (M2M) | Human player; linked to one or more games |
-| `Character` | `name`, `game`, `player`, `avatar_url`, `character_class`, `level`, `description`, `npc` | PC if `npc` is `False`; NPC if `npc` is `True` (default) |
-| `Photo` | `url`, `character` (FK) | Image gallery entry for a character |
-| `GamePhoto` | `url`, `game` (FK) | Image gallery entry for a game |
-| `Link` | `text`, `url`, `game` (FK) | External link related to a game |
+See root [`AGENTS.md`](../../AGENTS.md) for the current API endpoint list and domain model
+summary; `source/games/urls.py` and `source/games/models/` are the authoritative source.
 
 ## Frontend (`frontend/`)
 

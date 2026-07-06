@@ -56,12 +56,6 @@
 
 ## `dockerfiles/` — Service Images
 
-| Subdirectory | Description |
-|--------------|-------------|
-| `majora/` | Development image for the Django backend. |
-| `majora-base/` | Base image shared by backend images. |
-| `production_majora/` | Production-optimised backend image. |
-| `production_majora-base/` | Base image shared by production images. |
-| `vite_majora/` | Image for running the Vite dev server / build. |
-| `vite_majora-base/` | Base image for the Vite container. |
-| `circleci_majora-base/` | Base image used in CI pipelines. |
+One directory per service image (dev and production backend, dev and production Vite,
+CircleCI base), each with a `-base` variant shared by its dev/production counterpart where
+applicable. See `ls dockerfiles/` for the current list.

@@ -18,29 +18,11 @@ Settings.pagination_size()  # reads MAJORA_PAGINATION_SIZE env var, defaults to 
 
 ### Paginator
 
-`source/games/paginator.py` — reusable class applied to any list view:
-
-```python
-paginator = Paginator(request, queryset)
-page_qs, headers = paginator.paginate()
-return Response(serializer.data, headers=headers)
-```
-
-**Query params accepted:**
-| Param | Description | Default |
-|-------|-------------|---------|
-| `page` | Page number (1-based) | `1` |
-| `per_page` | Items per page | `Settings.pagination_size()` |
-
-**Response headers set:**
-| Header | Description |
-|--------|-------------|
-| `page` | Current page number |
-| `pages` | Total number of pages |
-| `per_page` | Items per page used |
-| `total` | Total item count |
-
-Results are ordered by `id` via the model's `Meta.ordering`.
+`source/games/paginator.py` — a reusable `Paginator` class applied to any list view. It
+reads `page`/`per_page` query params (defaulting to `1` and `Settings.pagination_size()`),
+slices the queryset, and sets `page`/`pages`/`per_page`/`total` response headers. Results
+are ordered by `id` via the model's `Meta.ordering`. Read the class directly for the exact
+call signature.
 
 ### Endpoints with pagination
 
@@ -58,11 +40,8 @@ Results are ordered by `id` via the model's `Meta.ordering`.
 
 ### Client
 
-`GenericClient.fetchIndex(path)` reads the pagination headers and returns:
-
-```js
-{ data: [...], pagination: { page, pages, perPage } }
-```
+`GenericClient.fetchIndex(path)` reads the pagination response headers and returns
+`{ data, pagination: { page, pages, perPage } }`.
 
 ### URL params
 

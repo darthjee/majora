@@ -81,73 +81,25 @@ The React component. Responsible for:
 - Wiring effects with `useEffect`, delegating all logic to the controller
 - Delegating all rendering to the helper
 
-Stays lean — no business logic, no inline JSX beyond top-level conditionals.
-
-```jsx
-// pages/Games.jsx
-export default function Games() {
-  const [games, setGames] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, pages: 1, perPage: 10 });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  const controller = useMemo(
-    () => new GamesController(setGames, setPagination, setLoading, setError),
-    [],
-  );
-
-  useEffect(() => controller.buildEffect()(), [controller]);
-
-  if (loading) return GamesHelper.renderLoading();
-  if (error)   return GamesHelper.renderError(error);
-  return GamesHelper.render(games, pagination);
-}
-```
+Stays lean — no business logic, no inline JSX beyond top-level conditionals. Declares state,
+instantiates the controller, wires its effect, and delegates rendering to the helper based
+on `loading`/`error`/success state (see `pages/Games.jsx` for a reference example).
 
 ### Controller (`.js` in `controllers/`)
 
-A plain JS class. Responsible for:
+A plain JS class, extending `BasePageController`. Responsible for:
 
 - Data fetching via the API client
 - Building `useEffect` callbacks (`buildEffect()`)
 - Preventing state updates after unmount (`buildSafeSetter()` from `BasePageController`)
 
-No JSX. Receives state setters in the constructor.
-
-```js
-// pages/controllers/GamesController.js
-export default class GamesController extends BasePageController {
-  constructor(setGames, setPagination, setLoading, setError, client = null) {
-    super();
-    this.client = client ?? new GenericClient();
-    // ... assign setters
-  }
-
-  buildEffect() {
-    return () => {
-      let mounted = true;
-      const safeSet = this.buildSafeSetter(() => mounted);
-      this.client.fetchIndex('/games.json')
-        .then(({ data, pagination }) => { safeSet(this.setGames, data); ... })
-        .finally(() => safeSet(this.setLoading, false));
-      return () => { mounted = false; };
-    };
-  }
-}
-```
+No JSX. Receives state setters and an optional injected client in the constructor (see
+`pages/controllers/GamesController.js` for a reference example).
 
 ### Helper (`.jsx` in `helpers/`)
 
-A static class. All methods are `static renderXxx()` returning JSX. No state, no side effects.
-
-```jsx
-// pages/helpers/GamesHelper.jsx
-export default class GamesHelper {
-  static render(games, pagination) { ... }
-  static renderLoading()           { ... }
-  static renderError(error)        { ... }
-}
-```
+A static class. All methods are `static renderXxx()` returning JSX. No state, no side
+effects (see `pages/helpers/GamesHelper.jsx` for a reference example).
 
 ---
 
@@ -178,18 +130,8 @@ export default class GamesHelper {
 
 ## Routing
 
-Routes are registered in `utils/HashRouteResolver.js`:
-
-```js
-this.#router.register('/games/:game_slug/characters/:character_id', 'character');
-this.#router.register('/games/:game_slug/pcs', 'gamePcs');
-this.#router.register('/games/:game_slug/npcs', 'gameNpcs');
-this.#router.register('/games/:game_slug', 'game');
-this.#router.register('/games', 'games');
-this.#router.register('/', 'home');
-```
-
-`HashRouteResolver.getPage()` strips the query string before matching, so
+Routes are registered in `utils/HashRouteResolver.js`, one `register(pattern, pageName)`
+call per route. `HashRouteResolver.getPage()` strips the query string before matching, so
 `#/games?page=2&per_page=10` resolves to `'games'`. Pagination parameters are extracted
 separately via `getPaginationParams()`.
 
@@ -197,58 +139,25 @@ separately via `getPaginationParams()`.
 
 ## Pagination
 
-The pagination element set lives in `components/elements/`:
-
-| File | Role |
-|------|------|
-| `Pagination.jsx` | Thin wrapper — delegates to `PaginationHelper.render` |
-| `PageLink.jsx` | Anchor built from a URL template (`#/games?page=:page&per_page=:perPage`) |
-| `helpers/PaginationHelper.jsx` | Renders the full Bootstrap `<nav><ul class="pagination">…</ul></nav>` |
-| `controllers/PaginationController.js` | Wraps `PaginationBuilder`, returns the page list |
-| `controllers/PaginationBuilder.js` | Algorithm: first 3 + last 3 + ±3 window, with `null` gap markers |
-
-Usage in a helper:
-
-```jsx
-<Pagination
-  currentPage={pagination.page}
-  totalPages={pagination.pages}
-  perPage={pagination.perPage}
-  basePath="#/games"
-/>
-```
-
-`Pagination` returns `null` when `totalPages ≤ 1`, so no conditional needed at the call site.
+The pagination element set lives in `components/elements/` (`Pagination.jsx`, `PageLink.jsx`,
+`helpers/PaginationHelper.jsx`, `controllers/PaginationController.js`,
+`controllers/PaginationBuilder.js`). See [pagination.md](pagination.md) for the full
+breakdown, including the ellipsis algorithm and the `<Pagination>` prop contract.
 
 ---
 
 ## API Client
 
-`client/GenericClient.js` is the shared HTTP client:
-
-- `fetchIndex(path)` — GET with pagination params from the hash query string; returns
-  `{ data, pagination: { page, pages, perPage } }` extracted from response headers.
-- `fetch(path)` — GET with all hash query params forwarded.
-- `post(path, body)` / `patch(path, body)` — JSON write operations.
+`client/GenericClient.js` is the shared HTTP client (`fetchIndex`, `fetch`, `post`, `patch`)
+— read it directly for the exact method signatures.
 
 ---
 
 ## Bootstrap
 
-Bootstrap 5 is imported globally in `main.jsx`:
-
-```js
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-```
-
-Use Bootstrap classes directly on JSX elements. Common patterns:
-
-- Grid: `container` > `row` > `col-sm-6 col-md-4 col-lg-3`
-- Cards: `card`, `card-body`, `card-title`, `card-img-top`, `img-fluid`
-- Feedback: `alert alert-danger`, `text-muted`
-- Pagination: `pagination`, `page-item`, `page-link`, `active`, `disabled`
-- Spacing: `mt-4`, `mb-4`, `mb-3`
+Bootstrap 5 is imported globally in `main.jsx` and used directly via its CSS classes on JSX
+elements (grid, cards, alerts, pagination, spacing) — no custom wrapper components beyond
+what's already listed above.
 
 ---
 
