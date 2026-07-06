@@ -220,10 +220,12 @@ export default class CharacterClient extends BaseClient {
   #fetchCharacter(segment, gameSlug, characterId, token, suffix = null) {
     const base = `/games/${gameSlug}/${segment}/${characterId}`;
     const path = suffix ? `${base}/${suffix}.json` : `${base}.json`;
+    const skipCache = segment === 'npcs' && suffix === null;
 
     return this.request(path, {
       headers: {
         Accept: 'application/json',
+        ...(skipCache ? { 'X-Skip-Cache': 'true' } : {}),
         ...(token ? { Authorization: `Token ${token}` } : {}),
       },
     });

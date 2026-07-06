@@ -23,7 +23,7 @@ def game_npc_detail(request, game_slug, character_id):
     if character.hidden and not character.can_be_edited_by(request.user):
         raise Http404
 
-    return detail_or_update(
+    response = detail_or_update(
         request,
         character,
         CharacterEditPermission,
@@ -31,3 +31,5 @@ def game_npc_detail(request, game_slug, character_id):
         CharacterDetailSerializer,
         detail_context={'request': request},
     )
+    response['X-Skip-Cache'] = 'true'
+    return response

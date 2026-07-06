@@ -106,6 +106,11 @@ class TestGameNpcDetailView:
         data = json.loads(response.content)
         assert data['can_edit'] is True
 
+    def test_response_includes_x_skip_cache_header(self, client):
+        """Test that the response includes the X-Skip-Cache: true header."""
+        response = client.get(f'/games/test-game/npcs/{self.npc.id}.json')
+        assert response['X-Skip-Cache'] == 'true'
+
 
 @pytest.mark.django_db
 class TestGameNpcUpdateView:
@@ -328,3 +333,12 @@ class TestGameNpcDetailHidden:
         )
         response = client.get(f'/games/test-game/npcs/{visible_npc.id}.json')
         assert response.status_code == 200
+
+    def test_hidden_npc_response_includes_x_skip_cache_header_for_dm(self, client):
+        """Test that a DM's response for a hidden NPC includes X-Skip-Cache: true."""
+        token = Token.objects.create(user=self.dm_user)
+        response = client.get(
+            f'/games/test-game/npcs/{self.hidden_npc.id}.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response['X-Skip-Cache'] == 'true'
