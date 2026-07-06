@@ -110,10 +110,9 @@ not scoped to any game.
 Staff accounts (`is_staff` or `is_superuser`) may list, view, and edit the `name`
 (`username`) and `email` of any `User` account, and may generate a password-recovery link
 for any user without needing access to that user's email inbox. This is strictly
-**additive**: `is_staff` grants authority only over this User-management surface. It does
-**not** grant any of the other Superuser-only capabilities described elsewhere in this
-document or in `access-control.md` (e.g. Treasure management) — those remain exclusive to
-`is_superuser`.
+**additive**: `is_staff` grants authority only over this User-management surface, never
+any other Superuser-only capability described elsewhere in this document or in
+`access-control.md` (e.g. Treasure management).
 
 ---
 
@@ -122,8 +121,7 @@ document or in `access-control.md` (e.g. Treasure management) — those remain e
 A user may edit a character when **any** of the following is true:
 
 1. The user is a **superuser** (`user.is_superuser is True`) — full access everywhere.
-2. The user is the **owner** of the character — i.e. `character.player.user == user`
-   (both FK links must be non-null).
+2. The user is the character's **owner** per the Ownership Chain above.
 3. The user is a **GameMaster** for the same game — i.e. a `GameMaster` record exists
    linking `user` to `character.game`.
 

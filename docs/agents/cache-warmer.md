@@ -7,19 +7,11 @@ See [HOW_TO_USE_NAVI.md](HOW_TO_USE_NAVI.md) for the full Navi reference.
 
 The Navi configuration lives in [`.circleci/navi_config.yaml`](../../.circleci/navi_config.yaml).
 
-It covers all `.json` API endpoints, starting from `/games.json` and chaining through the full
-resource tree:
-
-| Resource | URL | Notes |
-|----------|-----|-------|
-| `games` | `/games.json` | Entry point — chains to `game_detail`, `game_pcs`, `game_npcs` per game |
-| `game_detail` | `/games/{:slug}.json` | Game detail including links |
-| `game_pcs` | `/games/{:slug}/pcs.json` | Player characters — chains to `character` per PC |
-| `game_npcs` | `/games/{:slug}/npcs.json` | Non-player characters — chains to `character` per NPC |
-| `character` | `/games/{:slug}/characters/{:id}.json` | Character detail including photos |
-
-The `slug` parameter extracted from `/games.json` (`parsedBody.game_slug`) is inherited by chained
-resources, so `game_pcs` and `game_npcs` can pass it down to `character` without re-extracting it.
+It covers all `.json` API endpoints, chaining from `/games.json` down through each game's
+detail, PCs, and NPCs, and from there to each character's detail — the `slug` extracted at
+the top of the chain is inherited by every resource below it, so it never needs
+re-extracting. See `.circleci/navi_config.yaml` for the exact resource names and URL
+patterns.
 
 ## CI (CircleCI)
 

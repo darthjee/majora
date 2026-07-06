@@ -231,11 +231,10 @@ Characters are scoped to a game. Access is symmetric for PCs and NPCs unless not
 | `GET /games/<slug>/pcs/<id>.json` | Anyone | `id`, `name`, `role`, `public_description`, `is_pc`, `photos`, `links`, `game_slug`, `can_edit`, `profile_photo_path`, `profile_photo_id`, `money`, `slain` |
 | `GET /games/<slug>/npcs/<id>.json` | Anyone | same as above |
 
-`profile_photo_path` (added in issue #255) is `character.profile_photo.path` — the raw
-relative storage key of the `CharacterPhoto` automatically selected as the character's
-profile photo (see the "CharacterPhoto" and "Upload" sections below) — or `null` when the
-character has no profile photo yet. It is returned on the list, detail, and full-detail
-endpoints, to anyone.
+`profile_photo_path` (added in issue #255) is `character.profile_photo.path` — same
+`<model>.<photo-field>.path`-or-`null` convention as `Game.cover_photo_path` above, but for
+the `CharacterPhoto` selected as the character's profile photo (see "CharacterPhoto" and
+"Upload" below). Returned on the list, detail, and full-detail endpoints, to anyone.
 
 `slain` (added in issue #315) is a `BooleanField` (default `False`) shared by the `Character`
 model for both PCs and NPCs, and is returned read-only on the list and detail endpoints to
@@ -375,11 +374,10 @@ field and no upload/ready lifecycle) — serving both the character's photo gall
 detail or photo index endpoint (i.e. anyone, since PC detail/index endpoints are publicly
 accessible, and NPC detail/index endpoints are publicly accessible for non-hidden NPCs — see
 "Photo index endpoints" below). The `ready` field is internal and never serialised by
-`CharacterPhotoSerializer`. As of issue #275, `path` is serialised directly by
-`CharacterPhotoSerializer` itself (`fields = ['id', 'path']`) — previously it was only
-indirectly exposed via `Character.profile_photo_path` once a `CharacterPhoto` became a
-character's `profile_photo` (see the "Character" section above); that indirect exposure still
-applies in addition to the direct one.
+`CharacterPhotoSerializer`. As with `GamePhoto` above, `path` is exposed both directly by
+`CharacterPhotoSerializer` (`fields = ['id', 'path']`, added in issue #275) and indirectly
+via `Character.profile_photo_path` once a `CharacterPhoto` becomes a character's
+`profile_photo` — both apply simultaneously.
 
 **Write access:**
 - `POST /games/<slug>/pcs/<id>/photo_upload.json`, `POST /games/<slug>/npcs/<id>/photo_upload.json` —
@@ -572,12 +570,12 @@ at most one game, independently.
 
 **Exposed fields** (read): `id`, `name`, `value`, `photo_path`, `game_slug` — all fields are non-sensitive and safe to return to anonymous callers.
 
-`photo_path` (added in issue #276) is `treasure.photo.path` — the raw relative storage key of
-the `TreasurePhoto` currently attached to the treasure (see the "Treasure photo upload init
-endpoint" and "Upload" sections above) — or `null` when the treasure has no photo yet. It is
-returned on both `GET /treasures.json` and `GET /treasures/<id>.json`, to anyone. Unlike
-`Game.cover_photo` and `Character.profile_photo`, a treasure has at most one photo ever:
-re-uploading always replaces it rather than adding a second one.
+`photo_path` (added in issue #276) is `treasure.photo.path` — same convention as
+`Game.cover_photo_path` and `Character.profile_photo_path` above, but for the
+`TreasurePhoto` currently attached (see "Treasure photo upload init endpoint" and "Upload"
+above). Returned on both `GET /treasures.json` and `GET /treasures/<id>.json`, to anyone.
+Unlike `Game.cover_photo` and `Character.profile_photo`, a treasure has at most one photo
+ever: re-uploading always replaces it rather than adding a second one.
 
 `game_slug` (added in issue #296) is `treasure.game.game_slug` — the slug of the game the
 treasure is *exclusively* owned by (via the `game` FK), or `null` when the treasure is global
