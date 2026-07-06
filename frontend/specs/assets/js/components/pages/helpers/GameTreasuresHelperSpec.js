@@ -18,12 +18,12 @@ describe('GameTreasuresHelper', function() {
       expect(html).toContain('Silver Ring');
     });
 
-    it('renders each treasure value', function() {
+    it('renders each treasure value as a coin breakdown', function() {
       const html = renderToStaticMarkup(
         GameTreasuresHelper.render(treasures, pagination, '#/games/demo/treasures', 'demo', '#/games/demo')
       );
-      expect(html).toContain('500');
-      expect(html).toContain('50');
+      expect(html).toContain('5 GP');
+      expect(html).toContain('5 SP');
     });
 
     it('renders treasure links to global treasure detail pages', function() {

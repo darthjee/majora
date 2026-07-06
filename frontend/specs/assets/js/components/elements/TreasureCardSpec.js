@@ -11,7 +11,7 @@ describe('TreasureCard', function() {
       React.createElement(TreasureCard, { treasure })
     );
     expect(html).toContain('Golden Crown');
-    expect(html).toContain('500');
+    expect(html).toContain('5 GP');
     expect(html).toContain('href="#/treasures/42"');
   });
 
