@@ -18,6 +18,7 @@ class CharacterTreasure(models.Model):
         """Metadata for the CharacterTreasure model."""
 
         ordering = ['id']
+        unique_together = [('character', 'treasure')]
 
     def __str__(self):
         """Return string representation of the character treasure."""

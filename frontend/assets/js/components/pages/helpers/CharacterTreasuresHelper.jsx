@@ -3,37 +3,51 @@ import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import PageActions from '../../elements/PageActions.jsx';
 import Pagination from '../../elements/Pagination.jsx';
-import Table from '../../elements/Table.jsx';
+import TreasureCard from '../../elements/TreasureCard.jsx';
+import UploadButton from '../../elements/UploadButton.jsx';
 import Translator from '../../../i18n/Translator.js';
+import Noop from '../../../utils/Noop.js';
 
 /**
  * Rendering helper for the Character Treasures (PC and NPC) listing page.
  */
 export default class CharacterTreasuresHelper {
   /**
-   * Render the treasures table with pagination and a back button.
+   * Render the treasures card grid with pagination and a back button.
    *
-   * @param {object[]} treasures - List of treasure objects (`id`, `name`, `quantity`, `value`).
+   * @param {object[]} treasures - List of owned treasure objects (`id`, `treasure_id`,
+   *   `name`, `quantity`, `value`, `photo_path`).
    * @param {object} pagination - Pagination metadata.
    * @param {number} pagination.page - Current page.
    * @param {number} pagination.pages - Total pages.
    * @param {number} pagination.perPage - Items per page.
    * @param {string} basePath - Base hash path used for pagination links.
    * @param {string} backHref - Hash path to the parent character page.
-   * @returns {React.ReactElement} Treasures table with pagination.
+   * @param {boolean} [canEdit] - Whether the current user may acquire/sell treasures.
+   * @param {Function} [onAddTreasure] - Handler invoked when the "Add treasure" button is clicked.
+   * @returns {React.ReactElement} Treasures card grid with pagination.
    */
-  static render(treasures, pagination, basePath, backHref) {
-    const columns = [
-      { key: 'name', label: Translator.t('character_treasures_page.name_column') },
-      { key: 'quantity', label: Translator.t('character_treasures_page.quantity_column') },
-      { key: 'value', label: Translator.t('character_treasures_page.value_column') },
-    ];
-
+  static render(treasures, pagination, basePath, backHref, canEdit = false, onAddTreasure = Noop.noop) {
     return (
       <div className="container mt-4">
-        <PageActions backHref={backHref} />
+        <PageActions backHref={backHref}>
+          {CharacterTreasuresHelper.#renderAddButton(canEdit, onAddTreasure)}
+        </PageActions>
         <h1 className="mb-4">{Translator.t('character_treasures_page.title')}</h1>
-        <Table columns={columns} rows={treasures} />
+        <div className="row">
+          {treasures.map((treasure) => (
+            <TreasureCard
+              key={treasure.id}
+              treasure={{
+                id: treasure.treasure_id,
+                name: treasure.name,
+                value: treasure.value,
+                photo_path: treasure.photo_path,
+              }}
+              quantity={treasure.quantity}
+            />
+          ))}
+        </div>
         <Pagination
           currentPage={pagination.page}
           totalPages={pagination.pages}
@@ -61,5 +75,15 @@ export default class CharacterTreasuresHelper {
    */
   static renderError(error) {
     return <ErrorAlert error={error} />;
+  }
+
+  static #renderAddButton(canEdit, onAddTreasure) {
+    if (!canEdit) return null;
+
+    return (
+      <UploadButton onClick={onAddTreasure}>
+        {Translator.t('character_treasures_page.add_treasure')}
+      </UploadButton>
+    );
   }
 }

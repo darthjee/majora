@@ -101,5 +101,32 @@ describe('TreasureCardHelper', function() {
       expect(html).toContain('card-action-link');
       expect(html).toContain('href="#/games/demo/treasures/42/edit"');
     });
+
+    it('does not render a quantity badge when quantity is omitted', function() {
+      const html = renderToStaticMarkup(TreasureCardHelper.render(treasure));
+      expect(html).not.toContain('×');
+    });
+
+    it('does not render a quantity badge when quantity is 1', function() {
+      const html = renderToStaticMarkup(
+        TreasureCardHelper.render(treasure, false, Noop.noop, '', 1)
+      );
+      expect(html).not.toContain('×');
+    });
+
+    it('does not render a quantity badge when quantity is 0', function() {
+      const html = renderToStaticMarkup(
+        TreasureCardHelper.render(treasure, false, Noop.noop, '', 0)
+      );
+      expect(html).not.toContain('×');
+    });
+
+    it('renders a quantity badge when quantity is greater than 1', function() {
+      const html = renderToStaticMarkup(
+        TreasureCardHelper.render(treasure, false, Noop.noop, '', 5)
+      );
+      expect(html).toContain('×5');
+      expect(html).toContain('badge');
+    });
   });
 });

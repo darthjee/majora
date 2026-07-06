@@ -35,6 +35,12 @@ class TestTreasureUpdateSerializer:
         serializer = TreasureUpdateSerializer(self.treasure, data={}, partial=True)
         assert serializer.is_valid()
 
+    def test_negative_value_is_rejected(self):
+        """Test that a negative value fails validation."""
+        serializer = TreasureUpdateSerializer(self.treasure, data={'value': -1}, partial=True)
+        assert not serializer.is_valid()
+        assert 'value' in serializer.errors
+
     def test_id_is_not_included(self):
         """Test that id is not a field in the serializer and cannot be changed."""
         original_id = self.treasure.id

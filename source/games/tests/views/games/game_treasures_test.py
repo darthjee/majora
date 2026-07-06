@@ -47,6 +47,36 @@ class TestGameTreasuresView:
         assert data[0]['name'] == 'Enchanted Bow'
         assert data[0]['value'] == 750
 
+    def test_filters_by_max_value(self, client):
+        """Test that only treasures with value <= max_value are returned."""
+        cheap = Treasure.objects.create(name='Cheap Gem', value=50)
+        expensive = Treasure.objects.create(name='Expensive Gem', value=500)
+        self.game.treasures.add(cheap)
+        self.game.treasures.add(expensive)
+        response = client.get('/games/test-game/treasures.json?max_value=100')
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Cheap Gem'
+
+    def test_returns_all_treasures_when_max_value_absent(self, client):
+        """Test that all treasures are returned when max_value is not provided."""
+        cheap = Treasure.objects.create(name='Cheap Gem', value=50)
+        expensive = Treasure.objects.create(name='Expensive Gem', value=500)
+        self.game.treasures.add(cheap)
+        self.game.treasures.add(expensive)
+        response = client.get('/games/test-game/treasures.json')
+        data = json.loads(response.content)
+        assert len(data) == 2
+
+    def test_ignores_non_numeric_max_value(self, client):
+        """Test that a non-numeric max_value is ignored rather than erroring."""
+        treasure = Treasure.objects.create(name='Gem', value=50)
+        self.game.treasures.add(treasure)
+        response = client.get('/games/test-game/treasures.json?max_value=not-a-number')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 1
+
     def test_returns_404_for_unknown_game_slug(self, client):
         """Test that 404 is returned for a non-existent game slug."""
         response = client.get('/games/unknown-game/treasures.json')

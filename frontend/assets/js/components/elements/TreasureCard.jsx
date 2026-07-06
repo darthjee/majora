@@ -14,10 +14,12 @@ import TreasureCardHelper from './helpers/TreasureCardHelper.jsx';
  * @param {string} [props.editHref] - Hash path to the treasure's edit page. When omitted, no
  *   edit link is rendered even if `canManage` is true (used by the global, ownerless treasures
  *   page, which has no game-scoped edit route).
+ * @param {number|null} [props.quantity] - Owned quantity, rendered as a `×<quantity>` badge
+ *   when greater than 1.
  * @returns {React.ReactElement} Treasure card element.
  */
 export default function TreasureCard({
-  treasure, canManage, onUploadClick, editHref,
+  treasure, canManage, onUploadClick, editHref, quantity,
 }) {
-  return TreasureCardHelper.render(treasure, canManage, onUploadClick, editHref);
+  return TreasureCardHelper.render(treasure, canManage, onUploadClick, editHref, quantity);
 }

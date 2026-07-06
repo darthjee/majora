@@ -118,6 +118,7 @@ describe('CharacterClient NPC detail requests', function() {
         headers: {
           Accept: 'application/json',
           Authorization: 'Token abc123',
+          'X-Skip-Cache': 'true',
         },
         body: undefined,
       });
@@ -132,6 +133,7 @@ describe('CharacterClient NPC detail requests', function() {
         method: 'GET',
         headers: {
           Accept: 'application/json',
+          'X-Skip-Cache': 'true',
         },
         body: undefined,
       });

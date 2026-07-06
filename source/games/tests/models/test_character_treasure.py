@@ -1,6 +1,7 @@
 """Tests for the CharacterTreasure model."""
 
 import pytest
+from django.db import IntegrityError, transaction
 
 from games.models import Character, CharacterTreasure, Game, Treasure
 
@@ -84,3 +85,14 @@ class TestCharacterTreasure:
         )
         self.treasure.delete()
         assert not CharacterTreasure.objects.filter(id=character_treasure.id).exists()
+
+    def test_duplicate_character_treasure_raises_integrity_error(self):
+        """Test that a second row for the same character/treasure pair is rejected."""
+        CharacterTreasure.objects.create(
+            character=self.character, treasure=self.treasure, quantity=1,
+        )
+        with pytest.raises(IntegrityError):
+            with transaction.atomic():
+                CharacterTreasure.objects.create(
+                    character=self.character, treasure=self.treasure, quantity=1,
+                )

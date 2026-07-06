@@ -73,6 +73,8 @@ character_info:
   role_label: 'Role:'
 character_preview_section:
   see_all: See all {{title}}
+character_treasures_preview:
+  empty: No treasures yet.
 recover_password_page:
   title: Reset password
   new_password_label: New password
@@ -179,6 +181,22 @@ character_treasures_page:
   name_column: Name
   quantity_column: Quantity
   value_column: Value
+  add_treasure: Add Treasure
+treasure_exchange_modal:
+  title: Treasure Exchange
+  acquire_tab: Acquire
+  sell_tab: Sell
+  quantity_label: Quantity
+  already_owned: 'Already owned: {{quantity}}'
+  confirm: Confirm
+  cancel: Cancel
+  back: Back
+  loading: Loading treasures...
+  empty: No treasures available.
+  load_error: Unable to load treasures. Please try again.
+  insufficient_funds: Not enough money to acquire this quantity.
+  not_enough_owned: You do not own that many to sell.
+  generic_error: Unable to complete this action. Please try again.
 game_treasures_page:
   loading: Loading treasures...
   title: Treasures

@@ -8,6 +8,8 @@ from games.models import Treasure
 class TreasureCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a new treasure."""
 
+    value = serializers.IntegerField(required=True, min_value=0)
+
     class Meta:
         """Metadata for the TreasureCreateSerializer."""
 
@@ -15,5 +17,4 @@ class TreasureCreateSerializer(serializers.ModelSerializer):
         fields = ['name', 'value']
         extra_kwargs = {
             'name': {'required': True},
-            'value': {'required': True},
         }

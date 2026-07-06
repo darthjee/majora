@@ -39,6 +39,13 @@ class TestGameNpcTreasuresView:
         assert data[0]['quantity'] == 1
         assert data[0]['value'] == 1000
 
+    def test_excludes_zero_quantity_treasures(self, client):
+        """Test that a CharacterTreasure row with quantity 0 is excluded from the response."""
+        treasure = Treasure.objects.create(name='Empty Pouch', value=10)
+        CharacterTreasure.objects.create(character=self.character, treasure=treasure, quantity=0)
+        response = client.get(f'/games/test-game/npcs/{self.character.id}/treasures.json')
+        assert json.loads(response.content) == []
+
     def test_returns_404_for_unknown_character(self, client):
         """Test that 404 is returned for a non-existent character_id."""
         response = client.get('/games/test-game/npcs/99999/treasures.json')
@@ -95,6 +102,11 @@ class TestGameNpcTreasuresView:
         )
         response = client.get(url)
         assert response.status_code == 200
+
+    def test_response_includes_x_skip_cache_header(self, client):
+        """Test that the response includes the X-Skip-Cache: true header."""
+        response = client.get(f'/games/test-game/npcs/{self.character.id}/treasures.json')
+        assert response['X-Skip-Cache'] == 'true'
 
 
 @pytest.mark.django_db
@@ -165,3 +177,12 @@ class TestGameNpcTreasuresHidden:
         assert response.status_code == 200
         data = json.loads(response.content)
         assert len(data) == 1
+
+    def test_hidden_npc_treasures_response_includes_x_skip_cache_header_for_dm(self, client):
+        """Test that a DM's response for a hidden NPC's treasures includes X-Skip-Cache: true."""
+        token = Token.objects.create(user=self.dm_user)
+        response = client.get(
+            f'/games/test-game/npcs/{self.hidden_npc.id}/treasures.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response['X-Skip-Cache'] == 'true'

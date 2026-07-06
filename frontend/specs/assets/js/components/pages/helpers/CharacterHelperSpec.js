@@ -256,13 +256,26 @@ describe('CharacterHelper', function() {
   });
 
   describe('treasures preview section', function() {
-    it('renders the heading and each treasure name and quantity, defaulting to an empty list', function() {
-      const withTreasures = { ...character, treasures: [{ id: 1, name: 'Potion of Healing', quantity: 3 }] };
+    it('renders the heading and each treasure card with a quantity badge, defaulting to an empty list', function() {
+      const withTreasures = {
+        ...character,
+        treasures: [{ id: 1, treasure_id: 9, name: 'Potion of Healing', quantity: 3, value: 50 }],
+      };
       const html = renderToStaticMarkup(CharacterHelper.render(withTreasures, '#/games/demo/pcs'));
       expect(html).toContain('Treasures');
       expect(html).toContain('Potion of Healing');
-      expect(html).toContain('>3<');
+      expect(html).toContain('href="#/treasures/9"');
+      expect(html).toContain('×3');
       expect(renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'))).toContain('Treasures');
+    });
+
+    it('does not render a quantity badge when the treasure quantity is 1', function() {
+      const withTreasures = {
+        ...character,
+        treasures: [{ id: 1, treasure_id: 9, name: 'Potion of Healing', quantity: 1, value: 50 }],
+      };
+      const html = renderToStaticMarkup(CharacterHelper.render(withTreasures, '#/games/demo/pcs'));
+      expect(html).not.toContain('×1');
     });
 
     it('renders a see all link to the pcs treasures page', function() {

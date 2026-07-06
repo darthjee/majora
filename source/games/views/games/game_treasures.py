@@ -30,7 +30,22 @@ def game_treasures(request, game_slug):
         return _create_game_treasure(request, game)
 
     treasures = Treasure.objects.filter(Q(linked_game=game) | Q(game=game)).distinct()
+    treasures = _filter_by_max_value(request, treasures)
     return paginated_list_response(request, treasures, TreasureListSerializer)
+
+
+def _filter_by_max_value(request, treasures):
+    """Filter `treasures` to `value__lte` an optional `max_value` query param."""
+    max_value = request.GET.get('max_value')
+    if max_value is None:
+        return treasures
+
+    try:
+        max_value = int(max_value)
+    except ValueError:
+        return treasures
+
+    return treasures.filter(value__lte=max_value)
 
 
 def _create_game_treasure(request, game):
