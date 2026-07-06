@@ -1,0 +1,84 @@
+import { renderToStaticMarkup } from 'react-dom/server';
+import GameHelper from '../../../../../../../assets/js/components/pages/helpers/GameHelper.jsx';
+import PhotoUploadOverlay from '../../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
+
+const findElement = (node, matcher) => {
+  if (!node) {
+    return null;
+  }
+
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findElement(child, matcher);
+
+      if (match) {
+        return match;
+      }
+    }
+
+    return null;
+  }
+
+  if (typeof node !== 'object') {
+    return null;
+  }
+
+  if (matcher(node)) {
+    return node;
+  }
+
+  return findElement(node.props?.children, matcher);
+};
+
+describe('GameHelper', function() {
+  const game = {
+    name: 'Epic Quest',
+    game_slug: 'epic-quest',
+    cover_photo_path: null,
+    description: 'A heroic adventure.',
+  };
+
+  describe('.render', function() {
+    it('renders the cover photo when cover_photo_path is provided', function() {
+      const gameWithPhoto = {
+        ...game,
+        cover_photo_path: 'http://example.com/cover_photo.png',
+      };
+      const html = renderToStaticMarkup(GameHelper.render(gameWithPhoto));
+      expect(html).toContain('http://example.com/cover_photo.png');
+    });
+
+    it('renders the photo upload overlay button when can_edit is true', function() {
+      const editableGame = { ...game, can_edit: true };
+      const html = renderToStaticMarkup(GameHelper.render(editableGame));
+      expect(html).toContain('photo-upload-overlay-button');
+    });
+
+    it('does not render the photo upload overlay button when can_edit is false', function() {
+      const nonEditableGame = { ...game, can_edit: false };
+      const html = renderToStaticMarkup(GameHelper.render(nonEditableGame));
+      expect(html).not.toContain('photo-upload-overlay-button');
+    });
+
+    it('does not render the photo upload overlay button when can_edit is absent', function() {
+      const html = renderToStaticMarkup(GameHelper.render(game));
+      expect(html).not.toContain('photo-upload-overlay-button');
+    });
+
+    it('invokes onOpenUploadModal when the overlay button is clicked', function() {
+      const onOpenUploadModal = jasmine.createSpy('onOpenUploadModal');
+      const editableGame = { ...game, can_edit: true };
+      const element = GameHelper.render(editableGame, [], [], { onOpenUploadModal });
+      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+
+      overlay.props.onClick();
+
+      expect(onOpenUploadModal).toHaveBeenCalled();
+    });
+
+    it('does not render the old inline photo gallery', function() {
+      const html = renderToStaticMarkup(GameHelper.render(game));
+      expect(html).not.toContain('img-fluid rounded');
+    });
+  });
+});
