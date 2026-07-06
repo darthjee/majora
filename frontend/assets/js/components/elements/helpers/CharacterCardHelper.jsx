@@ -5,25 +5,25 @@ import Translator from '../../../i18n/Translator.js';
 import Noop from '../../../utils/Noop.js';
 
 /**
- * Build a click handler that prevents the surrounding anchor from navigating
- * before invoking the given callback with the character object.
- *
- * @param {Function} callback - Callback to invoke with the character object.
- * @param {object} character - Character data object.
- * @returns {Function} Wrapped click handler.
- */
-function buildOverlayClickHandler(callback, character) {
-  return (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    callback(character);
-  };
-}
-
-/**
  * Rendering helper for the CharacterCard element.
  */
 export default class CharacterCardHelper {
+  /**
+   * Build a click handler that prevents the surrounding anchor from navigating
+   * before invoking the given callback with the character object.
+   *
+   * @param {Function} callback - Callback to invoke with the character object.
+   * @param {object} character - Character data object.
+   * @returns {Function} Wrapped click handler.
+   */
+  static #buildOverlayClickHandler(callback, character) {
+    return (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      callback(character);
+    };
+  }
+
   /**
    * Render a Bootstrap card for a character.
    *
@@ -88,14 +88,14 @@ export default class CharacterCardHelper {
         url={character.profile_photo_path}
         alt={character.name}
         canEdit={canEdit}
-        onClick={buildOverlayClickHandler(onUploadClick, character)}
+        onClick={CharacterCardHelper.#buildOverlayClickHandler(onUploadClick, character)}
         grayscale={character.slain}
         secondaryButton={canEdit ? {
           label: character.slain
             ? Translator.t('character_page.revive_button')
             : Translator.t('character_page.slain_button'),
           variant: character.slain ? 'success' : 'danger',
-          onClick: buildOverlayClickHandler(onSlainClick, character),
+          onClick: CharacterCardHelper.#buildOverlayClickHandler(onSlainClick, character),
         } : undefined}
       />
     );

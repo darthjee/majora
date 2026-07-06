@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import GameSessionsController, { getGameSlugFromSessionsHash } from './controllers/GameSessionsController.js';
+import GameSessionsController from './controllers/GameSessionsController.js';
 import GameSessionsHelper from './helpers/GameSessionsHelper.jsx';
 
 /**
@@ -21,7 +21,7 @@ export default function GameSessions() {
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
-  const gameSlug = getGameSlugFromSessionsHash(window.location.hash);
+  const gameSlug = GameSessionsController.getGameSlugFromSessionsHash(window.location.hash);
   const basePath = `#/games/${gameSlug}/sessions`;
   const backHref = `#/games/${gameSlug}`;
   const newHref = `#/games/${gameSlug}/sessions/new`;

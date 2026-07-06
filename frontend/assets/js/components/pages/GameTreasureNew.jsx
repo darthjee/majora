@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import GameTreasureNewController, { getGameSlugFromTreasureNewHash }
-  from './controllers/GameTreasureNewController.js';
+import GameTreasureNewController from './controllers/GameTreasureNewController.js';
 import GameTreasureNewHelper from './helpers/GameTreasureNewHelper.jsx';
 import Noop from '../../utils/Noop.js';
 
@@ -21,7 +20,7 @@ export default function GameTreasureNew() {
   );
 
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
-  const gameSlug = getGameSlugFromTreasureNewHash(currentHash);
+  const gameSlug = GameTreasureNewController.getGameSlugFromTreasureNewHash(currentHash);
 
   useEffect(() => controller.buildEffect()(), [controller]);
 

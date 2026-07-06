@@ -3,24 +3,23 @@ import GameClient from '../../../client/GameClient.js';
 import CharacterClient from '../../../client/CharacterClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
-import Router from '../../../utils/Router.js';
 import { MAX_PREVIEW_CHARACTERS } from '../../elements/characterPreviewConstants.js';
 import Noop from '../../../utils/Noop.js';
-
-/**
- * Extract game slug from hash.
- *
- * @param {string} hash - Current hash.
- * @returns {string} Game slug.
- */
-export function getGameSlugFromHash(hash = '') {
-  return Router.extractParams('/games/:game_slug', hash).game_slug ?? '';
-}
 
 /**
  * Controller for game detail page.
  */
 export default class GameController extends BasePageController {
+  /**
+   * Extract game slug from hash.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {string} Game slug.
+   */
+  static getGameSlugFromHash(hash = '') {
+    return BasePageController.extractParam('/games/:game_slug', 'game_slug', hash);
+  }
+
   /**
    * Create a game controller.
    *
@@ -63,7 +62,7 @@ export default class GameController extends BasePageController {
     return () => {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
-      const gameSlug = getGameSlugFromHash(this.client.currentHash());
+      const gameSlug = GameController.getGameSlugFromHash(this.client.currentHash());
 
       if (!gameSlug) {
         safeSet(this.setError, 'Unable to load game.');

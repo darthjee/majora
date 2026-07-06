@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import NpcCharacterController, { getNpcCharacterParamsFromHash }
-  from './controllers/NpcCharacterController.js';
+import NpcCharacterController from './controllers/NpcCharacterController.js';
 import CharacterHelper from './helpers/CharacterHelper.jsx';
 import AuthEvents from '../../utils/AuthEvents.js';
 import AuthStorage from '../../utils/AuthStorage.js';
@@ -42,7 +41,7 @@ export default function NpcCharacter() {
   );
 
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
-  const { game_slug: gameSlug } = getNpcCharacterParamsFromHash(currentHash);
+  const { game_slug: gameSlug } = NpcCharacterController.getNpcCharacterParamsFromHash(currentHash);
   const backHref = `#/games/${gameSlug}/npcs`;
 
   const handleUploadSuccess = () => {

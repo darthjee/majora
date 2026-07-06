@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import GameNpcNewController, { getGameSlugFromNpcNewHash }
-  from './controllers/GameNpcNewController.js';
+import GameNpcNewController from './controllers/GameNpcNewController.js';
 import Noop from '../../utils/Noop.js';
 import GameNpcNewHelper from './helpers/GameNpcNewHelper.jsx';
 
@@ -25,7 +24,7 @@ export default function GameNpcNew() {
   );
 
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
-  const gameSlug = getGameSlugFromNpcNewHash(currentHash);
+  const gameSlug = GameNpcNewController.getGameSlugFromNpcNewHash(currentHash);
 
   useEffect(() => controller.buildEffect()(), [controller]);
 

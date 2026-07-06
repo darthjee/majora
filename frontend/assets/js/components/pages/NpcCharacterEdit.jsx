@@ -1,6 +1,5 @@
 import CharacterEdit from './shared/CharacterEdit.jsx';
-import NpcCharacterEditController, { getNpcCharacterEditParamsFromHash }
-  from './controllers/NpcCharacterEditController.js';
+import NpcCharacterEditController from './controllers/NpcCharacterEditController.js';
 import NpcCharacterEditHelper from './helpers/NpcCharacterEditHelper.jsx';
 
 /**
@@ -12,7 +11,7 @@ export default function NpcCharacterEdit() {
   return (
     <CharacterEdit
       ControllerClass={NpcCharacterEditController}
-      getParamsFromHash={getNpcCharacterEditParamsFromHash}
+      getParamsFromHash={NpcCharacterEditController.getNpcCharacterEditParamsFromHash}
       EditHelper={NpcCharacterEditHelper}
       characterKind="npcs"
     />

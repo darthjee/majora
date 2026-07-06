@@ -2,23 +2,22 @@ import GameClient from '../../../client/GameClient.js';
 import TreasureClient from '../../../client/TreasureClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
-import Router from '../../../utils/Router.js';
 import Noop from '../../../utils/Noop.js';
-
-/**
- * Extract game slug from a game treasure creation hash.
- *
- * @param {string} hash - Current hash.
- * @returns {string} Game slug.
- */
-export function getGameSlugFromTreasureNewHash(hash = '') {
-  return Router.extractParams('/games/:game_slug/treasures/new', hash).game_slug ?? '';
-}
 
 /**
  * Controller for the game treasure creation page.
  */
 export default class GameTreasureNewController extends BasePageController {
+  /**
+   * Extract game slug from a game treasure creation hash.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {string} Game slug.
+   */
+  static getGameSlugFromTreasureNewHash(hash = '') {
+    return BasePageController.extractParam('/games/:game_slug/treasures/new', 'game_slug', hash);
+  }
+
   /**
    * Create a game treasure new controller.
    *
@@ -45,7 +44,7 @@ export default class GameTreasureNewController extends BasePageController {
   buildEffect() {
     return () => {
       const hash = typeof window === 'undefined' ? '' : window.location.hash;
-      const gameSlug = getGameSlugFromTreasureNewHash(hash);
+      const gameSlug = GameTreasureNewController.getGameSlugFromTreasureNewHash(hash);
       const token = AuthStorage.getToken();
 
       this.gameClient.fetchGameAccess(gameSlug, token)

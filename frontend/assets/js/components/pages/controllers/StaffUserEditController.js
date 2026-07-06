@@ -3,23 +3,22 @@ import StaffUserClient from '../../../client/StaffUserClient.js';
 import AdminAccess from '../../../utils/AdminAccess.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
-import Router from '../../../utils/Router.js';
 import Noop from '../../../utils/Noop.js';
-
-/**
- * Extract user id from a staff user edit hash.
- *
- * @param {string} hash - Current hash.
- * @returns {string} User id.
- */
-export function getStaffUserIdFromEditHash(hash = '') {
-  return Router.extractParams('/staff/users/:user_id/edit', hash).user_id ?? '';
-}
 
 /**
  * Controller for the staff user edit page.
  */
 export default class StaffUserEditController extends BasePageController {
+  /**
+   * Extract user id from a staff user edit hash.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {string} User id.
+   */
+  static getStaffUserIdFromEditHash(hash = '') {
+    return BasePageController.extractParam('/staff/users/:user_id/edit', 'user_id', hash);
+  }
+
   /**
    * Create a staff user edit controller.
    *
@@ -67,7 +66,7 @@ export default class StaffUserEditController extends BasePageController {
         }
 
         const hash = typeof window === 'undefined' ? '' : window.location.hash;
-        const id = getStaffUserIdFromEditHash(hash);
+        const id = StaffUserEditController.getStaffUserIdFromEditHash(hash);
 
         if (!id) {
           safeSet(this.setError, true);

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import GamePcsController, { getGameSlugFromPcsHash } from './controllers/GamePcsController.js';
+import GamePcsController from './controllers/GamePcsController.js';
 import GameCharactersHelper from './helpers/GameCharactersHelper.jsx';
 
 /**
@@ -20,7 +20,7 @@ export default function GamePcs() {
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
-  const gameSlug = getGameSlugFromPcsHash(window.location.hash);
+  const gameSlug = GamePcsController.getGameSlugFromPcsHash(window.location.hash);
   const basePath = `#/games/${gameSlug}/pcs`;
   const backHref = `#/games/${gameSlug}`;
 

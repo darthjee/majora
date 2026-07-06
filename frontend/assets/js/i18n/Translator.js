@@ -12,23 +12,6 @@ const TRANSLATIONS = {
 const DEFAULT_LANGUAGE = 'en';
 
 /**
- * Looks up a dot-path key (e.g. `header.login`) inside a nested translation map.
- *
- * @param {object} map - Nested translation map.
- * @param {string} key - Dot-separated key path.
- * @returns {string|undefined} the resolved value, or undefined when not found.
- */
-function lookup(map, key) {
-  return key.split('.').reduce((value, part) => {
-    if (value === undefined || value === null) {
-      return undefined;
-    }
-
-    return value[part];
-  }, map);
-}
-
-/**
  * Singleton in-memory translator. Loads bundled YAML translation files at
  * module load time and exposes a `t(key)` dot-path lookup, plus language
  * selection backed by `LanguageStorage`/`LanguageEvents`.
@@ -85,8 +68,25 @@ export default class Translator {
    */
   static t(key, fallback = key) {
     const map = TRANSLATIONS[Translator.#language] ?? TRANSLATIONS[DEFAULT_LANGUAGE];
-    const value = lookup(map, key);
+    const value = Translator.#lookup(map, key);
 
     return value ?? fallback;
+  }
+
+  /**
+   * Looks up a dot-path key (e.g. `header.login`) inside a nested translation map.
+   *
+   * @param {object} map - Nested translation map.
+   * @param {string} key - Dot-separated key path.
+   * @returns {string|undefined} the resolved value, or undefined when not found.
+   */
+  static #lookup(map, key) {
+    return key.split('.').reduce((value, part) => {
+      if (value === undefined || value === null) {
+        return undefined;
+      }
+
+      return value[part];
+    }, map);
   }
 }

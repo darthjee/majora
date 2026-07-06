@@ -1,4 +1,4 @@
-import NpcCharacterController, { getNpcCharacterParamsFromHash }
+import NpcCharacterController
   from '../../../../../../../assets/js/components/pages/controllers/NpcCharacterController.js';
 
 /**
@@ -12,6 +12,6 @@ import NpcCharacterController, { getNpcCharacterParamsFromHash }
  */
 export const buildEffectController = (setCharacter, setLoading, setError, client, characterClient) => (
   new NpcCharacterController(
-    setCharacter, setLoading, setError, client, getNpcCharacterParamsFromHash, characterClient,
+    setCharacter, setLoading, setError, client, NpcCharacterController.getNpcCharacterParamsFromHash, characterClient,
   )
 );

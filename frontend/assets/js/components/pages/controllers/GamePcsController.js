@@ -1,21 +1,20 @@
 import GenericClient from '../../../client/GenericClient.js';
 import BasePageController from './BasePageController.js';
-import Router from '../../../utils/Router.js';
-
-/**
- * Extract game slug from PCs hash route.
- *
- * @param {string} hash - Current hash.
- * @returns {string} Game slug.
- */
-export function getGameSlugFromPcsHash(hash = '') {
-  return Router.extractParams('/games/:game_slug/pcs', hash).game_slug ?? '';
-}
 
 /**
  * Controller for game PCs page.
  */
 export default class GamePcsController extends BasePageController {
+  /**
+   * Extract game slug from PCs hash route.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {string} Game slug.
+   */
+  static getGameSlugFromPcsHash(hash = '') {
+    return BasePageController.extractParam('/games/:game_slug/pcs', 'game_slug', hash);
+  }
+
   /**
    * Create a game PCs controller.
    *
@@ -43,7 +42,7 @@ export default class GamePcsController extends BasePageController {
     return () => {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
-      const gameSlug = getGameSlugFromPcsHash(this.client.currentHash());
+      const gameSlug = GamePcsController.getGameSlugFromPcsHash(this.client.currentHash());
 
       if (!gameSlug) {
         safeSet(this.setError, 'Unable to load PCs.');

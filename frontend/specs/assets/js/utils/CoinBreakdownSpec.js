@@ -1,28 +1,15 @@
-import CoinBreakdown, { cascadeStep } from '../../../../assets/js/utils/CoinBreakdown.js';
+import CoinBreakdown from '../../../../assets/js/utils/CoinBreakdown.js';
 
 describe('CoinBreakdown', function() {
-  describe('cascadeStep', function() {
-    it('does not cascade below the default threshold', function() {
-      expect(cascadeStep(29)).toEqual({ quantity: 29, remaining: 0 });
-    });
+  describe('.build', function() {
+    it('throws when the cascade threshold is not a multiple of 10', function() {
+      const breakdown = new CoinBreakdown({ cascadeThreshold: 29 });
 
-    it('cascades at the default threshold', function() {
-      expect(cascadeStep(30)).toEqual({ quantity: 20, remaining: 1 });
-    });
-
-    it('accepts a custom threshold that is a multiple of 10', function() {
-      expect(cascadeStep(40, 40)).toEqual({ quantity: 30, remaining: 1 });
-    });
-
-    it('throws when the threshold is not a multiple of 10', function() {
-      expect(() => cascadeStep(30, 29)).toThrowError(
+      expect(() => breakdown.build(50)).toThrowError(
         'Cascade threshold must be a multiple of 10, got 29'
       );
     });
-  });
 
-
-  describe('.build', function() {
     it('returns an empty array for 0', function() {
       expect(new CoinBreakdown().build(0)).toEqual([]);
     });

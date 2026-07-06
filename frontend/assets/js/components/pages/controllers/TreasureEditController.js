@@ -3,23 +3,22 @@ import TreasureClient from '../../../client/TreasureClient.js';
 import AdminAccess from '../../../utils/AdminAccess.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
-import Router from '../../../utils/Router.js';
 import Noop from '../../../utils/Noop.js';
-
-/**
- * Extract treasure id from a treasure edit hash.
- *
- * @param {string} hash - Current hash.
- * @returns {string} Treasure id.
- */
-export function getTreasureIdFromEditHash(hash = '') {
-  return Router.extractParams('/treasures/:treasure_id/edit', hash).treasure_id ?? '';
-}
 
 /**
  * Controller for the treasure edit page.
  */
 export default class TreasureEditController extends BasePageController {
+  /**
+   * Extract treasure id from a treasure edit hash.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {string} Treasure id.
+   */
+  static getTreasureIdFromEditHash(hash = '') {
+    return BasePageController.extractParam('/treasures/:treasure_id/edit', 'treasure_id', hash);
+  }
+
   /**
    * Create a treasure edit controller.
    *
@@ -67,7 +66,7 @@ export default class TreasureEditController extends BasePageController {
         }
 
         const hash = typeof window === 'undefined' ? '' : window.location.hash;
-        const id = getTreasureIdFromEditHash(hash);
+        const id = TreasureEditController.getTreasureIdFromEditHash(hash);
 
         if (!id) {
           safeSet(this.setError, 'Unable to load treasure.');

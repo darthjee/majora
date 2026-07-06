@@ -1,5 +1,5 @@
 import HashRouteResolver from '../utils/HashRouteResolver.js';
-import hashQueryParams from '../utils/hashQueryParams.js';
+import HashQueryParams from '../utils/HashQueryParams.js';
 import BaseClient from './BaseClient.js';
 
 /**
@@ -37,7 +37,7 @@ export default class GenericClient extends BaseClient {
    * @returns {Promise<object>} Parsed JSON.
    */
   async fetch(path) {
-    const url = this.#buildUrl(path, hashQueryParams(this.currentHash()));
+    const url = this.#buildUrl(path, HashQueryParams.parse(this.currentHash()));
     return this.#request(url, { headers: { Accept: 'application/json' } }, path);
   }
 

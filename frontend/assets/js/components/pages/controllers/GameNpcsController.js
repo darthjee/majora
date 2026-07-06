@@ -3,24 +3,23 @@ import GenericClient from '../../../client/GenericClient.js';
 import CharacterClient from '../../../client/CharacterClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
-import Router from '../../../utils/Router.js';
 import Noop from '../../../utils/Noop.js';
 import HashRouteResolver from '../../../utils/HashRouteResolver.js';
-
-/**
- * Extract game slug from NPCs hash route.
- *
- * @param {string} hash - Current hash.
- * @returns {string} Game slug.
- */
-export function getGameSlugFromNpcsHash(hash = '') {
-  return Router.extractParams('/games/:game_slug/npcs', hash).game_slug ?? '';
-}
 
 /**
  * Controller for game NPCs page.
  */
 export default class GameNpcsController extends BasePageController {
+  /**
+   * Extract game slug from NPCs hash route.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {string} Game slug.
+   */
+  static getGameSlugFromNpcsHash(hash = '') {
+    return BasePageController.extractParam('/games/:game_slug/npcs', 'game_slug', hash);
+  }
+
   /**
    * Create a game NPCs controller.
    *
@@ -64,7 +63,7 @@ export default class GameNpcsController extends BasePageController {
     return () => {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
-      const gameSlug = getGameSlugFromNpcsHash(this.client.currentHash());
+      const gameSlug = GameNpcsController.getGameSlugFromNpcsHash(this.client.currentHash());
 
       if (!gameSlug) {
         safeSet(this.setError, 'Unable to load NPCs.');

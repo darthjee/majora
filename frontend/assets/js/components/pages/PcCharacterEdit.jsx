@@ -1,6 +1,5 @@
 import CharacterEdit from './shared/CharacterEdit.jsx';
-import PcCharacterEditController, { getPcCharacterEditParamsFromHash }
-  from './controllers/PcCharacterEditController.js';
+import PcCharacterEditController from './controllers/PcCharacterEditController.js';
 import PcCharacterEditHelper from './helpers/PcCharacterEditHelper.jsx';
 
 /**
@@ -12,7 +11,7 @@ export default function PcCharacterEdit() {
   return (
     <CharacterEdit
       ControllerClass={PcCharacterEditController}
-      getParamsFromHash={getPcCharacterEditParamsFromHash}
+      getParamsFromHash={PcCharacterEditController.getPcCharacterEditParamsFromHash}
       EditHelper={PcCharacterEditHelper}
       characterKind="pcs"
     />

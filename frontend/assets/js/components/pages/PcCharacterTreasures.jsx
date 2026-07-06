@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import PcCharacterTreasuresController, { getPcCharacterTreasuresParamsFromHash }
-  from './controllers/PcCharacterTreasuresController.js';
+import PcCharacterTreasuresController from './controllers/PcCharacterTreasuresController.js';
 import CharacterTreasuresHelper from './helpers/CharacterTreasuresHelper.jsx';
 import TreasureExchangeModal from '../elements/TreasureExchangeModal.jsx';
 import mergeCharacterTreasureQuantity from '../../utils/mergeCharacterTreasureQuantity.js';
@@ -27,7 +26,7 @@ export default function PcCharacterTreasures() {
 
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
   const { game_slug: gameSlug, character_id: characterId } =
-    getPcCharacterTreasuresParamsFromHash(currentHash);
+    PcCharacterTreasuresController.getPcCharacterTreasuresParamsFromHash(currentHash);
   const basePath = `#/games/${gameSlug}/pcs/${characterId}/treasures`;
   const backHref = `#/games/${gameSlug}/pcs/${characterId}`;
 

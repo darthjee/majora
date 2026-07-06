@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import PcCharacterPhotosController, { getPcCharacterPhotosParamsFromHash }
-  from './controllers/PcCharacterPhotosController.js';
+import PcCharacterPhotosController from './controllers/PcCharacterPhotosController.js';
 import Noop from '../../utils/Noop.js';
 import PcCharacterPhotosHelper from './helpers/PcCharacterPhotosHelper.jsx';
 import PhotoUploadModal from '../elements/PhotoUploadModal.jsx';
@@ -28,7 +27,8 @@ export default function PcCharacterPhotos() {
   useEffect(() => controller.buildEffect()(), [controller]);
 
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
-  const { game_slug: gameSlug, character_id: characterId } = getPcCharacterPhotosParamsFromHash(currentHash);
+  const { game_slug: gameSlug, character_id: characterId } =
+    PcCharacterPhotosController.getPcCharacterPhotosParamsFromHash(currentHash);
   const basePath = `#/games/${gameSlug}/pcs/${characterId}/photos`;
   const backHref = `#/games/${gameSlug}/pcs/${characterId}`;
   const alt = character.name || '';

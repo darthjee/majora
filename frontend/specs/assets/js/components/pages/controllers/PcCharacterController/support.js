@@ -1,4 +1,4 @@
-import PcCharacterController, { getPcCharacterParamsFromHash }
+import PcCharacterController
   from '../../../../../../../assets/js/components/pages/controllers/PcCharacterController.js';
 
 /**
@@ -12,6 +12,6 @@ import PcCharacterController, { getPcCharacterParamsFromHash }
  */
 export const buildEffectController = (setCharacter, setLoading, setError, client, characterClient) => (
   new PcCharacterController(
-    setCharacter, setLoading, setError, client, getPcCharacterParamsFromHash, characterClient,
+    setCharacter, setLoading, setError, client, PcCharacterController.getPcCharacterParamsFromHash, characterClient,
   )
 );

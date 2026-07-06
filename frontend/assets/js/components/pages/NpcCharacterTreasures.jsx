@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import NpcCharacterTreasuresController, { getNpcCharacterTreasuresParamsFromHash }
-  from './controllers/NpcCharacterTreasuresController.js';
+import NpcCharacterTreasuresController from './controllers/NpcCharacterTreasuresController.js';
 import CharacterTreasuresHelper from './helpers/CharacterTreasuresHelper.jsx';
 import TreasureExchangeModal from '../elements/TreasureExchangeModal.jsx';
 import mergeCharacterTreasureQuantity from '../../utils/mergeCharacterTreasureQuantity.js';
@@ -27,7 +26,7 @@ export default function NpcCharacterTreasures() {
 
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
   const { game_slug: gameSlug, character_id: characterId } =
-    getNpcCharacterTreasuresParamsFromHash(currentHash);
+    NpcCharacterTreasuresController.getNpcCharacterTreasuresParamsFromHash(currentHash);
   const basePath = `#/games/${gameSlug}/npcs/${characterId}/treasures`;
   const backHref = `#/games/${gameSlug}/npcs/${characterId}`;
 

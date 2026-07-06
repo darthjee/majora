@@ -1,9 +1,9 @@
-import GamePcsController, { getGameSlugFromPcsHash }
+import GamePcsController
   from '../../../../../../assets/js/components/pages/controllers/GamePcsController.js';
 
 describe('GamePcsController', function() {
   it('extracts game slug from pcs hash', function() {
-    expect(getGameSlugFromPcsHash('#/games/demo/pcs')).toBe('demo');
+    expect(GamePcsController.getGameSlugFromPcsHash('#/games/demo/pcs')).toBe('demo');
   });
 
   it('uses route params to request game pcs', async function() {

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import TreasureEditController, { getTreasureIdFromEditHash }
-  from './controllers/TreasureEditController.js';
+import TreasureEditController from './controllers/TreasureEditController.js';
 import TreasureEditHelper from './helpers/TreasureEditHelper.jsx';
 import TreasureHelper from './helpers/TreasureHelper.jsx';
 
@@ -24,7 +23,7 @@ export default function TreasureEdit() {
   );
 
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
-  const treasureId = getTreasureIdFromEditHash(currentHash);
+  const treasureId = TreasureEditController.getTreasureIdFromEditHash(currentHash);
 
   useEffect(() => controller.buildEffect()(), [controller]);
 

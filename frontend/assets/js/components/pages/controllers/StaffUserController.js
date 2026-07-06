@@ -3,22 +3,21 @@ import StaffUserClient from '../../../client/StaffUserClient.js';
 import AdminAccess from '../../../utils/AdminAccess.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
-import Router from '../../../utils/Router.js';
-
-/**
- * Extract user id from a staff user detail hash.
- *
- * @param {string} hash - Current hash.
- * @returns {string} User id.
- */
-export function getStaffUserIdFromHash(hash = '') {
-  return Router.extractParams('/staff/users/:user_id', hash).user_id ?? '';
-}
 
 /**
  * Controller for the staff user detail page.
  */
 export default class StaffUserController extends BasePageController {
+  /**
+   * Extract user id from a staff user detail hash.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {string} User id.
+   */
+  static getStaffUserIdFromHash(hash = '') {
+    return BasePageController.extractParam('/staff/users/:user_id', 'user_id', hash);
+  }
+
   /**
    * Create a staff user controller.
    *
@@ -62,7 +61,7 @@ export default class StaffUserController extends BasePageController {
         }
 
         const hash = typeof window === 'undefined' ? '' : window.location.hash;
-        const id = getStaffUserIdFromHash(hash);
+        const id = StaffUserController.getStaffUserIdFromHash(hash);
 
         if (!id) {
           safeSet(this.setError, true);

@@ -1,8 +1,6 @@
 import { useMemo, useState } from 'react';
-import RecoverPasswordController, { getRecoverPasswordTokenFromHash }
-  from './controllers/RecoverPasswordController.js';
+import RecoverPasswordController from './controllers/RecoverPasswordController.js';
 import RecoverPasswordHelper from './helpers/RecoverPasswordHelper.jsx';
-import hashQueryParams from '../../utils/hashQueryParams.js';
 
 /**
  * Recover-password page, driven entirely by the `token` query param in
@@ -23,7 +21,7 @@ export default function RecoverPassword() {
   );
 
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
-  const token = getRecoverPasswordTokenFromHash(hashQueryParams, currentHash);
+  const token = RecoverPasswordController.getRecoverPasswordTokenFromHash(currentHash);
 
   const handleSubmit = (event) => {
     if (event && typeof event.preventDefault === 'function') {

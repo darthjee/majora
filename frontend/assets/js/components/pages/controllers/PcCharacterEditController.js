@@ -1,30 +1,24 @@
 import PcCharacterController from './PcCharacterController.js';
-import BaseCharacterEditController, { resolveLoadedCharacter }
-  from './BaseCharacterEditController.js';
+import BaseCharacterEditController from './BaseCharacterEditController.js';
+import BasePageController from './BasePageController.js';
 import Noop from '../../../utils/Noop.js';
-import Router from '../../../utils/Router.js';
-
-/**
- * Extract game slug and character id from a PC character edit hash.
- *
- * @param {string} hash - Current hash.
- * @returns {object} Character route params.
- */
-export function getPcCharacterEditParamsFromHash(hash = '') {
-  const params = Router.extractParams('/games/:game_slug/pcs/:character_id/edit', hash);
-
-  return {
-    game_slug: params.game_slug ?? '',
-    character_id: params.character_id ?? '',
-  };
-}
-
-export { resolveLoadedCharacter };
 
 /**
  * Controller for the PC character edit page.
  */
 export default class PcCharacterEditController extends BaseCharacterEditController {
+  /**
+   * Extract game slug and character id from a PC character edit hash.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {object} Character route params.
+   */
+  static getPcCharacterEditParamsFromHash(hash = '') {
+    return BasePageController.extractParams(
+      '/games/:game_slug/pcs/:character_id/edit', hash, ['game_slug', 'character_id'],
+    );
+  }
+
   /**
    * Create a PC character edit controller.
    *
@@ -50,7 +44,7 @@ export default class PcCharacterEditController extends BaseCharacterEditControll
       setError,
       setFieldErrors,
       PcCharacterController,
-      getPcCharacterEditParamsFromHash,
+      PcCharacterEditController.getPcCharacterEditParamsFromHash,
       'pcs',
       'updatePc',
       client,

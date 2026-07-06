@@ -2,28 +2,24 @@ import GameClient from '../../../client/GameClient.js';
 import TreasureClient from '../../../client/TreasureClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import BasePageController from './BasePageController.js';
-import Router from '../../../utils/Router.js';
 import Noop from '../../../utils/Noop.js';
-
-/**
- * Extract game slug and treasure id from a game treasure edit hash.
- *
- * @param {string} hash - Current hash.
- * @returns {{game_slug: string, treasure_id: string}} Route params.
- */
-export function getGameTreasureEditParamsFromHash(hash = '') {
-  const params = Router.extractParams('/games/:game_slug/treasures/:treasure_id/edit', hash);
-
-  return {
-    game_slug: params.game_slug ?? '',
-    treasure_id: params.treasure_id ?? '',
-  };
-}
 
 /**
  * Controller for the game treasure edit page.
  */
 export default class GameTreasureEditController extends BasePageController {
+  /**
+   * Extract game slug and treasure id from a game treasure edit hash.
+   *
+   * @param {string} hash - Current hash.
+   * @returns {{game_slug: string, treasure_id: string}} Route params.
+   */
+  static getGameTreasureEditParamsFromHash(hash = '') {
+    return BasePageController.extractParams(
+      '/games/:game_slug/treasures/:treasure_id/edit', hash, ['game_slug', 'treasure_id'],
+    );
+  }
+
   /**
    * Create a game treasure edit controller.
    *
@@ -58,7 +54,8 @@ export default class GameTreasureEditController extends BasePageController {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
       const hash = typeof window === 'undefined' ? '' : window.location.hash;
-      const { game_slug: gameSlug, treasure_id: treasureId } = getGameTreasureEditParamsFromHash(hash);
+      const { game_slug: gameSlug, treasure_id: treasureId } =
+        GameTreasureEditController.getGameTreasureEditParamsFromHash(hash);
       const token = AuthStorage.getToken();
 
       this.gameClient.fetchGameAccess(gameSlug, token)

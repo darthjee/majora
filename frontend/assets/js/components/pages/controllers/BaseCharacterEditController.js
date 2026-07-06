@@ -5,34 +5,6 @@ import BasePageController from './BasePageController.js';
 import Noop from '../../../utils/Noop.js';
 
 /**
- * Decide whether a loaded character should redirect away from the edit page
- * (when not editable), or be used to seed the edit form fields.
- *
- * @param {object|null} character - Loaded character, or null while still loading.
- * @returns {{redirect: boolean, fields: object|null}} Decision and seed fields.
- */
-export function resolveLoadedCharacter(character) {
-  if (!character) {
-    return { redirect: false, fields: null };
-  }
-
-  if (!character.can_edit) {
-    return { redirect: true, fields: null };
-  }
-
-  return {
-    redirect: false,
-    fields: {
-      name: character.name ?? '',
-      role: character.role ?? '',
-      public_description: character.public_description ?? '',
-      private_description: character.private_description ?? '',
-      money: String(character.money ?? 0),
-    },
-  };
-}
-
-/**
  * Base controller for character edit pages.
  *
  * @description Holds all shared logic for NPC and PC character edit pages.
@@ -40,6 +12,33 @@ export function resolveLoadedCharacter(character) {
  *   and API update method name.
  */
 export default class BaseCharacterEditController extends BasePageController {
+  /**
+   * Decide whether a loaded character should redirect away from the edit
+   * page, because it is missing or not editable.
+   *
+   * @param {object|null} character - Loaded character, or null while still loading.
+   * @returns {boolean} True when the page should redirect away.
+   */
+  static #shouldRedirect(character) {
+    return Boolean(character) && !character.can_edit;
+  }
+
+  /**
+   * Shape the form-seed fields object from a loaded, editable character.
+   *
+   * @param {object} character - Loaded, editable character.
+   * @returns {object} Seed fields for the edit form.
+   */
+  static #fieldsFromCharacter(character) {
+    return {
+      name: character.name ?? '',
+      role: character.role ?? '',
+      public_description: character.public_description ?? '',
+      private_description: character.private_description ?? '',
+      money: String(character.money ?? 0),
+    };
+  }
+
   /**
    * Create a base character edit controller.
    *
@@ -162,20 +161,22 @@ export default class BaseCharacterEditController extends BasePageController {
    * @returns {void}
    */
   applyLoadedCharacter(character, gameSlug, characterId, setters) {
-    const { redirect, fields } = resolveLoadedCharacter(character);
-
-    if (redirect) {
+    if (BaseCharacterEditController.#shouldRedirect(character)) {
       this.#redirectToShow(gameSlug, characterId);
       return;
     }
 
-    if (fields) {
-      setters.setName(fields.name);
-      setters.setRole(fields.role);
-      setters.setDescription(fields.public_description);
-      setters.setPrivateDescription(fields.private_description);
-      setters.setMoney(fields.money);
+    if (!character) {
+      return;
     }
+
+    const fields = BaseCharacterEditController.#fieldsFromCharacter(character);
+
+    setters.setName(fields.name);
+    setters.setRole(fields.role);
+    setters.setDescription(fields.public_description);
+    setters.setPrivateDescription(fields.private_description);
+    setters.setMoney(fields.money);
   }
 
   async #handleResponse(response, gameSlug, characterId, setters) {
