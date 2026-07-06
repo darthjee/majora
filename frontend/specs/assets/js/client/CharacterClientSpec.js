@@ -187,6 +187,22 @@ describe('CharacterClient', function() {
         headers: {
           Accept: 'application/json',
           Authorization: 'Token abc123',
+          'X-Skip-Cache': 'true',
+        },
+        body: undefined,
+      });
+    });
+
+    it('sends the X-Skip-Cache header when there is no token', async function() {
+      const client = new CharacterClient();
+
+      await client.fetchNpcTreasuresPage('demo', '2', null);
+
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/2/treasures.json', {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'X-Skip-Cache': 'true',
         },
         body: undefined,
       });
