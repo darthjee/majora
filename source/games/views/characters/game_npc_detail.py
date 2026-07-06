@@ -1,6 +1,5 @@
 """View for retrieving or updating a single NPC's detail."""
 
-from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny
@@ -10,6 +9,7 @@ from ...models import Character, Game
 from ...permissions import CharacterEditPermission
 from ...serializers import CharacterDetailSerializer, CharacterUpdateSerializer
 from ..common import detail_or_update
+from ._shared import _hidden_gate_response
 
 
 @api_view(['GET', 'PATCH'])
@@ -20,8 +20,9 @@ def game_npc_detail(request, game_slug, character_id):
     game = get_object_or_404(Game, game_slug=game_slug)
     character = get_object_or_404(Character, id=character_id, game=game, npc=True)
 
-    if character.hidden and not character.can_be_edited_by(request.user):
-        raise Http404
+    error_response = _hidden_gate_response(character, request)
+    if error_response:
+        return error_response
 
     response = detail_or_update(
         request,

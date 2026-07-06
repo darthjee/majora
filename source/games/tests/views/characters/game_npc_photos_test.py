@@ -183,3 +183,25 @@ class TestGameNpcPhotosHidden:
         assert response.status_code == 200
         data = json.loads(response.content)
         assert len(data) == 1
+
+    def test_hidden_npc_photos_404_response_includes_x_skip_cache_header(self, client):
+        """Test that a 404 response for a hidden NPC's photos includes X-Skip-Cache: true."""
+        response = client.get(f'/games/test-game/npcs/{self.hidden_npc.id}/photos.json')
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_hidden_npc_photos_response_includes_x_skip_cache_header_for_dm(self, client):
+        """Test that a DM's response for a hidden NPC's photos includes X-Skip-Cache: true."""
+        token = Token.objects.create(user=self.dm_user)
+        response = client.get(
+            f'/games/test-game/npcs/{self.hidden_npc.id}/photos.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_visible_npc_photos_response_does_not_include_x_skip_cache_header(self, client):
+        """Test that a visible NPC's photos response does not include X-Skip-Cache."""
+        visible_npc = Character.objects.create(
+            name='Visible NPC', game=self.game, npc=True, hidden=False
+        )
+        response = client.get(f'/games/test-game/npcs/{visible_npc.id}/photos.json')
+        assert 'X-Skip-Cache' not in response

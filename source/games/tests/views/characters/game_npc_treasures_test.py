@@ -103,10 +103,10 @@ class TestGameNpcTreasuresView:
         response = client.get(url)
         assert response.status_code == 200
 
-    def test_response_includes_x_skip_cache_header(self, client):
-        """Test that the response includes the X-Skip-Cache: true header."""
+    def test_response_does_not_include_x_skip_cache_header(self, client):
+        """Test that a visible NPC's response does not include X-Skip-Cache."""
         response = client.get(f'/games/test-game/npcs/{self.character.id}/treasures.json')
-        assert response['X-Skip-Cache'] == 'true'
+        assert 'X-Skip-Cache' not in response
 
 
 @pytest.mark.django_db
@@ -186,3 +186,20 @@ class TestGameNpcTreasuresHidden:
             HTTP_AUTHORIZATION=f'Token {token.key}',
         )
         assert response['X-Skip-Cache'] == 'true'
+
+    def test_hidden_npc_treasures_404_response_includes_x_skip_cache_header(self, client):
+        """Test that a 404 response for a hidden NPC's treasures includes X-Skip-Cache: true."""
+        response = client.get(f'/games/test-game/npcs/{self.hidden_npc.id}/treasures.json')
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_visible_npc_treasures_response_does_not_include_x_skip_cache_header(self, client):
+        """Test that a visible NPC's treasures response does not include X-Skip-Cache."""
+        visible_npc = Character.objects.create(
+            name='Visible NPC', game=self.game, npc=True, hidden=False
+        )
+        treasure = Treasure.objects.create(name='Public Gem', value=1)
+        CharacterTreasure.objects.create(
+            character=visible_npc, treasure=treasure, quantity=1,
+        )
+        response = client.get(f'/games/test-game/npcs/{visible_npc.id}/treasures.json')
+        assert 'X-Skip-Cache' not in response

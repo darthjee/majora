@@ -342,3 +342,8 @@ class TestGameNpcDetailHidden:
             HTTP_AUTHORIZATION=f'Token {token.key}',
         )
         assert response['X-Skip-Cache'] == 'true'
+
+    def test_hidden_npc_404_response_includes_x_skip_cache_header_for_anonymous(self, client):
+        """Test that an anonymous 404 response for a hidden NPC includes X-Skip-Cache: true."""
+        response = client.get(f'/games/test-game/npcs/{self.hidden_npc.id}.json')
+        assert response['X-Skip-Cache'] == 'true'
