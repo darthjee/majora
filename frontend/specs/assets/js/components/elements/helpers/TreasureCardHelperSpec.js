@@ -11,9 +11,9 @@ describe('TreasureCardHelper', function() {
         .toContain('Golden Crown');
     });
 
-    it('renders the treasure value', function() {
+    it('renders the treasure value as a coin breakdown', function() {
       expect(renderToStaticMarkup(TreasureCardHelper.render(treasure)))
-        .toContain('500');
+        .toContain('5 GP');
     });
 
     it('links to the treasure detail page', function() {

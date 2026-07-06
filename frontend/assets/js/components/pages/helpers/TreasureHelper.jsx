@@ -3,6 +3,7 @@ import BackButton from '../../elements/BackButton.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import Translator from '../../../i18n/Translator.js';
+import formatTreasureValue from '../../../utils/TreasureMoneyFormatter.js';
 
 /**
  * Rendering helper for the Treasure detail page.
@@ -29,7 +30,7 @@ export default class TreasureHelper {
         <p className="mt-3">
           <strong>Value:</strong>
           {' '}
-          {treasure.value}
+          {formatTreasureValue(treasure.value)}
         </p>
       </div>
     );

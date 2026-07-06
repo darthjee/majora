@@ -21,7 +21,7 @@ export default class CharacterMoneyHelper {
    * @returns {React.ReactElement|null} Money breakdown paragraph, or null.
    */
   static render(money) {
-    const entries = CoinBreakdown.build(money);
+    const entries = new CoinBreakdown().build(money);
 
     if (entries.length === 0) return null;
 

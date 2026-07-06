@@ -1,6 +1,6 @@
-const DENOMINATION_KEYS = ['cp', 'sp', 'gp', 'pp'];
+const DEFAULT_DENOMINATION_KEYS = ['cp', 'sp', 'gp', 'pp'];
 const GEMS_MULTIPLIER = 100;
-const CASCADE_THRESHOLD = 30;
+const DEFAULT_CASCADE_THRESHOLD = 30;
 
 /**
  * Ensure a cascade threshold is a round multiple of ten, since the cascade
@@ -27,7 +27,7 @@ function assertValidThreshold(threshold) {
  * @returns {{quantity: number, remaining: number}} The quantity to display
  *   for this denomination, and the remaining value carried upward.
  */
-export function cascadeStep(remaining, threshold = CASCADE_THRESHOLD) {
+export function cascadeStep(remaining, threshold = DEFAULT_CASCADE_THRESHOLD) {
   assertValidThreshold(threshold);
 
   if (remaining >= threshold) {
@@ -42,28 +42,58 @@ export function cascadeStep(remaining, threshold = CASCADE_THRESHOLD) {
 
 /**
  * Transforms a raw copper-piece total into a cascading breakdown of coin
- * denominations (copper, silver, gold, platinum), with any leftover value
- * above platinum converted into a gems entry.
+ * denominations. By default it cascades through copper, silver, gold and
+ * platinum, converting any leftover value above platinum into a gems entry;
+ * callers may restrict the denominations used, in which case the last
+ * denomination in the list absorbs all remaining value instead of
+ * overflowing into gems.
  */
 export default class CoinBreakdown {
+  /**
+   * Build a coin breakdown instance.
+   *
+   * @param {object} [options] - Breakdown options.
+   * @param {string[]} [options.denominations] - Denomination keys, in
+   *   cascading order from lowest to highest. The last entry absorbs all
+   *   remaining value.
+   * @param {number} [options.cascadeThreshold] - The value at/above which
+   *   cascading kicks in, expressed as a round multiple of ten.
+   */
+  constructor({
+    denominations = DEFAULT_DENOMINATION_KEYS,
+    cascadeThreshold = DEFAULT_CASCADE_THRESHOLD,
+  } = {}) {
+    this.denominations = denominations;
+    this.cascadeThreshold = cascadeThreshold;
+    this.isDefaultDenominations = denominations === DEFAULT_DENOMINATION_KEYS;
+  }
+
   /**
    * Build the coin denomination breakdown for a raw copper total.
    *
    * @param {number} [money] - Total money, expressed in copper pieces.
    * @returns {{key: string, quantity: number}[]} Non-zero denomination
-   *   entries in display order (CP, SP, GP, PP, gems).
+   *   entries in display order, lowest to highest denomination.
    */
-  static build(money = 0) {
+  build(money = 0) {
+    const lastIndex = this.denominations.length - 1;
     let remaining = money;
-    const entries = DENOMINATION_KEYS.map((key) => {
-      const step = cascadeStep(remaining);
+    const entries = this.denominations.map((key, index) => {
+      if (!this.isDefaultDenominations && index === lastIndex) {
+        const quantity = remaining;
+        remaining = 0;
+
+        return { key, quantity };
+      }
+
+      const step = cascadeStep(remaining, this.cascadeThreshold);
 
       remaining = step.remaining;
 
       return { key, quantity: step.quantity };
     });
 
-    if (remaining > 0) {
+    if (this.isDefaultDenominations && remaining > 0) {
       entries.push({ key: 'gems', quantity: remaining * GEMS_MULTIPLIER });
     }
 
