@@ -416,18 +416,23 @@ Added in issue #297. `CharacterTreasure` is a through model linking `Character` 
 through-model-with-an-extra-field in the codebase (the pre-existing `Game`↔`Treasure`
 relationship is a bare M2M with no through model or extra fields). It is read-only through
 two dedicated index endpoints (one for PCs, one for NPCs), mirroring the `CharacterPhoto`
-index endpoints above. There is no create/update/delete endpoint for `CharacterTreasure` —
-management is superuser-only, via Django admin.
+index endpoints above, plus (as of issue #312) four acquire/sell mutation endpoints scoped
+to the owning player/GameMaster/superuser. There is no direct create/update/delete endpoint
+for a `CharacterTreasure` row itself (e.g. no way to set an arbitrary `quantity` directly) —
+only the atomic acquire/sell operations below, plus Django admin for superusers.
 
 ### Treasure index endpoints
 
 | Endpoint | Method | Who can call | Response |
 |----------|--------|-------------|----------|
-| `/games/<slug>/pcs/<id>/treasures.json` | GET | Anyone (`AllowAny`, no authentication required) | Paginated list of `CharacterTreasureSerializer` objects (`id`, `name`, `quantity`, `value`) for that PC's `CharacterTreasure` rows |
-| `/games/<slug>/npcs/<id>/treasures.json` | GET | Anyone (`AllowAny`), but see hidden-NPC gate below | Paginated list of `CharacterTreasureSerializer` objects (`id`, `name`, `quantity`, `value`) for that NPC's `CharacterTreasure` rows |
+| `/games/<slug>/pcs/<id>/treasures.json` | GET | Anyone (`AllowAny`, no authentication required) | Paginated list of `CharacterTreasureSerializer` objects (`id`, `treasure_id`, `name`, `quantity`, `value`, `photo_path`) for that PC's `CharacterTreasure` rows with `quantity > 0` |
+| `/games/<slug>/npcs/<id>/treasures.json` | GET | Anyone (`AllowAny`), but see hidden-NPC gate below | Paginated list of `CharacterTreasureSerializer` objects (`id`, `treasure_id`, `name`, `quantity`, `value`, `photo_path`) for that NPC's `CharacterTreasure` rows with `quantity > 0` |
 
 Unknown `game_slug` or `character_id` (or a `character_id` that does not belong to
-`game_slug`, or is the wrong PC/NPC type for the endpoint) → 404.
+`game_slug`, or is the wrong PC/NPC type for the endpoint) → 404. As of issue #312, both
+endpoints filter to `quantity__gt=0` — rows zeroed out by selling all owned units are kept
+in the database (to preserve history and avoid re-creating the row from scratch on
+re-acquisition) but never listed.
 
 For `game_npc_treasures`, the same hidden-NPC visibility gate used by the NPC detail,
 list, and photo index endpoints applies: if `character.hidden` is `True` and the
@@ -438,12 +443,54 @@ character's player, a GameMaster of that game, or a superuser. `PC` characters h
 `hidden` concept, so `game_pc_treasures` has no equivalent gate.
 
 **Exposed fields** (read): `id` (the `CharacterTreasure` row id, not the `Treasure` id),
-`name` and `value` (sourced from the related `Treasure`), `quantity` (the through model's
-own field) — all non-sensitive and safe to return to anonymous callers under the same
-visibility rules as the endpoints above.
+`treasure_id` (the underlying `Treasure`'s id, added in issue #312), `name`, `value`, and
+`photo_path` (sourced from the related `Treasure`; `photo_path` is nullable, `None` when
+the treasure has no photo), `quantity` (the through model's own field) — all non-sensitive
+and safe to return to anonymous callers under the same visibility rules as the endpoints
+above. `treasure_id` and `photo_path` are not new information disclosures: both are already
+publicly exposed for the same `Treasure` via `/treasures.json`, `/treasures/<id>.json`, and
+`/games/<slug>/treasures.json`.
 
-**Write access:** superuser only (via Django admin, out of scope) — no create, update, or
-delete endpoint exists for `CharacterTreasure` as of issue #297.
+### Treasure acquire/sell endpoints (added in issue #312)
+
+| Endpoint | Method | Who can call | Effect |
+|----------|--------|-------------|--------|
+| `/games/<slug>/pcs/<character_id>/treasures/acquire.json` | POST | The character's owning player, a GameMaster of the game, or a superuser (`CharacterEditPermission`) | Spends `quantity * treasure.value` from `character.money` to add `quantity` of `treasure_id` to the character's owned treasures |
+| `/games/<slug>/pcs/<character_id>/treasures/sell.json` | POST | Same as above | Removes `quantity` of `treasure_id` from the character's owned treasures, refunding `quantity * treasure.value` into `character.money` |
+| `/games/<slug>/npcs/<character_id>/treasures/acquire.json` | POST | Same as above | Same as the PC acquire endpoint, for an NPC |
+| `/games/<slug>/npcs/<character_id>/treasures/sell.json` | POST | Same as above | Same as the PC sell endpoint, for an NPC |
+
+Request body: `{"treasure_id": <int>, "quantity": <int, >= 1>}`. Success (200):
+`{"quantity": <new owned quantity>, "money": <new character.money>}`. Failure: 401
+(unauthenticated), 403 (authenticated but not the owning player/GameMaster/superuser), 404
+(`treasure_id` does not resolve to a treasure available in this game — scoped via the same
+`Q(linked_game=game) | Q(game=game)` filter used by the game treasure list — or, for sell,
+no owned `CharacterTreasure` row exists for that treasure), 400
+(`{"errors": {"quantity": ["insufficient funds"]}}` on acquire when
+`quantity * treasure.value > character.money`, or
+`{"errors": {"quantity": ["not enough owned"]}}` on sell when `quantity` exceeds the
+currently owned amount). Both operations run inside `transaction.atomic()` and never delete
+the `CharacterTreasure` row, even when a full sell brings `quantity` to `0`.
+
+These endpoints do not re-apply the hidden-NPC `Http404` gate before the permission check
+(unlike `game_npc_treasures`'s read endpoint) — a hidden NPC's existence is confirmed via
+401/403 rather than masked behind a 404. This mirrors the pre-existing, already-accepted
+convention used by the NPC slain-toggle endpoint, which is also `CharacterEditPermission`-
+gated with no hidden-existence masking.
+
+**Write access:** the four acquire/sell endpoints above (added in issue #312), gated by
+`CharacterEditPermission`. There is otherwise no direct create/update/delete endpoint for a
+`CharacterTreasure` row — remaining management (e.g. correcting a row outside the normal
+acquire/sell flow) is superuser-only, via Django admin.
+
+### `max_value` filter on the game treasure list (added in issue #312)
+
+`/games/<slug>/treasures.json` (GET, `AllowAny`, documented under "Treasure" above) accepts
+an optional `max_value` query parameter (integer, copper pieces). When present, the
+queryset is additionally filtered to `value__lte=max_value`; a missing or non-numeric value
+is silently ignored (treated as absent), since this is a browsing/UX convenience filter, not
+a validated write. It exposes no additional data — it only narrows the same publicly
+readable list.
 
 ---
 
