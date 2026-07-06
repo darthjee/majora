@@ -3,44 +3,6 @@ const GEMS_MULTIPLIER = 100;
 const DEFAULT_CASCADE_THRESHOLD = 30;
 
 /**
- * Ensure a cascade threshold is a round multiple of ten, since the cascade
- * arithmetic only makes sense for values landing on a tens boundary.
- *
- * @param {number} threshold - The candidate cascade threshold.
- * @returns {void}
- */
-function assertValidThreshold(threshold) {
-  if (threshold % 10 !== 0) {
-    throw new Error(`Cascade threshold must be a multiple of 10, got ${threshold}`);
-  }
-}
-
-/**
- * Apply a single cascading denomination step, extracting the quantity that
- * fits in the current denomination (capped just below the threshold) and
- * carrying the excess up into the next denomination's units.
- *
- * @param {number} remaining - Remaining value, expressed in current
- *   denomination units.
- * @param {number} [threshold] - The value at/above which cascading kicks
- *   in, expressed as a round multiple of ten.
- * @returns {{quantity: number, remaining: number}} The quantity to display
- *   for this denomination, and the remaining value carried upward.
- */
-export function cascadeStep(remaining, threshold = DEFAULT_CASCADE_THRESHOLD) {
-  assertValidThreshold(threshold);
-
-  if (remaining >= threshold) {
-    return {
-      quantity: (remaining % 10) + (threshold - 10),
-      remaining: Math.floor(remaining / 10) - (threshold / 10 - 1),
-    };
-  }
-
-  return { quantity: remaining, remaining: 0 };
-}
-
-/**
  * Transforms a raw copper-piece total into a cascading breakdown of coin
  * denominations. By default it cascades through copper, silver, gold and
  * platinum, converting any leftover value above platinum into a gems entry;
@@ -49,6 +11,44 @@ export function cascadeStep(remaining, threshold = DEFAULT_CASCADE_THRESHOLD) {
  * overflowing into gems.
  */
 export default class CoinBreakdown {
+  /**
+   * Ensure a cascade threshold is a round multiple of ten, since the cascade
+   * arithmetic only makes sense for values landing on a tens boundary.
+   *
+   * @param {number} threshold - The candidate cascade threshold.
+   * @returns {void}
+   */
+  static #assertValidThreshold(threshold) {
+    if (threshold % 10 !== 0) {
+      throw new Error(`Cascade threshold must be a multiple of 10, got ${threshold}`);
+    }
+  }
+
+  /**
+   * Apply a single cascading denomination step, extracting the quantity that
+   * fits in the current denomination (capped just below the threshold) and
+   * carrying the excess up into the next denomination's units.
+   *
+   * @param {number} remaining - Remaining value, expressed in current
+   *   denomination units.
+   * @param {number} [threshold] - The value at/above which cascading kicks
+   *   in, expressed as a round multiple of ten.
+   * @returns {{quantity: number, remaining: number}} The quantity to display
+   *   for this denomination, and the remaining value carried upward.
+   */
+  static #cascadeStep(remaining, threshold = DEFAULT_CASCADE_THRESHOLD) {
+    CoinBreakdown.#assertValidThreshold(threshold);
+
+    if (remaining >= threshold) {
+      return {
+        quantity: (remaining % 10) + (threshold - 10),
+        remaining: Math.floor(remaining / 10) - (threshold / 10 - 1),
+      };
+    }
+
+    return { quantity: remaining, remaining: 0 };
+  }
+
   /**
    * Build a coin breakdown instance.
    *
@@ -86,7 +86,7 @@ export default class CoinBreakdown {
         return { key, quantity };
       }
 
-      const step = cascadeStep(remaining, this.cascadeThreshold);
+      const step = CoinBreakdown.#cascadeStep(remaining, this.cascadeThreshold);
 
       remaining = step.remaining;
 

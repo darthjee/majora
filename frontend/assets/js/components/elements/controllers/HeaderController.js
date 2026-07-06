@@ -21,19 +21,19 @@ const NOOP_EVENT_TARGET = {
 };
 
 /**
- * Returns the global `window` object when available, or a no-op stand-in
- * otherwise (e.g. when running in a non-browser test environment).
- *
- * @returns {EventTarget} the default event target for hash change listening.
- */
-function defaultEventTarget() {
-  return typeof window === 'undefined' ? NOOP_EVENT_TARGET : window;
-}
-
-/**
  * Manages authentication state and modal visibility for the Header element.
  */
 export default class HeaderController {
+  /**
+   * Returns the global `window` object when available, or a no-op stand-in
+   * otherwise (e.g. when running in a non-browser test environment).
+   *
+   * @returns {EventTarget} the default event target for hash change listening.
+   */
+  static #defaultEventTarget() {
+    return typeof window === 'undefined' ? NOOP_EVENT_TARGET : window;
+  }
+
   /**
    * Creates a new HeaderController instance.
    *
@@ -60,7 +60,7 @@ export default class HeaderController {
     setIsStaff = Noop.noop,
     setRoute = Noop.noop,
     routeResolver = new HashRouteResolver(),
-    eventTarget = defaultEventTarget()
+    eventTarget = HeaderController.#defaultEventTarget()
   ) {
     this.setLoggedIn = setLoggedIn;
     this.setShowModal = setShowModal;

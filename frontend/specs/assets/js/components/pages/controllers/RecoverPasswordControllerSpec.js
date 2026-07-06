@@ -1,15 +1,15 @@
-import RecoverPasswordController, { getRecoverPasswordTokenFromHash }
+import RecoverPasswordController
   from '../../../../../../assets/js/components/pages/controllers/RecoverPasswordController.js';
-import hashQueryParams from '../../../../../../assets/js/utils/hashQueryParams.js';
 
 describe('RecoverPasswordController', function() {
   describe('getRecoverPasswordTokenFromHash', function() {
     it('extracts the token from the hash query string', function() {
-      expect(getRecoverPasswordTokenFromHash(hashQueryParams, '#/recover-password?token=abc123')).toBe('abc123');
+      expect(RecoverPasswordController.getRecoverPasswordTokenFromHash('#/recover-password?token=abc123'))
+        .toBe('abc123');
     });
 
     it('returns an empty string when there is no token', function() {
-      expect(getRecoverPasswordTokenFromHash(hashQueryParams, '#/recover-password')).toBe('');
+      expect(RecoverPasswordController.getRecoverPasswordTokenFromHash('#/recover-password')).toBe('');
     });
   });
 

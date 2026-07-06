@@ -1,5 +1,5 @@
 import Router from './Router.js';
-import hashQueryParams from './hashQueryParams.js';
+import HashQueryParams from './HashQueryParams.js';
 
 /**
  * Resolver for hash-based application routes.
@@ -89,7 +89,7 @@ export default class HashRouteResolver {
    * @returns {URLSearchParams} Pagination params.
    */
   getPaginationParams() {
-    const query = hashQueryParams(this.currentHash());
+    const query = HashQueryParams.parse(this.currentHash());
     const params = new URLSearchParams();
 
     const page = query.get('page');

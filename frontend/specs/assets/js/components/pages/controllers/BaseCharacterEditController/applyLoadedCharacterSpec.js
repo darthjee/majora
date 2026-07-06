@@ -71,5 +71,19 @@ describe('BaseCharacterEditController', function() {
       expect(setters.setPrivateDescription).toHaveBeenCalledWith('DM notes');
       expect(setters.setMoney).toHaveBeenCalledWith('310');
     });
+
+    it('defaults missing fields to empty strings and money to "0"', function() {
+      const controller = new TestCharacterEditController(
+        setCharacter, setLoading, setError, setFieldErrors, client, characterClient,
+      );
+
+      controller.applyLoadedCharacter({ id: 1, can_edit: true }, 'demo', '1', setters);
+
+      expect(setters.setName).toHaveBeenCalledWith('');
+      expect(setters.setRole).toHaveBeenCalledWith('');
+      expect(setters.setDescription).toHaveBeenCalledWith('');
+      expect(setters.setPrivateDescription).toHaveBeenCalledWith('');
+      expect(setters.setMoney).toHaveBeenCalledWith('0');
+    });
   });
 });

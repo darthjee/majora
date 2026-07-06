@@ -1,20 +1,20 @@
 import AuthClient from '../../../client/AuthClient.js';
-
-/**
- * Extract the password recovery token from a hash query string.
- *
- * @param {Function} hashQueryParams - hashQueryParams helper.
- * @param {string} hash - current hash.
- * @returns {string} recovery token, or an empty string when absent.
- */
-export function getRecoverPasswordTokenFromHash(hashQueryParams, hash = '') {
-  return hashQueryParams(hash).get('token') ?? '';
-}
+import HashQueryParams from '../../../utils/HashQueryParams.js';
 
 /**
  * Controller for the recover-password page.
  */
 export default class RecoverPasswordController {
+  /**
+   * Extract the password recovery token from a hash query string.
+   *
+   * @param {string} hash - current hash.
+   * @returns {string} recovery token, or an empty string when absent.
+   */
+  static getRecoverPasswordTokenFromHash(hash = '') {
+    return HashQueryParams.parse(hash).get('token') ?? '';
+  }
+
   /**
    * Create a recover-password controller.
    *
