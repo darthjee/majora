@@ -71,6 +71,7 @@ All project documentation lives under [`docs/agents/`](docs/agents/):
 |------|----------|
 | [Folder Structure](docs/agents/folder-structure.md) | Top-level directory layout and the role of each folder. |
 | [Architecture](docs/agents/architecture.md) | Source layout, modules, code style, and implementation guidelines. |
+| [Views Organization](docs/agents/views-organization.md) | Folder convention for `source/games/views/` (and its mirrored test tree): plural resource folders, nested `game/` sub-resources, `detail/` member actions. |
 | [Contributing](docs/agents/contributing.md) | Commit guidelines, PR standards, code organization, and refactoring rules. |
 | [Flow](docs/agents/flow.md) | Main runtime flow of the application. |
 | [Product Definitions](docs/agents/product.md) | Authoritative product-level concepts: entity definitions, ownership chain, GameMaster role, and editing rules. Consult before planning any issue that introduces new entities or changes access logic. |
