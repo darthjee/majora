@@ -26,4 +26,6 @@ def game_npc_treasures(request, game_slug, character_id):
         raise Http404
 
     treasures = character.character_treasures.select_related('treasure').filter(quantity__gt=0)
-    return paginated_list_response(request, treasures, CharacterTreasureSerializer)
+    response = paginated_list_response(request, treasures, CharacterTreasureSerializer)
+    response['X-Skip-Cache'] = 'true'
+    return response
