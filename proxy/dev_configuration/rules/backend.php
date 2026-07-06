@@ -95,6 +95,10 @@ Configuration::buildRule([
             'location' => './cache',
             'host' => 'http://backend:8080',
             'maxAgeSeconds' => 10
+        ],
+        [
+            'class'  => 'Tent\\Middlewares\\CollapseDuplicateHeaderMiddleware',
+            'header' => 'Cache-Control'
         ]
     ]
 ]);
