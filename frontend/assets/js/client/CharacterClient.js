@@ -66,6 +66,86 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
+   * Fetches an explicit page of a PC character's treasures, used by the treasure
+   * exchange modal's Sell tab (local pagination, independent of the URL).
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {{page: number, perPage: number}} [params] - Query params.
+   * @returns {Promise<Response>} fetch response from the character treasures endpoint.
+   */
+  fetchPcTreasuresPage(gameSlug, characterId, token, params = {}) {
+    return this.#fetchTreasuresPage('pcs', gameSlug, characterId, token, params);
+  }
+
+  /**
+   * Fetches an explicit page of an NPC character's treasures, used by the treasure
+   * exchange modal's Sell tab (local pagination, independent of the URL).
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {{page: number, perPage: number}} [params] - Query params.
+   * @returns {Promise<Response>} fetch response from the character treasures endpoint.
+   */
+  fetchNpcTreasuresPage(gameSlug, characterId, token, params = {}) {
+    return this.#fetchTreasuresPage('npcs', gameSlug, characterId, token, params);
+  }
+
+  /**
+   * Acquires a quantity of a treasure for a PC character, spending its money.
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {{treasure_id: number, quantity: number}} fields - Acquire request fields.
+   * @returns {Promise<Response>} fetch response from the acquire endpoint.
+   */
+  acquirePcTreasure(gameSlug, characterId, token, fields) {
+    return this.#postTreasureAction('pcs', gameSlug, characterId, 'acquire', token, fields);
+  }
+
+  /**
+   * Sells a quantity of an owned treasure for a PC character, gaining money.
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {{treasure_id: number, quantity: number}} fields - Sell request fields.
+   * @returns {Promise<Response>} fetch response from the sell endpoint.
+   */
+  sellPcTreasure(gameSlug, characterId, token, fields) {
+    return this.#postTreasureAction('pcs', gameSlug, characterId, 'sell', token, fields);
+  }
+
+  /**
+   * Acquires a quantity of a treasure for an NPC character, spending its money.
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {{treasure_id: number, quantity: number}} fields - Acquire request fields.
+   * @returns {Promise<Response>} fetch response from the acquire endpoint.
+   */
+  acquireNpcTreasure(gameSlug, characterId, token, fields) {
+    return this.#postTreasureAction('npcs', gameSlug, characterId, 'acquire', token, fields);
+  }
+
+  /**
+   * Sells a quantity of an owned treasure for an NPC character, gaining money.
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {{treasure_id: number, quantity: number}} fields - Sell request fields.
+   * @returns {Promise<Response>} fetch response from the sell endpoint.
+   */
+  sellNpcTreasure(gameSlug, characterId, token, fields) {
+    return this.#postTreasureAction('npcs', gameSlug, characterId, 'sell', token, fields);
+  }
+
+  /**
    * Fetches the details of an NPC character.
    *
    * @param {string} gameSlug - Game slug the character belongs to.
@@ -252,6 +332,35 @@ export default class CharacterClient extends BaseClient {
         ...(token ? { Authorization: `Token ${token}` } : {}),
       },
       body: JSON.stringify({ roles }),
+    });
+  }
+
+  #fetchTreasuresPage(segment, gameSlug, characterId, token, { page, perPage } = {}) {
+    const search = new URLSearchParams();
+
+    if (page) search.set('page', page);
+    if (perPage) search.set('per_page', perPage);
+
+    const query = search.toString();
+    const base = `/games/${gameSlug}/${segment}/${characterId}/treasures.json`;
+
+    return this.request(`${base}${query ? `?${query}` : ''}`, {
+      headers: {
+        Accept: 'application/json',
+        ...(token ? { Authorization: `Token ${token}` } : {}),
+      },
+    });
+  }
+
+  #postTreasureAction(segment, gameSlug, characterId, action, token, fields) {
+    return this.request(`/games/${gameSlug}/${segment}/${characterId}/treasures/${action}.json`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Token ${token}` } : {}),
+      },
+      body: JSON.stringify(fields),
     });
   }
 }
