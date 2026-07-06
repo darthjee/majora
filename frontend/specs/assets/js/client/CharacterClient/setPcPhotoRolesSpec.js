@@ -1,6 +1,6 @@
-import CharacterClient from '../../../../assets/js/client/CharacterClient.js';
+import CharacterClient from '../../../../../assets/js/client/CharacterClient.js';
 
-describe('CharacterClient slain', function() {
+describe('CharacterClient photo roles', function() {
   let fetchSpy;
 
   beforeEach(function() {
@@ -8,13 +8,13 @@ describe('CharacterClient slain', function() {
     fetchSpy.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({}) }));
   });
 
-  describe('#setNpcSlain', function() {
-    it('sends the slain flag and auth token when present', async function() {
+  describe('#setPcPhotoRoles', function() {
+    it('sends the roles and auth token when present', async function() {
       const client = new CharacterClient();
 
-      await client.setNpcSlain('demo', '2', 'abc123', true);
+      await client.setPcPhotoRoles('demo', '2', '9', 'abc123', ['profile']);
 
-      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/2/slain.json', {
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/photos/9/set.json', {
         method: 'PATCH',
         headers: {
           Accept: 'application/json',
@@ -22,23 +22,23 @@ describe('CharacterClient slain', function() {
           Authorization: 'Token abc123',
           'X-Skip-Cache': 'true',
         },
-        body: JSON.stringify({ slain: true }),
+        body: JSON.stringify({ roles: ['profile'] }),
       });
     });
 
     it('omits the Authorization header when there is no token', async function() {
       const client = new CharacterClient();
 
-      await client.setNpcSlain('demo', '2', null, false);
+      await client.setPcPhotoRoles('demo', '2', '9', null, ['profile']);
 
-      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/2/slain.json', {
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/photos/9/set.json', {
         method: 'PATCH',
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
           'X-Skip-Cache': 'true',
         },
-        body: JSON.stringify({ slain: false }),
+        body: JSON.stringify({ roles: ['profile'] }),
       });
     });
   });

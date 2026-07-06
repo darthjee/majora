@@ -1,4 +1,4 @@
-import CharacterClient from '../../../../assets/js/client/CharacterClient.js';
+import CharacterClient from '../../../../../assets/js/client/CharacterClient.js';
 
 describe('CharacterClient#createNpc', function() {
   let fetchSpy;
