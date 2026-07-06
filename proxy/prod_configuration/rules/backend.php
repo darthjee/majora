@@ -53,6 +53,32 @@ Configuration::buildRule([
                     '/games/:game_slug/pcs/:character_id.json',
                     '/games/:game_slug/pcs/:character_id/full.json',
                 ],
+                '/games/:game_slug/pcs/:character_id/treasures/acquire.json' => [
+                    '/games/:game_slug/pcs.json',
+                    '/games/:game_slug/pcs/:character_id.json',
+                    '/games/:game_slug/pcs/:character_id/full.json',
+                    '/games/:game_slug/pcs/:character_id/treasures.json',
+                ],
+                '/games/:game_slug/pcs/:character_id/treasures/sell.json' => [
+                    '/games/:game_slug/pcs.json',
+                    '/games/:game_slug/pcs/:character_id.json',
+                    '/games/:game_slug/pcs/:character_id/full.json',
+                    '/games/:game_slug/pcs/:character_id/treasures.json',
+                ],
+                '/games/:game_slug/npcs/:character_id/treasures/acquire.json' => [
+                    '/games/:game_slug/npcs.json',
+                    '/games/:game_slug/npcs/all.json',
+                    '/games/:game_slug/npcs/:character_id.json',
+                    '/games/:game_slug/npcs/:character_id/full.json',
+                    '/games/:game_slug/npcs/:character_id/treasures.json',
+                ],
+                '/games/:game_slug/npcs/:character_id/treasures/sell.json' => [
+                    '/games/:game_slug/npcs.json',
+                    '/games/:game_slug/npcs/all.json',
+                    '/games/:game_slug/npcs/:character_id.json',
+                    '/games/:game_slug/npcs/:character_id/full.json',
+                    '/games/:game_slug/npcs/:character_id/treasures.json',
+                ],
                 '/games/:game_slug/treasures.json' => [
                     '/games/:game_slug/treasures.json',
                     '/treasures.json',
