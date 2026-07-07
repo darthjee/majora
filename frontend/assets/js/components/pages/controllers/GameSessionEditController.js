@@ -1,12 +1,13 @@
 import GameSessionClient from '../../../client/GameSessionClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import BaseEditController from './BaseEditController.js';
 import BasePageController from './BasePageController.js';
 import Noop from '../../../utils/Noop.js';
 
 /**
  * Controller for the game session edit page.
  */
-export default class GameSessionEditController extends BasePageController {
+export default class GameSessionEditController extends BaseEditController {
   /**
    * Extract game slug and session id from a session edit hash.
    *
@@ -29,37 +30,33 @@ export default class GameSessionEditController extends BasePageController {
    * @param {GameSessionClient|null} [sessionClient] - Session client override.
    */
   constructor(setSession, setLoading, setError, setFieldErrors = Noop.noop, sessionClient = null) {
-    super();
-    this.setSession = setSession;
-    this.setLoading = setLoading;
-    this.setError = setError;
-    this.setFieldErrors = setFieldErrors;
+    super(setSession, setLoading, setError, setFieldErrors);
     this.sessionClient = sessionClient ?? new GameSessionClient();
   }
 
   /**
-   * Build page loading effect.
+   * Load the game session.
    *
-   * @returns {Function} Effect callback.
+   * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
+   * @returns {void}
    */
-  buildEffect() {
-    return () => {
-      let mounted = true;
-      const safeSet = this.buildSafeSetter(() => mounted);
-      const hash = typeof window === 'undefined' ? '' : window.location.hash;
-      const { game_slug: gameSlug, id } = GameSessionEditController.getSessionParamsFromEditHash(hash);
+  loadResource(safeSet) {
+    const hash = typeof window === 'undefined' ? '' : window.location.hash;
+    const { game_slug: gameSlug, id } = GameSessionEditController.getSessionParamsFromEditHash(hash);
 
-      if (!gameSlug || !id) {
-        safeSet(this.setError, 'Unable to load session.');
-        safeSet(this.setLoading, false);
-      } else {
-        this.#fetchSession(gameSlug, id, safeSet);
-      }
+    if (!gameSlug || !id) {
+      safeSet(this.setError, 'Unable to load session.');
+      safeSet(this.setLoading, false);
+      return;
+    }
 
-      return () => {
-        mounted = false;
-      };
-    };
+    const token = AuthStorage.getToken();
+
+    this.fetchSingle(
+      this.sessionClient.fetchSession(gameSlug, id, token),
+      safeSet,
+      'Unable to load session.',
+    );
   }
 
   /**
@@ -75,56 +72,17 @@ export default class GameSessionEditController extends BasePageController {
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
-  async submitForm(event, gameSlug, id, formValues, setters) {
-    if (event && typeof event.preventDefault === 'function') {
-      event.preventDefault();
-    }
-
-    setters.setStatus('submitting');
-    setters.setFieldErrors({});
-
+  submitForm(event, gameSlug, id, formValues, setters) {
     const token = AuthStorage.getToken();
 
-    try {
-      const response = await this.sessionClient.updateSession(gameSlug, id, token, {
+    return this.performSubmit(
+      event,
+      setters,
+      () => this.sessionClient.updateSession(gameSlug, id, token, {
         title: formValues.title,
         date: formValues.date || null,
-      });
-
-      await this.#handleResponse(response, gameSlug, id, setters);
-    } catch {
-      setters.setStatus('error');
-    }
-  }
-
-  #fetchSession(gameSlug, id, safeSet) {
-    const token = AuthStorage.getToken();
-
-    this.sessionClient.fetchSession(gameSlug, id, token)
-      .then((response) => (response.ok
-        ? response.json()
-        : Promise.reject(new Error('session failed'))))
-      .then((session) => safeSet(this.setSession, session))
-      .catch(() => safeSet(this.setError, 'Unable to load session.'))
-      .finally(() => safeSet(this.setLoading, false));
-  }
-
-  async #handleResponse(response, gameSlug, id, setters) {
-    if (response.ok) {
-      if (typeof window !== 'undefined') {
-        window.location.hash = `/games/${gameSlug}/sessions/${id}`;
-      }
-      return;
-    }
-
-    const data = await response.json();
-    const errors = data.errors ?? {};
-
-    if (response.status === 400) {
-      setters.setFieldErrors(errors);
-      return;
-    }
-
-    setters.setStatus('error');
+      }),
+      `/games/${gameSlug}/sessions/${id}`,
+    );
   }
 }

@@ -2,13 +2,14 @@ import AuthClient from '../../../client/AuthClient.js';
 import StaffUserClient from '../../../client/StaffUserClient.js';
 import AdminAccess from '../../../utils/AdminAccess.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import BaseEditController from './BaseEditController.js';
 import BasePageController from './BasePageController.js';
 import Noop from '../../../utils/Noop.js';
 
 /**
  * Controller for the staff user edit page.
  */
-export default class StaffUserEditController extends BasePageController {
+export default class StaffUserEditController extends BaseEditController {
   /**
    * Extract user id from a staff user edit hash.
    *
@@ -32,54 +33,43 @@ export default class StaffUserEditController extends BasePageController {
   constructor(
     setUser, setLoading, setError, setFieldErrors = Noop.noop, client = null, authClient = null,
   ) {
-    super();
-    this.setUser = setUser;
-    this.setLoading = setLoading;
-    this.setError = setError;
-    this.setFieldErrors = setFieldErrors;
+    super(setUser, setLoading, setError, setFieldErrors);
     this.client = client ?? new StaffUserClient();
     this.authClient = authClient ?? new AuthClient();
   }
 
   /**
-   * Build page loading effect.
+   * Load the staff user to edit, gated on the current user being staff or a
+   * superuser (redirects home otherwise).
    *
-   * @description Redirects non-staff/non-superusers to the home page before
-   *   fetching the user to edit.
-   * @returns {Function} Effect callback.
+   * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
+   * @param {Function} isMounted - Returns whether the page is still mounted.
+   * @returns {void}
    */
-  buildEffect() {
-    return () => {
-      let mounted = true;
-      const safeSet = this.buildSafeSetter(() => mounted);
+  loadResource(safeSet, isMounted) {
+    AdminAccess.isStaffOrSuperUser(this.authClient).then((isStaffOrSuperUser) => {
+      if (!isMounted()) {
+        return;
+      }
 
-      AdminAccess.isStaffOrSuperUser(this.authClient).then((isStaffOrSuperUser) => {
-        if (!mounted) {
-          return;
-        }
+      if (!isStaffOrSuperUser) {
+        this.redirectTo('/');
+        return;
+      }
 
-        if (!isStaffOrSuperUser) {
-          if (typeof window !== 'undefined') {
-            window.location.hash = '/';
-          }
-          return;
-        }
+      const hash = typeof window === 'undefined' ? '' : window.location.hash;
+      const id = StaffUserEditController.getStaffUserIdFromEditHash(hash);
 
-        const hash = typeof window === 'undefined' ? '' : window.location.hash;
-        const id = StaffUserEditController.getStaffUserIdFromEditHash(hash);
+      if (!id) {
+        safeSet(this.setError, true);
+        safeSet(this.setLoading, false);
+        return;
+      }
 
-        if (!id) {
-          safeSet(this.setError, true);
-          safeSet(this.setLoading, false);
-        } else {
-          this.#fetchUser(id, safeSet);
-        }
-      });
+      const token = AuthStorage.getToken();
 
-      return () => {
-        mounted = false;
-      };
-    };
+      this.fetchSingle(this.client.fetchUser(id, token), safeSet, true);
+    });
   }
 
   /**
@@ -94,56 +84,17 @@ export default class StaffUserEditController extends BasePageController {
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
-  async submitForm(event, id, formValues, setters) {
-    if (event && typeof event.preventDefault === 'function') {
-      event.preventDefault();
-    }
-
-    setters.setStatus('submitting');
-    setters.setFieldErrors({});
-
+  submitForm(event, id, formValues, setters) {
     const token = AuthStorage.getToken();
 
-    try {
-      const response = await this.client.updateUser(id, token, {
+    return this.performSubmit(
+      event,
+      setters,
+      () => this.client.updateUser(id, token, {
         name: formValues.name,
         email: formValues.email,
-      });
-
-      await this.#handleResponse(response, id, setters);
-    } catch {
-      setters.setStatus('error');
-    }
-  }
-
-  #fetchUser(id, safeSet) {
-    const token = AuthStorage.getToken();
-
-    this.client.fetchUser(id, token)
-      .then((response) => (response.ok
-        ? response.json()
-        : Promise.reject(new Error('user failed'))))
-      .then((user) => safeSet(this.setUser, user))
-      .catch(() => safeSet(this.setError, true))
-      .finally(() => safeSet(this.setLoading, false));
-  }
-
-  async #handleResponse(response, id, setters) {
-    if (response.ok) {
-      if (typeof window !== 'undefined') {
-        window.location.hash = `/staff/users/${id}`;
-      }
-      return;
-    }
-
-    const data = await response.json();
-    const errors = data.errors ?? {};
-
-    if (response.status === 400) {
-      setters.setFieldErrors(errors);
-      return;
-    }
-
-    setters.setStatus('error');
+      }),
+      `/staff/users/${id}`,
+    );
   }
 }
