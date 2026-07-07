@@ -46,6 +46,13 @@ class TestCharacterDetailSerializer:
         data = self._serialize()
         assert data['role'] == 'Hobbit'
 
+    def test_serializes_role_as_none_when_not_set(self):
+        """Test that role is null when the character has no role."""
+        self.character.role = None
+        self.character.save()
+        data = self._serialize()
+        assert data['role'] is None
+
     def test_serializes_public_description(self):
         """Test that the public_description field is serialized."""
         data = self._serialize()

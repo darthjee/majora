@@ -95,6 +95,14 @@ class TestCharacterUpdateSerializer:
         assert not serializer.is_valid()
         assert 'money' in serializer.errors
 
+    def test_name_over_max_length_is_invalid(self):
+        """Test that a name over the max length produces a validation error on the name key."""
+        serializer = CharacterUpdateSerializer(
+            self.character, data={'name': 'x' * 201}, partial=True
+        )
+        assert not serializer.is_valid()
+        assert 'name' in serializer.errors
+
     def test_game_and_player_are_not_changed(self):
         """Test that game and player cannot be changed via update, even if supplied."""
         other_game = Game.objects.create(name='Other Game', game_slug='other-game')

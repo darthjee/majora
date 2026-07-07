@@ -1,4 +1,12 @@
-"""Tests for the PC detail view (GET detail / PATCH update)."""
+"""Tests for the PC detail view (GET detail / PATCH update).
+
+Field-level serialization (every field, every can_edit permutation) is covered by
+`games/tests/serializers/test_character_detail.py` and `test_character_update.py`.
+This module only owns what those serializer tests cannot: routing, status codes,
+the request/token permission pipeline, and view-specific response shape. See
+`docs/agents/security-guidelines.md` section 8 for why
+`test_patch_ignores_non_editable_fields` must stay.
+"""
 
 import json
 
@@ -6,7 +14,8 @@ import pytest
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 
-from games.models import Character, CharacterPhoto, Game, Player
+from games.models import Character, Game, Player
+from games.tests.views.support import assert_json_response
 
 
 @pytest.mark.django_db
@@ -29,12 +38,7 @@ class TestGamePcDetailView:
     def test_returns_character_detail(self, client):
         """Test that character detail is returned for a valid character_id."""
         response = client.get(f'/games/test-game/pcs/{self.character.id}.json')
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert data['name'] == 'Aragorn'
-        assert data['role'] == 'Ranger'
-        assert data['is_pc'] is True
-        assert data['game_slug'] == 'test-game'
+        assert_json_response(response, 200, name='Aragorn', game_slug='test-game')
 
     def test_returns_404_for_unknown_character(self, client):
         """Test that 404 is returned for a non-existent character_id."""
@@ -53,35 +57,10 @@ class TestGamePcDetailView:
         response = client.get(f'/games/test-game/pcs/{npc.id}.json')
         assert response.status_code == 404
 
-    def test_includes_photos(self, client):
-        """Test that character detail includes associated photos."""
-        photo = CharacterPhoto.objects.create(
-            path='photos/games/test-game/characters/1/aragorn.png', character=self.character
-        )
-        response = client.get(f'/games/test-game/pcs/{self.character.id}.json')
-        data = json.loads(response.content)
-        assert len(data['photos']) == 1
-        assert data['photos'][0]['id'] == photo.id
-
-    def test_role_is_null_when_not_set(self, client):
-        """Test that role is null in the response when not set."""
-        pc = Character.objects.create(
-            name='Unnamed PC',
-            game=self.game,
-            player=self.player,
-            role=None,
-            npc=False,
-        )
-        response = client.get(f'/games/test-game/pcs/{pc.id}.json')
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert data['role'] is None
-
     def test_can_edit_is_false_for_anonymous_request(self, client):
         """Test that can_edit is false when the request has no token."""
         response = client.get(f'/games/test-game/pcs/{self.character.id}.json')
-        data = json.loads(response.content)
-        assert data['can_edit'] is False
+        assert_json_response(response, 200, can_edit=False)
 
     def test_can_edit_is_true_for_connected_player_user(self, client):
         """Test that can_edit is true when the token belongs to the character's player's user."""
@@ -94,8 +73,7 @@ class TestGamePcDetailView:
             f'/games/test-game/pcs/{self.character.id}.json',
             HTTP_AUTHORIZATION=f'Token {token.key}',
         )
-        data = json.loads(response.content)
-        assert data['can_edit'] is True
+        assert_json_response(response, 200, can_edit=True)
 
     def test_can_edit_is_true_for_superuser(self, client):
         """Test that can_edit is true when the token belongs to a superuser."""
@@ -106,8 +84,7 @@ class TestGamePcDetailView:
             f'/games/test-game/pcs/{self.character.id}.json',
             HTTP_AUTHORIZATION=f'Token {token.key}',
         )
-        data = json.loads(response.content)
-        assert data['can_edit'] is True
+        assert_json_response(response, 200, can_edit=True)
 
 
 @pytest.mark.django_db
@@ -158,8 +135,8 @@ class TestGamePcUpdateView:
         self.character.refresh_from_db()
         assert self.character.name == 'Aragorn'
 
-    def test_patch_with_owner_token_updates_character(self, client):
-        """Test that PATCH from the connected player's user's token updates fields."""
+    def test_patch_with_owner_token_updates_multiple_fields(self, client):
+        """Test that the owner's PATCH updates several editable fields in one request."""
         token = Token.objects.create(user=self.owner)
 
         response = self._patch(
@@ -168,18 +145,16 @@ class TestGamePcUpdateView:
                 'name': 'Strider',
                 'role': 'Ranger King',
                 'public_description': 'King of Gondor.',
+                'private_description': 'Secret backstory.',
+                'money': 150,
             },
             token=token,
         )
 
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert data['name'] == 'Strider'
-        assert data['role'] == 'Ranger King'
-        assert data['public_description'] == 'King of Gondor.'
-
+        assert_json_response(response, 200, name='Strider', money=150)
         self.character.refresh_from_db()
         assert self.character.name == 'Strider'
+        assert self.character.private_description == 'Secret backstory.'
 
     def test_patch_with_superuser_token_returns_200(self, client):
         """Test that PATCH from a superuser's token is allowed."""
@@ -192,8 +167,25 @@ class TestGamePcUpdateView:
         self.character.refresh_from_db()
         assert self.character.name == 'Strider'
 
+    def test_patch_negative_money_returns_400(self, client):
+        """Test that PATCH with a negative money value is rejected with 400."""
+        token = Token.objects.create(user=self.owner)
+
+        response = self._patch(client, {'money': -1}, token=token)
+
+        data = assert_json_response(response, 400)
+        assert 'money' in data['errors']
+        self.character.refresh_from_db()
+        assert self.character.money == 0
+
     def test_patch_ignores_non_editable_fields(self, client):
-        """Test that fields outside the allowed set are silently ignored."""
+        """Test that fields outside the allowed set are silently ignored.
+
+        This is the view-level regression test required for update serializers by
+        docs/agents/security-guidelines.md section 8 — `game` here is a
+        relationship/ownership field and must never be settable via a generic
+        update payload.
+        """
         token = Token.objects.create(user=self.owner)
         other_game = Game.objects.create(name='Other Game', game_slug='other-game')
 
@@ -208,60 +200,3 @@ class TestGamePcUpdateView:
         assert self.character.name == 'Strider'
         assert self.character.npc is False
         assert self.character.game_id == self.game.id
-
-    def test_patch_with_invalid_value_returns_400(self, client):
-        """Test that an invalid field value is rejected with 400 and leaves data unchanged."""
-        token = Token.objects.create(user=self.owner)
-
-        response = self._patch(client, {'name': 'x' * 201}, token=token)
-
-        assert response.status_code == 400
-        data = json.loads(response.content)
-        assert 'name' in data['errors']
-        self.character.refresh_from_db()
-        assert self.character.name == 'Aragorn'
-
-    def test_patch_partial_body_only_changes_given_fields(self, client):
-        """Test that a partial PATCH body only updates the provided field."""
-        token = Token.objects.create(user=self.owner)
-
-        response = self._patch(client, {'name': 'Strider'}, token=token)
-
-        assert response.status_code == 200
-        self.character.refresh_from_db()
-        assert self.character.name == 'Strider'
-        assert self.character.role == 'Ranger'
-
-    def test_patch_private_description_saves(self, client):
-        """Test that PATCH with private_description saves the value."""
-        token = Token.objects.create(user=self.owner)
-
-        response = self._patch(client, {'private_description': 'Secret backstory.'}, token=token)
-
-        assert response.status_code == 200
-        self.character.refresh_from_db()
-        assert self.character.private_description == 'Secret backstory.'
-
-    def test_patch_money_saves(self, client):
-        """Test that PATCH with money saves the value."""
-        token = Token.objects.create(user=self.owner)
-
-        response = self._patch(client, {'money': 150}, token=token)
-
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert data['money'] == 150
-        self.character.refresh_from_db()
-        assert self.character.money == 150
-
-    def test_patch_negative_money_returns_400(self, client):
-        """Test that PATCH with a negative money value is rejected with 400."""
-        token = Token.objects.create(user=self.owner)
-
-        response = self._patch(client, {'money': -1}, token=token)
-
-        assert response.status_code == 400
-        data = json.loads(response.content)
-        assert 'money' in data['errors']
-        self.character.refresh_from_db()
-        assert self.character.money == 0
