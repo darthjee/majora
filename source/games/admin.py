@@ -11,13 +11,30 @@ from .models import (
     GameMaster,
     GamePhoto,
     GameSession,
+    GameTreasure,
     Link,
     Player,
     Treasure,
     Upload,
 )
 
-admin.site.register(Game)
+
+class GameTreasureInline(admin.TabularInline):
+    """Inline admin for managing a game's shared treasure links and their stock caps."""
+
+    model = GameTreasure
+    extra = 0
+    fields = ('treasure', 'max_units', 'acquired_units')
+    readonly_fields = ('acquired_units',)
+
+
+class GameAdmin(admin.ModelAdmin):
+    """Admin configuration for Game, managing shared treasure links via an inline."""
+
+    inlines = [GameTreasureInline]
+
+
+admin.site.register(Game, GameAdmin)
 admin.site.register(Player)
 admin.site.register(Character)
 admin.site.register(CharacterLink)
