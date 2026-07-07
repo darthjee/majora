@@ -12,4 +12,4 @@ class LinkSerializer(serializers.ModelSerializer):
         """Metadata for the LinkSerializer."""
 
         model = Link
-        fields = ['id', 'text', 'url']
+        fields = ['id', 'text', 'url', 'link_type']

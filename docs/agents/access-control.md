@@ -591,6 +591,11 @@ acquired further (an acquire request against it succeeds with `acquired: 0`).
 Links are read-only through the game detail endpoint (`links` array in
 `GameDetailSerializer`). No direct link create/update/delete endpoint exists.
 
+**Exposed fields** (read): `id`, `text`, `url`, `link_type` — visible to anyone who can
+read the game detail (i.e., anyone, since the game detail endpoint is publicly accessible).
+`link_type` is a non-sensitive display-icon enum (`''` or `lootstudio`) driving which icon
+the frontend renders next to the link; it carries no access-control implications.
+
 **Write access:** superuser only (via Django admin, out of scope).
 
 ---
@@ -601,9 +606,10 @@ Character links are read-only through the character detail endpoints (`links` ar
 `CharacterDetailSerializer` and, by inheritance, `CharacterFullSerializer`). No direct
 character link create/update/delete endpoint exists.
 
-**Exposed fields** (read): `id`, `text`, `url` — visible to anyone who can read the
+**Exposed fields** (read): `id`, `text`, `url`, `link_type` — visible to anyone who can read the
 character detail (i.e., anyone, since both PC and NPC detail endpoints are publicly
-accessible).
+accessible). `link_type` is a non-sensitive display-icon enum (`''` or `lootstudio`) driving
+which icon the frontend renders next to the link; it carries no access-control implications.
 
 **Write access:** superuser only (via Django admin, out of scope).
 

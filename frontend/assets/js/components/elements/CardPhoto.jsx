@@ -1,4 +1,4 @@
-import defaultGamePhoto from '../../../images/default_game.png';
+import defaultGamePhoto from '../../../images/placeholders/default_game.png';
 
 /**
  * Bootstrap card image that falls back to the default game photo when no URL is provided.

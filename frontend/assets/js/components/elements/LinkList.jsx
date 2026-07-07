@@ -1,4 +1,5 @@
 import React from 'react';
+import LinkIcon from './LinkIcon.jsx';
 
 /**
  * Renders a list of external links, each as its own clickable Bootstrap card.
@@ -8,6 +9,7 @@ import React from 'react';
  * @param {object[]} [props.links] - Array of link objects.
  * @param {string} props.links[].url - Link URL, used as the React key.
  * @param {string} props.links[].text - Anchor text to display.
+ * @param {string} [props.links[].link_type] - Optional link type, used to select an icon.
  * @returns {React.ReactElement|null} Stack of link cards, or null.
  */
 export default function LinkList({ links }) {
@@ -25,7 +27,7 @@ export default function LinkList({ links }) {
         >
           <div className="card mb-2">
             <div className="card-body py-2">
-              <i className="bi bi-link-45deg"></i> {link.text}
+              <LinkIcon linkType={link.link_type} /> {link.text}
             </div>
           </div>
         </a>
