@@ -4,14 +4,12 @@ from django.http import Http404
 from rest_framework.response import Response
 
 from ...permissions import CharacterEditPermission
-from ._shared import _find_character
+from ._shared import _get_character_or_404
 
 
 def character_photo_set(request, game, character_id, photo_id, npc):
     """Update roles on a character's photo (e.g. mark it as the profile photo)."""
-    character = _find_character(game, character_id, npc)
-    if character is None:
-        raise Http404
+    character = _get_character_or_404(game, character_id, npc)
 
     error_response = CharacterEditPermission.check(request, character)
     if error_response:
