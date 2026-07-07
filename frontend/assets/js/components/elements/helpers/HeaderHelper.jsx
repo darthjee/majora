@@ -4,7 +4,7 @@ import Container from 'react-bootstrap/cjs/Container.js';
 import LanguageSelector from '../LanguageSelector.jsx';
 import LoginModal from '../LoginModal.jsx';
 import Translator from '../../../i18n/Translator.js';
-import myAccountIcon from '../../../../images/my_account.svg';
+import myAccountIcon from '../../../../images/icons/my_account.svg';
 
 /**
  * Rendering helper for the Header element.

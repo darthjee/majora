@@ -1,4 +1,4 @@
-import defaultCharacterPhoto from '../../../images/default_character.png';
+import defaultCharacterPhoto from '../../../images/placeholders/default_character.png';
 
 /**
  * Bootstrap card image for a character that falls back to the default avatar when no URL is provided.

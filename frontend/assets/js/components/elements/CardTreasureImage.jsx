@@ -1,4 +1,4 @@
-import defaultTreasurePhoto from '../../../images/default_treasure.png';
+import defaultTreasurePhoto from '../../../images/placeholders/default_treasure.png';
 
 /**
  * Bootstrap card image for a treasure that falls back to the default
