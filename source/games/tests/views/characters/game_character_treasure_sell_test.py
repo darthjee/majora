@@ -6,7 +6,7 @@ import pytest
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from games.models import CharacterTreasure
+from games.models import CharacterTreasure, GameTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
@@ -310,3 +310,56 @@ class TestGameNpcTreasureSellHidden(TokenAuthRequestMixin):
         token = Token.objects.create(user=other)
         response = self._post(client, token=token)
         assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestCharacterTreasureSellStockCap(TokenAuthRequestMixin):
+    """Tests for the sell endpoint releasing stock on M2M-linked treasures."""
+
+    def setup_method(self):
+        """Set up a game, a DM, an NPC owning a limited treasure, and its through-row cap."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
+        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.character = CharacterFactory(name='Frodo', game=self.game, npc=True, money=0)
+        self.treasure = TreasureFactory(name='Limited Gem', value=10)
+        self.game.treasures.add(self.treasure)
+        GameTreasure.objects.filter(game=self.game, treasure=self.treasure).update(
+            max_units=10, acquired_units=5,
+        )
+        CharacterTreasure.objects.create(
+            character=self.character, treasure=self.treasure, quantity=5,
+        )
+
+    def _sell(self, client, quantity):
+        """Issue a POST request selling `quantity` of the limited treasure for the NPC."""
+        return self.post(
+            client,
+            f'/games/test-game/npcs/{self.character.id}/treasures/sell.json',
+            {'treasure_id': self.treasure.id, 'quantity': quantity},
+            token=self.dm_token,
+        )
+
+    def test_sell_decrements_acquired_units_on_game_treasure(self, client):
+        """Test that selling decrements the through-row's acquired_units by the sold amount."""
+        response = self._sell(client, 2)
+        assert response.status_code == 200
+        game_treasure = GameTreasure.objects.get(game=self.game, treasure=self.treasure)
+        assert game_treasure.acquired_units == 3
+
+    def test_sell_increases_available_units(self, client):
+        """Test that selling increases the through-row's derived available_units."""
+        self._sell(client, 2)
+        game_treasure = GameTreasure.objects.get(game=self.game, treasure=self.treasure)
+        assert game_treasure.available_units == 7
+
+    def test_sell_never_drops_acquired_units_below_zero(self, client):
+        """Test that acquired_units never goes negative even in an inconsistent state."""
+        GameTreasure.objects.filter(game=self.game, treasure=self.treasure).update(
+            acquired_units=1,
+        )
+        response = self._sell(client, 5)
+        assert response.status_code == 200
+        game_treasure = GameTreasure.objects.get(game=self.game, treasure=self.treasure)
+        assert game_treasure.acquired_units == 0

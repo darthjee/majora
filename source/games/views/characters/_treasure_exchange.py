@@ -6,7 +6,7 @@ from django.http import Http404
 from rest_framework import serializers
 from rest_framework.response import Response
 
-from ...models import Character, CharacterTreasure, Treasure
+from ...models import Character, CharacterTreasure, GameTreasure, Treasure
 from ...permissions import CharacterEditPermission
 from ..common import validated_or_error
 
@@ -24,7 +24,7 @@ def character_treasure_acquire(request, game, character):
     if error_response:
         return error_response
 
-    return _acquire(character, treasure, quantity)
+    return _acquire(character, treasure, quantity, game)
 
 
 def character_treasure_sell(request, game, character):
@@ -33,7 +33,7 @@ def character_treasure_sell(request, game, character):
     if error_response:
         return error_response
 
-    return _sell(character, treasure, quantity)
+    return _sell(character, treasure, quantity, game)
 
 
 def _authorize_and_parse(request, game, character):
@@ -65,25 +65,50 @@ def _find_game_treasure(game, treasure_id):
     return treasure
 
 
-def _acquire(character, treasure, quantity):
-    """Atomically add `quantity` of `treasure` to `character`, charging their money."""
+def _acquire(character, treasure, quantity, game):
+    """Atomically add up to `quantity` of `treasure` to `character`, charging their money.
+
+    When `treasure` is linked to `game` with a stock cap, the acquired amount is capped at
+    the currently available units instead of rejecting an over-sized request.
+    """
     with transaction.atomic():
         character = _lock_character(character)
-        cost = quantity * treasure.value
+        game_treasure = _lock_game_treasure(game, treasure)
+        acquired = _capped_quantity(quantity, game_treasure)
+        cost = acquired * treasure.value
         if cost > character.money:
             return Response({'errors': {'quantity': ['insufficient funds']}}, status=400)
 
         character_treasure = _lock_or_create_character_treasure(character, treasure)
-        character_treasure.quantity += quantity
+        character_treasure.quantity += acquired
         character_treasure.save()
 
         character.money -= cost
         character.save()
 
-    return Response({'quantity': character_treasure.quantity, 'money': character.money})
+        _record_acquired_units(game_treasure, acquired)
+
+    return Response({
+        'quantity': character_treasure.quantity, 'money': character.money, 'acquired': acquired,
+    })
 
 
-def _sell(character, treasure, quantity):
+def _capped_quantity(quantity, game_treasure):
+    """Return `quantity` capped at `game_treasure`'s available units, when it has a cap."""
+    if game_treasure is None or game_treasure.available_units is None:
+        return quantity
+    return min(quantity, game_treasure.available_units)
+
+
+def _record_acquired_units(game_treasure, acquired):
+    """Persist the increment of `acquired` units onto `game_treasure`, if it exists."""
+    if game_treasure is None:
+        return
+    game_treasure.acquired_units += acquired
+    game_treasure.save()
+
+
+def _sell(character, treasure, quantity, game):
     """Atomically remove `quantity` of `treasure` from `character`, refunding their money."""
     with transaction.atomic():
         character = _lock_character(character)
@@ -100,7 +125,22 @@ def _sell(character, treasure, quantity):
         character.money += quantity * treasure.value
         character.save()
 
+        _release_acquired_units(_lock_game_treasure(game, treasure), quantity)
+
     return Response({'quantity': character_treasure.quantity, 'money': character.money})
+
+
+def _release_acquired_units(game_treasure, quantity):
+    """Persist the decrement of `quantity` units from `game_treasure`'s acquired_units, if any."""
+    if game_treasure is None:
+        return
+    game_treasure.acquired_units = max(game_treasure.acquired_units - quantity, 0)
+    game_treasure.save()
+
+
+def _lock_game_treasure(game, treasure):
+    """Return the locked GameTreasure row linking `game` and `treasure`, or None."""
+    return GameTreasure.objects.select_for_update().filter(game=game, treasure=treasure).first()
 
 
 def _lock_character(character):

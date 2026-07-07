@@ -6,7 +6,7 @@ import pytest
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from games.models import CharacterTreasure
+from games.models import CharacterTreasure, GameTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
@@ -70,7 +70,9 @@ class _BaseCharacterTreasureAcquireViewTest(TokenAuthRequestMixin):
         )
         assert response.status_code == 200
         assert response.json() == {
-            'quantity': self.acquire_quantity, 'money': self.expected_money_after_acquire,
+            'quantity': self.acquire_quantity,
+            'money': self.expected_money_after_acquire,
+            'acquired': self.acquire_quantity,
         }
 
     def test_acquire_creates_character_treasure_row(self, client):
@@ -228,7 +230,7 @@ class TestGamePcTreasureAcquireView(_BaseCharacterTreasureAcquireViewTest):
         response = self._post(
             client, {'treasure_id': self.treasure.id, 'quantity': 2}, token=self._editor_token(),
         )
-        assert response.json() == {'quantity': 3, 'money': 800}
+        assert response.json() == {'quantity': 3, 'money': 800, 'acquired': 2}
 
     def test_dm_can_acquire_treasure(self, client):
         """Test that a DM of the game can acquire treasure on behalf of a PC."""
@@ -304,3 +306,84 @@ class TestGameNpcTreasureAcquireHidden(TokenAuthRequestMixin):
         token = Token.objects.create(user=other)
         response = self._post(client, token=token)
         assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestCharacterTreasureAcquireStockCap(TokenAuthRequestMixin):
+    """Tests for the acquire endpoint's stock-cap behavior on M2M-linked treasures."""
+
+    def setup_method(self):
+        """Set up a game, a DM, an NPC with money, and a treasure linked via the M2M."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
+        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.character = CharacterFactory(name='Frodo', game=self.game, npc=True, money=1000)
+        self.treasure = TreasureFactory(name='Limited Gem', value=10)
+        self.game.treasures.add(self.treasure)
+
+    def _acquire(self, client, quantity):
+        """Issue a POST request acquiring `quantity` of the limited treasure for the NPC."""
+        return self.post(
+            client,
+            f'/games/test-game/npcs/{self.character.id}/treasures/acquire.json',
+            {'treasure_id': self.treasure.id, 'quantity': quantity},
+            token=self.dm_token,
+        )
+
+    def _set_cap(self, max_units, acquired_units=0):
+        """Set max_units/acquired_units on the GameTreasure row for the limited treasure."""
+        GameTreasure.objects.filter(game=self.game, treasure=self.treasure).update(
+            max_units=max_units, acquired_units=acquired_units,
+        )
+
+    def test_acquire_partially_fulfills_when_over_requesting(self, client):
+        """Test that requesting more than available caps the acquired amount, not rejects it."""
+        self._set_cap(max_units=3)
+        response = self._acquire(client, 10)
+        assert response.status_code == 200
+        assert response.json() == {'quantity': 3, 'money': 970, 'acquired': 3}
+
+    def test_acquire_records_acquired_units_on_game_treasure(self, client):
+        """Test that acquiring increments the through-row's acquired_units."""
+        self._set_cap(max_units=5)
+        self._acquire(client, 2)
+        game_treasure = GameTreasure.objects.get(game=self.game, treasure=self.treasure)
+        assert game_treasure.acquired_units == 2
+
+    def test_acquire_when_fully_depleted_returns_zero_acquired(self, client):
+        """Test that acquiring an already fully-depleted treasure succeeds with acquired: 0."""
+        self._set_cap(max_units=2, acquired_units=2)
+        response = self._acquire(client, 1)
+        assert response.status_code == 200
+        assert response.json() == {'quantity': 0, 'money': 1000, 'acquired': 0}
+
+    def test_acquire_charges_only_for_acquired_units(self, client):
+        """Test that money is only spent for units actually acquired, not the amount requested."""
+        self._set_cap(max_units=1)
+        response = self._acquire(client, 5)
+        data = response.json()
+        assert data['acquired'] == 1
+        assert data['money'] == 990
+
+    def test_acquire_unlimited_treasure_is_never_capped(self, client):
+        """Test that a treasure without a max_units cap acquires the full requested quantity."""
+        response = self._acquire(client, 50)
+        assert response.json()['acquired'] == 50
+
+    def test_insufficient_funds_checked_against_capped_quantity(self, client):
+        """Test that funds are checked against the capped amount, not the raw requested quantity."""
+        expensive_treasure = TreasureFactory(name='Pricey Gem', value=1000)
+        self.game.treasures.add(expensive_treasure)
+        GameTreasure.objects.filter(game=self.game, treasure=expensive_treasure).update(
+            max_units=2,
+        )
+        response = self.post(
+            client,
+            f'/games/test-game/npcs/{self.character.id}/treasures/acquire.json',
+            {'treasure_id': expensive_treasure.id, 'quantity': 5},
+            token=self.dm_token,
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'quantity' in data['errors']
