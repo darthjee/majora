@@ -1,7 +1,6 @@
 export const buildClients = () => ({
   characterClient: jasmine.createSpyObj('characterClient', [
-    'fetchPcTreasuresPage', 'fetchNpcTreasuresPage',
-    'acquirePcTreasure', 'sellPcTreasure', 'acquireNpcTreasure', 'sellNpcTreasure',
+    'fetchTreasuresPage', 'acquireTreasure', 'sellTreasure',
   ]),
   treasureClient: jasmine.createSpyObj('treasureClient', ['fetchGameTreasuresPage']),
 });

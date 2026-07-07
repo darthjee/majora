@@ -22,9 +22,9 @@ describe('NpcCharacterEditController#submitForm', function() {
     setFieldErrors = jasmine.createSpy('setFieldErrors');
     setStatus = jasmine.createSpy('setStatus');
     client = jasmine.createSpyObj('client', ['currentHash']);
-    characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'updateNpc']);
+    characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacter', 'updateCharacter']);
     spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
-    characterClient.updateNpc.and.returnValue(Promise.resolve({
+    characterClient.updateCharacter.and.returnValue(Promise.resolve({
       ok: true,
       status: 200,
       json: () => Promise.resolve({ id: 2, can_edit: true }),
@@ -62,7 +62,8 @@ describe('NpcCharacterEditController#submitForm', function() {
       expect(event.preventDefault).toHaveBeenCalled();
       expect(setStatus).toHaveBeenCalledWith('submitting');
       expect(setFieldErrors).toHaveBeenCalledWith({});
-      expect(characterClient.updateNpc).toHaveBeenCalledWith(
+      expect(characterClient.updateCharacter).toHaveBeenCalledWith(
+        'npcs',
         'demo',
         '2',
         'tok-abc',

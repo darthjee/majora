@@ -49,8 +49,8 @@ export default class BaseCharacterEditController extends BasePageController {
    * @param {Function} loadControllerClass - Load controller class constructor
    *   (NpcCharacterController or PcCharacterController).
    * @param {Function} getParamsFromHash - Hash param extractor for the load controller.
-   * @param {string} routeSegment - URL segment for this character type ('npcs' or 'pcs').
-   * @param {string} updateMethod - Character client update method ('updateNpc' or 'updatePc').
+   * @param {string} routeSegment - URL segment for this character type ('npcs' or 'pcs'),
+   *   also used as the `characterKind` passed to {@link CharacterClient#updateCharacter}.
    * @param {GenericClient|null} [client] - Client override, used for hash resolution.
    * @param {CharacterClient|null} [characterClient] - Character client override.
    */
@@ -62,7 +62,6 @@ export default class BaseCharacterEditController extends BasePageController {
     loadControllerClass,
     getParamsFromHash,
     routeSegment,
-    updateMethod,
     client = null,
     characterClient = null,
   ) {
@@ -74,7 +73,6 @@ export default class BaseCharacterEditController extends BasePageController {
     this.client = client ?? new GenericClient();
     this.characterClient = characterClient ?? new CharacterClient();
     this.routeSegment = routeSegment;
-    this.updateMethod = updateMethod;
     this.loadController = new loadControllerClass(
       setCharacter,
       setLoading,
@@ -109,8 +107,8 @@ export default class BaseCharacterEditController extends BasePageController {
     const token = AuthStorage.getToken();
 
     try {
-      const response = await this.characterClient[this.updateMethod](
-        gameSlug, characterId, token, fields,
+      const response = await this.characterClient.updateCharacter(
+        this.routeSegment, gameSlug, characterId, token, fields,
       );
 
       await this.#handleResponse(response, gameSlug, characterId, setters);

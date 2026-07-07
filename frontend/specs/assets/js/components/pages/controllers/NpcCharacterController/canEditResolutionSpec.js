@@ -11,22 +11,22 @@ describe('NpcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess', 'fetchNpcTreasures']);
-    characterClient.fetchNpcTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterAccess', 'fetchCharacterTreasures']);
+    characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
     client.currentHash.and.returnValue('#/games/demo/npcs/2');
-    characterClient.fetchNpc.and.returnValue(Promise.resolve({
+    characterClient.fetchCharacter.and.returnValue(Promise.resolve({
       ok: true,
       json: () => Promise.resolve({ id: 2, can_edit: false }),
     }));
-    characterClient.fetchNpcAccess.and.returnValue(Promise.resolve({ ok: false, status: 404 }));
+    characterClient.fetchCharacterAccess.and.returnValue(Promise.resolve({ ok: false, status: 404 }));
 
     const cleanup = buildEffectController(setCharacter, setLoading, setError, client, characterClient)
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: false });
-    expect(characterClient.fetchNpcFull).not.toHaveBeenCalled();
+    expect(characterClient.fetchCharacterFull).not.toHaveBeenCalled();
 
     cleanup();
   });
@@ -36,15 +36,15 @@ describe('NpcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess', 'fetchNpcTreasures']);
-    characterClient.fetchNpcTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterAccess', 'fetchCharacterTreasures']);
+    characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
     client.currentHash.and.returnValue('#/games/demo/npcs/2');
-    characterClient.fetchNpc.and.returnValue(Promise.resolve({
+    characterClient.fetchCharacter.and.returnValue(Promise.resolve({
       ok: true,
       json: () => Promise.resolve({ id: 2, can_edit: false }),
     }));
-    characterClient.fetchNpcAccess.and.returnValue(Promise.reject(new Error('Network error')));
+    characterClient.fetchCharacterAccess.and.returnValue(Promise.reject(new Error('Network error')));
 
     const cleanup = buildEffectController(setCharacter, setLoading, setError, client, characterClient)
       .buildEffect()();

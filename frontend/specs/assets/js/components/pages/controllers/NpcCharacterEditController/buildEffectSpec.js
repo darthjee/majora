@@ -15,23 +15,24 @@ describe('NpcCharacterEditController', function() {
       const setError = jasmine.createSpy('setError');
       const client = jasmine.createSpyObj('client', ['currentHash']);
       const characterClient = jasmine.createSpyObj(
-        'characterClient', ['fetchNpc', 'fetchNpcFull', 'fetchNpcAccess', 'fetchNpcTreasures', 'updateNpc'],
+        'characterClient',
+        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterAccess', 'fetchCharacterTreasures', 'updateCharacter'],
       );
 
       client.currentHash.and.returnValue('#/games/demo/npcs/2/edit');
-      characterClient.fetchNpc.and.returnValue(Promise.resolve({
+      characterClient.fetchCharacter.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ id: 2, can_edit: false }),
       }));
-      characterClient.fetchNpcAccess.and.returnValue(Promise.resolve({
+      characterClient.fetchCharacterAccess.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ can_edit: true }),
       }));
-      characterClient.fetchNpcTreasures.and.returnValue(Promise.resolve({
+      characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve([]),
       }));
-      characterClient.fetchNpcFull.and.returnValue(Promise.resolve({
+      characterClient.fetchCharacterFull.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ id: 2, can_edit: true, private_description: 'Secret.' }),
       }));
@@ -47,7 +48,7 @@ describe('NpcCharacterEditController', function() {
       const cleanup = controller.buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(characterClient.fetchNpc).toHaveBeenCalledWith('demo', '2', null);
+      expect(characterClient.fetchCharacter).toHaveBeenCalledWith('npcs', 'demo', '2', null);
       expect(setCharacter).toHaveBeenCalledWith({
         id: 2, treasures: [], can_edit: true, private_description: 'Secret.',
       });

@@ -16,12 +16,7 @@ export default class StaffUserClient extends BaseClient {
     const query = params.toString();
     const path = query ? `/staff/users.json?${query}` : '/staff/users.json';
 
-    return this.request(path, {
-      headers: {
-        Accept: 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-    });
+    return this.getJson(path, token);
   }
 
   /**
@@ -32,12 +27,7 @@ export default class StaffUserClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the staff user endpoint.
    */
   fetchUser(id, token) {
-    return this.request(`/staff/users/${id}.json`, {
-      headers: {
-        Accept: 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-    });
+    return this.getJson(`/staff/users/${id}.json`, token);
   }
 
   /**
@@ -49,15 +39,7 @@ export default class StaffUserClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the staff user endpoint.
    */
   updateUser(id, token, fields) {
-    return this.request(`/staff/users/${id}.json`, {
-      method: 'PATCH',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-      body: JSON.stringify(fields),
-    });
+    return this.patchJson(`/staff/users/${id}.json`, token, fields);
   }
 
   /**
@@ -71,10 +53,7 @@ export default class StaffUserClient extends BaseClient {
   fetchRecoveryLink(id, token) {
     return this.request(`/staff/users/${id}/recovery-link.json`, {
       method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
+      headers: this.buildHeaders(token),
     });
   }
 }

@@ -24,12 +24,12 @@ describe('PcCharacterEditController#handleSubmit', function() {
     setStatus = jasmine.createSpy('setStatus');
     setters = { setStatus, setFieldErrors };
     client = jasmine.createSpyObj('client', ['currentHash']);
-    characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'updatePc']);
+    characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacter', 'updateCharacter']);
     spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
   });
 
   it('navigates to the show page on success', async function() {
-    characterClient.updatePc.and.returnValue(Promise.resolve({
+    characterClient.updateCharacter.and.returnValue(Promise.resolve({
       ok: true,
       status: 200,
       json: () => Promise.resolve({ id: 2, name: 'Aragorn', can_edit: true }),
@@ -49,8 +49,8 @@ describe('PcCharacterEditController#handleSubmit', function() {
     try {
       await controller.handleSubmit('demo', '2', { name: 'Aragorn' }, setters);
 
-      expect(characterClient.updatePc).toHaveBeenCalledWith(
-        'demo', '2', 'tok-abc', { name: 'Aragorn' },
+      expect(characterClient.updateCharacter).toHaveBeenCalledWith(
+        'pcs', 'demo', '2', 'tok-abc', { name: 'Aragorn' },
       );
       expect(fakeWindow.location.hash).toBe('/games/demo/pcs/2');
       expect(setFieldErrors).not.toHaveBeenCalled();
@@ -61,7 +61,7 @@ describe('PcCharacterEditController#handleSubmit', function() {
   });
 
   it('sets per-field errors on a 400 response without navigating', async function() {
-    characterClient.updatePc.and.returnValue(Promise.resolve({
+    characterClient.updateCharacter.and.returnValue(Promise.resolve({
       ok: false,
       status: 400,
       json: () => Promise.resolve({ errors: { level: ['must be a positive integer'] } }),
@@ -90,7 +90,7 @@ describe('PcCharacterEditController#handleSubmit', function() {
   });
 
   it('sets status to error on a 401 response', async function() {
-    characterClient.updatePc.and.returnValue(Promise.resolve({
+    characterClient.updateCharacter.and.returnValue(Promise.resolve({
       ok: false,
       status: 401,
       json: () => Promise.resolve({ errors: { detail: ['authentication required'] } }),
@@ -113,7 +113,7 @@ describe('PcCharacterEditController#handleSubmit', function() {
   });
 
   it('sets status to error on a 403 response', async function() {
-    characterClient.updatePc.and.returnValue(Promise.resolve({
+    characterClient.updateCharacter.and.returnValue(Promise.resolve({
       ok: false,
       status: 403,
       json: () => Promise.resolve({ errors: { detail: ['not allowed to edit this character'] } }),
@@ -136,7 +136,7 @@ describe('PcCharacterEditController#handleSubmit', function() {
   });
 
   it('sets status to error when the request rejects', async function() {
-    characterClient.updatePc.and.returnValue(Promise.reject(new Error('network')));
+    characterClient.updateCharacter.and.returnValue(Promise.reject(new Error('network')));
 
     const controller = new PcCharacterEditController(
       setCharacter,

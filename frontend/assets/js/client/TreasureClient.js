@@ -12,12 +12,7 @@ export default class TreasureClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the treasure endpoint.
    */
   fetchTreasure(id, token) {
-    return this.request(`/treasures/${id}.json`, {
-      headers: {
-        Accept: 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-    });
+    return this.getJson(`/treasures/${id}.json`, token);
   }
 
   /**
@@ -28,12 +23,7 @@ export default class TreasureClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the treasure access endpoint.
    */
   fetchTreasureAccess(id, token) {
-    return this.request(`/treasures/${id}/access.json`, {
-      headers: {
-        Accept: 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-    });
+    return this.getJson(`/treasures/${id}/access.json`, token);
   }
 
   /**
@@ -46,15 +36,7 @@ export default class TreasureClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the treasures endpoint.
    */
   createTreasure(token, fields) {
-    return this.request('/treasures.json', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-      body: JSON.stringify(fields),
-    });
+    return this.postJson('/treasures.json', token, fields);
   }
 
   /**
@@ -66,15 +48,7 @@ export default class TreasureClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the treasure endpoint.
    */
   updateTreasure(id, token, fields) {
-    return this.request(`/treasures/${id}.json`, {
-      method: 'PATCH',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-      body: JSON.stringify(fields),
-    });
+    return this.patchJson(`/treasures/${id}.json`, token, fields);
   }
 
   /**
@@ -88,15 +62,7 @@ export default class TreasureClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the game treasures endpoint.
    */
   createGameTreasure(gameSlug, token, fields) {
-    return this.request(`/games/${gameSlug}/treasures.json`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-      body: JSON.stringify(fields),
-    });
+    return this.postJson(`/games/${gameSlug}/treasures.json`, token, fields);
   }
 
   /**
@@ -118,12 +84,7 @@ export default class TreasureClient extends BaseClient {
 
     const query = search.toString();
 
-    return this.request(`/games/${gameSlug}/treasures.json${query ? `?${query}` : ''}`, {
-      headers: {
-        Accept: 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-    });
+    return this.getJson(`/games/${gameSlug}/treasures.json${query ? `?${query}` : ''}`, token);
   }
 
   /**
@@ -135,12 +96,7 @@ export default class TreasureClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the game treasure endpoint.
    */
   fetchGameTreasure(gameSlug, id, token) {
-    return this.request(`/games/${gameSlug}/treasures/${id}.json`, {
-      headers: {
-        Accept: 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-    });
+    return this.getJson(`/games/${gameSlug}/treasures/${id}.json`, token);
   }
 
   /**
@@ -153,14 +109,6 @@ export default class TreasureClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the game treasure endpoint.
    */
   updateGameTreasure(gameSlug, id, token, fields) {
-    return this.request(`/games/${gameSlug}/treasures/${id}.json`, {
-      method: 'PATCH',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-      body: JSON.stringify(fields),
-    });
+    return this.patchJson(`/games/${gameSlug}/treasures/${id}.json`, token, fields);
   }
 }

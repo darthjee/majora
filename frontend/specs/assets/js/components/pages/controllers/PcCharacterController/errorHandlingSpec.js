@@ -11,11 +11,11 @@ describe('PcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull', 'fetchPcAccess', 'fetchPcTreasures']);
-    characterClient.fetchPcTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterAccess', 'fetchCharacterTreasures']);
+    characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
     client.currentHash.and.returnValue('#/games/demo/pcs/2');
-    characterClient.fetchPc.and.returnValue(Promise.resolve({ ok: false }));
+    characterClient.fetchCharacter.and.returnValue(Promise.resolve({ ok: false }));
 
     const cleanup = buildEffectController(setCharacter, setLoading, setError, client, characterClient)
       .buildEffect()();
@@ -32,8 +32,8 @@ describe('PcCharacterController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash']);
-    const characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'fetchPcFull', 'fetchPcAccess', 'fetchPcTreasures']);
-    characterClient.fetchPcTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterAccess', 'fetchCharacterTreasures']);
+    characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
     client.currentHash.and.returnValue('#/other');
 
@@ -43,7 +43,7 @@ describe('PcCharacterController', function() {
 
     expect(setError).toHaveBeenCalledWith('Unable to load character.');
     expect(setLoading).toHaveBeenCalledWith(false);
-    expect(characterClient.fetchPc).not.toHaveBeenCalled();
+    expect(characterClient.fetchCharacter).not.toHaveBeenCalled();
 
     cleanup();
   });

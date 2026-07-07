@@ -12,14 +12,7 @@ export default class AuthClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the login endpoint.
    */
   login(username, password) {
-    return this.request('/users/login.json', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, password }),
-    });
+    return this.postJson('/users/login.json', null, { username, password });
   }
 
   /**
@@ -31,11 +24,7 @@ export default class AuthClient extends BaseClient {
   logout(token) {
     return this.request('/users/logout.json', {
       method: 'DELETE',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: `Token ${token}`,
-      },
+      headers: { ...this.buildHeaders(token), 'Content-Type': 'application/json' },
     });
   }
 
@@ -46,12 +35,7 @@ export default class AuthClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the status endpoint.
    */
   status(token) {
-    return this.request('/users/status.json', {
-      headers: {
-        Accept: 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-    });
+    return this.getJson('/users/status.json', token);
   }
 
   /**
@@ -63,10 +47,7 @@ export default class AuthClient extends BaseClient {
   sendTestEmail(token) {
     return this.request('/users/test-email.json', {
       method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Token ${token}`,
-      },
+      headers: this.buildHeaders(token),
     });
   }
 
@@ -77,11 +58,7 @@ export default class AuthClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the recover endpoint.
    */
   recoverPassword(email) {
-    return this.request('/users/recover.json', {
-      method: 'POST',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    });
+    return this.postJson('/users/recover.json', null, { email });
   }
 
   /**
@@ -92,11 +69,7 @@ export default class AuthClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the reset-password endpoint.
    */
   resetPassword(token, password) {
-    return this.request('/users/reset-password.json', {
-      method: 'POST',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, password }),
-    });
+    return this.postJson('/users/reset-password.json', null, { token, password });
   }
 
   /**
@@ -109,15 +82,11 @@ export default class AuthClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the register endpoint.
    */
   register(name, email, password, passwordConfirmation) {
-    return this.request('/users/register.json', {
-      method: 'POST',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name,
-        email,
-        password,
-        password_confirmation: passwordConfirmation,
-      }),
+    return this.postJson('/users/register.json', null, {
+      name,
+      email,
+      password,
+      password_confirmation: passwordConfirmation,
     });
   }
 
@@ -129,15 +98,7 @@ export default class AuthClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the language endpoint.
    */
   setLanguagePreference(token, language) {
-    return this.request('/users/language.json', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: `Token ${token}`,
-      },
-      body: JSON.stringify({ language }),
-    });
+    return this.postJson('/users/language.json', token, { language });
   }
 
   /**
@@ -147,12 +108,7 @@ export default class AuthClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the account endpoint.
    */
   fetchAccount(token) {
-    return this.request('/users/account.json', {
-      headers: {
-        Accept: 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-    });
+    return this.getJson('/users/account.json', token);
   }
 
   /**
@@ -164,19 +120,11 @@ export default class AuthClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the account endpoint.
    */
   updateAccount(token, { name, email, password, passwordConfirmation }) {
-    return this.request('/users/account.json', {
-      method: 'PATCH',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-      body: JSON.stringify({
-        name,
-        email,
-        password,
-        password_confirmation: passwordConfirmation,
-      }),
+    return this.patchJson('/users/account.json', token, {
+      name,
+      email,
+      password,
+      password_confirmation: passwordConfirmation,
     });
   }
 }
