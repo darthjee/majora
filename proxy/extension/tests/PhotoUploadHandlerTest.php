@@ -88,7 +88,8 @@ class PhotoUploadHandlerTest extends TestCase
             'headers'       => $headers,
             'uploadedFiles' => $fileEntry ? ['file' => $fileEntry] : [],
             'postFields'    => [],
-        ]);
+        ]
+        );
     }
 
     // -------------------------------------------------------------------------
@@ -399,7 +400,8 @@ class PhotoUploadHandlerTest extends TestCase
         $handler = PhotoUploadHandler::build([
             'host'        => 'http://backend:8080',
             'photos_path' => $this->photosDir,
-        ]);
+        ]
+        );
 
         $this->assertSame(
             $this->photosDir,
