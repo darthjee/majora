@@ -197,12 +197,15 @@ treasure_exchange_modal:
   insufficient_funds: Not enough money to acquire this quantity.
   not_enough_owned: You do not own that many to sell.
   generic_error: Unable to complete this action. Please try again.
+  available_units_badge: '{{available}} left'
+  partially_fulfilled: 'Only {{acquired}} of {{requested}} were available and were acquired.'
 game_treasures_page:
   loading: Loading treasures...
   title: Treasures
   treasures: Treasures
   new_treasure: New Treasure
   edit: Edit
+  available_units_label: 'Available: {{available}} / {{max}}'
 game_treasure_new_page:
   title: New Treasure
   name_label: Name
