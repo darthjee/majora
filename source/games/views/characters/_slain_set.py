@@ -1,19 +1,16 @@
 """Shared implementation for the NPC slain toggle endpoint."""
 
-from django.http import Http404
 from rest_framework.response import Response
 
 from ...permissions import CharacterEditPermission
 from ...serializers import CharacterSlainUpdateSerializer
 from ..common import validated_or_error
-from ._shared import _find_character
+from ._shared import _get_character_or_404
 
 
 def character_slain_set(request, game, character_id, npc):
     """Toggle the slain flag on a character to the value given in the request body."""
-    character = _find_character(game, character_id, npc)
-    if character is None:
-        raise Http404
+    character = _get_character_or_404(game, character_id, npc)
 
     error_response = CharacterEditPermission.check(request, character)
     if error_response:

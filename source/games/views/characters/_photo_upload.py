@@ -3,21 +3,18 @@
 import os
 import uuid
 
-from django.http import Http404
 from rest_framework.response import Response
 
 from ...models import CharacterPhoto, Upload
 from ...permissions import CharacterEditPermission
 from ...serializers import PhotoUploadSerializer
 from ..common import validated_or_error
-from ._shared import _find_character
+from ._shared import _get_character_or_404
 
 
 def character_photo_upload(request, game, game_slug, character_id, npc):
     """Initialise a character photo upload and return the upload id and token."""
-    character = _find_character(game, character_id, npc)
-    if character is None:
-        raise Http404
+    character = _get_character_or_404(game, character_id, npc)
 
     error_response = CharacterEditPermission.check(request, character)
     if error_response:

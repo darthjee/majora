@@ -1,5 +1,6 @@
 """Private helpers shared across character view modules."""
 
+from django.http import Http404
 from rest_framework.response import Response
 
 from ...models import Character
@@ -10,6 +11,14 @@ def _find_character(game, character_id, npc):
     if game is None:
         return None
     return Character.objects.filter(id=character_id, game=game, npc=npc).first()
+
+
+def _get_character_or_404(game, character_id, npc):
+    """Return the character matching game/id/npc, raising Http404 if not found."""
+    character = _find_character(game, character_id, npc)
+    if character is None:
+        raise Http404
+    return character
 
 
 def _hidden_gate_response(character, request):

@@ -5,9 +5,8 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import AllowAny
 
 from ...authentication import CookieTokenAuthentication
-from ...models import Character, Game
-from ...serializers import CharacterTreasureSerializer
-from ..common import paginated_list_response
+from ...models import Game
+from ._treasures import character_treasures
 
 
 @api_view(['GET'])
@@ -18,6 +17,4 @@ from ..common import paginated_list_response
 def game_pc_treasures(request, game_slug, character_id):
     """Return a paginated list of treasures held by a specific PC in a game."""
     game = get_object_or_404(Game, game_slug=game_slug)
-    character = get_object_or_404(Character, id=character_id, game=game, npc=False)
-    treasures = character.character_treasures.select_related('treasure').filter(quantity__gt=0)
-    return paginated_list_response(request, treasures, CharacterTreasureSerializer)
+    return character_treasures(request, game, character_id, npc=False, check_hidden=False)
