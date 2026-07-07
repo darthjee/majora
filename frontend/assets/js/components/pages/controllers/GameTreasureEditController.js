@@ -67,7 +67,8 @@ export default class GameTreasureEditController extends BaseEditController {
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {string|number} id - Treasure id.
-   * @param {{name: string, value: string}} formValues - Raw form field values.
+   * @param {{name: string, value: string, maxUnits: string}} formValues - Raw form field values.
+   *   `maxUnits` is optional; an empty string is sent as `null` (unlimited).
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
@@ -80,6 +81,7 @@ export default class GameTreasureEditController extends BaseEditController {
       () => this.treasureClient.updateGameTreasure(gameSlug, id, token, {
         name: formValues.name,
         value: parseInt(formValues.value, 10),
+        max_units: formValues.maxUnits === '' ? null : parseInt(formValues.maxUnits, 10),
       }),
       `/games/${gameSlug}/treasures/${id}`,
     );

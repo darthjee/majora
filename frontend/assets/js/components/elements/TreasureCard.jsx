@@ -9,6 +9,11 @@ import TreasureCardHelper from './helpers/TreasureCardHelper.jsx';
  * @param {string} props.treasure.name - Treasure name.
  * @param {number} props.treasure.value - Treasure value.
  * @param {string|null} [props.treasure.photo_path] - Optional treasure photo path.
+ * @param {number|null} [props.treasure.available_units] - Units currently available within the
+ *   game, when the treasure is capped. `null`/absent when unlimited.
+ * @param {number|null} [props.treasure.max_units] - Maximum units obtainable within the game,
+ *   when the treasure is capped. `null`/absent when unlimited; when set, an availability line
+ *   (`Available: {available} / {max}`) is shown in the card body.
  * @param {boolean} [props.canManage] - Whether the current user may upload a photo and edit this treasure.
  * @param {Function} [props.onUploadClick] - Handler invoked with the treasure when the upload button is clicked.
  * @param {string} [props.editHref] - Hash path to the treasure's edit page. When omitted, no

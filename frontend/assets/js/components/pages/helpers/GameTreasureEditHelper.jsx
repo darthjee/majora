@@ -12,8 +12,11 @@ export default class GameTreasureEditHelper {
   /**
    * Render the game treasure edit form.
    *
-   * @param {{name: string, value: string, status: string, fieldErrors: object}} formState - Form state.
-   * @param {{onSubmit: Function, onNameChange: Function, onValueChange: Function}} handlers - Event handlers.
+   * @param {{name: string, value: string, maxUnits: string, status: string, fieldErrors: object}}
+   *   formState - Form state. `maxUnits` is the raw (string) form value; an empty string means
+   *   unlimited (`null`).
+   * @param {{onSubmit: Function, onNameChange: Function, onValueChange: Function,
+   *   onMaxUnitsChange: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered edit page.
    */
   static render(formState, handlers) {
@@ -37,6 +40,14 @@ export default class GameTreasureEditHelper {
             value={formState.value}
             onChange={handlers.onValueChange}
             errors={formState.fieldErrors.value ?? []}
+          />
+          <FormField
+            id="game-treasure-edit-max-units"
+            type="number"
+            label={Translator.t('game_treasure_edit_page.max_units_label')}
+            value={formState.maxUnits}
+            onChange={handlers.onMaxUnitsChange}
+            errors={formState.fieldErrors.max_units ?? []}
           />
           <SubmitButton disabled={formState.status === 'submitting'}>
             {Translator.t('game_treasure_edit_page.submit')}

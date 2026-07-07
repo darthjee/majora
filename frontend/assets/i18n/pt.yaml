@@ -216,6 +216,7 @@ game_treasure_edit_page:
   title: Editar Tesouro
   name_label: Nome
   value_label: Valor
+  max_units_label: 'Unidades máximas (deixe em branco para ilimitado)'
   submit: Salvar alterações
   error: Falha ao salvar tesouro. Tente novamente.
 game_sessions_page:

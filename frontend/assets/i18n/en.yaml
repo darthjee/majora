@@ -216,6 +216,7 @@ game_treasure_edit_page:
   title: Edit Treasure
   name_label: Name
   value_label: Value
+  max_units_label: 'Max units (leave blank for unlimited)'
   submit: Save changes
   error: Failed to save treasure. Please try again.
 game_sessions_page:

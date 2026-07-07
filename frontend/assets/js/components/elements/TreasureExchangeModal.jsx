@@ -2,8 +2,28 @@ import { useEffect, useMemo, useState } from 'react';
 import TreasureExchangeModalController from './controllers/TreasureExchangeModalController.js';
 import TreasureExchangeModalHelper from './helpers/TreasureExchangeModalHelper.jsx';
 import AuthStorage from '../../utils/AuthStorage.js';
+import Translator from '../../i18n/Translator.js';
 
 const PER_PAGE = 10;
+
+/**
+ * Builds the partial-fulfillment notice shown above the browse list when an
+ * acquire request was capped by the treasure's availability.
+ *
+ * @param {string} activeTab - Currently active tab (`acquire` or `sell`).
+ * @param {number} requestedQuantity - Quantity that was requested.
+ * @param {number|undefined} acquired - Units actually acquired, per the server response.
+ * @returns {string} Translated notice, or an empty string when not applicable.
+ */
+export function buildPartialNotice(activeTab, requestedQuantity, acquired) {
+  if (activeTab !== 'acquire' || typeof acquired !== 'number' || acquired >= requestedQuantity) {
+    return '';
+  }
+
+  return Translator.t('treasure_exchange_modal.partially_fulfilled')
+    .replace('{{acquired}}', acquired)
+    .replace('{{requested}}', requestedQuantity);
+}
 
 /**
  * Build the map of owned quantities keyed by the underlying treasure id,
@@ -28,7 +48,9 @@ function buildOwnedByTreasureId(ownedTreasures) {
  *   cross-reference "already owned" quantities on the Acquire tab.
  * @param {Function} props.onClose - Handler invoked when the modal is dismissed.
  * @param {Function} props.onSuccess - Handler invoked with `{treasureId, treasureInfo,
- *   quantity, money}` after a successful acquire/sell action.
+ *   quantity, money, acquired}` after a successful acquire/sell action. `acquired` is only
+ *   meaningful for acquire actions and may be less than the requested quantity when the
+ *   treasure was capped (`undefined` for sell actions).
  * @returns {React.ReactElement} Rendered treasure exchange modal.
  */
 export default function TreasureExchangeModal({
@@ -42,6 +64,7 @@ export default function TreasureExchangeModal({
   const [quantity, setQuantity] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState('');
+  const [partialNotice, setPartialNotice] = useState('');
 
   const controller = useMemo(() => new TreasureExchangeModalController(), []);
   const ownedByTreasureId = useMemo(() => buildOwnedByTreasureId(ownedTreasures), [ownedTreasures]);
@@ -71,6 +94,7 @@ export default function TreasureExchangeModal({
     setActiveTab('acquire');
     setSelected(null);
     setActionError('');
+    setPartialNotice('');
     loadPage('acquire', 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [show]);
@@ -79,6 +103,7 @@ export default function TreasureExchangeModal({
     setActiveTab(tab);
     setSelected(null);
     setActionError('');
+    setPartialNotice('');
     loadPage(tab, 1);
   };
 
@@ -86,6 +111,7 @@ export default function TreasureExchangeModal({
     setSelected(item);
     setQuantity(1);
     setActionError('');
+    setPartialNotice('');
   };
 
   const handleBack = () => {
@@ -95,6 +121,7 @@ export default function TreasureExchangeModal({
 
   const handleConfirm = () => {
     const treasureId = activeTab === 'acquire' ? selected.id : selected.treasure_id;
+    const requestedQuantity = quantity;
     const token = AuthStorage.getToken();
     const submit = activeTab === 'acquire'
       ? controller.acquire(character.game_slug, character.id, character.is_pc, token, { treasureId, quantity })
@@ -111,11 +138,13 @@ export default function TreasureExchangeModal({
       }
 
       setSelected(null);
+      setPartialNotice(buildPartialNotice(activeTab, requestedQuantity, result.acquired));
       onSuccess({
         treasureId,
         treasureInfo: { name: selected.name, value: selected.value, photo_path: selected.photo_path },
         quantity: result.quantity,
         money: result.money,
+        acquired: result.acquired,
       });
       loadPage(activeTab, browse.page);
     });
@@ -124,7 +153,7 @@ export default function TreasureExchangeModal({
   return TreasureExchangeModalHelper.render(
     show,
     {
-      activeTab, browse, selected, quantity, submitting, actionError, ownedByTreasureId,
+      activeTab, browse, selected, quantity, submitting, actionError, partialNotice, ownedByTreasureId,
     },
     {
       onClose,

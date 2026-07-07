@@ -16,7 +16,9 @@ describe('TreasureExchangeModalController', function() {
       expect(characterClient.sellTreasure).toHaveBeenCalledWith(
         'pcs', 'demo', 7, 'tok', { treasure_id: 9, quantity: 1 },
       );
-      expect(result).toEqual({ ok: true, quantity: 0, money: 600 });
+      expect(result).toEqual({
+        ok: true, quantity: 0, money: 600, acquired: undefined,
+      });
     });
 
     it('uses the npc client when isPc is false', async function() {

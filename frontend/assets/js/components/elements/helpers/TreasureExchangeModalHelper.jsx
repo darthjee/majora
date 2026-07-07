@@ -15,11 +15,14 @@ export default class TreasureExchangeModalHelper {
    * @param {object} state - Modal state.
    * @param {string} state.activeTab - Currently active tab (`acquire` or `sell`).
    * @param {object} state.browse - Current browse page state (`items`, `page`, `pages`,
-   *   `loading`, `error`).
+   *   `loading`, `error`). Acquire-tab items may carry `available_units` (`int|null`), shown
+   *   as an always-visible badge (even at 0/1) when not `null`/`undefined`.
    * @param {object|null} state.selected - Currently selected browse item, or null.
    * @param {number} state.quantity - Quantity to acquire/sell for the selected item.
    * @param {boolean} state.submitting - Whether an acquire/sell request is in flight.
    * @param {string} state.actionError - Translation key for the current action error, if any.
+   * @param {string} [state.partialNotice] - Translated note shown above the browse list when
+   *   the last acquire request was only partially fulfilled.
    * @param {object} state.ownedByTreasureId - Map of treasure id to owned quantity.
    * @param {object} handlers - Modal event handlers (`onClose`, `onTabChange`, `onSelect`,
    *   `onBack`, `onPrev`, `onNext`, `onQuantityChange`, `onConfirm`).
@@ -74,10 +77,19 @@ export default class TreasureExchangeModalHelper {
   static #renderBrowsePane(state, handlers) {
     return (
       <>
+        {TreasureExchangeModalHelper.#renderPartialNotice(state.partialNotice)}
         {TreasureExchangeModalHelper.#renderPager(state.browse, handlers)}
-        {TreasureExchangeModalHelper.#renderBrowseList(state.browse, handlers.onSelect)}
+        {TreasureExchangeModalHelper.#renderBrowseList(state.browse, state.activeTab, handlers.onSelect)}
       </>
     );
+  }
+
+  static #renderPartialNotice(partialNotice) {
+    if (!partialNotice) {
+      return null;
+    }
+
+    return <div className="alert alert-info">{partialNotice}</div>;
   }
 
   static #renderPager(browse, handlers) {
@@ -108,7 +120,7 @@ export default class TreasureExchangeModalHelper {
     );
   }
 
-  static #renderBrowseList(browse, onSelect) {
+  static #renderBrowseList(browse, activeTab, onSelect) {
     if (browse.loading) {
       return <p className="text-muted">{Translator.t('treasure_exchange_modal.loading')}</p>;
     }
@@ -131,11 +143,25 @@ export default class TreasureExchangeModalHelper {
             onClick={() => onSelect(item)}
           >
             <span>{item.name}</span>
-            <span className="text-muted">{formatTreasureValue(item.value)}</span>
+            <span className="d-flex align-items-center">
+              {activeTab === 'acquire' && TreasureExchangeModalHelper.#renderAvailabilityBadge(item)}
+              <span className="text-muted">{formatTreasureValue(item.value)}</span>
+            </span>
           </button>
         ))}
       </div>
     );
+  }
+
+  static #renderAvailabilityBadge(item) {
+    if (item.available_units === null || item.available_units === undefined) {
+      return null;
+    }
+
+    const label = Translator.t('treasure_exchange_modal.available_units_badge')
+      .replace('{{available}}', item.available_units);
+
+    return <span className="badge bg-secondary me-2">{label}</span>;
   }
 
   static #renderDetail(state, handlers) {

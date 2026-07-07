@@ -74,4 +74,20 @@ describe('TreasureCard', function() {
     );
     expect(html).not.toContain('×');
   });
+
+  it('renders the available/max units line when treasure.max_units is present', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(TreasureCard, {
+        treasure: { ...treasure, available_units: 2, max_units: 5 },
+      })
+    );
+    expect(html).toContain('Available: 2 / 5');
+  });
+
+  it('does not render an availability line when treasure.max_units is absent', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(TreasureCard, { treasure })
+    );
+    expect(html).not.toContain('Available:');
+  });
 });

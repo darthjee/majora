@@ -106,6 +106,8 @@ export default class TreasureClient extends BaseClient {
    * @param {number|string} id - Treasure id.
    * @param {string|null} token - Authentication token, if any.
    * @param {object} fields - Fields to update.
+   * @param {number|null} [fields.max_units] - Maximum obtainable units within the game, for
+   *   M2M-linked treasures (`null` for unlimited). Ignored for exclusive treasures.
    * @returns {Promise<Response>} fetch response from the game treasure endpoint.
    */
   updateGameTreasure(gameSlug, id, token, fields) {

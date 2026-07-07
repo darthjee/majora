@@ -45,7 +45,7 @@ describe('GameTreasureEditController', function() {
           event,
           'demo',
           '42',
-          { name: 'Sword', value: '100' },
+          { name: 'Sword', value: '100', maxUnits: '10' },
           { setStatus, setFieldErrors },
         );
 
@@ -53,11 +53,29 @@ describe('GameTreasureEditController', function() {
         expect(setStatus).toHaveBeenCalledWith('submitting');
         expect(setFieldErrors).toHaveBeenCalledWith({});
         expect(treasureClient.updateGameTreasure).toHaveBeenCalledWith(
-          'demo', '42', 'tok-abc', { name: 'Sword', value: 100 },
+          'demo', '42', 'tok-abc', { name: 'Sword', value: 100, max_units: 10 },
         );
       } finally {
         delete globalThis.window;
       }
+    });
+
+    it('sends max_units as null when maxUnits is an empty string', async function() {
+      const controller = new GameTreasureEditController(
+        setTreasure, setLoading, setError, setFieldErrors, treasureClient, gameClient,
+      );
+
+      await controller.submitForm(
+        undefined,
+        'demo',
+        '42',
+        { name: 'Sword', value: '100', maxUnits: '' },
+        { setStatus, setFieldErrors },
+      );
+
+      expect(treasureClient.updateGameTreasure).toHaveBeenCalledWith(
+        'demo', '42', 'tok-abc', { name: 'Sword', value: 100, max_units: null },
+      );
     });
 
     it('redirects to the game treasure detail page on success', async function() {

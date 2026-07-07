@@ -16,6 +16,7 @@ export const buildState = (overrides = {}) => ({
   quantity: 1,
   submitting: false,
   actionError: '',
+  partialNotice: '',
   ownedByTreasureId: {},
   ...overrides,
 });

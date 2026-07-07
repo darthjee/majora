@@ -6,11 +6,13 @@ describe('GameTreasureEditHelper', function() {
     onSubmit: jasmine.createSpy('onSubmit'),
     onNameChange: jasmine.createSpy('onNameChange'),
     onValueChange: jasmine.createSpy('onValueChange'),
+    onMaxUnitsChange: jasmine.createSpy('onMaxUnitsChange'),
   });
 
   const buildState = (overrides = {}) => ({
     name: 'Golden Crown',
     value: '500',
+    maxUnits: '10',
     status: 'idle',
     fieldErrors: {},
     ...overrides,
@@ -22,6 +24,7 @@ describe('GameTreasureEditHelper', function() {
 
       expect(html).toContain('id="game-treasure-edit-name"');
       expect(html).toContain('id="game-treasure-edit-value"');
+      expect(html).toContain('id="game-treasure-edit-max-units"');
     });
 
     it('renders the current field values', function() {
@@ -29,6 +32,27 @@ describe('GameTreasureEditHelper', function() {
 
       expect(html).toContain('value="Golden Crown"');
       expect(html).toContain('value="500"');
+      expect(html).toContain('value="10"');
+    });
+
+    it('renders an empty max units field value when maxUnits is an empty string', function() {
+      const html = renderToStaticMarkup(
+        GameTreasureEditHelper.render(buildState({ maxUnits: '' }), buildHandlers()),
+      );
+
+      expect(html).toContain('id="game-treasure-edit-max-units"');
+    });
+
+    it('renders max_units field errors when present', function() {
+      const html = renderToStaticMarkup(
+        GameTreasureEditHelper.render(
+          buildState({ fieldErrors: { max_units: ['must be a positive integer'] } }),
+          buildHandlers(),
+        ),
+      );
+
+      expect(html).toContain('must be a positive integer');
+      expect(html).toContain('alert-danger');
     });
 
     it('renders the submit button', function() {

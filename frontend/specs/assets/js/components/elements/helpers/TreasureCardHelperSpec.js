@@ -128,5 +128,31 @@ describe('TreasureCardHelper', function() {
       expect(html).toContain('×5');
       expect(html).toContain('badge');
     });
+
+    it('does not render an availability line when max_units is absent', function() {
+      const html = renderToStaticMarkup(TreasureCardHelper.render(treasure));
+      expect(html).not.toContain('Available:');
+    });
+
+    it('does not render an availability line when max_units is null', function() {
+      const html = renderToStaticMarkup(
+        TreasureCardHelper.render({ ...treasure, available_units: null, max_units: null })
+      );
+      expect(html).not.toContain('Available:');
+    });
+
+    it('renders the available/max units line when max_units is present', function() {
+      const html = renderToStaticMarkup(
+        TreasureCardHelper.render({ ...treasure, available_units: 3, max_units: 10 })
+      );
+      expect(html).toContain('Available: 3 / 10');
+    });
+
+    it('renders the available/max units line even when available_units is 0', function() {
+      const html = renderToStaticMarkup(
+        TreasureCardHelper.render({ ...treasure, available_units: 0, max_units: 10 })
+      );
+      expect(html).toContain('Available: 0 / 10');
+    });
   });
 });

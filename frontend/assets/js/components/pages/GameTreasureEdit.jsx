@@ -15,6 +15,7 @@ export default function GameTreasureEdit() {
   const [status, setStatus] = useState('idle');
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
+  const [maxUnits, setMaxUnits] = useState('');
 
   const controller = useMemo(
     () => new GameTreasureEditController(setTreasure, setLoading, setError, setFieldErrors),
@@ -32,13 +33,14 @@ export default function GameTreasureEdit() {
 
     setName(treasure.name ?? '');
     setValue(treasure.value !== null ? String(treasure.value) : '');
+    setMaxUnits(treasure.max_units !== null && treasure.max_units !== undefined ? String(treasure.max_units) : '');
   }, [treasure]);
 
   const handleSubmit = (event) => controller.submitForm(
     event,
     gameSlug,
     treasureId,
-    { name, value },
+    { name, value, maxUnits },
     { setStatus, setFieldErrors },
   );
 
@@ -46,11 +48,14 @@ export default function GameTreasureEdit() {
   if (error) return GameTreasureEditHelper.renderError(error);
 
   return GameTreasureEditHelper.render(
-    { name, value, status, fieldErrors },
+    {
+      name, value, maxUnits, status, fieldErrors,
+    },
     {
       onSubmit: handleSubmit,
       onNameChange: (event) => setName(event.target.value),
       onValueChange: (event) => setValue(event.target.value),
+      onMaxUnitsChange: (event) => setMaxUnits(event.target.value),
     },
   );
 }
