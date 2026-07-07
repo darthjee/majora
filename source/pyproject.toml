@@ -25,6 +25,8 @@ lizard = "^1.17"
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "majora_project.settings"
 pythonpath = ["."]
+testpaths = ["games/tests"]
+python_files = ["*_test.py"]
 
 [tool.coverage.run]
 source = ["games"]
@@ -47,6 +49,3 @@ select = ["E", "F", "W", "I", "D211", "D106"]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.pytest.ini_options]
-testpaths = ["games/tests"]
-python_files = ["*_test.py"]
