@@ -239,6 +239,13 @@ game_npcs_page:
   loading: Carregando...
   title: NPCs
   new_npc: Novo NPC
+  filter_status_label: Status
+  filter_status_alive: Vivo
+  filter_status_slain: Morto
+  filter_name_label: Nome
+  filter_name_placeholder: Buscar por nome...
+  filter_query: Filtrar
+  filter_clear: Limpar
 game_npc_new_page:
   title: Novo NPC
   name_label: Nome
