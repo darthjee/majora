@@ -1,21 +1,16 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameHelper from '../../../../../../../assets/js/components/pages/helpers/GameHelper.jsx';
+import { buildLink } from '../../../../../../support/factories.js';
+import { game } from './support.js';
 
 describe('GameHelper', function() {
-  const game = {
-    name: 'Epic Quest',
-    game_slug: 'epic-quest',
-    cover_photo_path: null,
-    description: 'A heroic adventure.',
-  };
-
   describe('.render', function() {
     it('renders links when game.links contains items', function() {
       const gameWithLinks = {
         ...game,
         links: [
-          { text: 'Wiki', url: 'https://example.com/wiki' },
-          { text: 'Discord', url: 'https://discord.gg/example' },
+          buildLink({ text: 'Wiki', url: 'https://example.com/wiki' }),
+          buildLink({ id: 2, text: 'Discord', url: 'https://discord.gg/example' }),
         ],
       };
       const html = renderToStaticMarkup(GameHelper.render(gameWithLinks));

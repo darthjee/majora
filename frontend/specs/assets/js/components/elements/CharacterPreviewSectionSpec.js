@@ -1,11 +1,12 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
 import CharacterPreviewSection from '../../../../../assets/js/components/elements/CharacterPreviewSection.jsx';
+import { buildCharacter } from '../../../../support/factories.js';
 
 describe('CharacterPreviewSection', function() {
   const characters = [
-    { id: 1, name: 'Aragorn', profile_photo_path: null },
-    { id: 2, name: 'Legolas', profile_photo_path: null },
+    buildCharacter({ id: 1, name: 'Aragorn' }),
+    buildCharacter({ id: 2, name: 'Legolas' }),
   ];
 
   it('delegates rendering to CharacterPreviewSectionHelper', function() {

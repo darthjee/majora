@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterCardHelper from '../../../../../../assets/js/components/elements/helpers/CharacterCardHelper.jsx';
 import PhotoUploadOverlay from '../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
+import { buildCharacter } from '../../../../../support/factories.js';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -31,7 +32,7 @@ const findElement = (node, matcher) => {
 };
 
 describe('CharacterCardHelper', function() {
-  const character = { id: 42, name: 'Aragorn', profile_photo_path: null };
+  const character = buildCharacter({ id: 42, name: 'Aragorn' });
   const gameSlug = 'epic-quest';
 
   describe('.render', function() {

@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameCharactersHelper from '../../../../../../assets/js/components/pages/helpers/GameCharactersHelper.jsx';
 import CharacterCard from '../../../../../../assets/js/components/elements/CharacterCard.jsx';
+import { buildCharacter } from '../../../../../support/factories.js';
 
 const findElements = (node, matcher, found = []) => {
   if (!node) {
@@ -26,8 +27,8 @@ const findElements = (node, matcher, found = []) => {
 
 describe('GameCharactersHelper', function() {
   const characters = [
-    { id: 1, name: 'Aragorn', profile_photo_path: null },
-    { id: 2, name: 'Legolas', profile_photo_path: null },
+    buildCharacter({ id: 1, name: 'Aragorn' }),
+    buildCharacter({ id: 2, name: 'Legolas' }),
   ];
   const pagination = { page: 1, pages: 3, perPage: 10 };
 

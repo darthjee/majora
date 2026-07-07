@@ -1,14 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameHelper from '../../../../../../../assets/js/components/pages/helpers/GameHelper.jsx';
+import { game } from './support.js';
 
 describe('GameHelper', function() {
-  const game = {
-    name: 'Epic Quest',
-    game_slug: 'epic-quest',
-    cover_photo_path: null,
-    description: 'A heroic adventure.',
-  };
-
   describe('.render', function() {
     it('renders an edit link when can_edit is true', function() {
       const editableGame = { ...game, can_edit: true };

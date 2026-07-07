@@ -1,10 +1,10 @@
-export const character = {
+import { buildCharacter } from '../../../../../../support/factories.js';
+
+export const character = buildCharacter({
   name: 'Aragorn',
-  profile_photo_path: null,
   role: 'Ranger',
   public_description: 'The future king of Gondor.',
-  photos: [],
-};
+});
 
 export const findElement = (node, matcher) => {
   if (!node) {
