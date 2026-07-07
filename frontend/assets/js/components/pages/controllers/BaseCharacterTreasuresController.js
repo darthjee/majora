@@ -16,26 +16,23 @@ export default class BaseCharacterTreasuresController extends BasePageController
   /**
    * Create a base character treasures controller.
    *
-   * @param {Function} setTreasures - Treasures setter.
-   * @param {Function} setPagination - Pagination setter.
-   * @param {Function} setLoading - Loading setter.
-   * @param {Function} setError - Error setter.
+   * @param {object} setters - Page state setters.
+   * @param {Function} setters.setTreasures - Treasures setter.
+   * @param {Function} setters.setPagination - Pagination setter.
+   * @param {Function} setters.setLoading - Loading setter.
+   * @param {Function} setters.setError - Error setter.
+   * @param {Function} [setters.setCharacter] - Character context setter, used for the "Add treasure"
+   *   button's visibility and the exchange modal's affordability checks.
    * @param {Function} getParamsFromHash - Hash param extractor returning `game_slug`/`character_id`.
    * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`), used as the URL segment.
    * @param {GenericClient|null} [client] - Client override.
-   * @param {Function} [setCharacter] - Character context setter, used for the "Add treasure"
-   *   button's visibility and the exchange modal's affordability checks.
    * @param {CharacterClient|null} [characterClient] - Character client override.
    */
   constructor(
-    setTreasures,
-    setPagination,
-    setLoading,
-    setError,
+    { setTreasures, setPagination, setLoading, setError, setCharacter = Noop.noop },
     getParamsFromHash,
     characterKind,
     client = null,
-    setCharacter = Noop.noop,
     characterClient = null,
   ) {
     super();

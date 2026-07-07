@@ -40,14 +40,10 @@ export default class PcCharacterTreasuresController extends BaseCharacterTreasur
     characterClient = null,
   ) {
     super(
-      setTreasures,
-      setPagination,
-      setLoading,
-      setError,
+      { setTreasures, setPagination, setLoading, setError, setCharacter },
       PcCharacterTreasuresController.getPcCharacterTreasuresParamsFromHash,
       'pcs',
       client,
-      setCharacter,
       characterClient,
     );
   }

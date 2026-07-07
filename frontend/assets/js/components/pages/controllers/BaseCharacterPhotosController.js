@@ -16,22 +16,19 @@ export default class BaseCharacterPhotosController extends BasePageController {
   /**
    * Create a base character photos controller.
    *
-   * @param {Function} setPhotos - Photos setter.
-   * @param {Function} setPagination - Pagination setter.
-   * @param {Function} setCharacter - Character setter, merged with can_edit for the upload button gate.
-   * @param {Function} setLoading - Loading setter.
-   * @param {Function} setError - Error setter.
+   * @param {object} setters - Page state setters.
+   * @param {Function} setters.setPhotos - Photos setter.
+   * @param {Function} setters.setPagination - Pagination setter.
+   * @param {Function} setters.setCharacter - Character setter, merged with can_edit for the upload button gate.
+   * @param {Function} setters.setLoading - Loading setter.
+   * @param {Function} setters.setError - Error setter.
    * @param {Function} getParamsFromHash - Hash param extractor returning `game_slug`/`character_id`.
    * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`), used as the URL segment.
    * @param {GenericClient|null} [client] - Client override.
    * @param {CharacterClient|null} [characterClient] - Character client override.
    */
   constructor(
-    setPhotos,
-    setPagination,
-    setCharacter,
-    setLoading,
-    setError,
+    { setPhotos, setPagination, setCharacter, setLoading, setError },
     getParamsFromHash,
     characterKind,
     client = null,

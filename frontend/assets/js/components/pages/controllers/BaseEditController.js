@@ -53,13 +53,14 @@ export default class BaseEditController extends BasePageController {
   }
 
   /**
-   * Load the resource for the edit page. Must be implemented by subclasses.
+   * Load the resource for the edit page. Must be implemented by subclasses,
+   * which receive the same `(safeSet, isMounted)` arguments passed by
+   * {@link BaseEditController#buildEffect} even though this base stub itself
+   * declares no parameters (it is never actually invoked once overridden).
    *
-   * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
-   * @param {Function} isMounted - Returns whether the page is still mounted.
    * @returns {void}
    */
-  loadResource(safeSet, isMounted) { // eslint-disable-line no-unused-vars
+  loadResource() {
     throw new Error('BaseEditController#loadResource must be implemented by subclass');
   }
 

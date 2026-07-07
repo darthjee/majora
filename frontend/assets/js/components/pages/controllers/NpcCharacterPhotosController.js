@@ -30,11 +30,7 @@ export default class NpcCharacterPhotosController extends BaseCharacterPhotosCon
    */
   constructor(setPhotos, setPagination, setCharacter, setLoading, setError, client = null, characterClient = null) {
     super(
-      setPhotos,
-      setPagination,
-      setCharacter,
-      setLoading,
-      setError,
+      { setPhotos, setPagination, setCharacter, setLoading, setError },
       NpcCharacterPhotosController.getNpcCharacterPhotosParamsFromHash,
       'npcs',
       client,

@@ -40,14 +40,10 @@ export default class NpcCharacterTreasuresController extends BaseCharacterTreasu
     characterClient = null,
   ) {
     super(
-      setTreasures,
-      setPagination,
-      setLoading,
-      setError,
+      { setTreasures, setPagination, setLoading, setError, setCharacter },
       NpcCharacterTreasuresController.getNpcCharacterTreasuresParamsFromHash,
       'npcs',
       client,
-      setCharacter,
       characterClient,
     );
   }

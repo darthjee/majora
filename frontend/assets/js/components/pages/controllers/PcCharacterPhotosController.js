@@ -30,11 +30,7 @@ export default class PcCharacterPhotosController extends BaseCharacterPhotosCont
    */
   constructor(setPhotos, setPagination, setCharacter, setLoading, setError, client = null, characterClient = null) {
     super(
-      setPhotos,
-      setPagination,
-      setCharacter,
-      setLoading,
-      setError,
+      { setPhotos, setPagination, setCharacter, setLoading, setError },
       PcCharacterPhotosController.getPcCharacterPhotosParamsFromHash,
       'pcs',
       client,
