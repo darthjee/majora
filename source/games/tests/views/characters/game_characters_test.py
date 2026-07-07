@@ -1,0 +1,274 @@
+"""Tests for the game PC/NPC list views, and NPC creation."""
+
+import json
+
+import pytest
+from rest_framework.authtoken.models import Token
+
+from games.models import Character
+from games.tests.behaviors import TokenAuthRequestMixin
+from games.tests.factories import (
+    CharacterFactory,
+    GameFactory,
+    GameMasterFactory,
+    PlayerFactory,
+    SuperUserFactory,
+    UserFactory,
+)
+
+
+class _BaseCharactersListViewTest:
+    """Shared behavior for GET /games/<slug>/(npcs|pcs).json (PC and NPC)."""
+
+    npc = None
+    segment = None
+
+    def setup_method(self):
+        """Set up common test fixtures."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.player = PlayerFactory(name='Alice')
+
+    def _url(self, query=''):
+        """Return the list URL for the fixture game, optionally with a query string."""
+        return f'/games/test-game/{self.segment}.json{query}'
+
+    def test_returns_only_matching_role(self, client):
+        """Test that only characters matching this endpoint's role are returned."""
+        CharacterFactory(name='Hero', game=self.game, player=self.player, npc=False)
+        CharacterFactory(name='Villain', game=self.game, npc=True)
+        response = client.get(self._url())
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == ('Villain' if self.npc else 'Hero')
+        assert data[0]['game_slug'] == 'test-game'
+
+    def test_returns_empty_list_when_none(self, client):
+        """Test that an empty list is returned when there are no matching characters."""
+        response = client.get(self._url())
+        assert response.status_code == 200
+        assert json.loads(response.content) == []
+
+    def test_response_includes_page_header(self, client):
+        """Test that the response includes the page header."""
+        response = client.get(self._url())
+        assert response['page'] == '1'
+
+    def test_response_includes_pages_header(self, client):
+        """Test that the response includes the total pages header."""
+        response = client.get(self._url())
+        assert response['pages'] == '1'
+
+    def test_response_includes_per_page_header(self, client):
+        """Test that the response includes the per_page header."""
+        response = client.get(self._url('?per_page=5'))
+        assert response['per_page'] == '5'
+
+    def test_respects_page_param(self, client):
+        """Test that ?page=N returns the correct page of results."""
+        for i in range(5):
+            CharacterFactory(
+                name=f'Character {i}', game=self.game, player=self.player, npc=self.npc
+            )
+        response = client.get(self._url('?page=2&per_page=3'))
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 2
+
+    def test_respects_per_page_param(self, client):
+        """Test that ?per_page=N limits the number of results returned."""
+        for i in range(5):
+            CharacterFactory(
+                name=f'Character {i}', game=self.game, player=self.player, npc=self.npc
+            )
+        response = client.get(self._url('?per_page=2'))
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 2
+
+
+@pytest.mark.django_db
+class TestGameNpcsView(_BaseCharactersListViewTest):
+    """Tests for the game NPCs list endpoint."""
+
+    npc = True
+    segment = 'npcs'
+
+    def test_response_includes_total_header(self, client):
+        """Test that the response includes the total item count header."""
+        for i in range(3):
+            CharacterFactory(name=f'NPC {i}', game=self.game, npc=True)
+        response = client.get(self._url())
+        assert response['total'] == '3'
+
+    def test_default_page_size_uses_settings(self, client, monkeypatch):
+        """Test that default per_page comes from Settings.pagination_size()."""
+        monkeypatch.setenv('MAJORA_PAGINATION_SIZE', '3')
+        for i in range(5):
+            CharacterFactory(name=f'NPC {i}', game=self.game, npc=True)
+        response = client.get(self._url())
+        assert response['per_page'] == '3'
+        data = json.loads(response.content)
+        assert len(data) == 3
+
+
+@pytest.mark.django_db
+class TestGamePcsView(_BaseCharactersListViewTest):
+    """Tests for the game PCs list endpoint."""
+
+    npc = False
+    segment = 'pcs'
+
+    def test_returns_404_for_unknown_game(self, client):
+        """Test that 404 is returned for a non-existent game_slug."""
+        response = client.get('/games/unknown-game/pcs.json')
+        assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestGameNpcsHiddenFilter:
+    """Tests that game_npcs excludes hidden NPCs from the public listing."""
+
+    def setup_method(self):
+        """Set up common test fixtures."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+
+    def test_hidden_npc_excluded_from_listing(self, client):
+        """Test that an NPC with hidden=True is not returned by the public listing."""
+        CharacterFactory(name='Visible NPC', game=self.game, npc=True, hidden=False)
+        CharacterFactory(name='Hidden NPC', game=self.game, npc=True, hidden=True)
+        response = client.get('/games/test-game/npcs.json')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Visible NPC'
+
+    def test_visible_npc_included_in_listing(self, client):
+        """Test that an NPC with hidden=False is returned by the public listing."""
+        CharacterFactory(name='Visible NPC', game=self.game, npc=True, hidden=False)
+        response = client.get('/games/test-game/npcs.json')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 1
+
+    def test_total_header_excludes_hidden_npcs(self, client):
+        """Test that the total header reflects only visible NPCs."""
+        CharacterFactory(name='Visible NPC', game=self.game, npc=True, hidden=False)
+        CharacterFactory(name='Hidden NPC', game=self.game, npc=True, hidden=True)
+        response = client.get('/games/test-game/npcs.json')
+        assert response['total'] == '1'
+
+
+@pytest.mark.django_db
+class TestGameNpcsCreate(TokenAuthRequestMixin):
+    """Tests for the POST /games/<slug>/npcs.json endpoint."""
+
+    def setup_method(self):
+        """Set up a game, a DM, a superuser, and a regular user."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.player = PlayerFactory(name='Alice')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
+        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.superuser = SuperUserFactory(username='admin', password='secret-password')
+        self.superuser_token = Token.objects.create(user=self.superuser)
+        self.regular_user = UserFactory(username='player', password='secret-password')
+        self.regular_token = Token.objects.create(user=self.regular_user)
+
+    def _post(self, client, payload, token=None, game_slug=None):
+        """Issue a POST request to the game NPCs list endpoint, optionally with a token."""
+        url = f'/games/{game_slug or self.game.game_slug}/npcs.json'
+        return self.post(client, url, payload, token=token)
+
+    def test_game_master_can_create_npc(self, client):
+        """Test that a DM of the game can create an NPC and receives 201."""
+        response = self._post(client, {'name': 'Villain'}, token=self.dm_token)
+        assert response.status_code == 201
+
+    def test_superuser_can_create_npc(self, client):
+        """Test that a superuser can create an NPC and receives 201."""
+        response = self._post(client, {'name': 'Villain'}, token=self.superuser_token)
+        assert response.status_code == 201
+
+    def test_created_character_is_npc_linked_to_game(self, client):
+        """Test that the created character has npc=True and is linked to the game."""
+        self._post(client, {'name': 'Villain'}, token=self.dm_token)
+        character = Character.objects.get(name='Villain')
+        assert character.npc is True
+        assert character.game == self.game
+
+    def test_create_returns_character_detail(self, client):
+        """Test that the response body matches the CharacterDetailSerializer shape."""
+        response = self._post(
+            client, {'name': 'Villain', 'role': 'Antagonist'}, token=self.dm_token
+        )
+        data = json.loads(response.content)
+        assert data['name'] == 'Villain'
+        assert data['role'] == 'Antagonist'
+        assert data['game_slug'] == 'test-game'
+        assert data['can_edit'] is True
+        assert 'id' in data
+
+    def test_optional_fields_are_persisted_when_provided(self, client):
+        """Test that optional fields are persisted when provided in the request."""
+        self._post(
+            client,
+            {
+                'name': 'Villain',
+                'role': 'Antagonist',
+                'public_description': 'A shady figure',
+                'private_description': 'Secretly a good person',
+                'hidden': True,
+                'money': 42,
+            },
+            token=self.dm_token,
+        )
+        character = Character.objects.get(name='Villain')
+        assert character.role == 'Antagonist'
+        assert character.public_description == 'A shady figure'
+        assert character.private_description == 'Secretly a good person'
+        assert character.hidden is True
+        assert character.money == 42
+
+    def test_defaults_apply_when_optional_fields_omitted(self, client):
+        """Test that optional fields fall back to model defaults when omitted."""
+        self._post(client, {'name': 'Villain'}, token=self.dm_token)
+        character = Character.objects.get(name='Villain')
+        assert character.hidden is False
+
+    def test_unauthenticated_post_returns_401(self, client):
+        """Test that a POST without a token returns 401."""
+        response = self._post(client, {'name': 'Villain'})
+        assert response.status_code == 401
+        data = json.loads(response.content)
+        assert 'detail' in data['errors']
+
+    def test_non_game_master_post_returns_403(self, client):
+        """Test that a POST from a non-DM, non-superuser returns 403."""
+        response = self._post(client, {'name': 'Villain'}, token=self.regular_token)
+        assert response.status_code == 403
+        data = json.loads(response.content)
+        assert 'detail' in data['errors']
+
+    def test_missing_name_returns_400(self, client):
+        """Test that a POST without name returns 400."""
+        response = self._post(client, {'role': 'Antagonist'}, token=self.dm_token)
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'name' in data['errors']
+
+    def test_post_returns_404_for_unknown_game_slug(self, client):
+        """Test that POST returns 404 for a non-existent game slug."""
+        response = self._post(
+            client, {'name': 'Villain'}, token=self.dm_token, game_slug='unknown-game'
+        )
+        assert response.status_code == 404
+
+    def test_player_field_in_body_is_ignored(self, client):
+        """Test that a player value in the request body does not assign a player."""
+        response = self._post(
+            client, {'name': 'Villain', 'player': self.player.id}, token=self.dm_token
+        )
+        assert response.status_code == 201
+        character = Character.objects.get(name='Villain')
+        assert character.player is None
