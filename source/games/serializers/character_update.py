@@ -19,5 +19,7 @@ class CharacterUpdateSerializer(serializers.ModelSerializer):
             'private_description',
             'hidden',
             'money',
+            'allegiance',
+            'public_allegiance',
         ]
         extra_kwargs = {field: {'required': False} for field in fields}

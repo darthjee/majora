@@ -62,3 +62,16 @@ class TestCharacterListSerializer:
         self.character.save()
         data = CharacterListSerializer(self.character).data
         assert data['slain'] is True
+
+    def test_serializes_allegiance_as_neutral_by_default(self):
+        """Test that allegiance defaults to 'neutral'."""
+        data = CharacterListSerializer(self.character).data
+        assert data['allegiance'] == 'neutral'
+
+    def test_serializes_allegiance_sourced_from_public_allegiance(self):
+        """Test that allegiance is sourced from public_allegiance, not the real field."""
+        self.character.allegiance = 'enemy'
+        self.character.public_allegiance = 'ally'
+        self.character.save()
+        data = CharacterListSerializer(self.character).data
+        assert data['allegiance'] == 'ally'
