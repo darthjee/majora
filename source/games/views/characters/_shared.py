@@ -28,3 +28,16 @@ def _hidden_gate_response(character, request):
         response['X-Skip-Cache'] = 'true'
         return response
     return None
+
+
+def _filter_characters(request, queryset):
+    """Narrow `queryset` by the optional `slain`/`name` query params, if present."""
+    slain = request.query_params.get('slain')
+    if slain is not None and slain.lower() in ('true', 'false'):
+        queryset = queryset.filter(slain=(slain.lower() == 'true'))
+
+    name = request.query_params.get('name')
+    if name:
+        queryset = queryset.filter(name__icontains=name)
+
+    return queryset
