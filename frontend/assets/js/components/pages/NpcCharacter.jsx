@@ -1,36 +1,22 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import CharacterDetail from './shared/CharacterDetail.jsx';
 import NpcCharacterController from './controllers/NpcCharacterController.js';
-import CharacterHelper from './helpers/CharacterHelper.jsx';
-import AuthEvents from '../../utils/AuthEvents.js';
 import AuthStorage from '../../utils/AuthStorage.js';
-import PhotoUploadModal from '../elements/PhotoUploadModal.jsx';
 import SlainConfirmModal from '../elements/SlainConfirmModal.jsx';
 import SlainConfirmController from '../elements/controllers/SlainConfirmController.js';
 
 /**
- * NPC character detail page.
+ * NPC-only extension hook plugging the slain confirmation modal into the
+ * shared character detail page.
  *
- * @returns {React.ReactElement} NPC character detail page element.
+ * @param {object|null} character - Loaded character, or null while still loading.
+ * @param {import('./controllers/NpcCharacterController.js').default} controller - Detail controller,
+ *   whose effect is re-run to refresh the character after toggling slain state.
+ * @returns {{handlers: {onOpenSlainModal: Function}, modal: React.ReactElement|null}} Extra
+ *   handlers and modal for the shared detail page.
  */
-export default function NpcCharacter() {
-  const [character, setCharacter] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [showUploadModal, setShowUploadModal] = useState(false);
+function useSlainExtra(character, controller) {
   const [showSlainModal, setShowSlainModal] = useState(false);
-
-  const controller = useMemo(
-    () => new NpcCharacterController(setCharacter, setLoading, setError),
-    [],
-  );
-
-  useEffect(() => controller.buildEffect()(), [controller]);
-
-  useEffect(() => {
-    const handleAuthChanged = () => controller.buildEffect()();
-    AuthEvents.subscribe(handleAuthChanged);
-    return () => AuthEvents.unsubscribe(handleAuthChanged);
-  }, [controller]);
 
   const slainController = useMemo(
     () => new SlainConfirmController(() => {
@@ -40,40 +26,35 @@ export default function NpcCharacter() {
     [controller],
   );
 
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
-  const { game_slug: gameSlug } = NpcCharacterController.getNpcCharacterParamsFromHash(currentHash);
-  const backHref = `#/games/${gameSlug}/npcs`;
-
-  const handleUploadSuccess = () => {
-    setShowUploadModal(false);
-    controller.buildEffect()();
-  };
-
   const handleConfirmSlain = () => {
-    slainController.handleConfirm(gameSlug, character, AuthStorage.getToken());
+    slainController.handleConfirm(character.game_slug, character, AuthStorage.getToken());
   };
 
-  if (loading) return CharacterHelper.renderLoading();
-  if (error) return CharacterHelper.renderError(error);
-
-  return (
-    <>
-      {CharacterHelper.render(character, backHref, {
-        onOpenUploadModal: () => setShowUploadModal(true),
-        onOpenSlainModal: () => setShowSlainModal(true),
-      })}
-      <PhotoUploadModal
-        show={showUploadModal}
-        uploadPath={`/games/${gameSlug}/npcs/${character.id}/photo_upload.json`}
-        onClose={() => setShowUploadModal(false)}
-        onSuccess={handleUploadSuccess}
-      />
+  return {
+    handlers: { onOpenSlainModal: () => setShowSlainModal(true) },
+    modal: character && (
       <SlainConfirmModal
         show={showSlainModal}
         slain={character.slain}
         onCancel={() => setShowSlainModal(false)}
         onConfirm={handleConfirmSlain}
       />
-    </>
+    ),
+  };
+}
+
+/**
+ * NPC character detail page.
+ *
+ * @returns {React.ReactElement} NPC character detail page element.
+ */
+export default function NpcCharacter() {
+  return (
+    <CharacterDetail
+      ControllerClass={NpcCharacterController}
+      getParamsFromHash={NpcCharacterController.getNpcCharacterParamsFromHash}
+      characterKind="npcs"
+      useExtra={useSlainExtra}
+    />
   );
 }

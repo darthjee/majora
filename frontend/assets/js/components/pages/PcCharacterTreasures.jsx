@@ -1,8 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import CharacterTreasures from './shared/CharacterTreasures.jsx';
 import PcCharacterTreasuresController from './controllers/PcCharacterTreasuresController.js';
-import CharacterTreasuresHelper from './helpers/CharacterTreasuresHelper.jsx';
-import TreasureExchangeModal from '../elements/TreasureExchangeModal.jsx';
-import mergeCharacterTreasureQuantity from '../../utils/mergeCharacterTreasureQuantity.js';
 
 /**
  * PC character Treasures index page.
@@ -10,49 +7,12 @@ import mergeCharacterTreasureQuantity from '../../utils/mergeCharacterTreasureQu
  * @returns {React.ReactElement} PC character treasures page element.
  */
 export default function PcCharacterTreasures() {
-  const [treasures, setTreasures] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, pages: 1, perPage: 10 });
-  const [character, setCharacter] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [showExchangeModal, setShowExchangeModal] = useState(false);
-
-  const controller = useMemo(
-    () => new PcCharacterTreasuresController(setTreasures, setPagination, setLoading, setError, null, setCharacter),
-    [],
-  );
-
-  useEffect(() => controller.buildEffect()(), [controller]);
-
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
-  const { game_slug: gameSlug, character_id: characterId } =
-    PcCharacterTreasuresController.getPcCharacterTreasuresParamsFromHash(currentHash);
-  const basePath = `#/games/${gameSlug}/pcs/${characterId}/treasures`;
-  const backHref = `#/games/${gameSlug}/pcs/${characterId}`;
-
-  const handleExchangeSuccess = ({ treasureId, treasureInfo, quantity, money }) => {
-    setCharacter((prev) => (prev ? { ...prev, money } : prev));
-    setTreasures((prev) => mergeCharacterTreasureQuantity(prev, treasureId, treasureInfo, quantity));
-  };
-
-  if (loading) return CharacterTreasuresHelper.renderLoading();
-  if (error) return CharacterTreasuresHelper.renderError(error);
-
   return (
-    <>
-      {CharacterTreasuresHelper.render(
-        treasures, pagination, basePath, backHref, character?.can_edit,
-        () => setShowExchangeModal(true),
-      )}
-      <TreasureExchangeModal
-        show={showExchangeModal}
-        character={{
-          id: characterId, game_slug: gameSlug, is_pc: true, money: character?.money ?? 0,
-        }}
-        ownedTreasures={treasures}
-        onClose={() => setShowExchangeModal(false)}
-        onSuccess={handleExchangeSuccess}
-      />
-    </>
+    <CharacterTreasures
+      ControllerClass={PcCharacterTreasuresController}
+      getParamsFromHash={PcCharacterTreasuresController.getPcCharacterTreasuresParamsFromHash}
+      characterKind="pcs"
+      isPc
+    />
   );
 }

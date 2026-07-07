@@ -23,7 +23,7 @@ describe('PcCharacterPhotosController', function() {
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [], pagination: { page: 1, pages: 1, perPage: 20 },
     }));
-    characterClient.fetchPcAccess.and.returnValue(Promise.resolve({
+    characterClient.fetchCharacterAccess.and.returnValue(Promise.resolve({
       ok: true,
       json: () => Promise.resolve({ can_edit: true }),
     }));
@@ -52,7 +52,7 @@ describe('PcCharacterPhotosController', function() {
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [], pagination: { page: 1, pages: 1, perPage: 20 },
     }));
-    characterClient.fetchPc.and.returnValue(Promise.reject(new Error('network error')));
+    characterClient.fetchCharacter.and.returnValue(Promise.reject(new Error('network error')));
 
     const cleanup = new PcCharacterPhotosController(
       setPhotos, setPagination, setCharacter, setLoading, setError, client, characterClient,
@@ -76,7 +76,7 @@ describe('PcCharacterPhotosController', function() {
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [], pagination: { page: 1, pages: 1, perPage: 20 },
     }));
-    characterClient.fetchPc.and.returnValue(Promise.resolve({ ok: false }));
+    characterClient.fetchCharacter.and.returnValue(Promise.resolve({ ok: false }));
 
     const cleanup = new PcCharacterPhotosController(
       setPhotos, setPagination, setCharacter, setLoading, setError, client, characterClient,
@@ -100,7 +100,7 @@ describe('PcCharacterPhotosController', function() {
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [], pagination: { page: 1, pages: 1, perPage: 20 },
     }));
-    characterClient.fetchPcAccess.and.returnValue(Promise.reject(new Error('network error')));
+    characterClient.fetchCharacterAccess.and.returnValue(Promise.reject(new Error('network error')));
 
     const cleanup = new PcCharacterPhotosController(
       setPhotos, setPagination, setCharacter, setLoading, setError, client, characterClient,

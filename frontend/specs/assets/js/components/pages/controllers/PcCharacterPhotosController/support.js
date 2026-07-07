@@ -1,19 +1,19 @@
 /**
  * @description Builds a fresh characterClient spy shared by every PcCharacterPhotosController spec file.
- * @returns {object} a characterClient spy with default successful fetchPc/fetchPcAccess/setPcPhotoRoles.
+ * @returns {object} a characterClient spy with default successful fetchCharacter/fetchCharacterAccess/setPhotoRoles.
  */
 export function buildCharacterClient() {
   const characterClient = jasmine.createSpyObj(
-    'characterClient', ['fetchPc', 'fetchPcAccess', 'setPcPhotoRoles'],
+    'characterClient', ['fetchCharacter', 'fetchCharacterAccess', 'setPhotoRoles'],
   );
-  characterClient.fetchPc.and.returnValue(Promise.resolve({
+  characterClient.fetchCharacter.and.returnValue(Promise.resolve({
     ok: true,
     json: () => Promise.resolve({ name: 'Aragorn' }),
   }));
-  characterClient.fetchPcAccess.and.returnValue(Promise.resolve({
+  characterClient.fetchCharacterAccess.and.returnValue(Promise.resolve({
     ok: true,
     json: () => Promise.resolve({ can_edit: false }),
   }));
-  characterClient.setPcPhotoRoles.and.returnValue(Promise.resolve({ ok: true }));
+  characterClient.setPhotoRoles.and.returnValue(Promise.resolve({ ok: true }));
   return characterClient;
 }
