@@ -1,9 +1,9 @@
 """Tests for the StaffUserUpdateSerializer."""
 
 import pytest
-from django.contrib.auth.models import User
 
 from games.serializers import StaffUserUpdateSerializer
+from games.tests.factories import UserFactory
 
 
 @pytest.mark.django_db
@@ -12,7 +12,7 @@ class TestStaffUserUpdateSerializer:
 
     def setup_method(self):
         """Set up a user instance for testing."""
-        self.user = User.objects.create_user(
+        self.user = UserFactory(
             username='alice', password='secret-password', email='alice@example.com'
         )
 
@@ -50,7 +50,7 @@ class TestStaffUserUpdateSerializer:
 
     def test_rejects_name_used_by_another_user(self):
         """Test that a name already used by a different user is rejected."""
-        User.objects.create_user(username='bob', password='secret-password')
+        UserFactory(username='bob', password='secret-password')
         serializer = StaffUserUpdateSerializer(self.user, data={'name': 'bob'}, partial=True)
         assert not serializer.is_valid()
         assert 'name' in serializer.errors
@@ -62,7 +62,7 @@ class TestStaffUserUpdateSerializer:
 
     def test_rejects_email_used_by_another_user(self):
         """Test that an email already used by a different user is rejected."""
-        User.objects.create_user(
+        UserFactory(
             username='bob', password='secret-password', email='bob@example.com'
         )
         serializer = StaffUserUpdateSerializer(

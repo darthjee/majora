@@ -1,11 +1,18 @@
 """Tests for the CharacterEditPermission and GameEditPermission classes."""
 
 import pytest
-from django.contrib.auth.models import AnonymousUser, User
+from django.contrib.auth.models import AnonymousUser
 from rest_framework.test import APIRequestFactory
 
-from games.models import Character, Game, GameMaster, Player
 from games.permissions import CharacterEditPermission, GameEditPermission
+from games.tests.factories import (
+    CharacterFactory,
+    GameFactory,
+    GameMasterFactory,
+    PlayerFactory,
+    SuperUserFactory,
+    UserFactory,
+)
 
 
 def _make_request(user):
@@ -22,14 +29,14 @@ class TestCharacterEditPermissionCheck:
 
     def setup_method(self):
         """Set up a game, a DM, an owning player and an NPC character."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
-        GameMaster.objects.create(game=self.game, user=self.dm_user)
-        self.player = Player.objects.create(name='Bob')
-        self.owner = User.objects.create_user(username='owner', password='secret-password')
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
+        self.player = PlayerFactory(name='Bob')
+        self.owner = UserFactory(username='owner', password='secret-password')
         self.player.user = self.owner
         self.player.save()
-        self.character = Character.objects.create(
+        self.character = CharacterFactory(
             name='Aragorn', game=self.game, player=self.player, npc=False
         )
 
@@ -48,7 +55,7 @@ class TestCharacterEditPermissionCheck:
 
     def test_returns_403_response_for_non_editor(self):
         """Test that an authenticated non-editor gets a 403 error response."""
-        other_user = User.objects.create_user(username='other', password='secret-password')
+        other_user = UserFactory(username='other', password='secret-password')
         request = _make_request(other_user)
         response = CharacterEditPermission.check(request, self.character)
         assert response.status_code == 403
@@ -66,7 +73,7 @@ class TestCharacterEditPermissionCheck:
 
     def test_returns_none_for_superuser(self):
         """Test that a superuser passes the check."""
-        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        superuser = SuperUserFactory(username='admin', password='secret-password')
         request = _make_request(superuser)
         assert CharacterEditPermission.check(request, self.character) is None
 
@@ -77,9 +84,9 @@ class TestGameEditPermissionCheck:
 
     def setup_method(self):
         """Set up a game and a DM user."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
-        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
 
     def test_returns_401_for_anonymous_user(self):
         """Test that an anonymous user gets a 401 error response."""
@@ -96,7 +103,7 @@ class TestGameEditPermissionCheck:
 
     def test_returns_403_for_non_editor(self):
         """Test that an authenticated non-DM gets a 403 error response."""
-        other_user = User.objects.create_user(username='other', password='secret-password')
+        other_user = UserFactory(username='other', password='secret-password')
         request = _make_request(other_user)
         response = GameEditPermission.check(request, self.game)
         assert response.status_code == 403
@@ -109,6 +116,6 @@ class TestGameEditPermissionCheck:
 
     def test_returns_none_for_superuser(self):
         """Test that a superuser passes the check."""
-        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        superuser = SuperUserFactory(username='admin', password='secret-password')
         request = _make_request(superuser)
         assert GameEditPermission.check(request, self.game) is None

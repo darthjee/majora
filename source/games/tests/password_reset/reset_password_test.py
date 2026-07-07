@@ -3,11 +3,11 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from games.models import PasswordResetToken
+from games.tests.factories import UserFactory
 
 TEST_PASSWORD = get_random_string(20)
 NEW_PASSWORD = get_random_string(20)
@@ -20,7 +20,7 @@ class TestResetPasswordView:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        self.user = UserFactory(username='alice', password=TEST_PASSWORD)
 
     def test_resets_password_for_valid_token(self, client):
         """Test that a fresh valid token allows setting a new password."""

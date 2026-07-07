@@ -3,20 +3,23 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
 from games.models import (
-    Character,
     CharacterPhoto,
-    Game,
-    GameMaster,
     GamePhoto,
-    Player,
-    Treasure,
     TreasurePhoto,
     Upload,
+)
+from games.tests.factories import (
+    CharacterFactory,
+    GameFactory,
+    GameMasterFactory,
+    PlayerFactory,
+    SuperUserFactory,
+    TreasureFactory,
+    UserFactory,
 )
 
 
@@ -26,9 +29,9 @@ class TestUploadFinalizeView:
 
     def setup_method(self):
         """Set up a game, a DM user, an upload, and a linked game photo."""
-        self.game = Game.objects.create(name='Epic Quest', game_slug='epic-quest')
-        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
-        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
         self.dm_token = Token.objects.create(user=self.dm_user)
 
         self.upload = Upload.objects.create(
@@ -43,11 +46,11 @@ class TestUploadFinalizeView:
         self.upload.content_object = self.game_photo
         self.upload.save()
 
-        self.player = Player.objects.create(name='Bob')
-        self.owner = User.objects.create_user(username='owner', password='secret-password')
+        self.player = PlayerFactory(name='Bob')
+        self.owner = UserFactory(username='owner', password='secret-password')
         self.player.user = self.owner
         self.player.save()
-        self.character = Character.objects.create(
+        self.character = CharacterFactory(
             name='Aragorn', game=self.game, player=self.player, npc=False
         )
         self.owner_token = Token.objects.create(user=self.owner)
@@ -64,11 +67,11 @@ class TestUploadFinalizeView:
         self.character_upload.content_object = self.character_photo
         self.character_upload.save()
 
-        self.superuser = User.objects.create_superuser(
+        self.superuser = SuperUserFactory(
             username='admin', password='secret-password'
         )
         self.superuser_token = Token.objects.create(user=self.superuser)
-        self.treasure = Treasure.objects.create(name='Golden Crown', value=500)
+        self.treasure = TreasureFactory(name='Golden Crown', value=500)
 
         self.treasure_upload = Upload.objects.create(
             user=self.superuser,
@@ -156,7 +159,7 @@ class TestUploadFinalizeView:
 
     def test_different_user_returns_403(self, client):
         """Test that an authenticated user who does not own the upload gets 403."""
-        other_user = User.objects.create_user(username='other', password='secret-password')
+        other_user = UserFactory(username='other', password='secret-password')
         other_token = Token.objects.create(user=other_user)
         response = self._patch(
             client,
@@ -183,7 +186,7 @@ class TestUploadFinalizeView:
 
     def test_non_game_master_user_returns_403(self, client):
         """Test that a user with no game master role returns 403 on game permission check."""
-        non_dm = User.objects.create_user(username='non_dm', password='secret-password')
+        non_dm = UserFactory(username='non_dm', password='secret-password')
         non_dm_token = Token.objects.create(user=non_dm)
         self.upload.user = non_dm
         Upload.objects.filter(pk=self.upload.pk).update(user=non_dm)
@@ -273,7 +276,7 @@ class TestUploadFinalizeView:
 
     def test_unrelated_user_returns_403_for_character_upload(self, client):
         """Test that a user unrelated to the character is rejected on a CharacterPhoto upload."""
-        other_user = User.objects.create_user(username='other', password='secret-password')
+        other_user = UserFactory(username='other', password='secret-password')
         other_token = Token.objects.create(user=other_user)
         self.character_upload.user = other_user
         Upload.objects.filter(pk=self.character_upload.pk).update(user=other_user)
@@ -332,7 +335,7 @@ class TestUploadFinalizeView:
 
     def test_non_superuser_returns_403_for_treasure_upload(self, client):
         """Test that a non-superuser is rejected on a TreasurePhoto upload with 403."""
-        other_user = User.objects.create_user(username='other', password='secret-password')
+        other_user = UserFactory(username='other', password='secret-password')
         other_token = Token.objects.create(user=other_user)
         self.treasure_upload.user = other_user
         Upload.objects.filter(pk=self.treasure_upload.pk).update(user=other_user)

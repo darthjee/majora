@@ -3,28 +3,25 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 
-from games.models import Game, GameMaster
+from games.tests.behaviors import TokenAuthRequestMixin
+from games.tests.factories import GameFactory, GameMasterFactory, SuperUserFactory, UserFactory
 
 
 @pytest.mark.django_db
-class TestGameAccessView:
+class TestGameAccessView(TokenAuthRequestMixin):
     """Tests for the game access endpoint."""
 
     def setup_method(self):
         """Set up a game and a DM user."""
-        self.game = Game.objects.create(name='Epic Quest', game_slug='epic-quest')
-        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
-        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
 
     def _get(self, client, token=None):
         """Issue a GET request to the game access endpoint, optionally with a token."""
-        extra = {}
-        if token is not None:
-            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
-        return client.get('/games/epic-quest/access.json', **extra)
+        return self.get(client, '/games/epic-quest/access.json', token=token)
 
     def test_non_existent_slug_returns_200_with_can_edit_false(self, client):
         """Test that a non-existent game slug returns 200 with can_edit false."""
@@ -50,7 +47,7 @@ class TestGameAccessView:
 
     def test_non_dm_user_returns_200_with_can_edit_false(self, client):
         """Test that a non-DM authenticated user returns 200 with can_edit false."""
-        other = User.objects.create_user(username='other', password='secret-password')
+        other = UserFactory(username='other', password='secret-password')
         token = Token.objects.create(user=other)
         response = self._get(client, token=token)
         assert response.status_code == 200
@@ -59,7 +56,7 @@ class TestGameAccessView:
 
     def test_superuser_returns_200_with_can_edit_true(self, client):
         """Test that a superuser returns 200 with can_edit true."""
-        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
         response = self._get(client, token=token)
         assert response.status_code == 200
@@ -90,7 +87,7 @@ class TestGameAccessView:
 
     def test_superuser_returns_correct_user_context_fields(self, client):
         """Test that superuser request returns correct username, is_superuser=True, is_dm=False."""
-        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
         response = self._get(client, token=token)
         data = json.loads(response.content)
@@ -100,7 +97,7 @@ class TestGameAccessView:
 
     def test_non_dm_user_returns_correct_user_context_fields(self, client):
         """Test non-DM user returns correct username, is_superuser=False, is_dm=False."""
-        other = User.objects.create_user(username='other', password='secret-password')
+        other = UserFactory(username='other', password='secret-password')
         token = Token.objects.create(user=other)
         response = self._get(client, token=token)
         data = json.loads(response.content)
@@ -121,7 +118,7 @@ class TestGameAccessView:
 
     def test_non_dm_user_via_session_returns_can_edit_false(self, client):
         """Test that a non-DM user authenticated via session cookie returns can_edit false."""
-        other = User.objects.create_user(username='other', password='secret-password')
+        other = UserFactory(username='other', password='secret-password')
         token = Token.objects.create(user=other)
         session = client.session
         session['auth_token'] = token.key

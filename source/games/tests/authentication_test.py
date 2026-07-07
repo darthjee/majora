@@ -1,11 +1,11 @@
 """Tests for the CookieTokenAuthentication class."""
 
 import pytest
-from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIRequestFactory
 
 from games.authentication import CookieTokenAuthentication
+from games.tests.factories import UserFactory
 
 
 @pytest.mark.django_db
@@ -14,7 +14,7 @@ class TestCookieTokenAuthentication:
 
     def setup_method(self):
         """Set up a user and token for tests."""
-        self.user = User.objects.create_user(username='alice', password='secret')
+        self.user = UserFactory(username='alice', password='secret')
         self.token = Token.objects.create(user=self.user)
         self.auth = CookieTokenAuthentication()
         self.factory = APIRequestFactory()

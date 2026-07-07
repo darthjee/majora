@@ -3,10 +3,10 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 
-from games.models import Game, GameMaster, GamePhoto, Upload
+from games.models import GamePhoto, Upload
+from games.tests.factories import GameFactory, GameMasterFactory, SuperUserFactory, UserFactory
 
 
 @pytest.mark.django_db
@@ -15,9 +15,9 @@ class TestPhotoUploadView:
 
     def setup_method(self):
         """Set up a game, a DM user, and a non-DM user."""
-        self.game = Game.objects.create(name='Epic Quest', game_slug='epic-quest')
-        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
-        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
         self.dm_token = Token.objects.create(user=self.dm_user)
 
     def _post(self, client, payload, token=None):
@@ -39,7 +39,7 @@ class TestPhotoUploadView:
 
     def test_non_dm_user_returns_403(self, client):
         """Test that an authenticated user who is not a game master is rejected with 403."""
-        other = User.objects.create_user(username='other', password='secret-password')
+        other = UserFactory(username='other', password='secret-password')
         token = Token.objects.create(user=other)
         response = self._post(client, {'filename': 'photo.jpg'}, token=token)
         assert response.status_code == 403
@@ -130,7 +130,7 @@ class TestPhotoUploadView:
 
     def test_superuser_can_upload(self, client):
         """Test that a superuser is allowed to upload a photo for any game."""
-        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
         response = self._post(client, {'filename': 'cover.jpg'}, token=token)
         assert response.status_code == 201

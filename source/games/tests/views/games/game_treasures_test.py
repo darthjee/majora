@@ -3,11 +3,17 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from games.models import Game, GameMaster, Treasure
+from games.models import Treasure
+from games.tests.factories import (
+    GameFactory,
+    GameMasterFactory,
+    SuperUserFactory,
+    TreasureFactory,
+    UserFactory,
+)
 
 
 @pytest.mark.django_db
@@ -16,8 +22,8 @@ class TestGameTreasuresView:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.other_game = Game.objects.create(name='Other Game', game_slug='other-game')
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.other_game = GameFactory(name='Other Game', game_slug='other-game')
 
     def test_returns_empty_list_when_no_treasures(self, client):
         """Test that an empty list is returned when the game has no treasures."""
@@ -27,8 +33,8 @@ class TestGameTreasuresView:
 
     def test_returns_only_game_treasures(self, client):
         """Test that only treasures linked to the game are returned."""
-        treasure = Treasure.objects.create(name='Gold Ring', value=100)
-        other_treasure = Treasure.objects.create(name='Silver Dagger', value=50)
+        treasure = TreasureFactory(name='Gold Ring', value=100)
+        other_treasure = TreasureFactory(name='Silver Dagger', value=50)
         self.game.treasures.add(treasure)
         self.other_game.treasures.add(other_treasure)
         response = client.get('/games/test-game/treasures.json')
@@ -39,7 +45,7 @@ class TestGameTreasuresView:
 
     def test_returns_id_name_value_fields(self, client):
         """Test that list items include id, name, and value fields."""
-        treasure = Treasure.objects.create(name='Enchanted Bow', value=750)
+        treasure = TreasureFactory(name='Enchanted Bow', value=750)
         self.game.treasures.add(treasure)
         response = client.get('/games/test-game/treasures.json')
         data = json.loads(response.content)
@@ -49,8 +55,8 @@ class TestGameTreasuresView:
 
     def test_filters_by_max_value(self, client):
         """Test that only treasures with value <= max_value are returned."""
-        cheap = Treasure.objects.create(name='Cheap Gem', value=50)
-        expensive = Treasure.objects.create(name='Expensive Gem', value=500)
+        cheap = TreasureFactory(name='Cheap Gem', value=50)
+        expensive = TreasureFactory(name='Expensive Gem', value=500)
         self.game.treasures.add(cheap)
         self.game.treasures.add(expensive)
         response = client.get('/games/test-game/treasures.json?max_value=100')
@@ -60,8 +66,8 @@ class TestGameTreasuresView:
 
     def test_returns_all_treasures_when_max_value_absent(self, client):
         """Test that all treasures are returned when max_value is not provided."""
-        cheap = Treasure.objects.create(name='Cheap Gem', value=50)
-        expensive = Treasure.objects.create(name='Expensive Gem', value=500)
+        cheap = TreasureFactory(name='Cheap Gem', value=50)
+        expensive = TreasureFactory(name='Expensive Gem', value=500)
         self.game.treasures.add(cheap)
         self.game.treasures.add(expensive)
         response = client.get('/games/test-game/treasures.json')
@@ -70,7 +76,7 @@ class TestGameTreasuresView:
 
     def test_ignores_non_numeric_max_value(self, client):
         """Test that a non-numeric max_value is ignored rather than erroring."""
-        treasure = Treasure.objects.create(name='Gem', value=50)
+        treasure = TreasureFactory(name='Gem', value=50)
         self.game.treasures.add(treasure)
         response = client.get('/games/test-game/treasures.json?max_value=not-a-number')
         assert response.status_code == 200
@@ -100,7 +106,7 @@ class TestGameTreasuresView:
     def test_respects_page_param(self, client):
         """Test that ?page=N returns the correct page of results."""
         for i in range(5):
-            treasure = Treasure.objects.create(name=f'Treasure {i}', value=i * 10)
+            treasure = TreasureFactory(name=f'Treasure {i}', value=i * 10)
             self.game.treasures.add(treasure)
         response = client.get('/games/test-game/treasures.json?page=2&per_page=3')
         assert response.status_code == 200
@@ -110,7 +116,7 @@ class TestGameTreasuresView:
     def test_respects_per_page_param(self, client):
         """Test that ?per_page=N limits the number of results returned."""
         for i in range(5):
-            treasure = Treasure.objects.create(name=f'Treasure {i}', value=i * 10)
+            treasure = TreasureFactory(name=f'Treasure {i}', value=i * 10)
             self.game.treasures.add(treasure)
         response = client.get('/games/test-game/treasures.json?per_page=2')
         assert response.status_code == 200
@@ -125,14 +131,14 @@ class TestGameTreasuresView:
 
     def test_does_not_return_unlinked_treasures(self, client):
         """Test that treasures not linked to the game are excluded."""
-        Treasure.objects.create(name='Orphan Treasure', value=300)
+        TreasureFactory(name='Orphan Treasure', value=300)
         response = client.get('/games/test-game/treasures.json')
         data = json.loads(response.content)
         assert data == []
 
     def test_returns_game_exclusive_treasures(self, client):
         """Test that treasures owned exclusively by the game (FK) are returned."""
-        treasure = Treasure.objects.create(name='Exclusive Gem', value=400, game=self.game)
+        treasure = TreasureFactory(name='Exclusive Gem', value=400, game=self.game)
         response = client.get('/games/test-game/treasures.json')
         data = json.loads(response.content)
         assert len(data) == 1
@@ -141,9 +147,9 @@ class TestGameTreasuresView:
 
     def test_returns_union_of_linked_and_exclusive_treasures(self, client):
         """Test that both M2M-linked and FK-owned treasures are returned, without duplicates."""
-        linked = Treasure.objects.create(name='Linked Gem', value=100)
+        linked = TreasureFactory(name='Linked Gem', value=100)
         self.game.treasures.add(linked)
-        exclusive = Treasure.objects.create(name='Exclusive Gem', value=200, game=self.game)
+        exclusive = TreasureFactory(name='Exclusive Gem', value=200, game=self.game)
         response = client.get('/games/test-game/treasures.json')
         data = json.loads(response.content)
         names = {item['name'] for item in data}
@@ -153,7 +159,7 @@ class TestGameTreasuresView:
 
     def test_does_not_return_other_games_exclusive_treasures(self, client):
         """Test that a treasure exclusive to another game is excluded."""
-        Treasure.objects.create(name='Other Gem', value=300, game=self.other_game)
+        TreasureFactory(name='Other Gem', value=300, game=self.other_game)
         response = client.get('/games/test-game/treasures.json')
         data = json.loads(response.content)
         assert data == []
@@ -165,15 +171,15 @@ class TestGameTreasuresCreate:
 
     def setup_method(self):
         """Set up a game, a DM, a superuser, and a regular user."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
-        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
         self.dm_token = Token.objects.create(user=self.dm_user)
-        self.superuser = User.objects.create_superuser(
+        self.superuser = SuperUserFactory(
             username='admin', password='secret-password'
         )
         self.superuser_token = Token.objects.create(user=self.superuser)
-        self.regular_user = User.objects.create_user(
+        self.regular_user = UserFactory(
             username='player', password='secret-password'
         )
         self.regular_token = Token.objects.create(user=self.regular_user)
@@ -250,7 +256,7 @@ class TestGameTreasuresCreate:
 
     def test_game_field_in_body_is_ignored(self, client):
         """Test that a game value in the request body does not override the resolved game."""
-        other_game = Game.objects.create(name='Other Game', game_slug='other-game')
+        other_game = GameFactory(name='Other Game', game_slug='other-game')
         response = self._post(
             client, {'name': 'Gem', 'value': 100, 'game': other_game.id}, token=self.dm_token
         )

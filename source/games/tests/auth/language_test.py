@@ -3,9 +3,10 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from django.utils.crypto import get_random_string
 from rest_framework.authtoken.models import Token
+
+from games.tests.factories import UserFactory
 
 TEST_PASSWORD = get_random_string(20)
 
@@ -16,7 +17,7 @@ class TestLanguageView:
 
     def test_updates_favorite_language(self, client):
         """Test that an authenticated request updates the favorite language."""
-        user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
         token = Token.objects.create(user=user)
 
         response = client.post(
@@ -31,7 +32,7 @@ class TestLanguageView:
 
     def test_status_reflects_updated_language(self, client):
         """Test that status.json reflects the language set previously."""
-        user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
         token = Token.objects.create(user=user)
 
         client.post(

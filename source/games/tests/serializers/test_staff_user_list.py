@@ -1,9 +1,9 @@
 """Tests for the StaffUserListSerializer."""
 
 import pytest
-from django.contrib.auth.models import User
 
 from games.serializers import StaffUserListSerializer
+from games.tests.factories import UserFactory
 
 
 @pytest.mark.django_db
@@ -12,7 +12,7 @@ class TestStaffUserListSerializer:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.user = User.objects.create_user(
+        self.user = UserFactory(
             username='alice', password='secret-password', email='alice@example.com'
         )
 

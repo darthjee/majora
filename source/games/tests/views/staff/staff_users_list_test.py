@@ -3,32 +3,33 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
+from games.tests.behaviors import TokenAuthRequestMixin
+from games.tests.factories import SuperUserFactory, UserFactory
+
+STAFF_USERS_URL = '/staff/users.json'
+
 
 @pytest.mark.django_db
-class TestStaffUsersListView:
+class TestStaffUsersListView(TokenAuthRequestMixin):
     """Tests for the GET /staff/users.json endpoint."""
 
     def setup_method(self):
         """Set up staff, superuser, and regular user accounts."""
-        self.staff_user = User.objects.create_user(
+        self.staff_user = UserFactory(
             username='staffer', password='secret-password', is_staff=True
         )
         self.staff_token = Token.objects.create(user=self.staff_user)
-        self.superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        self.superuser = SuperUserFactory(username='admin', password='secret-password')
         self.superuser_token = Token.objects.create(user=self.superuser)
-        self.regular_user = User.objects.create_user(username='player', password='secret-password')
+        self.regular_user = UserFactory(username='player', password='secret-password')
         self.regular_token = Token.objects.create(user=self.regular_user)
 
     def _get(self, client, token=None):
         """Issue a GET request to the staff users list endpoint, optionally with a token."""
-        extra = {}
-        if token is not None:
-            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
-        return client.get('/staff/users.json', **extra)
+        return self.get(client, STAFF_USERS_URL, token=token)
 
     def test_unauthenticated_returns_401(self, client):
         """Test that an unauthenticated request returns 401."""

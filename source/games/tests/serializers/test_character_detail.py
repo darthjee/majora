@@ -1,11 +1,19 @@
 """Tests for the CharacterDetailSerializer."""
 
 import pytest
-from django.contrib.auth.models import AnonymousUser, User
+from django.contrib.auth.models import AnonymousUser
 from rest_framework.test import APIRequestFactory
 
-from games.models import Character, CharacterLink, CharacterPhoto, Game, GameMaster, Player
+from games.models import CharacterLink, CharacterPhoto
 from games.serializers import CharacterDetailSerializer
+from games.tests.factories import (
+    CharacterFactory,
+    GameFactory,
+    GameMasterFactory,
+    PlayerFactory,
+    SuperUserFactory,
+    UserFactory,
+)
 
 
 @pytest.mark.django_db
@@ -14,8 +22,8 @@ class TestCharacterDetailSerializer:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.character = Character.objects.create(
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.character = CharacterFactory(
             name='Frodo',
             game=self.game,
             role='Hobbit',
@@ -118,14 +126,14 @@ class TestCharacterDetailSerializer:
 
     def test_can_edit_is_true_for_superuser(self):
         """Test that can_edit is true for a superuser."""
-        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        superuser = SuperUserFactory(username='admin', password='secret-password')
         data = self._serialize(superuser)
         assert data['can_edit'] is True
 
     def test_can_edit_is_true_for_connected_player_user(self):
         """Test that can_edit is true for the user linked to the character's player."""
-        user = User.objects.create_user(username='owner', password='secret-password')
-        player = Player.objects.create(name='Owner', user=user)
+        user = UserFactory(username='owner', password='secret-password')
+        player = PlayerFactory(name='Owner', user=user)
         self.character.player = player
         self.character.save()
         data = self._serialize(user)
@@ -133,14 +141,14 @@ class TestCharacterDetailSerializer:
 
     def test_can_edit_is_true_for_game_master(self):
         """Test that can_edit is true for a DM of the character's game."""
-        dm_user = User.objects.create_user(username='dm', password='secret-password')
-        GameMaster.objects.create(game=self.game, user=dm_user)
+        dm_user = UserFactory(username='dm', password='secret-password')
+        GameMasterFactory(game=self.game, user=dm_user)
         data = self._serialize(dm_user)
         assert data['can_edit'] is True
 
     def test_can_edit_is_false_for_unrelated_user(self):
         """Test that can_edit is false for an unrelated authenticated user."""
-        other_user = User.objects.create_user(username='other', password='secret-password')
+        other_user = UserFactory(username='other', password='secret-password')
         data = self._serialize(other_user)
         assert data['can_edit'] is False
 

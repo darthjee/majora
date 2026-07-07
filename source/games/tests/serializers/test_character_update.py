@@ -2,8 +2,8 @@
 
 import pytest
 
-from games.models import Character, Game, Player
 from games.serializers import CharacterUpdateSerializer
+from games.tests.factories import CharacterFactory, GameFactory, PlayerFactory
 
 
 @pytest.mark.django_db
@@ -12,8 +12,8 @@ class TestCharacterUpdateSerializer:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.character = Character.objects.create(name='Frodo', game=self.game)
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.character = CharacterFactory(name='Frodo', game=self.game)
 
     def test_serializes_editable_fields(self):
         """Test that all editable fields are serialized."""
@@ -105,8 +105,8 @@ class TestCharacterUpdateSerializer:
 
     def test_game_and_player_are_not_changed(self):
         """Test that game and player cannot be changed via update, even if supplied."""
-        other_game = Game.objects.create(name='Other Game', game_slug='other-game')
-        other_player = Player.objects.create(name='Other Player')
+        other_game = GameFactory(name='Other Game', game_slug='other-game')
+        other_player = PlayerFactory(name='Other Player')
         serializer = CharacterUpdateSerializer(
             self.character,
             data={

@@ -4,6 +4,7 @@ import pytest
 from django.contrib.contenttypes.models import ContentType
 
 from games.models import Game, Link
+from games.tests.factories import GameFactory
 
 
 @pytest.mark.django_db
@@ -12,7 +13,7 @@ class TestLink:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
 
     def test_link_creation(self):
         """Test that a link can be created with a game as content_object."""

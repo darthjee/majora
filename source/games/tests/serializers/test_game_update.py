@@ -2,8 +2,9 @@
 
 import pytest
 
-from games.models import Game, GamePhoto
+from games.models import GamePhoto
 from games.serializers import GameUpdateSerializer
+from games.tests.factories import GameFactory
 
 
 @pytest.mark.django_db
@@ -12,7 +13,7 @@ class TestGameUpdateSerializer:
 
     def setup_method(self):
         """Set up a game instance for testing."""
-        self.game = Game.objects.create(
+        self.game = GameFactory(
             name='Epic Quest',
             game_slug='epic-quest',
             description='An adventure in Middle Earth.',

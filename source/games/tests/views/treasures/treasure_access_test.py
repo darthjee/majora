@@ -3,31 +3,28 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from games.models import Treasure
+from games.tests.behaviors import TokenAuthRequestMixin
+from games.tests.factories import SuperUserFactory, TreasureFactory, UserFactory
 
 
 @pytest.mark.django_db
-class TestTreasureAccessView:
+class TestTreasureAccessView(TokenAuthRequestMixin):
     """Tests for the GET /treasures/<id>/access.json endpoint."""
 
     def setup_method(self):
         """Set up a treasure, a superuser, and a regular user."""
-        self.treasure = Treasure.objects.create(name='Magic Staff', value=400)
-        self.superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        self.treasure = TreasureFactory(name='Magic Staff', value=400)
+        self.superuser = SuperUserFactory(username='admin', password='secret-password')
         self.superuser_token = Token.objects.create(user=self.superuser)
-        self.regular_user = User.objects.create_user(username='player', password='secret-password')
+        self.regular_user = UserFactory(username='player', password='secret-password')
         self.regular_token = Token.objects.create(user=self.regular_user)
 
     def _get(self, client, token=None):
         """Issue a GET request to the treasure access endpoint, optionally with a token."""
-        extra = {}
-        if token is not None:
-            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
-        return client.get(f'/treasures/{self.treasure.id}/access.json', **extra)
+        return self.get(client, f'/treasures/{self.treasure.id}/access.json', token=token)
 
     def test_unauthenticated_returns_200_with_can_edit_false(self, client):
         """Test that an unauthenticated request returns 200 with can_edit false."""
@@ -52,8 +49,9 @@ class TestTreasureAccessView:
 
     def test_non_existent_treasure_returns_200_with_can_edit_false(self, client):
         """Test that a non-existent treasure id returns 200 with can_edit false."""
-        extra = {'HTTP_AUTHORIZATION': f'Token {self.superuser_token.key}'}
-        response = client.get('/treasures/999999/access.json', **extra)
+        response = self.get(
+            client, '/treasures/999999/access.json', token=self.superuser_token
+        )
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['can_edit'] is False

@@ -2,8 +2,9 @@
 
 import pytest
 
-from games.models import Character, CharacterTreasure, Game, Treasure, TreasurePhoto
+from games.models import CharacterTreasure, TreasurePhoto
 from games.serializers import CharacterTreasureSerializer
+from games.tests.factories import CharacterFactory, GameFactory, TreasureFactory
 
 
 @pytest.mark.django_db
@@ -12,9 +13,9 @@ class TestCharacterTreasureSerializer:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.character = Character.objects.create(name='Frodo', game=self.game)
-        self.treasure = Treasure.objects.create(name='Potion of Healing', value=50)
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.character = CharacterFactory(name='Frodo', game=self.game)
+        self.treasure = TreasureFactory(name='Potion of Healing', value=50)
         self.character_treasure = CharacterTreasure.objects.create(
             character=self.character, treasure=self.treasure, quantity=3,
         )

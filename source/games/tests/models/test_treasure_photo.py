@@ -2,7 +2,8 @@
 
 import pytest
 
-from games.models import Treasure, TreasurePhoto
+from games.models import TreasurePhoto
+from games.tests.factories import TreasureFactory
 
 
 @pytest.mark.django_db
@@ -11,7 +12,7 @@ class TestTreasurePhoto:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.treasure = Treasure.objects.create(name='Golden Crown', value=500)
+        self.treasure = TreasureFactory(name='Golden Crown', value=500)
 
     def test_treasure_photo_creation(self):
         """Test that a treasure photo can be created and linked to a treasure."""

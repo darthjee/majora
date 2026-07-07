@@ -1,10 +1,9 @@
 """Tests for the GameMasterSerializer."""
 
 import pytest
-from django.contrib.auth.models import User
 
-from games.models import Game, GameMaster
 from games.serializers import GameMasterSerializer
+from games.tests.factories import GameFactory, GameMasterFactory, UserFactory
 
 
 @pytest.mark.django_db
@@ -13,9 +12,9 @@ class TestGameMasterSerializer:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.user = User.objects.create_user(username='dm', password='secret-password')
-        self.game_master = GameMaster.objects.create(game=self.game, user=self.user)
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.user = UserFactory(username='dm', password='secret-password')
+        self.game_master = GameMasterFactory(game=self.game, user=self.user)
 
     def test_serializes_id(self):
         """Test that the id field is serialized."""

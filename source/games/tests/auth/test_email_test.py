@@ -3,10 +3,11 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from django.core import mail
 from django.utils.crypto import get_random_string
 from rest_framework.authtoken.models import Token
+
+from games.tests.factories import UserFactory
 
 TEST_PASSWORD = get_random_string(20)
 
@@ -22,7 +23,7 @@ class TestTestEmailView:
     def test_sends_email_for_user_with_email(self, client, monkeypatch):
         """Test that an email is sent to the authenticated user's address."""
         monkeypatch.setenv('EMAILS_ENABLED', 'true')
-        user = User.objects.create_user(
+        user = UserFactory(
             username='alice', password=TEST_PASSWORD, email='alice@example.com'
         )
         token = Token.objects.create(user=user)
@@ -41,7 +42,7 @@ class TestTestEmailView:
     def test_does_not_send_email_when_emails_disabled(self, client, monkeypatch):
         """Test that no email is sent when EMAILS_ENABLED is unset."""
         monkeypatch.delenv('EMAILS_ENABLED', raising=False)
-        user = User.objects.create_user(
+        user = UserFactory(
             username='alice', password=TEST_PASSWORD, email='alice@example.com'
         )
         token = Token.objects.create(user=user)
@@ -57,7 +58,7 @@ class TestTestEmailView:
 
     def test_rejects_user_without_email(self, client):
         """Test that no email is sent when the user has no email configured."""
-        user = User.objects.create_user(username='bob', password=TEST_PASSWORD, email='')
+        user = UserFactory(username='bob', password=TEST_PASSWORD, email='')
         token = Token.objects.create(user=user)
 
         response = client.post(

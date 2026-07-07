@@ -3,10 +3,16 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 
-from games.models import Character, Game, GameMaster, Player
+from games.tests.factories import (
+    CharacterFactory,
+    GameFactory,
+    GameMasterFactory,
+    PlayerFactory,
+    SuperUserFactory,
+    UserFactory,
+)
 
 
 @pytest.mark.django_db
@@ -15,10 +21,10 @@ class TestGameNpcSlainSetView:
 
     def setup_method(self):
         """Set up a game, an NPC, a DM user, and an unrelated user."""
-        self.game = Game.objects.create(name='Epic Quest', game_slug='epic-quest')
-        self.npc = Character.objects.create(name='Gandalf', game=self.game, npc=True)
-        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
-        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
+        self.npc = CharacterFactory(name='Gandalf', game=self.game, npc=True)
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
         self.dm_token = Token.objects.create(user=self.dm_user)
 
     def _url(self, game_slug=None, character_id=None):
@@ -46,18 +52,18 @@ class TestGameNpcSlainSetView:
 
     def test_unrelated_user_returns_403(self, client):
         """Test that an authenticated user unrelated to the NPC's game is rejected with 403."""
-        other = User.objects.create_user(username='other', password='secret-password')
+        other = UserFactory(username='other', password='secret-password')
         token = Token.objects.create(user=other)
         response = self._patch(client, {'slain': True}, token=token)
         assert response.status_code == 403
 
     def test_owning_player_of_unrelated_pc_returns_403(self, client):
         """Test that owning a Player never grants edit access to an NPC's slain flag."""
-        player = Player.objects.create(name='Bob')
-        owner = User.objects.create_user(username='owner', password='secret-password')
+        player = PlayerFactory(name='Bob')
+        owner = UserFactory(username='owner', password='secret-password')
         player.user = owner
         player.save()
-        Character.objects.create(name='Aragorn', game=self.game, player=player, npc=False)
+        CharacterFactory(name='Aragorn', game=self.game, player=player, npc=False)
         token = Token.objects.create(user=owner)
         response = self._patch(client, {'slain': True}, token=token)
         assert response.status_code == 403
@@ -78,8 +84,8 @@ class TestGameNpcSlainSetView:
 
     def test_character_id_from_another_game_returns_404(self, client):
         """Test that a character id belonging to a different game returns 404."""
-        other_game = Game.objects.create(name='Other Game', game_slug='other-game')
-        other_npc = Character.objects.create(name='Saruman', game=other_game, npc=True)
+        other_game = GameFactory(name='Other Game', game_slug='other-game')
+        other_npc = CharacterFactory(name='Saruman', game=other_game, npc=True)
         response = self._patch(
             client, {'slain': True}, token=self.dm_token, character_id=other_npc.id
         )
@@ -87,7 +93,7 @@ class TestGameNpcSlainSetView:
 
     def test_pc_id_returns_404(self, client):
         """Test that a PC id used on the NPC endpoint returns 404."""
-        pc = Character.objects.create(name='Aragorn', game=self.game, npc=False)
+        pc = CharacterFactory(name='Aragorn', game=self.game, npc=False)
         response = self._patch(
             client, {'slain': True}, token=self.dm_token, character_id=pc.id
         )
@@ -124,7 +130,7 @@ class TestGameNpcSlainSetView:
 
     def test_superuser_can_set_slain(self, client):
         """Test that a superuser is allowed to toggle the slain flag for any NPC."""
-        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
         response = self._patch(client, {'slain': True}, token=token)
         assert response.status_code == 200

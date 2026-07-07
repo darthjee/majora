@@ -1,9 +1,10 @@
 """Tests for the GameSession model."""
 
 import pytest
-from django.contrib.auth.models import AnonymousUser, User
+from django.contrib.auth.models import AnonymousUser
 
-from games.models import Game, GameMaster, GameSession
+from games.models import GameSession
+from games.tests.factories import GameFactory, GameMasterFactory, SuperUserFactory, UserFactory
 
 
 @pytest.mark.django_db
@@ -12,7 +13,7 @@ class TestGameSession:
 
     def setup_method(self):
         """Set up a game for testing."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
 
     def test_game_session_creation(self):
         """Test that a session can be created with a game and title."""
@@ -48,14 +49,14 @@ class TestGameSessionCanBeEditedBy:
 
     def setup_method(self):
         """Set up a game, a session, and a DM user."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.session = GameSession.objects.create(game=self.game, title='Session One')
-        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
-        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
 
     def test_superuser_can_edit(self):
         """Test that a superuser may edit the session."""
-        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        superuser = SuperUserFactory(username='admin', password='secret-password')
         assert self.session.can_be_edited_by(superuser) is True
 
     def test_dm_of_game_can_edit(self):
@@ -64,14 +65,14 @@ class TestGameSessionCanBeEditedBy:
 
     def test_dm_of_other_game_cannot_edit(self):
         """Test that a DM of a different game cannot edit the session."""
-        other_game = Game.objects.create(name='Other Game', game_slug='other-game')
-        other_dm = User.objects.create_user(username='other_dm', password='secret-password')
-        GameMaster.objects.create(game=other_game, user=other_dm)
+        other_game = GameFactory(name='Other Game', game_slug='other-game')
+        other_dm = UserFactory(username='other_dm', password='secret-password')
+        GameMasterFactory(game=other_game, user=other_dm)
         assert self.session.can_be_edited_by(other_dm) is False
 
     def test_non_dm_user_cannot_edit(self):
         """Test that a regular user who is not a DM cannot edit the session."""
-        other = User.objects.create_user(username='other', password='secret-password')
+        other = UserFactory(username='other', password='secret-password')
         assert self.session.can_be_edited_by(other) is False
 
     def test_none_user_cannot_edit(self):

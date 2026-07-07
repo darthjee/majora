@@ -3,34 +3,38 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from games.models import Game, GameMaster, Treasure
+from games.tests.behaviors import DetailNotFoundBehaviorMixin, TokenAuthRequestMixin
+from games.tests.factories import (
+    GameFactory,
+    GameMasterFactory,
+    SuperUserFactory,
+    TreasureFactory,
+    UserFactory,
+)
 
 
 @pytest.mark.django_db
-class TestTreasureDetailView:
+class TestTreasureDetailView(DetailNotFoundBehaviorMixin):
     """Tests for the GET /treasures/<id>.json endpoint."""
 
     def setup_method(self):
         """Set up a treasure for testing."""
-        self.treasure = Treasure.objects.create(name='Enchanted Bow', value=750)
+        self.treasure = TreasureFactory(name='Enchanted Bow', value=750)
 
     def test_returns_treasure_detail(self, client):
         """Test that treasure detail is returned for a valid id."""
-        response = client.get(f'/treasures/{self.treasure.id}.json')
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert data['id'] == self.treasure.id
-        assert data['name'] == 'Enchanted Bow'
-        assert data['value'] == 750
+        self.assert_returns_detail(
+            client,
+            f'/treasures/{self.treasure.id}.json',
+            id=self.treasure.id, name='Enchanted Bow', value=750,
+        )
 
     def test_returns_404_for_unknown_id(self, client):
         """Test that 404 is returned for a non-existent treasure id."""
-        response = client.get('/treasures/999999.json')
-        assert response.status_code == 404
+        self.assert_returns_not_found(client, '/treasures/999999.json')
 
     def test_url_by_name(self, client):
         """Test that the view is accessible by URL name."""
@@ -40,28 +44,20 @@ class TestTreasureDetailView:
 
 
 @pytest.mark.django_db
-class TestTreasureDetailPatchView:
+class TestTreasureDetailPatchView(TokenAuthRequestMixin):
     """Tests for the PATCH /treasures/<id>.json endpoint."""
 
     def setup_method(self):
         """Set up a treasure, a superuser, and a regular user."""
-        self.treasure = Treasure.objects.create(name='Old Helmet', value=80)
-        self.superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        self.treasure = TreasureFactory(name='Old Helmet', value=80)
+        self.superuser = SuperUserFactory(username='admin', password='secret-password')
         self.superuser_token = Token.objects.create(user=self.superuser)
-        self.regular_user = User.objects.create_user(username='player', password='secret-password')
+        self.regular_user = UserFactory(username='player', password='secret-password')
         self.regular_token = Token.objects.create(user=self.regular_user)
 
     def _patch(self, client, payload, token=None):
         """Issue a PATCH request to the treasure detail endpoint, optionally with a token."""
-        extra = {}
-        if token is not None:
-            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
-        return client.patch(
-            f'/treasures/{self.treasure.id}.json',
-            data=json.dumps(payload),
-            content_type='application/json',
-            **extra,
-        )
+        return self.patch(client, f'/treasures/{self.treasure.id}.json', payload, token=token)
 
     def test_superuser_can_patch(self, client):
         """Test that a superuser can update a treasure and receives 200."""
@@ -89,12 +85,8 @@ class TestTreasureDetailPatchView:
 
     def test_patch_non_existent_treasure_returns_404(self, client):
         """Test that PATCH on a non-existent treasure returns 404."""
-        extra = {'HTTP_AUTHORIZATION': f'Token {self.superuser_token.key}'}
-        response = client.patch(
-            '/treasures/999999.json',
-            data=json.dumps({'name': 'Ghost'}),
-            content_type='application/json',
-            **extra,
+        response = self.patch(
+            client, '/treasures/999999.json', {'name': 'Ghost'}, token=self.superuser_token
         )
         assert response.status_code == 404
 
@@ -107,11 +99,11 @@ class TestTreasureDetailPatchView:
 
     def test_patch_with_dm_of_owning_game_returns_403(self, client):
         """Test that PATCH is still rejected with 403 for the DM of the treasure's game."""
-        game = Game.objects.create(name='Test Game', game_slug='test-game')
+        game = GameFactory(name='Test Game', game_slug='test-game')
         self.treasure.game = game
         self.treasure.save()
-        dm_user = User.objects.create_user(username='dm_user', password='secret-password')
-        GameMaster.objects.create(game=game, user=dm_user)
+        dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=game, user=dm_user)
         dm_token = Token.objects.create(user=dm_user)
         response = self._patch(client, {'name': 'Hacked Helmet'}, token=dm_token)
         assert response.status_code == 403

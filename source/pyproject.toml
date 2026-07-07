@@ -21,6 +21,7 @@ ruff = "^0.3"
 radon = "^6.0"
 xenon = "^0.9"
 lizard = "^1.17"
+factory-boy = "^3.3"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "majora_project.settings"

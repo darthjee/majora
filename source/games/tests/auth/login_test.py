@@ -3,9 +3,10 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from django.utils.crypto import get_random_string
 from rest_framework.authtoken.models import Token
+
+from games.tests.factories import UserFactory
 
 TEST_PASSWORD = get_random_string(20)
 
@@ -16,7 +17,7 @@ class TestLoginView:
 
     def test_returns_token_for_valid_credentials(self, client):
         """Test that a valid login returns a token."""
-        User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        UserFactory(username='alice', password=TEST_PASSWORD)
         response = client.post(
             '/users/login.json',
             data=json.dumps({'username': 'alice', 'password': TEST_PASSWORD}),
@@ -29,7 +30,7 @@ class TestLoginView:
 
     def test_returns_unauthorized_for_invalid_credentials(self, client):
         """Test that invalid credentials are rejected."""
-        User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        UserFactory(username='alice', password=TEST_PASSWORD)
         response = client.post(
             '/users/login.json',
             data=json.dumps({'username': 'alice', 'password': 'wrong'}),
@@ -39,7 +40,7 @@ class TestLoginView:
 
     def test_stores_token_in_session_on_success(self, client):
         """Test that a successful login stores the auth token in the session."""
-        User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        UserFactory(username='alice', password=TEST_PASSWORD)
         response = client.post(
             '/users/login.json',
             data=json.dumps({'username': 'alice', 'password': TEST_PASSWORD}),

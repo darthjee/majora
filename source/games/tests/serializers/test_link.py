@@ -2,8 +2,9 @@
 
 import pytest
 
-from games.models import Game, Link
+from games.models import Link
 from games.serializers import LinkSerializer
+from games.tests.factories import GameFactory
 
 
 @pytest.mark.django_db
@@ -12,7 +13,7 @@ class TestLinkSerializer:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.link = Link.objects.create(
             text='Official Wiki', url='http://example.com/wiki', content_object=self.game
         )

@@ -3,34 +3,40 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 
-from games.models import Character, Game, GameMaster, Player
+from games.tests.behaviors import TokenAuthRequestMixin
+from games.tests.factories import (
+    CharacterFactory,
+    GameFactory,
+    GameMasterFactory,
+    PlayerFactory,
+    SuperUserFactory,
+    UserFactory,
+)
+
+NPCS_ALL_URL = '/games/test-game/npcs/all.json'
 
 
 @pytest.mark.django_db
-class TestGameNpcsAllView:
+class TestGameNpcsAllView(TokenAuthRequestMixin):
     """Tests for the game_npcs_all endpoint (DM/superuser only, includes hidden NPCs)."""
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
-        GameMaster.objects.create(game=self.game, user=self.dm_user)
-        self.visible_npc = Character.objects.create(
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
+        self.visible_npc = CharacterFactory(
             name='Visible NPC', game=self.game, npc=True, hidden=False
         )
-        self.hidden_npc = Character.objects.create(
+        self.hidden_npc = CharacterFactory(
             name='Hidden NPC', game=self.game, npc=True, hidden=True
         )
 
     def _get(self, client, token=None):
         """Issue a GET request to the npcs/all endpoint, optionally with a token."""
-        extra = {}
-        if token is not None:
-            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
-        return client.get('/games/test-game/npcs/all.json', **extra)
+        return self.get(client, NPCS_ALL_URL, token=token)
 
     def test_returns_401_for_unauthenticated(self, client):
         """Test that unauthenticated request returns 401."""
@@ -39,7 +45,7 @@ class TestGameNpcsAllView:
 
     def test_returns_403_for_non_dm_authenticated_user(self, client):
         """Test that an authenticated user who is not a DM gets 403."""
-        other_user = User.objects.create_user(username='other', password='secret-password')
+        other_user = UserFactory(username='other', password='secret-password')
         token = Token.objects.create(user=other_user)
         response = self._get(client, token=token)
         assert response.status_code == 403
@@ -56,7 +62,7 @@ class TestGameNpcsAllView:
 
     def test_returns_200_for_superuser_with_all_npcs(self, client):
         """Test that a superuser gets 200 with both visible and hidden NPCs."""
-        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
         response = self._get(client, token=token)
         assert response.status_code == 200
@@ -66,10 +72,7 @@ class TestGameNpcsAllView:
     def test_returns_404_for_unknown_game(self, client):
         """Test that 404 is returned for a non-existent game_slug."""
         token = Token.objects.create(user=self.dm_user)
-        response = client.get(
-            '/games/unknown-game/npcs/all.json',
-            HTTP_AUTHORIZATION=f'Token {token.key}',
-        )
+        response = self.get(client, '/games/unknown-game/npcs/all.json', token=token)
         assert response.status_code == 404
 
     def test_response_includes_pagination_headers(self, client):
@@ -89,8 +92,8 @@ class TestGameNpcsAllView:
 
     def test_does_not_include_pcs(self, client):
         """Test that the endpoint only returns NPCs, not PCs."""
-        player = Player.objects.create(name='Alice')
-        Character.objects.create(name='Alice PC', game=self.game, player=player, npc=False)
+        player = PlayerFactory(name='Alice')
+        CharacterFactory(name='Alice PC', game=self.game, player=player, npc=False)
         token = Token.objects.create(user=self.dm_user)
         response = self._get(client, token=token)
         assert response.status_code == 200

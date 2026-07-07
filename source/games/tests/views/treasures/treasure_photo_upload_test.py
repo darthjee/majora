@@ -3,10 +3,16 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 
-from games.models import Game, GameMaster, Treasure, TreasurePhoto, Upload
+from games.models import TreasurePhoto, Upload
+from games.tests.factories import (
+    GameFactory,
+    GameMasterFactory,
+    SuperUserFactory,
+    TreasureFactory,
+    UserFactory,
+)
 
 
 @pytest.mark.django_db
@@ -15,12 +21,12 @@ class TestTreasurePhotoUploadView:
 
     def setup_method(self):
         """Set up a treasure, a superuser, and a regular authenticated user."""
-        self.treasure = Treasure.objects.create(name='Golden Crown', value=500)
-        self.superuser = User.objects.create_superuser(
+        self.treasure = TreasureFactory(name='Golden Crown', value=500)
+        self.superuser = SuperUserFactory(
             username='admin', password='secret-password'
         )
         self.superuser_token = Token.objects.create(user=self.superuser)
-        self.regular_user = User.objects.create_user(
+        self.regular_user = UserFactory(
             username='player', password='secret-password'
         )
         self.regular_token = Token.objects.create(user=self.regular_user)
@@ -162,14 +168,14 @@ class TestTreasurePhotoUploadGameExclusive:
 
     def setup_method(self):
         """Set up a game, a DM, and a treasure exclusive to that game."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.treasure = Treasure.objects.create(
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.treasure = TreasureFactory(
             name='Game Gem', value=500, game=self.game
         )
-        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
-        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
         self.dm_token = Token.objects.create(user=self.dm_user)
-        self.regular_user = User.objects.create_user(
+        self.regular_user = UserFactory(
             username='player', password='secret-password'
         )
         self.regular_token = Token.objects.create(user=self.regular_user)

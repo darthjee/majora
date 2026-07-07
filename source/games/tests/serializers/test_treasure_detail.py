@@ -2,8 +2,9 @@
 
 import pytest
 
-from games.models import Game, Treasure, TreasurePhoto
+from games.models import TreasurePhoto
 from games.serializers import TreasureDetailSerializer
+from games.tests.factories import GameFactory, TreasureFactory
 
 
 @pytest.mark.django_db
@@ -12,7 +13,7 @@ class TestTreasureDetailSerializer:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.treasure = Treasure.objects.create(name='Silver Sword', value=200)
+        self.treasure = TreasureFactory(name='Silver Sword', value=200)
 
     def test_serializes_id(self):
         """Test that the id field is serialized."""
@@ -56,7 +57,7 @@ class TestTreasureDetailSerializer:
 
     def test_game_slug_reflects_owning_game(self):
         """Test that game_slug reflects the owning game's slug when set."""
-        game = Game.objects.create(name='Test Game', game_slug='test-game')
+        game = GameFactory(name='Test Game', game_slug='test-game')
         self.treasure.game = game
         self.treasure.save()
         data = TreasureDetailSerializer(self.treasure).data
