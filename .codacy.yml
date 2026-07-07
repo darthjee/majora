@@ -1,4 +1,8 @@
 engines:
+  duplication:
+    exclude_paths:
+      - "frontend/specs/**"
+      - "source/games/tests/**"
   bandit:
     exclude_paths:
       - "source/games/tests/**"
