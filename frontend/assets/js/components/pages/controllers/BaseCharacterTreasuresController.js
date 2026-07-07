@@ -29,13 +29,14 @@ export default class BaseCharacterTreasuresController extends BasePageController
    * @param {CharacterClient|null} [characterClient] - Character client override.
    */
   constructor(
-    { setTreasures, setPagination, setLoading, setError, setCharacter = Noop.noop },
+    setters,
     getParamsFromHash,
     characterKind,
     client = null,
     characterClient = null,
   ) {
     super();
+    const { setTreasures, setPagination, setLoading, setError, setCharacter = Noop.noop } = setters;
     this.setTreasures = setTreasures;
     this.setPagination = setPagination;
     this.setLoading = setLoading;

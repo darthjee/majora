@@ -28,13 +28,14 @@ export default class BaseCharacterPhotosController extends BasePageController {
    * @param {CharacterClient|null} [characterClient] - Character client override.
    */
   constructor(
-    { setPhotos, setPagination, setCharacter, setLoading, setError },
+    setters,
     getParamsFromHash,
     characterKind,
     client = null,
     characterClient = null,
   ) {
     super();
+    const { setPhotos, setPagination, setCharacter, setLoading, setError } = setters;
     this.setPhotos = setPhotos;
     this.setPagination = setPagination;
     this.setCharacter = setCharacter;
