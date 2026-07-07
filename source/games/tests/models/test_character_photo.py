@@ -2,7 +2,8 @@
 
 import pytest
 
-from games.models import Character, CharacterPhoto, Game
+from games.models import CharacterPhoto
+from games.tests.factories import CharacterFactory, GameFactory
 
 
 @pytest.mark.django_db
@@ -11,8 +12,8 @@ class TestCharacterPhoto:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.character = Character.objects.create(name='Frodo', game=self.game)
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.character = CharacterFactory(name='Frodo', game=self.game)
 
     def test_character_photo_creation(self):
         """Test that a character photo can be created and linked to a character."""

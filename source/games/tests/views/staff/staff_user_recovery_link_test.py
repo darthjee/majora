@@ -4,13 +4,13 @@ import json
 from datetime import timedelta
 
 import pytest
-from django.contrib.auth.models import User
 from django.core import mail
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
 from games.models import PasswordResetToken
+from games.tests.factories import SuperUserFactory, UserFactory
 
 
 @pytest.mark.django_db
@@ -20,16 +20,16 @@ class TestStaffUserRecoveryLinkView:
     def setup_method(self):
         """Set up a target user, staff, superuser, and a regular user."""
         mail.outbox = []
-        self.target_user = User.objects.create_user(
+        self.target_user = UserFactory(
             username='target', password='secret-password', email='target@example.com'
         )
-        self.staff_user = User.objects.create_user(
+        self.staff_user = UserFactory(
             username='staffer', password='secret-password', is_staff=True
         )
         self.staff_token = Token.objects.create(user=self.staff_user)
-        self.superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        self.superuser = SuperUserFactory(username='admin', password='secret-password')
         self.superuser_token = Token.objects.create(user=self.superuser)
-        self.regular_user = User.objects.create_user(username='player', password='secret-password')
+        self.regular_user = UserFactory(username='player', password='secret-password')
         self.regular_token = Token.objects.create(user=self.regular_user)
 
     def _post(self, client, user_id, token=None):

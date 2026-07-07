@@ -1,9 +1,9 @@
 """Tests for the UserProfile model."""
 
 import pytest
-from django.contrib.auth.models import User
 
 from games.models import UserProfile
+from games.tests.factories import UserFactory
 
 
 @pytest.mark.django_db
@@ -12,7 +12,7 @@ class TestUserProfile:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.user = User.objects.create_user(username='alice', password='secret-password')
+        self.user = UserFactory(username='alice', password='secret-password')
 
     def test_default_favorite_language(self):
         """Test that a new profile defaults to English."""

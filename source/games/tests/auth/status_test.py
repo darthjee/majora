@@ -3,9 +3,10 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from django.utils.crypto import get_random_string
 from rest_framework.authtoken.models import Token
+
+from games.tests.factories import UserFactory
 
 TEST_PASSWORD = get_random_string(20)
 
@@ -16,7 +17,7 @@ class TestStatusView:
 
     def test_returns_logged_in_for_valid_token(self, client):
         """Test that a valid token reports logged_in true with the username."""
-        user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
         token = Token.objects.create(user=user)
 
         response = client.get(
@@ -36,7 +37,7 @@ class TestStatusView:
 
     def test_returns_is_superuser_false_for_regular_user(self, client):
         """Test that a non-superuser's status response includes is_superuser false."""
-        user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
         token = Token.objects.create(user=user)
 
         response = client.get(
@@ -49,7 +50,7 @@ class TestStatusView:
 
     def test_returns_is_superuser_true_for_superuser(self, client):
         """Test that a superuser's status response includes is_superuser true."""
-        user = User.objects.create_user(username='admin', password=TEST_PASSWORD)
+        user = UserFactory(username='admin', password=TEST_PASSWORD)
         user.is_superuser = True
         user.save()
         token = Token.objects.create(user=user)
@@ -64,7 +65,7 @@ class TestStatusView:
 
     def test_returns_is_staff_false_for_regular_user(self, client):
         """Test that a non-staff user's status response includes is_staff false."""
-        user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
         token = Token.objects.create(user=user)
 
         response = client.get(
@@ -77,7 +78,7 @@ class TestStatusView:
 
     def test_returns_is_staff_true_for_staff_user(self, client):
         """Test that a staff user's status response includes is_staff true."""
-        user = User.objects.create_user(username='staffer', password=TEST_PASSWORD)
+        user = UserFactory(username='staffer', password=TEST_PASSWORD)
         user.is_staff = True
         user.save()
         token = Token.objects.create(user=user)
@@ -118,7 +119,7 @@ class TestStatusView:
 
     def test_returns_logged_in_via_session_and_includes_token(self, client):
         """Test that a valid session cookie (no Authorization header) returns logged_in true."""
-        user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
         token = Token.objects.create(user=user)
         session = client.session
         session['auth_token'] = token.key
@@ -134,7 +135,7 @@ class TestStatusView:
 
     def test_returns_logged_out_for_stale_session_token(self, client):
         """Test that a session referencing a deleted token returns logged_in false."""
-        user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
         token = Token.objects.create(user=user)
         session = client.session
         session['auth_token'] = token.key
@@ -158,7 +159,7 @@ class TestStatusViewCacheControl:
 
     def test_authenticated_status_returns_no_store(self, client):
         """Authenticated GET /users/status.json must carry Cache-Control: no-store."""
-        user = User.objects.create_user(username='alice', password=TEST_PASSWORD)
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
         token = Token.objects.create(user=user)
         response = client.get(
             '/users/status.json',

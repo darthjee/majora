@@ -3,11 +3,11 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from games.models import Game, GameMaster, GameSession
+from games.models import GameSession
+from games.tests.factories import GameFactory, GameMasterFactory, SuperUserFactory, UserFactory
 
 
 @pytest.mark.django_db
@@ -16,8 +16,8 @@ class TestGameSessionsListView:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.other_game = Game.objects.create(name='Other Game', game_slug='other-game')
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.other_game = GameFactory(name='Other Game', game_slug='other-game')
 
     def test_returns_empty_list_when_no_sessions(self, client):
         """Test that an empty list is returned when the game has no sessions."""
@@ -105,13 +105,13 @@ class TestGameSessionsCreateView:
 
     def setup_method(self):
         """Set up a game, a DM, a superuser, and a regular user."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
-        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
         self.dm_token = Token.objects.create(user=self.dm_user)
-        self.superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        self.superuser = SuperUserFactory(username='admin', password='secret-password')
         self.superuser_token = Token.objects.create(user=self.superuser)
-        self.regular_user = User.objects.create_user(username='player', password='secret-password')
+        self.regular_user = UserFactory(username='player', password='secret-password')
         self.regular_token = Token.objects.create(user=self.regular_user)
 
     def _post(self, client, payload, token=None, game_slug=None):

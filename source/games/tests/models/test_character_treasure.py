@@ -3,7 +3,8 @@
 import pytest
 from django.db import IntegrityError, transaction
 
-from games.models import Character, CharacterTreasure, Game, Treasure
+from games.models import CharacterTreasure
+from games.tests.factories import CharacterFactory, GameFactory, TreasureFactory
 
 
 @pytest.mark.django_db
@@ -12,9 +13,9 @@ class TestCharacterTreasure:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.character = Character.objects.create(name='Frodo', game=self.game)
-        self.treasure = Treasure.objects.create(name='Golden Crown', value=500)
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.character = CharacterFactory(name='Frodo', game=self.game)
+        self.treasure = TreasureFactory(name='Golden Crown', value=500)
 
     def test_character_treasure_creation(self):
         """Test that a character treasure can be created linking a character and a treasure."""
@@ -44,7 +45,7 @@ class TestCharacterTreasure:
         CharacterTreasure.objects.create(
             character=self.character, treasure=self.treasure, quantity=1,
         )
-        other_treasure = Treasure.objects.create(name='Silver Sword', value=100)
+        other_treasure = TreasureFactory(name='Silver Sword', value=100)
         CharacterTreasure.objects.create(
             character=self.character, treasure=other_treasure, quantity=1,
         )
@@ -62,7 +63,7 @@ class TestCharacterTreasure:
         first = CharacterTreasure.objects.create(
             character=self.character, treasure=self.treasure, quantity=1,
         )
-        second_treasure = Treasure.objects.create(name='Silver Sword', value=100)
+        second_treasure = TreasureFactory(name='Silver Sword', value=100)
         second = CharacterTreasure.objects.create(
             character=self.character, treasure=second_treasure, quantity=1,
         )

@@ -2,8 +2,9 @@
 
 import pytest
 
-from games.models import Game, GameSession
+from games.models import GameSession
 from games.serializers import GameSessionListSerializer
+from games.tests.factories import GameFactory
 
 
 @pytest.mark.django_db
@@ -12,7 +13,7 @@ class TestGameSessionListSerializer:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.session = GameSession.objects.create(game=self.game, title='Session One')
 
     def test_serializes_id(self):

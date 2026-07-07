@@ -3,11 +3,11 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from django.core import mail
 from django.utils.crypto import get_random_string
 
 from games.models import PasswordResetToken
+from games.tests.factories import UserFactory
 
 TEST_PASSWORD = get_random_string(20)
 
@@ -23,7 +23,7 @@ class TestRecoverView:
     def test_sends_email_and_creates_token_for_matching_email(self, client, monkeypatch):
         """Test that a matching email creates a token and sends a recovery email."""
         monkeypatch.setenv('EMAILS_ENABLED', 'true')
-        user = User.objects.create_user(
+        user = UserFactory(
             username='alice', password=TEST_PASSWORD, email='alice@example.com'
         )
 
@@ -42,7 +42,7 @@ class TestRecoverView:
     def test_does_not_send_email_when_emails_disabled(self, client, monkeypatch):
         """Test that no recovery email is sent when EMAILS_ENABLED is unset."""
         monkeypatch.delenv('EMAILS_ENABLED', raising=False)
-        user = User.objects.create_user(
+        user = UserFactory(
             username='alice', password=TEST_PASSWORD, email='alice@example.com'
         )
 

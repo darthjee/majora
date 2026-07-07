@@ -4,8 +4,8 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 from rest_framework.test import APIRequestFactory
 
-from games.models import Character, Game
 from games.serializers import CharacterFullSerializer
+from games.tests.factories import CharacterFactory, GameFactory
 
 
 @pytest.mark.django_db
@@ -14,8 +14,8 @@ class TestCharacterFullSerializer:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.character = Character.objects.create(
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.character = CharacterFactory(
             name='Frodo',
             game=self.game,
             public_description='A brave hobbit.',

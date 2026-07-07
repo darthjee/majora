@@ -3,11 +3,11 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from games.models import Game, GameMaster
+from games.models import GameMaster
+from games.tests.factories import GameFactory, UserFactory
 
 
 @pytest.mark.django_db
@@ -22,8 +22,8 @@ class TestGamesListView:
 
     def test_returns_games(self, client):
         """Test that created games are returned in the list."""
-        Game.objects.create(name='Game One', game_slug='game-one')
-        Game.objects.create(name='Game Two', game_slug='game-two')
+        GameFactory(name='Game One', game_slug='game-one')
+        GameFactory(name='Game Two', game_slug='game-two')
         response = client.get('/games.json')
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -56,7 +56,7 @@ class TestGamesListView:
     def test_respects_page_param(self, client):
         """Test that ?page=N returns the correct page of results."""
         for i in range(5):
-            Game.objects.create(name=f'Game {i}', game_slug=f'game-{i}')
+            GameFactory(name=f'Game {i}', game_slug=f'game-{i}')
         response = client.get('/games.json?page=2&per_page=3')
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -65,7 +65,7 @@ class TestGamesListView:
     def test_respects_per_page_param(self, client):
         """Test that ?per_page=N limits the number of results returned."""
         for i in range(5):
-            Game.objects.create(name=f'Game {i}', game_slug=f'game-{i}')
+            GameFactory(name=f'Game {i}', game_slug=f'game-{i}')
         response = client.get('/games.json?per_page=2')
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -78,7 +78,7 @@ class TestGamesCreateView:
 
     def setup_method(self):
         """Set up an authenticated user and token."""
-        self.user = User.objects.create_user(username='creator', password='secret-password')
+        self.user = UserFactory(username='creator', password='secret-password')
         self.token = Token.objects.create(user=self.user)
 
     def _post(self, client, payload, token=None):

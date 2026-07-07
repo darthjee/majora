@@ -1,11 +1,12 @@
 """Tests for the GameSessionDetailSerializer."""
 
 import pytest
-from django.contrib.auth.models import AnonymousUser, User
+from django.contrib.auth.models import AnonymousUser
 from rest_framework.test import APIRequestFactory
 
-from games.models import Game, GameMaster, GameSession
+from games.models import GameSession
 from games.serializers import GameSessionDetailSerializer
+from games.tests.factories import GameFactory, GameMasterFactory, SuperUserFactory, UserFactory
 
 
 @pytest.mark.django_db
@@ -14,7 +15,7 @@ class TestGameSessionDetailSerializer:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.session = GameSession.objects.create(game=self.game, title='Session One')
         self.factory = APIRequestFactory()
 
@@ -63,20 +64,20 @@ class TestGameSessionDetailSerializer:
 
     def test_can_edit_is_true_for_superuser(self):
         """Test that can_edit is true for a superuser."""
-        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        superuser = SuperUserFactory(username='admin', password='secret-password')
         data = self._serialize(superuser)
         assert data['can_edit'] is True
 
     def test_can_edit_is_true_for_game_master(self):
         """Test that can_edit is true for a DM of the session's game."""
-        dm_user = User.objects.create_user(username='dm', password='secret-password')
-        GameMaster.objects.create(game=self.game, user=dm_user)
+        dm_user = UserFactory(username='dm', password='secret-password')
+        GameMasterFactory(game=self.game, user=dm_user)
         data = self._serialize(dm_user)
         assert data['can_edit'] is True
 
     def test_can_edit_is_false_for_unrelated_user(self):
         """Test that can_edit is false for an unrelated authenticated user."""
-        other_user = User.objects.create_user(username='other', password='secret-password')
+        other_user = UserFactory(username='other', password='secret-password')
         data = self._serialize(other_user)
         assert data['can_edit'] is False
 

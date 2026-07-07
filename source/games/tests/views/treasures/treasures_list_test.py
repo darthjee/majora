@@ -3,11 +3,10 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from games.models import Game, Treasure
+from games.tests.factories import GameFactory, SuperUserFactory, TreasureFactory, UserFactory
 
 
 @pytest.mark.django_db
@@ -22,8 +21,8 @@ class TestTreasuresListView:
 
     def test_returns_treasures(self, client):
         """Test that created treasures are returned in the list."""
-        Treasure.objects.create(name='Gold Ring', value=100)
-        Treasure.objects.create(name='Silver Dagger', value=50)
+        TreasureFactory(name='Gold Ring', value=100)
+        TreasureFactory(name='Silver Dagger', value=50)
         response = client.get('/treasures.json')
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -31,7 +30,7 @@ class TestTreasuresListView:
 
     def test_returns_id_name_value(self, client):
         """Test that list items include id, name, and value fields."""
-        treasure = Treasure.objects.create(name='Gold Ring', value=100)
+        treasure = TreasureFactory(name='Gold Ring', value=100)
         response = client.get('/treasures.json')
         data = json.loads(response.content)
         assert data[0]['id'] == treasure.id
@@ -57,7 +56,7 @@ class TestTreasuresListView:
     def test_respects_per_page_param(self, client):
         """Test that ?per_page=N limits the number of results returned."""
         for i in range(5):
-            Treasure.objects.create(name=f'Treasure {i}', value=i * 10)
+            TreasureFactory(name=f'Treasure {i}', value=i * 10)
         response = client.get('/treasures.json?per_page=2')
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -66,7 +65,7 @@ class TestTreasuresListView:
     def test_respects_page_param(self, client):
         """Test that ?page=N returns the correct page of results."""
         for i in range(5):
-            Treasure.objects.create(name=f'Treasure {i}', value=i * 10)
+            TreasureFactory(name=f'Treasure {i}', value=i * 10)
         response = client.get('/treasures.json?page=2&per_page=3')
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -74,9 +73,9 @@ class TestTreasuresListView:
 
     def test_excludes_game_exclusive_treasures(self, client):
         """Test that treasures owned exclusively by a game are excluded from the global list."""
-        game = Game.objects.create(name='Test Game', game_slug='test-game')
-        Treasure.objects.create(name='Global Gem', value=100)
-        Treasure.objects.create(name='Exclusive Gem', value=200, game=game)
+        game = GameFactory(name='Test Game', game_slug='test-game')
+        TreasureFactory(name='Global Gem', value=100)
+        TreasureFactory(name='Exclusive Gem', value=200, game=game)
         response = client.get('/treasures.json')
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -90,9 +89,9 @@ class TestTreasuresCreateView:
 
     def setup_method(self):
         """Set up a superuser and a regular user."""
-        self.superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        self.superuser = SuperUserFactory(username='admin', password='secret-password')
         self.superuser_token = Token.objects.create(user=self.superuser)
-        self.regular_user = User.objects.create_user(username='player', password='secret-password')
+        self.regular_user = UserFactory(username='player', password='secret-password')
         self.regular_token = Token.objects.create(user=self.regular_user)
 
     def _post(self, client, payload, token=None):

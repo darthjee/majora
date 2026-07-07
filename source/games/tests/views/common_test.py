@@ -1,12 +1,13 @@
 """Tests for shared view helpers in games.views.common."""
 
 import pytest
-from django.contrib.auth.models import AnonymousUser, User
+from django.contrib.auth.models import AnonymousUser
 from rest_framework.test import APIRequestFactory
 
-from games.models import Game, GameMaster
+from games.models import Game
 from games.permissions import GameEditPermission
 from games.serializers import GameAccessSerializer, GameDetailSerializer, GameUpdateSerializer
+from games.tests.factories import GameFactory, GameMasterFactory, UserFactory
 from games.views.common import (
     UNAUTHENTICATED_RESPONSE_DATA,
     access_response,
@@ -61,7 +62,7 @@ class TestRequireAuthenticated:
 
     def test_returns_none_for_authenticated_user(self):
         """Test that an authenticated user passes the check."""
-        user = User.objects.create_user(username='bob', password='secret-password')
+        user = UserFactory(username='bob', password='secret-password')
         request = _make_request(user=user)
         assert require_authenticated(request) is None
 
@@ -72,7 +73,7 @@ class TestValidatedOrError:
 
     def setup_method(self):
         """Set up a game to update via GameUpdateSerializer."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
 
     def test_returns_none_for_valid_serializer(self):
         """Test that a valid serializer returns None."""
@@ -93,9 +94,9 @@ class TestDetailOrUpdate:
 
     def setup_method(self):
         """Set up a game and a DM user."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
-        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
 
     def _call(self, request):
         """Invoke detail_or_update for self.game with GameEditPermission."""
@@ -140,7 +141,7 @@ class TestPaginatedListResponse:
     def setup_method(self):
         """Set up a few games to paginate over."""
         self.games = [
-            Game.objects.create(name=f'Game {i}', game_slug=f'game-{i}') for i in range(3)
+            GameFactory(name=f'Game {i}', game_slug=f'game-{i}') for i in range(3)
         ]
 
     def test_returns_serialized_page_with_headers(self):
@@ -160,9 +161,9 @@ class TestAccessResponse:
 
     def setup_method(self):
         """Set up a game and a DM user."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
-        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
 
     def test_returns_serialized_data_with_skip_cache_header(self):
         """Test that the response includes serialized data and the X-Skip-Cache header."""

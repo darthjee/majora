@@ -3,9 +3,10 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
+
+from games.tests.factories import SuperUserFactory, UserFactory
 
 
 @pytest.mark.django_db
@@ -14,16 +15,16 @@ class TestStaffUserDetailView:
 
     def setup_method(self):
         """Set up staff, superuser, and regular user accounts."""
-        self.target_user = User.objects.create_user(
+        self.target_user = UserFactory(
             username='target', password='secret-password', email='target@example.com'
         )
-        self.staff_user = User.objects.create_user(
+        self.staff_user = UserFactory(
             username='staffer', password='secret-password', is_staff=True
         )
         self.staff_token = Token.objects.create(user=self.staff_user)
-        self.superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        self.superuser = SuperUserFactory(username='admin', password='secret-password')
         self.superuser_token = Token.objects.create(user=self.superuser)
-        self.regular_user = User.objects.create_user(username='player', password='secret-password')
+        self.regular_user = UserFactory(username='player', password='secret-password')
         self.regular_token = Token.objects.create(user=self.regular_user)
 
     def _get(self, client, user_id, token=None):
@@ -90,19 +91,19 @@ class TestStaffUserDetailPatchView:
 
     def setup_method(self):
         """Set up a target user, another user, staff, superuser, and a regular user."""
-        self.target_user = User.objects.create_user(
+        self.target_user = UserFactory(
             username='target', password='secret-password', email='target@example.com'
         )
-        self.other_user = User.objects.create_user(
+        self.other_user = UserFactory(
             username='other', password='secret-password', email='other@example.com'
         )
-        self.staff_user = User.objects.create_user(
+        self.staff_user = UserFactory(
             username='staffer', password='secret-password', is_staff=True
         )
         self.staff_token = Token.objects.create(user=self.staff_user)
-        self.superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        self.superuser = SuperUserFactory(username='admin', password='secret-password')
         self.superuser_token = Token.objects.create(user=self.superuser)
-        self.regular_user = User.objects.create_user(username='player', password='secret-password')
+        self.regular_user = UserFactory(username='player', password='secret-password')
         self.regular_token = Token.objects.create(user=self.regular_user)
 
     def _patch(self, client, user_id, payload, token=None):

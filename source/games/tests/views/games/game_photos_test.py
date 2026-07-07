@@ -5,7 +5,8 @@ import json
 import pytest
 from django.urls import reverse
 
-from games.models import Game, GamePhoto
+from games.models import GamePhoto
+from games.tests.factories import GameFactory
 
 
 @pytest.mark.django_db
@@ -14,8 +15,8 @@ class TestGamePhotosView:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.other_game = Game.objects.create(name='Other Game', game_slug='other-game')
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.other_game = GameFactory(name='Other Game', game_slug='other-game')
 
     def test_returns_empty_list_when_no_photos(self, client):
         """Test that an empty list is returned when the game has no photos."""

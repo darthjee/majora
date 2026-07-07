@@ -2,7 +2,8 @@
 
 import pytest
 
-from games.models import Game, Player
+from games.models import Player
+from games.tests.factories import GameFactory, PlayerFactory
 
 
 @pytest.mark.django_db
@@ -11,7 +12,7 @@ class TestPlayer:
 
     def test_player_creation(self):
         """Test that a player can be created with a name."""
-        player = Player.objects.create(name='Alice')
+        player = PlayerFactory(name='Alice')
         assert player.name == 'Alice'
 
     def test_player_str(self):
@@ -21,8 +22,8 @@ class TestPlayer:
 
     def test_player_can_join_game(self):
         """Test that a player can be associated with a game."""
-        game = Game.objects.create(name='Epic Quest', game_slug='epic-quest')
-        player = Player.objects.create(name='Alice')
+        game = GameFactory(name='Epic Quest', game_slug='epic-quest')
+        player = PlayerFactory(name='Alice')
         player.games.add(game)
         assert game in player.games.all()
         assert player in game.players.all()

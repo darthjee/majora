@@ -2,8 +2,9 @@
 
 import pytest
 
-from games.models import Game, GameSession
+from games.models import GameSession
 from games.serializers import GameSessionUpdateSerializer
+from games.tests.factories import GameFactory
 
 
 @pytest.mark.django_db
@@ -12,7 +13,7 @@ class TestGameSessionUpdateSerializer:
 
     def setup_method(self):
         """Set up a session instance for testing."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.session = GameSession.objects.create(game=self.game, title='Session One')
 
     def test_valid_partial_title_update(self):
@@ -45,7 +46,7 @@ class TestGameSessionUpdateSerializer:
 
     def test_game_is_not_changed_via_update(self):
         """Test that game cannot be reassigned via the update payload, even if supplied."""
-        other_game = Game.objects.create(name='Other Game', game_slug='other-game')
+        other_game = GameFactory(name='Other Game', game_slug='other-game')
         serializer = GameSessionUpdateSerializer(
             self.session,
             data={'title': 'Session Two', 'game': other_game.id, 'game_id': other_game.id},

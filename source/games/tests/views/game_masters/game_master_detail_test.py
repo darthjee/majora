@@ -1,10 +1,10 @@
 """Tests for the game master detail (DELETE) view."""
 
 import pytest
-from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 
-from games.models import Game, GameMaster
+from games.models import GameMaster
+from games.tests.factories import GameFactory, GameMasterFactory, SuperUserFactory, UserFactory
 
 
 @pytest.mark.django_db
@@ -13,9 +13,9 @@ class TestGameMasterDetailView:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.user = User.objects.create_user(username='dm_user', password='secret-password')
-        self.game_master = GameMaster.objects.create(game=self.game, user=self.user)
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.user = UserFactory(username='dm_user', password='secret-password')
+        self.game_master = GameMasterFactory(game=self.game, user=self.user)
 
     def _delete(self, client, token=None, game_master_id=None):
         gm_id = game_master_id if game_master_id is not None else self.game_master.id
@@ -37,7 +37,7 @@ class TestGameMasterDetailView:
 
     def test_delete_by_superuser_removes_any_game_master(self, client):
         """Test that a superuser can delete any game master assignment."""
-        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
         response = self._delete(client, token=token)
         assert response.status_code == 204
@@ -45,7 +45,7 @@ class TestGameMasterDetailView:
 
     def test_delete_by_other_user_returns_403(self, client):
         """Test that a non-superuser who is not the DM cannot delete the assignment."""
-        other = User.objects.create_user(username='other', password='secret-password')
+        other = UserFactory(username='other', password='secret-password')
         token = Token.objects.create(user=other)
         response = self._delete(client, token=token)
         assert response.status_code == 403

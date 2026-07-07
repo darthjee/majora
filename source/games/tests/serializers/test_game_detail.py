@@ -2,8 +2,9 @@
 
 import pytest
 
-from games.models import Game, GamePhoto, Link
+from games.models import GamePhoto, Link
 from games.serializers import GameDetailSerializer
+from games.tests.factories import GameFactory
 
 
 @pytest.mark.django_db
@@ -12,7 +13,7 @@ class TestGameDetailSerializer:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(
+        self.game = GameFactory(
             name='Test Game',
             game_slug='test-game',
             description='A grand adventure.',

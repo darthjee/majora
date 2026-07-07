@@ -8,6 +8,8 @@ from django.core import mail
 from django.utils.crypto import get_random_string
 from rest_framework.authtoken.models import Token
 
+from games.tests.factories import UserFactory
+
 TEST_PASSWORD = get_random_string(20)
 
 
@@ -89,7 +91,7 @@ class TestRegisterView:
 
     def test_rejects_duplicate_email(self, client):
         """Test that registering with an already-used email fails."""
-        User.objects.create_user(
+        UserFactory(
             username='alice', password=TEST_PASSWORD, email='bob@example.com'
         )
         response = self._post(client, self.valid_payload)
@@ -97,7 +99,7 @@ class TestRegisterView:
 
     def test_rejects_duplicate_name(self, client):
         """Test that registering with an already-used name fails."""
-        User.objects.create_user(username='bob', password=TEST_PASSWORD)
+        UserFactory(username='bob', password=TEST_PASSWORD)
         response = self._post(client, self.valid_payload)
         assert response.status_code == 400
 

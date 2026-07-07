@@ -1,10 +1,10 @@
 """Tests for the Upload model."""
 
 import pytest
-from django.contrib.auth.models import User
 from django.utils import timezone
 
-from games.models import Game, GamePhoto, Upload
+from games.models import GamePhoto, Upload
+from games.tests.factories import GameFactory, UserFactory
 
 
 @pytest.mark.django_db
@@ -13,7 +13,7 @@ class TestUpload:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.user = User.objects.create_user(username='alice', password='secret-password')
+        self.user = UserFactory(username='alice', password='secret-password')
 
     def test_token_is_auto_generated(self):
         """Test that a token is generated automatically on save."""
@@ -123,7 +123,7 @@ class TestUpload:
 
     def test_content_object_can_be_assigned(self):
         """Test that a GenericForeignKey can be assigned and retrieved."""
-        game = Game.objects.create(name='Test Game', game_slug='test-game')
+        game = GameFactory(name='Test Game', game_slug='test-game')
         game_photo = GamePhoto.objects.create(
             game=game,
             path='photos/games/test-game/photo_abc.jpg',
@@ -142,7 +142,7 @@ class TestUpload:
 
     def test_content_object_persists_after_refresh(self):
         """Test that content_object resolves correctly after a DB reload."""
-        game = Game.objects.create(name='Persist Game', game_slug='persist-game')
+        game = GameFactory(name='Persist Game', game_slug='persist-game')
         game_photo = GamePhoto.objects.create(
             game=game,
             path='photos/games/persist-game/img.jpg',

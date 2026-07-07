@@ -3,10 +3,10 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 
-from games.models import Game, GameMaster
+from games.models import GameMaster
+from games.tests.factories import GameFactory, GameMasterFactory, UserFactory
 
 
 @pytest.mark.django_db
@@ -15,8 +15,8 @@ class TestGameMastersListView:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
-        self.user = User.objects.create_user(username='dm_user', password='secret-password')
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.user = UserFactory(username='dm_user', password='secret-password')
 
     def _get(self, client, game_slug=None):
         url = f'/games/{game_slug or self.game.game_slug}/game-masters.json'
@@ -35,7 +35,7 @@ class TestGameMastersListView:
 
     def test_get_returns_game_masters(self, client):
         """Test that existing game masters are returned."""
-        GameMaster.objects.create(game=self.game, user=self.user)
+        GameMasterFactory(game=self.game, user=self.user)
         response = self._get(client)
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -63,7 +63,7 @@ class TestGameMastersListView:
 
     def test_post_returns_400_when_already_game_master(self, client):
         """Test that POST returns 400 when user is already a game master."""
-        GameMaster.objects.create(game=self.game, user=self.user)
+        GameMasterFactory(game=self.game, user=self.user)
         token = Token.objects.create(user=self.user)
         response = self._post(client, token=token)
         assert response.status_code == 400

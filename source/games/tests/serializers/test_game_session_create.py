@@ -2,8 +2,8 @@
 
 import pytest
 
-from games.models import Game
 from games.serializers import GameSessionCreateSerializer
+from games.tests.factories import GameFactory
 
 
 @pytest.mark.django_db
@@ -12,7 +12,7 @@ class TestGameSessionCreateSerializer:
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
 
     def test_valid_with_title_only(self):
         """Test that a payload with only title is valid."""

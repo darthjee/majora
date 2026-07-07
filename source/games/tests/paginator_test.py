@@ -3,8 +3,8 @@
 import pytest
 from rest_framework.test import APIRequestFactory
 
-from games.models import Character, Game
 from games.paginator import Paginator
+from games.tests.factories import CharacterFactory, GameFactory
 
 
 def _make_request(page=None, per_page=None):
@@ -24,9 +24,9 @@ class TestPaginatorPaginate:
 
     def setup_method(self):
         """Set up a game with several NPC characters."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
         for i in range(5):
-            Character.objects.create(name=f'NPC {i}', game=self.game, npc=True)
+            CharacterFactory(name=f'NPC {i}', game=self.game, npc=True)
         self.queryset = self.game.characters.filter(npc=True)
 
     def test_returns_first_page_by_default(self):
