@@ -559,7 +559,8 @@ at most one game, independently.
 |--------|---------|
 | List (`GET /treasures.json`) | Anyone (no authentication required) — returns only global treasures (`game__isnull=True`); game-exclusive treasures are excluded |
 | Detail (`GET /treasures/<id>.json`) | Anyone (no authentication required) |
-| List by game (`GET /games/<slug>/treasures.json`) | Anyone — returns the union of treasures M2M-linked to that game and treasures whose `game` FK points at it; 404 if game slug unknown |
+| List by game (`GET /games/<slug>/treasures.json`) | Anyone — returns the union of treasures M2M-linked to that game and treasures whose `game` FK points at it, excluding any with `hidden=True` (issue #313); 404 if game slug unknown |
+| List all by game, including hidden (`GET /games/<slug>/treasures/all.json`) | That game's GameMaster, or superuser (`GameEditPermission`) — unauthenticated → 401, authenticated non-editor → 403 (issue #313, mirrors the `npcs/all.json` precedent for hidden NPCs). Same unfiltered union as the row above, but without the `hidden=True` exclusion. Response always sets `X-Skip-Cache: true` (stricter than `npcs/all.json`, which relies on cache invalidation instead) so Tent never caches this DM/admin-only view by URL |
 | Create by game (`POST /games/<slug>/treasures.json`) | That game's GameMaster, or superuser (`GameEditPermission`) — unauthenticated → 401, authenticated non-editor → 403. `game` is set server-side from the resolved game and never accepted from the request body |
 | Detail by game (`GET /games/<slug>/treasures/<int:treasure_id>.json`) | Anyone — 404 if the treasure's `game` does not match the resolved game (including a global treasure id, or one exclusive to a different game) |
 | Update by game (`PATCH /games/<slug>/treasures/<int:treasure_id>.json`) | That game's GameMaster, or superuser (`GameEditPermission`) — unauthenticated → 401, authenticated non-editor → 403, same 404 rule as the detail endpoint above |
@@ -582,7 +583,17 @@ treasure is *exclusively* owned by (via the `game` FK), or `null` when the treas
 or only M2M-linked to one or more games. It is returned on `GET /treasures.json`,
 `GET /treasures/<id>.json`, and the game-scoped list/detail endpoints, to anyone.
 
-**Write fields** (create/update): `name` (required for create, optional for update), `value` (required for create, optional for update). `photo_path` and `game_slug` are read-only and cannot be set directly by any client — `game` is only ever assigned server-side, either left `null` (global create) or set from the `<slug>` URL segment (game-scoped create); `photo_path` is only ever assigned via "Upload" below.
+**Write fields** (create/update): `name` (required for create, optional for update), `value` (required for create, optional for update), `hidden` (optional, defaults to `False`, added in issue #313). `photo_path` and `game_slug` are read-only and cannot be set directly by any client — `game` is only ever assigned server-side, either left `null` (global create) or set from the `<slug>` URL segment (game-scoped create); `photo_path` is only ever assigned via "Upload" below.
+
+`hidden` (added in issue #313) is a `BooleanField` (default `False`) on `Treasure`, settable via
+`TreasureCreateSerializer`/`TreasureUpdateSerializer` on both global and game-scoped treasures
+(they share the same serializers). It is **not** exposed in any read serializer
+(`TreasureListSerializer`/`TreasureDetailSerializer` do not include it) — it is used purely
+server-side to filter `GET /games/<slug>/treasures.json` (excludes `hidden=True`) and to
+determine what `GET /games/<slug>/treasures/all.json` additionally reveals to a DM/superuser.
+A character's own treasure listings (`CharacterTreasure`-backed endpoints, see "CharacterTreasure"
+above) are unaffected by `hidden` — a character keeps seeing treasure it already owns even if
+that treasure is later hidden from the catalog.
 
 ### Edit access status
 
