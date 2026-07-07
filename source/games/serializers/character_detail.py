@@ -22,6 +22,7 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
         source='profile_photo.id', default=None, read_only=True
     )
     slain = serializers.BooleanField(read_only=True)
+    allegiance = serializers.CharField(source='public_allegiance', read_only=True)
 
     class Meta:
         """Metadata for the CharacterDetailSerializer."""
@@ -41,6 +42,7 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
             'profile_photo_id',
             'money',
             'slain',
+            'allegiance',
         ]
 
     def get_can_edit(self, obj):

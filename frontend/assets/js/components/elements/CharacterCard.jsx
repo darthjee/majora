@@ -10,6 +10,8 @@ import Noop from '../../utils/Noop.js';
  * @param {string} props.character.name - Character name.
  * @param {string|null} [props.character.profile_photo_path] - Optional profile photo path.
  * @param {boolean} [props.character.slain] - Whether the character is slain (NPC only).
+ * @param {string} [props.character.allegiance] - Allegiance value (`'ally'`, `'enemy'`,
+ *   `'neutral'`, or missing), drives the card border color for NPCs only.
  * @param {string} props.gameSlug - Game slug used to build the detail link.
  * @param {string} props.characterType - Character type, either 'pc' or 'npc'.
  * @param {string} [props.size] - Card size, either 'normal' or 'small'.

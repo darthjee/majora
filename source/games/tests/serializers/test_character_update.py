@@ -103,6 +103,34 @@ class TestCharacterUpdateSerializer:
         assert not serializer.is_valid()
         assert 'name' in serializer.errors
 
+    def test_allegiance_field_is_writable(self):
+        """Test that the allegiance field is included and writable."""
+        serializer = CharacterUpdateSerializer(
+            self.character, data={'allegiance': 'enemy'}, partial=True
+        )
+        assert serializer.is_valid()
+        updated = serializer.save()
+        assert updated.allegiance == 'enemy'
+
+    def test_allegiance_field_defaults_to_neutral(self):
+        """Test that allegiance is 'neutral' by default and serialized correctly."""
+        data = CharacterUpdateSerializer(self.character).data
+        assert data['allegiance'] == 'neutral'
+
+    def test_public_allegiance_field_is_writable(self):
+        """Test that the public_allegiance field is included and writable."""
+        serializer = CharacterUpdateSerializer(
+            self.character, data={'public_allegiance': 'ally'}, partial=True
+        )
+        assert serializer.is_valid()
+        updated = serializer.save()
+        assert updated.public_allegiance == 'ally'
+
+    def test_public_allegiance_field_defaults_to_neutral(self):
+        """Test that public_allegiance is 'neutral' by default and serialized correctly."""
+        data = CharacterUpdateSerializer(self.character).data
+        assert data['public_allegiance'] == 'neutral'
+
     def test_game_and_player_are_not_changed(self):
         """Test that game and player cannot be changed via update, even if supplied."""
         other_game = GameFactory(name='Other Game', game_slug='other-game')

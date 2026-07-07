@@ -223,6 +223,27 @@ class TestGameNpcsFilter:
         response = client.get('/games/test-game/npcs.json')
         assert sorted(self._names(response)) == ['Alive NPC', 'Dead NPC']
 
+    def test_allegiance_filter_matches_public_allegiance(self, client):
+        """Test that ?allegiance= filters npcs.json on public_allegiance."""
+        CharacterFactory(
+            name='Friendly NPC', game=self.game, npc=True,
+            allegiance='enemy', public_allegiance='ally',
+        )
+        CharacterFactory(
+            name='Hostile NPC', game=self.game, npc=True,
+            allegiance='ally', public_allegiance='enemy',
+        )
+        response = client.get('/games/test-game/npcs.json?allegiance=ally')
+        assert self._names(response) == ['Friendly NPC']
+
+    def test_invalid_allegiance_value_is_ignored(self, client):
+        """Test that an unrecognized allegiance value applies no filter and does not 400."""
+        CharacterFactory(name='Ally NPC', game=self.game, npc=True, public_allegiance='ally')
+        CharacterFactory(name='Enemy NPC', game=self.game, npc=True, public_allegiance='enemy')
+        response = client.get('/games/test-game/npcs.json?allegiance=unknown')
+        assert response.status_code == 200
+        assert sorted(self._names(response)) == ['Ally NPC', 'Enemy NPC']
+
 
 @pytest.mark.django_db
 class TestGameNpcsCreate(TokenAuthRequestMixin):

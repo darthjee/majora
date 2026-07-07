@@ -58,3 +58,19 @@ class TestCharacterFullSerializer:
         self.character.save()
         data = self._serialize()
         assert data['money'] == 250
+
+    def test_serializes_allegiance_from_real_field(self):
+        """Test that allegiance is sourced from the real allegiance field, not public."""
+        self.character.allegiance = 'enemy'
+        self.character.public_allegiance = 'ally'
+        self.character.save()
+        data = self._serialize()
+        assert data['allegiance'] == 'enemy'
+
+    def test_serializes_public_allegiance(self):
+        """Test that public_allegiance is also exposed separately."""
+        self.character.allegiance = 'enemy'
+        self.character.public_allegiance = 'ally'
+        self.character.save()
+        data = self._serialize()
+        assert data['public_allegiance'] == 'ally'

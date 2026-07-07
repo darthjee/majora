@@ -10,6 +10,16 @@ from games.models.player import Player
 class Character(models.Model):
     """Model representing a character in a game."""
 
+    ALLEGIANCE_ALLY = 'ally'
+    ALLEGIANCE_ENEMY = 'enemy'
+    ALLEGIANCE_NEUTRAL = 'neutral'
+
+    ALLEGIANCE_CHOICES = [
+        (ALLEGIANCE_ALLY, 'Ally'),
+        (ALLEGIANCE_ENEMY, 'Enemy'),
+        (ALLEGIANCE_NEUTRAL, 'Neutral'),
+    ]
+
     name = models.CharField(max_length=200)
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='characters')
     player = models.ForeignKey(
@@ -25,6 +35,12 @@ class Character(models.Model):
     npc = models.BooleanField(default=True)
     hidden = models.BooleanField(default=False)
     slain = models.BooleanField(default=False)
+    allegiance = models.CharField(
+        max_length=16, choices=ALLEGIANCE_CHOICES, default=ALLEGIANCE_NEUTRAL
+    )
+    public_allegiance = models.CharField(
+        max_length=16, choices=ALLEGIANCE_CHOICES, default=ALLEGIANCE_NEUTRAL
+    )
     money = models.PositiveIntegerField(default=0)
     profile_photo = models.ForeignKey(
         'games.CharacterPhoto', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
