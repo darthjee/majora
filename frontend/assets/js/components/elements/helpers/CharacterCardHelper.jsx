@@ -3,6 +3,7 @@ import CardAvatar from '../CardAvatar.jsx';
 import PhotoUploadOverlay from '../PhotoUploadOverlay.jsx';
 import Translator from '../../../i18n/Translator.js';
 import Noop from '../../../utils/Noop.js';
+import allegianceBorderClass from '../../../utils/AllegianceBorder.js';
 
 /**
  * Rendering helper for the CharacterCard element.
@@ -32,6 +33,8 @@ export default class CharacterCardHelper {
    * @param {string} character.name - Character name.
    * @param {string|null} [character.profile_photo_path] - Optional profile photo path.
    * @param {boolean} [character.slain] - Whether the character is slain (NPC only).
+   * @param {string} [character.allegiance] - Allegiance value (`'ally'`, `'enemy'`,
+   *   `'neutral'`, or missing), drives the card border color for NPCs only.
    * @param {string} gameSlug - Game slug used to build the detail link.
    * @param {string} characterType - Character type, either 'pc' or 'npc'.
    * @param {string} [size] - Card size, either 'normal' or 'small'.
@@ -50,6 +53,9 @@ export default class CharacterCardHelper {
     const isSmall = size === 'small';
     const columnClass = isSmall ? 'col-sm-3 col-md-2 col-lg-1' : 'col-sm-6 col-md-4 col-lg-3';
     const HeadingTag = isSmall ? 'h6' : 'h5';
+    const cardClass = characterType === 'npc'
+      ? `card h-100 ${allegianceBorderClass(character.allegiance)}`
+      : 'card h-100';
 
     return (
       <div className={`${columnClass} mb-4`}>
@@ -57,7 +63,7 @@ export default class CharacterCardHelper {
           href={`#/games/${gameSlug}/${characterType}s/${character.id}`}
           className="text-decoration-none text-dark"
         >
-          <div className="card h-100">
+          <div className={cardClass}>
             {CharacterCardHelper.#renderPhoto(character, characterType, canEdit, onUploadClick, onSlainClick)}
             {CharacterCardHelper.#renderCardBody(character, isSmall, HeadingTag)}
           </div>

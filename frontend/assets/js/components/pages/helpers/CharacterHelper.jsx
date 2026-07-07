@@ -10,6 +10,7 @@ import LinkList from '../../elements/LinkList.jsx';
 import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import CharacterTreasuresPreview from '../../elements/CharacterTreasuresPreview.jsx';
 import Translator from '../../../i18n/Translator.js';
+import allegianceBorderClass from '../../../utils/AllegianceBorder.js';
 
 /**
  * Rendering helper for the Character detail page.
@@ -31,6 +32,8 @@ export default class CharacterHelper {
    *   to build the correct edit link segment and to gate the slain/revive button.
    * @param {boolean} [character.slain] - Whether the character is slain, drives grayscale
    *   rendering and the slain/revive button label.
+   * @param {string} [character.allegiance] - Allegiance value (`'ally'`, `'enemy'`,
+   *   `'neutral'`, or missing), drives the picture border color for NPCs only.
    * @param {string} [character.game_slug] - Slug of the game the character belongs to.
    * @param {number|string} [character.id] - Character id.
    * @param {object[]} [character.treasures] - Preview list of the character's treasures
@@ -54,15 +57,7 @@ export default class CharacterHelper {
         </PageActions>
         <div className="row">
           <div className="col-md-4">
-            <PhotoUploadOverlay
-              type="avatar"
-              url={character.profile_photo_path}
-              alt={character.name}
-              canEdit={character.can_edit}
-              onClick={handlers.onOpenUploadModal}
-              grayscale={character.slain}
-              secondaryButton={CharacterHelper.#buildSecondaryButton(character, handlers)}
-            />
+            {CharacterHelper.#renderPicture(character, handlers)}
             <h1>{character.name}</h1>
             <LinkList links={character.links} />
             <CharacterMoney money={character.money} />
@@ -99,6 +94,40 @@ export default class CharacterHelper {
    */
   static renderError(error) {
     return <ErrorAlert error={error} />;
+  }
+
+  /**
+   * Render the character's picture, wrapped in an allegiance-colored border
+   * for NPCs. PCs render the plain picture, unaffected by allegiance.
+   *
+   * @param {object} character - Character data object.
+   * @param {string|null} [character.profile_photo_path] - Optional profile photo path.
+   * @param {string} character.name - Character name.
+   * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
+   * @param {boolean} [character.slain] - Whether the character is slain.
+   * @param {boolean} [character.is_pc] - Whether the character is a PC.
+   * @param {string} [character.allegiance] - Allegiance value driving the border color.
+   * @param {{onOpenUploadModal: Function}} handlers - Event handlers.
+   * @returns {React.ReactElement} Picture element, optionally wrapped in a border.
+   */
+  static #renderPicture(character, handlers) {
+    const picture = (
+      <PhotoUploadOverlay
+        type="avatar"
+        url={character.profile_photo_path}
+        alt={character.name}
+        canEdit={character.can_edit}
+        onClick={handlers.onOpenUploadModal}
+        grayscale={character.slain}
+        secondaryButton={CharacterHelper.#buildSecondaryButton(character, handlers)}
+      />
+    );
+
+    if (character.is_pc) {
+      return picture;
+    }
+
+    return <div className={allegianceBorderClass(character.allegiance)}>{picture}</div>;
   }
 
   /**
