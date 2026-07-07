@@ -46,5 +46,19 @@ describe('PaginationHelper', function() {
       const html = renderToStaticMarkup(PaginationHelper.render(2, 5, 10, '#/games'));
       expect(html).toContain('#/games?page=');
     });
+
+    it('preserves extra params on pagination links when provided', function() {
+      const html = renderToStaticMarkup(
+        PaginationHelper.render(2, 5, 10, '#/games/demo/npcs', { slain: 'true', name: 'gob' })
+      );
+      expect(html).toContain('slain=true');
+      expect(html).toContain('name=gob');
+    });
+
+    it('omits extra params on pagination links when not provided', function() {
+      const html = renderToStaticMarkup(PaginationHelper.render(2, 5, 10, '#/games/demo/npcs'));
+      expect(html).not.toContain('slain');
+      expect(html).not.toContain('name=');
+    });
   });
 });

@@ -33,11 +33,16 @@ export default class GameCharactersHelper {
    *   upload overlay button is clicked (ignored for PCs).
    * @param {Function} [onSlainClick] - Called with the character object when an NPC card's
    *   slain/revive overlay button is clicked (ignored for PCs).
+   * @param {object|URLSearchParams} [extraParams] - Additional active query params (e.g. NPC
+   *   filters) preserved on every pagination link.
+   * @param {React.ReactNode} [filters] - Optional filter bar rendered below the title and
+   *   above the character grid (e.g. NpcFilters for GameNpcs, unused by GamePcs).
    * @returns {React.ReactElement} Characters grid with pagination.
    */
   static render(
     characters, pagination, basePath, gameSlug, title, characterType, backHref,
     canEdit = false, newHref = '', onUploadClick = Noop.noop, onSlainClick = Noop.noop,
+    extraParams = {}, filters = null,
   ) {
     const isNpc = characterType === 'npc';
 
@@ -51,6 +56,7 @@ export default class GameCharactersHelper {
           </ConditionalComponent>
         </PageActions>
         <h1 className="mb-4">{title}</h1>
+        {filters}
         <div className="row">
           {characters.map((character) => (
             <CharacterCard
@@ -67,6 +73,7 @@ export default class GameCharactersHelper {
           totalPages={pagination.pages}
           perPage={pagination.perPage}
           basePath={basePath}
+          extraParams={extraParams}
         />
       </div>
     );

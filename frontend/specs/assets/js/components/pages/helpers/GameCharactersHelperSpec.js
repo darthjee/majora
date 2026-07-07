@@ -1,4 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
+import React from 'react';
 import GameCharactersHelper from '../../../../../../assets/js/components/pages/helpers/GameCharactersHelper.jsx';
 import CharacterCard from '../../../../../../assets/js/components/elements/CharacterCard.jsx';
 import { buildCharacter } from '../../../../../support/factories.js';
@@ -135,6 +136,38 @@ describe('GameCharactersHelper', function() {
         expect(card.props.onUploadClick).toBe(onUploadClick);
         expect(card.props.onSlainClick).toBe(onSlainClick);
       });
+    });
+
+    it('forwards extraParams to the Pagination links when provided', function() {
+      const paginated = { page: 1, pages: 3, perPage: 10 };
+      const html = renderToStaticMarkup(
+        GameCharactersHelper.render(
+          characters, paginated, '#/games/eq/npcs', 'eq', 'Non-Player Characters', 'npc', '#/games/eq',
+          false, '', undefined, undefined, { slain: 'true', name: 'gob' },
+        )
+      );
+      expect(html).toContain('slain=true');
+      expect(html).toContain('name=gob');
+    });
+
+    it('renders the filters node between the title and the character grid when provided', function() {
+      const filtersMarker = React.createElement('div', { 'data-testid': 'npc-filters-marker' }, 'filters');
+      const html = renderToStaticMarkup(
+        GameCharactersHelper.render(
+          characters, pagination, '#/games/eq/npcs', 'eq', 'Non-Player Characters', 'npc', '#/games/eq',
+          false, '', undefined, undefined, {}, filtersMarker,
+        )
+      );
+      expect(html).toContain('data-testid="npc-filters-marker"');
+    });
+
+    it('renders no filters node when omitted', function() {
+      const html = renderToStaticMarkup(
+        GameCharactersHelper.render(
+          characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters', 'pc', '#/games/eq',
+        )
+      );
+      expect(html).not.toContain('npc-filters-marker');
     });
 
     it('does not forward canEdit or click handlers to CharacterCard for pc characterType', function() {

@@ -14,9 +14,12 @@ export default class PaginationHelper {
    * @param {number|string} totalPages - Total number of pages.
    * @param {number|string} perPage - Items per page.
    * @param {string} basePath - Base hash path (e.g. `#/games`).
+   * @param {object|URLSearchParams} [extraParams] - Additional active query params (e.g. NPC
+   *   filters) preserved on every pagination link. Defaults to none, so other callers of
+   *   `PaginationHelper`/`Pagination` are unaffected.
    * @returns {React.ReactElement|null} Pagination nav or null.
    */
-  static render(currentPage, totalPages, perPage, basePath) {
+  static render(currentPage, totalPages, perPage, basePath, extraParams = {}) {
     const pages = this.#normalizePositiveInteger(totalPages, 1);
 
     if (pages <= 1) {
@@ -26,7 +29,8 @@ export default class PaginationHelper {
     const page = this.#clamp(this.#normalizePositiveInteger(currentPage, 1), 1, pages);
     const itemsPerPage = this.#normalizePositiveInteger(perPage, 10);
     const pageList = new PaginationController(page, pages).buildPageList();
-    const linkTemplate = `${basePath}?page=:page&per_page=:perPage`;
+    const extraQuery = new URLSearchParams(extraParams).toString();
+    const linkTemplate = `${basePath}?page=:page&per_page=:perPage${extraQuery ? `&${extraQuery}` : ''}`;
 
     return (
       <nav aria-label={Translator.t('pagination.aria_label')} className="mt-4">
