@@ -56,6 +56,16 @@ class TestTreasure:
         game.delete()
         assert Treasure.objects.filter(id=treasure.id).exists()
 
+    def test_hidden_defaults_to_false(self):
+        """Test that a treasure is not hidden by default."""
+        treasure = TreasureFactory(name='Open Chest', value=10)
+        assert treasure.hidden is False
+
+    def test_treasure_can_be_hidden(self):
+        """Test that a treasure can be created as hidden."""
+        treasure = TreasureFactory(name='Secret Chest', value=10, hidden=True)
+        assert treasure.hidden is True
+
 
 @pytest.mark.django_db
 class TestTreasureCanBeEditedBy:

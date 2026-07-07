@@ -164,6 +164,30 @@ class TestGameTreasuresView:
         data = json.loads(response.content)
         assert data == []
 
+    def test_excludes_hidden_linked_treasures(self, client):
+        """Test that a hidden treasure linked to the game via M2M is excluded."""
+        hidden = TreasureFactory(name='Hidden Gem', value=100, hidden=True)
+        self.game.treasures.add(hidden)
+        response = client.get('/games/test-game/treasures.json')
+        data = json.loads(response.content)
+        assert data == []
+
+    def test_excludes_hidden_exclusive_treasures(self, client):
+        """Test that a hidden treasure exclusive to the game is excluded."""
+        TreasureFactory(name='Hidden Exclusive Gem', value=100, game=self.game, hidden=True)
+        response = client.get('/games/test-game/treasures.json')
+        data = json.loads(response.content)
+        assert data == []
+
+    def test_includes_visible_treasures_alongside_hidden_ones(self, client):
+        """Test that non-hidden treasures are still returned when hidden ones exist too."""
+        visible = TreasureFactory(name='Visible Gem', value=100, game=self.game, hidden=False)
+        TreasureFactory(name='Hidden Gem', value=100, game=self.game, hidden=True)
+        response = client.get('/games/test-game/treasures.json')
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['id'] == visible.id
+
 
 @pytest.mark.django_db
 class TestGameTreasuresCreate:
@@ -253,6 +277,14 @@ class TestGameTreasuresCreate:
             client, {'name': 'Gem', 'value': 100}, token=self.dm_token, game_slug='unknown-game'
         )
         assert response.status_code == 404
+
+    def test_created_treasure_can_be_marked_hidden(self, client):
+        """Test that a treasure can be created as hidden via the POST payload."""
+        self._post(
+            client, {'name': 'Secret Gem', 'value': 100, 'hidden': True}, token=self.dm_token
+        )
+        treasure = Treasure.objects.get(name='Secret Gem')
+        assert treasure.hidden is True
 
     def test_game_field_in_body_is_ignored(self, client):
         """Test that a game value in the request body does not override the resolved game."""
