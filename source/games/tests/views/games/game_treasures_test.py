@@ -6,7 +6,7 @@ import pytest
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from games.models import Treasure
+from games.models import GameTreasure, Treasure
 from games.tests.factories import (
     GameFactory,
     GameMasterFactory,
@@ -187,6 +187,35 @@ class TestGameTreasuresView:
         data = json.loads(response.content)
         assert len(data) == 1
         assert data[0]['id'] == visible.id
+
+    def test_available_units_and_max_units_are_none_when_unlimited(self, client):
+        """Test that available_units/max_units are None for a treasure without a stock cap."""
+        treasure = TreasureFactory(name='Unlimited Gem', value=100)
+        self.game.treasures.add(treasure)
+        response = client.get('/games/test-game/treasures.json')
+        data = json.loads(response.content)
+        assert data[0]['available_units'] is None
+        assert data[0]['max_units'] is None
+
+    def test_available_units_and_max_units_reflect_the_game_treasure_row(self, client):
+        """Test that available_units/max_units reflect the linked GameTreasure row's cap."""
+        treasure = TreasureFactory(name='Limited Gem', value=100)
+        self.game.treasures.add(treasure)
+        GameTreasure.objects.filter(game=self.game, treasure=treasure).update(
+            max_units=10, acquired_units=3,
+        )
+        response = client.get('/games/test-game/treasures.json')
+        data = json.loads(response.content)
+        assert data[0]['max_units'] == 10
+        assert data[0]['available_units'] == 7
+
+    def test_available_units_and_max_units_are_none_for_exclusive_treasure(self, client):
+        """Test that available_units/max_units are None for a treasure exclusive to the game."""
+        TreasureFactory(name='Exclusive Gem', value=100, game=self.game)
+        response = client.get('/games/test-game/treasures.json')
+        data = json.loads(response.content)
+        assert data[0]['available_units'] is None
+        assert data[0]['max_units'] is None
 
 
 @pytest.mark.django_db

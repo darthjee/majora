@@ -3,9 +3,10 @@
 from rest_framework import serializers
 
 from games.models import Treasure
+from games.serializers.game_treasure_fields import GameTreasureFieldsMixin
 
 
-class TreasureDetailSerializer(serializers.ModelSerializer):
+class TreasureDetailSerializer(GameTreasureFieldsMixin, serializers.ModelSerializer):
     """Serializer for treasure detail view."""
 
     photo_path = serializers.CharField(source='photo.path', default=None, read_only=True)
@@ -15,4 +16,6 @@ class TreasureDetailSerializer(serializers.ModelSerializer):
         """Metadata for the TreasureDetailSerializer."""
 
         model = Treasure
-        fields = ['id', 'name', 'value', 'photo_path', 'game_slug']
+        fields = [
+            'id', 'name', 'value', 'photo_path', 'game_slug', 'available_units', 'max_units',
+        ]

@@ -20,6 +20,7 @@ from games.serializers.game_session_create import GameSessionCreateSerializer
 from games.serializers.game_session_detail import GameSessionDetailSerializer
 from games.serializers.game_session_list import GameSessionListSerializer
 from games.serializers.game_session_update import GameSessionUpdateSerializer
+from games.serializers.game_treasure_update import GameTreasureUpdateSerializer
 from games.serializers.game_update import GameUpdateSerializer
 from games.serializers.link import LinkSerializer
 from games.serializers.my_account_detail import MyAccountDetailSerializer
@@ -56,6 +57,7 @@ __all__ = [
     'GameSessionDetailSerializer',
     'GameSessionListSerializer',
     'GameSessionUpdateSerializer',
+    'GameTreasureUpdateSerializer',
     'GameUpdateSerializer',
     'LinkSerializer',
     'MyAccountDetailSerializer',

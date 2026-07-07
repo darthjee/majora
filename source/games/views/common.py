@@ -68,10 +68,16 @@ def _serialize_detail(obj, detail_serializer_cls, detail_context):
     return Response(serializer.data)
 
 
-def paginated_list_response(request, queryset, list_serializer_cls):
-    """Paginate `queryset`, serialize it with `list_serializer_cls`, and return a Response."""
+def paginated_list_response(request, queryset, list_serializer_cls, context=None):
+    """Paginate `queryset`, serialize it with `list_serializer_cls`, and return a Response.
+
+    `context`, when given, is forwarded to the serializer constructor.
+    """
     page, headers = Paginator(request, queryset).paginate()
-    serializer = list_serializer_cls(page, many=True)
+    if context is None:
+        serializer = list_serializer_cls(page, many=True)
+    else:
+        serializer = list_serializer_cls(page, many=True, context=context)
     return Response(serializer.data, headers=headers)
 
 
