@@ -22,6 +22,22 @@ export default class GameTreasureEditController extends BaseEditController {
   }
 
   /**
+   * Determine whether a loaded treasure is exclusive to the game (linked via
+   * the `Treasure.game` FK) rather than shared through the game's M2M
+   * `treasures` relation.
+   *
+   * @description `TreasureDetailSerializer#game_slug` is only populated for
+   *   treasures exclusive to a game; M2M-linked treasures come back with a
+   *   null/undefined `game_slug`. `max_units` only applies to M2M-linked
+   *   treasures — the backend silently ignores it for exclusive ones.
+   * @param {{game_slug: (string|null|undefined)}|null} treasure - Loaded treasure, if any.
+   * @returns {boolean} True when the treasure is exclusive to the game.
+   */
+  static isExclusiveTreasure(treasure) {
+    return Boolean(treasure?.game_slug);
+  }
+
+  /**
    * Create a game treasure edit controller.
    *
    * @param {Function} setTreasure - Treasure setter.
@@ -67,8 +83,11 @@ export default class GameTreasureEditController extends BaseEditController {
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {string|number} id - Treasure id.
-   * @param {{name: string, value: string, maxUnits: string}} formValues - Raw form field values.
-   *   `maxUnits` is optional; an empty string is sent as `null` (unlimited).
+   * @param {{name: string, value: string, maxUnits: string, isExclusive: boolean}} formValues -
+   *   Raw form field values. `maxUnits` is optional; an empty string is sent as `null`
+   *   (unlimited). `isExclusive` marks a treasure exclusive to the game (via the `Treasure.game`
+   *   FK) rather than linked through the shared M2M — `max_units` is omitted from the payload for
+   *   exclusive treasures since the backend ignores it for them.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
@@ -78,13 +97,24 @@ export default class GameTreasureEditController extends BaseEditController {
     return this.performSubmit(
       event,
       setters,
-      () => this.treasureClient.updateGameTreasure(gameSlug, id, token, {
-        name: formValues.name,
-        value: parseInt(formValues.value, 10),
-        max_units: formValues.maxUnits === '' ? null : parseInt(formValues.maxUnits, 10),
-      }),
+      () => this.treasureClient.updateGameTreasure(
+        gameSlug, id, token, GameTreasureEditController.#buildPayload(formValues),
+      ),
       `/games/${gameSlug}/treasures/${id}`,
     );
+  }
+
+  static #buildPayload(formValues) {
+    const payload = {
+      name: formValues.name,
+      value: parseInt(formValues.value, 10),
+    };
+
+    if (!formValues.isExclusive) {
+      payload.max_units = formValues.maxUnits === '' ? null : parseInt(formValues.maxUnits, 10);
+    }
+
+    return payload;
   }
 
   #handleAccess(access, gameSlug, treasureId, safeSet) {

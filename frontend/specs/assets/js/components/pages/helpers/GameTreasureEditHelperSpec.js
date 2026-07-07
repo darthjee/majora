@@ -15,6 +15,7 @@ describe('GameTreasureEditHelper', function() {
     maxUnits: '10',
     status: 'idle',
     fieldErrors: {},
+    isExclusive: false,
     ...overrides,
   });
 
@@ -24,6 +25,24 @@ describe('GameTreasureEditHelper', function() {
 
       expect(html).toContain('id="game-treasure-edit-name"');
       expect(html).toContain('id="game-treasure-edit-value"');
+      expect(html).toContain('id="game-treasure-edit-max-units"');
+    });
+
+    it('does not render the max_units field when the treasure is exclusive to the game', function() {
+      const html = renderToStaticMarkup(
+        GameTreasureEditHelper.render(buildState({ isExclusive: true }), buildHandlers()),
+      );
+
+      expect(html).toContain('id="game-treasure-edit-name"');
+      expect(html).toContain('id="game-treasure-edit-value"');
+      expect(html).not.toContain('id="game-treasure-edit-max-units"');
+    });
+
+    it('renders the max_units field when the treasure is linked (not exclusive)', function() {
+      const html = renderToStaticMarkup(
+        GameTreasureEditHelper.render(buildState({ isExclusive: false }), buildHandlers()),
+      );
+
       expect(html).toContain('id="game-treasure-edit-max-units"');
     });
 

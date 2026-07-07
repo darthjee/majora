@@ -12,9 +12,11 @@ export default class GameTreasureEditHelper {
   /**
    * Render the game treasure edit form.
    *
-   * @param {{name: string, value: string, maxUnits: string, status: string, fieldErrors: object}}
-   *   formState - Form state. `maxUnits` is the raw (string) form value; an empty string means
-   *   unlimited (`null`).
+   * @param {{name: string, value: string, maxUnits: string, status: string, fieldErrors: object,
+   *   isExclusive: boolean}} formState - Form state. `maxUnits` is the raw (string) form value; an
+   *   empty string means unlimited (`null`). `isExclusive` marks a treasure exclusive to the game
+   *   (via the `Treasure.game` FK) rather than linked through the shared M2M — the `max_units`
+   *   field is hidden for exclusive treasures since the backend ignores it for them.
    * @param {{onSubmit: Function, onNameChange: Function, onValueChange: Function,
    *   onMaxUnitsChange: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered edit page.
@@ -41,14 +43,7 @@ export default class GameTreasureEditHelper {
             onChange={handlers.onValueChange}
             errors={formState.fieldErrors.value ?? []}
           />
-          <FormField
-            id="game-treasure-edit-max-units"
-            type="number"
-            label={Translator.t('game_treasure_edit_page.max_units_label')}
-            value={formState.maxUnits}
-            onChange={handlers.onMaxUnitsChange}
-            errors={formState.fieldErrors.max_units ?? []}
-          />
+          {GameTreasureEditHelper.#renderMaxUnits(formState, handlers)}
           <SubmitButton disabled={formState.status === 'submitting'}>
             {Translator.t('game_treasure_edit_page.submit')}
           </SubmitButton>
@@ -82,5 +77,22 @@ export default class GameTreasureEditHelper {
     }
 
     return <ErrorAlert error={Translator.t('game_treasure_edit_page.error')} />;
+  }
+
+  static #renderMaxUnits(formState, handlers) {
+    if (formState.isExclusive) {
+      return null;
+    }
+
+    return (
+      <FormField
+        id="game-treasure-edit-max-units"
+        type="number"
+        label={Translator.t('game_treasure_edit_page.max_units_label')}
+        value={formState.maxUnits}
+        onChange={handlers.onMaxUnitsChange}
+        errors={formState.fieldErrors.max_units ?? []}
+      />
+    );
   }
 }

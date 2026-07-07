@@ -25,6 +25,7 @@ export default function GameTreasureEdit() {
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
   const { game_slug: gameSlug, treasure_id: treasureId } =
     GameTreasureEditController.getGameTreasureEditParamsFromHash(currentHash);
+  const isExclusive = GameTreasureEditController.isExclusiveTreasure(treasure);
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
@@ -40,7 +41,7 @@ export default function GameTreasureEdit() {
     event,
     gameSlug,
     treasureId,
-    { name, value, maxUnits },
+    { name, value, maxUnits, isExclusive },
     { setStatus, setFieldErrors },
   );
 
@@ -49,7 +50,7 @@ export default function GameTreasureEdit() {
 
   return GameTreasureEditHelper.render(
     {
-      name, value, maxUnits, status, fieldErrors,
+      name, value, maxUnits, status, fieldErrors, isExclusive,
     },
     {
       onSubmit: handleSubmit,
