@@ -46,3 +46,7 @@ select = ["E", "F", "W", "I", "D211", "D106"]
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["games/tests"]
+python_files = ["*_test.py"]
