@@ -4,8 +4,14 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.utils.text import slugify
 
-from games.models import Game
-from games.tests.factories import GameFactory, GameMasterFactory, SuperUserFactory, UserFactory
+from games.models import Game, GameTreasure
+from games.tests.factories import (
+    GameFactory,
+    GameMasterFactory,
+    SuperUserFactory,
+    TreasureFactory,
+    UserFactory,
+)
 
 
 @pytest.mark.django_db
@@ -77,3 +83,36 @@ class TestGameCanBeEditedBy:
     def test_anonymous_user_cannot_edit(self):
         """Test that an anonymous user returns False."""
         assert self.game.can_be_edited_by(AnonymousUser()) is False
+
+
+@pytest.mark.django_db
+class TestGameTreasuresThroughModel:
+    """Tests for Game.treasures going through the GameTreasure model."""
+
+    def setup_method(self):
+        """Set up a game and a treasure."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.treasure = TreasureFactory(name='Golden Crown', value=500)
+
+    def test_add_creates_a_game_treasure_row(self):
+        """Test that adding a treasure to a game creates a GameTreasure through-row."""
+        self.game.treasures.add(self.treasure)
+        assert GameTreasure.objects.filter(game=self.game, treasure=self.treasure).exists()
+
+    def test_added_game_treasure_defaults(self):
+        """Test that a freshly created GameTreasure row has unlimited/zero-acquired defaults."""
+        self.game.treasures.add(self.treasure)
+        game_treasure = GameTreasure.objects.get(game=self.game, treasure=self.treasure)
+        assert game_treasure.max_units is None
+        assert game_treasure.acquired_units == 0
+
+    def test_treasures_relation_reflects_added_treasures(self):
+        """Test that the treasures M2M accessor reflects rows added through the through-model."""
+        self.game.treasures.add(self.treasure)
+        assert list(self.game.treasures.all()) == [self.treasure]
+
+    def test_remove_deletes_the_game_treasure_row(self):
+        """Test that removing a treasure from a game deletes the through-row."""
+        self.game.treasures.add(self.treasure)
+        self.game.treasures.remove(self.treasure)
+        assert not GameTreasure.objects.filter(game=self.game, treasure=self.treasure).exists()

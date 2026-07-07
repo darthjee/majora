@@ -5,6 +5,7 @@ import json
 import pytest
 from rest_framework.authtoken.models import Token
 
+from games.models import GameTreasure
 from games.tests.behaviors import DetailNotFoundBehaviorMixin, TokenAuthRequestMixin
 from games.tests.factories import (
     GameFactory,
@@ -137,6 +138,15 @@ class TestGameTreasureUpdateView(TokenAuthRequestMixin):
         assert self.treasure.name == 'Golden Crown'
         assert self.treasure.value == 700
 
+    def test_patch_with_invalid_value_returns_400(self, client):
+        """Test that a negative value on an exclusive treasure's PATCH is rejected with 400."""
+        response = self._patch(client, {'value': -1}, token=self.dm_token)
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'value' in data['errors']
+        self.treasure.refresh_from_db()
+        assert self.treasure.value == 500
+
     def test_patch_ignores_game_field(self, client):
         """Test that a game field in the payload has no effect on the treasure's game."""
         other_game = GameFactory(name='Other Game', game_slug='other-game')
@@ -229,3 +239,95 @@ class TestGameTreasureDetailHidden(TokenAuthRequestMixin):
         assert response.status_code == 404
         self.hidden_treasure.refresh_from_db()
         assert self.hidden_treasure.name == 'Secret Idol'
+
+
+@pytest.mark.django_db
+class TestGameTreasureLinkedDetailView(TokenAuthRequestMixin):
+    """Tests for GET/PATCH .../treasures/<id>.json when the treasure is M2M-linked to the game."""
+
+    def setup_method(self):
+        """Set up a game, a DM, and a treasure linked to the game via the M2M."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
+        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.regular_user = UserFactory(username='player', password='secret-password')
+        self.regular_token = Token.objects.create(user=self.regular_user)
+        self.treasure = TreasureFactory(name='Shared Gem', value=100)
+        self.game.treasures.add(self.treasure)
+
+    def _url(self):
+        """Return the detail URL for the linked treasure."""
+        return f'/games/test-game/treasures/{self.treasure.id}.json'
+
+    def test_get_returns_200_for_linked_treasure(self, client):
+        """Test that GET resolves a treasure linked via the M2M, not just exclusive ones."""
+        response = self.get(client, self._url())
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['name'] == 'Shared Gem'
+
+    def test_get_includes_max_units_and_available_units(self, client):
+        """Test that GET includes the current max_units/available_units for the linked treasure."""
+        GameTreasure.objects.filter(game=self.game, treasure=self.treasure).update(
+            max_units=10, acquired_units=4,
+        )
+        response = self.get(client, self._url())
+        data = json.loads(response.content)
+        assert data['max_units'] == 10
+        assert data['available_units'] == 6
+
+    def test_patch_updates_max_units_on_the_game_treasure_row(self, client):
+        """Test that PATCH persists max_units onto the GameTreasure row for a DM."""
+        response = self.patch(client, self._url(), {'max_units': 25}, token=self.dm_token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['max_units'] == 25
+        game_treasure = GameTreasure.objects.get(game=self.game, treasure=self.treasure)
+        assert game_treasure.max_units == 25
+
+    def test_patch_can_clear_max_units_to_unlimited(self, client):
+        """Test that PATCH can set max_units back to null (unlimited)."""
+        GameTreasure.objects.filter(game=self.game, treasure=self.treasure).update(max_units=10)
+        response = self.patch(client, self._url(), {'max_units': None}, token=self.dm_token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['max_units'] is None
+        game_treasure = GameTreasure.objects.get(game=self.game, treasure=self.treasure)
+        assert game_treasure.max_units is None
+
+    def test_patch_does_not_change_name_or_value_for_linked_treasure(self, client):
+        """Test that PATCH on a linked treasure leaves its name/value untouched."""
+        response = self.patch(
+            client, self._url(), {'name': 'Renamed', 'value': 999, 'max_units': 5},
+            token=self.dm_token,
+        )
+        assert response.status_code == 200
+        self.treasure.refresh_from_db()
+        assert self.treasure.name == 'Shared Gem'
+        assert self.treasure.value == 100
+
+    def test_patch_cannot_set_acquired_units_directly(self, client):
+        """Test that acquired_units in the payload is ignored, not settable via PATCH."""
+        response = self.patch(
+            client, self._url(), {'max_units': 10, 'acquired_units': 999}, token=self.dm_token,
+        )
+        assert response.status_code == 200
+        game_treasure = GameTreasure.objects.get(game=self.game, treasure=self.treasure)
+        assert game_treasure.acquired_units == 0
+
+    def test_patch_negative_max_units_returns_400(self, client):
+        """Test that a negative max_units is rejected with 400."""
+        response = self.patch(client, self._url(), {'max_units': -1}, token=self.dm_token)
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'max_units' in data['errors']
+
+    def test_patch_with_regular_user_returns_403(self, client):
+        """Test that PATCH from a non-DM, non-superuser is rejected with 403."""
+        response = self.patch(
+            client, self._url(), {'max_units': 5}, token=self.regular_token,
+        )
+        assert response.status_code == 403
+        game_treasure = GameTreasure.objects.get(game=self.game, treasure=self.treasure)
+        assert game_treasure.max_units is None

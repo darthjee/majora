@@ -20,6 +20,11 @@ export default class TreasureCardHelper {
    * @param {string} treasure.name - Treasure name.
    * @param {number} treasure.value - Treasure value.
    * @param {string|null} [treasure.photo_path] - Optional treasure photo path.
+   * @param {number|null} [treasure.available_units] - Units currently available within the
+   *   game, when the treasure is capped. `null`/absent when unlimited.
+   * @param {number|null} [treasure.max_units] - Maximum units obtainable within the game, when
+   *   the treasure is capped. `null`/absent when unlimited; when set, an availability line is
+   *   shown in the card body.
    * @param {boolean} [canManage] - Whether the current user may upload a photo and edit this treasure.
    * @param {Function} [onUploadClick] - Handler invoked with the treasure when the upload button is clicked.
    * @param {string} [editHref] - Hash path to the treasure's edit page. When omitted, no edit
@@ -50,6 +55,7 @@ export default class TreasureCardHelper {
               </a>
             </h6>
             <p className="card-text text-muted mb-0">{formatTreasureValue(treasure.value)}</p>
+            {TreasureCardHelper.#renderAvailability(treasure)}
             {TreasureCardHelper.#renderEditLink(canManage, editHref)}
           </div>
         </div>
@@ -67,6 +73,18 @@ export default class TreasureCardHelper {
         {`×${quantity}`}
       </span>
     );
+  }
+
+  static #renderAvailability(treasure) {
+    if (treasure.max_units === null || treasure.max_units === undefined) {
+      return null;
+    }
+
+    const label = Translator.t('game_treasures_page.available_units_label')
+      .replace('{{available}}', treasure.available_units)
+      .replace('{{max}}', treasure.max_units);
+
+    return <p className="card-text text-muted small mb-0">{label}</p>;
   }
 
   static #renderEditLink(canManage, editHref) {

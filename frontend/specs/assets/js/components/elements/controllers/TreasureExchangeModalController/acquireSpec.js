@@ -7,7 +7,7 @@ describe('TreasureExchangeModalController', function() {
     it('returns ok with the new quantity and money on success', async function() {
       const { characterClient, treasureClient } = buildClients();
       characterClient.acquireTreasure.and.returnValue(
-        Promise.resolve(buildResponse(200, { quantity: 4, money: 100 }))
+        Promise.resolve(buildResponse(200, { quantity: 4, money: 100, acquired: 2 }))
       );
       const controller = new TreasureExchangeModalController(characterClient, treasureClient);
 
@@ -16,7 +16,9 @@ describe('TreasureExchangeModalController', function() {
       expect(characterClient.acquireTreasure).toHaveBeenCalledWith(
         'pcs', 'demo', 7, 'tok', { treasure_id: 9, quantity: 2 }
       );
-      expect(result).toEqual({ ok: true, quantity: 4, money: 100 });
+      expect(result).toEqual({
+        ok: true, quantity: 4, money: 100, acquired: 2,
+      });
     });
 
     it('uses the npc client when isPc is false', async function() {

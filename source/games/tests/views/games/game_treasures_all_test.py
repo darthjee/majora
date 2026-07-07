@@ -5,6 +5,7 @@ import json
 import pytest
 from rest_framework.authtoken.models import Token
 
+from games.models import GameTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     GameFactory,
@@ -88,6 +89,20 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin):
         token = Token.objects.create(user=self.dm_user)
         response = self._get(client, token=token)
         assert response['X-Skip-Cache'] == 'true'
+
+    def test_available_units_and_max_units_reflect_the_game_treasure_row(self, client):
+        """Test that available_units/max_units reflect the linked GameTreasure row's cap."""
+        linked_treasure = TreasureFactory(name='Limited Gem', value=100)
+        self.game.treasures.add(linked_treasure)
+        GameTreasure.objects.filter(game=self.game, treasure=linked_treasure).update(
+            max_units=5, acquired_units=2,
+        )
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get(client, token=token)
+        data = json.loads(response.content)
+        item = next(item for item in data if item['name'] == 'Limited Gem')
+        assert item['max_units'] == 5
+        assert item['available_units'] == 3
 
     def test_does_not_include_other_games_treasures(self, client):
         """Test that treasures exclusive/linked to a different game are excluded."""

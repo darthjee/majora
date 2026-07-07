@@ -197,12 +197,15 @@ treasure_exchange_modal:
   insufficient_funds: Dinheiro insuficiente para adquirir essa quantidade.
   not_enough_owned: Você não possui essa quantidade para vender.
   generic_error: Não foi possível concluir esta ação. Por favor, tente novamente.
+  available_units_badge: '{{available}} restantes'
+  partially_fulfilled: 'Apenas {{acquired}} de {{requested}} estavam disponíveis e foram adquiridos.'
 game_treasures_page:
   loading: Carregando tesouros...
   title: Tesouros
   treasures: Tesouros
   new_treasure: Novo Tesouro
   edit: Editar
+  available_units_label: 'Disponível: {{available}} / {{max}}'
 game_treasure_new_page:
   title: Novo Tesouro
   name_label: Nome
@@ -213,6 +216,7 @@ game_treasure_edit_page:
   title: Editar Tesouro
   name_label: Nome
   value_label: Valor
+  max_units_label: 'Unidades máximas (deixe em branco para ilimitado)'
   submit: Salvar alterações
   error: Falha ao salvar tesouro. Tente novamente.
 game_sessions_page:

@@ -458,14 +458,19 @@ publicly exposed for the same `Treasure` via `/treasures.json`, `/treasures/<id>
 | `/games/<slug>/npcs/<character_id>/treasures/acquire.json` | POST | Same as above | Same as the PC acquire endpoint, for an NPC |
 | `/games/<slug>/npcs/<character_id>/treasures/sell.json` | POST | Same as above | Same as the PC sell endpoint, for an NPC |
 
-Request body: `{"treasure_id": <int>, "quantity": <int, >= 1>}`. Success (200):
-`{"quantity": <new owned quantity>, "money": <new character.money>}`. Failure: 401
-(unauthenticated), 403 (authenticated but not the owning player/GameMaster/superuser), 404
-(`treasure_id` does not resolve to a treasure available in this game — scoped via the same
+Request body: `{"treasure_id": <int>, "quantity": <int, >= 1>}`. Success (200) for sell:
+`{"quantity": <new owned quantity>, "money": <new character.money>}`. Success (200) for
+acquire: same two fields plus `acquired` (added in issue #314) — the number of units actually
+acquired in this request, which may be less than the requested `quantity` when the treasure is
+M2M-linked to the game with a stock cap and fewer units than requested are available (partial
+fulfillment — see "GameTreasure" below; this is never a 400, even when `acquired` is `0`).
+Failure: 401 (unauthenticated), 403 (authenticated but not the owning player/GameMaster/superuser),
+404 (`treasure_id` does not resolve to a treasure available in this game — scoped via the same
 `Q(linked_game=game) | Q(game=game)` filter used by the game treasure list — or, for sell,
 no owned `CharacterTreasure` row exists for that treasure), 400
 (`{"errors": {"quantity": ["insufficient funds"]}}` on acquire when
-`quantity * treasure.value > character.money`, or
+`acquired * treasure.value > character.money` — note this is checked against the capped
+`acquired` amount, not the originally requested `quantity`, or
 `{"errors": {"quantity": ["not enough owned"]}}` on sell when `quantity` exceeds the
 currently owned amount). Both operations run inside `transaction.atomic()` and never delete
 the `CharacterTreasure` row, even when a full sell brings `quantity` to `0`.
@@ -489,6 +494,47 @@ queryset is additionally filtered to `value__lte=max_value`; a missing or non-nu
 is silently ignored (treated as absent), since this is a browsing/UX convenience filter, not
 a validated write. It exposes no additional data — it only narrows the same publicly
 readable list.
+
+---
+
+## GameTreasure
+
+Added in issue #314. `GameTreasure` is the `through` model backing `Game.treasures` (the
+shared many-to-many relationship between `Game` and `Treasure` — distinct from, and
+independent of, the separate "exclusive" `Treasure.game` FK documented under "Treasure"
+above, which has no stock-cap concept). It carries a per-`(game, treasure)` stock cap: a
+nullable `max_units` (unlimited when `null`) and an internal `acquired_units` bookkeeping
+counter (starts at `0`), from which a derived `available_units = max(max_units -
+acquired_units, 0)` (or `null` when `max_units` is `null`) is computed. There is no dedicated
+CRUD endpoint for `GameTreasure` itself — it is only ever read/written indirectly, through the
+`Treasure` endpoints below.
+
+| Action | Who can |
+|--------|---------|
+| Read `available_units`/`max_units` | Anyone, via the game-scoped `Treasure` read endpoints — see "Treasure" above |
+| Write `max_units` | That game's GameMaster, or superuser — via `PATCH /games/<slug>/treasures/<int:treasure_id>.json` when the treasure is M2M-linked to the game (see "Update by game" under "Treasure" above) |
+| Write `acquired_units` | Never directly by any client — only ever incremented/decremented as a side effect of the acquire/sell endpoints below |
+| Create/Delete the `(game, treasure)` link itself | Superuser only, via Django admin's `GameTreasureInline` on the `Game` admin page (out of scope — there is no application-level endpoint that creates this M2M link) |
+
+**Exposed fields** (read, as `available_units`/`max_units` on `TreasureListSerializer`/
+`TreasureDetailSerializer`): see "Treasure" above for the full exposure rules (game-scoped
+endpoints only, `null` on global endpoints and for exclusive treasures).
+
+**Write fields**: `max_units` only (`int >= 0`, or `null` for unlimited), via
+`GameTreasureUpdateSerializer` — an explicit allowlist that excludes `game`, `treasure`, and
+`acquired_units`, so none of those can be set through the PATCH endpoint regardless of what the
+request body contains.
+
+**Stock-cap enforcement on acquire/sell** (see "Treasure acquire/sell endpoints" above): when a
+character acquires `quantity` of a treasure that is M2M-linked to the game with a `GameTreasure`
+row, the acquired amount is capped at `available_units` instead of rejecting an over-sized
+request — the response's `acquired` field reports how many units were actually granted (see
+above), and `acquired_units` is incremented by that amount. Selling decrements `acquired_units`
+by the sold quantity (floored at `0`). Both operations lock the `GameTreasure` row
+(`select_for_update()`) inside the same transaction as the character/`CharacterTreasure` locks,
+in a consistent lock order, to prevent concurrent requests from over-selling the available stock.
+A treasure with `available_units == 0` is not hidden from any list — it simply cannot be
+acquired further (an acquire request against it succeeds with `acquired: 0`).
 
 ---
 
@@ -563,13 +609,24 @@ at most one game, independently.
 | List all by game, including hidden (`GET /games/<slug>/treasures/all.json`) | That game's GameMaster, or superuser (`GameEditPermission`) — unauthenticated → 401, authenticated non-editor → 403 (issue #313, mirrors the `npcs/all.json` precedent for hidden NPCs). Same unfiltered union as the row above, but without the `hidden=True` exclusion. Response always sets `X-Skip-Cache: true` (stricter than `npcs/all.json`, which relies on cache invalidation instead) so Tent never caches this DM/admin-only view by URL |
 | Create by game (`POST /games/<slug>/treasures.json`) | That game's GameMaster, or superuser (`GameEditPermission`) — unauthenticated → 401, authenticated non-editor → 403. `game` is set server-side from the resolved game and never accepted from the request body |
 | Detail by game (`GET /games/<slug>/treasures/<int:treasure_id>.json`) | Anyone, unless `hidden=True` — 404 if the treasure's `game` does not match the resolved game (including a global treasure id, or one exclusive to a different game), **and** 404 if the treasure is hidden and the requester cannot edit the game (issue #313, mirrors the NPC hidden-gate precedent below). A hidden treasure's detail is only visible to that game's GameMaster or a superuser; the response sets `X-Skip-Cache: true` whenever the treasure is hidden, since the outcome is then requester-dependent |
-| Update by game (`PATCH /games/<slug>/treasures/<int:treasure_id>.json`) | That game's GameMaster, or superuser (`GameEditPermission`) — unauthenticated → 401, authenticated non-editor → 403, same 404 rule as the detail endpoint above. A `PATCH` attempt by a non-editor on a hidden treasure also 404s (not 403), so existence is not leaked via a differing status code (issue #313) |
+| Update by game (`PATCH /games/<slug>/treasures/<int:treasure_id>.json`) | That game's GameMaster, or superuser (`GameEditPermission`) — unauthenticated → 401, authenticated non-editor → 403, same 404 rule as the detail endpoint above. A `PATCH` attempt by a non-editor on a hidden treasure also 404s (not 403), so existence is not leaked via a differing status code (issue #313). As of issue #314, this endpoint also resolves treasures M2M-linked to the game (not just exclusive ones): for an exclusive treasure it updates `name`/`value`/`hidden` as before; for an M2M-linked treasure it instead accepts and persists `max_units` onto that game's `GameTreasure` row (see "GameTreasure" below) — `name`/`value`/`hidden` in the body are ignored in that case, and `acquired_units` can never be set through this endpoint |
 | Create (`POST /treasures.json`) | Superuser only — unauthenticated → 401, authenticated non-superuser → 403 |
 | Update (`PATCH /treasures/<id>.json`) | Superuser only — unauthenticated → 401, authenticated non-superuser → 403 (this includes the GameMaster of a game-exclusive treasure's own owning game — that asymmetry is intentional: the global endpoint stays superuser-only regardless of `game`) |
 | Create photo (`POST /treasures/<id>/photo_upload.json`) | Superuser always; additionally that treasure's owning game's GameMaster, when `treasure.game_id` is set — unauthenticated → 401, authenticated non-editor → 403 |
 | Delete | Superuser only (via Django admin, out of scope) — deleting a treasure's owning `Game` also cascade-deletes the treasure (mirrors `Character`'s cascade behavior); it does not delete treasures merely M2M-linked to that game |
 
-**Exposed fields** (read): `id`, `name`, `value`, `photo_path`, `game_slug` — all fields are non-sensitive and safe to return to anonymous callers.
+**Exposed fields** (read): `id`, `name`, `value`, `photo_path`, `game_slug`, `available_units`,
+`max_units` — all fields are non-sensitive and safe to return to anonymous callers.
+
+`available_units`/`max_units` (added in issue #314, both `int|null`) are derived from a `GameTreasure`
+row (see "GameTreasure" below) — see that section for the full read/write contract. They are
+returned, computed relative to the resolved game, on `GET /games/<slug>/treasures.json`,
+`GET /games/<slug>/treasures/all.json`, and `GET /games/<slug>/treasures/<int:treasure_id>.json`
+(both serializers use the shared `GameTreasureFieldsMixin`). They serialize as `null` on the
+global, non-game-scoped `GET /treasures.json` and `GET /treasures/<id>.json` endpoints (no game
+to scope to), and for treasures exclusive to a game (no `GameTreasure` row exists for those, since
+`max_units`/`acquired_units` only apply to the shared M2M relationship, never to the exclusive
+`Treasure.game` FK).
 
 `photo_path` (added in issue #276) is `treasure.photo.path` — same convention as
 `Game.cover_photo_path` and `Character.profile_photo_path` above, but for the

@@ -15,6 +15,7 @@ from ...serializers import (
     TreasureListSerializer,
 )
 from ..common import paginated_list_response, validated_or_error
+from ._treasure_context import game_treasures_context
 
 
 @api_view(['GET', 'POST'])
@@ -32,7 +33,8 @@ def game_treasures(request, game_slug):
     treasures = Treasure.objects.filter(Q(linked_game=game) | Q(game=game)).distinct()
     treasures = treasures.filter(hidden=False)
     treasures = _filter_by_max_value(request, treasures)
-    return paginated_list_response(request, treasures, TreasureListSerializer)
+    context = game_treasures_context(game)
+    return paginated_list_response(request, treasures, TreasureListSerializer, context=context)
 
 
 def _filter_by_max_value(request, treasures):

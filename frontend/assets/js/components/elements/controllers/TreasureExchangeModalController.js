@@ -78,8 +78,10 @@ export default class TreasureExchangeModalController {
    * @param {boolean} isPc - Whether the character is a PC (vs. an NPC).
    * @param {string|null} token - Authentication token, if any.
    * @param {{treasureId: number, quantity: number}} fields - Acquire request fields.
-   * @returns {Promise<object>} Resolves to `{ok: true, quantity, money}` on success, or
-   *   `{ok: false, errorKey}` on a 400 validation failure.
+   * @returns {Promise<object>} Resolves to `{ok: true, quantity, money, acquired}` on success
+   *   (`acquired` is the number of units actually acquired in this request, which may be less
+   *   than the requested `quantity` when the treasure was capped), or `{ok: false, errorKey}`
+   *   on a 400 validation failure.
    */
   acquire(gameSlug, characterId, isPc, token, fields) {
     const body = TreasureExchangeModalController.#toBody(fields);
@@ -137,7 +139,9 @@ export default class TreasureExchangeModalController {
     const data = await response.json().catch(() => ({}));
 
     if (response.status === 200) {
-      return { ok: true, quantity: data.quantity, money: data.money };
+      return {
+        ok: true, quantity: data.quantity, money: data.money, acquired: data.acquired,
+      };
     }
 
     return { ok: false, errorKey: TreasureExchangeModalController.#resolveErrorKey(data) };

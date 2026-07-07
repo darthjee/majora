@@ -71,5 +71,58 @@ describe('TreasureExchangeModalHelper', function() {
       expect(handlers.onPrev).toHaveBeenCalled();
       expect(handlers.onNext).toHaveBeenCalled();
     });
+
+    it('renders an available units badge on the acquire tab, even when available_units is 0', function() {
+      const item = { id: 9, name: 'Golden Crown', value: 500, available_units: 0 };
+      const state = buildState({
+        activeTab: 'acquire', browse: { items: [item], page: 1, pages: 1, loading: false, error: '' },
+      });
+      const element = TreasureExchangeModalHelper.render(true, state, buildHandlers());
+
+      expect(JSON.stringify(element)).toContain('0 left');
+    });
+
+    it('renders an available units badge on the acquire tab when available_units is 1', function() {
+      const item = { id: 9, name: 'Golden Crown', value: 500, available_units: 1 };
+      const state = buildState({
+        activeTab: 'acquire', browse: { items: [item], page: 1, pages: 1, loading: false, error: '' },
+      });
+      const element = TreasureExchangeModalHelper.render(true, state, buildHandlers());
+
+      expect(JSON.stringify(element)).toContain('1 left');
+    });
+
+    it('does not render an available units badge when available_units is absent', function() {
+      const item = { id: 9, name: 'Golden Crown', value: 500 };
+      const state = buildState({
+        activeTab: 'acquire', browse: { items: [item], page: 1, pages: 1, loading: false, error: '' },
+      });
+      const element = TreasureExchangeModalHelper.render(true, state, buildHandlers());
+
+      expect(JSON.stringify(element)).not.toContain('left');
+    });
+
+    it('does not render an available units badge on the sell tab', function() {
+      const item = { id: 9, treasure_id: 9, name: 'Golden Crown', value: 500, available_units: 3 };
+      const state = buildState({
+        activeTab: 'sell', browse: { items: [item], page: 1, pages: 1, loading: false, error: '' },
+      });
+      const element = TreasureExchangeModalHelper.render(true, state, buildHandlers());
+
+      expect(JSON.stringify(element)).not.toContain('left');
+    });
+
+    it('renders the partial fulfillment notice when present', function() {
+      const state = buildState({ partialNotice: 'Only 2 of 5 were available and were acquired.' });
+      const element = TreasureExchangeModalHelper.render(true, state, buildHandlers());
+
+      expect(JSON.stringify(element)).toContain('Only 2 of 5 were available and were acquired.');
+    });
+
+    it('does not render a partial fulfillment notice when absent', function() {
+      const element = TreasureExchangeModalHelper.render(true, buildState(), buildHandlers());
+
+      expect(JSON.stringify(element)).not.toContain('alert-info');
+    });
   });
 });
