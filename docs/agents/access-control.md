@@ -221,14 +221,19 @@ Characters are scoped to a game. Access is symmetric for PCs and NPCs unless not
 
 | Endpoint | Who can read | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs.json` | Anyone | `id`, `name`, `game_slug`, `profile_photo_path`, `slain` |
-| `GET /games/<slug>/npcs.json` | Anyone | `id`, `name`, `game_slug`, `profile_photo_path`, `slain` |
+| `GET /games/<slug>/pcs.json` | Anyone | `id`, `name`, `game_slug`, `profile_photo_path`, `slain`, `allegiance` |
+| `GET /games/<slug>/npcs.json` | Anyone | `id`, `name`, `game_slug`, `profile_photo_path`, `slain`, `allegiance` |
+| `GET /games/<slug>/npcs/all.json` | That game's GameMaster, or superuser (`GameEditPermission`) | Same as `npcs.json` (via `CharacterFullListSerializer`), plus `public_allegiance` — see "Allegiance fields" below for how `allegiance` differs here from the public list. Includes hidden NPCs, unlike `npcs.json`. Response always sets `X-Skip-Cache: true` |
+
+This endpoint predates issue #360 (it already existed to reveal hidden NPCs to DMs) but had no
+dedicated documentation row until now — it was previously only referenced indirectly from the
+"Treasure" section's `treasures/all.json` entry, which was modeled after it.
 
 ### Detail
 
 | Endpoint | Who can read | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs/<id>.json` | Anyone | `id`, `name`, `role`, `public_description`, `is_pc`, `photos`, `links`, `game_slug`, `can_edit`, `profile_photo_path`, `profile_photo_id`, `money`, `slain` |
+| `GET /games/<slug>/pcs/<id>.json` | Anyone | `id`, `name`, `role`, `public_description`, `is_pc`, `photos`, `links`, `game_slug`, `can_edit`, `profile_photo_path`, `profile_photo_id`, `money`, `slain`, `allegiance` |
 | `GET /games/<slug>/npcs/<id>.json` | Anyone | same as above |
 
 `profile_photo_path` (added in issue #255) is `character.profile_photo.path` — same
@@ -246,10 +251,53 @@ its only write path.
 
 | Endpoint | Who can read | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs/<id>/full.json` | Player of this character, any GameMaster of this game, or superuser | All detail fields + `private_description` |
-| `GET /games/<slug>/npcs/<id>/full.json` | Player of this character, any GameMaster of this game, or superuser | All detail fields + `private_description` |
+| `GET /games/<slug>/pcs/<id>/full.json` | Player of this character, any GameMaster of this game, or superuser | All detail fields + `private_description` + `public_allegiance` (see "Allegiance fields" below) |
+| `GET /games/<slug>/npcs/<id>/full.json` | Player of this character, any GameMaster of this game, or superuser | Same as above |
 
 Anonymous or insufficiently privileged authenticated users receive **401** or **403**.
+
+### Allegiance fields (added in issue #360)
+
+`Character` has two independent `CharField(choices=...)` fields, both defaulting to
+`'neutral'`, with allowed values `'ally'`, `'enemy'`, `'neutral'`:
+
+- `allegiance` — the character's real disposition, visible only to a DM/superuser.
+- `public_allegiance` — the disposition shown to regular players.
+
+**Read exposure** — the JSON key `allegiance` means something different depending on the
+endpoint, by design (it lets the frontend always read a single `character.allegiance` key
+regardless of which endpoint served the payload):
+
+- On the public list/detail endpoints (`pcs.json`, `npcs.json`, `pcs/<id>.json`,
+  `npcs/<id>.json`), the `allegiance` JSON key is sourced from the `public_allegiance` model
+  field — the real `allegiance` model field is never exposed there.
+- On the DM/admin endpoints (`npcs/all.json`, `pcs/<id>/full.json`, `npcs/<id>/full.json`),
+  `allegiance` is sourced from the real `allegiance` model field, and `public_allegiance` is
+  additionally exposed under its own key with the public-facing value.
+
+This applies uniformly to both PCs and NPCs (shared `Character` model/serializers), even
+though the fields are only meaningfully written for NPCs in practice — the same precedent as
+`slain` (see above): a PC's `allegiance`/`public_allegiance` stay at the `'neutral'` default
+since no PC write path ever sets them.
+
+**Write access**: both fields were added to the shared `CharacterUpdateSerializer`
+(`CharacterEditPermission`-gated), so — like the pre-existing `hidden`/`private_description`/
+`money` fields on that same serializer — they are technically writable through **either**
+`PATCH /games/<slug>/pcs/<id>.json` or `PATCH /games/<slug>/npcs/<id>.json`: the character's
+own player, any GameMaster of that game, or a superuser. Since NPCs have no player owner by
+product definition (see `docs/agents/product.md`), this is DM/superuser-only in practice for
+NPCs, matching the issue's intent; a PC's own player can technically set their own PC's
+`allegiance`/`public_allegiance` too (same as they already can for `hidden`/`money`), though in
+practice nothing in the product currently reads or displays a PC's allegiance. There is no
+create-time write path (`CharacterCreateSerializer` does not accept either field); both start
+at `'neutral'` on creation via the model default.
+
+**Filtering**: `npcs.json` and `npcs/all.json` accept an optional `?allegiance=` query
+parameter (`ally`/`enemy`/`neutral`; any other value is silently ignored, same tolerant
+convention as `?slain=`). `npcs.json` filters on `public_allegiance`; `npcs/all.json` filters
+on the real `allegiance` field — each endpoint filters on the same underlying field it exposes
+under the `allegiance` key, so the query param never lets an unauthorized caller filter on data
+it cannot otherwise read.
 
 ### Edit access status
 
