@@ -13,6 +13,7 @@ from games.tests.factories import (
     TreasureFactory,
     UserFactory,
 )
+from games.tests.views.support import assert_json_response
 
 
 @pytest.mark.django_db
@@ -150,3 +151,81 @@ class TestGameTreasureUpdateView(TokenAuthRequestMixin):
         self.treasure.refresh_from_db()
         assert self.treasure.name == 'Silver Crown'
         assert self.treasure.game_id == self.game.id
+
+
+@pytest.mark.django_db
+class TestGameTreasureDetailHidden(TokenAuthRequestMixin):
+    """Tests for the hidden-treasure visibility gate in game_treasure_detail.
+
+    A hidden treasure's existence must not be exposed to callers who cannot edit
+    the game, mirroring the hidden-NPC gate documented for character endpoints.
+    """
+
+    def setup_method(self):
+        """Set up common test fixtures."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
+        self.hidden_treasure = TreasureFactory(
+            name='Secret Idol', value=999, game=self.game, hidden=True
+        )
+
+    def _url(self, treasure=None):
+        """Return the detail URL for the given treasure (defaults to the hidden treasure)."""
+        treasure = treasure or self.hidden_treasure
+        return f'/games/test-game/treasures/{treasure.id}.json'
+
+    def test_hidden_treasure_returns_404_for_anonymous(self, client):
+        """Test that an anonymous request to a hidden treasure gets 404."""
+        response = self.get(client, self._url())
+        assert response.status_code == 404
+
+    def test_hidden_treasure_returns_404_for_regular_user(self, client):
+        """Test that a non-DM authenticated user gets 404 for a hidden treasure."""
+        other_user = UserFactory(username='other', password='secret-password')
+        token = Token.objects.create(user=other_user)
+        response = self.get(client, self._url(), token=token)
+        assert response.status_code == 404
+
+    def test_hidden_treasure_returns_200_for_dm(self, client):
+        """Test that a DM can access a hidden treasure detail."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self.get(client, self._url(), token=token)
+        assert_json_response(response, 200, name='Secret Idol', value=999)
+
+    def test_hidden_treasure_returns_200_for_superuser(self, client):
+        """Test that a superuser can access a hidden treasure detail."""
+        superuser = SuperUserFactory(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+        response = self.get(client, self._url(), token=token)
+        assert_json_response(response, 200, name='Secret Idol', value=999)
+
+    def test_visible_treasure_returns_200_for_anonymous(self, client):
+        """Test that a non-hidden treasure is still accessible to anonymous users."""
+        visible_treasure = TreasureFactory(
+            name='Visible Gem', value=42, game=self.game, hidden=False
+        )
+        response = self.get(client, self._url(treasure=visible_treasure))
+        assert response.status_code == 200
+
+    def test_hidden_treasure_response_includes_x_skip_cache_header_for_dm(self, client):
+        """Test that a DM's response for a hidden treasure includes X-Skip-Cache: true."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self.get(client, self._url(), token=token)
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_hidden_treasure_404_response_includes_x_skip_cache_header_for_anonymous(
+        self, client
+    ):
+        """Test that an anonymous 404 response for a hidden treasure includes X-Skip-Cache."""
+        response = self.get(client, self._url())
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_patch_on_hidden_treasure_by_non_dm_returns_404(self, client):
+        """Test that a non-DM's PATCH attempt on a hidden treasure gets 404, not 403."""
+        other_user = UserFactory(username='other', password='secret-password')
+        token = Token.objects.create(user=other_user)
+        response = self.patch(client, self._url(), {'name': 'Renamed'}, token=token)
+        assert response.status_code == 404
+        self.hidden_treasure.refresh_from_db()
+        assert self.hidden_treasure.name == 'Secret Idol'

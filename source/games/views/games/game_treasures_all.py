@@ -14,6 +14,9 @@ from ..common import paginated_list_response
 
 @api_view(['GET'])
 @authentication_classes([CookieTokenAuthentication])
+# AllowAny: authorization for this whole endpoint is enforced inline via
+# GameEditPermission.check(), so unauthenticated/non-DM callers get the app's own
+# 401/403 payload instead of DRF's default.
 @permission_classes([AllowAny])
 def game_treasures_all(request, game_slug):
     """Return all treasures (including hidden) for a game — DM/superuser only."""
