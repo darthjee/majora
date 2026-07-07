@@ -20,11 +20,11 @@ describe('PcCharacterTreasuresController', function() {
       const setCharacter = jasmine.createSpy('setCharacter');
       const characterClient = buildCharacterClient();
 
-      characterClient.fetchPc.and.returnValue(Promise.resolve({
+      characterClient.fetchCharacter.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: true, money: 310 }),
       }));
-      characterClient.fetchPcAccess.and.returnValue(Promise.resolve({
+      characterClient.fetchCharacterAccess.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ can_edit: true }),
       }));
@@ -51,7 +51,7 @@ describe('PcCharacterTreasuresController', function() {
       const setCharacter = jasmine.createSpy('setCharacter');
       const characterClient = buildCharacterClient();
 
-      characterClient.fetchPc.and.returnValue(Promise.resolve({ ok: false }));
+      characterClient.fetchCharacter.and.returnValue(Promise.resolve({ ok: false }));
 
       const cleanup = new PcCharacterTreasuresController(
         jasmine.createSpy('setTreasures'),
@@ -73,11 +73,11 @@ describe('PcCharacterTreasuresController', function() {
       const setCharacter = jasmine.createSpy('setCharacter');
       const characterClient = buildCharacterClient();
 
-      characterClient.fetchPc.and.returnValue(Promise.resolve({
+      characterClient.fetchCharacter.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: true, money: 310 }),
       }));
-      characterClient.fetchPcAccess.and.returnValue(Promise.reject(new Error('network error')));
+      characterClient.fetchCharacterAccess.and.returnValue(Promise.reject(new Error('network error')));
 
       const cleanup = new PcCharacterTreasuresController(
         jasmine.createSpy('setTreasures'),

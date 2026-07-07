@@ -26,8 +26,8 @@ describe('NpcCharacterPhotosController', function() {
 
       await controller.setProfilePhoto('demo', '7', '9');
 
-      expect(characterClient.setNpcPhotoRoles).toHaveBeenCalledWith('demo', '7', '9', null, ['profile']);
-      expect(characterClient.fetchNpc).toHaveBeenCalledWith('demo', '7', null);
+      expect(characterClient.setPhotoRoles).toHaveBeenCalledWith('npcs', 'demo', '7', '9', null, ['profile']);
+      expect(characterClient.fetchCharacter).toHaveBeenCalledWith('npcs', 'demo', '7', null);
       expect(setCharacter).toHaveBeenCalledWith(
         jasmine.objectContaining({ name: 'Aragorn', can_edit: false }),
       );
@@ -41,7 +41,7 @@ describe('NpcCharacterPhotosController', function() {
       const setError = jasmine.createSpy('setError');
       const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
 
-      characterClient.setNpcPhotoRoles.and.returnValue(Promise.reject(new Error('network error')));
+      characterClient.setPhotoRoles.and.returnValue(Promise.reject(new Error('network error')));
 
       const controller = new NpcCharacterPhotosController(
         setPhotos, setPagination, setCharacter, setLoading, setError, client, characterClient,

@@ -22,9 +22,9 @@ describe('PcCharacterEditController#submitForm', function() {
     setFieldErrors = jasmine.createSpy('setFieldErrors');
     setStatus = jasmine.createSpy('setStatus');
     client = jasmine.createSpyObj('client', ['currentHash']);
-    characterClient = jasmine.createSpyObj('characterClient', ['fetchPc', 'updatePc']);
+    characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacter', 'updateCharacter']);
     spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
-    characterClient.updatePc.and.returnValue(Promise.resolve({
+    characterClient.updateCharacter.and.returnValue(Promise.resolve({
       ok: true,
       status: 200,
       json: () => Promise.resolve({ id: 2, can_edit: true }),
@@ -62,7 +62,8 @@ describe('PcCharacterEditController#submitForm', function() {
       expect(event.preventDefault).toHaveBeenCalled();
       expect(setStatus).toHaveBeenCalledWith('submitting');
       expect(setFieldErrors).toHaveBeenCalledWith({});
-      expect(characterClient.updatePc).toHaveBeenCalledWith(
+      expect(characterClient.updateCharacter).toHaveBeenCalledWith(
+        'pcs',
         'demo',
         '2',
         'tok-abc',

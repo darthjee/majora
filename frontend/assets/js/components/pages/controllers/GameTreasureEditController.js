@@ -1,13 +1,14 @@
 import GameClient from '../../../client/GameClient.js';
 import TreasureClient from '../../../client/TreasureClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import BaseEditController from './BaseEditController.js';
 import BasePageController from './BasePageController.js';
 import Noop from '../../../utils/Noop.js';
 
 /**
  * Controller for the game treasure edit page.
  */
-export default class GameTreasureEditController extends BasePageController {
+export default class GameTreasureEditController extends BaseEditController {
   /**
    * Extract game slug and treasure id from a game treasure edit hash.
    *
@@ -33,40 +34,28 @@ export default class GameTreasureEditController extends BasePageController {
   constructor(
     setTreasure, setLoading, setError, setFieldErrors = Noop.noop, treasureClient = null, gameClient = null,
   ) {
-    super();
-    this.setTreasure = setTreasure;
-    this.setLoading = setLoading;
-    this.setError = setError;
-    this.setFieldErrors = setFieldErrors;
+    super(setTreasure, setLoading, setError, setFieldErrors);
     this.treasureClient = treasureClient ?? new TreasureClient();
     this.gameClient = gameClient ?? new GameClient();
   }
 
   /**
-   * Build page loading effect.
+   * Load the game-scoped treasure, gated on the current user being able to
+   * edit the game (redirects to the game's treasures index otherwise).
    *
-   * @description Redirects to the game treasures index when the current user
-   *   may not edit the game, before fetching the treasure.
-   * @returns {Function} Effect callback.
+   * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
+   * @returns {void}
    */
-  buildEffect() {
-    return () => {
-      let mounted = true;
-      const safeSet = this.buildSafeSetter(() => mounted);
-      const hash = typeof window === 'undefined' ? '' : window.location.hash;
-      const { game_slug: gameSlug, treasure_id: treasureId } =
-        GameTreasureEditController.getGameTreasureEditParamsFromHash(hash);
-      const token = AuthStorage.getToken();
+  loadResource(safeSet) {
+    const hash = typeof window === 'undefined' ? '' : window.location.hash;
+    const { game_slug: gameSlug, treasure_id: treasureId } =
+      GameTreasureEditController.getGameTreasureEditParamsFromHash(hash);
+    const token = AuthStorage.getToken();
 
-      this.gameClient.fetchGameAccess(gameSlug, token)
-        .then((response) => (response.ok ? response.json() : { can_edit: false }))
-        .then((access) => this.#handleAccess(access, gameSlug, treasureId, safeSet))
-        .catch(() => this.#redirectToTreasures(gameSlug));
-
-      return () => {
-        mounted = false;
-      };
-    };
+    this.gameClient.fetchGameAccess(gameSlug, token)
+      .then((response) => (response.ok ? response.json() : { can_edit: false }))
+      .then((access) => this.#handleAccess(access, gameSlug, treasureId, safeSet))
+      .catch(() => this.redirectTo(`/games/${gameSlug}/treasures`));
   }
 
   /**
@@ -82,31 +71,23 @@ export default class GameTreasureEditController extends BasePageController {
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
-  async submitForm(event, gameSlug, id, formValues, setters) {
-    if (event && typeof event.preventDefault === 'function') {
-      event.preventDefault();
-    }
-
-    setters.setStatus('submitting');
-    setters.setFieldErrors({});
-
+  submitForm(event, gameSlug, id, formValues, setters) {
     const token = AuthStorage.getToken();
 
-    try {
-      const response = await this.treasureClient.updateGameTreasure(gameSlug, id, token, {
+    return this.performSubmit(
+      event,
+      setters,
+      () => this.treasureClient.updateGameTreasure(gameSlug, id, token, {
         name: formValues.name,
         value: parseInt(formValues.value, 10),
-      });
-
-      await this.#handleResponse(response, gameSlug, id, setters);
-    } catch {
-      setters.setStatus('error');
-    }
+      }),
+      `/games/${gameSlug}/treasures/${id}`,
+    );
   }
 
   #handleAccess(access, gameSlug, treasureId, safeSet) {
     if (!access.can_edit) {
-      this.#redirectToTreasures(gameSlug);
+      this.redirectTo(`/games/${gameSlug}/treasures`);
       return;
     }
 
@@ -116,43 +97,12 @@ export default class GameTreasureEditController extends BasePageController {
       return;
     }
 
-    this.#fetchTreasure(gameSlug, treasureId, safeSet);
-  }
-
-  #redirectToTreasures(gameSlug) {
-    if (typeof window !== 'undefined') {
-      window.location.hash = `/games/${gameSlug}/treasures`;
-    }
-  }
-
-  #fetchTreasure(gameSlug, treasureId, safeSet) {
     const token = AuthStorage.getToken();
 
-    this.treasureClient.fetchGameTreasure(gameSlug, treasureId, token)
-      .then((response) => (response.ok
-        ? response.json()
-        : Promise.reject(new Error('treasure failed'))))
-      .then((treasure) => safeSet(this.setTreasure, treasure))
-      .catch(() => safeSet(this.setError, 'Unable to load treasure.'))
-      .finally(() => safeSet(this.setLoading, false));
-  }
-
-  async #handleResponse(response, gameSlug, id, setters) {
-    if (response.ok) {
-      if (typeof window !== 'undefined') {
-        window.location.hash = `/games/${gameSlug}/treasures/${id}`;
-      }
-      return;
-    }
-
-    const data = await response.json();
-    const errors = data.errors ?? {};
-
-    if (response.status === 400) {
-      setters.setFieldErrors(errors);
-      return;
-    }
-
-    setters.setStatus('error');
+    this.fetchSingle(
+      this.treasureClient.fetchGameTreasure(gameSlug, treasureId, token),
+      safeSet,
+      'Unable to load treasure.',
+    );
   }
 }

@@ -13,12 +13,7 @@ export default class GameSessionClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the session endpoint.
    */
   fetchSession(gameSlug, id, token) {
-    return this.request(`/games/${gameSlug}/sessions/${id}.json`, {
-      headers: {
-        Accept: 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-    });
+    return this.getJson(`/games/${gameSlug}/sessions/${id}.json`, token);
   }
 
   /**
@@ -32,15 +27,7 @@ export default class GameSessionClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the sessions endpoint.
    */
   createSession(gameSlug, token, fields) {
-    return this.request(`/games/${gameSlug}/sessions.json`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-      body: JSON.stringify(fields),
-    });
+    return this.postJson(`/games/${gameSlug}/sessions.json`, token, fields);
   }
 
   /**
@@ -53,14 +40,6 @@ export default class GameSessionClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the session endpoint.
    */
   updateSession(gameSlug, id, token, fields) {
-    return this.request(`/games/${gameSlug}/sessions/${id}.json`, {
-      method: 'PATCH',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-      body: JSON.stringify(fields),
-    });
+    return this.patchJson(`/games/${gameSlug}/sessions/${id}.json`, token, fields);
   }
 }

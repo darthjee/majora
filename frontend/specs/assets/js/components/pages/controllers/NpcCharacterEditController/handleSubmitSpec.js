@@ -24,12 +24,12 @@ describe('NpcCharacterEditController#handleSubmit', function() {
     setStatus = jasmine.createSpy('setStatus');
     setters = { setStatus, setFieldErrors };
     client = jasmine.createSpyObj('client', ['currentHash']);
-    characterClient = jasmine.createSpyObj('characterClient', ['fetchNpc', 'updateNpc']);
+    characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacter', 'updateCharacter']);
     spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
   });
 
   it('navigates to the show page on success', async function() {
-    characterClient.updateNpc.and.returnValue(Promise.resolve({
+    characterClient.updateCharacter.and.returnValue(Promise.resolve({
       ok: true,
       status: 200,
       json: () => Promise.resolve({ id: 2, name: 'Goblin King', can_edit: true }),
@@ -49,8 +49,8 @@ describe('NpcCharacterEditController#handleSubmit', function() {
     try {
       await controller.handleSubmit('demo', '2', { name: 'Goblin King' }, setters);
 
-      expect(characterClient.updateNpc).toHaveBeenCalledWith(
-        'demo', '2', 'tok-abc', { name: 'Goblin King' },
+      expect(characterClient.updateCharacter).toHaveBeenCalledWith(
+        'npcs', 'demo', '2', 'tok-abc', { name: 'Goblin King' },
       );
       expect(fakeWindow.location.hash).toBe('/games/demo/npcs/2');
       expect(setFieldErrors).not.toHaveBeenCalled();
@@ -61,7 +61,7 @@ describe('NpcCharacterEditController#handleSubmit', function() {
   });
 
   it('sets per-field errors on a 400 response without navigating', async function() {
-    characterClient.updateNpc.and.returnValue(Promise.resolve({
+    characterClient.updateCharacter.and.returnValue(Promise.resolve({
       ok: false,
       status: 400,
       json: () => Promise.resolve({ errors: { level: ['must be a positive integer'] } }),
@@ -90,7 +90,7 @@ describe('NpcCharacterEditController#handleSubmit', function() {
   });
 
   it('sets status to error on a 401 response', async function() {
-    characterClient.updateNpc.and.returnValue(Promise.resolve({
+    characterClient.updateCharacter.and.returnValue(Promise.resolve({
       ok: false,
       status: 401,
       json: () => Promise.resolve({ errors: { detail: ['authentication required'] } }),
@@ -113,7 +113,7 @@ describe('NpcCharacterEditController#handleSubmit', function() {
   });
 
   it('sets status to error on a 403 response', async function() {
-    characterClient.updateNpc.and.returnValue(Promise.resolve({
+    characterClient.updateCharacter.and.returnValue(Promise.resolve({
       ok: false,
       status: 403,
       json: () => Promise.resolve({ errors: { detail: ['not allowed to edit this character'] } }),
@@ -136,7 +136,7 @@ describe('NpcCharacterEditController#handleSubmit', function() {
   });
 
   it('sets status to error when the request rejects', async function() {
-    characterClient.updateNpc.and.returnValue(Promise.reject(new Error('network')));
+    characterClient.updateCharacter.and.returnValue(Promise.reject(new Error('network')));
 
     const controller = new NpcCharacterEditController(
       setCharacter,

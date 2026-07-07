@@ -1,13 +1,11 @@
-import CharacterClient from '../../../client/CharacterClient.js';
-import GenericClient from '../../../client/GenericClient.js';
+import BaseCharacterTreasuresController from './BaseCharacterTreasuresController.js';
 import BasePageController from './BasePageController.js';
-import AuthStorage from '../../../utils/AuthStorage.js';
 import Noop from '../../../utils/Noop.js';
 
 /**
  * Controller for the PC character treasures index page.
  */
-export default class PcCharacterTreasuresController extends BasePageController {
+export default class PcCharacterTreasuresController extends BaseCharacterTreasuresController {
   /**
    * Extract game slug and character id from the PC character treasures hash route.
    *
@@ -27,10 +25,10 @@ export default class PcCharacterTreasuresController extends BasePageController {
    * @param {Function} setPagination - Pagination setter.
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
-   * @param {GenericClient|null} client - Client override.
+   * @param {import('../../../client/GenericClient.js').default|null} [client] - Client override.
    * @param {Function} [setCharacter] - Character context setter, used for the "Add treasure"
    *   button's visibility and the exchange modal's affordability checks.
-   * @param {CharacterClient|null} [characterClient] - Character client override.
+   * @param {import('../../../client/CharacterClient.js').default|null} [characterClient] - Character client override.
    */
   constructor(
     setTreasures,
@@ -41,70 +39,12 @@ export default class PcCharacterTreasuresController extends BasePageController {
     setCharacter = Noop.noop,
     characterClient = null,
   ) {
-    super();
-    this.setTreasures = setTreasures;
-    this.setPagination = setPagination;
-    this.setLoading = setLoading;
-    this.setError = setError;
-    this.client = client ?? new GenericClient();
-    this.setCharacter = setCharacter;
-    this.characterClient = characterClient ?? new CharacterClient();
-  }
-
-  /**
-   * Build page loading effect.
-   *
-   * @returns {Function} Effect callback.
-   */
-  buildEffect() {
-    return () => {
-      let mounted = true;
-      const safeSet = this.buildSafeSetter(() => mounted);
-      const { game_slug: gameSlug, character_id: characterId } =
-        PcCharacterTreasuresController.getPcCharacterTreasuresParamsFromHash(this.client.currentHash());
-
-      if (!gameSlug || !characterId) {
-        safeSet(this.setError, 'Unable to load treasures.');
-        safeSet(this.setLoading, false);
-      } else {
-        this.#fetchTreasures(gameSlug, characterId, safeSet);
-        this.#fetchCharacter(gameSlug, characterId, safeSet);
-      }
-
-      return () => {
-        mounted = false;
-      };
-    };
-  }
-
-  #fetchTreasures(gameSlug, characterId, safeSet) {
-    this.client.fetchIndex(`/games/${gameSlug}/pcs/${characterId}/treasures.json`)
-      .then(({ data, pagination }) => {
-        safeSet(this.setTreasures, Array.isArray(data) ? data : []);
-        safeSet(this.setPagination, pagination);
-      })
-      .catch(() => safeSet(this.setError, 'Unable to load treasures.'))
-      .finally(() => safeSet(this.setLoading, false));
-  }
-
-  #fetchCharacter(gameSlug, characterId, safeSet) {
-    const token = AuthStorage.getToken();
-
-    this.characterClient.fetchPc(gameSlug, characterId, token)
-      .then((response) => (response.ok ? response.json() : null))
-      .then((character) => this.#mergeAccess(character, gameSlug, characterId, token, safeSet))
-      .catch(() => safeSet(this.setCharacter, null));
-  }
-
-  #mergeAccess(character, gameSlug, characterId, token, safeSet) {
-    if (!character) {
-      safeSet(this.setCharacter, null);
-      return Promise.resolve();
-    }
-
-    return this.characterClient.fetchPcAccess(gameSlug, characterId, token)
-      .then((response) => (response.ok ? response.json() : { can_edit: false }))
-      .then((access) => safeSet(this.setCharacter, { ...character, can_edit: Boolean(access.can_edit) }))
-      .catch(() => safeSet(this.setCharacter, character));
+    super(
+      { setTreasures, setPagination, setLoading, setError, setCharacter },
+      PcCharacterTreasuresController.getPcCharacterTreasuresParamsFromHash,
+      'pcs',
+      client,
+      characterClient,
+    );
   }
 }

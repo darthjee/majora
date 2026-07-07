@@ -38,7 +38,7 @@ export default class GenericClient extends BaseClient {
    */
   async fetch(path) {
     const url = this.#buildUrl(path, HashQueryParams.parse(this.currentHash()));
-    return this.#request(url, { headers: { Accept: 'application/json' } }, path);
+    return this.#request(url, { headers: this.buildHeaders(null) }, path);
   }
 
   /**
@@ -49,7 +49,7 @@ export default class GenericClient extends BaseClient {
    */
   async fetchIndex(path) {
     const url = this.#buildUrl(path, this.#resolver.getPaginationParams());
-    const response = await this.request(url, { headers: { Accept: 'application/json' } });
+    const response = await this.request(url, { headers: this.buildHeaders(null) });
 
     if (!response.ok) {
       throw new Error(`Request failed for ${path}`);
@@ -75,7 +75,7 @@ export default class GenericClient extends BaseClient {
   async post(path, body) {
     return this.#request(path, {
       method: 'POST',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      headers: { ...this.buildHeaders(null), 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     }, path);
   }
@@ -90,7 +90,7 @@ export default class GenericClient extends BaseClient {
   async patch(path, body) {
     return this.#request(path, {
       method: 'PATCH',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      headers: { ...this.buildHeaders(null), 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     }, path);
   }

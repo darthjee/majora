@@ -23,7 +23,7 @@ describe('BaseCharacterEditController', function() {
     beforeEach(function() {
       setStatus = jasmine.createSpy('setStatus');
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-test');
-      characterClient.updateNpc.and.returnValue(Promise.resolve({
+      characterClient.updateCharacter.and.returnValue(Promise.resolve({
         ok: true, status: 200, json: () => Promise.resolve({ id: 1, can_edit: true }),
       }));
     });
@@ -51,8 +51,8 @@ describe('BaseCharacterEditController', function() {
         expect(event.preventDefault).toHaveBeenCalled();
         expect(setStatus).toHaveBeenCalledWith('submitting');
         expect(setFieldErrors).toHaveBeenCalledWith({});
-        expect(characterClient.updateNpc).toHaveBeenCalledWith(
-          'demo', '1', 'tok-test',
+        expect(characterClient.updateCharacter).toHaveBeenCalledWith(
+          'npcs', 'demo', '1', 'tok-test',
           {
             name: 'Test Hero',
             role: 'Fighter',
@@ -66,7 +66,7 @@ describe('BaseCharacterEditController', function() {
     });
 
     it('sets per-field errors on a 400 response without redirecting', async function() {
-      characterClient.updateNpc.and.returnValue(Promise.resolve({
+      characterClient.updateCharacter.and.returnValue(Promise.resolve({
         ok: false, status: 400,
         json: () => Promise.resolve({ errors: { role: ['is invalid'] } }),
       }));
@@ -93,7 +93,7 @@ describe('BaseCharacterEditController', function() {
     });
 
     it('sets status to error on a non-400 failure response without redirecting', async function() {
-      characterClient.updateNpc.and.returnValue(Promise.resolve({
+      characterClient.updateCharacter.and.returnValue(Promise.resolve({
         ok: false, status: 500,
         json: () => Promise.resolve({ errors: {} }),
       }));
@@ -120,7 +120,7 @@ describe('BaseCharacterEditController', function() {
     });
 
     it('sets status to error when the request throws', async function() {
-      characterClient.updateNpc.and.returnValue(Promise.reject(new Error('network')));
+      characterClient.updateCharacter.and.returnValue(Promise.reject(new Error('network')));
 
       const controller = new TestCharacterEditController(
         setCharacter, setLoading, setError, setFieldErrors, client, characterClient,

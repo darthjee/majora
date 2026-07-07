@@ -12,12 +12,7 @@ export default class GameClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the game endpoint.
    */
   fetchGame(gameSlug, token) {
-    return this.request(`/games/${gameSlug}.json`, {
-      headers: {
-        Accept: 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-    });
+    return this.getJson(`/games/${gameSlug}.json`, token);
   }
 
   /**
@@ -28,12 +23,7 @@ export default class GameClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the game access endpoint.
    */
   fetchGameAccess(gameSlug, token) {
-    return this.request(`/games/${gameSlug}/access.json`, {
-      headers: {
-        Accept: 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-    });
+    return this.getJson(`/games/${gameSlug}/access.json`, token);
   }
 
   /**
@@ -44,15 +34,7 @@ export default class GameClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the games endpoint.
    */
   createGame(token, fields) {
-    return this.request('/games.json', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-      body: JSON.stringify(fields),
-    });
+    return this.postJson('/games.json', token, fields);
   }
 
   /**
@@ -64,14 +46,6 @@ export default class GameClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the game endpoint.
    */
   updateGame(gameSlug, token, fields) {
-    return this.request(`/games/${gameSlug}.json`, {
-      method: 'PATCH',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Token ${token}` } : {}),
-      },
-      body: JSON.stringify(fields),
-    });
+    return this.patchJson(`/games/${gameSlug}.json`, token, fields);
   }
 }

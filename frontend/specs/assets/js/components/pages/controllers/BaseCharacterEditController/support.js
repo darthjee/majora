@@ -23,7 +23,7 @@ export class TestCharacterEditController extends BaseCharacterEditController {
     super(
       setCharacter, setLoading, setError, setFieldErrors,
       NpcCharacterController, NpcCharacterEditController.getNpcCharacterEditParamsFromHash,
-      'npcs', 'updateNpc', client, characterClient,
+      'npcs', client, characterClient,
     );
   }
 }
@@ -39,6 +39,6 @@ export function buildContext() {
     setError: jasmine.createSpy('setError'),
     setFieldErrors: jasmine.createSpy('setFieldErrors'),
     client: jasmine.createSpyObj('client', ['currentHash']),
-    characterClient: jasmine.createSpyObj('characterClient', ['fetchNpc', 'updateNpc']),
+    characterClient: jasmine.createSpyObj('characterClient', ['fetchCharacter', 'updateCharacter']),
   };
 }

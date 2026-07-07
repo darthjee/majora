@@ -6,10 +6,9 @@ import AuthStorage from '../../../utils/AuthStorage.js';
 /**
  * Base controller for character detail pages (PC and NPC).
  *
- * Subclasses must implement {@link CharacterController#fetchCharacter},
- * {@link CharacterController#fetchCharacterFull}, and
- * {@link CharacterController#fetchCharacterAccess} to delegate to the
- * appropriate {@link CharacterClient} methods for their character type.
+ * @description Parameterized by `characterKind` (`'pcs'` or `'npcs'`), so a
+ *   single implementation covers both PC and NPC detail pages by delegating
+ *   to {@link CharacterClient}'s parameterized methods.
  */
 export default class CharacterController extends BasePageController {
   /**
@@ -22,6 +21,8 @@ export default class CharacterController extends BasePageController {
    * @param {Function} paramsFromHash - Hash param extractor; concrete subclasses
    *   provide a default via their own constructor default argument.
    * @param {CharacterClient|null} [characterClient] - Character client override.
+   * @param {string} [characterKind] - Character kind (`'pcs'` or `'npcs'`), used to
+   *   build the correct URL segment for every character client call.
    */
   constructor(
     setCharacter,
@@ -30,6 +31,7 @@ export default class CharacterController extends BasePageController {
     client = null,
     paramsFromHash,
     characterClient = null,
+    characterKind = 'pcs',
   ) {
     super();
     this.setCharacter = setCharacter;
@@ -38,58 +40,55 @@ export default class CharacterController extends BasePageController {
     this.client = client ?? new GenericClient();
     this.paramsFromHash = paramsFromHash;
     this.characterClient = characterClient ?? new CharacterClient();
+    this.characterKind = characterKind;
   }
 
   /**
    * Fetch the base character data from the API.
-   * Must be implemented by subclasses.
    *
    * @param {string} gameSlug - Game slug.
    * @param {string} characterId - Character id.
    * @param {string|null} token - Authentication token.
    * @returns {Promise<Response>} Fetch response.
    */
-  fetchCharacter(gameSlug, characterId, token) { // eslint-disable-line no-unused-vars
-    throw new Error('CharacterController#fetchCharacter must be implemented by subclass');
+  fetchCharacter(gameSlug, characterId, token) {
+    return this.characterClient.fetchCharacter(this.characterKind, gameSlug, characterId, token);
   }
 
   /**
    * Fetch the full (editor-only) character data from the API.
-   * Must be implemented by subclasses.
    *
    * @param {string} gameSlug - Game slug.
    * @param {string} characterId - Character id.
    * @param {string|null} token - Authentication token.
    * @returns {Promise<Response>} Fetch response.
    */
-  fetchCharacterFull(gameSlug, characterId, token) { // eslint-disable-line no-unused-vars
-    throw new Error('CharacterController#fetchCharacterFull must be implemented by subclass');
+  fetchCharacterFull(gameSlug, characterId, token) {
+    return this.characterClient.fetchCharacterFull(this.characterKind, gameSlug, characterId, token);
   }
 
   /**
    * Fetch the access permissions for the character from the API.
-   * Must be implemented by subclasses.
    *
    * @param {string} gameSlug - Game slug.
    * @param {string} characterId - Character id.
    * @param {string|null} token - Authentication token.
    * @returns {Promise<Response>} Fetch response.
    */
-  fetchCharacterAccess(gameSlug, characterId, token) { // eslint-disable-line no-unused-vars
-    throw new Error('CharacterController#fetchCharacterAccess must be implemented by subclass');
+  fetchCharacterAccess(gameSlug, characterId, token) {
+    return this.characterClient.fetchCharacterAccess(this.characterKind, gameSlug, characterId, token);
   }
 
   /**
    * Fetch a first page of the character's treasures from the API.
-   * Must be implemented by subclasses.
    *
    * @param {string} gameSlug - Game slug.
    * @param {string} characterId - Character id.
    * @param {string|null} token - Authentication token.
    * @returns {Promise<Response>} Fetch response.
    */
-  fetchCharacterTreasures(gameSlug, characterId, token) { // eslint-disable-line no-unused-vars
-    throw new Error('CharacterController#fetchCharacterTreasures must be implemented by subclass');
+  fetchCharacterTreasures(gameSlug, characterId, token) {
+    return this.characterClient.fetchCharacterTreasures(this.characterKind, gameSlug, characterId, token);
   }
 
   /**

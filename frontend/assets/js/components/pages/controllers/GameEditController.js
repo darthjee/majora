@@ -1,12 +1,13 @@
 import GameClient from '../../../client/GameClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import BaseEditController from './BaseEditController.js';
 import BasePageController from './BasePageController.js';
 import Noop from '../../../utils/Noop.js';
 
 /**
  * Controller for the game edit page.
  */
-export default class GameEditController extends BasePageController {
+export default class GameEditController extends BaseEditController {
   /**
    * Extract game slug from a game edit hash.
    *
@@ -27,37 +28,34 @@ export default class GameEditController extends BasePageController {
    * @param {GameClient|null} [gameClient] - Game client override.
    */
   constructor(setGame, setLoading, setError, setFieldErrors = Noop.noop, gameClient = null) {
-    super();
-    this.setGame = setGame;
-    this.setLoading = setLoading;
-    this.setError = setError;
-    this.setFieldErrors = setFieldErrors;
+    super(setGame, setLoading, setError, setFieldErrors);
     this.gameClient = gameClient ?? new GameClient();
   }
 
   /**
-   * Build page loading effect.
+   * Load the game and its access permissions.
    *
-   * @returns {Function} Effect callback.
+   * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
+   * @returns {void}
    */
-  buildEffect() {
-    return () => {
-      let mounted = true;
-      const safeSet = this.buildSafeSetter(() => mounted);
-      const hash = typeof window === 'undefined' ? '' : window.location.hash;
-      const gameSlug = GameEditController.getGameSlugFromEditHash(hash);
+  loadResource(safeSet) {
+    const hash = typeof window === 'undefined' ? '' : window.location.hash;
+    const gameSlug = GameEditController.getGameSlugFromEditHash(hash);
 
-      if (!gameSlug) {
-        safeSet(this.setError, 'Unable to load game.');
-        safeSet(this.setLoading, false);
-      } else {
-        this.#fetchGameWithAccess(gameSlug, safeSet);
-      }
+    if (!gameSlug) {
+      safeSet(this.setError, 'Unable to load game.');
+      safeSet(this.setLoading, false);
+      return;
+    }
 
-      return () => {
-        mounted = false;
-      };
-    };
+    const token = AuthStorage.getToken();
+
+    this.fetchWithAccess(
+      this.gameClient.fetchGame(gameSlug, token),
+      this.gameClient.fetchGameAccess(gameSlug, token),
+      safeSet,
+      'Unable to load game.',
+    );
   }
 
   /**
@@ -72,64 +70,17 @@ export default class GameEditController extends BasePageController {
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
-  async submitForm(event, gameSlug, formValues, setters) {
-    if (event && typeof event.preventDefault === 'function') {
-      event.preventDefault();
-    }
-
-    setters.setStatus('submitting');
-    setters.setFieldErrors({});
-
+  submitForm(event, gameSlug, formValues, setters) {
     const token = AuthStorage.getToken();
 
-    try {
-      const response = await this.gameClient.updateGame(gameSlug, token, {
+    return this.performSubmit(
+      event,
+      setters,
+      () => this.gameClient.updateGame(gameSlug, token, {
         name: formValues.name,
         description: formValues.description,
-      });
-
-      await this.#handleResponse(response, gameSlug, setters);
-    } catch {
-      setters.setStatus('error');
-    }
-  }
-
-  #fetchGameWithAccess(gameSlug, safeSet) {
-    const token = AuthStorage.getToken();
-
-    Promise.all([
-      this.gameClient.fetchGame(gameSlug, token),
-      this.gameClient.fetchGameAccess(gameSlug, token),
-    ])
-      .then(([gameResponse, accessResponse]) => Promise.all([
-        gameResponse.ok
-          ? gameResponse.json()
-          : Promise.reject(new Error('game failed')),
-        accessResponse.ok
-          ? accessResponse.json()
-          : Promise.resolve({ can_edit: false }),
-      ]))
-      .then(([game, access]) => safeSet(this.setGame, { ...game, ...access }))
-      .catch(() => safeSet(this.setError, 'Unable to load game.'))
-      .finally(() => safeSet(this.setLoading, false));
-  }
-
-  async #handleResponse(response, gameSlug, setters) {
-    if (response.ok) {
-      if (typeof window !== 'undefined') {
-        window.location.hash = `/games/${gameSlug}`;
-      }
-      return;
-    }
-
-    const data = await response.json();
-    const errors = data.errors ?? {};
-
-    if (response.status === 400) {
-      setters.setFieldErrors(errors);
-      return;
-    }
-
-    setters.setStatus('error');
+      }),
+      `/games/${gameSlug}`,
+    );
   }
 }

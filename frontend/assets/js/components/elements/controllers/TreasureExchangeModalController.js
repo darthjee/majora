@@ -65,11 +65,9 @@ export default class TreasureExchangeModalController {
    *   pagination metadata.
    */
   fetchSellPage(gameSlug, characterId, isPc, token, params) {
-    const request = isPc
-      ? this.characterClient.fetchPcTreasuresPage(gameSlug, characterId, token, params)
-      : this.characterClient.fetchNpcTreasuresPage(gameSlug, characterId, token, params);
-
-    return request.then((response) => this.#parseIndexResponse(response));
+    return this.characterClient.fetchTreasuresPage(
+      TreasureExchangeModalController.#characterKind(isPc), gameSlug, characterId, token, params,
+    ).then((response) => this.#parseIndexResponse(response));
   }
 
   /**
@@ -85,11 +83,10 @@ export default class TreasureExchangeModalController {
    */
   acquire(gameSlug, characterId, isPc, token, fields) {
     const body = TreasureExchangeModalController.#toBody(fields);
-    const request = isPc
-      ? this.characterClient.acquirePcTreasure(gameSlug, characterId, token, body)
-      : this.characterClient.acquireNpcTreasure(gameSlug, characterId, token, body);
 
-    return request.then((response) => this.#parseActionResponse(response));
+    return this.characterClient.acquireTreasure(
+      TreasureExchangeModalController.#characterKind(isPc), gameSlug, characterId, token, body,
+    ).then((response) => this.#parseActionResponse(response));
   }
 
   /**
@@ -105,15 +102,18 @@ export default class TreasureExchangeModalController {
    */
   sell(gameSlug, characterId, isPc, token, fields) {
     const body = TreasureExchangeModalController.#toBody(fields);
-    const request = isPc
-      ? this.characterClient.sellPcTreasure(gameSlug, characterId, token, body)
-      : this.characterClient.sellNpcTreasure(gameSlug, characterId, token, body);
 
-    return request.then((response) => this.#parseActionResponse(response));
+    return this.characterClient.sellTreasure(
+      TreasureExchangeModalController.#characterKind(isPc), gameSlug, characterId, token, body,
+    ).then((response) => this.#parseActionResponse(response));
   }
 
   static #toBody({ treasureId, quantity }) {
     return { treasure_id: treasureId, quantity };
+  }
+
+  static #characterKind(isPc) {
+    return isPc ? 'pcs' : 'npcs';
   }
 
   async #parseIndexResponse(response) {

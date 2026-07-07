@@ -46,7 +46,6 @@ export default class NpcCharacterEditController extends BaseCharacterEditControl
       NpcCharacterController,
       NpcCharacterEditController.getNpcCharacterEditParamsFromHash,
       'npcs',
-      'updateNpc',
       client,
       characterClient,
     );

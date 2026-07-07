@@ -26,8 +26,8 @@ describe('PcCharacterPhotosController', function() {
 
       await controller.setProfilePhoto('demo', '7', '9');
 
-      expect(characterClient.setPcPhotoRoles).toHaveBeenCalledWith('demo', '7', '9', null, ['profile']);
-      expect(characterClient.fetchPc).toHaveBeenCalledWith('demo', '7', null);
+      expect(characterClient.setPhotoRoles).toHaveBeenCalledWith('pcs', 'demo', '7', '9', null, ['profile']);
+      expect(characterClient.fetchCharacter).toHaveBeenCalledWith('pcs', 'demo', '7', null);
       expect(setCharacter).toHaveBeenCalledWith(
         jasmine.objectContaining({ name: 'Aragorn', can_edit: false }),
       );
@@ -41,7 +41,7 @@ describe('PcCharacterPhotosController', function() {
       const setError = jasmine.createSpy('setError');
       const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
 
-      characterClient.setPcPhotoRoles.and.returnValue(Promise.reject(new Error('network error')));
+      characterClient.setPhotoRoles.and.returnValue(Promise.reject(new Error('network error')));
 
       const controller = new PcCharacterPhotosController(
         setPhotos, setPagination, setCharacter, setLoading, setError, client, characterClient,

@@ -81,4 +81,78 @@ export default class BaseClient {
       (prefix) => pathname.startsWith(prefix)
     );
   }
+
+  /**
+   * Build the shared `Accept`/`Authorization` header set used by JSON
+   * requests, merging in any caller-supplied extra headers (e.g.
+   * `X-Skip-Cache`). `Authorization` is only added when a token is given.
+   *
+   * @param {string|null} token - Authentication token, if any.
+   * @param {object} [extraHeaders] - Additional headers to merge in.
+   * @returns {object} Header object for a JSON request.
+   */
+  buildHeaders(token, extraHeaders = {}) {
+    return {
+      Accept: 'application/json',
+      ...(token ? { Authorization: `Token ${token}` } : {}),
+      ...extraHeaders,
+    };
+  }
+
+  /**
+   * Perform a GET request with JSON `Accept`/`Authorization` headers.
+   *
+   * @param {string} path - Request path, optionally including a query string.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {object} [extraHeaders] - Additional headers to merge in.
+   * @returns {Promise<Response>} The fetch response.
+   */
+  getJson(path, token, extraHeaders = {}) {
+    return this.request(path, { headers: this.buildHeaders(token, extraHeaders) });
+  }
+
+  /**
+   * Perform a POST request with a JSON body and `Content-Type` header.
+   *
+   * @param {string} path - Request path.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {object} fields - Fields to serialize as the JSON request body.
+   * @param {object} [extraHeaders] - Additional headers to merge in.
+   * @returns {Promise<Response>} The fetch response.
+   */
+  postJson(path, token, fields, extraHeaders = {}) {
+    return this.#writeJson('POST', path, token, fields, extraHeaders);
+  }
+
+  /**
+   * Perform a PATCH request with a JSON body and `Content-Type` header.
+   *
+   * @param {string} path - Request path.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {object} fields - Fields to serialize as the JSON request body.
+   * @param {object} [extraHeaders] - Additional headers to merge in.
+   * @returns {Promise<Response>} The fetch response.
+   */
+  patchJson(path, token, fields, extraHeaders = {}) {
+    return this.#writeJson('PATCH', path, token, fields, extraHeaders);
+  }
+
+  /**
+   * Perform a JSON write request (POST/PATCH), serializing the given fields
+   * as the request body and adding the `Content-Type` header.
+   *
+   * @param {string} method - HTTP method to use (POST or PATCH).
+   * @param {string} path - Request path.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {object} fields - Fields to serialize as the JSON request body.
+   * @param {object} extraHeaders - Additional headers to merge in.
+   * @returns {Promise<Response>} The fetch response.
+   */
+  #writeJson(method, path, token, fields, extraHeaders) {
+    return this.request(path, {
+      method,
+      headers: { ...this.buildHeaders(token, extraHeaders), 'Content-Type': 'application/json' },
+      body: JSON.stringify(fields),
+    });
+  }
 }

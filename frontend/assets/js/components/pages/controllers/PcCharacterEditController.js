@@ -46,7 +46,6 @@ export default class PcCharacterEditController extends BaseCharacterEditControll
       PcCharacterController,
       PcCharacterEditController.getPcCharacterEditParamsFromHash,
       'pcs',
-      'updatePc',
       client,
       characterClient,
     );

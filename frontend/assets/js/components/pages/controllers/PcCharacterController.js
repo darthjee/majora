@@ -38,54 +38,6 @@ export default class PcCharacterController extends CharacterController {
     paramsFromHash = PcCharacterController.getPcCharacterParamsFromHash,
     characterClient = null,
   ) {
-    super(setCharacter, setLoading, setError, client, paramsFromHash, characterClient);
-  }
-
-  /**
-   * Fetch the base PC character data from the API.
-   *
-   * @param {string} gameSlug - Game slug.
-   * @param {string} characterId - Character id.
-   * @param {string|null} token - Authentication token.
-   * @returns {Promise<Response>} Fetch response.
-   */
-  fetchCharacter(gameSlug, characterId, token) {
-    return this.characterClient.fetchPc(gameSlug, characterId, token);
-  }
-
-  /**
-   * Fetch the full (editor-only) PC character data from the API.
-   *
-   * @param {string} gameSlug - Game slug.
-   * @param {string} characterId - Character id.
-   * @param {string|null} token - Authentication token.
-   * @returns {Promise<Response>} Fetch response.
-   */
-  fetchCharacterFull(gameSlug, characterId, token) {
-    return this.characterClient.fetchPcFull(gameSlug, characterId, token);
-  }
-
-  /**
-   * Fetch the access permissions for the PC character from the API.
-   *
-   * @param {string} gameSlug - Game slug.
-   * @param {string} characterId - Character id.
-   * @param {string|null} token - Authentication token.
-   * @returns {Promise<Response>} Fetch response.
-   */
-  fetchCharacterAccess(gameSlug, characterId, token) {
-    return this.characterClient.fetchPcAccess(gameSlug, characterId, token);
-  }
-
-  /**
-   * Fetch a first page of the PC character's treasures from the API.
-   *
-   * @param {string} gameSlug - Game slug.
-   * @param {string} characterId - Character id.
-   * @param {string|null} token - Authentication token.
-   * @returns {Promise<Response>} Fetch response.
-   */
-  fetchCharacterTreasures(gameSlug, characterId, token) {
-    return this.characterClient.fetchPcTreasures(gameSlug, characterId, token);
+    super(setCharacter, setLoading, setError, client, paramsFromHash, characterClient, 'pcs');
   }
 }
