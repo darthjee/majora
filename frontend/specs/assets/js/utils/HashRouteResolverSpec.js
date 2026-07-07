@@ -97,6 +97,17 @@ describe('HashRouteResolver', function() {
     expect(params.toString()).toBe('page=2&per_page=12');
   });
 
+  it('extracts filter params only', function() {
+    const params = new HashRouteResolver(() => '#/games/campaign/npcs?slain=true&name=gob&page=2')
+      .getFilterParams();
+    expect(params.toString()).toBe('slain=true&name=gob');
+  });
+
+  it('ignores filter params when absent from the hash', function() {
+    const params = new HashRouteResolver(() => '#/games/campaign/npcs?page=2').getFilterParams();
+    expect(params.toString()).toBe('');
+  });
+
   describe('#getParams', function() {
     it('extracts a single param for a matching path', function() {
       const resolver = new HashRouteResolver(() => '#/games/campaign');

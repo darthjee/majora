@@ -14,6 +14,7 @@ from ...serializers import (
     CharacterListSerializer,
 )
 from ..common import paginated_list_response, validated_or_error
+from ._shared import _filter_characters
 
 
 @api_view(['GET', 'POST'])
@@ -29,6 +30,7 @@ def game_npcs(request, game_slug):
         return _create_npc(request, game)
 
     npcs = game.characters.filter(npc=True, hidden=False)
+    npcs = _filter_characters(request, npcs)
     return paginated_list_response(request, npcs, CharacterListSerializer)
 
 

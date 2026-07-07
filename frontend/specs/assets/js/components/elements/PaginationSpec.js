@@ -16,4 +16,14 @@ describe('Pagination', function() {
     );
     expect(html).toContain('pagination');
   });
+
+  it('forwards extraParams to preserve active filters on links', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(Pagination, {
+        currentPage: 2, totalPages: 5, perPage: 10, basePath: '#/games/demo/npcs',
+        extraParams: { slain: 'true' },
+      })
+    );
+    expect(html).toContain('slain=true');
+  });
 });

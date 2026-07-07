@@ -8,8 +8,10 @@ import PaginationHelper from './helpers/PaginationHelper.jsx';
  * @param {number} props.totalPages - Total number of pages.
  * @param {number} props.perPage - Items per page.
  * @param {string} props.basePath - Base hash path for page links.
+ * @param {object|URLSearchParams} [props.extraParams] - Additional active query params (e.g.
+ *   NPC filters) preserved on every pagination link.
  * @returns {React.ReactElement|null} Pagination nav or null.
  */
-export default function Pagination({ currentPage, totalPages, perPage, basePath }) {
-  return PaginationHelper.render(currentPage, totalPages, perPage, basePath);
+export default function Pagination({ currentPage, totalPages, perPage, basePath, extraParams = {} }) {
+  return PaginationHelper.render(currentPage, totalPages, perPage, basePath, extraParams);
 }

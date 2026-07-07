@@ -21,6 +21,19 @@ export default class GameNpcsController extends BasePageController {
   }
 
   /**
+   * Build the hash URL for applying NPC filters, resetting pagination to page 1.
+   *
+   * @param {string} basePath - Base hash path (e.g. `#/games/demo/npcs`).
+   * @param {{slain?: string, name?: string}} filters - Filters to apply, as built by
+   *   `NpcFiltersController#buildQuery` (blank fields already omitted).
+   * @returns {string} Hash including the reset page and the active filters.
+   */
+  static buildFilterQueryHash(basePath, filters) {
+    const params = new URLSearchParams({ page: '1', ...filters });
+    return `${basePath}?${params.toString()}`;
+  }
+
+  /**
    * Create a game NPCs controller.
    *
    * @param {Function} setNpcs - NPCs setter.
@@ -91,9 +104,10 @@ export default class GameNpcsController extends BasePageController {
   #fetchNpcs(gameSlug, safeSet) {
     const token = AuthStorage.getToken();
     const paginationParams = Object.fromEntries(this.hashResolver.getPaginationParams());
-    const publicFetch = this.client.fetchIndex(`/games/${gameSlug}/npcs.json`);
+    const filterParams = Object.fromEntries(this.hashResolver.getFilterParams());
+    const publicFetch = this.client.fetchIndex(`/games/${gameSlug}/npcs.json`, filterParams);
     const allFetch = token
-      ? this.characterClient.fetchNpcsAll(gameSlug, token, paginationParams)
+      ? this.characterClient.fetchNpcsAll(gameSlug, token, { ...paginationParams, ...filterParams })
       : Promise.resolve(null);
 
     Promise.allSettled([publicFetch, allFetch])

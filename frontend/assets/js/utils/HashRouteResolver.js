@@ -105,4 +105,27 @@ export default class HashRouteResolver {
 
     return params;
   }
+
+  /**
+   * Return NPC filter query params from hash.
+   *
+   * @returns {URLSearchParams} Filter params (`slain`/`name`), only set when present in hash.
+   */
+  getFilterParams() {
+    const query = HashQueryParams.parse(this.currentHash());
+    const params = new URLSearchParams();
+
+    const slain = query.get('slain');
+    const name = query.get('name');
+
+    if (slain !== null) {
+      params.set('slain', slain);
+    }
+
+    if (name !== null) {
+      params.set('name', name);
+    }
+
+    return params;
+  }
 }

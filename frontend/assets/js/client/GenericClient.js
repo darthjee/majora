@@ -45,10 +45,13 @@ export default class GenericClient extends BaseClient {
    * Fetch JSON index and pagination info.
    *
    * @param {string} path - Request path.
+   * @param {object} [extraParams] - Additional query params merged over pagination params
+   *   (e.g. NPC list filters). Blank/undefined/null values are ignored. Defaults to none, so
+   *   other callers of `fetchIndex` are unaffected.
    * @returns {Promise<object>} Data and pagination metadata.
    */
-  async fetchIndex(path) {
-    const url = this.#buildUrl(path, this.#resolver.getPaginationParams());
+  async fetchIndex(path, extraParams = {}) {
+    const url = this.#buildUrl(path, this.#buildIndexParams(extraParams));
     const response = await this.request(url, { headers: this.buildHeaders(null) });
 
     if (!response.ok) {
@@ -93,6 +96,24 @@ export default class GenericClient extends BaseClient {
       headers: { ...this.buildHeaders(null), 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     }, path);
+  }
+
+  /**
+   * Merge extra query params over the resolver's pagination params.
+   *
+   * @param {object} extraParams - Additional query params to merge in.
+   * @returns {URLSearchParams} Merged query params.
+   */
+  #buildIndexParams(extraParams) {
+    const params = this.#resolver.getPaginationParams();
+
+    Object.entries(extraParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.set(key, value);
+      }
+    });
+
+    return params;
   }
 
   /**

@@ -29,6 +29,30 @@ describe('GenericClient', function() {
     expect(fetchSpy).toHaveBeenCalledWith('/games.json?page=3&per_page=7', jasmine.any(Object));
   });
 
+  it('merges non-blank extraParams over pagination params in fetchIndex', async function() {
+    fetchSpy.and.returnValue(Promise.resolve({
+      ...mockFetchJson([]),
+      headers: { get: () => null },
+    }));
+
+    const client = new GenericClient(() => '#/games/demo/npcs?page=3');
+    await client.fetchIndex('/games/demo/npcs.json', { slain: 'true', name: 'gob', extra: '' });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs.json?page=3&slain=true&name=gob', jasmine.any(Object));
+  });
+
+  it('does not send extraParams when none are given', async function() {
+    fetchSpy.and.returnValue(Promise.resolve({
+      ...mockFetchJson([]),
+      headers: { get: () => null },
+    }));
+
+    const client = new GenericClient(() => '#/games/demo/npcs?page=3');
+    await client.fetchIndex('/games/demo/npcs.json');
+
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs.json?page=3', jasmine.any(Object));
+  });
+
   it('returns pagination defaults when headers are missing', async function() {
     fetchSpy.and.returnValue(Promise.resolve({
       ...mockFetchJson([]),

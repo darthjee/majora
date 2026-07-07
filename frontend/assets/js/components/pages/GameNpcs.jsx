@@ -3,9 +3,11 @@ import GameNpcsController from './controllers/GameNpcsController.js';
 import GameCharactersHelper from './helpers/GameCharactersHelper.jsx';
 import Translator from '../../i18n/Translator.js';
 import AuthStorage from '../../utils/AuthStorage.js';
+import HashRouteResolver from '../../utils/HashRouteResolver.js';
 import PhotoUploadModal from '../elements/PhotoUploadModal.jsx';
 import SlainConfirmModal from '../elements/SlainConfirmModal.jsx';
 import SlainConfirmController from '../elements/controllers/SlainConfirmController.js';
+import NpcFilters from '../elements/NpcFilters.jsx';
 
 /**
  * Game Non-Player Characters index page.
@@ -40,6 +42,7 @@ export default function GameNpcs() {
   const basePath = `#/games/${gameSlug}/npcs`;
   const backHref = `#/games/${gameSlug}`;
   const newHref = `#/games/${gameSlug}/npcs/new`;
+  const activeFilters = Object.fromEntries(new HashRouteResolver().getFilterParams());
 
   const handleUploadSuccess = () => {
     setUploadTarget(null);
@@ -50,6 +53,16 @@ export default function GameNpcs() {
     slainController.handleConfirm(gameSlug, slainTarget, AuthStorage.getToken());
   };
 
+  const handleFilterQuery = (filters) => {
+    window.location.hash = GameNpcsController.buildFilterQueryHash(basePath, filters);
+    controller.buildEffect()();
+  };
+
+  const handleFilterClear = () => {
+    window.location.hash = basePath;
+    controller.buildEffect()();
+  };
+
   if (loading) return GameCharactersHelper.renderLoading();
   if (error) return GameCharactersHelper.renderError(error);
 
@@ -57,7 +70,8 @@ export default function GameNpcs() {
     <>
       {GameCharactersHelper.render(
         npcs, pagination, basePath, gameSlug, Translator.t('game_npcs_page.title'), 'npc', backHref,
-        canEdit, newHref, setUploadTarget, setSlainTarget,
+        canEdit, newHref, setUploadTarget, setSlainTarget, activeFilters,
+        <NpcFilters onQuery={handleFilterQuery} onClear={handleFilterClear} />,
       )}
       <PhotoUploadModal
         show={uploadTarget !== null}

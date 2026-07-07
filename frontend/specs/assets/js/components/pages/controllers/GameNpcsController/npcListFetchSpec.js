@@ -37,7 +37,7 @@ describe('GameNpcsController', function() {
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs.json');
+    expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs.json', {});
     expect(setNpcs).toHaveBeenCalledWith([{ id: 1 }]);
     expect(setPagination).toHaveBeenCalledWith({ page: 2, pages: 3, perPage: 4 });
     expect(setLoading).toHaveBeenCalledWith(false);
@@ -147,9 +147,50 @@ describe('GameNpcsController', function() {
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs.json');
+    expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs.json', {});
     expect(characterClient.fetchNpcsAll).toHaveBeenCalledWith('demo', 'mytoken', { page: '2', per_page: '16' });
     expect(setPagination).toHaveBeenCalledWith({ page: 2, pages: 4, perPage: 16 });
+    expect(setError).not.toHaveBeenCalled();
+
+    cleanup();
+  });
+
+  it('forwards active slain/name filters to both the public and authenticated NPC requests', async function() {
+    const setNpcs = jasmine.createSpy('setNpcs');
+    const setPagination = jasmine.createSpy('setPagination');
+    const setLoading = jasmine.createSpy('setLoading');
+    const setError = jasmine.createSpy('setError');
+    const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
+    const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpcsAll']);
+    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
+    const authNpcs = [{ id: 10, name: 'Hidden NPC' }];
+    const authHeaders = { page: '1', pages: '1', per_page: '10' };
+
+    client.currentHash.and.returnValue('#/games/demo/npcs?slain=true&name=gob');
+    client.fetchIndex.and.returnValue(Promise.resolve({
+      data: [{ id: 1 }],
+      pagination: { page: 1, pages: 1, perPage: 10 },
+    }));
+    characterClient.fetchNpcsAll.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve(authNpcs),
+      headers: { get: (key) => authHeaders[key] ?? null },
+    }));
+    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ can_edit: false }),
+    }));
+    AuthStorage.setToken('mytoken');
+
+    const cleanup = new GameNpcsController(
+      setNpcs, setPagination, setLoading, setError, client, characterClient, undefined, gameClient,
+    ).buildEffect()();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs.json', { slain: 'true', name: 'gob' });
+    expect(characterClient.fetchNpcsAll).toHaveBeenCalledWith(
+      'demo', 'mytoken', { slain: 'true', name: 'gob' },
+    );
     expect(setError).not.toHaveBeenCalled();
 
     cleanup();

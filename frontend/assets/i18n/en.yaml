@@ -239,6 +239,13 @@ game_npcs_page:
   loading: Loading...
   title: Non-Player Characters
   new_npc: New NPC
+  filter_status_label: Status
+  filter_status_alive: Alive
+  filter_status_slain: Slain
+  filter_name_label: Name
+  filter_name_placeholder: Search by name...
+  filter_query: Query
+  filter_clear: Clear
 game_npc_new_page:
   title: New NPC
   name_label: Name
