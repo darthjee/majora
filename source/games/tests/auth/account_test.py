@@ -3,49 +3,46 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils.crypto import get_random_string
 from rest_framework.authtoken.models import Token
 
+from games.tests.behaviors import TokenAuthRequestMixin
+from games.tests.factories import UserFactory
+
 TEST_PASSWORD = get_random_string(20)
+
+ACCOUNT_URL = '/users/account.json'
 
 
 @pytest.mark.django_db
-class TestAccountView:
+class TestAccountView(TokenAuthRequestMixin):
     """Tests for the GET /users/account.json endpoint."""
 
     def setup_method(self):
         """Set up a requesting user and another user."""
-        self.user = User.objects.create_user(
+        self.user = UserFactory(
             username='alice', password=TEST_PASSWORD, email='alice@example.com'
         )
         self.token = Token.objects.create(user=self.user)
-        self.other_user = User.objects.create_user(
+        self.other_user = UserFactory(
             username='bob', password=TEST_PASSWORD, email='bob@example.com'
         )
 
-    def _get(self, client, token=None):
-        """Issue a GET request to the account endpoint, optionally with a token."""
-        extra = {}
-        if token is not None:
-            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
-        return client.get('/users/account.json', **extra)
-
     def test_unauthenticated_returns_401(self, client):
         """Test that an unauthenticated GET returns 401."""
-        response = self._get(client)
+        response = self.get(client, ACCOUNT_URL)
         assert response.status_code == 401
 
     def test_authenticated_returns_own_detail(self, client):
         """Test that an authenticated GET returns the requester's own name/email."""
-        response = self._get(client, token=self.token)
+        response = self.get(client, ACCOUNT_URL, token=self.token)
         assert response.status_code == 200
         assert json.loads(response.content) == {'name': 'alice', 'email': 'alice@example.com'}
 
     def test_authenticated_never_returns_another_users_detail(self, client):
         """Test that the endpoint never returns another user's data."""
-        response = self._get(client, token=self.token)
+        response = self.get(client, ACCOUNT_URL, token=self.token)
         data = json.loads(response.content)
         assert data['name'] != self.other_user.username
         assert data['email'] != self.other_user.email
@@ -58,35 +55,27 @@ class TestAccountView:
 
     def test_authenticated_returns_skip_cache_header(self, client):
         """Test that the GET response includes the X-Skip-Cache: true header."""
-        response = self._get(client, token=self.token)
+        response = self.get(client, ACCOUNT_URL, token=self.token)
         assert response['X-Skip-Cache'] == 'true'
 
 
 @pytest.mark.django_db
-class TestAccountPatchView:
+class TestAccountPatchView(TokenAuthRequestMixin):
     """Tests for the PATCH /users/account.json endpoint."""
 
     def setup_method(self):
         """Set up a requesting user and another user."""
-        self.user = User.objects.create_user(
+        self.user = UserFactory(
             username='alice', password=TEST_PASSWORD, email='alice@example.com'
         )
         self.token = Token.objects.create(user=self.user)
-        self.other_user = User.objects.create_user(
+        self.other_user = UserFactory(
             username='bob', password=TEST_PASSWORD, email='bob@example.com'
         )
 
     def _patch(self, client, payload, token=None):
         """Issue a PATCH request to the account endpoint, optionally with a token."""
-        extra = {}
-        if token is not None:
-            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
-        return client.patch(
-            '/users/account.json',
-            data=json.dumps(payload),
-            content_type='application/json',
-            **extra,
-        )
+        return self.patch(client, ACCOUNT_URL, payload, token=token)
 
     def test_unauthenticated_returns_401(self, client):
         """Test that PATCH without a token returns 401."""

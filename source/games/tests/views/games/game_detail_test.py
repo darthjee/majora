@@ -3,27 +3,26 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 
-from games.models import Game, GameMaster, Link
+from games.models import Link
+from games.tests.behaviors import DetailNotFoundBehaviorMixin, TokenAuthRequestMixin
+from games.tests.factories import GameFactory, GameMasterFactory, SuperUserFactory, UserFactory
 
 
 @pytest.mark.django_db
-class TestGameDetailView:
+class TestGameDetailView(DetailNotFoundBehaviorMixin):
     """Tests for the game detail endpoint."""
 
     def setup_method(self):
         """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Epic Quest', game_slug='epic-quest')
+        self.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
 
     def test_returns_game_detail(self, client):
         """Test that game detail is returned for a valid game_slug."""
-        response = client.get('/games/epic-quest.json')
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert data['name'] == 'Epic Quest'
-        assert data['game_slug'] == 'epic-quest'
+        self.assert_returns_detail(
+            client, '/games/epic-quest.json', name='Epic Quest', game_slug='epic-quest'
+        )
 
     def test_returns_description_field(self, client):
         """Test that description is included in the detail response."""
@@ -41,8 +40,7 @@ class TestGameDetailView:
 
     def test_returns_404_for_unknown_slug(self, client):
         """Test that 404 is returned for a non-existent game_slug."""
-        response = client.get('/games/unknown-game.json')
-        assert response.status_code == 404
+        self.assert_returns_not_found(client, '/games/unknown-game.json')
 
     def test_includes_links(self, client):
         """Test that game detail includes associated links."""
@@ -56,31 +54,23 @@ class TestGameDetailView:
 
 
 @pytest.mark.django_db
-class TestGameDetailPatchView:
+class TestGameDetailPatchView(TokenAuthRequestMixin):
     """Tests for the PATCH game detail endpoint."""
 
     def setup_method(self):
         """Set up a game, a DM, and a non-DM user."""
-        self.game = Game.objects.create(
+        self.game = GameFactory(
             name='Epic Quest',
             game_slug='epic-quest',
             description='Original description.',
         )
-        self.dm_user = User.objects.create_user(username='dm_user', password='secret-password')
-        GameMaster.objects.create(game=self.game, user=self.dm_user)
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
         self.dm_token = Token.objects.create(user=self.dm_user)
 
     def _patch(self, client, payload, token=None):
         """Issue a PATCH request to the game detail endpoint, optionally with a token."""
-        extra = {}
-        if token is not None:
-            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
-        return client.patch(
-            '/games/epic-quest.json',
-            data=json.dumps(payload),
-            content_type='application/json',
-            **extra,
-        )
+        return self.patch(client, '/games/epic-quest.json', payload, token=token)
 
     def test_patch_without_token_returns_401(self, client):
         """Test that PATCH without a token is rejected with 401."""
@@ -89,7 +79,7 @@ class TestGameDetailPatchView:
 
     def test_patch_with_non_dm_user_returns_403(self, client):
         """Test that PATCH from a regular non-DM user is rejected with 403."""
-        other = User.objects.create_user(username='other', password='secret-password')
+        other = UserFactory(username='other', password='secret-password')
         token = Token.objects.create(user=other)
         response = self._patch(client, {'name': 'New Name'}, token=token)
         assert response.status_code == 403
@@ -115,7 +105,7 @@ class TestGameDetailPatchView:
 
     def test_patch_with_superuser_token_returns_200(self, client):
         """Test that PATCH from a superuser's token updates the game and returns 200."""
-        superuser = User.objects.create_superuser(username='admin', password='secret-password')
+        superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
         response = self._patch(client, {'name': 'Super Quest'}, token=token)
         assert response.status_code == 200
