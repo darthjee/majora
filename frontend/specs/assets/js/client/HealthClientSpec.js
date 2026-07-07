@@ -1,15 +1,12 @@
 import HealthClient from '../../../../assets/js/client/HealthClient.js';
+import { mockFetchJson } from '../../../support/fetchMock.js';
 
 describe('HealthClient', function() {
   let fetchSpy;
 
   beforeEach(function() {
     fetchSpy = spyOn(globalThis, 'fetch');
-    fetchSpy.and.returnValue(Promise.resolve({
-      ok: true,
-      status: 200,
-      json: () => Promise.resolve({ status: 'ok' }),
-    }));
+    fetchSpy.and.returnValue(Promise.resolve({ ...mockFetchJson({ status: 'ok' }), status: 200 }));
   });
 
   describe('#check', function() {

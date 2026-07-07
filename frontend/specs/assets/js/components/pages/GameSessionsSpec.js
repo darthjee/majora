@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import GameSessions from '../../../../../assets/js/components/pages/GameSessions.jsx';
 import GameSessionsHelper from '../../../../../assets/js/components/pages/helpers/GameSessionsHelper.jsx';
 import GameSessionsController from '../../../../../assets/js/components/pages/controllers/GameSessionsController.js';
-import Noop from '../../../../../assets/js/utils/Noop.js';
+import { stubBuildEffect, stubRenderLoading } from '../../../../support/controllerStubs.js';
 
 describe('GameSessions', function() {
   let originalWindow;
@@ -18,8 +18,8 @@ describe('GameSessions', function() {
   });
 
   it('renders the loading state while fetching', function() {
-    spyOn(GameSessionsController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
-    spyOn(GameSessionsHelper, 'renderLoading').and.returnValue(React.createElement('div', null, 'loading'));
+    stubBuildEffect(GameSessionsController);
+    stubRenderLoading(GameSessionsHelper);
 
     const html = renderToStaticMarkup(React.createElement(GameSessions));
 
@@ -27,7 +27,7 @@ describe('GameSessions', function() {
   });
 
   it('renders the new session button via GameSessionsHelper.render when canEdit is true', function() {
-    spyOn(GameSessionsController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
+    stubBuildEffect(GameSessionsController);
 
     const sessions = [{ id: 1, title: 'Session 1', date: '2024-01-01', game_slug: 'demo' }];
     const pagination = { page: 1, pages: 1, perPage: 10 };

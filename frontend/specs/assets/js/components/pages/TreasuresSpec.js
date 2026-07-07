@@ -4,11 +4,12 @@ import Treasures from '../../../../../assets/js/components/pages/Treasures.jsx';
 import TreasuresHelper from '../../../../../assets/js/components/pages/helpers/TreasuresHelper.jsx';
 import TreasuresController from '../../../../../assets/js/components/pages/controllers/TreasuresController.js';
 import Noop from '../../../../../assets/js/utils/Noop.js';
+import { stubBuildEffect, stubRenderLoading } from '../../../../support/controllerStubs.js';
 
 describe('Treasures', function() {
   it('renders the loading state while fetching', function() {
-    spyOn(TreasuresController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
-    spyOn(TreasuresHelper, 'renderLoading').and.returnValue(React.createElement('div', null, 'loading'));
+    stubBuildEffect(TreasuresController);
+    stubRenderLoading(TreasuresHelper);
 
     const html = renderToStaticMarkup(React.createElement(Treasures));
 
@@ -16,7 +17,7 @@ describe('Treasures', function() {
   });
 
   it('renders an upload button per treasure via TreasuresHelper.render when isSuperUser is true', function() {
-    spyOn(TreasuresController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
+    stubBuildEffect(TreasuresController);
 
     const treasures = [{ id: 1, name: 'Golden Crown', value: 500 }];
     const pagination = { page: 1, pages: 1, perPage: 10 };

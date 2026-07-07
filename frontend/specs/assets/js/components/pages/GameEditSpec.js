@@ -3,12 +3,12 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import GameEdit from '../../../../../assets/js/components/pages/GameEdit.jsx';
 import GameEditController from '../../../../../assets/js/components/pages/controllers/GameEditController.js';
 import GameEditHelper from '../../../../../assets/js/components/pages/helpers/GameEditHelper.jsx';
-import Noop from '../../../../../assets/js/utils/Noop.js';
+import { stubBuildEffect, stubRenderLoading } from '../../../../support/controllerStubs.js';
 
 describe('GameEdit', function() {
   it('renders the loading state on initial render before the fetch resolves', function() {
-    spyOn(GameEditController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
-    spyOn(GameEditHelper, 'renderLoading').and.returnValue(React.createElement('div', null, 'loading'));
+    stubBuildEffect(GameEditController);
+    stubRenderLoading(GameEditHelper);
 
     const html = renderToStaticMarkup(React.createElement(GameEdit));
 

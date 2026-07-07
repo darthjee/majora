@@ -2,7 +2,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameSessionNew from '../../../../../assets/js/components/pages/GameSessionNew.jsx';
 import GameSessionNewController from '../../../../../assets/js/components/pages/controllers/GameSessionNewController.js';
-import Noop from '../../../../../assets/js/utils/Noop.js';
+import { stubBuildEffect } from '../../../../support/controllerStubs.js';
 
 describe('GameSessionNew', function() {
   let originalWindow;
@@ -10,7 +10,7 @@ describe('GameSessionNew', function() {
   beforeEach(function() {
     originalWindow = globalThis.window;
     globalThis.window = { location: { hash: '#/games/demo/sessions/new' } };
-    spyOn(GameSessionNewController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
+    stubBuildEffect(GameSessionNewController);
   });
 
   afterEach(function() {

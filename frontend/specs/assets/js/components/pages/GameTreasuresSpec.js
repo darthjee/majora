@@ -4,6 +4,7 @@ import GameTreasures from '../../../../../assets/js/components/pages/GameTreasur
 import GameTreasuresHelper from '../../../../../assets/js/components/pages/helpers/GameTreasuresHelper.jsx';
 import GameTreasuresController from '../../../../../assets/js/components/pages/controllers/GameTreasuresController.js';
 import Noop from '../../../../../assets/js/utils/Noop.js';
+import { stubBuildEffect, stubRenderLoading } from '../../../../support/controllerStubs.js';
 
 describe('GameTreasures', function() {
   let originalWindow;
@@ -18,8 +19,8 @@ describe('GameTreasures', function() {
   });
 
   it('renders the loading state while fetching', function() {
-    spyOn(GameTreasuresController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
-    spyOn(GameTreasuresHelper, 'renderLoading').and.returnValue(React.createElement('div', null, 'loading'));
+    stubBuildEffect(GameTreasuresController);
+    stubRenderLoading(GameTreasuresHelper);
 
     const html = renderToStaticMarkup(React.createElement(GameTreasures));
 
@@ -27,7 +28,7 @@ describe('GameTreasures', function() {
   });
 
   it('renders an upload button per exclusive treasure via GameTreasuresHelper.render when canEdit is true', function() {
-    spyOn(GameTreasuresController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
+    stubBuildEffect(GameTreasuresController);
 
     const treasures = [{ id: 1, name: 'Golden Crown', value: 500, game_slug: 'demo' }];
     const pagination = { page: 1, pages: 1, perPage: 10 };
@@ -42,7 +43,7 @@ describe('GameTreasures', function() {
   });
 
   it('renders the new treasure button via GameTreasuresHelper.render when canEdit is true', function() {
-    spyOn(GameTreasuresController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
+    stubBuildEffect(GameTreasuresController);
 
     const html = renderToStaticMarkup(
       GameTreasuresHelper.render(

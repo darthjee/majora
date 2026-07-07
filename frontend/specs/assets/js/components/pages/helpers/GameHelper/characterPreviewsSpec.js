@@ -1,17 +1,12 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameHelper from '../../../../../../../assets/js/components/pages/helpers/GameHelper.jsx';
+import { buildCharacter } from '../../../../../../support/factories.js';
+import { game } from './support.js';
 
 describe('GameHelper', function() {
-  const game = {
-    name: 'Epic Quest',
-    game_slug: 'epic-quest',
-    cover_photo_path: null,
-    description: 'A heroic adventure.',
-  };
-
   describe('.render', function() {
     it('renders the player characters preview section', function() {
-      const pcs = [{ id: 1, name: 'Aragorn', profile_photo_path: null }];
+      const pcs = [buildCharacter({ id: 1, name: 'Aragorn' })];
       const html = renderToStaticMarkup(GameHelper.render(game, pcs));
       expect(html).toContain('Player Characters');
       expect(html).toContain('Aragorn');
@@ -29,7 +24,7 @@ describe('GameHelper', function() {
     });
 
     it('renders the non-player characters preview section', function() {
-      const npcs = [{ id: 2, name: 'Gandalf', profile_photo_path: null }];
+      const npcs = [buildCharacter({ id: 2, name: 'Gandalf' })];
       const html = renderToStaticMarkup(GameHelper.render(game, [], npcs));
       expect(html).toContain('Non-Player Characters');
       expect(html).toContain('Gandalf');

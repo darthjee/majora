@@ -4,11 +4,12 @@ import TreasureExchangeModal from '../../../../../assets/js/components/elements/
 import TreasureExchangeModalHelper from '../../../../../assets/js/components/elements/helpers/TreasureExchangeModalHelper.jsx';
 import TreasureExchangeModalController
   from '../../../../../assets/js/components/elements/controllers/TreasureExchangeModalController.js';
+import { buildCharacter } from '../../../../support/factories.js';
 
 describe('TreasureExchangeModal', function() {
-  const character = {
+  const character = buildCharacter({
     id: 7, game_slug: 'demo', is_pc: true, money: 500,
-  };
+  });
 
   // eslint-disable-next-line no-empty-function
   const neverResolves = () => new Promise(() => {});

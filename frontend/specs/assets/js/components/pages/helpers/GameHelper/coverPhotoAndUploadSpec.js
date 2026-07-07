@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameHelper from '../../../../../../../assets/js/components/pages/helpers/GameHelper.jsx';
 import PhotoUploadOverlay from '../../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
+import { game } from './support.js';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -31,13 +32,6 @@ const findElement = (node, matcher) => {
 };
 
 describe('GameHelper', function() {
-  const game = {
-    name: 'Epic Quest',
-    game_slug: 'epic-quest',
-    cover_photo_path: null,
-    description: 'A heroic adventure.',
-  };
-
   describe('.render', function() {
     it('renders the cover photo when cover_photo_path is provided', function() {
       const gameWithPhoto = {

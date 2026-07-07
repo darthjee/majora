@@ -1,45 +1,19 @@
 import TreasureClient from '../../../../../assets/js/client/TreasureClient.js';
+import { stubFetchJson, itSendsAuthHeader } from '../../../../support/fetchMock.js';
 
 describe('TreasureClient', function() {
-  let fetchSpy;
-
   beforeEach(function() {
-    fetchSpy = spyOn(globalThis, 'fetch');
-    fetchSpy.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({}) }));
+    stubFetchJson();
   });
 
   describe('#createGameTreasure', function() {
-    it('sends a POST request with the fields and auth token when present', async function() {
-      const client = new TreasureClient();
-
-      await client.createGameTreasure('demo', 'tok-abc', { name: 'Sword', value: 100 });
-
-      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/treasures.json', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          Authorization: 'Token tok-abc',
-          'X-Skip-Cache': 'true',
-        },
-        body: JSON.stringify({ name: 'Sword', value: 100 }),
-      });
-    });
-
-    it('omits the Authorization header when there is no token', async function() {
-      const client = new TreasureClient();
-
-      await client.createGameTreasure('demo', null, { name: 'Sword', value: 100 });
-
-      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/treasures.json', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'X-Skip-Cache': 'true',
-        },
-        body: JSON.stringify({ name: 'Sword', value: 100 }),
-      });
+    itSendsAuthHeader({
+      call: (token) => new TreasureClient().createGameTreasure('demo', token, { name: 'Sword', value: 100 }),
+      url: '/games/demo/treasures.json',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Skip-Cache': 'true' },
+      body: JSON.stringify({ name: 'Sword', value: 100 }),
+      token: 'tok-abc',
     });
   });
 });

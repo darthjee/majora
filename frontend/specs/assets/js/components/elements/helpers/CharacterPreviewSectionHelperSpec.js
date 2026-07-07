@@ -1,16 +1,16 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterPreviewSectionHelper
   from '../../../../../../assets/js/components/elements/helpers/CharacterPreviewSectionHelper.jsx';
+import { buildCharacter } from '../../../../../support/factories.js';
 
 describe('CharacterPreviewSectionHelper', function() {
   const gameSlug = 'epic-quest';
   const title = 'Player Characters';
   const seeAllHref = '#/games/epic-quest/pcs';
 
-  const buildCharacters = (count) => Array.from({ length: count }, (_, index) => ({
+  const buildCharacters = (count) => Array.from({ length: count }, (_, index) => buildCharacter({
     id: index + 1,
     name: `Character ${index + 1}`,
-    profile_photo_path: null,
   }));
 
   describe('.render', function() {

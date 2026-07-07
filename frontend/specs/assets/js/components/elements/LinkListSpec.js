@@ -1,11 +1,12 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
 import LinkList from '../../../../../assets/js/components/elements/LinkList.jsx';
+import { buildLink } from '../../../../support/factories.js';
 
 describe('LinkList', function() {
   const links = [
-    { text: 'Wiki', url: 'https://example.com/wiki' },
-    { text: 'Discord', url: 'https://discord.gg/example' },
+    buildLink({ text: 'Wiki', url: 'https://example.com/wiki' }),
+    buildLink({ text: 'Discord', url: 'https://discord.gg/example' }),
   ];
 
   it('renders each link URL', function() {

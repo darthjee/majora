@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterHelper from '../../../../../../../assets/js/components/pages/helpers/CharacterHelper.jsx';
+import { buildLink } from '../../../../../../support/factories.js';
 import { character } from './support.js';
 
 describe('CharacterHelper', function() {
@@ -7,7 +8,7 @@ describe('CharacterHelper', function() {
     it('renders the name, links and money inside the left column, and role/description in the right column', function() {
       const c = {
         ...character,
-        links: [{ text: 'Wiki', url: 'https://example.com/wiki' }],
+        links: [buildLink({ text: 'Wiki', url: 'https://example.com/wiki' })],
         money: 310,
       };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));

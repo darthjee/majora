@@ -1,8 +1,9 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameCardHelper from '../../../../../../assets/js/components/elements/helpers/GameCardHelper.jsx';
+import { buildGame } from '../../../../../support/factories.js';
 
 describe('GameCardHelper', function() {
-  const game = { name: 'Dragon Quest', game_slug: 'dragon-quest', cover_photo_path: null };
+  const game = buildGame({ name: 'Dragon Quest', game_slug: 'dragon-quest', cover_photo_path: null });
 
   describe('.render', function() {
     it('renders the game name', function() {

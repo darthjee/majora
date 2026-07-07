@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import GamePcs from '../../../../../assets/js/components/pages/GamePcs.jsx';
 import GameCharactersHelper from '../../../../../assets/js/components/pages/helpers/GameCharactersHelper.jsx';
 import GamePcsController from '../../../../../assets/js/components/pages/controllers/GamePcsController.js';
-import Noop from '../../../../../assets/js/utils/Noop.js';
+import { stubBuildEffect, stubRenderLoading } from '../../../../support/controllerStubs.js';
 
 describe('GamePcs', function() {
   let originalWindow;
@@ -18,8 +18,8 @@ describe('GamePcs', function() {
   });
 
   it('renders the loading state while fetching', function() {
-    spyOn(GamePcsController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
-    spyOn(GameCharactersHelper, 'renderLoading').and.returnValue(React.createElement('div', null, 'loading'));
+    stubBuildEffect(GamePcsController);
+    stubRenderLoading(GameCharactersHelper);
 
     const html = renderToStaticMarkup(React.createElement(GamePcs));
 

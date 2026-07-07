@@ -1,41 +1,16 @@
 import TreasureClient from '../../../../../assets/js/client/TreasureClient.js';
+import { stubFetchJson, itSendsAuthHeader } from '../../../../support/fetchMock.js';
 
 describe('TreasureClient', function() {
-  let fetchSpy;
-
   beforeEach(function() {
-    fetchSpy = spyOn(globalThis, 'fetch');
-    fetchSpy.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({}) }));
+    stubFetchJson();
   });
 
   describe('#fetchGameTreasure', function() {
-    it('sends the auth token when present', async function() {
-      const client = new TreasureClient();
-
-      await client.fetchGameTreasure('demo', 42, 'tok-abc');
-
-      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/treasures/42.json', {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          Authorization: 'Token tok-abc',
-        },
-        body: undefined,
-      });
-    });
-
-    it('omits the Authorization header when there is no token', async function() {
-      const client = new TreasureClient();
-
-      await client.fetchGameTreasure('demo', 42, null);
-
-      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/treasures/42.json', {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-        },
-        body: undefined,
-      });
+    itSendsAuthHeader({
+      call: (token) => new TreasureClient().fetchGameTreasure('demo', 42, token),
+      url: '/games/demo/treasures/42.json',
+      token: 'tok-abc',
     });
   });
 });

@@ -1,11 +1,11 @@
 import AuthClient from '../../../../../assets/js/client/AuthClient.js';
+import { stubFetchJson } from '../../../../support/fetchMock.js';
 
 describe('AuthClient', function() {
   let fetchSpy;
 
   beforeEach(function() {
-    fetchSpy = spyOn(globalThis, 'fetch');
-    fetchSpy.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({}) }));
+    fetchSpy = stubFetchJson();
   });
 
   describe('#login', function() {

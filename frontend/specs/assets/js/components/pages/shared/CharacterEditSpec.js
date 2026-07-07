@@ -10,6 +10,7 @@ import PhotoUploadModalController
   from '../../../../../../assets/js/components/elements/controllers/PhotoUploadModalController.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
 import Noop from '../../../../../../assets/js/utils/Noop.js';
+import { stubRenderLoading } from '../../../../../support/controllerStubs.js';
 
 class FakeController {
   buildEffect() { return () => Noop.noop; }
@@ -48,9 +49,7 @@ describe('CharacterEdit', function() {
   });
 
   it('renders the loading state on initial render before the fetch resolves', function() {
-    spyOn(CharacterHelper, 'renderLoading').and.returnValue(
-      React.createElement('div', null, 'loading')
-    );
+    stubRenderLoading(CharacterHelper);
 
     const html = renderToStaticMarkup(
       React.createElement(CharacterEdit, {

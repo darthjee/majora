@@ -1,33 +1,17 @@
 import CharacterClient from '../../../../../assets/js/client/CharacterClient.js';
+import { stubFetchJson, itSendsAuthHeader } from '../../../../support/fetchMock.js';
 
 describe('CharacterClient#fetchNpcsAll', function() {
   let fetchSpy;
 
   beforeEach(function() {
-    fetchSpy = spyOn(globalThis, 'fetch');
-    fetchSpy.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({}) }));
+    fetchSpy = stubFetchJson();
   });
 
-  it('sends the auth token when present', async function() {
-    await new CharacterClient().fetchNpcsAll('demo', 'abc123');
-    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/all.json', {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        Authorization: 'Token abc123',
-        'X-Skip-Cache': 'true',
-      },
-      body: undefined,
-    });
-  });
-
-  it('omits the Authorization header when there is no token', async function() {
-    await new CharacterClient().fetchNpcsAll('demo', null);
-    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/all.json', {
-      method: 'GET',
-      headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
-      body: undefined,
-    });
+  itSendsAuthHeader({
+    call: (token) => new CharacterClient().fetchNpcsAll('demo', token),
+    url: '/games/demo/npcs/all.json',
+    headers: { 'X-Skip-Cache': 'true' },
   });
 
   it('appends query params to the URL', async function() {

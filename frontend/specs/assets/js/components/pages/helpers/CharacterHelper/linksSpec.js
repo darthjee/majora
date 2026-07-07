@@ -1,11 +1,12 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterHelper from '../../../../../../../assets/js/components/pages/helpers/CharacterHelper.jsx';
+import { buildLink } from '../../../../../../support/factories.js';
 import { character } from './support.js';
 
 describe('CharacterHelper', function() {
   describe('.render', function() {
     it('renders links when character.links contains items', function() {
-      const c = { ...character, links: [{ text: 'Wiki', url: 'https://example.com/wiki' }] };
+      const c = { ...character, links: [buildLink({ text: 'Wiki', url: 'https://example.com/wiki' })] };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
       expect(html).toContain('href="https://example.com/wiki"');
       expect(html).toContain('Wiki');
@@ -15,8 +16,8 @@ describe('CharacterHelper', function() {
       const c = {
         ...character,
         links: [
-          { text: 'Wiki', url: 'https://example.com/wiki' },
-          { text: 'Sheet', url: 'https://example.com/sheet' },
+          buildLink({ text: 'Wiki', url: 'https://example.com/wiki' }),
+          buildLink({ id: 2, text: 'Sheet', url: 'https://example.com/sheet' }),
         ],
       };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));

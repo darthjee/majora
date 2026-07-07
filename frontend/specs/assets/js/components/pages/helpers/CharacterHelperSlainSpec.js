@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterHelper from '../../../../../../assets/js/components/pages/helpers/CharacterHelper.jsx';
 import PhotoUploadOverlay from '../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
+import { buildCharacter } from '../../../../../support/factories.js';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -31,13 +32,11 @@ const findElement = (node, matcher) => {
 };
 
 describe('CharacterHelper slain/revive rendering', function() {
-  const character = {
+  const character = buildCharacter({
     name: 'Aragorn',
-    profile_photo_path: null,
     role: 'Ranger',
     public_description: 'The future king of Gondor.',
-    photos: [],
-  };
+  });
 
   describe('.render', function() {
     it('passes grayscale to the overlay when the character is slain', function() {

@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import GameTreasureEdit from '../../../../../assets/js/components/pages/GameTreasureEdit.jsx';
 import GameTreasureEditController from '../../../../../assets/js/components/pages/controllers/GameTreasureEditController.js';
 import GameTreasureEditHelper from '../../../../../assets/js/components/pages/helpers/GameTreasureEditHelper.jsx';
-import Noop from '../../../../../assets/js/utils/Noop.js';
+import { stubBuildEffect, stubRenderLoading } from '../../../../support/controllerStubs.js';
 
 describe('GameTreasureEdit', function() {
   let originalWindow;
@@ -18,8 +18,8 @@ describe('GameTreasureEdit', function() {
   });
 
   it('renders the loading state on initial render before the fetch resolves', function() {
-    spyOn(GameTreasureEditController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
-    spyOn(GameTreasureEditHelper, 'renderLoading').and.returnValue(React.createElement('div', null, 'loading'));
+    stubBuildEffect(GameTreasureEditController);
+    stubRenderLoading(GameTreasureEditHelper);
 
     const html = renderToStaticMarkup(React.createElement(GameTreasureEdit));
 

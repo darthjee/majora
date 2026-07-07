@@ -1,9 +1,10 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
 import CharacterCard from '../../../../../assets/js/components/elements/CharacterCard.jsx';
+import { buildCharacter } from '../../../../support/factories.js';
 
 describe('CharacterCard', function() {
-  const character = { id: 42, name: 'Aragorn', profile_photo_path: null };
+  const character = buildCharacter({ id: 42, name: 'Aragorn' });
 
   it('delegates rendering to CharacterCardHelper', function() {
     const html = renderToStaticMarkup(
