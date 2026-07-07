@@ -33,6 +33,12 @@ if (getenv('FRONTEND_DEV_MODE') === 'true') {
         ],
         'matchers' => [
             ['method' => 'GET', 'uri' => '/assets', 'type' => 'begins_with'],
+        ],
+        'middlewares' => [
+            [
+                'class' => 'Tent\Middlewares\CacheControlMiddleware',
+                'maxAgeSeconds' => 60 * 60 * 24
+            ]
         ]
     ]);
     Configuration::buildRule([
@@ -47,6 +53,10 @@ if (getenv('FRONTEND_DEV_MODE') === 'true') {
             [
                 'class' => 'Tent\Middlewares\SetPathMiddleware',
                 'path' => '/index.html'
+            ],
+            [
+                'class' => 'Tent\Middlewares\CacheControlMiddleware',
+                'maxAgeSeconds' => 60 * 60 * 24
             ]
         ]
     ]);
