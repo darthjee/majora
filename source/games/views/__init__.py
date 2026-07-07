@@ -33,6 +33,7 @@ from .games import (
     game_photos,
     game_treasure_detail,
     game_treasures,
+    game_treasures_all,
     games_list,
 )
 from .health import health
@@ -47,6 +48,7 @@ __all__ = [
     'game_detail',
     'game_access',
     'game_treasures',
+    'game_treasures_all',
     'game_treasure_detail',
     'game_photos',
     'game_pcs',

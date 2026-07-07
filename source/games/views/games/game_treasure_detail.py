@@ -23,10 +23,27 @@ def game_treasure_detail(request, game_slug, treasure_id):
     game = get_object_or_404(Game, game_slug=game_slug)
     treasure = get_object_or_404(Treasure, id=treasure_id, game=game)
 
-    if request.method == 'PATCH':
-        return _update_game_treasure(request, game, treasure)
+    error_response = _hidden_gate_response(treasure, game, request)
+    if error_response:
+        return error_response
 
-    return Response(TreasureDetailSerializer(treasure).data)
+    if request.method == 'PATCH':
+        response = _update_game_treasure(request, game, treasure)
+    else:
+        response = Response(TreasureDetailSerializer(treasure).data)
+
+    if treasure.hidden:
+        response['X-Skip-Cache'] = 'true'
+    return response
+
+
+def _hidden_gate_response(treasure, game, request):
+    """Return a 404 Response with X-Skip-Cache set if treasure is hidden and game not editable."""
+    if treasure.hidden and not game.can_be_edited_by(request.user):
+        response = Response(status=404)
+        response['X-Skip-Cache'] = 'true'
+        return response
+    return None
 
 
 def _update_game_treasure(request, game, treasure):

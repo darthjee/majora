@@ -14,7 +14,7 @@ class TreasureCreateSerializer(serializers.ModelSerializer):
         """Metadata for the TreasureCreateSerializer."""
 
         model = Treasure
-        fields = ['name', 'value']
+        fields = ['name', 'value', 'hidden']
         extra_kwargs = {
             'name': {'required': True},
         }

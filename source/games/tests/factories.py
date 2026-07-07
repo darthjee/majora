@@ -99,3 +99,4 @@ class TreasureFactory(factory.django.DjangoModelFactory):
 
     name = 'Test Treasure'
     value = 100
+    hidden = False
