@@ -12,4 +12,4 @@ class CharacterLinkSerializer(serializers.ModelSerializer):
         """Metadata for the CharacterLinkSerializer."""
 
         model = CharacterLink
-        fields = ['id', 'text', 'url']
+        fields = ['id', 'text', 'url', 'link_type']

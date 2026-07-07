@@ -8,8 +8,17 @@ from django.db import models
 class Link(models.Model):
     """Model representing an external link related to any game object."""
 
+    LINK_TYPE_LOOTSTUDIO = 'lootstudio'
+
+    LINK_TYPE_CHOICES = [
+        (LINK_TYPE_LOOTSTUDIO, 'LootStudio'),
+    ]
+
     text = models.CharField(max_length=200)
     url = models.URLField()
+    link_type = models.CharField(
+        max_length=32, choices=LINK_TYPE_CHOICES, blank=True, default=''
+    )
     content_type = models.ForeignKey(
         ContentType, on_delete=models.CASCADE, null=True, blank=True
     )

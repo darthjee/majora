@@ -39,6 +39,23 @@ class TestLink:
         )
         assert link.object_id == self.game.pk
 
+    def test_link_creation_with_link_type(self):
+        """Test that a link can be created with a link_type set."""
+        link = Link.objects.create(
+            text='LootStudio Loot',
+            url='http://example.com/loot',
+            content_object=self.game,
+            link_type=Link.LINK_TYPE_LOOTSTUDIO,
+        )
+        assert link.link_type == 'lootstudio'
+
+    def test_link_default_link_type_is_blank(self):
+        """Test that link_type defaults to an empty string when not set."""
+        link = Link.objects.create(
+            text='Rulebook', url='http://example.com/rules', content_object=self.game
+        )
+        assert link.link_type == ''
+
     def test_link_str(self):
         """Test string representation of a link."""
         link = Link(text='Map', url='http://example.com/map', content_object=self.game)

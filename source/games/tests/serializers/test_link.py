@@ -37,3 +37,15 @@ class TestLinkSerializer:
         """Test that the content_type field is not exposed."""
         data = LinkSerializer(self.link).data
         assert 'content_type' not in data
+
+    def test_serializes_link_type_when_unset(self):
+        """Test that link_type serializes as an empty string when unset."""
+        data = LinkSerializer(self.link).data
+        assert data['link_type'] == ''
+
+    def test_serializes_link_type_when_set(self):
+        """Test that link_type is serialized when set."""
+        self.link.link_type = Link.LINK_TYPE_LOOTSTUDIO
+        self.link.save()
+        data = LinkSerializer(self.link).data
+        assert data['link_type'] == 'lootstudio'
