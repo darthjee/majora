@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import GameNpcs from '../../../../../assets/js/components/pages/GameNpcs.jsx';
 import GameCharactersHelper from '../../../../../assets/js/components/pages/helpers/GameCharactersHelper.jsx';
 import GameNpcsController from '../../../../../assets/js/components/pages/controllers/GameNpcsController.js';
-import Noop from '../../../../../assets/js/utils/Noop.js';
+import { stubBuildEffect, stubRenderLoading } from '../../../../support/controllerStubs.js';
 
 describe('GameNpcs', function() {
   let originalWindow;
@@ -18,8 +18,8 @@ describe('GameNpcs', function() {
   });
 
   it('renders the loading state while fetching', function() {
-    spyOn(GameNpcsController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
-    spyOn(GameCharactersHelper, 'renderLoading').and.returnValue(React.createElement('div', null, 'loading'));
+    stubBuildEffect(GameNpcsController);
+    stubRenderLoading(GameCharactersHelper);
 
     const html = renderToStaticMarkup(React.createElement(GameNpcs));
 
@@ -27,7 +27,7 @@ describe('GameNpcs', function() {
   });
 
   it('renders the new NPC button via GameCharactersHelper.render when canEdit is true', function() {
-    spyOn(GameNpcsController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
+    stubBuildEffect(GameNpcsController);
 
     const html = renderToStaticMarkup(
       GameCharactersHelper.render(

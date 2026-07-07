@@ -4,11 +4,12 @@ import MyAccount from '../../../../../assets/js/components/pages/MyAccount.jsx';
 import MyAccountHelper from '../../../../../assets/js/components/pages/helpers/MyAccountHelper.jsx';
 import MyAccountController from '../../../../../assets/js/components/pages/controllers/MyAccountController.js';
 import Noop from '../../../../../assets/js/utils/Noop.js';
+import { stubBuildEffect, stubRenderLoading } from '../../../../support/controllerStubs.js';
 
 describe('MyAccount', function() {
   it('renders the loading state while fetching', function() {
-    spyOn(MyAccountController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
-    spyOn(MyAccountHelper, 'renderLoading').and.returnValue(React.createElement('div', null, 'loading'));
+    stubBuildEffect(MyAccountController);
+    stubRenderLoading(MyAccountHelper);
 
     const html = renderToStaticMarkup(React.createElement(MyAccount));
 
@@ -16,7 +17,7 @@ describe('MyAccount', function() {
   });
 
   it('renders the account form via MyAccountHelper.render', function() {
-    spyOn(MyAccountController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
+    stubBuildEffect(MyAccountController);
 
     const html = renderToStaticMarkup(
       MyAccountHelper.render(

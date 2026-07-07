@@ -4,11 +4,12 @@ import GamePhotos from '../../../../../assets/js/components/pages/GamePhotos.jsx
 import GamePhotosHelper from '../../../../../assets/js/components/pages/helpers/GamePhotosHelper.jsx';
 import GamePhotosController from '../../../../../assets/js/components/pages/controllers/GamePhotosController.js';
 import Noop from '../../../../../assets/js/utils/Noop.js';
+import { stubBuildEffect, stubRenderLoading } from '../../../../support/controllerStubs.js';
 
 describe('GamePhotos', function() {
   it('renders the loading state while fetching', function() {
-    spyOn(GamePhotosController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
-    spyOn(GamePhotosHelper, 'renderLoading').and.returnValue(React.createElement('div', null, 'loading'));
+    stubBuildEffect(GamePhotosController);
+    stubRenderLoading(GamePhotosHelper);
 
     const html = renderToStaticMarkup(React.createElement(GamePhotos));
 
@@ -16,7 +17,7 @@ describe('GamePhotos', function() {
   });
 
   it('renders the upload button via GamePhotosHelper.render when the game can be edited', function() {
-    spyOn(GamePhotosController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
+    stubBuildEffect(GamePhotosController);
 
     const handlers = { onOpenUploadModal: Noop.noop, onSelectPhoto: Noop.noop };
     const pagination = { page: 1, pages: 1, perPage: 10 };
