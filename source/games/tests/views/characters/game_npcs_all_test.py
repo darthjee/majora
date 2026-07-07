@@ -162,6 +162,25 @@ class TestGameNpcsAllView(TokenAuthRequestMixin):
         response = self._get_with_query(client, '', token=token)
         assert sorted(self._names(response)) == ['Hidden NPC', 'Visible NPC']
 
+    def test_allegiance_filter_matches_real_allegiance(self, client):
+        """Test that ?allegiance= filters npcs/all.json on the real allegiance field."""
+        self.visible_npc.allegiance = 'ally'
+        self.visible_npc.public_allegiance = 'enemy'
+        self.visible_npc.save()
+        self.hidden_npc.allegiance = 'enemy'
+        self.hidden_npc.public_allegiance = 'ally'
+        self.hidden_npc.save()
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get_with_query(client, '?allegiance=ally', token=token)
+        assert self._names(response) == ['Visible NPC']
+
+    def test_invalid_allegiance_value_is_ignored(self, client):
+        """Test that an unrecognized allegiance value applies no filter and does not 400."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get_with_query(client, '?allegiance=unknown', token=token)
+        assert response.status_code == 200
+        assert sorted(self._names(response)) == ['Hidden NPC', 'Visible NPC']
+
     def test_permission_enforced_regardless_of_filter_params(self, client):
         """Test that GameEditPermission is still enforced when filter params are present."""
         other_user = UserFactory(username='other', password='secret-password')

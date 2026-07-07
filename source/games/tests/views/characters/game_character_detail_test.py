@@ -270,6 +270,33 @@ class TestGameNpcUpdateView(_BaseCharacterUpdateViewTest):
         self.character.refresh_from_db()
         assert self.character.name == self.character_name
 
+    def test_patch_allegiance_with_unrelated_user_returns_403(self, client):
+        """Test that a non-editor cannot set allegiance/public_allegiance via PATCH."""
+        other_user = UserFactory(username='other', password='secret-password')
+        token = Token.objects.create(user=other_user)
+
+        response = self._patch(
+            client, {'allegiance': 'enemy', 'public_allegiance': 'ally'}, token=token
+        )
+
+        assert response.status_code == 403
+        self.character.refresh_from_db()
+        assert self.character.allegiance == 'neutral'
+        assert self.character.public_allegiance == 'neutral'
+
+    def test_patch_allegiance_by_dm_is_persisted(self, client):
+        """Test that a DM/superuser can set both allegiance fields via PATCH."""
+        token = self._editor_token()
+
+        response = self._patch(
+            client, {'allegiance': 'enemy', 'public_allegiance': 'ally'}, token=token
+        )
+
+        assert response.status_code == 200
+        self.character.refresh_from_db()
+        assert self.character.allegiance == 'enemy'
+        assert self.character.public_allegiance == 'ally'
+
 
 @pytest.mark.django_db
 class TestGamePcUpdateView(_BaseCharacterUpdateViewTest):
