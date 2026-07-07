@@ -80,7 +80,7 @@ class PhotoUploadHandler extends RequestHandler
         string $photosBasePath
     ) {
         $this->host = $host;
-        $this->httpClient = $httpClient ?? new CurlHttpClient();
+        $this->httpClient = ($httpClient ?? new CurlHttpClient());
         $this->photosBasePath = $photosBasePath;
         $this->photoStorage = new SecurePhotoStorage($photosBasePath);
         $this->filenameValidator = new UploadFilenameValidator();
@@ -103,7 +103,7 @@ class PhotoUploadHandler extends RequestHandler
      */
     public static function build(array $params): self
     {
-        return new self($params['host'] ?? '', null, $params['photos_path'] ?? '');
+        return new self(($params['host'] ?? ''), null, ($params['photos_path'] ?? ''));
     }
 
     /**
@@ -149,7 +149,8 @@ class PhotoUploadHandler extends RequestHandler
             'httpCode' => 200,
             'headers'  => ['Content-Type: application/json'],
             'body'     => json_encode(['file_path' => $destination]),
-        ]);
+        ]
+        );
     }
 
     /**
@@ -179,7 +180,7 @@ class PhotoUploadHandler extends RequestHandler
     private function validateUploadedFile(RequestInterface $request): array
     {
         $files = $request->uploadedFiles();
-        $file = $files['file'] ?? null;
+        $file = ($files['file'] ?? null);
         $reason = $this->imageRejectionReason($file);
 
         if ($reason !== null) {
@@ -208,7 +209,7 @@ class PhotoUploadHandler extends RequestHandler
         }
 
         $body     = json_decode($result['body'], true);
-        $filePath = $body['file_path'] ?? null;
+        $filePath = ($body['file_path'] ?? null);
         if ($filePath === null) {
             throw new BackendErrorException(500, 'Internal Server Error');
         }
@@ -289,7 +290,7 @@ class PhotoUploadHandler extends RequestHandler
      */
     private function backendHost(): string
     {
-        return parse_url($this->host, PHP_URL_HOST) ?? $this->host;
+        return (parse_url($this->host, PHP_URL_HOST) ?? $this->host);
     }
 
     /**
@@ -336,8 +337,8 @@ class PhotoUploadHandler extends RequestHandler
 
         $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
-        $mimeType = $file['type'] ?? '';
-        $filename = $file['name'] ?? '';
+        $mimeType = ($file['type'] ?? '');
+        $filename = ($file['name'] ?? '');
 
         if (!in_array($mimeType, $allowedMimeTypes, true)) {
             return 'unsupported_mime_type';
@@ -361,8 +362,8 @@ class PhotoUploadHandler extends RequestHandler
      */
     private function unprocessableEntityResponse(string $reason, ?array $file): Response
     {
-        $filename = $file['name'] ?? '';
-        $mimeType = $file['type'] ?? '';
+        $filename = ($file['name'] ?? '');
+        $mimeType = ($file['type'] ?? '');
 
         Logger::warn(
             '[upload] - rejected image upload, reason: ' . $reason .
@@ -378,6 +379,7 @@ class PhotoUploadHandler extends RequestHandler
                 'filename' => $filename,
                 'mimeType' => $mimeType,
             ]),
-        ]);
+        ]
+        );
     }
 }
