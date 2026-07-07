@@ -9,6 +9,12 @@ Configuration::buildRule([
     ],
     'matchers' => [
         ['method' => 'GET', 'uri' => '/assets', 'type' => 'begins_with'],
+    ],
+    'middlewares' => [
+        [
+            'class' => 'Tent\Middlewares\CacheControlMiddleware',
+            'maxAgeSeconds' => 60 * 60 * 24
+        ]
     ]
 ]);
 
@@ -24,6 +30,10 @@ Configuration::buildRule([
         [
             'class' => 'Tent\Middlewares\SetPathMiddleware',
             'path' => '/index.html'
+        ],
+        [
+            'class' => 'Tent\Middlewares\CacheControlMiddleware',
+            'maxAgeSeconds' => 60 * 60 * 24
         ]
     ]
 ]);
