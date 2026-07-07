@@ -66,4 +66,33 @@ describe('LinkList', function() {
     );
     expect(html).toBe('');
   });
+
+  it('renders the type-specific icon image when link_type is recognized', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(LinkList, {
+        links: [buildLink({ text: 'Loot', url: 'https://example.com/loot', link_type: 'lootstudio' })],
+      })
+    );
+    expect(html).toContain('lootstudio.png');
+    expect(html).not.toContain('bi-link-45deg');
+  });
+
+  it('renders the chain icon when link_type is unset', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(LinkList, {
+        links: [buildLink({ text: 'Loot', url: 'https://example.com/loot' })],
+      })
+    );
+    expect(html).toContain('bi-link-45deg');
+  });
+
+  it('falls back to the chain icon when link_type is unrecognized', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(LinkList, {
+        links: [buildLink({ text: 'Loot', url: 'https://example.com/loot', link_type: 'unknown_type' })],
+      })
+    );
+    expect(html).toContain('bi-link-45deg');
+    expect(html).not.toContain('unknown_type.png');
+  });
 });
