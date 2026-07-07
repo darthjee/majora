@@ -1,11 +1,11 @@
 import TreasureClient from '../../../../../assets/js/client/TreasureClient.js';
+import { stubFetchJson } from '../../../../support/fetchMock.js';
 
 describe('TreasureClient', function() {
   let fetchSpy;
 
   beforeEach(function() {
-    fetchSpy = spyOn(globalThis, 'fetch');
-    fetchSpy.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({}) }));
+    fetchSpy = stubFetchJson();
   });
 
   describe('#fetchGameTreasuresPage', function() {

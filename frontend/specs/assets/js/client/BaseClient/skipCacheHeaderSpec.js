@@ -1,13 +1,13 @@
 import BaseClient from '../../../../../assets/js/client/BaseClient.js';
 import ActivityTracker from '../../../../../assets/js/utils/ActivityTracker.js';
+import { stubFetchJson } from '../../../../support/fetchMock.js';
 
 describe('BaseClient', function() {
   let fetchSpy;
   let client;
 
   beforeEach(function() {
-    fetchSpy = spyOn(globalThis, 'fetch');
-    fetchSpy.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({}) }));
+    fetchSpy = stubFetchJson();
     spyOn(ActivityTracker, 'register');
     client = new BaseClient();
   });

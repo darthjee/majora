@@ -1,11 +1,11 @@
 import UploadClient from '../../../../../assets/js/client/UploadClient.js';
+import { stubFetchJson } from '../../../../support/fetchMock.js';
 
 describe('UploadClient', function() {
   let fetchSpy;
 
   beforeEach(function() {
-    fetchSpy = spyOn(globalThis, 'fetch');
-    fetchSpy.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({}) }));
+    fetchSpy = stubFetchJson();
   });
 
   describe('#submitUpload', function() {

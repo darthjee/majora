@@ -1,4 +1,5 @@
 import GenericClient from '../../../../assets/js/client/GenericClient.js';
+import { mockFetchJson } from '../../../support/fetchMock.js';
 
 describe('GenericClient', function() {
   let fetchSpy;
@@ -8,10 +9,7 @@ describe('GenericClient', function() {
   });
 
   it('forwards all hash params in fetch', async function() {
-    fetchSpy.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ ok: true }),
-    }));
+    fetchSpy.and.returnValue(Promise.resolve(mockFetchJson({ ok: true })));
 
     const client = new GenericClient(() => '#/games/demo?foo=bar&page=2');
     await client.fetch('/games/demo.json');
@@ -21,8 +19,7 @@ describe('GenericClient', function() {
 
   it('forwards only pagination params in fetchIndex', async function() {
     fetchSpy.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve([]),
+      ...mockFetchJson([]),
       headers: { get: () => null },
     }));
 
@@ -34,8 +31,7 @@ describe('GenericClient', function() {
 
   it('returns pagination defaults when headers are missing', async function() {
     fetchSpy.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve([]),
+      ...mockFetchJson([]),
       headers: { get: () => null },
     }));
 
