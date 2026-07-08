@@ -43,7 +43,9 @@ describe('PhotoUploadOverlay', function() {
     );
 
     expect(html).toContain('photo-upload-overlay-button');
-    expect(html).toContain('Upload Photo');
+    expect(html).toContain('bi-camera-fill');
+    expect(html).toContain('aria-label="Upload Photo"');
+    expect(html).toContain('title="Upload Photo"');
   });
 
   it('does not render the upload button when canEdit is false', function() {

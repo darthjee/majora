@@ -115,15 +115,19 @@ describe('CharacterCardHelper', function() {
       expect(html).not.toContain('<button');
     });
 
-    it('renders the Mark as Slain button for NPCs when canEdit is true and not slain', function() {
+    it('renders the Mark as Slain button icon for NPCs when canEdit is true and not slain', function() {
       const html = renderToStaticMarkup(CharacterCardHelper.render(character, gameSlug, 'npc', 'normal', true));
-      expect(html).toContain('Mark as Slain');
+      expect(html).toContain('bi-skull');
+      expect(html).toContain('aria-label="Mark as Slain"');
+      expect(html).toContain('title="Mark as Slain"');
     });
 
-    it('renders the Revive button for NPCs when canEdit is true and slain', function() {
+    it('renders the Revive button icon for NPCs when canEdit is true and slain', function() {
       const c = { ...character, slain: true };
       const html = renderToStaticMarkup(CharacterCardHelper.render(c, gameSlug, 'npc', 'normal', true));
-      expect(html).toContain('Revive');
+      expect(html).toContain('bi-heart-fill');
+      expect(html).toContain('aria-label="Revive"');
+      expect(html).toContain('title="Revive"');
     });
 
     it('prevents navigation and calls onUploadClick with the character when the upload button is clicked', function() {

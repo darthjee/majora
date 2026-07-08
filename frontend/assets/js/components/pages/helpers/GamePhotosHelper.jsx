@@ -6,6 +6,7 @@ import Pagination from '../../elements/Pagination.jsx';
 import PhotoCard from '../../elements/PhotoCard.jsx';
 import UploadButton from '../../elements/UploadButton.jsx';
 import Translator from '../../../i18n/Translator.js';
+import Icons from '../../../utils/Icons.js';
 
 /**
  * Rendering helper for the Game Photos listing page.
@@ -78,8 +79,8 @@ export default class GamePhotosHelper {
     if (!canEdit) return null;
 
     return (
-      <UploadButton onClick={handlers.onOpenUploadModal}>
-        {Translator.t('game_photos_page.upload')}
+      <UploadButton onClick={handlers.onOpenUploadModal} label={Translator.t('game_photos_page.upload')}>
+        <i className={`bi ${Icons.camera}`} aria-hidden="true"></i>
       </UploadButton>
     );
   }

@@ -6,6 +6,7 @@ import Pagination from '../../elements/Pagination.jsx';
 import PhotoCard from '../../elements/PhotoCard.jsx';
 import UploadButton from '../../elements/UploadButton.jsx';
 import Translator from '../../../i18n/Translator.js';
+import Icons from '../../../utils/Icons.js';
 
 /**
  * Shared rendering helper for the Character Photos (PC and NPC) listing page.
@@ -86,8 +87,8 @@ export default class BaseCharacterPhotosHelper {
     if (!canEdit) return null;
 
     return (
-      <UploadButton onClick={handlers.onOpenUploadModal}>
-        {Translator.t(`${this.i18nNamespace}.upload`)}
+      <UploadButton onClick={handlers.onOpenUploadModal} label={Translator.t(`${this.i18nNamespace}.upload`)}>
+        <i className={`bi ${Icons.camera}`} aria-hidden="true"></i>
       </UploadButton>
     );
   }

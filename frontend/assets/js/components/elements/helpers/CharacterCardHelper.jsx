@@ -4,6 +4,7 @@ import PhotoUploadOverlay from '../PhotoUploadOverlay.jsx';
 import Translator from '../../../i18n/Translator.js';
 import Noop from '../../../utils/Noop.js';
 import allegianceBorderClass from '../../../utils/AllegianceBorder.js';
+import Icons from '../../../utils/Icons.js';
 
 /**
  * Rendering helper for the CharacterCard element.
@@ -101,6 +102,7 @@ export default class CharacterCardHelper {
             ? Translator.t('character_page.revive_button')
             : Translator.t('character_page.slain_button'),
           variant: character.slain ? 'success' : 'danger',
+          icon: character.slain ? Icons.heart : Icons.skull,
           onClick: CharacterCardHelper.#buildOverlayClickHandler(onSlainClick, character),
         } : undefined}
       />
