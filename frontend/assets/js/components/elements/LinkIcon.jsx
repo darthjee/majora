@@ -1,7 +1,7 @@
 import React from 'react';
 import lootstudioIcon from '../../../images/links/lootstudio.png';
 
-const LINK_TYPE_ICONS = {
+export const LINK_TYPE_ICONS = {
   lootstudio: lootstudioIcon,
 };
 

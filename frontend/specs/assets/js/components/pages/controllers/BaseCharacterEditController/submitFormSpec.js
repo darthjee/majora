@@ -46,6 +46,11 @@ describe('BaseCharacterEditController', function() {
             money: '310',
             allegiance: 'ally',
             publicAllegiance: 'enemy',
+            links: [
+              { id: 12, text: 'Loot table', url: 'https://example.com/loot', link_type: 'lootstudio' },
+              { text: '', url: 'https://example.com/new-link', link_type: '' },
+              { id: 7, text: 'Old', url: 'https://example.com/old', delete: true },
+            ],
           },
           { setStatus, setFieldErrors },
         );
@@ -62,6 +67,15 @@ describe('BaseCharacterEditController', function() {
             money: 310,
             allegiance: 'ally',
             public_allegiance: 'enemy',
+            links: [
+              {
+                id: 12, text: 'Loot table', url: 'https://example.com/loot', link_type: 'lootstudio', delete: false,
+              },
+              { text: 'https://example.com/new-link', url: 'https://example.com/new-link', link_type: '', delete: false },
+              {
+                id: 7, text: 'Old', url: 'https://example.com/old', link_type: '', delete: true,
+              },
+            ],
           },
         );
       } finally {

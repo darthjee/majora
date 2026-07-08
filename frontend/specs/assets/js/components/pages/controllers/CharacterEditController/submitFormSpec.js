@@ -45,6 +45,8 @@ KINDS.forEach(({ label, Controller, kind, name, role, description, allegiance, p
       globalThis.window = fakeWindow;
 
       try {
+        const links = [{ id: 5, text: 'Wiki', url: 'https://example.com/wiki', link_type: '' }];
+
         await controller.submitForm(
           event,
           'demo',
@@ -57,6 +59,7 @@ KINDS.forEach(({ label, Controller, kind, name, role, description, allegiance, p
             money: '310',
             allegiance,
             publicAllegiance,
+            links,
           },
           { setStatus, setFieldErrors },
         );
@@ -71,6 +74,9 @@ KINDS.forEach(({ label, Controller, kind, name, role, description, allegiance, p
           public_description: description,
           private_description: 'Secret notes',
           money: 310,
+          links: [{
+            id: 5, text: 'Wiki', url: 'https://example.com/wiki', link_type: '', delete: false,
+          }],
         };
 
         if (kind === 'npcs') {

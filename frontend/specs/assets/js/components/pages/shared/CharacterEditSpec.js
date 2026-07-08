@@ -67,6 +67,7 @@ describe('CharacterEdit', function() {
     const state = {
       name: 'Test Character',
       profile_photo_path: null,
+      links: [],
       role: 'Fighter',
       description: 'A brave hero.',
       privateDescription: 'DM notes.',
@@ -86,6 +87,7 @@ describe('CharacterEdit', function() {
       onAllegianceChange: Noop.noop,
       onPublicAllegianceChange: Noop.noop,
       onOpenUploadModal: Noop.noop,
+      onOpenLinksModal: Noop.noop,
     };
 
     const html = renderToStaticMarkup(EditHelper.render(state, handlers));
