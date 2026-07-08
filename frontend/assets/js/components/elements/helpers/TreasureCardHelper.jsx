@@ -2,7 +2,7 @@ import React from 'react';
 import PhotoUploadOverlay from '../PhotoUploadOverlay.jsx';
 import Translator from '../../../i18n/Translator.js';
 import Noop from '../../../utils/Noop.js';
-import formatTreasureValue from '../../../utils/TreasureMoneyFormatter.js';
+import TreasureMoney from '../TreasureMoney.jsx';
 
 /**
  * Rendering helper for the TreasureCard element.
@@ -54,7 +54,7 @@ export default class TreasureCardHelper {
                 {treasure.name}
               </a>
             </h6>
-            <p className="card-text text-muted mb-0">{formatTreasureValue(treasure.value)}</p>
+            <p className="card-text text-muted mb-0"><TreasureMoney value={treasure.value} /></p>
             {TreasureCardHelper.#renderAvailability(treasure)}
             {TreasureCardHelper.#renderEditLink(canManage, editHref)}
           </div>

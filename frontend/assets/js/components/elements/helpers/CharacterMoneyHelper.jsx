@@ -1,5 +1,6 @@
 import React from 'react';
-import CoinBreakdown from '../../../utils/CoinBreakdown.js';
+import MoneyModelRegistry from '../../../utils/money/MoneyModelRegistry.js';
+import '../../../utils/money/DndMoneyModel.js';
 import Translator from '../../../i18n/Translator.js';
 
 const ABBREVIATION_KEYS = {
@@ -21,7 +22,8 @@ export default class CharacterMoneyHelper {
    * @returns {React.ReactElement|null} Money breakdown paragraph, or null.
    */
   static render(money) {
-    const entries = new CoinBreakdown().build(money);
+    const model = MoneyModelRegistry.resolve('dnd');
+    const entries = model.transform(money, { context: 'character' });
 
     if (entries.length === 0) return null;
 
