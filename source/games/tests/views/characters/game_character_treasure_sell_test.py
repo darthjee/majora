@@ -81,6 +81,22 @@ class _BaseCharacterTreasureSellViewTest(TokenAuthRequestMixin):
             'money': self.expected_money_after_sell,
         }
 
+    def test_selling_delisted_treasure_still_succeeds(self, client):
+        """Test that selling a still-owned treasure succeeds after it's delisted from the game."""
+        self.treasure.game = None
+        self.treasure.save()
+
+        response = self._post(
+            client,
+            {'treasure_id': self.treasure.id, 'quantity': self.sell_quantity},
+            token=self._editor_token(),
+        )
+        assert response.status_code == 200
+        assert response.json() == {
+            'quantity': self.expected_quantity_after_sell,
+            'money': self.expected_money_after_sell,
+        }
+
     def test_selling_full_quantity_keeps_row_at_zero(self, client):
         """Test that selling the entire owned quantity keeps the row instead of deleting it."""
         response = self._post(
