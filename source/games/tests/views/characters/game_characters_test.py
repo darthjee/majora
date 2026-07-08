@@ -306,6 +306,8 @@ class TestGameNpcsCreate(TokenAuthRequestMixin):
                 'private_description': 'Secretly a good person',
                 'hidden': True,
                 'money': 42,
+                'allegiance': 'ally',
+                'public_allegiance': 'enemy',
             },
             token=self.dm_token,
         )
@@ -315,12 +317,16 @@ class TestGameNpcsCreate(TokenAuthRequestMixin):
         assert character.private_description == 'Secretly a good person'
         assert character.hidden is True
         assert character.money == 42
+        assert character.allegiance == 'ally'
+        assert character.public_allegiance == 'enemy'
 
     def test_defaults_apply_when_optional_fields_omitted(self, client):
         """Test that optional fields fall back to model defaults when omitted."""
         self._post(client, {'name': 'Villain'}, token=self.dm_token)
         character = Character.objects.get(name='Villain')
         assert character.hidden is False
+        assert character.allegiance == 'neutral'
+        assert character.public_allegiance == 'neutral'
 
     def test_unauthenticated_post_returns_401(self, client):
         """Test that a POST without a token returns 401."""
