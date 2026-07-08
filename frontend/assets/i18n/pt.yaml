@@ -100,6 +100,7 @@ pc_edit_page:
   submit: Salvar alterações
   error: Falha ao salvar o personagem. Tente novamente.
   upload_photo_button: Enviar Foto
+  edit_links_button: Editar links
 npc_edit_page:
   title: Editar personagem
   name_label: Nome
@@ -115,6 +116,7 @@ npc_edit_page:
   submit: Salvar alterações
   error: Falha ao salvar o personagem. Tente novamente.
   upload_photo_button: Enviar Foto
+  edit_links_button: Editar links
 game_edit_page:
   title: Editar jogo
   name_label: Nome
@@ -204,6 +206,16 @@ treasure_exchange_modal:
   generic_error: Não foi possível concluir esta ação. Por favor, tente novamente.
   available_units_badge: '{{available}} restantes'
   partially_fulfilled: 'Apenas {{acquired}} de {{requested}} estavam disponíveis e foram adquiridos.'
+links_edit_modal:
+  title: Editar links
+  text_label: Texto
+  url_label: URL
+  link_type_label: Tipo
+  link_type_none: Nenhum
+  link_type_lootstudio: LootStudio
+  add_link: Adicionar Link
+  confirm: Confirmar
+  cancel: Cancelar
 game_treasures_page:
   loading: Carregando tesouros...
   title: Tesouros
