@@ -317,7 +317,7 @@ jobs:
           command: TARGET=configuration/locals.php DEPLOY_PATH=configuration/ bin/deploy_frontend.sh copy_files
       - run:
           name: Setup .htaccess
-          command: TARGET=.htaccess DEPLOY_PATH=.htaccess bin/deploy_frontend.sh copy_files
+          command: TARGET=.htaccess DEPLOY_PATH=./ bin/deploy_frontend.sh copy_files
 
   upload_extension:
     docker:
