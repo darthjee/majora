@@ -1,7 +1,7 @@
 import Modal from 'react-bootstrap/cjs/Modal.js';
 import CardTreasureImage from '../CardTreasureImage.jsx';
+import TreasureMoney from '../TreasureMoney.jsx';
 import Translator from '../../../i18n/Translator.js';
-import formatTreasureValue from '../../../utils/TreasureMoneyFormatter.js';
 
 /**
  * Renders the treasure exchange modal shell: the Acquire/Sell tabs, the
@@ -145,7 +145,7 @@ export default class TreasureExchangeModalHelper {
             <span>{item.name}</span>
             <span className="d-flex align-items-center">
               {activeTab === 'acquire' && TreasureExchangeModalHelper.#renderAvailabilityBadge(item)}
-              <span className="text-muted">{formatTreasureValue(item.value)}</span>
+              <span className="text-muted"><TreasureMoney value={item.value} /></span>
             </span>
           </button>
         ))}
@@ -183,7 +183,7 @@ export default class TreasureExchangeModalHelper {
           </div>
           <div className="ms-3">
             <h5>{selected.name}</h5>
-            <p className="mb-1">{formatTreasureValue(selected.value)}</p>
+            <p className="mb-1"><TreasureMoney value={selected.value} /></p>
             <p className="text-muted mb-0">
               {Translator.t('treasure_exchange_modal.already_owned').replace('{{quantity}}', owned)}
             </p>
