@@ -106,6 +106,11 @@ npc_edit_page:
   role_label: Role
   description_label: Description
   private_description_label: DM Notes
+  allegiance_label: Allegiance
+  public_allegiance_label: Public Allegiance
+  allegiance_ally: Ally
+  allegiance_enemy: Enemy
+  allegiance_neutral: Neutral
   money_label: Money (copper pieces)
   submit: Save changes
   error: Failed to save character. Please try again.
@@ -246,6 +251,10 @@ game_npcs_page:
   filter_status_label: Status
   filter_status_alive: Alive
   filter_status_slain: Slain
+  filter_allegiance_label: Allegiance
+  filter_allegiance_ally: Ally
+  filter_allegiance_enemy: Enemy
+  filter_allegiance_neutral: Neutral
   filter_name_label: Name
   filter_name_placeholder: Search by name...
   filter_query: Query
@@ -257,6 +266,11 @@ game_npc_new_page:
   description_label: Description
   private_description_label: DM Notes
   hidden_label: Hidden
+  allegiance_label: Allegiance
+  public_allegiance_label: Public Allegiance
+  allegiance_ally: Ally
+  allegiance_enemy: Enemy
+  allegiance_neutral: Neutral
   money_label: Money (copper pieces)
   submit: Create NPC
   error: Failed to create NPC. Please try again.
