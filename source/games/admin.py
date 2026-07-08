@@ -14,6 +14,7 @@ from .models import (
     GameTreasure,
     Link,
     Player,
+    Task,
     Treasure,
     Upload,
 )
@@ -45,4 +46,5 @@ admin.site.register(GameMaster)
 admin.site.register(GamePhoto)
 admin.site.register(Treasure)
 admin.site.register(GameSession)
+admin.site.register(Task)
 admin.site.register(Upload)
