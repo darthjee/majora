@@ -244,6 +244,22 @@ game_session_edit_page:
   date_label: Date
   submit: Save changes
   error: Failed to save session. Please try again.
+game_tasks_page:
+  loading: Loading tasks...
+  title: Tasks
+  empty: No tasks yet.
+  new_short_description_label: Short description
+  new_long_description_label: Long description
+  add: Add task
+  error: Unable to load tasks.
+  view: View
+game_task_edit_modal:
+  title: Task
+  edit: Edit
+  save: Save
+  cancel: Cancel
+  short_description_label: Short description
+  long_description_label: Long description
 game_npcs_page:
   loading: Loading...
   title: Non-Player Characters
