@@ -1,5 +1,7 @@
 """Shared implementation for the character treasure acquire/sell endpoints."""
 
+from functools import partial
+
 from django.db import transaction
 from django.db.models import Q
 from django.http import Http404
@@ -20,7 +22,10 @@ class _TreasureExchangeSerializer(serializers.Serializer):
 
 def character_treasure_acquire(request, game, character):
     """Spend `character`'s money to acquire a quantity of a treasure available in `game`."""
-    error_response, treasure, quantity = _authorize_and_parse(request, game, character)
+    resolve_treasure = partial(_find_game_treasure, game)
+    error_response, treasure, quantity = _authorize_and_parse(
+        request, character, resolve_treasure,
+    )
     if error_response:
         return error_response
 
@@ -29,15 +34,20 @@ def character_treasure_acquire(request, game, character):
 
 def character_treasure_sell(request, game, character):
     """Sell a quantity of a treasure `character` owns, refunding its value into money."""
-    error_response, treasure, quantity = _authorize_and_parse(request, game, character)
+    error_response, treasure, quantity = _authorize_and_parse(
+        request, character, _find_treasure_by_id,
+    )
     if error_response:
         return error_response
 
     return _sell(character, treasure, quantity, game)
 
 
-def _authorize_and_parse(request, game, character):
+def _authorize_and_parse(request, character, resolve_treasure):
     """Check edit permission and validate/resolve the treasure_id/quantity payload.
+
+    `resolve_treasure` is called with `treasure_id` to resolve the treasure, allowing callers
+    to scope the lookup differently (e.g. acquire is scoped to the game's catalog, sell is not).
 
     Returns a `(error_response, treasure, quantity)` tuple; `error_response` is `None` on
     success, in which case `treasure` and `quantity` are populated.
@@ -51,7 +61,7 @@ def _authorize_and_parse(request, game, character):
     if error_response:
         return error_response, None, None
 
-    treasure = _find_game_treasure(game, serializer.validated_data['treasure_id'])
+    treasure = resolve_treasure(serializer.validated_data['treasure_id'])
     return None, treasure, serializer.validated_data['quantity']
 
 
@@ -60,6 +70,19 @@ def _find_game_treasure(game, treasure_id):
     treasure = Treasure.objects.filter(
         Q(linked_game=game) | Q(game=game), id=treasure_id,
     ).distinct().first()
+    if treasure is None:
+        raise Http404
+    return treasure
+
+
+def _find_treasure_by_id(treasure_id):
+    """Return the Treasure matching `treasure_id`, unscoped by game, or raise Http404.
+
+    Used by sell, where a character may already own a treasure that has since been delisted
+    from the game's catalog; ownership (not catalog membership) is the real authorization
+    check, performed separately by `_lock_character_treasure`.
+    """
+    treasure = Treasure.objects.filter(id=treasure_id).first()
     if treasure is None:
         raise Http404
     return treasure
