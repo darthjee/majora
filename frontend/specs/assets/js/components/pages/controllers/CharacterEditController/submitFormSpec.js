@@ -1,7 +1,7 @@
 import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
 import { KINDS } from './support.js';
 
-KINDS.forEach(({ label, Controller, kind, name, role, description }) => {
+KINDS.forEach(({ label, Controller, kind, name, role, description, allegiance, publicAllegiance }) => {
   describe(`${label}#submitForm`, function() {
     let setCharacter;
     let setLoading;
@@ -55,6 +55,8 @@ KINDS.forEach(({ label, Controller, kind, name, role, description }) => {
             description,
             privateDescription: 'Secret notes',
             money: '310',
+            allegiance,
+            publicAllegiance,
           },
           { setStatus, setFieldErrors },
         );
@@ -62,18 +64,26 @@ KINDS.forEach(({ label, Controller, kind, name, role, description }) => {
         expect(event.preventDefault).toHaveBeenCalled();
         expect(setStatus).toHaveBeenCalledWith('submitting');
         expect(setFieldErrors).toHaveBeenCalledWith({});
+
+        const expectedFields = {
+          name,
+          role,
+          public_description: description,
+          private_description: 'Secret notes',
+          money: 310,
+        };
+
+        if (kind === 'npcs') {
+          expectedFields.allegiance = allegiance;
+          expectedFields.public_allegiance = publicAllegiance;
+        }
+
         expect(characterClient.updateCharacter).toHaveBeenCalledWith(
           kind,
           'demo',
           '2',
           'tok-abc',
-          {
-            name,
-            role,
-            public_description: description,
-            private_description: 'Secret notes',
-            money: 310,
-          },
+          expectedFields,
         );
       } finally {
         delete globalThis.window;

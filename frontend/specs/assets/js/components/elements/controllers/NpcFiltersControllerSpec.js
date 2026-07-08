@@ -56,41 +56,62 @@ describe('NpcFiltersController', function() {
     });
   });
 
-  describe('#buildQuery', function() {
-    const controller = new NpcFiltersController(jasmine.createSpy(), jasmine.createSpy());
+  describe('#handleAllegianceChange', function() {
+    it('sets the draft allegiance', function() {
+      const setAllegiance = jasmine.createSpy('setAllegiance');
+      const controller = new NpcFiltersController(
+        jasmine.createSpy('setStatus'), jasmine.createSpy('setName'), setAllegiance,
+      );
 
-    it('omits both fields when blank', function() {
-      expect(controller.buildQuery('', '')).toEqual({});
+      controller.handleAllegianceChange('ally');
+
+      expect(setAllegiance).toHaveBeenCalledWith('ally');
+    });
+  });
+
+  describe('#buildQuery', function() {
+    const controller = new NpcFiltersController(jasmine.createSpy(), jasmine.createSpy(), jasmine.createSpy());
+
+    it('omits all fields when blank', function() {
+      expect(controller.buildQuery('', '', '')).toEqual({});
     });
 
     it('includes slain when status is not blank', function() {
-      expect(controller.buildQuery('alive', '')).toEqual({ slain: 'false' });
-      expect(controller.buildQuery('slain', '')).toEqual({ slain: 'true' });
+      expect(controller.buildQuery('alive', '', '')).toEqual({ slain: 'false' });
+      expect(controller.buildQuery('slain', '', '')).toEqual({ slain: 'true' });
     });
 
     it('includes name when non-blank, trimmed', function() {
-      expect(controller.buildQuery('', '  gob  ')).toEqual({ name: 'gob' });
+      expect(controller.buildQuery('', '  gob  ', '')).toEqual({ name: 'gob' });
     });
 
     it('omits name when only whitespace', function() {
-      expect(controller.buildQuery('', '   ')).toEqual({});
+      expect(controller.buildQuery('', '   ', '')).toEqual({});
     });
 
-    it('includes both fields when set', function() {
-      expect(controller.buildQuery('slain', 'gob')).toEqual({ slain: 'true', name: 'gob' });
+    it('includes allegiance when non-blank', function() {
+      expect(controller.buildQuery('', '', 'ally')).toEqual({ allegiance: 'ally' });
+    });
+
+    it('includes all fields when set', function() {
+      expect(controller.buildQuery('slain', 'gob', 'enemy')).toEqual({
+        slain: 'true', name: 'gob', allegiance: 'enemy',
+      });
     });
   });
 
   describe('#clear', function() {
-    it('resets both draft fields to blank', function() {
+    it('resets all draft fields to blank', function() {
       const setStatus = jasmine.createSpy('setStatus');
       const setName = jasmine.createSpy('setName');
-      const controller = new NpcFiltersController(setStatus, setName);
+      const setAllegiance = jasmine.createSpy('setAllegiance');
+      const controller = new NpcFiltersController(setStatus, setName, setAllegiance);
 
       controller.clear();
 
       expect(setStatus).toHaveBeenCalledWith('');
       expect(setName).toHaveBeenCalledWith('');
+      expect(setAllegiance).toHaveBeenCalledWith('');
     });
   });
 });

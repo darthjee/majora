@@ -25,6 +25,8 @@ KINDS.forEach(({ label, Controller, kind, name, role, description }) => {
           setDescription: jasmine.createSpy('setDescription'),
           setPrivateDescription: jasmine.createSpy('setPrivateDescription'),
           setMoney: jasmine.createSpy('setMoney'),
+          setAllegiance: jasmine.createSpy('setAllegiance'),
+          setPublicAllegiance: jasmine.createSpy('setPublicAllegiance'),
         };
       });
 
@@ -43,6 +45,8 @@ KINDS.forEach(({ label, Controller, kind, name, role, description }) => {
         expect(setters.setDescription).not.toHaveBeenCalled();
         expect(setters.setPrivateDescription).not.toHaveBeenCalled();
         expect(setters.setMoney).not.toHaveBeenCalled();
+        expect(setters.setAllegiance).not.toHaveBeenCalled();
+        expect(setters.setPublicAllegiance).not.toHaveBeenCalled();
       });
 
       it('redirects to the show page when the loaded character cannot be edited', function() {
@@ -80,6 +84,8 @@ KINDS.forEach(({ label, Controller, kind, name, role, description }) => {
           private_description: 'Secret',
           can_edit: true,
           money: 310,
+          allegiance: 'ally',
+          public_allegiance: 'enemy',
         };
 
         controller.applyLoadedCharacter(character, 'demo', '2', setters);
@@ -89,6 +95,8 @@ KINDS.forEach(({ label, Controller, kind, name, role, description }) => {
         expect(setters.setDescription).toHaveBeenCalledWith(description);
         expect(setters.setPrivateDescription).toHaveBeenCalledWith('Secret');
         expect(setters.setMoney).toHaveBeenCalledWith('310');
+        expect(setters.setAllegiance).toHaveBeenCalledWith('ally');
+        expect(setters.setPublicAllegiance).toHaveBeenCalledWith('enemy');
       });
 
       it('defaults missing fields to empty strings and money to "0"', function() {
@@ -106,6 +114,8 @@ KINDS.forEach(({ label, Controller, kind, name, role, description }) => {
         expect(setters.setDescription).toHaveBeenCalledWith('');
         expect(setters.setPrivateDescription).toHaveBeenCalledWith('');
         expect(setters.setMoney).toHaveBeenCalledWith('0');
+        expect(setters.setAllegiance).toHaveBeenCalledWith('neutral');
+        expect(setters.setPublicAllegiance).toHaveBeenCalledWith('neutral');
       });
     });
   });

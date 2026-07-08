@@ -7,10 +7,12 @@ export default class NpcFiltersController {
    *
    * @param {Function} setStatus - state setter for the draft status field.
    * @param {Function} setName - state setter for the draft name field.
+   * @param {Function} setAllegiance - state setter for the draft allegiance field.
    */
-  constructor(setStatus, setName) {
+  constructor(setStatus, setName, setAllegiance) {
     this.setStatus = setStatus;
     this.setName = setName;
+    this.setAllegiance = setAllegiance;
   }
 
   /**
@@ -58,13 +60,25 @@ export default class NpcFiltersController {
   }
 
   /**
+   * Handles an Allegiance dropdown change, updating the draft state.
+   *
+   * @param {string} value - newly selected allegiance value.
+   * @returns {void}
+   */
+  handleAllegianceChange(value) {
+    this.setAllegiance(value);
+  }
+
+  /**
    * Builds the query object for the Query button, omitting blank fields.
    *
    * @param {string} status - current Status dropdown value.
    * @param {string} name - current Name field value.
-   * @returns {{slain: string, name: string}} query params to apply, with blank fields omitted.
+   * @param {string} allegiance - current Allegiance dropdown value.
+   * @returns {{slain: string, name: string, allegiance: string}} query params to apply,
+   *   with blank fields omitted.
    */
-  buildQuery(status, name) {
+  buildQuery(status, name, allegiance) {
     const query = {};
     const slain = NpcFiltersController.statusToSlain(status);
     const trimmedName = name.trim();
@@ -77,16 +91,21 @@ export default class NpcFiltersController {
       query.name = trimmedName;
     }
 
+    if (allegiance !== '') {
+      query.allegiance = allegiance;
+    }
+
     return query;
   }
 
   /**
-   * Resets both draft fields to blank.
+   * Resets all draft fields to blank.
    *
    * @returns {void}
    */
   clear() {
     this.setStatus('');
     this.setName('');
+    this.setAllegiance('');
   }
 }

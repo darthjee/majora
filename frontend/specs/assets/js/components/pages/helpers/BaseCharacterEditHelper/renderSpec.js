@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import PhotoUploadOverlay from '../../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
-import { helper, buildHandlers, buildState, findElement } from './support.js';
+import { helper, npcHelper, buildHandlers, buildState, findElement } from './support.js';
 
 describe('BaseCharacterEditHelper', function() {
   describe('#render', function() {
@@ -137,6 +137,32 @@ describe('BaseCharacterEditHelper', function() {
       overlay.props.onClick();
 
       expect(handlers.onOpenUploadModal).toHaveBeenCalled();
+    });
+
+    it('does not render the allegiance selects when idPrefix is not "npc"', function() {
+      const html = renderToStaticMarkup(helper.render(buildState(), buildHandlers()));
+
+      expect(html).not.toContain('allegiance');
+    });
+
+    it('renders the allegiance selects when idPrefix is "npc"', function() {
+      const html = renderToStaticMarkup(
+        npcHelper.render(buildState({ allegiance: 'ally', publicAllegiance: 'enemy' }), buildHandlers())
+      );
+
+      expect(html).toContain('id="npc-edit-allegiance"');
+      expect(html).toContain('id="npc-edit-public-allegiance"');
+    });
+
+    it('renders the selected allegiance/publicAllegiance values', function() {
+      const html = renderToStaticMarkup(
+        npcHelper.render(buildState({ allegiance: 'ally', publicAllegiance: 'enemy' }), buildHandlers())
+      );
+      const allegianceStart = html.indexOf('id="npc-edit-allegiance"');
+      const publicAllegianceStart = html.indexOf('id="npc-edit-public-allegiance"');
+
+      expect(html.indexOf('selected=""', allegianceStart)).toBeGreaterThan(-1);
+      expect(html.indexOf('selected=""', publicAllegianceStart)).toBeGreaterThan(-1);
     });
   });
 });

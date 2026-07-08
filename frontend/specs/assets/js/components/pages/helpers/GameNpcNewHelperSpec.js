@@ -10,6 +10,8 @@ describe('GameNpcNewHelper', function() {
     onPrivateDescriptionChange: jasmine.createSpy('onPrivateDescriptionChange'),
     onHiddenChange: jasmine.createSpy('onHiddenChange'),
     onMoneyChange: jasmine.createSpy('onMoneyChange'),
+    onAllegianceChange: jasmine.createSpy('onAllegianceChange'),
+    onPublicAllegianceChange: jasmine.createSpy('onPublicAllegianceChange'),
   });
 
   const buildState = (overrides = {}) => ({
@@ -19,6 +21,8 @@ describe('GameNpcNewHelper', function() {
     privateDescription: 'Secretly a coward.',
     hidden: false,
     money: '42',
+    allegiance: 'neutral',
+    publicAllegiance: 'neutral',
     status: 'idle',
     fieldErrors: {},
     ...overrides,
@@ -34,6 +38,21 @@ describe('GameNpcNewHelper', function() {
       expect(html).toContain('id="game-npc-new-private-description"');
       expect(html).toContain('id="game-npc-new-money"');
       expect(html).toContain('id="game-npc-new-hidden"');
+      expect(html).toContain('id="game-npc-new-allegiance"');
+      expect(html).toContain('id="game-npc-new-public-allegiance"');
+    });
+
+    it('renders the allegiance and public allegiance selects with the current values', function() {
+      const html = renderToStaticMarkup(
+        GameNpcNewHelper.render(buildState({ allegiance: 'ally', publicAllegiance: 'enemy' }), buildHandlers()),
+      );
+      const allegianceSelectStart = html.indexOf('id="game-npc-new-allegiance"');
+      const publicAllegianceSelectStart = html.indexOf('id="game-npc-new-public-allegiance"');
+
+      expect(allegianceSelectStart).toBeGreaterThan(-1);
+      expect(publicAllegianceSelectStart).toBeGreaterThan(-1);
+      expect(html.indexOf('selected=""', allegianceSelectStart)).toBeGreaterThan(-1);
+      expect(html.indexOf('selected=""', publicAllegianceSelectStart)).toBeGreaterThan(-1);
     });
 
     it('renders the current field values', function() {

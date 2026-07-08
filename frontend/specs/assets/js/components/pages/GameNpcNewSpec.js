@@ -26,6 +26,8 @@ describe('GameNpcNew', function() {
     expect(html).toContain('id="game-npc-new-private-description"');
     expect(html).toContain('id="game-npc-new-money"');
     expect(html).toContain('id="game-npc-new-hidden"');
+    expect(html).toContain('id="game-npc-new-allegiance"');
+    expect(html).toContain('id="game-npc-new-public-allegiance"');
   });
 
   it('renders the submit button', function() {

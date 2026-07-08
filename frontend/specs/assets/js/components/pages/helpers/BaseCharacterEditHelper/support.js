@@ -1,6 +1,7 @@
 import BaseCharacterEditHelper from '../../../../../../../assets/js/components/pages/helpers/BaseCharacterEditHelper.jsx';
 
 export const helper = new BaseCharacterEditHelper('test', 'npc_edit_page');
+export const npcHelper = new BaseCharacterEditHelper('npc', 'npc_edit_page');
 
 export const buildHandlers = () => ({
   onSubmit: jasmine.createSpy('onSubmit'),
@@ -10,6 +11,8 @@ export const buildHandlers = () => ({
   onPrivateDescriptionChange: jasmine.createSpy('onPrivateDescriptionChange'),
   onMoneyChange: jasmine.createSpy('onMoneyChange'),
   onOpenUploadModal: jasmine.createSpy('onOpenUploadModal'),
+  onAllegianceChange: jasmine.createSpy('onAllegianceChange'),
+  onPublicAllegianceChange: jasmine.createSpy('onPublicAllegianceChange'),
 });
 
 export const buildState = (overrides = {}) => ({
@@ -20,6 +23,8 @@ export const buildState = (overrides = {}) => ({
   description: 'A brave warrior.',
   privateDescription: 'DM notes.',
   money: '0',
+  allegiance: 'neutral',
+  publicAllegiance: 'neutral',
   status: 'idle',
   fieldErrors: {},
   ...overrides,

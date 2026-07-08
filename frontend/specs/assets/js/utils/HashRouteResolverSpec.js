@@ -98,9 +98,10 @@ describe('HashRouteResolver', function() {
   });
 
   it('extracts filter params only', function() {
-    const params = new HashRouteResolver(() => '#/games/campaign/npcs?slain=true&name=gob&page=2')
-      .getFilterParams();
-    expect(params.toString()).toBe('slain=true&name=gob');
+    const params = new HashRouteResolver(
+      () => '#/games/campaign/npcs?slain=true&name=gob&allegiance=ally&page=2',
+    ).getFilterParams();
+    expect(params.toString()).toBe('slain=true&name=gob&allegiance=ally');
   });
 
   it('ignores filter params when absent from the hash', function() {

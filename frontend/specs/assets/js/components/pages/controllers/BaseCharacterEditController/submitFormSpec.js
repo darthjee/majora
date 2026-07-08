@@ -44,6 +44,8 @@ describe('BaseCharacterEditController', function() {
             role: 'Fighter',
             description: 'A brave hero', privateDescription: 'DM notes',
             money: '310',
+            allegiance: 'ally',
+            publicAllegiance: 'enemy',
           },
           { setStatus, setFieldErrors },
         );
@@ -58,6 +60,8 @@ describe('BaseCharacterEditController', function() {
             role: 'Fighter',
             public_description: 'A brave hero', private_description: 'DM notes',
             money: 310,
+            allegiance: 'ally',
+            public_allegiance: 'enemy',
           },
         );
       } finally {
