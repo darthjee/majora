@@ -32,6 +32,12 @@ urlpatterns = [
         views.game_session_detail,
         name='game-session-detail',
     ),
+    path('games/<slug:game_slug>/tasks.json', views.game_tasks_list, name='game-tasks-list'),
+    path(
+        'games/<slug:game_slug>/tasks/<int:task_id>.json',
+        views.game_task_detail,
+        name='game-task-detail',
+    ),
     path('games/<slug:game_slug>/npcs/all.json', views.game_npcs_all, name='game-npcs-all'),
     path(
         'games/<slug:game_slug>/npcs/<int:character_id>.json',
