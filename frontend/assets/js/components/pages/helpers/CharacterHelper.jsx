@@ -11,6 +11,7 @@ import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import CharacterTreasuresPreview from '../../elements/CharacterTreasuresPreview.jsx';
 import Translator from '../../../i18n/Translator.js';
 import allegianceBorderClass from '../../../utils/AllegianceBorder.js';
+import Icons from '../../../utils/Icons.js';
 
 /**
  * Rendering helper for the Character detail page.
@@ -139,7 +140,7 @@ export default class CharacterHelper {
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
    * @param {boolean} [character.slain] - Whether the character is currently slain.
    * @param {{onOpenSlainModal: Function}} handlers - Event handlers.
-   * @returns {{label: string, variant: string, onClick: Function}|undefined} Secondary
+   * @returns {{label: string, variant: string, icon: string, onClick: Function}|undefined} Secondary
    *   button definition, or undefined when not applicable.
    */
   static #buildSecondaryButton(character, handlers) {
@@ -152,6 +153,7 @@ export default class CharacterHelper {
         ? Translator.t('character_page.revive_button')
         : Translator.t('character_page.slain_button'),
       variant: character.slain ? 'success' : 'danger',
+      icon: character.slain ? Icons.heart : Icons.skull,
       onClick: handlers.onOpenSlainModal,
     };
   }

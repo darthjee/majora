@@ -5,12 +5,20 @@ import React from 'react';
  *
  * @param {object} props - Component props.
  * @param {Function} props.onClick - Click handler invoked when the button is pressed.
- * @param {React.ReactNode} props.children - Label text or child elements.
+ * @param {string} props.label - Accessible name for the button, set as both
+ *   `aria-label` and `title`.
+ * @param {React.ReactNode} props.children - Icon or other visible content rendered inside the button.
  * @returns {React.ReactElement} Upload button element.
  */
-export default function UploadButton({ onClick, children }) {
+export default function UploadButton({ onClick, label, children }) {
   return (
-    <button type="button" onClick={onClick} className="btn btn-secondary mb-3">
+    <button
+      type="button"
+      onClick={onClick}
+      className="btn btn-secondary mb-3"
+      aria-label={label}
+      title={label}
+    >
       {children}
     </button>
   );

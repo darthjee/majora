@@ -55,32 +55,36 @@ describe('CharacterHelper slain/revive rendering', function() {
       expect(overlay.props.grayscale).toBe(false);
     });
 
-    it('renders the Mark as Slain button for an NPC with edit rights', function() {
+    it('renders the Mark as Slain button icon for an NPC with edit rights', function() {
       const c = { ...character, is_pc: false, can_edit: true, slain: false };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
 
-      expect(html).toContain('Mark as Slain');
+      expect(html).toContain('bi-skull');
+      expect(html).toContain('aria-label="Mark as Slain"');
+      expect(html).toContain('title="Mark as Slain"');
     });
 
-    it('renders the Revive button for a currently slain NPC with edit rights', function() {
+    it('renders the Revive button icon for a currently slain NPC with edit rights', function() {
       const c = { ...character, is_pc: false, can_edit: true, slain: true };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
 
-      expect(html).toContain('Revive');
+      expect(html).toContain('bi-heart-fill');
+      expect(html).toContain('aria-label="Revive"');
+      expect(html).toContain('title="Revive"');
     });
 
     it('does not render the slain/revive button for a PC even with edit rights', function() {
       const c = { ...character, is_pc: true, can_edit: true, slain: false };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
 
-      expect(html).not.toContain('Mark as Slain');
+      expect(html).not.toContain('bi-skull');
     });
 
     it('does not render the slain/revive button for an NPC without edit rights', function() {
       const c = { ...character, is_pc: false, can_edit: false, slain: false };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
 
-      expect(html).not.toContain('Mark as Slain');
+      expect(html).not.toContain('bi-skull');
     });
 
     it('invokes onOpenSlainModal when the slain/revive button is clicked', function() {

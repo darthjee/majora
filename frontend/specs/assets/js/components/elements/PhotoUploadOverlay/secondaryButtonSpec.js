@@ -26,7 +26,9 @@ describe('PhotoUploadOverlay', function() {
         alt: 'Epic Quest',
         canEdit: true,
         onClick: Noop.noop,
-        secondaryButton: { label: 'Mark as Slain', variant: 'danger', onClick: Noop.noop },
+        secondaryButton: {
+          label: 'Mark as Slain', variant: 'danger', icon: 'bi-skull', onClick: Noop.noop,
+        },
       })
     );
 
@@ -40,13 +42,17 @@ describe('PhotoUploadOverlay', function() {
         alt: 'Epic Quest',
         canEdit: true,
         onClick: Noop.noop,
-        secondaryButton: { label: 'Mark as Slain', variant: 'danger', onClick: Noop.noop },
+        secondaryButton: {
+          label: 'Mark as Slain', variant: 'danger', icon: 'bi-skull', onClick: Noop.noop,
+        },
       })
     );
 
     expect(html).toContain('photo-upload-overlay-button-right');
     expect(html).toContain('btn-danger');
-    expect(html).toContain('Mark as Slain');
+    expect(html).toContain('bi-skull');
+    expect(html).toContain('aria-label="Mark as Slain"');
+    expect(html).toContain('title="Mark as Slain"');
   });
 
   it('renders the secondary button regardless of canEdit (gating is the caller\'s responsibility)', function() {
@@ -56,7 +62,9 @@ describe('PhotoUploadOverlay', function() {
         alt: 'Epic Quest',
         canEdit: false,
         onClick: Noop.noop,
-        secondaryButton: { label: 'Mark as Slain', variant: 'danger', onClick: Noop.noop },
+        secondaryButton: {
+          label: 'Mark as Slain', variant: 'danger', icon: 'bi-skull', onClick: Noop.noop,
+        },
       })
     );
 
@@ -71,7 +79,9 @@ describe('PhotoUploadOverlay', function() {
       alt: 'Epic Quest',
       canEdit: true,
       onClick: Noop.noop,
-      secondaryButton: { label: 'Mark as Slain', variant: 'danger', onClick: onSecondaryClick },
+      secondaryButton: {
+        label: 'Mark as Slain', variant: 'danger', icon: 'bi-skull', onClick: onSecondaryClick,
+      },
     });
 
     const buttons = [];

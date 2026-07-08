@@ -53,7 +53,9 @@ KINDS.forEach(({ label, Helper, kind, namespace }) => {
             photos, pagination, `#/games/demo/${kind}/7/photos`, `#/games/demo/${kind}/7`, true, 'Aragorn', handlers,
           )
         );
-        expect(html).toContain(Translator.t(`${namespace}.upload`));
+        expect(html).toContain('bi-camera-fill');
+        expect(html).toContain(`aria-label="${Translator.t(`${namespace}.upload`)}"`);
+        expect(html).toContain(`title="${Translator.t(`${namespace}.upload`)}"`);
       });
 
       it('does not render the upload button when canEdit is false', function() {
@@ -62,7 +64,7 @@ KINDS.forEach(({ label, Helper, kind, namespace }) => {
             photos, pagination, `#/games/demo/${kind}/7/photos`, `#/games/demo/${kind}/7`, false, 'Aragorn', handlers,
           )
         );
-        expect(html).not.toContain(Translator.t(`${namespace}.upload`));
+        expect(html).not.toContain('bi-camera-fill');
       });
     });
 
