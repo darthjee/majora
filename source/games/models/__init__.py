@@ -12,6 +12,7 @@ from games.models.game_treasure import GameTreasure
 from games.models.link import Link
 from games.models.password_reset_token import PasswordResetToken
 from games.models.player import Player
+from games.models.task import Task
 from games.models.treasure import Treasure
 from games.models.treasure_photo import TreasurePhoto
 from games.models.upload import Upload
@@ -30,6 +31,7 @@ __all__ = [
     'Link',
     'PasswordResetToken',
     'Player',
+    'Task',
     'Treasure',
     'TreasurePhoto',
     'Upload',

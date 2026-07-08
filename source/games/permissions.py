@@ -45,3 +45,7 @@ class TreasureEditPermission(_EditPermission):
 
 class GameSessionEditPermission(_EditPermission):
     """Encapsulate the authentication/authorization checks for editing a game session."""
+
+
+class TaskEditPermission(_EditPermission):
+    """Encapsulate the authentication/authorization checks for accessing/editing a task."""

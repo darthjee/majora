@@ -27,6 +27,7 @@ from .characters import (
 )
 from .game_masters import game_master_detail, game_masters_list
 from .game_sessions import game_session_detail, game_sessions_list
+from .game_tasks import game_task_detail, game_tasks_list
 from .games import (
     game_access,
     game_detail,
@@ -77,6 +78,8 @@ __all__ = [
     'game_master_detail',
     'game_sessions_list',
     'game_session_detail',
+    'game_tasks_list',
+    'game_task_detail',
     'language',
     'login',
     'logout',
