@@ -5,6 +5,6 @@
  */
 export default {
   camera: 'bi-camera-fill',
-  heart: 'bi-heart-fill',
+  heart: 'bi-heart-pulse-fill',
   skull: 'bi-skull',
 };
