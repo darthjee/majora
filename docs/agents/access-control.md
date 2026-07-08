@@ -288,9 +288,11 @@ own player, any GameMaster of that game, or a superuser. Since NPCs have no play
 product definition (see `docs/agents/product.md`), this is DM/superuser-only in practice for
 NPCs, matching the issue's intent; a PC's own player can technically set their own PC's
 `allegiance`/`public_allegiance` too (same as they already can for `hidden`/`money`), though in
-practice nothing in the product currently reads or displays a PC's allegiance. There is no
-create-time write path (`CharacterCreateSerializer` does not accept either field); both start
-at `'neutral'` on creation via the model default.
+practice nothing in the product currently reads or displays a PC's allegiance. Both fields are
+also writable at create time (added in issue #387) via `CharacterCreateSerializer`
+(`POST /games/<slug>/npcs.json`, `GameEditPermission`-gated — DM/superuser only, since NPC
+creation has no player-accessible path); both remain optional and default to `'neutral'` via
+the model default when omitted.
 
 **Filtering**: `npcs.json` and `npcs/all.json` accept an optional `?allegiance=` query
 parameter (`ally`/`enemy`/`neutral`; any other value is silently ignored, same tolerant
@@ -335,9 +337,11 @@ Unauthenticated → 401. Authenticated but not an editor → 403.
 There is no equivalent PC creation endpoint — issue #307 scoped NPC creation only.
 
 **Write fields**: `name` (required), `role`, `public_description`, `private_description`, `hidden`,
-`money` (all optional except `name`). `game` and `npc` are never accepted from the request
-payload — `game` is always assigned server-side from the `<slug>` URL segment, and `npc` is
-always forced to `True`. `player` is not accepted at all — NPCs created this way have no player.
+`money`, `allegiance`, `public_allegiance` (all optional except `name`; `allegiance`/
+`public_allegiance` added in issue #387 — see "Allegiance fields" above). `game` and `npc` are
+never accepted from the request payload — `game` is always assigned server-side from the
+`<slug>` URL segment, and `npc` is always forced to `True`. `player` is not accepted at all —
+NPCs created this way have no player.
 
 **Create response:** HTTP 201 with `CharacterDetailSerializer` body (same fields documented
 under "Detail" above) — note it does not include `private_description`, even though the create
