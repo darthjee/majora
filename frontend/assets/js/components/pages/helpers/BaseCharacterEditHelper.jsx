@@ -30,11 +30,13 @@ export default class BaseCharacterEditHelper {
    *
    * @param {{name: string, profile_photo_path: string|null, links: object[],
    *   role: string, description: string, privateDescription: string, money: string,
+   *   allegiance: string, publicAllegiance: string,
    *   status: string, fieldErrors: object}} state - page state.
    * @param {{onSubmit: Function, onNameChange: Function,
    *   onRoleChange: Function,
    *   onDescriptionChange: Function, onPrivateDescriptionChange: Function,
-   *   onMoneyChange: Function, onOpenUploadModal: Function}} handlers - event handlers.
+   *   onMoneyChange: Function, onOpenUploadModal: Function, onAllegianceChange: Function,
+   *   onPublicAllegianceChange: Function}} handlers - event handlers.
    * @returns {React.ReactElement} rendered edit page.
    */
   render(state, handlers) {
@@ -71,6 +73,7 @@ export default class BaseCharacterEditHelper {
                 onChange={handlers.onMoneyChange}
                 errors={state.fieldErrors.money ?? []}
               />
+              {this.#renderAllegianceFields(state, handlers)}
             </div>
             <div className="col-md-8">
               <FormField
@@ -120,5 +123,48 @@ export default class BaseCharacterEditHelper {
     }
 
     return <ErrorAlert error={Translator.t(`${this.i18nNamespace}.error`)} />;
+  }
+
+  #renderAllegianceFields(state, handlers) {
+    if (this.idPrefix !== 'npc') {
+      return null;
+    }
+
+    const { idPrefix, i18nNamespace } = this;
+
+    return (
+      <>
+        <div className="mb-3">
+          <label htmlFor={`${idPrefix}-edit-allegiance`} className="form-label">
+            {Translator.t(`${i18nNamespace}.allegiance_label`)}
+          </label>
+          <select
+            id={`${idPrefix}-edit-allegiance`}
+            className="form-select"
+            value={state.allegiance}
+            onChange={handlers.onAllegianceChange}
+          >
+            <option value="ally">{Translator.t(`${i18nNamespace}.allegiance_ally`)}</option>
+            <option value="enemy">{Translator.t(`${i18nNamespace}.allegiance_enemy`)}</option>
+            <option value="neutral">{Translator.t(`${i18nNamespace}.allegiance_neutral`)}</option>
+          </select>
+        </div>
+        <div className="mb-3">
+          <label htmlFor={`${idPrefix}-edit-public-allegiance`} className="form-label">
+            {Translator.t(`${i18nNamespace}.public_allegiance_label`)}
+          </label>
+          <select
+            id={`${idPrefix}-edit-public-allegiance`}
+            className="form-select"
+            value={state.publicAllegiance}
+            onChange={handlers.onPublicAllegianceChange}
+          >
+            <option value="ally">{Translator.t(`${i18nNamespace}.allegiance_ally`)}</option>
+            <option value="enemy">{Translator.t(`${i18nNamespace}.allegiance_enemy`)}</option>
+            <option value="neutral">{Translator.t(`${i18nNamespace}.allegiance_neutral`)}</option>
+          </select>
+        </div>
+      </>
+    );
   }
 }

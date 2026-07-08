@@ -109,7 +109,8 @@ export default class HashRouteResolver {
   /**
    * Return NPC filter query params from hash.
    *
-   * @returns {URLSearchParams} Filter params (`slain`/`name`), only set when present in hash.
+   * @returns {URLSearchParams} Filter params (`slain`/`name`/`allegiance`), only set when
+   *   present in hash.
    */
   getFilterParams() {
     const query = HashQueryParams.parse(this.currentHash());
@@ -117,6 +118,7 @@ export default class HashRouteResolver {
 
     const slain = query.get('slain');
     const name = query.get('name');
+    const allegiance = query.get('allegiance');
 
     if (slain !== null) {
       params.set('slain', slain);
@@ -124,6 +126,10 @@ export default class HashRouteResolver {
 
     if (name !== null) {
       params.set('name', name);
+    }
+
+    if (allegiance !== null) {
+      params.set('allegiance', allegiance);
     }
 
     return params;

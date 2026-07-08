@@ -10,7 +10,7 @@ import HashRouteResolver from '../../utils/HashRouteResolver.js';
  * `slain`/`name` query params so deep-linked filtered URLs restore the UI.
  *
  * @param {object} props - Component props.
- * @param {Function} props.onQuery - Called with the built `{slain, name}` query object
+ * @param {Function} props.onQuery - Called with the built `{slain, name, allegiance}` query object
  *   (blank fields omitted) when the Query button is clicked.
  * @param {Function} props.onClear - Called when the Clear button is clicked, after the
  *   draft fields have been reset to blank.
@@ -20,11 +20,12 @@ export default function NpcFilters({ onQuery, onClear }) {
   const initialFilters = new HashRouteResolver().getFilterParams();
   const [status, setStatus] = useState(NpcFiltersController.slainToStatus(initialFilters.get('slain')));
   const [name, setName] = useState(initialFilters.get('name') ?? '');
+  const [allegiance, setAllegiance] = useState(initialFilters.get('allegiance') ?? '');
 
-  const controller = new NpcFiltersController(setStatus, setName);
+  const controller = new NpcFiltersController(setStatus, setName, setAllegiance);
 
   const handleQuery = () => {
-    onQuery(controller.buildQuery(status, name));
+    onQuery(controller.buildQuery(status, name, allegiance));
   };
 
   const handleClear = () => {
@@ -33,10 +34,11 @@ export default function NpcFilters({ onQuery, onClear }) {
   };
 
   return NpcFiltersHelper.render(
-    { status, name },
+    { status, name, allegiance },
     {
       onStatusChange: (value) => controller.handleStatusChange(value),
       onNameChange: (value) => controller.handleNameChange(value),
+      onAllegianceChange: (value) => controller.handleAllegianceChange(value),
       onQuery: handleQuery,
       onClear: handleClear,
     },

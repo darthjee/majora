@@ -36,6 +36,8 @@ export default class BaseCharacterEditController extends BasePageController {
       public_description: character.public_description ?? '',
       private_description: character.private_description ?? '',
       money: String(character.money ?? 0),
+      allegiance: character.allegiance ?? 'neutral',
+      public_allegiance: character.public_allegiance ?? 'neutral',
     };
   }
 
@@ -99,7 +101,8 @@ export default class BaseCharacterEditController extends BasePageController {
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
    * @param {object} fields - Fields to update
-   *   (`name`, `role`, `public_description`, `private_description`, `money`).
+   *   (`name`, `role`, `public_description`, `private_description`, `money`,
+   *   and, for NPCs, `allegiance`/`public_allegiance`).
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} resolves when the request handling finishes.
    */
@@ -126,7 +129,8 @@ export default class BaseCharacterEditController extends BasePageController {
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
    * @param {{name: string, role: string, description: string,
-   *   privateDescription: string, money: string}} formValues - Raw form field values.
+   *   privateDescription: string, money: string, allegiance: string,
+   *   publicAllegiance: string}} formValues - Raw form field values.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} resolves when the request handling finishes.
    */
@@ -138,13 +142,20 @@ export default class BaseCharacterEditController extends BasePageController {
     setters.setStatus('submitting');
     setters.setFieldErrors({});
 
-    return this.handleSubmit(gameSlug, characterId, {
+    const fields = {
       name: formValues.name,
       role: formValues.role,
       public_description: formValues.description,
       private_description: formValues.privateDescription,
       money: parseInt(formValues.money, 10),
-    }, setters);
+    };
+
+    if (this.routeSegment === 'npcs') {
+      fields.allegiance = formValues.allegiance;
+      fields.public_allegiance = formValues.publicAllegiance;
+    }
+
+    return this.handleSubmit(gameSlug, characterId, fields, setters);
   }
 
   /**
@@ -155,7 +166,8 @@ export default class BaseCharacterEditController extends BasePageController {
    * @param {string} gameSlug - Game slug, used to build the redirect hash.
    * @param {string|number} characterId - Character id, used to build the redirect hash.
    * @param {{setName: Function, setRole: Function, setDescription: Function,
-   *   setPrivateDescription: Function, setMoney: Function}} setters - Form field setters.
+   *   setPrivateDescription: Function, setMoney: Function, setAllegiance: Function,
+   *   setPublicAllegiance: Function}} setters - Form field setters.
    * @returns {void}
    */
   applyLoadedCharacter(character, gameSlug, characterId, setters) {
@@ -175,6 +187,8 @@ export default class BaseCharacterEditController extends BasePageController {
     setters.setDescription(fields.public_description);
     setters.setPrivateDescription(fields.private_description);
     setters.setMoney(fields.money);
+    setters.setAllegiance(fields.allegiance);
+    setters.setPublicAllegiance(fields.public_allegiance);
   }
 
   async #handleResponse(response, gameSlug, characterId, setters) {

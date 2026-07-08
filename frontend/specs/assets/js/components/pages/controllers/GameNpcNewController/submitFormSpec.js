@@ -44,6 +44,8 @@ describe('GameNpcNewController', function() {
             privateDescription: 'Secretly a coward.',
             hidden: true,
             money: '42',
+            allegiance: 'ally',
+            publicAllegiance: 'enemy',
           },
           { setStatus, setFieldErrors },
         );
@@ -61,6 +63,8 @@ describe('GameNpcNewController', function() {
             private_description: 'Secretly a coward.',
             hidden: true,
             money: 42,
+            allegiance: 'ally',
+            public_allegiance: 'enemy',
           },
         );
       } finally {

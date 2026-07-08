@@ -13,10 +13,12 @@ export default class GameNpcNewHelper {
    * Render the NPC creation form.
    *
    * @param {{name: string, role: string, description: string, privateDescription: string,
-   *   hidden: boolean, money: string, status: string, fieldErrors: object}} formState - Form state.
+   *   hidden: boolean, money: string, allegiance: string, publicAllegiance: string,
+   *   status: string, fieldErrors: object}} formState - Form state.
    * @param {{onSubmit: Function, onNameChange: Function, onRoleChange: Function,
    *   onDescriptionChange: Function, onPrivateDescriptionChange: Function,
-   *   onHiddenChange: Function, onMoneyChange: Function}} handlers - Event handlers.
+   *   onHiddenChange: Function, onMoneyChange: Function, onAllegianceChange: Function,
+   *   onPublicAllegianceChange: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered new NPC page.
    */
   static render(formState, handlers) {
@@ -74,6 +76,36 @@ export default class GameNpcNewHelper {
             <label htmlFor="game-npc-new-hidden" className="form-check-label">
               {Translator.t('game_npc_new_page.hidden_label')}
             </label>
+          </div>
+          <div className="mb-3">
+            <label htmlFor="game-npc-new-allegiance" className="form-label">
+              {Translator.t('game_npc_new_page.allegiance_label')}
+            </label>
+            <select
+              id="game-npc-new-allegiance"
+              className="form-select"
+              value={formState.allegiance}
+              onChange={handlers.onAllegianceChange}
+            >
+              <option value="ally">{Translator.t('game_npc_new_page.allegiance_ally')}</option>
+              <option value="enemy">{Translator.t('game_npc_new_page.allegiance_enemy')}</option>
+              <option value="neutral">{Translator.t('game_npc_new_page.allegiance_neutral')}</option>
+            </select>
+          </div>
+          <div className="mb-3">
+            <label htmlFor="game-npc-new-public-allegiance" className="form-label">
+              {Translator.t('game_npc_new_page.public_allegiance_label')}
+            </label>
+            <select
+              id="game-npc-new-public-allegiance"
+              className="form-select"
+              value={formState.publicAllegiance}
+              onChange={handlers.onPublicAllegianceChange}
+            >
+              <option value="ally">{Translator.t('game_npc_new_page.allegiance_ally')}</option>
+              <option value="enemy">{Translator.t('game_npc_new_page.allegiance_enemy')}</option>
+              <option value="neutral">{Translator.t('game_npc_new_page.allegiance_neutral')}</option>
+            </select>
           </div>
           <SubmitButton disabled={formState.status === 'submitting'}>
             {Translator.t('game_npc_new_page.submit')}

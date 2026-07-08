@@ -63,7 +63,8 @@ export default class GameNpcNewController extends BasePageController {
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {{name: string, role: string, description: string, privateDescription: string,
-   *   hidden: boolean, money: string}} formValues - Raw form field values.
+   *   hidden: boolean, money: string, allegiance: string, publicAllegiance: string}} formValues - Raw
+   *   form field values.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
@@ -85,6 +86,8 @@ export default class GameNpcNewController extends BasePageController {
         private_description: formValues.privateDescription,
         hidden: formValues.hidden,
         money: parseInt(formValues.money, 10),
+        allegiance: formValues.allegiance,
+        public_allegiance: formValues.publicAllegiance,
       });
 
       await this.#handleResponse(response, gameSlug, setters);

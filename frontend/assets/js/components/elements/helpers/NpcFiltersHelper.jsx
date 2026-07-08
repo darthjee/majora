@@ -8,9 +8,9 @@ export default class NpcFiltersHelper {
   /**
    * Renders the Status dropdown, Name text input, Query button and Clear button.
    *
-   * @param {{status: string, name: string}} state - filters draft state.
-   * @param {{onStatusChange: Function, onNameChange: Function, onQuery: Function,
-   *   onClear: Function}} handlers - filters event handlers.
+   * @param {{status: string, name: string, allegiance: string}} state - filters draft state.
+   * @param {{onStatusChange: Function, onNameChange: Function, onAllegianceChange: Function,
+   *   onQuery: Function, onClear: Function}} handlers - filters event handlers.
    * @returns {React.ReactElement} rendered filters bar.
    */
   static render(state, handlers) {
@@ -30,6 +30,23 @@ export default class NpcFiltersHelper {
             <option value="" />
             <option value="alive">{Translator.t('game_npcs_page.filter_status_alive')}</option>
             <option value="slain">{Translator.t('game_npcs_page.filter_status_slain')}</option>
+          </select>
+        </div>
+        <div className="col-auto">
+          <label htmlFor="npc-filter-allegiance" className="form-label">
+            {Translator.t('game_npcs_page.filter_allegiance_label')}
+          </label>
+          <select
+            id="npc-filter-allegiance"
+            data-testid="npc-filter-allegiance"
+            className="form-select"
+            value={state.allegiance}
+            onChange={(event) => handlers.onAllegianceChange(event.target.value)}
+          >
+            <option value="" />
+            <option value="ally">{Translator.t('game_npcs_page.filter_allegiance_ally')}</option>
+            <option value="enemy">{Translator.t('game_npcs_page.filter_allegiance_enemy')}</option>
+            <option value="neutral">{Translator.t('game_npcs_page.filter_allegiance_neutral')}</option>
           </select>
         </div>
         <div className="col-auto">

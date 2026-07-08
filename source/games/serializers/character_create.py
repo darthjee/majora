@@ -19,6 +19,8 @@ class CharacterCreateSerializer(serializers.ModelSerializer):
             'private_description',
             'hidden',
             'money',
+            'allegiance',
+            'public_allegiance',
         ]
         extra_kwargs = {
             'name': {'required': True},
@@ -27,4 +29,6 @@ class CharacterCreateSerializer(serializers.ModelSerializer):
             'private_description': {'required': False},
             'hidden': {'required': False},
             'money': {'required': False},
+            'allegiance': {'required': False},
+            'public_allegiance': {'required': False},
         }

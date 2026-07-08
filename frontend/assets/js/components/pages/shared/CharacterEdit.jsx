@@ -26,6 +26,8 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
   const [description, setDescription] = useState('');
   const [privateDescription, setPrivateDescription] = useState('');
   const [money, setMoney] = useState('');
+  const [allegiance, setAllegiance] = useState('neutral');
+  const [publicAllegiance, setPublicAllegiance] = useState('neutral');
   const [showUploadModal, setShowUploadModal] = useState(false);
 
   const controller = useMemo(
@@ -46,6 +48,8 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
       setDescription,
       setPrivateDescription,
       setMoney,
+      setAllegiance,
+      setPublicAllegiance,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [character]);
@@ -54,7 +58,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
     event,
     gameSlug,
     characterId,
-    { name, role, description, privateDescription, money },
+    { name, role, description, privateDescription, money, allegiance, publicAllegiance },
     { setStatus, setFieldErrors },
   );
 
@@ -80,6 +84,8 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
           description,
           privateDescription,
           money,
+          allegiance,
+          publicAllegiance,
           status,
           fieldErrors,
         },
@@ -90,6 +96,8 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
           onDescriptionChange: (event) => setDescription(event.target.value),
           onPrivateDescriptionChange: (event) => setPrivateDescription(event.target.value),
           onMoneyChange: (event) => setMoney(event.target.value),
+          onAllegianceChange: (event) => setAllegiance(event.target.value),
+          onPublicAllegianceChange: (event) => setPublicAllegiance(event.target.value),
           onOpenUploadModal: () => setShowUploadModal(true),
         }
       )}

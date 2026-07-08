@@ -31,22 +31,22 @@ describe('NpcFilters', function() {
       React.createElement(NpcFilters, { onQuery: jasmine.createSpy(), onClear: jasmine.createSpy() })
     );
 
-    expect(getCaptured().state).toEqual({ status: '', name: '' });
+    expect(getCaptured().state).toEqual({ status: '', name: '', allegiance: '' });
   });
 
   it('pre-populates draft fields from the hash query params (deep link)', function() {
-    globalThis.window = { location: { hash: '#/games/demo/npcs?slain=true&name=gob' } };
+    globalThis.window = { location: { hash: '#/games/demo/npcs?slain=true&name=gob&allegiance=ally' } };
     const getCaptured = captureHandlers();
 
     renderToStaticMarkup(
       React.createElement(NpcFilters, { onQuery: jasmine.createSpy(), onClear: jasmine.createSpy() })
     );
 
-    expect(getCaptured().state).toEqual({ status: 'slain', name: 'gob' });
+    expect(getCaptured().state).toEqual({ status: 'slain', name: 'gob', allegiance: 'ally' });
   });
 
   it('calls onQuery with the built query when the Query handler runs', function() {
-    globalThis.window = { location: { hash: '#/games/demo/npcs?slain=true&name=gob' } };
+    globalThis.window = { location: { hash: '#/games/demo/npcs?slain=true&name=gob&allegiance=ally' } };
     const onQuery = jasmine.createSpy('onQuery');
     const getCaptured = captureHandlers();
 
@@ -55,7 +55,7 @@ describe('NpcFilters', function() {
     );
     getCaptured().handlers.onQuery();
 
-    expect(onQuery).toHaveBeenCalledWith({ slain: 'true', name: 'gob' });
+    expect(onQuery).toHaveBeenCalledWith({ slain: 'true', name: 'gob', allegiance: 'ally' });
   });
 
   it('calls onClear when the Clear handler runs', function() {

@@ -24,5 +24,7 @@ export const KINDS = [
     role: 'Brute',
     description: 'Ruler of the cave',
     getParamsFromHash: NpcCharacterEditController.getNpcCharacterEditParamsFromHash,
+    allegiance: 'ally',
+    publicAllegiance: 'enemy',
   },
 ];
