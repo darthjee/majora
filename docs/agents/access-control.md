@@ -639,7 +639,9 @@ same permission as the character write itself:
 `source/games/serializers/character_link_write.py`): each entry in the `links` array accepts
 `id` (optional int), `text`, `url`, `link_type`, and a transient `delete` flag (not a model
 field). Routing per entry, applied server-side after the character's own fields are saved:
-  - `delete: true` — deletes the existing link matching `id`.
+  - `delete: true` — deletes the existing link matching `id`. `id` is required whenever
+    `delete: true` (validated in `CharacterLinkWriteSerializer.validate`); a delete entry with
+    no `id` → 400, rather than raising an unhandled error at save time.
   - `id` present (no `delete`) — updates the existing link matching `id`; only the fields
     present in the entry are changed (fields already blank keep their existing value, since
     `_update` falls back to the current value via `entry.get(field, link.<field>)`).
@@ -652,11 +654,23 @@ field). Routing per entry, applied server-side after the character's own fields 
   unconditionally creates a link per entry — there is no existing character yet to own a
   link to update or delete.
 
+**Batch size cap:** the `links` array is capped at `MAX_LINKS` (50) entries per request —
+enforced by `validate_links` on both `CharacterCreateSerializer` and `CharacterUpdateSerializer`
+(delegating to `validate_links_count` in `character_link_write.py`), rejected with 400 when
+exceeded — since each entry drives at least one synchronous DB query in `CharacterLinksSync`.
+
+**Atomicity:** `CharacterLinksSync.apply()` and `.create_all()` each run their per-entry loop
+inside `transaction.atomic()` — if any entry in the batch fails (e.g. an unknown/foreign link
+`id`), every entry already applied/created earlier in the same request is rolled back, so a
+failed request never leaves the character with a partially-applied `links` batch.
+
 **Ownership check:** for update and delete, `id` must resolve to a `CharacterLink` already
 owned by the target character (`character.links.filter(id=link_id)`) — an `id` for a link
 that doesn't exist, or belongs to a different character, is rejected with 400
-(`{"errors": {"links": ["Unknown link id <id>."]}}`), never silently ignored and never allowed
-to affect another character's link.
+(`{"errors": {"links": ["Unknown link id <id>."]}}`, wrapped via the `save_or_error()` helper
+in `source/games/views/common.py` since this specific error surfaces during `serializer.save()`
+rather than `is_valid()` — consistent with the `{"errors": ...}` shape used everywhere else),
+never silently ignored and never allowed to affect another character's link.
 
 ---
 
