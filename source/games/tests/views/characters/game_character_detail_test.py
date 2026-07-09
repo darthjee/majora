@@ -11,6 +11,7 @@ headers). See `docs/agents/security-guidelines.md` section 8 for why
 import pytest
 from rest_framework.authtoken.models import Token
 
+from games.models import CharacterLink
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
@@ -235,6 +236,79 @@ class _BaseCharacterUpdateViewTest(TokenAuthRequestMixin):
         assert self.character.name == self.new_name
         assert self.character.npc is self.npc
         assert self.character.game_id == self.game.id
+
+    def test_patch_creates_link_via_links_payload(self, client):
+        """Test that PATCH with a links entry without an id creates a new CharacterLink."""
+        token = self._editor_token()
+
+        response = self._patch(
+            client,
+            {'links': [{'text': 'Loot table', 'url': 'http://example.com/loot'}]},
+            token=token,
+        )
+
+        data = assert_json_response(response, 200)
+        assert any(link['url'] == 'http://example.com/loot' for link in data['links'])
+        assert self.character.links.filter(url='http://example.com/loot').exists()
+
+    def test_patch_updates_link_via_links_payload(self, client):
+        """Test that PATCH with a links entry carrying an id updates the existing link."""
+        token = self._editor_token()
+        link = CharacterLink.objects.create(
+            text='Old text', url='http://example.com/old', character=self.character,
+        )
+
+        response = self._patch(
+            client,
+            {'links': [{'id': link.id, 'text': 'New text', 'url': 'http://example.com/new'}]},
+            token=token,
+        )
+
+        assert response.status_code == 200
+        link.refresh_from_db()
+        assert link.text == 'New text'
+        assert link.url == 'http://example.com/new'
+
+    def test_patch_deletes_link_via_links_payload(self, client):
+        """Test that PATCH with a links entry marked delete=True deletes that link."""
+        token = self._editor_token()
+        link = CharacterLink.objects.create(
+            text='Doomed', url='http://example.com/doomed', character=self.character,
+        )
+
+        response = self._patch(
+            client, {'links': [{'id': link.id, 'delete': True}]}, token=token,
+        )
+
+        assert response.status_code == 200
+        assert not CharacterLink.objects.filter(id=link.id).exists()
+
+    def test_patch_rejects_link_missing_url(self, client):
+        """Test that PATCH with a non-delete link entry missing a url returns 400."""
+        token = self._editor_token()
+
+        response = self._patch(client, {'links': [{'text': 'No url'}]}, token=token)
+
+        data = assert_json_response(response, 400)
+        assert 'links' in data['errors']
+
+    def test_patch_cannot_edit_link_of_another_character(self, client):
+        """Test that a link id belonging to a different character cannot be updated."""
+        token = self._editor_token()
+        other_character = CharacterFactory(name='Other', game=self.game, npc=self.npc)
+        other_link = CharacterLink.objects.create(
+            text='Not yours', url='http://example.com/other', character=other_character,
+        )
+
+        response = self._patch(
+            client,
+            {'links': [{'id': other_link.id, 'text': 'Hijacked'}]},
+            token=token,
+        )
+
+        assert response.status_code == 400
+        other_link.refresh_from_db()
+        assert other_link.text == 'Not yours'
 
 
 @pytest.mark.django_db

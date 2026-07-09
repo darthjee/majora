@@ -3,10 +3,13 @@
 from rest_framework import serializers
 
 from games.models import Character
+from games.serializers.character_link_write import CharacterLinksSync, CharacterLinkWriteSerializer
 
 
 class CharacterCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a new NPC character (name required, no player field)."""
+
+    links = CharacterLinkWriteSerializer(many=True, required=False)
 
     class Meta:
         """Metadata for the CharacterCreateSerializer."""
@@ -21,6 +24,7 @@ class CharacterCreateSerializer(serializers.ModelSerializer):
             'money',
             'allegiance',
             'public_allegiance',
+            'links',
         ]
         extra_kwargs = {
             'name': {'required': True},
@@ -32,3 +36,10 @@ class CharacterCreateSerializer(serializers.ModelSerializer):
             'allegiance': {'required': False},
             'public_allegiance': {'required': False},
         }
+
+    def create(self, validated_data):
+        """Create the character, then create a `CharacterLink` for each entry in `links`."""
+        links = validated_data.pop('links', [])
+        character = super().create(validated_data)
+        CharacterLinksSync(character, links).create_all()
+        return character
