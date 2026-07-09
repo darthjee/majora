@@ -38,7 +38,34 @@ export default class BaseCharacterEditController extends BasePageController {
       money: String(character.money ?? 0),
       allegiance: character.allegiance ?? 'neutral',
       public_allegiance: character.public_allegiance ?? 'neutral',
+      links: character.links ?? [],
     };
+  }
+
+  /**
+   * Maps the edit page's local links state to the wire shape expected by the
+   * character update/create endpoints: blank `text` defaults to the link's
+   * `url`, `id` is only included for persisted links, and `delete` reflects
+   * whether the link was marked for deletion in the modal.
+   *
+   * @param {object[]} links - Local links state (as edited via LinksEditModal).
+   * @returns {object[]} Links payload ready to send to the backend.
+   */
+  static #linksPayload(links = []) {
+    return links.map((link) => {
+      const payload = {
+        text: link.text?.trim() ? link.text : link.url,
+        url: link.url,
+        link_type: link.link_type ?? '',
+        delete: Boolean(link.delete),
+      };
+
+      if (link.id) {
+        payload.id = link.id;
+      }
+
+      return payload;
+    });
   }
 
   /**
@@ -101,7 +128,7 @@ export default class BaseCharacterEditController extends BasePageController {
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
    * @param {object} fields - Fields to update
-   *   (`name`, `role`, `public_description`, `private_description`, `money`,
+   *   (`name`, `role`, `public_description`, `private_description`, `money`, `links`,
    *   and, for NPCs, `allegiance`/`public_allegiance`).
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} resolves when the request handling finishes.
@@ -130,7 +157,7 @@ export default class BaseCharacterEditController extends BasePageController {
    * @param {string|number} characterId - Character id.
    * @param {{name: string, role: string, description: string,
    *   privateDescription: string, money: string, allegiance: string,
-   *   publicAllegiance: string}} formValues - Raw form field values.
+   *   publicAllegiance: string, links: object[]}} formValues - Raw form field values.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} resolves when the request handling finishes.
    */
@@ -148,6 +175,7 @@ export default class BaseCharacterEditController extends BasePageController {
       public_description: formValues.description,
       private_description: formValues.privateDescription,
       money: parseInt(formValues.money, 10),
+      links: BaseCharacterEditController.#linksPayload(formValues.links),
     };
 
     if (this.routeSegment === 'npcs') {
@@ -167,7 +195,7 @@ export default class BaseCharacterEditController extends BasePageController {
    * @param {string|number} characterId - Character id, used to build the redirect hash.
    * @param {{setName: Function, setRole: Function, setDescription: Function,
    *   setPrivateDescription: Function, setMoney: Function, setAllegiance: Function,
-   *   setPublicAllegiance: Function}} setters - Form field setters.
+   *   setPublicAllegiance: Function, setLinks: Function}} setters - Form field setters.
    * @returns {void}
    */
   applyLoadedCharacter(character, gameSlug, characterId, setters) {
@@ -189,6 +217,7 @@ export default class BaseCharacterEditController extends BasePageController {
     setters.setMoney(fields.money);
     setters.setAllegiance(fields.allegiance);
     setters.setPublicAllegiance(fields.public_allegiance);
+    setters.setLinks(fields.links);
   }
 
   async #handleResponse(response, gameSlug, characterId, setters) {

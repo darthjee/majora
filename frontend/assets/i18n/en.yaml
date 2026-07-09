@@ -100,6 +100,7 @@ pc_edit_page:
   submit: Save changes
   error: Failed to save character. Please try again.
   upload_photo_button: Upload Photo
+  edit_links_button: Edit links
 npc_edit_page:
   title: Edit character
   name_label: Name
@@ -115,6 +116,7 @@ npc_edit_page:
   submit: Save changes
   error: Failed to save character. Please try again.
   upload_photo_button: Upload Photo
+  edit_links_button: Edit links
 game_edit_page:
   title: Edit game
   name_label: Name
@@ -204,6 +206,16 @@ treasure_exchange_modal:
   generic_error: Unable to complete this action. Please try again.
   available_units_badge: '{{available}} left'
   partially_fulfilled: 'Only {{acquired}} of {{requested}} were available and were acquired.'
+links_edit_modal:
+  title: Edit links
+  text_label: Text
+  url_label: URL
+  link_type_label: Type
+  link_type_none: None
+  link_type_lootstudio: LootStudio
+  add_link: Add Link
+  confirm: Confirm
+  cancel: Cancel
 game_treasures_page:
   loading: Loading treasures...
   title: Treasures

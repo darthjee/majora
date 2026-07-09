@@ -24,6 +24,7 @@ describe('BaseCharacterEditController', function() {
         setMoney: jasmine.createSpy('setMoney'),
         setAllegiance: jasmine.createSpy('setAllegiance'),
         setPublicAllegiance: jasmine.createSpy('setPublicAllegiance'),
+        setLinks: jasmine.createSpy('setLinks'),
       };
     });
 
@@ -58,6 +59,7 @@ describe('BaseCharacterEditController', function() {
       const controller = new TestCharacterEditController(
         setCharacter, setLoading, setError, setFieldErrors, client, characterClient,
       );
+      const links = [{ id: 12, text: 'Loot table', url: 'https://example.com/loot', link_type: 'lootstudio' }];
       const character = {
         id: 1, name: 'Test Hero',
         role: 'Fighter',
@@ -65,6 +67,7 @@ describe('BaseCharacterEditController', function() {
         money: 310,
         allegiance: 'ally',
         public_allegiance: 'enemy',
+        links,
       };
 
       controller.applyLoadedCharacter(character, 'demo', '1', setters);
@@ -76,6 +79,7 @@ describe('BaseCharacterEditController', function() {
       expect(setters.setMoney).toHaveBeenCalledWith('310');
       expect(setters.setAllegiance).toHaveBeenCalledWith('ally');
       expect(setters.setPublicAllegiance).toHaveBeenCalledWith('enemy');
+      expect(setters.setLinks).toHaveBeenCalledWith(links);
     });
 
     it('defaults missing fields to empty strings and money to "0"', function() {
@@ -92,6 +96,7 @@ describe('BaseCharacterEditController', function() {
       expect(setters.setMoney).toHaveBeenCalledWith('0');
       expect(setters.setAllegiance).toHaveBeenCalledWith('neutral');
       expect(setters.setPublicAllegiance).toHaveBeenCalledWith('neutral');
+      expect(setters.setLinks).toHaveBeenCalledWith([]);
     });
   });
 });

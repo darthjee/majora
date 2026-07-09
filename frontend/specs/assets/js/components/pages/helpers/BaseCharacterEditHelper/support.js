@@ -11,6 +11,7 @@ export const buildHandlers = () => ({
   onPrivateDescriptionChange: jasmine.createSpy('onPrivateDescriptionChange'),
   onMoneyChange: jasmine.createSpy('onMoneyChange'),
   onOpenUploadModal: jasmine.createSpy('onOpenUploadModal'),
+  onOpenLinksModal: jasmine.createSpy('onOpenLinksModal'),
   onAllegianceChange: jasmine.createSpy('onAllegianceChange'),
   onPublicAllegianceChange: jasmine.createSpy('onPublicAllegianceChange'),
 });

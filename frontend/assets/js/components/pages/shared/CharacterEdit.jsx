@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import CharacterHelper from '../helpers/CharacterHelper.jsx';
 import PhotoUploadModal from '../../elements/PhotoUploadModal.jsx';
+import LinksEditModal from '../../elements/LinksEditModal.jsx';
 
 /**
  * Shared character edit page component.
@@ -28,7 +29,9 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
   const [money, setMoney] = useState('');
   const [allegiance, setAllegiance] = useState('neutral');
   const [publicAllegiance, setPublicAllegiance] = useState('neutral');
+  const [links, setLinks] = useState([]);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showLinksModal, setShowLinksModal] = useState(false);
 
   const controller = useMemo(
     () => new ControllerClass(setCharacter, setLoading, setError, setFieldErrors),
@@ -50,6 +53,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
       setMoney,
       setAllegiance,
       setPublicAllegiance,
+      setLinks,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [character]);
@@ -58,7 +62,9 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
     event,
     gameSlug,
     characterId,
-    { name, role, description, privateDescription, money, allegiance, publicAllegiance },
+    {
+      name, role, description, privateDescription, money, allegiance, publicAllegiance, links,
+    },
     { setStatus, setFieldErrors },
   );
 
@@ -79,7 +85,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
         {
           name,
           profile_photo_path: character.profile_photo_path,
-          links: character.links,
+          links,
           role,
           description,
           privateDescription,
@@ -99,6 +105,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
           onAllegianceChange: (event) => setAllegiance(event.target.value),
           onPublicAllegianceChange: (event) => setPublicAllegiance(event.target.value),
           onOpenUploadModal: () => setShowUploadModal(true),
+          onOpenLinksModal: () => setShowLinksModal(true),
         }
       )}
       <PhotoUploadModal
@@ -106,6 +113,15 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
         uploadPath={uploadPath}
         onClose={() => setShowUploadModal(false)}
         onSuccess={handleUploadSuccess}
+      />
+      <LinksEditModal
+        show={showLinksModal}
+        links={links}
+        onClose={() => setShowLinksModal(false)}
+        onConfirm={(newLinks) => {
+          setLinks(newLinks);
+          setShowLinksModal(false);
+        }}
       />
     </>
   );

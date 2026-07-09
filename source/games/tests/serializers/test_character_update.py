@@ -1,8 +1,11 @@
 """Tests for the CharacterUpdateSerializer."""
 
 import pytest
+from rest_framework.exceptions import ValidationError
 
+from games.models import CharacterLink
 from games.serializers import CharacterUpdateSerializer
+from games.serializers.character_link_write import MAX_LINKS
 from games.tests.factories import CharacterFactory, GameFactory, PlayerFactory
 
 
@@ -151,3 +154,159 @@ class TestCharacterUpdateSerializer:
         assert updated.name == 'Samwise'
         assert updated.game == self.game
         assert updated.player is None
+
+
+@pytest.mark.django_db
+class TestCharacterUpdateSerializerLinks:
+    """Tests for the writable `links` field on CharacterUpdateSerializer."""
+
+    def setup_method(self):
+        """Set up common test fixtures."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.character = CharacterFactory(name='Frodo', game=self.game)
+        self.link = CharacterLink.objects.create(
+            text='Official Wiki', url='http://example.com/wiki', character=self.character,
+        )
+
+    def test_creates_new_link_without_id(self):
+        """Test that an entry without an id creates a new CharacterLink."""
+        serializer = CharacterUpdateSerializer(
+            self.character,
+            data={'links': [{'text': 'Loot table', 'url': 'http://example.com/loot'}]},
+            partial=True,
+        )
+        assert serializer.is_valid()
+        serializer.save()
+        assert self.character.links.filter(url='http://example.com/loot').exists()
+
+    def test_updates_existing_link_fields(self):
+        """Test that an entry with an id updates the matching CharacterLink's fields."""
+        serializer = CharacterUpdateSerializer(
+            self.character,
+            data={
+                'links': [
+                    {
+                        'id': self.link.id,
+                        'text': 'Updated Wiki',
+                        'url': 'http://example.com/updated',
+                        'link_type': CharacterLink.LINK_TYPE_LOOTSTUDIO,
+                    }
+                ]
+            },
+            partial=True,
+        )
+        assert serializer.is_valid()
+        serializer.save()
+        self.link.refresh_from_db()
+        assert self.link.text == 'Updated Wiki'
+        assert self.link.url == 'http://example.com/updated'
+        assert self.link.link_type == CharacterLink.LINK_TYPE_LOOTSTUDIO
+
+    def test_deletes_link_when_delete_true(self):
+        """Test that an entry with delete=True removes the matching CharacterLink."""
+        serializer = CharacterUpdateSerializer(
+            self.character,
+            data={'links': [{'id': self.link.id, 'delete': True}]},
+            partial=True,
+        )
+        assert serializer.is_valid()
+        serializer.save()
+        assert not CharacterLink.objects.filter(id=self.link.id).exists()
+
+    def test_rejects_entry_without_url_when_not_deleting(self):
+        """Test that a non-delete entry without a url produces a validation error."""
+        serializer = CharacterUpdateSerializer(
+            self.character, data={'links': [{'text': 'Missing url'}]}, partial=True,
+        )
+        assert not serializer.is_valid()
+        assert 'links' in serializer.errors
+
+    def test_rejects_id_belonging_to_another_character(self):
+        """Test that a link id belonging to a different character cannot be updated."""
+        other_character = CharacterFactory(name='Sam', game=self.game)
+        other_link = CharacterLink.objects.create(
+            text='Other link', url='http://example.com/other', character=other_character,
+        )
+        serializer = CharacterUpdateSerializer(
+            self.character,
+            data={'links': [{'id': other_link.id, 'text': 'Hijacked'}]},
+            partial=True,
+        )
+        assert serializer.is_valid()
+        with pytest.raises(ValidationError):
+            serializer.save()
+        other_link.refresh_from_db()
+        assert other_link.text == 'Other link'
+
+    def test_rejects_deleting_id_belonging_to_another_character(self):
+        """Test that a link id belonging to a different character cannot be deleted."""
+        other_character = CharacterFactory(name='Sam', game=self.game)
+        other_link = CharacterLink.objects.create(
+            text='Other link', url='http://example.com/other', character=other_character,
+        )
+        serializer = CharacterUpdateSerializer(
+            self.character,
+            data={'links': [{'id': other_link.id, 'delete': True}]},
+            partial=True,
+        )
+        assert serializer.is_valid()
+        with pytest.raises(ValidationError):
+            serializer.save()
+        assert CharacterLink.objects.filter(id=other_link.id).exists()
+
+    def test_omitting_links_leaves_existing_links_untouched(self):
+        """Test that omitting the links field entirely does not delete existing links."""
+        serializer = CharacterUpdateSerializer(
+            self.character, data={'name': 'Samwise'}, partial=True,
+        )
+        assert serializer.is_valid()
+        serializer.save()
+        assert CharacterLink.objects.filter(id=self.link.id).exists()
+
+    def test_rejects_delete_entry_without_id(self):
+        """Test that a delete entry missing an id is rejected at validation time."""
+        serializer = CharacterUpdateSerializer(
+            self.character, data={'links': [{'delete': True}]}, partial=True,
+        )
+        assert not serializer.is_valid()
+        assert 'links' in serializer.errors
+
+    def test_accepts_links_payload_at_max_cap(self):
+        """Test that exactly MAX_LINKS entries is accepted."""
+        payload = [{'url': f'http://example.com/{i}'} for i in range(MAX_LINKS)]
+        serializer = CharacterUpdateSerializer(
+            self.character, data={'links': payload}, partial=True,
+        )
+        assert serializer.is_valid()
+        serializer.save()
+        assert self.character.links.count() == MAX_LINKS + 1
+
+    def test_rejects_links_payload_over_max_cap(self):
+        """Test that more than MAX_LINKS entries is rejected with a 400 on links."""
+        payload = [{'url': f'http://example.com/{i}'} for i in range(MAX_LINKS + 1)]
+        serializer = CharacterUpdateSerializer(
+            self.character, data={'links': payload}, partial=True,
+        )
+        assert not serializer.is_valid()
+        assert 'links' in serializer.errors
+
+    def test_rolls_back_all_entries_when_one_entry_fails(self):
+        """Test that a failing entry rolls back other entries applied in the same batch."""
+        other_character = CharacterFactory(name='Sam', game=self.game)
+        other_link = CharacterLink.objects.create(
+            text='Other link', url='http://example.com/other', character=other_character,
+        )
+        serializer = CharacterUpdateSerializer(
+            self.character,
+            data={
+                'links': [
+                    {'text': 'New link', 'url': 'http://example.com/new'},
+                    {'id': other_link.id, 'text': 'Hijacked'},
+                ]
+            },
+            partial=True,
+        )
+        assert serializer.is_valid()
+        with pytest.raises(ValidationError):
+            serializer.save()
+        assert not self.character.links.filter(url='http://example.com/new').exists()

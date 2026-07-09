@@ -364,3 +364,36 @@ class TestGameNpcsCreate(TokenAuthRequestMixin):
         assert response.status_code == 201
         character = Character.objects.get(name='Villain')
         assert character.player is None
+
+    def test_links_in_payload_create_character_links(self, client):
+        """Test that an initial links array creates CharacterLinks for the new NPC."""
+        response = self._post(
+            client,
+            {
+                'name': 'Villain',
+                'links': [
+                    {'text': 'Loot table', 'url': 'http://example.com/loot'},
+                    {'url': 'http://example.com/wiki'},
+                ],
+            },
+            token=self.dm_token,
+        )
+        assert response.status_code == 201
+        data = json.loads(response.content)
+        character = Character.objects.get(name='Villain')
+        assert character.links.count() == 2
+        assert {link['url'] for link in data['links']} == {
+            'http://example.com/loot', 'http://example.com/wiki',
+        }
+
+    def test_links_entry_without_url_returns_400(self, client):
+        """Test that an initial link entry missing a url causes the whole request to fail."""
+        response = self._post(
+            client,
+            {'name': 'Villain', 'links': [{'text': 'Missing url'}]},
+            token=self.dm_token,
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'links' in data['errors']
+        assert not Character.objects.filter(name='Villain').exists()

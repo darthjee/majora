@@ -1,5 +1,6 @@
 """Shared helpers used across view modules (auth, validation, pagination, access)."""
 
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from ..paginator import Paginator
@@ -31,6 +32,21 @@ def validated_or_error(serializer):
     return None
 
 
+def save_or_error(serializer, **kwargs):
+    """Save `serializer`, catching a save-time `ValidationError`.
+
+    Some serializers (e.g. `CharacterUpdateSerializer`/`CharacterCreateSerializer`, syncing
+    their nested `links`) can only detect certain errors inside `save()`, after `is_valid()`
+    already passed. Returns a `(instance, error_response)` tuple; `error_response` is `None`
+    on success, in which case `instance` is the saved object. On failure, `instance` is `None`
+    and `error_response` is a 400 `{'errors': ...}` Response, consistent with `validated_or_error`.
+    """
+    try:
+        return serializer.save(**kwargs), None
+    except ValidationError as exc:
+        return None, Response({'errors': exc.detail}, status=400)
+
+
 def detail_or_update(
     request, obj, permission_cls, update_serializer_cls, detail_serializer_cls, detail_context=None
 ):
@@ -55,7 +71,9 @@ def _update(request, obj, permission_cls, update_serializer_cls, detail_serializ
     if error_response:
         return error_response
 
-    serializer.save()
+    _, error_response = save_or_error(serializer)
+    if error_response:
+        return error_response
     return _serialize_detail(obj, detail_serializer_cls, detail_context)
 
 

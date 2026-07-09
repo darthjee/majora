@@ -28,6 +28,9 @@ export default class BaseCharacterEditHelper {
   /**
    * Render the edit form.
    *
+   * @description `state.links` may include entries marked `delete: true` (kept so the
+   *   "Edit links" modal can restore them); those are filtered out of the visible
+   *   `LinkList` here.
    * @param {{name: string, profile_photo_path: string|null, links: object[],
    *   role: string, description: string, privateDescription: string, money: string,
    *   allegiance: string, publicAllegiance: string,
@@ -35,7 +38,8 @@ export default class BaseCharacterEditHelper {
    * @param {{onSubmit: Function, onNameChange: Function,
    *   onRoleChange: Function,
    *   onDescriptionChange: Function, onPrivateDescriptionChange: Function,
-   *   onMoneyChange: Function, onOpenUploadModal: Function, onAllegianceChange: Function,
+   *   onMoneyChange: Function, onOpenUploadModal: Function, onOpenLinksModal: Function,
+   *   onAllegianceChange: Function,
    *   onPublicAllegianceChange: Function}} handlers - event handlers.
    * @returns {React.ReactElement} rendered edit page.
    */
@@ -64,7 +68,14 @@ export default class BaseCharacterEditHelper {
                 onChange={handlers.onNameChange}
                 errors={state.fieldErrors.name ?? []}
               />
-              <LinkList links={state.links} />
+              <LinkList links={state.links.filter((link) => !link.delete)} />
+              <button
+                type="button"
+                className="btn btn-outline-secondary btn-sm mb-3"
+                onClick={handlers.onOpenLinksModal}
+              >
+                {Translator.t(`${i18nNamespace}.edit_links_button`)}
+              </button>
               <FormField
                 id={`${idPrefix}-edit-money`}
                 type="number"

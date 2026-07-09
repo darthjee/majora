@@ -114,6 +114,38 @@ describe('BaseCharacterEditHelper', function() {
       expect(html).not.toContain('<a href="http');
     });
 
+    it('filters out links marked delete: true from the visible LinkList', function() {
+      const html = renderToStaticMarkup(
+        helper.render(
+          buildState({
+            links: [
+              { text: 'Wiki', url: 'https://example.com/wiki' },
+              { id: 2, text: 'Old link', url: 'https://example.com/old', delete: true },
+            ],
+          }),
+          buildHandlers()
+        )
+      );
+
+      expect(html).toContain('href="https://example.com/wiki"');
+      expect(html).not.toContain('href="https://example.com/old"');
+    });
+
+    it('renders an Edit links button wired to onOpenLinksModal', function() {
+      const handlers = buildHandlers();
+      const element = helper.render(buildState(), handlers);
+      const button = findElement(
+        element,
+        (child) => child.type === 'button' && child.props.onClick === handlers.onOpenLinksModal
+      );
+
+      expect(button).not.toBeNull();
+
+      button.props.onClick();
+
+      expect(handlers.onOpenLinksModal).toHaveBeenCalled();
+    });
+
     it('wraps all form fields in a single form element so submission still works', function() {
       const html = renderToStaticMarkup(helper.render(buildState(), buildHandlers()));
       const formStart = html.indexOf('<form');
