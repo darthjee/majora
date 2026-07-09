@@ -328,6 +328,12 @@ Access endpoints return user-specific data (`can_edit` reflects the requesting u
 
 Unauthenticated → 401. Authenticated but not an editor → 403.
 
+**Write fields** (via `CharacterUpdateSerializer`, added in issue #392): in addition to the
+scalar fields listed under "Create" below (`name`, `role`, `public_description`,
+`private_description`, `hidden`, `money`, `allegiance`, `public_allegiance`, all optional here
+too), a nested `links` array is accepted — see "CharacterLink" below for the full write
+semantics (create/update/delete per entry, `id` ownership check).
+
 ### Create
 
 | Endpoint | Who can write |
@@ -338,7 +344,8 @@ There is no equivalent PC creation endpoint — issue #307 scoped NPC creation o
 
 **Write fields**: `name` (required), `role`, `public_description`, `private_description`, `hidden`,
 `money`, `allegiance`, `public_allegiance` (all optional except `name`; `allegiance`/
-`public_allegiance` added in issue #387 — see "Allegiance fields" above). `game` and `npc` are
+`public_allegiance` added in issue #387 — see "Allegiance fields" above), and `links` (optional
+array, added in issue #392 — see "CharacterLink" below for write semantics). `game` and `npc` are
 never accepted from the request payload — `game` is always assigned server-side from the
 `<slug>` URL segment, and `npc` is always forced to `True`. `player` is not accepted at all —
 NPCs created this way have no player.
@@ -606,16 +613,50 @@ the frontend renders next to the link; it carries no access-control implications
 
 ## CharacterLink
 
-Character links are read-only through the character detail endpoints (`links` array in
-`CharacterDetailSerializer` and, by inheritance, `CharacterFullSerializer`). No direct
-character link create/update/delete endpoint exists.
+Character links are read through the character detail endpoints (`links` array in
+`CharacterDetailSerializer` and, by inheritance, `CharacterFullSerializer`). As of issue #392,
+links are also writable, nested inside the character create/update payloads — there is still
+no standalone `CharacterLink` create/update/delete endpoint.
 
 **Exposed fields** (read): `id`, `text`, `url`, `link_type` — visible to anyone who can read the
 character detail (i.e., anyone, since both PC and NPC detail endpoints are publicly
 accessible). `link_type` is a non-sensitive display-icon enum (`''` or `lootstudio`) driving
 which icon the frontend renders next to the link; it carries no access-control implications.
 
-**Write access:** superuser only (via Django admin, out of scope).
+**Write access (added in issue #392):** there is no dedicated `CharacterLink` endpoint — links
+are written exclusively as a nested `links` array inside the character payload, gated by the
+same permission as the character write itself:
+
+- `PATCH /games/<slug>/pcs/<id>.json`, `PATCH /games/<slug>/npcs/<id>.json` — via
+  `CharacterUpdateSerializer`'s `links` field, gated by `CharacterEditPermission` (player of
+  that character, any GameMaster of that game, or superuser — same rule as the rest of the
+  PATCH payload; see "Update (PATCH)" above).
+- `POST /games/<slug>/npcs.json` — via `CharacterCreateSerializer`'s `links` field, gated by
+  `GameEditPermission` (GameMaster of that game, or superuser — same rule as the rest of the
+  create payload; see "Create" above).
+
+**Write semantics** (`CharacterLinkWriteSerializer` + `CharacterLinksSync`, in
+`source/games/serializers/character_link_write.py`): each entry in the `links` array accepts
+`id` (optional int), `text`, `url`, `link_type`, and a transient `delete` flag (not a model
+field). Routing per entry, applied server-side after the character's own fields are saved:
+  - `delete: true` — deletes the existing link matching `id`.
+  - `id` present (no `delete`) — updates the existing link matching `id`; only the fields
+    present in the entry are changed (fields already blank keep their existing value, since
+    `_update` falls back to the current value via `entry.get(field, link.<field>)`).
+  - `id` absent — creates a new `CharacterLink` owned by the target character. `url` is
+    required for any new entry that isn't a delete (validated in `CharacterLinkWriteSerializer
+    .validate`); missing `url` on a create entry → 400. An entry with an `id` (update) does not
+    require `url` — an omitted field there simply leaves the existing value untouched.
+
+  On create, `CharacterLinksSync.create_all()` ignores any `id`/`delete` in the entries and
+  unconditionally creates a link per entry — there is no existing character yet to own a
+  link to update or delete.
+
+**Ownership check:** for update and delete, `id` must resolve to a `CharacterLink` already
+owned by the target character (`character.links.filter(id=link_id)`) — an `id` for a link
+that doesn't exist, or belongs to a different character, is rejected with 400
+(`{"errors": {"links": ["Unknown link id <id>."]}}`), never silently ignored and never allowed
+to affect another character's link.
 
 ---
 

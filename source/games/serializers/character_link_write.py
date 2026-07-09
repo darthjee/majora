@@ -30,8 +30,13 @@ class CharacterLinkWriteSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
-        """Require `url` for any entry that is not being deleted."""
-        if not attrs.get('delete') and not attrs.get('url'):
+        """Require `url` for any new entry (no `id`) that is not being deleted.
+
+        An entry with an `id` is updating an existing link, whose `url` is already set —
+        omitting `url` there just leaves the existing value untouched (see
+        `CharacterLinksSync._update`), so it must not be forced here.
+        """
+        if not attrs.get('delete') and not attrs.get('id') and not attrs.get('url'):
             raise serializers.ValidationError({'url': ['This field is required.']})
         return attrs
 
