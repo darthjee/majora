@@ -68,7 +68,7 @@ describe('CharacterHelper slain/revive rendering', function() {
       const c = { ...character, is_pc: false, can_edit: true, slain: true };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
 
-      expect(html).toContain('bi-heart-fill');
+      expect(html).toContain('bi-heart-pulse-fill');
       expect(html).toContain('aria-label="Revive"');
       expect(html).toContain('title="Revive"');
     });

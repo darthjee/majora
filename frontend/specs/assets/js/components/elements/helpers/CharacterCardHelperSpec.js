@@ -125,7 +125,7 @@ describe('CharacterCardHelper', function() {
     it('renders the Revive button icon for NPCs when canEdit is true and slain', function() {
       const c = { ...character, slain: true };
       const html = renderToStaticMarkup(CharacterCardHelper.render(c, gameSlug, 'npc', 'normal', true));
-      expect(html).toContain('bi-heart-fill');
+      expect(html).toContain('bi-heart-pulse-fill');
       expect(html).toContain('aria-label="Revive"');
       expect(html).toContain('title="Revive"');
     });
