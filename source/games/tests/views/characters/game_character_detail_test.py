@@ -306,9 +306,41 @@ class _BaseCharacterUpdateViewTest(TokenAuthRequestMixin):
             token=token,
         )
 
-        assert response.status_code == 400
+        data = assert_json_response(response, 400)
+        assert 'links' in data['errors']
         other_link.refresh_from_db()
         assert other_link.text == 'Not yours'
+
+    def test_patch_rejects_delete_link_entry_without_id(self, client):
+        """Test that a delete entry missing an id returns a clean 400, not a server error."""
+        token = self._editor_token()
+
+        response = self._patch(client, {'links': [{'delete': True}]}, token=token)
+
+        data = assert_json_response(response, 400)
+        assert 'links' in data['errors']
+
+    def test_patch_rolls_back_other_links_when_one_entry_fails(self, client):
+        """Test that a failing entry rolls back other link changes applied in the same request."""
+        token = self._editor_token()
+        other_character = CharacterFactory(name='Other', game=self.game, npc=self.npc)
+        other_link = CharacterLink.objects.create(
+            text='Not yours', url='http://example.com/other', character=other_character,
+        )
+
+        response = self._patch(
+            client,
+            {
+                'links': [
+                    {'text': 'New link', 'url': 'http://example.com/new'},
+                    {'id': other_link.id, 'text': 'Hijacked'},
+                ]
+            },
+            token=token,
+        )
+
+        assert response.status_code == 400
+        assert not self.character.links.filter(url='http://example.com/new').exists()
 
 
 @pytest.mark.django_db

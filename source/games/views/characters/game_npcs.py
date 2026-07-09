@@ -13,7 +13,7 @@ from ...serializers import (
     CharacterDetailSerializer,
     CharacterListSerializer,
 )
-from ..common import paginated_list_response, validated_or_error
+from ..common import paginated_list_response, save_or_error, validated_or_error
 from ._shared import _filter_characters
 
 
@@ -45,6 +45,8 @@ def _create_npc(request, game):
     if error_response:
         return error_response
 
-    character = serializer.save(game=game, npc=True)
+    character, error_response = save_or_error(serializer, game=game, npc=True)
+    if error_response:
+        return error_response
     detail = CharacterDetailSerializer(character, context={'request': request})
     return Response(detail.data, status=201)

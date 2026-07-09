@@ -4,6 +4,7 @@ import pytest
 
 from games.models import CharacterLink
 from games.serializers import CharacterCreateSerializer
+from games.serializers.character_link_write import MAX_LINKS
 from games.tests.factories import GameFactory
 
 
@@ -59,5 +60,20 @@ class TestCharacterCreateSerializer:
         serializer = CharacterCreateSerializer(
             data={'name': 'Villain', 'links': [{'text': 'Missing url'}]}
         )
+        assert not serializer.is_valid()
+        assert 'links' in serializer.errors
+
+    def test_accepts_links_payload_at_max_cap(self):
+        """Test that exactly MAX_LINKS entries is accepted."""
+        payload = [{'url': f'http://example.com/{i}'} for i in range(MAX_LINKS)]
+        serializer = CharacterCreateSerializer(data={'name': 'Villain', 'links': payload})
+        assert serializer.is_valid()
+        character = serializer.save(game=self.game, npc=True)
+        assert character.links.count() == MAX_LINKS
+
+    def test_rejects_links_payload_over_max_cap(self):
+        """Test that more than MAX_LINKS entries is rejected with a 400 on links."""
+        payload = [{'url': f'http://example.com/{i}'} for i in range(MAX_LINKS + 1)]
+        serializer = CharacterCreateSerializer(data={'name': 'Villain', 'links': payload})
         assert not serializer.is_valid()
         assert 'links' in serializer.errors

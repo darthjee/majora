@@ -3,7 +3,11 @@
 from rest_framework import serializers
 
 from games.models import Character
-from games.serializers.character_link_write import CharacterLinksSync, CharacterLinkWriteSerializer
+from games.serializers.character_link_write import (
+    CharacterLinksSync,
+    CharacterLinkWriteSerializer,
+    validate_links_count,
+)
 
 
 class CharacterUpdateSerializer(serializers.ModelSerializer):
@@ -29,6 +33,10 @@ class CharacterUpdateSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             field: {'required': False} for field in fields if field != 'links'
         }
+
+    def validate_links(self, value):
+        """Reject a `links` payload with more entries than `CharacterLinksSync` should batch."""
+        return validate_links_count(value)
 
     def update(self, instance, validated_data):
         """Update the character's scalar fields, then sync its `links` per entry."""

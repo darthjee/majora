@@ -5,6 +5,7 @@ from rest_framework.exceptions import ValidationError
 
 from games.models import CharacterLink
 from games.serializers import CharacterUpdateSerializer
+from games.serializers.character_link_write import MAX_LINKS
 from games.tests.factories import CharacterFactory, GameFactory, PlayerFactory
 
 
@@ -261,3 +262,51 @@ class TestCharacterUpdateSerializerLinks:
         assert serializer.is_valid()
         serializer.save()
         assert CharacterLink.objects.filter(id=self.link.id).exists()
+
+    def test_rejects_delete_entry_without_id(self):
+        """Test that a delete entry missing an id is rejected at validation time."""
+        serializer = CharacterUpdateSerializer(
+            self.character, data={'links': [{'delete': True}]}, partial=True,
+        )
+        assert not serializer.is_valid()
+        assert 'links' in serializer.errors
+
+    def test_accepts_links_payload_at_max_cap(self):
+        """Test that exactly MAX_LINKS entries is accepted."""
+        payload = [{'url': f'http://example.com/{i}'} for i in range(MAX_LINKS)]
+        serializer = CharacterUpdateSerializer(
+            self.character, data={'links': payload}, partial=True,
+        )
+        assert serializer.is_valid()
+        serializer.save()
+        assert self.character.links.count() == MAX_LINKS + 1
+
+    def test_rejects_links_payload_over_max_cap(self):
+        """Test that more than MAX_LINKS entries is rejected with a 400 on links."""
+        payload = [{'url': f'http://example.com/{i}'} for i in range(MAX_LINKS + 1)]
+        serializer = CharacterUpdateSerializer(
+            self.character, data={'links': payload}, partial=True,
+        )
+        assert not serializer.is_valid()
+        assert 'links' in serializer.errors
+
+    def test_rolls_back_all_entries_when_one_entry_fails(self):
+        """Test that a failing entry rolls back other entries applied in the same batch."""
+        other_character = CharacterFactory(name='Sam', game=self.game)
+        other_link = CharacterLink.objects.create(
+            text='Other link', url='http://example.com/other', character=other_character,
+        )
+        serializer = CharacterUpdateSerializer(
+            self.character,
+            data={
+                'links': [
+                    {'text': 'New link', 'url': 'http://example.com/new'},
+                    {'id': other_link.id, 'text': 'Hijacked'},
+                ]
+            },
+            partial=True,
+        )
+        assert serializer.is_valid()
+        with pytest.raises(ValidationError):
+            serializer.save()
+        assert not self.character.links.filter(url='http://example.com/new').exists()
