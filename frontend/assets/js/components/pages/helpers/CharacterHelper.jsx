@@ -153,7 +153,7 @@ export default class CharacterHelper {
         ? Translator.t('character_page.revive_button')
         : Translator.t('character_page.slain_button'),
       variant: character.slain ? 'success' : 'danger',
-      icon: character.slain ? Icons.heart : Icons.skull,
+      icon: character.slain ? Icons.revivet : Icons.skull,
       onClick: handlers.onOpenSlainModal,
     };
   }
