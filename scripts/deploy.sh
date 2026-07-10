@@ -71,6 +71,11 @@ function run_deploy() {
   force_deploy
 }
 
+function update_deploy_branch() {
+  SERVICE_ID=$(service_id)
+  update_service_branch "$SERVICE_ID" "$CIRCLE_TAG"
+}
+
 function watch_last_deployment() {
   checkLastVersion
   SERVICE_ID=$(service_id)
@@ -92,6 +97,9 @@ case $ACTION in
     ;;
   "service_id")
     service_id
+    ;;
+  "update_deploy_branch")
+    update_deploy_branch
     ;;
   *)
     $ACTION

@@ -404,6 +404,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Update Render Deploy Branch
+          command: scripts/deploy.sh update_deploy_branch
+      - run:
           name: Trigger Deploy
           command: scripts/deploy.sh deploy
 
