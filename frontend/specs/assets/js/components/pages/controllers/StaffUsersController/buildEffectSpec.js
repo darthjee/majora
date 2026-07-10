@@ -1,5 +1,5 @@
 import StaffUsersController from '../../../../../../../assets/js/components/pages/controllers/StaffUsersController.js';
-import { buildContext } from './support.js';
+import { buildContext, stubAccessStore } from './support.js';
 
 describe('StaffUsersController', function() {
   let setUsers;
@@ -7,18 +7,14 @@ describe('StaffUsersController', function() {
   let setLoading;
   let setError;
   let client;
-  let authClient;
 
   beforeEach(function() {
-    ({ setUsers, setPagination, setLoading, setError, client, authClient } = buildContext());
+    ({ setUsers, setPagination, setLoading, setError, client } = buildContext());
   });
 
   describe('#buildEffect', function() {
     it('fetches users and pagination when the user is staff or superuser', async function() {
-      authClient.status.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ is_staff: true }),
-      }));
+      stubAccessStore(true);
       const headers = new Map([['page', '1'], ['pages', '2'], ['per_page', '10']]);
       client.fetchUsers.and.returnValue(Promise.resolve({
         ok: true,
@@ -27,7 +23,7 @@ describe('StaffUsersController', function() {
       }));
 
       const cleanup = new StaffUsersController(
-        setUsers, setPagination, setLoading, setError, client, authClient,
+        setUsers, setPagination, setLoading, setError, client,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -41,14 +37,11 @@ describe('StaffUsersController', function() {
     });
 
     it('sets error when the fetch fails', async function() {
-      authClient.status.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ is_superuser: true }),
-      }));
+      stubAccessStore(true);
       client.fetchUsers.and.returnValue(Promise.reject(new Error('network error')));
 
       const cleanup = new StaffUsersController(
-        setUsers, setPagination, setLoading, setError, client, authClient,
+        setUsers, setPagination, setLoading, setError, client,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -59,14 +52,11 @@ describe('StaffUsersController', function() {
     });
 
     it('sets error when the response is not ok', async function() {
-      authClient.status.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ is_superuser: true }),
-      }));
+      stubAccessStore(true);
       client.fetchUsers.and.returnValue(Promise.resolve({ ok: false }));
 
       const cleanup = new StaffUsersController(
-        setUsers, setPagination, setLoading, setError, client, authClient,
+        setUsers, setPagination, setLoading, setError, client,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -76,16 +66,13 @@ describe('StaffUsersController', function() {
     });
 
     it('redirects to home and does not fetch when the user is neither staff nor superuser', async function() {
-      authClient.status.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ is_superuser: false, is_staff: false }),
-      }));
+      stubAccessStore(false);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 
       try {
         const cleanup = new StaffUsersController(
-          setUsers, setPagination, setLoading, setError, client, authClient,
+          setUsers, setPagination, setLoading, setError, client,
         ).buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 

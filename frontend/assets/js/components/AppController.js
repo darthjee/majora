@@ -1,6 +1,8 @@
 import AppHelper from './helpers/AppHelper.jsx';
 import HashRouteResolver from '../utils/HashRouteResolver.js';
 import LanguageEvents from '../i18n/LanguageEvents.js';
+import AuthEvents from '../utils/AuthEvents.js';
+import AccessStore from '../utils/AccessStore.js';
 
 /**
  * Controller for application-level hash routing.
@@ -59,6 +61,7 @@ export default class AppController {
     return () => {
       const handleHashChange = () => {
         this.setPage(this.getPage());
+        AccessStore.syncForRoute(this.getPage(), this.routeResolver.currentHash());
         this.setHash?.(this.routeResolver.currentHash());
       };
 
@@ -66,12 +69,17 @@ export default class AppController {
         this.setLang?.(event.detail?.language);
       };
 
+      const handleAuthChange = () => AccessStore.syncForAuthChange();
+
+      AccessStore.syncForRoute(this.getPage(), this.routeResolver.currentHash());
       this.eventTarget.addEventListener('hashchange', handleHashChange);
       LanguageEvents.subscribe(handleLanguageChange);
+      AuthEvents.subscribe(handleAuthChange);
 
       return () => {
         this.eventTarget.removeEventListener('hashchange', handleHashChange);
         LanguageEvents.unsubscribe(handleLanguageChange);
+        AuthEvents.unsubscribe(handleAuthChange);
       };
     };
   }

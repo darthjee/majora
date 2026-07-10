@@ -12,14 +12,12 @@ describe('GameSessionNewController', function() {
     let setFieldErrors;
     let setStatus;
     let sessionClient;
-    let gameClient;
 
     beforeEach(function() {
       setError = jasmine.createSpy('setError');
       setFieldErrors = jasmine.createSpy('setFieldErrors');
       setStatus = jasmine.createSpy('setStatus');
       sessionClient = jasmine.createSpyObj('sessionClient', ['createSession']);
-      gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
       sessionClient.createSession.and.returnValue(Promise.resolve({
         status: 201,
@@ -28,7 +26,7 @@ describe('GameSessionNewController', function() {
     });
 
     it('prevents default, resets status/errors, and submits the fields payload', async function() {
-      const controller = new GameSessionNewController(setError, setFieldErrors, sessionClient, gameClient);
+      const controller = new GameSessionNewController(setError, setFieldErrors, sessionClient);
       const event = jasmine.createSpyObj('event', ['preventDefault']);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
@@ -55,7 +53,7 @@ describe('GameSessionNewController', function() {
     });
 
     it('sends null when the date field is empty', async function() {
-      const controller = new GameSessionNewController(setError, setFieldErrors, sessionClient, gameClient);
+      const controller = new GameSessionNewController(setError, setFieldErrors, sessionClient);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 
@@ -78,7 +76,7 @@ describe('GameSessionNewController', function() {
     });
 
     it('redirects to the new session detail page on success', async function() {
-      const controller = new GameSessionNewController(setError, setFieldErrors, sessionClient, gameClient);
+      const controller = new GameSessionNewController(setError, setFieldErrors, sessionClient);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 
@@ -102,7 +100,7 @@ describe('GameSessionNewController', function() {
         json: () => Promise.resolve({ errors: { title: ['is required'] } }),
       }));
 
-      const controller = new GameSessionNewController(setError, setFieldErrors, sessionClient, gameClient);
+      const controller = new GameSessionNewController(setError, setFieldErrors, sessionClient);
 
       await controller.submitForm(
         undefined,
@@ -120,7 +118,7 @@ describe('GameSessionNewController', function() {
         json: () => Promise.resolve({}),
       }));
 
-      const controller = new GameSessionNewController(setError, setFieldErrors, sessionClient, gameClient);
+      const controller = new GameSessionNewController(setError, setFieldErrors, sessionClient);
 
       await controller.submitForm(
         undefined,
@@ -135,7 +133,7 @@ describe('GameSessionNewController', function() {
     it('sets status to error when the network request throws', async function() {
       sessionClient.createSession.and.returnValue(Promise.reject(new Error('network error')));
 
-      const controller = new GameSessionNewController(setError, setFieldErrors, sessionClient, gameClient);
+      const controller = new GameSessionNewController(setError, setFieldErrors, sessionClient);
 
       await controller.submitForm(
         undefined,
@@ -148,7 +146,7 @@ describe('GameSessionNewController', function() {
     });
 
     it('does not throw when called without an event', async function() {
-      const controller = new GameSessionNewController(setError, setFieldErrors, sessionClient, gameClient);
+      const controller = new GameSessionNewController(setError, setFieldErrors, sessionClient);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 

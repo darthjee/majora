@@ -1,5 +1,6 @@
 import GameClient from '../../../client/GameClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import AccessStore from '../../../utils/AccessStore.js';
 import BaseEditController from './BaseEditController.js';
 import BasePageController from './BasePageController.js';
 import Noop from '../../../utils/Noop.js';
@@ -52,7 +53,7 @@ export default class GameEditController extends BaseEditController {
 
     this.fetchWithAccess(
       this.gameClient.fetchGame(gameSlug, token),
-      this.gameClient.fetchGameAccess(gameSlug, token),
+      AccessStore.ensureGameAccess(gameSlug),
       safeSet,
       'Unable to load game.',
     );

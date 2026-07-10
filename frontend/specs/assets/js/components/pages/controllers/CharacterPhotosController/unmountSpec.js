@@ -1,4 +1,5 @@
 import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
+import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
 import { KINDS, buildCharacterClient } from './support.js';
 
 KINDS.forEach(({ label, Controller, kind }) => {
@@ -8,6 +9,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
     beforeEach(function() {
       AuthStorage.clearToken();
       characterClient = buildCharacterClient();
+      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: false }));
     });
 
     it('does not update state after unmount', async function() {

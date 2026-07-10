@@ -1,6 +1,5 @@
-import AuthClient from '../../../client/AuthClient.js';
 import GenericClient from '../../../client/GenericClient.js';
-import AdminAccess from '../../../utils/AdminAccess.js';
+import AccessStore from '../../../utils/AccessStore.js';
 import BasePageController from './BasePageController.js';
 import Noop from '../../../utils/Noop.js';
 
@@ -16,7 +15,6 @@ export default class TreasuresController extends BasePageController {
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
    * @param {GenericClient|null} client - Client override.
-   * @param {AuthClient|null} authClient - Auth client override.
    * @param {Function} [setIsSuperUser] - Superuser flag setter, for consistency/testability
    *   with GameTreasuresController — this page is only ever reached by superusers, since
    *   non-superusers are redirected away below.
@@ -27,7 +25,6 @@ export default class TreasuresController extends BasePageController {
     setLoading,
     setError,
     client = null,
-    authClient = null,
     setIsSuperUser = Noop.noop,
   ) {
     super();
@@ -36,7 +33,6 @@ export default class TreasuresController extends BasePageController {
     this.setLoading = setLoading;
     this.setError = setError;
     this.client = client ?? new GenericClient();
-    this.authClient = authClient ?? new AuthClient();
     this.setIsSuperUser = setIsSuperUser;
   }
 
@@ -52,7 +48,7 @@ export default class TreasuresController extends BasePageController {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
 
-      AdminAccess.isSuperUser(this.authClient).then((isSuperUser) => {
+      AccessStore.ensureSuperUser().then((isSuperUser) => {
         if (!mounted) {
           return;
         }

@@ -32,10 +32,11 @@ export default class AuthClient extends BaseClient {
    * Fetches the current authentication status for the given token.
    *
    * @param {string|null} token - Authentication token, if any.
+   * @param {AbortSignal} [signal] - Optional abort signal for the request.
    * @returns {Promise<Response>} fetch response from the status endpoint.
    */
-  status(token) {
-    return this.getJson('/users/status.json', token);
+  status(token, signal) {
+    return this.getJson('/users/status.json', token, {}, signal);
   }
 
   /**

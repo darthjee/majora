@@ -1,16 +1,15 @@
 import TreasureNewController
   from '../../../../../../../assets/js/components/pages/controllers/TreasureNewController.js';
 import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
-import { buildContext } from './support.js';
+import { buildContext, stubAccessStore } from './support.js';
 
 describe('TreasureNewController', function() {
   let setError;
   let setFieldErrors;
   let treasureClient;
-  let authClient;
 
   beforeEach(function() {
-    ({ setError, setFieldErrors, treasureClient, authClient } = buildContext());
+    ({ setError, setFieldErrors, treasureClient } = buildContext());
   });
 
   afterEach(function() {
@@ -19,16 +18,11 @@ describe('TreasureNewController', function() {
 
   describe('#buildEffect', function() {
     it('redirects to home when the user is not a superuser', async function() {
-      authClient.status.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ is_superuser: false }),
-      }));
+      stubAccessStore(false);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 
-      const controller = new TreasureNewController(
-        setError, setFieldErrors, treasureClient, authClient,
-      );
+      const controller = new TreasureNewController(setError, setFieldErrors, treasureClient);
 
       try {
         controller.buildEffect()();
@@ -41,16 +35,11 @@ describe('TreasureNewController', function() {
     });
 
     it('does not redirect when the user is a superuser', async function() {
-      authClient.status.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ is_superuser: true }),
-      }));
+      stubAccessStore(true);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 
-      const controller = new TreasureNewController(
-        setError, setFieldErrors, treasureClient, authClient,
-      );
+      const controller = new TreasureNewController(setError, setFieldErrors, treasureClient);
 
       try {
         controller.buildEffect()();

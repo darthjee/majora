@@ -1,6 +1,7 @@
 import GenericClient from '../../../client/GenericClient.js';
 import GameClient from '../../../client/GameClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import AccessStore from '../../../utils/AccessStore.js';
 import BasePageController from './BasePageController.js';
 
 /**
@@ -79,18 +80,17 @@ export default class GamePhotosController extends BasePageController {
 
     this.gameClient.fetchGame(gameSlug, token)
       .then((response) => (response.ok ? response.json() : null))
-      .then((game) => this.#mergeAccess(gameSlug, token, game, safeSet))
+      .then((game) => this.#mergeAccess(gameSlug, game, safeSet))
       .catch(() => safeSet(this.setGame, { can_edit: false }));
   }
 
-  #mergeAccess(gameSlug, token, game, safeSet) {
+  #mergeAccess(gameSlug, game, safeSet) {
     if (!game) {
       safeSet(this.setGame, { can_edit: false });
       return Promise.resolve();
     }
 
-    return this.gameClient.fetchGameAccess(gameSlug, token)
-      .then((response) => (response.ok ? response.json() : { can_edit: false }))
+    return AccessStore.ensureGameAccess(gameSlug)
       .then((access) => safeSet(this.setGame, { ...game, ...access }))
       .catch(() => safeSet(this.setGame, { ...game, can_edit: false }));
   }

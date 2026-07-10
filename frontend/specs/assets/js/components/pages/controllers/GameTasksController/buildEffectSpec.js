@@ -1,6 +1,7 @@
 import GameTasksController
   from '../../../../../../../assets/js/components/pages/controllers/GameTasksController.js';
 import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
+import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
 
 describe('GameTasksController', function() {
   let setTasks;
@@ -8,7 +9,6 @@ describe('GameTasksController', function() {
   let setLoading;
   let setError;
   let taskClient;
-  let gameClient;
   let fakeWindow;
 
   beforeEach(function() {
@@ -17,7 +17,6 @@ describe('GameTasksController', function() {
     setLoading = jasmine.createSpy('setLoading');
     setError = jasmine.createSpy('setError');
     taskClient = jasmine.createSpyObj('taskClient', ['fetchTasks']);
-    gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
     fakeWindow = { location: { hash: '#/games/demo/tasks' } };
     globalThis.window = fakeWindow;
   });
@@ -29,10 +28,7 @@ describe('GameTasksController', function() {
 
   describe('#buildEffect', function() {
     it('fetches tasks and pagination when the user can edit the game', async function() {
-      gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ can_edit: true }),
-      }));
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: true }));
       const headers = new Map([['page', '1'], ['pages', '2'], ['per_page', '10']]);
       taskClient.fetchTasks.and.returnValue(Promise.resolve({
         ok: true,
@@ -43,11 +39,11 @@ describe('GameTasksController', function() {
       }));
 
       const cleanup = new GameTasksController(
-        setTasks, setPagination, setLoading, setError, taskClient, gameClient,
+        setTasks, setPagination, setLoading, setError, taskClient,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(gameClient.fetchGameAccess).toHaveBeenCalledWith('demo', null);
+      expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');
       expect(taskClient.fetchTasks).toHaveBeenCalledWith('demo', null, jasmine.any(URLSearchParams));
       expect(setTasks).toHaveBeenCalledWith([{
         id: 1, short_description: 'Prep encounter', long_description: '', completed: false, session: null,
@@ -60,27 +56,10 @@ describe('GameTasksController', function() {
     });
 
     it('redirects to the game page when the user cannot edit the game', async function() {
-      gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ can_edit: false }),
-      }));
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
 
       const cleanup = new GameTasksController(
-        setTasks, setPagination, setLoading, setError, taskClient, gameClient,
-      ).buildEffect()();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      expect(fakeWindow.location.hash).toBe('/games/demo');
-      expect(taskClient.fetchTasks).not.toHaveBeenCalled();
-
-      cleanup();
-    });
-
-    it('redirects to the game page when the access response is not ok', async function() {
-      gameClient.fetchGameAccess.and.returnValue(Promise.resolve({ ok: false }));
-
-      const cleanup = new GameTasksController(
-        setTasks, setPagination, setLoading, setError, taskClient, gameClient,
+        setTasks, setPagination, setLoading, setError, taskClient,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -91,10 +70,10 @@ describe('GameTasksController', function() {
     });
 
     it('redirects to the game page when the access request throws', async function() {
-      gameClient.fetchGameAccess.and.returnValue(Promise.reject(new Error('network error')));
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.reject(new Error('network error')));
 
       const cleanup = new GameTasksController(
-        setTasks, setPagination, setLoading, setError, taskClient, gameClient,
+        setTasks, setPagination, setLoading, setError, taskClient,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -105,14 +84,11 @@ describe('GameTasksController', function() {
     });
 
     it('sets an error when the tasks fetch fails', async function() {
-      gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ can_edit: true }),
-      }));
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: true }));
       taskClient.fetchTasks.and.returnValue(Promise.reject(new Error('network error')));
 
       const cleanup = new GameTasksController(
-        setTasks, setPagination, setLoading, setError, taskClient, gameClient,
+        setTasks, setPagination, setLoading, setError, taskClient,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -123,10 +99,7 @@ describe('GameTasksController', function() {
     });
 
     it('does not update state after unmount', async function() {
-      gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ can_edit: true }),
-      }));
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: true }));
       taskClient.fetchTasks.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve([]),
@@ -134,7 +107,7 @@ describe('GameTasksController', function() {
       }));
 
       const cleanup = new GameTasksController(
-        setTasks, setPagination, setLoading, setError, taskClient, gameClient,
+        setTasks, setPagination, setLoading, setError, taskClient,
       ).buildEffect()();
       cleanup();
       await new Promise((resolve) => setTimeout(resolve, 0));

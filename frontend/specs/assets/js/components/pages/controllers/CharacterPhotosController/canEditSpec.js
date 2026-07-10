@@ -1,4 +1,5 @@
 import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
+import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
 import { KINDS, buildCharacterClient } from './support.js';
 
 KINDS.forEach(({ label, Controller, kind }) => {
@@ -10,7 +11,8 @@ KINDS.forEach(({ label, Controller, kind }) => {
       characterClient = buildCharacterClient();
     });
 
-    it('merges can_edit from the access endpoint onto the character object', async function() {
+    it('merges can_edit from AccessStore onto the character object', async function() {
+      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: true }));
       const setPhotos = jasmine.createSpy('setPhotos');
       const setPagination = jasmine.createSpy('setPagination');
       const setCharacter = jasmine.createSpy('setCharacter');
@@ -22,16 +24,13 @@ KINDS.forEach(({ label, Controller, kind }) => {
       client.fetchIndex.and.returnValue(Promise.resolve({
         data: [], pagination: { page: 1, pages: 1, perPage: 20 },
       }));
-      characterClient.fetchCharacterAccess.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ can_edit: true }),
-      }));
 
       const cleanup = new Controller(
         setPhotos, setPagination, setCharacter, setLoading, setError, client, characterClient,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
+      expect(AccessStore.ensureCharacterAccess).toHaveBeenCalledWith(kind, 'demo', '7');
       expect(setCharacter).toHaveBeenCalledWith(
         jasmine.objectContaining({ name: 'Aragorn', can_edit: true }),
       );
@@ -87,7 +86,8 @@ KINDS.forEach(({ label, Controller, kind }) => {
       cleanup();
     });
 
-    it('sets can_edit to false when the access fetch fails after loading the character', async function() {
+    it('sets can_edit to false when AccessStore resolves with the fail-closed default', async function() {
+      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: false }));
       const setPhotos = jasmine.createSpy('setPhotos');
       const setPagination = jasmine.createSpy('setPagination');
       const setCharacter = jasmine.createSpy('setCharacter');
@@ -99,7 +99,6 @@ KINDS.forEach(({ label, Controller, kind }) => {
       client.fetchIndex.and.returnValue(Promise.resolve({
         data: [], pagination: { page: 1, pages: 1, perPage: 20 },
       }));
-      characterClient.fetchCharacterAccess.and.returnValue(Promise.reject(new Error('network error')));
 
       const cleanup = new Controller(
         setPhotos, setPagination, setCharacter, setLoading, setError, client, characterClient,

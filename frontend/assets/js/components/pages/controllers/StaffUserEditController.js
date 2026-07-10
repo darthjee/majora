@@ -1,7 +1,6 @@
-import AuthClient from '../../../client/AuthClient.js';
 import StaffUserClient from '../../../client/StaffUserClient.js';
-import AdminAccess from '../../../utils/AdminAccess.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import AccessStore from '../../../utils/AccessStore.js';
 import BaseEditController from './BaseEditController.js';
 import BasePageController from './BasePageController.js';
 import Noop from '../../../utils/Noop.js';
@@ -28,14 +27,12 @@ export default class StaffUserEditController extends BaseEditController {
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
    * @param {StaffUserClient|null} [client] - Client override.
-   * @param {AuthClient|null} [authClient] - Auth client override.
    */
   constructor(
-    setUser, setLoading, setError, setFieldErrors = Noop.noop, client = null, authClient = null,
+    setUser, setLoading, setError, setFieldErrors = Noop.noop, client = null,
   ) {
     super(setUser, setLoading, setError, setFieldErrors);
     this.client = client ?? new StaffUserClient();
-    this.authClient = authClient ?? new AuthClient();
   }
 
   /**
@@ -47,7 +44,7 @@ export default class StaffUserEditController extends BaseEditController {
    * @returns {void}
    */
   loadResource(safeSet, isMounted) {
-    AdminAccess.isStaffOrSuperUser(this.authClient).then((isStaffOrSuperUser) => {
+    AccessStore.ensureStaffOrSuperUser().then((isStaffOrSuperUser) => {
       if (!isMounted()) {
         return;
       }

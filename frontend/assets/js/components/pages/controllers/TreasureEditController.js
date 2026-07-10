@@ -1,7 +1,6 @@
-import AuthClient from '../../../client/AuthClient.js';
 import TreasureClient from '../../../client/TreasureClient.js';
-import AdminAccess from '../../../utils/AdminAccess.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import AccessStore from '../../../utils/AccessStore.js';
 import BaseEditController from './BaseEditController.js';
 import BasePageController from './BasePageController.js';
 import Noop from '../../../utils/Noop.js';
@@ -28,14 +27,12 @@ export default class TreasureEditController extends BaseEditController {
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
    * @param {TreasureClient|null} [treasureClient] - Treasure client override.
-   * @param {AuthClient|null} [authClient] - Auth client override.
    */
   constructor(
-    setTreasure, setLoading, setError, setFieldErrors = Noop.noop, treasureClient = null, authClient = null,
+    setTreasure, setLoading, setError, setFieldErrors = Noop.noop, treasureClient = null,
   ) {
     super(setTreasure, setLoading, setError, setFieldErrors);
     this.treasureClient = treasureClient ?? new TreasureClient();
-    this.authClient = authClient ?? new AuthClient();
   }
 
   /**
@@ -47,7 +44,7 @@ export default class TreasureEditController extends BaseEditController {
    * @returns {void}
    */
   loadResource(safeSet, isMounted) {
-    AdminAccess.isSuperUser(this.authClient).then((isSuperUser) => {
+    AccessStore.ensureSuperUser().then((isSuperUser) => {
       if (!isMounted()) {
         return;
       }
@@ -70,7 +67,7 @@ export default class TreasureEditController extends BaseEditController {
 
       this.fetchWithAccess(
         this.treasureClient.fetchTreasure(id, token),
-        this.treasureClient.fetchTreasureAccess(id, token),
+        AccessStore.ensureTreasureAccess(id),
         safeSet,
         'Unable to load treasure.',
       );

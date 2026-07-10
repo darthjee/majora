@@ -1,7 +1,6 @@
-import AuthClient from '../../../client/AuthClient.js';
 import StaffUserClient from '../../../client/StaffUserClient.js';
-import AdminAccess from '../../../utils/AdminAccess.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import AccessStore from '../../../utils/AccessStore.js';
 import HashRouteResolver from '../../../utils/HashRouteResolver.js';
 import BasePageController from './BasePageController.js';
 
@@ -17,7 +16,6 @@ export default class StaffUsersController extends BasePageController {
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
    * @param {StaffUserClient|null} [client] - Client override.
-   * @param {AuthClient|null} [authClient] - Auth client override.
    */
   constructor(
     setUsers,
@@ -25,7 +23,6 @@ export default class StaffUsersController extends BasePageController {
     setLoading,
     setError,
     client = null,
-    authClient = null,
   ) {
     super();
     this.setUsers = setUsers;
@@ -33,7 +30,6 @@ export default class StaffUsersController extends BasePageController {
     this.setLoading = setLoading;
     this.setError = setError;
     this.client = client ?? new StaffUserClient();
-    this.authClient = authClient ?? new AuthClient();
   }
 
   /**
@@ -48,7 +44,7 @@ export default class StaffUsersController extends BasePageController {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
 
-      AdminAccess.isStaffOrSuperUser(this.authClient).then((isStaffOrSuperUser) => {
+      AccessStore.ensureStaffOrSuperUser().then((isStaffOrSuperUser) => {
         if (!mounted) {
           return;
         }

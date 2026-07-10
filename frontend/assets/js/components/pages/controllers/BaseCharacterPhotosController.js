@@ -1,6 +1,7 @@
 import GenericClient from '../../../client/GenericClient.js';
 import CharacterClient from '../../../client/CharacterClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import AccessStore from '../../../utils/AccessStore.js';
 import BasePageController from './BasePageController.js';
 import Noop from '../../../utils/Noop.js';
 
@@ -106,19 +107,17 @@ export default class BaseCharacterPhotosController extends BasePageController {
 
     return this.characterClient.fetchCharacter(this.characterKind, gameSlug, characterId, token)
       .then((response) => (response.ok ? response.json() : null))
-      .then((character) => this.#mergeAccess(gameSlug, characterId, token, character, safeSet))
+      .then((character) => this.#mergeAccess(gameSlug, characterId, character, safeSet))
       .catch(() => safeSet(this.setCharacter, { can_edit: false }));
   }
 
-  #mergeAccess(gameSlug, characterId, token, character, safeSet) {
+  #mergeAccess(gameSlug, characterId, character, safeSet) {
     if (!character) {
       safeSet(this.setCharacter, { can_edit: false });
       return Promise.resolve();
     }
 
-    return this.characterClient.fetchCharacterAccess(this.characterKind, gameSlug, characterId, token)
-      .then((response) => (response.ok ? response.json() : { can_edit: false }))
-      .then((access) => safeSet(this.setCharacter, { ...character, ...access }))
-      .catch(() => safeSet(this.setCharacter, { ...character, can_edit: false }));
+    return AccessStore.ensureCharacterAccess(this.characterKind, gameSlug, characterId)
+      .then((access) => safeSet(this.setCharacter, { ...character, ...access }));
   }
 }

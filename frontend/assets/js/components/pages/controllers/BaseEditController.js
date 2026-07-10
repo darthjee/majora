@@ -81,26 +81,23 @@ export default class BaseEditController extends BasePageController {
   }
 
   /**
-   * Fetch the resource and its access permissions in parallel, merging access
-   * onto the resource (tolerant of access failure, defaulting to `can_edit: false`),
-   * and updating loading/error state.
+   * Fetch the resource and merge its access permissions onto it, updating
+   * loading/error state.
    *
    * @param {Promise<Response>} resourcePromise - Resource fetch response promise.
-   * @param {Promise<Response>} accessPromise - Access fetch response promise.
+   * @param {Promise<{can_edit: boolean}>} accessPromise - Access payload promise, already
+   *   resolved to `{ can_edit }` (e.g. from `AccessStore#ensureX`, which never rejects).
    * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
    * @param {string} errorMessage - Error message set when the resource fetch fails.
    * @returns {void}
    */
   fetchWithAccess(resourcePromise, accessPromise, safeSet, errorMessage) {
-    Promise.all([resourcePromise, accessPromise])
-      .then(([resourceResponse, accessResponse]) => Promise.all([
-        resourceResponse.ok
-          ? resourceResponse.json()
-          : Promise.reject(new Error('resource failed')),
-        accessResponse.ok
-          ? accessResponse.json()
-          : Promise.resolve({ can_edit: false }),
-      ]))
+    Promise.all([
+      resourcePromise.then((response) => (response.ok
+        ? response.json()
+        : Promise.reject(new Error('resource failed')))),
+      accessPromise,
+    ])
       .then(([resource, access]) => safeSet(this.setResource, { ...resource, ...access }))
       .catch(() => safeSet(this.setError, errorMessage))
       .finally(() => safeSet(this.setLoading, false));

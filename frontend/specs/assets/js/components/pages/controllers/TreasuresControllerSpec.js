@@ -1,4 +1,5 @@
 import TreasuresController from '../../../../../../assets/js/components/pages/controllers/TreasuresController.js';
+import AccessStore from '../../../../../../assets/js/utils/AccessStore.js';
 
 describe('TreasuresController', function() {
   let setTreasures;
@@ -7,7 +8,6 @@ describe('TreasuresController', function() {
   let setError;
   let setIsSuperUser;
   let client;
-  let authClient;
 
   beforeEach(function() {
     setTreasures = jasmine.createSpy('setTreasures');
@@ -16,21 +16,17 @@ describe('TreasuresController', function() {
     setError = jasmine.createSpy('setError');
     setIsSuperUser = jasmine.createSpy('setIsSuperUser');
     client = jasmine.createSpyObj('client', ['fetchIndex']);
-    authClient = jasmine.createSpyObj('authClient', ['status']);
   });
 
   it('fetches treasures and pagination when the user is a superuser', async function() {
-    authClient.status.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ is_superuser: true }),
-    }));
+    spyOn(AccessStore, 'ensureSuperUser').and.returnValue(Promise.resolve(true));
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [{ id: 1, name: 'Sword', value: 100 }],
       pagination: { page: 1, pages: 1, perPage: 10 },
     }));
 
     const cleanup = new TreasuresController(
-      setTreasures, setPagination, setLoading, setError, client, authClient, setIsSuperUser,
+      setTreasures, setPagination, setLoading, setError, client, setIsSuperUser,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -45,14 +41,11 @@ describe('TreasuresController', function() {
   });
 
   it('sets error when the fetch fails', async function() {
-    authClient.status.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ is_superuser: true }),
-    }));
+    spyOn(AccessStore, 'ensureSuperUser').and.returnValue(Promise.resolve(true));
     client.fetchIndex.and.returnValue(Promise.reject(new Error('network error')));
 
     const cleanup = new TreasuresController(
-      setTreasures, setPagination, setLoading, setError, client, authClient,
+      setTreasures, setPagination, setLoading, setError, client,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -63,16 +56,13 @@ describe('TreasuresController', function() {
   });
 
   it('redirects to home and does not fetch when the user is not a superuser', async function() {
-    authClient.status.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ is_superuser: false }),
-    }));
+    spyOn(AccessStore, 'ensureSuperUser').and.returnValue(Promise.resolve(false));
     const fakeWindow = { location: { hash: '' } };
     globalThis.window = fakeWindow;
 
     try {
       const cleanup = new TreasuresController(
-        setTreasures, setPagination, setLoading, setError, client, authClient,
+        setTreasures, setPagination, setLoading, setError, client,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 

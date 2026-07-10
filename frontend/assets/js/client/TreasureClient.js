@@ -20,10 +20,11 @@ export default class TreasureClient extends BaseClient {
    *
    * @param {number|string} id - Treasure id.
    * @param {string|null} token - Authentication token, if any.
+   * @param {AbortSignal} [signal] - Optional abort signal for the request.
    * @returns {Promise<Response>} fetch response from the treasure access endpoint.
    */
-  fetchTreasureAccess(id, token) {
-    return this.getJson(`/treasures/${id}/access.json`, token);
+  fetchTreasureAccess(id, token, signal) {
+    return this.getJson(`/treasures/${id}/access.json`, token, {}, signal);
   }
 
   /**

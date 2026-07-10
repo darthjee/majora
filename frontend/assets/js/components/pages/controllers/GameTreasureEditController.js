@@ -1,6 +1,6 @@
-import GameClient from '../../../client/GameClient.js';
 import TreasureClient from '../../../client/TreasureClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import AccessStore from '../../../utils/AccessStore.js';
 import BaseEditController from './BaseEditController.js';
 import BasePageController from './BasePageController.js';
 import Noop from '../../../utils/Noop.js';
@@ -45,14 +45,12 @@ export default class GameTreasureEditController extends BaseEditController {
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
    * @param {TreasureClient|null} [treasureClient] - Treasure client override.
-   * @param {GameClient|null} [gameClient] - Game client override, used for the access check.
    */
   constructor(
-    setTreasure, setLoading, setError, setFieldErrors = Noop.noop, treasureClient = null, gameClient = null,
+    setTreasure, setLoading, setError, setFieldErrors = Noop.noop, treasureClient = null,
   ) {
     super(setTreasure, setLoading, setError, setFieldErrors);
     this.treasureClient = treasureClient ?? new TreasureClient();
-    this.gameClient = gameClient ?? new GameClient();
   }
 
   /**
@@ -66,10 +64,8 @@ export default class GameTreasureEditController extends BaseEditController {
     const hash = typeof window === 'undefined' ? '' : window.location.hash;
     const { game_slug: gameSlug, treasure_id: treasureId } =
       GameTreasureEditController.getGameTreasureEditParamsFromHash(hash);
-    const token = AuthStorage.getToken();
 
-    this.gameClient.fetchGameAccess(gameSlug, token)
-      .then((response) => (response.ok ? response.json() : { can_edit: false }))
+    AccessStore.ensureGameAccess(gameSlug)
       .then((access) => this.#handleAccess(access, gameSlug, treasureId, safeSet))
       .catch(() => this.redirectTo(`/games/${gameSlug}/treasures`));
   }

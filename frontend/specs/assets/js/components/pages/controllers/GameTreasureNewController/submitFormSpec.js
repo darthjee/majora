@@ -12,14 +12,12 @@ describe('GameTreasureNewController', function() {
     let setFieldErrors;
     let setStatus;
     let treasureClient;
-    let gameClient;
 
     beforeEach(function() {
       setError = jasmine.createSpy('setError');
       setFieldErrors = jasmine.createSpy('setFieldErrors');
       setStatus = jasmine.createSpy('setStatus');
       treasureClient = jasmine.createSpyObj('treasureClient', ['createGameTreasure']);
-      gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
       treasureClient.createGameTreasure.and.returnValue(Promise.resolve({
         status: 201,
@@ -28,7 +26,7 @@ describe('GameTreasureNewController', function() {
     });
 
     it('prevents default, resets status/errors, and submits the fields payload', async function() {
-      const controller = new GameTreasureNewController(setError, setFieldErrors, treasureClient, gameClient);
+      const controller = new GameTreasureNewController(setError, setFieldErrors, treasureClient);
       const event = jasmine.createSpyObj('event', ['preventDefault']);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
@@ -53,7 +51,7 @@ describe('GameTreasureNewController', function() {
     });
 
     it('redirects to the new treasure detail page on success', async function() {
-      const controller = new GameTreasureNewController(setError, setFieldErrors, treasureClient, gameClient);
+      const controller = new GameTreasureNewController(setError, setFieldErrors, treasureClient);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 
@@ -77,7 +75,7 @@ describe('GameTreasureNewController', function() {
         json: () => Promise.resolve({ errors: { name: ['is required'] } }),
       }));
 
-      const controller = new GameTreasureNewController(setError, setFieldErrors, treasureClient, gameClient);
+      const controller = new GameTreasureNewController(setError, setFieldErrors, treasureClient);
 
       await controller.submitForm(
         undefined,
@@ -95,7 +93,7 @@ describe('GameTreasureNewController', function() {
         json: () => Promise.resolve({}),
       }));
 
-      const controller = new GameTreasureNewController(setError, setFieldErrors, treasureClient, gameClient);
+      const controller = new GameTreasureNewController(setError, setFieldErrors, treasureClient);
 
       await controller.submitForm(
         undefined,
@@ -110,7 +108,7 @@ describe('GameTreasureNewController', function() {
     it('sets status to error when the network request throws', async function() {
       treasureClient.createGameTreasure.and.returnValue(Promise.reject(new Error('network error')));
 
-      const controller = new GameTreasureNewController(setError, setFieldErrors, treasureClient, gameClient);
+      const controller = new GameTreasureNewController(setError, setFieldErrors, treasureClient);
 
       await controller.submitForm(
         undefined,
@@ -123,7 +121,7 @@ describe('GameTreasureNewController', function() {
     });
 
     it('does not throw when called without an event', async function() {
-      const controller = new GameTreasureNewController(setError, setFieldErrors, treasureClient, gameClient);
+      const controller = new GameTreasureNewController(setError, setFieldErrors, treasureClient);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 

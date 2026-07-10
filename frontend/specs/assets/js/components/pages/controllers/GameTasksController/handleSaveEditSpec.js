@@ -29,7 +29,7 @@ describe('GameTasksController', function() {
         json: () => Promise.resolve(updated),
       }));
 
-      const controller = new GameTasksController(null, null, null, null, taskClient, null);
+      const controller = new GameTasksController(null, null, null, null, taskClient);
       const result = await controller.handleSaveEdit(
         'demo', tasks[0], { shortDescription: 'New', longDescription: 'New details' }, tasks, setTasks,
       );
@@ -45,7 +45,7 @@ describe('GameTasksController', function() {
     it('does not update local state and returns null when the response is not ok', async function() {
       taskClient.updateTask.and.returnValue(Promise.resolve({ ok: false }));
 
-      const controller = new GameTasksController(null, null, null, null, taskClient, null);
+      const controller = new GameTasksController(null, null, null, null, taskClient);
       const result = await controller.handleSaveEdit(
         'demo', tasks[0], { shortDescription: 'New', longDescription: 'New details' }, tasks, setTasks,
       );
@@ -57,7 +57,7 @@ describe('GameTasksController', function() {
     it('returns null when the request throws', async function() {
       taskClient.updateTask.and.returnValue(Promise.reject(new Error('network error')));
 
-      const controller = new GameTasksController(null, null, null, null, taskClient, null);
+      const controller = new GameTasksController(null, null, null, null, taskClient);
       const result = await controller.handleSaveEdit(
         'demo', tasks[0], { shortDescription: 'New', longDescription: 'New details' }, tasks, setTasks,
       );

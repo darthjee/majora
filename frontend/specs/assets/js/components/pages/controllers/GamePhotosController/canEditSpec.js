@@ -1,15 +1,17 @@
 import GamePhotosController
   from '../../../../../../../assets/js/components/pages/controllers/GamePhotosController.js';
-import { buildGameClient } from './support.js';
+import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
+import { buildGameClient, stubAccessStore } from './support.js';
 
 describe('GamePhotosController', function() {
   let gameClient;
 
   beforeEach(function() {
     gameClient = buildGameClient();
+    stubAccessStore();
   });
 
-  it('merges can_edit from the access endpoint onto the game object', async function() {
+  it('merges can_edit from AccessStore onto the game object', async function() {
     const setPhotos = jasmine.createSpy('setPhotos');
     const setPagination = jasmine.createSpy('setPagination');
     const setGame = jasmine.createSpy('setGame');
@@ -21,10 +23,7 @@ describe('GamePhotosController', function() {
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [], pagination: { page: 1, pages: 1, perPage: 20 },
     }));
-    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ can_edit: true }),
-    }));
+    AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ can_edit: true }));
 
     const cleanup = new GamePhotosController(
       setPhotos, setPagination, setGame, setLoading, setError, client, gameClient,
@@ -86,29 +85,29 @@ describe('GamePhotosController', function() {
     cleanup();
   });
 
-  it('sets can_edit to false when the access fetch fails after loading the game', async function() {
-    const setPhotos = jasmine.createSpy('setPhotos');
-    const setPagination = jasmine.createSpy('setPagination');
-    const setGame = jasmine.createSpy('setGame');
-    const setLoading = jasmine.createSpy('setLoading');
-    const setError = jasmine.createSpy('setError');
-    const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
+  it('sets can_edit to false when the access resolves with the fail-closed default after loading the game',
+    async function() {
+      const setPhotos = jasmine.createSpy('setPhotos');
+      const setPagination = jasmine.createSpy('setPagination');
+      const setGame = jasmine.createSpy('setGame');
+      const setLoading = jasmine.createSpy('setLoading');
+      const setError = jasmine.createSpy('setError');
+      const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
 
-    client.currentHash.and.returnValue('#/games/demo/photos');
-    client.fetchIndex.and.returnValue(Promise.resolve({
-      data: [], pagination: { page: 1, pages: 1, perPage: 20 },
-    }));
-    gameClient.fetchGameAccess.and.returnValue(Promise.reject(new Error('network error')));
+      client.currentHash.and.returnValue('#/games/demo/photos');
+      client.fetchIndex.and.returnValue(Promise.resolve({
+        data: [], pagination: { page: 1, pages: 1, perPage: 20 },
+      }));
 
-    const cleanup = new GamePhotosController(
-      setPhotos, setPagination, setGame, setLoading, setError, client, gameClient,
-    ).buildEffect()();
-    await new Promise((resolve) => setTimeout(resolve, 0));
+      const cleanup = new GamePhotosController(
+        setPhotos, setPagination, setGame, setLoading, setError, client, gameClient,
+      ).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(setGame).toHaveBeenCalledWith(
-      jasmine.objectContaining({ game_slug: 'demo', can_edit: false }),
-    );
+      expect(setGame).toHaveBeenCalledWith(
+        jasmine.objectContaining({ game_slug: 'demo', can_edit: false }),
+      );
 
-    cleanup();
-  });
+      cleanup();
+    });
 });

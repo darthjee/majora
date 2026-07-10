@@ -1,6 +1,5 @@
-import GameClient from '../../../client/GameClient.js';
 import GenericClient from '../../../client/GenericClient.js';
-import AuthStorage from '../../../utils/AuthStorage.js';
+import AccessStore from '../../../utils/AccessStore.js';
 import BasePageController from './BasePageController.js';
 import Noop from '../../../utils/Noop.js';
 
@@ -27,7 +26,6 @@ export default class GameSessionsController extends BasePageController {
    * @param {Function} setError - Error setter.
    * @param {GenericClient|null} client - Client override.
    * @param {Function} [setCanEdit] - Can-edit flag setter, gates the "New session" button.
-   * @param {GameClient|null} [gameClient] - Game client override, used for the access check.
    */
   constructor(
     setSessions,
@@ -36,7 +34,6 @@ export default class GameSessionsController extends BasePageController {
     setError,
     client = null,
     setCanEdit = Noop.noop,
-    gameClient = null,
   ) {
     super();
     this.setSessions = setSessions;
@@ -45,7 +42,6 @@ export default class GameSessionsController extends BasePageController {
     this.setError = setError;
     this.client = client ?? new GenericClient();
     this.setCanEdit = setCanEdit;
-    this.gameClient = gameClient ?? new GameClient();
   }
 
   /**
@@ -84,10 +80,7 @@ export default class GameSessionsController extends BasePageController {
   }
 
   #fetchAccess(gameSlug, safeSet) {
-    const token = AuthStorage.getToken();
-
-    this.gameClient.fetchGameAccess(gameSlug, token)
-      .then((response) => (response.ok ? response.json() : { can_edit: false }))
+    AccessStore.ensureGameAccess(gameSlug)
       .then((access) => safeSet(this.setCanEdit, Boolean(access.can_edit)))
       .catch(() => safeSet(this.setCanEdit, false));
   }
