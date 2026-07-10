@@ -37,6 +37,17 @@ class TestTreasureAccessSerializer:
         data = TreasureAccessSerializer(self.treasure, context={'request': request}).data
         assert data['can_edit'] is True
 
+    def test_superuser_returns_full_context_fields(self):
+        """Test that a superuser gets username, is_superuser, is_staff, is_dm, is_owner."""
+        superuser = SuperUserFactory(username='admin', password='secret-password')
+        request = _make_request(superuser)
+        data = TreasureAccessSerializer(self.treasure, context={'request': request}).data
+        assert data['username'] == 'admin'
+        assert data['is_superuser'] is True
+        assert data['is_staff'] is True
+        assert data['is_dm'] is False
+        assert data['is_owner'] is False
+
     def test_regular_user_cannot_edit(self):
         """Test that a regular user gets can_edit False."""
         user = UserFactory(username='player', password='secret-password')
@@ -44,11 +55,32 @@ class TestTreasureAccessSerializer:
         data = TreasureAccessSerializer(self.treasure, context={'request': request}).data
         assert data['can_edit'] is False
 
+    def test_regular_user_returns_full_context_fields(self):
+        """Test that a regular user gets username, is_superuser, is_staff, is_dm, is_owner."""
+        user = UserFactory(username='player', password='secret-password')
+        request = _make_request(user)
+        data = TreasureAccessSerializer(self.treasure, context={'request': request}).data
+        assert data['username'] == 'player'
+        assert data['is_superuser'] is False
+        assert data['is_staff'] is False
+        assert data['is_dm'] is False
+        assert data['is_owner'] is False
+
     def test_anonymous_user_cannot_edit(self):
         """Test that an anonymous user gets can_edit False."""
         request = _make_request(AnonymousUser())
         data = TreasureAccessSerializer(self.treasure, context={'request': request}).data
         assert data['can_edit'] is False
+
+    def test_anonymous_user_returns_null_context_fields(self):
+        """Test that an anonymous user gets null username/is_superuser/is_staff/is_dm."""
+        request = _make_request(AnonymousUser())
+        data = TreasureAccessSerializer(self.treasure, context={'request': request}).data
+        assert data['username'] is None
+        assert data['is_superuser'] is None
+        assert data['is_staff'] is None
+        assert data['is_dm'] is None
+        assert data['is_owner'] is False
 
     def test_none_treasure_returns_can_edit_false(self):
         """Test that a None treasure instance returns can_edit False."""
@@ -67,6 +99,8 @@ class TestTreasureAccessSerializer:
         request = _make_request(dm_user)
         data = TreasureAccessSerializer(self.treasure, context={'request': request}).data
         assert data['can_edit'] is True
+        assert data['is_dm'] is True
+        assert data['is_owner'] is False
 
     def test_dm_of_other_game_cannot_edit_exclusive_treasure(self):
         """Test that a DM of a different game does not get can_edit True."""
@@ -79,6 +113,7 @@ class TestTreasureAccessSerializer:
         request = _make_request(dm_user)
         data = TreasureAccessSerializer(self.treasure, context={'request': request}).data
         assert data['can_edit'] is False
+        assert data['is_dm'] is False
 
     def test_non_dm_cannot_edit_global_treasure(self):
         """Test that can_edit stays False for a global treasure and a non-superuser DM."""

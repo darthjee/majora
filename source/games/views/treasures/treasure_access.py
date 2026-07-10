@@ -11,8 +11,8 @@ from ..common import access_response
 
 @api_view(['GET'])
 @authentication_classes([CookieTokenAuthentication])
-# AllowAny: this endpoint returns only a boolean capability flag and no sensitive
-# data; it is intentionally open so the UI can adapt before the user logs in.
+# AllowAny: access-check endpoints are intentionally open so the UI can adapt
+# before the user logs in, matching the game/pc/npc access endpoints.
 @permission_classes([AllowAny])
 def treasure_access(request, treasure_id):
     """Return whether the requesting user may edit a specific treasure."""

@@ -74,7 +74,9 @@ class TestGameAccessView(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert data['username'] is None
         assert data['is_superuser'] is None
+        assert data['is_staff'] is None
         assert data['is_dm'] is None
+        assert data['is_owner'] is False
 
     def test_dm_returns_correct_user_context_fields(self, client):
         """Test that DM request returns correct username, is_superuser=False, is_dm=True."""
@@ -83,7 +85,9 @@ class TestGameAccessView(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert data['username'] == 'dm_user'
         assert data['is_superuser'] is False
+        assert data['is_staff'] is False
         assert data['is_dm'] is True
+        assert data['is_owner'] is False
 
     def test_superuser_returns_correct_user_context_fields(self, client):
         """Test that superuser request returns correct username, is_superuser=True, is_dm=False."""
@@ -93,7 +97,9 @@ class TestGameAccessView(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert data['username'] == 'admin'
         assert data['is_superuser'] is True
+        assert data['is_staff'] is True
         assert data['is_dm'] is False
+        assert data['is_owner'] is False
 
     def test_non_dm_user_returns_correct_user_context_fields(self, client):
         """Test non-DM user returns correct username, is_superuser=False, is_dm=False."""
@@ -103,7 +109,9 @@ class TestGameAccessView(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert data['username'] == 'other'
         assert data['is_superuser'] is False
+        assert data['is_staff'] is False
         assert data['is_dm'] is False
+        assert data['is_owner'] is False
 
     def test_dm_via_session_returns_can_edit_true(self, client):
         """Test that the game DM authenticated via session cookie returns can_edit true."""
