@@ -1,6 +1,7 @@
 import GameNpcsController
   from '../../../../../../../assets/js/components/pages/controllers/GameNpcsController.js';
 import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
+import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
 
 describe('GameNpcsController', function() {
   afterEach(function() {
@@ -13,17 +14,13 @@ describe('GameNpcsController', function() {
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
-    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/npcs');
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [{ id: 1 }],
       pagination: { page: 2, pages: 3, perPage: 4 },
     }));
-    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ can_edit: false }),
-    }));
+    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
 
     const cleanup = new GameNpcsController(
       setNpcs,
@@ -33,7 +30,6 @@ describe('GameNpcsController', function() {
       client,
       null,
       undefined,
-      gameClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -53,19 +49,15 @@ describe('GameNpcsController', function() {
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
     const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpcsAll']);
-    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
     const publicNpcs = [{ id: 1 }];
     const pagination = { page: 1, pages: 2, perPage: 10 };
 
     client.currentHash.and.returnValue('#/games/demo/npcs');
     client.fetchIndex.and.returnValue(Promise.resolve({ data: publicNpcs, pagination }));
-    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ can_edit: false }),
-    }));
+    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
 
     const cleanup = new GameNpcsController(
-      setNpcs, setPagination, setLoading, setError, client, characterClient, undefined, gameClient,
+      setNpcs, setPagination, setLoading, setError, client, characterClient, undefined,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -83,7 +75,6 @@ describe('GameNpcsController', function() {
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
     const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpcsAll']);
-    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
     const authNpcs = [{ id: 10, name: 'Hidden NPC' }];
     const publicPagination = { page: 1, pages: 2, perPage: 10 };
     const authHeaders = { page: '3', pages: '5', per_page: '20' };
@@ -95,14 +86,11 @@ describe('GameNpcsController', function() {
       json: () => Promise.resolve(authNpcs),
       headers: { get: (key) => authHeaders[key] ?? null },
     }));
-    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ can_edit: false }),
-    }));
+    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
     AuthStorage.setToken('mytoken');
 
     const cleanup = new GameNpcsController(
-      setNpcs, setPagination, setLoading, setError, client, characterClient, undefined, gameClient,
+      setNpcs, setPagination, setLoading, setError, client, characterClient, undefined,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -122,7 +110,6 @@ describe('GameNpcsController', function() {
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
     const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpcsAll']);
-    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
     const authNpcs = [{ id: 10, name: 'Hidden NPC' }];
     const authHeaders = { page: '2', pages: '4', per_page: '16' };
 
@@ -136,14 +123,11 @@ describe('GameNpcsController', function() {
       json: () => Promise.resolve(authNpcs),
       headers: { get: (key) => authHeaders[key] ?? null },
     }));
-    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ can_edit: false }),
-    }));
+    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
     AuthStorage.setToken('mytoken');
 
     const cleanup = new GameNpcsController(
-      setNpcs, setPagination, setLoading, setError, client, characterClient, undefined, gameClient,
+      setNpcs, setPagination, setLoading, setError, client, characterClient, undefined,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -162,7 +146,6 @@ describe('GameNpcsController', function() {
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
     const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpcsAll']);
-    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
     const authNpcs = [{ id: 10, name: 'Hidden NPC' }];
     const authHeaders = { page: '1', pages: '1', per_page: '10' };
 
@@ -176,14 +159,11 @@ describe('GameNpcsController', function() {
       json: () => Promise.resolve(authNpcs),
       headers: { get: (key) => authHeaders[key] ?? null },
     }));
-    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ can_edit: false }),
-    }));
+    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
     AuthStorage.setToken('mytoken');
 
     const cleanup = new GameNpcsController(
-      setNpcs, setPagination, setLoading, setError, client, characterClient, undefined, gameClient,
+      setNpcs, setPagination, setLoading, setError, client, characterClient, undefined,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -203,7 +183,6 @@ describe('GameNpcsController', function() {
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
     const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpcsAll']);
-    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
     const publicNpcs = [{ id: 1 }];
     const pagination = { page: 1, pages: 1, perPage: 10 };
 
@@ -213,14 +192,11 @@ describe('GameNpcsController', function() {
       ok: false,
       json: () => Promise.resolve({ error: 'Unauthorized' }),
     }));
-    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ can_edit: false }),
-    }));
+    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
     AuthStorage.setToken('mytoken');
 
     const cleanup = new GameNpcsController(
-      setNpcs, setPagination, setLoading, setError, client, characterClient, undefined, gameClient,
+      setNpcs, setPagination, setLoading, setError, client, characterClient, undefined,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -238,21 +214,17 @@ describe('GameNpcsController', function() {
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
     const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpcsAll']);
-    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
     const publicNpcs = [{ id: 1 }];
     const pagination = { page: 1, pages: 1, perPage: 10 };
 
     client.currentHash.and.returnValue('#/games/demo/npcs');
     client.fetchIndex.and.returnValue(Promise.resolve({ data: publicNpcs, pagination }));
     characterClient.fetchNpcsAll.and.returnValue(Promise.reject(new Error('network error')));
-    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ can_edit: false }),
-    }));
+    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
     AuthStorage.setToken('mytoken');
 
     const cleanup = new GameNpcsController(
-      setNpcs, setPagination, setLoading, setError, client, characterClient, undefined, gameClient,
+      setNpcs, setPagination, setLoading, setError, client, characterClient, undefined,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 

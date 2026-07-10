@@ -2,6 +2,7 @@ import CharacterClient from '../../../client/CharacterClient.js';
 import GenericClient from '../../../client/GenericClient.js';
 import BasePageController from './BasePageController.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import AccessStore from '../../../utils/AccessStore.js';
 import Noop from '../../../utils/Noop.js';
 
 /**
@@ -89,19 +90,17 @@ export default class BaseCharacterTreasuresController extends BasePageController
 
     this.characterClient.fetchCharacter(this.characterKind, gameSlug, characterId, token)
       .then((response) => (response.ok ? response.json() : null))
-      .then((character) => this.#mergeAccess(character, gameSlug, characterId, token, safeSet))
+      .then((character) => this.#mergeAccess(character, gameSlug, characterId, safeSet))
       .catch(() => safeSet(this.setCharacter, null));
   }
 
-  #mergeAccess(character, gameSlug, characterId, token, safeSet) {
+  #mergeAccess(character, gameSlug, characterId, safeSet) {
     if (!character) {
       safeSet(this.setCharacter, null);
       return Promise.resolve();
     }
 
-    return this.characterClient.fetchCharacterAccess(this.characterKind, gameSlug, characterId, token)
-      .then((response) => (response.ok ? response.json() : { can_edit: false }))
-      .then((access) => safeSet(this.setCharacter, { ...character, can_edit: Boolean(access.can_edit) }))
-      .catch(() => safeSet(this.setCharacter, character));
+    return AccessStore.ensureCharacterAccess(this.characterKind, gameSlug, characterId)
+      .then((access) => safeSet(this.setCharacter, { ...character, can_edit: Boolean(access.can_edit) }));
   }
 }

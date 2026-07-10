@@ -1,7 +1,6 @@
-import AuthClient from '../../../client/AuthClient.js';
 import TreasureClient from '../../../client/TreasureClient.js';
-import AdminAccess from '../../../utils/AdminAccess.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import AccessStore from '../../../utils/AccessStore.js';
 import BasePageController from './BasePageController.js';
 import Noop from '../../../utils/Noop.js';
 
@@ -15,14 +14,12 @@ export default class TreasureNewController extends BasePageController {
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
    * @param {TreasureClient|null} [treasureClient] - Treasure client override.
-   * @param {AuthClient|null} [authClient] - Auth client override.
    */
-  constructor(setError, setFieldErrors = Noop.noop, treasureClient = null, authClient = null) {
+  constructor(setError, setFieldErrors = Noop.noop, treasureClient = null) {
     super();
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;
     this.treasureClient = treasureClient ?? new TreasureClient();
-    this.authClient = authClient ?? new AuthClient();
   }
 
   /**
@@ -34,7 +31,7 @@ export default class TreasureNewController extends BasePageController {
    */
   buildEffect() {
     return () => {
-      AdminAccess.isSuperUser(this.authClient).then((isSuperUser) => {
+      AccessStore.ensureSuperUser().then((isSuperUser) => {
         if (!isSuperUser) {
           if (typeof window !== 'undefined') {
             window.location.hash = '/';
@@ -63,7 +60,7 @@ export default class TreasureNewController extends BasePageController {
     setters.setStatus('submitting');
     setters.setFieldErrors({});
 
-    const isSuperUser = await AdminAccess.isSuperUser(this.authClient);
+    const isSuperUser = await AccessStore.ensureSuperUser();
 
     if (!isSuperUser) {
       if (typeof window !== 'undefined') {

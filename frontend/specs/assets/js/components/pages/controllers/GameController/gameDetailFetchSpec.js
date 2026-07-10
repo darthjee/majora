@@ -1,12 +1,10 @@
 import GameController from '../../../../../../../assets/js/components/pages/controllers/GameController.js';
 import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
-import { buildGameClient } from './support.js';
+import { stubEnsureGameAccess } from './support.js';
 
 describe('GameController', function() {
-  let gameClient;
-
   beforeEach(function() {
-    gameClient = buildGameClient();
+    stubEnsureGameAccess();
   });
 
   afterEach(function() {
@@ -32,7 +30,7 @@ describe('GameController', function() {
       return Promise.resolve({ game_slug: 'demo' });
     });
 
-    const cleanup = new GameController(setGame, setLoading, setError, setPcs, setNpcs, client, gameClient)
+    const cleanup = new GameController(setGame, setLoading, setError, setPcs, setNpcs, client)
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 

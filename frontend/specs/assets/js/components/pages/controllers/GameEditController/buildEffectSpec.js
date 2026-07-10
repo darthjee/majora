@@ -1,4 +1,5 @@
 import GameEditController from '../../../../../../../assets/js/components/pages/controllers/GameEditController.js';
+import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
 
@@ -8,21 +9,18 @@ describe('GameEditController', function() {
   });
 
   describe('#buildEffect', function() {
-    it('fetches game and access in parallel and calls setGame with merged result', async function() {
+    it('fetches the game and merges AccessStore access, calling setGame with the result', async function() {
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: true }));
       const setGame = jasmine.createSpy('setGame');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
-      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame', 'fetchGameAccess']);
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame']);
       const fakeWindow = { location: { hash: '#/games/demo/edit' } };
       globalThis.window = fakeWindow;
 
       gameClient.fetchGame.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ name: 'Demo', game_slug: 'demo' }),
-      }));
-      gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ can_edit: true }),
       }));
 
       try {
@@ -31,7 +29,7 @@ describe('GameEditController', function() {
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(gameClient.fetchGame).toHaveBeenCalledWith('demo', null);
-        expect(gameClient.fetchGameAccess).toHaveBeenCalledWith('demo', null);
+        expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');
         expect(setGame).toHaveBeenCalledWith({ name: 'Demo', game_slug: 'demo', can_edit: true });
         expect(setLoading).toHaveBeenCalledWith(false);
         expect(setError).not.toHaveBeenCalled();
@@ -42,11 +40,12 @@ describe('GameEditController', function() {
       }
     });
 
-    it('sets can_edit to false when access response is not ok', async function() {
+    it('sets can_edit to false when AccessStore resolves with the fail-closed default', async function() {
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
       const setGame = jasmine.createSpy('setGame');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
-      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame', 'fetchGameAccess']);
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame']);
       const fakeWindow = { location: { hash: '#/games/demo/edit' } };
       globalThis.window = fakeWindow;
 
@@ -54,7 +53,6 @@ describe('GameEditController', function() {
         ok: true,
         json: () => Promise.resolve({ name: 'Demo', game_slug: 'demo' }),
       }));
-      gameClient.fetchGameAccess.and.returnValue(Promise.resolve({ ok: false }));
 
       try {
         const controller = new GameEditController(setGame, setLoading, setError, Noop.noop, gameClient);
@@ -73,18 +71,15 @@ describe('GameEditController', function() {
     });
 
     it('sets error when the game fetch fails', async function() {
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: true }));
       const setGame = jasmine.createSpy('setGame');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
-      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame', 'fetchGameAccess']);
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame']);
       const fakeWindow = { location: { hash: '#/games/demo/edit' } };
       globalThis.window = fakeWindow;
 
       gameClient.fetchGame.and.returnValue(Promise.resolve({ ok: false }));
-      gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ can_edit: true }),
-      }));
 
       try {
         const controller = new GameEditController(setGame, setLoading, setError, Noop.noop, gameClient);
@@ -102,10 +97,11 @@ describe('GameEditController', function() {
     });
 
     it('sends the token when the user is authenticated', async function() {
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: true }));
       const setGame = jasmine.createSpy('setGame');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
-      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame', 'fetchGameAccess']);
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame']);
       const fakeWindow = { location: { hash: '#/games/demo/edit' } };
       globalThis.window = fakeWindow;
 
@@ -115,10 +111,6 @@ describe('GameEditController', function() {
         ok: true,
         json: () => Promise.resolve({ name: 'Demo', game_slug: 'demo' }),
       }));
-      gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ can_edit: true }),
-      }));
 
       try {
         const controller = new GameEditController(setGame, setLoading, setError, Noop.noop, gameClient);
@@ -126,7 +118,7 @@ describe('GameEditController', function() {
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(gameClient.fetchGame).toHaveBeenCalledWith('demo', 'tok-abc');
-        expect(gameClient.fetchGameAccess).toHaveBeenCalledWith('demo', 'tok-abc');
+        expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');
 
         cleanup();
       } finally {

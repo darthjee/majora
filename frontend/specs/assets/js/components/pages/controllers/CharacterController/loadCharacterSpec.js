@@ -1,4 +1,5 @@
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
+import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
 import { StubCharacterController, safeSet, buildController } from './support.js';
 
 describe('CharacterController', function() {
@@ -6,15 +7,12 @@ describe('CharacterController', function() {
     const params = { game_slug: 'demo', character_id: '2' };
 
     it('fetches the character and merges access on success', async function() {
+      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: false }));
       const setCharacter = jasmine.createSpy('setCharacter');
       const controller = buildController(setCharacter, {
         fetchCharacter: () => Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ id: 2 }),
-        }),
-        fetchCharacterAccess: () => Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ can_edit: false }),
         }),
         fetchCharacterFull: () => Promise.resolve({ ok: false }),
       });

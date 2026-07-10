@@ -1,6 +1,7 @@
 import StaffUserController
   from '../../../../../../assets/js/components/pages/controllers/StaffUserController.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
+import AccessStore from '../../../../../../assets/js/utils/AccessStore.js';
 
 describe('StaffUserController', function() {
   afterEach(function() {
@@ -20,7 +21,6 @@ describe('StaffUserController', function() {
     let setLoading;
     let setError;
     let client;
-    let authClient;
     let fakeWindow;
 
     beforeEach(function() {
@@ -28,11 +28,7 @@ describe('StaffUserController', function() {
       setLoading = jasmine.createSpy('setLoading');
       setError = jasmine.createSpy('setError');
       client = jasmine.createSpyObj('client', ['fetchUser']);
-      authClient = jasmine.createSpyObj('authClient', ['status']);
-      authClient.status.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ is_superuser: true }),
-      }));
+      spyOn(AccessStore, 'ensureStaffOrSuperUser').and.returnValue(Promise.resolve(true));
       fakeWindow = { location: { hash: '#/staff/users/1' } };
       globalThis.window = fakeWindow;
       client.fetchUser.and.returnValue(Promise.resolve({
@@ -45,9 +41,7 @@ describe('StaffUserController', function() {
       delete globalThis.window;
     });
 
-    const buildController = () => new StaffUserController(
-      setUser, setLoading, setError, client, authClient,
-    );
+    const buildController = () => new StaffUserController(setUser, setLoading, setError, client);
 
     it('fetches the user and calls setUser with the result', async function() {
       const cleanup = buildController().buildEffect()();
@@ -99,10 +93,7 @@ describe('StaffUserController', function() {
     });
 
     it('redirects to home and does not fetch when the user is neither staff nor superuser', async function() {
-      authClient.status.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ is_superuser: false, is_staff: false }),
-      }));
+      AccessStore.ensureStaffOrSuperUser.and.returnValue(Promise.resolve(false));
 
       const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));

@@ -14,7 +14,6 @@ describe('GameTreasureEditController', function() {
     let setFieldErrors;
     let setStatus;
     let treasureClient;
-    let gameClient;
 
     beforeEach(function() {
       setTreasure = jasmine.createSpy('setTreasure');
@@ -23,7 +22,6 @@ describe('GameTreasureEditController', function() {
       setFieldErrors = jasmine.createSpy('setFieldErrors');
       setStatus = jasmine.createSpy('setStatus');
       treasureClient = jasmine.createSpyObj('treasureClient', ['updateGameTreasure']);
-      gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
       treasureClient.updateGameTreasure.and.returnValue(Promise.resolve({
         ok: true,
@@ -34,7 +32,7 @@ describe('GameTreasureEditController', function() {
 
     it('prevents default, resets status/errors, and submits the fields payload', async function() {
       const controller = new GameTreasureEditController(
-        setTreasure, setLoading, setError, setFieldErrors, treasureClient, gameClient,
+        setTreasure, setLoading, setError, setFieldErrors, treasureClient,
       );
       const event = jasmine.createSpyObj('event', ['preventDefault']);
       const fakeWindow = { location: { hash: '' } };
@@ -62,7 +60,7 @@ describe('GameTreasureEditController', function() {
 
     it('sends max_units as null when maxUnits is an empty string', async function() {
       const controller = new GameTreasureEditController(
-        setTreasure, setLoading, setError, setFieldErrors, treasureClient, gameClient,
+        setTreasure, setLoading, setError, setFieldErrors, treasureClient,
       );
 
       await controller.submitForm(
@@ -80,7 +78,7 @@ describe('GameTreasureEditController', function() {
 
     it('omits max_units from the payload when the treasure is exclusive to the game', async function() {
       const controller = new GameTreasureEditController(
-        setTreasure, setLoading, setError, setFieldErrors, treasureClient, gameClient,
+        setTreasure, setLoading, setError, setFieldErrors, treasureClient,
       );
 
       await controller.submitForm(
@@ -100,7 +98,7 @@ describe('GameTreasureEditController', function() {
 
     it('includes max_units in the payload when the treasure is linked (not exclusive)', async function() {
       const controller = new GameTreasureEditController(
-        setTreasure, setLoading, setError, setFieldErrors, treasureClient, gameClient,
+        setTreasure, setLoading, setError, setFieldErrors, treasureClient,
       );
 
       await controller.submitForm(
@@ -120,7 +118,7 @@ describe('GameTreasureEditController', function() {
 
     it('redirects to the game treasure detail page on success', async function() {
       const controller = new GameTreasureEditController(
-        setTreasure, setLoading, setError, setFieldErrors, treasureClient, gameClient,
+        setTreasure, setLoading, setError, setFieldErrors, treasureClient,
       );
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
@@ -148,7 +146,7 @@ describe('GameTreasureEditController', function() {
       }));
 
       const controller = new GameTreasureEditController(
-        setTreasure, setLoading, setError, setFieldErrors, treasureClient, gameClient,
+        setTreasure, setLoading, setError, setFieldErrors, treasureClient,
       );
 
       await controller.submitForm(
@@ -170,7 +168,7 @@ describe('GameTreasureEditController', function() {
       }));
 
       const controller = new GameTreasureEditController(
-        setTreasure, setLoading, setError, setFieldErrors, treasureClient, gameClient,
+        setTreasure, setLoading, setError, setFieldErrors, treasureClient,
       );
 
       await controller.submitForm(
@@ -188,7 +186,7 @@ describe('GameTreasureEditController', function() {
       treasureClient.updateGameTreasure.and.returnValue(Promise.reject(new Error('network error')));
 
       const controller = new GameTreasureEditController(
-        setTreasure, setLoading, setError, setFieldErrors, treasureClient, gameClient,
+        setTreasure, setLoading, setError, setFieldErrors, treasureClient,
       );
 
       await controller.submitForm(

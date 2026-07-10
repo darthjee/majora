@@ -1,5 +1,6 @@
 import GameSessionsController
   from '../../../../../../../assets/js/components/pages/controllers/GameSessionsController.js';
+import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
 
 describe('GameSessionsController', function() {
   it('does not update state after unmount', async function() {
@@ -9,17 +10,13 @@ describe('GameSessionsController', function() {
     const setError = jasmine.createSpy('setError');
     const setCanEdit = jasmine.createSpy('setCanEdit');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
-    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/sessions');
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [],
       pagination: { page: 1, pages: 1, perPage: 10 },
     }));
-    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ can_edit: true }),
-    }));
+    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: true }));
 
     const cleanup = new GameSessionsController(
       setSessions,
@@ -28,7 +25,6 @@ describe('GameSessionsController', function() {
       setError,
       client,
       setCanEdit,
-      gameClient,
     ).buildEffect()();
 
     cleanup();

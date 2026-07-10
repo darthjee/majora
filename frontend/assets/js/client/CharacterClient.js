@@ -43,10 +43,11 @@ export default class CharacterClient extends BaseClient {
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {string|number} characterId - Character id.
    * @param {string|null} token - Authentication token, if any.
+   * @param {AbortSignal} [signal] - Optional abort signal for the request.
    * @returns {Promise<Response>} fetch response from the character access endpoint.
    */
-  fetchCharacterAccess(characterKind, gameSlug, characterId, token) {
-    return this.#fetchCharacter(characterKind, gameSlug, characterId, token, 'access');
+  fetchCharacterAccess(characterKind, gameSlug, characterId, token, signal) {
+    return this.#fetchCharacter(characterKind, gameSlug, characterId, token, 'access', signal);
   }
 
   /**
@@ -193,11 +194,11 @@ export default class CharacterClient extends BaseClient {
     return this.patchJson(`/games/${gameSlug}/npcs/${characterId}/slain.json`, token, fields);
   }
 
-  #fetchCharacter(characterKind, gameSlug, characterId, token, suffix = null) {
+  #fetchCharacter(characterKind, gameSlug, characterId, token, suffix = null, signal) {
     const base = `/games/${gameSlug}/${characterKind}/${characterId}`;
     const path = suffix ? `${base}/${suffix}.json` : `${base}.json`;
     const skipCache = characterKind === 'npcs' && (suffix === null || suffix === 'treasures');
 
-    return this.getJson(path, token, skipCache ? { 'X-Skip-Cache': 'true' } : {});
+    return this.getJson(path, token, skipCache ? { 'X-Skip-Cache': 'true' } : {}, signal);
   }
 }

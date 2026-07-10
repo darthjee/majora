@@ -1,4 +1,5 @@
 import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
+import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
 import { TestCharacterEditController, buildContext } from './support.js';
 
@@ -18,16 +19,14 @@ describe('BaseCharacterEditController', function() {
 
   describe('#buildEffect', function() {
     it('delegates to the load controller buildEffect', async function() {
+      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: true }));
       const fullCharacterClient = jasmine.createSpyObj('characterClient', [
-        'fetchCharacter', 'fetchCharacterFull', 'fetchCharacterAccess', 'fetchCharacterTreasures', 'updateCharacter',
+        'fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'updateCharacter',
       ]);
 
       client.currentHash.and.returnValue('#/games/demo/npcs/1/edit');
       fullCharacterClient.fetchCharacter.and.returnValue(Promise.resolve({
         ok: true, json: () => Promise.resolve({ id: 1, can_edit: false }),
-      }));
-      fullCharacterClient.fetchCharacterAccess.and.returnValue(Promise.resolve({
-        ok: true, json: () => Promise.resolve({ can_edit: true }),
       }));
       fullCharacterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({
         ok: true, json: () => Promise.resolve([]),

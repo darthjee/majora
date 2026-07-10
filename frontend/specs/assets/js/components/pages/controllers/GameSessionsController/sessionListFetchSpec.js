@@ -1,5 +1,6 @@
 import GameSessionsController
   from '../../../../../../../assets/js/components/pages/controllers/GameSessionsController.js';
+import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
 
 describe('GameSessionsController', function() {
   it('uses route params to request game sessions', async function() {
@@ -9,17 +10,13 @@ describe('GameSessionsController', function() {
     const setError = jasmine.createSpy('setError');
     const setCanEdit = jasmine.createSpy('setCanEdit');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
-    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/sessions');
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [{ id: 1, title: 'Session 1', date: '2024-01-01', game_slug: 'demo' }],
       pagination: { page: 2, pages: 3, perPage: 4 },
     }));
-    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ can_edit: false }),
-    }));
+    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
 
     const cleanup = new GameSessionsController(
       setSessions,
@@ -28,7 +25,6 @@ describe('GameSessionsController', function() {
       setError,
       client,
       setCanEdit,
-      gameClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 

@@ -1,7 +1,7 @@
-import GameClient from '../../../client/GameClient.js';
 import GenericClient from '../../../client/GenericClient.js';
 import CharacterClient from '../../../client/CharacterClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import AccessStore from '../../../utils/AccessStore.js';
 import BasePageController from './BasePageController.js';
 import Noop from '../../../utils/Noop.js';
 import HashRouteResolver from '../../../utils/HashRouteResolver.js';
@@ -43,7 +43,6 @@ export default class GameNpcsController extends BasePageController {
    * @param {GenericClient|null} client - Client override.
    * @param {CharacterClient|null} characterClient - Character client override.
    * @param {Function} [setCanEdit] - Can-edit flag setter, gates the "New NPC" button.
-   * @param {GameClient|null} [gameClient] - Game client override, used for the access check.
    */
   constructor(
     setNpcs,
@@ -53,7 +52,6 @@ export default class GameNpcsController extends BasePageController {
     client = null,
     characterClient = null,
     setCanEdit = Noop.noop,
-    gameClient = null,
   ) {
     super();
     this.setNpcs = setNpcs;
@@ -63,7 +61,6 @@ export default class GameNpcsController extends BasePageController {
     this.client = client ?? new GenericClient();
     this.characterClient = characterClient ?? new CharacterClient();
     this.setCanEdit = setCanEdit;
-    this.gameClient = gameClient ?? new GameClient();
     this.hashResolver = new HashRouteResolver(() => this.client.currentHash());
   }
 
@@ -93,10 +90,7 @@ export default class GameNpcsController extends BasePageController {
   }
 
   #fetchAccess(gameSlug, safeSet) {
-    const token = AuthStorage.getToken();
-
-    this.gameClient.fetchGameAccess(gameSlug, token)
-      .then((response) => (response.ok ? response.json() : { can_edit: false }))
+    AccessStore.ensureGameAccess(gameSlug)
       .then((access) => safeSet(this.setCanEdit, Boolean(access.can_edit)))
       .catch(() => safeSet(this.setCanEdit, false));
   }

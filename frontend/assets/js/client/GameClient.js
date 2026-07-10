@@ -20,10 +20,11 @@ export default class GameClient extends BaseClient {
    *
    * @param {string} gameSlug - Game slug.
    * @param {string|null} token - Authentication token, if any.
+   * @param {AbortSignal} [signal] - Optional abort signal for the request.
    * @returns {Promise<Response>} fetch response from the game access endpoint.
    */
-  fetchGameAccess(gameSlug, token) {
-    return this.getJson(`/games/${gameSlug}/access.json`, token);
+  fetchGameAccess(gameSlug, token, signal) {
+    return this.getJson(`/games/${gameSlug}/access.json`, token, {}, signal);
   }
 
   /**

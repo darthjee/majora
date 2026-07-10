@@ -1,7 +1,7 @@
 import GenericClient from '../../../client/GenericClient.js';
-import GameClient from '../../../client/GameClient.js';
 import CharacterClient from '../../../client/CharacterClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import AccessStore from '../../../utils/AccessStore.js';
 import BasePageController from './BasePageController.js';
 import { MAX_PREVIEW_CHARACTERS } from '../../elements/characterPreviewConstants.js';
 import Noop from '../../../utils/Noop.js';
@@ -29,7 +29,6 @@ export default class GameController extends BasePageController {
    * @param {Function} [setPcs] - PCs preview setter.
    * @param {Function} [setNpcs] - NPCs preview setter.
    * @param {GenericClient|null} client - Client override.
-   * @param {GameClient|null} [gameClient] - Game client override for access check.
    * @param {CharacterClient|null} [characterClient] - Character client override.
    */
   constructor(
@@ -39,7 +38,6 @@ export default class GameController extends BasePageController {
     setPcs = Noop.noop,
     setNpcs = Noop.noop,
     client = null,
-    gameClient = null,
     characterClient = null,
   ) {
     super();
@@ -49,7 +47,6 @@ export default class GameController extends BasePageController {
     this.setPcs = setPcs;
     this.setNpcs = setNpcs;
     this.client = client ?? new GenericClient();
-    this.gameClient = gameClient ?? new GameClient();
     this.characterClient = characterClient ?? new CharacterClient();
   }
 
@@ -88,17 +85,7 @@ export default class GameController extends BasePageController {
   }
 
   #mergeAccess(gameSlug, game) {
-    const token = AuthStorage.getToken();
-
-    return this.gameClient.fetchGameAccess(gameSlug, token)
-      .then((response) => {
-        if (!response.ok) {
-          return { ...game, can_edit: false };
-        }
-
-        return response.json().then((access) => ({ ...game, ...access }));
-      })
-      .catch(() => ({ ...game, can_edit: false }));
+    return AccessStore.ensureGameAccess(gameSlug).then((access) => ({ ...game, ...access }));
   }
 
   /**

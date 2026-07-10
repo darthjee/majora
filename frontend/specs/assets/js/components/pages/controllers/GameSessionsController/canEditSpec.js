@@ -1,5 +1,6 @@
 import GameSessionsController
   from '../../../../../../../assets/js/components/pages/controllers/GameSessionsController.js';
+import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
 
 describe('GameSessionsController', function() {
   it('sets canEdit to true when the game access response allows editing', async function() {
@@ -9,17 +10,13 @@ describe('GameSessionsController', function() {
     const setError = jasmine.createSpy('setError');
     const setCanEdit = jasmine.createSpy('setCanEdit');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
-    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/sessions');
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [],
       pagination: { page: 1, pages: 1, perPage: 10 },
     }));
-    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ can_edit: true }),
-    }));
+    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: true }));
 
     const cleanup = new GameSessionsController(
       setSessions,
@@ -28,7 +25,6 @@ describe('GameSessionsController', function() {
       setError,
       client,
       setCanEdit,
-      gameClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -37,21 +33,20 @@ describe('GameSessionsController', function() {
     cleanup();
   });
 
-  it('sets canEdit to false when the access response is not ok', async function() {
+  it('sets canEdit to false when the access resolves with the fail-closed default', async function() {
     const setSessions = jasmine.createSpy('setSessions');
     const setPagination = jasmine.createSpy('setPagination');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const setCanEdit = jasmine.createSpy('setCanEdit');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
-    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/sessions');
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [],
       pagination: { page: 1, pages: 1, perPage: 10 },
     }));
-    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({ ok: false }));
+    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
 
     const cleanup = new GameSessionsController(
       setSessions,
@@ -60,7 +55,6 @@ describe('GameSessionsController', function() {
       setError,
       client,
       setCanEdit,
-      gameClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -76,14 +70,13 @@ describe('GameSessionsController', function() {
     const setError = jasmine.createSpy('setError');
     const setCanEdit = jasmine.createSpy('setCanEdit');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
-    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/sessions');
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [],
       pagination: { page: 1, pages: 1, perPage: 10 },
     }));
-    gameClient.fetchGameAccess.and.returnValue(Promise.reject(new Error('network error')));
+    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.reject(new Error('network error')));
 
     const cleanup = new GameSessionsController(
       setSessions,
@@ -92,7 +85,6 @@ describe('GameSessionsController', function() {
       setError,
       client,
       setCanEdit,
-      gameClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
