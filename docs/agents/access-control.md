@@ -49,6 +49,28 @@ both `GET /games.json` and `GET /games/<slug>.json`, to anyone.
 
 Unauthenticated `POST /games.json` → 401. Authenticated `PATCH /games/<slug>.json` by a non-GameMaster → 403.
 
+### Edit access status
+
+| Endpoint | Who can read | Response |
+|----------|-------------|----------|
+| `GET /games/<slug>/access.json` | Anyone | see below — cache-skipped |
+
+As of issue #396, the response shares the same `BaseAccessSerializer`-derived shape used by the
+Character and Treasure access endpoints below:
+
+| Field | Type | Value |
+|-------|------|-------|
+| `can_edit` | `bool` | Whether the requesting user may edit this game (`Game.can_be_edited_by`) — always a real boolean, regardless of authentication |
+| `username` | `str \| null` | The requesting user's username, or `null` if unauthenticated |
+| `is_superuser` | `bool \| null` | Whether the requesting user is a Django superuser, or `null` if unauthenticated |
+| `is_staff` | `bool \| null` | Whether the requesting user is Django staff, or `null` if unauthenticated |
+| `is_dm` | `bool \| null` | Whether the requesting user is a GameMaster of this game, or `null` if unauthenticated |
+| `is_owner` | `bool \| null` | Always `false` (never `null`, even when anonymous) — games have no ownership concept |
+
+All fields except `can_edit` are `null` for an anonymous caller, with one exception: `is_owner`
+is always `false` rather than `null`, since games have no ownership concept to report on in the
+first place.
+
 ---
 
 ## GamePhoto
@@ -305,8 +327,26 @@ it cannot otherwise read.
 
 | Endpoint | Who can read | Response |
 |----------|-------------|----------|
-| `GET /games/<slug>/pcs/<id>/access.json` | Anyone | `{ "can_edit": true/false }` — cache-skipped |
-| `GET /games/<slug>/npcs/<id>/access.json` | Anyone | `{ "can_edit": true/false }` — cache-skipped |
+| `GET /games/<slug>/pcs/<id>/access.json` | Anyone | see below — cache-skipped |
+| `GET /games/<slug>/npcs/<id>/access.json` | Anyone | see below — cache-skipped |
+
+As of issue #396, both endpoints share the same `BaseAccessSerializer`-derived response shape
+used by every `access.json` endpoint (game and treasure, see their respective "Edit access
+status" sections):
+
+| Field | Type | Value |
+|-------|------|-------|
+| `can_edit` | `bool` | Whether the requesting user may edit this character (`Character.can_be_edited_by`) — always a real boolean, regardless of authentication |
+| `username` | `str \| null` | The requesting user's username, or `null` if unauthenticated |
+| `is_superuser` | `bool \| null` | Whether the requesting user is a Django superuser, or `null` if unauthenticated |
+| `is_staff` | `bool \| null` | Whether the requesting user is Django staff, or `null` if unauthenticated |
+| `is_dm` | `bool \| null` | Whether the requesting user is a GameMaster of this character's game, or `null` if unauthenticated |
+| `is_owner` | `bool \| null` | **PC**: a real boolean — `character.player.user_id == requesting_user.id` — or `null` if unauthenticated. **NPC**: always `false` (never `null`, even when anonymous), since NPCs have no player-ownership concept |
+
+All fields except `can_edit` are `null` for an anonymous caller, with one exception: on the NPC
+endpoint, `is_owner` is always `false` rather than `null`, since NPCs have no ownership concept
+to report on in the first place (the PC endpoint's `is_owner`, by contrast, does follow the
+general null-when-anonymous rule, since it reports real per-user ownership).
 
 #### Cache-bypass mechanism for access endpoints
 
@@ -781,7 +821,7 @@ filter/gate used on the game-scoped endpoints to `treasures_list`/`treasure_deta
 
 | Endpoint | Who can read | Response |
 |----------|-------------|----------|
-| `GET /treasures/<id>/access.json` | Anyone | `{ "can_edit": true/false }` — cache-skipped |
+| `GET /treasures/<id>/access.json` | Anyone | see below — cache-skipped |
 
 The access endpoint always sets `X-Skip-Cache: true`. The path ends with `/access.json`, which is already listed in `frontend/assets/js/client/config/skipCacheSuffixes.js`, so no additional frontend config is needed.
 
@@ -790,6 +830,22 @@ As of issue #296, `can_edit` reports whether the requesting user can edit the tr
 treasure's owning game's GameMaster, when `treasure.game_id` is set). This does not change
 `Treasure.can_be_edited_by` itself (see "Edit rights logic" below) — it is computed
 separately in `TreasureAccessSerializer`.
+
+As of issue #396, the response shares the same `BaseAccessSerializer`-derived shape used by the
+Game and Character access endpoints above:
+
+| Field | Type | Value |
+|-------|------|-------|
+| `can_edit` | `bool` | As described above — always a real boolean, regardless of authentication |
+| `username` | `str \| null` | The requesting user's username, or `null` if unauthenticated |
+| `is_superuser` | `bool \| null` | Whether the requesting user is a Django superuser, or `null` if unauthenticated |
+| `is_staff` | `bool \| null` | Whether the requesting user is Django staff, or `null` if unauthenticated |
+| `is_dm` | `bool \| null` | Whether the requesting user is a GameMaster of the treasure's owning game, or `null` if unauthenticated. `false` when authenticated but the treasure has no `game_id` (global treasure) |
+| `is_owner` | `bool \| null` | Always `false` (never `null`, even when anonymous) — treasures have no ownership concept |
+
+All fields except `can_edit` are `null` for an anonymous caller, with one exception: `is_owner`
+is always `false` rather than `null`, since treasures have no ownership concept to report on in
+the first place.
 
 ### Edit rights logic
 
