@@ -99,8 +99,8 @@ class TestGameNpcSlainSetView:
         )
         assert response.status_code == 404
 
-    def test_missing_slain_returns_400(self, client):
-        """Test that a missing slain field returns 400."""
+    def test_missing_both_fields_returns_400(self, client):
+        """Test that a payload with neither slain nor public_slain returns 400."""
         response = self._patch(client, {}, token=self.dm_token)
         assert response.status_code == 400
 
@@ -109,13 +109,21 @@ class TestGameNpcSlainSetView:
         response = self._patch(client, {'slain': 'not-a-boolean'}, token=self.dm_token)
         assert response.status_code == 400
 
-    def test_sets_slain_to_true(self, client):
-        """Test that sending slain=True marks the NPC as slain."""
+    def test_non_boolean_public_slain_returns_400(self, client):
+        """Test that a non-boolean public_slain value returns 400."""
+        response = self._patch(
+            client, {'public_slain': 'not-a-boolean'}, token=self.dm_token
+        )
+        assert response.status_code == 400
+
+    def test_sets_slain_only(self, client):
+        """Test that sending only slain updates it and leaves public_slain untouched."""
         response = self._patch(client, {'slain': True}, token=self.dm_token)
         assert response.status_code == 200
-        assert response.json() == {'slain': True}
+        assert response.json() == {'slain': True, 'public_slain': False}
         self.npc.refresh_from_db()
         assert self.npc.slain is True
+        assert self.npc.public_slain is False
 
     def test_sets_slain_back_to_false(self, client):
         """Test that sending slain=False reverts a slain NPC to alive."""
@@ -124,9 +132,29 @@ class TestGameNpcSlainSetView:
 
         response = self._patch(client, {'slain': False}, token=self.dm_token)
         assert response.status_code == 200
-        assert response.json() == {'slain': False}
+        assert response.json() == {'slain': False, 'public_slain': False}
         self.npc.refresh_from_db()
         assert self.npc.slain is False
+
+    def test_sets_public_slain_only(self, client):
+        """Test that sending only public_slain updates it and leaves slain untouched."""
+        response = self._patch(client, {'public_slain': True}, token=self.dm_token)
+        assert response.status_code == 200
+        assert response.json() == {'slain': False, 'public_slain': True}
+        self.npc.refresh_from_db()
+        assert self.npc.slain is False
+        assert self.npc.public_slain is True
+
+    def test_sets_both_slain_and_public_slain(self, client):
+        """Test that sending both fields together updates both independently."""
+        response = self._patch(
+            client, {'slain': True, 'public_slain': False}, token=self.dm_token
+        )
+        assert response.status_code == 200
+        assert response.json() == {'slain': True, 'public_slain': False}
+        self.npc.refresh_from_db()
+        assert self.npc.slain is True
+        assert self.npc.public_slain is False
 
     def test_superuser_can_set_slain(self, client):
         """Test that a superuser is allowed to toggle the slain flag for any NPC."""

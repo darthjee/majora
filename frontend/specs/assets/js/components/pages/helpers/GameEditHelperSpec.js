@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameEditHelper from '../../../../../../assets/js/components/pages/helpers/GameEditHelper.jsx';
-import PhotoUploadOverlay from '../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
+import ActionsOverlay from '../../../../../../assets/js/components/elements/ActionsOverlay.jsx';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -124,7 +124,7 @@ describe('GameEditHelper', function() {
     it('renders the photo overlay bound to the open upload modal handler and always editable', function() {
       const handlers = buildHandlers();
       const element = GameEditHelper.render(buildState(), handlers);
-      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
       expect(overlay.props.canEdit).toBe(true);
 
@@ -138,7 +138,7 @@ describe('GameEditHelper', function() {
         buildState({ cover_photo_path: 'http://example.com/cover.png' }),
         buildHandlers(),
       );
-      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
       expect(overlay.props.url).toBe('http://example.com/cover.png');
     });

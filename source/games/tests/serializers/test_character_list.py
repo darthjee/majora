@@ -58,10 +58,18 @@ class TestCharacterListSerializer:
 
     def test_serializes_slain_as_true_when_set(self):
         """Test that slain reflects the model value when True."""
-        self.character.slain = True
+        self.character.public_slain = True
         self.character.save()
         data = CharacterListSerializer(self.character).data
         assert data['slain'] is True
+
+    def test_serializes_slain_sourced_from_public_slain(self):
+        """Test that slain is sourced from public_slain, not the real field."""
+        self.character.slain = True
+        self.character.public_slain = False
+        self.character.save()
+        data = CharacterListSerializer(self.character).data
+        assert data['slain'] is False
 
     def test_serializes_allegiance_as_neutral_by_default(self):
         """Test that allegiance defaults to 'neutral'."""

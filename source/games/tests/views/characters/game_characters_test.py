@@ -172,23 +172,23 @@ class TestGameNpcsFilter:
         return [item['name'] for item in json.loads(response.content)]
 
     def test_slain_true_returns_only_slain_npcs(self, client):
-        """Test that slain=true returns only slain NPCs."""
-        CharacterFactory(name='Alive NPC', game=self.game, npc=True, slain=False)
-        CharacterFactory(name='Dead NPC', game=self.game, npc=True, slain=True)
+        """Test that slain=true returns only publicly slain NPCs."""
+        CharacterFactory(name='Alive NPC', game=self.game, npc=True, public_slain=False)
+        CharacterFactory(name='Dead NPC', game=self.game, npc=True, public_slain=True)
         response = client.get('/games/test-game/npcs.json?slain=true')
         assert self._names(response) == ['Dead NPC']
 
     def test_slain_false_returns_only_alive_npcs(self, client):
-        """Test that slain=false returns only alive NPCs."""
-        CharacterFactory(name='Alive NPC', game=self.game, npc=True, slain=False)
-        CharacterFactory(name='Dead NPC', game=self.game, npc=True, slain=True)
+        """Test that slain=false returns only publicly alive NPCs."""
+        CharacterFactory(name='Alive NPC', game=self.game, npc=True, public_slain=False)
+        CharacterFactory(name='Dead NPC', game=self.game, npc=True, public_slain=True)
         response = client.get('/games/test-game/npcs.json?slain=false')
         assert self._names(response) == ['Alive NPC']
 
     def test_invalid_slain_value_is_ignored(self, client):
         """Test that an unrecognized slain value applies no filter and does not 400."""
-        CharacterFactory(name='Alive NPC', game=self.game, npc=True, slain=False)
-        CharacterFactory(name='Dead NPC', game=self.game, npc=True, slain=True)
+        CharacterFactory(name='Alive NPC', game=self.game, npc=True, public_slain=False)
+        CharacterFactory(name='Dead NPC', game=self.game, npc=True, public_slain=True)
         response = client.get('/games/test-game/npcs.json?slain=unknown')
         assert response.status_code == 200
         assert sorted(self._names(response)) == ['Alive NPC', 'Dead NPC']
@@ -202,26 +202,37 @@ class TestGameNpcsFilter:
 
     def test_name_and_slain_filters_combine(self, client):
         """Test that name and slain filters apply together (AND)."""
-        CharacterFactory(name='Sir Villain', game=self.game, npc=True, slain=True)
-        CharacterFactory(name='Sir Villain Twin', game=self.game, npc=True, slain=False)
+        CharacterFactory(name='Sir Villain', game=self.game, npc=True, public_slain=True)
+        CharacterFactory(name='Sir Villain Twin', game=self.game, npc=True, public_slain=False)
         response = client.get('/games/test-game/npcs.json?name=villain&slain=true')
         assert self._names(response) == ['Sir Villain']
 
     def test_filters_combine_with_pagination(self, client):
         """Test that filtered results affect the pages header."""
         for i in range(3):
-            CharacterFactory(name=f'Slain NPC {i}', game=self.game, npc=True, slain=True)
-        CharacterFactory(name='Alive NPC', game=self.game, npc=True, slain=False)
+            CharacterFactory(name=f'Slain NPC {i}', game=self.game, npc=True, public_slain=True)
+        CharacterFactory(name='Alive NPC', game=self.game, npc=True, public_slain=False)
         response = client.get('/games/test-game/npcs.json?slain=true&per_page=2')
         assert response['pages'] == '2'
         assert response['total'] == '3'
 
     def test_no_filter_params_preserves_current_behavior(self, client):
         """Test that omitting filter params returns the unfiltered NPC list."""
-        CharacterFactory(name='Alive NPC', game=self.game, npc=True, slain=False)
-        CharacterFactory(name='Dead NPC', game=self.game, npc=True, slain=True)
+        CharacterFactory(name='Alive NPC', game=self.game, npc=True, public_slain=False)
+        CharacterFactory(name='Dead NPC', game=self.game, npc=True, public_slain=True)
         response = client.get('/games/test-game/npcs.json')
         assert sorted(self._names(response)) == ['Alive NPC', 'Dead NPC']
+
+    def test_slain_filter_matches_public_slain(self, client):
+        """Test that ?slain= filters npcs.json on public_slain, not the real slain field."""
+        CharacterFactory(
+            name='Faked Death NPC', game=self.game, npc=True, slain=False, public_slain=True,
+        )
+        CharacterFactory(
+            name='Hidden Death NPC', game=self.game, npc=True, slain=True, public_slain=False,
+        )
+        response = client.get('/games/test-game/npcs.json?slain=true')
+        assert self._names(response) == ['Faked Death NPC']
 
     def test_allegiance_filter_matches_public_allegiance(self, client):
         """Test that ?allegiance= filters npcs.json on public_allegiance."""

@@ -93,6 +93,16 @@ class TestCharacter:
         character = CharacterFactory(name='Gimli', game=self.game)
         assert character.public_allegiance == Character.ALLEGIANCE_NEUTRAL
 
+    def test_slain_defaults_to_false(self):
+        """Test that slain defaults to False on new characters."""
+        character = CharacterFactory(name='Gimli', game=self.game)
+        assert character.slain is False
+
+    def test_public_slain_defaults_to_false(self):
+        """Test that public_slain defaults to False on new characters."""
+        character = CharacterFactory(name='Gimli', game=self.game)
+        assert character.public_slain is False
+
     def test_money_defaults_to_zero(self):
         """Test that money defaults to 0 on new characters."""
         character = CharacterFactory(name='Gimli', game=self.game)

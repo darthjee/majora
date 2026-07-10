@@ -174,6 +174,18 @@ class TestGameNpcsAllView(TokenAuthRequestMixin):
         response = self._get_with_query(client, '?allegiance=ally', token=token)
         assert self._names(response) == ['Visible NPC']
 
+    def test_slain_filter_matches_real_slain(self, client):
+        """Test that ?slain= filters npcs/all.json on the real slain field, not public_slain."""
+        self.visible_npc.slain = True
+        self.visible_npc.public_slain = False
+        self.visible_npc.save()
+        self.hidden_npc.slain = False
+        self.hidden_npc.public_slain = True
+        self.hidden_npc.save()
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get_with_query(client, '?slain=true', token=token)
+        assert self._names(response) == ['Visible NPC']
+
     def test_invalid_allegiance_value_is_ignored(self, client):
         """Test that an unrecognized allegiance value applies no filter and does not 400."""
         token = Token.objects.create(user=self.dm_user)

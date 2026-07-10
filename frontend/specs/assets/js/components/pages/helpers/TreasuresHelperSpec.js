@@ -45,12 +45,12 @@ describe('TreasuresHelper', function() {
 
     it('does not render upload buttons when isSuperUser is false', function() {
       const html = renderToStaticMarkup(TreasuresHelper.render(treasures, pagination, false, Noop.noop));
-      expect(html).not.toContain('photo-upload-overlay-button');
+      expect(html).not.toContain('actions-overlay-button');
     });
 
     it('renders an upload button per treasure when isSuperUser is true', function() {
       const html = renderToStaticMarkup(TreasuresHelper.render(treasures, pagination, true, Noop.noop));
-      const matches = html.match(/photo-upload-overlay-button/g) || [];
+      const matches = html.match(/actions-overlay-button/g) || [];
       expect(matches.length).toBe(treasures.length);
     });
   });

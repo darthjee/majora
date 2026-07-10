@@ -32,7 +32,9 @@ export default class GameCharactersHelper {
    * @param {Function} [onUploadClick] - Called with the character object when an NPC card's
    *   upload overlay button is clicked (ignored for PCs).
    * @param {Function} [onSlainClick] - Called with the character object when an NPC card's
-   *   slain/revive overlay button is clicked (ignored for PCs).
+   *   real slain/revive overlay button is clicked (ignored for PCs).
+   * @param {Function} [onPublicSlainClick] - Called with the character object when an NPC card's
+   *   public slain/revive overlay button is clicked (ignored for PCs).
    * @param {object|URLSearchParams} [extraParams] - Additional active query params (e.g. NPC
    *   filters) preserved on every pagination link.
    * @param {React.ReactNode} [filters] - Optional filter bar rendered below the title and
@@ -42,7 +44,7 @@ export default class GameCharactersHelper {
   static render(
     characters, pagination, basePath, gameSlug, title, characterType, backHref,
     canEdit = false, newHref = '', onUploadClick = Noop.noop, onSlainClick = Noop.noop,
-    extraParams = {}, filters = null,
+    onPublicSlainClick = Noop.noop, extraParams = {}, filters = null,
   ) {
     const isNpc = characterType === 'npc';
 
@@ -64,7 +66,7 @@ export default class GameCharactersHelper {
               character={character}
               gameSlug={gameSlug}
               characterType={characterType}
-              {...(isNpc ? { canEdit, onUploadClick, onSlainClick } : {})}
+              {...(isNpc ? { canEdit, onUploadClick, onSlainClick, onPublicSlainClick } : {})}
             />
           ))}
         </div>

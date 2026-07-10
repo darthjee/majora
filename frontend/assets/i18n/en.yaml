@@ -38,6 +38,10 @@ slain_confirm_modal:
   revive_title: Revive Character
   slain_body: Are you sure you want to mark this character as slain?
   revive_body: Are you sure you want to revive this character?
+  public_slain_title: Mark as Publicly Slain
+  public_revive_title: Publicly Revive Character
+  public_slain_body: Are you sure you want to mark this character as publicly slain?
+  public_revive_body: Are you sure you want to publicly revive this character?
   confirm: Confirm
   cancel: Cancel
 back_button:
@@ -65,6 +69,8 @@ character_page:
   see_all_photos: Photos
   slain_button: Mark as Slain
   revive_button: Revive
+  public_slain_button: Mark as Publicly Slain
+  public_revive_button: Publicly Revive
   treasures_title: Treasures
 character_full_page:
   loading: Loading character...

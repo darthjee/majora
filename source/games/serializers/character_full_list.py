@@ -10,8 +10,10 @@ class CharacterFullListSerializer(CharacterListSerializer):
 
     allegiance = serializers.CharField(read_only=True)
     public_allegiance = serializers.CharField(read_only=True)
+    slain = serializers.BooleanField(read_only=True)
+    public_slain = serializers.BooleanField(read_only=True)
 
     class Meta(CharacterListSerializer.Meta):
         """Metadata for the CharacterFullListSerializer."""
 
-        fields = CharacterListSerializer.Meta.fields + ['public_allegiance']
+        fields = CharacterListSerializer.Meta.fields + ['public_allegiance', 'public_slain']

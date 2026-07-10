@@ -1,12 +1,12 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
-import PhotoUploadOverlay from '../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
+import ActionsOverlay from '../../../../../../assets/js/components/elements/ActionsOverlay.jsx';
 import Noop from '../../../../../../assets/js/utils/Noop.js';
 
-describe('PhotoUploadOverlay', function() {
+describe('ActionsOverlay', function() {
   it('renders a CardPhoto by default', function() {
     const html = renderToStaticMarkup(
-      React.createElement(PhotoUploadOverlay, {
+      React.createElement(ActionsOverlay, {
         url: 'http://example.com/photo.png',
         alt: 'Epic Quest',
         canEdit: true,
@@ -20,7 +20,7 @@ describe('PhotoUploadOverlay', function() {
 
   it('renders a CardTreasureImage when type is treasure', function() {
     const html = renderToStaticMarkup(
-      React.createElement(PhotoUploadOverlay, {
+      React.createElement(ActionsOverlay, {
         type: 'treasure',
         url: null,
         alt: 'Golden Crown',
@@ -34,7 +34,7 @@ describe('PhotoUploadOverlay', function() {
 
   it('renders a CardAvatar when type is avatar', function() {
     const html = renderToStaticMarkup(
-      React.createElement(PhotoUploadOverlay, {
+      React.createElement(ActionsOverlay, {
         type: 'avatar',
         url: null,
         alt: 'Aragorn',

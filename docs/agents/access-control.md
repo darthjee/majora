@@ -191,22 +191,30 @@ single character and gated by `CharacterEditPermission` instead of `GameEditPerm
 
 | Endpoint | Method | Who can call | Request body | Response |
 |----------|--------|-------------|---------------|----------|
-| `/games/<slug>/npcs/<id>/slain.json` | PATCH | `CharacterEditPermission` (the character's player, any GameMaster of that game, or superuser) | `{"slain": true\|false}` | `200 {"slain": true\|false}` |
+| `/games/<slug>/npcs/<id>/slain.json` | PATCH | `CharacterEditPermission` (the character's player, any GameMaster of that game, or superuser) | `{"slain": true\|false}` and/or `{"public_slain": true\|false}` (at least one key required) | `200 {"slain": true\|false, "public_slain": true\|false}` |
 
-Added in issue #315. There is no equivalent PC endpoint — `slain` is only ever toggled
-through this dedicated NPC route, mirroring the existing `hidden` NPC-only precedent (a
-field that lives on the shared `Character` model but is only meaningfully written for NPCs).
-Unlike `hidden`, `slain` is not part of `CharacterUpdateSerializer` or
+Added in issue #315; split into independent real/public fields in issue #397 (see "Slain
+fields" below for the full real/public split, mirroring the `allegiance`/`public_allegiance`
+split). There is no equivalent PC endpoint — `slain`/`public_slain` are only ever toggled
+through this dedicated NPC route, mirroring the existing `hidden` NPC-only precedent (fields
+that live on the shared `Character` model but are only meaningfully written for NPCs).
+Unlike `hidden`, `slain`/`public_slain` are not part of `CharacterUpdateSerializer` or
 `CharacterCreateSerializer` at all — this action endpoint, validated by the dedicated
-`CharacterSlainUpdateSerializer`, is its only write path.
+`CharacterSlainUpdateSerializer`, is their only write path.
 
 Since NPCs have no player by convention, `CharacterEditPermission` resolves in practice to
 "superuser or GameMaster (DM) of that game" for this endpoint.
 
+Each request body key present updates only that model field — sending `slain` alone leaves
+`public_slain` untouched, and vice versa; sending both updates both independently. The
+response always echoes the character's current `slain` and `public_slain` values, regardless
+of which keys were present in the request.
+
 - Unauthenticated → 401. Authenticated but not an editor of the NPC → 403.
 - Unknown `game_slug` or `character_id` (or a `character_id` that does not belong to
   `game_slug`, or is a PC id used against this NPC-only route) → 404.
-- Missing `slain` in the body, or a non-boolean value → 400.
+- Neither `slain` nor `public_slain` present in the body, or either present with a
+  non-boolean value → 400.
 
 ---
 
@@ -245,7 +253,7 @@ Characters are scoped to a game. Access is symmetric for PCs and NPCs unless not
 |----------|-------------|-----------------|
 | `GET /games/<slug>/pcs.json` | Anyone | `id`, `name`, `game_slug`, `profile_photo_path`, `slain`, `allegiance` |
 | `GET /games/<slug>/npcs.json` | Anyone | `id`, `name`, `game_slug`, `profile_photo_path`, `slain`, `allegiance` |
-| `GET /games/<slug>/npcs/all.json` | That game's GameMaster, or superuser (`GameEditPermission`) | Same as `npcs.json` (via `CharacterFullListSerializer`), plus `public_allegiance` — see "Allegiance fields" below for how `allegiance` differs here from the public list. Includes hidden NPCs, unlike `npcs.json`. Response always sets `X-Skip-Cache: true` |
+| `GET /games/<slug>/npcs/all.json` | That game's GameMaster, or superuser (`GameEditPermission`) | Same as `npcs.json` (via `CharacterFullListSerializer`), plus `public_allegiance` and `public_slain` — see "Allegiance fields" and "Slain fields" below for how `allegiance`/`slain` differ here from the public list. Includes hidden NPCs, unlike `npcs.json`. Response always sets `X-Skip-Cache: true` |
 
 This endpoint predates issue #360 (it already existed to reveal hidden NPCs to DMs) but had no
 dedicated documentation row until now — it was previously only referenced indirectly from the
@@ -263,17 +271,19 @@ dedicated documentation row until now — it was previously only referenced indi
 the `CharacterPhoto` selected as the character's profile photo (see "CharacterPhoto" and
 "Upload" below). Returned on the list, detail, and full-detail endpoints, to anyone.
 
-`slain` (added in issue #315) is a `BooleanField` (default `False`) shared by the `Character`
-model for both PCs and NPCs, and is returned read-only on the list and detail endpoints to
-anyone. Unlike `hidden`/`money`, it has no write path through `CharacterUpdateSerializer` or
-`CharacterCreateSerializer` — see the "Character slain-toggle endpoint" subsection below for
+`slain` (added in issue #315; split into real/public fields in issue #397) is a
+`BooleanField` (default `False`) shared by the `Character` model for both PCs and NPCs, and
+is returned read-only on the list and detail endpoints to anyone — on those public endpoints
+the `slain` JSON key is sourced from the `public_slain` model field (see "Slain fields"
+below). Unlike `hidden`/`money`, it has no write path through `CharacterUpdateSerializer` or
+`CharacterCreateSerializer` — see the "Character slain-toggle endpoint" subsection above for
 its only write path.
 
 ### Full detail (includes `private_description`)
 
 | Endpoint | Who can read | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs/<id>/full.json` | Player of this character, any GameMaster of this game, or superuser | All detail fields + `private_description` + `public_allegiance` (see "Allegiance fields" below) |
+| `GET /games/<slug>/pcs/<id>/full.json` | Player of this character, any GameMaster of this game, or superuser | All detail fields + `private_description` + `public_allegiance` + `public_slain` (see "Allegiance fields" and "Slain fields" below) |
 | `GET /games/<slug>/npcs/<id>/full.json` | Player of this character, any GameMaster of this game, or superuser | Same as above |
 
 Anonymous or insufficiently privileged authenticated users receive **401** or **403**.
@@ -322,6 +332,39 @@ convention as `?slain=`). `npcs.json` filters on `public_allegiance`; `npcs/all.
 on the real `allegiance` field — each endpoint filters on the same underlying field it exposes
 under the `allegiance` key, so the query param never lets an unauthorized caller filter on data
 it cannot otherwise read.
+
+### Slain fields (real/public split added in issue #397)
+
+`Character` has two independent `BooleanField`s (both defaulting to `False`), following the
+same real/public pattern as `allegiance`/`public_allegiance` above:
+
+- `slain` — the character's real death state, visible only to a DM/superuser.
+- `public_slain` — the death state shown to regular players.
+
+Both fields were added in issue #315 as a single shared field and split into this real/public
+pair in issue #397; the migration that introduced `public_slain` backfilled it from each
+existing row's `slain` value (rather than leaving it at the `False` default), so pre-existing
+NPCs' public and real death state started out identical.
+
+**Read exposure** — like `allegiance`, the JSON key `slain` means something different
+depending on the endpoint:
+
+- On the public list/detail endpoints (`pcs.json`, `npcs.json`, `pcs/<id>.json`,
+  `npcs/<id>.json`), the `slain` JSON key is sourced from the `public_slain` model field — the
+  real `slain` model field is never exposed there.
+- On the DM/admin endpoints (`npcs/all.json`, `pcs/<id>/full.json`, `npcs/<id>/full.json`),
+  `slain` is sourced from the real `slain` model field, and `public_slain` is additionally
+  exposed under its own key with the public-facing value.
+
+**Write access**: unlike `allegiance`/`public_allegiance`, neither `slain` nor `public_slain`
+was added to `CharacterUpdateSerializer` or `CharacterCreateSerializer` — both stay writable
+only through the dedicated "Character slain-toggle endpoint" above
+(`PATCH /games/<slug>/npcs/<id>/slain.json`), which accepts partial updates to either or both
+fields independently. There is no PC-facing write path for either field.
+
+**Filtering**: `npcs.json` filters `?slain=` on `public_slain`; `npcs/all.json` filters
+`?slain=` on the real `slain` field — same tolerant/unauthorized-safe convention as the
+`?allegiance=` filter above.
 
 ### Edit access status
 

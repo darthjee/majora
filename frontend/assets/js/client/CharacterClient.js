@@ -180,16 +180,17 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
-   * Sets the slain flag on an NPC character.
+   * Sets the slain and/or public_slain flags on an NPC character.
    *
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {string|number} characterId - Character id.
    * @param {string|null} token - Authentication token, if any.
-   * @param {boolean} slain - Desired slain state.
+   * @param {{slain: boolean}|{public_slain: boolean}} fields - Partial update body, holding
+   *   whichever of `slain`/`public_slain` is being toggled.
    * @returns {Promise<Response>} fetch response from the slain endpoint.
    */
-  setNpcSlain(gameSlug, characterId, token, slain) {
-    return this.patchJson(`/games/${gameSlug}/npcs/${characterId}/slain.json`, token, { slain });
+  setNpcSlain(gameSlug, characterId, token, fields) {
+    return this.patchJson(`/games/${gameSlug}/npcs/${characterId}/slain.json`, token, fields);
   }
 
   #fetchCharacter(characterKind, gameSlug, characterId, token, suffix = null) {
