@@ -16,9 +16,9 @@ Split `slain` into two fields, following the `allegiance`/`public_allegiance` pa
 This affects, at minimum:
 - NPC model + migration adding `public_slain`, backfilled from the existing `slain` value for current rows.
 - NPC serializers: DM-facing serializers expose both `slain` and `public_slain` under their real names; public-facing serializers expose `public_slain` aliased to the `slain` field name (mirroring how `public_allegiance` is aliased to `allegiance` today), so the real value is never sent to players over the API.
-- NPC create/edit/full serializers accept both fields.
+- `public_slain` is not added to the NPC create/edit serializers — like `slain` today, it stays writable only through the dedicated slain-toggle endpoint below, not through the general NPC create/edit form.
 - NPC filtering by slain status splits like allegiance filtering does: the DM-facing endpoint filters by real `slain`, the public-facing endpoint filters by `public_slain`.
-- The `PATCH /games/:game_slug/npcs/:id/slain.json` endpoint accepts partial updates to `slain` and/or `public_slain`, and becomes DM-only (tightening today's broader `CharacterEditPermission`, since a non-DM should not be able to toggle either the real or the public value). Opening `public_slain` up to non-DM editors is a possible future follow-up, out of scope here.
+- The `PATCH /games/:game_slug/npcs/:id/slain.json` endpoint accepts partial updates to `slain` and/or `public_slain`, keeping its existing `CharacterEditPermission` gate — which already resolves to DM/superuser-only in practice for NPCs, since NPCs have no player by convention. Both fields stay DM-only through this endpoint for now; opening `public_slain` up to a broader audience is a possible future follow-up, out of scope here.
 - The NPC card/detail slay control becomes 2 buttons, visible to the DM at the bottom right of the NPC picture:
   - Real slain button: `bi-skull-fill` (mark dead) / `bi-heart-fill` (mark alive).
   - Public slain button: `bi-skull` (mark dead) / `bi-heart` (mark alive).
