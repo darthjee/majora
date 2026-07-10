@@ -33,7 +33,9 @@ export default class CharacterCardHelper {
    * @param {number} character.id - Character ID.
    * @param {string} character.name - Character name.
    * @param {string|null} [character.profile_photo_path] - Optional profile photo path.
-   * @param {boolean} [character.slain] - Whether the character is slain (NPC only).
+   * @param {boolean} [character.slain] - Whether the character is (really) slain (NPC only).
+   * @param {boolean} [character.public_slain] - Whether the character is publicly slain
+   *   (NPC only, DM-facing data only).
    * @param {string} [character.allegiance] - Allegiance value (`'ally'`, `'enemy'`,
    *   `'neutral'`, or missing), drives the card border color for NPCs only.
    * @param {string} gameSlug - Game slug used to build the detail link.
@@ -44,12 +46,14 @@ export default class CharacterCardHelper {
    * @param {Function} [onUploadClick] - Called with the character object when the
    *   upload overlay button is clicked (NPC only).
    * @param {Function} [onSlainClick] - Called with the character object when the
-   *   slain/revive overlay button is clicked (NPC only).
+   *   real slain/revive overlay button is clicked (NPC only).
+   * @param {Function} [onPublicSlainClick] - Called with the character object when the
+   *   public slain/revive overlay button is clicked (NPC only).
    * @returns {React.ReactElement} Character card element.
    */
   static render(
-    character, gameSlug, characterType, size = 'normal',
-    canEdit = false, onUploadClick = Noop.noop, onSlainClick = Noop.noop,
+    character, gameSlug, characterType, size = 'normal', canEdit = false,
+    onUploadClick = Noop.noop, onSlainClick = Noop.noop, onPublicSlainClick = Noop.noop,
   ) {
     const isSmall = size === 'small';
     const columnClass = isSmall ? 'col-sm-3 col-md-2 col-lg-1' : 'col-sm-6 col-md-4 col-lg-3';
@@ -65,12 +69,51 @@ export default class CharacterCardHelper {
           className="text-decoration-none text-dark"
         >
           <div className={cardClass}>
-            {CharacterCardHelper.#renderPhoto(character, characterType, canEdit, onUploadClick, onSlainClick)}
+            {CharacterCardHelper.#renderPhoto(
+              character, characterType, canEdit, onUploadClick, onSlainClick, onPublicSlainClick,
+            )}
             {CharacterCardHelper.#renderCardBody(character, isSmall, HeadingTag)}
           </div>
         </a>
       </div>
     );
+  }
+
+  /**
+   * Build the real and public slain/revive secondary button definitions.
+   *
+   * @param {object} character - Character data object.
+   * @param {boolean} [character.slain] - The character's real slain state.
+   * @param {boolean} [character.public_slain] - The character's public slain state.
+   * @param {boolean} canEdit - Whether the current user may edit this NPC.
+   * @param {Function} onSlainClick - Called with the character object on real slain click.
+   * @param {Function} onPublicSlainClick - Called with the character object on public slain click.
+   * @returns {{label: string, variant: string, icon: string, onClick: Function}[]} Secondary
+   *   button definitions, empty when canEdit is false.
+   */
+  static #buildSecondaryButtons(character, canEdit, onSlainClick, onPublicSlainClick) {
+    if (!canEdit) {
+      return [];
+    }
+
+    return [
+      {
+        label: character.slain
+          ? Translator.t('character_page.revive_button')
+          : Translator.t('character_page.slain_button'),
+        variant: character.slain ? 'success' : 'danger',
+        icon: character.slain ? Icons.heart : Icons.skullFill,
+        onClick: CharacterCardHelper.#buildOverlayClickHandler(onSlainClick, character),
+      },
+      {
+        label: character.public_slain
+          ? Translator.t('character_page.public_revive_button')
+          : Translator.t('character_page.public_slain_button'),
+        variant: character.public_slain ? 'success' : 'danger',
+        icon: character.public_slain ? Icons.heartOutline : Icons.skull,
+        onClick: CharacterCardHelper.#buildOverlayClickHandler(onPublicSlainClick, character),
+      },
+    ];
   }
 
   /**
@@ -81,10 +124,11 @@ export default class CharacterCardHelper {
    * @param {string} characterType - Character type, either 'pc' or 'npc'.
    * @param {boolean} canEdit - Whether the current user may edit this NPC.
    * @param {Function} onUploadClick - Called with the character object on upload click.
-   * @param {Function} onSlainClick - Called with the character object on slain click.
+   * @param {Function} onSlainClick - Called with the character object on real slain click.
+   * @param {Function} onPublicSlainClick - Called with the character object on public slain click.
    * @returns {React.ReactElement} Rendered photo element.
    */
-  static #renderPhoto(character, characterType, canEdit, onUploadClick, onSlainClick) {
+  static #renderPhoto(character, characterType, canEdit, onUploadClick, onSlainClick, onPublicSlainClick) {
     if (characterType !== 'npc') {
       return <CardAvatar url={character.profile_photo_path} alt={character.name} />;
     }
@@ -97,14 +141,9 @@ export default class CharacterCardHelper {
         canEdit={canEdit}
         onClick={CharacterCardHelper.#buildOverlayClickHandler(onUploadClick, character)}
         grayscale={character.slain}
-        secondaryButton={canEdit ? {
-          label: character.slain
-            ? Translator.t('character_page.revive_button')
-            : Translator.t('character_page.slain_button'),
-          variant: character.slain ? 'success' : 'danger',
-          icon: character.slain ? Icons.heart : Icons.skull,
-          onClick: CharacterCardHelper.#buildOverlayClickHandler(onSlainClick, character),
-        } : undefined}
+        secondaryButtons={CharacterCardHelper.#buildSecondaryButtons(
+          character, canEdit, onSlainClick, onPublicSlainClick,
+        )}
       />
     );
   }

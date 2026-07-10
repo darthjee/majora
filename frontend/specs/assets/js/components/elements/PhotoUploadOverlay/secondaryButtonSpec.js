@@ -26,62 +26,85 @@ describe('PhotoUploadOverlay', function() {
         alt: 'Epic Quest',
         canEdit: true,
         onClick: Noop.noop,
-        secondaryButton: {
-          label: 'Mark as Slain', variant: 'danger', icon: 'bi-skull', onClick: Noop.noop,
-        },
+        secondaryButtons: [
+          { label: 'Mark as Slain', variant: 'danger', icon: 'bi-skull', onClick: Noop.noop },
+        ],
       })
     );
 
     expect(html).toContain('photo-upload-overlay-button-left');
   });
 
-  it('renders the secondary button with the right modifier and given label/variant', function() {
+  it('renders a single secondary button with the right modifier and given label/variant', function() {
     const html = renderToStaticMarkup(
       React.createElement(PhotoUploadOverlay, {
         url: null,
         alt: 'Epic Quest',
         canEdit: true,
         onClick: Noop.noop,
-        secondaryButton: {
-          label: 'Mark as Slain', variant: 'danger', icon: 'bi-skull', onClick: Noop.noop,
-        },
+        secondaryButtons: [
+          { label: 'Mark as Slain', variant: 'danger', icon: 'bi-skull', onClick: Noop.noop },
+        ],
       })
     );
 
-    expect(html).toContain('photo-upload-overlay-button-right');
+    expect(html).toContain('photo-upload-overlay-button-right"');
+    expect(html).not.toContain('photo-upload-overlay-button-right-2');
     expect(html).toContain('btn-danger');
     expect(html).toContain('bi-skull');
     expect(html).toContain('aria-label="Mark as Slain"');
     expect(html).toContain('title="Mark as Slain"');
   });
 
-  it('renders the secondary button regardless of canEdit (gating is the caller\'s responsibility)', function() {
+  it('renders two secondary buttons at their own position, both distinct from each other', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(PhotoUploadOverlay, {
+        url: null,
+        alt: 'Epic Quest',
+        canEdit: true,
+        onClick: Noop.noop,
+        secondaryButtons: [
+          { label: 'Mark as Slain', variant: 'danger', icon: 'bi-skull-fill', onClick: Noop.noop },
+          { label: 'Mark as Publicly Slain', variant: 'danger', icon: 'bi-skull', onClick: Noop.noop },
+        ],
+      })
+    );
+
+    expect(html).toContain('photo-upload-overlay-button-right"');
+    expect(html).toContain('photo-upload-overlay-button-right-2"');
+    expect(html).toContain('aria-label="Mark as Slain"');
+    expect(html).toContain('aria-label="Mark as Publicly Slain"');
+  });
+
+  it('renders the secondary buttons regardless of canEdit (gating is the caller\'s responsibility)', function() {
     const html = renderToStaticMarkup(
       React.createElement(PhotoUploadOverlay, {
         url: null,
         alt: 'Epic Quest',
         canEdit: false,
         onClick: Noop.noop,
-        secondaryButton: {
-          label: 'Mark as Slain', variant: 'danger', icon: 'bi-skull', onClick: Noop.noop,
-        },
+        secondaryButtons: [
+          { label: 'Mark as Slain', variant: 'danger', icon: 'bi-skull', onClick: Noop.noop },
+        ],
       })
     );
 
-    expect(html).toContain('photo-upload-overlay-button-right');
+    expect(html).toContain('photo-upload-overlay-button-right"');
     expect(html).not.toContain('photo-upload-overlay-button-left');
   });
 
-  it('invokes the secondary button onClick when clicked', function() {
-    const onSecondaryClick = jasmine.createSpy('onSecondaryClick');
+  it('invokes each secondary button\'s own onClick when clicked', function() {
+    const onFirstClick = jasmine.createSpy('onFirstClick');
+    const onSecondClick = jasmine.createSpy('onSecondClick');
     const rendered = PhotoUploadOverlay({
       url: null,
       alt: 'Epic Quest',
       canEdit: true,
       onClick: Noop.noop,
-      secondaryButton: {
-        label: 'Mark as Slain', variant: 'danger', icon: 'bi-skull', onClick: onSecondaryClick,
-      },
+      secondaryButtons: [
+        { label: 'Mark as Slain', variant: 'danger', icon: 'bi-skull-fill', onClick: onFirstClick },
+        { label: 'Mark as Publicly Slain', variant: 'danger', icon: 'bi-skull', onClick: onSecondClick },
+      ],
     });
 
     const buttons = [];
@@ -96,9 +119,13 @@ describe('PhotoUploadOverlay', function() {
     };
     collectButtons(rendered.props.children);
 
-    const secondaryButton = buttons.find((button) => button.props.className.includes('-right'));
-    secondaryButton.props.onClick();
+    const firstButton = buttons.find((button) => button.props['aria-label'] === 'Mark as Slain');
+    const secondButton = buttons.find((button) => button.props['aria-label'] === 'Mark as Publicly Slain');
 
-    expect(onSecondaryClick).toHaveBeenCalled();
+    firstButton.props.onClick();
+    secondButton.props.onClick();
+
+    expect(onFirstClick).toHaveBeenCalled();
+    expect(onSecondClick).toHaveBeenCalled();
   });
 });

@@ -124,9 +124,10 @@ describe('GameCharactersHelper', function() {
     it('forwards canEdit and click handlers to CharacterCard for npc characterType', function() {
       const onUploadClick = jasmine.createSpy('onUploadClick');
       const onSlainClick = jasmine.createSpy('onSlainClick');
+      const onPublicSlainClick = jasmine.createSpy('onPublicSlainClick');
       const element = GameCharactersHelper.render(
         characters, pagination, '#/games/eq/npcs', 'eq', 'Non-Player Characters', 'npc', '#/games/eq',
-        true, '#/games/eq/npcs/new', onUploadClick, onSlainClick,
+        true, '#/games/eq/npcs/new', onUploadClick, onSlainClick, onPublicSlainClick,
       );
       const cards = findElements(element, (child) => child.type === CharacterCard);
 
@@ -135,6 +136,7 @@ describe('GameCharactersHelper', function() {
         expect(card.props.canEdit).toBe(true);
         expect(card.props.onUploadClick).toBe(onUploadClick);
         expect(card.props.onSlainClick).toBe(onSlainClick);
+        expect(card.props.onPublicSlainClick).toBe(onPublicSlainClick);
       });
     });
 
@@ -143,7 +145,7 @@ describe('GameCharactersHelper', function() {
       const html = renderToStaticMarkup(
         GameCharactersHelper.render(
           characters, paginated, '#/games/eq/npcs', 'eq', 'Non-Player Characters', 'npc', '#/games/eq',
-          false, '', undefined, undefined, { slain: 'true', name: 'gob' },
+          false, '', undefined, undefined, undefined, { slain: 'true', name: 'gob' },
         )
       );
       expect(html).toContain('slain=true');
@@ -155,7 +157,7 @@ describe('GameCharactersHelper', function() {
       const html = renderToStaticMarkup(
         GameCharactersHelper.render(
           characters, pagination, '#/games/eq/npcs', 'eq', 'Non-Player Characters', 'npc', '#/games/eq',
-          false, '', undefined, undefined, {}, filtersMarker,
+          false, '', undefined, undefined, undefined, {}, filtersMarker,
         )
       );
       expect(html).toContain('data-testid="npc-filters-marker"');
@@ -182,6 +184,7 @@ describe('GameCharactersHelper', function() {
         expect(card.props.canEdit).toBeUndefined();
         expect(card.props.onUploadClick).toBeUndefined();
         expect(card.props.onSlainClick).toBeUndefined();
+        expect(card.props.onPublicSlainClick).toBeUndefined();
       });
     });
   });

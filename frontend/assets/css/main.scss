@@ -66,9 +66,19 @@ body {
     z-index: 2;
   }
 
+  .photo-upload-overlay-button-right-2 {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 3rem;
+    opacity: 0;
+    transition: opacity 0.15s ease-in-out;
+    z-index: 2;
+  }
+
   &:hover .photo-upload-overlay-button,
   &:hover .photo-upload-overlay-button-left,
-  &:hover .photo-upload-overlay-button-right {
+  &:hover .photo-upload-overlay-button-right,
+  &:hover .photo-upload-overlay-button-right-2 {
     opacity: 1;
   }
 }

@@ -9,7 +9,9 @@ import Noop from '../../utils/Noop.js';
  * @param {number} props.character.id - Character ID.
  * @param {string} props.character.name - Character name.
  * @param {string|null} [props.character.profile_photo_path] - Optional profile photo path.
- * @param {boolean} [props.character.slain] - Whether the character is slain (NPC only).
+ * @param {boolean} [props.character.slain] - Whether the character is (really) slain (NPC only).
+ * @param {boolean} [props.character.public_slain] - Whether the character is publicly slain
+ *   (NPC only, DM-facing data only).
  * @param {string} [props.character.allegiance] - Allegiance value (`'ally'`, `'enemy'`,
  *   `'neutral'`, or missing), drives the card border color for NPCs only.
  * @param {string} props.gameSlug - Game slug used to build the detail link.
@@ -20,14 +22,16 @@ import Noop from '../../utils/Noop.js';
  * @param {Function} [props.onUploadClick] - Called with the character object when the
  *   upload overlay button is clicked (NPC only).
  * @param {Function} [props.onSlainClick] - Called with the character object when the
- *   slain/revive overlay button is clicked (NPC only).
+ *   real slain/revive overlay button is clicked (NPC only).
+ * @param {Function} [props.onPublicSlainClick] - Called with the character object when the
+ *   public slain/revive overlay button is clicked (NPC only).
  * @returns {React.ReactElement} Character card element.
  */
 export default function CharacterCard({
-  character, gameSlug, characterType, size = 'normal',
-  canEdit = false, onUploadClick = Noop.noop, onSlainClick = Noop.noop,
+  character, gameSlug, characterType, size = 'normal', canEdit = false,
+  onUploadClick = Noop.noop, onSlainClick = Noop.noop, onPublicSlainClick = Noop.noop,
 }) {
   return CharacterCardHelper.render(
-    character, gameSlug, characterType, size, canEdit, onUploadClick, onSlainClick,
+    character, gameSlug, characterType, size, canEdit, onUploadClick, onSlainClick, onPublicSlainClick,
   );
 }

@@ -37,7 +37,7 @@ describe('SlainConfirmModalHelper', function() {
 
   describe('.render', function() {
     it('renders the "Mark as Slain" title and body when currently alive', function() {
-      const element = SlainConfirmModalHelper.render(true, false, buildHandlers());
+      const element = SlainConfirmModalHelper.render(true, false, false, buildHandlers());
       const title = findElement(element, (child) => child.type === Modal.Title);
 
       expect(title.props.children).toBe('Mark as Slain');
@@ -45,15 +45,33 @@ describe('SlainConfirmModalHelper', function() {
     });
 
     it('renders the "Revive Character" title and body when currently slain', function() {
-      const element = SlainConfirmModalHelper.render(true, true, buildHandlers());
+      const element = SlainConfirmModalHelper.render(true, true, false, buildHandlers());
       const title = findElement(element, (child) => child.type === Modal.Title);
 
       expect(title.props.children).toBe('Revive Character');
       expect(JSON.stringify(element)).toContain('Are you sure you want to revive this character?');
     });
 
+    it('renders the public "Mark as Publicly Slain" title and body when currently public-alive', function() {
+      const element = SlainConfirmModalHelper.render(true, false, true, buildHandlers());
+      const title = findElement(element, (child) => child.type === Modal.Title);
+
+      expect(title.props.children).toBe('Mark as Publicly Slain');
+      expect(JSON.stringify(element))
+        .toContain('Are you sure you want to mark this character as publicly slain?');
+    });
+
+    it('renders the public "Publicly Revive Character" title and body when currently public-slain', function() {
+      const element = SlainConfirmModalHelper.render(true, true, true, buildHandlers());
+      const title = findElement(element, (child) => child.type === Modal.Title);
+
+      expect(title.props.children).toBe('Publicly Revive Character');
+      expect(JSON.stringify(element))
+        .toContain('Are you sure you want to publicly revive this character?');
+    });
+
     it('uses the danger variant for the confirm button when currently alive', function() {
-      const element = SlainConfirmModalHelper.render(true, false, buildHandlers());
+      const element = SlainConfirmModalHelper.render(true, false, false, buildHandlers());
       const confirmButton = findElement(
         element,
         (child) => child.type === 'button' && child.props.className.includes('btn-danger')
@@ -63,7 +81,7 @@ describe('SlainConfirmModalHelper', function() {
     });
 
     it('uses the success variant for the confirm button when currently slain', function() {
-      const element = SlainConfirmModalHelper.render(true, true, buildHandlers());
+      const element = SlainConfirmModalHelper.render(true, true, false, buildHandlers());
       const confirmButton = findElement(
         element,
         (child) => child.type === 'button' && child.props.className.includes('btn-success')
@@ -74,7 +92,7 @@ describe('SlainConfirmModalHelper', function() {
 
     it('wires the cancel and confirm handlers', function() {
       const handlers = buildHandlers();
-      const element = SlainConfirmModalHelper.render(true, false, handlers);
+      const element = SlainConfirmModalHelper.render(true, false, false, handlers);
       const cancelButton = findElement(
         element,
         (child) => child.type === 'button' && child.props.className === 'btn btn-secondary'
@@ -93,7 +111,7 @@ describe('SlainConfirmModalHelper', function() {
 
     it('wires the modal onHide to the cancel handler', function() {
       const handlers = buildHandlers();
-      const element = SlainConfirmModalHelper.render(true, false, handlers);
+      const element = SlainConfirmModalHelper.render(true, false, false, handlers);
       const modal = findElement(element, (child) => child.type === Modal);
 
       modal.props.onHide();
@@ -102,7 +120,7 @@ describe('SlainConfirmModalHelper', function() {
     });
 
     it('respects the show flag', function() {
-      const element = SlainConfirmModalHelper.render(false, false, buildHandlers());
+      const element = SlainConfirmModalHelper.render(false, false, false, buildHandlers());
       const modal = findElement(element, (child) => child.type === Modal);
 
       expect(modal.props.show).toBe(false);

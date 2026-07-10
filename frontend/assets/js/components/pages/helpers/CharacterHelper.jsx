@@ -31,8 +31,10 @@ export default class CharacterHelper {
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
    * @param {boolean} [character.is_pc] - Whether the character is a PC (vs. an NPC), used
    *   to build the correct edit link segment and to gate the slain/revive button.
-   * @param {boolean} [character.slain] - Whether the character is slain, drives grayscale
-   *   rendering and the slain/revive button label.
+   * @param {boolean} [character.slain] - Whether the character is (really) slain, drives
+   *   grayscale rendering and the real slain/revive button label.
+   * @param {boolean} [character.public_slain] - Whether the character is publicly slain,
+   *   drives the public slain/revive button label (DM-facing data only).
    * @param {string} [character.allegiance] - Allegiance value (`'ally'`, `'enemy'`,
    *   `'neutral'`, or missing), drives the picture border color for NPCs only.
    * @param {string} [character.game_slug] - Slug of the game the character belongs to.
@@ -41,7 +43,8 @@ export default class CharacterHelper {
    *   (`id`, `treasure_id`, `name`, `quantity`, `value`, `photo_path`), rendered as a card
    *   grid with a link to the full list page.
    * @param {string} backHref - Hash path to the character's index page.
-   * @param {{onOpenUploadModal: Function, onOpenSlainModal: Function}} [handlers] - Event handlers.
+   * @param {{onOpenUploadModal: Function, onOpenSlainModal: Function,
+   *   onOpenPublicSlainModal: Function}} [handlers] - Event handlers.
    * @returns {React.ReactElement} Character detail element.
    */
   static render(character, backHref, handlers = {}) {
@@ -105,7 +108,8 @@ export default class CharacterHelper {
    * @param {string|null} [character.profile_photo_path] - Optional profile photo path.
    * @param {string} character.name - Character name.
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
-   * @param {boolean} [character.slain] - Whether the character is slain.
+   * @param {boolean} [character.slain] - Whether the character is (really) slain.
+   * @param {boolean} [character.public_slain] - Whether the character is publicly slain.
    * @param {boolean} [character.is_pc] - Whether the character is a PC.
    * @param {string} [character.allegiance] - Allegiance value driving the border color.
    * @param {{onOpenUploadModal: Function}} handlers - Event handlers.
@@ -120,7 +124,7 @@ export default class CharacterHelper {
         canEdit={character.can_edit}
         onClick={handlers.onOpenUploadModal}
         grayscale={character.slain}
-        secondaryButton={CharacterHelper.#buildSecondaryButton(character, handlers)}
+        secondaryButtons={CharacterHelper.#buildSecondaryButtons(character, handlers)}
       />
     );
 
@@ -132,30 +136,41 @@ export default class CharacterHelper {
   }
 
   /**
-   * Build the slain/revive secondary button definition, only for NPCs the
-   * current user may edit.
+   * Build the real and public slain/revive secondary button definitions, only
+   * for NPCs the current user may edit.
    *
    * @param {object} character - Character data object.
    * @param {boolean} [character.is_pc] - Whether the character is a PC.
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
-   * @param {boolean} [character.slain] - Whether the character is currently slain.
-   * @param {{onOpenSlainModal: Function}} handlers - Event handlers.
-   * @returns {{label: string, variant: string, icon: string, onClick: Function}|undefined} Secondary
-   *   button definition, or undefined when not applicable.
+   * @param {boolean} [character.slain] - Whether the character is currently (really) slain.
+   * @param {boolean} [character.public_slain] - Whether the character is currently publicly slain.
+   * @param {{onOpenSlainModal: Function, onOpenPublicSlainModal: Function}} handlers - Event handlers.
+   * @returns {{label: string, variant: string, icon: string, onClick: Function}[]} Secondary
+   *   button definitions, empty when not applicable.
    */
-  static #buildSecondaryButton(character, handlers) {
+  static #buildSecondaryButtons(character, handlers) {
     if (character.is_pc || !character.can_edit) {
-      return undefined;
+      return [];
     }
 
-    return {
-      label: character.slain
-        ? Translator.t('character_page.revive_button')
-        : Translator.t('character_page.slain_button'),
-      variant: character.slain ? 'success' : 'danger',
-      icon: character.slain ? Icons.heart : Icons.skull,
-      onClick: handlers.onOpenSlainModal,
-    };
+    return [
+      {
+        label: character.slain
+          ? Translator.t('character_page.revive_button')
+          : Translator.t('character_page.slain_button'),
+        variant: character.slain ? 'success' : 'danger',
+        icon: character.slain ? Icons.heart : Icons.skullFill,
+        onClick: handlers.onOpenSlainModal,
+      },
+      {
+        label: character.public_slain
+          ? Translator.t('character_page.public_revive_button')
+          : Translator.t('character_page.public_slain_button'),
+        variant: character.public_slain ? 'success' : 'danger',
+        icon: character.public_slain ? Icons.heartOutline : Icons.skull,
+        onClick: handlers.onOpenPublicSlainModal,
+      },
+    ];
   }
 
   /**

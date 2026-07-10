@@ -115,19 +115,34 @@ describe('CharacterCardHelper', function() {
       expect(html).not.toContain('<button');
     });
 
-    it('renders the Mark as Slain button icon for NPCs when canEdit is true and not slain', function() {
+    it('renders the real Mark as Slain button icon for NPCs when canEdit is true and not slain', function() {
       const html = renderToStaticMarkup(CharacterCardHelper.render(character, gameSlug, 'npc', 'normal', true));
-      expect(html).toContain('bi-skull');
+      expect(html).toContain('bi-skull-fill');
       expect(html).toContain('aria-label="Mark as Slain"');
       expect(html).toContain('title="Mark as Slain"');
     });
 
-    it('renders the Revive button icon for NPCs when canEdit is true and slain', function() {
+    it('renders the real Revive button icon for NPCs when canEdit is true and slain', function() {
       const c = { ...character, slain: true };
       const html = renderToStaticMarkup(CharacterCardHelper.render(c, gameSlug, 'npc', 'normal', true));
       expect(html).toContain('bi-heart-fill');
       expect(html).toContain('aria-label="Revive"');
       expect(html).toContain('title="Revive"');
+    });
+
+    it('renders the public Mark as Publicly Slain button icon for NPCs when canEdit is true and not public_slain', function() {
+      const html = renderToStaticMarkup(CharacterCardHelper.render(character, gameSlug, 'npc', 'normal', true));
+      expect(html).toContain('bi-skull"');
+      expect(html).toContain('aria-label="Mark as Publicly Slain"');
+      expect(html).toContain('title="Mark as Publicly Slain"');
+    });
+
+    it('renders the public Publicly Revive button icon for NPCs when canEdit is true and public_slain', function() {
+      const c = { ...character, public_slain: true };
+      const html = renderToStaticMarkup(CharacterCardHelper.render(c, gameSlug, 'npc', 'normal', true));
+      expect(html).toContain('bi-heart"');
+      expect(html).toContain('aria-label="Publicly Revive"');
+      expect(html).toContain('title="Publicly Revive"');
     });
 
     it('prevents navigation and calls onUploadClick with the character when the upload button is clicked', function() {
@@ -178,7 +193,7 @@ describe('CharacterCardHelper', function() {
       expect(html).not.toContain('border-secondary');
     });
 
-    it('prevents navigation and calls onSlainClick with the character when the slain button is clicked', function() {
+    it('prevents navigation and calls onSlainClick with the character when the real slain button is clicked', function() {
       const onSlainClick = jasmine.createSpy('onSlainClick');
       const element = CharacterCardHelper.render(
         character, gameSlug, 'npc', 'normal', true, jasmine.createSpy('onUploadClick'), onSlainClick,
@@ -189,12 +204,39 @@ describe('CharacterCardHelper', function() {
         stopPropagation: jasmine.createSpy('stopPropagation'),
       };
 
-      overlay.props.secondaryButton.onClick(fakeEvent);
+      overlay.props.secondaryButtons[0].onClick(fakeEvent);
 
       expect(fakeEvent.preventDefault).toHaveBeenCalled();
       expect(fakeEvent.stopPropagation).toHaveBeenCalled();
       expect(onSlainClick).toHaveBeenCalledWith(character);
       expect(onSlainClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('prevents navigation and calls onPublicSlainClick with the character when the public slain button is clicked', function() {
+      const onPublicSlainClick = jasmine.createSpy('onPublicSlainClick');
+      const element = CharacterCardHelper.render(
+        character, gameSlug, 'npc', 'normal', true,
+        jasmine.createSpy('onUploadClick'), jasmine.createSpy('onSlainClick'), onPublicSlainClick,
+      );
+      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+      const fakeEvent = {
+        preventDefault: jasmine.createSpy('preventDefault'),
+        stopPropagation: jasmine.createSpy('stopPropagation'),
+      };
+
+      overlay.props.secondaryButtons[1].onClick(fakeEvent);
+
+      expect(fakeEvent.preventDefault).toHaveBeenCalled();
+      expect(fakeEvent.stopPropagation).toHaveBeenCalled();
+      expect(onPublicSlainClick).toHaveBeenCalledWith(character);
+      expect(onPublicSlainClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('builds no secondary buttons for NPCs when canEdit is false', function() {
+      const element = CharacterCardHelper.render(character, gameSlug, 'npc', 'normal', false);
+      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+
+      expect(overlay.props.secondaryButtons).toEqual([]);
     });
   });
 });
