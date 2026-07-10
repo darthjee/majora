@@ -68,6 +68,8 @@ function force_deploy() {
 
 function run_deploy() {
   checkLastVersion
+  SERVICE_ID=$(service_id)
+  update_service_branch "$SERVICE_ID" "$CIRCLE_TAG"
   force_deploy
 }
 
