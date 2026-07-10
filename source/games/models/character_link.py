@@ -1,6 +1,7 @@
 """CharacterLink model for Majora RPG Campaign Management System."""
 
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 from games.models.character import Character
 
@@ -20,6 +21,7 @@ class CharacterLink(models.Model):
         max_length=32, choices=LINK_TYPE_CHOICES, blank=True, default=''
     )
     character = models.ForeignKey(Character, on_delete=models.CASCADE, related_name='links')
+    history = HistoricalRecords(app='versioning', user_db_constraint=False)
 
     def __str__(self):
         """Return string representation of the character link."""

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "majora"
-version = "0.29.0"
+version = "0.30.0"
 description = "Majora - RPG Campaign Management System"
 authors = ["darthjee"]
 license = "MIT"
@@ -12,6 +12,7 @@ mysqlclient = "^2.2"
 gunicorn = "^21.2"
 djangorestframework = "^3.14"
 django-cors-headers = "^4.3"
+django-simple-history = "^3.12.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0"
@@ -26,18 +27,18 @@ factory-boy = "^3.3"
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "majora_project.settings"
 pythonpath = ["."]
-testpaths = ["games/tests"]
+testpaths = ["games/tests", "versioning/tests"]
 python_files = ["*_test.py"]
 
 [tool.coverage.run]
-source = ["games"]
+source = ["games", "versioning"]
 omit = ["*/migrations/*", "*/tests/*"]
 
 [tool.coverage.report]
 omit = ["*/migrations/*", "*/tests/*"]
 
 [tool.bandit]
-exclude_dirs = ["games/tests", "source/games/tests"]
+exclude_dirs = ["games/tests", "source/games/tests", "versioning/tests", "source/versioning/tests"]
 
 [tool.ruff]
 line-length = 100

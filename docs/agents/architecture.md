@@ -68,6 +68,28 @@ The core Django app. Contains all domain models, REST views, and serializers for
 See root [`AGENTS.md`](../../AGENTS.md) for the current API endpoint list and domain model
 summary; `source/games/urls.py` and `source/games/models/` are the authoritative source.
 
+### `versioning/`
+
+Cross-cutting change-history infrastructure, not game domain logic — the second top-level
+Django app besides `games`. Wraps `django-simple-history` to keep full-state (not diff)
+snapshots of every save/delete on the tracked `games` models: `Game`, `Player`, `Character`,
+`Treasure`, `CharacterTreasure`, `GamePhoto`, `CharacterPhoto`, `Link`, `CharacterLink`, and
+`TreasurePhoto` — added via a `history = HistoricalRecords(app='versioning')` field on each
+model in `games/models/`. `GameTreasure` is intentionally excluded from tracking.
+
+- `HistoricalRecords(app='versioning')` routes each generated `Historical<Model>` table's
+  migration into `versioning/migrations/` instead of `games/migrations/`, keeping the
+  tracked models' own app free of history-table churn.
+- `simple_history.middleware.HistoryRequestMiddleware` (registered in `MIDDLEWARE`, after
+  `AuthenticationMiddleware`) captures the acting user as `history_user` on each historical
+  row — including for DRF-authenticated requests, since DRF's `Request.user` property
+  propagates the authenticated user back onto the underlying Django request before the
+  view's model save runs.
+- `admin.py` registers every `Historical<Model>` read-only (no add/change/delete), so history
+  can be inspected in Django Admin without allowing edits to past snapshots.
+- No new API endpoints or serializers are introduced; history is exposed only via Django
+  Admin. Surfacing history through the API is a separate concern.
+
 ## Frontend (`frontend/`)
 
 All React source code lives under `frontend/`. See [frontend.md](frontend.md) for the full component architecture, conventions, and how to add new pages and elements.

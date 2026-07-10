@@ -2,6 +2,7 @@
 
 from django.contrib.auth.models import User
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 from games.models.game import Game
 
@@ -18,6 +19,7 @@ class Player(models.Model):
         blank=True,
         related_name='players_accounts',
     )
+    history = HistoricalRecords(app='versioning', user_db_constraint=False)
 
     class Meta:
         """Metadata for the Player model."""
