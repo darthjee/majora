@@ -76,6 +76,7 @@ class TestGameAccessView(TokenAuthRequestMixin):
         assert data['is_superuser'] is None
         assert data['is_staff'] is None
         assert data['is_dm'] is None
+        assert data['is_player'] is None
         assert data['is_owner'] is False
 
     def test_dm_returns_correct_user_context_fields(self, client):
@@ -87,6 +88,7 @@ class TestGameAccessView(TokenAuthRequestMixin):
         assert data['is_superuser'] is False
         assert data['is_staff'] is False
         assert data['is_dm'] is True
+        assert data['is_player'] is False
         assert data['is_owner'] is False
 
     def test_superuser_returns_correct_user_context_fields(self, client):
@@ -99,6 +101,7 @@ class TestGameAccessView(TokenAuthRequestMixin):
         assert data['is_superuser'] is True
         assert data['is_staff'] is True
         assert data['is_dm'] is False
+        assert data['is_player'] is False
         assert data['is_owner'] is False
 
     def test_non_dm_user_returns_correct_user_context_fields(self, client):
@@ -111,6 +114,7 @@ class TestGameAccessView(TokenAuthRequestMixin):
         assert data['is_superuser'] is False
         assert data['is_staff'] is False
         assert data['is_dm'] is False
+        assert data['is_player'] is False
         assert data['is_owner'] is False
 
     def test_dm_via_session_returns_can_edit_true(self, client):

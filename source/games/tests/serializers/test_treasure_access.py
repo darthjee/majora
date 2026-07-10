@@ -8,6 +8,7 @@ from games.serializers import TreasureAccessSerializer
 from games.tests.factories import (
     GameFactory,
     GameMasterFactory,
+    PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -46,6 +47,7 @@ class TestTreasureAccessSerializer:
         assert data['is_superuser'] is True
         assert data['is_staff'] is True
         assert data['is_dm'] is False
+        assert data['is_player'] is False
         assert data['is_owner'] is False
 
     def test_regular_user_cannot_edit(self):
@@ -64,6 +66,7 @@ class TestTreasureAccessSerializer:
         assert data['is_superuser'] is False
         assert data['is_staff'] is False
         assert data['is_dm'] is False
+        assert data['is_player'] is False
         assert data['is_owner'] is False
 
     def test_anonymous_user_cannot_edit(self):
@@ -80,6 +83,7 @@ class TestTreasureAccessSerializer:
         assert data['is_superuser'] is None
         assert data['is_staff'] is None
         assert data['is_dm'] is None
+        assert data['is_player'] is False
         assert data['is_owner'] is False
 
     def test_none_treasure_returns_can_edit_false(self):
@@ -123,3 +127,21 @@ class TestTreasureAccessSerializer:
         request = _make_request(dm_user)
         data = TreasureAccessSerializer(self.treasure, context={'request': request}).data
         assert data['can_edit'] is False
+
+    def test_player_of_owning_game_returns_is_player_false(self):
+        """Test that is_player stays False for a player of the treasure's owning game."""
+        game = GameFactory(name='Test Game', game_slug='test-game')
+        player_user = UserFactory(username='player_user', password='secret-password')
+        player = PlayerFactory(name='Alice', user=player_user)
+        player.games.add(game)
+        self.treasure.game = game
+        self.treasure.save()
+        request = _make_request(player_user)
+        data = TreasureAccessSerializer(self.treasure, context={'request': request}).data
+        assert data['is_player'] is False
+
+    def test_anonymous_returns_is_player_false(self):
+        """Test that is_player stays False (never null) for an anonymous caller."""
+        request = _make_request(AnonymousUser())
+        data = TreasureAccessSerializer(self.treasure, context={'request': request}).data
+        assert data['is_player'] is False

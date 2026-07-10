@@ -65,11 +65,16 @@ Character and Treasure access endpoints below:
 | `is_superuser` | `bool \| null` | Whether the requesting user is a Django superuser, or `null` if unauthenticated |
 | `is_staff` | `bool \| null` | Whether the requesting user is Django staff, or `null` if unauthenticated |
 | `is_dm` | `bool \| null` | Whether the requesting user is a GameMaster of this game, or `null` if unauthenticated |
+| `is_player` | `bool \| null` | Whether the requesting user is linked to this game via `Player.games`, or `null` if unauthenticated (added in issue #410) |
 | `is_owner` | `bool \| null` | Always `false` (never `null`, even when anonymous) — games have no ownership concept |
 
 All fields except `can_edit` are `null` for an anonymous caller, with one exception: `is_owner`
 is always `false` rather than `null`, since games have no ownership concept to report on in the
 first place.
+
+**Note (issue #410):** `Player.games` is currently never written by any endpoint — only
+touched in a model test — so `is_player` reads `false` for every real authenticated user until
+a follow-up issue builds a flow to populate it.
 
 ---
 
@@ -384,6 +389,7 @@ status" sections):
 | `is_superuser` | `bool \| null` | Whether the requesting user is a Django superuser, or `null` if unauthenticated |
 | `is_staff` | `bool \| null` | Whether the requesting user is Django staff, or `null` if unauthenticated |
 | `is_dm` | `bool \| null` | Whether the requesting user is a GameMaster of this character's game, or `null` if unauthenticated |
+| `is_player` | `bool \| null` | Whether the requesting user is linked to this character's game via `Player.games`, or `null` if unauthenticated (added in issue #410; see the "Note" under the Game section above — currently always `false` in practice, since nothing populates `Player.games` yet) |
 | `is_owner` | `bool \| null` | **PC**: a real boolean — `character.player.user_id == requesting_user.id` — or `null` if unauthenticated. **NPC**: always `false` (never `null`, even when anonymous), since NPCs have no player-ownership concept |
 
 All fields except `can_edit` are `null` for an anonymous caller, with one exception: on the NPC
@@ -884,11 +890,13 @@ Game and Character access endpoints above:
 | `is_superuser` | `bool \| null` | Whether the requesting user is a Django superuser, or `null` if unauthenticated |
 | `is_staff` | `bool \| null` | Whether the requesting user is Django staff, or `null` if unauthenticated |
 | `is_dm` | `bool \| null` | Whether the requesting user is a GameMaster of the treasure's owning game, or `null` if unauthenticated. `false` when authenticated but the treasure has no `game_id` (global treasure) |
+| `is_player` | `bool \| null` | Always `false` (never `null`, even when anonymous, and even when the treasure has an owning game the requester is a player of) — deliberately **not** evaluated for treasure access, since this route isn't nested under `/games/<slug>/` (added in issue #410; a deliberate scope decision, unlike `is_dm`'s treasure-access behavior) |
 | `is_owner` | `bool \| null` | Always `false` (never `null`, even when anonymous) — treasures have no ownership concept |
 
-All fields except `can_edit` are `null` for an anonymous caller, with one exception: `is_owner`
+All fields except `can_edit` are `null` for an anonymous caller, with two exceptions: `is_owner`
 is always `false` rather than `null`, since treasures have no ownership concept to report on in
-the first place.
+the first place, and `is_player` is always `false` rather than `null` for the same
+not-evaluated-here reason (see above).
 
 ### Edit rights logic
 
