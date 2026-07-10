@@ -2,6 +2,7 @@
 
 from django.contrib.auth.models import User
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 from games.models.game import Game
 from games.models.player import Player
@@ -46,6 +47,7 @@ class Character(models.Model):
     profile_photo = models.ForeignKey(
         'games.CharacterPhoto', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
     )
+    history = HistoricalRecords(app='versioning', user_db_constraint=False)
 
     class Meta:
         """Metadata for the Character model."""

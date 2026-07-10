@@ -3,6 +3,7 @@
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 
 class Link(models.Model):
@@ -24,6 +25,7 @@ class Link(models.Model):
     )
     object_id = models.PositiveIntegerField(null=True, blank=True)
     content_object = GenericForeignKey('content_type', 'object_id')
+    history = HistoricalRecords(app='versioning', user_db_constraint=False)
 
     def __str__(self):
         """Return string representation of the link."""

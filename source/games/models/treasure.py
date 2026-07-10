@@ -1,6 +1,7 @@
 """Treasure model for Majora RPG Campaign Management System."""
 
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 
 class Treasure(models.Model):
@@ -16,6 +17,7 @@ class Treasure(models.Model):
         related_name='exclusive_treasures',
     )
     hidden = models.BooleanField(default=False)
+    history = HistoricalRecords(app='versioning', user_db_constraint=False)
 
     class Meta:
         """Metadata for the Treasure model."""

@@ -12,6 +12,7 @@ mysqlclient = "^2.2"
 gunicorn = "^21.2"
 djangorestframework = "^3.14"
 django-cors-headers = "^4.3"
+django-simple-history = "^3.12.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0"
@@ -26,11 +27,11 @@ factory-boy = "^3.3"
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "majora_project.settings"
 pythonpath = ["."]
-testpaths = ["games/tests"]
+testpaths = ["games/tests", "versioning/tests"]
 python_files = ["*_test.py"]
 
 [tool.coverage.run]
-source = ["games"]
+source = ["games", "versioning"]
 omit = ["*/migrations/*", "*/tests/*"]
 
 [tool.coverage.report]

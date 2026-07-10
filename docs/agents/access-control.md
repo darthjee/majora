@@ -1007,6 +1007,22 @@ it was originally scoped to.
 
 ---
 
+## Historical records (`versioning` app)
+
+Added in issue #406. `django-simple-history` generates one `Historical<Model>` table per
+tracked model — `Game`, `Player`, `Character`, `Treasure`, `CharacterTreasure`, `GamePhoto`,
+`CharacterPhoto`, `Link`, `CharacterLink`, `TreasurePhoto` — living in the `versioning` app
+(see `docs/agents/architecture.md`'s "`versioning/`" section). `GameTreasure` is not tracked.
+
+These tables carry the full field state of every tracked model at every past save/delete,
+plus `history_user` (the acting user, when known). **They are exposed only via Django
+Admin — out of scope per this document's own rule above — and never through any API
+endpoint or serializer.** There is no read or write path to a `Historical<Model>` row from
+any client-facing route; a future issue that wants to surface history through the API would
+need its own dedicated review and its own entry in this document.
+
+---
+
 ## Adding a new model
 
 When a new model is introduced, add it to this document in the same PR:
