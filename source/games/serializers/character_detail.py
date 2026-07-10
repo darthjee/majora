@@ -21,7 +21,7 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
     profile_photo_id = serializers.IntegerField(
         source='profile_photo.id', default=None, read_only=True
     )
-    slain = serializers.BooleanField(read_only=True)
+    slain = serializers.BooleanField(source='public_slain', read_only=True)
     allegiance = serializers.CharField(source='public_allegiance', read_only=True)
 
     class Meta:

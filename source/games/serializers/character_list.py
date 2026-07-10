@@ -12,7 +12,7 @@ class CharacterListSerializer(serializers.ModelSerializer):
     profile_photo_path = serializers.CharField(
         source='profile_photo.path', default=None, read_only=True
     )
-    slain = serializers.BooleanField(read_only=True)
+    slain = serializers.BooleanField(source='public_slain', read_only=True)
     allegiance = serializers.CharField(source='public_allegiance', read_only=True)
 
     class Meta:

@@ -35,6 +35,7 @@ class Character(models.Model):
     npc = models.BooleanField(default=True)
     hidden = models.BooleanField(default=False)
     slain = models.BooleanField(default=False)
+    public_slain = models.BooleanField(default=False)
     allegiance = models.CharField(
         max_length=16, choices=ALLEGIANCE_CHOICES, default=ALLEGIANCE_NEUTRAL
     )
