@@ -21,6 +21,7 @@ class BaseAccessSerializer(serializers.Serializer):
             'is_superuser': self._get_is_superuser(),
             'is_staff': self._get_is_staff(),
             'is_dm': self._get_is_dm(obj),
+            'is_player': self._get_is_player(obj),
             'is_owner': self._get_is_owner(obj),
         }
 
@@ -62,6 +63,25 @@ class BaseAccessSerializer(serializers.Serializer):
 
     def _game_for_dm(self, obj):
         """Return the game relevant to DM resolution for obj; None unless a subclass overrides."""
+        return None
+
+    def _get_is_player(self, obj):
+        """Return whether the requesting user is a player of the relevant game.
+
+        Unlike is_dm, this stays False (never null) when no game is resolved at all
+        (base default / non-overriding subclasses, e.g. TreasureAccessSerializer) — only
+        subclasses that resolve a real game follow the null-when-unauthenticated rule.
+        """
+        game = self._game_for_player(obj)
+        if game is None:
+            return False
+        if not self._is_authenticated():
+            return None
+        user = self._user()
+        return game.players.filter(user=user).exists()
+
+    def _game_for_player(self, obj):
+        """Return the game relevant to player resolution for obj; None unless overridden."""
         return None
 
     def _get_is_owner(self, obj):

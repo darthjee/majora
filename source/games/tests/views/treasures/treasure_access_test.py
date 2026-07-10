@@ -41,6 +41,7 @@ class TestTreasureAccessView(TokenAuthRequestMixin):
         assert data['is_superuser'] is None
         assert data['is_staff'] is None
         assert data['is_dm'] is None
+        assert data['is_player'] is False
         assert data['is_owner'] is False
 
     def test_superuser_returns_200_with_can_edit_true(self, client):
@@ -58,6 +59,7 @@ class TestTreasureAccessView(TokenAuthRequestMixin):
         assert data['is_superuser'] is True
         assert data['is_staff'] is True
         assert data['is_dm'] is False
+        assert data['is_player'] is False
         assert data['is_owner'] is False
 
     def test_regular_user_returns_200_with_can_edit_false(self, client):
@@ -75,6 +77,7 @@ class TestTreasureAccessView(TokenAuthRequestMixin):
         assert data['is_superuser'] is False
         assert data['is_staff'] is False
         assert data['is_dm'] is False
+        assert data['is_player'] is False
         assert data['is_owner'] is False
 
     def test_non_existent_treasure_returns_200_with_can_edit_false(self, client):

@@ -15,3 +15,7 @@ class CharacterAccessSerializer(BaseAccessSerializer):
     def _game_for_dm(self, character):
         """Return the game from context, the relevant game for DM resolution."""
         return self.context.get('game')
+
+    def _game_for_player(self, character):
+        """Return the game from context, the relevant game for player resolution."""
+        return self.context.get('game')
