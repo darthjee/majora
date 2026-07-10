@@ -1,26 +1,10 @@
 """Treasure access serializer for the games app."""
 
-from rest_framework import serializers
+from games.serializers.base_access import BaseAccessSerializer
 
 
-class TreasureAccessSerializer(serializers.Serializer):
+class TreasureAccessSerializer(BaseAccessSerializer):
     """Serializes access context fields for a treasure access response."""
-
-    @property
-    def data(self):
-        """Return serialized data, supporting None as a valid treasure instance."""
-        if not hasattr(self, '_data'):
-            self._data = self.to_representation(self.instance)
-        return self._data
-
-    def to_representation(self, treasure):
-        """Build the access response dict for the given treasure (may be None)."""
-        return {'can_edit': self._get_can_edit(treasure)}
-
-    def _user(self):
-        """Return the requesting user from context."""
-        request = self.context.get('request')
-        return request.user if request else None
 
     def _get_can_edit(self, treasure):
         """Return whether the requesting user may edit the treasure, via any available path."""
@@ -30,3 +14,9 @@ class TreasureAccessSerializer(serializers.Serializer):
         if treasure.can_be_edited_by(user):
             return True
         return treasure.game_id is not None and treasure.game.can_be_edited_by(user)
+
+    def _game_for_dm(self, treasure):
+        """Return the treasure's owning game, if any, for DM resolution."""
+        if treasure is None or treasure.game_id is None:
+            return None
+        return treasure.game

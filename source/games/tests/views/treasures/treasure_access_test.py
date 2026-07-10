@@ -33,6 +33,16 @@ class TestTreasureAccessView(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert data['can_edit'] is False
 
+    def test_unauthenticated_returns_null_user_context_fields(self, client):
+        """Test that unauthenticated request returns null for username, is_superuser, is_dm."""
+        response = self._get(client)
+        data = json.loads(response.content)
+        assert data['username'] is None
+        assert data['is_superuser'] is None
+        assert data['is_staff'] is None
+        assert data['is_dm'] is None
+        assert data['is_owner'] is False
+
     def test_superuser_returns_200_with_can_edit_true(self, client):
         """Test that a superuser returns 200 with can_edit true."""
         response = self._get(client, token=self.superuser_token)
@@ -40,12 +50,32 @@ class TestTreasureAccessView(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert data['can_edit'] is True
 
+    def test_superuser_returns_correct_user_context_fields(self, client):
+        """Test that superuser request returns correct username, is_superuser=True, is_dm=False."""
+        response = self._get(client, token=self.superuser_token)
+        data = json.loads(response.content)
+        assert data['username'] == 'admin'
+        assert data['is_superuser'] is True
+        assert data['is_staff'] is True
+        assert data['is_dm'] is False
+        assert data['is_owner'] is False
+
     def test_regular_user_returns_200_with_can_edit_false(self, client):
         """Test that a regular user returns 200 with can_edit false."""
         response = self._get(client, token=self.regular_token)
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['can_edit'] is False
+
+    def test_regular_user_returns_correct_user_context_fields(self, client):
+        """Test that regular user returns username, is_superuser=False, is_dm/is_owner=False."""
+        response = self._get(client, token=self.regular_token)
+        data = json.loads(response.content)
+        assert data['username'] == 'player'
+        assert data['is_superuser'] is False
+        assert data['is_staff'] is False
+        assert data['is_dm'] is False
+        assert data['is_owner'] is False
 
     def test_non_existent_treasure_returns_200_with_can_edit_false(self, client):
         """Test that a non-existent treasure id returns 200 with can_edit false."""

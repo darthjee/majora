@@ -28,7 +28,8 @@ class _BaseCharacterAccessViewTest(TokenAuthRequestMixin):
         return f'/games/{game_slug}/{self.segment}/{character.id}/access.json'
 
     def _assert_is_owner(self, data, expected):
-        """Assert the is_owner field, a no-op by default since NPCs expose no such field."""
+        """Assert is_owner is always False, since NPCs expose no ownership concept."""
+        assert data['is_owner'] is False
 
     def test_anonymous_returns_200_with_can_edit_false(self, client):
         """Test that an anonymous request returns 200 with can_edit false."""
@@ -89,6 +90,7 @@ class _BaseCharacterAccessViewTest(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert data['username'] is None
         assert data['is_superuser'] is None
+        assert data['is_staff'] is None
         assert data['is_dm'] is None
         self._assert_is_owner(data, None)
 
@@ -99,6 +101,7 @@ class _BaseCharacterAccessViewTest(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert data['username'] == 'dm_user'
         assert data['is_superuser'] is False
+        assert data['is_staff'] is False
         assert data['is_dm'] is True
         self._assert_is_owner(data, False)
 
@@ -110,6 +113,7 @@ class _BaseCharacterAccessViewTest(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert data['username'] == 'admin'
         assert data['is_superuser'] is True
+        assert data['is_staff'] is True
         assert data['is_dm'] is False
         self._assert_is_owner(data, False)
 
@@ -121,6 +125,7 @@ class _BaseCharacterAccessViewTest(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert data['username'] == 'other'
         assert data['is_superuser'] is False
+        assert data['is_staff'] is False
         assert data['is_dm'] is False
         self._assert_is_owner(data, False)
 
@@ -256,6 +261,7 @@ class TestGamePcAccessView(_BaseCharacterAccessViewTest):
         data = json.loads(response.content)
         assert data['username'] == 'owner'
         assert data['is_superuser'] is False
+        assert data['is_staff'] is False
         assert data['is_dm'] is False
         assert data['is_owner'] is True
 

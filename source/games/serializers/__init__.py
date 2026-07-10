@@ -1,5 +1,6 @@
 """Serializers package for the games app."""
 
+from games.serializers.base_access import BaseAccessSerializer
 from games.serializers.character_access import CharacterAccessSerializer
 from games.serializers.character_create import CharacterCreateSerializer
 from games.serializers.character_detail import CharacterDetailSerializer
@@ -42,6 +43,7 @@ from games.serializers.treasure_list import TreasureListSerializer
 from games.serializers.treasure_update import TreasureUpdateSerializer
 
 __all__ = [
+    'BaseAccessSerializer',
     'CharacterAccessSerializer',
     'CharacterCreateSerializer',
     'CharacterDetailSerializer',

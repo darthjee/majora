@@ -6,12 +6,6 @@ from games.serializers.character_access import CharacterAccessSerializer
 class PcAccessSerializer(CharacterAccessSerializer):
     """Serializes access context fields for a PC access response, including is_owner."""
 
-    def to_representation(self, character):
-        """Extend the character access response with the is_owner field."""
-        data = super().to_representation(character)
-        data['is_owner'] = self._get_is_owner(character)
-        return data
-
     def _get_is_owner(self, character):
         """Return whether the requesting user owns this PC, or None if unauthenticated."""
         if not self._is_authenticated():
