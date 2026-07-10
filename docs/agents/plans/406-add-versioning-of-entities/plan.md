@@ -29,6 +29,7 @@ update the lock file (`poetry add django-simple-history` inside the `majora_app`
 ### Step 2 — Create the `versioning` app
 
 Create `source/versioning/` as a standard Django app:
+
 - `__init__.py`
 - `apps.py` — `VersioningConfig(AppConfig)`, `name = 'versioning'`, `default_auto_field = 'django.db.models.BigAutoField'`
 - `migrations/__init__.py`
@@ -38,6 +39,7 @@ Create `source/versioning/` as a standard Django app:
 ### Step 3 — Wire up settings
 
 In `source/majora_project/settings.py`:
+
 - Add `'simple_history'` (the library's own app, required for its base tables/migrations) and
   `'versioning'` to `INSTALLED_APPS`.
 - Add `'simple_history.middleware.HistoryRequestMiddleware'` to `MIDDLEWARE` (after
@@ -80,6 +82,7 @@ read-only inspection since rollback UI is not a stated requirement.
 ### Step 7 — Update test/coverage configuration
 
 In `source/pyproject.toml`:
+
 - Extend `testpaths` to `["games/tests", "versioning/tests"]`.
 - Extend `[tool.coverage.run]` `source` to `["games", "versioning"]`.
 
@@ -89,6 +92,7 @@ Add tests under `source/versioning/tests/` (or alongside each model's existing t
 `source/games/tests/models/`, whichever keeps history assertions closest to the model they cover —
 follow the `test_*.py` naming already used in `games/tests/models/`) verifying, for at least a
 representative subset of the ten tracked models:
+
 - Saving/updating a tracked instance creates a new historical row with the full field state at
   that point in time (not a diff).
 - Deleting a tracked instance is also captured (simple_history records deletions by default).
