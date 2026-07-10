@@ -1,6 +1,6 @@
 import React from 'react';
 import CardAvatar from '../CardAvatar.jsx';
-import PhotoUploadOverlay from '../PhotoUploadOverlay.jsx';
+import ActionsOverlay from '../ActionsOverlay.jsx';
 import Translator from '../../../i18n/Translator.js';
 import Noop from '../../../utils/Noop.js';
 import allegianceBorderClass from '../../../utils/AllegianceBorder.js';
@@ -134,7 +134,7 @@ export default class CharacterCardHelper {
     }
 
     return (
-      <PhotoUploadOverlay
+      <ActionsOverlay
         type="avatar"
         url={character.profile_photo_path}
         alt={character.name}

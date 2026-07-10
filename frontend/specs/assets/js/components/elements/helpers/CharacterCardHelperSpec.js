@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterCardHelper from '../../../../../../assets/js/components/elements/helpers/CharacterCardHelper.jsx';
-import PhotoUploadOverlay from '../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
+import ActionsOverlay from '../../../../../../assets/js/components/elements/ActionsOverlay.jsx';
 import { buildCharacter } from '../../../../../support/factories.js';
 
 const findElement = (node, matcher) => {
@@ -97,7 +97,7 @@ describe('CharacterCardHelper', function() {
       expect(html).not.toContain('<button');
     });
 
-    it('renders the photo via PhotoUploadOverlay for NPCs', function() {
+    it('renders the photo via ActionsOverlay for NPCs', function() {
       const html = renderToStaticMarkup(CharacterCardHelper.render(character, gameSlug, 'npc'));
       expect(html).toContain('card-photo-square');
     });
@@ -105,7 +105,7 @@ describe('CharacterCardHelper', function() {
     it('applies grayscale for a slain NPC', function() {
       const c = { ...character, slain: true };
       const element = CharacterCardHelper.render(c, gameSlug, 'npc');
-      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
       expect(overlay.props.grayscale).toBe(true);
     });
@@ -148,7 +148,7 @@ describe('CharacterCardHelper', function() {
     it('prevents navigation and calls onUploadClick with the character when the upload button is clicked', function() {
       const onUploadClick = jasmine.createSpy('onUploadClick');
       const element = CharacterCardHelper.render(character, gameSlug, 'npc', 'normal', true, onUploadClick);
-      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
       const fakeEvent = {
         preventDefault: jasmine.createSpy('preventDefault'),
         stopPropagation: jasmine.createSpy('stopPropagation'),
@@ -198,7 +198,7 @@ describe('CharacterCardHelper', function() {
       const element = CharacterCardHelper.render(
         character, gameSlug, 'npc', 'normal', true, jasmine.createSpy('onUploadClick'), onSlainClick,
       );
-      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
       const fakeEvent = {
         preventDefault: jasmine.createSpy('preventDefault'),
         stopPropagation: jasmine.createSpy('stopPropagation'),
@@ -218,7 +218,7 @@ describe('CharacterCardHelper', function() {
         character, gameSlug, 'npc', 'normal', true,
         jasmine.createSpy('onUploadClick'), jasmine.createSpy('onSlainClick'), onPublicSlainClick,
       );
-      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
       const fakeEvent = {
         preventDefault: jasmine.createSpy('preventDefault'),
         stopPropagation: jasmine.createSpy('stopPropagation'),
@@ -234,7 +234,7 @@ describe('CharacterCardHelper', function() {
 
     it('builds no secondary buttons for NPCs when canEdit is false', function() {
       const element = CharacterCardHelper.render(character, gameSlug, 'npc', 'normal', false);
-      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
       expect(overlay.props.secondaryButtons).toEqual([]);
     });

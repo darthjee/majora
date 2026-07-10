@@ -47,7 +47,7 @@ describe('CharacterCard', function() {
         character, gameSlug: 'epic-quest', characterType: 'npc', canEdit: true,
       })
     );
-    expect(html).toContain('photo-upload-overlay-button-left');
+    expect(html).toContain('actions-overlay-button-left');
   });
 
   it('does not render overlay buttons for NPCs when canEdit is false', function() {

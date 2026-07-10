@@ -1,5 +1,5 @@
 import React from 'react';
-import PhotoUploadOverlay from '../../elements/PhotoUploadOverlay.jsx';
+import ActionsOverlay from '../../elements/ActionsOverlay.jsx';
 import EditButton from '../../elements/EditButton.jsx';
 import PageActions from '../../elements/PageActions.jsx';
 import ConditionalComponent from '../../elements/ConditionalComponent.jsx';
@@ -117,7 +117,7 @@ export default class CharacterHelper {
    */
   static #renderPicture(character, handlers) {
     const picture = (
-      <PhotoUploadOverlay
+      <ActionsOverlay
         type="avatar"
         url={character.profile_photo_path}
         alt={character.name}

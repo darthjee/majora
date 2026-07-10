@@ -75,7 +75,7 @@ describe('GameTreasuresHelper', function() {
           treasures, pagination, '#/games/demo/treasures', 'demo', '#/games/demo', false, '', Noop.noop
         )
       );
-      expect(html).not.toContain('photo-upload-overlay-button');
+      expect(html).not.toContain('actions-overlay-button');
       expect(html).not.toContain('card-action-link');
     });
 
@@ -85,7 +85,7 @@ describe('GameTreasuresHelper', function() {
           treasures, pagination, '#/games/demo/treasures', 'demo', '#/games/demo', true, '', Noop.noop
         )
       );
-      const uploadMatches = html.match(/photo-upload-overlay-button/g) || [];
+      const uploadMatches = html.match(/actions-overlay-button/g) || [];
       expect(uploadMatches.length).toBe(1);
       expect(html).toContain('href="#/games/demo/treasures/1/edit"');
     });

@@ -2,7 +2,7 @@ import React from 'react';
 import FormField from '../../elements/FormField.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
 import SubmitButton from '../../elements/SubmitButton.jsx';
-import PhotoUploadOverlay from '../../elements/PhotoUploadOverlay.jsx';
+import ActionsOverlay from '../../elements/ActionsOverlay.jsx';
 import Translator from '../../../i18n/Translator.js';
 import GameHelper from './GameHelper.jsx';
 
@@ -27,7 +27,7 @@ export default class GameEditHelper {
         {GameEditHelper.#renderError(formState)}
         <div className="row">
           <div className="col-md-4">
-            <PhotoUploadOverlay
+            <ActionsOverlay
               url={formState.cover_photo_path}
               alt={formState.name}
               canEdit

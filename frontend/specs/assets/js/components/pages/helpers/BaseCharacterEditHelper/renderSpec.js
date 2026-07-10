@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import PhotoUploadOverlay from '../../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
+import ActionsOverlay from '../../../../../../../assets/js/components/elements/ActionsOverlay.jsx';
 import { helper, npcHelper, buildHandlers, buildState, findElement } from './support.js';
 
 describe('BaseCharacterEditHelper', function() {
@@ -161,7 +161,7 @@ describe('BaseCharacterEditHelper', function() {
     it('renders the photo overlay bound to the open upload modal handler and always editable', function() {
       const handlers = buildHandlers();
       const element = helper.render(buildState(), handlers);
-      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
       expect(overlay.props.canEdit).toBe(true);
       expect(overlay.props.type).toBe('avatar');

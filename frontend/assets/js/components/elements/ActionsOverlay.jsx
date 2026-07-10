@@ -11,8 +11,8 @@ const PHOTO_COMPONENTS = {
 };
 
 const SECONDARY_BUTTON_POSITION_CLASSES = [
-  'photo-upload-overlay-button-right',
-  'photo-upload-overlay-button-right-2',
+  'actions-overlay-button-right',
+  'actions-overlay-button-right-2',
 ];
 
 /**
@@ -30,8 +30,8 @@ function renderUploadButton(canEdit, onClick, hasSecondaryButtons) {
   }
 
   const modifierClass = hasSecondaryButtons
-    ? 'photo-upload-overlay-button-left'
-    : 'photo-upload-overlay-button';
+    ? 'actions-overlay-button-left'
+    : 'actions-overlay-button';
   const label = Translator.t('photo_upload_modal.title');
 
   return (
@@ -71,12 +71,14 @@ function renderSecondaryButtons(secondaryButtons) {
 }
 
 /**
- * Wraps a photo/avatar with a hover-reveal upload button overlaid on top of it.
+ * Wraps a photo/avatar with a hover-reveal overlay hosting the photo-upload
+ * button and any secondary action buttons.
  *
  * @description Renders the underlying photo/avatar unconditionally, but only
  *   renders the upload button when `canEdit` is true — for users without edit
  *   access the button is omitted entirely, not just disabled. Optionally
- *   renders the photo in grayscale and/or up to two secondary overlay buttons.
+ *   renders the photo in grayscale and/or up to two secondary overlay action
+ *   buttons (e.g. Slain/Revive) alongside the upload button.
  * @param {object} props - Component props.
  * @param {'photo'|'avatar'|'treasure'} [props.type] - Which underlying image component to
  *   render: `'avatar'` uses {@link CardAvatar}, `'treasure'` uses
@@ -91,11 +93,11 @@ function renderSecondaryButtons(secondaryButtons) {
  *   rendered when the primary upload button is present on the left.
  * @returns {React.ReactElement} Rendered photo/avatar with optional upload/secondary overlay buttons.
  */
-export default function PhotoUploadOverlay({
+export default function ActionsOverlay({
   type, url, alt, canEdit, onClick, grayscale = false, secondaryButtons = [],
 }) {
   const Photo = PHOTO_COMPONENTS[type] || CardPhoto;
-  const className = `photo-upload-overlay${grayscale ? ' photo-grayscale' : ''}`;
+  const className = `actions-overlay${grayscale ? ' photo-grayscale' : ''}`;
 
   return (
     <div className={className}>

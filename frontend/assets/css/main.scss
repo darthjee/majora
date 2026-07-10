@@ -35,10 +35,10 @@ body {
   white-space: pre-wrap;
 }
 
-.photo-upload-overlay {
+.actions-overlay {
   position: relative;
 
-  .photo-upload-overlay-button {
+  .actions-overlay-button {
     position: absolute;
     bottom: 0.5rem;
     left: 50%;
@@ -48,7 +48,7 @@ body {
     z-index: 2;
   }
 
-  .photo-upload-overlay-button-left {
+  .actions-overlay-button-left {
     position: absolute;
     bottom: 0.5rem;
     left: 0.5rem;
@@ -57,7 +57,7 @@ body {
     z-index: 2;
   }
 
-  .photo-upload-overlay-button-right {
+  .actions-overlay-button-right {
     position: absolute;
     bottom: 0.5rem;
     right: 0.5rem;
@@ -66,7 +66,7 @@ body {
     z-index: 2;
   }
 
-  .photo-upload-overlay-button-right-2 {
+  .actions-overlay-button-right-2 {
     position: absolute;
     bottom: 0.5rem;
     right: 3rem;
@@ -75,10 +75,10 @@ body {
     z-index: 2;
   }
 
-  &:hover .photo-upload-overlay-button,
-  &:hover .photo-upload-overlay-button-left,
-  &:hover .photo-upload-overlay-button-right,
-  &:hover .photo-upload-overlay-button-right-2 {
+  &:hover .actions-overlay-button,
+  &:hover .actions-overlay-button-left,
+  &:hover .actions-overlay-button-right,
+  &:hover .actions-overlay-button-right-2 {
     opacity: 1;
   }
 }

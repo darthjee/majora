@@ -1,12 +1,12 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
-import PhotoUploadOverlay from '../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
+import ActionsOverlay from '../../../../../../assets/js/components/elements/ActionsOverlay.jsx';
 import Noop from '../../../../../../assets/js/utils/Noop.js';
 
-describe('PhotoUploadOverlay', function() {
+describe('ActionsOverlay', function() {
   it('does not render a secondary button by default', function() {
     const html = renderToStaticMarkup(
-      React.createElement(PhotoUploadOverlay, {
+      React.createElement(ActionsOverlay, {
         url: null,
         alt: 'Epic Quest',
         canEdit: true,
@@ -14,14 +14,14 @@ describe('PhotoUploadOverlay', function() {
       })
     );
 
-    expect(html).not.toContain('photo-upload-overlay-button-right');
-    expect(html).toContain('photo-upload-overlay-button');
-    expect(html).not.toContain('photo-upload-overlay-button-left');
+    expect(html).not.toContain('actions-overlay-button-right');
+    expect(html).toContain('actions-overlay-button');
+    expect(html).not.toContain('actions-overlay-button-left');
   });
 
   it('renders the primary button with the left modifier when a secondary button is present', function() {
     const html = renderToStaticMarkup(
-      React.createElement(PhotoUploadOverlay, {
+      React.createElement(ActionsOverlay, {
         url: null,
         alt: 'Epic Quest',
         canEdit: true,
@@ -32,12 +32,12 @@ describe('PhotoUploadOverlay', function() {
       })
     );
 
-    expect(html).toContain('photo-upload-overlay-button-left');
+    expect(html).toContain('actions-overlay-button-left');
   });
 
   it('renders a single secondary button with the right modifier and given label/variant', function() {
     const html = renderToStaticMarkup(
-      React.createElement(PhotoUploadOverlay, {
+      React.createElement(ActionsOverlay, {
         url: null,
         alt: 'Epic Quest',
         canEdit: true,
@@ -48,8 +48,8 @@ describe('PhotoUploadOverlay', function() {
       })
     );
 
-    expect(html).toContain('photo-upload-overlay-button-right"');
-    expect(html).not.toContain('photo-upload-overlay-button-right-2');
+    expect(html).toContain('actions-overlay-button-right"');
+    expect(html).not.toContain('actions-overlay-button-right-2');
     expect(html).toContain('btn-danger');
     expect(html).toContain('bi-skull');
     expect(html).toContain('aria-label="Mark as Slain"');
@@ -58,7 +58,7 @@ describe('PhotoUploadOverlay', function() {
 
   it('renders two secondary buttons at their own position, both distinct from each other', function() {
     const html = renderToStaticMarkup(
-      React.createElement(PhotoUploadOverlay, {
+      React.createElement(ActionsOverlay, {
         url: null,
         alt: 'Epic Quest',
         canEdit: true,
@@ -70,15 +70,15 @@ describe('PhotoUploadOverlay', function() {
       })
     );
 
-    expect(html).toContain('photo-upload-overlay-button-right"');
-    expect(html).toContain('photo-upload-overlay-button-right-2"');
+    expect(html).toContain('actions-overlay-button-right"');
+    expect(html).toContain('actions-overlay-button-right-2"');
     expect(html).toContain('aria-label="Mark as Slain"');
     expect(html).toContain('aria-label="Mark as Publicly Slain"');
   });
 
   it('renders the secondary buttons regardless of canEdit (gating is the caller\'s responsibility)', function() {
     const html = renderToStaticMarkup(
-      React.createElement(PhotoUploadOverlay, {
+      React.createElement(ActionsOverlay, {
         url: null,
         alt: 'Epic Quest',
         canEdit: false,
@@ -89,14 +89,14 @@ describe('PhotoUploadOverlay', function() {
       })
     );
 
-    expect(html).toContain('photo-upload-overlay-button-right"');
-    expect(html).not.toContain('photo-upload-overlay-button-left');
+    expect(html).toContain('actions-overlay-button-right"');
+    expect(html).not.toContain('actions-overlay-button-left');
   });
 
   it('invokes each secondary button\'s own onClick when clicked', function() {
     const onFirstClick = jasmine.createSpy('onFirstClick');
     const onSecondClick = jasmine.createSpy('onSecondClick');
-    const rendered = PhotoUploadOverlay({
+    const rendered = ActionsOverlay({
       url: null,
       alt: 'Epic Quest',
       canEdit: true,

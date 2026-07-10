@@ -1,5 +1,5 @@
 import React from 'react';
-import PhotoUploadOverlay from '../../elements/PhotoUploadOverlay.jsx';
+import ActionsOverlay from '../../elements/ActionsOverlay.jsx';
 import EditButton from '../../elements/EditButton.jsx';
 import PageActions from '../../elements/PageActions.jsx';
 import ConditionalComponent from '../../elements/ConditionalComponent.jsx';
@@ -40,7 +40,7 @@ export default class GameHelper {
         </PageActions>
         <div className="row">
           <div className="col-md-4">
-            <PhotoUploadOverlay
+            <ActionsOverlay
               url={game.cover_photo_path}
               alt={game.name}
               canEdit={game.can_edit}

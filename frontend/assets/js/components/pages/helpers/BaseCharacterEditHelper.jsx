@@ -1,5 +1,5 @@
 import React from 'react';
-import PhotoUploadOverlay from '../../elements/PhotoUploadOverlay.jsx';
+import ActionsOverlay from '../../elements/ActionsOverlay.jsx';
 import FormField from '../../elements/FormField.jsx';
 import TextareaField from '../../elements/TextareaField.jsx';
 import ErrorAlert from '../../elements/ErrorAlert.jsx';
@@ -53,7 +53,7 @@ export default class BaseCharacterEditHelper {
         <form onSubmit={handlers.onSubmit}>
           <div className="row">
             <div className="col-md-4">
-              <PhotoUploadOverlay
+              <ActionsOverlay
                 type="avatar"
                 url={state.profile_photo_path}
                 alt={state.name}

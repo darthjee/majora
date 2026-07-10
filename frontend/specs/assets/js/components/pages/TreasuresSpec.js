@@ -25,6 +25,6 @@ describe('Treasures', function() {
       TreasuresHelper.render(treasures, pagination, true, Noop.noop)
     );
 
-    expect(html).toContain('photo-upload-overlay-button');
+    expect(html).toContain('actions-overlay-button');
   });
 });

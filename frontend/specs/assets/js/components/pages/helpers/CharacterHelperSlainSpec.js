@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterHelper from '../../../../../../assets/js/components/pages/helpers/CharacterHelper.jsx';
-import PhotoUploadOverlay from '../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
+import ActionsOverlay from '../../../../../../assets/js/components/elements/ActionsOverlay.jsx';
 import { buildCharacter } from '../../../../../support/factories.js';
 
 const findElement = (node, matcher) => {
@@ -42,7 +42,7 @@ describe('CharacterHelper slain/revive rendering', function() {
     it('passes grayscale to the overlay when the character is slain', function() {
       const c = { ...character, slain: true };
       const element = CharacterHelper.render(c, '#/games/demo/npcs');
-      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
       expect(overlay.props.grayscale).toBe(true);
     });
@@ -50,7 +50,7 @@ describe('CharacterHelper slain/revive rendering', function() {
     it('does not pass grayscale to the overlay when the character is not slain', function() {
       const c = { ...character, slain: false };
       const element = CharacterHelper.render(c, '#/games/demo/npcs');
-      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
       expect(overlay.props.grayscale).toBe(false);
     });
@@ -109,7 +109,7 @@ describe('CharacterHelper slain/revive rendering', function() {
       const onOpenSlainModal = jasmine.createSpy('onOpenSlainModal');
       const c = { ...character, is_pc: false, can_edit: true, slain: false };
       const element = CharacterHelper.render(c, '#/games/demo/npcs', { onOpenSlainModal });
-      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
       overlay.props.secondaryButtons[0].onClick();
 
@@ -120,7 +120,7 @@ describe('CharacterHelper slain/revive rendering', function() {
       const onOpenPublicSlainModal = jasmine.createSpy('onOpenPublicSlainModal');
       const c = { ...character, is_pc: false, can_edit: true, public_slain: false };
       const element = CharacterHelper.render(c, '#/games/demo/npcs', { onOpenPublicSlainModal });
-      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
       overlay.props.secondaryButtons[1].onClick();
 
@@ -130,7 +130,7 @@ describe('CharacterHelper slain/revive rendering', function() {
     it('builds no secondary buttons for an NPC without edit rights', function() {
       const c = { ...character, is_pc: false, can_edit: false };
       const element = CharacterHelper.render(c, '#/games/demo/npcs');
-      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
       expect(overlay.props.secondaryButtons).toEqual([]);
     });

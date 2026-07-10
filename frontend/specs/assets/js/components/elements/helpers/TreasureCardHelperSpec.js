@@ -59,17 +59,17 @@ describe('TreasureCardHelper', function() {
 
     it('does not render the upload button when canManage is false', function() {
       const html = renderToStaticMarkup(TreasureCardHelper.render(treasure, false, Noop.noop));
-      expect(html).not.toContain('photo-upload-overlay-button');
+      expect(html).not.toContain('actions-overlay-button');
     });
 
     it('does not render the upload button when canManage is omitted', function() {
       const html = renderToStaticMarkup(TreasureCardHelper.render(treasure));
-      expect(html).not.toContain('photo-upload-overlay-button');
+      expect(html).not.toContain('actions-overlay-button');
     });
 
     it('renders the upload button when canManage is true', function() {
       const html = renderToStaticMarkup(TreasureCardHelper.render(treasure, true, Noop.noop));
-      expect(html).toContain('photo-upload-overlay-button');
+      expect(html).toContain('actions-overlay-button');
     });
 
     it('invokes onUploadClick with the treasure when the upload button is clicked', function() {
