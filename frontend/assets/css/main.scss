@@ -91,3 +91,28 @@ body {
   position: relative;
   z-index: 2;
 }
+
+.bi-skull::before,
+.bi-skull-fill::before {
+  content: "";
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.bi-skull::before {
+  mask-image: url("../images/icons/skull-lines.svg");
+  -webkit-mask-image: url("../images/icons/skull-lines.svg");
+}
+
+.bi-skull-fill::before {
+  mask-image: url("../images/icons/skull-fill.svg");
+  -webkit-mask-image: url("../images/icons/skull-fill.svg");
+}
