@@ -3,6 +3,7 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils.text import slugify
+from simple_history.models import HistoricalRecords
 
 
 class Game(models.Model):
@@ -19,6 +20,7 @@ class Game(models.Model):
     cover_photo = models.ForeignKey(
         'games.GamePhoto', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
     )
+    history = HistoricalRecords(app='versioning', user_db_constraint=False)
 
     class Meta:
         """Metadata for the Game model."""

@@ -24,6 +24,7 @@ describe('SlainConfirmModal', function() {
     expect(SlainConfirmModalHelper.render).toHaveBeenCalledWith(
       true,
       false,
+      false,
       jasmine.objectContaining({ onConfirm, onCancel }),
     );
   });
@@ -45,7 +46,47 @@ describe('SlainConfirmModal', function() {
     expect(SlainConfirmModalHelper.render).toHaveBeenCalledWith(
       false,
       true,
+      false,
       jasmine.any(Object),
+    );
+  });
+
+  it('defaults isPublic to false when omitted', function() {
+    spyOn(SlainConfirmModalHelper, 'render').and.returnValue(
+      React.createElement('div', null, 'modal')
+    );
+
+    renderToStaticMarkup(
+      React.createElement(SlainConfirmModal, {
+        show: true,
+        slain: false,
+        onConfirm: jasmine.createSpy('onConfirm'),
+        onCancel: jasmine.createSpy('onCancel'),
+      })
+    );
+
+    expect(SlainConfirmModalHelper.render).toHaveBeenCalledWith(
+      true, false, false, jasmine.any(Object),
+    );
+  });
+
+  it('forwards isPublic true to the helper when toggling the public field', function() {
+    spyOn(SlainConfirmModalHelper, 'render').and.returnValue(
+      React.createElement('div', null, 'modal')
+    );
+
+    renderToStaticMarkup(
+      React.createElement(SlainConfirmModal, {
+        show: true,
+        slain: false,
+        isPublic: true,
+        onConfirm: jasmine.createSpy('onConfirm'),
+        onCancel: jasmine.createSpy('onCancel'),
+      })
+    );
+
+    expect(SlainConfirmModalHelper.render).toHaveBeenCalledWith(
+      true, false, true, jasmine.any(Object),
     );
   });
 });

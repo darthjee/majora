@@ -2,6 +2,7 @@ import GameNpcNewController
   from '../../../../../../../assets/js/components/pages/controllers/GameNpcNewController.js';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
+import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
 
 describe('GameNpcNewController', function() {
   afterEach(function() {
@@ -11,22 +12,18 @@ describe('GameNpcNewController', function() {
   describe('#buildEffect', function() {
     it('does not redirect when the user can edit the game', async function() {
       const setError = jasmine.createSpy('setError');
-      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
       const characterClient = jasmine.createSpyObj('characterClient', ['createNpc']);
       const fakeWindow = { location: { hash: '#/games/demo/npcs/new' } };
       globalThis.window = fakeWindow;
 
-      gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ can_edit: true }),
-      }));
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: true }));
 
       try {
-        const controller = new GameNpcNewController(setError, Noop.noop, characterClient, gameClient);
+        const controller = new GameNpcNewController(setError, Noop.noop, characterClient);
         controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(gameClient.fetchGameAccess).toHaveBeenCalledWith('demo', null);
+        expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');
         expect(fakeWindow.location.hash).toBe('#/games/demo/npcs/new');
       } finally {
         delete globalThis.window;
@@ -35,38 +32,14 @@ describe('GameNpcNewController', function() {
 
     it('redirects to the NPCs index when the user cannot edit the game', async function() {
       const setError = jasmine.createSpy('setError');
-      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
       const characterClient = jasmine.createSpyObj('characterClient', ['createNpc']);
       const fakeWindow = { location: { hash: '#/games/demo/npcs/new' } };
       globalThis.window = fakeWindow;
 
-      gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ can_edit: false }),
-      }));
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
 
       try {
-        const controller = new GameNpcNewController(setError, Noop.noop, characterClient, gameClient);
-        controller.buildEffect()();
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
-        expect(fakeWindow.location.hash).toBe('/games/demo/npcs');
-      } finally {
-        delete globalThis.window;
-      }
-    });
-
-    it('redirects to the NPCs index when the access response is not ok', async function() {
-      const setError = jasmine.createSpy('setError');
-      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
-      const characterClient = jasmine.createSpyObj('characterClient', ['createNpc']);
-      const fakeWindow = { location: { hash: '#/games/demo/npcs/new' } };
-      globalThis.window = fakeWindow;
-
-      gameClient.fetchGameAccess.and.returnValue(Promise.resolve({ ok: false }));
-
-      try {
-        const controller = new GameNpcNewController(setError, Noop.noop, characterClient, gameClient);
+        const controller = new GameNpcNewController(setError, Noop.noop, characterClient);
         controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -78,15 +51,14 @@ describe('GameNpcNewController', function() {
 
     it('redirects to the NPCs index when the access request throws', async function() {
       const setError = jasmine.createSpy('setError');
-      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
       const characterClient = jasmine.createSpyObj('characterClient', ['createNpc']);
       const fakeWindow = { location: { hash: '#/games/demo/npcs/new' } };
       globalThis.window = fakeWindow;
 
-      gameClient.fetchGameAccess.and.returnValue(Promise.reject(new Error('network error')));
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.reject(new Error('network error')));
 
       try {
-        const controller = new GameNpcNewController(setError, Noop.noop, characterClient, gameClient);
+        const controller = new GameNpcNewController(setError, Noop.noop, characterClient);
         controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 

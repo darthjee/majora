@@ -39,7 +39,7 @@ describe('GameTreasures', function() {
       )
     );
 
-    expect(html).toContain('photo-upload-overlay-button');
+    expect(html).toContain('actions-overlay-button');
   });
 
   it('renders the new treasure button via GameTreasuresHelper.render when canEdit is true', function() {

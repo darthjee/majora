@@ -1,6 +1,6 @@
-import GameClient from '../../../client/GameClient.js';
 import GameTaskClient from '../../../client/GameTaskClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import AccessStore from '../../../utils/AccessStore.js';
 import HashRouteResolver from '../../../utils/HashRouteResolver.js';
 import BasePageController from './BasePageController.js';
 
@@ -30,7 +30,6 @@ export default class GameTasksController extends BasePageController {
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
    * @param {GameTaskClient|null} [taskClient] - Task client override.
-   * @param {GameClient|null} [gameClient] - Game client override, used for the access check.
    */
   constructor(
     setTasks,
@@ -38,7 +37,6 @@ export default class GameTasksController extends BasePageController {
     setLoading,
     setError,
     taskClient = null,
-    gameClient = null,
   ) {
     super();
     this.setTasks = setTasks;
@@ -46,7 +44,6 @@ export default class GameTasksController extends BasePageController {
     this.setLoading = setLoading;
     this.setError = setError;
     this.taskClient = taskClient ?? new GameTaskClient();
-    this.gameClient = gameClient ?? new GameClient();
   }
 
   /**
@@ -63,10 +60,8 @@ export default class GameTasksController extends BasePageController {
       const safeSet = this.buildSafeSetter(() => mounted);
       const hash = typeof window === 'undefined' ? '' : window.location.hash;
       const gameSlug = GameTasksController.getGameSlugFromTasksHash(hash);
-      const token = AuthStorage.getToken();
 
-      this.gameClient.fetchGameAccess(gameSlug, token)
-        .then((response) => (response.ok ? response.json() : { can_edit: false }))
+      AccessStore.ensureGameAccess(gameSlug)
         .then((access) => this.#handleAccess(access, gameSlug, safeSet))
         .catch(() => this.#redirectToGame(gameSlug));
 

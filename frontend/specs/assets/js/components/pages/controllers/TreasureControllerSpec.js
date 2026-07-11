@@ -1,20 +1,18 @@
 import TreasureController
   from '../../../../../../assets/js/components/pages/controllers/TreasureController.js';
 import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
+import AccessStore from '../../../../../../assets/js/utils/AccessStore.js';
 
 describe('TreasureController', function() {
   let treasureClient;
 
   beforeEach(function() {
-    treasureClient = jasmine.createSpyObj('treasureClient', ['fetchTreasure', 'fetchTreasureAccess']);
+    treasureClient = jasmine.createSpyObj('treasureClient', ['fetchTreasure']);
     treasureClient.fetchTreasure.and.returnValue(Promise.resolve({
       ok: true,
       json: () => Promise.resolve({ id: 1, name: 'Sword', value: 100 }),
     }));
-    treasureClient.fetchTreasureAccess.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ can_edit: false }),
-    }));
+    spyOn(AccessStore, 'ensureTreasureAccess').and.returnValue(Promise.resolve({ can_edit: false }));
   });
 
   afterEach(function() {
@@ -38,7 +36,7 @@ describe('TreasureController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(treasureClient.fetchTreasure).toHaveBeenCalledWith('1', null);
-      expect(treasureClient.fetchTreasureAccess).toHaveBeenCalledWith('1', null);
+      expect(AccessStore.ensureTreasureAccess).toHaveBeenCalledWith('1');
       expect(setTreasure).toHaveBeenCalledWith(
         jasmine.objectContaining({ id: 1, name: 'Sword', value: 100, can_edit: false }),
       );
@@ -51,17 +49,14 @@ describe('TreasureController', function() {
     }
   });
 
-  it('merges can_edit from the access endpoint onto the treasure', async function() {
+  it('merges can_edit from AccessStore onto the treasure', async function() {
     const setTreasure = jasmine.createSpy('setTreasure');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const fakeWindow = { location: { hash: '#/treasures/1' } };
     globalThis.window = fakeWindow;
 
-    treasureClient.fetchTreasureAccess.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ can_edit: true }),
-    }));
+    AccessStore.ensureTreasureAccess.and.returnValue(Promise.resolve({ can_edit: true }));
 
     try {
       const cleanup = new TreasureController(setTreasure, setLoading, setError, treasureClient)
@@ -71,31 +66,6 @@ describe('TreasureController', function() {
       expect(setTreasure).toHaveBeenCalledWith(
         jasmine.objectContaining({ can_edit: true }),
       );
-
-      cleanup();
-    } finally {
-      delete globalThis.window;
-    }
-  });
-
-  it('sets can_edit to false when access response is not ok', async function() {
-    const setTreasure = jasmine.createSpy('setTreasure');
-    const setLoading = jasmine.createSpy('setLoading');
-    const setError = jasmine.createSpy('setError');
-    const fakeWindow = { location: { hash: '#/treasures/1' } };
-    globalThis.window = fakeWindow;
-
-    treasureClient.fetchTreasureAccess.and.returnValue(Promise.resolve({ ok: false }));
-
-    try {
-      const cleanup = new TreasureController(setTreasure, setLoading, setError, treasureClient)
-        .buildEffect()();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      expect(setTreasure).toHaveBeenCalledWith(
-        jasmine.objectContaining({ can_edit: false }),
-      );
-      expect(setError).not.toHaveBeenCalled();
 
       cleanup();
     } finally {
@@ -142,7 +112,7 @@ describe('TreasureController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(treasureClient.fetchTreasure).toHaveBeenCalledWith('1', 'tok-abc');
-      expect(treasureClient.fetchTreasureAccess).toHaveBeenCalledWith('1', 'tok-abc');
+      expect(AccessStore.ensureTreasureAccess).toHaveBeenCalledWith('1');
 
       cleanup();
     } finally {

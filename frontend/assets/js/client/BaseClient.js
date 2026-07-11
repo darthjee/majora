@@ -105,10 +105,11 @@ export default class BaseClient {
    * @param {string} path - Request path, optionally including a query string.
    * @param {string|null} token - Authentication token, if any.
    * @param {object} [extraHeaders] - Additional headers to merge in.
+   * @param {AbortSignal} [signal] - Optional abort signal for the request.
    * @returns {Promise<Response>} The fetch response.
    */
-  getJson(path, token, extraHeaders = {}) {
-    return this.request(path, { headers: this.buildHeaders(token, extraHeaders) });
+  getJson(path, token, extraHeaders = {}, signal) {
+    return this.request(path, { headers: this.buildHeaders(token, extraHeaders), signal });
   }
 
   /**

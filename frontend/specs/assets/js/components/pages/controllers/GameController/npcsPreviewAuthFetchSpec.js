@@ -1,13 +1,11 @@
 import GameController from '../../../../../../../assets/js/components/pages/controllers/GameController.js';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
-import { buildGameClient } from './support.js';
+import { stubEnsureGameAccess } from './support.js';
 
 describe('GameController', function() {
-  let gameClient;
-
   beforeEach(function() {
-    gameClient = buildGameClient();
+    stubEnsureGameAccess();
   });
 
   afterEach(function() {
@@ -36,7 +34,7 @@ describe('GameController', function() {
     function makeController() {
       return new GameController(
         jasmine.createSpy(), jasmine.createSpy(), jasmine.createSpy(),
-        Noop.noop, setNpcs, client, gameClient, characterClient,
+        Noop.noop, setNpcs, client, characterClient,
       );
     }
 

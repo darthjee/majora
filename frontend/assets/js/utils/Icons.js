@@ -6,7 +6,9 @@
 export default {
   camera: 'bi-camera-fill',
   heart: 'bi-heart-fill',
+  heartOutline: 'bi-heart',
   skull: 'bi-skull',
+  skullFill: 'bi-skull-fill',
   trash: 'bi-trash-fill',
   restore: 'bi-plus-circle-fill',
 };

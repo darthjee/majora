@@ -7,10 +7,9 @@ describe('StaffUsersController', function() {
   let setLoading;
   let setError;
   let client;
-  let authClient;
 
   beforeEach(function() {
-    ({ setUsers, setPagination, setLoading, setError, client, authClient } = buildContext());
+    ({ setUsers, setPagination, setLoading, setError, client } = buildContext());
   });
 
   describe('#handleGenerateRecoveryLink', function() {
@@ -21,9 +20,7 @@ describe('StaffUsersController', function() {
       }));
       const setRecoveryLinks = jasmine.createSpy('setRecoveryLinks');
 
-      const controller = new StaffUsersController(
-        setUsers, setPagination, setLoading, setError, client, authClient,
-      );
+      const controller = new StaffUsersController(setUsers, setPagination, setLoading, setError, client);
       await controller.handleGenerateRecoveryLink(1, {}, setRecoveryLinks);
 
       expect(setRecoveryLinks).toHaveBeenCalledWith({ 1: { status: 'loading', url: null } });
@@ -36,9 +33,7 @@ describe('StaffUsersController', function() {
       client.fetchRecoveryLink.and.returnValue(Promise.resolve({ ok: false }));
       const setRecoveryLinks = jasmine.createSpy('setRecoveryLinks');
 
-      const controller = new StaffUsersController(
-        setUsers, setPagination, setLoading, setError, client, authClient,
-      );
+      const controller = new StaffUsersController(setUsers, setPagination, setLoading, setError, client);
       await controller.handleGenerateRecoveryLink(1, {}, setRecoveryLinks);
 
       expect(setRecoveryLinks).toHaveBeenCalledWith({ 1: { status: 'error', url: null } });
@@ -48,9 +43,7 @@ describe('StaffUsersController', function() {
       client.fetchRecoveryLink.and.returnValue(Promise.reject(new Error('network error')));
       const setRecoveryLinks = jasmine.createSpy('setRecoveryLinks');
 
-      const controller = new StaffUsersController(
-        setUsers, setPagination, setLoading, setError, client, authClient,
-      );
+      const controller = new StaffUsersController(setUsers, setPagination, setLoading, setError, client);
       await controller.handleGenerateRecoveryLink(1, {}, setRecoveryLinks);
 
       expect(setRecoveryLinks).toHaveBeenCalledWith({ 1: { status: 'error', url: null } });
@@ -64,9 +57,7 @@ describe('StaffUsersController', function() {
       const setRecoveryLinks = jasmine.createSpy('setRecoveryLinks');
       const existing = { 2: { status: 'ready', url: 'http://example.com/other' } };
 
-      const controller = new StaffUsersController(
-        setUsers, setPagination, setLoading, setError, client, authClient,
-      );
+      const controller = new StaffUsersController(setUsers, setPagination, setLoading, setError, client);
       await controller.handleGenerateRecoveryLink(1, existing, setRecoveryLinks);
 
       expect(setRecoveryLinks).toHaveBeenCalledWith({

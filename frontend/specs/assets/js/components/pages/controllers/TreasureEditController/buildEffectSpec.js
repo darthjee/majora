@@ -2,6 +2,7 @@ import TreasureEditController
   from '../../../../../../../assets/js/components/pages/controllers/TreasureEditController.js';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
+import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
 
 describe('TreasureEditController', function() {
   afterEach(function() {
@@ -13,30 +14,20 @@ describe('TreasureEditController', function() {
     let setLoading;
     let setError;
     let treasureClient;
-    let authClient;
     let fakeWindow;
 
     beforeEach(function() {
       setTreasure = jasmine.createSpy('setTreasure');
       setLoading = jasmine.createSpy('setLoading');
       setError = jasmine.createSpy('setError');
-      treasureClient = jasmine.createSpyObj('treasureClient', [
-        'fetchTreasure', 'fetchTreasureAccess',
-      ]);
-      authClient = jasmine.createSpyObj('authClient', ['status']);
-      authClient.status.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ is_superuser: true }),
-      }));
+      treasureClient = jasmine.createSpyObj('treasureClient', ['fetchTreasure']);
+      spyOn(AccessStore, 'ensureSuperUser').and.returnValue(Promise.resolve(true));
+      spyOn(AccessStore, 'ensureTreasureAccess').and.returnValue(Promise.resolve({ can_edit: true }));
       fakeWindow = { location: { hash: '#/treasures/1/edit' } };
       globalThis.window = fakeWindow;
       treasureClient.fetchTreasure.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ id: 1, name: 'Sword', value: 100 }),
-      }));
-      treasureClient.fetchTreasureAccess.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ can_edit: true }),
       }));
     });
 
@@ -45,7 +36,7 @@ describe('TreasureEditController', function() {
     });
 
     const buildController = () => new TreasureEditController(
-      setTreasure, setLoading, setError, Noop.noop, treasureClient, authClient,
+      setTreasure, setLoading, setError, Noop.noop, treasureClient,
     );
 
     it('fetches treasure and access in parallel and calls setTreasure with merged result', async function() {
@@ -53,7 +44,7 @@ describe('TreasureEditController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(treasureClient.fetchTreasure).toHaveBeenCalledWith('1', null);
-      expect(treasureClient.fetchTreasureAccess).toHaveBeenCalledWith('1', null);
+      expect(AccessStore.ensureTreasureAccess).toHaveBeenCalledWith('1');
       expect(setTreasure).toHaveBeenCalledWith(
         { id: 1, name: 'Sword', value: 100, can_edit: true },
       );
@@ -63,8 +54,8 @@ describe('TreasureEditController', function() {
       cleanup();
     });
 
-    it('sets can_edit to false when access response is not ok', async function() {
-      treasureClient.fetchTreasureAccess.and.returnValue(Promise.resolve({ ok: false }));
+    it('sets can_edit to false when the access resolves with the fail-closed default', async function() {
+      AccessStore.ensureTreasureAccess.and.returnValue(Promise.resolve({ can_edit: false }));
 
       const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -97,23 +88,20 @@ describe('TreasureEditController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(treasureClient.fetchTreasure).toHaveBeenCalledWith('1', 'tok-abc');
-      expect(treasureClient.fetchTreasureAccess).toHaveBeenCalledWith('1', 'tok-abc');
+      expect(AccessStore.ensureTreasureAccess).toHaveBeenCalledWith('1');
 
       cleanup();
     });
 
     it('redirects to home and does not fetch when the user is not a superuser', async function() {
-      authClient.status.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ is_superuser: false }),
-      }));
+      AccessStore.ensureSuperUser.and.returnValue(Promise.resolve(false));
 
       const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(fakeWindow.location.hash).toBe('/');
       expect(treasureClient.fetchTreasure).not.toHaveBeenCalled();
-      expect(treasureClient.fetchTreasureAccess).not.toHaveBeenCalled();
+      expect(AccessStore.ensureTreasureAccess).not.toHaveBeenCalled();
 
       cleanup();
     });

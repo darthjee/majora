@@ -37,7 +37,7 @@ describe('GameTasksController', function() {
         }),
       }));
 
-      const controller = new GameTasksController(null, null, null, null, taskClient, null);
+      const controller = new GameTasksController(null, null, null, null, taskClient);
       await controller.handleCreateTask(event, 'demo', formValues, tasks, {
         setTasks, setFieldErrors, setError, resetForm,
       });
@@ -60,7 +60,7 @@ describe('GameTasksController', function() {
         json: () => Promise.resolve(created),
       }));
 
-      const controller = new GameTasksController(null, null, null, null, taskClient, null);
+      const controller = new GameTasksController(null, null, null, null, taskClient);
       await controller.handleCreateTask(undefined, 'demo', formValues, tasks, {
         setTasks, setFieldErrors, setError, resetForm,
       });
@@ -75,7 +75,7 @@ describe('GameTasksController', function() {
         json: () => Promise.resolve({ errors: { short_description: ['is required'] } }),
       }));
 
-      const controller = new GameTasksController(null, null, null, null, taskClient, null);
+      const controller = new GameTasksController(null, null, null, null, taskClient);
       await controller.handleCreateTask(undefined, 'demo', formValues, tasks, {
         setTasks, setFieldErrors, setError, resetForm,
       });
@@ -90,7 +90,7 @@ describe('GameTasksController', function() {
         json: () => Promise.resolve({}),
       }));
 
-      const controller = new GameTasksController(null, null, null, null, taskClient, null);
+      const controller = new GameTasksController(null, null, null, null, taskClient);
       await controller.handleCreateTask(undefined, 'demo', formValues, tasks, {
         setTasks, setFieldErrors, setError, resetForm,
       });
@@ -101,7 +101,7 @@ describe('GameTasksController', function() {
     it('sets a general error when the request throws', async function() {
       taskClient.createTask.and.returnValue(Promise.reject(new Error('network error')));
 
-      const controller = new GameTasksController(null, null, null, null, taskClient, null);
+      const controller = new GameTasksController(null, null, null, null, taskClient);
       await controller.handleCreateTask(undefined, 'demo', formValues, tasks, {
         setTasks, setFieldErrors, setError, resetForm,
       });
@@ -117,7 +117,7 @@ describe('GameTasksController', function() {
         }),
       }));
 
-      const controller = new GameTasksController(null, null, null, null, taskClient, null);
+      const controller = new GameTasksController(null, null, null, null, taskClient);
       await controller.handleCreateTask(undefined, 'demo', formValues, tasks, {
         setTasks, setFieldErrors, setError, resetForm,
       });

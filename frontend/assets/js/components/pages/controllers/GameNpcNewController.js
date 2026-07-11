@@ -1,6 +1,6 @@
 import CharacterClient from '../../../client/CharacterClient.js';
-import GameClient from '../../../client/GameClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import AccessStore from '../../../utils/AccessStore.js';
 import BasePageController from './BasePageController.js';
 import Noop from '../../../utils/Noop.js';
 
@@ -24,14 +24,12 @@ export default class GameNpcNewController extends BasePageController {
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
    * @param {CharacterClient|null} [characterClient] - Character client override.
-   * @param {GameClient|null} [gameClient] - Game client override, used for the access check.
    */
-  constructor(setError, setFieldErrors = Noop.noop, characterClient = null, gameClient = null) {
+  constructor(setError, setFieldErrors = Noop.noop, characterClient = null) {
     super();
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;
     this.characterClient = characterClient ?? new CharacterClient();
-    this.gameClient = gameClient ?? new GameClient();
   }
 
   /**
@@ -45,10 +43,8 @@ export default class GameNpcNewController extends BasePageController {
     return () => {
       const hash = typeof window === 'undefined' ? '' : window.location.hash;
       const gameSlug = GameNpcNewController.getGameSlugFromNpcNewHash(hash);
-      const token = AuthStorage.getToken();
 
-      this.gameClient.fetchGameAccess(gameSlug, token)
-        .then((response) => (response.ok ? response.json() : { can_edit: false }))
+      AccessStore.ensureGameAccess(gameSlug)
         .then((access) => this.#redirectIfNotAllowed(access, gameSlug))
         .catch(() => this.#redirectToNpcs(gameSlug));
     };

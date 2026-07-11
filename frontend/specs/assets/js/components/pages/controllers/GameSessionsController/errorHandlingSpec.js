@@ -1,5 +1,6 @@
 import GameSessionsController
   from '../../../../../../../assets/js/components/pages/controllers/GameSessionsController.js';
+import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
 
 describe('GameSessionsController', function() {
   it('sets error when fetch fails', async function() {
@@ -9,14 +10,10 @@ describe('GameSessionsController', function() {
     const setError = jasmine.createSpy('setError');
     const setCanEdit = jasmine.createSpy('setCanEdit');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
-    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/sessions');
     client.fetchIndex.and.returnValue(Promise.reject(new Error('network error')));
-    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ can_edit: false }),
-    }));
+    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
 
     const cleanup = new GameSessionsController(
       setSessions,
@@ -25,7 +22,6 @@ describe('GameSessionsController', function() {
       setError,
       client,
       setCanEdit,
-      gameClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -42,9 +38,9 @@ describe('GameSessionsController', function() {
     const setError = jasmine.createSpy('setError');
     const setCanEdit = jasmine.createSpy('setCanEdit');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
-    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
 
     client.currentHash.and.returnValue('#/games');
+    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
 
     const cleanup = new GameSessionsController(
       setSessions,
@@ -53,12 +49,11 @@ describe('GameSessionsController', function() {
       setError,
       client,
       setCanEdit,
-      gameClient,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(client.fetchIndex).not.toHaveBeenCalled();
-    expect(gameClient.fetchGameAccess).not.toHaveBeenCalled();
+    expect(AccessStore.ensureGameAccess).not.toHaveBeenCalled();
     expect(setError).toHaveBeenCalledWith('Unable to load sessions.');
     expect(setLoading).toHaveBeenCalledWith(false);
 

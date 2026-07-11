@@ -1,6 +1,6 @@
-import GameClient from '../../../client/GameClient.js';
 import GameSessionClient from '../../../client/GameSessionClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import AccessStore from '../../../utils/AccessStore.js';
 import BasePageController from './BasePageController.js';
 import Noop from '../../../utils/Noop.js';
 
@@ -24,14 +24,12 @@ export default class GameSessionNewController extends BasePageController {
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
    * @param {GameSessionClient|null} [sessionClient] - Session client override.
-   * @param {GameClient|null} [gameClient] - Game client override, used for the access check.
    */
-  constructor(setError, setFieldErrors = Noop.noop, sessionClient = null, gameClient = null) {
+  constructor(setError, setFieldErrors = Noop.noop, sessionClient = null) {
     super();
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;
     this.sessionClient = sessionClient ?? new GameSessionClient();
-    this.gameClient = gameClient ?? new GameClient();
   }
 
   /**
@@ -45,10 +43,8 @@ export default class GameSessionNewController extends BasePageController {
     return () => {
       const hash = typeof window === 'undefined' ? '' : window.location.hash;
       const gameSlug = GameSessionNewController.getGameSlugFromSessionNewHash(hash);
-      const token = AuthStorage.getToken();
 
-      this.gameClient.fetchGameAccess(gameSlug, token)
-        .then((response) => (response.ok ? response.json() : { can_edit: false }))
+      AccessStore.ensureGameAccess(gameSlug)
         .then((access) => this.#redirectIfNotAllowed(access, gameSlug))
         .catch(() => this.#redirectToSessions(gameSlug));
     };

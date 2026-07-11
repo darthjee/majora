@@ -32,7 +32,7 @@ describe('GameTasksController', function() {
         json: () => Promise.resolve(updated),
       }));
 
-      const controller = new GameTasksController(null, null, null, null, taskClient, null);
+      const controller = new GameTasksController(null, null, null, null, taskClient);
       await controller.handleToggleCompleted('demo', tasks[0], tasks, setTasks);
 
       expect(taskClient.updateTask).toHaveBeenCalledWith('demo', 1, null, { completed: true });
@@ -43,7 +43,7 @@ describe('GameTasksController', function() {
     it('rolls back to the original tasks when the update response is not ok', async function() {
       taskClient.updateTask.and.returnValue(Promise.resolve({ ok: false }));
 
-      const controller = new GameTasksController(null, null, null, null, taskClient, null);
+      const controller = new GameTasksController(null, null, null, null, taskClient);
       await controller.handleToggleCompleted('demo', tasks[0], tasks, setTasks);
 
       expect(setTasks).toHaveBeenCalledWith(tasks);
@@ -52,7 +52,7 @@ describe('GameTasksController', function() {
     it('rolls back to the original tasks when the update request throws', async function() {
       taskClient.updateTask.and.returnValue(Promise.reject(new Error('network error')));
 
-      const controller = new GameTasksController(null, null, null, null, taskClient, null);
+      const controller = new GameTasksController(null, null, null, null, taskClient);
       await controller.handleToggleCompleted('demo', tasks[0], tasks, setTasks);
 
       expect(setTasks).toHaveBeenCalledWith(tasks);

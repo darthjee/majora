@@ -1,12 +1,13 @@
 import GamePhotosController
   from '../../../../../../../assets/js/components/pages/controllers/GamePhotosController.js';
-import { buildGameClient } from './support.js';
+import { buildGameClient, stubAccessStore } from './support.js';
 
 describe('GamePhotosController', function() {
   let gameClient;
 
   beforeEach(function() {
     gameClient = buildGameClient();
+    stubAccessStore();
   });
 
   it('does not update state after unmount', async function() {

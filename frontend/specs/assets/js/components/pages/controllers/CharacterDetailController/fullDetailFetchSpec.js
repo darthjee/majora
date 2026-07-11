@@ -1,4 +1,5 @@
 import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
+import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
 import { KINDS } from './support.js';
 
 KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash }) => {
@@ -8,13 +9,14 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
     });
 
     it('fetches full detail and merges private_description when can_edit is true', async function() {
+      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: true }));
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
       const client = jasmine.createSpyObj('client', ['currentHash']);
       const characterClient = jasmine.createSpyObj(
         'characterClient',
-        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterAccess', 'fetchCharacterTreasures'],
+        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures'],
       );
       characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
@@ -22,10 +24,6 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
       characterClient.fetchCharacter.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ id: 2, can_edit: false }),
-      }));
-      characterClient.fetchCharacterAccess.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ can_edit: true }),
       }));
       characterClient.fetchCharacterFull.and.returnValue(Promise.resolve({
         ok: true,
@@ -46,13 +44,14 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
     });
 
     it('does not fetch full detail when can_edit is false', async function() {
+      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: false }));
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
       const client = jasmine.createSpyObj('client', ['currentHash']);
       const characterClient = jasmine.createSpyObj(
         'characterClient',
-        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterAccess', 'fetchCharacterTreasures'],
+        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures'],
       );
       characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
@@ -60,10 +59,6 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
       characterClient.fetchCharacter.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ id: 2, can_edit: true }),
-      }));
-      characterClient.fetchCharacterAccess.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ can_edit: false }),
       }));
 
       const cleanup = new Controller(
@@ -78,13 +73,14 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
     });
 
     it('falls back to character without private_description when full fetch fails', async function() {
+      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: true }));
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
       const client = jasmine.createSpyObj('client', ['currentHash']);
       const characterClient = jasmine.createSpyObj(
         'characterClient',
-        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterAccess', 'fetchCharacterTreasures'],
+        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures'],
       );
       characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
@@ -92,10 +88,6 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
       characterClient.fetchCharacter.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ id: 2, can_edit: false }),
-      }));
-      characterClient.fetchCharacterAccess.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ can_edit: true }),
       }));
       characterClient.fetchCharacterFull.and.returnValue(Promise.resolve({ ok: false, status: 403 }));
 

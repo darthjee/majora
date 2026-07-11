@@ -1,6 +1,7 @@
 import GameTreasuresController
   from '../../../../../../../assets/js/components/pages/controllers/GameTreasuresController.js';
 import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
+import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
 
 describe('GameTreasuresController', function() {
   afterEach(function() {
@@ -14,17 +15,13 @@ describe('GameTreasuresController', function() {
     const setError = jasmine.createSpy('setError');
     const setCanEdit = jasmine.createSpy('setCanEdit');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
-    const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
 
     client.currentHash.and.returnValue('#/games/demo/treasures');
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [{ id: 1, name: 'Sword', value: 100 }],
       pagination: { page: 1, pages: 1, perPage: 10 },
     }));
-    gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ can_edit: false }),
-    }));
+    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
 
     const cleanup = new GameTreasuresController(
       setTreasures,
@@ -33,7 +30,6 @@ describe('GameTreasuresController', function() {
       setError,
       client,
       setCanEdit,
-      gameClient,
     ).buildEffect()();
 
     cleanup();

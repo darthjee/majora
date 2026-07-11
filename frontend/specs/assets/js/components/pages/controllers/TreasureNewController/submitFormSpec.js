@@ -1,17 +1,17 @@
 import TreasureNewController
   from '../../../../../../../assets/js/components/pages/controllers/TreasureNewController.js';
 import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
-import { buildContext } from './support.js';
+import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
+import { buildContext, stubAccessStore } from './support.js';
 
 describe('TreasureNewController', function() {
   let setError;
   let setFieldErrors;
   let setStatus;
   let treasureClient;
-  let authClient;
 
   beforeEach(function() {
-    ({ setError, setFieldErrors, setStatus, treasureClient, authClient } = buildContext());
+    ({ setError, setFieldErrors, setStatus, treasureClient } = buildContext());
   });
 
   afterEach(function() {
@@ -20,10 +20,7 @@ describe('TreasureNewController', function() {
 
   describe('#submitForm', function() {
     beforeEach(function() {
-      authClient.status.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ is_superuser: true }),
-      }));
+      stubAccessStore(true);
     });
 
     it('prevents default, resets status/errors, and submits the fields payload', async function() {
@@ -33,9 +30,7 @@ describe('TreasureNewController', function() {
         json: () => Promise.resolve({ id: 5 }),
       }));
 
-      const controller = new TreasureNewController(
-        setError, setFieldErrors, treasureClient, authClient,
-      );
+      const controller = new TreasureNewController(setError, setFieldErrors, treasureClient);
       const event = jasmine.createSpyObj('event', ['preventDefault']);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
@@ -66,9 +61,7 @@ describe('TreasureNewController', function() {
         json: () => Promise.resolve({ id: 5 }),
       }));
 
-      const controller = new TreasureNewController(
-        setError, setFieldErrors, treasureClient, authClient,
-      );
+      const controller = new TreasureNewController(setError, setFieldErrors, treasureClient);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 
@@ -95,9 +88,7 @@ describe('TreasureNewController', function() {
         json: () => Promise.resolve({ id: 7 }),
       }));
 
-      const controller = new TreasureNewController(
-        setError, setFieldErrors, treasureClient, authClient,
-      );
+      const controller = new TreasureNewController(setError, setFieldErrors, treasureClient);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 
@@ -121,9 +112,7 @@ describe('TreasureNewController', function() {
         json: () => Promise.resolve({ errors: { name: ['is too short'] } }),
       }));
 
-      const controller = new TreasureNewController(
-        setError, setFieldErrors, treasureClient, authClient,
-      );
+      const controller = new TreasureNewController(setError, setFieldErrors, treasureClient);
 
       await controller.submitForm(
         undefined,
@@ -141,9 +130,7 @@ describe('TreasureNewController', function() {
         json: () => Promise.resolve({}),
       }));
 
-      const controller = new TreasureNewController(
-        setError, setFieldErrors, treasureClient, authClient,
-      );
+      const controller = new TreasureNewController(setError, setFieldErrors, treasureClient);
 
       await controller.submitForm(
         undefined,
@@ -155,16 +142,11 @@ describe('TreasureNewController', function() {
     });
 
     it('redirects to home when the user is not a superuser', async function() {
-      authClient.status.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ is_superuser: false }),
-      }));
+      AccessStore.ensureSuperUser.and.returnValue(Promise.resolve(false));
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 
-      const controller = new TreasureNewController(
-        setError, setFieldErrors, treasureClient, authClient,
-      );
+      const controller = new TreasureNewController(setError, setFieldErrors, treasureClient);
 
       try {
         await controller.submitForm(
@@ -184,9 +166,7 @@ describe('TreasureNewController', function() {
       AuthStorage.setToken('tok-abc');
       treasureClient.createTreasure.and.returnValue(Promise.reject(new Error('network error')));
 
-      const controller = new TreasureNewController(
-        setError, setFieldErrors, treasureClient, authClient,
-      );
+      const controller = new TreasureNewController(setError, setFieldErrors, treasureClient);
 
       await controller.submitForm(
         undefined,

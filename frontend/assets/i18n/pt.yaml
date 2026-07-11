@@ -38,6 +38,10 @@ slain_confirm_modal:
   revive_title: Reviver Personagem
   slain_body: Tem certeza de que deseja marcar este personagem como morto?
   revive_body: Tem certeza de que deseja reviver este personagem?
+  public_slain_title: Marcar como Publicamente Morto
+  public_revive_title: Reviver Publicamente Personagem
+  public_slain_body: Tem certeza de que deseja marcar este personagem como publicamente morto?
+  public_revive_body: Tem certeza de que deseja reviver publicamente este personagem?
   confirm: Confirmar
   cancel: Cancelar
 back_button:
@@ -65,6 +69,8 @@ character_page:
   see_all_photos: Fotos
   slain_button: Marcar como Morto
   revive_button: Reviver
+  public_slain_button: Marcar como Publicamente Morto
+  public_revive_button: Reviver Publicamente
   treasures_title: Tesouros
 character_full_page:
   loading: Carregando personagem...

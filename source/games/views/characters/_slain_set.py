@@ -21,7 +21,11 @@ def character_slain_set(request, game, character_id, npc):
     if error_response:
         return error_response
 
-    character.slain = serializer.validated_data['slain']
+    validated_data = serializer.validated_data
+    if 'slain' in validated_data:
+        character.slain = validated_data['slain']
+    if 'public_slain' in validated_data:
+        character.public_slain = validated_data['public_slain']
     character.save()
 
-    return Response({'slain': character.slain}, status=200)
+    return Response({'slain': character.slain, 'public_slain': character.public_slain}, status=200)

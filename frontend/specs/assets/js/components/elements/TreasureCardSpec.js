@@ -26,14 +26,14 @@ describe('TreasureCard', function() {
     const html = renderToStaticMarkup(
       React.createElement(TreasureCard, { treasure, canManage: false })
     );
-    expect(html).not.toContain('photo-upload-overlay-button');
+    expect(html).not.toContain('actions-overlay-button');
   });
 
   it('renders the upload button when canManage is true', function() {
     const html = renderToStaticMarkup(
       React.createElement(TreasureCard, { treasure, canManage: true, onUploadClick: Noop.noop })
     );
-    expect(html).toContain('photo-upload-overlay-button');
+    expect(html).toContain('actions-overlay-button');
   });
 
   it('does not render the edit link when canManage is true but editHref is omitted', function() {

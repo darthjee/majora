@@ -1,12 +1,10 @@
+import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
+
 /**
- * @description Builds a fresh gameClient spy shared by every GameController spec file.
- * @returns {object} a gameClient spy with a default successful fetchGameAccess.
+ * @description Stubs `AccessStore.ensureGameAccess` with a default fail-closed
+ *   resolution, shared by every GameController spec file.
+ * @returns {jasmine.Spy} the installed spy, so specs can override its return value.
  */
-export function buildGameClient() {
-  const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
-  gameClient.fetchGameAccess.and.returnValue(Promise.resolve({
-    ok: true,
-    json: () => Promise.resolve({ can_edit: false }),
-  }));
-  return gameClient;
+export function stubEnsureGameAccess() {
+  return spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
 }

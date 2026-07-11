@@ -2,6 +2,7 @@
 
 from django.contrib.auth.models import User
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 from games.models.game import Game
 from games.models.player import Player
@@ -35,6 +36,7 @@ class Character(models.Model):
     npc = models.BooleanField(default=True)
     hidden = models.BooleanField(default=False)
     slain = models.BooleanField(default=False)
+    public_slain = models.BooleanField(default=False)
     allegiance = models.CharField(
         max_length=16, choices=ALLEGIANCE_CHOICES, default=ALLEGIANCE_NEUTRAL
     )
@@ -45,6 +47,7 @@ class Character(models.Model):
     profile_photo = models.ForeignKey(
         'games.CharacterPhoto', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
     )
+    history = HistoricalRecords(app='versioning', user_db_constraint=False)
 
     class Meta:
         """Metadata for the Character model."""

@@ -1,5 +1,5 @@
 import React from 'react';
-import PhotoUploadOverlay from '../PhotoUploadOverlay.jsx';
+import ActionsOverlay from '../ActionsOverlay.jsx';
 import Translator from '../../../i18n/Translator.js';
 import Noop from '../../../utils/Noop.js';
 import TreasureMoney from '../TreasureMoney.jsx';
@@ -37,7 +37,7 @@ export default class TreasureCardHelper {
     return (
       <div className="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">
         <div className="card h-100 position-relative">
-          <PhotoUploadOverlay
+          <ActionsOverlay
             type="treasure"
             url={treasure.photo_path}
             alt={treasure.name}

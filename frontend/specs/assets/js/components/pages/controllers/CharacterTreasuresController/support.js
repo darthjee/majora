@@ -28,13 +28,12 @@ export const KINDS = [
 /**
  * @description Builds a fresh characterClient spy shared by every CharacterTreasuresController spec file.
  * @param {object} overrides - properties to assign onto the built spy object.
- * @returns {object} a characterClient spy with default non-ok fetchCharacter/fetchCharacterAccess.
+ * @returns {object} a characterClient spy with a default non-ok fetchCharacter.
  */
 export function buildCharacterClient(overrides = {}) {
-  const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacter', 'fetchCharacterAccess']);
+  const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacter']);
 
   characterClient.fetchCharacter.and.returnValue(Promise.resolve({ ok: false }));
-  characterClient.fetchCharacterAccess.and.returnValue(Promise.resolve({ ok: false }));
 
   return Object.assign(characterClient, overrides);
 }

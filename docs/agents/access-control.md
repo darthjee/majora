@@ -65,11 +65,16 @@ Character and Treasure access endpoints below:
 | `is_superuser` | `bool \| null` | Whether the requesting user is a Django superuser, or `null` if unauthenticated |
 | `is_staff` | `bool \| null` | Whether the requesting user is Django staff, or `null` if unauthenticated |
 | `is_dm` | `bool \| null` | Whether the requesting user is a GameMaster of this game, or `null` if unauthenticated |
+| `is_player` | `bool \| null` | Whether the requesting user is linked to this game via `Player.games`, or `null` if unauthenticated (added in issue #410) |
 | `is_owner` | `bool \| null` | Always `false` (never `null`, even when anonymous) — games have no ownership concept |
 
 All fields except `can_edit` are `null` for an anonymous caller, with one exception: `is_owner`
 is always `false` rather than `null`, since games have no ownership concept to report on in the
 first place.
+
+**Note (issue #410):** `Player.games` is currently never written by any endpoint — only
+touched in a model test — so `is_player` reads `false` for every real authenticated user until
+a follow-up issue builds a flow to populate it.
 
 ---
 
@@ -191,22 +196,30 @@ single character and gated by `CharacterEditPermission` instead of `GameEditPerm
 
 | Endpoint | Method | Who can call | Request body | Response |
 |----------|--------|-------------|---------------|----------|
-| `/games/<slug>/npcs/<id>/slain.json` | PATCH | `CharacterEditPermission` (the character's player, any GameMaster of that game, or superuser) | `{"slain": true\|false}` | `200 {"slain": true\|false}` |
+| `/games/<slug>/npcs/<id>/slain.json` | PATCH | `CharacterEditPermission` (the character's player, any GameMaster of that game, or superuser) | `{"slain": true\|false}` and/or `{"public_slain": true\|false}` (at least one key required) | `200 {"slain": true\|false, "public_slain": true\|false}` |
 
-Added in issue #315. There is no equivalent PC endpoint — `slain` is only ever toggled
-through this dedicated NPC route, mirroring the existing `hidden` NPC-only precedent (a
-field that lives on the shared `Character` model but is only meaningfully written for NPCs).
-Unlike `hidden`, `slain` is not part of `CharacterUpdateSerializer` or
+Added in issue #315; split into independent real/public fields in issue #397 (see "Slain
+fields" below for the full real/public split, mirroring the `allegiance`/`public_allegiance`
+split). There is no equivalent PC endpoint — `slain`/`public_slain` are only ever toggled
+through this dedicated NPC route, mirroring the existing `hidden` NPC-only precedent (fields
+that live on the shared `Character` model but are only meaningfully written for NPCs).
+Unlike `hidden`, `slain`/`public_slain` are not part of `CharacterUpdateSerializer` or
 `CharacterCreateSerializer` at all — this action endpoint, validated by the dedicated
-`CharacterSlainUpdateSerializer`, is its only write path.
+`CharacterSlainUpdateSerializer`, is their only write path.
 
 Since NPCs have no player by convention, `CharacterEditPermission` resolves in practice to
 "superuser or GameMaster (DM) of that game" for this endpoint.
 
+Each request body key present updates only that model field — sending `slain` alone leaves
+`public_slain` untouched, and vice versa; sending both updates both independently. The
+response always echoes the character's current `slain` and `public_slain` values, regardless
+of which keys were present in the request.
+
 - Unauthenticated → 401. Authenticated but not an editor of the NPC → 403.
 - Unknown `game_slug` or `character_id` (or a `character_id` that does not belong to
   `game_slug`, or is a PC id used against this NPC-only route) → 404.
-- Missing `slain` in the body, or a non-boolean value → 400.
+- Neither `slain` nor `public_slain` present in the body, or either present with a
+  non-boolean value → 400.
 
 ---
 
@@ -245,7 +258,7 @@ Characters are scoped to a game. Access is symmetric for PCs and NPCs unless not
 |----------|-------------|-----------------|
 | `GET /games/<slug>/pcs.json` | Anyone | `id`, `name`, `game_slug`, `profile_photo_path`, `slain`, `allegiance` |
 | `GET /games/<slug>/npcs.json` | Anyone | `id`, `name`, `game_slug`, `profile_photo_path`, `slain`, `allegiance` |
-| `GET /games/<slug>/npcs/all.json` | That game's GameMaster, or superuser (`GameEditPermission`) | Same as `npcs.json` (via `CharacterFullListSerializer`), plus `public_allegiance` — see "Allegiance fields" below for how `allegiance` differs here from the public list. Includes hidden NPCs, unlike `npcs.json`. Response always sets `X-Skip-Cache: true` |
+| `GET /games/<slug>/npcs/all.json` | That game's GameMaster, or superuser (`GameEditPermission`) | Same as `npcs.json` (via `CharacterFullListSerializer`), plus `public_allegiance` and `public_slain` — see "Allegiance fields" and "Slain fields" below for how `allegiance`/`slain` differ here from the public list. Includes hidden NPCs, unlike `npcs.json`. Response always sets `X-Skip-Cache: true` |
 
 This endpoint predates issue #360 (it already existed to reveal hidden NPCs to DMs) but had no
 dedicated documentation row until now — it was previously only referenced indirectly from the
@@ -263,17 +276,19 @@ dedicated documentation row until now — it was previously only referenced indi
 the `CharacterPhoto` selected as the character's profile photo (see "CharacterPhoto" and
 "Upload" below). Returned on the list, detail, and full-detail endpoints, to anyone.
 
-`slain` (added in issue #315) is a `BooleanField` (default `False`) shared by the `Character`
-model for both PCs and NPCs, and is returned read-only on the list and detail endpoints to
-anyone. Unlike `hidden`/`money`, it has no write path through `CharacterUpdateSerializer` or
-`CharacterCreateSerializer` — see the "Character slain-toggle endpoint" subsection below for
+`slain` (added in issue #315; split into real/public fields in issue #397) is a
+`BooleanField` (default `False`) shared by the `Character` model for both PCs and NPCs, and
+is returned read-only on the list and detail endpoints to anyone — on those public endpoints
+the `slain` JSON key is sourced from the `public_slain` model field (see "Slain fields"
+below). Unlike `hidden`/`money`, it has no write path through `CharacterUpdateSerializer` or
+`CharacterCreateSerializer` — see the "Character slain-toggle endpoint" subsection above for
 its only write path.
 
 ### Full detail (includes `private_description`)
 
 | Endpoint | Who can read | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs/<id>/full.json` | Player of this character, any GameMaster of this game, or superuser | All detail fields + `private_description` + `public_allegiance` (see "Allegiance fields" below) |
+| `GET /games/<slug>/pcs/<id>/full.json` | Player of this character, any GameMaster of this game, or superuser | All detail fields + `private_description` + `public_allegiance` + `public_slain` (see "Allegiance fields" and "Slain fields" below) |
 | `GET /games/<slug>/npcs/<id>/full.json` | Player of this character, any GameMaster of this game, or superuser | Same as above |
 
 Anonymous or insufficiently privileged authenticated users receive **401** or **403**.
@@ -323,6 +338,39 @@ on the real `allegiance` field — each endpoint filters on the same underlying 
 under the `allegiance` key, so the query param never lets an unauthorized caller filter on data
 it cannot otherwise read.
 
+### Slain fields (real/public split added in issue #397)
+
+`Character` has two independent `BooleanField`s (both defaulting to `False`), following the
+same real/public pattern as `allegiance`/`public_allegiance` above:
+
+- `slain` — the character's real death state, visible only to a DM/superuser.
+- `public_slain` — the death state shown to regular players.
+
+Both fields were added in issue #315 as a single shared field and split into this real/public
+pair in issue #397; the migration that introduced `public_slain` backfilled it from each
+existing row's `slain` value (rather than leaving it at the `False` default), so pre-existing
+NPCs' public and real death state started out identical.
+
+**Read exposure** — like `allegiance`, the JSON key `slain` means something different
+depending on the endpoint:
+
+- On the public list/detail endpoints (`pcs.json`, `npcs.json`, `pcs/<id>.json`,
+  `npcs/<id>.json`), the `slain` JSON key is sourced from the `public_slain` model field — the
+  real `slain` model field is never exposed there.
+- On the DM/admin endpoints (`npcs/all.json`, `pcs/<id>/full.json`, `npcs/<id>/full.json`),
+  `slain` is sourced from the real `slain` model field, and `public_slain` is additionally
+  exposed under its own key with the public-facing value.
+
+**Write access**: unlike `allegiance`/`public_allegiance`, neither `slain` nor `public_slain`
+was added to `CharacterUpdateSerializer` or `CharacterCreateSerializer` — both stay writable
+only through the dedicated "Character slain-toggle endpoint" above
+(`PATCH /games/<slug>/npcs/<id>/slain.json`), which accepts partial updates to either or both
+fields independently. There is no PC-facing write path for either field.
+
+**Filtering**: `npcs.json` filters `?slain=` on `public_slain`; `npcs/all.json` filters
+`?slain=` on the real `slain` field — same tolerant/unauthorized-safe convention as the
+`?allegiance=` filter above.
+
 ### Edit access status
 
 | Endpoint | Who can read | Response |
@@ -341,6 +389,7 @@ status" sections):
 | `is_superuser` | `bool \| null` | Whether the requesting user is a Django superuser, or `null` if unauthenticated |
 | `is_staff` | `bool \| null` | Whether the requesting user is Django staff, or `null` if unauthenticated |
 | `is_dm` | `bool \| null` | Whether the requesting user is a GameMaster of this character's game, or `null` if unauthenticated |
+| `is_player` | `bool \| null` | Whether the requesting user is linked to this character's game via `Player.games`, or `null` if unauthenticated (added in issue #410; see the "Note" under the Game section above — currently always `false` in practice, since nothing populates `Player.games` yet) |
 | `is_owner` | `bool \| null` | **PC**: a real boolean — `character.player.user_id == requesting_user.id` — or `null` if unauthenticated. **NPC**: always `false` (never `null`, even when anonymous), since NPCs have no player-ownership concept |
 
 All fields except `can_edit` are `null` for an anonymous caller, with one exception: on the NPC
@@ -841,11 +890,13 @@ Game and Character access endpoints above:
 | `is_superuser` | `bool \| null` | Whether the requesting user is a Django superuser, or `null` if unauthenticated |
 | `is_staff` | `bool \| null` | Whether the requesting user is Django staff, or `null` if unauthenticated |
 | `is_dm` | `bool \| null` | Whether the requesting user is a GameMaster of the treasure's owning game, or `null` if unauthenticated. `false` when authenticated but the treasure has no `game_id` (global treasure) |
+| `is_player` | `bool \| null` | Always `false` (never `null`, even when anonymous, and even when the treasure has an owning game the requester is a player of) — deliberately **not** evaluated for treasure access, since this route isn't nested under `/games/<slug>/` (added in issue #410; a deliberate scope decision, unlike `is_dm`'s treasure-access behavior) |
 | `is_owner` | `bool \| null` | Always `false` (never `null`, even when anonymous) — treasures have no ownership concept |
 
-All fields except `can_edit` are `null` for an anonymous caller, with one exception: `is_owner`
+All fields except `can_edit` are `null` for an anonymous caller, with two exceptions: `is_owner`
 is always `false` rather than `null`, since treasures have no ownership concept to report on in
-the first place.
+the first place, and `is_player` is always `false` rather than `null` for the same
+not-evaluated-here reason (see above).
 
 ### Edit rights logic
 
@@ -953,6 +1004,37 @@ requires the same authorization as write access.
 (not `CASCADE`), so deleting a `GameSession` via Django admin detaches its tasks (sets
 `task.session` to `null`) rather than deleting them — a task is expected to outlive the session
 it was originally scoped to.
+
+---
+
+## Historical records (`versioning` app)
+
+Added in issue #406. `django-simple-history` generates one `Historical<Model>` table per
+tracked model — `Game`, `Player`, `Character`, `Treasure`, `CharacterTreasure`, `GamePhoto`,
+`CharacterPhoto`, `Link`, `CharacterLink`, `TreasurePhoto` — living in the `versioning` app
+(see `docs/agents/architecture.md`'s "`versioning/`" section). `GameTreasure` is not tracked.
+
+These tables carry the full field state of every tracked model at every past save/delete,
+plus `history_user` (the acting user, when known). **They are exposed only via Django
+Admin — out of scope per this document's own rule above — and never through any API
+endpoint or serializer.** There is no read or write path to a `Historical<Model>` row from
+any client-facing route; a future issue that wants to surface history through the API would
+need its own dedicated review and its own entry in this document.
+
+**`history_user` has no DB-level foreign-key constraint** (`user_db_constraint=False` on every
+`HistoricalRecords(...)` call) — this was required to avoid confirmed MySQL deadlocks under the
+`games/tests/views/` suite (a hard FK from ten `Historical<Model>` tables to `auth_user` caused
+intermittent `Deadlock found when trying to get lock` failures; disabling the constraint
+resolved them, matching the "loose FK" treatment `django-simple-history` already applies by
+default to the tracked model's own relations, e.g. `game`/`player`/`profile_photo`). Integrity
+of `history_user_id` after a user is deleted therefore relies on the deletion going through
+Django's ORM (`on_delete=models.SET_NULL` still runs via Django's own signal/collector
+machinery, independent of `db_constraint`) rather than a DB-level constraint — true for every
+current user-deletion path in this codebase. If a future raw-SQL or bulk user-purge tool is
+ever added, it should explicitly null out `history_user_id` on the ten `Historical<Model>`
+tables (or reuse Django's ORM delete) to avoid an orphaned reference; `_history_user_getter`
+already handles a missing user gracefully (returns `None`), so this remains a data-integrity
+nuance, not a crash or disclosure risk.
 
 ---
 

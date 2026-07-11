@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
-import PhotoUploadOverlay from '../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
+import ActionsOverlay from '../../../../../../assets/js/components/elements/ActionsOverlay.jsx';
 import Noop from '../../../../../../assets/js/utils/Noop.js';
 
 const findElement = (node, matcher) => {
@@ -31,10 +31,10 @@ const findElement = (node, matcher) => {
   return findElement(node.props?.children, matcher);
 };
 
-describe('PhotoUploadOverlay', function() {
+describe('ActionsOverlay', function() {
   it('renders the upload button when canEdit is true', function() {
     const html = renderToStaticMarkup(
-      React.createElement(PhotoUploadOverlay, {
+      React.createElement(ActionsOverlay, {
         url: null,
         alt: 'Epic Quest',
         canEdit: true,
@@ -42,7 +42,7 @@ describe('PhotoUploadOverlay', function() {
       })
     );
 
-    expect(html).toContain('photo-upload-overlay-button');
+    expect(html).toContain('actions-overlay-button');
     expect(html).toContain('bi-camera-fill');
     expect(html).toContain('aria-label="Upload Photo"');
     expect(html).toContain('title="Upload Photo"');
@@ -50,7 +50,7 @@ describe('PhotoUploadOverlay', function() {
 
   it('does not render the upload button when canEdit is false', function() {
     const html = renderToStaticMarkup(
-      React.createElement(PhotoUploadOverlay, {
+      React.createElement(ActionsOverlay, {
         url: null,
         alt: 'Epic Quest',
         canEdit: false,
@@ -58,13 +58,13 @@ describe('PhotoUploadOverlay', function() {
       })
     );
 
-    expect(html).not.toContain('photo-upload-overlay-button');
+    expect(html).not.toContain('actions-overlay-button');
     expect(html).not.toContain('<button');
   });
 
   it('does not render the upload button when canEdit is absent', function() {
     const html = renderToStaticMarkup(
-      React.createElement(PhotoUploadOverlay, {
+      React.createElement(ActionsOverlay, {
         url: null,
         alt: 'Epic Quest',
         onClick: Noop.noop,
@@ -76,7 +76,7 @@ describe('PhotoUploadOverlay', function() {
 
   it('invokes onClick when the upload button is clicked', function() {
     const onClick = jasmine.createSpy('onClick');
-    const rendered = PhotoUploadOverlay({
+    const rendered = ActionsOverlay({
       url: null,
       alt: 'Epic Quest',
       canEdit: true,

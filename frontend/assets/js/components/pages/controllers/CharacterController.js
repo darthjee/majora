@@ -2,6 +2,7 @@ import CharacterClient from '../../../client/CharacterClient.js';
 import GenericClient from '../../../client/GenericClient.js';
 import BasePageController from './BasePageController.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
+import AccessStore from '../../../utils/AccessStore.js';
 
 /**
  * Base controller for character detail pages (PC and NPC).
@@ -68,18 +69,6 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
-   * Fetch the access permissions for the character from the API.
-   *
-   * @param {string} gameSlug - Game slug.
-   * @param {string} characterId - Character id.
-   * @param {string|null} token - Authentication token.
-   * @returns {Promise<Response>} Fetch response.
-   */
-  fetchCharacterAccess(gameSlug, characterId, token) {
-    return this.characterClient.fetchCharacterAccess(this.characterKind, gameSlug, characterId, token);
-  }
-
-  /**
    * Fetch a first page of the character's treasures from the API.
    *
    * @param {string} gameSlug - Game slug.
@@ -89,19 +78,6 @@ export default class CharacterController extends BasePageController {
    */
   fetchCharacterTreasures(gameSlug, characterId, token) {
     return this.characterClient.fetchCharacterTreasures(this.characterKind, gameSlug, characterId, token);
-  }
-
-  /**
-   * Handle the access endpoint response, overlaying can_edit onto the character.
-   * Falls back to the original character when the response is not ok.
-   *
-   * @param {Response} accessResponse - Response from fetchCharacterAccess.
-   * @param {object} character - Base character data already loaded.
-   * @returns {Promise<object>} Resolves to the character with can_edit applied.
-   */
-  handleAccessResponse(accessResponse, character) {
-    if (!accessResponse.ok) return Promise.resolve(character);
-    return accessResponse.json().then((access) => ({ ...character, can_edit: access.can_edit }));
   }
 
   /**
@@ -136,8 +112,9 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
-   * Fetch the access endpoint and merge the result into the character,
-   * then load the full character detail if editing is permitted.
+   * Resolve the character's access permissions through {@link AccessStore} and merge
+   * the result into the character, then load the full character detail if editing is
+   * permitted.
    *
    * @param {object} character - Base character data already loaded.
    * @param {object} params - Route params with game_slug and character_id.
@@ -146,9 +123,8 @@ export default class CharacterController extends BasePageController {
    * @returns {Promise<void>} Resolves once the character state is updated.
    */
   fetchAndMergeAccess(character, params, token, safeSet) {
-    return this.fetchCharacterAccess(params.game_slug, params.character_id, token)
-      .then((accessResponse) => this.handleAccessResponse(accessResponse, character))
-      .catch(() => character)
+    return AccessStore.ensureCharacterAccess(this.characterKind, params.game_slug, params.character_id)
+      .then((access) => ({ ...character, can_edit: access.can_edit }))
       .then((characterWithAccess) => this.loadFullCharacter(characterWithAccess, params, token, safeSet));
   }
 

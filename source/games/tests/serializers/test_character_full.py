@@ -74,3 +74,19 @@ class TestCharacterFullSerializer:
         self.character.save()
         data = self._serialize()
         assert data['public_allegiance'] == 'ally'
+
+    def test_serializes_slain_from_real_field(self):
+        """Test that slain is sourced from the real slain field, not public."""
+        self.character.slain = True
+        self.character.public_slain = False
+        self.character.save()
+        data = self._serialize()
+        assert data['slain'] is True
+
+    def test_serializes_public_slain(self):
+        """Test that public_slain is also exposed separately."""
+        self.character.slain = True
+        self.character.public_slain = False
+        self.character.save()
+        data = self._serialize()
+        assert data['public_slain'] is False

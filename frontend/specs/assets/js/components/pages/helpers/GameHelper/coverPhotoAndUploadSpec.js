@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameHelper from '../../../../../../../assets/js/components/pages/helpers/GameHelper.jsx';
-import PhotoUploadOverlay from '../../../../../../../assets/js/components/elements/PhotoUploadOverlay.jsx';
+import ActionsOverlay from '../../../../../../../assets/js/components/elements/ActionsOverlay.jsx';
 import { game } from './support.js';
 
 const findElement = (node, matcher) => {
@@ -45,25 +45,25 @@ describe('GameHelper', function() {
     it('renders the photo upload overlay button when can_edit is true', function() {
       const editableGame = { ...game, can_edit: true };
       const html = renderToStaticMarkup(GameHelper.render(editableGame));
-      expect(html).toContain('photo-upload-overlay-button');
+      expect(html).toContain('actions-overlay-button');
     });
 
     it('does not render the photo upload overlay button when can_edit is false', function() {
       const nonEditableGame = { ...game, can_edit: false };
       const html = renderToStaticMarkup(GameHelper.render(nonEditableGame));
-      expect(html).not.toContain('photo-upload-overlay-button');
+      expect(html).not.toContain('actions-overlay-button');
     });
 
     it('does not render the photo upload overlay button when can_edit is absent', function() {
       const html = renderToStaticMarkup(GameHelper.render(game));
-      expect(html).not.toContain('photo-upload-overlay-button');
+      expect(html).not.toContain('actions-overlay-button');
     });
 
     it('invokes onOpenUploadModal when the overlay button is clicked', function() {
       const onOpenUploadModal = jasmine.createSpy('onOpenUploadModal');
       const editableGame = { ...game, can_edit: true };
       const element = GameHelper.render(editableGame, [], [], { onOpenUploadModal });
-      const overlay = findElement(element, (child) => child.type === PhotoUploadOverlay);
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
       overlay.props.onClick();
 
