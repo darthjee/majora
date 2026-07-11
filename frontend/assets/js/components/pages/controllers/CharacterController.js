@@ -81,8 +81,9 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
-   * Handle the full character response, merging the private description
-   * into the base character when available.
+   * Handle the full character response, merging every field of the
+   * authoritative full (DM-only) character data into the base character
+   * when available.
    *
    * @param {Response} fullResponse - Response from fetchCharacterFull.
    * @param {object} character - Base character data already loaded.
@@ -91,23 +92,26 @@ export default class CharacterController extends BasePageController {
    */
   handleFullResponse(fullResponse, character, safeSet) {
     if (fullResponse.ok) {
-      return this.mergePrivateDescription(fullResponse, character, safeSet);
+      return this.mergeFullCharacter(fullResponse, character, safeSet);
     }
     safeSet(this.setCharacter, character);
   }
 
   /**
-   * Merge the private description from the full response into the
-   * base character and update the character state.
+   * Merge every field from the full (DM-only) character response onto the
+   * base character and update the character state. The full response is
+   * authoritative for fields it exposes (e.g. `slain`, `public_slain`,
+   * `allegiance`, `public_allegiance`, `private_description`), overriding
+   * whatever the public serializer provided for those same fields.
    *
    * @param {Response} fullResponse - Response from fetchCharacterFull.
    * @param {object} character - Base character data already loaded.
    * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
    * @returns {Promise<void>} Resolves once the character state is updated.
    */
-  mergePrivateDescription(fullResponse, character, safeSet) {
+  mergeFullCharacter(fullResponse, character, safeSet) {
     return fullResponse.json().then((full) => {
-      safeSet(this.setCharacter, { ...character, private_description: full.private_description });
+      safeSet(this.setCharacter, { ...character, ...full });
     });
   }
 

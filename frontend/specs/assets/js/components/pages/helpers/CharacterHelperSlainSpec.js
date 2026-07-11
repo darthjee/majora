@@ -56,7 +56,9 @@ describe('CharacterHelper slain/revive rendering', function() {
     });
 
     it('renders the real Mark as Slain button icon for an NPC with edit rights', function() {
-      const c = { ...character, is_pc: false, can_edit: true, slain: false };
+      // slain/public_slain deliberately differ, as they would in a real full-character
+      // response, to guard against a regression that conflates the two fields.
+      const c = { ...character, is_pc: false, can_edit: true, slain: false, public_slain: true };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
 
       expect(html).toContain('bi-skull-fill');
@@ -65,7 +67,7 @@ describe('CharacterHelper slain/revive rendering', function() {
     });
 
     it('renders the real Revive button icon for a currently slain NPC with edit rights', function() {
-      const c = { ...character, is_pc: false, can_edit: true, slain: true };
+      const c = { ...character, is_pc: false, can_edit: true, slain: true, public_slain: false };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
 
       expect(html).toContain('bi-heart-fill');
@@ -74,7 +76,9 @@ describe('CharacterHelper slain/revive rendering', function() {
     });
 
     it('renders the public Mark as Publicly Slain button icon for an NPC with edit rights', function() {
-      const c = { ...character, is_pc: false, can_edit: true, public_slain: false };
+      // slain is true while public_slain is false, mirroring a real DM-only response
+      // where the two fields disagree — the public button must follow public_slain only.
+      const c = { ...character, is_pc: false, can_edit: true, slain: true, public_slain: false };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
 
       expect(html).toContain('bi-skull"');
@@ -83,7 +87,7 @@ describe('CharacterHelper slain/revive rendering', function() {
     });
 
     it('renders the public Publicly Revive button icon for a currently publicly slain NPC with edit rights', function() {
-      const c = { ...character, is_pc: false, can_edit: true, public_slain: true };
+      const c = { ...character, is_pc: false, can_edit: true, slain: false, public_slain: true };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
 
       expect(html).toContain('bi-heart"');

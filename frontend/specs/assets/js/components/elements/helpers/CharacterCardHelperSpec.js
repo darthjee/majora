@@ -116,14 +116,17 @@ describe('CharacterCardHelper', function() {
     });
 
     it('renders the real Mark as Slain button icon for NPCs when canEdit is true and not slain', function() {
-      const html = renderToStaticMarkup(CharacterCardHelper.render(character, gameSlug, 'npc', 'normal', true));
+      // slain/public_slain deliberately differ, as they would in a real full-character
+      // response, to guard against a regression that conflates the two fields.
+      const c = { ...character, slain: false, public_slain: true };
+      const html = renderToStaticMarkup(CharacterCardHelper.render(c, gameSlug, 'npc', 'normal', true));
       expect(html).toContain('bi-skull-fill');
       expect(html).toContain('aria-label="Mark as Slain"');
       expect(html).toContain('title="Mark as Slain"');
     });
 
     it('renders the real Revive button icon for NPCs when canEdit is true and slain', function() {
-      const c = { ...character, slain: true };
+      const c = { ...character, slain: true, public_slain: false };
       const html = renderToStaticMarkup(CharacterCardHelper.render(c, gameSlug, 'npc', 'normal', true));
       expect(html).toContain('bi-heart-fill');
       expect(html).toContain('aria-label="Revive"');
@@ -131,14 +134,17 @@ describe('CharacterCardHelper', function() {
     });
 
     it('renders the public Mark as Publicly Slain button icon for NPCs when canEdit is true and not public_slain', function() {
-      const html = renderToStaticMarkup(CharacterCardHelper.render(character, gameSlug, 'npc', 'normal', true));
+      // slain is true while public_slain is false, mirroring a real DM-only response
+      // where the two fields disagree — the public button must follow public_slain only.
+      const c = { ...character, slain: true, public_slain: false };
+      const html = renderToStaticMarkup(CharacterCardHelper.render(c, gameSlug, 'npc', 'normal', true));
       expect(html).toContain('bi-skull"');
       expect(html).toContain('aria-label="Mark as Publicly Slain"');
       expect(html).toContain('title="Mark as Publicly Slain"');
     });
 
     it('renders the public Publicly Revive button icon for NPCs when canEdit is true and public_slain', function() {
-      const c = { ...character, public_slain: true };
+      const c = { ...character, slain: false, public_slain: true };
       const html = renderToStaticMarkup(CharacterCardHelper.render(c, gameSlug, 'npc', 'normal', true));
       expect(html).toContain('bi-heart"');
       expect(html).toContain('aria-label="Publicly Revive"');
