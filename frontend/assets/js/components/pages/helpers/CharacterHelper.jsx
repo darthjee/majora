@@ -11,7 +11,7 @@ import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import CharacterTreasuresPreview from '../../elements/CharacterTreasuresPreview.jsx';
 import Translator from '../../../i18n/Translator.js';
 import allegianceBorderClass from '../../../utils/AllegianceBorder.js';
-import Icons from '../../../utils/Icons.js';
+import SlainSecondaryButtons from '../../elements/helpers/SlainSecondaryButtons.js';
 
 /**
  * Rendering helper for the Character detail page.
@@ -29,10 +29,14 @@ export default class CharacterHelper {
    * @param {object[]} [character.links] - External link objects with text and url.
    * @param {number} [character.money] - Total money, expressed in copper pieces.
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
+   * @param {boolean} [character.is_player] - Whether the current user is a player of the
+   *   game (but not necessarily this character's editor), gates the single player-facing
+   *   slain/revive button.
    * @param {boolean} [character.is_pc] - Whether the character is a PC (vs. an NPC), used
    *   to build the correct edit link segment and to gate the slain/revive button.
-   * @param {boolean} [character.slain] - Whether the character is (really) slain, drives
-   *   grayscale rendering and the real slain/revive button label.
+   * @param {boolean} [character.slain] - Whether the character is (really) slain for a DM,
+   *   or its public-facing slain alias for a non-editor; drives grayscale rendering and the
+   *   real/player slain/revive button label.
    * @param {boolean} [character.public_slain] - Whether the character is publicly slain,
    *   drives the public slain/revive button label (DM-facing data only).
    * @param {string} [character.allegiance] - Allegiance value (`'ally'`, `'enemy'`,
@@ -44,7 +48,7 @@ export default class CharacterHelper {
    *   grid with a link to the full list page.
    * @param {string} backHref - Hash path to the character's index page.
    * @param {{onOpenUploadModal: Function, onOpenSlainModal: Function,
-   *   onOpenPublicSlainModal: Function}} [handlers] - Event handlers.
+   *   onOpenPublicSlainModal: Function, onOpenPlayerSlainModal: Function}} [handlers] - Event handlers.
    * @returns {React.ReactElement} Character detail element.
    */
   static render(character, backHref, handlers = {}) {
@@ -136,40 +140,72 @@ export default class CharacterHelper {
   }
 
   /**
-   * Build the real and public slain/revive secondary button definitions, only
-   * for NPCs the current user may edit.
+   * Build the secondary slain/revive button definitions for an NPC's picture
+   * overlay: the DM's real and public toggle pair when the current user may
+   * edit the character, or a single player-facing toggle when the current
+   * user is merely a player of the game. PCs, and NPCs the current user has
+   * no access to toggle, get no buttons.
    *
    * @param {object} character - Character data object.
    * @param {boolean} [character.is_pc] - Whether the character is a PC.
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
-   * @param {boolean} [character.slain] - Whether the character is currently (really) slain.
-   * @param {boolean} [character.public_slain] - Whether the character is currently publicly slain.
-   * @param {{onOpenSlainModal: Function, onOpenPublicSlainModal: Function}} handlers - Event handlers.
+   * @param {boolean} [character.is_player] - Whether the current user is a player of the game.
+   * @param {boolean} [character.slain] - Whether the character is currently (really) slain
+   *   for a DM, or its public-facing slain alias for a non-editor.
+   * @param {boolean} [character.public_slain] - Whether the character is currently publicly
+   *   slain (DM-facing data only).
+   * @param {{onOpenSlainModal: Function, onOpenPublicSlainModal: Function,
+   *   onOpenPlayerSlainModal: Function}} handlers - Event handlers.
    * @returns {{label: string, variant: string, icon: string, onClick: Function}[]} Secondary
    *   button definitions, empty when not applicable.
    */
   static #buildSecondaryButtons(character, handlers) {
-    if (character.is_pc || !character.can_edit) {
+    if (character.is_pc) {
       return [];
     }
 
+    if (character.can_edit) {
+      return CharacterHelper.#buildDmSecondaryButtons(character, handlers);
+    }
+
+    if (character.is_player) {
+      return CharacterHelper.#buildPlayerSecondaryButtons(character, handlers);
+    }
+
+    return [];
+  }
+
+  /**
+   * Build the DM's real and public slain/revive secondary button definitions.
+   *
+   * @param {object} character - Character data object.
+   * @param {boolean} [character.slain] - Whether the character is currently (really) slain.
+   * @param {boolean} [character.public_slain] - Whether the character is currently publicly slain.
+   * @param {{onOpenSlainModal: Function, onOpenPublicSlainModal: Function}} handlers - Event handlers.
+   * @returns {{label: string, variant: string, icon: string, onClick: Function}[]} Secondary
+   *   button definitions.
+   */
+  static #buildDmSecondaryButtons(character, handlers) {
+    return SlainSecondaryButtons.buildDmButtons(
+      character, handlers.onOpenSlainModal, handlers.onOpenPublicSlainModal,
+    );
+  }
+
+  /**
+   * Build the single player-facing slain/revive secondary button definition,
+   * reusing the DM's real-slain button shape (`Icons.heart`/`Icons.skullFill`)
+   * as an intentional icon reuse — players only ever toggle `public_slain`,
+   * which is already the value aliased onto `character.slain` for non-editors.
+   *
+   * @param {object} character - Character data object.
+   * @param {boolean} [character.slain] - The character's public-facing slain alias.
+   * @param {{onOpenPlayerSlainModal: Function}} handlers - Event handlers.
+   * @returns {{label: string, variant: string, icon: string, onClick: Function}[]} Secondary
+   *   button definitions.
+   */
+  static #buildPlayerSecondaryButtons(character, handlers) {
     return [
-      {
-        label: character.slain
-          ? Translator.t('character_page.revive_button')
-          : Translator.t('character_page.slain_button'),
-        variant: character.slain ? 'success' : 'danger',
-        icon: character.slain ? Icons.heart : Icons.skullFill,
-        onClick: handlers.onOpenSlainModal,
-      },
-      {
-        label: character.public_slain
-          ? Translator.t('character_page.public_revive_button')
-          : Translator.t('character_page.public_slain_button'),
-        variant: character.public_slain ? 'success' : 'danger',
-        icon: character.public_slain ? Icons.heartOutline : Icons.skull,
-        onClick: handlers.onOpenPublicSlainModal,
-      },
+      SlainSecondaryButtons.buildSlainButton(character.slain, handlers.onOpenPlayerSlainModal),
     ];
   }
 

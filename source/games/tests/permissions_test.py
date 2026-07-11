@@ -5,7 +5,12 @@ from django.contrib.auth.models import AnonymousUser
 from rest_framework.test import APIRequestFactory
 
 from games.models import Task
-from games.permissions import CharacterEditPermission, GameEditPermission, TaskEditPermission
+from games.permissions import (
+    CharacterEditPermission,
+    GameEditPermission,
+    NpcPlayerEditPermission,
+    TaskEditPermission,
+)
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
@@ -77,6 +82,58 @@ class TestCharacterEditPermissionCheck:
         superuser = SuperUserFactory(username='admin', password='secret-password')
         request = _make_request(superuser)
         assert CharacterEditPermission.check(request, self.character) is None
+
+
+@pytest.mark.django_db
+class TestNpcPlayerEditPermissionCheck:
+    """Tests for NpcPlayerEditPermission.check()."""
+
+    def setup_method(self):
+        """Set up a game, a DM, a player of the game, and an NPC."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
+        self.player_user = UserFactory(username='player_user', password='secret-password')
+        self.player = PlayerFactory(name='Bob', user=self.player_user)
+        self.player.games.add(self.game)
+        self.npc = CharacterFactory(name='Gandalf', game=self.game, npc=True)
+
+    def test_returns_401_response_for_anonymous_user(self):
+        """Test that an anonymous user gets a 401 error response."""
+        request = _make_request(AnonymousUser())
+        response = NpcPlayerEditPermission.check(request, self.npc)
+        assert response.status_code == 401
+        assert response.data == {'errors': {'detail': ['authentication required']}}
+
+    def test_returns_401_response_for_none_user(self):
+        """Test that a None user gets a 401 error response."""
+        request = _make_request(None)
+        response = NpcPlayerEditPermission.check(request, self.npc)
+        assert response.status_code == 401
+
+    def test_returns_403_response_for_unrelated_user(self):
+        """Test that an authenticated user who is neither a player nor an editor gets 403."""
+        other_user = UserFactory(username='other', password='secret-password')
+        request = _make_request(other_user)
+        response = NpcPlayerEditPermission.check(request, self.npc)
+        assert response.status_code == 403
+        assert response.data == {'errors': {'detail': ['not allowed']}}
+
+    def test_returns_none_for_player_of_the_game(self):
+        """Test that a player linked to the NPC's game via Player.games passes the check."""
+        request = _make_request(self.player_user)
+        assert NpcPlayerEditPermission.check(request, self.npc) is None
+
+    def test_returns_none_for_dm(self):
+        """Test that a DM of the game passes the check."""
+        request = _make_request(self.dm_user)
+        assert NpcPlayerEditPermission.check(request, self.npc) is None
+
+    def test_returns_none_for_superuser(self):
+        """Test that a superuser passes the check."""
+        superuser = SuperUserFactory(username='admin', password='secret-password')
+        request = _make_request(superuser)
+        assert NpcPlayerEditPermission.check(request, self.npc) is None
 
 
 @pytest.mark.django_db

@@ -39,12 +39,17 @@ export default class GameCharactersHelper {
    *   filters) preserved on every pagination link.
    * @param {React.ReactNode} [filters] - Optional filter bar rendered below the title and
    *   above the character grid (e.g. NpcFilters for GameNpcs, unused by GamePcs).
+   * @param {boolean} [isPlayer] - Whether the current user is a player of the game, gating
+   *   each NPC card's single player-facing slain/revive button (ignored for PCs).
+   * @param {Function} [onPlayerSlainClick] - Called with the character object when an NPC
+   *   card's player-facing slain/revive overlay button is clicked (ignored for PCs).
    * @returns {React.ReactElement} Characters grid with pagination.
    */
   static render(
     characters, pagination, basePath, gameSlug, title, characterType, backHref,
     canEdit = false, newHref = '', onUploadClick = Noop.noop, onSlainClick = Noop.noop,
     onPublicSlainClick = Noop.noop, extraParams = {}, filters = null,
+    isPlayer = false, onPlayerSlainClick = Noop.noop,
   ) {
     const isNpc = characterType === 'npc';
 
@@ -66,7 +71,11 @@ export default class GameCharactersHelper {
               character={character}
               gameSlug={gameSlug}
               characterType={characterType}
-              {...(isNpc ? { canEdit, onUploadClick, onSlainClick, onPublicSlainClick } : {})}
+              {...(isNpc
+                ? {
+                  canEdit, onUploadClick, onSlainClick, onPublicSlainClick, isPlayer, onPlayerSlainClick,
+                }
+                : {})}
             />
           ))}
         </div>

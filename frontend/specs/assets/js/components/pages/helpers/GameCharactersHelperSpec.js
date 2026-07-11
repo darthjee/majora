@@ -140,6 +140,37 @@ describe('GameCharactersHelper', function() {
       });
     });
 
+    it('forwards isPlayer and onPlayerSlainClick to CharacterCard for npc characterType', function() {
+      const onPlayerSlainClick = jasmine.createSpy('onPlayerSlainClick');
+      const element = GameCharactersHelper.render(
+        characters, pagination, '#/games/eq/npcs', 'eq', 'Non-Player Characters', 'npc', '#/games/eq',
+        false, '#/games/eq/npcs/new', undefined, undefined, undefined, {}, null,
+        true, onPlayerSlainClick,
+      );
+      const cards = findElements(element, (child) => child.type === CharacterCard);
+
+      expect(cards.length).toBe(2);
+      cards.forEach((card) => {
+        expect(card.props.isPlayer).toBe(true);
+        expect(card.props.onPlayerSlainClick).toBe(onPlayerSlainClick);
+      });
+    });
+
+    it('does not forward isPlayer or onPlayerSlainClick to CharacterCard for pc characterType', function() {
+      const onPlayerSlainClick = jasmine.createSpy('onPlayerSlainClick');
+      const element = GameCharactersHelper.render(
+        characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters', 'pc', '#/games/eq',
+        false, '', undefined, undefined, undefined, {}, null, true, onPlayerSlainClick,
+      );
+      const cards = findElements(element, (child) => child.type === CharacterCard);
+
+      expect(cards.length).toBe(2);
+      cards.forEach((card) => {
+        expect(card.props.isPlayer).toBeUndefined();
+        expect(card.props.onPlayerSlainClick).toBeUndefined();
+      });
+    });
+
     it('forwards extraParams to the Pagination links when provided', function() {
       const paginated = { page: 1, pages: 3, perPage: 10 };
       const html = renderToStaticMarkup(

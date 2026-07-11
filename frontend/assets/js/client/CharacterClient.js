@@ -7,7 +7,8 @@ import BaseClient from './BaseClient.js';
  *   `characterKind` argument (`'pcs'` or `'npcs'`), which is used both as the
  *   URL segment and to decide whether the (NPC-only) `X-Skip-Cache` header
  *   is required. NPC-only endpoints (`createNpc`, `fetchNpcsAll`,
- *   `setNpcSlain`) have no PC counterpart and stay unparameterized.
+ *   `setNpcSlain`, `setNpcPublicSlainAsPlayer`) have no PC counterpart and
+ *   stay unparameterized.
  */
 export default class CharacterClient extends BaseClient {
   /**
@@ -64,17 +65,17 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
-   * Submits a partial update for a character.
+   * Submits a partial update for a character, through the (GM-only) full endpoint.
    *
    * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {string|number} characterId - Character id.
    * @param {string|null} token - Authentication token, if any.
    * @param {object} fields - Fields to update.
-   * @returns {Promise<Response>} fetch response from the character endpoint.
+   * @returns {Promise<Response>} fetch response from the character full endpoint.
    */
   updateCharacter(characterKind, gameSlug, characterId, token, fields) {
-    return this.patchJson(`/games/${gameSlug}/${characterKind}/${characterId}.json`, token, fields);
+    return this.patchJson(`/games/${gameSlug}/${characterKind}/${characterId}/full.json`, token, fields);
   }
 
   /**
@@ -193,6 +194,21 @@ export default class CharacterClient extends BaseClient {
    */
   setNpcSlain(gameSlug, characterId, token, fields) {
     return this.updateCharacter('npcs', gameSlug, characterId, token, fields);
+  }
+
+  /**
+   * Toggles an NPC's public_slain state as a player of the game, through the
+   * plain (player-writable) NPC endpoint — not `full.json`, which stays
+   * DM-only. Permitted for any player of the game, in addition to GMs/superusers.
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {boolean} slain - New public_slain value.
+   * @returns {Promise<Response>} fetch response from the plain NPC endpoint.
+   */
+  setNpcPublicSlainAsPlayer(gameSlug, characterId, token, slain) {
+    return this.patchJson(`/games/${gameSlug}/npcs/${characterId}.json`, token, { slain });
   }
 
   #fetchCharacter(characterKind, gameSlug, characterId, token, suffix = null, signal) {

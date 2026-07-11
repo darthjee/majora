@@ -4,6 +4,7 @@ import NpcCharacterController from './controllers/NpcCharacterController.js';
 import AuthStorage from '../../utils/AuthStorage.js';
 import SlainConfirmModal from '../elements/SlainConfirmModal.jsx';
 import SlainConfirmController from '../elements/controllers/SlainConfirmController.js';
+import PlayerSlainConfirmController from '../elements/controllers/PlayerSlainConfirmController.js';
 
 /**
  * Builds the show/hide state, controller, and confirm handler for a single
@@ -38,23 +39,57 @@ function useSlainTogglePair(field, character, controller) {
 }
 
 /**
- * NPC-only extension hook plugging the real and public slain confirmation
- * modals into the shared character detail page.
+ * Builds the show/hide state and confirm handler for the player-facing slain
+ * toggle, which PATCHes the plain NPC endpoint as a player of the game
+ * (rather than the DM's `full.json` endpoint used by {@link useSlainTogglePair}).
+ *
+ * @param {object|null} character - Loaded character, or null while still loading.
+ * @param {import('./controllers/NpcCharacterController.js').default} controller - Detail controller,
+ *   whose effect is re-run to refresh the character after toggling.
+ * @returns {{show: boolean, open: Function, close: Function, confirm: Function}} Modal
+ *   visibility state and handlers for the player-facing toggle.
+ */
+function usePlayerSlainToggle(character, controller) {
+  const [show, setShow] = useState(false);
+
+  const playerSlainController = useMemo(
+    () => new PlayerSlainConfirmController(() => {
+      setShow(false);
+      controller.buildEffect()();
+    }),
+    [controller],
+  );
+
+  const confirm = () => {
+    playerSlainController.handleConfirm(character.game_slug, character, AuthStorage.getToken());
+  };
+
+  return {
+    show, open: () => setShow(true), close: () => setShow(false), confirm,
+  };
+}
+
+/**
+ * NPC-only extension hook plugging the real, public, and player-facing slain
+ * confirmation modals into the shared character detail page.
  *
  * @param {object|null} character - Loaded character, or null while still loading.
  * @param {import('./controllers/NpcCharacterController.js').default} controller - Detail controller,
  *   whose effect is re-run to refresh the character after toggling slain state.
- * @returns {{handlers: {onOpenSlainModal: Function, onOpenPublicSlainModal: Function},
- *   modal: React.ReactElement|null}} Extra handlers and modals for the shared detail page.
+ * @returns {{handlers: {onOpenSlainModal: Function, onOpenPublicSlainModal: Function,
+ *   onOpenPlayerSlainModal: Function}, modal: React.ReactElement|null}} Extra handlers and
+ *   modals for the shared detail page.
  */
 function useSlainExtra(character, controller) {
   const slain = useSlainTogglePair('slain', character, controller);
   const publicSlain = useSlainTogglePair('public_slain', character, controller);
+  const playerSlain = usePlayerSlainToggle(character, controller);
 
   return {
     handlers: {
       onOpenSlainModal: slain.open,
       onOpenPublicSlainModal: publicSlain.open,
+      onOpenPlayerSlainModal: playerSlain.open,
     },
     modal: character && (
       <>
@@ -70,6 +105,12 @@ function useSlainExtra(character, controller) {
           isPublic
           onCancel={publicSlain.close}
           onConfirm={publicSlain.confirm}
+        />
+        <SlainConfirmModal
+          show={playerSlain.show}
+          slain={character.slain}
+          onCancel={playerSlain.close}
+          onConfirm={playerSlain.confirm}
         />
       </>
     ),

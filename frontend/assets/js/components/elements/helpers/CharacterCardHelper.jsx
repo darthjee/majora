@@ -1,10 +1,9 @@
 import React from 'react';
 import CardAvatar from '../CardAvatar.jsx';
 import ActionsOverlay from '../ActionsOverlay.jsx';
-import Translator from '../../../i18n/Translator.js';
 import Noop from '../../../utils/Noop.js';
 import allegianceBorderClass from '../../../utils/AllegianceBorder.js';
-import Icons from '../../../utils/Icons.js';
+import SlainSecondaryButtons from './SlainSecondaryButtons.js';
 
 /**
  * Rendering helper for the CharacterCard element.
@@ -49,11 +48,18 @@ export default class CharacterCardHelper {
    *   real slain/revive overlay button is clicked (NPC only).
    * @param {Function} [onPublicSlainClick] - Called with the character object when the
    *   public slain/revive overlay button is clicked (NPC only).
+   * @param {boolean} [playerOptions.isPlayer] - Whether the current user is a player of the
+   *   game (meaningful only when characterType is 'npc' and canEdit is false).
+   * @param {Function} [playerOptions.onPlayerSlainClick] - Called with the character object
+   *   when the player-facing slain/revive overlay button is clicked (NPC only).
+   * @param {{isPlayer?: boolean, onPlayerSlainClick?: Function}} [playerOptions] - Player-facing
+   *   slain toggle options, grouped to keep this method's parameter count in check.
    * @returns {React.ReactElement} Character card element.
    */
   static render(
     character, gameSlug, characterType, size = 'normal', canEdit = false,
     onUploadClick = Noop.noop, onSlainClick = Noop.noop, onPublicSlainClick = Noop.noop,
+    playerOptions = {},
   ) {
     const isSmall = size === 'small';
     const columnClass = isSmall ? 'col-sm-3 col-md-2 col-lg-1' : 'col-sm-6 col-md-4 col-lg-3';
@@ -71,6 +77,7 @@ export default class CharacterCardHelper {
           <div className={cardClass}>
             {CharacterCardHelper.#renderPhoto(
               character, characterType, canEdit, onUploadClick, onSlainClick, onPublicSlainClick,
+              playerOptions,
             )}
             {CharacterCardHelper.#renderCardBody(character, isSmall, HeadingTag)}
           </div>
@@ -80,39 +87,58 @@ export default class CharacterCardHelper {
   }
 
   /**
-   * Build the real and public slain/revive secondary button definitions.
+   * Build the DM's real and public slain/revive secondary button definitions.
    *
    * @param {object} character - Character data object.
    * @param {boolean} [character.slain] - The character's real slain state.
    * @param {boolean} [character.public_slain] - The character's public slain state.
-   * @param {boolean} canEdit - Whether the current user may edit this NPC.
    * @param {Function} onSlainClick - Called with the character object on real slain click.
    * @param {Function} onPublicSlainClick - Called with the character object on public slain click.
    * @returns {{label: string, variant: string, icon: string, onClick: Function}[]} Secondary
-   *   button definitions, empty when canEdit is false.
+   *   button definitions.
    */
-  static #buildSecondaryButtons(character, canEdit, onSlainClick, onPublicSlainClick) {
-    if (!canEdit) {
+  static #buildDmSecondaryButtons(character, onSlainClick, onPublicSlainClick) {
+    return SlainSecondaryButtons.buildDmButtons(
+      character,
+      CharacterCardHelper.#buildOverlayClickHandler(onSlainClick, character),
+      CharacterCardHelper.#buildOverlayClickHandler(onPublicSlainClick, character),
+    );
+  }
+
+  /**
+   * Build the secondary slain/revive button definitions: the DM's real and
+   * public toggle pair when canEdit is true, or a single player-facing
+   * toggle when the current user is merely a player of the game.
+   *
+   * @param {object} character - Character data object.
+   * @param {boolean} [character.slain] - The character's real slain state for a DM, or its
+   *   public-facing slain alias for a non-editor.
+   * @param {boolean} [character.public_slain] - The character's public slain state (DM-facing
+   *   data only).
+   * @param {boolean} canEdit - Whether the current user may edit this NPC.
+   * @param {Function} onSlainClick - Called with the character object on real slain click.
+   * @param {Function} onPublicSlainClick - Called with the character object on public slain click.
+   * @param {{isPlayer?: boolean, onPlayerSlainClick?: Function}} playerOptions - Player-facing
+   *   slain toggle options.
+   * @returns {{label: string, variant: string, icon: string, onClick: Function}[]} Secondary
+   *   button definitions, empty when neither canEdit nor isPlayer applies.
+   */
+  static #buildSecondaryButtons(character, canEdit, onSlainClick, onPublicSlainClick, playerOptions) {
+    if (canEdit) {
+      return CharacterCardHelper.#buildDmSecondaryButtons(character, onSlainClick, onPublicSlainClick);
+    }
+
+    const { isPlayer = false, onPlayerSlainClick = Noop.noop } = playerOptions;
+
+    if (!isPlayer) {
       return [];
     }
 
     return [
-      {
-        label: character.slain
-          ? Translator.t('character_page.revive_button')
-          : Translator.t('character_page.slain_button'),
-        variant: character.slain ? 'success' : 'danger',
-        icon: character.slain ? Icons.heart : Icons.skullFill,
-        onClick: CharacterCardHelper.#buildOverlayClickHandler(onSlainClick, character),
-      },
-      {
-        label: character.public_slain
-          ? Translator.t('character_page.public_revive_button')
-          : Translator.t('character_page.public_slain_button'),
-        variant: character.public_slain ? 'success' : 'danger',
-        icon: character.public_slain ? Icons.heartOutline : Icons.skull,
-        onClick: CharacterCardHelper.#buildOverlayClickHandler(onPublicSlainClick, character),
-      },
+      SlainSecondaryButtons.buildSlainButton(
+        character.slain,
+        CharacterCardHelper.#buildOverlayClickHandler(onPlayerSlainClick, character),
+      ),
     ];
   }
 
@@ -126,9 +152,11 @@ export default class CharacterCardHelper {
    * @param {Function} onUploadClick - Called with the character object on upload click.
    * @param {Function} onSlainClick - Called with the character object on real slain click.
    * @param {Function} onPublicSlainClick - Called with the character object on public slain click.
+   * @param {{isPlayer?: boolean, onPlayerSlainClick?: Function}} playerOptions - Player-facing
+   *   slain toggle options.
    * @returns {React.ReactElement} Rendered photo element.
    */
-  static #renderPhoto(character, characterType, canEdit, onUploadClick, onSlainClick, onPublicSlainClick) {
+  static #renderPhoto(character, characterType, canEdit, onUploadClick, onSlainClick, onPublicSlainClick, playerOptions) {
     if (characterType !== 'npc') {
       return <CardAvatar url={character.profile_photo_path} alt={character.name} />;
     }
@@ -142,7 +170,7 @@ export default class CharacterCardHelper {
         onClick={CharacterCardHelper.#buildOverlayClickHandler(onUploadClick, character)}
         grayscale={character.slain}
         secondaryButtons={CharacterCardHelper.#buildSecondaryButtons(
-          character, canEdit, onSlainClick, onPublicSlainClick,
+          character, canEdit, onSlainClick, onPublicSlainClick, playerOptions,
         )}
       />
     );
