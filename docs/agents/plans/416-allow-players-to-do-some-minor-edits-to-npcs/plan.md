@@ -16,6 +16,11 @@ detail view is GET-only (its old PATCH/`CharacterUpdateSerializer` path removed)
 `full.json` handles the GM full update. Implement #428 first; do not start this plan against a
 pre-428 checkout.
 
+**Depended on by #429** ("Allow players to perform NPC photo upload"): that issue reuses this
+plan's `NpcPlayerEditPermission` (Step 1 of [backend.md](backend.md)) verbatim for the NPC
+photo-upload endpoints, and builds on the same `is_player`-merging frontend plumbing this plan
+adds to `CharacterController`/`GameNpcsController`. Implement this issue before #429.
+
 ## Agents involved
 
 - [backend](backend.md)

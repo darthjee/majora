@@ -11,6 +11,12 @@ writing `public_slain`, permitted for a player of the game (via the same computa
 `X-Skip-Cache: true`. No change needed to expose `is_player` — it's already computed by
 `BaseAccessSerializer`/`CharacterAccessSerializer` and already fetched by the frontend.
 
+Must produce a **generic, reusable** permission class (`NpcPlayerEditPermission`, not a
+slain-specific one) — issue #429 ("Allow players to perform NPC photo upload") depends on this
+plan and reuses this exact class for the NPC photo-upload endpoints, since it needs the
+identical "is a player of this game OR `CharacterEditPermission`" check. Do not name or scope
+this permission around `slain` specifically.
+
 **Prerequisite:** issue #428 must already be implemented (plain NPC/PC detail views GET-only,
 `full.json` PATCH-capable) — build against that shape, not the current one.
 
@@ -18,14 +24,15 @@ writing `public_slain`, permitted for a player of the game (via the same computa
 
 ### Step 1 — Add the "is player of the game" permission check
 
-In `source/games/permissions.py`, add a new permission class (e.g. `NpcSlainPermission`)
-alongside the existing `_EditPermission` subclasses. It should reuse
+In `source/games/permissions.py`, add a new permission class named `NpcPlayerEditPermission`
+(generic — not `NpcSlainPermission` — since #429 also reuses it for the NPC photo-upload
+endpoints), alongside the existing `_EditPermission` subclasses. It should reuse
 `_EditPermission._unauthenticated_response`/`_forbidden_response` but replace the
 `can_be_edited_by`-only check with: allowed if
 `character.game.players.filter(user=request.user).exists()` (the exact query
 `BaseAccessSerializer._get_is_player` uses, `source/games/serializers/base_access.py:81`) OR
 `character.can_be_edited_by(request.user)`. Keep it Character-specific (it needs `.game`), not
-a generic `_EditPermission` subclass reused elsewhere.
+a generic `_EditPermission` subclass reused for non-character resources.
 
 ### Step 2 — Add the minimal slain-update serializer
 
@@ -56,7 +63,7 @@ In `source/games/views/characters/game_npc_detail.py`:
   1. `_get_character_or_404(game, character_id, npc=True)` (reuse from `_shared.py`).
   2. `_hidden_gate_response(character, request)` (reuse from `_shared.py`) — keep the hidden-NPC
      gate consistent with `GET`'s behavior on this same route.
-  3. `NpcSlainPermission.check(request, character)` (Step 1).
+  3. `NpcPlayerEditPermission.check(request, character)` (Step 1).
   4. Validate/save with `NpcSlainUpdateSerializer(character, data=request.data, partial=True)`,
      using `validated_or_error`/`save_or_error` from `views/common.py` (same helpers
      `detail_or_update` uses internally).
@@ -92,7 +99,7 @@ the NPC plain-PATCH endpoint post-#428:
 
 ## Files to Change
 
-- `source/games/permissions.py` — new `NpcSlainPermission`.
+- `source/games/permissions.py` — new `NpcPlayerEditPermission` (generic, also reused by #429).
 - `source/games/serializers/npc_slain_update.py` — new `NpcSlainUpdateSerializer`.
 - `source/games/serializers/__init__.py` — export it.
 - `source/games/views/characters/game_npc_detail.py` — restore `PATCH`, dispatch to new logic.
