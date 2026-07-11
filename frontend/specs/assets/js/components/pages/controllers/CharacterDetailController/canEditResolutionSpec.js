@@ -9,7 +9,8 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
     });
 
     it('sets can_edit to false when AccessStore resolves with the fail-closed default', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+      spyOn(AccessStore, 'ensureCharacterAccess')
+        .and.returnValue(Promise.resolve({ can_edit: false, is_player: false }));
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -31,7 +32,7 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: false });
+      expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: false, is_player: false });
       expect(characterClient.fetchCharacterFull).not.toHaveBeenCalled();
 
       cleanup();

@@ -30,6 +30,7 @@ from games.serializers.game_update import GameUpdateSerializer
 from games.serializers.link import LinkSerializer
 from games.serializers.my_account_detail import MyAccountDetailSerializer
 from games.serializers.my_account_update import MyAccountUpdateSerializer
+from games.serializers.npc_slain_update import NpcSlainUpdateSerializer
 from games.serializers.pc_access import PcAccessSerializer
 from games.serializers.photo_upload import PhotoUploadSerializer
 from games.serializers.staff_user_detail import StaffUserDetailSerializer
@@ -72,6 +73,7 @@ __all__ = [
     'LinkSerializer',
     'MyAccountDetailSerializer',
     'MyAccountUpdateSerializer',
+    'NpcSlainUpdateSerializer',
     'PcAccessSerializer',
     'PhotoUploadSerializer',
     'StaffUserDetailSerializer',

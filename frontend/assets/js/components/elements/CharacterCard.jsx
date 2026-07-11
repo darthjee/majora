@@ -25,13 +25,19 @@ import Noop from '../../utils/Noop.js';
  *   real slain/revive overlay button is clicked (NPC only).
  * @param {Function} [props.onPublicSlainClick] - Called with the character object when the
  *   public slain/revive overlay button is clicked (NPC only).
+ * @param {boolean} [props.isPlayer] - Whether the current user is a player of the game
+ *   (meaningful only when characterType is 'npc' and canEdit is false).
+ * @param {Function} [props.onPlayerSlainClick] - Called with the character object when the
+ *   player-facing slain/revive overlay button is clicked (NPC only).
  * @returns {React.ReactElement} Character card element.
  */
 export default function CharacterCard({
   character, gameSlug, characterType, size = 'normal', canEdit = false,
   onUploadClick = Noop.noop, onSlainClick = Noop.noop, onPublicSlainClick = Noop.noop,
+  isPlayer = false, onPlayerSlainClick = Noop.noop,
 }) {
   return CharacterCardHelper.render(
     character, gameSlug, characterType, size, canEdit, onUploadClick, onSlainClick, onPublicSlainClick,
+    { isPlayer, onPlayerSlainClick },
   );
 }

@@ -130,6 +130,15 @@ Any other authenticated or unauthenticated user may not edit the character.
 This logic is implemented in `Character.can_be_edited_by(user)` and
 `Character.is_editor(user)` in `source/games/models/character.py`.
 
+Separately, and narrower in scope (issue #416): a user who is a **player of the game** — the
+same `is_player` computation exposed on `.../access.json` endpoints, i.e. a `Player` record
+linked to `character.game` via `Player.games` whose `user` matches the requester — may toggle
+an NPC's `public_slain` (its player-facing "slain" state) through
+`PATCH /games/:game_slug/npcs/:id.json`, even without satisfying any of the three rules above.
+This is not a general editing right: it grants no access to any other field, and does not
+apply to PCs. It exists alongside (not instead of) the rules above, so a GameMaster/superuser
+can still use the same endpoint.
+
 ---
 
 ## Summary Table
@@ -142,3 +151,4 @@ This logic is implemented in `Character.can_be_edited_by(user)` and
 | PC vs NPC | `npc=False` → PC (has player); `npc=True` → NPC (no player) |
 | Player account link | `Player.user` nullable — player without a login has no owner |
 | Staff role | `user.is_staff` — global, grants User-management access only (not other superuser actions) |
+| NPC public_slain toggle | Any player of the game (via `Player.games`), in addition to the Editing rights above — NPC-only, `public_slain` field only |

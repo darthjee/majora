@@ -128,7 +128,7 @@ export default class CharacterController extends BasePageController {
    */
   fetchAndMergeAccess(character, params, token, safeSet) {
     return AccessStore.ensureCharacterAccess(this.characterKind, params.game_slug, params.character_id)
-      .then((access) => ({ ...character, can_edit: access.can_edit }))
+      .then((access) => ({ ...character, can_edit: access.can_edit, is_player: access.is_player }))
       .then((characterWithAccess) => this.loadFullCharacter(characterWithAccess, params, token, safeSet));
   }
 
