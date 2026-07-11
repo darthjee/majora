@@ -9,7 +9,7 @@ describe('CharacterClient slain', function() {
   describe('#setNpcSlain', function() {
     itSendsAuthHeader({
       call: (token) => new CharacterClient().setNpcSlain('demo', '2', token, { slain: token !== null }),
-      url: '/games/demo/npcs/2/slain.json',
+      url: '/games/demo/npcs/2.json',
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'X-Skip-Cache': 'true' },
       body: (token) => JSON.stringify({ slain: token !== null }),
