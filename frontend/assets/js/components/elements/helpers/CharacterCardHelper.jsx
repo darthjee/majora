@@ -1,10 +1,9 @@
 import React from 'react';
 import CardAvatar from '../CardAvatar.jsx';
 import ActionsOverlay from '../ActionsOverlay.jsx';
-import Translator from '../../../i18n/Translator.js';
 import Noop from '../../../utils/Noop.js';
 import allegianceBorderClass from '../../../utils/AllegianceBorder.js';
-import Icons from '../../../utils/Icons.js';
+import SlainSecondaryButtons from './SlainSecondaryButtons.js';
 
 /**
  * Rendering helper for the CharacterCard element.
@@ -88,26 +87,6 @@ export default class CharacterCardHelper {
   }
 
   /**
-   * Build a single slain/revive secondary button definition.
-   *
-   * @param {boolean} slain - Current slain value driving the label/variant/icon.
-   * @param {string} revivedIcon - Icon shown when `slain` is true.
-   * @param {string} unrevivedIcon - Icon shown when `slain` is false.
-   * @param {Function} onClick - Click handler for the button.
-   * @returns {{label: string, variant: string, icon: string, onClick: Function}} Button definition.
-   */
-  static #buildSlainButton(slain, revivedIcon, unrevivedIcon, onClick) {
-    return {
-      label: slain
-        ? Translator.t('character_page.revive_button')
-        : Translator.t('character_page.slain_button'),
-      variant: slain ? 'success' : 'danger',
-      icon: slain ? revivedIcon : unrevivedIcon,
-      onClick,
-    };
-  }
-
-  /**
    * Build the DM's real and public slain/revive secondary button definitions.
    *
    * @param {object} character - Character data object.
@@ -119,20 +98,11 @@ export default class CharacterCardHelper {
    *   button definitions.
    */
   static #buildDmSecondaryButtons(character, onSlainClick, onPublicSlainClick) {
-    return [
-      CharacterCardHelper.#buildSlainButton(
-        character.slain, Icons.heart, Icons.skullFill,
-        CharacterCardHelper.#buildOverlayClickHandler(onSlainClick, character),
-      ),
-      {
-        label: character.public_slain
-          ? Translator.t('character_page.public_revive_button')
-          : Translator.t('character_page.public_slain_button'),
-        variant: character.public_slain ? 'success' : 'danger',
-        icon: character.public_slain ? Icons.heartOutline : Icons.skull,
-        onClick: CharacterCardHelper.#buildOverlayClickHandler(onPublicSlainClick, character),
-      },
-    ];
+    return SlainSecondaryButtons.buildDmButtons(
+      character,
+      CharacterCardHelper.#buildOverlayClickHandler(onSlainClick, character),
+      CharacterCardHelper.#buildOverlayClickHandler(onPublicSlainClick, character),
+    );
   }
 
   /**
@@ -165,8 +135,8 @@ export default class CharacterCardHelper {
     }
 
     return [
-      CharacterCardHelper.#buildSlainButton(
-        character.slain, Icons.heart, Icons.skullFill,
+      SlainSecondaryButtons.buildSlainButton(
+        character.slain,
         CharacterCardHelper.#buildOverlayClickHandler(onPlayerSlainClick, character),
       ),
     ];

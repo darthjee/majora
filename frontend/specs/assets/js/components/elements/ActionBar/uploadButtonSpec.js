@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
-import ActionsOverlay from '../../../../../../assets/js/components/elements/ActionsOverlay.jsx';
+import ActionBar from '../../../../../../assets/js/components/elements/ActionBar.jsx';
 import Noop from '../../../../../../assets/js/utils/Noop.js';
 
 const findElement = (node, matcher) => {
@@ -31,12 +31,10 @@ const findElement = (node, matcher) => {
   return findElement(node.props?.children, matcher);
 };
 
-describe('ActionsOverlay', function() {
+describe('ActionBar', function() {
   it('renders the upload button when canEdit is true', function() {
     const html = renderToStaticMarkup(
-      React.createElement(ActionsOverlay, {
-        url: null,
-        alt: 'Epic Quest',
+      React.createElement(ActionBar, {
         canEdit: true,
         onClick: Noop.noop,
       })
@@ -50,9 +48,7 @@ describe('ActionsOverlay', function() {
 
   it('does not render the upload button when canEdit is false', function() {
     const html = renderToStaticMarkup(
-      React.createElement(ActionsOverlay, {
-        url: null,
-        alt: 'Epic Quest',
+      React.createElement(ActionBar, {
         canEdit: false,
         onClick: Noop.noop,
       })
@@ -64,9 +60,7 @@ describe('ActionsOverlay', function() {
 
   it('does not render the upload button when canEdit is absent', function() {
     const html = renderToStaticMarkup(
-      React.createElement(ActionsOverlay, {
-        url: null,
-        alt: 'Epic Quest',
+      React.createElement(ActionBar, {
         onClick: Noop.noop,
       })
     );
@@ -76,9 +70,7 @@ describe('ActionsOverlay', function() {
 
   it('invokes onClick when the upload button is clicked', function() {
     const onClick = jasmine.createSpy('onClick');
-    const rendered = ActionsOverlay({
-      url: null,
-      alt: 'Epic Quest',
+    const rendered = ActionBar({
       canEdit: true,
       onClick,
     });
