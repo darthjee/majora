@@ -14,61 +14,68 @@ into page-level state (index page, via `GameNpcsController#fetchAccess`).
 slain/revive button set. Widening `can_edit`/`canEdit` itself to include `is_player` would
 incorrectly also expose those other GM-only controls to a mere player.
 
+## Reconciliation note (post-#427, current merged shape as of this implementation)
+
+The steps below were re-verified against the actual merged code (after #416 and #427 both
+landed), not just the prose above, and are simpler than originally scoped:
+
+- `CharacterHelper.jsx`'s `#renderPicture` passes `canEdit={character.can_edit}` to
+  `ActionsOverlay` at what is now line 128 (line drifted from #427's `ActionBar` extraction,
+  content unchanged) — Step 1 below still applies as originally written, just at the new line.
+- On the index page, #416 already threads `isPlayer` all the way from
+  `GameNpcsController#fetchAccess` → `GameNpcs.jsx` → `GameCharactersHelper.render(...)` →
+  `CharacterCard` → into `CharacterCardHelper.render`'s `playerOptions.isPlayer` (used today
+  only to gate the player-facing slain button via `#buildSecondaryButtons`). Because
+  `playerOptions.isPlayer` is already available inside `CharacterCardHelper#renderPhoto`, no new
+  parameter needs to be threaded through `GameCharactersHelper.jsx`, `CharacterCard.jsx`, or
+  `GameNpcs.jsx` at all — Step 2 is now scoped to `CharacterCardHelper.jsx` alone.
+
 ## Implementation Steps
 
 ### Step 1 — Show page: decoupled upload gate
 
 In `frontend/assets/js/components/pages/helpers/CharacterHelper.jsx`, `#renderPicture`
-(currently passes `canEdit={character.can_edit}` to `ActionsOverlay`, ~line 124): change the
+(currently passes `canEdit={character.can_edit}` to `ActionsOverlay`, ~line 128): change the
 value passed as `ActionsOverlay`'s `canEdit` prop specifically to
 `character.can_edit || (!character.is_pc && character.is_player)`. Do not touch
-`#buildSecondaryButtons`'s own `character.is_pc || !character.can_edit` gate (~line 152) — it
-must keep using `character.can_edit` alone, unaffected by `is_player`. Since `ActionsOverlay`'s
-`canEdit` prop only governs the upload button (per #427's `ActionBar` extraction) and
-`secondaryButtons` is a separately-built array, these two concerns are already independent
-props on the same call — this is a value change on one prop, not a structural change.
+`#buildSecondaryButtons`'s own gating (~line 162-176) — it must keep using `character.can_edit`
+/`character.is_player` exactly as it does today, unaffected by this change. Since
+`ActionsOverlay`'s `canEdit` prop only governs the upload button (per #427's `ActionBar`
+extraction, confirmed in `ActionsOverlay.jsx`) and `secondaryButtons` is a separately-built
+array, these two concerns are already independent props on the same call — this is a value
+change on one prop, not a structural change.
 
-### Step 2 — Index page: decoupled upload gate
+### Step 2 — Index page: decoupled upload gate (scoped to CharacterCardHelper only)
 
-This one needs a new, distinct parameter, because `CharacterCardHelper.render`'s single
-`canEdit` argument currently drives both the upload button AND the slain-button-array gating
-(`#buildSecondaryButtons(character, canEdit, ...)`) for NPC cards — widening it in place would
-leak slain-toggle visibility to players too.
+`CharacterCardHelper.render`'s `#renderPhoto` currently passes the plain `canEdit` argument as
+`ActionsOverlay`'s `canEdit` prop (~line 169), while `#buildSecondaryButtons(character, canEdit,
+onSlainClick, onPublicSlainClick, playerOptions)` (~line 126) already derives its own
+`isPlayer`/`onPlayerSlainClick` from the `playerOptions` object (destructured with defaults
+`{ isPlayer = false, onPlayerSlainClick = Noop.noop }`).
 
-- `frontend/assets/js/components/elements/helpers/CharacterCardHelper.jsx`: add a new
-  parameter (e.g. `canUploadPhoto = canEdit`) to `render(...)` and thread it to `#renderPhoto`,
-  passed as `ActionsOverlay`'s `canEdit` prop in place of the plain `canEdit` value. Leave the
-  existing `canEdit` argument's use in `#buildSecondaryButtons(character, canEdit, ...)`
+- In `#renderPhoto`, compute a local `canUploadPhoto = canEdit || (playerOptions.isPlayer ??
+  false)` and pass that (not the plain `canEdit`) as `ActionsOverlay`'s `canEdit` prop. Leave
+  every other use of `canEdit` in this file (including inside `#buildSecondaryButtons`)
   unchanged.
-- `frontend/assets/js/components/pages/helpers/GameCharactersHelper.jsx`: add the matching
-  `canUploadPhoto = canEdit` parameter to `render(...)`, spread into `CharacterCard` alongside
-  the existing NPC-only props (~line 69: `{...(isNpc ? { canEdit, onUploadClick, onSlainClick,
-  onPublicSlainClick, canUploadPhoto } : {})}`).
-- `frontend/assets/js/components/pages/GameNpcs.jsx`: read the page-level `isPlayer` state
-  #416 adds to `GameNpcsController`, and pass `canEdit || isPlayer` as the new
-  `canUploadPhoto` argument into `GameCharactersHelper.render(...)`, while still passing the
-  original `canEdit` value unchanged for its existing parameter (drives "New NPC" + slain
-  gating).
-- `frontend/assets/js/components/pages/GamePcs.jsx` / PC call sites: unaffected —
-  `canUploadPhoto` defaults to `canEdit`, and `GameCharactersHelper` only spreads any of these
-  NPC-only props when `characterType === 'npc'` in the first place.
+- No changes needed to `GameCharactersHelper.jsx`, `CharacterCard.jsx`, or `GameNpcs.jsx` —
+  `isPlayer` already flows down to `CharacterCardHelper` via the existing `playerOptions`
+  argument (added by #416), so there is nothing new to thread through the call chain.
+- PC cards are unaffected: `#renderPhoto` returns the plain `CardAvatar` (no `ActionsOverlay` at
+  all) when `characterType !== 'npc'`, so this change is inherently NPC-only without needing an
+  explicit `is_pc`-style guard.
 
 ## Files to Change
 
 - `frontend/assets/js/components/pages/helpers/CharacterHelper.jsx` — decoupled upload gate on
   the show page.
-- `frontend/assets/js/components/elements/helpers/CharacterCardHelper.jsx` — new
-  `canUploadPhoto` parameter.
-- `frontend/assets/js/components/pages/helpers/GameCharactersHelper.jsx` — thread
-  `canUploadPhoto` through.
-- `frontend/assets/js/components/pages/GameNpcs.jsx` — compute `canEdit || isPlayer` and pass
-  it as `canUploadPhoto`.
-- Corresponding specs under `frontend/specs/assets/js/components/pages/helpers/CharacterHelper/`,
-  `frontend/specs/assets/js/components/elements/helpers/CharacterCardHelperSpec.js`, and
-  `frontend/specs/assets/js/components/pages/helpers/GameCharactersHelperSpec.js` (or wherever
-  each currently lives) — new cases asserting: a player (not editor) sees the upload button but
-  NOT the "New NPC" button or the slain/revive buttons; an editor still sees everything as
-  today; a plain visitor sees neither.
+- `frontend/assets/js/components/elements/helpers/CharacterCardHelper.jsx` — decoupled upload
+  gate on the index-page card, reusing the already-threaded `playerOptions.isPlayer`.
+- Corresponding specs under `frontend/specs/assets/js/components/pages/helpers/CharacterHelper/`
+  and `frontend/specs/assets/js/components/elements/helpers/CharacterCardHelperSpec.js` (or
+  wherever each currently lives) — new cases asserting: a player (not editor) sees the upload
+  button but NOT the "New NPC" button or the slain/revive buttons; an editor still sees
+  everything as today; a plain visitor sees neither. No new spec cases are needed for
+  `GameCharactersHelperSpec.js` since its signature/behavior does not change.
 
 ## CI Checks
 
