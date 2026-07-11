@@ -192,34 +192,21 @@ single character and gated by `CharacterEditPermission` instead of `GameEditPerm
 
 ---
 
-## Character slain-toggle endpoint
+## Character slain fields — write path history
 
-| Endpoint | Method | Who can call | Request body | Response |
-|----------|--------|-------------|---------------|----------|
-| `/games/<slug>/npcs/<id>/slain.json` | PATCH | `CharacterEditPermission` (the character's player, any GameMaster of that game, or superuser) | `{"slain": true\|false}` and/or `{"public_slain": true\|false}` (at least one key required) | `200 {"slain": true\|false, "public_slain": true\|false}` |
+Added in issue #315 as a single shared field; split into independent `slain`/`public_slain`
+real/public fields in issue #397 (see "Slain fields" below for the full real/public split,
+mirroring the `allegiance`/`public_allegiance` split). Issue #397 also introduced a dedicated
+`PATCH /games/<slug>/npcs/<id>/slain.json` action endpoint (gated by a `CharacterEditPermission`-
+checked `CharacterSlainUpdateSerializer`) as their only write path at the time, since neither
+field was part of `CharacterUpdateSerializer` yet.
 
-Added in issue #315; split into independent real/public fields in issue #397 (see "Slain
-fields" below for the full real/public split, mirroring the `allegiance`/`public_allegiance`
-split). There is no equivalent PC endpoint — `slain`/`public_slain` are only ever toggled
-through this dedicated NPC route, mirroring the existing `hidden` NPC-only precedent (fields
-that live on the shared `Character` model but are only meaningfully written for NPCs).
-Unlike `hidden`, `slain`/`public_slain` are not part of `CharacterUpdateSerializer` or
-`CharacterCreateSerializer` at all — this action endpoint, validated by the dedicated
-`CharacterSlainUpdateSerializer`, is their only write path.
-
-Since NPCs have no player by convention, `CharacterEditPermission` resolves in practice to
-"superuser or GameMaster (DM) of that game" for this endpoint.
-
-Each request body key present updates only that model field — sending `slain` alone leaves
-`public_slain` untouched, and vice versa; sending both updates both independently. The
-response always echoes the character's current `slain` and `public_slain` values, regardless
-of which keys were present in the request.
-
-- Unauthenticated → 401. Authenticated but not an editor of the NPC → 403.
-- Unknown `game_slug` or `character_id` (or a `character_id` that does not belong to
-  `game_slug`, or is a PC id used against this NPC-only route) → 404.
-- Neither `slain` nor `public_slain` present in the body, or either present with a
-  non-boolean value → 400.
+Issue #425/#426 removed that dedicated endpoint and its serializer, adding `slain` and
+`public_slain` directly to `CharacterUpdateSerializer`'s field list instead — see "Slain fields"
+below for the current write-access rules, which now mirror `allegiance`/`public_allegiance`
+exactly (including the PC-facing write path this unlocked). Issue #428 subsequently moved that
+write path's URL from the plain detail endpoints to the full-detail endpoints, along with every
+other `CharacterUpdateSerializer` field — see "Update (PATCH)" below.
 
 ---
 
@@ -280,18 +267,24 @@ the `CharacterPhoto` selected as the character's profile photo (see "CharacterPh
 `BooleanField` (default `False`) shared by the `Character` model for both PCs and NPCs, and
 is returned read-only on the list and detail endpoints to anyone — on those public endpoints
 the `slain` JSON key is sourced from the `public_slain` model field (see "Slain fields"
-below). Unlike `hidden`/`money`, it has no write path through `CharacterUpdateSerializer` or
-`CharacterCreateSerializer` — see the "Character slain-toggle endpoint" subsection above for
-its only write path.
+below). Like `hidden`/`money`, it is writable through `CharacterUpdateSerializer` — see the
+"Slain fields" subsection below for its write-access rules.
 
 ### Full detail (includes `private_description`)
 
-| Endpoint | Who can read | Fields returned |
+| Endpoint | Who can read/write | Fields returned |
 |----------|-------------|-----------------|
 | `GET /games/<slug>/pcs/<id>/full.json` | Player of this character, any GameMaster of this game, or superuser | All detail fields + `private_description` + `public_allegiance` + `public_slain` (see "Allegiance fields" and "Slain fields" below) |
 | `GET /games/<slug>/npcs/<id>/full.json` | Player of this character, any GameMaster of this game, or superuser | Same as above |
+| `PATCH /games/<slug>/pcs/<id>/full.json` | Player of this character, any GameMaster of this game, or superuser | Same response shape as the `GET` above |
+| `PATCH /games/<slug>/npcs/<id>/full.json` | Player of this character, any GameMaster of this game, or superuser | Same as above |
 
 Anonymous or insufficiently privileged authenticated users receive **401** or **403**.
+
+As of issue #428, the character update action lives here rather than on the plain detail
+endpoints below — see "Update (PATCH)" for the write-field/error-status contract, which is
+unchanged, only the URL moved. The response always sets `X-Skip-Cache: true`, on both `GET`
+and `PATCH`.
 
 ### Allegiance fields (added in issue #360)
 
@@ -320,7 +313,8 @@ since no PC write path ever sets them.
 **Write access**: both fields were added to the shared `CharacterUpdateSerializer`
 (`CharacterEditPermission`-gated), so — like the pre-existing `hidden`/`private_description`/
 `money` fields on that same serializer — they are technically writable through **either**
-`PATCH /games/<slug>/pcs/<id>.json` or `PATCH /games/<slug>/npcs/<id>.json`: the character's
+`PATCH /games/<slug>/pcs/<id>/full.json` or `PATCH /games/<slug>/npcs/<id>/full.json` (moved
+from the plain detail endpoints in issue #428): the character's
 own player, any GameMaster of that game, or a superuser. Since NPCs have no player owner by
 product definition (see `docs/agents/product.md`), this is DM/superuser-only in practice for
 NPCs, matching the issue's intent; a PC's own player can technically set their own PC's
@@ -361,11 +355,15 @@ depending on the endpoint:
   `slain` is sourced from the real `slain` model field, and `public_slain` is additionally
   exposed under its own key with the public-facing value.
 
-**Write access**: unlike `allegiance`/`public_allegiance`, neither `slain` nor `public_slain`
-was added to `CharacterUpdateSerializer` or `CharacterCreateSerializer` — both stay writable
-only through the dedicated "Character slain-toggle endpoint" above
-(`PATCH /games/<slug>/npcs/<id>/slain.json`), which accepts partial updates to either or both
-fields independently. There is no PC-facing write path for either field.
+**Write access**: like `allegiance`/`public_allegiance`, both `slain` and `public_slain` are
+fields on the shared `CharacterUpdateSerializer` (`CharacterEditPermission`-gated, added in
+issue #425/#426), so they are writable through **either**
+`PATCH /games/<slug>/pcs/<id>/full.json` or `PATCH /games/<slug>/npcs/<id>/full.json` (moved
+from the plain detail endpoints in issue #428): the character's own player, any GameMaster of
+that game, or a superuser. Since NPCs have no player owner by product definition (see
+`docs/agents/product.md`), this is DM/superuser-only in practice for NPCs; a PC's own player
+can PATCH their own PC's `slain`/`public_slain` too (same as they already can for
+`allegiance`/`public_allegiance`, `hidden`/`money`).
 
 **Filtering**: `npcs.json` filters `?slain=` on `public_slain`; `npcs/all.json` filters
 `?slain=` on the real `slain` field — same tolerant/unauthorized-safe convention as the
@@ -410,10 +408,17 @@ Access endpoints return user-specific data (`can_edit` reflects the requesting u
 
 ### Update (PATCH)
 
+As of issue #428, the character update action lives on the full-detail endpoints, not here:
+
 | Endpoint | Who can write |
 |----------|--------------|
-| `PATCH /games/<slug>/pcs/<id>.json` | Player of this character, any GameMaster of this game, or superuser |
-| `PATCH /games/<slug>/npcs/<id>.json` | Player of this character, any GameMaster of this game, or superuser |
+| `PATCH /games/<slug>/pcs/<id>/full.json` | Player of this character, any GameMaster of this game, or superuser |
+| `PATCH /games/<slug>/npcs/<id>/full.json` | Player of this character, any GameMaster of this game, or superuser |
+
+`PATCH /games/<slug>/pcs/<id>.json` and `PATCH /games/<slug>/npcs/<id>.json` (the plain detail
+endpoints documented under "Detail" above) no longer accept `PATCH` — only `GET` remains on
+those routes. This was a routing move only; the permission check, write fields, and error
+semantics below are unchanged from before issue #428.
 
 Unauthenticated → 401. Authenticated but not an editor → 403.
 
@@ -626,8 +631,9 @@ the `CharacterTreasure` row, even when a full sell brings `quantity` to `0`.
 These endpoints do not re-apply the hidden-NPC `Http404` gate before the permission check
 (unlike `game_npc_treasures`'s read endpoint) — a hidden NPC's existence is confirmed via
 401/403 rather than masked behind a 404. This mirrors the pre-existing, already-accepted
-convention used by the NPC slain-toggle endpoint, which is also `CharacterEditPermission`-
-gated with no hidden-existence masking.
+convention used by the NPC full-detail endpoint (`PATCH /games/<slug>/npcs/<id>/full.json`,
+see "Full detail" above), which is also `CharacterEditPermission`-gated with no
+hidden-existence masking.
 
 **Write access:** the four acquire/sell endpoints above (added in issue #312), gated by
 `CharacterEditPermission`. There is otherwise no direct create/update/delete endpoint for a
@@ -716,10 +722,10 @@ which icon the frontend renders next to the link; it carries no access-control i
 are written exclusively as a nested `links` array inside the character payload, gated by the
 same permission as the character write itself:
 
-- `PATCH /games/<slug>/pcs/<id>.json`, `PATCH /games/<slug>/npcs/<id>.json` — via
-  `CharacterUpdateSerializer`'s `links` field, gated by `CharacterEditPermission` (player of
-  that character, any GameMaster of that game, or superuser — same rule as the rest of the
-  PATCH payload; see "Update (PATCH)" above).
+- `PATCH /games/<slug>/pcs/<id>/full.json`, `PATCH /games/<slug>/npcs/<id>/full.json` (moved
+  from the plain detail endpoints in issue #428) — via `CharacterUpdateSerializer`'s `links`
+  field, gated by `CharacterEditPermission` (player of that character, any GameMaster of that
+  game, or superuser — same rule as the rest of the PATCH payload; see "Update (PATCH)" above).
 - `POST /games/<slug>/npcs.json` — via `CharacterCreateSerializer`'s `links` field, gated by
   `GameEditPermission` (GameMaster of that game, or superuser — same rule as the rest of the
   create payload; see "Create" above).

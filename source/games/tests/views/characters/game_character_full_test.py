@@ -1,10 +1,17 @@
-"""Tests for the PC/NPC full detail view."""
+"""Tests for the PC/NPC full detail view (GET full detail / PATCH update).
+
+The PATCH-endpoint tests below moved here from `game_character_detail_test.py` (issue #428):
+the character update action now lives on `full.json` rather than the plain detail endpoint.
+See `docs/agents/security-guidelines.md` section 8 for why
+`test_patch_ignores_non_editable_fields` must stay.
+"""
 
 import json
 
 import pytest
 from rest_framework.authtoken.models import Token
 
+from games.models import CharacterLink
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
@@ -14,6 +21,7 @@ from games.tests.factories import (
     SuperUserFactory,
     UserFactory,
 )
+from games.tests.views.support import assert_json_response
 
 
 class _BaseCharacterFullViewTest(TokenAuthRequestMixin):
@@ -165,3 +173,345 @@ class TestGamePcFullView(_BaseCharacterFullViewTest):
         token = self._editor_token()
         response = self.get(client, self._url(character_id=npc.id), token=token)
         assert response.status_code == 404
+
+
+class _BaseCharacterFullUpdateViewTest(TokenAuthRequestMixin):
+    """Shared PATCH behavior for the PC and NPC full-detail update endpoints."""
+
+    npc = None
+    segment = None
+    character_name = None
+    character_role = None
+    public_description = None
+    private_description = None
+    new_name = None
+    new_role = None
+    new_public_description = None
+    new_private_description = None
+    new_money = None
+
+    def setup_method(self):
+        """Set up a game, a DM, a player, and a character (NPC or PC)."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
+        self.player = PlayerFactory(name='Bob')
+        self.character = CharacterFactory(
+            name=self.character_name,
+            game=self.game,
+            player=None if self.npc else self.player,
+            role=self.character_role,
+            public_description=self.public_description,
+            private_description=self.private_description,
+            npc=self.npc,
+        )
+
+    def _editor_token(self):
+        """Return a token belonging to a user allowed to edit the character."""
+        raise NotImplementedError
+
+    def _url(self):
+        """Return the full-detail update URL for the fixture character."""
+        return f'/games/test-game/{self.segment}/{self.character.id}/full.json'
+
+    def _patch(self, client, payload, token=None):
+        """Issue a PATCH request to the full-detail update endpoint, optionally with a token."""
+        return self.patch(client, self._url(), payload, token=token)
+
+    def test_patch_without_token_returns_401(self, client):
+        """Test that PATCH without a token is rejected with 401."""
+        response = self._patch(client, {'name': self.new_name})
+        assert response.status_code == 401
+
+    def test_patch_with_unrelated_user_returns_403(self, client):
+        """Test that PATCH from an unrelated user's token is rejected with 403."""
+        other_user = UserFactory(username='other', password='secret-password')
+        token = Token.objects.create(user=other_user)
+
+        response = self._patch(client, {'name': self.new_name}, token=token)
+
+        assert response.status_code == 403
+        self.character.refresh_from_db()
+        assert self.character.name == self.character_name
+
+    def test_patch_updates_multiple_fields(self, client):
+        """Test that an authorized PATCH updates several editable fields in one request."""
+        token = self._editor_token()
+
+        response = self._patch(
+            client,
+            {
+                'name': self.new_name,
+                'role': self.new_role,
+                'public_description': self.new_public_description,
+                'private_description': self.new_private_description,
+                'money': self.new_money,
+            },
+            token=token,
+        )
+
+        assert_json_response(response, 200, name=self.new_name, money=self.new_money)
+        self.character.refresh_from_db()
+        assert self.character.name == self.new_name
+        assert self.character.private_description == self.new_private_description
+
+    def test_patch_negative_money_returns_400(self, client):
+        """Test that PATCH with a negative money value is rejected with 400."""
+        token = self._editor_token()
+
+        response = self._patch(client, {'money': -1}, token=token)
+
+        data = assert_json_response(response, 400)
+        assert 'money' in data['errors']
+        self.character.refresh_from_db()
+        assert self.character.money == 0
+
+    def test_patch_ignores_non_editable_fields(self, client):
+        """Test that fields outside the allowed set are silently ignored.
+
+        This is the view-level regression test required for update serializers by
+        docs/agents/security-guidelines.md section 8 — `game` here is a
+        relationship/ownership field and must never be settable via a generic
+        update payload.
+        """
+        token = self._editor_token()
+        other_game = GameFactory(name='Other Game', game_slug='other-game')
+
+        response = self._patch(
+            client,
+            {'name': self.new_name, 'npc': not self.npc, 'game': other_game.id},
+            token=token,
+        )
+
+        assert response.status_code == 200
+        self.character.refresh_from_db()
+        assert self.character.name == self.new_name
+        assert self.character.npc is self.npc
+        assert self.character.game_id == self.game.id
+
+    def test_patch_creates_link_via_links_payload(self, client):
+        """Test that PATCH with a links entry without an id creates a new CharacterLink."""
+        token = self._editor_token()
+
+        response = self._patch(
+            client,
+            {'links': [{'text': 'Loot table', 'url': 'http://example.com/loot'}]},
+            token=token,
+        )
+
+        data = assert_json_response(response, 200)
+        assert any(link['url'] == 'http://example.com/loot' for link in data['links'])
+        assert self.character.links.filter(url='http://example.com/loot').exists()
+
+    def test_patch_updates_link_via_links_payload(self, client):
+        """Test that PATCH with a links entry carrying an id updates the existing link."""
+        token = self._editor_token()
+        link = CharacterLink.objects.create(
+            text='Old text', url='http://example.com/old', character=self.character,
+        )
+
+        response = self._patch(
+            client,
+            {'links': [{'id': link.id, 'text': 'New text', 'url': 'http://example.com/new'}]},
+            token=token,
+        )
+
+        assert response.status_code == 200
+        link.refresh_from_db()
+        assert link.text == 'New text'
+        assert link.url == 'http://example.com/new'
+
+    def test_patch_deletes_link_via_links_payload(self, client):
+        """Test that PATCH with a links entry marked delete=True deletes that link."""
+        token = self._editor_token()
+        link = CharacterLink.objects.create(
+            text='Doomed', url='http://example.com/doomed', character=self.character,
+        )
+
+        response = self._patch(
+            client, {'links': [{'id': link.id, 'delete': True}]}, token=token,
+        )
+
+        assert response.status_code == 200
+        assert not CharacterLink.objects.filter(id=link.id).exists()
+
+    def test_patch_rejects_link_missing_url(self, client):
+        """Test that PATCH with a non-delete link entry missing a url returns 400."""
+        token = self._editor_token()
+
+        response = self._patch(client, {'links': [{'text': 'No url'}]}, token=token)
+
+        data = assert_json_response(response, 400)
+        assert 'links' in data['errors']
+
+    def test_patch_cannot_edit_link_of_another_character(self, client):
+        """Test that a link id belonging to a different character cannot be updated."""
+        token = self._editor_token()
+        other_character = CharacterFactory(name='Other', game=self.game, npc=self.npc)
+        other_link = CharacterLink.objects.create(
+            text='Not yours', url='http://example.com/other', character=other_character,
+        )
+
+        response = self._patch(
+            client,
+            {'links': [{'id': other_link.id, 'text': 'Hijacked'}]},
+            token=token,
+        )
+
+        data = assert_json_response(response, 400)
+        assert 'links' in data['errors']
+        other_link.refresh_from_db()
+        assert other_link.text == 'Not yours'
+
+    def test_patch_rejects_delete_link_entry_without_id(self, client):
+        """Test that a delete entry missing an id returns a clean 400, not a server error."""
+        token = self._editor_token()
+
+        response = self._patch(client, {'links': [{'delete': True}]}, token=token)
+
+        data = assert_json_response(response, 400)
+        assert 'links' in data['errors']
+
+    def test_patch_rolls_back_other_links_when_one_entry_fails(self, client):
+        """Test that a failing entry rolls back other link changes applied in the same request."""
+        token = self._editor_token()
+        other_character = CharacterFactory(name='Other', game=self.game, npc=self.npc)
+        other_link = CharacterLink.objects.create(
+            text='Not yours', url='http://example.com/other', character=other_character,
+        )
+
+        response = self._patch(
+            client,
+            {
+                'links': [
+                    {'text': 'New link', 'url': 'http://example.com/new'},
+                    {'id': other_link.id, 'text': 'Hijacked'},
+                ]
+            },
+            token=token,
+        )
+
+        assert response.status_code == 400
+        assert not self.character.links.filter(url='http://example.com/new').exists()
+
+
+@pytest.mark.django_db
+class TestGameNpcFullUpdateView(_BaseCharacterFullUpdateViewTest):
+    """Tests for the NPC full-detail update (PATCH) endpoint."""
+
+    npc = True
+    segment = 'npcs'
+    character_name = 'Gandalf'
+    character_role = 'Wizard'
+    public_description = 'A wandering wizard.'
+    private_description = 'The secret guardian of Middle Earth.'
+    new_name = 'Saruman'
+    new_role = 'Wizard'
+    new_public_description = 'The White Wizard.'
+    new_private_description = 'Secret wizard lore.'
+    new_money = 200
+
+    def _editor_token(self):
+        """Return the DM's token (a DM is the NPC's editor)."""
+        return Token.objects.create(user=self.dm_user)
+
+    def test_patch_with_connected_player_user_returns_403(self, client):
+        """Test that owning a Player never grants edit access to an NPC."""
+        owner = UserFactory(username='owner', password='secret-password')
+        self.player.user = owner
+        self.player.save()
+        token = Token.objects.create(user=owner)
+
+        response = self._patch(client, {'name': self.new_name}, token=token)
+
+        assert response.status_code == 403
+        self.character.refresh_from_db()
+        assert self.character.name == self.character_name
+
+    def test_patch_allegiance_with_unrelated_user_returns_403(self, client):
+        """Test that a non-editor cannot set allegiance/public_allegiance via PATCH."""
+        other_user = UserFactory(username='other', password='secret-password')
+        token = Token.objects.create(user=other_user)
+
+        response = self._patch(
+            client, {'allegiance': 'enemy', 'public_allegiance': 'ally'}, token=token
+        )
+
+        assert response.status_code == 403
+        self.character.refresh_from_db()
+        assert self.character.allegiance == 'neutral'
+        assert self.character.public_allegiance == 'neutral'
+
+    def test_patch_allegiance_by_dm_is_persisted(self, client):
+        """Test that a DM/superuser can set both allegiance fields via PATCH."""
+        token = self._editor_token()
+
+        response = self._patch(
+            client, {'allegiance': 'enemy', 'public_allegiance': 'ally'}, token=token
+        )
+
+        assert response.status_code == 200
+        self.character.refresh_from_db()
+        assert self.character.allegiance == 'enemy'
+        assert self.character.public_allegiance == 'ally'
+
+    def test_patch_slain_only_is_persisted_and_leaves_other_fields_untouched(self, client):
+        """Test that PATCH with only {"slain": true} persists slain, leaving other fields alone."""
+        token = self._editor_token()
+
+        response = self._patch(client, {'slain': True}, token=token)
+
+        assert response.status_code == 200
+        self.character.refresh_from_db()
+        assert self.character.slain is True
+        assert self.character.name == self.character_name
+
+    def test_patch_public_slain_only_is_persisted_and_leaves_other_fields_untouched(self, client):
+        """Test that PATCH with only {"public_slain": true} persists it, leaving others alone."""
+        token = self._editor_token()
+
+        response = self._patch(client, {'public_slain': True}, token=token)
+
+        assert response.status_code == 200
+        self.character.refresh_from_db()
+        assert self.character.public_slain is True
+        assert self.character.name == self.character_name
+
+
+@pytest.mark.django_db
+class TestGamePcFullUpdateView(_BaseCharacterFullUpdateViewTest):
+    """Tests for the PC full-detail update (PATCH) endpoint."""
+
+    npc = False
+    segment = 'pcs'
+    character_name = 'Aragorn'
+    character_role = 'Ranger'
+    public_description = 'The future king of Gondor.'
+    private_description = 'Secret heir to the throne.'
+    new_name = 'Strider'
+    new_role = 'Ranger King'
+    new_public_description = 'King of Gondor.'
+    new_private_description = 'Secret backstory.'
+    new_money = 150
+
+    def setup_method(self):
+        """Set up a game, an owning player/user, a DM, and the PC."""
+        super().setup_method()
+        self.owner = UserFactory(username='owner', password='secret-password')
+        self.player.user = self.owner
+        self.player.save()
+
+    def _editor_token(self):
+        """Return the PC's owning player's user token."""
+        return Token.objects.create(user=self.owner)
+
+    def test_patch_with_superuser_token_returns_200(self, client):
+        """Test that PATCH from a superuser's token is allowed."""
+        superuser = SuperUserFactory(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+
+        response = self._patch(client, {'name': self.new_name}, token=token)
+
+        assert response.status_code == 200
+        self.character.refresh_from_db()
+        assert self.character.name == self.new_name
