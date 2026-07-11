@@ -28,6 +28,8 @@ class CharacterUpdateSerializer(serializers.ModelSerializer):
             'money',
             'allegiance',
             'public_allegiance',
+            'slain',
+            'public_slain',
             'links',
         ]
         extra_kwargs = {
