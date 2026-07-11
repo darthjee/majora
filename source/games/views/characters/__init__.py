@@ -6,7 +6,6 @@ from .game_npc_full import game_npc_full
 from .game_npc_photo_set import game_npc_photo_set
 from .game_npc_photo_upload import game_npc_photo_upload
 from .game_npc_photos import game_npc_photos
-from .game_npc_slain_set import game_npc_slain_set
 from .game_npc_treasure_acquire import game_npc_treasure_acquire
 from .game_npc_treasure_sell import game_npc_treasure_sell
 from .game_npc_treasures import game_npc_treasures
@@ -39,7 +38,6 @@ __all__ = [
     'game_npc_photo_set',
     'game_pc_photos',
     'game_npc_photos',
-    'game_npc_slain_set',
     'game_pc_treasures',
     'game_npc_treasures',
     'game_pc_treasure_acquire',

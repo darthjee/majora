@@ -403,6 +403,28 @@ class TestGameNpcUpdateView(_BaseCharacterUpdateViewTest):
         assert self.character.allegiance == 'enemy'
         assert self.character.public_allegiance == 'ally'
 
+    def test_patch_slain_only_is_persisted_and_leaves_other_fields_untouched(self, client):
+        """Test that PATCH with only {"slain": true} persists slain, leaving other fields alone."""
+        token = self._editor_token()
+
+        response = self._patch(client, {'slain': True}, token=token)
+
+        assert response.status_code == 200
+        self.character.refresh_from_db()
+        assert self.character.slain is True
+        assert self.character.name == self.character_name
+
+    def test_patch_public_slain_only_is_persisted_and_leaves_other_fields_untouched(self, client):
+        """Test that PATCH with only {"public_slain": true} persists it, leaving others alone."""
+        token = self._editor_token()
+
+        response = self._patch(client, {'public_slain': True}, token=token)
+
+        assert response.status_code == 200
+        self.character.refresh_from_db()
+        assert self.character.public_slain is True
+        assert self.character.name == self.character_name
+
 
 @pytest.mark.django_db
 class TestGamePcUpdateView(_BaseCharacterUpdateViewTest):

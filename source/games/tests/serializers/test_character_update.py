@@ -134,6 +134,36 @@ class TestCharacterUpdateSerializer:
         data = CharacterUpdateSerializer(self.character).data
         assert data['public_allegiance'] == 'neutral'
 
+    def test_slain_field_is_writable(self):
+        """Test that a PATCH with only slain persists it and leaves other fields untouched."""
+        serializer = CharacterUpdateSerializer(
+            self.character, data={'slain': True}, partial=True
+        )
+        assert serializer.is_valid()
+        updated = serializer.save()
+        assert updated.slain is True
+        assert updated.name == 'Frodo'
+
+    def test_slain_field_defaults_to_false(self):
+        """Test that slain is False by default and serialized correctly."""
+        data = CharacterUpdateSerializer(self.character).data
+        assert data['slain'] is False
+
+    def test_public_slain_field_is_writable(self):
+        """Test that a PATCH with only public_slain persists it and leaves other fields alone."""
+        serializer = CharacterUpdateSerializer(
+            self.character, data={'public_slain': True}, partial=True
+        )
+        assert serializer.is_valid()
+        updated = serializer.save()
+        assert updated.public_slain is True
+        assert updated.name == 'Frodo'
+
+    def test_public_slain_field_defaults_to_false(self):
+        """Test that public_slain is False by default and serialized correctly."""
+        data = CharacterUpdateSerializer(self.character).data
+        assert data['public_slain'] is False
+
     def test_game_and_player_are_not_changed(self):
         """Test that game and player cannot be changed via update, even if supplied."""
         other_game = GameFactory(name='Other Game', game_slug='other-game')
