@@ -1,14 +1,12 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
-import ActionsOverlay from '../../../../../../assets/js/components/elements/ActionsOverlay.jsx';
+import ActionBar from '../../../../../../assets/js/components/elements/ActionBar.jsx';
 import Noop from '../../../../../../assets/js/utils/Noop.js';
 
-describe('ActionsOverlay', function() {
+describe('ActionBar', function() {
   it('does not render a secondary button by default', function() {
     const html = renderToStaticMarkup(
-      React.createElement(ActionsOverlay, {
-        url: null,
-        alt: 'Epic Quest',
+      React.createElement(ActionBar, {
         canEdit: true,
         onClick: Noop.noop,
       })
@@ -21,9 +19,7 @@ describe('ActionsOverlay', function() {
 
   it('renders the primary button with the left modifier when a secondary button is present', function() {
     const html = renderToStaticMarkup(
-      React.createElement(ActionsOverlay, {
-        url: null,
-        alt: 'Epic Quest',
+      React.createElement(ActionBar, {
         canEdit: true,
         onClick: Noop.noop,
         secondaryButtons: [
@@ -37,9 +33,7 @@ describe('ActionsOverlay', function() {
 
   it('renders a single secondary button with the right modifier and given label/variant', function() {
     const html = renderToStaticMarkup(
-      React.createElement(ActionsOverlay, {
-        url: null,
-        alt: 'Epic Quest',
+      React.createElement(ActionBar, {
         canEdit: true,
         onClick: Noop.noop,
         secondaryButtons: [
@@ -58,9 +52,7 @@ describe('ActionsOverlay', function() {
 
   it('renders two secondary buttons at their own position, both distinct from each other', function() {
     const html = renderToStaticMarkup(
-      React.createElement(ActionsOverlay, {
-        url: null,
-        alt: 'Epic Quest',
+      React.createElement(ActionBar, {
         canEdit: true,
         onClick: Noop.noop,
         secondaryButtons: [
@@ -78,9 +70,7 @@ describe('ActionsOverlay', function() {
 
   it('renders the secondary buttons regardless of canEdit (gating is the caller\'s responsibility)', function() {
     const html = renderToStaticMarkup(
-      React.createElement(ActionsOverlay, {
-        url: null,
-        alt: 'Epic Quest',
+      React.createElement(ActionBar, {
         canEdit: false,
         onClick: Noop.noop,
         secondaryButtons: [
@@ -96,9 +86,7 @@ describe('ActionsOverlay', function() {
   it('invokes each secondary button\'s own onClick when clicked', function() {
     const onFirstClick = jasmine.createSpy('onFirstClick');
     const onSecondClick = jasmine.createSpy('onSecondClick');
-    const rendered = ActionsOverlay({
-      url: null,
-      alt: 'Epic Quest',
+    const rendered = ActionBar({
       canEdit: true,
       onClick: Noop.noop,
       secondaryButtons: [
