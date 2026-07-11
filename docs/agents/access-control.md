@@ -120,7 +120,8 @@ generically for a `GamePhoto`, a `CharacterPhoto` (issue #255), or, as of issue 
 | Action | Who can |
 |--------|---------|
 | Create (`POST /games/<slug>/photo_upload.json`) | GameMaster of that game, or superuser |
-| Create (`POST /games/<slug>/pcs/<id>/photo_upload.json`, `POST /games/<slug>/npcs/<id>/photo_upload.json`) | Player of that character, any GameMaster of that game, or superuser |
+| Create (`POST /games/<slug>/pcs/<id>/photo_upload.json`) | Player of that character, any GameMaster of that game, or superuser |
+| Create (`POST /games/<slug>/npcs/<id>/photo_upload.json`) | Player of that character, any GameMaster of that game, any player of that game, or superuser (issue #429, `NpcPlayerEditPermission`) |
 | Create (`POST /treasures/<id>/photo_upload.json`) | Superuser only |
 | Read | Only the user who initiated the upload (indirectly, via the 201 response at creation time) |
 | Update / Delete | No public endpoint; status transitions are handled internally |
@@ -144,7 +145,9 @@ sets that primary photo reference. The exact behavior dispatches on the upload's
 - **`CharacterPhoto`** (issue #255): if the photo's character does not already have a
   `profile_photo`, sets `Character.profile_photo` to that photo. Gated by
   `CharacterEditPermission` (player of that character, any GameMaster of that game, or
-  superuser).
+  superuser) for a PC; for an NPC, gated by `NpcPlayerEditPermission` instead (issue #429) — the
+  same `CharacterEditPermission` checks, OR any player of that game, per the `is_player`
+  computation.
 - **`TreasurePhoto`** (issue #276): unconditionally sets `Treasure.photo` to that photo — unlike
   the `GamePhoto`/`CharacterPhoto` cases, there is no "if unset" guard, since a treasure has at
   most one photo and re-uploading always replaces it. Gated by `TreasureEditPermission`
@@ -176,13 +179,17 @@ introduced; only the object-level permission class differs, chosen based on the
 | Endpoint | Method | Who can call | Response fields |
 |----------|--------|-------------|-----------------|
 | `/games/<slug>/pcs/<id>/photo_upload.json` | POST | Player of that character, any GameMaster of that game, or superuser | `upload_id`, `token`, `character_id` |
-| `/games/<slug>/npcs/<id>/photo_upload.json` | POST | Player of that character, any GameMaster of that game, or superuser | `upload_id`, `token`, `character_id` |
+| `/games/<slug>/npcs/<id>/photo_upload.json` | POST | Player of that character, any GameMaster of that game, any player of that game, or superuser | `upload_id`, `token`, `character_id` |
 
 Added in issue #255, mirroring the game photo upload init endpoint above but scoped to a
-single character and gated by `CharacterEditPermission` instead of `GameEditPermission`.
+single character and gated by `CharacterEditPermission` instead of `GameEditPermission`. As of
+issue #429, the NPC row is instead gated by `NpcPlayerEditPermission` — the same
+`CharacterEditPermission` checks, OR any player of the game (per the `is_player` computation) —
+broadening the NPC init endpoint beyond editors alone; the PC row is unaffected and stays
+`CharacterEditPermission`-only.
 
 - Unauthenticated → 401. Authenticated but not the character's player, a GameMaster of its
-  game, or a superuser → 403.
+  game, a player of the game (NPC only, issue #429), or a superuser → 403.
 - Unknown `game_slug` or `character_id` (or a `character_id` that does not belong to
   `game_slug`, or is the wrong PC/NPC type for the endpoint) → 404.
 - Missing or invalid `filename` body field → 400.

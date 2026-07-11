@@ -139,6 +139,15 @@ This is not a general editing right: it grants no access to any other field, and
 apply to PCs. It exists alongside (not instead of) the rules above, so a GameMaster/superuser
 can still use the same endpoint.
 
+Issue #429 extends this same "player of the game" authorization to a second capability: NPC
+photo upload. A player of the game may initiate an NPC photo upload
+(`POST /games/:game_slug/npcs/:id/photo_upload.json`) and finalize it
+(`PATCH /uploads/:id.json`), even without being that NPC's owner (moot, since NPCs have no
+owner) or a GameMaster/superuser. Both checkpoints reuse the same
+`NpcPlayerEditPermission` introduced by #416, rather than a new permission — this remains
+NPC-only; PC photo upload still requires the character's owning player, a GameMaster, or a
+superuser.
+
 ---
 
 ## Summary Table
@@ -152,3 +161,4 @@ can still use the same endpoint.
 | Player account link | `Player.user` nullable — player without a login has no owner |
 | Staff role | `user.is_staff` — global, grants User-management access only (not other superuser actions) |
 | NPC public_slain toggle | Any player of the game (via `Player.games`), in addition to the Editing rights above — NPC-only, `public_slain` field only |
+| NPC photo upload (init/finalize) | Any player of the game (via `Player.games`), in addition to the Editing rights above — NPC-only, same `NpcPlayerEditPermission` as public_slain (issue #429) |

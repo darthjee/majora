@@ -170,6 +170,34 @@ class TestGameNpcPhotoUploadView(_BaseCharacterPhotoUploadViewTest):
         response = self._post(client, {'filename': 'photo.jpg'}, token=token)
         assert response.status_code == 403
 
+    def test_player_of_game_returns_201(self, client):
+        """Test that a player of the game (via Player.games) can upload an NPC photo."""
+        player_user = UserFactory(username='player_user', password='secret-password')
+        player = PlayerFactory(name='Bob', user=player_user)
+        player.games.add(self.game)
+        token = Token.objects.create(user=player_user)
+
+        response = self._post(client, {'filename': 'photo.jpg'}, token=token)
+
+        assert response.status_code == 201
+
+    def test_player_of_game_cannot_upload_pc_photo(self, client):
+        """Test that a player of the game (via Player.games) still can't upload a PC's photo."""
+        player_user = UserFactory(username='player_user', password='secret-password')
+        player = PlayerFactory(name='Bob', user=player_user)
+        player.games.add(self.game)
+        token = Token.objects.create(user=player_user)
+        pc = CharacterFactory(name='Aragorn', game=self.game, npc=False)
+
+        response = self.post(
+            client,
+            f'/games/epic-quest/pcs/{pc.id}/photo_upload.json',
+            {'filename': 'photo.jpg'},
+            token=token,
+        )
+
+        assert response.status_code == 403
+
 
 @pytest.mark.django_db
 class TestGamePcPhotoUploadView(_BaseCharacterPhotoUploadViewTest):
