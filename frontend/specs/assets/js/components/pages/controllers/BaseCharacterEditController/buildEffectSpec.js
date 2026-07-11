@@ -19,7 +19,8 @@ describe('BaseCharacterEditController', function() {
 
   describe('#buildEffect', function() {
     it('delegates to the load controller buildEffect', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: true }));
+      spyOn(AccessStore, 'ensureCharacterAccess')
+        .and.returnValue(Promise.resolve({ can_edit: true, is_player: false }));
       const fullCharacterClient = jasmine.createSpyObj('characterClient', [
         'fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'updateCharacter',
       ]);
@@ -43,7 +44,7 @@ describe('BaseCharacterEditController', function() {
 
       expect(fullCharacterClient.fetchCharacter).toHaveBeenCalledWith('npcs', 'demo', '1', null);
       expect(setCharacter).toHaveBeenCalledWith({
-        id: 1, treasures: [], can_edit: true, private_description: 'Notes.',
+        id: 1, treasures: [], can_edit: true, is_player: false, private_description: 'Notes.',
       });
 
       cleanup();

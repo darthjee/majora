@@ -43,6 +43,8 @@ export default class GameNpcsController extends BasePageController {
    * @param {GenericClient|null} client - Client override.
    * @param {CharacterClient|null} characterClient - Character client override.
    * @param {Function} [setCanEdit] - Can-edit flag setter, gates the "New NPC" button.
+   * @param {Function} [setIsPlayer] - Is-player flag setter, gates the player-facing
+   *   slain/revive button on each NPC card.
    */
   constructor(
     setNpcs,
@@ -52,6 +54,7 @@ export default class GameNpcsController extends BasePageController {
     client = null,
     characterClient = null,
     setCanEdit = Noop.noop,
+    setIsPlayer = Noop.noop,
   ) {
     super();
     this.setNpcs = setNpcs;
@@ -61,6 +64,7 @@ export default class GameNpcsController extends BasePageController {
     this.client = client ?? new GenericClient();
     this.characterClient = characterClient ?? new CharacterClient();
     this.setCanEdit = setCanEdit;
+    this.setIsPlayer = setIsPlayer;
     this.hashResolver = new HashRouteResolver(() => this.client.currentHash());
   }
 
@@ -91,8 +95,14 @@ export default class GameNpcsController extends BasePageController {
 
   #fetchAccess(gameSlug, safeSet) {
     AccessStore.ensureGameAccess(gameSlug)
-      .then((access) => safeSet(this.setCanEdit, Boolean(access.can_edit)))
-      .catch(() => safeSet(this.setCanEdit, false));
+      .then((access) => {
+        safeSet(this.setCanEdit, Boolean(access.can_edit));
+        safeSet(this.setIsPlayer, Boolean(access.is_player));
+      })
+      .catch(() => {
+        safeSet(this.setCanEdit, false);
+        safeSet(this.setIsPlayer, false);
+      });
   }
 
   #fetchNpcs(gameSlug, safeSet) {
