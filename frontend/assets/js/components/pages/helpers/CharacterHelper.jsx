@@ -11,7 +11,7 @@ import LoadingMessage from '../../elements/LoadingMessage.jsx';
 import CharacterTreasuresPreview from '../../elements/CharacterTreasuresPreview.jsx';
 import Translator from '../../../i18n/Translator.js';
 import allegianceBorderClass from '../../../utils/AllegianceBorder.js';
-import Icons from '../../../utils/Icons.js';
+import SlainSecondaryButtons from '../../elements/helpers/SlainSecondaryButtons.js';
 
 /**
  * Rendering helper for the Character detail page.
@@ -186,30 +186,15 @@ export default class CharacterHelper {
    *   button definitions.
    */
   static #buildDmSecondaryButtons(character, handlers) {
-    return [
-      {
-        label: character.slain
-          ? Translator.t('character_page.revive_button')
-          : Translator.t('character_page.slain_button'),
-        variant: character.slain ? 'success' : 'danger',
-        icon: character.slain ? Icons.heart : Icons.skullFill,
-        onClick: handlers.onOpenSlainModal,
-      },
-      {
-        label: character.public_slain
-          ? Translator.t('character_page.public_revive_button')
-          : Translator.t('character_page.public_slain_button'),
-        variant: character.public_slain ? 'success' : 'danger',
-        icon: character.public_slain ? Icons.heartOutline : Icons.skull,
-        onClick: handlers.onOpenPublicSlainModal,
-      },
-    ];
+    return SlainSecondaryButtons.buildDmButtons(
+      character, handlers.onOpenSlainModal, handlers.onOpenPublicSlainModal,
+    );
   }
 
   /**
    * Build the single player-facing slain/revive secondary button definition,
-   * reusing the DM's real-slain icons (`Icons.heart`/`Icons.skullFill`) as
-   * an intentional icon reuse — players only ever toggle `public_slain`,
+   * reusing the DM's real-slain button shape (`Icons.heart`/`Icons.skullFill`)
+   * as an intentional icon reuse — players only ever toggle `public_slain`,
    * which is already the value aliased onto `character.slain` for non-editors.
    *
    * @param {object} character - Character data object.
@@ -220,14 +205,7 @@ export default class CharacterHelper {
    */
   static #buildPlayerSecondaryButtons(character, handlers) {
     return [
-      {
-        label: character.slain
-          ? Translator.t('character_page.revive_button')
-          : Translator.t('character_page.slain_button'),
-        variant: character.slain ? 'success' : 'danger',
-        icon: character.slain ? Icons.heart : Icons.skullFill,
-        onClick: handlers.onOpenPlayerSlainModal,
-      },
+      SlainSecondaryButtons.buildSlainButton(character.slain, handlers.onOpenPlayerSlainModal),
     ];
   }
 
