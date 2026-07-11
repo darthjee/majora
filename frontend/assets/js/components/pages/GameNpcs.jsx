@@ -7,6 +7,7 @@ import HashRouteResolver from '../../utils/HashRouteResolver.js';
 import PhotoUploadModal from '../elements/PhotoUploadModal.jsx';
 import SlainConfirmModal from '../elements/SlainConfirmModal.jsx';
 import SlainConfirmController from '../elements/controllers/SlainConfirmController.js';
+import PlayerSlainConfirmController from '../elements/controllers/PlayerSlainConfirmController.js';
 import NpcFilters from '../elements/NpcFilters.jsx';
 
 /**
@@ -34,6 +35,30 @@ function useSlainTogglePair(field, controller) {
 }
 
 /**
+ * Builds the target state and controller pair for the player-facing slain
+ * toggle, which PATCHes the plain NPC endpoint as a player of the game
+ * (rather than the DM's `full.json` endpoint used by {@link useSlainTogglePair}).
+ *
+ * @param {import('./controllers/GameNpcsController.js').default} controller - List controller,
+ *   whose effect is re-run to refresh the NPC list after toggling.
+ * @returns {{target: object|null, setTarget: Function, playerSlainController:
+ *   PlayerSlainConfirmController}} Player-facing slain toggle state and controller pair.
+ */
+function usePlayerSlainTogglePair(controller) {
+  const [target, setTarget] = useState(null);
+
+  const playerSlainController = useMemo(
+    () => new PlayerSlainConfirmController(() => {
+      setTarget(null);
+      controller.buildEffect()();
+    }),
+    [controller],
+  );
+
+  return { target, setTarget, playerSlainController };
+}
+
+/**
  * Game Non-Player Characters index page.
  *
  * @returns {React.ReactElement} Game NPCs page element.
@@ -44,10 +69,13 @@ export default function GameNpcs() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [canEdit, setCanEdit] = useState(false);
+  const [isPlayer, setIsPlayer] = useState(false);
   const [uploadTarget, setUploadTarget] = useState(null);
 
   const controller = useMemo(
-    () => new GameNpcsController(setNpcs, setPagination, setLoading, setError, null, null, setCanEdit),
+    () => new GameNpcsController(
+      setNpcs, setPagination, setLoading, setError, null, null, setCanEdit, setIsPlayer,
+    ),
     [],
   );
 
@@ -55,6 +83,7 @@ export default function GameNpcs() {
 
   const slain = useSlainTogglePair('slain', controller);
   const publicSlain = useSlainTogglePair('public_slain', controller);
+  const playerSlain = usePlayerSlainTogglePair(controller);
 
   const gameSlug = GameNpcsController.getGameSlugFromNpcsHash(window.location.hash);
   const basePath = `#/games/${gameSlug}/npcs`;
@@ -86,6 +115,7 @@ export default function GameNpcs() {
         npcs, pagination, basePath, gameSlug, Translator.t('game_npcs_page.title'), 'npc', backHref,
         canEdit, newHref, setUploadTarget, slain.setTarget, publicSlain.setTarget, activeFilters,
         <NpcFilters onQuery={handleFilterQuery} onClear={handleFilterClear} />,
+        isPlayer, playerSlain.setTarget,
       )}
       <PhotoUploadModal
         show={uploadTarget !== null}
@@ -106,6 +136,14 @@ export default function GameNpcs() {
         onCancel={() => publicSlain.setTarget(null)}
         onConfirm={() => publicSlain.slainController.handleConfirm(
           gameSlug, publicSlain.target, AuthStorage.getToken(),
+        )}
+      />
+      <SlainConfirmModal
+        show={playerSlain.target !== null}
+        slain={playerSlain.target?.slain}
+        onCancel={() => playerSlain.setTarget(null)}
+        onConfirm={() => playerSlain.playerSlainController.handleConfirm(
+          gameSlug, playerSlain.target, AuthStorage.getToken(),
         )}
       />
     </>

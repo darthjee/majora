@@ -10,7 +10,8 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
 
     it('passes the token when one exists', async function() {
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
-      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+      spyOn(AccessStore, 'ensureCharacterAccess')
+        .and.returnValue(Promise.resolve({ can_edit: false, is_player: false }));
 
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
@@ -35,14 +36,15 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
 
       expect(characterClient.fetchCharacter).toHaveBeenCalledWith(kind, 'demo', '2', 'tok-abc');
       expect(AccessStore.ensureCharacterAccess).toHaveBeenCalledWith(kind, 'demo', '2');
-      expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: false });
+      expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: false, is_player: false });
 
       cleanup();
     });
 
     it('passes a null token when no token exists', async function() {
       spyOn(AuthStorage, 'getToken').and.returnValue(null);
-      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+      spyOn(AccessStore, 'ensureCharacterAccess')
+        .and.returnValue(Promise.resolve({ can_edit: false, is_player: false }));
 
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
@@ -73,7 +75,8 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
 
     it('resolves access through AccessStore regardless of the stored token', async function() {
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-xyz');
-      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+      spyOn(AccessStore, 'ensureCharacterAccess')
+        .and.returnValue(Promise.resolve({ can_edit: false, is_player: false }));
 
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');

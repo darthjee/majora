@@ -11,7 +11,8 @@ KINDS.forEach(({ label, Controller, kind }) => {
 
     describe('#buildEffect', function() {
       it('requests the character detail using the edit route params', async function() {
-        spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: true }));
+        spyOn(AccessStore, 'ensureCharacterAccess')
+          .and.returnValue(Promise.resolve({ can_edit: true, is_player: false }));
         const setCharacter = jasmine.createSpy('setCharacter');
         const setLoading = jasmine.createSpy('setLoading');
         const setError = jasmine.createSpy('setError');
@@ -48,7 +49,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
 
         expect(characterClient.fetchCharacter).toHaveBeenCalledWith(kind, 'demo', '2', null);
         expect(setCharacter).toHaveBeenCalledWith({
-          id: 2, treasures: [], can_edit: true, private_description: 'Secret.',
+          id: 2, treasures: [], can_edit: true, is_player: false, private_description: 'Secret.',
         });
 
         cleanup();

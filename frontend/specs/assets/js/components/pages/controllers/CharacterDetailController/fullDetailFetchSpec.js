@@ -9,7 +9,8 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
     });
 
     it('fetches full detail and merges private_description when can_edit is true', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: true }));
+      spyOn(AccessStore, 'ensureCharacterAccess')
+        .and.returnValue(Promise.resolve({ can_edit: true, is_player: false }));
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -37,14 +38,15 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
 
       expect(characterClient.fetchCharacterFull).toHaveBeenCalledWith(kind, 'demo', '2', null);
       expect(setCharacter).toHaveBeenCalledWith({
-        id: 2, treasures: [], can_edit: true, private_description: privateDescription,
+        id: 2, treasures: [], can_edit: true, is_player: false, private_description: privateDescription,
       });
 
       cleanup();
     });
 
     it('does not fetch full detail when can_edit is false', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+      spyOn(AccessStore, 'ensureCharacterAccess')
+        .and.returnValue(Promise.resolve({ can_edit: false, is_player: false }));
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -67,13 +69,14 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(characterClient.fetchCharacterFull).not.toHaveBeenCalled();
-      expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: false });
+      expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: false, is_player: false });
 
       cleanup();
     });
 
     it('falls back to character without private_description when full fetch fails', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: true }));
+      spyOn(AccessStore, 'ensureCharacterAccess')
+        .and.returnValue(Promise.resolve({ can_edit: true, is_player: false }));
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -96,7 +99,7 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: true });
+      expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: true, is_player: false });
       expect(setError).not.toHaveBeenCalled();
 
       cleanup();
