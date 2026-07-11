@@ -6,7 +6,7 @@ import uuid
 from rest_framework.response import Response
 
 from ...models import CharacterPhoto, Upload
-from ...permissions import CharacterEditPermission
+from ...permissions import CharacterEditPermission, NpcPlayerEditPermission
 from ...serializers import PhotoUploadSerializer
 from ..common import validated_or_error
 from ._shared import _get_character_or_404
@@ -16,7 +16,8 @@ def character_photo_upload(request, game, game_slug, character_id, npc):
     """Initialise a character photo upload and return the upload id and token."""
     character = _get_character_or_404(game, character_id, npc)
 
-    error_response = CharacterEditPermission.check(request, character)
+    permission_class = NpcPlayerEditPermission if npc else CharacterEditPermission
+    error_response = permission_class.check(request, character)
     if error_response:
         return error_response
 

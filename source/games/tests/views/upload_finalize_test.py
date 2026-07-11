@@ -67,6 +67,38 @@ class TestUploadFinalizeView:
         self.character_upload.content_object = self.character_photo
         self.character_upload.save()
 
+        self.player_of_game_user = UserFactory(
+            username='player_of_game', password='secret-password'
+        )
+        self.player_of_game = PlayerFactory(name='Pippin', user=self.player_of_game_user)
+        self.player_of_game.games.add(self.game)
+        self.player_of_game_token = Token.objects.create(user=self.player_of_game_user)
+
+        self.npc = CharacterFactory(name='Gandalf', game=self.game, npc=True)
+        self.npc_upload = Upload.objects.create(
+            user=self.player_of_game_user,
+            file_path='photos/games/epic-quest/characters/2/npc.jpg',
+        )
+        self.npc_photo = CharacterPhoto.objects.create(
+            character=self.npc,
+            path='photos/games/epic-quest/characters/2/npc.jpg',
+            ready=False,
+        )
+        self.npc_upload.content_object = self.npc_photo
+        self.npc_upload.save()
+
+        self.pc_upload_by_player_of_game = Upload.objects.create(
+            user=self.player_of_game_user,
+            file_path='photos/games/epic-quest/characters/1/pc_other.jpg',
+        )
+        self.pc_photo_by_player_of_game = CharacterPhoto.objects.create(
+            character=self.character,
+            path='photos/games/epic-quest/characters/1/pc_other.jpg',
+            ready=False,
+        )
+        self.pc_upload_by_player_of_game.content_object = self.pc_photo_by_player_of_game
+        self.pc_upload_by_player_of_game.save()
+
         self.superuser = SuperUserFactory(
             username='admin', password='secret-password'
         )
@@ -121,6 +153,18 @@ class TestUploadFinalizeView:
             payload,
             token=self.owner_token,
             upload_token=self.character_upload.token,
+        )
+
+    def _valid_npc_patch(self, client, payload=None):
+        """Issue a valid PATCH request for the NPC upload, owned by a player of the game."""
+        if payload is None:
+            payload = {'status': 'uploading'}
+        return self._patch(
+            client,
+            self.npc_upload.id,
+            payload,
+            token=self.player_of_game_token,
+            upload_token=self.npc_upload.token,
         )
 
     def _valid_treasure_patch(self, client, payload=None):
@@ -322,6 +366,30 @@ class TestUploadFinalizeView:
 
         self.character.refresh_from_db()
         assert self.character.profile_photo == existing_profile_photo
+
+    def test_uploading_status_returns_200_for_npc_upload_by_player_of_game(self, client):
+        """Test that a player of the game finalizing an NPC CharacterPhoto upload gets 200."""
+        response = self._valid_npc_patch(client, {'status': 'uploading'})
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['file_path'] == self.npc_upload.file_path
+
+    def test_uploaded_status_sets_npc_photo_ready_for_player_of_game(self, client):
+        """Test that status=uploaded sets NPC CharacterPhoto.ready for a player of the game."""
+        self._valid_npc_patch(client, {'status': 'uploaded'})
+        self.npc_photo.refresh_from_db()
+        assert self.npc_photo.ready is True
+
+    def test_player_of_game_returns_403_for_pc_upload(self, client):
+        """Test that a player of the game cannot finalize a PC CharacterPhoto upload."""
+        response = self._patch(
+            client,
+            self.pc_upload_by_player_of_game.id,
+            {'status': 'uploading'},
+            token=self.player_of_game_token,
+            upload_token=self.pc_upload_by_player_of_game.token,
+        )
+        assert response.status_code == 403
 
     def test_unauthenticated_request_returns_401_for_treasure_upload(self, client):
         """Test that an unauthenticated request on a TreasurePhoto upload returns 401."""

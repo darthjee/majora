@@ -153,7 +153,8 @@ export default class CharacterCardHelper {
    * @param {Function} onSlainClick - Called with the character object on real slain click.
    * @param {Function} onPublicSlainClick - Called with the character object on public slain click.
    * @param {{isPlayer?: boolean, onPlayerSlainClick?: Function}} playerOptions - Player-facing
-   *   slain toggle options.
+   *   slain toggle options; `isPlayer` also grants NPC upload access even without edit rights,
+   *   without affecting the DM-only secondary slain/revive buttons built separately below.
    * @returns {React.ReactElement} Rendered photo element.
    */
   static #renderPhoto(character, characterType, canEdit, onUploadClick, onSlainClick, onPublicSlainClick, playerOptions) {
@@ -161,12 +162,14 @@ export default class CharacterCardHelper {
       return <CardAvatar url={character.profile_photo_path} alt={character.name} />;
     }
 
+    const canUploadPhoto = canEdit || (playerOptions.isPlayer ?? false);
+
     return (
       <ActionsOverlay
         type="avatar"
         url={character.profile_photo_path}
         alt={character.name}
-        canEdit={canEdit}
+        canEdit={canUploadPhoto}
         onClick={CharacterCardHelper.#buildOverlayClickHandler(onUploadClick, character)}
         grayscale={character.slain}
         secondaryButtons={CharacterCardHelper.#buildSecondaryButtons(

@@ -8,7 +8,12 @@ from rest_framework.response import Response
 
 from ..authentication import CookieTokenAuthentication
 from ..models import CharacterPhoto, TreasurePhoto, Upload
-from ..permissions import CharacterEditPermission, GameEditPermission, TreasureEditPermission
+from ..permissions import (
+    CharacterEditPermission,
+    GameEditPermission,
+    NpcPlayerEditPermission,
+    TreasureEditPermission,
+)
 
 _FORBIDDEN = Response(status=status.HTTP_403_FORBIDDEN)
 _VALID_STATUSES = {Upload.STATUS_UPLOADING, Upload.STATUS_UPLOADED}
@@ -71,7 +76,9 @@ def _check_permission(request, upload):
     if isinstance(content_object, TreasurePhoto):
         return TreasureEditPermission.check(request, content_object.treasure)
     if isinstance(content_object, CharacterPhoto):
-        return CharacterEditPermission.check(request, content_object.character)
+        character = content_object.character
+        permission_class = NpcPlayerEditPermission if character.npc else CharacterEditPermission
+        return permission_class.check(request, character)
     return GameEditPermission.check(request, content_object.game)
 
 

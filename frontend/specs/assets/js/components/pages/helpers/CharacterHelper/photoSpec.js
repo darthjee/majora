@@ -46,5 +46,45 @@ describe('CharacterHelper', function() {
 
       expect(onOpenUploadModal).toHaveBeenCalled();
     });
+
+    it('renders the photo upload overlay button for an NPC when is_player is true, even without can_edit', function() {
+      const c = {
+        ...character, is_pc: false, can_edit: false, is_player: true,
+      };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
+      expect(html).toContain('actions-overlay-button');
+    });
+
+    it('still renders the photo upload overlay button for an NPC editor, unaffected by is_player', function() {
+      const c = {
+        ...character, is_pc: false, can_edit: true, is_player: false,
+      };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
+      expect(html).toContain('actions-overlay-button');
+    });
+
+    it('does not render the photo upload overlay button for a plain visitor (not a player, not an editor)', function() {
+      const c = {
+        ...character, is_pc: false, can_edit: false, is_player: false,
+      };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
+      expect(html).not.toContain('actions-overlay-button');
+    });
+
+    it('does not render the photo upload overlay button for a PC, even when is_player is true', function() {
+      const c = {
+        ...character, is_pc: true, can_edit: false, is_player: true,
+      };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).not.toContain('actions-overlay-button');
+    });
+
+    it('does not render the "New NPC"/edit-link button for a player who is not an editor', function() {
+      const c = {
+        ...character, is_pc: false, can_edit: false, is_player: true,
+      };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
+      expect(html).not.toContain('character_page.edit');
+    });
   });
 });
