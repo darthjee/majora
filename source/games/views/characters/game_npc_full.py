@@ -9,10 +9,10 @@ from ...models import Game
 from ._full import character_full
 
 
-@api_view(['GET'])
+@api_view(['GET', 'PATCH'])
 @authentication_classes([CookieTokenAuthentication])
 @permission_classes([AllowAny])
 def game_npc_full(request, game_slug, character_id):
-    """Return full detail (including private description) for a specific NPC."""
+    """Return or update full detail (including private description) for a specific NPC."""
     game = get_object_or_404(Game, game_slug=game_slug)
     return character_full(request, game, character_id, npc=True)

@@ -64,17 +64,17 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
-   * Submits a partial update for a character.
+   * Submits a partial update for a character, through the (GM-only) full endpoint.
    *
    * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {string|number} characterId - Character id.
    * @param {string|null} token - Authentication token, if any.
    * @param {object} fields - Fields to update.
-   * @returns {Promise<Response>} fetch response from the character endpoint.
+   * @returns {Promise<Response>} fetch response from the character full endpoint.
    */
   updateCharacter(characterKind, gameSlug, characterId, token, fields) {
-    return this.patchJson(`/games/${gameSlug}/${characterKind}/${characterId}.json`, token, fields);
+    return this.patchJson(`/games/${gameSlug}/${characterKind}/${characterId}/full.json`, token, fields);
   }
 
   /**
