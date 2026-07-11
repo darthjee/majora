@@ -192,34 +192,21 @@ single character and gated by `CharacterEditPermission` instead of `GameEditPerm
 
 ---
 
-## Character slain-toggle endpoint
+## Character slain fields — write path history
 
-| Endpoint | Method | Who can call | Request body | Response |
-|----------|--------|-------------|---------------|----------|
-| `/games/<slug>/npcs/<id>/slain.json` | PATCH | `CharacterEditPermission` (the character's player, any GameMaster of that game, or superuser) | `{"slain": true\|false}` and/or `{"public_slain": true\|false}` (at least one key required) | `200 {"slain": true\|false, "public_slain": true\|false}` |
+Added in issue #315 as a single shared field; split into independent `slain`/`public_slain`
+real/public fields in issue #397 (see "Slain fields" below for the full real/public split,
+mirroring the `allegiance`/`public_allegiance` split). Issue #397 also introduced a dedicated
+`PATCH /games/<slug>/npcs/<id>/slain.json` action endpoint (gated by a `CharacterEditPermission`-
+checked `CharacterSlainUpdateSerializer`) as their only write path at the time, since neither
+field was part of `CharacterUpdateSerializer` yet.
 
-Added in issue #315; split into independent real/public fields in issue #397 (see "Slain
-fields" below for the full real/public split, mirroring the `allegiance`/`public_allegiance`
-split). There is no equivalent PC endpoint — `slain`/`public_slain` are only ever toggled
-through this dedicated NPC route, mirroring the existing `hidden` NPC-only precedent (fields
-that live on the shared `Character` model but are only meaningfully written for NPCs).
-Unlike `hidden`, `slain`/`public_slain` are not part of `CharacterUpdateSerializer` or
-`CharacterCreateSerializer` at all — this action endpoint, validated by the dedicated
-`CharacterSlainUpdateSerializer`, is their only write path.
-
-Since NPCs have no player by convention, `CharacterEditPermission` resolves in practice to
-"superuser or GameMaster (DM) of that game" for this endpoint.
-
-Each request body key present updates only that model field — sending `slain` alone leaves
-`public_slain` untouched, and vice versa; sending both updates both independently. The
-response always echoes the character's current `slain` and `public_slain` values, regardless
-of which keys were present in the request.
-
-- Unauthenticated → 401. Authenticated but not an editor of the NPC → 403.
-- Unknown `game_slug` or `character_id` (or a `character_id` that does not belong to
-  `game_slug`, or is a PC id used against this NPC-only route) → 404.
-- Neither `slain` nor `public_slain` present in the body, or either present with a
-  non-boolean value → 400.
+Issue #425/#426 removed that dedicated endpoint and its serializer, adding `slain` and
+`public_slain` directly to `CharacterUpdateSerializer`'s field list instead — see "Slain fields"
+below for the current write-access rules, which now mirror `allegiance`/`public_allegiance`
+exactly (including the PC-facing write path this unlocked). Issue #428 subsequently moved that
+write path's URL from the plain detail endpoints to the full-detail endpoints, along with every
+other `CharacterUpdateSerializer` field — see "Update (PATCH)" below.
 
 ---
 
@@ -280,9 +267,8 @@ the `CharacterPhoto` selected as the character's profile photo (see "CharacterPh
 `BooleanField` (default `False`) shared by the `Character` model for both PCs and NPCs, and
 is returned read-only on the list and detail endpoints to anyone — on those public endpoints
 the `slain` JSON key is sourced from the `public_slain` model field (see "Slain fields"
-below). Unlike `hidden`/`money`, it has no write path through `CharacterUpdateSerializer` or
-`CharacterCreateSerializer` — see the "Character slain-toggle endpoint" subsection above for
-its only write path.
+below). Like `hidden`/`money`, it is writable through `CharacterUpdateSerializer` — see the
+"Slain fields" subsection below for its write-access rules.
 
 ### Full detail (includes `private_description`)
 
@@ -369,11 +355,15 @@ depending on the endpoint:
   `slain` is sourced from the real `slain` model field, and `public_slain` is additionally
   exposed under its own key with the public-facing value.
 
-**Write access**: unlike `allegiance`/`public_allegiance`, neither `slain` nor `public_slain`
-was added to `CharacterUpdateSerializer` or `CharacterCreateSerializer` — both stay writable
-only through the dedicated "Character slain-toggle endpoint" above
-(`PATCH /games/<slug>/npcs/<id>/slain.json`), which accepts partial updates to either or both
-fields independently. There is no PC-facing write path for either field.
+**Write access**: like `allegiance`/`public_allegiance`, both `slain` and `public_slain` are
+fields on the shared `CharacterUpdateSerializer` (`CharacterEditPermission`-gated, added in
+issue #425/#426), so they are writable through **either**
+`PATCH /games/<slug>/pcs/<id>/full.json` or `PATCH /games/<slug>/npcs/<id>/full.json` (moved
+from the plain detail endpoints in issue #428): the character's own player, any GameMaster of
+that game, or a superuser. Since NPCs have no player owner by product definition (see
+`docs/agents/product.md`), this is DM/superuser-only in practice for NPCs; a PC's own player
+can PATCH their own PC's `slain`/`public_slain` too (same as they already can for
+`allegiance`/`public_allegiance`, `hidden`/`money`).
 
 **Filtering**: `npcs.json` filters `?slain=` on `public_slain`; `npcs/all.json` filters
 `?slain=` on the real `slain` field — same tolerant/unauthorized-safe convention as the
@@ -641,8 +631,9 @@ the `CharacterTreasure` row, even when a full sell brings `quantity` to `0`.
 These endpoints do not re-apply the hidden-NPC `Http404` gate before the permission check
 (unlike `game_npc_treasures`'s read endpoint) — a hidden NPC's existence is confirmed via
 401/403 rather than masked behind a 404. This mirrors the pre-existing, already-accepted
-convention used by the NPC slain-toggle endpoint, which is also `CharacterEditPermission`-
-gated with no hidden-existence masking.
+convention used by the NPC full-detail endpoint (`PATCH /games/<slug>/npcs/<id>/full.json`,
+see "Full detail" above), which is also `CharacterEditPermission`-gated with no
+hidden-existence masking.
 
 **Write access:** the four acquire/sell endpoints above (added in issue #312), gated by
 `CharacterEditPermission`. There is otherwise no direct create/update/delete endpoint for a
