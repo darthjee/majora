@@ -28,4 +28,8 @@ describe('Icons', function() {
   it('maps restore to the filled plus-circle icon class', function() {
     expect(Icons.restore).toBe('bi-plus-circle-fill');
   });
+
+  it('maps viewAs to the filled file-person icon class', function() {
+    expect(Icons.viewAs).toBe('bi-file-person-fill');
+  });
 });

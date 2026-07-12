@@ -8,6 +8,8 @@ export const buildHandlers = () => ({
   onLoginSuccess: jasmine.createSpy('onLoginSuccess'),
   onSendTestEmailClick: jasmine.createSpy('onSendTestEmailClick'),
   onLanguageChange: jasmine.createSpy('onLanguageChange'),
+  onViewAsClick: jasmine.createSpy('onViewAsClick'),
+  onViewAsModalClose: jasmine.createSpy('onViewAsModalClose'),
 });
 
 export const buildState = (overrides = {}) => ({
@@ -18,6 +20,8 @@ export const buildState = (overrides = {}) => ({
   serverStatus: null,
   isStaff: false,
   route: { page: 'home' },
+  canViewAs: false,
+  showViewAsModal: false,
   ...overrides,
 });
 

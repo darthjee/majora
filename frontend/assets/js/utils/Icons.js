@@ -11,4 +11,5 @@ export default {
   skullFill: 'bi-skull-fill',
   trash: 'bi-trash-fill',
   restore: 'bi-plus-circle-fill',
+  viewAs: 'bi-file-person-fill',
 };
