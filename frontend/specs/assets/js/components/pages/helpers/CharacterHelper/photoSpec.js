@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterHelper from '../../../../../../../assets/js/components/pages/helpers/CharacterHelper.jsx';
 import ActionsOverlay from '../../../../../../../assets/js/components/elements/ActionsOverlay.jsx';
+import InfoBarRules from '../../../../../../../assets/js/components/elements/helpers/InfoBarRules.js';
 import { character, findElement } from './support.js';
 
 describe('CharacterHelper', function() {
@@ -85,6 +86,13 @@ describe('CharacterHelper', function() {
       };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
       expect(html).not.toContain('character_page.edit');
+    });
+
+    it('threads InfoBarRules.build(character) as infoBarItems to the picture overlay', function() {
+      const element = CharacterHelper.render(character, '#/games/demo/pcs');
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
+
+      expect(overlay.props.infoBarItems).toEqual(InfoBarRules.build(character));
     });
   });
 });

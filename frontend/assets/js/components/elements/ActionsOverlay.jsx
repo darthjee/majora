@@ -3,6 +3,7 @@ import CardPhoto from './CardPhoto.jsx';
 import CardAvatar from './CardAvatar.jsx';
 import CardTreasureImage from './CardTreasureImage.jsx';
 import ActionBar from './ActionBar.jsx';
+import InfoBar from './InfoBar.jsx';
 
 const PHOTO_COMPONENTS = {
   avatar: CardAvatar,
@@ -28,10 +29,12 @@ const PHOTO_COMPONENTS = {
  * @param {{label: string, variant: string, icon: string, onClick: Function}[]} [props.secondaryButtons] - Optional
  *   secondary overlay buttons (e.g. real/public Slain-Revive), stacked at the bottom right,
  *   rendered when the primary upload button is present on the left.
+ * @param {object[]} [props.infoBarItems] - Optional informational (non-interactive) items
+ *   rendered in the always-visible {@link InfoBar} at the top of the overlay.
  * @returns {React.ReactElement} Rendered photo/avatar with optional upload/secondary overlay buttons.
  */
 export default function ActionsOverlay({
-  type, url, alt, canEdit, onClick, grayscale = false, secondaryButtons = [],
+  type, url, alt, canEdit, onClick, grayscale = false, secondaryButtons = [], infoBarItems = [],
 }) {
   const Photo = PHOTO_COMPONENTS[type] || CardPhoto;
   const className = `actions-overlay${grayscale ? ' photo-grayscale' : ''}`;
@@ -39,6 +42,7 @@ export default function ActionsOverlay({
   return (
     <div className={className}>
       <Photo url={url} alt={alt} />
+      <InfoBar items={infoBarItems} />
       <ActionBar canEdit={canEdit} onClick={onClick} secondaryButtons={secondaryButtons} />
     </div>
   );
