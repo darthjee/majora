@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
 import ActionsOverlay from '../../../../../../assets/js/components/elements/ActionsOverlay.jsx';
 import ActionBar from '../../../../../../assets/js/components/elements/ActionBar.jsx';
+import InfoBar from '../../../../../../assets/js/components/elements/InfoBar.jsx';
 import Noop from '../../../../../../assets/js/utils/Noop.js';
 
 const findElement = (node, matcher) => {
@@ -50,6 +51,32 @@ describe('ActionsOverlay', function() {
     expect(actionBar.props.canEdit).toBe(true);
     expect(actionBar.props.onClick).toBe(onClick);
     expect(actionBar.props.secondaryButtons).toBe(secondaryButtons);
+  });
+
+  it('delegates infoBarItems to InfoBar', function() {
+    const infoBarItems = [{ key: 'item', label: 'Some Info' }];
+    const rendered = ActionsOverlay({
+      url: null,
+      alt: 'Epic Quest',
+      canEdit: true,
+      onClick: Noop.noop,
+      infoBarItems,
+    });
+    const infoBar = findElement(rendered, (child) => child.type === InfoBar);
+
+    expect(infoBar.props.items).toBe(infoBarItems);
+  });
+
+  it('defaults infoBarItems to an empty array', function() {
+    const rendered = ActionsOverlay({
+      url: null,
+      alt: 'Epic Quest',
+      canEdit: true,
+      onClick: Noop.noop,
+    });
+    const infoBar = findElement(rendered, (child) => child.type === InfoBar);
+
+    expect(infoBar.props.items).toEqual([]);
   });
 
   it('wraps the photo in an actions-overlay container', function() {

@@ -32,13 +32,15 @@ describe('CharacterCard', function() {
     expect(html).not.toContain('card-title');
   });
 
-  it('renders a plain CardAvatar for PCs, with no overlay buttons', function() {
+  it('renders a plain CardAvatar for PCs, with no overlay buttons, wrapped in the info-bar anchor', function() {
     const html = renderToStaticMarkup(
       React.createElement(CharacterCard, {
         character, gameSlug: 'epic-quest', characterType: 'pc', canEdit: true,
       })
     );
     expect(html).not.toContain('<button');
+    expect(html).toContain('info-bar-anchor');
+    expect(html).toContain('info-overlay');
   });
 
   it('renders the upload overlay button for NPCs when canEdit is true', function() {

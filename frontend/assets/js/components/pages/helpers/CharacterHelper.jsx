@@ -12,6 +12,7 @@ import CharacterTreasuresPreview from '../../elements/CharacterTreasuresPreview.
 import Translator from '../../../i18n/Translator.js';
 import allegianceBorderClass from '../../../utils/AllegianceBorder.js';
 import SlainSecondaryButtons from '../../elements/helpers/SlainSecondaryButtons.js';
+import InfoBarRules from '../../elements/helpers/InfoBarRules.js';
 
 /**
  * Rendering helper for the Character detail page.
@@ -132,6 +133,7 @@ export default class CharacterHelper {
         onClick={handlers.onOpenUploadModal}
         grayscale={character.slain}
         secondaryButtons={CharacterHelper.#buildSecondaryButtons(character, handlers)}
+        infoBarItems={InfoBarRules.build(character)}
       />
     );
 
