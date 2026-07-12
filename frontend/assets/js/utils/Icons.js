@@ -12,4 +12,11 @@ export default {
   trash: 'bi-trash-fill',
   restore: 'bi-plus-circle-fill',
   viewAs: 'bi-file-person-fill',
+  infoCircleFill: 'bi-info-circle-fill',
+  emojiAngry: 'bi-emoji-angry',
+  emojiAngryFill: 'bi-emoji-angry-fill',
+  emojiSmile: 'bi-emoji-smile',
+  emojiSmileFill: 'bi-emoji-smile-fill',
+  emojiExpressionless: 'bi-emoji-expressionless',
+  emojiExpressionlessFill: 'bi-emoji-expressionless-fill',
 };
