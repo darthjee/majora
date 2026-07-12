@@ -3,6 +3,7 @@
 import json
 
 import pytest
+from django.test import TestCase
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
@@ -72,14 +73,14 @@ class TestGamesListView:
         assert len(data) == 2
 
 
-@pytest.mark.django_db
-class TestGamesCreateView:
+class TestGamesCreateView(TestCase):
     """Tests for the POST /games.json endpoint."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up an authenticated user and token."""
-        self.user = UserFactory(username='creator', password='secret-password')
-        self.token = Token.objects.create(user=self.user)
+        cls.user = UserFactory(username='creator', password='secret-password')
+        cls.token = Token.objects.create(user=cls.user)
 
     def _post(self, client, payload, token=None):
         """Issue a POST request to the games list endpoint, optionally with a token."""
@@ -93,14 +94,14 @@ class TestGamesCreateView:
             **extra,
         )
 
-    def test_valid_post_returns_201(self, client):
+    def test_valid_post_returns_201(self):
         """Test that a valid POST returns HTTP 201."""
-        response = self._post(client, {'name': 'New Adventure'}, token=self.token)
+        response = self._post(self.client, {'name': 'New Adventure'}, token=self.token)
         assert response.status_code == 201
 
-    def test_valid_post_returns_game_detail_body(self, client):
+    def test_valid_post_returns_game_detail_body(self):
         """Test that the response body matches GameDetailSerializer output."""
-        response = self._post(client, {'name': 'New Adventure'}, token=self.token)
+        response = self._post(self.client, {'name': 'New Adventure'}, token=self.token)
         data = json.loads(response.content)
         assert data['name'] == 'New Adventure'
         assert 'game_slug' in data
@@ -108,50 +109,50 @@ class TestGamesCreateView:
         assert 'links' in data
         assert 'photos' in data
 
-    def test_game_slug_is_auto_generated(self, client):
+    def test_game_slug_is_auto_generated(self):
         """Test that game_slug is generated from name automatically."""
-        response = self._post(client, {'name': 'My Epic Campaign'}, token=self.token)
+        response = self._post(self.client, {'name': 'My Epic Campaign'}, token=self.token)
         data = json.loads(response.content)
         assert data['game_slug'] == 'my-epic-campaign'
 
-    def test_post_without_name_returns_400(self, client):
+    def test_post_without_name_returns_400(self):
         """Test that omitting name returns HTTP 400 with field errors."""
-        response = self._post(client, {'description': 'No name given'}, token=self.token)
+        response = self._post(self.client, {'description': 'No name given'}, token=self.token)
         assert response.status_code == 400
         data = json.loads(response.content)
         assert 'name' in data['errors']
 
-    def test_post_without_token_returns_401(self, client):
+    def test_post_without_token_returns_401(self):
         """Test that a POST without an auth token returns HTTP 401."""
-        response = self._post(client, {'name': 'Unauthorized Game'})
+        response = self._post(self.client, {'name': 'Unauthorized Game'})
         assert response.status_code == 401
         data = json.loads(response.content)
         assert 'detail' in data['errors']
 
-    def test_url_accessible_by_name(self, client):
+    def test_url_accessible_by_name(self):
         """Test that the games-list URL name resolves correctly for POST."""
         url = reverse('games-list')
         assert url == '/games.json'
 
-    def test_post_with_optional_fields(self, client):
+    def test_post_with_optional_fields(self):
         """Test that the optional description field is accepted."""
         payload = {
             'name': 'Full Game',
             'description': 'A detailed campaign.',
         }
-        response = self._post(client, payload, token=self.token)
+        response = self._post(self.client, payload, token=self.token)
         assert response.status_code == 201
         data = json.loads(response.content)
         assert data['description'] == 'A detailed campaign.'
 
-    def test_post_creates_game_master_for_creator(self, client):
+    def test_post_creates_game_master_for_creator(self):
         """Test that a GameMaster record is created for the authenticated creator."""
-        response = self._post(client, {'name': 'DM Game'}, token=self.token)
+        response = self._post(self.client, {'name': 'DM Game'}, token=self.token)
         assert response.status_code == 201
         data = json.loads(response.content)
         assert GameMaster.objects.filter(game__game_slug=data['game_slug'], user=self.user).exists()
 
-    def test_post_creates_exactly_one_game_master(self, client):
+    def test_post_creates_exactly_one_game_master(self):
         """Test that exactly one GameMaster record is created after a single POST."""
-        self._post(client, {'name': 'Solo Campaign'}, token=self.token)
+        self._post(self.client, {'name': 'Solo Campaign'}, token=self.token)
         assert GameMaster.objects.filter(user=self.user).count() == 1

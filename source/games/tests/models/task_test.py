@@ -1,19 +1,19 @@
 """Tests for the Task model."""
 
-import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.test import TestCase
 
 from games.models import GameSession, Task
 from games.tests.factories import GameFactory, GameMasterFactory, SuperUserFactory, UserFactory
 
 
-@pytest.mark.django_db
-class TestTask:
+class TestTask(TestCase):
     """Tests for the Task model."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game for testing."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
 
     def test_task_creation(self):
         """Test that a task can be created with a game and short description."""
@@ -50,16 +50,16 @@ class TestTask:
         assert tasks[1].id == second.id
 
 
-@pytest.mark.django_db
-class TestTaskCanBeEditedBy:
+class TestTaskCanBeEditedBy(TestCase):
     """Tests for Task.can_be_edited_by()."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game, a task, and a DM user."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.task = Task.objects.create(game=self.game, short_description='Prep the ambush')
-        self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.task = Task.objects.create(game=cls.game, short_description='Prep the ambush')
+        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=cls.game, user=cls.dm_user)
 
     def test_superuser_can_edit(self):
         """Test that a superuser may edit the task."""
@@ -91,14 +91,14 @@ class TestTaskCanBeEditedBy:
         assert self.task.can_be_edited_by(AnonymousUser()) is False
 
 
-@pytest.mark.django_db
-class TestTaskCanBeEditedByRoles:
+class TestTaskCanBeEditedByRoles(TestCase):
     """Tests for Task.can_be_edited_by_roles()."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game and a task for testing."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.task = Task.objects.create(game=self.game, short_description='Prep the ambush')
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.task = Task.objects.create(game=cls.game, short_description='Prep the ambush')
 
     def test_superuser_role_can_edit(self):
         """Test that the superuser role may edit the task."""

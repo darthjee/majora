@@ -1,6 +1,7 @@
 """Tests for the CharacterUpdateSerializer."""
 
 import pytest
+from django.test import TestCase
 from rest_framework.exceptions import ValidationError
 
 from games.models import CharacterLink
@@ -9,14 +10,14 @@ from games.serializers.character_link_write import MAX_LINKS
 from games.tests.factories import CharacterFactory, GameFactory, PlayerFactory
 
 
-@pytest.mark.django_db
-class TestCharacterUpdateSerializer:
+class TestCharacterUpdateSerializer(TestCase):
     """Tests for the CharacterUpdateSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.character = CharacterFactory(name='Frodo', game=self.game)
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.character = CharacterFactory(name='Frodo', game=cls.game)
 
     def test_serializes_editable_fields(self):
         """Test that all editable fields are serialized."""
@@ -186,16 +187,16 @@ class TestCharacterUpdateSerializer:
         assert updated.player is None
 
 
-@pytest.mark.django_db
-class TestCharacterUpdateSerializerLinks:
+class TestCharacterUpdateSerializerLinks(TestCase):
     """Tests for the writable `links` field on CharacterUpdateSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.character = CharacterFactory(name='Frodo', game=self.game)
-        self.link = CharacterLink.objects.create(
-            text='Official Wiki', url='http://example.com/wiki', character=self.character,
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.character = CharacterFactory(name='Frodo', game=cls.game)
+        cls.link = CharacterLink.objects.create(
+            text='Official Wiki', url='http://example.com/wiki', character=cls.character,
         )
 
     def test_creates_new_link_without_id(self):

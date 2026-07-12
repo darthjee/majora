@@ -1,27 +1,27 @@
 """Tests for the CharacterFullSerializer."""
 
-import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.test import TestCase
 from rest_framework.test import APIRequestFactory
 
 from games.serializers import CharacterFullSerializer
 from games.tests.factories import CharacterFactory, GameFactory
 
 
-@pytest.mark.django_db
-class TestCharacterFullSerializer:
+class TestCharacterFullSerializer(TestCase):
     """Tests for the CharacterFullSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.character = CharacterFactory(
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.character = CharacterFactory(
             name='Frodo',
-            game=self.game,
+            game=cls.game,
             public_description='A brave hobbit.',
             private_description='Secretly carries the ring.',
         )
-        self.factory = APIRequestFactory()
+        cls.factory = APIRequestFactory()
 
     def _serialize(self):
         """Build an anonymous request and serialize the character."""

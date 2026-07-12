@@ -1,19 +1,20 @@
 """Tests for the GameMaster model."""
 
 import pytest
+from django.test import TestCase
 
 from games.models import GameMaster
 from games.tests.factories import GameFactory, GameMasterFactory, UserFactory
 
 
-@pytest.mark.django_db
-class TestGameMaster:
+class TestGameMaster(TestCase):
     """Tests for the GameMaster model."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.user = UserFactory(username='dm_user', password='secret-password')
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.user = UserFactory(username='dm_user', password='secret-password')
 
     def test_game_master_creation(self):
         """Test that a game master can be created linking a game to a user."""

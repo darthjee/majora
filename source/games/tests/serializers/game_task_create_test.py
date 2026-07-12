@@ -1,19 +1,19 @@
 """Tests for the GameTaskCreateSerializer."""
 
-import pytest
+from django.test import TestCase
 
 from games.models import GameSession
 from games.serializers import GameTaskCreateSerializer
 from games.tests.factories import GameFactory
 
 
-@pytest.mark.django_db
-class TestGameTaskCreateSerializer:
+class TestGameTaskCreateSerializer(TestCase):
     """Tests for the GameTaskCreateSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
 
     def test_valid_with_short_description_only(self):
         """Test that a payload with only short_description is valid."""

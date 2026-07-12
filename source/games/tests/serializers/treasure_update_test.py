@@ -1,18 +1,18 @@
 """Tests for the TreasureUpdateSerializer."""
 
-import pytest
+from django.test import TestCase
 
 from games.models import Game, Treasure
 from games.serializers import TreasureUpdateSerializer
 
 
-@pytest.mark.django_db
-class TestTreasureUpdateSerializer:
+class TestTreasureUpdateSerializer(TestCase):
     """Tests for TreasureUpdateSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a treasure instance for testing."""
-        self.treasure = Treasure.objects.create(name='Golden Crown', value=500)
+        cls.treasure = Treasure.objects.create(name='Golden Crown', value=500)
 
     def test_valid_partial_name_update(self):
         """Test that a partial update with only name is valid."""

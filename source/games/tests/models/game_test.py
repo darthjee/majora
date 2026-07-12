@@ -2,6 +2,7 @@
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.test import TestCase
 from django.utils.text import slugify
 
 from games.models import Game, GameTreasure
@@ -52,15 +53,15 @@ class TestGame:
         assert games[1].id == second.id
 
 
-@pytest.mark.django_db
-class TestGameCanBeEditedBy:
+class TestGameCanBeEditedBy(TestCase):
     """Tests for Game.can_be_edited_by()."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game and a DM user."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=cls.game, user=cls.dm_user)
 
     def test_superuser_can_edit(self):
         """Test that a superuser may edit the game."""
@@ -85,13 +86,13 @@ class TestGameCanBeEditedBy:
         assert self.game.can_be_edited_by(AnonymousUser()) is False
 
 
-@pytest.mark.django_db
-class TestGameCanBeEditedByRoles:
+class TestGameCanBeEditedByRoles(TestCase):
     """Tests for Game.can_be_edited_by_roles()."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game for testing."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
 
     def test_superuser_role_can_edit(self):
         """Test that the superuser role may edit the game."""
@@ -106,14 +107,14 @@ class TestGameCanBeEditedByRoles:
         assert self.game.can_be_edited_by_roles(is_superuser=False, is_dm=False) is False
 
 
-@pytest.mark.django_db
-class TestGameTreasuresThroughModel:
+class TestGameTreasuresThroughModel(TestCase):
     """Tests for Game.treasures going through the GameTreasure model."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game and a treasure."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.treasure = TreasureFactory(name='Golden Crown', value=500)
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.treasure = TreasureFactory(name='Golden Crown', value=500)
 
     def test_add_creates_a_game_treasure_row(self):
         """Test that adding a treasure to a game creates a GameTreasure through-row."""

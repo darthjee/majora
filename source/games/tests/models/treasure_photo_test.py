@@ -1,18 +1,18 @@
 """Tests for the TreasurePhoto model."""
 
-import pytest
+from django.test import TestCase
 
 from games.models import TreasurePhoto
 from games.tests.factories import TreasureFactory
 
 
-@pytest.mark.django_db
-class TestTreasurePhoto:
+class TestTreasurePhoto(TestCase):
     """Tests for the TreasurePhoto model."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.treasure = TreasureFactory(name='Golden Crown', value=500)
+        cls.treasure = TreasureFactory(name='Golden Crown', value=500)
 
     def test_treasure_photo_creation(self):
         """Test that a treasure photo can be created and linked to a treasure."""

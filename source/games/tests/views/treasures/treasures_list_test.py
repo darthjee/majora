@@ -3,6 +3,7 @@
 import json
 
 import pytest
+from django.test import TestCase
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
@@ -83,16 +84,16 @@ class TestTreasuresListView:
         assert data[0]['name'] == 'Global Gem'
 
 
-@pytest.mark.django_db
-class TestTreasuresCreateView:
+class TestTreasuresCreateView(TestCase):
     """Tests for the POST /treasures.json endpoint."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a superuser and a regular user."""
-        self.superuser = SuperUserFactory(username='admin', password='secret-password')
-        self.superuser_token = Token.objects.create(user=self.superuser)
-        self.regular_user = UserFactory(username='player', password='secret-password')
-        self.regular_token = Token.objects.create(user=self.regular_user)
+        cls.superuser = SuperUserFactory(username='admin', password='secret-password')
+        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.regular_user = UserFactory(username='player', password='secret-password')
+        cls.regular_token = Token.objects.create(user=cls.regular_user)
 
     def _post(self, client, payload, token=None):
         """Issue a POST request to the treasures list endpoint, optionally with a token."""
@@ -106,46 +107,46 @@ class TestTreasuresCreateView:
             **extra,
         )
 
-    def test_superuser_can_create_treasure(self, client):
+    def test_superuser_can_create_treasure(self):
         """Test that a superuser can create a treasure and receives 201."""
-        response = self._post(client, {'name': 'Dragon Gem', 'value': 1000},
+        response = self._post(self.client, {'name': 'Dragon Gem', 'value': 1000},
                               token=self.superuser_token)
         assert response.status_code == 201
 
-    def test_create_returns_treasure_detail(self, client):
+    def test_create_returns_treasure_detail(self):
         """Test that the response body contains id, name, and value."""
-        response = self._post(client, {'name': 'Dragon Gem', 'value': 1000},
+        response = self._post(self.client, {'name': 'Dragon Gem', 'value': 1000},
                               token=self.superuser_token)
         data = json.loads(response.content)
         assert data['name'] == 'Dragon Gem'
         assert data['value'] == 1000
         assert 'id' in data
 
-    def test_unauthenticated_post_returns_401(self, client):
+    def test_unauthenticated_post_returns_401(self):
         """Test that a POST without a token returns 401."""
-        response = self._post(client, {'name': 'Dragon Gem', 'value': 1000})
+        response = self._post(self.client, {'name': 'Dragon Gem', 'value': 1000})
         assert response.status_code == 401
         data = json.loads(response.content)
         assert 'detail' in data['errors']
 
-    def test_non_superuser_post_returns_403(self, client):
+    def test_non_superuser_post_returns_403(self):
         """Test that a non-superuser POST returns 403."""
-        response = self._post(client, {'name': 'Dragon Gem', 'value': 1000},
+        response = self._post(self.client, {'name': 'Dragon Gem', 'value': 1000},
                               token=self.regular_token)
         assert response.status_code == 403
         data = json.loads(response.content)
         assert 'detail' in data['errors']
 
-    def test_missing_name_returns_400(self, client):
+    def test_missing_name_returns_400(self):
         """Test that a POST without name returns 400."""
-        response = self._post(client, {'value': 100}, token=self.superuser_token)
+        response = self._post(self.client, {'value': 100}, token=self.superuser_token)
         assert response.status_code == 400
         data = json.loads(response.content)
         assert 'name' in data['errors']
 
-    def test_missing_value_returns_400(self, client):
+    def test_missing_value_returns_400(self):
         """Test that a POST without value returns 400."""
-        response = self._post(client, {'name': 'Gem'}, token=self.superuser_token)
+        response = self._post(self.client, {'name': 'Gem'}, token=self.superuser_token)
         assert response.status_code == 400
         data = json.loads(response.content)
         assert 'value' in data['errors']

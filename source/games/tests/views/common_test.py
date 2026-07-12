@@ -2,6 +2,7 @@
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.test import TestCase
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
@@ -82,13 +83,13 @@ class TestRequireAuthenticated:
         assert require_authenticated(request) is None
 
 
-@pytest.mark.django_db
-class TestValidatedOrError:
+class TestValidatedOrError(TestCase):
     """Tests for validated_or_error()."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game to update via GameUpdateSerializer."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
 
     def test_returns_none_for_valid_serializer(self):
         """Test that a valid serializer returns None."""
@@ -103,15 +104,15 @@ class TestValidatedOrError:
         assert 'errors' in response.data
 
 
-@pytest.mark.django_db
-class TestDetailOrUpdate:
+class TestDetailOrUpdate(TestCase):
     """Tests for detail_or_update()."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game and a DM user."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=cls.game, user=cls.dm_user)
 
     def _call(self, request):
         """Invoke detail_or_update for self.game with GameEditPermission."""
@@ -149,13 +150,13 @@ class TestDetailOrUpdate:
         assert self.game.name == 'New Name'
 
 
-@pytest.mark.django_db
-class TestPaginatedListResponse:
+class TestPaginatedListResponse(TestCase):
     """Tests for paginated_list_response()."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a few games to paginate over."""
-        self.games = [
+        cls.games = [
             GameFactory(name=f'Game {i}', game_slug=f'game-{i}') for i in range(3)
         ]
 
@@ -170,15 +171,15 @@ class TestPaginatedListResponse:
         assert response['total'] == '3'
 
 
-@pytest.mark.django_db
-class TestAccessResponse:
+class TestAccessResponse(TestCase):
     """Tests for access_response()."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game and a DM user."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=cls.game, user=cls.dm_user)
 
     def test_returns_serialized_data_with_skip_cache_header(self):
         """Test that the response includes serialized data and the X-Skip-Cache header."""
@@ -256,15 +257,15 @@ class TestParseRoleBooleans:
         }
 
 
-@pytest.mark.django_db
-class TestPermissionsResponse:
+class TestPermissionsResponse(TestCase):
     """Tests for permissions_response()."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game and a DM user."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=cls.game, user=cls.dm_user)
 
     def test_real_identity_path_sets_skip_cache_header(self):
         """Test that a None role_booleans (real-identity path) sets X-Skip-Cache: true."""

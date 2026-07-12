@@ -2,7 +2,7 @@
 
 import json
 
-import pytest
+from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
 from games.models import GameTreasure
@@ -18,79 +18,79 @@ from games.tests.factories import (
 TREASURES_ALL_URL = '/games/test-game/treasures/all.json'
 
 
-@pytest.mark.django_db
-class TestGameTreasuresAllView(TokenAuthRequestMixin):
+class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
     """Tests for the game_treasures_all endpoint (DM/superuser only, includes hidden)."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
-        self.visible_treasure = TreasureFactory(
-            name='Visible Gem', value=100, game=self.game, hidden=False
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        cls.visible_treasure = TreasureFactory(
+            name='Visible Gem', value=100, game=cls.game, hidden=False
         )
-        self.hidden_treasure = TreasureFactory(
-            name='Hidden Gem', value=100, game=self.game, hidden=True
+        cls.hidden_treasure = TreasureFactory(
+            name='Hidden Gem', value=100, game=cls.game, hidden=True
         )
 
     def _get(self, client, token=None):
         """Issue a GET request to the treasures/all endpoint, optionally with a token."""
         return self.get(client, TREASURES_ALL_URL, token=token)
 
-    def test_returns_401_for_unauthenticated(self, client):
+    def test_returns_401_for_unauthenticated(self):
         """Test that unauthenticated request returns 401."""
-        response = self._get(client)
+        response = self._get(self.client)
         assert response.status_code == 401
 
-    def test_returns_403_for_non_dm_authenticated_user(self, client):
+    def test_returns_403_for_non_dm_authenticated_user(self):
         """Test that an authenticated user who is not a DM gets 403."""
         other_user = UserFactory(username='other', password='secret-password')
         token = Token.objects.create(user=other_user)
-        response = self._get(client, token=token)
+        response = self._get(self.client, token=token)
         assert response.status_code == 403
 
-    def test_returns_200_for_dm_with_all_treasures(self, client):
+    def test_returns_200_for_dm_with_all_treasures(self):
         """Test that a DM gets 200 with both visible and hidden treasures."""
         token = Token.objects.create(user=self.dm_user)
-        response = self._get(client, token=token)
+        response = self._get(self.client, token=token)
         assert response.status_code == 200
         data = json.loads(response.content)
         names = [item['name'] for item in data]
         assert 'Visible Gem' in names
         assert 'Hidden Gem' in names
 
-    def test_returns_200_for_superuser_with_all_treasures(self, client):
+    def test_returns_200_for_superuser_with_all_treasures(self):
         """Test that a superuser gets 200 with both visible and hidden treasures."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
-        response = self._get(client, token=token)
+        response = self._get(self.client, token=token)
         assert response.status_code == 200
         data = json.loads(response.content)
         assert len(data) == 2
 
-    def test_returns_404_for_unknown_game(self, client):
+    def test_returns_404_for_unknown_game(self):
         """Test that 404 is returned for a non-existent game_slug."""
         token = Token.objects.create(user=self.dm_user)
-        response = self.get(client, '/games/unknown-game/treasures/all.json', token=token)
+        response = self.get(self.client, '/games/unknown-game/treasures/all.json', token=token)
         assert response.status_code == 404
 
-    def test_response_includes_pagination_headers(self, client):
+    def test_response_includes_pagination_headers(self):
         """Test that the response includes page/pages/per_page/total headers."""
         token = Token.objects.create(user=self.dm_user)
-        response = self._get(client, token=token)
+        response = self._get(self.client, token=token)
         assert response['page'] == '1'
         assert response['pages'] == '1'
         assert 'per_page' in response
         assert response['total'] == '2'
 
-    def test_response_includes_x_skip_cache_header(self, client):
+    def test_response_includes_x_skip_cache_header(self):
         """Test that the response includes the X-Skip-Cache: true header."""
         token = Token.objects.create(user=self.dm_user)
-        response = self._get(client, token=token)
+        response = self._get(self.client, token=token)
         assert response['X-Skip-Cache'] == 'true'
 
-    def test_available_units_and_max_units_reflect_the_game_treasure_row(self, client):
+    def test_available_units_and_max_units_reflect_the_game_treasure_row(self):
         """Test that available_units/max_units reflect the linked GameTreasure row's cap."""
         linked_treasure = TreasureFactory(name='Limited Gem', value=100)
         self.game.treasures.add(linked_treasure)
@@ -98,18 +98,18 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin):
             max_units=5, acquired_units=2,
         )
         token = Token.objects.create(user=self.dm_user)
-        response = self._get(client, token=token)
+        response = self._get(self.client, token=token)
         data = json.loads(response.content)
         item = next(item for item in data if item['name'] == 'Limited Gem')
         assert item['max_units'] == 5
         assert item['available_units'] == 3
 
-    def test_does_not_include_other_games_treasures(self, client):
+    def test_does_not_include_other_games_treasures(self):
         """Test that treasures exclusive/linked to a different game are excluded."""
         other_game = GameFactory(name='Other Game', game_slug='other-game')
         TreasureFactory(name='Other Game Gem', value=100, game=other_game, hidden=True)
         token = Token.objects.create(user=self.dm_user)
-        response = self._get(client, token=token)
+        response = self._get(self.client, token=token)
         assert response.status_code == 200
         data = json.loads(response.content)
         names = [item['name'] for item in data]

@@ -1,7 +1,7 @@
 """Tests for the GameSessionDetailSerializer."""
 
-import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.test import TestCase
 from rest_framework.test import APIRequestFactory
 
 from games.models import GameSession
@@ -9,15 +9,15 @@ from games.serializers import GameSessionDetailSerializer
 from games.tests.factories import GameFactory, GameMasterFactory, SuperUserFactory, UserFactory
 
 
-@pytest.mark.django_db
-class TestGameSessionDetailSerializer:
+class TestGameSessionDetailSerializer(TestCase):
     """Tests for the GameSessionDetailSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.session = GameSession.objects.create(game=self.game, title='Session One')
-        self.factory = APIRequestFactory()
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.session = GameSession.objects.create(game=cls.game, title='Session One')
+        cls.factory = APIRequestFactory()
 
     def _serialize(self, user=None):
         """Build a request with the given user and serialize the session."""

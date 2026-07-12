@@ -1,21 +1,21 @@
 """Tests for the LinkSerializer."""
 
-import pytest
+from django.test import TestCase
 
 from games.models import Link
 from games.serializers import LinkSerializer
 from games.tests.factories import GameFactory
 
 
-@pytest.mark.django_db
-class TestLinkSerializer:
+class TestLinkSerializer(TestCase):
     """Tests for the LinkSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.link = Link.objects.create(
-            text='Official Wiki', url='http://example.com/wiki', content_object=self.game
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.link = Link.objects.create(
+            text='Official Wiki', url='http://example.com/wiki', content_object=cls.game
         )
 
     def test_serializes_id(self):

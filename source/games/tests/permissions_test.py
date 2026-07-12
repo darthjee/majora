@@ -1,7 +1,7 @@
 """Tests for the CharacterEditPermission and GameEditPermission classes."""
 
-import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.test import TestCase
 from rest_framework.test import APIRequestFactory
 
 from games.models import Task
@@ -29,21 +29,21 @@ def _make_request(user):
     return request
 
 
-@pytest.mark.django_db
-class TestCharacterEditPermissionCheck:
+class TestCharacterEditPermissionCheck(TestCase):
     """Tests for CharacterEditPermission.check()."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game, a DM, an owning player and an NPC character."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
-        self.player = PlayerFactory(name='Bob')
-        self.owner = UserFactory(username='owner', password='secret-password')
-        self.player.user = self.owner
-        self.player.save()
-        self.character = CharacterFactory(
-            name='Aragorn', game=self.game, player=self.player, npc=False
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        cls.player = PlayerFactory(name='Bob')
+        cls.owner = UserFactory(username='owner', password='secret-password')
+        cls.player.user = cls.owner
+        cls.player.save()
+        cls.character = CharacterFactory(
+            name='Aragorn', game=cls.game, player=cls.player, npc=False
         )
 
     def test_returns_401_response_for_anonymous_user(self):
@@ -84,19 +84,19 @@ class TestCharacterEditPermissionCheck:
         assert CharacterEditPermission.check(request, self.character) is None
 
 
-@pytest.mark.django_db
-class TestNpcPlayerEditPermissionCheck:
+class TestNpcPlayerEditPermissionCheck(TestCase):
     """Tests for NpcPlayerEditPermission.check()."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game, a DM, a player of the game, and an NPC."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
-        self.player_user = UserFactory(username='player_user', password='secret-password')
-        self.player = PlayerFactory(name='Bob', user=self.player_user)
-        self.player.games.add(self.game)
-        self.npc = CharacterFactory(name='Gandalf', game=self.game, npc=True)
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        cls.player_user = UserFactory(username='player_user', password='secret-password')
+        cls.player = PlayerFactory(name='Bob', user=cls.player_user)
+        cls.player.games.add(cls.game)
+        cls.npc = CharacterFactory(name='Gandalf', game=cls.game, npc=True)
 
     def test_returns_401_response_for_anonymous_user(self):
         """Test that an anonymous user gets a 401 error response."""
@@ -136,15 +136,15 @@ class TestNpcPlayerEditPermissionCheck:
         assert NpcPlayerEditPermission.check(request, self.npc) is None
 
 
-@pytest.mark.django_db
-class TestGameEditPermissionCheck:
+class TestGameEditPermissionCheck(TestCase):
     """Tests for GameEditPermission.check()."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game and a DM user."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=cls.game, user=cls.dm_user)
 
     def test_returns_401_for_anonymous_user(self):
         """Test that an anonymous user gets a 401 error response."""
@@ -179,16 +179,16 @@ class TestGameEditPermissionCheck:
         assert GameEditPermission.check(request, self.game) is None
 
 
-@pytest.mark.django_db
-class TestTaskEditPermissionCheck:
+class TestTaskEditPermissionCheck(TestCase):
     """Tests for TaskEditPermission.check()."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game, a task, and a DM user."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.task = Task.objects.create(game=self.game, short_description='Prep the ambush')
-        self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.task = Task.objects.create(game=cls.game, short_description='Prep the ambush')
+        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=cls.game, user=cls.dm_user)
 
     def test_returns_401_for_anonymous_user(self):
         """Test that an anonymous user gets a 401 error response."""

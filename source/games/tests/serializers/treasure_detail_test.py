@@ -1,19 +1,19 @@
 """Tests for the TreasureDetailSerializer."""
 
-import pytest
+from django.test import TestCase
 
 from games.models import GameTreasure, TreasurePhoto
 from games.serializers import TreasureDetailSerializer
 from games.tests.factories import GameFactory, TreasureFactory
 
 
-@pytest.mark.django_db
-class TestTreasureDetailSerializer:
+class TestTreasureDetailSerializer(TestCase):
     """Tests for the TreasureDetailSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.treasure = TreasureFactory(name='Silver Sword', value=200)
+        cls.treasure = TreasureFactory(name='Silver Sword', value=200)
 
     def test_serializes_id(self):
         """Test that the id field is serialized."""

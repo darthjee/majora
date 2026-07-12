@@ -1,19 +1,20 @@
 """Tests for the Upload model."""
 
 import pytest
+from django.test import TestCase
 from django.utils import timezone
 
 from games.models import GamePhoto, Upload
 from games.tests.factories import GameFactory, UserFactory
 
 
-@pytest.mark.django_db
-class TestUpload:
+class TestUpload(TestCase):
     """Tests for the Upload model."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.user = UserFactory(username='alice', password='secret-password')
+        cls.user = UserFactory(username='alice', password='secret-password')
 
     def test_token_is_auto_generated(self):
         """Test that a token is generated automatically on save."""

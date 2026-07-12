@@ -1,20 +1,20 @@
 """Tests for the GameTaskListSerializer."""
 
-import pytest
+from django.test import TestCase
 
 from games.models import GameSession, Task
 from games.serializers import GameTaskListSerializer
 from games.tests.factories import GameFactory
 
 
-@pytest.mark.django_db
-class TestGameTaskListSerializer:
+class TestGameTaskListSerializer(TestCase):
     """Tests for the GameTaskListSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.task = Task.objects.create(game=self.game, short_description='Prep the ambush')
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.task = Task.objects.create(game=cls.game, short_description='Prep the ambush')
 
     def test_serializes_id(self):
         """Test that the id field is serialized."""

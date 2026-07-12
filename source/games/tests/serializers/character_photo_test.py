@@ -1,22 +1,22 @@
 """Tests for the CharacterPhotoSerializer."""
 
-import pytest
+from django.test import TestCase
 
 from games.models import CharacterPhoto
 from games.serializers import CharacterPhotoSerializer
 from games.tests.factories import CharacterFactory, GameFactory
 
 
-@pytest.mark.django_db
-class TestCharacterPhotoSerializer:
+class TestCharacterPhotoSerializer(TestCase):
     """Tests for the CharacterPhotoSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.character = CharacterFactory(name='Frodo', game=self.game)
-        self.photo = CharacterPhoto.objects.create(
-            path='photos/games/test-game/characters/1/photo.png', character=self.character
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.character = CharacterFactory(name='Frodo', game=cls.game)
+        cls.photo = CharacterPhoto.objects.create(
+            path='photos/games/test-game/characters/1/photo.png', character=cls.character
         )
 
     def test_serializes_id(self):

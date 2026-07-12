@@ -1,20 +1,20 @@
 """Tests for the GameSessionUpdateSerializer."""
 
-import pytest
+from django.test import TestCase
 
 from games.models import GameSession
 from games.serializers import GameSessionUpdateSerializer
 from games.tests.factories import GameFactory
 
 
-@pytest.mark.django_db
-class TestGameSessionUpdateSerializer:
+class TestGameSessionUpdateSerializer(TestCase):
     """Tests for GameSessionUpdateSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a session instance for testing."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.session = GameSession.objects.create(game=self.game, title='Session One')
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.session = GameSession.objects.create(game=cls.game, title='Session One')
 
     def test_valid_partial_title_update(self):
         """Test that a partial update with only title is valid."""

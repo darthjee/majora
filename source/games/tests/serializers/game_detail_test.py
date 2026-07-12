@@ -1,19 +1,19 @@
 """Tests for the GameDetailSerializer."""
 
-import pytest
+from django.test import TestCase
 
 from games.models import GamePhoto, Link
 from games.serializers import GameDetailSerializer
 from games.tests.factories import GameFactory
 
 
-@pytest.mark.django_db
-class TestGameDetailSerializer:
+class TestGameDetailSerializer(TestCase):
     """Tests for the GameDetailSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(
+        cls.game = GameFactory(
             name='Test Game',
             game_slug='test-game',
             description='A grand adventure.',
