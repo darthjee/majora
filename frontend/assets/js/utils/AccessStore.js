@@ -2,15 +2,13 @@ import GameClient from '../client/GameClient.js';
 import CharacterClient from '../client/CharacterClient.js';
 import TreasureClient from '../client/TreasureClient.js';
 import AuthClient from '../client/AuthClient.js';
-import AuthStorage from './AuthStorage.js';
 import accessRouteConfig from './accessRouteConfig.js';
 import AccessCache from './AccessCache.js';
-import AccessStoreKeys from './AccessStoreKeys.js';
 import AccessStoreDescriptor from './AccessStoreDescriptor.js';
 import AccessStoreAdmin from './AccessStoreAdmin.js';
 import AccessStoreAccess from './AccessStoreAccess.js';
-
-const PERMISSIONS_DEFAULT = { can_edit: false };
+import AccessStorePermissions from './AccessStorePermissions.js';
+import AccessStoreFacade from './AccessStoreFacade.js';
 
 const gameClient = new GameClient();
 const characterClient = new CharacterClient();
@@ -25,11 +23,15 @@ let _hash = '';
  * Centralized, frontend-only store for access-check state (game, character,
  * treasure, and staff/superuser access), reset on every route change and
  * (re)fetched per {@link accessRouteConfig}. Delegates caching/dedup/event
- * emission to {@link AccessCache} and cache-key shapes to
- * {@link AccessStoreKeys}. Owns two kinds of per-resource checks: `*Access`
- * (identity, always the requester's own real identity) and `*Permissions`
- * (`can_edit`, for the real identity or, given a role set, simulated for
- * those roles instead — cached separately per role set).
+ * emission to {@link AccessCache}, identity checks to {@link AccessStoreAccess},
+ * and role-aware edit-permissions checks to {@link AccessStorePermissions}.
+ * Owns two kinds of per-resource checks: `*Access` (identity, always the
+ * requester's own real identity) and `*Permissions` (`can_edit`, for the
+ * real identity or, given a role set, simulated for those roles instead —
+ * cached separately per role set).
+ *
+ * @description Also owns the "view as" facade (state delegated to
+ *   {@link AccessStoreFacade}), threaded into every `*Permissions` fetch.
  */
 export default class AccessStore {
   /**
@@ -73,14 +75,7 @@ export default class AccessStore {
    * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
    */
   static ensureGamePermissions(gameSlug, roles = []) {
-    const roleSet = AccessStoreKeys.normalizeRoles(roles);
-
-    return cache.ensure(
-      AccessStoreKeys.gamePermissions(gameSlug, roleSet),
-      (signal) => gameClient.fetchGamePermissions(gameSlug, AuthStorage.getToken(), signal, roleSet)
-        .then(AccessStore.#parseResourceResponse),
-      PERMISSIONS_DEFAULT,
-    );
+    return AccessStorePermissions.ensureGame(cache, gameClient, gameSlug, roles);
   }
 
   /**
@@ -94,15 +89,7 @@ export default class AccessStore {
    * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
    */
   static ensureCharacterPermissions(characterKind, gameSlug, characterId, roles = []) {
-    const roleSet = AccessStoreKeys.normalizeRoles(roles);
-
-    return cache.ensure(
-      AccessStoreKeys.characterPermissions(characterKind, gameSlug, characterId, roleSet),
-      (signal) => characterClient
-        .fetchCharacterPermissions(characterKind, gameSlug, characterId, AuthStorage.getToken(), signal, roleSet)
-        .then(AccessStore.#parseResourceResponse),
-      PERMISSIONS_DEFAULT,
-    );
+    return AccessStorePermissions.ensureCharacter(cache, characterClient, characterKind, gameSlug, characterId, roles);
   }
 
   /**
@@ -114,14 +101,7 @@ export default class AccessStore {
    * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
    */
   static ensureTreasurePermissions(id, roles = []) {
-    const roleSet = AccessStoreKeys.normalizeRoles(roles);
-
-    return cache.ensure(
-      AccessStoreKeys.treasurePermissions(id, roleSet),
-      (signal) => treasureClient.fetchTreasurePermissions(id, AuthStorage.getToken(), signal, roleSet)
-        .then(AccessStore.#parseResourceResponse),
-      PERMISSIONS_DEFAULT,
-    );
+    return AccessStorePermissions.ensureTreasure(cache, treasureClient, id, roles);
   }
 
   /**
@@ -140,6 +120,18 @@ export default class AccessStore {
    */
   static ensureStaffOrSuperUser() {
     return AccessStoreAdmin.ensureStaffOrSuperUser(cache, authClient);
+  }
+
+  /**
+   * Resolve (or start) the real (facade-independent) staff-or-superuser check
+   * for the current user, used to gate the header's "view as" button. Always
+   * resolves against the requester's real identity, regardless of any active
+   * facade.
+   *
+   * @returns {Promise<boolean>} Resolves to true when the user is really staff or a superuser.
+   */
+  static isReallyAdminOrStaff() {
+    return AccessStore.ensureStaffOrSuperUser();
   }
 
   /**
@@ -182,9 +174,7 @@ export default class AccessStore {
    * @returns {{can_edit: boolean}} The cached permissions payload, or the fail-closed default.
    */
   static getGamePermissions(gameSlug, roles = []) {
-    return cache.read(
-      AccessStoreKeys.gamePermissions(gameSlug, AccessStoreKeys.normalizeRoles(roles)), PERMISSIONS_DEFAULT,
-    );
+    return AccessStorePermissions.getGame(cache, gameSlug, roles);
   }
 
   /**
@@ -197,10 +187,7 @@ export default class AccessStore {
    * @returns {{can_edit: boolean}} The cached permissions payload, or the fail-closed default.
    */
   static getCharacterPermissions(characterKind, gameSlug, characterId, roles = []) {
-    return cache.read(
-      AccessStoreKeys.characterPermissions(characterKind, gameSlug, characterId, AccessStoreKeys.normalizeRoles(roles)),
-      PERMISSIONS_DEFAULT,
-    );
+    return AccessStorePermissions.getCharacter(cache, characterKind, gameSlug, characterId, roles);
   }
 
   /**
@@ -211,9 +198,7 @@ export default class AccessStore {
    * @returns {{can_edit: boolean}} The cached permissions payload, or the fail-closed default.
    */
   static getTreasurePermissions(id, roles = []) {
-    return cache.read(
-      AccessStoreKeys.treasurePermissions(id, AccessStoreKeys.normalizeRoles(roles)), PERMISSIONS_DEFAULT,
-    );
+    return AccessStorePermissions.getTreasure(cache, id, roles);
   }
 
   /**
@@ -236,6 +221,38 @@ export default class AccessStore {
   }
 
   /**
+   * Synchronously read the current "view as" facade state, used to
+   * pre-populate the facade modal when it opens.
+   *
+   * @returns {{enabled: boolean, roles: string[]}} The current facade state.
+   */
+  static getFacade() {
+    return AccessStoreFacade.get();
+  }
+
+  /**
+   * Enable/disable and configure the "view as" facade, then reset and
+   * re-sync every per-resource check for the current page under the new
+   * facade — naturally re-fetching each `*Permissions` check and re-emitting
+   * `AccessEvents` as each resolves, as if it had just received access
+   * information.
+   *
+   * @param {object} facade - The new facade state.
+   * @param {boolean} facade.enabled - Whether the facade is active.
+   * @param {string[]} facade.roles - Roles to simulate (`'dm'`, `'player'`, `'owner'`) while active.
+   * @returns {void}
+   */
+  static setFacade({ enabled, roles }) {
+    AccessStoreFacade.set(enabled, roles);
+
+    AccessStore.reset();
+
+    if (_pageKey !== null) {
+      AccessStore.syncForRoute(_pageKey, _hash);
+    }
+  }
+
+  /**
    * Reset all cached/pending access state, record the current route, and
    * (re)start whichever access checks {@link accessRouteConfig} declares for it.
    *
@@ -254,13 +271,16 @@ export default class AccessStore {
   }
 
   /**
-   * Abort every in-flight access request, clear all cached entries, then
-   * re-run the access checks for the last-recorded route (used when the
-   * user logs in or out).
+   * Abort every in-flight access request, clear all cached entries, reset
+   * the "view as" facade back to disabled/empty (a new auth session must not
+   * inherit a stale facade from a previous session), then re-run the access
+   * checks for the last-recorded route (used when the user logs in or out).
    *
    * @returns {void}
    */
   static syncForAuthChange() {
+    AccessStoreFacade.clear();
+
     AccessStore.reset();
 
     if (_pageKey !== null) {
@@ -276,13 +296,5 @@ export default class AccessStore {
    */
   static reset() {
     cache.reset();
-  }
-
-  static #parseResourceResponse(response) {
-    if (!response.ok) {
-      return Promise.reject(new Error('access request failed'));
-    }
-
-    return response.json();
   }
 }
