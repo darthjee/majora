@@ -23,45 +23,20 @@ class TestGameAccessView(TokenAuthRequestMixin):
         """Issue a GET request to the game access endpoint, optionally with a token."""
         return self.get(client, '/games/epic-quest/access.json', token=token)
 
-    def test_non_existent_slug_returns_200_with_can_edit_false(self, client):
-        """Test that a non-existent game slug returns 200 with can_edit false."""
+    def test_non_existent_slug_returns_200_without_can_edit(self, client):
+        """Test that a non-existent game slug returns 200 without a can_edit field."""
         response = client.get('/games/no-such-game/access.json')
         assert response.status_code == 200
         data = json.loads(response.content)
-        assert data['can_edit'] is False
+        assert 'can_edit' not in data
 
-    def test_unauthenticated_returns_200_with_can_edit_false(self, client):
-        """Test that an unauthenticated request returns 200 with can_edit false."""
-        response = self._get(client)
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert data['can_edit'] is False
-
-    def test_dm_returns_200_with_can_edit_true(self, client):
-        """Test that the game DM returns 200 with can_edit true."""
+    def test_response_does_not_include_can_edit(self, client):
+        """Test that the response never includes can_edit (moved to permissions.json)."""
         token = Token.objects.create(user=self.dm_user)
         response = self._get(client, token=token)
         assert response.status_code == 200
         data = json.loads(response.content)
-        assert data['can_edit'] is True
-
-    def test_non_dm_user_returns_200_with_can_edit_false(self, client):
-        """Test that a non-DM authenticated user returns 200 with can_edit false."""
-        other = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other)
-        response = self._get(client, token=token)
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert data['can_edit'] is False
-
-    def test_superuser_returns_200_with_can_edit_true(self, client):
-        """Test that a superuser returns 200 with can_edit true."""
-        superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
-        response = self._get(client, token=token)
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert data['can_edit'] is True
+        assert 'can_edit' not in data
 
     def test_response_includes_x_skip_cache_header(self, client):
         """Test that the response includes the X-Skip-Cache: true header."""
@@ -117,8 +92,8 @@ class TestGameAccessView(TokenAuthRequestMixin):
         assert data['is_player'] is False
         assert data['is_owner'] is False
 
-    def test_dm_via_session_returns_can_edit_true(self, client):
-        """Test that the game DM authenticated via session cookie returns can_edit true."""
+    def test_dm_via_session_returns_is_dm_true(self, client):
+        """Test that the game DM authenticated via session cookie returns is_dm true."""
         token = Token.objects.create(user=self.dm_user)
         session = client.session
         session['auth_token'] = token.key
@@ -126,10 +101,10 @@ class TestGameAccessView(TokenAuthRequestMixin):
         response = client.get('/games/epic-quest/access.json')
         assert response.status_code == 200
         data = json.loads(response.content)
-        assert data['can_edit'] is True
+        assert data['is_dm'] is True
 
-    def test_non_dm_user_via_session_returns_can_edit_false(self, client):
-        """Test that a non-DM user authenticated via session cookie returns can_edit false."""
+    def test_non_dm_user_via_session_returns_is_dm_false(self, client):
+        """Test that a non-DM user authenticated via session cookie returns is_dm false."""
         other = UserFactory(username='other', password='secret-password')
         token = Token.objects.create(user=other)
         session = client.session
@@ -138,4 +113,4 @@ class TestGameAccessView(TokenAuthRequestMixin):
         response = client.get('/games/epic-quest/access.json')
         assert response.status_code == 200
         data = json.loads(response.content)
-        assert data['can_edit'] is False
+        assert data['is_dm'] is False

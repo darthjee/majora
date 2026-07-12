@@ -28,6 +28,20 @@ export default class GameClient extends BaseClient {
   }
 
   /**
+   * Fetches the edit permissions for a game.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {AbortSignal} [signal] - Optional abort signal for the request.
+   * @param {string[]} [roles] - Roles to simulate instead of the requester's own identity
+   *   (serialized as repeated `role=` query params). Defaults to the requester's real identity.
+   * @returns {Promise<Response>} fetch response from the game permissions endpoint.
+   */
+  fetchGamePermissions(gameSlug, token, signal, roles = []) {
+    return this.getJson(`/games/${gameSlug}/permissions.json${this.buildRoleQuery(roles)}`, token, {}, signal);
+  }
+
+  /**
    * Creates a new game.
    *
    * @param {string|null} token - Authentication token, if any.

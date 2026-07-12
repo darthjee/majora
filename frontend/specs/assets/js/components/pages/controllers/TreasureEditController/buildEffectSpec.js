@@ -22,7 +22,7 @@ describe('TreasureEditController', function() {
       setError = jasmine.createSpy('setError');
       treasureClient = jasmine.createSpyObj('treasureClient', ['fetchTreasure']);
       spyOn(AccessStore, 'ensureSuperUser').and.returnValue(Promise.resolve(true));
-      spyOn(AccessStore, 'ensureTreasureAccess').and.returnValue(Promise.resolve({ can_edit: true }));
+      spyOn(AccessStore, 'ensureTreasurePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
       fakeWindow = { location: { hash: '#/treasures/1/edit' } };
       globalThis.window = fakeWindow;
       treasureClient.fetchTreasure.and.returnValue(Promise.resolve({
@@ -44,7 +44,7 @@ describe('TreasureEditController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(treasureClient.fetchTreasure).toHaveBeenCalledWith('1', null);
-      expect(AccessStore.ensureTreasureAccess).toHaveBeenCalledWith('1');
+      expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('1');
       expect(setTreasure).toHaveBeenCalledWith(
         { id: 1, name: 'Sword', value: 100, can_edit: true },
       );
@@ -55,7 +55,7 @@ describe('TreasureEditController', function() {
     });
 
     it('sets can_edit to false when the access resolves with the fail-closed default', async function() {
-      AccessStore.ensureTreasureAccess.and.returnValue(Promise.resolve({ can_edit: false }));
+      AccessStore.ensureTreasurePermissions.and.returnValue(Promise.resolve({ can_edit: false }));
 
       const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -88,7 +88,7 @@ describe('TreasureEditController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(treasureClient.fetchTreasure).toHaveBeenCalledWith('1', 'tok-abc');
-      expect(AccessStore.ensureTreasureAccess).toHaveBeenCalledWith('1');
+      expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('1');
 
       cleanup();
     });
@@ -101,7 +101,7 @@ describe('TreasureEditController', function() {
 
       expect(fakeWindow.location.hash).toBe('/');
       expect(treasureClient.fetchTreasure).not.toHaveBeenCalled();
-      expect(AccessStore.ensureTreasureAccess).not.toHaveBeenCalled();
+      expect(AccessStore.ensureTreasurePermissions).not.toHaveBeenCalled();
 
       cleanup();
     });

@@ -44,8 +44,8 @@ export default class GameTreasureNewController extends BasePageController {
       const hash = typeof window === 'undefined' ? '' : window.location.hash;
       const gameSlug = GameTreasureNewController.getGameSlugFromTreasureNewHash(hash);
 
-      AccessStore.ensureGameAccess(gameSlug)
-        .then((access) => this.#redirectIfNotAllowed(access, gameSlug))
+      AccessStore.ensureGamePermissions(gameSlug)
+        .then((permissions) => this.#redirectIfNotAllowed(permissions, gameSlug))
         .catch(() => this.#redirectToTreasures(gameSlug));
     };
   }
@@ -84,8 +84,8 @@ export default class GameTreasureNewController extends BasePageController {
     }
   }
 
-  #redirectIfNotAllowed(access, gameSlug) {
-    if (!access.can_edit) {
+  #redirectIfNotAllowed(permissions, gameSlug) {
+    if (!permissions.can_edit) {
       this.#redirectToTreasures(gameSlug);
     }
   }

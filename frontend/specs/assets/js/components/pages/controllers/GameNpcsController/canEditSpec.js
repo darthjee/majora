@@ -27,24 +27,26 @@ describe('GameNpcsController', function() {
       );
     };
 
-    it('sets canEdit to true when the game access response allows editing', async function() {
+    it('sets canEdit to true when the game permissions response allows editing', async function() {
       const setCanEdit = jasmine.createSpy('setCanEdit');
 
-      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: true }));
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
       const cleanup = buildController(setCanEdit).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
       expect(setCanEdit).toHaveBeenCalledWith(true);
 
       cleanup();
     });
 
-    it('sets canEdit to false when the access resolves with the fail-closed default', async function() {
+    it('sets canEdit to false when the permissions resolve with the fail-closed default', async function() {
       const setCanEdit = jasmine.createSpy('setCanEdit');
 
-      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
       const cleanup = buildController(setCanEdit).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -58,6 +60,7 @@ describe('GameNpcsController', function() {
       const setCanEdit = jasmine.createSpy('setCanEdit');
 
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.reject(new Error('network error')));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.reject(new Error('network error')));
 
       const cleanup = buildController(setCanEdit).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));

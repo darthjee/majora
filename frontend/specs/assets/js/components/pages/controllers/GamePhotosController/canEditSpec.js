@@ -23,7 +23,7 @@ describe('GamePhotosController', function() {
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [], pagination: { page: 1, pages: 1, perPage: 20 },
     }));
-    AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ can_edit: true }));
+    AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: true }));
 
     const cleanup = new GamePhotosController(
       setPhotos, setPagination, setGame, setLoading, setError, client, gameClient,
