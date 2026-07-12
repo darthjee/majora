@@ -266,6 +266,20 @@ export default class HeaderController {
   }
 
   /**
+   * Re-runs the auth status and "view as" availability checks, so admin/staff/
+   * ViewAs state is recomputed after a genuine auth transition (e.g. an
+   * in-app login/logout) instead of staying stuck at its mount-time value.
+   *
+   * @param {HeaderViewAsController} viewAsController - controller whose
+   *   checkAvailability() should be re-run alongside checkStatus().
+   * @returns {Promise<void>} resolves when both checks settle.
+   */
+  async recheckAuthState(viewAsController) {
+    await this.checkStatus();
+    await viewAsController.checkAvailability();
+  }
+
+  /**
    * Persists the given language as the user's favorite when logged in.
    *
    * @param {string} language - the newly selected language code.
