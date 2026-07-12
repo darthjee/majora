@@ -1,5 +1,6 @@
 import React from 'react';
 import ActionsOverlay from '../ActionsOverlay.jsx';
+import Badge from '../Badge.jsx';
 import Translator from '../../../i18n/Translator.js';
 import Noop from '../../../utils/Noop.js';
 import TreasureMoney from '../TreasureMoney.jsx';
@@ -30,7 +31,7 @@ export default class TreasureCardHelper {
    * @param {string} [editHref] - Hash path to the treasure's edit page. When omitted, no edit
    *   link is rendered even if `canManage` is true.
    * @param {number|null} [quantity] - Owned quantity, rendered as a `×<quantity>` badge in the
-   *   top-right corner when greater than 1, omitted entirely when 1 or unset.
+   *   overlay's info bar when greater than 1, omitted entirely when 1 or unset.
    * @returns {React.ReactElement} Treasure card element.
    */
   static render(treasure, canManage = false, onUploadClick = Noop.noop, editHref = '', quantity = null) {
@@ -43,8 +44,8 @@ export default class TreasureCardHelper {
             alt={treasure.name}
             canEdit={canManage}
             onClick={() => onUploadClick(treasure)}
+            infoBarItems={TreasureCardHelper.#buildQuantityInfoBarItems(quantity)}
           />
-          {TreasureCardHelper.#renderQuantityBadge(quantity)}
           <div className="card-body">
             <h6 className="card-title">
               <a
@@ -63,16 +64,12 @@ export default class TreasureCardHelper {
     );
   }
 
-  static #renderQuantityBadge(quantity) {
+  static #buildQuantityInfoBarItems(quantity) {
     if (!quantity || quantity <= 1) {
-      return null;
+      return [];
     }
 
-    return (
-      <span className="badge bg-secondary position-absolute top-0 end-0 m-2">
-        {`×${quantity}`}
-      </span>
-    );
+    return [{ key: 'quantity', label: <Badge text={`×${quantity}`} /> }];
   }
 
   static #renderAvailability(treasure) {
