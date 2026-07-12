@@ -4,6 +4,7 @@ import Header from '../../../../../assets/js/components/elements/Header.jsx';
 import AuthClient from '../../../../../assets/js/client/AuthClient.js';
 import HealthClient from '../../../../../assets/js/client/HealthClient.js';
 import HeaderController from '../../../../../assets/js/components/elements/controllers/HeaderController.js';
+import HeaderHelper from '../../../../../assets/js/components/elements/helpers/HeaderHelper.jsx';
 
 describe('Header', function() {
   beforeEach(function() {
@@ -59,6 +60,33 @@ describe('Header', function() {
   it('does not render the Staff Users nav link by default', function() {
     const html = renderToStaticMarkup(React.createElement(Header));
     expect(html).not.toContain('href="#/staff/users"');
+  });
+
+  it('does not render the view-as link by default', function() {
+    const html = renderToStaticMarkup(React.createElement(Header));
+    expect(html).not.toContain('data-testid="view-as-link"');
+  });
+
+  describe('view-as wiring', function() {
+    it('passes canViewAs/showViewAsModal and wires the view-as handlers', function() {
+      let capturedState;
+      let capturedHandlers;
+
+      spyOn(HeaderHelper, 'render').and.callFake((state, handlers) => {
+        capturedState = state;
+        capturedHandlers = handlers;
+        return React.createElement('div', null, 'header');
+      });
+
+      renderToStaticMarkup(React.createElement(Header));
+
+      expect(capturedState.canViewAs).toBe(false);
+      expect(capturedState.showViewAsModal).toBe(false);
+      expect(() => {
+        capturedHandlers.onViewAsClick();
+        capturedHandlers.onViewAsModalClose();
+      }).not.toThrow();
+    });
   });
 
   describe('route state', function() {

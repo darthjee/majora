@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import HeaderController from './controllers/HeaderController.js';
+import HeaderViewAsController from './controllers/HeaderViewAsController.js';
 import HeaderHelper from './helpers/HeaderHelper.jsx';
 import AuthEvents from '../../utils/AuthEvents.js';
 
@@ -16,6 +17,8 @@ export default function Header() {
   const [serverStatus, setServerStatus] = useState(null);
   const [isStaff, setIsStaff] = useState(false);
   const [route, setRoute] = useState(() => new HeaderController().getRoute());
+  const [canViewAs, setCanViewAs] = useState(false);
+  const [showViewAsModal, setShowViewAsModal] = useState(false);
 
   const controller = new HeaderController(
     setLoggedIn,
@@ -28,9 +31,11 @@ export default function Header() {
     setIsStaff,
     setRoute
   );
+  const viewAsController = new HeaderViewAsController(setCanViewAs, setShowViewAsModal);
 
   useEffect(() => {
     controller.checkStatus();
+    viewAsController.checkAvailability();
     controller.startHealthCheck();
 
     const handleAuthChanged = (event) => setLoggedIn(Boolean(event.detail?.loggedIn));
@@ -48,7 +53,9 @@ export default function Header() {
   }, []);
 
   return HeaderHelper.render(
-    { loggedIn, showModal, testEmailStatus, isSuperUser, serverStatus, isStaff, route },
+    {
+      loggedIn, showModal, testEmailStatus, isSuperUser, serverStatus, isStaff, route, canViewAs, showViewAsModal,
+    },
     {
       onLoginClick: () => controller.handleLoginClick(),
       onLogoffClick: () => controller.handleLogoffClick(),
@@ -56,6 +63,8 @@ export default function Header() {
       onLoginSuccess: () => controller.handleLoginSuccess(),
       onSendTestEmailClick: () => controller.handleSendTestEmailClick(),
       onLanguageChange: (language) => controller.handleLanguageChange(language, loggedIn),
+      onViewAsClick: () => viewAsController.handleViewAsClick(),
+      onViewAsModalClose: () => viewAsController.handleViewAsModalClose(),
     }
   );
 }

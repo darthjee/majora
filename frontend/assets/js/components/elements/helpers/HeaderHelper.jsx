@@ -3,7 +3,9 @@ import Nav from 'react-bootstrap/cjs/Nav.js';
 import Container from 'react-bootstrap/cjs/Container.js';
 import LanguageSelector from '../LanguageSelector.jsx';
 import LoginModal from '../LoginModal.jsx';
+import ViewAsModal from '../ViewAsModal.jsx';
 import Translator from '../../../i18n/Translator.js';
+import Icons from '../../../utils/Icons.js';
 import myAccountIcon from '../../../../images/icons/my_account.svg';
 
 /**
@@ -13,8 +15,8 @@ export default class HeaderHelper {
   /**
    * Render the application header with navigation and auth controls.
    *
-   * @param {{loggedIn: boolean, showModal: boolean, testEmailStatus: (string|null), isSuperUser: boolean, serverStatus: (string|null), isStaff: boolean, route: ({page: string, gameSlug: (string|undefined), characterId: (string|undefined)}|undefined)}} state - header auth state.
-   * @param {{onLoginClick: Function, onLogoffClick: Function, onModalClose: Function, onLoginSuccess: Function, onSendTestEmailClick: Function, onLanguageChange: Function}} handlers - header event handlers.
+   * @param {{loggedIn: boolean, showModal: boolean, testEmailStatus: (string|null), isSuperUser: boolean, serverStatus: (string|null), isStaff: boolean, route: ({page: string, gameSlug: (string|undefined), characterId: (string|undefined)}|undefined), canViewAs: boolean, showViewAsModal: boolean}} state - header auth state.
+   * @param {{onLoginClick: Function, onLogoffClick: Function, onModalClose: Function, onLoginSuccess: Function, onSendTestEmailClick: Function, onLanguageChange: Function, onViewAsClick: Function, onViewAsModalClose: Function}} handlers - header event handlers.
    * @returns {React.ReactElement} Header element.
    */
   static render(state, handlers) {
@@ -46,6 +48,7 @@ export default class HeaderHelper {
           onClose={handlers.onModalClose}
           onSuccess={handlers.onLoginSuccess}
         />
+        <ViewAsModal show={state.showViewAsModal} onClose={handlers.onViewAsModalClose} />
       </Navbar>
     );
   }
@@ -148,8 +151,8 @@ export default class HeaderHelper {
   /**
    * Renders the Login/Logoff control based on the current auth state.
    *
-   * @param {{loggedIn: boolean, testEmailStatus: (string|null)}} state - header auth state.
-   * @param {{onLoginClick: Function, onLogoffClick: Function, onSendTestEmailClick: Function}} handlers - header event handlers.
+   * @param {{loggedIn: boolean, testEmailStatus: (string|null), canViewAs: boolean}} state - header auth state.
+   * @param {{onLoginClick: Function, onLogoffClick: Function, onSendTestEmailClick: Function, onViewAsClick: Function}} handlers - header event handlers.
    * @returns {React.ReactElement} login control, or logoff/send-test-email controls.
    */
   static #renderAuthControl(state, handlers) {
@@ -176,6 +179,7 @@ export default class HeaderHelper {
           <Nav.Link href="#/my_account" data-testid="my-account-link">
             <img src={myAccountIcon} alt={Translator.t('header.my_account_alt')} />
           </Nav.Link>
+          {HeaderHelper.#renderViewAsLink(state, handlers)}
         </>
       );
     }
@@ -194,6 +198,32 @@ export default class HeaderHelper {
           {Translator.t('header.register')}
         </Nav.Link>
       </>
+    );
+  }
+
+  /**
+   * Renders the "view as" button, visible only to real (facade-independent) superusers/staff.
+   *
+   * @param {{canViewAs: boolean}} state - header auth state.
+   * @param {{onViewAsClick: Function}} handlers - header event handlers.
+   * @returns {React.ReactElement|null} view-as button, or null when not applicable.
+   */
+  static #renderViewAsLink(state, handlers) {
+    if (!state.canViewAs) {
+      return null;
+    }
+
+    return (
+      <Nav.Link
+        href="#"
+        data-testid="view-as-link"
+        onClick={(event) => {
+          event.preventDefault();
+          handlers.onViewAsClick();
+        }}
+      >
+        <i className={`bi ${Icons.viewAs}`} aria-hidden="true" title={Translator.t('header.view_as_alt')}></i>
+      </Nav.Link>
     );
   }
 

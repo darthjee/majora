@@ -11,6 +11,15 @@ header:
   test_email_error: Falha ao enviar e-mail de teste
   register: Registrar
   my_account_alt: Minha conta
+  view_as_alt: Ver como
+view_as_modal:
+  title: Ver como
+  enabled_label: Simular outra função
+  role_dm: Mestre
+  role_player: Jogador
+  role_owner: Dono do personagem
+  cancel: Cancelar
+  save: Salvar
 login_modal:
   title: Login
   username_label: Usuario
