@@ -1,10 +1,12 @@
 """Views package for the games app."""
 
+from .access_route_config import access_route_config
 from .auth import account, language, login, logout, register, status, test_email
 from .characters import (
     game_npc_access,
     game_npc_detail,
     game_npc_full,
+    game_npc_permissions,
     game_npc_photo_set,
     game_npc_photo_upload,
     game_npc_photos,
@@ -16,6 +18,7 @@ from .characters import (
     game_pc_access,
     game_pc_detail,
     game_pc_full,
+    game_pc_permissions,
     game_pc_photo_set,
     game_pc_photo_upload,
     game_pc_photos,
@@ -30,6 +33,7 @@ from .game_tasks import game_task_detail, game_tasks_list
 from .games import (
     game_access,
     game_detail,
+    game_permissions,
     game_photos,
     game_treasure_detail,
     game_treasures,
@@ -40,13 +44,20 @@ from .health import health
 from .password_reset import recover, reset_password
 from .photo_upload import photo_upload
 from .staff import staff_user_detail, staff_user_recovery_link, staff_users_list
-from .treasures import treasure_access, treasure_detail, treasure_photo_upload, treasures_list
+from .treasures import (
+    treasure_access,
+    treasure_detail,
+    treasure_permissions,
+    treasure_photo_upload,
+    treasures_list,
+)
 from .upload_finalize import upload_finalize
 
 __all__ = [
     'games_list',
     'game_detail',
     'game_access',
+    'game_permissions',
     'game_treasures',
     'game_treasures_all',
     'game_treasure_detail',
@@ -60,6 +71,8 @@ __all__ = [
     'game_pc_access',
     'game_pc_detail',
     'game_pc_full',
+    'game_pc_permissions',
+    'game_npc_permissions',
     'game_pc_photo_upload',
     'game_npc_photo_upload',
     'game_pc_photo_set',
@@ -92,9 +105,11 @@ __all__ = [
     'staff_user_detail',
     'staff_user_recovery_link',
     'treasure_access',
+    'treasure_permissions',
     'treasure_detail',
     'treasure_photo_upload',
     'treasures_list',
     'upload_finalize',
     'health',
+    'access_route_config',
 ]

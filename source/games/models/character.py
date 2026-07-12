@@ -75,12 +75,26 @@ class Character(models.Model):
         return self.editors.filter(id=user.id).exists()
 
     def can_be_edited_by(self, user):
-        """Return True if `user` may edit this character (its player, a DM, or a superuser)."""
+        """Return True if `user` may edit this character (its player, a DM, or a superuser).
+
+        See `can_be_edited_by_roles` for the role-simulated counterpart of this rule.
+        """
         if not user or not user.is_authenticated:
             return False
         if user.is_superuser:
             return True
         return self.is_editor(user)
+
+    def can_be_edited_by_roles(self, is_superuser, is_dm, is_owner):
+        """Return True if a role-simulated caller may edit this character.
+
+        Mirrors `can_be_edited_by`, computed over simulated-identity booleans instead of a
+        live `user`. `is_owner` is only ever consulted for a PC (`self.is_pc`) — NPCs have no
+        ownership concept, matching `PcAccessSerializer`/base `_get_is_owner`'s convention.
+        """
+        if is_superuser or is_dm:
+            return True
+        return is_owner if self.is_pc else False
 
     def __str__(self):
         """Return string representation of the character."""

@@ -21,8 +21,19 @@ class Task(models.Model):
         ordering = ['id']
 
     def can_be_edited_by(self, user):
-        """Return True if `user` may edit this task (delegates to the game's rule)."""
+        """Return True if `user` may edit this task (delegates to the game's rule).
+
+        See `can_be_edited_by_roles` for the role-simulated counterpart of this rule.
+        """
         return self.game.can_be_edited_by(user)
+
+    def can_be_edited_by_roles(self, is_superuser, is_dm):
+        """Return True if a role-simulated caller may edit this task.
+
+        Mirrors `can_be_edited_by`, delegating to the game's own role-simulated rule — a
+        task has no independent owner/player concept.
+        """
+        return self.game.can_be_edited_by_roles(is_superuser, is_dm)
 
     def __str__(self):
         """Return string representation of the task."""
