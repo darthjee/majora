@@ -80,8 +80,8 @@ export default class GameSessionsController extends BasePageController {
   }
 
   #fetchAccess(gameSlug, safeSet) {
-    AccessStore.ensureGameAccess(gameSlug)
-      .then((access) => safeSet(this.setCanEdit, Boolean(access.can_edit)))
+    AccessStore.ensureGamePermissions(gameSlug)
+      .then((permissions) => safeSet(this.setCanEdit, Boolean(permissions.can_edit)))
       .catch(() => safeSet(this.setCanEdit, false));
   }
 }

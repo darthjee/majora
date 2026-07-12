@@ -12,7 +12,7 @@ describe('TreasureController', function() {
       ok: true,
       json: () => Promise.resolve({ id: 1, name: 'Sword', value: 100 }),
     }));
-    spyOn(AccessStore, 'ensureTreasureAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+    spyOn(AccessStore, 'ensureTreasurePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
   });
 
   afterEach(function() {
@@ -36,7 +36,7 @@ describe('TreasureController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(treasureClient.fetchTreasure).toHaveBeenCalledWith('1', null);
-      expect(AccessStore.ensureTreasureAccess).toHaveBeenCalledWith('1');
+      expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('1');
       expect(setTreasure).toHaveBeenCalledWith(
         jasmine.objectContaining({ id: 1, name: 'Sword', value: 100, can_edit: false }),
       );
@@ -56,7 +56,7 @@ describe('TreasureController', function() {
     const fakeWindow = { location: { hash: '#/treasures/1' } };
     globalThis.window = fakeWindow;
 
-    AccessStore.ensureTreasureAccess.and.returnValue(Promise.resolve({ can_edit: true }));
+    AccessStore.ensureTreasurePermissions.and.returnValue(Promise.resolve({ can_edit: true }));
 
     try {
       const cleanup = new TreasureController(setTreasure, setLoading, setError, treasureClient)
@@ -112,7 +112,7 @@ describe('TreasureController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(treasureClient.fetchTreasure).toHaveBeenCalledWith('1', 'tok-abc');
-      expect(AccessStore.ensureTreasureAccess).toHaveBeenCalledWith('1');
+      expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('1');
 
       cleanup();
     } finally {

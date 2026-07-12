@@ -161,4 +161,53 @@ describe('BaseClient', function() {
       body: undefined,
     });
   });
+
+  it('adds X-Skip-Cache to a permissions.json request without a role param', async function() {
+    await client.request('/games/demo/permissions.json', {
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json', {
+      method: 'GET',
+      headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
+      body: undefined,
+    });
+  });
+
+  it('does not add X-Skip-Cache to a permissions.json request with a role param', async function() {
+    await client.request('/games/demo/permissions.json?role=dm', {
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json?role=dm', {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      body: undefined,
+    });
+  });
+
+  it('does not add X-Skip-Cache to a permissions.json request with several role params', async function() {
+    await client.request('/games/demo/permissions.json?role=dm&role=player', {
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json?role=dm&role=player', {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      body: undefined,
+    });
+  });
+
+  it('adds X-Skip-Cache to a permissions.json POST request even with a role param', async function() {
+    await client.request('/games/demo/permissions.json?role=dm', {
+      method: 'POST',
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json?role=dm', {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
+      body: undefined,
+    });
+  });
 });

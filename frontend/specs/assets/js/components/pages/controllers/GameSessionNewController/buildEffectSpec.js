@@ -16,14 +16,14 @@ describe('GameSessionNewController', function() {
       const fakeWindow = { location: { hash: '#/games/demo/sessions/new' } };
       globalThis.window = fakeWindow;
 
-      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: true }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
       try {
         const controller = new GameSessionNewController(setError, Noop.noop, sessionClient);
         controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');
+        expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
         expect(fakeWindow.location.hash).toBe('#/games/demo/sessions/new');
       } finally {
         delete globalThis.window;
@@ -36,7 +36,7 @@ describe('GameSessionNewController', function() {
       const fakeWindow = { location: { hash: '#/games/demo/sessions/new' } };
       globalThis.window = fakeWindow;
 
-      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
       try {
         const controller = new GameSessionNewController(setError, Noop.noop, sessionClient);
@@ -55,7 +55,7 @@ describe('GameSessionNewController', function() {
       const fakeWindow = { location: { hash: '#/games/demo/sessions/new' } };
       globalThis.window = fakeWindow;
 
-      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.reject(new Error('network error')));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.reject(new Error('network error')));
 
       try {
         const controller = new GameSessionNewController(setError, Noop.noop, sessionClient);

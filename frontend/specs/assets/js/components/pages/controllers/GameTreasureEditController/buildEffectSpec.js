@@ -24,7 +24,7 @@ describe('GameTreasureEditController', function() {
       fakeWindow = { location: { hash: '#/games/demo/treasures/42/edit' } };
       globalThis.window = fakeWindow;
 
-      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: true }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
       treasureClient.fetchGameTreasure.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ id: 42, name: 'Sword', value: 100, game_slug: 'demo' }),
@@ -43,7 +43,7 @@ describe('GameTreasureEditController', function() {
       const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
       expect(treasureClient.fetchGameTreasure).toHaveBeenCalledWith('demo', '42', null);
       expect(setTreasure).toHaveBeenCalledWith(
         { id: 42, name: 'Sword', value: 100, game_slug: 'demo' },
@@ -55,7 +55,7 @@ describe('GameTreasureEditController', function() {
     });
 
     it('redirects to the treasures index and does not fetch when the user cannot edit', async function() {
-      AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ can_edit: false }));
+      AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: false }));
 
       const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -67,7 +67,7 @@ describe('GameTreasureEditController', function() {
     });
 
     it('redirects to the treasures index when the access request throws', async function() {
-      AccessStore.ensureGameAccess.and.returnValue(Promise.reject(new Error('network error')));
+      AccessStore.ensureGamePermissions.and.returnValue(Promise.reject(new Error('network error')));
 
       const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -97,7 +97,7 @@ describe('GameTreasureEditController', function() {
       const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
       expect(treasureClient.fetchGameTreasure).toHaveBeenCalledWith('demo', '42', 'tok-abc');
 
       cleanup();

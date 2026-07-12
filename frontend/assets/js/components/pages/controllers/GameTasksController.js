@@ -61,8 +61,8 @@ export default class GameTasksController extends BasePageController {
       const hash = typeof window === 'undefined' ? '' : window.location.hash;
       const gameSlug = GameTasksController.getGameSlugFromTasksHash(hash);
 
-      AccessStore.ensureGameAccess(gameSlug)
-        .then((access) => this.#handleAccess(access, gameSlug, safeSet))
+      AccessStore.ensureGamePermissions(gameSlug)
+        .then((permissions) => this.#handlePermissions(permissions, gameSlug, safeSet))
         .catch(() => this.#redirectToGame(gameSlug));
 
       return () => {
@@ -170,8 +170,8 @@ export default class GameTasksController extends BasePageController {
     return tasks.map((item) => (item.id === id ? updatedTask : item));
   }
 
-  #handleAccess(access, gameSlug, safeSet) {
-    if (!access.can_edit) {
+  #handlePermissions(permissions, gameSlug, safeSet) {
+    if (!permissions.can_edit) {
       this.#redirectToGame(gameSlug);
       return;
     }

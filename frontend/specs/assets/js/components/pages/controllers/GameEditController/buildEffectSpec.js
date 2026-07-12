@@ -10,7 +10,7 @@ describe('GameEditController', function() {
 
   describe('#buildEffect', function() {
     it('fetches the game and merges AccessStore access, calling setGame with the result', async function() {
-      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: true }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
       const setGame = jasmine.createSpy('setGame');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -29,7 +29,7 @@ describe('GameEditController', function() {
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(gameClient.fetchGame).toHaveBeenCalledWith('demo', null);
-        expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');
+        expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
         expect(setGame).toHaveBeenCalledWith({ name: 'Demo', game_slug: 'demo', can_edit: true });
         expect(setLoading).toHaveBeenCalledWith(false);
         expect(setError).not.toHaveBeenCalled();
@@ -41,7 +41,7 @@ describe('GameEditController', function() {
     });
 
     it('sets can_edit to false when AccessStore resolves with the fail-closed default', async function() {
-      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
       const setGame = jasmine.createSpy('setGame');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -71,7 +71,7 @@ describe('GameEditController', function() {
     });
 
     it('sets error when the game fetch fails', async function() {
-      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: true }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
       const setGame = jasmine.createSpy('setGame');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -97,7 +97,7 @@ describe('GameEditController', function() {
     });
 
     it('sends the token when the user is authenticated', async function() {
-      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: true }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
       const setGame = jasmine.createSpy('setGame');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -118,7 +118,7 @@ describe('GameEditController', function() {
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(gameClient.fetchGame).toHaveBeenCalledWith('demo', 'tok-abc');
-        expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');
+        expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
 
         cleanup();
       } finally {

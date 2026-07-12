@@ -34,12 +34,23 @@ class Game(models.Model):
         super().save(*args, **kwargs)
 
     def can_be_edited_by(self, user):
-        """Return True if `user` may edit this game (a DM or superuser)."""
+        """Return True if `user` may edit this game (a DM or superuser).
+
+        See `can_be_edited_by_roles` for the role-simulated counterpart of this rule.
+        """
         if not user or not user.is_authenticated:
             return False
         if user.is_superuser:
             return True
         return self.game_masters.filter(user=user).exists()
+
+    def can_be_edited_by_roles(self, is_superuser, is_dm):
+        """Return True if a role-simulated caller may edit this game.
+
+        Mirrors `can_be_edited_by`, computed over simulated-identity booleans instead of a
+        live `user`, for the `role`-simulated path of `permissions.json`.
+        """
+        return is_superuser or is_dm
 
     def __str__(self):
         """Return string representation of the game."""

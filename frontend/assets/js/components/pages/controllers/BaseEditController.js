@@ -81,24 +81,25 @@ export default class BaseEditController extends BasePageController {
   }
 
   /**
-   * Fetch the resource and merge its access permissions onto it, updating
+   * Fetch the resource and merge its edit permissions onto it, updating
    * loading/error state.
    *
    * @param {Promise<Response>} resourcePromise - Resource fetch response promise.
-   * @param {Promise<{can_edit: boolean}>} accessPromise - Access payload promise, already
-   *   resolved to `{ can_edit }` (e.g. from `AccessStore#ensureX`, which never rejects).
+   * @param {Promise<{can_edit: boolean}>} permissionsPromise - Permissions payload promise,
+   *   already resolved to `{ can_edit }` (e.g. from `AccessStore#ensureXPermissions`, which
+   *   never rejects).
    * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
    * @param {string} errorMessage - Error message set when the resource fetch fails.
    * @returns {void}
    */
-  fetchWithAccess(resourcePromise, accessPromise, safeSet, errorMessage) {
+  fetchWithAccess(resourcePromise, permissionsPromise, safeSet, errorMessage) {
     Promise.all([
       resourcePromise.then((response) => (response.ok
         ? response.json()
         : Promise.reject(new Error('resource failed')))),
-      accessPromise,
+      permissionsPromise,
     ])
-      .then(([resource, access]) => safeSet(this.setResource, { ...resource, ...access }))
+      .then(([resource, permissions]) => safeSet(this.setResource, { ...resource, ...permissions }))
       .catch(() => safeSet(this.setError, errorMessage))
       .finally(() => safeSet(this.setLoading, false));
   }

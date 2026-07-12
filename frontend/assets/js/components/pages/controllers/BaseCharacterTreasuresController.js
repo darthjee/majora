@@ -100,7 +100,7 @@ export default class BaseCharacterTreasuresController extends BasePageController
       return Promise.resolve();
     }
 
-    return AccessStore.ensureCharacterAccess(this.characterKind, gameSlug, characterId)
-      .then((access) => safeSet(this.setCharacter, { ...character, can_edit: Boolean(access.can_edit) }));
+    return AccessStore.ensureCharacterPermissions(this.characterKind, gameSlug, characterId)
+      .then((permissions) => safeSet(this.setCharacter, { ...character, can_edit: Boolean(permissions.can_edit) }));
   }
 }

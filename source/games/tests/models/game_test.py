@@ -86,6 +86,27 @@ class TestGameCanBeEditedBy:
 
 
 @pytest.mark.django_db
+class TestGameCanBeEditedByRoles:
+    """Tests for Game.can_be_edited_by_roles()."""
+
+    def setup_method(self):
+        """Set up a game for testing."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+
+    def test_superuser_role_can_edit(self):
+        """Test that the superuser role may edit the game."""
+        assert self.game.can_be_edited_by_roles(is_superuser=True, is_dm=False) is True
+
+    def test_dm_role_can_edit(self):
+        """Test that the dm role may edit the game."""
+        assert self.game.can_be_edited_by_roles(is_superuser=False, is_dm=True) is True
+
+    def test_no_roles_cannot_edit(self):
+        """Test that neither role present may not edit the game."""
+        assert self.game.can_be_edited_by_roles(is_superuser=False, is_dm=False) is False
+
+
+@pytest.mark.django_db
 class TestGameTreasuresThroughModel:
     """Tests for Game.treasures going through the GameTreasure model."""
 

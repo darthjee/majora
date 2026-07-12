@@ -7,8 +7,8 @@ describe('CharacterController', function() {
     const params = { game_slug: 'demo', character_id: '2' };
 
     it('fetches the character and merges access on success', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess')
-        .and.returnValue(Promise.resolve({ can_edit: false, is_player: false }));
+      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ is_player: false }));
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
       const setCharacter = jasmine.createSpy('setCharacter');
       const controller = buildController(setCharacter, {
         fetchCharacter: () => Promise.resolve({
@@ -25,8 +25,8 @@ describe('CharacterController', function() {
     });
 
     it('merges slain and public_slain from the full character fetch when the user can edit', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess')
-        .and.returnValue(Promise.resolve({ can_edit: true, is_player: false }));
+      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ is_player: false }));
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
       const setCharacter = jasmine.createSpy('setCharacter');
       const controller = buildController(setCharacter, {
         // Mimics the public CharacterDetailSerializer: `slain` aliased to the real
