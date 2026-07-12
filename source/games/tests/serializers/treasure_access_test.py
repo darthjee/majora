@@ -1,7 +1,7 @@
 """Tests for the TreasureAccessSerializer."""
 
-import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.test import TestCase
 from rest_framework.test import APIRequestFactory
 
 from games.serializers import TreasureAccessSerializer
@@ -23,13 +23,13 @@ def _make_request(user):
     return request
 
 
-@pytest.mark.django_db
-class TestTreasureAccessSerializer:
+class TestTreasureAccessSerializer(TestCase):
     """Tests for the TreasureAccessSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a treasure for testing."""
-        self.treasure = TreasureFactory(name='Magic Ring', value=300)
+        cls.treasure = TreasureFactory(name='Magic Ring', value=300)
 
     def test_response_does_not_include_can_edit(self):
         """Test that the serialized data never includes can_edit (moved to permissions)."""

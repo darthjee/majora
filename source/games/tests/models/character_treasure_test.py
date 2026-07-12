@@ -2,20 +2,21 @@
 
 import pytest
 from django.db import IntegrityError, transaction
+from django.test import TestCase
 
 from games.models import CharacterTreasure
 from games.tests.factories import CharacterFactory, GameFactory, TreasureFactory
 
 
-@pytest.mark.django_db
-class TestCharacterTreasure:
+class TestCharacterTreasure(TestCase):
     """Tests for the CharacterTreasure model."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.character = CharacterFactory(name='Frodo', game=self.game)
-        self.treasure = TreasureFactory(name='Golden Crown', value=500)
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.character = CharacterFactory(name='Frodo', game=cls.game)
+        cls.treasure = TreasureFactory(name='Golden Crown', value=500)
 
     def test_character_treasure_creation(self):
         """Test that a character treasure can be created linking a character and a treasure."""

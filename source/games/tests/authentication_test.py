@@ -1,6 +1,6 @@
 """Tests for the CookieTokenAuthentication class."""
 
-import pytest
+from django.test import TestCase
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIRequestFactory
 
@@ -8,16 +8,16 @@ from games.authentication import CookieTokenAuthentication
 from games.tests.factories import UserFactory
 
 
-@pytest.mark.django_db
-class TestCookieTokenAuthentication:
+class TestCookieTokenAuthentication(TestCase):
     """Tests for CookieTokenAuthentication."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a user and token for tests."""
-        self.user = UserFactory(username='alice', password='secret')
-        self.token = Token.objects.create(user=self.user)
-        self.auth = CookieTokenAuthentication()
-        self.factory = APIRequestFactory()
+        cls.user = UserFactory(username='alice', password='secret')
+        cls.token = Token.objects.create(user=cls.user)
+        cls.auth = CookieTokenAuthentication()
+        cls.factory = APIRequestFactory()
 
     def _request_with_header(self):
         """Return a DRF request authenticated via Authorization header."""

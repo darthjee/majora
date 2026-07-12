@@ -8,6 +8,7 @@ authenticated endpoint, and confirms `GameTreasure` stays untracked, per the iss
 import json
 
 import pytest
+from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
 from games.models import Game, GameTreasure
@@ -123,22 +124,22 @@ class TestHistoricalRecordsOnDelete:
         assert history[1].history_type == '-'
 
 
-@pytest.mark.django_db
-class TestHistoricalRecordsUser(TokenAuthRequestMixin):
+class TestHistoricalRecordsUser(TokenAuthRequestMixin, TestCase):
     """Test that a request-bound user performing a change is captured as `history_user`."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game, a DM user, and their auth token."""
-        self.game = GameFactory(
+        cls.game = GameFactory(
             name='Epic Quest', game_slug='epic-quest', description='Original description.'
         )
-        self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        cls.dm_token = Token.objects.create(user=cls.dm_user)
 
-    def test_patch_via_authenticated_endpoint_sets_history_user(self, client):
+    def test_patch_via_authenticated_endpoint_sets_history_user(self):
         """Test that PATCHing a game via a DM's token sets history_user on the new row."""
-        response = client.patch(
+        response = self.client.patch(
             '/games/epic-quest.json',
             data=json.dumps({'name': 'Updated Quest'}),
             content_type='application/json',

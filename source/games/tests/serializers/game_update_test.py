@@ -1,19 +1,19 @@
 """Tests for the GameUpdateSerializer."""
 
-import pytest
+from django.test import TestCase
 
 from games.models import GamePhoto
 from games.serializers import GameUpdateSerializer
 from games.tests.factories import GameFactory
 
 
-@pytest.mark.django_db
-class TestGameUpdateSerializer:
+class TestGameUpdateSerializer(TestCase):
     """Tests for GameUpdateSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game instance for testing."""
-        self.game = GameFactory(
+        cls.game = GameFactory(
             name='Epic Quest',
             game_slug='epic-quest',
             description='An adventure in Middle Earth.',

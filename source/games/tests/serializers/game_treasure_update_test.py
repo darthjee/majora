@@ -1,21 +1,21 @@
 """Tests for the GameTreasureUpdateSerializer."""
 
-import pytest
+from django.test import TestCase
 
 from games.models import GameTreasure
 from games.serializers import GameTreasureUpdateSerializer
 from games.tests.factories import GameFactory, TreasureFactory
 
 
-@pytest.mark.django_db
-class TestGameTreasureUpdateSerializer:
+class TestGameTreasureUpdateSerializer(TestCase):
     """Tests for GameTreasureUpdateSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game treasure instance for testing."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.treasure = TreasureFactory(name='Golden Crown', value=500)
-        self.game_treasure = GameTreasure.objects.create(game=self.game, treasure=self.treasure)
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.treasure = TreasureFactory(name='Golden Crown', value=500)
+        cls.game_treasure = GameTreasure.objects.create(game=cls.game, treasure=cls.treasure)
 
     def test_valid_max_units_update(self):
         """Test that a partial update with a max_units integer is valid and persisted."""

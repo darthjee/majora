@@ -1,20 +1,20 @@
 """Tests for the CharacterListSerializer."""
 
-import pytest
+from django.test import TestCase
 
 from games.models import CharacterPhoto
 from games.serializers import CharacterListSerializer
 from games.tests.factories import CharacterFactory, GameFactory
 
 
-@pytest.mark.django_db
-class TestCharacterListSerializer:
+class TestCharacterListSerializer(TestCase):
     """Tests for the CharacterListSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.character = CharacterFactory(name='Frodo', game=self.game)
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.character = CharacterFactory(name='Frodo', game=cls.game)
 
     def test_serializes_id(self):
         """Test that the id field is serialized."""

@@ -1,7 +1,7 @@
 """Tests for the CharacterDetailSerializer."""
 
-import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.test import TestCase
 from rest_framework.test import APIRequestFactory
 
 from games.models import CharacterLink, CharacterPhoto
@@ -16,22 +16,22 @@ from games.tests.factories import (
 )
 
 
-@pytest.mark.django_db
-class TestCharacterDetailSerializer:
+class TestCharacterDetailSerializer(TestCase):
     """Tests for the CharacterDetailSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.character = CharacterFactory(
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.character = CharacterFactory(
             name='Frodo',
-            game=self.game,
+            game=cls.game,
             role='Hobbit',
             public_description='A brave hobbit.',
             private_description='Secretly carries the ring.',
             npc=False,
         )
-        self.factory = APIRequestFactory()
+        cls.factory = APIRequestFactory()
 
     def _serialize(self, user=None):
         """Build a request with the given user and serialize the character."""

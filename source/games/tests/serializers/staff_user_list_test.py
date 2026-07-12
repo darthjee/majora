@@ -1,18 +1,18 @@
 """Tests for the StaffUserListSerializer."""
 
-import pytest
+from django.test import TestCase
 
 from games.serializers import StaffUserListSerializer
 from games.tests.factories import UserFactory
 
 
-@pytest.mark.django_db
-class TestStaffUserListSerializer:
+class TestStaffUserListSerializer(TestCase):
     """Tests for the StaffUserListSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.user = UserFactory(
+        cls.user = UserFactory(
             username='alice', password='secret-password', email='alice@example.com'
         )
 

@@ -3,6 +3,7 @@
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
+from django.test import TestCase
 
 from games.models import Character
 from games.tests.factories import (
@@ -15,14 +16,14 @@ from games.tests.factories import (
 )
 
 
-@pytest.mark.django_db
-class TestCharacter:
+class TestCharacter(TestCase):
     """Tests for the Character model."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.player = PlayerFactory(name='Test Player')
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.player = PlayerFactory(name='Test Player')
 
     def test_character_creation(self):
         """Test that a character can be created with required fields."""
@@ -236,13 +237,13 @@ class TestCharacter:
         assert character.is_editor(superuser) is False
 
 
-@pytest.mark.django_db
-class TestCharacterCanBeEditedByRoles:
+class TestCharacterCanBeEditedByRoles(TestCase):
     """Tests for Character.can_be_edited_by_roles()."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game for testing."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
 
     def test_superuser_role_can_edit_pc(self):
         """Test that the superuser role may edit a PC."""

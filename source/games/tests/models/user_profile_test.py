@@ -1,18 +1,18 @@
 """Tests for the UserProfile model."""
 
-import pytest
+from django.test import TestCase
 
 from games.models import UserProfile
 from games.tests.factories import UserFactory
 
 
-@pytest.mark.django_db
-class TestUserProfile:
+class TestUserProfile(TestCase):
     """Tests for the UserProfile model."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.user = UserFactory(username='alice', password='secret-password')
+        cls.user = UserFactory(username='alice', password='secret-password')
 
     def test_default_favorite_language(self):
         """Test that a new profile defaults to English."""

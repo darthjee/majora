@@ -1,23 +1,23 @@
 """Tests for the CharacterTreasureSerializer."""
 
-import pytest
+from django.test import TestCase
 
 from games.models import CharacterTreasure, TreasurePhoto
 from games.serializers import CharacterTreasureSerializer
 from games.tests.factories import CharacterFactory, GameFactory, TreasureFactory
 
 
-@pytest.mark.django_db
-class TestCharacterTreasureSerializer:
+class TestCharacterTreasureSerializer(TestCase):
     """Tests for the CharacterTreasureSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.character = CharacterFactory(name='Frodo', game=self.game)
-        self.treasure = TreasureFactory(name='Potion of Healing', value=50)
-        self.character_treasure = CharacterTreasure.objects.create(
-            character=self.character, treasure=self.treasure, quantity=3,
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.character = CharacterFactory(name='Frodo', game=cls.game)
+        cls.treasure = TreasureFactory(name='Potion of Healing', value=50)
+        cls.character_treasure = CharacterTreasure.objects.create(
+            character=cls.character, treasure=cls.treasure, quantity=3,
         )
 
     def test_serializes_id(self):

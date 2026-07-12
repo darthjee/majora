@@ -1,6 +1,7 @@
 """Tests for the Paginator class."""
 
 import pytest
+from django.test import TestCase
 from rest_framework.test import APIRequestFactory
 
 from games.paginator import Paginator
@@ -18,16 +19,21 @@ def _make_request(page=None, per_page=None):
     return factory.get('/fake/', params)
 
 
-@pytest.mark.django_db
-class TestPaginatorPaginate:
+class TestPaginatorPaginate(TestCase):
     """Tests for Paginator.paginate()."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a game with several NPC characters."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
         for i in range(5):
-            CharacterFactory(name=f'NPC {i}', game=self.game, npc=True)
-        self.queryset = self.game.characters.filter(npc=True)
+            CharacterFactory(name=f'NPC {i}', game=cls.game, npc=True)
+        cls.queryset = cls.game.characters.filter(npc=True)
+
+    @pytest.fixture(autouse=True)
+    def _inject_monkeypatch(self, monkeypatch):
+        """Expose pytest's monkeypatch fixture as an instance attribute."""
+        self.monkeypatch = monkeypatch
 
     def test_returns_first_page_by_default(self):
         """Test that the first page is returned when no page param is given."""
@@ -71,9 +77,9 @@ class TestPaginatorPaginate:
         _, headers = Paginator(request, self.queryset).paginate()
         assert headers['pages'] == 1
 
-    def test_uses_default_per_page_when_not_provided(self, monkeypatch):
+    def test_uses_default_per_page_when_not_provided(self):
         """Test that the default per_page comes from Settings.pagination_size()."""
-        monkeypatch.setenv('MAJORA_PAGINATION_SIZE', '2')
+        self.monkeypatch.setenv('MAJORA_PAGINATION_SIZE', '2')
         request = _make_request()
         _, headers = Paginator(request, self.queryset).paginate()
         assert headers['per_page'] == 2
@@ -105,9 +111,9 @@ class TestPaginatorPaginate:
         _, headers = Paginator(request, self.queryset).paginate()
         assert headers['page'] == 1
 
-    def test_invalid_per_page_param_falls_back_to_default(self, monkeypatch):
+    def test_invalid_per_page_param_falls_back_to_default(self):
         """Test that a non-integer per_page param uses the default."""
-        monkeypatch.setenv('MAJORA_PAGINATION_SIZE', '10')
+        self.monkeypatch.setenv('MAJORA_PAGINATION_SIZE', '10')
         request = _make_request(per_page='oops')
         _, headers = Paginator(request, self.queryset).paginate()
         assert headers['per_page'] == 10

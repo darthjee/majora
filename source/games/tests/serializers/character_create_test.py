@@ -1,6 +1,6 @@
 """Tests for the CharacterCreateSerializer."""
 
-import pytest
+from django.test import TestCase
 
 from games.models import CharacterLink
 from games.serializers import CharacterCreateSerializer
@@ -8,13 +8,13 @@ from games.serializers.character_link_write import MAX_LINKS
 from games.tests.factories import GameFactory
 
 
-@pytest.mark.django_db
-class TestCharacterCreateSerializer:
+class TestCharacterCreateSerializer(TestCase):
     """Tests for the CharacterCreateSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
 
     def test_creates_character_without_links(self):
         """Test that a character is created when no links are given."""

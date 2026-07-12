@@ -1,20 +1,20 @@
 """Tests for the GameTaskUpdateSerializer."""
 
-import pytest
+from django.test import TestCase
 
 from games.models import GameSession, Task
 from games.serializers import GameTaskUpdateSerializer
 from games.tests.factories import GameFactory
 
 
-@pytest.mark.django_db
-class TestGameTaskUpdateSerializer:
+class TestGameTaskUpdateSerializer(TestCase):
     """Tests for GameTaskUpdateSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a task instance for testing."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.task = Task.objects.create(game=self.game, short_description='Prep the ambush')
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.task = Task.objects.create(game=cls.game, short_description='Prep the ambush')
 
     def test_valid_partial_short_description_update(self):
         """Test that a partial update with only short_description is valid."""

@@ -2,21 +2,21 @@
 
 import importlib
 
-import pytest
 from django.apps import apps
+from django.test import TestCase
 
 from games.tests.factories import CharacterFactory, GameFactory
 
 _migration = importlib.import_module('games.migrations.0041_character_public_slain')
 
 
-@pytest.mark.django_db
-class TestCharacterPublicSlainBackfill:
+class TestCharacterPublicSlainBackfill(TestCase):
     """Tests for the public_slain backfill performed by the 0041 data migration."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
 
     def test_backfill_copies_true_slain_into_public_slain(self):
         """Test that the backfill sets public_slain to True for an already-slain character."""

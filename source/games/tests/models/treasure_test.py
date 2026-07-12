@@ -2,6 +2,7 @@
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.test import TestCase
 
 from games.models import Treasure
 from games.tests.factories import GameFactory, SuperUserFactory, TreasureFactory, UserFactory
@@ -67,13 +68,13 @@ class TestTreasure:
         assert treasure.hidden is True
 
 
-@pytest.mark.django_db
-class TestTreasureCanBeEditedBy:
+class TestTreasureCanBeEditedBy(TestCase):
     """Tests for Treasure.can_be_edited_by()."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a treasure for testing."""
-        self.treasure = TreasureFactory(name='Magic Ring', value=300)
+        cls.treasure = TreasureFactory(name='Magic Ring', value=300)
 
     def test_superuser_can_edit(self):
         """Test that a superuser may edit the treasure."""

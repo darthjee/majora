@@ -1,19 +1,19 @@
 """Tests for the CharacterPhoto model."""
 
-import pytest
+from django.test import TestCase
 
 from games.models import CharacterPhoto
 from games.tests.factories import CharacterFactory, GameFactory
 
 
-@pytest.mark.django_db
-class TestCharacterPhoto:
+class TestCharacterPhoto(TestCase):
     """Tests for the CharacterPhoto model."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.character = CharacterFactory(name='Frodo', game=self.game)
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.character = CharacterFactory(name='Frodo', game=cls.game)
 
     def test_character_photo_creation(self):
         """Test that a character photo can be created and linked to a character."""

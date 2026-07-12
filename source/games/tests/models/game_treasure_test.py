@@ -2,19 +2,20 @@
 
 import pytest
 from django.db import IntegrityError, transaction
+from django.test import TestCase
 
 from games.models import GameTreasure
 from games.tests.factories import GameFactory, TreasureFactory
 
 
-@pytest.mark.django_db
-class TestGameTreasure:
+class TestGameTreasure(TestCase):
     """Tests for the GameTreasure model."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.treasure = TreasureFactory(name='Golden Crown', value=500)
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.treasure = TreasureFactory(name='Golden Crown', value=500)
 
     def test_game_treasure_creation(self):
         """Test that a game treasure link can be created with a max_units cap."""
@@ -69,14 +70,14 @@ class TestGameTreasure:
                 GameTreasure.objects.create(game=self.game, treasure=self.treasure)
 
 
-@pytest.mark.django_db
-class TestGameTreasureAvailableUnits:
+class TestGameTreasureAvailableUnits(TestCase):
     """Tests for GameTreasure.available_units."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.treasure = TreasureFactory(name='Golden Crown', value=500)
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.treasure = TreasureFactory(name='Golden Crown', value=500)
 
     def test_available_units_is_none_when_unlimited(self):
         """Test that available_units is None when max_units is None."""

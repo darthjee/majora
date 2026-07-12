@@ -1,19 +1,19 @@
 """Tests for the CharacterFullListSerializer."""
 
-import pytest
+from django.test import TestCase
 
 from games.serializers import CharacterFullListSerializer
 from games.tests.factories import CharacterFactory, GameFactory
 
 
-@pytest.mark.django_db
-class TestCharacterFullListSerializer:
+class TestCharacterFullListSerializer(TestCase):
     """Tests for the CharacterFullListSerializer."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up common test fixtures."""
-        self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.character = CharacterFactory(name='Frodo', game=self.game)
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.character = CharacterFactory(name='Frodo', game=cls.game)
 
     def test_inherits_list_fields(self):
         """Test that all CharacterListSerializer fields are still present."""

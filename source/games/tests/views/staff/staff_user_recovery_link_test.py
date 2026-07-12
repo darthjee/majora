@@ -3,8 +3,8 @@
 import json
 from datetime import timedelta
 
-import pytest
 from django.core import mail
+from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
@@ -13,24 +13,23 @@ from games.models import PasswordResetToken
 from games.tests.factories import SuperUserFactory, UserFactory
 
 
-@pytest.mark.django_db
-class TestStaffUserRecoveryLinkView:
+class TestStaffUserRecoveryLinkView(TestCase):
     """Tests for the POST /staff/users/<id>/recovery-link.json endpoint."""
 
-    def setup_method(self):
+    @classmethod
+    def setUpTestData(cls):
         """Set up a target user, staff, superuser, and a regular user."""
-        mail.outbox = []
-        self.target_user = UserFactory(
+        cls.target_user = UserFactory(
             username='target', password='secret-password', email='target@example.com'
         )
-        self.staff_user = UserFactory(
+        cls.staff_user = UserFactory(
             username='staffer', password='secret-password', is_staff=True
         )
-        self.staff_token = Token.objects.create(user=self.staff_user)
-        self.superuser = SuperUserFactory(username='admin', password='secret-password')
-        self.superuser_token = Token.objects.create(user=self.superuser)
-        self.regular_user = UserFactory(username='player', password='secret-password')
-        self.regular_token = Token.objects.create(user=self.regular_user)
+        cls.staff_token = Token.objects.create(user=cls.staff_user)
+        cls.superuser = SuperUserFactory(username='admin', password='secret-password')
+        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.regular_user = UserFactory(username='player', password='secret-password')
+        cls.regular_token = Token.objects.create(user=cls.regular_user)
 
     def _post(self, client, user_id, token=None):
         """Issue a POST request to the recovery-link endpoint, optionally with a token."""
@@ -39,58 +38,58 @@ class TestStaffUserRecoveryLinkView:
             extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
         return client.post(f'/staff/users/{user_id}/recovery-link.json', **extra)
 
-    def test_unauthenticated_returns_401(self, client):
+    def test_unauthenticated_returns_401(self):
         """Test that an unauthenticated request returns 401."""
-        response = self._post(client, self.target_user.id)
+        response = self._post(self.client, self.target_user.id)
         assert response.status_code == 401
 
-    def test_non_staff_non_superuser_returns_403(self, client):
+    def test_non_staff_non_superuser_returns_403(self):
         """Test that a regular authenticated user returns 403."""
-        response = self._post(client, self.target_user.id, token=self.regular_token)
+        response = self._post(self.client, self.target_user.id, token=self.regular_token)
         assert response.status_code == 403
 
-    def test_returns_404_for_unknown_user(self, client):
+    def test_returns_404_for_unknown_user(self):
         """Test that 404 is returned for a non-existent user id."""
-        response = self._post(client, 999999, token=self.superuser_token)
+        response = self._post(self.client, 999999, token=self.superuser_token)
         assert response.status_code == 404
 
-    def test_unauthenticated_unknown_id_returns_401_not_404(self, client):
+    def test_unauthenticated_unknown_id_returns_401_not_404(self):
         """Test that an unauthenticated request for an unknown id still returns 401."""
-        response = self._post(client, 999999)
+        response = self._post(self.client, 999999)
         assert response.status_code == 401
 
-    def test_non_staff_unknown_id_returns_403_not_404(self, client):
+    def test_non_staff_unknown_id_returns_403_not_404(self):
         """Test that a non-staff request for an unknown id still returns 403."""
-        response = self._post(client, 999999, token=self.regular_token)
+        response = self._post(self.client, 999999, token=self.regular_token)
         assert response.status_code == 403
 
-    def test_response_includes_skip_cache_header(self, client):
+    def test_response_includes_skip_cache_header(self):
         """Test that the response includes the X-Skip-Cache: true header."""
-        response = self._post(client, self.target_user.id, token=self.superuser_token)
+        response = self._post(self.client, self.target_user.id, token=self.superuser_token)
         assert response['X-Skip-Cache'] == 'true'
 
-    def test_staff_user_creates_token_when_none_exists(self, client):
+    def test_staff_user_creates_token_when_none_exists(self):
         """Test that a staff user gets a fresh token when the target has none."""
         assert PasswordResetToken.objects.filter(user=self.target_user).count() == 0
 
-        response = self._post(client, self.target_user.id, token=self.staff_token)
+        response = self._post(self.client, self.target_user.id, token=self.staff_token)
 
         assert response.status_code == 200
         data = json.loads(response.content)
         token = PasswordResetToken.objects.get(user=self.target_user)
         assert data['url'] == f'http://localhost:3000/#/recover-password?token={token.token}'
 
-    def test_superuser_creates_token_when_none_exists(self, client):
+    def test_superuser_creates_token_when_none_exists(self):
         """Test that a superuser gets a fresh token when the target has none."""
-        response = self._post(client, self.target_user.id, token=self.superuser_token)
+        response = self._post(self.client, self.target_user.id, token=self.superuser_token)
         assert response.status_code == 200
         assert PasswordResetToken.objects.filter(user=self.target_user).count() == 1
 
-    def test_reuses_existing_valid_token(self, client):
+    def test_reuses_existing_valid_token(self):
         """Test that an existing valid token is reused instead of creating a new one."""
         existing = PasswordResetToken.objects.create(user=self.target_user, token='valid-token')
 
-        response = self._post(client, self.target_user.id, token=self.superuser_token)
+        response = self._post(self.client, self.target_user.id, token=self.superuser_token)
 
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -99,41 +98,41 @@ class TestStaffUserRecoveryLinkView:
         existing.refresh_from_db()
         assert existing.token == 'valid-token'
 
-    def test_creates_new_token_when_existing_is_used(self, client):
+    def test_creates_new_token_when_existing_is_used(self):
         """Test that a new token is created when the existing one has been used."""
         used = PasswordResetToken.objects.create(user=self.target_user, token='used-token')
         used.used_at = timezone.now()
         used.save()
 
-        response = self._post(client, self.target_user.id, token=self.superuser_token)
+        response = self._post(self.client, self.target_user.id, token=self.superuser_token)
 
         assert response.status_code == 200
         assert PasswordResetToken.objects.filter(user=self.target_user).count() == 2
         data = json.loads(response.content)
         assert not data['url'].endswith('token=used-token')
 
-    def test_creates_new_token_when_existing_is_expired(self, client):
+    def test_creates_new_token_when_existing_is_expired(self):
         """Test that a new token is created when the existing one has expired."""
         expired = PasswordResetToken.objects.create(user=self.target_user, token='expired-token')
         PasswordResetToken.objects.filter(pk=expired.pk).update(
             created_at=timezone.now() - timedelta(minutes=1000)
         )
 
-        response = self._post(client, self.target_user.id, token=self.superuser_token)
+        response = self._post(self.client, self.target_user.id, token=self.superuser_token)
 
         assert response.status_code == 200
         assert PasswordResetToken.objects.filter(user=self.target_user).count() == 2
         data = json.loads(response.content)
         assert not data['url'].endswith('token=expired-token')
 
-    def test_does_not_send_email(self, client):
+    def test_does_not_send_email(self):
         """Test that no email is ever sent by this endpoint."""
-        response = self._post(client, self.target_user.id, token=self.superuser_token)
+        response = self._post(self.client, self.target_user.id, token=self.superuser_token)
         assert response.status_code == 200
         assert mail.outbox == []
 
-    def test_url_by_name(self, client):
+    def test_url_by_name(self):
         """Test that the view is accessible by URL name."""
         url = reverse('staff-user-recovery-link', kwargs={'user_id': self.target_user.id})
-        response = client.post(url, HTTP_AUTHORIZATION=f'Token {self.superuser_token.key}')
+        response = self.client.post(url, HTTP_AUTHORIZATION=f'Token {self.superuser_token.key}')
         assert response.status_code == 200

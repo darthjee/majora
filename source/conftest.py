@@ -2,4 +2,4 @@
 
 import os
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'majora_project.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'majora_project.settings_test')
