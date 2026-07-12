@@ -64,7 +64,7 @@ implying ownership. A treasure can simultaneously be M2M-linked to several games
 exclusively owned (via the `game` FK) by at most one of them, or none. Only that owning
 game's GameMaster (or a superuser) may create or edit a game-exclusive treasure through the
 game-scoped endpoints; the pre-existing global treasure endpoints remain superuser-only
-regardless of a treasure's `game`. See `access-control.md`'s "Treasure" section for the full
+regardless of a treasure's `game`. See [access-control/treasure.md](access-control/treasure.md) for the full
 endpoint and permission breakdown.
 
 ---
@@ -111,8 +111,8 @@ Staff accounts (`is_staff` or `is_superuser`) may list, view, and edit the `name
 (`username`) and `email` of any `User` account, and may generate a password-recovery link
 for any user without needing access to that user's email inbox. This is strictly
 **additive**: `is_staff` grants authority only over this User-management surface, never
-any other Superuser-only capability described elsewhere in this document or in
-`access-control.md` (e.g. Treasure management).
+any other Superuser-only capability described elsewhere in this document or in the
+[access-control](access-control.md) reference (e.g. [Treasure](access-control/treasure.md) management).
 
 ---
 
