@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import HeaderController from './controllers/HeaderController.js';
 import HeaderViewAsController from './controllers/HeaderViewAsController.js';
 import HeaderHelper from './helpers/HeaderHelper.jsx';
@@ -19,6 +19,7 @@ export default function Header() {
   const [route, setRoute] = useState(() => new HeaderController().getRoute());
   const [canViewAs, setCanViewAs] = useState(false);
   const [showViewAsModal, setShowViewAsModal] = useState(false);
+  const lastLoggedInRef = useRef(loggedIn);
 
   const controller = new HeaderController(
     setLoggedIn,
@@ -38,7 +39,18 @@ export default function Header() {
     viewAsController.checkAvailability();
     controller.startHealthCheck();
 
-    const handleAuthChanged = (event) => setLoggedIn(Boolean(event.detail?.loggedIn));
+    const handleAuthChanged = (event) => {
+      const newLoggedIn = Boolean(event.detail?.loggedIn);
+
+      setLoggedIn(newLoggedIn);
+
+      if (newLoggedIn === lastLoggedInRef.current) {
+        return;
+      }
+
+      lastLoggedInRef.current = newLoggedIn;
+      controller.recheckAuthState(viewAsController);
+    };
 
     AuthEvents.subscribe(handleAuthChanged);
 
