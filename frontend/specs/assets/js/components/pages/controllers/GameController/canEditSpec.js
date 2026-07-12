@@ -9,7 +9,8 @@ describe('GameController', function() {
   });
 
   it('merges can_edit from AccessStore onto the game object', async function() {
-    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: true }));
+    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
+    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
     const setGame = jasmine.createSpy('setGame');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
@@ -31,7 +32,8 @@ describe('GameController', function() {
   });
 
   it('sets can_edit to false when AccessStore resolves with the fail-closed default', async function() {
-    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
+    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
     const setGame = jasmine.createSpy('setGame');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');

@@ -21,6 +21,7 @@ describe('GameNpcsController', function() {
       pagination: { page: 2, pages: 3, perPage: 4 },
     }));
     spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
     const cleanup = new GameNpcsController(
       setNpcs,
@@ -55,6 +56,7 @@ describe('GameNpcsController', function() {
     client.currentHash.and.returnValue('#/games/demo/npcs');
     client.fetchIndex.and.returnValue(Promise.resolve({ data: publicNpcs, pagination }));
     spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
     const cleanup = new GameNpcsController(
       setNpcs, setPagination, setLoading, setError, client, characterClient, undefined,
@@ -87,6 +89,7 @@ describe('GameNpcsController', function() {
       headers: { get: (key) => authHeaders[key] ?? null },
     }));
     spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
     AuthStorage.setToken('mytoken');
 
     const cleanup = new GameNpcsController(
@@ -124,6 +127,7 @@ describe('GameNpcsController', function() {
       headers: { get: (key) => authHeaders[key] ?? null },
     }));
     spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
     AuthStorage.setToken('mytoken');
 
     const cleanup = new GameNpcsController(
@@ -160,6 +164,7 @@ describe('GameNpcsController', function() {
       headers: { get: (key) => authHeaders[key] ?? null },
     }));
     spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
     AuthStorage.setToken('mytoken');
 
     const cleanup = new GameNpcsController(
@@ -193,6 +198,7 @@ describe('GameNpcsController', function() {
       json: () => Promise.resolve({ error: 'Unauthorized' }),
     }));
     spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
     AuthStorage.setToken('mytoken');
 
     const cleanup = new GameNpcsController(
@@ -221,6 +227,7 @@ describe('GameNpcsController', function() {
     client.fetchIndex.and.returnValue(Promise.resolve({ data: publicNpcs, pagination }));
     characterClient.fetchNpcsAll.and.returnValue(Promise.reject(new Error('network error')));
     spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
     AuthStorage.setToken('mytoken');
 
     const cleanup = new GameNpcsController(

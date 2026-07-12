@@ -65,8 +65,8 @@ export default class GameTreasureEditController extends BaseEditController {
     const { game_slug: gameSlug, treasure_id: treasureId } =
       GameTreasureEditController.getGameTreasureEditParamsFromHash(hash);
 
-    AccessStore.ensureGameAccess(gameSlug)
-      .then((access) => this.#handleAccess(access, gameSlug, treasureId, safeSet))
+    AccessStore.ensureGamePermissions(gameSlug)
+      .then((permissions) => this.#handlePermissions(permissions, gameSlug, treasureId, safeSet))
       .catch(() => this.redirectTo(`/games/${gameSlug}/treasures`));
   }
 
@@ -113,8 +113,8 @@ export default class GameTreasureEditController extends BaseEditController {
     return payload;
   }
 
-  #handleAccess(access, gameSlug, treasureId, safeSet) {
-    if (!access.can_edit) {
+  #handlePermissions(permissions, gameSlug, treasureId, safeSet) {
+    if (!permissions.can_edit) {
       this.redirectTo(`/games/${gameSlug}/treasures`);
       return;
     }

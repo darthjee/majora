@@ -19,8 +19,8 @@ describe('BaseCharacterEditController', function() {
 
   describe('#buildEffect', function() {
     it('delegates to the load controller buildEffect', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess')
-        .and.returnValue(Promise.resolve({ can_edit: true, is_player: false }));
+      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ is_player: false }));
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
       const fullCharacterClient = jasmine.createSpyObj('characterClient', [
         'fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'updateCharacter',
       ]);

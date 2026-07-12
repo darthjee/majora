@@ -117,7 +117,7 @@ export default class BaseCharacterPhotosController extends BasePageController {
       return Promise.resolve();
     }
 
-    return AccessStore.ensureCharacterAccess(this.characterKind, gameSlug, characterId)
-      .then((access) => safeSet(this.setCharacter, { ...character, ...access }));
+    return AccessStore.ensureCharacterPermissions(this.characterKind, gameSlug, characterId)
+      .then((permissions) => safeSet(this.setCharacter, { ...character, ...permissions }));
   }
 }

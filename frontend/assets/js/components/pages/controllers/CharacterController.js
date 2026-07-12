@@ -116,9 +116,9 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
-   * Resolve the character's access permissions through {@link AccessStore} and merge
-   * the result into the character, then load the full character detail if editing is
-   * permitted.
+   * Resolve the character's access identity and edit permissions through
+   * {@link AccessStore} and merge the results into the character, then load
+   * the full character detail if editing is permitted.
    *
    * @param {object} character - Base character data already loaded.
    * @param {object} params - Route params with game_slug and character_id.
@@ -127,8 +127,13 @@ export default class CharacterController extends BasePageController {
    * @returns {Promise<void>} Resolves once the character state is updated.
    */
   fetchAndMergeAccess(character, params, token, safeSet) {
-    return AccessStore.ensureCharacterAccess(this.characterKind, params.game_slug, params.character_id)
-      .then((access) => ({ ...character, can_edit: access.can_edit, is_player: access.is_player }))
+    return Promise.all([
+      AccessStore.ensureCharacterAccess(this.characterKind, params.game_slug, params.character_id),
+      AccessStore.ensureCharacterPermissions(this.characterKind, params.game_slug, params.character_id),
+    ])
+      .then(([access, permissions]) => (
+        { ...character, can_edit: permissions.can_edit, is_player: access.is_player }
+      ))
       .then((characterWithAccess) => this.loadFullCharacter(characterWithAccess, params, token, safeSet));
   }
 

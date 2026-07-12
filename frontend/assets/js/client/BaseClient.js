@@ -25,10 +25,10 @@ export default class BaseClient {
    * @returns {Promise<Response>} The fetch response.
    */
   async request(path, { method = 'GET', headers = {}, body, signal } = {}) {
-    const pathname = path.split('?')[0];
+    const [pathname, search = ''] = path.split('?');
     const finalHeaders = { ...headers };
 
-    if (this.#shouldSkipCache(method, pathname)) {
+    if (this.#shouldSkipCache(method, pathname, search)) {
       finalHeaders['X-Skip-Cache'] = 'true';
     }
 
@@ -48,16 +48,24 @@ export default class BaseClient {
   /**
    * Returns true when the request requires the X-Skip-Cache: true header.
    * Always returns true for POST, PATCH, and DELETE methods. For GET
-   * requests, returns true when the pathname matches a configured
-   * skip-cache endpoint or ends with a configured skip-cache suffix.
+   * requests to a `/permissions.json` path, this is role-aware: it returns
+   * true only when no `role` query param is present (a role-simulated
+   * permissions request is cacheable and must not skip cache). For every
+   * other GET request, returns true when the pathname matches a configured
+   * skip-cache endpoint or ends with a configured skip-cache suffix
+   * (`/access.json` unconditionally, among others).
    *
    * @param {string} method - The HTTP method (GET, POST, PATCH, DELETE, etc.).
    * @param {string} pathname - The request pathname without query string.
+   * @param {string} search - The request query string, without the leading `?`.
    * @returns {boolean} Whether the X-Skip-Cache header should be added.
    */
-  #shouldSkipCache(method, pathname) {
+  #shouldSkipCache(method, pathname, search) {
     if (method === 'POST' || method === 'PATCH' || method === 'DELETE') {
       return true;
+    }
+    if (pathname.endsWith('/permissions.json')) {
+      return !new URLSearchParams(search).has('role');
     }
     const matchesSuffix = [...SKIP_CACHE_SUFFIXES].some(
       (suffix) => pathname.endsWith(suffix)
@@ -97,6 +105,27 @@ export default class BaseClient {
       ...(token ? { Authorization: `Token ${token}` } : {}),
       ...extraHeaders,
     };
+  }
+
+  /**
+   * Build a query string that serializes each role as a repeated `role=`
+   * param (e.g. `?role=dm&role=player`), used by `fetch*Permissions` methods
+   * to request role-simulated permissions instead of the requester's own
+   * identity.
+   *
+   * @param {string[]} [roles] - Role names to serialize.
+   * @returns {string} Query string including the leading `?`, or `''` when `roles` is empty.
+   */
+  buildRoleQuery(roles = []) {
+    if (!roles || roles.length === 0) {
+      return '';
+    }
+
+    const params = new URLSearchParams();
+
+    roles.forEach((role) => params.append('role', role));
+
+    return `?${params.toString()}`;
   }
 
   /**

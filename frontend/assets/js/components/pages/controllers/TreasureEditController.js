@@ -67,7 +67,7 @@ export default class TreasureEditController extends BaseEditController {
 
       this.fetchWithAccess(
         this.treasureClient.fetchTreasure(id, token),
-        AccessStore.ensureTreasureAccess(id),
+        AccessStore.ensureTreasurePermissions(id),
         safeSet,
         'Unable to load treasure.',
       );
