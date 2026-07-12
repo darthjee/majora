@@ -85,7 +85,10 @@ export default class GameController extends BasePageController {
   }
 
   #mergeAccess(gameSlug, game) {
-    return AccessStore.ensureGameAccess(gameSlug).then((access) => ({ ...game, ...access }));
+    return Promise.all([
+      AccessStore.ensureGameAccess(gameSlug),
+      AccessStore.ensureGamePermissions(gameSlug),
+    ]).then(([access, permissions]) => ({ ...game, ...access, ...permissions }));
   }
 
   /**

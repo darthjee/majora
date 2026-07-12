@@ -20,75 +20,7 @@ Configuration::buildRule([
             'class'    => 'Tent\\Middlewares\\CacheCleanupMiddleware',
             'location' => './cache',
             'clear'    => ['collection', 'entity'],
-            'custom'   => [
-                '/games/:game_slug/npcs.json' => [
-                    '/games/:game_slug/npcs.json',
-                    '/games/:game_slug/npcs/all.json',
-                ],
-                '/games/:game_slug/npcs/:character_id.json' => [
-                    '/games/:game_slug/npcs.json',
-                    '/games/:game_slug/npcs/all.json',
-                    '/games/:game_slug/npcs/:character_id.json',
-                    '/games/:game_slug/npcs/:character_id/full.json',
-                ],
-                '/games/:game_slug/npcs/:character_id/photo_upload.json' => [
-                    '/games/:game_slug/npcs.json',
-                    '/games/:game_slug/npcs/all.json',
-                    '/games/:game_slug/npcs/:character_id.json',
-                    '/games/:game_slug/npcs/:character_id/full.json',
-                ],
-                '/games/:game_slug/npcs/:character_id/slain.json' => [
-                    '/games/:game_slug/npcs.json',
-                    '/games/:game_slug/npcs/all.json',
-                    '/games/:game_slug/npcs/:character_id.json',
-                    '/games/:game_slug/npcs/:character_id/full.json',
-                ],
-                '/games/:game_slug/pcs/:character_id.json' => [
-                    '/games/:game_slug/pcs.json',
-                    '/games/:game_slug/pcs/:character_id.json',
-                    '/games/:game_slug/pcs/:character_id/full.json',
-                ],
-                '/games/:game_slug/pcs/:character_id/photo_upload.json' => [
-                    '/games/:game_slug/pcs.json',
-                    '/games/:game_slug/pcs/:character_id.json',
-                    '/games/:game_slug/pcs/:character_id/full.json',
-                ],
-                '/games/:game_slug/pcs/:character_id/treasures/acquire.json' => [
-                    '/games/:game_slug/pcs.json',
-                    '/games/:game_slug/pcs/:character_id.json',
-                    '/games/:game_slug/pcs/:character_id/full.json',
-                    '/games/:game_slug/pcs/:character_id/treasures.json',
-                ],
-                '/games/:game_slug/pcs/:character_id/treasures/sell.json' => [
-                    '/games/:game_slug/pcs.json',
-                    '/games/:game_slug/pcs/:character_id.json',
-                    '/games/:game_slug/pcs/:character_id/full.json',
-                    '/games/:game_slug/pcs/:character_id/treasures.json',
-                ],
-                '/games/:game_slug/npcs/:character_id/treasures/acquire.json' => [
-                    '/games/:game_slug/npcs.json',
-                    '/games/:game_slug/npcs/all.json',
-                    '/games/:game_slug/npcs/:character_id.json',
-                    '/games/:game_slug/npcs/:character_id/full.json',
-                    '/games/:game_slug/npcs/:character_id/treasures.json',
-                ],
-                '/games/:game_slug/npcs/:character_id/treasures/sell.json' => [
-                    '/games/:game_slug/npcs.json',
-                    '/games/:game_slug/npcs/all.json',
-                    '/games/:game_slug/npcs/:character_id.json',
-                    '/games/:game_slug/npcs/:character_id/full.json',
-                    '/games/:game_slug/npcs/:character_id/treasures.json',
-                ],
-                '/games/:game_slug/treasures.json' => [
-                    '/games/:game_slug/treasures.json',
-                    '/treasures.json',
-                ],
-                '/games/:game_slug/treasures/:treasure_id.json' => [
-                    '/games/:game_slug/treasures.json',
-                    '/games/:game_slug/treasures/:treasure_id.json',
-                    '/treasures/:treasure_id.json',
-                ],
-            ]
+            'custom'   => $cacheCleanupMap
         ],
         [
             'class' => 'Tent\\Middlewares\\CacheStalenessMiddleware',

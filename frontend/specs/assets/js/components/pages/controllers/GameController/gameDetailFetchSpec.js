@@ -1,10 +1,11 @@
 import GameController from '../../../../../../../assets/js/components/pages/controllers/GameController.js';
 import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
-import { stubEnsureGameAccess } from './support.js';
+import { stubEnsureGameAccess, stubEnsureGamePermissions } from './support.js';
 
 describe('GameController', function() {
   beforeEach(function() {
     stubEnsureGameAccess();
+    stubEnsureGamePermissions();
   });
 
   afterEach(function() {

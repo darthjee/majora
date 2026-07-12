@@ -90,8 +90,8 @@ export default class GamePhotosController extends BasePageController {
       return Promise.resolve();
     }
 
-    return AccessStore.ensureGameAccess(gameSlug)
-      .then((access) => safeSet(this.setGame, { ...game, ...access }))
+    return AccessStore.ensureGamePermissions(gameSlug)
+      .then((permissions) => safeSet(this.setGame, { ...game, ...permissions }))
       .catch(() => safeSet(this.setGame, { ...game, can_edit: false }));
   }
 }
