@@ -86,6 +86,17 @@ character_full_page:
   private_description_label: DM Notes
 character_info:
   role_label: 'Role:'
+character_status_badges:
+  slain: Slain
+  alive: Alive
+  public_slain: Known as Slain
+  public_alive: Known as Alive
+  enemy: Enemy
+  ally: Ally
+  neutral: Neutral
+  public_enemy: Known as Enemy
+  public_ally: Known as Ally
+  public_neutral: Known as Neutral
 character_preview_section:
   see_all: See all {{title}}
 character_treasures_preview:
