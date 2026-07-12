@@ -1,9 +1,11 @@
 import React from 'react';
 import CardAvatar from '../CardAvatar.jsx';
 import ActionsOverlay from '../ActionsOverlay.jsx';
+import InfoBar from '../InfoBar.jsx';
 import Noop from '../../../utils/Noop.js';
 import allegianceBorderClass from '../../../utils/AllegianceBorder.js';
 import SlainSecondaryButtons from './SlainSecondaryButtons.js';
+import InfoBarRules from './InfoBarRules.js';
 
 /**
  * Rendering helper for the CharacterCard element.
@@ -144,7 +146,8 @@ export default class CharacterCardHelper {
 
   /**
    * Render the card's photo, using the upload/slain overlay for NPCs and the
-   * plain avatar image for PCs.
+   * plain avatar image for PCs. Both branches always render the always-visible
+   * info bar (driven by `InfoBarRules`) anchored to the top of the photo.
    *
    * @param {object} character - Character data object.
    * @param {string} characterType - Character type, either 'pc' or 'npc'.
@@ -159,7 +162,12 @@ export default class CharacterCardHelper {
    */
   static #renderPhoto(character, characterType, canEdit, onUploadClick, onSlainClick, onPublicSlainClick, playerOptions) {
     if (characterType !== 'npc') {
-      return <CardAvatar url={character.profile_photo_path} alt={character.name} />;
+      return (
+        <div className="info-bar-anchor">
+          <CardAvatar url={character.profile_photo_path} alt={character.name} />
+          <InfoBar items={InfoBarRules.build(character)} />
+        </div>
+      );
     }
 
     const canUploadPhoto = canEdit || (playerOptions.isPlayer ?? false);
@@ -175,6 +183,7 @@ export default class CharacterCardHelper {
         secondaryButtons={CharacterCardHelper.#buildSecondaryButtons(
           character, canEdit, onSlainClick, onPublicSlainClick, playerOptions,
         )}
+        infoBarItems={InfoBarRules.build(character)}
       />
     );
   }

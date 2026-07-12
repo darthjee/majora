@@ -83,6 +83,20 @@ body {
   }
 }
 
+.info-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  background: none;
+  border: none;
+}
+
+.info-bar-anchor {
+  position: relative;
+}
+
 .photo-grayscale .card-photo-square img {
   filter: grayscale(100%);
 }
