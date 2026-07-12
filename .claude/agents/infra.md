@@ -64,7 +64,7 @@ and the CI jobs that upload proxy files (`upload_proxy_files`).
 **PHP proxy source files (`proxy/`) are owned by the `proxy` agent** — delegate any task
 involving routing rules, custom middleware, or PHP tests to it.
 
-See [docs/agents/HOW_TO_USE_DARTHJEE-TENT.md] for the full Tent configuration reference.
+See [docs/agents/external/HOW_TO_USE_DARTHJEE-TENT.md] for the full Tent configuration reference.
 
 ## Navi cache warmer
 
@@ -86,7 +86,7 @@ Key config points:
 
 When new API endpoints are added to the backend, update `navi_config.yaml` to include them in the warm-up chain.
 
-See [docs/agents/HOW_TO_USE_NAVI.md] for the full Navi reference.
+See [docs/agents/external/HOW_TO_USE_NAVI.md] for the full Navi reference.
 
 ## CircleCI pipeline (.circleci/config.yml)
 

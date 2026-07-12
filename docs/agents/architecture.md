@@ -6,7 +6,7 @@ Majora is structured as two independent applications — a Django REST backend a
 
 ## Tent Proxy (`majora_proxy`)
 
-Tent ([GitHub](https://github.com/darthjee/tent), [Docker Hub](https://hub.docker.com/r/darthjee/tent)) is a PHP-based reverse proxy and static file server. It listens on port 3000 and is the only service exposed to end users. See [HOW_TO_USE_DARTHJEE-TENT.md](HOW_TO_USE_DARTHJEE-TENT.md) for the full configuration reference.
+Tent ([GitHub](https://github.com/darthjee/tent), [Docker Hub](https://hub.docker.com/r/darthjee/tent)) is a PHP-based reverse proxy and static file server. It listens on port 3000 and is the only service exposed to end users. See [HOW_TO_USE_DARTHJEE-TENT.md](external/HOW_TO_USE_DARTHJEE-TENT.md) for the full configuration reference.
 
 All proxy-related files live under the top-level `proxy/` directory:
 
