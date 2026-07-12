@@ -1,6 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterCardHelper from '../../../../../../assets/js/components/elements/helpers/CharacterCardHelper.jsx';
 import ActionsOverlay from '../../../../../../assets/js/components/elements/ActionsOverlay.jsx';
+import InfoBar from '../../../../../../assets/js/components/elements/InfoBar.jsx';
+import InfoBarRules from '../../../../../../assets/js/components/elements/helpers/InfoBarRules.js';
 import { buildCharacter } from '../../../../../support/factories.js';
 
 const findElement = (node, matcher) => {
@@ -243,6 +245,20 @@ describe('CharacterCardHelper', function() {
       const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
       expect(overlay.props.secondaryButtons).toEqual([]);
+    });
+
+    it('threads InfoBarRules.build(character) as infoBarItems for NPCs', function() {
+      const element = CharacterCardHelper.render(character, gameSlug, 'npc');
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
+
+      expect(overlay.props.infoBarItems).toEqual(InfoBarRules.build(character));
+    });
+
+    it('renders an InfoBar with InfoBarRules.build(character) items for PCs', function() {
+      const element = CharacterCardHelper.render(character, gameSlug, 'pc');
+      const infoBar = findElement(element, (child) => child.type === InfoBar);
+
+      expect(infoBar.props.items).toEqual(InfoBarRules.build(character));
     });
   });
 });
