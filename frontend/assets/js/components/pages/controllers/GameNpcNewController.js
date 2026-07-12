@@ -44,8 +44,8 @@ export default class GameNpcNewController extends BasePageController {
       const hash = typeof window === 'undefined' ? '' : window.location.hash;
       const gameSlug = GameNpcNewController.getGameSlugFromNpcNewHash(hash);
 
-      AccessStore.ensureGameAccess(gameSlug)
-        .then((access) => this.#redirectIfNotAllowed(access, gameSlug))
+      AccessStore.ensureGamePermissions(gameSlug)
+        .then((permissions) => this.#redirectIfNotAllowed(permissions, gameSlug))
         .catch(() => this.#redirectToNpcs(gameSlug));
     };
   }
@@ -92,8 +92,8 @@ export default class GameNpcNewController extends BasePageController {
     }
   }
 
-  #redirectIfNotAllowed(access, gameSlug) {
-    if (!access.can_edit) {
+  #redirectIfNotAllowed(permissions, gameSlug) {
+    if (!permissions.can_edit) {
       this.#redirectToNpcs(gameSlug);
     }
   }

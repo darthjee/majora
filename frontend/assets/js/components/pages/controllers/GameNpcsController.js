@@ -94,9 +94,12 @@ export default class GameNpcsController extends BasePageController {
   }
 
   #fetchAccess(gameSlug, safeSet) {
-    AccessStore.ensureGameAccess(gameSlug)
-      .then((access) => {
-        safeSet(this.setCanEdit, Boolean(access.can_edit));
+    Promise.all([
+      AccessStore.ensureGameAccess(gameSlug),
+      AccessStore.ensureGamePermissions(gameSlug),
+    ])
+      .then(([access, permissions]) => {
+        safeSet(this.setCanEdit, Boolean(permissions.can_edit));
         safeSet(this.setIsPlayer, Boolean(access.is_player));
       })
       .catch(() => {

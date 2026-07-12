@@ -16,7 +16,7 @@ describe('GameSessionsController', function() {
       data: [],
       pagination: { page: 1, pages: 1, perPage: 10 },
     }));
-    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: true }));
+    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
     const cleanup = new GameSessionsController(
       setSessions,
@@ -46,7 +46,7 @@ describe('GameSessionsController', function() {
       data: [],
       pagination: { page: 1, pages: 1, perPage: 10 },
     }));
-    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
     const cleanup = new GameSessionsController(
       setSessions,
@@ -76,7 +76,7 @@ describe('GameSessionsController', function() {
       data: [],
       pagination: { page: 1, pages: 1, perPage: 10 },
     }));
-    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.reject(new Error('network error')));
+    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.reject(new Error('network error')));
 
     const cleanup = new GameSessionsController(
       setSessions,

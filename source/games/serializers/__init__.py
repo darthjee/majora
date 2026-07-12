@@ -1,6 +1,7 @@
 """Serializers package for the games app."""
 
 from games.serializers.base_access import BaseAccessSerializer
+from games.serializers.base_permissions import BasePermissionsSerializer
 from games.serializers.character_access import CharacterAccessSerializer
 from games.serializers.character_create import CharacterCreateSerializer
 from games.serializers.character_detail import CharacterDetailSerializer
@@ -9,6 +10,7 @@ from games.serializers.character_full_list import CharacterFullListSerializer
 from games.serializers.character_link import CharacterLinkSerializer
 from games.serializers.character_link_write import CharacterLinkWriteSerializer
 from games.serializers.character_list import CharacterListSerializer
+from games.serializers.character_permissions import CharacterPermissionsSerializer
 from games.serializers.character_photo import CharacterPhotoSerializer
 from games.serializers.character_treasure import CharacterTreasureSerializer
 from games.serializers.character_update import CharacterUpdateSerializer
@@ -17,6 +19,7 @@ from games.serializers.game_create import GameCreateSerializer
 from games.serializers.game_detail import GameDetailSerializer
 from games.serializers.game_list import GameListSerializer
 from games.serializers.game_master import GameMasterSerializer
+from games.serializers.game_permissions import GamePermissionsSerializer
 from games.serializers.game_photo import GamePhotoSerializer
 from games.serializers.game_session_create import GameSessionCreateSerializer
 from games.serializers.game_session_detail import GameSessionDetailSerializer
@@ -40,10 +43,12 @@ from games.serializers.treasure_access import TreasureAccessSerializer
 from games.serializers.treasure_create import TreasureCreateSerializer
 from games.serializers.treasure_detail import TreasureDetailSerializer
 from games.serializers.treasure_list import TreasureListSerializer
+from games.serializers.treasure_permissions import TreasurePermissionsSerializer
 from games.serializers.treasure_update import TreasureUpdateSerializer
 
 __all__ = [
     'BaseAccessSerializer',
+    'BasePermissionsSerializer',
     'CharacterAccessSerializer',
     'CharacterCreateSerializer',
     'CharacterDetailSerializer',
@@ -52,6 +57,7 @@ __all__ = [
     'CharacterLinkSerializer',
     'CharacterLinkWriteSerializer',
     'CharacterListSerializer',
+    'CharacterPermissionsSerializer',
     'CharacterPhotoSerializer',
     'CharacterTreasureSerializer',
     'CharacterUpdateSerializer',
@@ -60,6 +66,7 @@ __all__ = [
     'GameDetailSerializer',
     'GameListSerializer',
     'GameMasterSerializer',
+    'GamePermissionsSerializer',
     'GamePhotoSerializer',
     'GameSessionCreateSerializer',
     'GameSessionDetailSerializer',
@@ -83,5 +90,6 @@ __all__ = [
     'TreasureCreateSerializer',
     'TreasureDetailSerializer',
     'TreasureListSerializer',
+    'TreasurePermissionsSerializer',
     'TreasureUpdateSerializer',
 ]

@@ -234,3 +234,47 @@ class TestCharacter:
         superuser = SuperUserFactory(username='admin', password='secret-password')
         character = CharacterFactory(name='Frodo', game=self.game)
         assert character.is_editor(superuser) is False
+
+
+@pytest.mark.django_db
+class TestCharacterCanBeEditedByRoles:
+    """Tests for Character.can_be_edited_by_roles()."""
+
+    def setup_method(self):
+        """Set up a game for testing."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+
+    def test_superuser_role_can_edit_pc(self):
+        """Test that the superuser role may edit a PC."""
+        pc = CharacterFactory(name='Aragorn', game=self.game, npc=False)
+        assert pc.can_be_edited_by_roles(is_superuser=True, is_dm=False, is_owner=False) is True
+
+    def test_dm_role_can_edit_pc(self):
+        """Test that the dm role may edit a PC."""
+        pc = CharacterFactory(name='Aragorn', game=self.game, npc=False)
+        assert pc.can_be_edited_by_roles(is_superuser=False, is_dm=True, is_owner=False) is True
+
+    def test_owner_role_can_edit_pc(self):
+        """Test that the owner role may edit a PC."""
+        pc = CharacterFactory(name='Aragorn', game=self.game, npc=False)
+        assert pc.can_be_edited_by_roles(is_superuser=False, is_dm=False, is_owner=True) is True
+
+    def test_no_roles_cannot_edit_pc(self):
+        """Test that no matching role may not edit a PC."""
+        pc = CharacterFactory(name='Aragorn', game=self.game, npc=False)
+        assert pc.can_be_edited_by_roles(is_superuser=False, is_dm=False, is_owner=False) is False
+
+    def test_superuser_role_can_edit_npc(self):
+        """Test that the superuser role may edit an NPC."""
+        npc = CharacterFactory(name='Gandalf', game=self.game, npc=True)
+        assert npc.can_be_edited_by_roles(is_superuser=True, is_dm=False, is_owner=False) is True
+
+    def test_dm_role_can_edit_npc(self):
+        """Test that the dm role may edit an NPC."""
+        npc = CharacterFactory(name='Gandalf', game=self.game, npc=True)
+        assert npc.can_be_edited_by_roles(is_superuser=False, is_dm=True, is_owner=False) is True
+
+    def test_owner_role_is_a_no_op_for_npc(self):
+        """Test that the owner role never flips can_edit to True for an NPC."""
+        npc = CharacterFactory(name='Gandalf', game=self.game, npc=True)
+        assert npc.can_be_edited_by_roles(is_superuser=False, is_dm=False, is_owner=True) is False

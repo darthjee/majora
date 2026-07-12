@@ -44,8 +44,8 @@ export default class GameSessionNewController extends BasePageController {
       const hash = typeof window === 'undefined' ? '' : window.location.hash;
       const gameSlug = GameSessionNewController.getGameSlugFromSessionNewHash(hash);
 
-      AccessStore.ensureGameAccess(gameSlug)
-        .then((access) => this.#redirectIfNotAllowed(access, gameSlug))
+      AccessStore.ensureGamePermissions(gameSlug)
+        .then((permissions) => this.#redirectIfNotAllowed(permissions, gameSlug))
         .catch(() => this.#redirectToSessions(gameSlug));
     };
   }
@@ -84,8 +84,8 @@ export default class GameSessionNewController extends BasePageController {
     }
   }
 
-  #redirectIfNotAllowed(access, gameSlug) {
-    if (!access.can_edit) {
+  #redirectIfNotAllowed(permissions, gameSlug) {
+    if (!permissions.can_edit) {
       this.#redirectToSessions(gameSlug);
     }
   }

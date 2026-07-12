@@ -53,7 +53,7 @@ export default class GameEditController extends BaseEditController {
 
     this.fetchWithAccess(
       this.gameClient.fetchGame(gameSlug, token),
-      AccessStore.ensureGameAccess(gameSlug),
+      AccessStore.ensureGamePermissions(gameSlug),
       safeSet,
       'Unable to load game.',
     );

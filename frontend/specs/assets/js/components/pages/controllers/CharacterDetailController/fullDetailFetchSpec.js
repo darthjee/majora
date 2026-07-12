@@ -9,8 +9,8 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
     });
 
     it('fetches full detail and merges private_description when can_edit is true', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess')
-        .and.returnValue(Promise.resolve({ can_edit: true, is_player: false }));
+      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ is_player: false }));
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -45,8 +45,8 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
     });
 
     it('does not fetch full detail when can_edit is false', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess')
-        .and.returnValue(Promise.resolve({ can_edit: false, is_player: false }));
+      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ is_player: false }));
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -75,8 +75,8 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
     });
 
     it('falls back to character without private_description when full fetch fails', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess')
-        .and.returnValue(Promise.resolve({ can_edit: true, is_player: false }));
+      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ is_player: false }));
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');

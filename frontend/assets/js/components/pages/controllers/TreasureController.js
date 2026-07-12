@@ -65,9 +65,9 @@ export default class TreasureController extends BasePageController {
       this.treasureClient.fetchTreasure(id, token).then((response) => (response.ok
         ? response.json()
         : Promise.reject(new Error('treasure failed')))),
-      AccessStore.ensureTreasureAccess(id),
+      AccessStore.ensureTreasurePermissions(id),
     ])
-      .then(([treasure, access]) => safeSet(this.setTreasure, { ...treasure, ...access }))
+      .then(([treasure, permissions]) => safeSet(this.setTreasure, { ...treasure, ...permissions }))
       .catch(() => safeSet(this.setError, 'Unable to load treasure.'))
       .finally(() => safeSet(this.setLoading, false));
   }

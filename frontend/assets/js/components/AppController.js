@@ -3,6 +3,7 @@ import HashRouteResolver from '../utils/HashRouteResolver.js';
 import LanguageEvents from '../i18n/LanguageEvents.js';
 import AuthEvents from '../utils/AuthEvents.js';
 import AccessStore from '../utils/AccessStore.js';
+import AccessRouteConfigStore from '../utils/AccessRouteConfigStore.js';
 
 /**
  * Controller for application-level hash routing.
@@ -29,6 +30,7 @@ export default class AppController {
     this.setHash = setHash;
     this.setLang = setLang;
     this.routeResolver = new HashRouteResolver(hashProvider);
+    AccessRouteConfigStore.load();
   }
 
   /**

@@ -52,6 +52,22 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
+   * Fetches the edit permissions for a character.
+   *
+   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {AbortSignal} [signal] - Optional abort signal for the request.
+   * @param {string[]} [roles] - Roles to simulate instead of the requester's own identity
+   *   (serialized as repeated `role=` query params). Defaults to the requester's real identity.
+   * @returns {Promise<Response>} fetch response from the character permissions endpoint.
+   */
+  fetchCharacterPermissions(characterKind, gameSlug, characterId, token, signal, roles = []) {
+    return this.#fetchCharacter(characterKind, gameSlug, characterId, token, 'permissions', signal, roles);
+  }
+
+  /**
    * Fetches a page of the character's treasures.
    *
    * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
@@ -211,11 +227,13 @@ export default class CharacterClient extends BaseClient {
     return this.patchJson(`/games/${gameSlug}/npcs/${characterId}.json`, token, { slain });
   }
 
-  #fetchCharacter(characterKind, gameSlug, characterId, token, suffix = null, signal) {
+  #fetchCharacter(characterKind, gameSlug, characterId, token, suffix = null, signal, roles = []) {
     const base = `/games/${gameSlug}/${characterKind}/${characterId}`;
     const path = suffix ? `${base}/${suffix}.json` : `${base}.json`;
     const skipCache = characterKind === 'npcs' && (suffix === null || suffix === 'treasures');
 
-    return this.getJson(path, token, skipCache ? { 'X-Skip-Cache': 'true' } : {}, signal);
+    return this.getJson(
+      `${path}${this.buildRoleQuery(roles)}`, token, skipCache ? { 'X-Skip-Cache': 'true' } : {}, signal,
+    );
   }
 }

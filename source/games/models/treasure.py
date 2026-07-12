@@ -25,8 +25,23 @@ class Treasure(models.Model):
         ordering = ['id']
 
     def can_be_edited_by(self, user):
-        """Return True if `user` may edit this treasure (superuser only)."""
+        """Return True if `user` may edit this treasure (superuser only).
+
+        See `can_be_edited_by_roles` for the role-simulated counterpart of this rule. Note
+        this method alone does not capture the full `can_edit` picture for a game-exclusive
+        treasure — see `TreasureAccessSerializer`/`TreasurePermissionsSerializer`, which also
+        consult the owning game's own edit rule.
+        """
         return bool(user and user.is_authenticated and user.is_superuser)
+
+    def can_be_edited_by_roles(self, is_superuser, is_dm):
+        """Return True if a role-simulated caller may edit this treasure.
+
+        Preserves the dual-path logic from `TreasureAccessSerializer._get_can_edit` (issue
+        #296): a global treasure (no owning game) is superuser-only even under simulation;
+        only a game-exclusive treasure's `dm` role matters in addition.
+        """
+        return is_superuser or (self.game_id is not None and is_dm)
 
     def __str__(self):
         """Return string representation of the treasure."""

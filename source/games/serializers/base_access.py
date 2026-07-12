@@ -16,7 +16,6 @@ class BaseAccessSerializer(serializers.Serializer):
     def to_representation(self, obj):
         """Build the access response dict for the given object (may be None)."""
         return {
-            'can_edit': self._get_can_edit(obj),
             'username': self._get_username(),
             'is_superuser': self._get_is_superuser(),
             'is_staff': self._get_is_staff(),
@@ -87,7 +86,3 @@ class BaseAccessSerializer(serializers.Serializer):
     def _get_is_owner(self, obj):
         """Return whether the requesting user owns obj; False by default (no owner concept)."""
         return False
-
-    def _get_can_edit(self, obj):
-        """Return whether the requesting user may edit obj; subclasses must implement this."""
-        raise NotImplementedError

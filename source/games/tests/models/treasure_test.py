@@ -92,3 +92,36 @@ class TestTreasureCanBeEditedBy:
     def test_anonymous_user_cannot_edit(self):
         """Test that an anonymous user returns False."""
         assert self.treasure.can_be_edited_by(AnonymousUser()) is False
+
+
+@pytest.mark.django_db
+class TestTreasureCanBeEditedByRoles:
+    """Tests for Treasure.can_be_edited_by_roles()."""
+
+    def test_superuser_role_can_edit_global_treasure(self):
+        """Test that the superuser role may edit a global treasure."""
+        treasure = TreasureFactory(name='Magic Ring', value=300)
+        assert treasure.can_be_edited_by_roles(is_superuser=True, is_dm=False) is True
+
+    def test_dm_role_is_a_no_op_for_global_treasure(self):
+        """Test that the dm role never flips can_edit to True for a global treasure."""
+        treasure = TreasureFactory(name='Magic Ring', value=300)
+        assert treasure.can_be_edited_by_roles(is_superuser=False, is_dm=True) is False
+
+    def test_superuser_role_can_edit_game_exclusive_treasure(self):
+        """Test that the superuser role may edit a game-exclusive treasure."""
+        game = GameFactory(name='Test Game', game_slug='test-game')
+        treasure = TreasureFactory(name='Game Gem', value=10, game=game)
+        assert treasure.can_be_edited_by_roles(is_superuser=True, is_dm=False) is True
+
+    def test_dm_role_can_edit_game_exclusive_treasure(self):
+        """Test that the dm role may edit a game-exclusive treasure."""
+        game = GameFactory(name='Test Game', game_slug='test-game')
+        treasure = TreasureFactory(name='Game Gem', value=10, game=game)
+        assert treasure.can_be_edited_by_roles(is_superuser=False, is_dm=True) is True
+
+    def test_no_roles_cannot_edit_game_exclusive_treasure(self):
+        """Test that no matching role may not edit a game-exclusive treasure."""
+        game = GameFactory(name='Test Game', game_slug='test-game')
+        treasure = TreasureFactory(name='Game Gem', value=10, game=game)
+        assert treasure.can_be_edited_by_roles(is_superuser=False, is_dm=False) is False

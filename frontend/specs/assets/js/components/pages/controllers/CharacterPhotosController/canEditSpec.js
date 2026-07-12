@@ -12,7 +12,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
     });
 
     it('merges can_edit from AccessStore onto the character object', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: true }));
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
       const setPhotos = jasmine.createSpy('setPhotos');
       const setPagination = jasmine.createSpy('setPagination');
       const setCharacter = jasmine.createSpy('setCharacter');
@@ -30,7 +30,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(AccessStore.ensureCharacterAccess).toHaveBeenCalledWith(kind, 'demo', '7');
+      expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith(kind, 'demo', '7');
       expect(setCharacter).toHaveBeenCalledWith(
         jasmine.objectContaining({ name: 'Aragorn', can_edit: true }),
       );
@@ -87,7 +87,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
     });
 
     it('sets can_edit to false when AccessStore resolves with the fail-closed default', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
       const setPhotos = jasmine.createSpy('setPhotos');
       const setPagination = jasmine.createSpy('setPagination');
       const setCharacter = jasmine.createSpy('setCharacter');

@@ -2,12 +2,23 @@ import AppController from '../../../../assets/js/components/AppController.js';
 import LanguageEvents from '../../../../assets/js/i18n/LanguageEvents.js';
 import AuthEvents from '../../../../assets/js/utils/AuthEvents.js';
 import AccessStore from '../../../../assets/js/utils/AccessStore.js';
+import AccessRouteConfigStore from '../../../../assets/js/utils/AccessRouteConfigStore.js';
 import Noop from '../../../../assets/js/utils/Noop.js';
 
 describe('AppController', function() {
   beforeEach(function() {
     spyOn(AccessStore, 'syncForRoute');
     spyOn(AccessStore, 'syncForAuthChange');
+    spyOn(AccessRouteConfigStore, 'load');
+  });
+
+  it('fetches the resource-kind config once, on construction', function() {
+    const eventTarget = jasmine.createSpyObj('eventTarget', ['addEventListener', 'removeEventListener']);
+
+     
+    new AppController(Noop.noop, eventTarget, () => '#/games');
+
+    expect(AccessRouteConfigStore.load).toHaveBeenCalled();
   });
 
   it('resolves page from current hash', function() {

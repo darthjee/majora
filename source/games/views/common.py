@@ -108,3 +108,48 @@ def access_response(serializer_cls, obj, request, context_extra=None):
     response = Response(serializer.data)
     response['X-Skip-Cache'] = 'true'
     return response
+
+
+def parse_role_booleans(request):
+    """Parse the `role` query param(s) into simulated-identity booleans, or None if absent.
+
+    Reads `request.query_params.getlist('role')`, handling both `?role=dm` and repeated
+    `?role=dm&role=player`. Recognizes `dm`, `player`, `owner`, `superuser`, `staff`; only
+    `dm`, `owner`, and `superuser` actually influence any `can_be_edited_by_roles`
+    computation — `player`/`staff` are accepted but silently have no effect, same tolerant,
+    no-400-on-a-typo convention already used by `?allegiance=`/`?slain=` elsewhere in this
+    codebase. Returns `None` when no `role` param was sent at all, signaling "use the real
+    requester's identity instead" — a `role` param with only unrecognized values still
+    switches to the role-simulated path (with every boolean False), it just never falls
+    back to the real identity.
+    """
+    roles = request.query_params.getlist('role')
+    if not roles:
+        return None
+    return {
+        'is_superuser': 'superuser' in roles,
+        'is_dm': 'dm' in roles,
+        'is_owner': 'owner' in roles,
+    }
+
+
+def permissions_response(serializer_cls, obj, request, role_booleans, context_extra=None):
+    """Build the shared "permissions" Response: serialize `obj`, honoring the cache contract.
+
+    Without a `role` param (`role_booleans` is `None`), mirrors `access_response`: the result
+    is tied to the real requester's identity, so `X-Skip-Cache: true` is set. With a `role`
+    param, the result is identity-independent and cacheable regardless of the real caller's
+    own auth state — `X-Force-Public-Cache: true` is set instead, telling
+    `CacheControlMiddleware` to use the public/anonymous cache tier even if the real
+    requester happens to be authenticated.
+    """
+    context = {'request': request, 'roles': role_booleans}
+    if context_extra:
+        context.update(context_extra)
+    serializer = serializer_cls(obj, context=context)
+    response = Response(serializer.data)
+    if role_booleans is None:
+        response['X-Skip-Cache'] = 'true'
+    else:
+        response['X-Force-Public-Cache'] = 'true'
+    return response

@@ -31,7 +31,8 @@ describe('GameNpcsController', function() {
     it('sets isPlayer to true when the game access response reports is_player', async function() {
       const setIsPlayer = jasmine.createSpy('setIsPlayer');
 
-      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false, is_player: true }));
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ is_player: true }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
       const cleanup = buildController(setIsPlayer).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -45,7 +46,8 @@ describe('GameNpcsController', function() {
     it('sets isPlayer to false when the access resolves without is_player', async function() {
       const setIsPlayer = jasmine.createSpy('setIsPlayer');
 
-      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ can_edit: false, is_player: false }));
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ is_player: false }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
       const cleanup = buildController(setIsPlayer).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -59,6 +61,7 @@ describe('GameNpcsController', function() {
       const setIsPlayer = jasmine.createSpy('setIsPlayer');
 
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.reject(new Error('network error')));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.reject(new Error('network error')));
 
       const cleanup = buildController(setIsPlayer).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));

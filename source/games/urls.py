@@ -8,6 +8,11 @@ urlpatterns = [
     path('games.json', views.games_list, name='games-list'),
     path('games/<slug:game_slug>.json', views.game_detail, name='game-detail'),
     path('games/<slug:game_slug>/access.json', views.game_access, name='game-access'),
+    path(
+        'games/<slug:game_slug>/permissions.json',
+        views.game_permissions,
+        name='game-permissions',
+    ),
     path('games/<slug:game_slug>/pcs.json', views.game_pcs, name='game-pcs'),
     path('games/<slug:game_slug>/npcs.json', views.game_npcs, name='game-npcs'),
     path('games/<slug:game_slug>/treasures.json', views.game_treasures, name='game-treasures'),
@@ -80,6 +85,16 @@ urlpatterns = [
         name='game-npc-access',
     ),
     path(
+        'games/<slug:game_slug>/pcs/<int:character_id>/permissions.json',
+        views.game_pc_permissions,
+        name='game-pc-permissions',
+    ),
+    path(
+        'games/<slug:game_slug>/npcs/<int:character_id>/permissions.json',
+        views.game_npc_permissions,
+        name='game-npc-permissions',
+    ),
+    path(
         'games/<slug:game_slug>/pcs/<int:character_id>/photo_upload.json',
         views.game_pc_photo_upload,
         name='game-pc-photo-upload',
@@ -148,6 +163,11 @@ urlpatterns = [
     path('treasures/<int:treasure_id>.json', views.treasure_detail, name='treasure-detail'),
     path('treasures/<int:treasure_id>/access.json', views.treasure_access, name='treasure-access'),
     path(
+        'treasures/<int:treasure_id>/permissions.json',
+        views.treasure_permissions,
+        name='treasure-permissions',
+    ),
+    path(
         'treasures/<int:treasure_id>/photo_upload.json',
         views.treasure_photo_upload,
         name='treasure-photo-upload',
@@ -170,4 +190,9 @@ urlpatterns = [
     path('users/language.json', views.language, name='users-language'),
     path('users/account.json', views.account, name='users-account'),
     path('health.json', views.health, name='health'),
+    path(
+        'access-route-config.json',
+        views.access_route_config,
+        name='access-route-config',
+    ),
 ]

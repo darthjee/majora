@@ -28,6 +28,20 @@ export default class TreasureClient extends BaseClient {
   }
 
   /**
+   * Fetches the edit permissions for a treasure.
+   *
+   * @param {number|string} id - Treasure id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {AbortSignal} [signal] - Optional abort signal for the request.
+   * @param {string[]} [roles] - Roles to simulate instead of the requester's own identity
+   *   (serialized as repeated `role=` query params). Defaults to the requester's real identity.
+   * @returns {Promise<Response>} fetch response from the treasure permissions endpoint.
+   */
+  fetchTreasurePermissions(id, token, signal, roles = []) {
+    return this.getJson(`/treasures/${id}/permissions.json${this.buildRoleQuery(roles)}`, token, {}, signal);
+  }
+
+  /**
    * Creates a new treasure.
    *
    * @param {string|null} token - Authentication token, if any.

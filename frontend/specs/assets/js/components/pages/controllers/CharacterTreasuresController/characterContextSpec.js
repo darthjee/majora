@@ -24,7 +24,7 @@ KINDS.forEach(({ label, Controller, kind, isPc, money }) => {
           ok: true,
           json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
         }));
-        spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: true }));
+        spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
         const cleanup = new Controller(
           jasmine.createSpy('setTreasures'),
@@ -75,7 +75,7 @@ KINDS.forEach(({ label, Controller, kind, isPc, money }) => {
             ok: true,
             json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
           }));
-          spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+          spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
           const cleanup = new Controller(
             jasmine.createSpy('setTreasures'),
