@@ -97,3 +97,29 @@ class TestCacheControlMiddlewareErrorResponses:
         )
         assert response.status_code == 401
         assert response['Cache-Control'] == 'no-store'
+
+
+@pytest.mark.django_db
+class TestCacheControlMiddlewareForcePublicCache:
+    """Middleware forces the public/anonymous cache tier for X-Force-Public-Cache: true."""
+
+    def test_public_cache_control_for_authenticated_caller(self, client):
+        """An authenticated caller still gets public Cache-Control when role-simulated."""
+        user = UserFactory(username='dm_user', password='secret')
+        token = Token.objects.create(user=user)
+        game = GameFactory(name='Force Cache Game', game_slug='force-cache-game')
+        # The game-permissions endpoint sets X-Force-Public-Cache: true only when a
+        # `role` param is present (role-simulated, identity-independent response).
+        response = client.get(
+            f'/games/{game.game_slug}/permissions.json?role=dm',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response['X-Force-Public-Cache'] == 'true'
+        assert response['Cache-Control'] == 'public, max-age=3600'
+
+    def test_public_cache_control_for_anonymous_caller(self, client):
+        """An anonymous caller also gets public Cache-Control when role-simulated."""
+        game = GameFactory(name='Force Cache Game 2', game_slug='force-cache-game-2')
+        response = client.get(f'/games/{game.game_slug}/permissions.json?role=dm')
+        assert response['X-Force-Public-Cache'] == 'true'
+        assert response['Cache-Control'] == 'public, max-age=3600'

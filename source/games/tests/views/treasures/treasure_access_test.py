@@ -26,12 +26,12 @@ class TestTreasureAccessView(TokenAuthRequestMixin):
         """Issue a GET request to the treasure access endpoint, optionally with a token."""
         return self.get(client, f'/treasures/{self.treasure.id}/access.json', token=token)
 
-    def test_unauthenticated_returns_200_with_can_edit_false(self, client):
-        """Test that an unauthenticated request returns 200 with can_edit false."""
-        response = self._get(client)
+    def test_response_does_not_include_can_edit(self, client):
+        """Test that the response never includes can_edit (moved to permissions.json)."""
+        response = self._get(client, token=self.superuser_token)
         assert response.status_code == 200
         data = json.loads(response.content)
-        assert data['can_edit'] is False
+        assert 'can_edit' not in data
 
     def test_unauthenticated_returns_null_user_context_fields(self, client):
         """Test that unauthenticated request returns null for username, is_superuser, is_dm."""
@@ -44,13 +44,6 @@ class TestTreasureAccessView(TokenAuthRequestMixin):
         assert data['is_player'] is False
         assert data['is_owner'] is False
 
-    def test_superuser_returns_200_with_can_edit_true(self, client):
-        """Test that a superuser returns 200 with can_edit true."""
-        response = self._get(client, token=self.superuser_token)
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert data['can_edit'] is True
-
     def test_superuser_returns_correct_user_context_fields(self, client):
         """Test that superuser request returns correct username, is_superuser=True, is_dm=False."""
         response = self._get(client, token=self.superuser_token)
@@ -61,13 +54,6 @@ class TestTreasureAccessView(TokenAuthRequestMixin):
         assert data['is_dm'] is False
         assert data['is_player'] is False
         assert data['is_owner'] is False
-
-    def test_regular_user_returns_200_with_can_edit_false(self, client):
-        """Test that a regular user returns 200 with can_edit false."""
-        response = self._get(client, token=self.regular_token)
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert data['can_edit'] is False
 
     def test_regular_user_returns_correct_user_context_fields(self, client):
         """Test that regular user returns username, is_superuser=False, is_dm/is_owner=False."""
@@ -80,14 +66,14 @@ class TestTreasureAccessView(TokenAuthRequestMixin):
         assert data['is_player'] is False
         assert data['is_owner'] is False
 
-    def test_non_existent_treasure_returns_200_with_can_edit_false(self, client):
-        """Test that a non-existent treasure id returns 200 with can_edit false."""
+    def test_non_existent_treasure_returns_200_without_can_edit(self, client):
+        """Test that a non-existent treasure id returns 200 without a can_edit field."""
         response = self.get(
             client, '/treasures/999999/access.json', token=self.superuser_token
         )
         assert response.status_code == 200
         data = json.loads(response.content)
-        assert data['can_edit'] is False
+        assert 'can_edit' not in data
 
     def test_response_includes_x_skip_cache_header(self, client):
         """Test that the response includes the X-Skip-Cache: true header."""
@@ -100,12 +86,12 @@ class TestTreasureAccessView(TokenAuthRequestMixin):
         response = client.get(url)
         assert response.status_code == 200
 
-    def test_superuser_via_session_returns_can_edit_true(self, client):
-        """Test that a superuser authenticated via session cookie returns can_edit true."""
+    def test_superuser_via_session_returns_is_superuser_true(self, client):
+        """Test that a superuser authenticated via session cookie returns is_superuser true."""
         session = client.session
         session['auth_token'] = self.superuser_token.key
         session.save()
         response = client.get(f'/treasures/{self.treasure.id}/access.json')
         assert response.status_code == 200
         data = json.loads(response.content)
-        assert data['can_edit'] is True
+        assert data['is_superuser'] is True
