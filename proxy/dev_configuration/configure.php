@@ -8,6 +8,7 @@
 require_once __DIR__ . '/rules/frontend.php';
 require_once __DIR__ . '/rules/photos.php';
 require_once __DIR__ . '/rules/uploads.php';
+require_once __DIR__ . '/rules/cache_cleanup_map.php';
 require_once __DIR__ . '/rules/backend.php';
 require_once __DIR__ . '/rules/admin.php';
 require_once __DIR__ . '/rules/redirects.php';

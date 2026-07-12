@@ -11,6 +11,7 @@ session_cache_limiter('');
 
 require_once __DIR__ . '/lib/TestHeaderMiddleware.php';
 require_once __DIR__ . '/lib/CacheControlMiddleware.php';
+require_once __DIR__ . '/lib/CacheCleanupMapBuilder.php';
 require_once __DIR__ . '/lib/UnprocessableUploadException.php';
 require_once __DIR__ . '/lib/BackendErrorException.php';
 require_once __DIR__ . '/lib/SecurePhotoStorage.php';
