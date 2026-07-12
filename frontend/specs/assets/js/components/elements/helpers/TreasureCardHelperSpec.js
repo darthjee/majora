@@ -129,6 +129,14 @@ describe('TreasureCardHelper', function() {
       expect(html).toContain('badge');
     });
 
+    it('renders the quantity badge through the overlay info bar', function() {
+      const html = renderToStaticMarkup(
+        TreasureCardHelper.render(treasure, false, Noop.noop, '', 5)
+      );
+      expect(html).toContain('info-overlay');
+      expect(html).not.toContain('position-absolute top-0 end-0 m-2');
+    });
+
     it('does not render an availability line when max_units is absent', function() {
       const html = renderToStaticMarkup(TreasureCardHelper.render(treasure));
       expect(html).not.toContain('Available:');
