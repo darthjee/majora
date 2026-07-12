@@ -150,8 +150,8 @@ jobs:
           name: Poetry Install
           command: poetry install --no-root --no-interaction --no-ansi
       - run:
-          name: migrate
-          command: bin/configure_database.sh all
+          name: wait for db
+          command: bin/configure_database.sh wait
       - run:
           name: Tests
           command: poetry run pytest games/tests/views/characters/ --cov --cov-report=lcov:coverage/lcov.info
@@ -183,8 +183,8 @@ jobs:
           name: Poetry Install
           command: poetry install --no-root --no-interaction --no-ansi
       - run:
-          name: migrate
-          command: bin/configure_database.sh all
+          name: wait for db
+          command: bin/configure_database.sh wait
       - run:
           name: Tests
           command: poetry run pytest games/tests/views/ --ignore=games/tests/views/characters/ --cov --cov-report=lcov:coverage/lcov.info
@@ -216,8 +216,8 @@ jobs:
           name: Poetry Install
           command: poetry install --no-root --no-interaction --no-ansi
       - run:
-          name: migrate
-          command: bin/configure_database.sh all
+          name: wait for db
+          command: bin/configure_database.sh wait
       - run:
           name: Tests
           command: poetry run pytest --ignore=games/tests/views/ --cov --cov-report=lcov:coverage/lcov.info
