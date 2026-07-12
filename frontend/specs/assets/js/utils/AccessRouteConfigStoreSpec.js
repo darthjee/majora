@@ -30,13 +30,23 @@ describe('AccessRouteConfigStore', function() {
   describe('#load', function() {
     it('merges the fetched config over the fallback kinds', async function() {
       spyOn(AccessRouteConfigClient.prototype, 'fetchAccessRouteConfig').and.returnValue(
-        Promise.resolve(fakeResponse({ game: { kind: 'superuser' } })),
+        Promise.resolve(fakeResponse({ game: [{ kind: 'game', extra: 'field' }] })),
       );
 
       await AccessRouteConfigStore.load();
 
-      expect(AccessRouteConfigStore.getKind('game')).toEqual({ kind: 'superuser' });
+      expect(AccessRouteConfigStore.getKind('game')).toEqual({ kind: 'game', extra: 'field' });
       expect(AccessRouteConfigStore.getKind('pcCharacter')).toEqual({ kind: 'character', characterKind: 'pcs' });
+    });
+
+    it('extracts the resource-kind descriptor from a list with multiple entries, ignoring fixed-identity ones', async function() {
+      spyOn(AccessRouteConfigClient.prototype, 'fetchAccessRouteConfig').and.returnValue(
+        Promise.resolve(fakeResponse({ treasureEdit: [{ kind: 'superuser' }, { kind: 'treasure' }] })),
+      );
+
+      await AccessRouteConfigStore.load();
+
+      expect(AccessRouteConfigStore.getKind('treasureEdit')).toEqual({ kind: 'treasure' });
     });
 
     it('is idempotent: a second call does not refetch', async function() {
@@ -74,11 +84,11 @@ describe('AccessRouteConfigStore', function() {
   describe('#reset', function() {
     it('discards a loaded config and any in-flight fetch, restoring the fallback', async function() {
       spyOn(AccessRouteConfigClient.prototype, 'fetchAccessRouteConfig').and.returnValue(
-        Promise.resolve(fakeResponse({ game: { kind: 'superuser' } })),
+        Promise.resolve(fakeResponse({ game: [{ kind: 'game', extra: 'field' }] })),
       );
 
       await AccessRouteConfigStore.load();
-      expect(AccessRouteConfigStore.getKind('game')).toEqual({ kind: 'superuser' });
+      expect(AccessRouteConfigStore.getKind('game')).toEqual({ kind: 'game', extra: 'field' });
 
       AccessRouteConfigStore.reset();
 

@@ -40,6 +40,16 @@ const FALLBACK_KINDS = {
   treasureEdit: { kind: 'treasure' },
 };
 
+/**
+ * `kind` values that identify a resource-kind descriptor (as opposed to a
+ * fixed-identity descriptor such as `superuser`/`staffOrSuperuser`, which
+ * `accessRouteConfig.js` already handles as hardcoded literals and never
+ * looks up here).
+ *
+ * @type {string[]}
+ */
+const RESOURCE_KINDS = ['game', 'character', 'treasure'];
+
 let _kinds = { ...FALLBACK_KINDS };
 let _loadPromise = null;
 
@@ -92,7 +102,41 @@ export default class AccessRouteConfigStore {
 
   static #apply(data) {
     if (data && typeof data === 'object') {
-      _kinds = { ...FALLBACK_KINDS, ...data };
+      _kinds = { ...FALLBACK_KINDS, ...AccessRouteConfigStore.#normalize(data) };
     }
+  }
+
+  /**
+   * Normalize the backend's `{ pageKey: descriptor[] }` response into this
+   * store's `{ pageKey: descriptor }` shape, keeping — for each page — only
+   * the single descriptor whose `kind` is a resource kind (`game`,
+   * `character`, or `treasure`), and dropping fixed-identity descriptors
+   * (`superuser`/`staffOrSuperuser`) and page keys with no resource-kind
+   * descriptor at all.
+   *
+   * @param {object} data - Raw `{ pageKey: descriptor[] }` response body.
+   * @returns {object} `{ pageKey: descriptor }` map, resource-kind entries only.
+   */
+  static #normalize(data) {
+    return Object.fromEntries(
+      Object.entries(data)
+        .map(([pageKey, descriptors]) => [pageKey, AccessRouteConfigStore.#resourceKind(descriptors)])
+        .filter(([, descriptor]) => descriptor !== undefined),
+    );
+  }
+
+  /**
+   * Pick the resource-kind descriptor out of a page's list of descriptors.
+   *
+   * @param {object[]} descriptors - A page's list of descriptor dicts.
+   * @returns {{kind: string, characterKind: (string|undefined)}|undefined} The
+   *   resource-kind descriptor, or `undefined` when none is present.
+   */
+  static #resourceKind(descriptors) {
+    if (!Array.isArray(descriptors)) {
+      return undefined;
+    }
+
+    return descriptors.find((descriptor) => RESOURCE_KINDS.includes(descriptor?.kind));
   }
 }
