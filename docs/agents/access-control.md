@@ -56,11 +56,12 @@ Unauthenticated `POST /games.json` → 401. Authenticated `PATCH /games/<slug>.j
 | `GET /games/<slug>/access.json` | Anyone | see below — cache-skipped |
 
 As of issue #396, the response shares the same `BaseAccessSerializer`-derived shape used by the
-Character and Treasure access endpoints below:
+Character and Treasure access endpoints below. As of issue #433, `can_edit` is no longer part
+of this shape — it moved to the dedicated `permissions.json` endpoint below (identity-only vs.
+permission-only, see "Edit permission (`permissions.json`)" for the full rationale):
 
 | Field | Type | Value |
 |-------|------|-------|
-| `can_edit` | `bool` | Whether the requesting user may edit this game (`Game.can_be_edited_by`) — always a real boolean, regardless of authentication |
 | `username` | `str \| null` | The requesting user's username, or `null` if unauthenticated |
 | `is_superuser` | `bool \| null` | Whether the requesting user is a Django superuser, or `null` if unauthenticated |
 | `is_staff` | `bool \| null` | Whether the requesting user is Django staff, or `null` if unauthenticated |
@@ -68,13 +69,33 @@ Character and Treasure access endpoints below:
 | `is_player` | `bool \| null` | Whether the requesting user is linked to this game via `Player.games`, or `null` if unauthenticated (added in issue #410) |
 | `is_owner` | `bool \| null` | Always `false` (never `null`, even when anonymous) — games have no ownership concept |
 
-All fields except `can_edit` are `null` for an anonymous caller, with one exception: `is_owner`
+All fields are `null` for an anonymous caller, with one exception: `is_owner`
 is always `false` rather than `null`, since games have no ownership concept to report on in the
 first place.
 
 **Note (issue #410):** `Player.games` is currently never written by any endpoint — only
 touched in a model test — so `is_player` reads `false` for every real authenticated user until
 a follow-up issue builds a flow to populate it.
+
+### Edit permission (`permissions.json`, added in issue #433)
+
+| Endpoint | Who can read | Response |
+|----------|-------------|----------|
+| `GET /games/<slug>/permissions.json` | Anyone | `{"can_edit": <bool>}` — see below for the cache contract |
+
+Split out of `access.json` (issue #433) so a cacheable, identity-independent permission check
+(driven by the `role` query parameter, see below) can be served separately from the
+per-caller-identity fields that must always bypass the cache. See "The `role` query parameter"
+under the Character section below for the full parameter contract, shared verbatim by all four
+`permissions.json` endpoints (game, PC, NPC, treasure).
+
+Without a `role` param, `can_edit` reflects the real requester's identity
+(`Game.can_be_edited_by(request.user)`, unchanged from the old `access.json` behavior) and the
+response sets `X-Skip-Cache: true`, exactly like `access.json`. With a `role` param, `can_edit`
+is computed from the simulated role booleans via `Game.can_be_edited_by_roles(is_superuser,
+is_dm)` instead, and the response sets `X-Force-Public-Cache: true` (see "Cache-bypass mechanism
+for access endpoints" below) so it is cached in the public/anonymous tier regardless of the real
+caller's own auth state.
 
 ---
 
@@ -399,11 +420,11 @@ player of the game, not just editors — see "Narrow NPC slain-toggle PATCH (iss
 
 As of issue #396, both endpoints share the same `BaseAccessSerializer`-derived response shape
 used by every `access.json` endpoint (game and treasure, see their respective "Edit access
-status" sections):
+status" sections). As of issue #433, `can_edit` is no longer part of this shape — it moved to
+the dedicated `permissions.json` endpoints below:
 
 | Field | Type | Value |
 |-------|------|-------|
-| `can_edit` | `bool` | Whether the requesting user may edit this character (`Character.can_be_edited_by`) — always a real boolean, regardless of authentication |
 | `username` | `str \| null` | The requesting user's username, or `null` if unauthenticated |
 | `is_superuser` | `bool \| null` | Whether the requesting user is a Django superuser, or `null` if unauthenticated |
 | `is_staff` | `bool \| null` | Whether the requesting user is Django staff, or `null` if unauthenticated |
@@ -411,21 +432,85 @@ status" sections):
 | `is_player` | `bool \| null` | Whether the requesting user is linked to this character's game via `Player.games`, or `null` if unauthenticated (added in issue #410; see the "Note" under the Game section above — currently always `false` in practice, since nothing populates `Player.games` yet) |
 | `is_owner` | `bool \| null` | **PC**: a real boolean — `character.player.user_id == requesting_user.id` — or `null` if unauthenticated. **NPC**: always `false` (never `null`, even when anonymous), since NPCs have no player-ownership concept |
 
-All fields except `can_edit` are `null` for an anonymous caller, with one exception: on the NPC
+All fields are `null` for an anonymous caller, with one exception: on the NPC
 endpoint, `is_owner` is always `false` rather than `null`, since NPCs have no ownership concept
 to report on in the first place (the PC endpoint's `is_owner`, by contrast, does follow the
 general null-when-anonymous rule, since it reports real per-user ownership).
 
+#### Edit permission (`permissions.json`, added in issue #433)
+
+| Endpoint | Who can read | Response |
+|----------|-------------|----------|
+| `GET /games/<slug>/pcs/<id>/permissions.json` | Anyone | `{"can_edit": <bool>}` — see below for the cache contract |
+| `GET /games/<slug>/npcs/<id>/permissions.json` | Anyone | Same as above |
+
+Split out of `access.json` (issue #433): identity (`is_dm`/`is_owner`/etc., always tied to the
+real requester and always cache-skipped) and permission (`can_edit`, optionally
+role-simulated and cacheable) are different enough concerns — with different cache
+contracts — to warrant separate endpoints, both backed by the shared
+`Character.can_be_edited_by`/`can_be_edited_by_roles` pair (see "Edit rights logic" below).
+Both PC and NPC routes share one `CharacterPermissionsSerializer` — `is_owner`
+(and therefore the `owner` role) only ever affects the result for a PC (`character.is_pc`);
+it is always a no-op for an NPC, matching `is_owner`'s no-ownership-concept treatment on the
+identity side above.
+
+Without a `role` param, `can_edit` reflects the real requester's identity
+(`Character.can_be_edited_by(request.user)`, unchanged from the old `access.json` behavior) and
+the response sets `X-Skip-Cache: true`, exactly like `access.json`. With a `role` param,
+`can_edit` is computed from the simulated role booleans via
+`Character.can_be_edited_by_roles(is_superuser, is_dm, is_owner)` instead, and the response sets
+`X-Force-Public-Cache: true` instead (see "Cache-bypass mechanism for access endpoints" below)
+so it is cached in the public/anonymous tier regardless of the real caller's own auth state.
+
+#### The `role` query parameter (added in issue #433)
+
+Shared verbatim by all four `permissions.json` endpoints (game, PC, NPC, treasure) — parsed by
+`parse_role_booleans` in `source/games/views/common.py`. Accepts zero, one, or repeated
+`?role=` values (e.g. `?role=dm`, `?role=dm&role=owner`):
+
+- **No `role` param at all** → `None`: the endpoint falls back to computing `can_edit` from the
+  real requester's identity (`request.user`), and the response is cache-skipped
+  (`X-Skip-Cache: true`) — identical to `access.json`'s existing per-caller behavior.
+- **`role` present at least once** → the real requester's identity is ignored entirely; instead
+  three booleans are derived from the given value(s) and passed to that resource's
+  `can_be_edited_by_roles(...)`:
+  - `dm` → `is_dm = True`
+  - `superuser` → `is_superuser = True`
+  - `owner` → `is_owner = True` (only ever consulted by the Character/PC endpoints; a no-op
+    everywhere else — Game, NPC, and Treasure have no ownership concept)
+  - `player`, `staff` → recognized but always no-ops: neither ever appears in any
+    `can_be_edited_by_roles` signature, per product-owner review — included only so a caller
+    can pass every role name it knows about without triggering an "unrecognized value" branch
+  - any other value → silently ignored (same tolerant, no-400-on-a-typo convention as
+    `?allegiance=`/`?slain=` elsewhere in this codebase) — but note this does **not** fall back
+    to the real-identity path: a `role` param containing only unrecognized/no-op values still
+    computes `can_edit` with every boolean `False`, it simply never evaluates true
+  - Repeated/combined values (e.g. `?role=dm&role=owner`) simultaneously set every boolean
+    they correspond to — the resource's own rule (e.g. `is_superuser or is_dm`) then decides the
+    result, exactly as it would for two real roles held by the same live user
+- Whenever a `role` param is present (recognized or not), the response sets
+  `X-Force-Public-Cache: true` instead of `X-Skip-Cache: true` — the result no longer depends on
+  the real caller's identity, so it is safe (and necessary, for UI-preview use cases like
+  showing an anonymous visitor what a DM would see) to cache in the public tier.
+
 #### Cache-bypass mechanism for access endpoints
 
-Access endpoints return user-specific data (`can_edit` reflects the requesting user's permissions), so caching them across users would serve stale or incorrect values. Two layers enforce cache-bypass:
+Access endpoints return user-specific data (identity fields reflect the requesting user), so caching them across users would serve stale or incorrect values. `permissions.json`'s real-identity path (no `role` param) carries the same requirement, since `can_edit` there is also tied to the real caller. Three layers enforce cache-bypass/cache-correctness:
 
-1. **Backend response header** — `game_pc_access` and `game_npc_access` views always set `X-Skip-Cache: true` on the response. This prevents Tent from caching new responses.
-2. **Frontend request header** — `BaseClient.request` in `frontend/assets/js/client/BaseClient.js` inspects every request path against two centralized config files before calling `fetch`:
+1. **Backend response header (real-identity path)** — every `access.json` view, and every
+   `permissions.json` view when no `role` param is given, sets `X-Skip-Cache: true` on the
+   response. This prevents Tent from caching new responses.
+2. **Backend response header (role-simulated path)** — a `permissions.json` view, when a `role`
+   param **is** given, instead sets `X-Force-Public-Cache: true` (added in issue #433). This
+   tells `CacheControlMiddleware` (`source/games/middleware.py`) to always apply the
+   public/anonymous `Cache-Control` tier, overriding what it would otherwise choose based on the
+   real requester's own `is_authenticated` state — necessary because a role-simulated result is
+   identity-independent by construction, even when the actual caller happens to be logged in.
+3. **Frontend request header** — `BaseClient.request` in `frontend/assets/js/client/BaseClient.js` inspects every request path against two centralized config files before calling `fetch`:
    - `frontend/assets/js/client/config/skipCacheEndpoints.js` — a `Set` of exact static paths (authentication endpoints).
    - `frontend/assets/js/client/config/skipCacheSuffixes.js` — a `Set` of path suffixes (e.g. `'/access.json'`). Any request whose path ends with a listed suffix automatically receives `X-Skip-Cache: 1`, bypassing the Tent cache read.
 
-**Rule for future access-type endpoints:** if you add a new endpoint whose response depends on the requesting user's identity or permissions, add its path suffix (or exact path) to the appropriate config file. Access endpoints use the suffix approach because their paths are dynamic (contain `<slug>` and `<id>`).
+**Rule for future access-type endpoints:** if you add a new endpoint whose response depends on the requesting user's identity or permissions, add its path suffix (or exact path) to the appropriate config file. Access endpoints use the suffix approach because their paths are dynamic (contain `<slug>` and `<id>`). A role-simulated, identity-independent endpoint (like `permissions.json` with a `role` param) does not need this frontend bypass at all — its whole point is to be cacheable.
 
 ### Update (PATCH)
 
@@ -811,6 +896,33 @@ never silently ignored and never allowed to affect another character's link.
 
 ---
 
+## Access-route config endpoint
+
+| Endpoint | Method | Who can call | Response |
+|----------|--------|-------------|----------|
+| `/access-route-config.json` | GET | Anyone (`AllowAny`, no authentication required) | Static JSON object keyed by page identifier (see below) |
+
+Added in issue #433, sourced from the plain Python dict `ACCESS_ROUTE_CONFIG` in
+`source/games/access_route_config.py`. Returns no model data and no user data — it is a static,
+non-paginated, always-public-cache-tier config describing, for each frontend page identifier
+(the same identifiers `HashRouteResolver#getPage` already produces — `game`, `gameEdit`,
+`pcCharacter`, `treasureEdit`, `staffUsers`, ...), which resource-kind access check(s) that page
+must perform before rendering. Each page key maps to a list of descriptors — most pages need
+only one, but e.g. `treasureEdit` needs both a superuser check and a treasure-ownership check —
+each descriptor a `{"kind": ...}` dict (`"game"`, `"character"`, `"treasure"`, `"superuser"`, or
+`"staffOrSuperuser"`), with `"character"` descriptors additionally carrying a `"characterKind"`
+key (`"pcs"` or `"npcs"`). Page identifiers with no access check at all (e.g. `games`, `home`)
+have no entry, same as the pre-#433 frontend-hardcoded config it replaces.
+
+This endpoint intentionally carries **no URL patterns** — route paths and param names remain
+frontend-owned routing knowledge (see `frontend.md` for how the frontend combines this kind
+config with its own URL templates). Authentication classes are explicitly empty
+(`@authentication_classes([])`) and permissions are `AllowAny`, identical to the health check
+endpoint below — this response never varies by caller, so it always gets the public/anonymous
+`Cache-Control` tier.
+
+---
+
 ## Health check endpoint
 
 | Endpoint | Method | Who can call | Response |
@@ -922,18 +1034,19 @@ filter/gate used on the game-scoped endpoints to `treasures_list`/`treasure_deta
 
 The access endpoint always sets `X-Skip-Cache: true`. The path ends with `/access.json`, which is already listed in `frontend/assets/js/client/config/skipCacheSuffixes.js`, so no additional frontend config is needed.
 
-As of issue #296, `can_edit` reports whether the requesting user can edit the treasure via
-*any* available path: the global superuser-only route, **or** the game-scoped route (that
-treasure's owning game's GameMaster, when `treasure.game_id` is set). This does not change
-`Treasure.can_be_edited_by` itself (see "Edit rights logic" below) — it is computed
-separately in `TreasureAccessSerializer`.
+As of issue #296, edit permission for a treasure is computed via *any* available path: the
+global superuser-only route, **or** the game-scoped route (that treasure's owning game's
+GameMaster, when `treasure.game_id` is set). This does not change `Treasure.can_be_edited_by`
+itself (see "Edit rights logic" below) — it is computed separately in
+`TreasurePermissionsSerializer` (previously `TreasureAccessSerializer`, moved by issue #433, see
+below).
 
 As of issue #396, the response shares the same `BaseAccessSerializer`-derived shape used by the
-Game and Character access endpoints above:
+Game and Character access endpoints above. As of issue #433, `can_edit` is no longer part of
+this shape — it moved to the dedicated `permissions.json` endpoint below:
 
 | Field | Type | Value |
 |-------|------|-------|
-| `can_edit` | `bool` | As described above — always a real boolean, regardless of authentication |
 | `username` | `str \| null` | The requesting user's username, or `null` if unauthenticated |
 | `is_superuser` | `bool \| null` | Whether the requesting user is a Django superuser, or `null` if unauthenticated |
 | `is_staff` | `bool \| null` | Whether the requesting user is Django staff, or `null` if unauthenticated |
@@ -941,10 +1054,31 @@ Game and Character access endpoints above:
 | `is_player` | `bool \| null` | Always `false` (never `null`, even when anonymous, and even when the treasure has an owning game the requester is a player of) — deliberately **not** evaluated for treasure access, since this route isn't nested under `/games/<slug>/` (added in issue #410; a deliberate scope decision, unlike `is_dm`'s treasure-access behavior) |
 | `is_owner` | `bool \| null` | Always `false` (never `null`, even when anonymous) — treasures have no ownership concept |
 
-All fields except `can_edit` are `null` for an anonymous caller, with two exceptions: `is_owner`
+All fields are `null` for an anonymous caller, with two exceptions: `is_owner`
 is always `false` rather than `null`, since treasures have no ownership concept to report on in
 the first place, and `is_player` is always `false` rather than `null` for the same
 not-evaluated-here reason (see above).
+
+### Edit permission (`permissions.json`, added in issue #433)
+
+| Endpoint | Who can read | Response |
+|----------|-------------|----------|
+| `GET /treasures/<id>/permissions.json` | Anyone | `{"can_edit": <bool>}` — see below for the cache contract |
+
+Split out of `access.json` (issue #433) — see "Edit permission (`permissions.json`, added in
+issue #433)" under the Character section above for the full rationale and the "The `role` query
+parameter" subsection there for the shared `role` contract used identically here.
+
+Without a `role` param, `can_edit` reflects the real requester's identity, computed via any
+available path exactly as described above (unchanged from the old `access.json` behavior), and
+the response sets `X-Skip-Cache: true`. With a `role` param, `can_edit` is computed from the
+simulated role booleans via `Treasure.can_be_edited_by_roles(is_superuser, is_dm)` instead — a
+global treasure (`game_id` is `None`) is superuser-only even under simulation (the `dm` role is
+always a no-op there); only a game-exclusive treasure's `dm` role additionally grants
+`can_edit`, preserving the dual-path logic from issue #296. The response then sets
+`X-Force-Public-Cache: true` instead (see "Cache-bypass mechanism for access endpoints" under
+the Character section above) so it is cached in the public/anonymous tier regardless of the real
+caller's own auth state.
 
 ### Edit rights logic
 
@@ -995,6 +1129,13 @@ always assigned server-side from the `game_slug` URL segment.
 `GameSession.can_be_edited_by(user)` delegates entirely to `self.game.can_be_edited_by(user)` —
 there is no independent `GameSession`-level ownership concept.
 
+As of issue #433, `GameSession.can_be_edited_by_roles(is_superuser, is_dm)` is the role-simulated
+sibling of the above (delegating identically to `self.game.can_be_edited_by_roles(...)`), added
+for consistency with `Game`/`Character`/`Treasure`. No `permissions.json` endpoint exists for
+sessions — this method exists only so the shared rule is available if a future issue needs it;
+`GameSessionDetailSerializer.get_can_edit` still calls `can_be_edited_by(user)` directly, exactly
+as before.
+
 ---
 
 ## Task
@@ -1039,6 +1180,11 @@ so it can't be validated against `self.instance.game` alone on create).
 
 `Task.can_be_edited_by(user)` delegates entirely to `self.game.can_be_edited_by(user)` — there
 is no independent `Task`-level ownership concept, identical to `GameSession` above.
+
+As of issue #433, `Task.can_be_edited_by_roles(is_superuser, is_dm)` is the role-simulated
+sibling of the above, added for the same consistency reason as `GameSession`'s — no
+`permissions.json` endpoint exists for tasks; `TaskEditPermission` still delegates to
+`can_be_edited_by(user)` directly, unchanged.
 
 ### `TaskEditPermission`
 
