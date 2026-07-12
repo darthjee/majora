@@ -1,10 +1,5 @@
-"""Test settings for Majora backend - uses SQLite in-memory database."""
+"""Test settings for Majora backend - uses a fast password hasher."""
 
 from majora_project.settings import *  # noqa: F401, F403
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',
-    }
-}
+PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']

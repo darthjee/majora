@@ -25,7 +25,7 @@ lizard = "^1.17"
 factory-boy = "^3.3"
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "majora_project.settings"
+DJANGO_SETTINGS_MODULE = "majora_project.settings_test"
 pythonpath = ["."]
 testpaths = ["games/tests", "versioning/tests"]
 python_files = ["*_test.py"]
