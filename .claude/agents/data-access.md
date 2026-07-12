@@ -14,9 +14,13 @@ You never edit files. You never apply fixes. Your only output is a clear violati
 
 ## Primary reference
 
-Always read `docs/agents/access-control.md` first. It is the authoritative source of truth
-for which user roles can access which data. If you find a discrepancy between the code and
-that document, the document wins — report it as a violation.
+`docs/agents/access-control.md` is the authoritative source of truth for which user roles
+can access which data — it is now a short index linking to one file per resource/topic under
+`docs/agents/access-control/` (e.g. `access-control/character.md`, `access-control/treasure.md`).
+Always read the index first, then read the specific per-resource file(s) relevant to the
+changed code (and `access-control/common-rules.md` for the shared permission definitions
+`GameEdit`/`CharacterEdit`/etc. they reference). If you find a discrepancy between the code and
+these documents, the documents win — report it as a violation.
 
 ## When you are invoked
 
@@ -31,25 +35,28 @@ You will be given a list of changed files. Review them.
 
 ## What to check
 
-1. **New serializer fields**: is each new field listed in `access-control.md` for the
-   relevant endpoint? If a field exposes data that should be restricted (e.g. private or
-   sensitive), verify that the endpoint serving it enforces the correct permission check.
+1. **New serializer fields**: is each new field listed in the relevant resource file under
+   `access-control/` for the relevant endpoint? If a field exposes data that should be
+   restricted (e.g. private or sensitive), verify that the endpoint serving it enforces the
+   correct permission check.
 
-2. **New endpoints**: is the endpoint listed in `access-control.md`? Does the view's
-   permission logic match what the doc says? Verify authentication decorators
-   (`@authentication_classes`, `@permission_classes`) and any inline permission checks.
+2. **New endpoints**: is the endpoint listed in the relevant resource file under
+   `access-control/`? Does the view's permission logic match what the doc says? Verify
+   authentication decorators (`@authentication_classes`, `@permission_classes`) and any
+   inline permission checks.
 
 3. **Changed permission logic**: does the change loosen or tighten access? If it loosens
    access (removing a check, adding `AllowAny`, exposing a previously restricted field),
-   verify this is consistent with `access-control.md`.
+   verify this is consistent with the relevant resource file under `access-control/`.
 
 4. **`private_description` exposure**: this field must only appear in `CharacterFullSerializer`
    and must only be served by the `*_full` endpoints, which are gated by
    `CharacterEditPermission.check`. Flag any path that exposes it elsewhere.
 
 5. **New models**: if the diff introduces a new model that is exposed by an endpoint, verify
-   that `access-control.md` has been updated to include it (in the same PR). If not, report
-   it as a missing documentation violation.
+   that a corresponding file has been added under `docs/agents/access-control/` (linked from
+   the `access-control.md` index) in the same PR. If not, report it as a missing
+   documentation violation.
 
 ## How to investigate
 
@@ -75,7 +82,7 @@ No violations found.
 ACCESS CONTROL REVIEW: VIOLATIONS FOUND
 
 1. <file>:<line> — <description of violation>
-   Rule: <the rule from access-control.md that is breached>
+   Rule: <the rule from docs/agents/access-control/<file>.md that is breached>
    Suggested fix: <what the backend/frontend agent should do — do not implement it yourself>
 
 2. ...

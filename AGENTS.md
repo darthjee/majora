@@ -79,7 +79,7 @@ All project documentation lives under [`docs/agents/`](docs/agents/):
 | [Security Guidelines](docs/agents/security-guidelines.md) | Project-specific vulnerability patterns (auth gaps, injection, insecure headers, exposed secrets, CSRF, insecure proxy rules, input validation); used by the `security` agent. |
 | [Cache Warmer](docs/agents/cache-warmer.md) | Navi setup for warming the proxy cache after release (CI and local). |
 | [Frontend i18n](docs/agents/i18n.md) | Frontend translation layer: YAML files, `Translator`, language selector, and how to add a new language. |
-| [How to Use Navi](docs/agents/HOW_TO_USE_NAVI.md) | Full Navi reference: config format, chaining, pagination, CLI flags. |
+| [How to Use Navi](docs/agents/external/HOW_TO_USE_NAVI.md) | Full Navi reference: config format, chaining, pagination, CLI flags. |
 | [Plans](docs/agents/plans/) | Implementation plans for ongoing or upcoming features. |
 | [Issues](docs/agents/issues/) | Detailed specs for open issues. |
 

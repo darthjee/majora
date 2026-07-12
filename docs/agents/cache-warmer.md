@@ -1,7 +1,7 @@
 # Cache Warmer
 
 Majora uses [Navi](https://github.com/darthjee/navi) to warm the Tent proxy cache after each production release.
-See [HOW_TO_USE_NAVI.md](HOW_TO_USE_NAVI.md) for the full Navi reference.
+See [HOW_TO_USE_NAVI.md](external/HOW_TO_USE_NAVI.md) for the full Navi reference.
 
 ## Configuration
 

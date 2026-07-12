@@ -54,6 +54,17 @@
 | `agents/` | Specialist subagent definitions (`architect`, `backend`, `frontend`, `infra`). |
 | `commands/` | Custom slash commands for the Majora issue/plan/fix workflow. |
 
+## `docs/agents/` — Documentation
+
+| Subdirectory / File | Description |
+|---------------------|-------------|
+| `access-control.md` | Short index for the access control reference — links to every file under `access-control/`, plus the "Adding a new model" guidance. |
+| `access-control/` | One file per resource/topic (`game.md`, `character.md`, `treasure.md`, `endpoints.md`, `versioning.md`, ...) documenting exactly who can read/write which fields and endpoints for that resource. Split out of the former monolithic `access-control.md` so an agent only loads the resource it's touching. |
+| `external/` | Reference docs for third-party tools used by the project but not maintained here — `HOW_TO_USE_DARTHJEE-TENT.md` (Tent reverse proxy) and `HOW_TO_USE_NAVI.md` (Navi cache warmer). Kept separate from internal architecture docs so it's obvious what's project-specific vs. third-party reference. |
+| `issues/` | Detailed specs for open/closed issues, one file per issue. |
+| `plans/` | Implementation plans for ongoing or upcoming features, one directory per issue. |
+| `architecture.md`, `flow.md`, `folder-structure.md`, `product.md`, `pagination.md`, `i18n.md`, `security-guidelines.md`, `views-organization.md`, `frontend.md`, `cache-warmer.md`, `contributing.md` | Other top-level internal reference docs — stay at the top level of `docs/agents/`; this reorg introduces only the two subfolders above, it does not regroup the rest. |
+
 ## `dockerfiles/` — Service Images
 
 One directory per service image (dev and production backend, dev and production Vite,

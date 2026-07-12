@@ -11,6 +11,15 @@ header:
   test_email_error: Failed to send test email
   register: Register
   my_account_alt: My account
+  view_as_alt: View as
+view_as_modal:
+  title: View as
+  enabled_label: Simulate a different role
+  role_dm: Game Master
+  role_player: Player
+  role_owner: Character owner
+  cancel: Cancel
+  save: Save
 login_modal:
   title: Login
   username_label: Username
