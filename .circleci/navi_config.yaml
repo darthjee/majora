@@ -164,7 +164,45 @@ resources:
   pc:
     - url: /games/{:slug}/pcs/{:id}.json
       status: 200
+      actions:
+        - resource: pc_photos
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
+
+  pc_photos:
+    - url: /games/{:slug}/pcs/{:id}/photos.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_pc_photos
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_pc_photos:
+    - url: /games/{:slug}/pcs/{:id}/photos.json?page={:page}
+      status: 200
 
   npc:
     - url: /games/{:slug}/npcs/{:id}.json
+      status: 200
+      actions:
+        - resource: npc_photos
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
+
+  npc_photos:
+    - url: /games/{:slug}/npcs/{:id}/photos.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_npc_photos
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_npc_photos:
+    - url: /games/{:slug}/npcs/{:id}/photos.json?page={:page}
       status: 200
