@@ -1,5 +1,5 @@
 import GenericClient from '../../../client/GenericClient.js';
-import BasePageController from './BasePageController.js';
+import BasePageController from '../../common/controllers/BasePageController.js';
 
 /**
  * Controller for game PCs page.

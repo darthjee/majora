@@ -1,5 +1,5 @@
 import CharacterController from './CharacterController.js';
-import BasePageController from './BasePageController.js';
+import BasePageController from '../../common/controllers/BasePageController.js';
 
 /**
  * Controller for NPC character detail page.

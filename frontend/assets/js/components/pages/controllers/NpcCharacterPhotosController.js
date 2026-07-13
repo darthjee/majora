@@ -1,5 +1,5 @@
 import BaseCharacterPhotosController from './BaseCharacterPhotosController.js';
-import BasePageController from './BasePageController.js';
+import BasePageController from '../../common/controllers/BasePageController.js';
 
 /**
  * Controller for the NPC character photos index page.

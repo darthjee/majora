@@ -1,7 +1,7 @@
 import CharacterClient from '../../../client/CharacterClient.js';
 import GenericClient from '../../../client/GenericClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
-import BasePageController from './BasePageController.js';
+import BasePageController from '../../common/controllers/BasePageController.js';
 import Noop from '../../../utils/Noop.js';
 
 /**

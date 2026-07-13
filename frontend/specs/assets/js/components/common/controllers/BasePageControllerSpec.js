@@ -1,4 +1,4 @@
-import BasePageController from '../../../../../../assets/js/components/pages/controllers/BasePageController.js';
+import BasePageController from '../../../../../../assets/js/components/common/controllers/BasePageController.js';
 
 describe('BasePageController', function() {
   it('only sets value while mounted', function() {

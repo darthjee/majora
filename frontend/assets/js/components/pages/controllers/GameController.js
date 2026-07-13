@@ -2,7 +2,7 @@ import GenericClient from '../../../client/GenericClient.js';
 import CharacterClient from '../../../client/CharacterClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
 import AccessStore from '../../../utils/AccessStore.js';
-import BasePageController from './BasePageController.js';
+import BasePageController from '../../common/controllers/BasePageController.js';
 import { MAX_PREVIEW_CHARACTERS } from '../../elements/characterPreviewConstants.js';
 import Noop from '../../../utils/Noop.js';
 

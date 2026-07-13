@@ -1,7 +1,7 @@
 import GameSessionClient from '../../../client/GameSessionClient.js';
 import AuthStorage from '../../../utils/AuthStorage.js';
-import BaseEditController from './BaseEditController.js';
-import BasePageController from './BasePageController.js';
+import BaseEditController from '../../common/controllers/BaseEditController.js';
+import BasePageController from '../../common/controllers/BasePageController.js';
 import Noop from '../../../utils/Noop.js';
 
 /**

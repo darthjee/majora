@@ -1,5 +1,5 @@
 import BaseCharacterTreasuresController from './BaseCharacterTreasuresController.js';
-import BasePageController from './BasePageController.js';
+import BasePageController from '../../common/controllers/BasePageController.js';
 import Noop from '../../../utils/Noop.js';
 
 /**
