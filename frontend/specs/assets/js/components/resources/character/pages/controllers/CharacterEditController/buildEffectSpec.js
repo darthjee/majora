@@ -49,7 +49,12 @@ KINDS.forEach(({ label, Controller, kind }) => {
 
         expect(characterClient.fetchCharacter).toHaveBeenCalledWith(kind, 'demo', '2', null);
         expect(setCharacter).toHaveBeenCalledWith({
-          id: 2, treasures: [], can_edit: true, is_player: false, private_description: 'Secret.',
+          id: 2,
+          treasures: [],
+          can_edit: true,
+          is_player: false,
+          private_description: 'Secret.',
+          access_resolved: true,
         });
 
         cleanup();

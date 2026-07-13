@@ -38,7 +38,12 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
 
       expect(characterClient.fetchCharacterFull).toHaveBeenCalledWith(kind, 'demo', '2', null);
       expect(setCharacter).toHaveBeenCalledWith({
-        id: 2, treasures: [], can_edit: true, is_player: false, private_description: privateDescription,
+        id: 2,
+        treasures: [],
+        can_edit: true,
+        is_player: false,
+        private_description: privateDescription,
+        access_resolved: true,
       });
 
       cleanup();
@@ -69,7 +74,9 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(characterClient.fetchCharacterFull).not.toHaveBeenCalled();
-      expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: false, is_player: false });
+      expect(setCharacter).toHaveBeenCalledWith({
+        id: 2, treasures: [], can_edit: false, is_player: false, access_resolved: true,
+      });
 
       cleanup();
     });
@@ -99,7 +106,9 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: true, is_player: false });
+      expect(setCharacter).toHaveBeenCalledWith({
+        id: 2, treasures: [], can_edit: true, is_player: false, access_resolved: true,
+      });
       expect(setError).not.toHaveBeenCalled();
 
       cleanup();

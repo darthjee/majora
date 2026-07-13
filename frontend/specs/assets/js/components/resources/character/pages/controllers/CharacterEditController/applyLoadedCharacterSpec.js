@@ -62,7 +62,9 @@ KINDS.forEach(({ label, Controller, kind, name, role, description }) => {
         globalThis.window = fakeWindow;
 
         try {
-          controller.applyLoadedCharacter({ id: 1, can_edit: false }, 'demo', '2', setters);
+          controller.applyLoadedCharacter(
+            { id: 1, can_edit: false, access_resolved: true }, 'demo', '2', setters,
+          );
 
           expect(fakeWindow.location.hash).toBe(`/games/demo/${kind}/2`);
           expect(setters.setName).not.toHaveBeenCalled();

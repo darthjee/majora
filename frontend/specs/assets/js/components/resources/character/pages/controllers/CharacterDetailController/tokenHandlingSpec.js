@@ -36,7 +36,9 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
 
       expect(characterClient.fetchCharacter).toHaveBeenCalledWith(kind, 'demo', '2', 'tok-abc');
       expect(AccessStore.ensureCharacterAccess).toHaveBeenCalledWith(kind, 'demo', '2');
-      expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: false, is_player: false });
+      expect(setCharacter).toHaveBeenCalledWith({
+        id: 2, treasures: [], can_edit: false, is_player: false, access_resolved: true,
+      });
 
       cleanup();
     });

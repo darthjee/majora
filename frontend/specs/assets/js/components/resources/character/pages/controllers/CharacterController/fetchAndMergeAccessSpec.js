@@ -15,11 +15,18 @@ describe('CharacterController', function() {
       });
 
       controller.fetchAndMergeAccess({ id: 2, can_edit: true }, params, 'tok', safeSet);
+
+      expect(setCharacter).toHaveBeenCalledWith({
+        id: 2, can_edit: false, is_player: false, access_resolved: false,
+      });
+
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(AccessStore.ensureCharacterAccess).toHaveBeenCalledWith('pcs', 'demo', '2');
       expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('pcs', 'demo', '2');
-      expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: false, is_player: false });
+      expect(setCharacter).toHaveBeenCalledWith({
+        id: 2, can_edit: false, is_player: false, access_resolved: true,
+      });
     });
 
     it('merges is_player onto the character alongside can_edit once access resolves', async function() {
@@ -33,7 +40,9 @@ describe('CharacterController', function() {
       controller.fetchAndMergeAccess({ id: 2, can_edit: true }, params, 'tok', safeSet);
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: false, is_player: true });
+      expect(setCharacter).toHaveBeenCalledWith({
+        id: 2, can_edit: false, is_player: true, access_resolved: true,
+      });
     });
 
     it('renders with the fail-closed default first when AccessStore has nothing cached yet', function() {
@@ -46,7 +55,9 @@ describe('CharacterController', function() {
 
       controller.fetchAndMergeAccess({ id: 2, can_edit: true }, params, null, safeSet);
 
-      expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: false, is_player: false });
+      expect(setCharacter).toHaveBeenCalledWith({
+        id: 2, can_edit: false, is_player: false, access_resolved: false,
+      });
       expect(controller.fetchCharacterFull).not.toHaveBeenCalled();
     });
 
@@ -61,7 +72,9 @@ describe('CharacterController', function() {
       controller.fetchAndMergeAccess({ id: 2, can_edit: true }, params, null, safeSet);
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(setCharacter).toHaveBeenCalledWith({ id: 2, can_edit: false, is_player: false });
+      expect(setCharacter).toHaveBeenCalledWith({
+        id: 2, can_edit: false, is_player: false, access_resolved: true,
+      });
       expect(controller.fetchCharacterFull).not.toHaveBeenCalled();
     });
 
@@ -84,7 +97,7 @@ describe('CharacterController', function() {
 
       expect(controller.fetchCharacterFull).toHaveBeenCalledWith('demo', '2', 'tok');
       expect(setCharacter).toHaveBeenCalledWith({
-        id: 2, can_edit: true, is_player: false, private_description: 'Secret notes.',
+        id: 2, can_edit: true, is_player: false, private_description: 'Secret notes.', access_resolved: true,
       });
     });
   });

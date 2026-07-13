@@ -123,7 +123,10 @@ export default class CharacterController extends BasePageController {
    * background and re-runs this same merge-and-load pass once they resolve,
    * so the page picks up the real values (and, if `can_edit` newly resolves
    * `true`, the deferred full-character fetch) without blocking the first
-   * render.
+   * render. The merged character carries an `access_resolved` flag, `false`
+   * on this first, fail-closed pass and `true` once the real access/permissions
+   * fetches have resolved, so callers can tell a not-yet-known `can_edit`
+   * from a genuinely resolved denial.
    *
    * @param {object} character - Base character data already loaded.
    * @param {object} params - Route params with game_slug and character_id.
@@ -132,23 +135,23 @@ export default class CharacterController extends BasePageController {
    * @returns {Promise<void>|undefined} Resolves once the character state is updated.
    */
   fetchAndMergeAccess(character, params, token, safeSet) {
-    const firstPass = this.#loadCharacterAccess(character, params, token, safeSet);
+    const firstPass = this.#loadCharacterAccess(character, params, token, safeSet, false);
 
     Promise.all([
       AccessStore.ensureCharacterAccess(this.characterKind, params.game_slug, params.character_id),
       AccessStore.ensureCharacterPermissions(this.characterKind, params.game_slug, params.character_id),
-    ]).then(() => this.#loadCharacterAccess(character, params, token, safeSet));
+    ]).then(() => this.#loadCharacterAccess(character, params, token, safeSet, true));
 
     return firstPass;
   }
 
-  #loadCharacterAccess(character, params, token, safeSet) {
-    const characterWithAccess = this.#mergeAccess(character, params);
+  #loadCharacterAccess(character, params, token, safeSet, resolved) {
+    const characterWithAccess = this.#mergeAccess(character, params, resolved);
 
     return this.loadFullCharacter(characterWithAccess, params, token, safeSet);
   }
 
-  #mergeAccess(character, params) {
+  #mergeAccess(character, params, resolved) {
     const access = AccessStore.getCharacterAccess(
       this.characterKind, params.game_slug, params.character_id,
     );
@@ -156,7 +159,12 @@ export default class CharacterController extends BasePageController {
       this.characterKind, params.game_slug, params.character_id,
     );
 
-    return { ...character, can_edit: permissions.can_edit, is_player: access.is_player };
+    return {
+      ...character,
+      can_edit: permissions.can_edit,
+      is_player: access.is_player,
+      access_resolved: resolved,
+    };
   }
 
   /**
