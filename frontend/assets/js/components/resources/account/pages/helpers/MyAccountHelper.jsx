@@ -1,9 +1,9 @@
 import React from 'react';
-import FormField from '../../elements/FormField.jsx';
-import ErrorAlert from '../../elements/ErrorAlert.jsx';
-import LoadingMessage from '../../elements/LoadingMessage.jsx';
-import SubmitButton from '../../elements/SubmitButton.jsx';
-import Translator from '../../../i18n/Translator.js';
+import FormField from '../../../../elements/FormField.jsx';
+import ErrorAlert from '../../../../elements/ErrorAlert.jsx';
+import LoadingMessage from '../../../../elements/LoadingMessage.jsx';
+import SubmitButton from '../../../../elements/SubmitButton.jsx';
+import Translator from '../../../../../i18n/Translator.js';
 
 /**
  * Rendering helper for the my account page.

@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import RegisterHelper from '../../../../../../assets/js/components/pages/helpers/RegisterHelper.jsx';
+import RegisterHelper from '../../../../../../../../assets/js/components/resources/account/pages/helpers/RegisterHelper.jsx';
 
 describe('RegisterHelper', function() {
   const buildHandlers = () => ({

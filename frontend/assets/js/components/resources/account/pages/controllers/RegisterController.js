@@ -1,6 +1,6 @@
-import AuthClient from '../../../client/AuthClient.js';
-import AuthEvents from '../../../utils/AuthEvents.js';
-import AuthStorage from '../../../utils/AuthStorage.js';
+import AuthClient from '../../../../../client/AuthClient.js';
+import AuthEvents from '../../../../../utils/AuthEvents.js';
+import AuthStorage from '../../../../../utils/AuthStorage.js';
 
 /**
  * Controller for the register page.

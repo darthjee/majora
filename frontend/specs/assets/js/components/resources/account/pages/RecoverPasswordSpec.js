@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import RecoverPassword from '../../../../../assets/js/components/pages/RecoverPassword.jsx';
-import RecoverPasswordHelper from '../../../../../assets/js/components/pages/helpers/RecoverPasswordHelper.jsx';
+import RecoverPassword from '../../../../../../../assets/js/components/resources/account/pages/RecoverPassword.jsx';
+import RecoverPasswordHelper from '../../../../../../../assets/js/components/resources/account/pages/helpers/RecoverPasswordHelper.jsx';
 
 describe('RecoverPassword', function() {
   describe('#render', function() {

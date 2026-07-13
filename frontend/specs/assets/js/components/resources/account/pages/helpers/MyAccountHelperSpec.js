@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import MyAccountHelper from '../../../../../../assets/js/components/pages/helpers/MyAccountHelper.jsx';
+import MyAccountHelper from '../../../../../../../../assets/js/components/resources/account/pages/helpers/MyAccountHelper.jsx';
 
 describe('MyAccountHelper', function() {
   const buildFormState = (overrides = {}) => ({

@@ -1,5 +1,5 @@
 import RecoverPasswordController
-  from '../../../../../../assets/js/components/pages/controllers/RecoverPasswordController.js';
+  from '../../../../../../../../assets/js/components/resources/account/pages/controllers/RecoverPasswordController.js';
 
 describe('RecoverPasswordController', function() {
   describe('getRecoverPasswordTokenFromHash', function() {

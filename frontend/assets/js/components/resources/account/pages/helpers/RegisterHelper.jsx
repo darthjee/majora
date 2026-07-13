@@ -1,5 +1,5 @@
-import FormField from '../../elements/FormField.jsx';
-import Translator from '../../../i18n/Translator.js';
+import FormField from '../../../../elements/FormField.jsx';
+import Translator from '../../../../../i18n/Translator.js';
 
 /**
  * Rendering helper for the register page.

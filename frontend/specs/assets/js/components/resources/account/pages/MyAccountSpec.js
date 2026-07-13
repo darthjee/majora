@@ -1,10 +1,10 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import MyAccount from '../../../../../assets/js/components/pages/MyAccount.jsx';
-import MyAccountHelper from '../../../../../assets/js/components/pages/helpers/MyAccountHelper.jsx';
-import MyAccountController from '../../../../../assets/js/components/pages/controllers/MyAccountController.js';
-import Noop from '../../../../../assets/js/utils/Noop.js';
-import { stubBuildEffect, stubRenderLoading } from '../../../../support/controllerStubs.js';
+import MyAccount from '../../../../../../../assets/js/components/resources/account/pages/MyAccount.jsx';
+import MyAccountHelper from '../../../../../../../assets/js/components/resources/account/pages/helpers/MyAccountHelper.jsx';
+import MyAccountController from '../../../../../../../assets/js/components/resources/account/pages/controllers/MyAccountController.js';
+import Noop from '../../../../../../../assets/js/utils/Noop.js';
+import { stubBuildEffect, stubRenderLoading } from '../../../../../../support/controllerStubs.js';
 
 describe('MyAccount', function() {
   it('renders the loading state while fetching', function() {

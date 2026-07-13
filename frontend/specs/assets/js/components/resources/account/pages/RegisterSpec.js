@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import Register from '../../../../../assets/js/components/pages/Register.jsx';
-import RegisterHelper from '../../../../../assets/js/components/pages/helpers/RegisterHelper.jsx';
+import Register from '../../../../../../../assets/js/components/resources/account/pages/Register.jsx';
+import RegisterHelper from '../../../../../../../assets/js/components/resources/account/pages/helpers/RegisterHelper.jsx';
 
 describe('Register', function() {
   describe('#render', function() {

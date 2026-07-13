@@ -1,5 +1,5 @@
-import AuthClient from '../../../client/AuthClient.js';
-import HashQueryParams from '../../../utils/HashQueryParams.js';
+import AuthClient from '../../../../../client/AuthClient.js';
+import HashQueryParams from '../../../../../utils/HashQueryParams.js';
 
 /**
  * Controller for the recover-password page.

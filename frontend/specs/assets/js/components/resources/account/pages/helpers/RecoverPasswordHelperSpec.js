@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import RecoverPasswordHelper from '../../../../../../assets/js/components/pages/helpers/RecoverPasswordHelper.jsx';
+import RecoverPasswordHelper from '../../../../../../../../assets/js/components/resources/account/pages/helpers/RecoverPasswordHelper.jsx';
 
 describe('RecoverPasswordHelper', function() {
   const buildHandlers = () => ({
