@@ -44,50 +44,12 @@ The application is structured as a Django REST API backend and a React single-pa
 ```
 majora/
 ├── source/               # Django backend (Python)
-│   ├── games/            # Core app: models, views, serializers, migrations
-│   ├── majora_project/   # Django settings and root URL config
-│   └── manage.py
 ├── frontend/             # React + Vite frontend
-│   ├── assets/           # JS/JSX components, CSS, images
-│   └── specs/            # Jasmine test files
+├── proxy/                # PHP proxy (dartjee/tent) configuration and extensions
 ├── dockerfiles/          # Dockerfiles for each service
 ├── docker_volumes/       # Bind-mounted volumes (static assets, proxy config)
 ├── docs/                 # Project documentation
 └── docker-compose.yml    # Full stack service definitions
-```
-
-### API Endpoints
-
-| Method | URL | Description |
-|--------|-----|-------------|
-| `GET` | `/games.json` | List all games |
-| `GET` | `/games/<slug>.json` | Game detail (includes links) |
-| `GET` | `/games/<slug>/pcs.json` | Player Characters for a game |
-| `GET` | `/games/<slug>/npcs.json` | Non-Player Characters for a game |
-| `GET` | `/games/<slug>/characters/<id>.json` | Character detail (includes photos) |
-| `POST` | `/users/login.json` | Authenticate and obtain a token |
-| `POST` | `/users/register.json` | Create a new user account |
-| `POST` | `/users/logout.json` | Revoke the current token (requires authentication) |
-
-### Authentication
-
-The API uses DRF token authentication. Obtain a token via `/users/login.json`, then send it in the `Authorization` header on subsequent requests.
-
-```bash
-# Register a new user
-curl -X POST http://localhost:3000/users/register.json \
-  -H "Content-Type: application/json" \
-  -d '{"username": "alice", "password": "secret123", "email": "alice@example.com"}'
-
-# Log in to obtain a token
-curl -X POST http://localhost:3000/users/login.json \
-  -H "Content-Type: application/json" \
-  -d '{"username": "alice", "password": "secret123"}'
-# => {"token": "<your-auth-token>"}
-
-# Use the token on authenticated requests
-curl -X POST http://localhost:3000/users/logout.json \
-  -H "Authorization: Token <your-auth-token>"
 ```
 
 ## Development Setup
