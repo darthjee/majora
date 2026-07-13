@@ -22,7 +22,9 @@ describe('CharacterController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(controller.fetchCharacter).toHaveBeenCalledWith('demo', '2', null);
-      expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: false, is_player: false });
+      expect(setCharacter).toHaveBeenCalledWith({
+        id: 2, treasures: [], can_edit: false, is_player: false, access_resolved: true,
+      });
     });
 
     it('renders with the fail-closed default first, then merges slain/public_slain once the user is found to be able to edit', async function() {
@@ -45,13 +47,19 @@ describe('CharacterController', function() {
       await controller.loadCharacter(params, safeSet);
 
       expect(setCharacter).toHaveBeenCalledWith({
-        id: 2, treasures: [], can_edit: false, is_player: false, slain: false,
+        id: 2, treasures: [], can_edit: false, is_player: false, slain: false, access_resolved: false,
       });
 
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(setCharacter).toHaveBeenCalledWith({
-        id: 2, treasures: [], can_edit: true, is_player: false, slain: true, public_slain: false,
+        id: 2,
+        treasures: [],
+        can_edit: true,
+        is_player: false,
+        slain: true,
+        public_slain: false,
+        access_resolved: true,
       });
     });
 

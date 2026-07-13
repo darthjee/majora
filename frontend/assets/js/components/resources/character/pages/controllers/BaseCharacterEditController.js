@@ -14,13 +14,16 @@ import Noop from '../../../../../utils/Noop.js';
 export default class BaseCharacterEditController extends BasePageController {
   /**
    * Decide whether a loaded character should redirect away from the edit
-   * page, because it is missing or not editable.
+   * page, because it is missing or not editable. Only acts once the real
+   * access/permissions check has resolved (`character.access_resolved`),
+   * so a fail-closed `can_edit: false` produced while the real fetch is
+   * still in flight does not trigger a premature redirect.
    *
    * @param {object|null} character - Loaded character, or null while still loading.
    * @returns {boolean} True when the page should redirect away.
    */
   static #shouldRedirect(character) {
-    return Boolean(character) && !character.can_edit;
+    return Boolean(character) && character.access_resolved && !character.can_edit;
   }
 
   /**

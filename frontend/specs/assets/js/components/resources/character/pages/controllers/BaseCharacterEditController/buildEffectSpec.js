@@ -44,7 +44,12 @@ describe('BaseCharacterEditController', function() {
 
       expect(fullCharacterClient.fetchCharacter).toHaveBeenCalledWith('npcs', 'demo', '1', null);
       expect(setCharacter).toHaveBeenCalledWith({
-        id: 1, treasures: [], can_edit: true, is_player: false, private_description: 'Notes.',
+        id: 1,
+        treasures: [],
+        can_edit: true,
+        is_player: false,
+        private_description: 'Notes.',
+        access_resolved: true,
       });
 
       cleanup();

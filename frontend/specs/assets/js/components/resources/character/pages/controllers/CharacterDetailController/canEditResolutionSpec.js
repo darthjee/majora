@@ -32,7 +32,9 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: false, is_player: false });
+      expect(setCharacter).toHaveBeenCalledWith({
+        id: 2, treasures: [], can_edit: false, is_player: false, access_resolved: true,
+      });
       expect(characterClient.fetchCharacterFull).not.toHaveBeenCalled();
 
       cleanup();

@@ -38,7 +38,44 @@ describe('BaseCharacterEditController', function() {
       expect(setters.setName).not.toHaveBeenCalled();
     });
 
-    it('redirects to the show page when the loaded character cannot be edited', function() {
+    it('redirects to the show page when the loaded character cannot be edited and access has resolved', function() {
+      const controller = new TestCharacterEditController(
+        setCharacter, setLoading, setError, setFieldErrors, client, characterClient,
+      );
+      const fakeWindow = { location: { hash: '' } };
+      globalThis.window = fakeWindow;
+
+      try {
+        controller.applyLoadedCharacter(
+          { id: 1, can_edit: false, access_resolved: true }, 'demo', '1', setters,
+        );
+
+        expect(fakeWindow.location.hash).toBe('/games/demo/npcs/1');
+        expect(setters.setName).not.toHaveBeenCalled();
+      } finally {
+        delete globalThis.window;
+      }
+    });
+
+    it('does not redirect when the character cannot be edited but access has not resolved yet', function() {
+      const controller = new TestCharacterEditController(
+        setCharacter, setLoading, setError, setFieldErrors, client, characterClient,
+      );
+      const fakeWindow = { location: { hash: '' } };
+      globalThis.window = fakeWindow;
+
+      try {
+        controller.applyLoadedCharacter(
+          { id: 1, can_edit: false, access_resolved: false }, 'demo', '1', setters,
+        );
+
+        expect(fakeWindow.location.hash).toBe('');
+      } finally {
+        delete globalThis.window;
+      }
+    });
+
+    it('does not redirect when the character cannot be edited and access_resolved is absent', function() {
       const controller = new TestCharacterEditController(
         setCharacter, setLoading, setError, setFieldErrors, client, characterClient,
       );
@@ -48,8 +85,7 @@ describe('BaseCharacterEditController', function() {
       try {
         controller.applyLoadedCharacter({ id: 1, can_edit: false }, 'demo', '1', setters);
 
-        expect(fakeWindow.location.hash).toBe('/games/demo/npcs/1');
-        expect(setters.setName).not.toHaveBeenCalled();
+        expect(fakeWindow.location.hash).toBe('');
       } finally {
         delete globalThis.window;
       }
