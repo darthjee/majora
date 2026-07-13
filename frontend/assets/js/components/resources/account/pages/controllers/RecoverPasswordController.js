@@ -1,4 +1,5 @@
 import AuthClient from '../../../../../client/AuthClient.js';
+import HealthClient from '../../../../../client/HealthClient.js';
 import HashQueryParams from '../../../../../utils/HashQueryParams.js';
 
 /**
@@ -21,11 +22,58 @@ export default class RecoverPasswordController {
    * @param {Function} setStatus - status setter (`'idle' | 'submitting' | 'success' | 'error'`).
    * @param {Function} setErrorMessage - error message setter.
    * @param {AuthClient} [client] - HTTP client override.
+   * @param {HealthClient} [healthClient] - HTTP client used for readiness polling.
    */
-  constructor(setStatus, setErrorMessage, client = new AuthClient()) {
+  constructor(setStatus, setErrorMessage, client = new AuthClient(), healthClient = new HealthClient()) {
     this.setStatus = setStatus;
     this.setErrorMessage = setErrorMessage;
     this.client = client;
+    this.healthClient = healthClient;
+  }
+
+  /**
+   * Polls the health-check endpoint until the backend reports it is ready,
+   * marking the page ready once (and only once) a `200` response is received.
+   *
+   * @description A `502`, any other non-2xx response, or a thrown error
+   *   (including the timeout rejection from `HealthClient#check`) is treated
+   *   as "not ready yet": the check is retried after `delayMs`. Polling stops
+   *   as soon as `cancelToken.cancelled` is set, so a pending retry never
+   *   calls `setReady` after the caller has unmounted.
+   * @param {Function} setReady - state setter invoked with `true` once ready.
+   * @param {number} [delayMs=2000] - delay between retries, in milliseconds.
+   * @param {{cancelled: boolean}} [cancelToken] - cancellation flag shared with the caller.
+   * @returns {Promise<void>} resolves once ready or once cancelled.
+   */
+  async waitUntilReady(setReady, delayMs = 2000, cancelToken = { cancelled: false }) {
+    while (!cancelToken.cancelled) {
+      const ready = await this.#checkReady();
+
+      if (cancelToken.cancelled) {
+        return;
+      }
+
+      if (ready) {
+        setReady(true);
+        return;
+      }
+
+      await RecoverPasswordController.#wait(delayMs);
+    }
+  }
+
+  async #checkReady() {
+    try {
+      const response = await this.healthClient.check();
+
+      return response.status === 200;
+    } catch {
+      return false;
+    }
+  }
+
+  static #wait(delayMs) {
+    return new Promise((resolve) => setTimeout(resolve, delayMs));
   }
 
   /**
