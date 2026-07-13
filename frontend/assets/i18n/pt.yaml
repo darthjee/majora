@@ -111,6 +111,7 @@ recover_password_page:
   submit: Resetar senha
   success: Sua senha foi resetada.
   back_to_home: Voltar à página inicial
+  waiting_for_server: Aguardando o servidor ficar pronto…
 register_page:
   title: Registrar
   name_label: Nome

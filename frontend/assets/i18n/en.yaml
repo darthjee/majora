@@ -111,6 +111,7 @@ recover_password_page:
   submit: Reset password
   success: Your password has been reset.
   back_to_home: Back to home
+  waiting_for_server: Waiting for the server to be ready…
 register_page:
   title: Register
   name_label: Name
