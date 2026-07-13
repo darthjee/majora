@@ -1,10 +1,10 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import StaffUserEdit from '../../../../../assets/js/components/pages/StaffUserEdit.jsx';
-import StaffUserEditHelper from '../../../../../assets/js/components/pages/helpers/StaffUserEditHelper.jsx';
-import StaffUserEditController from '../../../../../assets/js/components/pages/controllers/StaffUserEditController.js';
-import Noop from '../../../../../assets/js/utils/Noop.js';
-import { stubBuildEffect, stubRenderLoading } from '../../../../support/controllerStubs.js';
+import StaffUserEdit from '../../../../../../../assets/js/components/resources/staff_user/pages/StaffUserEdit.jsx';
+import StaffUserEditHelper from '../../../../../../../assets/js/components/resources/staff_user/pages/helpers/StaffUserEditHelper.jsx';
+import StaffUserEditController from '../../../../../../../assets/js/components/resources/staff_user/pages/controllers/StaffUserEditController.js';
+import Noop from '../../../../../../../assets/js/utils/Noop.js';
+import { stubBuildEffect, stubRenderLoading } from '../../../../../../support/controllerStubs.js';
 
 describe('StaffUserEdit', function() {
   it('renders the loading state while fetching', function() {

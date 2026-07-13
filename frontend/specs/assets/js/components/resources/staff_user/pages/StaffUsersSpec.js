@@ -1,10 +1,10 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import StaffUsers from '../../../../../assets/js/components/pages/StaffUsers.jsx';
-import StaffUsersHelper from '../../../../../assets/js/components/pages/helpers/StaffUsersHelper.jsx';
-import StaffUsersController from '../../../../../assets/js/components/pages/controllers/StaffUsersController.js';
-import Noop from '../../../../../assets/js/utils/Noop.js';
-import { stubBuildEffect, stubRenderLoading } from '../../../../support/controllerStubs.js';
+import StaffUsers from '../../../../../../../assets/js/components/resources/staff_user/pages/StaffUsers.jsx';
+import StaffUsersHelper from '../../../../../../../assets/js/components/resources/staff_user/pages/helpers/StaffUsersHelper.jsx';
+import StaffUsersController from '../../../../../../../assets/js/components/resources/staff_user/pages/controllers/StaffUsersController.js';
+import Noop from '../../../../../../../assets/js/utils/Noop.js';
+import { stubBuildEffect, stubRenderLoading } from '../../../../../../support/controllerStubs.js';
 
 describe('StaffUsers', function() {
   it('renders the loading state while fetching', function() {

@@ -1,7 +1,7 @@
-import StaffUserClient from '../../../client/StaffUserClient.js';
-import AuthStorage from '../../../utils/AuthStorage.js';
-import AccessStore from '../../../utils/AccessStore.js';
-import BasePageController from './BasePageController.js';
+import StaffUserClient from '../../../../../client/StaffUserClient.js';
+import AuthStorage from '../../../../../utils/AuthStorage.js';
+import AccessStore from '../../../../../utils/AccessStore.js';
+import BasePageController from '../../../../common/controllers/BasePageController.js';
 
 /**
  * Controller for the staff user detail page.

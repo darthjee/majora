@@ -1,5 +1,5 @@
 import StaffUserEditController
-  from '../../../../../../../assets/js/components/pages/controllers/StaffUserEditController.js';
+  from '../../../../../../../../../assets/js/components/resources/staff_user/pages/controllers/StaffUserEditController.js';
 
 describe('StaffUserEditController', function() {
   it('extracts user id from an edit hash', function() {

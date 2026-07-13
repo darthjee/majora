@@ -1,4 +1,4 @@
-import StaffUsersController from '../../../../../../../assets/js/components/pages/controllers/StaffUsersController.js';
+import StaffUsersController from '../../../../../../../../../assets/js/components/resources/staff_user/pages/controllers/StaffUsersController.js';
 import { buildContext } from './support.js';
 
 describe('StaffUsersController', function() {

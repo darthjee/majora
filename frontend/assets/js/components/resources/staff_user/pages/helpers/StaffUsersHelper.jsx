@@ -1,11 +1,11 @@
 import React from 'react';
-import ConditionalComponent from '../../elements/ConditionalComponent.jsx';
-import ErrorAlert from '../../elements/ErrorAlert.jsx';
-import LoadingMessage from '../../elements/LoadingMessage.jsx';
-import PageActions from '../../elements/PageActions.jsx';
-import Pagination from '../../elements/Pagination.jsx';
-import Table from '../../elements/Table.jsx';
-import Translator from '../../../i18n/Translator.js';
+import ConditionalComponent from '../../../../elements/ConditionalComponent.jsx';
+import ErrorAlert from '../../../../elements/ErrorAlert.jsx';
+import LoadingMessage from '../../../../elements/LoadingMessage.jsx';
+import PageActions from '../../../../elements/PageActions.jsx';
+import Pagination from '../../../../elements/Pagination.jsx';
+import Table from '../../../../elements/Table.jsx';
+import Translator from '../../../../../i18n/Translator.js';
 
 /**
  * Rendering helper for the staff users listing page.

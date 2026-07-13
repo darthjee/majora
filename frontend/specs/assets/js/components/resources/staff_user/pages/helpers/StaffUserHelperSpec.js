@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import StaffUserHelper from '../../../../../../assets/js/components/pages/helpers/StaffUserHelper.jsx';
+import StaffUserHelper from '../../../../../../../../assets/js/components/resources/staff_user/pages/helpers/StaffUserHelper.jsx';
 
 describe('StaffUserHelper', function() {
   const user = { id: 1, name: 'Jane', email: 'jane@example.com' };

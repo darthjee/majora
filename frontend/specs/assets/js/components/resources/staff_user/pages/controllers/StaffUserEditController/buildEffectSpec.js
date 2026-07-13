@@ -1,8 +1,8 @@
 import StaffUserEditController
-  from '../../../../../../../assets/js/components/pages/controllers/StaffUserEditController.js';
-import Noop from '../../../../../../../assets/js/utils/Noop.js';
-import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
-import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
+  from '../../../../../../../../../assets/js/components/resources/staff_user/pages/controllers/StaffUserEditController.js';
+import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
+import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
+import AccessStore from '../../../../../../../../../assets/js/utils/AccessStore.js';
 
 describe('StaffUserEditController', function() {
   afterEach(function() {

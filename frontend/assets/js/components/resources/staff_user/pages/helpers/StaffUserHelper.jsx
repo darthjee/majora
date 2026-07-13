@@ -1,8 +1,8 @@
 import React from 'react';
-import BackButton from '../../elements/BackButton.jsx';
-import ErrorAlert from '../../elements/ErrorAlert.jsx';
-import LoadingMessage from '../../elements/LoadingMessage.jsx';
-import Translator from '../../../i18n/Translator.js';
+import BackButton from '../../../../elements/BackButton.jsx';
+import ErrorAlert from '../../../../elements/ErrorAlert.jsx';
+import LoadingMessage from '../../../../elements/LoadingMessage.jsx';
+import Translator from '../../../../../i18n/Translator.js';
 
 /**
  * Rendering helper for the staff user detail page.

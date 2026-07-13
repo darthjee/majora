@@ -1,7 +1,7 @@
 import StaffUserController
-  from '../../../../../../assets/js/components/pages/controllers/StaffUserController.js';
-import AuthStorage from '../../../../../../assets/js/utils/AuthStorage.js';
-import AccessStore from '../../../../../../assets/js/utils/AccessStore.js';
+  from '../../../../../../../../assets/js/components/resources/staff_user/pages/controllers/StaffUserController.js';
+import AuthStorage from '../../../../../../../../assets/js/utils/AuthStorage.js';
+import AccessStore from '../../../../../../../../assets/js/utils/AccessStore.js';
 
 describe('StaffUserController', function() {
   afterEach(function() {

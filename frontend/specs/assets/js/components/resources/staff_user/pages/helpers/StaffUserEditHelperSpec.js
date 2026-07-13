@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import StaffUserEditHelper from '../../../../../../assets/js/components/pages/helpers/StaffUserEditHelper.jsx';
+import StaffUserEditHelper from '../../../../../../../../assets/js/components/resources/staff_user/pages/helpers/StaffUserEditHelper.jsx';
 
 describe('StaffUserEditHelper', function() {
   const buildFormState = (overrides = {}) => ({

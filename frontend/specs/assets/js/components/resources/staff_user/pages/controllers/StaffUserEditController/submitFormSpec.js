@@ -1,6 +1,6 @@
 import StaffUserEditController
-  from '../../../../../../../assets/js/components/pages/controllers/StaffUserEditController.js';
-import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
+  from '../../../../../../../../../assets/js/components/resources/staff_user/pages/controllers/StaffUserEditController.js';
+import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
 
 describe('StaffUserEditController', function() {
   afterEach(function() {

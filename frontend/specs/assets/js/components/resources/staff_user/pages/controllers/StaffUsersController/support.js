@@ -1,4 +1,4 @@
-import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
+import AccessStore from '../../../../../../../../../assets/js/utils/AccessStore.js';
 
 /**
  * @description Builds fresh spies shared by every StaffUsersController spec file.
