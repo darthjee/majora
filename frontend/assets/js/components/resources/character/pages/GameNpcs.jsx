@@ -4,7 +4,7 @@ import GameCharactersHelper from './helpers/GameCharactersHelper.jsx';
 import Translator from '../../../../i18n/Translator.js';
 import AuthStorage from '../../../../utils/AuthStorage.js';
 import HashRouteResolver from '../../../../utils/HashRouteResolver.js';
-import PhotoUploadModal from '../../../elements/PhotoUploadModal.jsx';
+import PhotoUploadModal from '../../../common/PhotoUploadModal.jsx';
 import SlainConfirmModal from './elements/SlainConfirmModal.jsx';
 import SlainConfirmController from './elements/controllers/SlainConfirmController.js';
 import PlayerSlainConfirmController from './elements/controllers/PlayerSlainConfirmController.js';

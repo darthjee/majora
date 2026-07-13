@@ -1,10 +1,10 @@
 import React from 'react';
-import ErrorAlert from '../../../../elements/ErrorAlert.jsx';
+import ErrorAlert from '../../../../common/ErrorAlert.jsx';
 import GameCard from '../elements/GameCard.jsx';
-import LoadingMessage from '../../../../elements/LoadingMessage.jsx';
-import NewButton from '../../../../elements/NewButton.jsx';
-import PageActions from '../../../../elements/PageActions.jsx';
-import Pagination from '../../../../elements/Pagination.jsx';
+import LoadingMessage from '../../../../common/LoadingMessage.jsx';
+import NewButton from '../../../../common/NewButton.jsx';
+import PageActions from '../../../../common/PageActions.jsx';
+import Pagination from '../../../../common/Pagination.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**

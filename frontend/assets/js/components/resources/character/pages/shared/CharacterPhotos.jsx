@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Noop from '../../../../../utils/Noop.js';
-import PhotoUploadModal from '../../../../elements/PhotoUploadModal.jsx';
-import PhotoViewModal from '../../../../elements/PhotoViewModal.jsx';
+import PhotoUploadModal from '../../../../common/PhotoUploadModal.jsx';
+import PhotoViewModal from '../../../../common/PhotoViewModal.jsx';
 
 /**
  * Shared character photos index page component.

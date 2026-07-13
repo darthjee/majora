@@ -1,18 +1,18 @@
 import React from 'react';
-import ActionsOverlay from '../../../../elements/ActionsOverlay.jsx';
-import EditButton from '../../../../elements/EditButton.jsx';
-import PageActions from '../../../../elements/PageActions.jsx';
-import ConditionalComponent from '../../../../elements/ConditionalComponent.jsx';
+import ActionsOverlay from '../../../../common/ActionsOverlay.jsx';
+import EditButton from '../../../../common/EditButton.jsx';
+import PageActions from '../../../../common/PageActions.jsx';
+import ConditionalComponent from '../../../../common/ConditionalComponent.jsx';
 import CharacterInfo from '../elements/CharacterInfo.jsx';
 import CharacterMoney from '../elements/CharacterMoney.jsx';
-import ErrorAlert from '../../../../elements/ErrorAlert.jsx';
-import LinkList from '../../../../elements/LinkList.jsx';
-import LoadingMessage from '../../../../elements/LoadingMessage.jsx';
+import ErrorAlert from '../../../../common/ErrorAlert.jsx';
+import LinkList from '../../../../common/LinkList.jsx';
+import LoadingMessage from '../../../../common/LoadingMessage.jsx';
 import CharacterTreasuresPreview from '../elements/CharacterTreasuresPreview.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import allegianceBorderClass from '../../../../../utils/AllegianceBorder.js';
-import SlainSecondaryButtons from '../../../../elements/helpers/SlainSecondaryButtons.js';
-import InfoBarRules from '../../../../elements/helpers/InfoBarRules.js';
+import SlainSecondaryButtons from '../../../../common/helpers/SlainSecondaryButtons.js';
+import InfoBarRules from '../../../../common/helpers/InfoBarRules.js';
 
 /**
  * Rendering helper for the Character detail page.

@@ -1,8 +1,8 @@
 import React from 'react';
-import FormField from '../../../../elements/FormField.jsx';
-import ErrorAlert from '../../../../elements/ErrorAlert.jsx';
-import LoadingMessage from '../../../../elements/LoadingMessage.jsx';
-import SubmitButton from '../../../../elements/SubmitButton.jsx';
+import FormField from '../../../../common/FormField.jsx';
+import ErrorAlert from '../../../../common/ErrorAlert.jsx';
+import LoadingMessage from '../../../../common/LoadingMessage.jsx';
+import SubmitButton from '../../../../common/SubmitButton.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**

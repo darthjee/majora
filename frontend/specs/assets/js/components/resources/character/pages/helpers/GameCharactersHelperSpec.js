@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
 import GameCharactersHelper from '../../../../../../../../assets/js/components/resources/character/pages/helpers/GameCharactersHelper.jsx';
-import CharacterCard from '../../../../../../../../assets/js/components/elements/CharacterCard.jsx';
+import CharacterCard from '../../../../../../../../assets/js/components/common/CharacterCard.jsx';
 import { buildCharacter } from '../../../../../../../support/factories.js';
 
 const findElements = (node, matcher, found = []) => {

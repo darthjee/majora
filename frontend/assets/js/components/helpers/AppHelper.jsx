@@ -1,5 +1,5 @@
 import React from 'react';
-import Header from '../elements/Header.jsx';
+import Header from '../common/Header.jsx';
 import Game from '../resources/game/pages/Game.jsx';
 import GameEdit from '../resources/game/pages/GameEdit.jsx';
 import GameNew from '../resources/game/pages/GameNew.jsx';

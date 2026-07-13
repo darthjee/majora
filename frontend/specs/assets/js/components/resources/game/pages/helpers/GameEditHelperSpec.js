@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameEditHelper from '../../../../../../../../assets/js/components/resources/game/pages/helpers/GameEditHelper.jsx';
-import ActionsOverlay from '../../../../../../../../assets/js/components/elements/ActionsOverlay.jsx';
+import ActionsOverlay from '../../../../../../../../assets/js/components/common/ActionsOverlay.jsx';
 
 const findElement = (node, matcher) => {
   if (!node) {

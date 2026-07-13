@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import CharacterHelper from '../helpers/CharacterHelper.jsx';
-import PhotoUploadModal from '../../../../elements/PhotoUploadModal.jsx';
+import PhotoUploadModal from '../../../../common/PhotoUploadModal.jsx';
 import LinksEditModal from '../elements/LinksEditModal.jsx';
 
 /**

@@ -1,11 +1,11 @@
 import React from 'react';
-import ErrorAlert from '../../../../elements/ErrorAlert.jsx';
-import FormField from '../../../../elements/FormField.jsx';
-import LoadingMessage from '../../../../elements/LoadingMessage.jsx';
-import PageActions from '../../../../elements/PageActions.jsx';
-import Pagination from '../../../../elements/Pagination.jsx';
-import SubmitButton from '../../../../elements/SubmitButton.jsx';
-import TextareaField from '../../../../elements/TextareaField.jsx';
+import ErrorAlert from '../../../../common/ErrorAlert.jsx';
+import FormField from '../../../../common/FormField.jsx';
+import LoadingMessage from '../../../../common/LoadingMessage.jsx';
+import PageActions from '../../../../common/PageActions.jsx';
+import Pagination from '../../../../common/Pagination.jsx';
+import SubmitButton from '../../../../common/SubmitButton.jsx';
+import TextareaField from '../../../../common/TextareaField.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**

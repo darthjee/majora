@@ -1,6 +1,6 @@
 import Modal from 'react-bootstrap/cjs/Modal.js';
-import CardTreasureImage from '../../../../../elements/CardTreasureImage.jsx';
-import TreasureMoney from '../../../../../elements/TreasureMoney.jsx';
+import CardTreasureImage from '../../../../../common/CardTreasureImage.jsx';
+import TreasureMoney from '../../../../../common/TreasureMoney.jsx';
 import Translator from '../../../../../../i18n/Translator.js';
 
 /**

@@ -1,6 +1,6 @@
 import React from 'react';
-import TreasureCard from '../../../../../elements/TreasureCard.jsx';
-import { MAX_PREVIEW_TREASURES } from '../../../../../elements/characterPreviewConstants.js';
+import TreasureCard from '../../../../../common/TreasureCard.jsx';
+import { MAX_PREVIEW_TREASURES } from '../../../../../common/characterPreviewConstants.js';
 import Translator from '../../../../../../i18n/Translator.js';
 
 /**

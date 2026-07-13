@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import TreasuresController from './controllers/TreasuresController.js';
 import TreasuresHelper from './helpers/TreasuresHelper.jsx';
-import PhotoUploadModal from '../../../elements/PhotoUploadModal.jsx';
+import PhotoUploadModal from '../../../common/PhotoUploadModal.jsx';
 
 /**
  * Render treasures index page.

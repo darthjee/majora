@@ -1,7 +1,7 @@
 import React from 'react';
-import BackButton from '../../../../elements/BackButton.jsx';
-import ErrorAlert from '../../../../elements/ErrorAlert.jsx';
-import LoadingMessage from '../../../../elements/LoadingMessage.jsx';
+import BackButton from '../../../../common/BackButton.jsx';
+import ErrorAlert from '../../../../common/ErrorAlert.jsx';
+import LoadingMessage from '../../../../common/LoadingMessage.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**

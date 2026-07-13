@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import GameEditController from './controllers/GameEditController.js';
 import GameEditHelper from './helpers/GameEditHelper.jsx';
 import GameHelper from './helpers/GameHelper.jsx';
-import PhotoUploadModal from '../../../elements/PhotoUploadModal.jsx';
+import PhotoUploadModal from '../../../common/PhotoUploadModal.jsx';
 
 /**
  * Game edit page.

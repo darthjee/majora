@@ -1,10 +1,10 @@
 import React from 'react';
-import ConditionalComponent from '../../../../elements/ConditionalComponent.jsx';
-import ErrorAlert from '../../../../elements/ErrorAlert.jsx';
-import LoadingMessage from '../../../../elements/LoadingMessage.jsx';
-import PageActions from '../../../../elements/PageActions.jsx';
-import Pagination from '../../../../elements/Pagination.jsx';
-import Table from '../../../../elements/Table.jsx';
+import ConditionalComponent from '../../../../common/ConditionalComponent.jsx';
+import ErrorAlert from '../../../../common/ErrorAlert.jsx';
+import LoadingMessage from '../../../../common/LoadingMessage.jsx';
+import PageActions from '../../../../common/PageActions.jsx';
+import Pagination from '../../../../common/Pagination.jsx';
+import Table from '../../../../common/Table.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**

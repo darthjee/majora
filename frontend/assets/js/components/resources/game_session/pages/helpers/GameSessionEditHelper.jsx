@@ -1,7 +1,7 @@
 import React from 'react';
-import FormField from '../../../../elements/FormField.jsx';
-import ErrorAlert from '../../../../elements/ErrorAlert.jsx';
-import SubmitButton from '../../../../elements/SubmitButton.jsx';
+import FormField from '../../../../common/FormField.jsx';
+import ErrorAlert from '../../../../common/ErrorAlert.jsx';
+import SubmitButton from '../../../../common/SubmitButton.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import GameSessionHelper from './GameSessionHelper.jsx';
 

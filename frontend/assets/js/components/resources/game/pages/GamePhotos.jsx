@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import GamePhotosController from './controllers/GamePhotosController.js';
 import GamePhotosHelper from './helpers/GamePhotosHelper.jsx';
-import PhotoUploadModal from '../../../elements/PhotoUploadModal.jsx';
-import PhotoViewModal from '../../../elements/PhotoViewModal.jsx';
+import PhotoUploadModal from '../../../common/PhotoUploadModal.jsx';
+import PhotoViewModal from '../../../common/PhotoViewModal.jsx';
 
 /**
  * Game Photos index page.

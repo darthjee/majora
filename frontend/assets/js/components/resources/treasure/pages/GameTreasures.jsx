@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import GameTreasuresController from './controllers/GameTreasuresController.js';
 import GameTreasuresHelper from './helpers/GameTreasuresHelper.jsx';
-import PhotoUploadModal from '../../../elements/PhotoUploadModal.jsx';
+import PhotoUploadModal from '../../../common/PhotoUploadModal.jsx';
 
 /**
  * Game Treasures index page.

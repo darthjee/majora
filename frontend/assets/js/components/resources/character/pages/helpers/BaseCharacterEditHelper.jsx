@@ -1,10 +1,10 @@
 import React from 'react';
-import ActionsOverlay from '../../../../elements/ActionsOverlay.jsx';
-import FormField from '../../../../elements/FormField.jsx';
-import TextareaField from '../../../../elements/TextareaField.jsx';
-import ErrorAlert from '../../../../elements/ErrorAlert.jsx';
-import LinkList from '../../../../elements/LinkList.jsx';
-import LoadingMessage from '../../../../elements/LoadingMessage.jsx';
+import ActionsOverlay from '../../../../common/ActionsOverlay.jsx';
+import FormField from '../../../../common/FormField.jsx';
+import TextareaField from '../../../../common/TextareaField.jsx';
+import ErrorAlert from '../../../../common/ErrorAlert.jsx';
+import LinkList from '../../../../common/LinkList.jsx';
+import LoadingMessage from '../../../../common/LoadingMessage.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**

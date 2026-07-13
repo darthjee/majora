@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import GameTasksController from './controllers/GameTasksController.js';
 import GameTasksHelper from './helpers/GameTasksHelper.jsx';
-import TaskDetailModal from '../../../elements/TaskDetailModal.jsx';
+import TaskDetailModal from '../../../common/TaskDetailModal.jsx';
 
 const EMPTY_FORM = { shortDescription: '', longDescription: '' };
 

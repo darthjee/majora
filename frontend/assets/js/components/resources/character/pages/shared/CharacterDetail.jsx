@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import CharacterHelper from '../helpers/CharacterHelper.jsx';
 import AuthEvents from '../../../../../utils/AuthEvents.js';
-import PhotoUploadModal from '../../../../elements/PhotoUploadModal.jsx';
+import PhotoUploadModal from '../../../../common/PhotoUploadModal.jsx';
 
 /**
  * Default extension hook, used when a character kind has no extra

@@ -1,12 +1,12 @@
 import React from 'react';
-import ActionsOverlay from '../../../../elements/ActionsOverlay.jsx';
-import EditButton from '../../../../elements/EditButton.jsx';
-import PageActions from '../../../../elements/PageActions.jsx';
-import ConditionalComponent from '../../../../elements/ConditionalComponent.jsx';
-import CharacterPreviewSection from '../../../../elements/CharacterPreviewSection.jsx';
-import ErrorAlert from '../../../../elements/ErrorAlert.jsx';
-import LinkList from '../../../../elements/LinkList.jsx';
-import LoadingMessage from '../../../../elements/LoadingMessage.jsx';
+import ActionsOverlay from '../../../../common/ActionsOverlay.jsx';
+import EditButton from '../../../../common/EditButton.jsx';
+import PageActions from '../../../../common/PageActions.jsx';
+import ConditionalComponent from '../../../../common/ConditionalComponent.jsx';
+import CharacterPreviewSection from '../../../../common/CharacterPreviewSection.jsx';
+import ErrorAlert from '../../../../common/ErrorAlert.jsx';
+import LinkList from '../../../../common/LinkList.jsx';
+import LoadingMessage from '../../../../common/LoadingMessage.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**

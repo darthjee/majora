@@ -1,8 +1,8 @@
 import React from 'react';
-import EditButton from '../../../../elements/EditButton.jsx';
-import ErrorAlert from '../../../../elements/ErrorAlert.jsx';
-import LoadingMessage from '../../../../elements/LoadingMessage.jsx';
-import PageActions from '../../../../elements/PageActions.jsx';
+import EditButton from '../../../../common/EditButton.jsx';
+import ErrorAlert from '../../../../common/ErrorAlert.jsx';
+import LoadingMessage from '../../../../common/LoadingMessage.jsx';
+import PageActions from '../../../../common/PageActions.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**
