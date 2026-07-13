@@ -16,12 +16,14 @@ $npcsEntityTargets = [
     '/games/:game_slug/npcs/all.json',
     '/games/:game_slug/npcs/:character_id.json',
     '/games/:game_slug/npcs/:character_id/full.json',
+    '/games/:game_slug/npcs/:character_id/photos.json',
 ];
 
 $pcsEntityTargets = [
     '/games/:game_slug/pcs.json',
     '/games/:game_slug/pcs/:character_id.json',
     '/games/:game_slug/pcs/:character_id/full.json',
+    '/games/:game_slug/pcs/:character_id/photos.json',
 ];
 
 $cacheCleanupGroups = [
