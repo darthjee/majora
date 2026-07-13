@@ -1,0 +1,12 @@
+import GamePhotosController
+  from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GamePhotosController.js';
+
+describe('GamePhotosController', function() {
+  it('extracts game slug from photos hash', function() {
+    expect(GamePhotosController.getGameSlugFromPhotosHash('#/games/demo/photos')).toBe('demo');
+  });
+
+  it('returns empty string when hash does not match photos route', function() {
+    expect(GamePhotosController.getGameSlugFromPhotosHash('#/games/demo')).toBe('');
+  });
+});
