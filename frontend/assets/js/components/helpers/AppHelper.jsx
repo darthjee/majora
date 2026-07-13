@@ -12,9 +12,9 @@ import GameSessionEdit from '../pages/GameSessionEdit.jsx';
 import GameSessionNew from '../pages/GameSessionNew.jsx';
 import GameSessions from '../pages/GameSessions.jsx';
 import GameTasks from '../pages/GameTasks.jsx';
-import GameTreasureEdit from '../pages/GameTreasureEdit.jsx';
-import GameTreasureNew from '../pages/GameTreasureNew.jsx';
-import GameTreasures from '../pages/GameTreasures.jsx';
+import GameTreasureEdit from '../resources/treasure/pages/GameTreasureEdit.jsx';
+import GameTreasureNew from '../resources/treasure/pages/GameTreasureNew.jsx';
+import GameTreasures from '../resources/treasure/pages/GameTreasures.jsx';
 import Games from '../pages/Games.jsx';
 import MyAccount from '../resources/account/pages/MyAccount.jsx';
 import NpcCharacter from '../pages/NpcCharacter.jsx';
@@ -30,10 +30,10 @@ import Register from '../resources/account/pages/Register.jsx';
 import StaffUser from '../resources/staff_user/pages/StaffUser.jsx';
 import StaffUserEdit from '../resources/staff_user/pages/StaffUserEdit.jsx';
 import StaffUsers from '../resources/staff_user/pages/StaffUsers.jsx';
-import Treasure from '../pages/Treasure.jsx';
-import TreasureEdit from '../pages/TreasureEdit.jsx';
-import TreasureNew from '../pages/TreasureNew.jsx';
-import Treasures from '../pages/Treasures.jsx';
+import Treasure from '../resources/treasure/pages/Treasure.jsx';
+import TreasureEdit from '../resources/treasure/pages/TreasureEdit.jsx';
+import TreasureNew from '../resources/treasure/pages/TreasureNew.jsx';
+import Treasures from '../resources/treasure/pages/Treasures.jsx';
 
 const PAGES = {
   games: <Games />,
