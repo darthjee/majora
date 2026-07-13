@@ -1,18 +1,16 @@
 import GameController from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GameController.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
+import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 import { stubEnsureGameAccess, stubEnsureGamePermissions } from './support.js';
 
 describe('GameController', function() {
-  beforeEach(function() {
-    stubEnsureGameAccess();
-    stubEnsureGamePermissions();
-  });
-
   afterEach(function() {
     AuthStorage.clearToken();
   });
 
   it('uses route params to request game detail', async function() {
+    stubEnsureGameAccess();
+    stubEnsureGamePermissions();
     const setGame = jasmine.createSpy('setGame');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
@@ -37,6 +35,39 @@ describe('GameController', function() {
 
     expect(client.fetch).toHaveBeenCalledWith('/games/demo.json');
     expect(setGame).toHaveBeenCalled();
+    expect(setLoading).toHaveBeenCalledWith(false);
+    expect(setError).not.toHaveBeenCalled();
+
+    cleanup();
+  });
+
+  it('renders the game immediately with fail-closed access/permissions, then re-renders once AccessStore resolves', async function() {
+    stubEnsureGameAccess({ is_owner: true }, {});
+    stubEnsureGamePermissions({ can_edit: true }, { can_edit: false });
+    const setGame = jasmine.createSpy('setGame');
+    const setLoading = jasmine.createSpy('setLoading');
+    const setError = jasmine.createSpy('setError');
+    const client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
+
+    client.currentHash.and.returnValue('#/games/demo');
+    client.fetch.and.returnValue(Promise.resolve({ game_slug: 'demo' }));
+
+    const cleanup = new GameController(setGame, setLoading, setError, Noop.noop, Noop.noop, client)
+      .buildEffect()();
+
+    expect(setGame).not.toHaveBeenCalled();
+    expect(setLoading).not.toHaveBeenCalled();
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(setGame.calls.count()).toBe(2);
+    expect(setGame.calls.argsFor(0)[0]).toEqual(
+      jasmine.objectContaining({ game_slug: 'demo', can_edit: false }),
+    );
+    expect(setGame.calls.argsFor(0)[0].is_owner).toBeUndefined();
+    expect(setGame.calls.argsFor(1)[0]).toEqual(
+      jasmine.objectContaining({ game_slug: 'demo', is_owner: true, can_edit: true }),
+    );
     expect(setLoading).toHaveBeenCalledWith(false);
     expect(setError).not.toHaveBeenCalled();
 

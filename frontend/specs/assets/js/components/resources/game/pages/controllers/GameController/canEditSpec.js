@@ -1,16 +1,16 @@
 import GameController from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GameController.js';
-import AccessStore from '../../../../../../../../../assets/js/utils/AccessStore.js';
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
+import { stubEnsureGameAccess, stubEnsureGamePermissions } from './support.js';
 
 describe('GameController', function() {
   afterEach(function() {
     AuthStorage.clearToken();
   });
 
-  it('merges can_edit from AccessStore onto the game object', async function() {
-    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
-    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+  it('renders can_edit false first, then merges the real can_edit once AccessStore resolves', async function() {
+    stubEnsureGameAccess();
+    const ensureGamePermissions = stubEnsureGamePermissions({ can_edit: true }, { can_edit: false });
     const setGame = jasmine.createSpy('setGame');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
@@ -23,8 +23,12 @@ describe('GameController', function() {
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');
-    expect(setGame).toHaveBeenCalledWith(
+    expect(ensureGamePermissions).toHaveBeenCalled();
+    expect(setGame.calls.count()).toBe(2);
+    expect(setGame.calls.argsFor(0)[0]).toEqual(
+      jasmine.objectContaining({ game_slug: 'demo', can_edit: false }),
+    );
+    expect(setGame.calls.argsFor(1)[0]).toEqual(
       jasmine.objectContaining({ game_slug: 'demo', can_edit: true }),
     );
 
@@ -32,8 +36,8 @@ describe('GameController', function() {
   });
 
   it('sets can_edit to false when AccessStore resolves with the fail-closed default', async function() {
-    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
-    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+    stubEnsureGameAccess();
+    stubEnsureGamePermissions({ can_edit: false }, { can_edit: false });
     const setGame = jasmine.createSpy('setGame');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
@@ -46,9 +50,9 @@ describe('GameController', function() {
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(setGame).toHaveBeenCalledWith(
-      jasmine.objectContaining({ game_slug: 'demo', can_edit: false }),
-    );
+    setGame.calls.allArgs().forEach(([game]) => {
+      expect(game).toEqual(jasmine.objectContaining({ game_slug: 'demo', can_edit: false }));
+    });
     expect(setError).not.toHaveBeenCalled();
 
     cleanup();

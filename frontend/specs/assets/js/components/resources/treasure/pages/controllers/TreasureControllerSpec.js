@@ -2,6 +2,7 @@ import TreasureController
   from '../../../../../../../../assets/js/components/resources/treasure/pages/controllers/TreasureController.js';
 import AuthStorage from '../../../../../../../../assets/js/utils/AuthStorage.js';
 import AccessStore from '../../../../../../../../assets/js/utils/AccessStore.js';
+import { stubAccessPair } from '../../../../../../../support/accessStoreStub.js';
 
 describe('TreasureController', function() {
   let treasureClient;
@@ -12,7 +13,6 @@ describe('TreasureController', function() {
       ok: true,
       json: () => Promise.resolve({ id: 1, name: 'Sword', value: 100 }),
     }));
-    spyOn(AccessStore, 'ensureTreasurePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
   });
 
   afterEach(function() {
@@ -24,6 +24,7 @@ describe('TreasureController', function() {
   });
 
   it('fetches treasure detail and access in parallel', async function() {
+    stubAccessPair('ensureTreasurePermissions', 'getTreasurePermissions', { can_edit: false }, { can_edit: false });
     const setTreasure = jasmine.createSpy('setTreasure');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
@@ -49,22 +50,25 @@ describe('TreasureController', function() {
     }
   });
 
-  it('merges can_edit from AccessStore onto the treasure', async function() {
+  it('renders can_edit false first, then merges the real can_edit once AccessStore resolves', async function() {
+    stubAccessPair('ensureTreasurePermissions', 'getTreasurePermissions', { can_edit: true }, { can_edit: false });
     const setTreasure = jasmine.createSpy('setTreasure');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const fakeWindow = { location: { hash: '#/treasures/1' } };
     globalThis.window = fakeWindow;
 
-    AccessStore.ensureTreasurePermissions.and.returnValue(Promise.resolve({ can_edit: true }));
-
     try {
       const cleanup = new TreasureController(setTreasure, setLoading, setError, treasureClient)
         .buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(setTreasure).toHaveBeenCalledWith(
-        jasmine.objectContaining({ can_edit: true }),
+      expect(setTreasure.calls.count()).toBe(2);
+      expect(setTreasure.calls.argsFor(0)[0]).toEqual(
+        jasmine.objectContaining({ id: 1, can_edit: false }),
+      );
+      expect(setTreasure.calls.argsFor(1)[0]).toEqual(
+        jasmine.objectContaining({ id: 1, can_edit: true }),
       );
 
       cleanup();
@@ -74,6 +78,7 @@ describe('TreasureController', function() {
   });
 
   it('sets error when the treasure fetch fails', async function() {
+    stubAccessPair('ensureTreasurePermissions', 'getTreasurePermissions', { can_edit: false }, { can_edit: false });
     const setTreasure = jasmine.createSpy('setTreasure');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
@@ -98,6 +103,7 @@ describe('TreasureController', function() {
   });
 
   it('sends the token when the user is authenticated', async function() {
+    stubAccessPair('ensureTreasurePermissions', 'getTreasurePermissions', { can_edit: false }, { can_edit: false });
     const setTreasure = jasmine.createSpy('setTreasure');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');

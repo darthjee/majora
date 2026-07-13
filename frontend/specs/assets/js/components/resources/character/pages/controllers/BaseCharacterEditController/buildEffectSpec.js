@@ -1,6 +1,6 @@
 import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
-import AccessStore from '../../../../../../../../../assets/js/utils/AccessStore.js';
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
+import { stubAccessPair } from '../../../../../../../../support/accessStoreStub.js';
 import { TestCharacterEditController, buildContext } from './support.js';
 
 describe('BaseCharacterEditController', function() {
@@ -19,8 +19,8 @@ describe('BaseCharacterEditController', function() {
 
   describe('#buildEffect', function() {
     it('delegates to the load controller buildEffect', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ is_player: false }));
-      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+      stubAccessPair('ensureCharacterAccess', 'getCharacterAccess', { is_player: false }, { is_player: false });
+      stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: true }, { can_edit: false });
       const fullCharacterClient = jasmine.createSpyObj('characterClient', [
         'fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'updateCharacter',
       ]);

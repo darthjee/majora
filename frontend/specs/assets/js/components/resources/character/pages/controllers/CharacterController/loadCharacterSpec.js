@@ -1,5 +1,5 @@
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
-import AccessStore from '../../../../../../../../../assets/js/utils/AccessStore.js';
+import { stubAccessPair } from '../../../../../../../../support/accessStoreStub.js';
 import { StubCharacterController, safeSet, buildController } from './support.js';
 
 describe('CharacterController', function() {
@@ -7,8 +7,8 @@ describe('CharacterController', function() {
     const params = { game_slug: 'demo', character_id: '2' };
 
     it('fetches the character and merges access on success', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ is_player: false }));
-      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+      stubAccessPair('ensureCharacterAccess', 'getCharacterAccess', { is_player: false }, { is_player: false });
+      stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: false }, { can_edit: false });
       const setCharacter = jasmine.createSpy('setCharacter');
       const controller = buildController(setCharacter, {
         fetchCharacter: () => Promise.resolve({
@@ -19,14 +19,15 @@ describe('CharacterController', function() {
       });
 
       await controller.loadCharacter(params, safeSet);
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(controller.fetchCharacter).toHaveBeenCalledWith('demo', '2', null);
       expect(setCharacter).toHaveBeenCalledWith({ id: 2, treasures: [], can_edit: false, is_player: false });
     });
 
-    it('merges slain and public_slain from the full character fetch when the user can edit', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ is_player: false }));
-      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+    it('renders with the fail-closed default first, then merges slain/public_slain once the user is found to be able to edit', async function() {
+      stubAccessPair('ensureCharacterAccess', 'getCharacterAccess', { is_player: false }, { is_player: false });
+      stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: true }, { can_edit: false });
       const setCharacter = jasmine.createSpy('setCharacter');
       const controller = buildController(setCharacter, {
         // Mimics the public CharacterDetailSerializer: `slain` aliased to the real
@@ -42,6 +43,12 @@ describe('CharacterController', function() {
       });
 
       await controller.loadCharacter(params, safeSet);
+
+      expect(setCharacter).toHaveBeenCalledWith({
+        id: 2, treasures: [], can_edit: false, is_player: false, slain: false,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(setCharacter).toHaveBeenCalledWith({
         id: 2, treasures: [], can_edit: true, is_player: false, slain: true, public_slain: false,
