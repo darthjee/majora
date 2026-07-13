@@ -1,5 +1,5 @@
 import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
-import AccessStore from '../../../../../../../../../assets/js/utils/AccessStore.js';
+import { stubAccessPair } from '../../../../../../../../support/accessStoreStub.js';
 import { KINDS } from './support.js';
 
 KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash }) => {
@@ -8,9 +8,9 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
       AuthStorage.clearToken();
     });
 
-    it('fetches full detail and merges private_description when can_edit is true', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ is_player: false }));
-      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+    it('fetches full detail and merges private_description once the resolved can_edit is true', async function() {
+      stubAccessPair('ensureCharacterAccess', 'getCharacterAccess', { is_player: false }, { is_player: false });
+      stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: true }, { can_edit: false });
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -45,8 +45,8 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
     });
 
     it('does not fetch full detail when can_edit is false', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ is_player: false }));
-      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+      stubAccessPair('ensureCharacterAccess', 'getCharacterAccess', { is_player: false }, { is_player: false });
+      stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: false }, { can_edit: false });
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -75,8 +75,8 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
     });
 
     it('falls back to character without private_description when full fetch fails', async function() {
-      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ is_player: false }));
-      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+      stubAccessPair('ensureCharacterAccess', 'getCharacterAccess', { is_player: false }, { is_player: false });
+      stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: true }, { can_edit: false });
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');

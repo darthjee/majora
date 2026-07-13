@@ -61,14 +61,34 @@ export default class TreasureController extends BasePageController {
   #fetchTreasureWithAccess(id, safeSet) {
     const token = AuthStorage.getToken();
 
-    Promise.all([
-      this.treasureClient.fetchTreasure(id, token).then((response) => (response.ok
+    this.treasureClient.fetchTreasure(id, token)
+      .then((response) => (response.ok
         ? response.json()
-        : Promise.reject(new Error('treasure failed')))),
-      AccessStore.ensureTreasurePermissions(id),
-    ])
-      .then(([treasure, permissions]) => safeSet(this.setTreasure, { ...treasure, ...permissions }))
+        : Promise.reject(new Error('treasure failed'))))
+      .then((treasure) => this.#renderTreasure(id, treasure, safeSet))
       .catch(() => safeSet(this.setError, 'Unable to load treasure.'))
       .finally(() => safeSet(this.setLoading, false));
+  }
+
+  /**
+   * Render the treasure right away using AccessStore's synchronous,
+   * fail-closed permissions reader, then re-render once the real
+   * permissions resolve in the background so the page picks them up
+   * without blocking the first render on the permissions fetch.
+   *
+   * @param {string|number} id - Treasure id.
+   * @param {object} treasure - Base treasure data already loaded.
+   * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
+   * @returns {void}
+   */
+  #renderTreasure(id, treasure, safeSet) {
+    safeSet(this.setTreasure, this.#mergePermissions(id, treasure));
+
+    AccessStore.ensureTreasurePermissions(id)
+      .then(() => safeSet(this.setTreasure, this.#mergePermissions(id, treasure)));
+  }
+
+  #mergePermissions(id, treasure) {
+    return { ...treasure, ...AccessStore.getTreasurePermissions(id) };
   }
 }

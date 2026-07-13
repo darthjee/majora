@@ -1,6 +1,6 @@
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
-import AccessStore from '../../../../../../../../../assets/js/utils/AccessStore.js';
+import { stubAccessPair } from '../../../../../../../../support/accessStoreStub.js';
 import { KINDS } from './support.js';
 
 KINDS.forEach(({ label, Controller, kind }) => {
@@ -11,8 +11,8 @@ KINDS.forEach(({ label, Controller, kind }) => {
 
     describe('#buildEffect', function() {
       it('requests the character detail using the edit route params', async function() {
-        spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ is_player: false }));
-        spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+        stubAccessPair('ensureCharacterAccess', 'getCharacterAccess', { is_player: false }, { is_player: false });
+        stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: true }, { can_edit: false });
         const setCharacter = jasmine.createSpy('setCharacter');
         const setLoading = jasmine.createSpy('setLoading');
         const setError = jasmine.createSpy('setError');

@@ -116,25 +116,47 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
-   * Resolve the character's access identity and edit permissions through
-   * {@link AccessStore} and merge the results into the character, then load
-   * the full character detail if editing is permitted.
+   * Resolve the character's access identity and edit permissions right away
+   * through {@link AccessStore}'s synchronous, fail-closed readers, merge
+   * them into the character, and load the full character detail if editing
+   * is permitted. Also starts the real access/permissions fetches in the
+   * background and re-runs this same merge-and-load pass once they resolve,
+   * so the page picks up the real values (and, if `can_edit` newly resolves
+   * `true`, the deferred full-character fetch) without blocking the first
+   * render.
    *
    * @param {object} character - Base character data already loaded.
    * @param {object} params - Route params with game_slug and character_id.
    * @param {string|null} token - Authentication token.
    * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
-   * @returns {Promise<void>} Resolves once the character state is updated.
+   * @returns {Promise<void>|undefined} Resolves once the character state is updated.
    */
   fetchAndMergeAccess(character, params, token, safeSet) {
-    return Promise.all([
+    const firstPass = this.#loadCharacterAccess(character, params, token, safeSet);
+
+    Promise.all([
       AccessStore.ensureCharacterAccess(this.characterKind, params.game_slug, params.character_id),
       AccessStore.ensureCharacterPermissions(this.characterKind, params.game_slug, params.character_id),
-    ])
-      .then(([access, permissions]) => (
-        { ...character, can_edit: permissions.can_edit, is_player: access.is_player }
-      ))
-      .then((characterWithAccess) => this.loadFullCharacter(characterWithAccess, params, token, safeSet));
+    ]).then(() => this.#loadCharacterAccess(character, params, token, safeSet));
+
+    return firstPass;
+  }
+
+  #loadCharacterAccess(character, params, token, safeSet) {
+    const characterWithAccess = this.#mergeAccess(character, params);
+
+    return this.loadFullCharacter(characterWithAccess, params, token, safeSet);
+  }
+
+  #mergeAccess(character, params) {
+    const access = AccessStore.getCharacterAccess(
+      this.characterKind, params.game_slug, params.character_id,
+    );
+    const permissions = AccessStore.getCharacterPermissions(
+      this.characterKind, params.game_slug, params.character_id,
+    );
+
+    return { ...character, can_edit: permissions.can_edit, is_player: access.is_player };
   }
 
   /**
