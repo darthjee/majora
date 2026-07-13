@@ -11,3 +11,10 @@ export const MAX_PREVIEW_CHARACTERS = 6;
  * @type {number}
  */
 export const MAX_PREVIEW_TREASURES = 6;
+
+/**
+ * Maximum number of photos shown in a character's photo preview section.
+ *
+ * @type {number}
+ */
+export const MAX_PREVIEW_PHOTOS = 6;
