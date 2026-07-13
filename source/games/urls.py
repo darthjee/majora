@@ -190,6 +190,7 @@ urlpatterns = [
     path('users/language.json', views.language, name='users-language'),
     path('users/account.json', views.account, name='users-account'),
     path('health.json', views.health, name='health'),
+    path('ready.json', views.ready, name='ready'),
     path(
         'access-route-config.json',
         views.access_route_config,

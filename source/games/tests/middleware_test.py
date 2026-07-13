@@ -71,6 +71,12 @@ class TestCacheControlMiddlewareSkipCache:
         assert response['X-Skip-Cache'] == 'true'
         assert response['Cache-Control'] == 'no-store'
 
+    def test_no_store_cache_control_for_ready_endpoint(self, client):
+        """GET /ready.json sets X-Skip-Cache: true and receives Cache-Control: no-store."""
+        response = client.get('/ready.json')
+        assert response['X-Skip-Cache'] == 'true'
+        assert response['Cache-Control'] == 'no-store'
+
 
 @pytest.mark.django_db
 class TestCacheControlMiddlewareHealthCheck:
