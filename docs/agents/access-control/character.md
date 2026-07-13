@@ -27,6 +27,10 @@ through `CharacterUpdateSerializer` — see "Slain fields" for write-access rule
 
 ## Full detail (includes `private_description`)
 
+This is the "full" route of the [partial vs full access
+pattern](principles.md#partial-vs-full-access-pattern) — **CharacterEdit**-gated, distinct from
+the plain detail endpoints above.
+
 | Endpoint | Who can read/write | Fields returned |
 |----------|-------------|-----------------|
 | `GET /games/<slug>/pcs/<id>/full.json` | **CharacterEdit** | All detail fields + `private_description` + `public_allegiance` + `public_slain` |
@@ -41,20 +45,18 @@ both `GET` and `PATCH`.
 ## Allegiance fields
 
 `Character` has two independent `CharField(choices=...)` fields, both defaulting to `'neutral'`,
-with allowed values `'ally'`, `'enemy'`, `'neutral'`:
+with allowed values `'ally'`, `'enemy'`, `'neutral'`, following the [public vs regular attribute
+pattern](principles.md#public-vs-regular-attribute-pattern):
 
 - `allegiance` — the character's real disposition, visible only to a DM/superuser.
 - `public_allegiance` — the disposition shown to regular players.
 
-**Read exposure** — the JSON key `allegiance` means something different depending on the
-endpoint (so the frontend can always read a single `character.allegiance` key regardless of
-which endpoint served the payload):
+**Read exposure**:
 
 - On the public list/detail endpoints (`pcs.json`, `npcs.json`, `pcs/<id>.json`,
-  `npcs/<id>.json`), `allegiance` is sourced from `public_allegiance` — the real field is never
-  exposed there.
+  `npcs/<id>.json`), the `allegiance` key is sourced from `public_allegiance`.
 - On the DM/admin endpoints (`npcs/all.json`, `pcs/<id>/full.json`, `npcs/<id>/full.json`),
-  `allegiance` is the real field, and `public_allegiance` is additionally exposed under its own
+  `allegiance` is the real field, with `public_allegiance` additionally exposed under its own
   key.
 
 Applies uniformly to both PCs and NPCs (shared model/serializers), though the fields are only
@@ -80,7 +82,8 @@ key, so the param never lets an unauthorized caller filter on data it cannot oth
 ## Slain fields
 
 `Character` has two independent `BooleanField`s (both defaulting to `False`), following the same
-real/public pattern as `allegiance`/`public_allegiance` above:
+[public vs regular attribute pattern](principles.md#public-vs-regular-attribute-pattern) as
+`allegiance`/`public_allegiance` above:
 
 - `slain` — the character's real death state, visible only to a DM/superuser.
 - `public_slain` — the death state shown to regular players.

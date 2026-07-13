@@ -17,6 +17,9 @@ regardless of any other rule listed below.
 - [Common Rules](access-control/common-rules.md) — named permission patterns (GameEdit,
   CharacterEdit, TreasureEdit, ...), the shared `access.json`/`permissions.json` endpoint
   conventions, the cache-bypass mechanism, and the `photo_path` field convention.
+- [Permission Principles](access-control/principles.md) — the access-level hierarchy, the
+  partial-vs-full route pattern, and the public/regular-vs-hidden attribute pattern, stated once
+  and referenced by resource files instead of being re-derived per resource.
 
 ### Models / resources
 
