@@ -8,7 +8,8 @@ export default class RecoverPasswordHelper {
   /**
    * Render the recover-password page.
    *
-   * @param {{password: string, confirmPassword: string, status: string, errorMessage: string}} state - page state.
+   * @param {{password: string, confirmPassword: string, status: string, errorMessage: string,
+   *   ready: boolean}} state - page state.
    * @param {{onSubmit: Function, onPasswordChange: Function, onConfirmPasswordChange: Function}} handlers - event handlers.
    * @returns {React.ReactElement} rendered recover-password page.
    */
@@ -16,10 +17,24 @@ export default class RecoverPasswordHelper {
     return (
       <div className="container mt-4">
         <h1>{Translator.t('recover_password_page.title')}</h1>
-        {state.status === 'success'
-          ? RecoverPasswordHelper.#renderSuccess()
-          : RecoverPasswordHelper.#renderForm(state, handlers)}
+        {RecoverPasswordHelper.#renderBody(state, handlers)}
       </div>
+    );
+  }
+
+  static #renderBody(state, handlers) {
+    if (!state.ready) {
+      return RecoverPasswordHelper.#renderWaiting();
+    }
+
+    return state.status === 'success'
+      ? RecoverPasswordHelper.#renderSuccess()
+      : RecoverPasswordHelper.#renderForm(state, handlers);
+  }
+
+  static #renderWaiting() {
+    return (
+      <div className="alert alert-info">{Translator.t('recover_password_page.waiting_for_server')}</div>
     );
   }
 

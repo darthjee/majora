@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import RecoverPasswordController from './controllers/RecoverPasswordController.js';
 import RecoverPasswordHelper from './helpers/RecoverPasswordHelper.jsx';
 
@@ -14,11 +14,22 @@ export default function RecoverPassword() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [status, setStatus] = useState('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [ready, setReady] = useState(false);
 
   const controller = useMemo(
     () => new RecoverPasswordController(setStatus, setErrorMessage),
     [],
   );
+
+  useEffect(() => {
+    const cancelToken = { cancelled: false };
+
+    controller.waitUntilReady(setReady, undefined, cancelToken);
+
+    return () => {
+      cancelToken.cancelled = true;
+    };
+  }, [controller]);
 
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
   const token = RecoverPasswordController.getRecoverPasswordTokenFromHash(currentHash);
@@ -37,6 +48,7 @@ export default function RecoverPassword() {
       confirmPassword,
       status,
       errorMessage,
+      ready,
     },
     {
       onSubmit: handleSubmit,
