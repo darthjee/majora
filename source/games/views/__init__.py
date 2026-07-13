@@ -43,6 +43,7 @@ from .games import (
 from .health import health
 from .password_reset import recover, reset_password
 from .photo_upload import photo_upload
+from .ready import ready
 from .staff import staff_user_detail, staff_user_recovery_link, staff_users_list
 from .treasures import (
     treasure_access,
@@ -111,5 +112,6 @@ __all__ = [
     'treasures_list',
     'upload_finalize',
     'health',
+    'ready',
     'access_route_config',
 ]

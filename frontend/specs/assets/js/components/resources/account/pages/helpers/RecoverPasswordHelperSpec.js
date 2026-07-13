@@ -12,10 +12,21 @@ describe('RecoverPasswordHelper', function() {
     confirmPassword: '',
     status: 'idle',
     errorMessage: '',
+    ready: true,
     ...overrides,
   });
 
   describe('.render', function() {
+    it('renders a waiting message instead of the form when not ready', function() {
+      const html = renderToStaticMarkup(
+        RecoverPasswordHelper.render(buildState({ ready: false }), buildHandlers())
+      );
+
+      expect(html).not.toContain('id="new-password"');
+      expect(html).not.toContain('alert-success');
+      expect(html).toContain('alert-info');
+    });
+
     it('renders the password and confirm-password fields', function() {
       const html = renderToStaticMarkup(RecoverPasswordHelper.render(buildState(), buildHandlers()));
 

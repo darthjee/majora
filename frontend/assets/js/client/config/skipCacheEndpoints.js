@@ -6,6 +6,7 @@
  */
 export default new Set([
   '/health.json',
+  '/ready.json',
   '/users/login.json',
   '/users/logout.json',
   '/users/status.json',
