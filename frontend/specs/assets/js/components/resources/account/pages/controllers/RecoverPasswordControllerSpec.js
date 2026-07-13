@@ -90,73 +90,81 @@ describe('RecoverPasswordController', function() {
     let setStatus;
     let setErrorMessage;
     let setReady;
-    let healthClient;
+    let readyClient;
 
     beforeEach(function() {
       setStatus = jasmine.createSpy('setStatus');
       setErrorMessage = jasmine.createSpy('setErrorMessage');
       setReady = jasmine.createSpy('setReady');
-      healthClient = jasmine.createSpyObj('healthClient', ['check']);
+      readyClient = jasmine.createSpyObj('readyClient', ['check']);
     });
 
     it('marks ready immediately on a 200 response', async function() {
-      healthClient.check.and.returnValue(Promise.resolve({ status: 200 }));
+      readyClient.check.and.returnValue(Promise.resolve({ status: 200 }));
 
-      const controller = new RecoverPasswordController(setStatus, setErrorMessage, undefined, healthClient);
+      const controller = new RecoverPasswordController(setStatus, setErrorMessage, undefined, readyClient);
 
       await controller.waitUntilReady(setReady);
 
-      expect(healthClient.check).toHaveBeenCalledTimes(1);
+      expect(readyClient.check).toHaveBeenCalledTimes(1);
+      expect(setReady).toHaveBeenCalledWith(true);
+    });
+
+    it('marks ready immediately on any other non-502 response (e.g. 404)', async function() {
+      readyClient.check.and.returnValue(Promise.resolve({ status: 404 }));
+
+      const controller = new RecoverPasswordController(setStatus, setErrorMessage, undefined, readyClient);
+
+      await controller.waitUntilReady(setReady);
+
+      expect(readyClient.check).toHaveBeenCalledTimes(1);
+      expect(setReady).toHaveBeenCalledWith(true);
+    });
+
+    it('marks ready immediately on any other non-502 response (e.g. 500)', async function() {
+      readyClient.check.and.returnValue(Promise.resolve({ status: 500 }));
+
+      const controller = new RecoverPasswordController(setStatus, setErrorMessage, undefined, readyClient);
+
+      await controller.waitUntilReady(setReady);
+
+      expect(readyClient.check).toHaveBeenCalledTimes(1);
       expect(setReady).toHaveBeenCalledWith(true);
     });
 
     it('retries after a 502 response before becoming ready', async function() {
-      healthClient.check.and.returnValues(
+      readyClient.check.and.returnValues(
         Promise.resolve({ status: 502 }),
         Promise.resolve({ status: 200 })
       );
 
-      const controller = new RecoverPasswordController(setStatus, setErrorMessage, undefined, healthClient);
+      const controller = new RecoverPasswordController(setStatus, setErrorMessage, undefined, readyClient);
 
       await controller.waitUntilReady(setReady, 1);
 
-      expect(healthClient.check).toHaveBeenCalledTimes(2);
+      expect(readyClient.check).toHaveBeenCalledTimes(2);
       expect(setReady).toHaveBeenCalledWith(true);
     });
 
-    it('retries after any other non-2xx response before becoming ready', async function() {
-      healthClient.check.and.returnValues(
-        Promise.resolve({ status: 404 }),
-        Promise.resolve({ status: 200 })
-      );
-
-      const controller = new RecoverPasswordController(setStatus, setErrorMessage, undefined, healthClient);
-
-      await controller.waitUntilReady(setReady, 1);
-
-      expect(healthClient.check).toHaveBeenCalledTimes(2);
-      expect(setReady).toHaveBeenCalledWith(true);
-    });
-
-    it('retries after the health check throws (e.g. the AbortSignal timeout)', async function() {
-      healthClient.check.and.returnValues(
+    it('retries after the readiness check throws (e.g. the AbortSignal timeout)', async function() {
+      readyClient.check.and.returnValues(
         Promise.reject(new Error('timeout')),
         Promise.resolve({ status: 200 })
       );
 
-      const controller = new RecoverPasswordController(setStatus, setErrorMessage, undefined, healthClient);
+      const controller = new RecoverPasswordController(setStatus, setErrorMessage, undefined, readyClient);
 
       await controller.waitUntilReady(setReady, 1);
 
-      expect(healthClient.check).toHaveBeenCalledTimes(2);
+      expect(readyClient.check).toHaveBeenCalledTimes(2);
       expect(setReady).toHaveBeenCalledWith(true);
     });
 
     it('stops retrying once cancelled and never calls setReady', async function() {
-      healthClient.check.and.returnValue(Promise.resolve({ status: 502 }));
+      readyClient.check.and.returnValue(Promise.resolve({ status: 502 }));
 
       const cancelToken = { cancelled: false };
-      const controller = new RecoverPasswordController(setStatus, setErrorMessage, undefined, healthClient);
+      const controller = new RecoverPasswordController(setStatus, setErrorMessage, undefined, readyClient);
 
       const promise = controller.waitUntilReady(setReady, 5, cancelToken);
 
@@ -165,6 +173,42 @@ describe('RecoverPasswordController', function() {
       await promise;
 
       expect(setReady).not.toHaveBeenCalled();
+    });
+
+    it('uses 5000 ms as the default retry delay', async function() {
+      jasmine.clock().install();
+
+      try {
+        readyClient.check.and.returnValues(
+          Promise.resolve({ status: 502 }),
+          Promise.resolve({ status: 200 })
+        );
+
+        const controller = new RecoverPasswordController(setStatus, setErrorMessage, undefined, readyClient);
+        const promise = controller.waitUntilReady(setReady);
+
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(readyClient.check).toHaveBeenCalledTimes(1);
+        expect(setReady).not.toHaveBeenCalled();
+
+        jasmine.clock().tick(4999);
+        await Promise.resolve();
+        expect(readyClient.check).toHaveBeenCalledTimes(1);
+
+        jasmine.clock().tick(1);
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(readyClient.check).toHaveBeenCalledTimes(2);
+        expect(setReady).toHaveBeenCalledWith(true);
+
+        await promise;
+      } finally {
+        jasmine.clock().uninstall();
+      }
     });
   });
 });

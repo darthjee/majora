@@ -1,5 +1,5 @@
 import AuthClient from '../../../../../client/AuthClient.js';
-import HealthClient from '../../../../../client/HealthClient.js';
+import ReadyClient from '../../../../../client/ReadyClient.js';
 import HashQueryParams from '../../../../../utils/HashQueryParams.js';
 
 /**
@@ -22,30 +22,31 @@ export default class RecoverPasswordController {
    * @param {Function} setStatus - status setter (`'idle' | 'submitting' | 'success' | 'error'`).
    * @param {Function} setErrorMessage - error message setter.
    * @param {AuthClient} [client] - HTTP client override.
-   * @param {HealthClient} [healthClient] - HTTP client used for readiness polling.
+   * @param {ReadyClient} [readyClient] - HTTP client used for readiness polling.
    */
-  constructor(setStatus, setErrorMessage, client = new AuthClient(), healthClient = new HealthClient()) {
+  constructor(setStatus, setErrorMessage, client = new AuthClient(), readyClient = new ReadyClient()) {
     this.setStatus = setStatus;
     this.setErrorMessage = setErrorMessage;
     this.client = client;
-    this.healthClient = healthClient;
+    this.readyClient = readyClient;
   }
 
   /**
-   * Polls the health-check endpoint until the backend reports it is ready,
-   * marking the page ready once (and only once) a `200` response is received.
+   * Polls the readiness endpoint until the backend reports it is ready,
+   * marking the page ready once a response other than `502` is received.
    *
-   * @description A `502`, any other non-2xx response, or a thrown error
-   *   (including the timeout rejection from `HealthClient#check`) is treated
-   *   as "not ready yet": the check is retried after `delayMs`. Polling stops
-   *   as soon as `cancelToken.cancelled` is set, so a pending retry never
+   * @description A `502` response, or a thrown error (including the timeout
+   *   rejection from `ReadyClient#check`), is treated as "not ready yet":
+   *   the check is retried after `delayMs`, indefinitely. Any other response
+   *   (e.g. `200`, `404`, `500`) is treated as "ready". Polling stops as
+   *   soon as `cancelToken.cancelled` is set, so a pending retry never
    *   calls `setReady` after the caller has unmounted.
    * @param {Function} setReady - state setter invoked with `true` once ready.
-   * @param {number} [delayMs=2000] - delay between retries, in milliseconds.
+   * @param {number} [delayMs=5000] - delay between retries, in milliseconds.
    * @param {{cancelled: boolean}} [cancelToken] - cancellation flag shared with the caller.
    * @returns {Promise<void>} resolves once ready or once cancelled.
    */
-  async waitUntilReady(setReady, delayMs = 2000, cancelToken = { cancelled: false }) {
+  async waitUntilReady(setReady, delayMs = 5000, cancelToken = { cancelled: false }) {
     while (!cancelToken.cancelled) {
       const ready = await this.#checkReady();
 
@@ -64,9 +65,9 @@ export default class RecoverPasswordController {
 
   async #checkReady() {
     try {
-      const response = await this.healthClient.check();
+      const response = await this.readyClient.check();
 
-      return response.status === 200;
+      return response.status !== 502;
     } catch {
       return false;
     }
