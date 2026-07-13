@@ -78,17 +78,37 @@ export default class GameController extends BasePageController {
 
   #fetchGame(gameSlug, safeSet) {
     this.client.fetch(`/games/${gameSlug}.json`)
-      .then((game) => this.#mergeAccess(gameSlug, game))
-      .then((game) => safeSet(this.setGame, game))
+      .then((game) => this.#renderGame(gameSlug, game, safeSet))
       .catch(() => safeSet(this.setError, 'Unable to load game.'))
       .finally(() => safeSet(this.setLoading, false));
   }
 
-  #mergeAccess(gameSlug, game) {
-    return Promise.all([
+  /**
+   * Render the game right away using AccessStore's synchronous, fail-closed
+   * access/permissions readers, then re-render once the real values resolve
+   * in the background so the page picks them up without blocking the first
+   * render on the access/permissions fetches.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {object} game - Base game data already loaded.
+   * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
+   * @returns {void}
+   */
+  #renderGame(gameSlug, game, safeSet) {
+    safeSet(this.setGame, this.#mergeAccess(gameSlug, game));
+
+    Promise.all([
       AccessStore.ensureGameAccess(gameSlug),
       AccessStore.ensureGamePermissions(gameSlug),
-    ]).then(([access, permissions]) => ({ ...game, ...access, ...permissions }));
+    ]).then(() => safeSet(this.setGame, this.#mergeAccess(gameSlug, game)));
+  }
+
+  #mergeAccess(gameSlug, game) {
+    return {
+      ...game,
+      ...AccessStore.getGameAccess(gameSlug),
+      ...AccessStore.getGamePermissions(gameSlug),
+    };
   }
 
   /**
