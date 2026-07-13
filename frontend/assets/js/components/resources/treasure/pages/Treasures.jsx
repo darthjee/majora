@@ -18,7 +18,7 @@ export default function Treasures() {
   const [selectedTreasure, setSelectedTreasure] = useState(null);
 
   const controller = useMemo(
-    () => new TreasuresController(setTreasures, setPagination, setLoading, setError, null, null, setIsSuperUser),
+    () => new TreasuresController(setTreasures, setPagination, setLoading, setError, null, setIsSuperUser),
     [],
   );
 
