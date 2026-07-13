@@ -81,6 +81,7 @@ character_page:
   public_slain_button: Marcar como Publicamente Morto
   public_revive_button: Reviver Publicamente
   treasures_title: Tesouros
+  photos_title: Fotos
 character_full_page:
   loading: Carregando personagem...
   private_description_label: Notas do Mestre
@@ -101,6 +102,8 @@ character_preview_section:
   see_all: Ver todos {{title}}
 character_treasures_preview:
   empty: Nenhum tesouro ainda.
+character_photos_preview:
+  empty: Nenhuma foto ainda.
 recover_password_page:
   title: Resetar senha
   new_password_label: Nova senha

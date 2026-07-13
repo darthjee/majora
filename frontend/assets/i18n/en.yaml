@@ -81,6 +81,7 @@ character_page:
   public_slain_button: Mark as Publicly Slain
   public_revive_button: Publicly Revive
   treasures_title: Treasures
+  photos_title: Photos
 character_full_page:
   loading: Loading character...
   private_description_label: DM Notes
@@ -101,6 +102,8 @@ character_preview_section:
   see_all: See all {{title}}
 character_treasures_preview:
   empty: No treasures yet.
+character_photos_preview:
+  empty: No photos yet.
 recover_password_page:
   title: Reset password
   new_password_label: New password

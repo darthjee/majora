@@ -9,6 +9,7 @@ import ErrorAlert from '../../../../common/ErrorAlert.jsx';
 import LinkList from '../../../../common/LinkList.jsx';
 import LoadingMessage from '../../../../common/LoadingMessage.jsx';
 import CharacterTreasuresPreview from '../elements/CharacterTreasuresPreview.jsx';
+import CharacterPhotosPreview from '../elements/CharacterPhotosPreview.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import allegianceBorderClass from '../../../../../utils/AllegianceBorder.js';
 import SlainSecondaryButtons from '../../../../common/helpers/SlainSecondaryButtons.js';
@@ -47,6 +48,8 @@ export default class CharacterHelper {
    * @param {object[]} [character.treasures] - Preview list of the character's treasures
    *   (`id`, `treasure_id`, `name`, `quantity`, `value`, `photo_path`), rendered as a card
    *   grid with a link to the full list page.
+   * @param {object[]} [character.photos] - Preview list of the character's photos
+   *   (`id`, `path`), rendered as a static card grid with a link to the full gallery page.
    * @param {string} backHref - Hash path to the character's index page.
    * @param {{onOpenUploadModal: Function, onOpenSlainModal: Function,
    *   onOpenPublicSlainModal: Function, onOpenPlayerSlainModal: Function}} [handlers] - Event handlers.
@@ -81,6 +84,11 @@ export default class CharacterHelper {
           treasures={character.treasures ?? []}
           title={Translator.t('character_page.treasures_title')}
           seeAllHref={`#/games/${character.game_slug}/${segment}/${character.id}/treasures`}
+        />
+        <CharacterPhotosPreview
+          photos={character.photos ?? []}
+          title={Translator.t('character_page.photos_title')}
+          seeAllHref={`#/games/${character.game_slug}/${segment}/${character.id}/photos`}
         />
       </div>
     );
