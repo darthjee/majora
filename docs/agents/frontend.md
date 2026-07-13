@@ -46,13 +46,28 @@ frontend/
       components/
         App.jsx             # app shell (lives at components root)
         AppController.js    # app shell controller (lives at components root)
-        elements/           # reusable UI building blocks
-          controllers/      # element controllers (.js)
-          helpers/          # element JSX helpers (.jsx)
-        helpers/            # JSX helpers shared across pages (.jsx)
-        pages/              # top-level route components
-          controllers/      # page controllers (.js)
-          helpers/          # page JSX helpers (.jsx)
+        helpers/            # AppHelper.jsx (page-key -> component wiring, lives at components root)
+        resources/          # one folder per resource — see "Directory Structure" below
+          game/
+            pages/             # top-level route components for this resource
+              controllers/     # page controllers (.js)
+              helpers/         # page JSX helpers (.jsx)
+              elements/        # elements used only by this resource's pages
+                controllers/   # element controllers (.js)
+                helpers/       # element JSX helpers (.jsx)
+          game_session/
+            pages/ ...
+          character/
+            pages/ ...
+          treasure/
+            pages/ ...
+          staff_user/
+            pages/ ...
+          account/
+            pages/ ...
+        common/              # elements/controllers/helpers shared across more than one resource
+          controllers/        # shared controllers (.js), e.g. BasePageController, BaseEditController
+          helpers/            # shared element JSX helpers (.jsx)
       i18n/                # translation singleton, storage, and events (.js)
       utils/              # non-JSX utility classes (.js)
       main.jsx            # SPA entry point
@@ -63,6 +78,21 @@ frontend/
   vite.config.js
   eslint.config.mjs
 ```
+
+Each resource folder under `components/resources/` colocates every page, controller, and helper
+used only by that resource (e.g. `resources/game/pages/Games.jsx`,
+`resources/game/pages/controllers/GamesController.js`,
+`resources/game/pages/helpers/GamesHelper.jsx`, and — for elements used only by `game` pages —
+`resources/game/pages/elements/GameCard.jsx` with its own `controllers/`/`helpers/`
+sub-folders). The six resources are `game`, `game_session`, `character` (covers both NPC and PC
+pages), `treasure`, `staff_user`, and `account` (my-account, register, recover-password).
+
+Anything genuinely shared across more than one resource (or used by the app shell itself, like
+`Header.jsx`) lives under `components/common/`, with its own `controllers/` and `helpers/`
+sub-folders — e.g. `common/Pagination.jsx`, `common/FormField.jsx`,
+`common/controllers/BasePageController.js`. `App.jsx`, `AppController.js`, and
+`helpers/AppHelper.jsx` stay at the `components/` root and import from `resources/<resource>/`
+and `common/` as needed. `utils/` (non-JSX utility classes) is untouched by the resource split.
 
 See [Frontend i18n](i18n.md) for the translation layer (`Translator`,
 `LanguageStorage`, `LanguageEvents`, and the header language selector).
@@ -83,23 +113,25 @@ The React component. Responsible for:
 
 Stays lean — no business logic, no inline JSX beyond top-level conditionals. Declares state,
 instantiates the controller, wires its effect, and delegates rendering to the helper based
-on `loading`/`error`/success state (see `pages/Games.jsx` for a reference example).
+on `loading`/`error`/success state (see `resources/game/pages/Games.jsx` for a reference
+example).
 
 ### Controller (`.js` in `controllers/`)
 
-A plain JS class, extending `BasePageController`. Responsible for:
+A plain JS class, extending `BasePageController` (`components/common/controllers/BasePageController.js`).
+Responsible for:
 
 - Data fetching via the API client
 - Building `useEffect` callbacks (`buildEffect()`)
 - Preventing state updates after unmount (`buildSafeSetter()` from `BasePageController`)
 
 No JSX. Receives state setters and an optional injected client in the constructor (see
-`pages/controllers/GamesController.js` for a reference example).
+`resources/game/pages/controllers/GamesController.js` for a reference example).
 
 ### Helper (`.jsx` in `helpers/`)
 
 A static class. All methods are `static renderXxx()` returning JSX. No state, no side
-effects (see `pages/helpers/GamesHelper.jsx` for a reference example).
+effects (see `resources/game/pages/helpers/GamesHelper.jsx` for a reference example).
 
 ---
 
@@ -110,15 +142,16 @@ Pick one of these four extraction patterns, depending on what the condition guar
 
 1. **Condition wrapping a large block of HTML** — extract a dedicated component that receives
    the relevant attributes, so the call site becomes `{canEdit && <EditableSomething ... />}`.
-   See `CharacterInfo.jsx` / `CardAvatar.jsx` for examples of components with conditional
-   behaviour at their root.
+   See `resources/character/pages/elements/CharacterInfo.jsx` / `common/CardAvatar.jsx` for
+   examples of components with conditional behaviour at their root.
 2. **Condition wrapping a non-trivial existing component** — use
-   `components/elements/ConditionalComponent.jsx`, which takes a `render` boolean prop and
+   `components/common/ConditionalComponent.jsx`, which takes a `render` boolean prop and
    renders its `children` when true, `null` otherwise. The call site becomes
    `<ConditionalComponent render={canEdit}>...</ConditionalComponent>`. See
-   `pages/helpers/GameHelper.jsx`, `pages/helpers/CharacterHelper.jsx`,
-   `pages/helpers/GameCharactersHelper.jsx`, and `pages/helpers/StaffUsersHelper.jsx`
-   (`#renderRecoveryAction`) for concrete usages.
+   `resources/game/pages/helpers/GameHelper.jsx`, `resources/character/pages/helpers/CharacterHelper.jsx`,
+   `resources/character/pages/helpers/GameCharactersHelper.jsx`, and
+   `resources/staff_user/pages/helpers/StaffUsersHelper.jsx` (`#renderRecoveryAction`) for
+   concrete usages.
 3. **Too many chained conditions** — extract the boolean expression into a named
    helper/controller method (e.g. `shouldRender()`) so the JSX reads
    `{shouldRender() && <SomeComponent />}`, instead of chaining several `&&` checks inline.
@@ -133,24 +166,43 @@ Pick one of these four extraction patterns, depending on what the condition guar
 
 | Type | Location | Purpose |
 |------|----------|---------|
-| **Page** | `components/pages/` | Top-level route component. One per route. Has its own `controllers/` and `helpers/` sub-folders. |
-| **Element** | `components/elements/` | Reusable building block used across pages (e.g. `Pagination`, `GameCard`). Also has `controllers/` and `helpers/` sub-folders when non-trivial. |
+| **Page** | `components/resources/<resource>/pages/` | Top-level route component. One per route. Has its own `controllers/` and `helpers/` sub-folders. |
+| **Element (resource-specific)** | `components/resources/<resource>/pages/elements/` | Reusable building block used only by that resource's pages (e.g. `resources/game/pages/elements/GameCard.jsx`). Also has `controllers/` and `helpers/` sub-folders when non-trivial. |
+| **Element (shared)** | `components/common/` | Reusable building block used across more than one resource, or from the app shell (e.g. `Pagination`, `Header`). Also has `controllers/` and `helpers/` sub-folders when non-trivial. |
+
+Before placing a new element under a resource's `pages/elements/`, grep for its actual (or
+anticipated) importers: if it's only ever imported from that resource's pages, it belongs there;
+if it's imported from more than one resource, it belongs under `components/common/` instead.
+Naming alone can be misleading — e.g. `TreasureExchangeModal` and `LinksEditModal` are used only
+by the `character` resource despite their generic-sounding names, while `TreasureCard` and
+`CharacterCard` are shared across resources despite their resource-specific-sounding names.
 
 ---
 
 ## Adding a New Page
 
-1. Create `components/pages/MyPage.jsx` — state declarations + effect wiring only.
-2. Create `components/pages/controllers/MyPageController.js` — extend `BasePageController`,
-   implement `buildEffect()`.
-3. Create `components/pages/helpers/MyPageHelper.jsx` — static class with all JSX factories.
-4. Register the route in `utils/HashRouteResolver.js` and add the page to `helpers/AppHelper.jsx`.
+1. Create `components/resources/<resource>/pages/MyPage.jsx` — state declarations + effect
+   wiring only. If the page belongs to a new resource, create the
+   `components/resources/<resource>/pages/` folder (with `controllers/`/`helpers/`
+   sub-folders) first.
+2. Create `components/resources/<resource>/pages/controllers/MyPageController.js` — extend
+   `BasePageController` (`components/common/controllers/BasePageController.js`), implement
+   `buildEffect()`.
+3. Create `components/resources/<resource>/pages/helpers/MyPageHelper.jsx` — static class with
+   all JSX factories.
+4. Register the route in `utils/HashRouteResolver.js` and add the page to `helpers/AppHelper.jsx`
+   (import from `../resources/<resource>/pages/MyPage.jsx`).
 
 ## Adding a New Element
 
-1. Create `components/elements/MyElement.jsx`.
-2. If it has logic: add `components/elements/controllers/MyElementController.js`.
-3. If it has complex rendering: add `components/elements/helpers/MyElementHelper.jsx`.
+1. Decide whether the element is specific to one resource or genuinely shared (see "Pages vs
+   Elements" above).
+2. Resource-specific: create `components/resources/<resource>/pages/elements/MyElement.jsx`.
+   Shared: create `components/common/MyElement.jsx`.
+3. If it has logic: add a `controllers/MyElementController.js` alongside it (under
+   `pages/elements/controllers/` or `common/controllers/`, respectively).
+4. If it has complex rendering: add a `helpers/MyElementHelper.jsx` alongside it (under
+   `pages/elements/helpers/` or `common/helpers/`, respectively).
 
 ---
 
@@ -165,10 +217,11 @@ separately via `getPaginationParams()`.
 
 ## Pagination
 
-The pagination element set lives in `components/elements/` (`Pagination.jsx`, `PageLink.jsx`,
+The pagination element set lives in `components/common/` (`Pagination.jsx`, `PageLink.jsx`,
 `helpers/PaginationHelper.jsx`, `controllers/PaginationController.js`,
-`controllers/PaginationBuilder.js`). See [pagination.md](pagination.md) for the full
-breakdown, including the ellipsis algorithm and the `<Pagination>` prop contract.
+`controllers/PaginationBuilder.js`), since it's shared across every resource. See
+[pagination.md](pagination.md) for the full breakdown, including the ellipsis algorithm and
+the `<Pagination>` prop contract.
 
 ---
 
