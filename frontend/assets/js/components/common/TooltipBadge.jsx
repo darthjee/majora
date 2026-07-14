@@ -14,9 +14,11 @@ import InfoBadgeList from './InfoBadgeList.jsx';
  * @param {string} props.icon - Bootstrap Icons class name rendered as the badge's visible icon.
  * @param {{icon: string, text: string, variant: string|null}[]} [props.items] - Status item
  *   definitions rendered inside the tooltip via `InfoBadgeList`.
+ * @param {string} [props.variant] - Bootstrap color variant applied to the visible badge, e.g.
+ *   `'warning'`. Defaults to `Badge`'s own default (colorless), keeping today's look unchanged.
  * @returns {React.ReactElement} Tooltip badge element.
  */
-export default function TooltipBadge({ icon, items = [] }) {
+export default function TooltipBadge({ icon, items = [], variant }) {
   return (
     <OverlayTrigger
       placement="bottom"
@@ -27,7 +29,7 @@ export default function TooltipBadge({ icon, items = [] }) {
       )}
     >
       <span className="d-inline-block">
-        <Badge icon={icon} />
+        <Badge icon={icon} variant={variant} />
       </span>
     </OverlayTrigger>
   );

@@ -41,13 +41,14 @@ describe('InfoBadgeList', function() {
     expect(html).toContain('text-danger');
   });
 
-  it('applies a muted color class when an item has no variant', function() {
+  it('applies the near-white neutral color class when an item has no variant', function() {
     const html = renderToStaticMarkup(
       React.createElement(InfoBadgeList, {
         items: [{ icon: 'bi-emoji-expressionless-fill', text: 'Neutral', variant: null }],
       })
     );
 
-    expect(html).toContain('text-muted');
+    expect(html).toContain('info-badge-list-item-neutral');
+    expect(html).not.toContain('text-muted');
   });
 });
