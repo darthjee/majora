@@ -48,7 +48,7 @@ success/failure. They are listed here for completeness.
 | `/users/logout.json` | POST | Authenticated (`IsAuthenticated`) |
 | `/users/register.json` | POST | Anyone |
 | `/users/status.json` | GET | Anyone (returns `logged_in`, and when true, `is_superuser`/`is_staff` for the requester) |
-| `/users/test-email.json` | POST | Authenticated |
+| `/users/test-email.json` | POST | Staff-or-superuser (via `require_staff`) |
 | `/users/recover.json` | POST | Anyone |
 | `/users/reset-password.json` | POST | Anyone (requires valid reset token) |
 | `/users/language.json` | POST | Authenticated |
