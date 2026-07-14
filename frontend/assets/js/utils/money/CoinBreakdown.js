@@ -1,5 +1,5 @@
-const DEFAULT_DENOMINATION_KEYS = ['cp', 'sp', 'gp', 'pp'];
-const GEMS_MULTIPLIER = 100;
+import { DEFAULT_DENOMINATION_KEYS, GEMS_MULTIPLIER } from './moneyDenominations.js';
+
 const DEFAULT_CASCADE_THRESHOLD = 30;
 
 /**

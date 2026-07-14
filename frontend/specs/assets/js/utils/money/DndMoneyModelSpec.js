@@ -61,4 +61,46 @@ describe('DndMoneyModel', function() {
       });
     });
   });
+
+  describe('.pack', function() {
+    it('throws for an unrecognized context', function() {
+      expect(() => DndMoneyModel.pack({}, { context: 'unknown' }))
+        .toThrowError('Unknown dnd money context: unknown');
+    });
+
+    it('throws when no context is given', function() {
+      expect(() => DndMoneyModel.pack({}))
+        .toThrowError('Unknown dnd money context: undefined');
+    });
+
+    describe('with the "character" context', function() {
+      it('sums copper, silver, gold, platinum and gems weighted by their relative value', function() {
+        expect(DndMoneyModel.pack({
+          cp: 2, sp: 3, gp: 4, pp: 5, gems: 6,
+        }, { context: 'character' })).toBe(2 + 30 + 400 + 5000 + 600);
+      });
+
+      it('round-trips with .transform for a representative total', function() {
+        const breakdown = DndMoneyModel.transform(32221, { context: 'character' })
+          .reduce((acc, entry) => ({ ...acc, [entry.key]: entry.quantity }), {});
+
+        expect(DndMoneyModel.pack(breakdown, { context: 'character' })).toBe(32221);
+      });
+    });
+
+    describe('with the "treasure" context', function() {
+      it('does not add a gems term', function() {
+        expect(DndMoneyModel.pack({
+          cp: 2, sp: 5, gp: 1000, gems: 99,
+        }, { context: 'treasure' })).toBe(100052);
+      });
+
+      it('round-trips with .transform for a representative total', function() {
+        const breakdown = DndMoneyModel.transform(100052, { context: 'treasure' })
+          .reduce((acc, entry) => ({ ...acc, [entry.key]: entry.quantity }), {});
+
+        expect(DndMoneyModel.pack(breakdown, { context: 'treasure' })).toBe(100052);
+      });
+    });
+  });
 });

@@ -12,6 +12,7 @@ export const buildHandlers = () => ({
   onMoneyChange: jasmine.createSpy('onMoneyChange'),
   onOpenUploadModal: jasmine.createSpy('onOpenUploadModal'),
   onOpenLinksModal: jasmine.createSpy('onOpenLinksModal'),
+  onOpenMoneyModal: jasmine.createSpy('onOpenMoneyModal'),
   onAllegianceChange: jasmine.createSpy('onAllegianceChange'),
   onPublicAllegianceChange: jasmine.createSpy('onPublicAllegianceChange'),
 });

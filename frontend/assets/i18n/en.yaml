@@ -134,6 +134,7 @@ pc_edit_page:
   error: Failed to save character. Please try again.
   upload_photo_button: Upload Photo
   edit_links_button: Edit links
+  edit_money_button: Edit money
 npc_edit_page:
   title: Edit character
   name_label: Name
@@ -150,6 +151,7 @@ npc_edit_page:
   error: Failed to save character. Please try again.
   upload_photo_button: Upload Photo
   edit_links_button: Edit links
+  edit_money_button: Edit money
 game_edit_page:
   title: Edit game
   name_label: Name
@@ -247,6 +249,10 @@ links_edit_modal:
   link_type_none: None
   link_type_lootstudio: LootStudio
   add_link: Add Link
+  confirm: Confirm
+  cancel: Cancel
+money_edit_modal:
+  title: Edit money
   confirm: Confirm
   cancel: Cancel
 game_treasures_page:

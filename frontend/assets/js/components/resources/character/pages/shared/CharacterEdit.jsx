@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import CharacterHelper from '../helpers/CharacterHelper.jsx';
 import PhotoUploadModal from '../../../../common/PhotoUploadModal.jsx';
 import LinksEditModal from '../elements/LinksEditModal.jsx';
+import MoneyEditModal from '../elements/MoneyEditModal.jsx';
 
 /**
  * Shared character edit page component.
@@ -32,6 +33,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
   const [links, setLinks] = useState([]);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showLinksModal, setShowLinksModal] = useState(false);
+  const [showMoneyModal, setShowMoneyModal] = useState(false);
 
   const controller = useMemo(
     () => new ControllerClass(setCharacter, setLoading, setError, setFieldErrors),
@@ -106,6 +108,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
           onPublicAllegianceChange: (event) => setPublicAllegiance(event.target.value),
           onOpenUploadModal: () => setShowUploadModal(true),
           onOpenLinksModal: () => setShowLinksModal(true),
+          onOpenMoneyModal: () => setShowMoneyModal(true),
         }
       )}
       <PhotoUploadModal
@@ -121,6 +124,15 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
         onConfirm={(newLinks) => {
           setLinks(newLinks);
           setShowLinksModal(false);
+        }}
+      />
+      <MoneyEditModal
+        show={showMoneyModal}
+        money={money}
+        onClose={() => setShowMoneyModal(false)}
+        onConfirm={(newTotal) => {
+          setMoney(String(newTotal));
+          setShowMoneyModal(false);
         }}
       />
     </>

@@ -11,20 +11,41 @@ describe('BaseCharacterEditHelper', function() {
       expect(html).toContain('id="test-edit-role"');
       expect(html).toContain('id="test-edit-description"');
       expect(html).toContain('id="test-edit-private-description"');
-      expect(html).toContain('id="test-edit-money"');
       expect(html).toContain('value="Test Character"');
       expect(html).toContain('value="Fighter"');
       expect(html).toContain('DM notes.');
     });
 
-    it('renders the money field with the loaded value', function() {
+    it('renders the money breakdown for the loaded value', function() {
       const html = renderToStaticMarkup(
         helper.render(buildState({ money: '310' }), buildHandlers())
       );
 
-      expect(html).toContain('id="test-edit-money"');
-      expect(html).toContain('type="number"');
-      expect(html).toContain('value="310"');
+      expect(html).toContain('20');
+      expect(html).toContain('29');
+    });
+
+    it('renders nothing for the money breakdown when money is 0', function() {
+      const html = renderToStaticMarkup(
+        helper.render(buildState({ money: '0' }), buildHandlers())
+      );
+
+      expect(html).not.toContain('id="test-edit-money"');
+    });
+
+    it('renders an Edit money button wired to onOpenMoneyModal', function() {
+      const handlers = buildHandlers();
+      const element = helper.render(buildState(), handlers);
+      const button = findElement(
+        element,
+        (child) => child.type === 'button' && child.props.onClick === handlers.onOpenMoneyModal
+      );
+
+      expect(button).not.toBeNull();
+
+      button.props.onClick();
+
+      expect(handlers.onOpenMoneyModal).toHaveBeenCalled();
     });
 
     it('renders money field errors', function() {
