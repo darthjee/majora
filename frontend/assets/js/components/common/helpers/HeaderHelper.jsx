@@ -153,7 +153,7 @@ export default class HeaderHelper {
   /**
    * Renders the Login/Logoff control based on the current auth state.
    *
-   * @param {{loggedIn: boolean, testEmailStatus: (string|null), canViewAs: boolean}} state - header auth state.
+   * @param {{loggedIn: boolean, testEmailStatus: (string|null), canViewAs: boolean, isSuperUser: boolean, isStaff: boolean}} state - header auth state.
    * @param {{onLoginClick: Function, onLogoffClick: Function, onSendTestEmailClick: Function, onViewAsClick: Function}} handlers - header event handlers.
    * @returns {React.ReactElement} login control, or logoff/send-test-email controls.
    */
@@ -169,14 +169,7 @@ export default class HeaderHelper {
           >
             {Translator.t('header.logoff')}
           </button>
-          <button
-            type="button"
-            className="btn btn-link nav-link"
-            data-testid="send-test-email"
-            onClick={handlers.onSendTestEmailClick}
-          >
-            {Translator.t('header.send_test_email')}
-          </button>
+          {HeaderHelper.#renderSendTestEmailButton(state, handlers)}
           {HeaderHelper.#renderTestEmailStatus(state)}
           <Nav.Link href="#/my_account" data-testid="my-account-link">
             <img src={myAccountIcon} alt={Translator.t('header.my_account_alt')} />
@@ -200,6 +193,32 @@ export default class HeaderHelper {
           {Translator.t('header.register')}
         </Nav.Link>
       </>
+    );
+  }
+
+  /**
+   * Renders the send-test-email button, visible only to superusers/staff.
+   *
+   * @param {{isSuperUser: boolean, isStaff: boolean}} state - header auth state.
+   * @param {{onSendTestEmailClick: Function}} handlers - header event handlers.
+   * @returns {React.ReactElement|null} send-test-email button, or null when not applicable.
+   */
+  static #renderSendTestEmailButton(state, handlers) {
+    if (!state.isSuperUser && !state.isStaff) {
+      return null;
+    }
+
+    return (
+      <button
+        type="button"
+        className="btn btn-link nav-link"
+        data-testid="send-test-email"
+        title={Translator.t('header.send_test_email')}
+        aria-label={Translator.t('header.send_test_email')}
+        onClick={handlers.onSendTestEmailClick}
+      >
+        <i className={`bi ${Icons.envelope}`} aria-hidden="true"></i>
+      </button>
     );
   }
 
