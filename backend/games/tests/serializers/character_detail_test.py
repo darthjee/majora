@@ -76,25 +76,6 @@ class TestCharacterDetailSerializer(TestCase):
         data = self._serialize()
         assert data['game_slug'] == 'test-game'
 
-    def test_serializes_empty_photos(self):
-        """Test that photos is an empty list when the character has no photos."""
-        data = self._serialize()
-        assert data['photos'] == []
-
-    def test_serializes_nested_photos(self):
-        """Test that nested photos are serialized with an id field."""
-        photo1 = CharacterPhoto.objects.create(
-            path='photos/games/test-game/characters/1/img1.jpg', character=self.character
-        )
-        photo2 = CharacterPhoto.objects.create(
-            path='photos/games/test-game/characters/1/img2.jpg', character=self.character
-        )
-        data = self._serialize()
-        assert len(data['photos']) == 2
-        ids = [photo['id'] for photo in data['photos']]
-        assert photo1.id in ids
-        assert photo2.id in ids
-
     def test_serializes_empty_links(self):
         """Test that links is an empty list when the character has no links."""
         data = self._serialize()
