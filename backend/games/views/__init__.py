@@ -2,7 +2,7 @@
 
 from .access_route_config import access_route_config
 from .auth import account, language, login, logout, register, status, test_email
-from .characters import (
+from .game import (
     game_npc_access,
     game_npc_detail,
     game_npc_full,
