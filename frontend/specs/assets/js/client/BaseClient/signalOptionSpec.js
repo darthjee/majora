@@ -22,10 +22,10 @@ describe('BaseClient', function() {
     }));
   });
 
-  it('does not include signal in fetch options when none is provided', async function() {
+  it('attaches a default timeout signal when none is provided', async function() {
     await client.request('/some/path.json');
 
     const [, options] = fetchSpy.calls.mostRecent().args;
-    expect(options.signal).toBeUndefined();
+    expect(options.signal).toBeInstanceOf(AbortSignal);
   });
 });

@@ -14,7 +14,7 @@ describe('UploadClient', function() {
 
       await client.initUpload('/games/demo/photo_upload.json', 'cover.png', 'tok-abc');
 
-      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/photo_upload.json', {
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/photo_upload.json', jasmine.objectContaining({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -22,7 +22,7 @@ describe('UploadClient', function() {
           'X-Skip-Cache': 'true',
         },
         body: JSON.stringify({ filename: 'cover.png' }),
-      });
+      }));
     });
 
     it('posts to the exact path given for a game', async function() {

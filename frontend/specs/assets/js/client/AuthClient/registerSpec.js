@@ -14,7 +14,7 @@ describe('AuthClient', function() {
 
       await client.register('Jane Doe', 'jane@example.com', 'secret', 'secret');
 
-      expect(fetchSpy).toHaveBeenCalledWith('/users/register.json', {
+      expect(fetchSpy).toHaveBeenCalledWith('/users/register.json', jasmine.objectContaining({
         method: 'POST',
         headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Skip-Cache': 'true' },
         body: JSON.stringify({
@@ -23,7 +23,7 @@ describe('AuthClient', function() {
           password: 'secret',
           password_confirmation: 'secret',
         }),
-      });
+      }));
     });
   });
 });

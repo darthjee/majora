@@ -18,11 +18,11 @@ describe('BaseClient', function() {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/users/login.json', {
+    expect(fetchSpy).toHaveBeenCalledWith('/users/login.json', jasmine.objectContaining({
       method: 'POST',
       headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
-    });
+    }));
   });
 
   it('does not add X-Skip-Cache to a non-configured endpoint', async function() {
@@ -31,11 +31,11 @@ describe('BaseClient', function() {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/some/other.json', {
+    expect(fetchSpy).toHaveBeenCalledWith('/some/other.json', jasmine.objectContaining({
       method: 'GET',
       headers: { Accept: 'application/json' },
       body: undefined,
-    });
+    }));
   });
 
   it('adds X-Skip-Cache to a POST request to an unconfigured endpoint', async function() {
@@ -44,11 +44,11 @@ describe('BaseClient', function() {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/some/other.json', {
+    expect(fetchSpy).toHaveBeenCalledWith('/some/other.json', jasmine.objectContaining({
       method: 'POST',
       headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
-    });
+    }));
   });
 
   it('adds X-Skip-Cache to a PATCH request to an unconfigured endpoint', async function() {
@@ -57,11 +57,11 @@ describe('BaseClient', function() {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/some/other.json', {
+    expect(fetchSpy).toHaveBeenCalledWith('/some/other.json', jasmine.objectContaining({
       method: 'PATCH',
       headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
-    });
+    }));
   });
 
   it('adds X-Skip-Cache to a DELETE request to an unconfigured endpoint', async function() {
@@ -70,11 +70,11 @@ describe('BaseClient', function() {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/some/other.json', {
+    expect(fetchSpy).toHaveBeenCalledWith('/some/other.json', jasmine.objectContaining({
       method: 'DELETE',
       headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
-    });
+    }));
   });
 
   it('adds X-Skip-Cache to the register endpoint', async function() {
@@ -83,11 +83,11 @@ describe('BaseClient', function() {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/users/register.json', {
+    expect(fetchSpy).toHaveBeenCalledWith('/users/register.json', jasmine.objectContaining({
       method: 'POST',
       headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
-    });
+    }));
   });
 
   it('matches a configured endpoint by pathname only, ignoring the query string', async function() {
@@ -95,11 +95,11 @@ describe('BaseClient', function() {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/users/status.json?foo=bar', {
+    expect(fetchSpy).toHaveBeenCalledWith('/users/status.json?foo=bar', jasmine.objectContaining({
       method: 'GET',
       headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
-    });
+    }));
   });
 
   it('does not add X-Skip-Cache to a non-configured endpoint with a query string', async function() {
@@ -107,11 +107,11 @@ describe('BaseClient', function() {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/games/foo/pcs.json?per_page=10', {
+    expect(fetchSpy).toHaveBeenCalledWith('/games/foo/pcs.json?per_page=10', jasmine.objectContaining({
       method: 'GET',
       headers: { Accept: 'application/json' },
       body: undefined,
-    });
+    }));
   });
 
   it('adds X-Skip-Cache to an endpoint matching a configured suffix', async function() {
@@ -119,11 +119,11 @@ describe('BaseClient', function() {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/access.json', {
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/access.json', jasmine.objectContaining({
       method: 'GET',
       headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
-    });
+    }));
   });
 
   it('adds X-Skip-Cache to an NPC access endpoint matching a configured suffix', async function() {
@@ -131,11 +131,11 @@ describe('BaseClient', function() {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/5/access.json', {
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/5/access.json', jasmine.objectContaining({
       method: 'GET',
       headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
-    });
+    }));
   });
 
   it('adds X-Skip-Cache to a suffix-matched endpoint that also has a query string', async function() {
@@ -143,11 +143,11 @@ describe('BaseClient', function() {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/access.json?foo=bar', {
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/access.json?foo=bar', jasmine.objectContaining({
       method: 'GET',
       headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
-    });
+    }));
   });
 
   it('does not add X-Skip-Cache to a path that merely contains a suffix but does not end with it', async function() {
@@ -155,11 +155,11 @@ describe('BaseClient', function() {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/access.json/extra', {
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/access.json/extra', jasmine.objectContaining({
       method: 'GET',
       headers: { Accept: 'application/json' },
       body: undefined,
-    });
+    }));
   });
 
   it('adds X-Skip-Cache to a permissions.json request without a role param', async function() {
@@ -167,11 +167,11 @@ describe('BaseClient', function() {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json', {
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json', jasmine.objectContaining({
       method: 'GET',
       headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
-    });
+    }));
   });
 
   it('does not add X-Skip-Cache to a permissions.json request with a role param', async function() {
@@ -179,11 +179,11 @@ describe('BaseClient', function() {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json?role=dm', {
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json?role=dm', jasmine.objectContaining({
       method: 'GET',
       headers: { Accept: 'application/json' },
       body: undefined,
-    });
+    }));
   });
 
   it('does not add X-Skip-Cache to a permissions.json request with several role params', async function() {
@@ -191,11 +191,11 @@ describe('BaseClient', function() {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json?role=dm&role=player', {
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json?role=dm&role=player', jasmine.objectContaining({
       method: 'GET',
       headers: { Accept: 'application/json' },
       body: undefined,
-    });
+    }));
   });
 
   it('adds X-Skip-Cache to a permissions.json POST request even with a role param', async function() {
@@ -204,10 +204,10 @@ describe('BaseClient', function() {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json?role=dm', {
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json?role=dm', jasmine.objectContaining({
       method: 'POST',
       headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
-    });
+    }));
   });
 });

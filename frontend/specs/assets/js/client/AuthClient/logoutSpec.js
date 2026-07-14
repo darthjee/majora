@@ -14,7 +14,7 @@ describe('AuthClient', function() {
 
       await client.logout('abc123');
 
-      expect(fetchSpy).toHaveBeenCalledWith('/users/logout.json', {
+      expect(fetchSpy).toHaveBeenCalledWith('/users/logout.json', jasmine.objectContaining({
         method: 'DELETE',
         headers: {
           Accept: 'application/json',
@@ -23,7 +23,7 @@ describe('AuthClient', function() {
           Authorization: 'Token abc123',
         },
         body: undefined,
-      });
+      }));
     });
   });
 });

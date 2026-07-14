@@ -39,5 +39,15 @@ describe('HealthClient', function() {
       const [, options] = fetchSpy.calls.mostRecent().args;
       expect(options.signal).toBeInstanceOf(AbortSignal);
     });
+
+    it('does not retry a single 502 response, so a stale status is not masked', async function() {
+      fetchSpy.and.returnValue(Promise.resolve({ status: 502 }));
+
+      const client = new HealthClient();
+      const response = await client.check();
+
+      expect(response.status).toBe(502);
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+    });
   });
 });
