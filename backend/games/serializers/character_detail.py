@@ -4,13 +4,11 @@ from rest_framework import serializers
 
 from games.models import Character
 from games.serializers.character_link import CharacterLinkSerializer
-from games.serializers.character_photo import CharacterPhotoSerializer
 
 
 class CharacterDetailSerializer(serializers.ModelSerializer):
-    """Serializer for character detail view including photos and links."""
+    """Serializer for character detail view including links."""
 
-    photos = CharacterPhotoSerializer(many=True, read_only=True)
     links = CharacterLinkSerializer(many=True, read_only=True)
     is_pc = serializers.ReadOnlyField()
     game_slug = serializers.ReadOnlyField(source='game.game_slug')
@@ -34,7 +32,6 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
             'role',
             'public_description',
             'is_pc',
-            'photos',
             'links',
             'game_slug',
             'can_edit',
