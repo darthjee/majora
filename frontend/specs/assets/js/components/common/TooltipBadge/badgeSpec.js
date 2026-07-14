@@ -30,4 +30,18 @@ describe('TooltipBadge', function() {
     expect(trigger.props.children.type).toBe(Badge);
     expect(trigger.props.children.props.icon).toBe('bi-info-circle-fill');
   });
+
+  it('leaves the inner Badge variant undefined when no variant prop is given', function() {
+    const rendered = TooltipBadge({ icon: 'bi-info-circle-fill', items: [] });
+    const trigger = rendered.props.children;
+
+    expect(trigger.props.children.props.variant).toBeUndefined();
+  });
+
+  it('forwards a given variant prop to the inner Badge', function() {
+    const rendered = TooltipBadge({ icon: 'bi-emoji-grimace', items: [], variant: 'warning' });
+    const trigger = rendered.props.children;
+
+    expect(trigger.props.children.props.variant).toBe('warning');
+  });
 });
