@@ -17,9 +17,10 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       const client = jasmine.createSpyObj('client', ['currentHash']);
       const characterClient = jasmine.createSpyObj(
         'characterClient',
-        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures'],
+        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterPhotos'],
       );
       characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
+      characterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
       client.currentHash.and.returnValue(`#/games/demo/${kind}/2`);
       characterClient.fetchCharacter.and.returnValue(Promise.resolve({
@@ -33,7 +34,7 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(setCharacter).toHaveBeenCalledWith({
-        id: 2, treasures: [], can_edit: false, is_player: false, access_resolved: true,
+        id: 2, treasures: [], photos: [], can_edit: false, is_player: false, access_resolved: true,
       });
       expect(characterClient.fetchCharacterFull).not.toHaveBeenCalled();
 

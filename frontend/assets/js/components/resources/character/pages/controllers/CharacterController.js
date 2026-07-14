@@ -81,6 +81,18 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
+   * Fetch a first page of the character's photos from the API.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string} characterId - Character id.
+   * @param {string|null} token - Authentication token.
+   * @returns {Promise<Response>} Fetch response.
+   */
+  fetchCharacterPhotos(gameSlug, characterId, token) {
+    return this.characterClient.fetchCharacterPhotos(this.characterKind, gameSlug, characterId, token);
+  }
+
+  /**
    * Handle the full character response, merging every field of the
    * authoritative full (DM-only) character data into the base character
    * when available.
@@ -217,8 +229,26 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
+   * Fetch the character's photos and merge them onto the character as
+   * `character.photos`. Photos are supplementary, not essential, so any
+   * failure (network error or non-ok response) degrades to an empty array
+   * rather than failing the whole character page load.
+   *
+   * @param {object} character - Base character data already loaded.
+   * @param {object} params - Route params with game_slug and character_id.
+   * @param {string|null} token - Authentication token.
+   * @returns {Promise<object>} Resolves to the character with photos applied.
+   */
+  fetchAndMergePhotos(character, params, token) {
+    return this.fetchCharacterPhotos(params.game_slug, params.character_id, token)
+      .then((response) => (response.ok ? response.json() : []))
+      .then((photos) => ({ ...character, photos: Array.isArray(photos) ? photos : [] }))
+      .catch(() => ({ ...character, photos: [] }));
+  }
+
+  /**
    * Load the character using the stored token, parse the response,
-   * merge treasures and access permissions, and update loading state.
+   * merge treasures, photos, and access permissions, and update loading state.
    *
    * @param {object} params - Route params with game_slug and character_id.
    * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
@@ -230,6 +260,7 @@ export default class CharacterController extends BasePageController {
     return this.fetchCharacter(params.game_slug, params.character_id, token)
       .then((response) => this.handleCharacterResponse(response))
       .then((character) => this.fetchAndMergeTreasures(character, params, token))
+      .then((character) => this.fetchAndMergePhotos(character, params, token))
       .then((character) => this.fetchAndMergeAccess(character, params, token, safeSet))
       .catch(() => safeSet(this.setError, 'Unable to load character.'))
       .finally(() => safeSet(this.setLoading, false));

@@ -81,6 +81,23 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
+   * Fetches a page of a character's photos, used to populate the photo
+   * preview grid on the character show/edit pages.
+   *
+   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {number} [perPage] - Maximum number of photos to fetch.
+   * @returns {Promise<Response>} fetch response from the character photos endpoint.
+   */
+  fetchCharacterPhotos(characterKind, gameSlug, characterId, token, perPage = 6) {
+    const path = `/games/${gameSlug}/${characterKind}/${characterId}/photos.json?per_page=${perPage}`;
+
+    return this.getJson(path, token);
+  }
+
+  /**
    * Submits a partial update for a character, through the (GM-only) full endpoint.
    *
    * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).

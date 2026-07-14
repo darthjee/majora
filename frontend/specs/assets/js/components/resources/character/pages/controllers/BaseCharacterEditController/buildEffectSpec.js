@@ -22,7 +22,7 @@ describe('BaseCharacterEditController', function() {
       stubAccessPair('ensureCharacterAccess', 'getCharacterAccess', { is_player: false }, { is_player: false });
       stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: true }, { can_edit: false });
       const fullCharacterClient = jasmine.createSpyObj('characterClient', [
-        'fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'updateCharacter',
+        'fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterPhotos', 'updateCharacter',
       ]);
 
       client.currentHash.and.returnValue('#/games/demo/npcs/1/edit');
@@ -30,6 +30,9 @@ describe('BaseCharacterEditController', function() {
         ok: true, json: () => Promise.resolve({ id: 1, can_edit: false }),
       }));
       fullCharacterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({
+        ok: true, json: () => Promise.resolve([]),
+      }));
+      fullCharacterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({
         ok: true, json: () => Promise.resolve([]),
       }));
       fullCharacterClient.fetchCharacterFull.and.returnValue(Promise.resolve({
@@ -46,6 +49,7 @@ describe('BaseCharacterEditController', function() {
       expect(setCharacter).toHaveBeenCalledWith({
         id: 1,
         treasures: [],
+        photos: [],
         can_edit: true,
         is_player: false,
         private_description: 'Notes.',
