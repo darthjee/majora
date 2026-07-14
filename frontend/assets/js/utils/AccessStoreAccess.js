@@ -1,5 +1,6 @@
 import AuthStorage from './AuthStorage.js';
 import AccessStoreKeys from './AccessStoreKeys.js';
+import AccessStoreLogging from './AccessStoreLogging.js';
 
 const ACCESS_DEFAULT = {
   username: null,
@@ -28,8 +29,11 @@ export default class AccessStoreAccess {
   static ensureGame(cache, gameClient, gameSlug) {
     return cache.ensure(
       AccessStoreKeys.game(gameSlug),
-      (signal) => gameClient.fetchGameAccess(gameSlug, AuthStorage.getToken(), signal)
-        .then(AccessStoreAccess.#parse),
+      (signal) => AccessStoreLogging.wrap(
+        'ensureGame',
+        [gameSlug],
+        gameClient.fetchGameAccess(gameSlug, AuthStorage.getToken(), signal).then(AccessStoreAccess.#parse),
+      ),
       ACCESS_DEFAULT,
     );
   }
@@ -47,9 +51,13 @@ export default class AccessStoreAccess {
   static ensureCharacter(cache, characterClient, characterKind, gameSlug, characterId) {
     return cache.ensure(
       AccessStoreKeys.character(characterKind, gameSlug, characterId),
-      (signal) => characterClient
-        .fetchCharacterAccess(characterKind, gameSlug, characterId, AuthStorage.getToken(), signal)
-        .then(AccessStoreAccess.#parse),
+      (signal) => AccessStoreLogging.wrap(
+        'ensureCharacter',
+        [characterKind, gameSlug, characterId],
+        characterClient
+          .fetchCharacterAccess(characterKind, gameSlug, characterId, AuthStorage.getToken(), signal)
+          .then(AccessStoreAccess.#parse),
+      ),
       ACCESS_DEFAULT,
     );
   }
@@ -65,8 +73,11 @@ export default class AccessStoreAccess {
   static ensureTreasure(cache, treasureClient, id) {
     return cache.ensure(
       AccessStoreKeys.treasure(id),
-      (signal) => treasureClient.fetchTreasureAccess(id, AuthStorage.getToken(), signal)
-        .then(AccessStoreAccess.#parse),
+      (signal) => AccessStoreLogging.wrap(
+        'ensureTreasure',
+        [id],
+        treasureClient.fetchTreasureAccess(id, AuthStorage.getToken(), signal).then(AccessStoreAccess.#parse),
+      ),
       ACCESS_DEFAULT,
     );
   }

@@ -1,5 +1,6 @@
 import AccessStoreAccess from '../../../../assets/js/utils/AccessStoreAccess.js';
 import AccessCache from '../../../../assets/js/utils/AccessCache.js';
+import MajoraLogger from '../../../../assets/js/utils/MajoraLogger.js';
 
 const ACCESS_DEFAULT = {
   username: null,
@@ -50,6 +51,27 @@ describe('AccessStoreAccess', function() {
     it('returns the fail-closed default for an unrequested key', function() {
       expect(AccessStoreAccess.getGame(cache, 'unknown')).toEqual(ACCESS_DEFAULT);
     });
+
+    it('logs the request and result at debug level via MajoraLogger', async function() {
+      const debugSpy = spyOn(MajoraLogger, 'debug');
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
+      gameClient.fetchGameAccess.and.returnValue(Promise.resolve(fakeResponse({ username: 'gm' })));
+
+      await AccessStoreAccess.ensureGame(cache, gameClient, 'demo');
+
+      expect(debugSpy).toHaveBeenCalledWith({ method: 'ensureGame', args: ['demo'], result: { username: 'gm' } });
+    });
+
+    it('logs the failure at debug level without altering the fail-closed result', async function() {
+      const debugSpy = spyOn(MajoraLogger, 'debug');
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGameAccess']);
+      gameClient.fetchGameAccess.and.returnValue(Promise.resolve(fakeResponse(null, false)));
+
+      const result = await AccessStoreAccess.ensureGame(cache, gameClient, 'demo');
+
+      expect(result).toEqual(ACCESS_DEFAULT);
+      expect(debugSpy).toHaveBeenCalledWith({ method: 'ensureGame', args: ['demo'], error: jasmine.any(Error) });
+    });
   });
 
   describe('#ensureCharacter / #getCharacter', function() {
@@ -68,6 +90,22 @@ describe('AccessStoreAccess', function() {
     it('returns the fail-closed default for an unrequested key', function() {
       expect(AccessStoreAccess.getCharacter(cache, 'pcs', 'demo', '2')).toEqual(ACCESS_DEFAULT);
     });
+
+    it('logs the request and result at debug level via MajoraLogger', async function() {
+      const debugSpy = spyOn(MajoraLogger, 'debug');
+      const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacterAccess']);
+      characterClient.fetchCharacterAccess.and.returnValue(
+        Promise.resolve(fakeResponse({ username: 'pc' })),
+      );
+
+      await AccessStoreAccess.ensureCharacter(cache, characterClient, 'pcs', 'demo', '2');
+
+      expect(debugSpy).toHaveBeenCalledWith({
+        method: 'ensureCharacter',
+        args: ['pcs', 'demo', '2'],
+        result: { username: 'pc' },
+      });
+    });
   });
 
   describe('#ensureTreasure / #getTreasure', function() {
@@ -85,6 +123,18 @@ describe('AccessStoreAccess', function() {
 
     it('returns the fail-closed default for an unrequested key', function() {
       expect(AccessStoreAccess.getTreasure(cache, 1)).toEqual(ACCESS_DEFAULT);
+    });
+
+    it('logs the request and result at debug level via MajoraLogger', async function() {
+      const debugSpy = spyOn(MajoraLogger, 'debug');
+      const treasureClient = jasmine.createSpyObj('treasureClient', ['fetchTreasureAccess']);
+      treasureClient.fetchTreasureAccess.and.returnValue(
+        Promise.resolve(fakeResponse({ username: 'owner' })),
+      );
+
+      await AccessStoreAccess.ensureTreasure(cache, treasureClient, 1);
+
+      expect(debugSpy).toHaveBeenCalledWith({ method: 'ensureTreasure', args: [1], result: { username: 'owner' } });
     });
   });
 });

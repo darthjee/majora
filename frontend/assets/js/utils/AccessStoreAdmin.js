@@ -1,4 +1,5 @@
 import AuthStorage from './AuthStorage.js';
+import AccessStoreLogging from './AccessStoreLogging.js';
 
 const SUPERUSER_KEY = 'admin:superuser';
 const STAFF_KEY = 'admin:staff';
@@ -21,8 +22,12 @@ export default class AccessStoreAdmin {
   static ensureSuperUser(cache, authClient) {
     return cache.ensure(
       SUPERUSER_KEY,
-      (signal) => authClient.status(AuthStorage.getToken(), signal)
-        .then((response) => AccessStoreAdmin.#parseStatusResponse(response, (data) => Boolean(data.is_superuser))),
+      (signal) => AccessStoreLogging.wrap(
+        'ensureSuperUser',
+        [],
+        authClient.status(AuthStorage.getToken(), signal)
+          .then((response) => AccessStoreAdmin.#parseStatusResponse(response, (data) => Boolean(data.is_superuser))),
+      ),
       ADMIN_DEFAULT,
     );
   }
@@ -37,8 +42,12 @@ export default class AccessStoreAdmin {
   static ensureStaffOrSuperUser(cache, authClient) {
     return cache.ensure(
       STAFF_KEY,
-      (signal) => authClient.status(AuthStorage.getToken(), signal).then((response) => AccessStoreAdmin
-        .#parseStatusResponse(response, (data) => Boolean(data.is_superuser) || Boolean(data.is_staff))),
+      (signal) => AccessStoreLogging.wrap(
+        'ensureStaffOrSuperUser',
+        [],
+        authClient.status(AuthStorage.getToken(), signal).then((response) => AccessStoreAdmin
+          .#parseStatusResponse(response, (data) => Boolean(data.is_superuser) || Boolean(data.is_staff))),
+      ),
       ADMIN_DEFAULT,
     );
   }

@@ -1,6 +1,7 @@
 import AuthStorage from './AuthStorage.js';
 import AccessStoreKeys from './AccessStoreKeys.js';
 import AccessStoreFacade from './AccessStoreFacade.js';
+import AccessStoreLogging from './AccessStoreLogging.js';
 
 const PERMISSIONS_DEFAULT = { can_edit: false };
 
@@ -26,8 +27,13 @@ export default class AccessStorePermissions {
 
     return cache.ensure(
       AccessStoreKeys.gamePermissions(gameSlug, roleSet),
-      (signal) => gameClient.fetchGamePermissions(gameSlug, AuthStorage.getToken(), signal, roleSet)
-        .then(AccessStorePermissions.#parse),
+      (signal) => AccessStoreLogging.wrap(
+        'ensureGame',
+        [gameSlug, roles],
+        gameClient.fetchGamePermissions(gameSlug, AuthStorage.getToken(), signal, roleSet)
+          .then(AccessStorePermissions.#parse),
+        { roles, effectiveRoles: roleSet },
+      ),
       PERMISSIONS_DEFAULT,
     );
   }
@@ -48,9 +54,14 @@ export default class AccessStorePermissions {
 
     return cache.ensure(
       AccessStoreKeys.characterPermissions(characterKind, gameSlug, characterId, roleSet),
-      (signal) => characterClient
-        .fetchCharacterPermissions(characterKind, gameSlug, characterId, AuthStorage.getToken(), signal, roleSet)
-        .then(AccessStorePermissions.#parse),
+      (signal) => AccessStoreLogging.wrap(
+        'ensureCharacter',
+        [characterKind, gameSlug, characterId, roles],
+        characterClient
+          .fetchCharacterPermissions(characterKind, gameSlug, characterId, AuthStorage.getToken(), signal, roleSet)
+          .then(AccessStorePermissions.#parse),
+        { roles, effectiveRoles: roleSet },
+      ),
       PERMISSIONS_DEFAULT,
     );
   }
@@ -69,8 +80,13 @@ export default class AccessStorePermissions {
 
     return cache.ensure(
       AccessStoreKeys.treasurePermissions(id, roleSet),
-      (signal) => treasureClient.fetchTreasurePermissions(id, AuthStorage.getToken(), signal, roleSet)
-        .then(AccessStorePermissions.#parse),
+      (signal) => AccessStoreLogging.wrap(
+        'ensureTreasure',
+        [id, roles],
+        treasureClient.fetchTreasurePermissions(id, AuthStorage.getToken(), signal, roleSet)
+          .then(AccessStorePermissions.#parse),
+        { roles, effectiveRoles: roleSet },
+      ),
       PERMISSIONS_DEFAULT,
     );
   }
