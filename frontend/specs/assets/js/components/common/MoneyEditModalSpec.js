@@ -1,18 +1,20 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import MoneyEditModal from '../../../../../../../../assets/js/components/resources/character/pages/elements/MoneyEditModal.jsx';
-import MoneyEditModalHelper from '../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/MoneyEditModalHelper.jsx';
+import MoneyEditModal from '../../../../../assets/js/components/common/MoneyEditModal.jsx';
+import MoneyEditModalHelper from '../../../../../assets/js/components/common/helpers/MoneyEditModalHelper.jsx';
 
 describe('MoneyEditModal', function() {
   const renderModal = (props = {}) => {
     let capturedShow;
     let capturedState;
     let capturedHandlers;
+    let capturedContext;
 
-    spyOn(MoneyEditModalHelper, 'render').and.callFake((show, state, handlers) => {
+    spyOn(MoneyEditModalHelper, 'render').and.callFake((show, state, handlers, context) => {
       capturedShow = show;
       capturedState = state;
       capturedHandlers = handlers;
+      capturedContext = context;
       return React.createElement('div', null, 'modal');
     });
 
@@ -26,7 +28,9 @@ describe('MoneyEditModal', function() {
       }),
     );
 
-    return { show: capturedShow, state: capturedState, handlers: capturedHandlers };
+    return {
+      show: capturedShow, state: capturedState, handlers: capturedHandlers, context: capturedContext,
+    };
   };
 
   it('seeds local state as a dense breakdown of the given money prop', function() {
@@ -65,6 +69,12 @@ describe('MoneyEditModal', function() {
     expect(state.canConfirm).toBe(true);
   });
 
+  it('defaults the context to character when not given', function() {
+    const { context } = renderModal();
+
+    expect(context).toBe('character');
+  });
+
   it('invokes onClose when the close handler is triggered', function() {
     const onClose = jasmine.createSpy('onClose');
     const { handlers } = renderModal({ onClose });
@@ -87,5 +97,34 @@ describe('MoneyEditModal', function() {
     const { handlers } = renderModal();
 
     expect(() => handlers.onFieldChange('gp', '5')).not.toThrow();
+  });
+
+  describe('with the treasure context', function() {
+    it('seeds local state as a dense CP/SP/GP breakdown, with no pp/gems keys', function() {
+      const { state } = renderModal({ money: 332, context: 'treasure' });
+
+      expect(state.breakdown).toEqual({ cp: 2, sp: 3, gp: 3 });
+    });
+
+    it('forwards the context prop to the helper', function() {
+      const { context } = renderModal({ context: 'treasure' });
+
+      expect(context).toBe('treasure');
+    });
+
+    it('computes canConfirm as true for a freshly seeded breakdown', function() {
+      const { state } = renderModal({ money: 332, context: 'treasure' });
+
+      expect(state.canConfirm).toBe(true);
+    });
+
+    it('calls onConfirm with the recalculated total from the seeded breakdown', function() {
+      const onConfirm = jasmine.createSpy('onConfirm');
+      const { handlers } = renderModal({ onConfirm, money: 332, context: 'treasure' });
+
+      handlers.onConfirm();
+
+      expect(onConfirm).toHaveBeenCalledWith(332);
+    });
   });
 });

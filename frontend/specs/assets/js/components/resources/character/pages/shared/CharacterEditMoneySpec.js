@@ -4,7 +4,7 @@ import CharacterEdit from '../../../../../../../../assets/js/components/resource
 import BaseCharacterEditHelper
   from '../../../../../../../../assets/js/components/resources/character/pages/helpers/BaseCharacterEditHelper.jsx';
 import MoneyEditModalHelper
-  from '../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/MoneyEditModalHelper.jsx';
+  from '../../../../../../../../assets/js/components/common/helpers/MoneyEditModalHelper.jsx';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
 // Sets character/loading state synchronously during render (in the useMemo
@@ -103,6 +103,26 @@ describe('CharacterEdit money modal', function() {
     expect(capturedMoneyModalState.breakdown).toEqual({
       cp: 0, sp: 0, gp: 0, pp: 0, gems: 0,
     });
+  });
+
+  it('renders the money modal with the character context', function() {
+    let capturedContext;
+    spyOn(EditHelper, 'render').and.returnValue(null);
+    spyOn(MoneyEditModalHelper, 'render').and.callFake((show, state, handlers, context) => {
+      capturedContext = context;
+      return null;
+    });
+
+    renderToStaticMarkup(
+      React.createElement(CharacterEdit, {
+        ControllerClass: LoadedController,
+        getParamsFromHash,
+        EditHelper,
+        characterKind: 'npcs',
+      })
+    );
+
+    expect(capturedContext).toBe('character');
   });
 
   it('does not throw when the money modal is closed or confirmed', function() {

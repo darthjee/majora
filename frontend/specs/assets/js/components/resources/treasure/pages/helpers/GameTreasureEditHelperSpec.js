@@ -1,11 +1,40 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameTreasureEditHelper from '../../../../../../../../assets/js/components/resources/treasure/pages/helpers/GameTreasureEditHelper.jsx';
+import TreasureValueField from '../../../../../../../../assets/js/components/resources/treasure/pages/elements/TreasureValueField.jsx';
+
+const findElement = (node, matcher) => {
+  if (!node) {
+    return null;
+  }
+
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findElement(child, matcher);
+
+      if (match) {
+        return match;
+      }
+    }
+
+    return null;
+  }
+
+  if (typeof node !== 'object') {
+    return null;
+  }
+
+  if (matcher(node)) {
+    return node;
+  }
+
+  return findElement(node.props?.children, matcher);
+};
 
 describe('GameTreasureEditHelper', function() {
   const buildHandlers = () => ({
     onSubmit: jasmine.createSpy('onSubmit'),
     onNameChange: jasmine.createSpy('onNameChange'),
-    onValueChange: jasmine.createSpy('onValueChange'),
+    onOpenValueModal: jasmine.createSpy('onOpenValueModal'),
     onMaxUnitsChange: jasmine.createSpy('onMaxUnitsChange'),
   });
 
@@ -24,8 +53,28 @@ describe('GameTreasureEditHelper', function() {
       const html = renderToStaticMarkup(GameTreasureEditHelper.render(buildState(), buildHandlers()));
 
       expect(html).toContain('id="game-treasure-edit-name"');
-      expect(html).toContain('id="game-treasure-edit-value"');
       expect(html).toContain('id="game-treasure-edit-max-units"');
+    });
+
+    it('does not render a raw numeric value input', function() {
+      const html = renderToStaticMarkup(GameTreasureEditHelper.render(buildState(), buildHandlers()));
+
+      expect(html).not.toContain('id="game-treasure-edit-value"');
+    });
+
+    it('renders the collapsed CP/SP/GP breakdown of the current value', function() {
+      const html = renderToStaticMarkup(GameTreasureEditHelper.render(buildState({ value: '500' }), buildHandlers()));
+
+      expect(html).toContain('5 GP');
+    });
+
+    it('renders a TreasureValueField wired to onOpenValueModal', function() {
+      const handlers = buildHandlers();
+      const element = GameTreasureEditHelper.render(buildState(), handlers);
+      const field = findElement(element, (child) => child.type === TreasureValueField);
+
+      expect(field).not.toBeNull();
+      expect(field.props.onOpenModal).toBe(handlers.onOpenValueModal);
     });
 
     it('does not render the max_units field when the treasure is exclusive to the game', function() {
@@ -34,7 +83,6 @@ describe('GameTreasureEditHelper', function() {
       );
 
       expect(html).toContain('id="game-treasure-edit-name"');
-      expect(html).toContain('id="game-treasure-edit-value"');
       expect(html).not.toContain('id="game-treasure-edit-max-units"');
     });
 
@@ -50,7 +98,6 @@ describe('GameTreasureEditHelper', function() {
       const html = renderToStaticMarkup(GameTreasureEditHelper.render(buildState(), buildHandlers()));
 
       expect(html).toContain('value="Golden Crown"');
-      expect(html).toContain('value="500"');
       expect(html).toContain('value="10"');
     });
 
@@ -66,6 +113,18 @@ describe('GameTreasureEditHelper', function() {
       const html = renderToStaticMarkup(
         GameTreasureEditHelper.render(
           buildState({ fieldErrors: { max_units: ['must be a positive integer'] } }),
+          buildHandlers(),
+        ),
+      );
+
+      expect(html).toContain('must be a positive integer');
+      expect(html).toContain('alert-danger');
+    });
+
+    it('renders value field errors when present', function() {
+      const html = renderToStaticMarkup(
+        GameTreasureEditHelper.render(
+          buildState({ fieldErrors: { value: ['must be a positive integer'] } }),
           buildHandlers(),
         ),
       );
