@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from games.models import CharacterLink
 from games.serializers import CharacterCreateSerializer
-from games.serializers.character_link_write import MAX_LINKS
+from games.serializers.characters.character_link_write import MAX_LINKS
 from games.tests.factories import GameFactory
 
 

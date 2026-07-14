@@ -2,7 +2,7 @@
 
 from rest_framework import serializers
 
-from games.serializers.character_list import CharacterListSerializer
+from games.serializers.characters.character_list import CharacterListSerializer
 
 
 class CharacterFullListSerializer(CharacterListSerializer):

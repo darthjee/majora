@@ -3,7 +3,7 @@
 from rest_framework import serializers
 
 from games.models import Character
-from games.serializers.character_link import CharacterLinkSerializer
+from games.serializers.characters.character_link import CharacterLinkSerializer
 
 
 class CharacterDetailSerializer(serializers.ModelSerializer):

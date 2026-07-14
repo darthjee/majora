@@ -3,7 +3,7 @@
 from rest_framework import serializers
 
 from games.models import Game
-from games.serializers.game_photo import GamePhotoSerializer
+from games.serializers.games.game_photo import GamePhotoSerializer
 from games.serializers.link import LinkSerializer
 
 

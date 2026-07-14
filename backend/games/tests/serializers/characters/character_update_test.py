@@ -6,7 +6,7 @@ from rest_framework.exceptions import ValidationError
 
 from games.models import CharacterLink
 from games.serializers import CharacterUpdateSerializer
-from games.serializers.character_link_write import MAX_LINKS
+from games.serializers.characters.character_link_write import MAX_LINKS
 from games.tests.factories import CharacterFactory, GameFactory, PlayerFactory
 
 

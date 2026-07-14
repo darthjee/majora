@@ -1,19 +1,19 @@
-"""Treasure detail serializer for the games app."""
+"""Treasure list serializer for the games app."""
 
 from rest_framework import serializers
 
 from games.models import Treasure
-from games.serializers.game_treasure_fields import GameTreasureFieldsMixin
+from games.serializers.games.treasures.game_treasure_fields import GameTreasureFieldsMixin
 
 
-class TreasureDetailSerializer(GameTreasureFieldsMixin, serializers.ModelSerializer):
-    """Serializer for treasure detail view."""
+class TreasureListSerializer(GameTreasureFieldsMixin, serializers.ModelSerializer):
+    """Serializer for treasure list items."""
 
     photo_path = serializers.CharField(source='photo.path', default=None, read_only=True)
     game_slug = serializers.CharField(source='game.game_slug', default=None, read_only=True)
 
     class Meta:
-        """Metadata for the TreasureDetailSerializer."""
+        """Metadata for the TreasureListSerializer."""
 
         model = Treasure
         fields = [

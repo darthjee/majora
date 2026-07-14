@@ -2,7 +2,7 @@
 
 from rest_framework import serializers
 
-from games.serializers.character_detail import CharacterDetailSerializer
+from games.serializers.characters.character_detail import CharacterDetailSerializer
 
 
 class CharacterFullSerializer(CharacterDetailSerializer):

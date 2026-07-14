@@ -3,7 +3,7 @@
 from rest_framework import serializers
 
 from games.models import Character
-from games.serializers.character_link_write import (
+from games.serializers.characters.character_link_write import (
     CharacterLinksSync,
     CharacterLinkWriteSerializer,
     validate_links_count,

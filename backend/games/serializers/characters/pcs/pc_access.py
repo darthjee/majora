@@ -1,6 +1,6 @@
 """PC access serializer for the games app."""
 
-from games.serializers.character_access import CharacterAccessSerializer
+from games.serializers.characters.character_access import CharacterAccessSerializer
 
 
 class PcAccessSerializer(CharacterAccessSerializer):
