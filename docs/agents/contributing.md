@@ -34,7 +34,7 @@ Before a PR is considered complete, all CI checks relevant to the modified parts
 
 | Modified folder | CI job(s) | Local commands |
 |------------------|-----------|-----------------|
-| `source/` | `pytest`, `checks` | `cd source && poetry run pytest --cov` and `poetry run ruff check .` |
+| `backend/` | `pytest`, `checks` | `cd backend && poetry run pytest --cov` and `poetry run ruff check .` |
 | `frontend/` | `jasmine`, `frontend-checks` | `cd frontend && npm run coverage` and `npm run lint` |
 | `.circleci/`, `scripts/`, `dockerfiles/`, `docker-compose.yml`, `prod_proxy_config/` | `upload_proxy_files`, `upload_fe_files`, `link_photos`, `build-and-release`, `release`, `warm-up-cache` | No local equivalent — these run only on tagged releases. Verify changes by reading the job definitions in `.circleci/config.yml`. |
 
@@ -44,12 +44,12 @@ This same process must be followed when **planning how to resolve an issue**: in
 
 ## Code Organization
 
-### Backend (`source/`)
+### Backend (`backend/`)
 
 - **Views are thin:** business logic belongs in models or serializers, not in `views/`.
 - **One concern per module:** the `games` app already separates `models/`, `serializers/`, `views/`, `paginator.py` — keep new code in the module that matches its concern rather than growing one file.
 - **Method order:** within a class, public methods should be declared before private/helper methods (prefixed with `_`).
-- **File naming:** modules use `snake_case.py`; test files mirror the module under test with a `_test.py` suffix (e.g. `models_test.py`, `views_test.py`), following pytest-django convention already used in `source/games/tests/`.
+- **File naming:** modules use `snake_case.py`; test files mirror the module under test with a `_test.py` suffix (e.g. `models_test.py`, `views_test.py`), following pytest-django convention already used in `backend/games/tests/`.
 
 ### Frontend (`frontend/`)
 

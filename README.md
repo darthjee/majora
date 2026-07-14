@@ -43,7 +43,7 @@ The application is structured as a Django REST API backend and a React single-pa
 
 ```
 majora/
-├── source/               # Django backend (Python)
+├── backend/              # Django backend (Python)
 ├── frontend/             # React + Vite frontend
 ├── proxy/                # PHP proxy (dartjee/tent) configuration and extensions
 ├── dockerfiles/          # Dockerfiles for each service

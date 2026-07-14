@@ -128,7 +128,7 @@ A user may edit a character when **any** of the following is true:
 Any other authenticated or unauthenticated user may not edit the character.
 
 This logic is implemented in `Character.can_be_edited_by(user)` and
-`Character.is_editor(user)` in `source/games/models/character.py`.
+`Character.is_editor(user)` in `backend/games/models/character.py`.
 
 Separately, and narrower in scope (issue #416): a user who is a **player of the game** — the
 same `is_player` computation exposed on `.../access.json` endpoints, i.e. a `Player` record

@@ -4,7 +4,7 @@
 
 | Directory / File | Description |
 |-----------------|-------------|
-| `source/` | Django backend application (Python). |
+| `backend/` | Django backend application (Python). |
 | `frontend/` | React 19 + Vite application — UI components, assets, specs, and build output. |
 | `proxy/` | PHP Tent proxy configuration (dev and prod routing rules) and custom middleware with PHPUnit tests. |
 | `dockerfiles/` | Dockerfiles for each service image (backend, frontend, production variants). |
@@ -20,7 +20,7 @@
 | `README.md` | Project overview. |
 | `LICENSE` | Project license. |
 
-## `source/` — Backend
+## `backend/` — Backend
 
 | Subdirectory / File | Description |
 |---------------------|-------------|

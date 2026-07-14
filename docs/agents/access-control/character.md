@@ -153,7 +153,7 @@ only for a single, narrow purpose: toggling the NPC's player-facing `public_slai
 |----------|--------------|------|--------|
 | `PATCH /games/<slug>/npcs/<id>.json` | **NpcPlayerEdit** | `{"slain": true \| false}` only — any other key is silently ignored | Writes `Character.public_slain`; the real `slain` field is untouched and stays `full.json`-only |
 
-Validated by `NpcSlainUpdateSerializer` (`source/games/serializers/npc_slain_update.py`), a
+Validated by `NpcSlainUpdateSerializer` (`backend/games/serializers/npc_slain_update.py`), a
 `ModelSerializer` with a single `slain = BooleanField(source='public_slain')` field.
 
 The hidden-NPC gate (see "Detail" above) still applies: a hidden NPC returns 404 to a caller who

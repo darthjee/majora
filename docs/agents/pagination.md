@@ -10,7 +10,7 @@ Pagination is applied to collection endpoints that can return large result sets.
 
 ### Settings
 
-`source/games/settings.py` — `Settings.pagination_size()` returns the default page size:
+`backend/games/settings.py` — `Settings.pagination_size()` returns the default page size:
 
 ```python
 Settings.pagination_size()  # reads MAJORA_PAGINATION_SIZE env var, defaults to 16
@@ -18,7 +18,7 @@ Settings.pagination_size()  # reads MAJORA_PAGINATION_SIZE env var, defaults to 
 
 ### Paginator
 
-`source/games/paginator.py` — a reusable `Paginator` class applied to any list view. It
+`backend/games/paginator.py` — a reusable `Paginator` class applied to any list view. It
 reads `page`/`per_page` query params (defaulting to `1` and `Settings.pagination_size()`),
 slices the queryset, and sets `page`/`pages`/`per_page`/`total` response headers. Results
 are ordered by `id` via the model's `Meta.ordering`. Read the class directly for the exact

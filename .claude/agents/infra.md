@@ -16,7 +16,7 @@ You are the infrastructure specialist for the Majora project — an RPG campaign
 - `Makefile` — development command interface
 - Production configuration files (when added to the repository)
 
-Do NOT touch `source/` (backend), `frontend/` (frontend code), or `proxy/` (PHP proxy
+Do NOT touch `backend/` (backend), `frontend/` (frontend code), or `proxy/` (PHP proxy
 source — delegate those tasks to the `proxy` agent).
 
 **Never install packages or invoke tooling (`php`, `yarn`, `poetry`, etc.) directly on the host machine.** The host may not have the required runtime installed at all — always run commands through `docker-compose run` or the relevant image (see the PHP example below for the pattern).
@@ -41,7 +41,7 @@ source — delegate those tasks to the `proxy` agent).
 | `./docker_volumes/node_modules` | `majora_fe:/home/node/app/node_modules` | Persistent node_modules |
 | `./docker_volumes/static` | `majora_fe:/home/node/app/dist` and `majora_proxy:/var/www/html/static/` | Built frontend assets |
 | `./docker_volumes/proxy_configuration` | `majora_proxy:/var/www/html/configuration/` | Tent routing rules |
-| `./source` | `majora_app:/home/app/app` and `majora_tests:/home/app/app` | Backend source (live) |
+| `./backend` | `majora_app:/home/app/app` and `majora_tests:/home/app/app` | Backend source (live) |
 
 ## Dockerfiles
 
@@ -127,10 +127,10 @@ Both backend and frontend CI jobs copy their respective subdirectory to the work
 
 ```yaml
 # backend
-- run: rm frontend -rf; cp source/* ./ -r; rm source -rf
+- run: rm frontend -rf; cp backend/* ./ -r; rm backend -rf
 
 # frontend
-- run: rm source -rf; cp frontend/* ./ -r; rm frontend -rf
+- run: rm backend -rf; cp frontend/* ./ -r; rm frontend -rf
 ```
 
 ## Scripts
@@ -147,7 +147,7 @@ Updates the version string in three places atomically:
 
 - `README.md` — Current Version and Next Release links
 - `frontend/package.json` — `"version"` field
-- `source/pyproject.toml` — `version =` field
+- `backend/pyproject.toml` — `version =` field
 
 Usage: `scripts/bump_version.sh [X.Y.Z]` — if no version given, uses the Next Release from README.
 

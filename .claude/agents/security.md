@@ -61,7 +61,7 @@ Work through each section of `docs/agents/security-guidelines.md` in order:
 ## How to investigate
 
 Use `Read` to read files and `Bash` only for `grep` searches to locate relevant code
-(e.g. `grep -n "AllowAny" source/games/views.py`). Do not run servers, tests, migrations,
+(e.g. `grep -n "AllowAny" backend/games/views.py`). Do not run servers, tests, migrations,
 or any command that modifies state.
 
 ## Output format

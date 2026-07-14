@@ -15,7 +15,7 @@ htmlcov/
 .ruff_cache/
 
 # Django
-source/staticfiles/
+backend/staticfiles/
 *.log
 
 # Node

@@ -1,7 +1,7 @@
 # Views Folder Organization
 
-This document defines the target folder convention for `source/games/views/` (and its
-mirrored `source/games/tests/views/` tree). It exists so the file responsible for any given
+This document defines the target folder convention for `backend/games/views/` (and its
+mirrored `backend/games/tests/views/` tree). It exists so the file responsible for any given
 route is always predictable from its path alone.
 
 > **Status:** this convention is documented but **not yet fully applied** across the
@@ -29,7 +29,7 @@ route is always predictable from its path alone.
 5. Filenames keep their current descriptive names (e.g. `game_pc_full.py`,
    `treasure_access.py`) — only their folder location changes. No renaming to generic
    names like `index.py`/`show.py`.
-6. `source/games/tests/views/` mirrors the identical tree, one test file per view file.
+6. `backend/games/tests/views/` mirrors the identical tree, one test file per view file.
 7. `auth/` and `password_reset/` are excluded: every route there is a flat action on the
    current user with no id-nesting or member routes, so the convention adds nothing.
 
@@ -38,14 +38,14 @@ route is always predictable from its path alone.
 | Route | File |
 |---|---|
 | `games.json`, `games/:slug.json` | stays in `games/` (games' own list/detail) |
-| `games/:slug/pcs.json` | `source/games/views/game/pcs/game_pcs.py` |
-| `games/:slug/pcs/:id.json` | `source/games/views/game/pcs/game_pc_detail.py` |
-| `games/:slug/pcs/:id/full.json` | `source/games/views/game/pcs/detail/game_pc_full.py` |
-| `games/:slug/pcs/:id/access.json` | `source/games/views/game/pcs/detail/game_pc_access.py` |
-| `games/:slug/pcs/:id/photos/:photo_id/set.json` | `source/games/views/game/pcs/detail/photos/game_pc_photo_set.py` |
-| `games/:slug/treasures/:id.json` | `source/games/views/game/treasures/game_treasure_detail.py` |
-| `treasures/:id/access.json` (top-level treasure, not game-scoped) | `source/games/views/treasures/detail/treasure_access.py` |
-| `staff/users/:id/recovery-link.json` | `source/games/views/staff/detail/staff_user_recovery_link.py` |
+| `games/:slug/pcs.json` | `backend/games/views/game/pcs/game_pcs.py` |
+| `games/:slug/pcs/:id.json` | `backend/games/views/game/pcs/game_pc_detail.py` |
+| `games/:slug/pcs/:id/full.json` | `backend/games/views/game/pcs/detail/game_pc_full.py` |
+| `games/:slug/pcs/:id/access.json` | `backend/games/views/game/pcs/detail/game_pc_access.py` |
+| `games/:slug/pcs/:id/photos/:photo_id/set.json` | `backend/games/views/game/pcs/detail/photos/game_pc_photo_set.py` |
+| `games/:slug/treasures/:id.json` | `backend/games/views/game/treasures/game_treasure_detail.py` |
+| `treasures/:id/access.json` (top-level treasure, not game-scoped) | `backend/games/views/treasures/detail/treasure_access.py` |
+| `staff/users/:id/recovery-link.json` | `backend/games/views/staff/detail/staff_user_recovery_link.py` |
 
 Every affected import (`urls.py`, package `__init__.py` re-exports) must be updated to
 match the new paths whenever a slice is actually carried out.

@@ -1,6 +1,6 @@
 ---
 name: backend
-description: Majora backend specialist. Use for any task involving Python, Django models, views, serializers, migrations, or tests inside the source/ directory.
+description: Majora backend specialist. Use for any task involving Python, Django models, views, serializers, migrations, or tests inside the backend/ directory.
 tools: Read, Edit, Write, Bash
 ---
 
@@ -8,13 +8,13 @@ You are the backend specialist for the Majora project — an RPG campaign manage
 
 ## Your scope
 
-You own everything inside `source/`:
+You own everything inside `backend/`:
 
-- `source/games/` — core Django app (models, views, serializers, URLs, tests, migrations)
-- `source/majora_project/` — Django project settings, root URLs, WSGI
-- `source/conftest.py`, `source/pyproject.toml`
+- `backend/games/` — core Django app (models, views, serializers, URLs, tests, migrations)
+- `backend/majora_project/` — Django project settings, root URLs, WSGI
+- `backend/conftest.py`, `backend/pyproject.toml`
 
-Do NOT touch `frontend/` or any file outside `source/`.
+Do NOT touch `frontend/` or any file outside `backend/`.
 
 ## Stack
 
@@ -28,7 +28,7 @@ Do NOT touch `frontend/` or any file outside `source/`.
 ## Directory layout
 
 ```
-source/
+backend/
   conftest.py
   pyproject.toml
   manage.py
@@ -90,7 +90,7 @@ docker-compose run --rm majora_tests /bin/bash
 
 ### Tests (pytest + pytest-django)
 
-- Test files live in `source/games/tests/`, named `<module>_test.py`
+- Test files live in `backend/games/tests/`, named `<module>_test.py`
 - Test classes prefixed with `Test`, decorated with `@pytest.mark.django_db`
 - Use `setup_method` for per-test fixtures (not pytest fixtures)
 - Each test method has a one-line docstring

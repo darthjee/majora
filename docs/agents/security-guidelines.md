@@ -1,6 +1,6 @@
 # Security Guidelines
 
-This document is the authoritative checklist used by the `security` agent to review changes in the Majora project. It covers vulnerability patterns relevant to the Django backend (`source/`) and the Tent PHP proxy (`proxy/`).
+This document is the authoritative checklist used by the `security` agent to review changes in the Majora project. It covers vulnerability patterns relevant to the Django backend (`backend/`) and the Tent PHP proxy (`proxy/`).
 
 Refer to this document whenever reviewing a diff that touches API endpoints, authentication/authorization logic, proxy configuration, or user-facing input handling.
 
@@ -73,7 +73,7 @@ Refer to this document whenever reviewing a diff that touches API endpoints, aut
 - Every update serializer must have a regression test proving at least one
   disallowed/relationship field has no effect when included in an update payload
   alongside valid fields (i.e. `serializer.save()` leaves it unchanged). See
-  `source/games/tests/serializers/test_character_update.py`,
+  `backend/games/tests/serializers/test_character_update.py`,
   `test_game_update.py`, and `test_treasure_update.py` for the pattern to follow
   (`test_game_slug_is_not_included` is the reference example).
 - When reviewing a diff that adds or modifies an update serializer for a new or existing

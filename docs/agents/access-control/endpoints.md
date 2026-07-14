@@ -10,7 +10,7 @@ standalone endpoints that don't belong to any single resource above.
 | `/access-route-config.json` | GET | **AllowAny** | Static JSON object keyed by page identifier (see below) |
 
 Sourced from the plain Python dict `ACCESS_ROUTE_CONFIG` in
-`source/games/access_route_config.py`. Returns no model data and no user data — a static,
+`backend/games/access_route_config.py`. Returns no model data and no user data — a static,
 non-paginated, always-public-cache-tier config describing, for each frontend page identifier
 (the same identifiers `HashRouteResolver#getPage` produces — `game`, `gameEdit`, `pcCharacter`,
 `treasureEdit`, `staffUsers`, ...), which resource-kind access check(s) that page must perform
