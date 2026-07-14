@@ -88,14 +88,15 @@ describe('CharacterEdit', function() {
       onPublicAllegianceChange: Noop.noop,
       onOpenUploadModal: Noop.noop,
       onOpenLinksModal: Noop.noop,
+      onOpenMoneyModal: Noop.noop,
     };
 
     const html = renderToStaticMarkup(EditHelper.render(state, handlers));
 
     expect(html).toContain('id="test-edit-name"');
     expect(html).toContain('value="Test Character"');
-    expect(html).toContain('id="test-edit-money"');
-    expect(html).toContain('value="310"');
+    expect(html).toContain('20');
+    expect(html).toContain('29');
   });
 
   it('passes allegiance/publicAllegiance state and change handlers into EditHelper.render', function() {

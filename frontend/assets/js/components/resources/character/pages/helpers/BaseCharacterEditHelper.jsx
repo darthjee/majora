@@ -3,8 +3,10 @@ import ActionsOverlay from '../../../../common/ActionsOverlay.jsx';
 import FormField from '../../../../common/FormField.jsx';
 import TextareaField from '../../../../common/TextareaField.jsx';
 import ErrorAlert from '../../../../common/ErrorAlert.jsx';
+import FieldErrors from '../../../../common/FieldErrors.jsx';
 import LinkList from '../../../../common/LinkList.jsx';
 import LoadingMessage from '../../../../common/LoadingMessage.jsx';
+import CharacterMoney from '../elements/CharacterMoney.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**
@@ -39,6 +41,7 @@ export default class BaseCharacterEditHelper {
    *   onRoleChange: Function,
    *   onDescriptionChange: Function, onPrivateDescriptionChange: Function,
    *   onMoneyChange: Function, onOpenUploadModal: Function, onOpenLinksModal: Function,
+   *   onOpenMoneyModal: Function,
    *   onAllegianceChange: Function,
    *   onPublicAllegianceChange: Function}} handlers - event handlers.
    * @returns {React.ReactElement} rendered edit page.
@@ -76,14 +79,18 @@ export default class BaseCharacterEditHelper {
               >
                 {Translator.t(`${i18nNamespace}.edit_links_button`)}
               </button>
-              <FormField
-                id={`${idPrefix}-edit-money`}
-                type="number"
-                label={Translator.t(`${i18nNamespace}.money_label`)}
-                value={state.money}
-                onChange={handlers.onMoneyChange}
-                errors={state.fieldErrors.money ?? []}
-              />
+              <div className="mb-3">
+                <label className="form-label">{Translator.t(`${i18nNamespace}.money_label`)}</label>
+                <CharacterMoney money={Number(state.money) || 0} />
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={handlers.onOpenMoneyModal}
+                >
+                  {Translator.t(`${i18nNamespace}.edit_money_button`)}
+                </button>
+                <FieldErrors errors={state.fieldErrors.money ?? []} />
+              </div>
               {this.#renderAllegianceFields(state, handlers)}
             </div>
             <div className="col-md-8">
