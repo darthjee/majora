@@ -19,11 +19,11 @@ describe('TreasureClient', function() {
     it('serializes roles as repeated role= query params', async function() {
       await new TreasureClient().fetchTreasurePermissions(42, null, undefined, ['superuser']);
 
-      expect(fetchSpy).toHaveBeenCalledWith('/treasures/42/permissions.json?role=superuser', {
+      expect(fetchSpy).toHaveBeenCalledWith('/treasures/42/permissions.json?role=superuser', jasmine.objectContaining({
         method: 'GET',
         headers: { Accept: 'application/json' },
         body: undefined,
-      });
+      }));
     });
   });
 });

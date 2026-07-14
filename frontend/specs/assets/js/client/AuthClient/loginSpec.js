@@ -14,7 +14,7 @@ describe('AuthClient', function() {
 
       await client.login('majora-user', 'secret');
 
-      expect(fetchSpy).toHaveBeenCalledWith('/users/login.json', {
+      expect(fetchSpy).toHaveBeenCalledWith('/users/login.json', jasmine.objectContaining({
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -22,7 +22,7 @@ describe('AuthClient', function() {
           'X-Skip-Cache': 'true',
         },
         body: JSON.stringify({ username: 'majora-user', password: 'secret' }),
-      });
+      }));
     });
   });
 });

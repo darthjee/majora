@@ -1,5 +1,6 @@
 import AuthClient from '../../../../../client/AuthClient.js';
 import ReadyClient from '../../../../../client/ReadyClient.js';
+import ResilientRequest from '../../../../../client/ResilientRequest.js';
 import HashQueryParams from '../../../../../utils/HashQueryParams.js';
 
 /**
@@ -35,46 +36,23 @@ export default class RecoverPasswordController {
    * Polls the readiness endpoint until the backend reports it is ready,
    * marking the page ready once a response other than `502` is received.
    *
-   * @description A `502` response, or a thrown error (including the timeout
-   *   rejection from `ReadyClient#check`), is treated as "not ready yet":
-   *   the check is retried after `delayMs`, indefinitely. Any other response
-   *   (e.g. `200`, `404`, `500`) is treated as "ready". Polling stops as
-   *   soon as `cancelToken.cancelled` is set, so a pending retry never
-   *   calls `setReady` after the caller has unmounted.
+   * @description Delegates the retry loop to {@link ResilientRequest}: a
+   *   `502` response, or a timeout rejection from `ReadyClient#check`, is
+   *   treated as "not ready yet" and retried after `delayMs`, indefinitely.
+   *   Any other response (e.g. `200`, `404`, `500`) is treated as "ready".
+   *   Polling stops as soon as `cancelToken.cancelled` is set, so a pending
+   *   retry never calls `setReady` after the caller has unmounted.
    * @param {Function} setReady - state setter invoked with `true` once ready.
    * @param {number} [delayMs=5000] - delay between retries, in milliseconds.
    * @param {{cancelled: boolean}} [cancelToken] - cancellation flag shared with the caller.
    * @returns {Promise<void>} resolves once ready or once cancelled.
    */
   async waitUntilReady(setReady, delayMs = 5000, cancelToken = { cancelled: false }) {
-    while (!cancelToken.cancelled) {
-      const ready = await this.#checkReady();
+    await new ResilientRequest(() => this.readyClient.check(), { retryDelayMs: delayMs }).run(cancelToken);
 
-      if (cancelToken.cancelled) {
-        return;
-      }
-
-      if (ready) {
-        setReady(true);
-        return;
-      }
-
-      await RecoverPasswordController.#wait(delayMs);
+    if (!cancelToken.cancelled) {
+      setReady(true);
     }
-  }
-
-  async #checkReady() {
-    try {
-      const response = await this.readyClient.check();
-
-      return response.status !== 502;
-    } catch {
-      return false;
-    }
-  }
-
-  static #wait(delayMs) {
-    return new Promise((resolve) => setTimeout(resolve, delayMs));
   }
 
   /**

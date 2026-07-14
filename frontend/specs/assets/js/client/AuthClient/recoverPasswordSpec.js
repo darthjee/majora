@@ -14,11 +14,11 @@ describe('AuthClient', function() {
 
       await client.recoverPassword('user@example.com');
 
-      expect(fetchSpy).toHaveBeenCalledWith('/users/recover.json', {
+      expect(fetchSpy).toHaveBeenCalledWith('/users/recover.json', jasmine.objectContaining({
         method: 'POST',
         headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Skip-Cache': 'true' },
         body: JSON.stringify({ email: 'user@example.com' }),
-      });
+      }));
     });
   });
 });

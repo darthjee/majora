@@ -12,6 +12,9 @@ header:
   register: Registrar
   my_account_alt: Minha conta
   view_as_alt: Ver como
+  resilience_idle_alt: Inativo
+  resilience_requesting_alt: Solicitando
+  resilience_retrying_alt: Repetindo
 view_as_modal:
   title: Ver como
   enabled_label: Simular outra função

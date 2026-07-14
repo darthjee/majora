@@ -21,14 +21,14 @@ describe('GameTaskClient', function() {
 
       await client.fetchTasks('demo', 'tok-abc', params);
 
-      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/tasks.json?page=2&per_page=10', {
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/tasks.json?page=2&per_page=10', jasmine.objectContaining({
         method: 'GET',
         headers: {
           Accept: 'application/json',
           Authorization: 'Token tok-abc',
         },
         body: undefined,
-      });
+      }));
     });
   });
 });

@@ -1,6 +1,19 @@
 import RecoverPasswordController
   from '../../../../../../../../assets/js/components/resources/account/pages/controllers/RecoverPasswordController.js';
 
+/**
+ * Flushes a handful of pending microtasks, letting already-settled promise
+ * chains (that do not depend on a timer) fully resolve.
+ *
+ * @param {number} [times] - number of microtask ticks to flush.
+ * @returns {Promise<void>} resolves once every flush tick has run.
+ */
+async function flushMicrotasks(times = 10) {
+  for (let i = 0; i < times; i += 1) {
+    await Promise.resolve();
+  }
+}
+
 describe('RecoverPasswordController', function() {
   describe('getRecoverPasswordTokenFromHash', function() {
     it('extracts the token from the hash query string', function() {
@@ -146,9 +159,12 @@ describe('RecoverPasswordController', function() {
       expect(setReady).toHaveBeenCalledWith(true);
     });
 
-    it('retries after the readiness check throws (e.g. the AbortSignal timeout)', async function() {
+    it('retries after the readiness check throws the AbortSignal timeout error', async function() {
+      const timeoutError = new Error('The operation timed out.');
+      timeoutError.name = 'TimeoutError';
+
       readyClient.check.and.returnValues(
-        Promise.reject(new Error('timeout')),
+        Promise.reject(timeoutError),
         Promise.resolve({ status: 200 })
       );
 
@@ -158,6 +174,17 @@ describe('RecoverPasswordController', function() {
 
       expect(readyClient.check).toHaveBeenCalledTimes(2);
       expect(setReady).toHaveBeenCalledWith(true);
+    });
+
+    it('propagates a non-timeout thrown error instead of retrying forever', async function() {
+      readyClient.check.and.returnValue(Promise.reject(new Error('network down')));
+
+      const controller = new RecoverPasswordController(setStatus, setErrorMessage, undefined, readyClient);
+
+      await expectAsync(controller.waitUntilReady(setReady, 1)).toBeRejected();
+
+      expect(readyClient.check).toHaveBeenCalledTimes(1);
+      expect(setReady).not.toHaveBeenCalled();
     });
 
     it('stops retrying once cancelled and never calls setReady', async function() {
@@ -187,20 +214,17 @@ describe('RecoverPasswordController', function() {
         const controller = new RecoverPasswordController(setStatus, setErrorMessage, undefined, readyClient);
         const promise = controller.waitUntilReady(setReady);
 
-        await Promise.resolve();
-        await Promise.resolve();
+        await flushMicrotasks();
 
         expect(readyClient.check).toHaveBeenCalledTimes(1);
         expect(setReady).not.toHaveBeenCalled();
 
         jasmine.clock().tick(4999);
-        await Promise.resolve();
+        await flushMicrotasks();
         expect(readyClient.check).toHaveBeenCalledTimes(1);
 
         jasmine.clock().tick(1);
-        await Promise.resolve();
-        await Promise.resolve();
-        await Promise.resolve();
+        await flushMicrotasks();
 
         expect(readyClient.check).toHaveBeenCalledTimes(2);
         expect(setReady).toHaveBeenCalledWith(true);
