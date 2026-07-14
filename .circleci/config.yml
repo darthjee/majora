@@ -154,7 +154,7 @@ jobs:
           command: bin/configure_database.sh wait
       - run:
           name: Tests
-          command: poetry run pytest games/tests/views/characters/ --cov --cov-report=lcov:coverage/lcov.info
+          command: poetry run pytest games/tests/views/game/ --cov --cov-report=lcov:coverage/lcov.info
       - run:
           name: Upload coverage to Codacy (partial)
           command: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --partial -r coverage/lcov.info
@@ -187,7 +187,7 @@ jobs:
           command: bin/configure_database.sh wait
       - run:
           name: Tests
-          command: poetry run pytest games/tests/views/ --ignore=games/tests/views/characters/ --cov --cov-report=lcov:coverage/lcov.info
+          command: poetry run pytest games/tests/views/ --ignore=games/tests/views/game/ --cov --cov-report=lcov:coverage/lcov.info
       - run:
           name: Upload coverage to Codacy (partial)
           command: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --partial -r coverage/lcov.info
