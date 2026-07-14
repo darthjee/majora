@@ -4,6 +4,7 @@ import ErrorAlert from '../../../../common/ErrorAlert.jsx';
 import SubmitButton from '../../../../common/SubmitButton.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import GameTreasuresHelper from './GameTreasuresHelper.jsx';
+import TreasureValueField from '../elements/TreasureValueField.jsx';
 
 /**
  * Rendering helper for the game treasure edit page.
@@ -17,7 +18,7 @@ export default class GameTreasureEditHelper {
    *   empty string means unlimited (`null`). `isExclusive` marks a treasure exclusive to the game
    *   (via the `Treasure.game` FK) rather than linked through the shared M2M — the `max_units`
    *   field is hidden for exclusive treasures since the backend ignores it for them.
-   * @param {{onSubmit: Function, onNameChange: Function, onValueChange: Function,
+   * @param {{onSubmit: Function, onNameChange: Function, onOpenValueModal: Function,
    *   onMaxUnitsChange: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered edit page.
    */
@@ -35,13 +36,12 @@ export default class GameTreasureEditHelper {
             onChange={handlers.onNameChange}
             errors={formState.fieldErrors.name ?? []}
           />
-          <FormField
-            id="game-treasure-edit-value"
-            type="number"
+          <TreasureValueField
             label={Translator.t('game_treasure_edit_page.value_label')}
+            editLabel={Translator.t('game_treasures_page.edit')}
             value={formState.value}
-            onChange={handlers.onValueChange}
             errors={formState.fieldErrors.value ?? []}
+            onOpenModal={handlers.onOpenValueModal}
           />
           {GameTreasureEditHelper.#renderMaxUnits(formState, handlers)}
           <SubmitButton disabled={formState.status === 'submitting'}>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import GameTreasureNewController from './controllers/GameTreasureNewController.js';
 import GameTreasureNewHelper from './helpers/GameTreasureNewHelper.jsx';
+import MoneyEditModal from '../../../common/MoneyEditModal.jsx';
 import Noop from '../../../../utils/Noop.js';
 
 /**
@@ -13,6 +14,7 @@ export default function GameTreasureNew() {
   const [status, setStatus] = useState('idle');
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
+  const [showValueModal, setShowValueModal] = useState(false);
 
   const controller = useMemo(
     () => new GameTreasureNewController(Noop.noop, setFieldErrors),
@@ -31,12 +33,26 @@ export default function GameTreasureNew() {
     { setStatus, setFieldErrors },
   );
 
-  return GameTreasureNewHelper.render(
-    { name, value, status, fieldErrors },
-    {
-      onSubmit: handleSubmit,
-      onNameChange: (event) => setName(event.target.value),
-      onValueChange: (event) => setValue(event.target.value),
-    },
+  return (
+    <>
+      {GameTreasureNewHelper.render(
+        { name, value, status, fieldErrors },
+        {
+          onSubmit: handleSubmit,
+          onNameChange: (event) => setName(event.target.value),
+          onOpenValueModal: () => setShowValueModal(true),
+        },
+      )}
+      <MoneyEditModal
+        show={showValueModal}
+        money={value}
+        context="treasure"
+        onClose={() => setShowValueModal(false)}
+        onConfirm={(newTotal) => {
+          setValue(String(newTotal));
+          setShowValueModal(false);
+        }}
+      />
+    </>
   );
 }
