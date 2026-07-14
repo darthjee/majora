@@ -21,7 +21,7 @@ export default function InfoBadgeList({ items = [] }) {
       {items.map((item, index) => (
         <li
           key={`${item.text}-${index}`}
-          className={`info-badge-list-item ${item.variant ? `text-${item.variant}` : 'text-muted'}`}
+          className={`info-badge-list-item ${item.variant ? `text-${item.variant}` : 'info-badge-list-item-neutral'}`}
         >
           <i className={`bi ${item.icon}`} aria-hidden="true"></i>
           {' '}

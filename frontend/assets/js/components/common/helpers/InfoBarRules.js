@@ -1,6 +1,7 @@
 import React from 'react';
 import Icons from '../../../utils/ui/Icons.js';
 import CharacterStatusBadges from './CharacterStatusBadges.js';
+import CharacterDeceptionBadges from './CharacterDeceptionBadges.js';
 import TooltipBadge from '../TooltipBadge.jsx';
 
 /**
@@ -9,9 +10,12 @@ import TooltipBadge from '../TooltipBadge.jsx';
  * character object. Takes the whole character object — rather than only
  * precomputed booleans such as `can_edit`/`is_player`/`is_pc` — so future
  * rules can react to any of its fields (page, character state, role) without
- * changing this method's call signature. Currently builds a single status
- * tooltip badge (see `CharacterStatusBadges`), omitted entirely when the
- * character has no status items to show.
+ * changing this method's call signature. Builds a single status tooltip
+ * badge (see `CharacterStatusBadges`), omitted entirely when the character
+ * has no status items to show, plus, for NPCs, up to two additional
+ * "deception" tooltip badges (see `CharacterDeceptionBadges`) flagging a
+ * real/public allegiance or slain-state mismatch — each independent of the
+ * single status badge and of one another.
  */
 export default class InfoBarRules {
   /**
@@ -26,9 +30,21 @@ export default class InfoBarRules {
    * @param {string} [character.allegiance] - The character's real allegiance, NPC only.
    * @param {string} [character.public_allegiance] - The character's public allegiance, NPC only.
    * @returns {{key: string, label: React.ReactElement}[]} Info item definitions to render, empty
-   *   when the character has no status items.
+   *   when the character has no status/deception items.
    */
   static build(character) {
+    const items = [
+      ...InfoBarRules.#buildStatusItem(character),
+    ];
+
+    if (!character.is_pc) {
+      items.push(...InfoBarRules.#buildDeceptionItems(character));
+    }
+
+    return items;
+  }
+
+  static #buildStatusItem(character) {
     const statusItems = CharacterStatusBadges.build(character);
 
     if (statusItems.length === 0) {
@@ -39,5 +55,32 @@ export default class InfoBarRules {
       key: 'status',
       label: React.createElement(TooltipBadge, { icon: Icons.infoCircleFill, items: statusItems }),
     }];
+  }
+
+  static #buildDeceptionItems(character) {
+    const items = [];
+    const allegianceDeception = CharacterDeceptionBadges.buildAllegianceDeception(character);
+    const slainDeception = CharacterDeceptionBadges.buildSlainDeception(character);
+
+    if (allegianceDeception) {
+      items.push(InfoBarRules.#buildDeceptionItem('allegiance-deception', allegianceDeception));
+    }
+
+    if (slainDeception) {
+      items.push(InfoBarRules.#buildDeceptionItem('slain-deception', slainDeception));
+    }
+
+    return items;
+  }
+
+  static #buildDeceptionItem(key, badge) {
+    return {
+      key,
+      label: React.createElement(TooltipBadge, {
+        icon: badge.icon,
+        items: badge.items,
+        variant: 'warning',
+      }),
+    };
   }
 }

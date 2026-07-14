@@ -1,6 +1,6 @@
 header:
   title: Majora
-  subtitle: Sistema de gerenciamento de campanhas de RPG
+  subtitle: RPG
   nav_games: Campanhas
   nav_treasures: Tesouros
   nav_staff_users: Usuários
@@ -101,6 +101,7 @@ character_status_badges:
   public_enemy: Conhecido como Inimigo
   public_ally: Conhecido como Aliado
   public_neutral: Conhecido como Neutro
+  players_deceived: Jogadores enganados
 character_preview_section:
   see_all: Ver todos {{title}}
 character_treasures_preview:
