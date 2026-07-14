@@ -3,7 +3,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 
-from games.models.game import Game
+from games.models.game.game import Game
 
 
 class GameMaster(models.Model):

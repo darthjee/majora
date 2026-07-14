@@ -3,7 +3,7 @@
 from django.db import models
 from simple_history.models import HistoricalRecords
 
-from games.models.treasure import Treasure
+from games.models.treasure.treasure import Treasure
 
 
 class TreasurePhoto(models.Model):

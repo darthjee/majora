@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from simple_history.models import HistoricalRecords
 
-from games.models.game import Game
+from games.models.game.game import Game
 
 
 class Player(models.Model):

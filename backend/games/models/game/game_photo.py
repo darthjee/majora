@@ -3,7 +3,7 @@
 from django.db import models
 from simple_history.models import HistoricalRecords
 
-from games.models.game import Game
+from games.models.game.game import Game
 
 
 class GamePhoto(models.Model):

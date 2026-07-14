@@ -3,7 +3,7 @@
 from django.db import models
 from simple_history.models import HistoricalRecords
 
-from games.models.character import Character
+from games.models.character.character import Character
 
 
 class CharacterLink(models.Model):

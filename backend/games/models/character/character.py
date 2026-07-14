@@ -4,8 +4,8 @@ from django.contrib.auth.models import User
 from django.db import models
 from simple_history.models import HistoricalRecords
 
-from games.models.game import Game
-from games.models.player import Player
+from games.models.game.game import Game
+from games.models.game.player import Player
 
 
 class Character(models.Model):
