@@ -52,6 +52,11 @@ describe('Header', function() {
     expect(html).toContain('data-testid="language-selector"');
   });
 
+  it('renders the resilience indicator', function() {
+    const html = renderToStaticMarkup(React.createElement(Header));
+    expect(html).toContain('data-testid="resilience-indicator"');
+  });
+
   it('does not render the server status indicator by default', function() {
     const html = renderToStaticMarkup(React.createElement(Header));
     expect(html).not.toContain('data-testid="server-status"');

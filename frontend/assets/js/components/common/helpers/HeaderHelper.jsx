@@ -2,6 +2,7 @@ import Navbar from 'react-bootstrap/cjs/Navbar.js';
 import Nav from 'react-bootstrap/cjs/Nav.js';
 import Container from 'react-bootstrap/cjs/Container.js';
 import LanguageSelector from '../LanguageSelector.jsx';
+import ResilienceIndicator from '../ResilienceIndicator.jsx';
 import LoginModal from '../LoginModal.jsx';
 import ViewAsModal from '../ViewAsModal.jsx';
 import Translator from '../../../i18n/Translator.js';
@@ -40,6 +41,7 @@ export default class HeaderHelper {
               {HeaderHelper.#renderServerStatus(state)}
               {HeaderHelper.#renderAuthControl(state, handlers)}
               <LanguageSelector onLanguageChange={handlers.onLanguageChange} />
+              <ResilienceIndicator />
             </Nav>
           </Navbar.Collapse>
         </Container>

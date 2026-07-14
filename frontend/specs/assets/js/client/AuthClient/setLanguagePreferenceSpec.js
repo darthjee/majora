@@ -14,7 +14,7 @@ describe('AuthClient', function() {
 
       await client.setLanguagePreference('abc123', 'en');
 
-      expect(fetchSpy).toHaveBeenCalledWith('/users/language.json', {
+      expect(fetchSpy).toHaveBeenCalledWith('/users/language.json', jasmine.objectContaining({
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -23,7 +23,7 @@ describe('AuthClient', function() {
           Authorization: 'Token abc123',
         },
         body: JSON.stringify({ language: 'en' }),
-      });
+      }));
     });
   });
 });

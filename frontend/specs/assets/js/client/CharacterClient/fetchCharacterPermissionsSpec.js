@@ -28,11 +28,11 @@ describe('CharacterClient', function() {
     it('serializes roles as repeated role= query params', async function() {
       await new CharacterClient().fetchCharacterPermissions('pcs', 'demo', '2', null, undefined, ['dm', 'owner']);
 
-      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/permissions.json?role=dm&role=owner', {
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/permissions.json?role=dm&role=owner', jasmine.objectContaining({
         method: 'GET',
         headers: { Accept: 'application/json' },
         body: undefined,
-      });
+      }));
     });
   });
 });

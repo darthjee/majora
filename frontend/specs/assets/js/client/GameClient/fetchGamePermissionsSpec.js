@@ -19,21 +19,21 @@ describe('GameClient', function() {
     it('serializes a single role as a role= query param and omits X-Skip-Cache', async function() {
       await new GameClient().fetchGamePermissions('demo', null, undefined, ['dm']);
 
-      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json?role=dm', {
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json?role=dm', jasmine.objectContaining({
         method: 'GET',
         headers: { Accept: 'application/json' },
         body: undefined,
-      });
+      }));
     });
 
     it('serializes several roles as repeated role= query params', async function() {
       await new GameClient().fetchGamePermissions('demo', null, undefined, ['dm', 'player']);
 
-      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json?role=dm&role=player', {
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json?role=dm&role=player', jasmine.objectContaining({
         method: 'GET',
         headers: { Accept: 'application/json' },
         body: undefined,
-      });
+      }));
     });
   });
 });

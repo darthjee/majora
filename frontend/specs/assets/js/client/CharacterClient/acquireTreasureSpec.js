@@ -14,7 +14,7 @@ describe('CharacterClient', function() {
 
       await client.acquireTreasure('pcs', 'demo', '2', 'abc123', { treasure_id: 9, quantity: 3 });
 
-      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/treasures/acquire.json', {
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/treasures/acquire.json', jasmine.objectContaining({
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -23,7 +23,7 @@ describe('CharacterClient', function() {
           'X-Skip-Cache': 'true',
         },
         body: JSON.stringify({ treasure_id: 9, quantity: 3 }),
-      });
+      }));
     });
 
     it('sends a POST request with the fields and auth token for an NPC', async function() {
@@ -31,7 +31,7 @@ describe('CharacterClient', function() {
 
       await client.acquireTreasure('npcs', 'demo', '2', 'abc123', { treasure_id: 9, quantity: 3 });
 
-      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/2/treasures/acquire.json', {
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/2/treasures/acquire.json', jasmine.objectContaining({
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -40,7 +40,7 @@ describe('CharacterClient', function() {
           'X-Skip-Cache': 'true',
         },
         body: JSON.stringify({ treasure_id: 9, quantity: 3 }),
-      });
+      }));
     });
   });
 });

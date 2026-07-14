@@ -39,5 +39,15 @@ describe('ReadyClient', function() {
       const [, options] = fetchSpy.calls.mostRecent().args;
       expect(options.signal).toBeInstanceOf(AbortSignal);
     });
+
+    it('does not retry a single 502 response, leaving polling to the caller', async function() {
+      fetchSpy.and.returnValue(Promise.resolve({ status: 502 }));
+
+      const client = new ReadyClient();
+      const response = await client.check();
+
+      expect(response.status).toBe(502);
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+    });
   });
 });

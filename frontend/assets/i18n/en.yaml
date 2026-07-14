@@ -12,6 +12,9 @@ header:
   register: Register
   my_account_alt: My account
   view_as_alt: View as
+  resilience_idle_alt: Idle
+  resilience_requesting_alt: Requesting
+  resilience_retrying_alt: Retrying
 view_as_modal:
   title: View as
   enabled_label: Simulate a different role

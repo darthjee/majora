@@ -19,4 +19,7 @@ export default {
   emojiSmileFill: 'bi-emoji-smile-fill',
   emojiExpressionless: 'bi-emoji-expressionless',
   emojiExpressionlessFill: 'bi-emoji-expressionless-fill',
+  lightningCharge: 'bi-lightning-charge',
+  lightningChargeFill: 'bi-lightning-charge-fill',
+  hourglassSplit: 'bi-hourglass-split',
 };

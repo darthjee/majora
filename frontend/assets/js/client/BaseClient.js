@@ -2,6 +2,9 @@ import SKIP_CACHE_ENDPOINTS from './config/skipCacheEndpoints.js';
 import SKIP_CACHE_SUFFIXES from './config/skipCacheSuffixes.js';
 import ActivityTracker from '../utils/ActivityTracker.js';
 import ACTIVITY_ENDPOINT_PREFIXES from '../utils/config/activityEndpoints.js';
+import ResilientRequest from './ResilientRequest.js';
+
+const DEFAULT_TIMEOUT_MS = 5000;
 
 /**
  * Base HTTP client providing a shared `fetch` wrapper that automatically
@@ -21,10 +24,15 @@ export default class BaseClient {
    * @param {string} [options.method] - HTTP method to use.
    * @param {object} [options.headers] - Headers to send with the request.
    * @param {*} [options.body] - Request body, already serialized by the caller.
-   * @param {AbortSignal} [options.signal] - Optional abort signal for the request.
+   * @param {AbortSignal} [options.signal] - Optional abort signal for the request. When
+   *   omitted, a default 5-second timeout signal is generated for every attempt.
+   * @param {boolean} [options.retry] - Whether transient failures (a `502` response or a
+   *   timeout) should be retried indefinitely via {@link ResilientRequest}. Defaults to
+   *   `true` for GET requests and `false` for every other method, to avoid duplicating
+   *   non-idempotent writes.
    * @returns {Promise<Response>} The fetch response.
    */
-  async request(path, { method = 'GET', headers = {}, body, signal } = {}) {
+  async request(path, { method = 'GET', headers = {}, body, signal, retry = method === 'GET' } = {}) {
     const [pathname, search = ''] = path.split('?');
     const finalHeaders = { ...headers };
 
@@ -36,13 +44,18 @@ export default class BaseClient {
       ActivityTracker.register();
     }
 
-    const fetchOptions = { method, headers: finalHeaders, body };
+    const attempt = () => fetch(path, {
+      method,
+      headers: finalHeaders,
+      body,
+      signal: signal !== undefined ? signal : AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+    });
 
-    if (signal !== undefined) {
-      fetchOptions.signal = signal;
+    if (!retry) {
+      return attempt();
     }
 
-    return fetch(path, fetchOptions);
+    return new ResilientRequest(attempt).run();
   }
 
   /**

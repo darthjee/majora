@@ -63,20 +63,20 @@ export function itSendsAuthHeader({
   it('sends the auth token when present', async function() {
     await call(token);
 
-    expect(globalThis.fetch).toHaveBeenCalledWith(url, {
+    expect(globalThis.fetch).toHaveBeenCalledWith(url, jasmine.objectContaining({
       method,
       headers: { Accept: 'application/json', ...headers, Authorization: `Token ${token}` },
       body: resolveBody(token),
-    });
+    }));
   });
 
   it('omits the Authorization header when there is no token', async function() {
     await call(null);
 
-    expect(globalThis.fetch).toHaveBeenCalledWith(url, {
+    expect(globalThis.fetch).toHaveBeenCalledWith(url, jasmine.objectContaining({
       method,
       headers: { Accept: 'application/json', ...headers },
       body: resolveBody(null),
-    });
+    }));
   });
 }

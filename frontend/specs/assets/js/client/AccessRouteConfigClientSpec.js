@@ -12,11 +12,11 @@ describe('AccessRouteConfigClient', function() {
     it('fetches the access-route-config endpoint without a token', async function() {
       await new AccessRouteConfigClient().fetchAccessRouteConfig();
 
-      expect(fetchSpy).toHaveBeenCalledWith('/access-route-config.json', {
+      expect(fetchSpy).toHaveBeenCalledWith('/access-route-config.json', jasmine.objectContaining({
         method: 'GET',
         headers: { Accept: 'application/json' },
         body: undefined,
-      });
+      }));
     });
 
     it('passes the signal through when given', async function() {
