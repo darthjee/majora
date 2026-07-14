@@ -31,6 +31,7 @@ def game_treasures(request, game_slug):
         return _create_game_treasure(request, game)
 
     treasures = Treasure.objects.filter(Q(linked_game=game) | Q(game=game)).distinct()
+    treasures = treasures.order_by('value', 'id')
     treasures = treasures.filter(hidden=False)
     treasures = _filter_by_max_value(request, treasures)
     context = game_treasures_context(game)

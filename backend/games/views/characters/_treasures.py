@@ -20,6 +20,7 @@ def character_treasures(request, game, character_id, npc, check_hidden):
             return error_response
 
     treasures = character.character_treasures.select_related('treasure').filter(quantity__gt=0)
+    treasures = treasures.order_by('treasure__value', 'treasure__id')
     response = paginated_list_response(request, treasures, CharacterTreasureSerializer)
     if check_hidden and character.hidden:
         response['X-Skip-Cache'] = 'true'

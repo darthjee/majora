@@ -217,6 +217,25 @@ class TestGameTreasuresView(TestCase):
         assert data[0]['available_units'] is None
         assert data[0]['max_units'] is None
 
+    def test_returns_treasures_ordered_by_value_ascending(self):
+        """Test that treasures are returned in ascending order of value."""
+        expensive = TreasureFactory(name='Expensive Gem', value=300)
+        cheap = TreasureFactory(name='Cheap Gem', value=50)
+        mid = TreasureFactory(name='Mid Gem', value=150)
+        self.game.treasures.add(expensive, cheap, mid)
+        response = self.client.get('/games/test-game/treasures.json')
+        data = json.loads(response.content)
+        assert [item['name'] for item in data] == ['Cheap Gem', 'Mid Gem', 'Expensive Gem']
+
+    def test_ties_in_value_break_by_id(self):
+        """Test that treasures with equal value are ordered by id ascending."""
+        first = TreasureFactory(name='First Gem', value=100)
+        second = TreasureFactory(name='Second Gem', value=100)
+        self.game.treasures.add(first, second)
+        response = self.client.get('/games/test-game/treasures.json')
+        data = json.loads(response.content)
+        assert [item['id'] for item in data] == [first.id, second.id]
+
 
 class TestGameTreasuresCreate(TestCase):
     """Tests for the POST /games/<slug>/treasures.json endpoint."""
