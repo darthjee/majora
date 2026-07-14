@@ -1,0 +1,59 @@
+"""URL patterns for games' own actions and sub-resources not yet restructured."""
+
+from django.urls import path
+
+from .. import views
+
+urlpatterns = [
+    path('games.json', views.games_list, name='games-list'),
+    path('games/<slug:game_slug>.json', views.game_detail, name='game-detail'),
+    path('games/<slug:game_slug>/access.json', views.game_access, name='game-access'),
+    path(
+        'games/<slug:game_slug>/permissions.json',
+        views.game_permissions,
+        name='game-permissions',
+    ),
+    path('games/<slug:game_slug>/treasures.json', views.game_treasures, name='game-treasures'),
+    path(
+        'games/<slug:game_slug>/treasures/all.json',
+        views.game_treasures_all,
+        name='game-treasures-all',
+    ),
+    path(
+        'games/<slug:game_slug>/treasures/<int:treasure_id>.json',
+        views.game_treasure_detail,
+        name='game-treasure-detail',
+    ),
+    path('games/<slug:game_slug>/photos.json', views.game_photos, name='game-photos'),
+    path(
+        'games/<slug:game_slug>/sessions.json',
+        views.game_sessions_list,
+        name='game-sessions-list',
+    ),
+    path(
+        'games/<slug:game_slug>/sessions/<int:session_id>.json',
+        views.game_session_detail,
+        name='game-session-detail',
+    ),
+    path('games/<slug:game_slug>/tasks.json', views.game_tasks_list, name='game-tasks-list'),
+    path(
+        'games/<slug:game_slug>/tasks/<int:task_id>.json',
+        views.game_task_detail,
+        name='game-task-detail',
+    ),
+    path(
+        'games/<slug:game_slug>/game-masters.json',
+        views.game_masters_list,
+        name='game-masters-list',
+    ),
+    path(
+        'games/<slug:game_slug>/game-masters/<int:game_master_id>.json',
+        views.game_master_detail,
+        name='game-master-detail',
+    ),
+    path(
+        'games/<slug:game_slug>/photo_upload.json',
+        views.photo_upload,
+        name='game-photo-upload',
+    ),
+]
