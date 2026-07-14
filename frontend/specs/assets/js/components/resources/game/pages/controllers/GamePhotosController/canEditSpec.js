@@ -1,6 +1,6 @@
 import GamePhotosController
   from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GamePhotosController.js';
-import AccessStore from '../../../../../../../../../assets/js/utils/AccessStore.js';
+import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 import { buildGameClient, stubAccessStore } from './support.js';
 
 describe('GamePhotosController', function() {

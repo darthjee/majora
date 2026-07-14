@@ -1,4 +1,4 @@
-import AccessStore from '../../../utils/AccessStore.js';
+import AccessStore from '../../../utils/access/store/AccessStore.js';
 
 /**
  * Manages the header's "view as" button visibility (gated on the real,

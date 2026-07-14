@@ -1,4 +1,4 @@
-import ResilienceEvents from '../../../utils/ResilienceEvents.js';
+import ResilienceEvents from '../../../utils/logging/ResilienceEvents.js';
 
 /**
  * Manages the current resilience status for the ResilienceIndicator element.

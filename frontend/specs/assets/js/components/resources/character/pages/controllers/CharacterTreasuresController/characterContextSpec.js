@@ -1,4 +1,4 @@
-import AccessStore from '../../../../../../../../../assets/js/utils/AccessStore.js';
+import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 import { KINDS, buildCharacterClient } from './support.js';
 
 KINDS.forEach(({ label, Controller, kind, isPc, money }) => {

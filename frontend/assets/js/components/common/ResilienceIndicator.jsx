@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import ResilienceIndicatorController from './controllers/ResilienceIndicatorController.js';
 import ResilienceIndicatorHelper from './helpers/ResilienceIndicatorHelper.jsx';
-import ResilienceEvents from '../../utils/ResilienceEvents.js';
+import ResilienceEvents from '../../utils/logging/ResilienceEvents.js';
 
 /**
  * Renders the header's resilience status indicator (idle/requesting/retrying),

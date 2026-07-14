@@ -1,7 +1,7 @@
 import GameSessionEditController
   from '../../../../../../../../../assets/js/components/resources/game_session/pages/controllers/GameSessionEditController.js';
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
-import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
+import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 
 describe('GameSessionEditController', function() {
   afterEach(function() {

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import CharacterTreasuresHelper from '../helpers/CharacterTreasuresHelper.jsx';
 import TreasureExchangeModal from '../elements/TreasureExchangeModal.jsx';
-import mergeCharacterTreasureQuantity from '../../../../../utils/mergeCharacterTreasureQuantity.js';
+import mergeCharacterTreasureQuantity from '../../../../../utils/money/mergeCharacterTreasureQuantity.js';
 
 /**
  * Shared character treasures index page component.

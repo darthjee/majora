@@ -11,7 +11,7 @@ import LoadingMessage from '../../../../common/LoadingMessage.jsx';
 import CharacterTreasuresPreview from '../elements/CharacterTreasuresPreview.jsx';
 import CharacterPhotosPreview from '../elements/CharacterPhotosPreview.jsx';
 import Translator from '../../../../../i18n/Translator.js';
-import allegianceBorderClass from '../../../../../utils/AllegianceBorder.js';
+import allegianceBorderClass from '../../../../../utils/ui/AllegianceBorder.js';
 import SlainSecondaryButtons from '../../../../common/helpers/SlainSecondaryButtons.js';
 import InfoBarRules from '../../../../common/helpers/InfoBarRules.js';
 

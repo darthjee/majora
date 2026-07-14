@@ -1,5 +1,5 @@
-import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
-import AccessStore from '../../../../../../../../../assets/js/utils/AccessStore.js';
+import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 import { KINDS } from './support.js';
 
 KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {

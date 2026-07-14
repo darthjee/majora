@@ -1,4 +1,4 @@
-import Router from '../../../utils/Router.js';
+import Router from '../../../utils/routing/Router.js';
 
 /**
  * Base controller with shared helpers for page controllers.

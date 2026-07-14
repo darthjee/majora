@@ -1,6 +1,6 @@
 import SKIP_CACHE_ENDPOINTS from './config/skipCacheEndpoints.js';
 import SKIP_CACHE_SUFFIXES from './config/skipCacheSuffixes.js';
-import ActivityTracker from '../utils/ActivityTracker.js';
+import ActivityTracker from '../utils/logging/ActivityTracker.js';
 import ACTIVITY_ENDPOINT_PREFIXES from '../utils/config/activityEndpoints.js';
 import ResilientRequest from './ResilientRequest.js';
 

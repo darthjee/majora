@@ -1,6 +1,6 @@
 import GameTreasureEditController
   from '../../../../../../../../../assets/js/components/resources/treasure/pages/controllers/GameTreasureEditController.js';
-import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
+import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 
 describe('GameTreasureEditController', function() {
   afterEach(function() {

@@ -1,5 +1,5 @@
 import MyAccountController from '../../../../../../../../../assets/js/components/resources/account/pages/controllers/MyAccountController.js';
-import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
+import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 
 describe('MyAccountController', function() {
   afterEach(function() {

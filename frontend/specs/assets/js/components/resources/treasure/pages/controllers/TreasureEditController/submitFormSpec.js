@@ -1,6 +1,6 @@
 import TreasureEditController
   from '../../../../../../../../../assets/js/components/resources/treasure/pages/controllers/TreasureEditController.js';
-import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
+import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 
 describe('TreasureEditController', function() {
   afterEach(function() {

@@ -1,7 +1,7 @@
 import TreasureController
   from '../../../../../../../../assets/js/components/resources/treasure/pages/controllers/TreasureController.js';
-import AuthStorage from '../../../../../../../../assets/js/utils/AuthStorage.js';
-import AccessStore from '../../../../../../../../assets/js/utils/AccessStore.js';
+import AuthStorage from '../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import AccessStore from '../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 import { stubAccessPair } from '../../../../../../../support/accessStoreStub.js';
 
 describe('TreasureController', function() {

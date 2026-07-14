@@ -1,4 +1,4 @@
-import ResilienceEvents from '../utils/ResilienceEvents.js';
+import ResilienceEvents from '../utils/logging/ResilienceEvents.js';
 
 const DEFAULT_RETRY_DELAY_MS = 5000;
 

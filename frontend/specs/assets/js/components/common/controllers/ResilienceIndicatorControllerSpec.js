@@ -1,6 +1,6 @@
 import ResilienceIndicatorController
   from '../../../../../../assets/js/components/common/controllers/ResilienceIndicatorController.js';
-import ResilienceEvents from '../../../../../../assets/js/utils/ResilienceEvents.js';
+import ResilienceEvents from '../../../../../../assets/js/utils/logging/ResilienceEvents.js';
 import Noop from '../../../../../../assets/js/utils/Noop.js';
 
 describe('ResilienceIndicatorController', function() {

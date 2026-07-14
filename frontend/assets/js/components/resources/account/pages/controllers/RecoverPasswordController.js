@@ -1,7 +1,7 @@
 import AuthClient from '../../../../../client/AuthClient.js';
 import ReadyClient from '../../../../../client/ReadyClient.js';
 import ResilientRequest from '../../../../../client/ResilientRequest.js';
-import HashQueryParams from '../../../../../utils/HashQueryParams.js';
+import HashQueryParams from '../../../../../utils/routing/HashQueryParams.js';
 
 /**
  * Controller for the recover-password page.

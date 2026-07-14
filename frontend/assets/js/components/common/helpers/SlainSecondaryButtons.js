@@ -1,5 +1,5 @@
 import Translator from '../../../i18n/Translator.js';
-import Icons from '../../../utils/Icons.js';
+import Icons from '../../../utils/ui/Icons.js';
 
 /**
  * Shared builder for the character picture's real/public slain-revive

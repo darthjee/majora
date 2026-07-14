@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import CharacterDetail from './shared/CharacterDetail.jsx';
 import NpcCharacterController from './controllers/NpcCharacterController.js';
-import AuthStorage from '../../../../utils/AuthStorage.js';
+import AuthStorage from '../../../../utils/auth/AuthStorage.js';
 import SlainConfirmModal from './elements/SlainConfirmModal.jsx';
 import SlainConfirmController from './elements/controllers/SlainConfirmController.js';
 import PlayerSlainConfirmController from './elements/controllers/PlayerSlainConfirmController.js';

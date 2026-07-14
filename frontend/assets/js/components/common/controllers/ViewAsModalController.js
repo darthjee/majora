@@ -1,4 +1,4 @@
-import AccessStore from '../../../utils/AccessStore.js';
+import AccessStore from '../../../utils/access/store/AccessStore.js';
 
 /**
  * Manages local edit-state transitions and the save/cancel actions for the

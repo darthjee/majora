@@ -2,7 +2,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import ViewAsModal from '../../../../../assets/js/components/common/ViewAsModal.jsx';
 import ViewAsModalHelper from '../../../../../assets/js/components/common/helpers/ViewAsModalHelper.jsx';
-import AccessStore from '../../../../../assets/js/utils/AccessStore.js';
+import AccessStore from '../../../../../assets/js/utils/access/store/AccessStore.js';
 
 describe('ViewAsModal', function() {
   const renderModal = (props = {}) => {

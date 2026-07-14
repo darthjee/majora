@@ -6,7 +6,7 @@ import ResilienceIndicator from '../ResilienceIndicator.jsx';
 import LoginModal from '../LoginModal.jsx';
 import ViewAsModal from '../ViewAsModal.jsx';
 import Translator from '../../../i18n/Translator.js';
-import Icons from '../../../utils/Icons.js';
+import Icons from '../../../utils/ui/Icons.js';
 import myAccountIcon from '../../../../images/icons/my_account.svg';
 
 /**

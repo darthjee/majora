@@ -1,6 +1,6 @@
 import GameSessionNewController
   from '../../../../../../../../../assets/js/components/resources/game_session/pages/controllers/GameSessionNewController.js';
-import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
+import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 
 describe('GameSessionNewController', function() {
   afterEach(function() {

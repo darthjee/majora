@@ -3,7 +3,7 @@ import CardAvatar from '../CardAvatar.jsx';
 import ActionsOverlay from '../ActionsOverlay.jsx';
 import InfoBar from '../InfoBar.jsx';
 import Noop from '../../../utils/Noop.js';
-import allegianceBorderClass from '../../../utils/AllegianceBorder.js';
+import allegianceBorderClass from '../../../utils/ui/AllegianceBorder.js';
 import SlainSecondaryButtons from './SlainSecondaryButtons.js';
 import InfoBarRules from './InfoBarRules.js';
 

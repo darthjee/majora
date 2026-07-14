@@ -1,7 +1,7 @@
 import GameTasksController
   from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GameTasksController.js';
-import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
-import AccessStore from '../../../../../../../../../assets/js/utils/AccessStore.js';
+import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 
 describe('GameTasksController', function() {
   let setTasks;

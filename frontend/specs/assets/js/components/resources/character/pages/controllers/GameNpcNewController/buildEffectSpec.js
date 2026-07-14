@@ -1,8 +1,8 @@
 import GameNpcNewController
   from '../../../../../../../../../assets/js/components/resources/character/pages/controllers/GameNpcNewController.js';
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
-import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
-import AccessStore from '../../../../../../../../../assets/js/utils/AccessStore.js';
+import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 
 describe('GameNpcNewController', function() {
   afterEach(function() {

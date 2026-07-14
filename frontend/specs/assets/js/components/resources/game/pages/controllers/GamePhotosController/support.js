@@ -1,4 +1,4 @@
-import AccessStore from '../../../../../../../../../assets/js/utils/AccessStore.js';
+import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 
 /**
  * @description Builds a fresh gameClient spy shared by every GamePhotosController spec file.

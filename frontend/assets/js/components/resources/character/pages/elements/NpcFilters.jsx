@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import NpcFiltersController from './controllers/NpcFiltersController.js';
 import NpcFiltersHelper from './helpers/NpcFiltersHelper.jsx';
-import HashRouteResolver from '../../../../../utils/HashRouteResolver.js';
+import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js';
 
 /**
  * NPC filter/search bar rendered above the game NPCs list, with a Status

@@ -1,6 +1,6 @@
 import InfoBarRules from '../../../../../../assets/js/components/common/helpers/InfoBarRules.js';
 import TooltipBadge from '../../../../../../assets/js/components/common/TooltipBadge.jsx';
-import Icons from '../../../../../../assets/js/utils/Icons.js';
+import Icons from '../../../../../../assets/js/utils/ui/Icons.js';
 import CharacterStatusBadges from '../../../../../../assets/js/components/common/helpers/CharacterStatusBadges.js';
 import { buildCharacter } from '../../../../../support/factories.js';
 

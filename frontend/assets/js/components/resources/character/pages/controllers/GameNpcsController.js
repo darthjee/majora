@@ -1,10 +1,10 @@
 import GenericClient from '../../../../../client/GenericClient.js';
 import CharacterClient from '../../../../../client/CharacterClient.js';
-import AuthStorage from '../../../../../utils/AuthStorage.js';
-import AccessStore from '../../../../../utils/AccessStore.js';
+import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
+import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
-import HashRouteResolver from '../../../../../utils/HashRouteResolver.js';
+import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js';
 
 /**
  * Controller for game NPCs page.

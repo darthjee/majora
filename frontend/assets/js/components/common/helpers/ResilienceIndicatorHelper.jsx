@@ -1,5 +1,5 @@
 import Translator from '../../../i18n/Translator.js';
-import Icons from '../../../utils/Icons.js';
+import Icons from '../../../utils/ui/Icons.js';
 
 /**
  * Rendering helper for the ResilienceIndicator element.

@@ -1,4 +1,4 @@
-import AccessStore from '../../../../../../../../../assets/js/utils/AccessStore.js';
+import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 import { stubAccessPair } from '../../../../../../../../support/accessStoreStub.js';
 import { safeSet, buildController } from './support.js';
 

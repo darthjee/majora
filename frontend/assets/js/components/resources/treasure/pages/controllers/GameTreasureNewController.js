@@ -1,6 +1,6 @@
 import TreasureClient from '../../../../../client/TreasureClient.js';
-import AuthStorage from '../../../../../utils/AuthStorage.js';
-import AccessStore from '../../../../../utils/AccessStore.js';
+import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
+import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
 

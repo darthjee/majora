@@ -1,5 +1,5 @@
 import GenericClient from '../../../../../client/GenericClient.js';
-import AccessStore from '../../../../../utils/AccessStore.js';
+import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
 
