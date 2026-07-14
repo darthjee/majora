@@ -1,11 +1,11 @@
 import AuthClient from '../../../client/AuthClient.js';
 import HealthClient from '../../../client/HealthClient.js';
-import AuthEvents from '../../../utils/AuthEvents.js';
-import AuthStorage from '../../../utils/AuthStorage.js';
+import AuthEvents from '../../../utils/auth/AuthEvents.js';
+import AuthStorage from '../../../utils/auth/AuthStorage.js';
 import Translator from '../../../i18n/Translator.js';
-import ActivityTracker from '../../../utils/ActivityTracker.js';
+import ActivityTracker from '../../../utils/logging/ActivityTracker.js';
 import Noop from '../../../utils/Noop.js';
-import HashRouteResolver from '../../../utils/HashRouteResolver.js';
+import HashRouteResolver from '../../../utils/routing/HashRouteResolver.js';
 
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
 

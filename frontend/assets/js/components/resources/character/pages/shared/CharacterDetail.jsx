@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import CharacterHelper from '../helpers/CharacterHelper.jsx';
-import AuthEvents from '../../../../../utils/AuthEvents.js';
+import AuthEvents from '../../../../../utils/auth/AuthEvents.js';
 import PhotoUploadModal from '../../../../common/PhotoUploadModal.jsx';
 
 /**

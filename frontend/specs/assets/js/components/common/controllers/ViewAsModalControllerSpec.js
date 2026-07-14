@@ -1,5 +1,5 @@
 import ViewAsModalController from '../../../../../../assets/js/components/common/controllers/ViewAsModalController.js';
-import AccessStore from '../../../../../../assets/js/utils/AccessStore.js';
+import AccessStore from '../../../../../../assets/js/utils/access/store/AccessStore.js';
 
 describe('ViewAsModalController', function() {
   let setEnabled, setRoles, onClose, controller;

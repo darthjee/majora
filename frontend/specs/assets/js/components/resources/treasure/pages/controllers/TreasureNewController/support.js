@@ -1,4 +1,4 @@
-import AccessStore from '../../../../../../../../../assets/js/utils/AccessStore.js';
+import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 
 /**
  * @description Builds fresh spies shared by every TreasureNewController spec file.

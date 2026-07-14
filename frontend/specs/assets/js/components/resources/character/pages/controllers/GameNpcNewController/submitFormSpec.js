@@ -1,6 +1,6 @@
 import GameNpcNewController
   from '../../../../../../../../../assets/js/components/resources/character/pages/controllers/GameNpcNewController.js';
-import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
+import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 
 describe('GameNpcNewController', function() {
   afterEach(function() {

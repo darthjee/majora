@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import GamesController from './controllers/GamesController.js';
 import GamesHelper from './helpers/GamesHelper.jsx';
-import AuthEvents from '../../../../utils/AuthEvents.js';
-import AuthStorage from '../../../../utils/AuthStorage.js';
+import AuthEvents from '../../../../utils/auth/AuthEvents.js';
+import AuthStorage from '../../../../utils/auth/AuthStorage.js';
 
 /**
  * Render games index page.

@@ -1,11 +1,11 @@
 /**
  * Shared AccessStore stubbing helper for Jasmine page-controller specs.
  * Mimics the real `AccessCache` semantics that page controllers now rely on
- * (see `frontend/assets/js/utils/AccessCache.js`): a synchronous `get*`
+ * (see `frontend/assets/js/utils/access/AccessCache.js`): a synchronous `get*`
  * reader that returns a fail-closed default until the paired `ensure*`
  * fetch resolves, after which it returns the resolved value.
  */
-import AccessStore from '../../assets/js/utils/AccessStore.js';
+import AccessStore from '../../assets/js/utils/access/store/AccessStore.js';
 
 /**
  * Stub a matched `ensure*`/`get*` pair on {@link AccessStore} so the `get*`

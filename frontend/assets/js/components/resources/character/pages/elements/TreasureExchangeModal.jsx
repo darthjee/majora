@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import TreasureExchangeModalController from './controllers/TreasureExchangeModalController.js';
 import TreasureExchangeModalHelper from './helpers/TreasureExchangeModalHelper.jsx';
-import AuthStorage from '../../../../../utils/AuthStorage.js';
+import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import Translator from '../../../../../i18n/Translator.js';
 
 const PER_PAGE = 10;

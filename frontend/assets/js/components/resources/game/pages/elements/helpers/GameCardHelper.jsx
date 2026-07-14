@@ -1,5 +1,5 @@
 import React from 'react';
-import CardPhoto from '../../../../../../components/common/CardPhoto.jsx';
+import CardPhoto from '../../../../../common/CardPhoto.jsx';
 
 /**
  * Rendering helper for the GameCard element.

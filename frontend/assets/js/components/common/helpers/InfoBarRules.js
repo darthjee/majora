@@ -1,5 +1,5 @@
 import React from 'react';
-import Icons from '../../../utils/Icons.js';
+import Icons from '../../../utils/ui/Icons.js';
 import CharacterStatusBadges from './CharacterStatusBadges.js';
 import TooltipBadge from '../TooltipBadge.jsx';
 

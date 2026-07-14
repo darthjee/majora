@@ -1,5 +1,5 @@
 import HeaderController from '../../../../../../../assets/js/components/common/controllers/HeaderController.js';
-import ActivityTracker from '../../../../../../../assets/js/utils/ActivityTracker.js';
+import ActivityTracker from '../../../../../../../assets/js/utils/logging/ActivityTracker.js';
 import { buildHealthCheckContext } from './support.js';
 
 describe('HeaderController', function() {

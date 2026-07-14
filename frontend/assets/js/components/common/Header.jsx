@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import HeaderController from './controllers/HeaderController.js';
 import HeaderViewAsController from './controllers/HeaderViewAsController.js';
 import HeaderHelper from './helpers/HeaderHelper.jsx';
-import AuthEvents from '../../utils/AuthEvents.js';
+import AuthEvents from '../../utils/auth/AuthEvents.js';
 
 /**
  * Render application header, tracking authentication state and the login modal.

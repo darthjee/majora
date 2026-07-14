@@ -1,6 +1,6 @@
 import GameTasksController
   from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GameTasksController.js';
-import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
+import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 
 describe('GameTasksController', function() {
   let taskClient;

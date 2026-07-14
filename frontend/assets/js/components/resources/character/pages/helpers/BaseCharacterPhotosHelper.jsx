@@ -6,7 +6,7 @@ import Pagination from '../../../../common/Pagination.jsx';
 import PhotoCard from '../../../../common/PhotoCard.jsx';
 import UploadButton from '../../../../common/UploadButton.jsx';
 import Translator from '../../../../../i18n/Translator.js';
-import Icons from '../../../../../utils/Icons.js';
+import Icons from '../../../../../utils/ui/Icons.js';
 
 /**
  * Shared rendering helper for the Character Photos (PC and NPC) listing page.

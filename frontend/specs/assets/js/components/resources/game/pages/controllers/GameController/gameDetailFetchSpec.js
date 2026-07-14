@@ -1,5 +1,5 @@
 import GameController from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GameController.js';
-import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
+import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 import { stubEnsureGameAccess, stubEnsureGamePermissions } from './support.js';
 

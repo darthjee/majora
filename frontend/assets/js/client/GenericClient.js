@@ -1,5 +1,5 @@
-import HashRouteResolver from '../utils/HashRouteResolver.js';
-import HashQueryParams from '../utils/HashQueryParams.js';
+import HashRouteResolver from '../utils/routing/HashRouteResolver.js';
+import HashQueryParams from '../utils/routing/HashQueryParams.js';
 import BaseClient from './BaseClient.js';
 
 /**

@@ -1,6 +1,6 @@
 import GameNewController
   from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GameNewController.js';
-import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
+import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import { buildContext } from './support.js';
 
 describe('GameNewController', function() {

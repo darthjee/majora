@@ -1,5 +1,5 @@
 import Translator from '../../../../../../../assets/js/i18n/Translator.js';
-import HashRouteResolver from '../../../../../../../assets/js/utils/HashRouteResolver.js';
+import HashRouteResolver from '../../../../../../../assets/js/utils/routing/HashRouteResolver.js';
 import { buildContext, buildHeaderController } from './support.js';
 
 describe('HeaderController', function() {

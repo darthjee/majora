@@ -1,4 +1,4 @@
-import CoinBreakdown from '../CoinBreakdown.js';
+import CoinBreakdown from './CoinBreakdown.js';
 import MoneyModelRegistry from './MoneyModelRegistry.js';
 
 // The `character` config intentionally omits `denominations` so CoinBreakdown

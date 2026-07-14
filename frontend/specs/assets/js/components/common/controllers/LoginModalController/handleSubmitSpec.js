@@ -1,6 +1,6 @@
 import LoginModalController from '../../../../../../../assets/js/components/common/controllers/LoginModalController.js';
-import AuthEvents from '../../../../../../../assets/js/utils/AuthEvents.js';
-import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
+import AuthEvents from '../../../../../../../assets/js/utils/auth/AuthEvents.js';
+import AuthStorage from '../../../../../../../assets/js/utils/auth/AuthStorage.js';
 
 describe('LoginModalController', function() {
   let setUsername;

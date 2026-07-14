@@ -1,5 +1,5 @@
 import ResilientRequest from '../../../../assets/js/client/ResilientRequest.js';
-import ResilienceEvents from '../../../../assets/js/utils/ResilienceEvents.js';
+import ResilienceEvents from '../../../../assets/js/utils/logging/ResilienceEvents.js';
 
 /**
  * Flushes a handful of pending microtasks, letting already-settled

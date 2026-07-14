@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import AccessStore from '../../utils/AccessStore.js';
+import AccessStore from '../../utils/access/store/AccessStore.js';
 import ViewAsModalController from './controllers/ViewAsModalController.js';
 import ViewAsModalHelper from './helpers/ViewAsModalHelper.jsx';
 

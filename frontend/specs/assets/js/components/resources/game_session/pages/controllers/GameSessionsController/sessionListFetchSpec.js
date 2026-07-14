@@ -1,6 +1,6 @@
 import GameSessionsController
   from '../../../../../../../../../assets/js/components/resources/game_session/pages/controllers/GameSessionsController.js';
-import AccessStore from '../../../../../../../../../assets/js/utils/AccessStore.js';
+import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 
 describe('GameSessionsController', function() {
   it('uses route params to request game sessions', async function() {

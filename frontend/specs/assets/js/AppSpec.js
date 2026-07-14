@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import App from '../../../assets/js/App.jsx';
-import AccessRouteConfigStore from '../../../assets/js/utils/AccessRouteConfigStore.js';
+import AccessRouteConfigStore from '../../../assets/js/utils/access/AccessRouteConfigStore.js';
 
 describe('App', () => {
   beforeEach(function() {

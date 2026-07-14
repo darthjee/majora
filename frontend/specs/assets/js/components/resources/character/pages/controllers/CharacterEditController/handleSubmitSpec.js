@@ -1,4 +1,4 @@
-import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
+import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import { KINDS } from './support.js';
 
 KINDS.forEach(({ label, Controller, kind, name }) => {

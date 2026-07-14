@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import AuthStorage from '../../utils/AuthStorage.js';
+import AuthStorage from '../../utils/auth/AuthStorage.js';
 import PhotoUploadModalController from './controllers/PhotoUploadModalController.js';
 import PhotoUploadModalHelper from './helpers/PhotoUploadModalHelper.jsx';
 

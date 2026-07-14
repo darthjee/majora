@@ -1,8 +1,8 @@
 import AppController from '../../../../assets/js/components/AppController.js';
 import LanguageEvents from '../../../../assets/js/i18n/LanguageEvents.js';
-import AuthEvents from '../../../../assets/js/utils/AuthEvents.js';
-import AccessStore from '../../../../assets/js/utils/AccessStore.js';
-import AccessRouteConfigStore from '../../../../assets/js/utils/AccessRouteConfigStore.js';
+import AuthEvents from '../../../../assets/js/utils/auth/AuthEvents.js';
+import AccessStore from '../../../../assets/js/utils/access/store/AccessStore.js';
+import AccessRouteConfigStore from '../../../../assets/js/utils/access/AccessRouteConfigStore.js';
 import Noop from '../../../../assets/js/utils/Noop.js';
 
 describe('AppController', function() {

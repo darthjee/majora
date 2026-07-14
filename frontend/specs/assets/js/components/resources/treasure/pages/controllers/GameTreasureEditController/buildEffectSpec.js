@@ -1,8 +1,8 @@
 import GameTreasureEditController
   from '../../../../../../../../../assets/js/components/resources/treasure/pages/controllers/GameTreasureEditController.js';
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
-import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
-import AccessStore from '../../../../../../../../../assets/js/utils/AccessStore.js';
+import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 
 describe('GameTreasureEditController', function() {
   afterEach(function() {

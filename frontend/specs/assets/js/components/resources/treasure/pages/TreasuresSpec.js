@@ -4,7 +4,7 @@ import Treasures from '../../../../../../../assets/js/components/resources/treas
 import TreasuresHelper from '../../../../../../../assets/js/components/resources/treasure/pages/helpers/TreasuresHelper.jsx';
 import TreasuresController from '../../../../../../../assets/js/components/resources/treasure/pages/controllers/TreasuresController.js';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
-import AccessStore from '../../../../../../../assets/js/utils/AccessStore.js';
+import AccessStore from '../../../../../../../assets/js/utils/access/store/AccessStore.js';
 import { stubBuildEffect, stubRenderLoading, captureConstructorFields } from '../../../../../../support/controllerStubs.js';
 
 describe('Treasures', function() {

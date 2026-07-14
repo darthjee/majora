@@ -1,8 +1,8 @@
 import CharacterClient from '../../../../../client/CharacterClient.js';
 import GenericClient from '../../../../../client/GenericClient.js';
 import BasePageController from '../../../../common/controllers/BasePageController.js';
-import AuthStorage from '../../../../../utils/AuthStorage.js';
-import AccessStore from '../../../../../utils/AccessStore.js';
+import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
+import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import Noop from '../../../../../utils/Noop.js';
 
 /**

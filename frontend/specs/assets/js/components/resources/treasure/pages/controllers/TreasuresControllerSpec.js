@@ -1,5 +1,5 @@
 import TreasuresController from '../../../../../../../../assets/js/components/resources/treasure/pages/controllers/TreasuresController.js';
-import AccessStore from '../../../../../../../../assets/js/utils/AccessStore.js';
+import AccessStore from '../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 
 describe('TreasuresController', function() {
   let setTreasures;

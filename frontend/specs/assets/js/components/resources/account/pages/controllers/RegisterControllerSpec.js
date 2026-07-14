@@ -1,6 +1,6 @@
 import RegisterController from '../../../../../../../../assets/js/components/resources/account/pages/controllers/RegisterController.js';
-import AuthStorage from '../../../../../../../../assets/js/utils/AuthStorage.js';
-import AuthEvents from '../../../../../../../../assets/js/utils/AuthEvents.js';
+import AuthStorage from '../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import AuthEvents from '../../../../../../../../assets/js/utils/auth/AuthEvents.js';
 
 describe('RegisterController', function() {
   describe('#handleSubmit', function() {

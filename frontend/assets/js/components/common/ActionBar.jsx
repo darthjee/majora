@@ -1,6 +1,6 @@
 import React from 'react';
 import Translator from '../../i18n/Translator.js';
-import Icons from '../../utils/Icons.js';
+import Icons from '../../utils/ui/Icons.js';
 
 const SECONDARY_BUTTON_POSITION_CLASSES = [
   'actions-overlay-button-right',

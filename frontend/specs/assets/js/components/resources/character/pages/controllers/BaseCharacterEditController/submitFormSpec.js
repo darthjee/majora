@@ -1,4 +1,4 @@
-import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
+import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import { TestCharacterEditController, buildContext } from './support.js';
 
 describe('BaseCharacterEditController', function() {

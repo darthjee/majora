@@ -1,6 +1,6 @@
 import AuthClient from '../../../client/AuthClient.js';
-import AuthEvents from '../../../utils/AuthEvents.js';
-import AuthStorage from '../../../utils/AuthStorage.js';
+import AuthEvents from '../../../utils/auth/AuthEvents.js';
+import AuthStorage from '../../../utils/auth/AuthStorage.js';
 
 /**
  * Manages login modal state and login requests.

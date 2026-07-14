@@ -1,5 +1,5 @@
-import AuthEvents from '../../../../../../../assets/js/utils/AuthEvents.js';
-import AuthStorage from '../../../../../../../assets/js/utils/AuthStorage.js';
+import AuthEvents from '../../../../../../../assets/js/utils/auth/AuthEvents.js';
+import AuthStorage from '../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import Translator from '../../../../../../../assets/js/i18n/Translator.js';
 import { buildContext, buildHeaderController } from './support.js';
 

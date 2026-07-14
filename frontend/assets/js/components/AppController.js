@@ -1,9 +1,9 @@
 import AppHelper from './helpers/AppHelper.jsx';
-import HashRouteResolver from '../utils/HashRouteResolver.js';
+import HashRouteResolver from '../utils/routing/HashRouteResolver.js';
 import LanguageEvents from '../i18n/LanguageEvents.js';
-import AuthEvents from '../utils/AuthEvents.js';
-import AccessStore from '../utils/AccessStore.js';
-import AccessRouteConfigStore from '../utils/AccessRouteConfigStore.js';
+import AuthEvents from '../utils/auth/AuthEvents.js';
+import AccessStore from '../utils/access/store/AccessStore.js';
+import AccessRouteConfigStore from '../utils/access/AccessRouteConfigStore.js';
 
 /**
  * Controller for application-level hash routing.

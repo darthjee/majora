@@ -8,7 +8,7 @@ import PhotoUploadModalHelper
   from '../../../../../../../../assets/js/components/common/helpers/PhotoUploadModalHelper.jsx';
 import PhotoUploadModalController
   from '../../../../../../../../assets/js/components/common/controllers/PhotoUploadModalController.js';
-import AuthStorage from '../../../../../../../../assets/js/utils/AuthStorage.js';
+import AuthStorage from '../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 import { stubRenderLoading } from '../../../../../../../support/controllerStubs.js';
 

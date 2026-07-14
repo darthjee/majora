@@ -1,5 +1,5 @@
 import GameEditController from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GameEditController.js';
-import AuthStorage from '../../../../../../../../../assets/js/utils/AuthStorage.js';
+import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 
 describe('GameEditController', function() {
   afterEach(function() {
