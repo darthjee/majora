@@ -83,6 +83,23 @@ class TestTreasuresListView:
         assert len(data) == 1
         assert data[0]['name'] == 'Global Gem'
 
+    def test_returns_treasures_ordered_by_value_ascending(self, client):
+        """Test that treasures are returned in ascending order of value."""
+        TreasureFactory(name='Expensive Gem', value=300)
+        TreasureFactory(name='Cheap Gem', value=50)
+        TreasureFactory(name='Mid Gem', value=150)
+        response = client.get('/treasures.json')
+        data = json.loads(response.content)
+        assert [item['name'] for item in data] == ['Cheap Gem', 'Mid Gem', 'Expensive Gem']
+
+    def test_ties_in_value_break_by_id(self, client):
+        """Test that treasures with equal value are ordered by id ascending."""
+        first = TreasureFactory(name='First Gem', value=100)
+        second = TreasureFactory(name='Second Gem', value=100)
+        response = client.get('/treasures.json')
+        data = json.loads(response.content)
+        assert [item['id'] for item in data] == [first.id, second.id]
+
 
 class TestTreasuresCreateView(TestCase):
     """Tests for the POST /treasures.json endpoint."""

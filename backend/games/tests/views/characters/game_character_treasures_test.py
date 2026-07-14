@@ -116,6 +116,31 @@ class _BaseCharacterTreasuresViewTest(TokenAuthRequestMixin):
         response = client.get(url)
         assert response.status_code == 200
 
+    def test_returns_treasures_ordered_by_value_ascending(self, client):
+        """Test that treasures are returned in ascending order of the treasure's own value."""
+        expensive = TreasureFactory(name='Expensive Gem', value=300)
+        cheap = TreasureFactory(name='Cheap Gem', value=50)
+        mid = TreasureFactory(name='Mid Gem', value=150)
+        for treasure in (expensive, cheap, mid):
+            CharacterTreasure.objects.create(
+                character=self.character, treasure=treasure, quantity=1,
+            )
+        response = client.get(self._url())
+        data = json.loads(response.content)
+        assert [item['name'] for item in data] == ['Cheap Gem', 'Mid Gem', 'Expensive Gem']
+
+    def test_ties_in_value_break_by_treasure_id(self, client):
+        """Test that treasures with equal value are ordered by treasure id ascending."""
+        first = TreasureFactory(name='First Gem', value=100)
+        second = TreasureFactory(name='Second Gem', value=100)
+        for treasure in (first, second):
+            CharacterTreasure.objects.create(
+                character=self.character, treasure=treasure, quantity=1,
+            )
+        response = client.get(self._url())
+        data = json.loads(response.content)
+        assert [item['name'] for item in data] == ['First Gem', 'Second Gem']
+
 
 @pytest.mark.django_db
 class TestGameNpcTreasuresView(_BaseCharacterTreasuresViewTest):
