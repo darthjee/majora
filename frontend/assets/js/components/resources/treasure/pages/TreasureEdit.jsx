@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import TreasureEditController from './controllers/TreasureEditController.js';
 import TreasureEditHelper from './helpers/TreasureEditHelper.jsx';
 import TreasureHelper from './helpers/TreasureHelper.jsx';
+import MoneyEditModal from '../../../common/MoneyEditModal.jsx';
 
 /**
  * Treasure edit page.
@@ -16,6 +17,7 @@ export default function TreasureEdit() {
   const [status, setStatus] = useState('idle');
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
+  const [showValueModal, setShowValueModal] = useState(false);
 
   const controller = useMemo(
     () => new TreasureEditController(setTreasure, setLoading, setError, setFieldErrors),
@@ -52,12 +54,26 @@ export default function TreasureEdit() {
   if (loading) return TreasureEditHelper.renderLoading();
   if (error) return TreasureHelper.renderError(error);
 
-  return TreasureEditHelper.render(
-    { name, value, status, fieldErrors },
-    {
-      onSubmit: handleSubmit,
-      onNameChange: (event) => setName(event.target.value),
-      onValueChange: (event) => setValue(event.target.value),
-    },
+  return (
+    <>
+      {TreasureEditHelper.render(
+        { name, value, status, fieldErrors },
+        {
+          onSubmit: handleSubmit,
+          onNameChange: (event) => setName(event.target.value),
+          onOpenValueModal: () => setShowValueModal(true),
+        },
+      )}
+      <MoneyEditModal
+        show={showValueModal}
+        money={value}
+        context="treasure"
+        onClose={() => setShowValueModal(false)}
+        onConfirm={(newTotal) => {
+          setValue(String(newTotal));
+          setShowValueModal(false);
+        }}
+      />
+    </>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import GameTreasureEditController from './controllers/GameTreasureEditController.js';
 import GameTreasureEditHelper from './helpers/GameTreasureEditHelper.jsx';
+import MoneyEditModal from '../../../common/MoneyEditModal.jsx';
 
 /**
  * Game treasure edit page.
@@ -16,6 +17,7 @@ export default function GameTreasureEdit() {
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
   const [maxUnits, setMaxUnits] = useState('');
+  const [showValueModal, setShowValueModal] = useState(false);
 
   const controller = useMemo(
     () => new GameTreasureEditController(setTreasure, setLoading, setError, setFieldErrors),
@@ -48,15 +50,29 @@ export default function GameTreasureEdit() {
   if (loading) return GameTreasureEditHelper.renderLoading();
   if (error) return GameTreasureEditHelper.renderError(error);
 
-  return GameTreasureEditHelper.render(
-    {
-      name, value, maxUnits, status, fieldErrors, isExclusive,
-    },
-    {
-      onSubmit: handleSubmit,
-      onNameChange: (event) => setName(event.target.value),
-      onValueChange: (event) => setValue(event.target.value),
-      onMaxUnitsChange: (event) => setMaxUnits(event.target.value),
-    },
+  return (
+    <>
+      {GameTreasureEditHelper.render(
+        {
+          name, value, maxUnits, status, fieldErrors, isExclusive,
+        },
+        {
+          onSubmit: handleSubmit,
+          onNameChange: (event) => setName(event.target.value),
+          onOpenValueModal: () => setShowValueModal(true),
+          onMaxUnitsChange: (event) => setMaxUnits(event.target.value),
+        },
+      )}
+      <MoneyEditModal
+        show={showValueModal}
+        money={value}
+        context="treasure"
+        onClose={() => setShowValueModal(false)}
+        onConfirm={(newTotal) => {
+          setValue(String(newTotal));
+          setShowValueModal(false);
+        }}
+      />
+    </>
   );
 }

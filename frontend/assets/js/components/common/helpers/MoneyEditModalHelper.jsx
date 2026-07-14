@@ -1,6 +1,7 @@
 import Modal from 'react-bootstrap/cjs/Modal.js';
-import Translator from '../../../../../../i18n/Translator.js';
-import FormField from '../../../../../common/FormField.jsx';
+import Translator from '../../../i18n/Translator.js';
+import FormField from '../FormField.jsx';
+import MoneyEditModalController from '../controllers/MoneyEditModalController.js';
 
 const DENOMINATION_ROWS = [
   { key: 'cp', labelKey: 'money.copper_piece' },
@@ -12,7 +13,8 @@ const DENOMINATION_ROWS = [
 
 /**
  * Renders the "Edit money" modal shell: one numeric input row per coin
- * denomination, and Confirm/Cancel footer actions.
+ * denomination relevant to the given context, and Confirm/Cancel footer
+ * actions.
  */
 export default class MoneyEditModalHelper {
   /**
@@ -23,16 +25,20 @@ export default class MoneyEditModalHelper {
    * @param {object} state.breakdown - Local per-denomination breakdown being edited.
    * @param {boolean} state.canConfirm - Whether every denomination is a non-negative integer.
    * @param {object} handlers - Modal event handlers (`onClose`, `onConfirm`, `onFieldChange`).
+   * @param {string} [context] - Money context (`character` or `treasure`), determining which
+   *   denomination rows are rendered.
    * @returns {React.ReactElement} Rendered money edit modal.
    */
-  static render(show, state, handlers) {
+  static render(show, state, handlers, context = 'character') {
+    const rows = MoneyEditModalHelper.#rowsForContext(context);
+
     return (
       <Modal show={show} onHide={handlers.onClose}>
         <Modal.Header closeButton>
           <Modal.Title>{Translator.t('money_edit_modal.title')}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {DENOMINATION_ROWS.map((row) => MoneyEditModalHelper.#renderRow(row, state, handlers))}
+          {rows.map((row) => MoneyEditModalHelper.#renderRow(row, state, handlers))}
         </Modal.Body>
         <Modal.Footer>
           <button type="button" className="btn btn-secondary" onClick={handlers.onClose}>
@@ -49,6 +55,12 @@ export default class MoneyEditModalHelper {
         </Modal.Footer>
       </Modal>
     );
+  }
+
+  static #rowsForContext(context) {
+    const keys = MoneyEditModalController.denominationKeys(context);
+
+    return DENOMINATION_ROWS.filter((row) => keys.includes(row.key));
   }
 
   static #renderRow(row, state, handlers) {

@@ -4,6 +4,7 @@ import ErrorAlert from '../../../../common/ErrorAlert.jsx';
 import SubmitButton from '../../../../common/SubmitButton.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import TreasureHelper from './TreasureHelper.jsx';
+import TreasureValueField from '../elements/TreasureValueField.jsx';
 
 /**
  * Rendering helper for the treasure creation page.
@@ -13,7 +14,7 @@ export default class TreasureNewHelper {
    * Render the treasure creation form.
    *
    * @param {{name: string, value: string, status: string, fieldErrors: object}} formState - Form state.
-   * @param {{onSubmit: Function, onNameChange: Function, onValueChange: Function}} handlers - Event handlers.
+   * @param {{onSubmit: Function, onNameChange: Function, onOpenValueModal: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered new treasure page.
    */
   static render(formState, handlers) {
@@ -30,13 +31,12 @@ export default class TreasureNewHelper {
             onChange={handlers.onNameChange}
             errors={formState.fieldErrors.name ?? []}
           />
-          <FormField
-            id="treasure-new-value"
-            type="number"
+          <TreasureValueField
             label={Translator.t('treasure_new_page.value_label')}
+            editLabel={Translator.t('treasure_page.edit')}
             value={formState.value}
-            onChange={handlers.onValueChange}
             errors={formState.fieldErrors.value ?? []}
+            onOpenModal={handlers.onOpenValueModal}
           />
           <SubmitButton disabled={formState.status === 'submitting'}>
             {Translator.t('treasure_new_page.submit')}
