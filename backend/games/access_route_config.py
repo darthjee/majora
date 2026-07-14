@@ -1,6 +1,6 @@
 """Static resource-kind config for the frontend's page -> access-check mapping.
 
-Backs `GET /access-route-config.json` (`source/games/views/access_route_config.py`). Mirrors
+Backs `GET /access-route-config.json` (`backend/games/views/access_route_config.py`). Mirrors
 the page identifiers previously hardcoded in the frontend's
 `frontend/assets/js/utils/accessRouteConfig.js` (keyed by the same page identifiers returned
 by `HashRouteResolver#getPage`) — this module is now the single source of truth for which

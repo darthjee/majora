@@ -38,7 +38,7 @@ omit = ["*/migrations/*", "*/tests/*"]
 omit = ["*/migrations/*", "*/tests/*"]
 
 [tool.bandit]
-exclude_dirs = ["games/tests", "source/games/tests", "versioning/tests", "source/versioning/tests"]
+exclude_dirs = ["games/tests", "backend/games/tests", "versioning/tests", "backend/versioning/tests"]
 
 [tool.ruff]
 line-length = 100
