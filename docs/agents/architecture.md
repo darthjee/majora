@@ -44,9 +44,9 @@ definitions.
 
 This means a frontend build is immediately available to Tent without any copy step.
 
-## Backend (`source/`)
+## Backend (`backend/`)
 
-All Django source code lives under `source/`.
+All Django source code lives under `backend/`.
 
 ### `majora_project/`
 
@@ -66,7 +66,7 @@ The core Django app. Contains all domain models, REST views, and serializers for
 - `admin.py` — Django Admin registrations.
 
 See root [`AGENTS.md`](../../AGENTS.md) for the current API endpoint list and domain model
-summary; `source/games/urls.py` and `source/games/models/` are the authoritative source.
+summary; `backend/games/urls.py` and `backend/games/models/` are the authoritative source.
 
 ### `versioning/`
 

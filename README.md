@@ -7,9 +7,9 @@ Repository for information for RP games
 
 ![majora](https://raw.githubusercontent.com/darthjee/majora/master/majora.png)
 
-**Current Version:** [0.34.3](https://github.com/darthjee/majora/releases/tag/0.34.3)
+**Current Version:** [0.35.0](https://github.com/darthjee/majora/releases/tag/0.35.0)
 
-**Next Release:** [0.34.4](https://github.com/darthjee/majora/compare/0.34.3...main)
+**Next Release:** [0.35.1](https://github.com/darthjee/majora/compare/0.35.0...main)
 
 ## About
 
@@ -43,7 +43,7 @@ The application is structured as a Django REST API backend and a React single-pa
 
 ```
 majora/
-├── source/               # Django backend (Python)
+├── backend/              # Django backend (Python)
 ├── frontend/             # React + Vite frontend
 ├── proxy/                # PHP proxy (dartjee/tent) configuration and extensions
 ├── dockerfiles/          # Dockerfiles for each service

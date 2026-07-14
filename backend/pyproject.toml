@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "majora"
-version = "0.34.3"
+version = "0.35.0"
 description = "Majora - RPG Campaign Management System"
 authors = ["darthjee"]
 license = "MIT"
@@ -38,7 +38,7 @@ omit = ["*/migrations/*", "*/tests/*"]
 omit = ["*/migrations/*", "*/tests/*"]
 
 [tool.bandit]
-exclude_dirs = ["games/tests", "source/games/tests", "versioning/tests", "source/versioning/tests"]
+exclude_dirs = ["games/tests", "backend/games/tests", "versioning/tests", "backend/versioning/tests"]
 
 [tool.ruff]
 line-length = 100

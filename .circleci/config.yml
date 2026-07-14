@@ -142,7 +142,7 @@ jobs:
           MYSQL_USER: majora
           MYSQL_PASSWORD: majora
           MYSQL_ROOT_PASSWORD: majora
-    working_directory: ~/project/source
+    working_directory: ~/project/backend
     steps:
       - checkout:
           path: ~/project
@@ -175,7 +175,7 @@ jobs:
           MYSQL_USER: majora
           MYSQL_PASSWORD: majora
           MYSQL_ROOT_PASSWORD: majora
-    working_directory: ~/project/source
+    working_directory: ~/project/backend
     steps:
       - checkout:
           path: ~/project
@@ -208,7 +208,7 @@ jobs:
           MYSQL_USER: majora
           MYSQL_PASSWORD: majora
           MYSQL_ROOT_PASSWORD: majora
-    working_directory: ~/project/source
+    working_directory: ~/project/backend
     steps:
       - checkout:
           path: ~/project
@@ -232,7 +232,7 @@ jobs:
       - checkout
       - run:
           name: Set folder
-          command: rm source -rf; cp frontend/* ./ -r; rm frontend -rf
+          command: rm backend -rf; cp frontend/* ./ -r; rm frontend -rf
       - run:
           name: Yarn install
           command: yarn install
@@ -258,7 +258,7 @@ jobs:
       - checkout
       - run:
           name: Set folder
-          command: rm frontend -rf; cp source/* ./ -r; rm source -rf
+          command: rm frontend -rf; cp backend/* ./ -r; rm backend -rf
       - run:
           name: Poetry Install
           command: poetry install --no-root --no-interaction --no-ansi
@@ -276,7 +276,7 @@ jobs:
       - checkout
       - run:
           name: Set folder
-          command: rm source -rf; cp frontend/* ./ -r; rm frontend -rf
+          command: rm backend -rf; cp frontend/* ./ -r; rm frontend -rf
       - run:
           name: Yarn install
           command: yarn install
@@ -342,7 +342,7 @@ jobs:
       - checkout
       - run:
           name: Set folder
-          command: rm source -rf; cp frontend/* ./ -r; rm frontend -rf
+          command: rm backend -rf; cp frontend/* ./ -r; rm frontend -rf
       - run:
           name: Yarn install
           command: yarn install
@@ -382,7 +382,7 @@ jobs:
       - checkout
       - run:
           name: Set folder
-          command: rm frontend -rf; cp source/* ./ -r; rm source -rf
+          command: rm frontend -rf; cp backend/* ./ -r; rm backend -rf
       - run:
           name: Poetry Install
           command: poetry install --no-root --no-interaction --no-ansi

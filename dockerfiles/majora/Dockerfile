@@ -2,7 +2,7 @@ FROM darthjee/scripts:0.8.0 as scripts
 FROM darthjee/majora-base:latest as base
 
 COPY --chown=app:app \
-  ./source/pyproject.toml ./source/poetry.lock* \
+  ./backend/pyproject.toml ./backend/poetry.lock* \
   /home/app/app/
 
 ######################################

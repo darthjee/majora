@@ -61,7 +61,7 @@ You will be given a list of changed files. Review them.
 ## How to investigate
 
 Use `Read` to read files and `Bash` only for `grep` searches to locate relevant passages
-(e.g. `grep -n "private_description" source/games/serializers/*.py`). Do not run servers,
+(e.g. `grep -n "private_description" backend/games/serializers/*.py`). Do not run servers,
 tests, migrations, or any command that modifies state.
 
 ## Output format

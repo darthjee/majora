@@ -18,7 +18,7 @@ write itself:
 - `POST /games/<slug>/npcs.json` — via `CharacterCreateSerializer`'s `links` field, **GameEdit**.
 
 **Write semantics** (`CharacterLinkWriteSerializer` + `CharacterLinksSync`, in
-`source/games/serializers/character_link_write.py`): each entry in the `links` array accepts
+`backend/games/serializers/character_link_write.py`): each entry in the `links` array accepts
 `id` (optional int), `text`, `url`, `link_type`, and a transient `delete` flag (not a model
 field). Routing per entry, applied server-side after the character's own fields are saved:
 - `delete: true` — deletes the existing link matching `id`. `id` is required whenever
@@ -44,5 +44,5 @@ applied/created earlier in the same request is rolled back.
 by the target character (`character.links.filter(id=link_id)`) — an `id` for a link that doesn't
 exist, or belongs to a different character, is rejected with 400
 (`{"errors": {"links": ["Unknown link id <id>."]}}`, via the `save_or_error()` helper in
-`source/games/views/common.py`), never silently ignored and never allowed to affect another
+`backend/games/views/common.py`), never silently ignored and never allowed to affect another
 character's link.

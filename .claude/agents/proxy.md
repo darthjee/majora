@@ -13,7 +13,7 @@ You are the proxy specialist for the Majora project — an RPG campaign manageme
 - `proxy/custom/extend/` — custom PHP middleware classes
 - `proxy/custom/tests/` — PHPUnit tests for custom middleware
 
-Do NOT touch `source/` (backend), `frontend/` (frontend code), `docker-compose.yml`,
+Do NOT touch `backend/` (backend), `frontend/` (frontend code), `docker-compose.yml`,
 `dockerfiles/`, `.circleci/`, or `scripts/` — those belong to `backend`, `frontend`, or
 `infra`.
 

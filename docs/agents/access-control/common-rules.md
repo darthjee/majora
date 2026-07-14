@@ -68,7 +68,7 @@ call it; response is `{"can_edit": <bool>}`.
   - any other value → silently ignored (same tolerant, no-400-on-a-typo convention as `?allegiance=`/`?slain=` elsewhere) — but a `role` param containing only unrecognized/no-op values still computes `can_edit` with every boolean `False`; it does not fall back to the real-identity path
   - Whenever `role` is present (recognized or not), the response sets `X-Force-Public-Cache: true` instead of `X-Skip-Cache: true` — the result is identity-independent, so it's safe (and necessary, for UI-preview use cases like showing an anonymous visitor what a DM would see) to cache in the public tier.
 
-Parsed by `parse_role_booleans` in `source/games/views/common.py`, shared verbatim by all four
+Parsed by `parse_role_booleans` in `backend/games/views/common.py`, shared verbatim by all four
 `permissions.json` endpoints (Game, PC, NPC, Treasure).
 
 ## Cache-bypass mechanism for access endpoints
@@ -81,7 +81,7 @@ or incorrect values. Three layers enforce correctness:
    preventing Tent from caching it.
 2. **Backend header (role-simulated path)** — a `permissions.json` view with a `role` param
    sets `X-Force-Public-Cache: true` instead, telling `CacheControlMiddleware`
-   (`source/games/middleware.py`) to always apply the public/anonymous `Cache-Control` tier,
+   (`backend/games/middleware.py`) to always apply the public/anonymous `Cache-Control` tier,
    overriding what it would otherwise choose from the real requester's own `is_authenticated`
    state.
 3. **Frontend header** — `BaseClient.request` (`frontend/assets/js/client/BaseClient.js`)
