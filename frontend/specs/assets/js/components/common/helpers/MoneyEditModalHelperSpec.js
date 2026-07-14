@@ -1,5 +1,5 @@
 import MoneyEditModalHelper
-  from '../../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/MoneyEditModalHelper.jsx';
+  from '../../../../../../assets/js/components/common/helpers/MoneyEditModalHelper.jsx';
 import Modal from 'react-bootstrap/cjs/Modal.js';
 
 // Function components (e.g. FormField) are rendered by calling them with
@@ -158,6 +158,35 @@ describe('MoneyEditModalHelper', function() {
       const inputs = findAllElements(element, (child) => child.type === 'input' && child.props.id?.startsWith('money-edit-'));
 
       expect(inputs.length).toBe(5);
+    });
+
+    describe('with the treasure context', function() {
+      const buildTreasureState = (overrides = {}) => ({
+        breakdown: { cp: 2, sp: 3, gp: 3 },
+        canConfirm: true,
+        ...overrides,
+      });
+
+      it('renders exactly 3 denomination inputs, cp/sp/gp only', function() {
+        const element = MoneyEditModalHelper.render(true, buildTreasureState(), buildHandlers(), 'treasure');
+        const inputs = findAllElements(
+          element, (child) => child.type === 'input' && child.props.id?.startsWith('money-edit-'),
+        );
+
+        expect(inputs.length).toBe(3);
+        ['cp', 'sp', 'gp'].forEach((key) => {
+          expect(inputs.some((input) => input.props.id === `money-edit-${key}`)).toBe(true);
+        });
+      });
+
+      it('does not render pp/gems inputs', function() {
+        const element = MoneyEditModalHelper.render(true, buildTreasureState(), buildHandlers(), 'treasure');
+
+        expect(findElement(element, (child) => child.type === 'input' && child.props.id === 'money-edit-pp'))
+          .toBeNull();
+        expect(findElement(element, (child) => child.type === 'input' && child.props.id === 'money-edit-gems'))
+          .toBeNull();
+      });
     });
   });
 });

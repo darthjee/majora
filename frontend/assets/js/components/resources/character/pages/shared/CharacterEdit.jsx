@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import CharacterHelper from '../helpers/CharacterHelper.jsx';
 import PhotoUploadModal from '../../../../common/PhotoUploadModal.jsx';
 import LinksEditModal from '../elements/LinksEditModal.jsx';
-import MoneyEditModal from '../elements/MoneyEditModal.jsx';
+import MoneyEditModal from '../../../../common/MoneyEditModal.jsx';
 
 /**
  * Shared character edit page component.
@@ -129,6 +129,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
       <MoneyEditModal
         show={showMoneyModal}
         money={money}
+        context="character"
         onClose={() => setShowMoneyModal(false)}
         onConfirm={(newTotal) => {
           setMoney(String(newTotal));
