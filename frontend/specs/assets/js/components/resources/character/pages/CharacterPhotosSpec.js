@@ -40,16 +40,32 @@ KINDS.forEach(({ label, Component, Controller, Helper, characterKind }) => {
     it('renders the upload button via the helper render when the character can be edited', function() {
       stubBuildEffect(Controller);
 
-      const handlers = { onOpenUploadModal: Noop.noop, onSelectPhoto: Noop.noop };
+      const handlers = { onOpenUploadModal: Noop.noop, onSelectPhoto: Noop.noop, onSetProfilePhoto: Noop.noop };
       const pagination = { page: 1, pages: 1, perPage: 10 };
       const html = renderToStaticMarkup(
         Helper.render(
           [], pagination, `#/games/demo/${characterKind}/7/photos`, `#/games/demo/${characterKind}/7`,
-          true, 'Aragorn', handlers,
+          true, 'Aragorn', null, handlers,
         )
       );
 
       expect(html).toContain('<button');
+    });
+
+    it('renders the mark-as-profile action bar button via the helper render for a non-profile photo', function() {
+      stubBuildEffect(Controller);
+
+      const photos = [{ id: 1, path: `photos/${characterKind}/7/a.jpg` }];
+      const handlers = { onOpenUploadModal: Noop.noop, onSelectPhoto: Noop.noop, onSetProfilePhoto: Noop.noop };
+      const pagination = { page: 1, pages: 1, perPage: 10 };
+      const html = renderToStaticMarkup(
+        Helper.render(
+          photos, pagination, `#/games/demo/${characterKind}/7/photos`, `#/games/demo/${characterKind}/7`,
+          true, 'Aragorn', 999, handlers,
+        )
+      );
+
+      expect(html).toContain('bi-postage-fill');
     });
   });
 });

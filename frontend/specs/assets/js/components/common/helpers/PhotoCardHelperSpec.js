@@ -24,8 +24,9 @@ describe('PhotoCardHelper', function() {
     it('invokes onClick with the photo when the button is clicked', function() {
       const onClick = jasmine.createSpy('onClick');
       const element = PhotoCardHelper.render(photo, 'Demo Game', onClick);
+      const [button] = element.props.children.props.children;
 
-      element.props.children.props.onClick();
+      button.props.onClick();
 
       expect(onClick).toHaveBeenCalledWith(photo);
     });

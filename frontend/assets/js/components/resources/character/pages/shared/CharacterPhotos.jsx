@@ -54,10 +54,13 @@ export default function CharacterPhotos({ ControllerClass, getParamsFromHash, Ph
 
   return (
     <>
-      {PhotosHelper.render(photos, pagination, basePath, backHref, character.can_edit, alt, {
-        onOpenUploadModal: () => setShowUploadModal(true),
-        onSelectPhoto: setSelectedPhoto,
-      })}
+      {PhotosHelper.render(
+        photos, pagination, basePath, backHref, character.can_edit, alt, character.profile_photo_id, {
+          onOpenUploadModal: () => setShowUploadModal(true),
+          onSelectPhoto: setSelectedPhoto,
+          onSetProfilePhoto: handleSetProfilePhoto,
+        },
+      )}
       <PhotoUploadModal
         show={showUploadModal}
         uploadPath={`/games/${gameSlug}/${characterKind}/${characterId}/photo_upload.json`}
