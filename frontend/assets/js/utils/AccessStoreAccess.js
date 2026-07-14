@@ -27,13 +27,12 @@ export default class AccessStoreAccess {
    * @returns {Promise<object>} Resolves to the access payload.
    */
   static ensureGame(cache, gameClient, gameSlug) {
-    return cache.ensure(
+    return AccessStoreAccess.#loggedEnsure(
+      cache,
       AccessStoreKeys.game(gameSlug),
-      (signal) => AccessStoreLogging.wrap(
-        'ensureGame',
-        [gameSlug],
-        gameClient.fetchGameAccess(gameSlug, AuthStorage.getToken(), signal).then(AccessStoreAccess.#parse),
-      ),
+      'ensureGame',
+      [gameSlug],
+      (signal) => gameClient.fetchGameAccess(gameSlug, AuthStorage.getToken(), signal).then(AccessStoreAccess.#parse),
       ACCESS_DEFAULT,
     );
   }
@@ -49,15 +48,14 @@ export default class AccessStoreAccess {
    * @returns {Promise<object>} Resolves to the access payload.
    */
   static ensureCharacter(cache, characterClient, characterKind, gameSlug, characterId) {
-    return cache.ensure(
+    return AccessStoreAccess.#loggedEnsure(
+      cache,
       AccessStoreKeys.character(characterKind, gameSlug, characterId),
-      (signal) => AccessStoreLogging.wrap(
-        'ensureCharacter',
-        [characterKind, gameSlug, characterId],
-        characterClient
-          .fetchCharacterAccess(characterKind, gameSlug, characterId, AuthStorage.getToken(), signal)
-          .then(AccessStoreAccess.#parse),
-      ),
+      'ensureCharacter',
+      [characterKind, gameSlug, characterId],
+      (signal) => characterClient
+        .fetchCharacterAccess(characterKind, gameSlug, characterId, AuthStorage.getToken(), signal)
+        .then(AccessStoreAccess.#parse),
       ACCESS_DEFAULT,
     );
   }
@@ -71,13 +69,12 @@ export default class AccessStoreAccess {
    * @returns {Promise<object>} Resolves to the access payload.
    */
   static ensureTreasure(cache, treasureClient, id) {
-    return cache.ensure(
+    return AccessStoreAccess.#loggedEnsure(
+      cache,
       AccessStoreKeys.treasure(id),
-      (signal) => AccessStoreLogging.wrap(
-        'ensureTreasure',
-        [id],
-        treasureClient.fetchTreasureAccess(id, AuthStorage.getToken(), signal).then(AccessStoreAccess.#parse),
-      ),
+      'ensureTreasure',
+      [id],
+      (signal) => treasureClient.fetchTreasureAccess(id, AuthStorage.getToken(), signal).then(AccessStoreAccess.#parse),
       ACCESS_DEFAULT,
     );
   }
@@ -115,6 +112,27 @@ export default class AccessStoreAccess {
    */
   static getTreasure(cache, id) {
     return cache.read(AccessStoreKeys.treasure(id), ACCESS_DEFAULT);
+  }
+
+  /**
+   * Run `cache.ensure` for an `ensure*` check, wrapping the fetcher's raw
+   * promise with {@link AccessStoreLogging.wrap} so its outcome is observable
+   * at `debug` level.
+   *
+   * @param {import('./AccessCache.js').default} cache - Shared cache instance.
+   * @param {string} key - Cache key.
+   * @param {string} method - Name of the calling `ensure*` method (e.g. `'ensureGame'`).
+   * @param {Array} args - Arguments the calling method was called with.
+   * @param {Function} fetcher - Called with an `AbortSignal`; must return a `Promise`.
+   * @param {*} defaultValue - Value resolved when the fetcher rejects (fail-closed).
+   * @returns {Promise<*>} Resolves to the cached, freshly-fetched, or default value.
+   */
+  static #loggedEnsure(cache, key, method, args, fetcher, defaultValue) {
+    return cache.ensure(
+      key,
+      (signal) => AccessStoreLogging.wrap(method, args, fetcher(signal)),
+      defaultValue,
+    );
   }
 
   static #parse(response) {

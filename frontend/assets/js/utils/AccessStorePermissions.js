@@ -25,16 +25,15 @@ export default class AccessStorePermissions {
   static ensureGame(cache, gameClient, gameSlug, roles) {
     const roleSet = AccessStoreKeys.normalizeRoles(AccessStoreFacade.effectiveRoles(roles));
 
-    return cache.ensure(
+    return AccessStorePermissions.#loggedEnsure(
+      cache,
       AccessStoreKeys.gamePermissions(gameSlug, roleSet),
-      (signal) => AccessStoreLogging.wrap(
-        'ensureGame',
-        [gameSlug, roles],
-        gameClient.fetchGamePermissions(gameSlug, AuthStorage.getToken(), signal, roleSet)
-          .then(AccessStorePermissions.#parse),
-        { roles, effectiveRoles: roleSet },
-      ),
+      'ensureGame',
+      [gameSlug, roles],
+      (signal) => gameClient.fetchGamePermissions(gameSlug, AuthStorage.getToken(), signal, roleSet)
+        .then(AccessStorePermissions.#parse),
       PERMISSIONS_DEFAULT,
+      { roles, effectiveRoles: roleSet },
     );
   }
 
@@ -52,17 +51,16 @@ export default class AccessStorePermissions {
   static ensureCharacter(cache, characterClient, characterKind, gameSlug, characterId, roles) {
     const roleSet = AccessStoreKeys.normalizeRoles(AccessStoreFacade.effectiveRoles(roles));
 
-    return cache.ensure(
+    return AccessStorePermissions.#loggedEnsure(
+      cache,
       AccessStoreKeys.characterPermissions(characterKind, gameSlug, characterId, roleSet),
-      (signal) => AccessStoreLogging.wrap(
-        'ensureCharacter',
-        [characterKind, gameSlug, characterId, roles],
-        characterClient
-          .fetchCharacterPermissions(characterKind, gameSlug, characterId, AuthStorage.getToken(), signal, roleSet)
-          .then(AccessStorePermissions.#parse),
-        { roles, effectiveRoles: roleSet },
-      ),
+      'ensureCharacter',
+      [characterKind, gameSlug, characterId, roles],
+      (signal) => characterClient
+        .fetchCharacterPermissions(characterKind, gameSlug, characterId, AuthStorage.getToken(), signal, roleSet)
+        .then(AccessStorePermissions.#parse),
       PERMISSIONS_DEFAULT,
+      { roles, effectiveRoles: roleSet },
     );
   }
 
@@ -78,16 +76,15 @@ export default class AccessStorePermissions {
   static ensureTreasure(cache, treasureClient, id, roles) {
     const roleSet = AccessStoreKeys.normalizeRoles(AccessStoreFacade.effectiveRoles(roles));
 
-    return cache.ensure(
+    return AccessStorePermissions.#loggedEnsure(
+      cache,
       AccessStoreKeys.treasurePermissions(id, roleSet),
-      (signal) => AccessStoreLogging.wrap(
-        'ensureTreasure',
-        [id, roles],
-        treasureClient.fetchTreasurePermissions(id, AuthStorage.getToken(), signal, roleSet)
-          .then(AccessStorePermissions.#parse),
-        { roles, effectiveRoles: roleSet },
-      ),
+      'ensureTreasure',
+      [id, roles],
+      (signal) => treasureClient.fetchTreasurePermissions(id, AuthStorage.getToken(), signal, roleSet)
+        .then(AccessStorePermissions.#parse),
       PERMISSIONS_DEFAULT,
+      { roles, effectiveRoles: roleSet },
     );
   }
 
@@ -133,6 +130,28 @@ export default class AccessStorePermissions {
   static getTreasure(cache, id, roles) {
     return cache.read(
       AccessStoreKeys.treasurePermissions(id, AccessStoreKeys.normalizeRoles(roles)), PERMISSIONS_DEFAULT,
+    );
+  }
+
+  /**
+   * Run `cache.ensure` for an `ensure*` check, wrapping the fetcher's raw
+   * promise with {@link AccessStoreLogging.wrap} so its outcome is observable
+   * at `debug` level.
+   *
+   * @param {import('./AccessCache.js').default} cache - Shared cache instance.
+   * @param {string} key - Cache key.
+   * @param {string} method - Name of the calling `ensure*` method (e.g. `'ensureGame'`).
+   * @param {Array} args - Arguments the calling method was called with.
+   * @param {Function} fetcher - Called with an `AbortSignal`; must return a `Promise`.
+   * @param {*} defaultValue - Value resolved when the fetcher rejects (fail-closed).
+   * @param {object} [meta] - Extra fields folded into the logged entry (e.g. `roles`/`effectiveRoles`).
+   * @returns {Promise<*>} Resolves to the cached, freshly-fetched, or default value.
+   */
+  static #loggedEnsure(cache, key, method, args, fetcher, defaultValue, meta) {
+    return cache.ensure(
+      key,
+      (signal) => AccessStoreLogging.wrap(method, args, fetcher(signal), meta),
+      defaultValue,
     );
   }
 
