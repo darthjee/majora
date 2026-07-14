@@ -1,6 +1,7 @@
 import AccessStorePermissions from '../../../../assets/js/utils/AccessStorePermissions.js';
 import AccessCache from '../../../../assets/js/utils/AccessCache.js';
 import AccessStoreFacade from '../../../../assets/js/utils/AccessStoreFacade.js';
+import MajoraLogger from '../../../../assets/js/utils/MajoraLogger.js';
 
 const PERMISSIONS_DEFAULT = { can_edit: false };
 
@@ -61,6 +62,56 @@ describe('AccessStorePermissions', function() {
 
       expect(gameClient.fetchGamePermissions).toHaveBeenCalledWith('demo', null, jasmine.anything(), ['dm']);
     });
+
+    it('logs the request, real roles, effective roles, and result at debug level', async function() {
+      const debugSpy = spyOn(MajoraLogger, 'debug');
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGamePermissions']);
+      gameClient.fetchGamePermissions.and.returnValue(Promise.resolve(fakeResponse({ can_edit: true })));
+
+      await AccessStorePermissions.ensureGame(cache, gameClient, 'demo', ['player']);
+
+      expect(debugSpy).toHaveBeenCalledWith({
+        method: 'ensureGame',
+        args: ['demo', ['player']],
+        roles: ['player'],
+        effectiveRoles: ['player'],
+        result: { can_edit: true },
+      });
+    });
+
+    it('logs the effective (simulated) roles as distinct from the real roles when the facade is active', async function() {
+      AccessStoreFacade.set(true, ['dm']);
+      const debugSpy = spyOn(MajoraLogger, 'debug');
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGamePermissions']);
+      gameClient.fetchGamePermissions.and.returnValue(Promise.resolve(fakeResponse({ can_edit: true })));
+
+      await AccessStorePermissions.ensureGame(cache, gameClient, 'demo', ['player']);
+
+      expect(debugSpy).toHaveBeenCalledWith({
+        method: 'ensureGame',
+        args: ['demo', ['player']],
+        roles: ['player'],
+        effectiveRoles: ['dm'],
+        result: { can_edit: true },
+      });
+    });
+
+    it('logs the failure at debug level without altering the fail-closed result', async function() {
+      const debugSpy = spyOn(MajoraLogger, 'debug');
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGamePermissions']);
+      gameClient.fetchGamePermissions.and.returnValue(Promise.resolve(fakeResponse(null, false)));
+
+      const result = await AccessStorePermissions.ensureGame(cache, gameClient, 'demo', ['player']);
+
+      expect(result).toEqual(PERMISSIONS_DEFAULT);
+      expect(debugSpy).toHaveBeenCalledWith({
+        method: 'ensureGame',
+        args: ['demo', ['player']],
+        roles: ['player'],
+        effectiveRoles: ['player'],
+        error: jasmine.any(Error),
+      });
+    });
   });
 
   describe('#ensureCharacter / #getCharacter', function() {
@@ -79,6 +130,24 @@ describe('AccessStorePermissions', function() {
     it('returns the fail-closed default for an unrequested key', function() {
       expect(AccessStorePermissions.getCharacter(cache, 'pcs', 'demo', '2', [])).toEqual(PERMISSIONS_DEFAULT);
     });
+
+    it('logs the request, real/effective roles, and result at debug level', async function() {
+      const debugSpy = spyOn(MajoraLogger, 'debug');
+      const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacterPermissions']);
+      characterClient.fetchCharacterPermissions.and.returnValue(
+        Promise.resolve(fakeResponse({ can_edit: true })),
+      );
+
+      await AccessStorePermissions.ensureCharacter(cache, characterClient, 'pcs', 'demo', '2', ['player']);
+
+      expect(debugSpy).toHaveBeenCalledWith({
+        method: 'ensureCharacter',
+        args: ['pcs', 'demo', '2', ['player']],
+        roles: ['player'],
+        effectiveRoles: ['player'],
+        result: { can_edit: true },
+      });
+    });
   });
 
   describe('#ensureTreasure / #getTreasure', function() {
@@ -96,6 +165,24 @@ describe('AccessStorePermissions', function() {
 
     it('returns the fail-closed default for an unrequested key', function() {
       expect(AccessStorePermissions.getTreasure(cache, 1, [])).toEqual(PERMISSIONS_DEFAULT);
+    });
+
+    it('logs the request, real/effective roles, and result at debug level', async function() {
+      const debugSpy = spyOn(MajoraLogger, 'debug');
+      const treasureClient = jasmine.createSpyObj('treasureClient', ['fetchTreasurePermissions']);
+      treasureClient.fetchTreasurePermissions.and.returnValue(
+        Promise.resolve(fakeResponse({ can_edit: true })),
+      );
+
+      await AccessStorePermissions.ensureTreasure(cache, treasureClient, 1, ['player']);
+
+      expect(debugSpy).toHaveBeenCalledWith({
+        method: 'ensureTreasure',
+        args: [1, ['player']],
+        roles: ['player'],
+        effectiveRoles: ['player'],
+        result: { can_edit: true },
+      });
     });
   });
 });

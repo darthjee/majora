@@ -1,4 +1,5 @@
 import AuthStorage from './AuthStorage.js';
+import AccessStoreLogging from './AccessStoreLogging.js';
 
 const SUPERUSER_KEY = 'admin:superuser';
 const STAFF_KEY = 'admin:staff';
@@ -19,8 +20,11 @@ export default class AccessStoreAdmin {
    * @returns {Promise<boolean>} Resolves to true when the user is a superuser.
    */
   static ensureSuperUser(cache, authClient) {
-    return cache.ensure(
+    return AccessStoreAdmin.#loggedEnsure(
+      cache,
       SUPERUSER_KEY,
+      'ensureSuperUser',
+      [],
       (signal) => authClient.status(AuthStorage.getToken(), signal)
         .then((response) => AccessStoreAdmin.#parseStatusResponse(response, (data) => Boolean(data.is_superuser))),
       ADMIN_DEFAULT,
@@ -35,8 +39,11 @@ export default class AccessStoreAdmin {
    * @returns {Promise<boolean>} Resolves to true when the user is staff or a superuser.
    */
   static ensureStaffOrSuperUser(cache, authClient) {
-    return cache.ensure(
+    return AccessStoreAdmin.#loggedEnsure(
+      cache,
       STAFF_KEY,
+      'ensureStaffOrSuperUser',
+      [],
       (signal) => authClient.status(AuthStorage.getToken(), signal).then((response) => AccessStoreAdmin
         .#parseStatusResponse(response, (data) => Boolean(data.is_superuser) || Boolean(data.is_staff))),
       ADMIN_DEFAULT,
@@ -62,6 +69,27 @@ export default class AccessStoreAdmin {
    */
   static isStaffOrSuperUser(cache) {
     return cache.read(STAFF_KEY, ADMIN_DEFAULT);
+  }
+
+  /**
+   * Run `cache.ensure` for an `ensure*` check, wrapping the fetcher's raw
+   * promise with {@link AccessStoreLogging.wrap} so its outcome is observable
+   * at `debug` level.
+   *
+   * @param {import('./AccessCache.js').default} cache - Shared cache instance.
+   * @param {string} key - Cache key.
+   * @param {string} method - Name of the calling `ensure*` method (e.g. `'ensureSuperUser'`).
+   * @param {Array} args - Arguments the calling method was called with.
+   * @param {Function} fetcher - Called with an `AbortSignal`; must return a `Promise`.
+   * @param {*} defaultValue - Value resolved when the fetcher rejects (fail-closed).
+   * @returns {Promise<*>} Resolves to the cached, freshly-fetched, or default value.
+   */
+  static #loggedEnsure(cache, key, method, args, fetcher, defaultValue) {
+    return cache.ensure(
+      key,
+      (signal) => AccessStoreLogging.wrap(method, args, fetcher(signal)),
+      defaultValue,
+    );
   }
 
   static #parseStatusResponse(response, extract) {

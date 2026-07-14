@@ -1,5 +1,6 @@
 import AccessStoreAdmin from '../../../../assets/js/utils/AccessStoreAdmin.js';
 import AccessCache from '../../../../assets/js/utils/AccessCache.js';
+import MajoraLogger from '../../../../assets/js/utils/MajoraLogger.js';
 
 /**
  * @description Builds a fake `Response`-shaped object for mocking the status endpoint.
@@ -45,6 +46,25 @@ describe('AccessStoreAdmin', function() {
 
       expect(result).toBe(false);
     });
+
+    it('logs the request and result at debug level via MajoraLogger', async function() {
+      const debugSpy = spyOn(MajoraLogger, 'debug');
+      authClient.status.and.returnValue(Promise.resolve(fakeResponse({ is_superuser: true })));
+
+      await AccessStoreAdmin.ensureSuperUser(cache, authClient);
+
+      expect(debugSpy).toHaveBeenCalledWith({ method: 'ensureSuperUser', args: [], result: true });
+    });
+
+    it('logs the failure at debug level without altering the fail-closed result', async function() {
+      const debugSpy = spyOn(MajoraLogger, 'debug');
+      authClient.status.and.returnValue(Promise.reject(new Error('network error')));
+
+      const result = await AccessStoreAdmin.ensureSuperUser(cache, authClient);
+
+      expect(result).toBe(false);
+      expect(debugSpy).toHaveBeenCalledWith({ method: 'ensureSuperUser', args: [], error: jasmine.any(Error) });
+    });
   });
 
   describe('#ensureStaffOrSuperUser', function() {
@@ -67,6 +87,17 @@ describe('AccessStoreAdmin', function() {
       const result = await AccessStoreAdmin.ensureStaffOrSuperUser(cache, authClient);
 
       expect(result).toBe(false);
+    });
+
+    it('logs the request and result at debug level via MajoraLogger', async function() {
+      const debugSpy = spyOn(MajoraLogger, 'debug');
+      authClient.status.and.returnValue(
+        Promise.resolve(fakeResponse({ is_superuser: false, is_staff: true })),
+      );
+
+      await AccessStoreAdmin.ensureStaffOrSuperUser(cache, authClient);
+
+      expect(debugSpy).toHaveBeenCalledWith({ method: 'ensureStaffOrSuperUser', args: [], result: true });
     });
   });
 

@@ -1,6 +1,8 @@
 /**
  * Node.js loader for Jasmine tests.
- * Transforms JSX modules with Babel and stubs CSS imports.
+ * Transforms JSX modules with Babel, stubs CSS imports, and shims
+ * `import.meta.env` (which Vite populates at build/dev time, but plain
+ * Node never does) from `process.env` for modules that read it.
  */
 
 import { transformSync } from '@babel/core';
@@ -89,6 +91,20 @@ export async function load(url, context, nextLoad) {
       source: `export default '${filename}';`,
       shortCircuit: true,
     };
+  }
+  const [bareUrl] = url.split('?');
+  if (bareUrl.endsWith('.js') && !bareUrl.includes('/node_modules/')) {
+    const filePath = fileURLToPath(bareUrl);
+    const source = readFileSync(filePath, 'utf-8');
+    if (source.includes('import.meta.env')) {
+      // Vite statically replaces `import.meta.env.VITE_*` at build/dev time; plain Node never
+      // populates `import.meta.env`, so shim it from `process.env` before the module's own code runs.
+      return {
+        format: 'module',
+        source: `import.meta.env = import.meta.env ?? { ...process.env };\n${source}`,
+        shortCircuit: true,
+      };
+    }
   }
   return nextLoad(url, context);
 }
