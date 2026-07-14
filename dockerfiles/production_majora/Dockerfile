@@ -5,7 +5,7 @@ FROM darthjee/production_majora-base:latest as base
 
 FROM base as builder
 
-COPY --chown=app:app ./source/ /home/app/app/
+COPY --chown=app:app ./backend/ /home/app/app/
 
 ENV HOME_DIR /home/app
 

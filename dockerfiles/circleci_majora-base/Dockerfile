@@ -10,7 +10,7 @@ USER circleci
 FROM base as builder
 
 COPY --chown=circleci:circleci \
-  ./source/pyproject.toml ./source/poetry.lock* \
+  ./backend/pyproject.toml ./backend/poetry.lock* \
   /home/circleci/project
 
 ENV HOME_DIR /home/circleci

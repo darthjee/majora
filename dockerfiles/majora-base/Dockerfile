@@ -8,7 +8,7 @@ CMD ["bin/server.sh"]
 FROM base as builder
 
 COPY --chown=app:app \
-  ./source/pyproject.toml ./source/poetry.lock* \
+  ./backend/pyproject.toml ./backend/poetry.lock* \
   /home/app/app/
 
 ENV HOME_DIR /home/app
