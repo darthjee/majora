@@ -16,13 +16,14 @@ KINDS.forEach(({ label, Helper, kind, namespace }) => {
       { id: 2, path: `photos/${kind}/7/b.jpg` },
     ];
     const pagination = { page: 1, pages: 2, perPage: 10 };
-    const handlers = { onOpenUploadModal: Noop.noop, onSelectPhoto: Noop.noop };
+    const handlers = { onOpenUploadModal: Noop.noop, onSelectPhoto: Noop.noop, onSetProfilePhoto: Noop.noop };
 
     describe('.render', function() {
       it('renders each photo', function() {
         const html = renderToStaticMarkup(
           Helper.render(
-            photos, pagination, `#/games/demo/${kind}/7/photos`, `#/games/demo/${kind}/7`, false, 'Aragorn', handlers,
+            photos, pagination, `#/games/demo/${kind}/7/photos`, `#/games/demo/${kind}/7`, false, 'Aragorn', null,
+            handlers,
           )
         );
         expect(html).toContain(`photos/${kind}/7/a.jpg`);
@@ -32,7 +33,8 @@ KINDS.forEach(({ label, Helper, kind, namespace }) => {
       it('renders a back button to the parent character page', function() {
         const html = renderToStaticMarkup(
           Helper.render(
-            photos, pagination, `#/games/demo/${kind}/7/photos`, `#/games/demo/${kind}/7`, false, 'Aragorn', handlers,
+            photos, pagination, `#/games/demo/${kind}/7/photos`, `#/games/demo/${kind}/7`, false, 'Aragorn', null,
+            handlers,
           )
         );
         expect(html).toContain(`href="#/games/demo/${kind}/7"`);
@@ -41,7 +43,8 @@ KINDS.forEach(({ label, Helper, kind, namespace }) => {
       it('renders pagination', function() {
         const html = renderToStaticMarkup(
           Helper.render(
-            photos, pagination, `#/games/demo/${kind}/7/photos`, `#/games/demo/${kind}/7`, false, 'Aragorn', handlers,
+            photos, pagination, `#/games/demo/${kind}/7/photos`, `#/games/demo/${kind}/7`, false, 'Aragorn', null,
+            handlers,
           )
         );
         expect(html).toContain('pagination');
@@ -50,7 +53,8 @@ KINDS.forEach(({ label, Helper, kind, namespace }) => {
       it('renders the upload button when canEdit is true', function() {
         const html = renderToStaticMarkup(
           Helper.render(
-            photos, pagination, `#/games/demo/${kind}/7/photos`, `#/games/demo/${kind}/7`, true, 'Aragorn', handlers,
+            photos, pagination, `#/games/demo/${kind}/7/photos`, `#/games/demo/${kind}/7`, true, 'Aragorn', null,
+            handlers,
           )
         );
         expect(html).toContain('bi-camera-fill');
@@ -61,10 +65,31 @@ KINDS.forEach(({ label, Helper, kind, namespace }) => {
       it('does not render the upload button when canEdit is false', function() {
         const html = renderToStaticMarkup(
           Helper.render(
-            photos, pagination, `#/games/demo/${kind}/7/photos`, `#/games/demo/${kind}/7`, false, 'Aragorn', handlers,
+            photos, pagination, `#/games/demo/${kind}/7/photos`, `#/games/demo/${kind}/7`, false, 'Aragorn', null,
+            handlers,
           )
         );
         expect(html).not.toContain('bi-camera-fill');
+      });
+
+      it('renders the mark-as-profile action bar button for non-profile photos when canEdit is true', function() {
+        const html = renderToStaticMarkup(
+          Helper.render(
+            photos, pagination, `#/games/demo/${kind}/7/photos`, `#/games/demo/${kind}/7`, true, 'Aragorn', 1,
+            handlers,
+          )
+        );
+        expect((html.match(/bi-postage-fill/g) || []).length).toBe(1);
+      });
+
+      it('does not render the mark-as-profile action bar button when canEdit is false', function() {
+        const html = renderToStaticMarkup(
+          Helper.render(
+            photos, pagination, `#/games/demo/${kind}/7/photos`, `#/games/demo/${kind}/7`, false, 'Aragorn', null,
+            handlers,
+          )
+        );
+        expect(html).not.toContain('bi-postage-fill');
       });
     });
 
