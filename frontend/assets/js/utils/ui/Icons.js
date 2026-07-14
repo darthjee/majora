@@ -23,4 +23,5 @@ export default {
   lightningCharge: 'bi-lightning-charge',
   lightningChargeFill: 'bi-lightning-charge-fill',
   hourglassSplit: 'bi-hourglass-split',
+  postage: 'bi-postage-fill',
 };

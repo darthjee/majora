@@ -35,12 +35,16 @@ export default class BaseCharacterPhotosHelper {
    * @param {number} pagination.perPage - Items per page.
    * @param {string} basePath - Base hash path used for pagination links.
    * @param {string} backHref - Hash path to the parent character page.
-   * @param {boolean} canEdit - Whether the current user can upload photos.
+   * @param {boolean} canEdit - Whether the current user can upload photos and mark one
+   *   of them as the character's profile photo.
    * @param {string} alt - Alt text applied to each photo image.
-   * @param {{onOpenUploadModal: Function, onSelectPhoto: Function}} handlers - Event handlers.
+   * @param {number|null} profilePhotoId - Id of the character's current profile photo,
+   *   or null/undefined when none is set.
+   * @param {{onOpenUploadModal: Function, onSelectPhoto: Function, onSetProfilePhoto: Function}} handlers - Event
+   *   handlers.
    * @returns {React.ReactElement} Photos list with pagination.
    */
-  render(photos, pagination, basePath, backHref, canEdit, alt, handlers) {
+  render(photos, pagination, basePath, backHref, canEdit, alt, profilePhotoId, handlers) {
     const { i18nNamespace } = this;
 
     return (
@@ -51,7 +55,15 @@ export default class BaseCharacterPhotosHelper {
         <h1 className="mb-4">{Translator.t(`${i18nNamespace}.title`)}</h1>
         <div className="row">
           {photos.map((photo) => (
-            <PhotoCard key={photo.id} photo={photo} alt={alt} onClick={handlers.onSelectPhoto} />
+            <PhotoCard
+              key={photo.id}
+              photo={photo}
+              alt={alt}
+              onClick={handlers.onSelectPhoto}
+              canSetProfilePhoto={canEdit}
+              isProfilePhoto={photo.id === profilePhotoId}
+              onSetProfilePhoto={handlers.onSetProfilePhoto}
+            />
           ))}
         </div>
         <Pagination
