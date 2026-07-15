@@ -220,6 +220,7 @@ staff_user_edit_page:
 my_account_page:
   title: My Account
   loading: Loading account...
+  avatar_alt: User avatar
   name_label: Name
   email_label: Email
   password_label: Password

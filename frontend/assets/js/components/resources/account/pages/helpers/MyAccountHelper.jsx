@@ -1,4 +1,5 @@
 import React from 'react';
+import Avatar from '../../../../common/Avatar.jsx';
 import FormField from '../../../../common/FormField.jsx';
 import ErrorAlert from '../../../../common/ErrorAlert.jsx';
 import LoadingMessage from '../../../../common/LoadingMessage.jsx';
@@ -12,8 +13,8 @@ export default class MyAccountHelper {
   /**
    * Render the account edit form.
    *
-   * @param {{name: string, email: string, password: string, passwordConfirmation: string,
-   *   status: string, fieldErrors: object}} formState - Form state.
+   * @param {{name: string, email: string, avatarUrl: string|null, password: string,
+   *   passwordConfirmation: string, status: string, fieldErrors: object}} formState - Form state.
    * @param {{onSubmit: Function, onNameChange: Function, onEmailChange: Function,
    *   onPasswordChange: Function, onPasswordConfirmationChange: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered account page.
@@ -21,6 +22,7 @@ export default class MyAccountHelper {
   static render(formState, handlers) {
     return (
       <div className="container mt-4">
+        <Avatar url={formState.avatarUrl} alt={Translator.t('my_account_page.avatar_alt')} />
         <h1>{Translator.t('my_account_page.title')}</h1>
         {MyAccountHelper.#renderError(formState)}
         <form onSubmit={handlers.onSubmit}>

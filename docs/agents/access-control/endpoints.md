@@ -52,4 +52,4 @@ success/failure. They are listed here for completeness.
 | `/users/recover.json` | POST | Anyone |
 | `/users/reset-password.json` | POST | Anyone (requires valid reset token) |
 | `/users/language.json` | POST | Authenticated |
-| `/users/account.json` | GET/PATCH | Authenticated; always scoped to the requesting user, never a different user id |
+| `/users/account.json` | GET/PATCH | Authenticated; always scoped to the requesting user, never a different user id. Exposed fields: `name`, `email`, `avatar_url` (Gravatar URL derived from a SHA-256 hash of the requester's own, trimmed/lowercased email; `null` when the user has no email; never derived from or returned for any other user) |
