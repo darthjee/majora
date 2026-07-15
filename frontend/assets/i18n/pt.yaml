@@ -323,6 +323,8 @@ game_polls_page:
   new_poll: Nova Enquete
   empty: Nenhuma enquete ainda.
   filter_status_label: Status
+  filter_query: Filtrar
+  filter_clear: Limpar
   status_open: Aberta
   status_inactive: Inativa
   status_closed: Encerrada

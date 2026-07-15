@@ -323,6 +323,8 @@ game_polls_page:
   new_poll: New Poll
   empty: No polls yet.
   filter_status_label: Status
+  filter_query: Query
+  filter_clear: Clear
   status_open: Open
   status_inactive: Inactive
   status_closed: Closed
