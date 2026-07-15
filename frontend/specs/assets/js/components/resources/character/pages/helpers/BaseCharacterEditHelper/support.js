@@ -15,9 +15,11 @@ export const buildHandlers = () => ({
   onOpenMoneyModal: jasmine.createSpy('onOpenMoneyModal'),
   onAllegianceChange: jasmine.createSpy('onAllegianceChange'),
   onPublicAllegianceChange: jasmine.createSpy('onPublicAllegianceChange'),
+  onPublicSlainChange: jasmine.createSpy('onPublicSlainChange'),
 });
 
 export const buildState = (overrides = {}) => ({
+  isFullEditor: true,
   name: 'Test Character',
   profile_photo_path: null,
   links: [],
@@ -27,6 +29,7 @@ export const buildState = (overrides = {}) => ({
   money: '0',
   allegiance: 'neutral',
   publicAllegiance: 'neutral',
+  publicSlain: false,
   status: 'idle',
   fieldErrors: {},
   ...overrides,

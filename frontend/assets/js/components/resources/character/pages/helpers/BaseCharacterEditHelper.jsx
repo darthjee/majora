@@ -32,10 +32,12 @@ export default class BaseCharacterEditHelper {
    *
    * @description `state.links` may include entries marked `delete: true` (kept so the
    *   "Edit links" modal can restore them); those are filtered out of the visible
-   *   `LinkList` here.
-   * @param {{name: string, profile_photo_path: string|null, links: object[],
-   *   role: string, description: string, privateDescription: string, money: string,
-   *   allegiance: string, publicAllegiance: string,
+   *   `LinkList` here. `name`, `role`, `money`, and `private_description` are dm/admin-only
+   *   (`state.isFullEditor`); `public_description`, `links`, allegiance, and the slain toggle
+   *   are visible/editable regardless of editor kind.
+   * @param {{isFullEditor: boolean, name: string, profile_photo_path: string|null,
+   *   links: object[], role: string, description: string, privateDescription: string,
+   *   money: string, allegiance: string, publicAllegiance: string, publicSlain: boolean,
    *   status: string, fieldErrors: object}} state - page state.
    * @param {{onSubmit: Function, onNameChange: Function,
    *   onRoleChange: Function,
@@ -43,7 +45,8 @@ export default class BaseCharacterEditHelper {
    *   onMoneyChange: Function, onOpenUploadModal: Function, onOpenLinksModal: Function,
    *   onOpenMoneyModal: Function,
    *   onAllegianceChange: Function,
-   *   onPublicAllegianceChange: Function}} handlers - event handlers.
+   *   onPublicAllegianceChange: Function,
+   *   onPublicSlainChange: Function}} handlers - event handlers.
    * @returns {React.ReactElement} rendered edit page.
    */
   render(state, handlers) {
@@ -63,14 +66,7 @@ export default class BaseCharacterEditHelper {
                 canEdit
                 onClick={handlers.onOpenUploadModal}
               />
-              <FormField
-                id={`${idPrefix}-edit-name`}
-                type="text"
-                label={Translator.t(`${i18nNamespace}.name_label`)}
-                value={state.name}
-                onChange={handlers.onNameChange}
-                errors={state.fieldErrors.name ?? []}
-              />
+              {this.#renderNameField(state, handlers)}
               <LinkList links={state.links.filter((link) => !link.delete)} />
               <button
                 type="button"
@@ -79,29 +75,12 @@ export default class BaseCharacterEditHelper {
               >
                 {Translator.t(`${i18nNamespace}.edit_links_button`)}
               </button>
-              <div className="mb-3">
-                <label className="form-label">{Translator.t(`${i18nNamespace}.money_label`)}</label>
-                <CharacterMoney money={Number(state.money) || 0} />
-                <button
-                  type="button"
-                  className="btn btn-outline-secondary btn-sm"
-                  onClick={handlers.onOpenMoneyModal}
-                >
-                  {Translator.t(`${i18nNamespace}.edit_money_button`)}
-                </button>
-                <FieldErrors errors={state.fieldErrors.money ?? []} />
-              </div>
+              {this.#renderMoneyField(state, handlers)}
               {this.#renderAllegianceFields(state, handlers)}
+              {this.#renderSlainField(state, handlers)}
             </div>
             <div className="col-md-8">
-              <FormField
-                id={`${idPrefix}-edit-role`}
-                type="text"
-                label={Translator.t(`${i18nNamespace}.role_label`)}
-                value={state.role}
-                onChange={handlers.onRoleChange}
-                errors={state.fieldErrors.role ?? []}
-              />
+              {this.#renderRoleField(state, handlers)}
               <TextareaField
                 id={`${idPrefix}-edit-description`}
                 label={Translator.t(`${i18nNamespace}.description_label`)}
@@ -109,13 +88,7 @@ export default class BaseCharacterEditHelper {
                 onChange={handlers.onDescriptionChange}
                 errors={state.fieldErrors.public_description ?? []}
               />
-              <TextareaField
-                id={`${idPrefix}-edit-private-description`}
-                label={Translator.t(`${i18nNamespace}.private_description_label`)}
-                value={state.privateDescription}
-                onChange={handlers.onPrivateDescriptionChange}
-                errors={state.fieldErrors.private_description ?? []}
-              />
+              {this.#renderPrivateDescriptionField(state, handlers)}
               <button className="btn btn-primary" type="submit" disabled={state.status === 'submitting'}>
                 {Translator.t(`${i18nNamespace}.submit`)}
               </button>
@@ -183,6 +156,108 @@ export default class BaseCharacterEditHelper {
           </select>
         </div>
       </>
+    );
+  }
+
+  #renderNameField(state, handlers) {
+    if (!state.isFullEditor) {
+      return null;
+    }
+
+    const { idPrefix, i18nNamespace } = this;
+
+    return (
+      <FormField
+        id={`${idPrefix}-edit-name`}
+        type="text"
+        label={Translator.t(`${i18nNamespace}.name_label`)}
+        value={state.name}
+        onChange={handlers.onNameChange}
+        errors={state.fieldErrors.name ?? []}
+      />
+    );
+  }
+
+  #renderRoleField(state, handlers) {
+    if (!state.isFullEditor) {
+      return null;
+    }
+
+    const { idPrefix, i18nNamespace } = this;
+
+    return (
+      <FormField
+        id={`${idPrefix}-edit-role`}
+        type="text"
+        label={Translator.t(`${i18nNamespace}.role_label`)}
+        value={state.role}
+        onChange={handlers.onRoleChange}
+        errors={state.fieldErrors.role ?? []}
+      />
+    );
+  }
+
+  #renderPrivateDescriptionField(state, handlers) {
+    if (!state.isFullEditor) {
+      return null;
+    }
+
+    const { idPrefix, i18nNamespace } = this;
+
+    return (
+      <TextareaField
+        id={`${idPrefix}-edit-private-description`}
+        label={Translator.t(`${i18nNamespace}.private_description_label`)}
+        value={state.privateDescription}
+        onChange={handlers.onPrivateDescriptionChange}
+        errors={state.fieldErrors.private_description ?? []}
+      />
+    );
+  }
+
+  #renderMoneyField(state, handlers) {
+    if (!state.isFullEditor) {
+      return null;
+    }
+
+    const { i18nNamespace } = this;
+
+    return (
+      <div className="mb-3">
+        <label className="form-label">{Translator.t(`${i18nNamespace}.money_label`)}</label>
+        <CharacterMoney money={Number(state.money) || 0} />
+        <button
+          type="button"
+          className="btn btn-outline-secondary btn-sm"
+          onClick={handlers.onOpenMoneyModal}
+        >
+          {Translator.t(`${i18nNamespace}.edit_money_button`)}
+        </button>
+        <FieldErrors errors={state.fieldErrors.money ?? []} />
+      </div>
+    );
+  }
+
+  #renderSlainField(state, handlers) {
+    if (this.idPrefix !== 'npc') {
+      return null;
+    }
+
+    const { idPrefix } = this;
+
+    return (
+      <div className="form-check mb-3">
+        <input
+          id={`${idPrefix}-edit-public-slain`}
+          type="checkbox"
+          className="form-check-input"
+          checked={state.publicSlain}
+          onChange={handlers.onPublicSlainChange}
+        />
+        <label htmlFor={`${idPrefix}-edit-public-slain`} className="form-check-label">
+          {Translator.t('character_status_badges.public_slain')}
+        </label>
+      </div>
     );
   }
 }

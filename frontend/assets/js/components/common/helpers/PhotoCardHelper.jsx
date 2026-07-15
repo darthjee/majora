@@ -31,6 +31,8 @@ export default class PhotoCardHelper {
    * @returns {React.ReactElement} Photo card element.
    */
   static render(photo, alt, onClick, canSetProfilePhoto = false, isProfilePhoto = false, onSetProfilePhoto = Noop.noop) {
+    const cardClassName = isProfilePhoto ? 'card h-100 border border-success' : 'card h-100';
+
     return (
       <div className="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">
         <div className="actions-overlay">
@@ -39,7 +41,7 @@ export default class PhotoCardHelper {
             className="btn p-0 border-0 bg-transparent text-decoration-none text-dark w-100"
             onClick={() => onClick(photo)}
           >
-            <div className="card h-100">
+            <div className={cardClassName}>
               <CardPhoto url={photo.path} alt={alt} />
             </div>
           </button>

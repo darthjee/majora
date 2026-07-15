@@ -1,7 +1,9 @@
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import { KINDS } from './support.js';
 
-KINDS.forEach(({ label, Controller, kind, name, role, description, allegiance, publicAllegiance }) => {
+KINDS.forEach(({
+  label, Controller, kind, name, role, description, allegiance, publicAllegiance, publicSlain,
+}) => {
   describe(`${label}#submitForm`, function() {
     let setCharacter;
     let setLoading;
@@ -22,7 +24,9 @@ KINDS.forEach(({ label, Controller, kind, name, role, description, allegiance, p
       setFieldErrors = jasmine.createSpy('setFieldErrors');
       setStatus = jasmine.createSpy('setStatus');
       client = jasmine.createSpyObj('client', ['currentHash']);
-      characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacter', 'updateCharacter']);
+      characterClient = jasmine.createSpyObj(
+        'characterClient', ['fetchCharacter', 'updateCharacter', 'updateNpcAsPlayer'],
+      );
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
       characterClient.updateCharacter.and.returnValue(Promise.resolve({
         ok: true,
@@ -59,6 +63,7 @@ KINDS.forEach(({ label, Controller, kind, name, role, description, allegiance, p
             money: '310',
             allegiance,
             publicAllegiance,
+            publicSlain,
             links,
           },
           { setStatus, setFieldErrors },
@@ -82,6 +87,7 @@ KINDS.forEach(({ label, Controller, kind, name, role, description, allegiance, p
         if (kind === 'npcs') {
           expectedFields.allegiance = allegiance;
           expectedFields.public_allegiance = publicAllegiance;
+          expectedFields.public_slain = publicSlain;
         }
 
         expect(characterClient.updateCharacter).toHaveBeenCalledWith(

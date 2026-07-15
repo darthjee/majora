@@ -10,7 +10,7 @@ roles, flags, etc.) is preserved by passing overrides at the call site.
 import factory
 from django.contrib.auth.models import User
 
-from games.models import Character, Game, GameMaster, Player, Treasure
+from games.models import Character, Game, GameMaster, Player, Poll, PollOption, PollVote, Treasure
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -100,3 +100,46 @@ class TreasureFactory(factory.django.DjangoModelFactory):
     name = 'Test Treasure'
     value = 100
     hidden = False
+
+
+class PollFactory(factory.django.DjangoModelFactory):
+    """Factory for Poll."""
+
+    class Meta:
+        """Factory configuration."""
+
+        model = Poll
+
+    game = factory.SubFactory(GameFactory)
+    type = Poll.TYPE_SINGLE
+    status = Poll.STATUS_OPEN
+
+
+class PollOptionFactory(factory.django.DjangoModelFactory):
+    """Factory for PollOption."""
+
+    class Meta:
+        """Factory configuration."""
+
+        model = PollOption
+
+    poll = factory.SubFactory(PollFactory)
+    option = 'Test Option'
+
+
+class PollVoteFactory(factory.django.DjangoModelFactory):
+    """Factory for PollVote.
+
+    `player` and `option` are independent sub-factories with no shared game by
+    default, so `PollVote.clean()`'s game-membership check will fail unless the
+    caller explicitly adds the player to the poll's game (e.g.
+    `player.games.add(poll.game)`) before building a valid vote.
+    """
+
+    class Meta:
+        """Factory configuration."""
+
+        model = PollVote
+
+    player = factory.SubFactory(PlayerFactory)
+    option = factory.SubFactory(PollOptionFactory)

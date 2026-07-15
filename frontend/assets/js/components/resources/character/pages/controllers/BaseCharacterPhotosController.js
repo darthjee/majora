@@ -3,7 +3,6 @@ import CharacterClient from '../../../../../client/CharacterClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/controllers/BasePageController.js';
-import Noop from '../../../../../utils/Noop.js';
 
 /**
  * Base controller for character photos index pages (PC and NPC).
@@ -81,15 +80,15 @@ export default class BaseCharacterPhotosController extends BasePageController {
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {string|number} characterId - Character id.
    * @param {string|number} photoId - Id of the photo to mark as profile photo.
-   * @returns {Promise<void>} Resolves once the update (and character refresh) settle.
+   * @returns {Promise<void>} Resolves once the update (and character refresh) settle,
+   *   rejects when the update request itself fails.
    */
   setProfilePhoto(gameSlug, characterId, photoId) {
     const token = AuthStorage.getToken();
     const safeSet = (setter, value) => setter(value);
 
     return this.characterClient.setPhotoRoles(this.characterKind, gameSlug, characterId, photoId, token, ['profile'])
-      .then(() => this.#fetchCharacter(gameSlug, characterId, safeSet))
-      .catch(Noop.noop);
+      .then(() => this.#fetchCharacter(gameSlug, characterId, safeSet));
   }
 
   #fetchPhotos(gameSlug, characterId, safeSet) {

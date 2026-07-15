@@ -16,7 +16,7 @@ from games.serializers.characters.character_permissions import CharacterPermissi
 from games.serializers.characters.character_photo import CharacterPhotoSerializer
 from games.serializers.characters.character_treasure import CharacterTreasureSerializer
 from games.serializers.characters.character_update import CharacterUpdateSerializer
-from games.serializers.characters.npcs.npc_slain_update import NpcSlainUpdateSerializer
+from games.serializers.characters.npcs.npc_player_update import NpcPlayerUpdateSerializer
 from games.serializers.characters.pcs.pc_access import PcAccessSerializer
 from games.serializers.games.game_access import GameAccessSerializer
 from games.serializers.games.game_create import GameCreateSerializer
@@ -80,7 +80,7 @@ __all__ = [
     'LinkSerializer',
     'MyAccountDetailSerializer',
     'MyAccountUpdateSerializer',
-    'NpcSlainUpdateSerializer',
+    'NpcPlayerUpdateSerializer',
     'PcAccessSerializer',
     'PhotoUploadSerializer',
     'StaffUserDetailSerializer',
