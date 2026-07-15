@@ -185,6 +185,7 @@ treasure_new_page:
   title: New Treasure
   name_label: Name
   value_label: Value
+  game_type_label: Currency type
   submit: Create Treasure
   error: Failed to create treasure. Please try again.
 treasure_edit_page:
@@ -383,3 +384,5 @@ money:
   gp_abbreviation: GP
   sp_abbreviation: SP
   cp_abbreviation: CP
+  cents_abbreviation: Cents
+  dollars_abbreviation: Dollars

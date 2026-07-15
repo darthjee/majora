@@ -14,10 +14,11 @@ export default function GameTreasureNew() {
   const [status, setStatus] = useState('idle');
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
+  const [gameType, setGameType] = useState('dnd');
   const [showValueModal, setShowValueModal] = useState(false);
 
   const controller = useMemo(
-    () => new GameTreasureNewController(Noop.noop, setFieldErrors),
+    () => new GameTreasureNewController(Noop.noop, setFieldErrors, null, setGameType),
     [],
   );
 
@@ -36,7 +37,9 @@ export default function GameTreasureNew() {
   return (
     <>
       {GameTreasureNewHelper.render(
-        { name, value, status, fieldErrors },
+        {
+          name, value, gameType, status, fieldErrors,
+        },
         {
           onSubmit: handleSubmit,
           onNameChange: (event) => setName(event.target.value),
@@ -47,6 +50,7 @@ export default function GameTreasureNew() {
         show={showValueModal}
         money={value}
         context="treasure"
+        gameType={gameType}
         onClose={() => setShowValueModal(false)}
         onConfirm={(newTotal) => {
           setValue(String(newTotal));

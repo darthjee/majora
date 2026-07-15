@@ -185,6 +185,7 @@ treasure_new_page:
   title: Novo Tesouro
   name_label: Nome
   value_label: Valor
+  game_type_label: Tipo de moeda
   submit: Criar Tesouro
   error: Falha ao criar tesouro. Tente novamente.
 treasure_edit_page:
@@ -383,3 +384,5 @@ money:
   gp_abbreviation: PO
   sp_abbreviation: PP
   cp_abbreviation: PC
+  cents_abbreviation: Centavos
+  dollars_abbreviation: Dólares

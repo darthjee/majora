@@ -14,6 +14,11 @@ describe('MoneyEditModalController', function() {
     it('returns only cp/sp/gp for the treasure context', function() {
       expect(MoneyEditModalController.denominationKeys('treasure')).toEqual(['cp', 'sp', 'gp']);
     });
+
+    it('returns cents/dollars for the deadlands game type, regardless of context', function() {
+      expect(MoneyEditModalController.denominationKeys('character', 'deadlands')).toEqual(['cents', 'dollars']);
+      expect(MoneyEditModalController.denominationKeys('treasure', 'deadlands')).toEqual(['cents', 'dollars']);
+    });
   });
 
   describe('.seedBreakdown', function() {
@@ -53,6 +58,16 @@ describe('MoneyEditModalController', function() {
 
     it('returns a zeroed cp/sp/gp breakdown for a treasure money value of 0', function() {
       expect(MoneyEditModalController.seedBreakdown(0, 'treasure')).toEqual({ cp: 0, sp: 0, gp: 0 });
+    });
+
+    it('returns a dense cents/dollars breakdown for the deadlands game type', function() {
+      expect(MoneyEditModalController.seedBreakdown(350, 'character', 'deadlands'))
+        .toEqual({ cents: 50, dollars: 3 });
+    });
+
+    it('returns a zeroed cents/dollars breakdown for a deadlands money value of 0', function() {
+      expect(MoneyEditModalController.seedBreakdown(0, 'character', 'deadlands'))
+        .toEqual({ cents: 0, dollars: 0 });
     });
   });
 
@@ -124,6 +139,14 @@ describe('MoneyEditModalController', function() {
 
       expect(MoneyEditModalController.canConfirm(breakdown, 'treasure')).toBe(false);
     });
+
+    it('is true for a deadlands breakdown with non-negative integer cents/dollars', function() {
+      expect(MoneyEditModalController.canConfirm({ cents: 50, dollars: 3 }, 'character', 'deadlands')).toBe(true);
+    });
+
+    it('is false for a deadlands breakdown with a negative denomination', function() {
+      expect(MoneyEditModalController.canConfirm({ cents: -1, dollars: 3 }, 'character', 'deadlands')).toBe(false);
+    });
   });
 
   describe('.computeTotal', function() {
@@ -151,6 +174,18 @@ describe('MoneyEditModalController', function() {
       const breakdown = MoneyEditModalController.seedBreakdown(332, 'treasure');
 
       expect(MoneyEditModalController.computeTotal(breakdown, 'treasure')).toBe(332);
+    });
+
+    it('sums cents and dollars for the deadlands game type', function() {
+      const breakdown = { cents: 50, dollars: 3 };
+
+      expect(MoneyEditModalController.computeTotal(breakdown, 'character', 'deadlands')).toBe(350);
+    });
+
+    it('round-trips with .seedBreakdown for the deadlands game type', function() {
+      const breakdown = MoneyEditModalController.seedBreakdown(350, 'character', 'deadlands');
+
+      expect(MoneyEditModalController.computeTotal(breakdown, 'character', 'deadlands')).toBe(350);
     });
   });
 });

@@ -54,6 +54,31 @@ describe('TreasureNew', function() {
       expect(capturedContext).toBe('treasure');
     });
 
+    it('defaults the value modal gameType to dnd', function() {
+      let capturedGameType;
+      spyOn(MoneyEditModalHelper, 'render').and.callFake((show, state, handlers, context, gameType) => {
+        capturedGameType = gameType;
+        return null;
+      });
+
+      renderToStaticMarkup(React.createElement(TreasureNew));
+
+      expect(capturedGameType).toBe('dnd');
+    });
+
+    it('exposes a gameType change handler without throwing', function() {
+      let capturedFormHandlers;
+      spyOn(TreasureNewHelper, 'render').and.callFake((state, handlers) => {
+        capturedFormHandlers = handlers;
+        return null;
+      });
+      spyOn(MoneyEditModalHelper, 'render').and.returnValue(null);
+
+      renderToStaticMarkup(React.createElement(TreasureNew));
+
+      expect(() => capturedFormHandlers.onGameTypeChange({ target: { value: 'deadlands' } })).not.toThrow();
+    });
+
     it('opens the value modal via onOpenValueModal without throwing', function() {
       let capturedHandlers;
       spyOn(TreasureNewHelper, 'render').and.callFake((state, handlers) => {

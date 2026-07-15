@@ -57,5 +57,20 @@ describe('CharacterTreasuresPreviewHelper', function() {
       expect(html).toContain('Treasures');
       expect(html).toContain(`href="${seeAllHref}"`);
     });
+
+    it('renders each card value using the given gameType', function() {
+      const treasures = [{
+        id: 1, treasure_id: 101, name: 'Treasure 1', quantity: 1, value: 350, photo_path: null,
+      }];
+      const html = renderToStaticMarkup(
+        CharacterTreasuresPreviewHelper.render(treasures, title, seeAllHref, 'deadlands')
+      );
+      expect(html).toContain('3 Dollars and 50 Cents');
+    });
+
+    it('defaults gameType to dnd when not given', function() {
+      const html = renderToStaticMarkup(CharacterTreasuresPreviewHelper.render(buildTreasures(1), title, seeAllHref));
+      expect(html).toContain('1 SP');
+    });
   });
 });

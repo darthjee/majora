@@ -53,6 +53,13 @@ describe('TreasureExchangeModal', function() {
     expect(state.quantity).toBe(1);
     expect(state.submitting).toBe(false);
     expect(state.actionError).toBe('');
+    expect(state.gameType).toBe('dnd');
+  });
+
+  it('forwards the gameType prop to the helper', function() {
+    const { state } = renderModal({ gameType: 'deadlands' });
+
+    expect(state.gameType).toBe('deadlands');
   });
 
   it('builds ownedByTreasureId from the ownedTreasures prop', function() {

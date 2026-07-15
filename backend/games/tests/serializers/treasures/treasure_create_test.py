@@ -2,6 +2,7 @@
 
 import pytest
 
+from games.models import Game
 from games.serializers import TreasureCreateSerializer
 
 
@@ -55,3 +56,19 @@ class TestTreasureCreateSerializer:
         assert serializer.is_valid()
         treasure = serializer.save()
         assert treasure.hidden is True
+
+    def test_game_type_defaults_to_dnd_when_omitted(self):
+        """Test that omitting game_type falls back to the model default 'dnd'."""
+        serializer = TreasureCreateSerializer(data={'name': 'Golden Crown', 'value': 500})
+        assert serializer.is_valid()
+        treasure = serializer.save()
+        assert treasure.game_type == Game.GAME_TYPE_DND
+
+    def test_game_type_is_persisted_when_given(self):
+        """Test that passing game_type='deadlands' persists it."""
+        serializer = TreasureCreateSerializer(
+            data={'name': 'Bag of Cents', 'value': 500, 'game_type': 'deadlands'}
+        )
+        assert serializer.is_valid()
+        treasure = serializer.save()
+        assert treasure.game_type == Game.GAME_TYPE_DEADLANDS

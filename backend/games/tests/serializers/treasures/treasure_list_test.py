@@ -34,8 +34,21 @@ class TestTreasureListSerializer(TestCase):
         """Test that only the documented fields are exposed."""
         data = TreasureListSerializer(self.treasure).data
         assert set(data.keys()) == {
-            'id', 'name', 'value', 'photo_path', 'game_slug', 'available_units', 'max_units',
+            'id', 'name', 'value', 'game_type', 'photo_path', 'game_slug', 'available_units',
+            'max_units',
         }
+
+    def test_serializes_game_type(self):
+        """Test that the game_type field is serialized."""
+        data = TreasureListSerializer(self.treasure).data
+        assert data['game_type'] == 'dnd'
+
+    def test_serializes_deadlands_game_type(self):
+        """Test that a deadlands treasure serializes its own game_type."""
+        self.treasure.game_type = 'deadlands'
+        self.treasure.save()
+        data = TreasureListSerializer(self.treasure).data
+        assert data['game_type'] == 'deadlands'
 
     def test_photo_path_is_none_without_photo(self):
         """Test that photo_path is None when the treasure has no photo."""

@@ -13,7 +13,9 @@ export default class TreasureEditHelper {
   /**
    * Render the treasure edit form.
    *
-   * @param {{name: string, value: string, status: string, fieldErrors: object}} formState - Form state.
+   * @param {{name: string, value: string, gameType: string, status: string,
+   *   fieldErrors: object}} formState - Form state. `gameType` is the treasure's own
+   *   (fixed-at-creation) currency model name, defaulting to `dnd`.
    * @param {{onSubmit: Function, onNameChange: Function, onOpenValueModal: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered edit page.
    */
@@ -36,6 +38,7 @@ export default class TreasureEditHelper {
             editLabel={Translator.t('treasure_page.edit')}
             value={formState.value}
             errors={formState.fieldErrors.value ?? []}
+            gameType={formState.gameType}
             onOpenModal={handlers.onOpenValueModal}
           />
           <SubmitButton disabled={formState.status === 'submitting'}>

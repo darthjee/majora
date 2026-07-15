@@ -3,12 +3,17 @@
 from django.db import models
 from simple_history.models import HistoricalRecords
 
+from games.models.game.game import Game
+
 
 class Treasure(models.Model):
     """Model representing a treasure item in an RPG campaign."""
 
     name = models.CharField(max_length=200)
     value = models.IntegerField()
+    game_type = models.CharField(
+        max_length=16, choices=Game.GAME_TYPE_CHOICES, default=Game.GAME_TYPE_DND
+    )
     photo = models.ForeignKey(
         'games.TreasurePhoto', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
     )

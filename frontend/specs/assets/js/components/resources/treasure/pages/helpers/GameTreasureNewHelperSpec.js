@@ -70,6 +70,20 @@ describe('GameTreasureNewHelper', function() {
       expect(html).toContain('5 GP');
     });
 
+    it('renders a cents/dollars breakdown when gameType is deadlands', function() {
+      const html = renderToStaticMarkup(
+        GameTreasureNewHelper.render(buildState({ value: '350', gameType: 'deadlands' }), buildHandlers())
+      );
+
+      expect(html).toContain('3 Dollars and 50 Cents');
+    });
+
+    it('does not render a currency-type dropdown', function() {
+      const html = renderToStaticMarkup(GameTreasureNewHelper.render(buildState(), buildHandlers()));
+
+      expect(html).not.toContain('id="game-treasure-new-type"');
+    });
+
     it('renders a TreasureValueField wired to onOpenValueModal', function() {
       const handlers = buildHandlers();
       const element = GameTreasureNewHelper.render(buildState(), handlers);

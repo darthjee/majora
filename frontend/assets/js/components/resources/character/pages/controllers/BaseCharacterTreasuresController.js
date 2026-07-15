@@ -1,9 +1,11 @@
 import CharacterClient from '../../../../../client/CharacterClient.js';
 import GenericClient from '../../../../../client/GenericClient.js';
+import GameClient from '../../../../../client/GameClient.js';
 import BasePageController from '../../../../common/controllers/BasePageController.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import Noop from '../../../../../utils/Noop.js';
+import CharacterGameTypeResolver from './CharacterGameTypeResolver.js';
 
 /**
  * Base controller for character treasures index pages (PC and NPC).
@@ -28,6 +30,8 @@ export default class BaseCharacterTreasuresController extends BasePageController
    * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`), used as the URL segment.
    * @param {GenericClient|null} [client] - Client override.
    * @param {CharacterClient|null} [characterClient] - Character client override.
+   * @param {GameClient|null} [gameClient] - Game client override, used to resolve the
+   *   character's game currency type.
    */
   constructor(
     setters,
@@ -35,6 +39,7 @@ export default class BaseCharacterTreasuresController extends BasePageController
     characterKind,
     client = null,
     characterClient = null,
+    gameClient = null,
   ) {
     super();
     const { setTreasures, setPagination, setLoading, setError, setCharacter = Noop.noop } = setters;
@@ -47,6 +52,7 @@ export default class BaseCharacterTreasuresController extends BasePageController
     this.client = client ?? new GenericClient();
     this.setCharacter = setCharacter;
     this.characterClient = characterClient ?? new CharacterClient();
+    this.gameClient = gameClient ?? new GameClient();
   }
 
   /**
@@ -90,8 +96,17 @@ export default class BaseCharacterTreasuresController extends BasePageController
 
     this.characterClient.fetchCharacter(this.characterKind, gameSlug, characterId, token)
       .then((response) => (response.ok ? response.json() : null))
+      .then((character) => this.#mergeGameType(character, gameSlug, token))
       .then((character) => this.#mergeAccess(character, gameSlug, characterId, safeSet))
       .catch(() => safeSet(this.setCharacter, null));
+  }
+
+  #mergeGameType(character, gameSlug, token) {
+    if (!character) {
+      return character;
+    }
+
+    return CharacterGameTypeResolver.merge(character, this.gameClient.fetchGame(gameSlug, token));
   }
 
   #mergeAccess(character, gameSlug, characterId, safeSet) {

@@ -66,6 +66,23 @@ describe('CharacterTreasuresHelper', function() {
       expect(html).toContain('Add Treasure');
     });
 
+    it('renders each treasure value using the given gameType', function() {
+      const html = renderToStaticMarkup(
+        CharacterTreasuresHelper.render(
+          [{ id: 1, treasure_id: 11, name: 'Golden Crown', quantity: 1, value: 350 }],
+          pagination, '#/games/demo/pcs/1/treasures', '#/games/demo/pcs/1', false, undefined, 'deadlands'
+        )
+      );
+      expect(html).toContain('3 Dollars and 50 Cents');
+    });
+
+    it('renders each treasure value as a dnd coin breakdown by default', function() {
+      const html = renderToStaticMarkup(
+        CharacterTreasuresHelper.render(treasures, pagination, '#/games/demo/pcs/1/treasures', '#/games/demo/pcs/1')
+      );
+      expect(html).toContain('5 GP');
+    });
+
     it('invokes onAddTreasure when the "Add treasure" button is clicked', function() {
       const onAddTreasure = jasmine.createSpy('onAddTreasure');
       const element = CharacterTreasuresHelper.render(

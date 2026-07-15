@@ -70,6 +70,20 @@ describe('TreasureEditHelper', function() {
       expect(html).toContain('5 GP');
     });
 
+    it('renders a cents/dollars breakdown when gameType is deadlands', function() {
+      const html = renderToStaticMarkup(
+        TreasureEditHelper.render(buildState({ value: '350', gameType: 'deadlands' }), buildHandlers())
+      );
+
+      expect(html).toContain('3 Dollars and 50 Cents');
+    });
+
+    it('does not render a currency-type dropdown', function() {
+      const html = renderToStaticMarkup(TreasureEditHelper.render(buildState(), buildHandlers()));
+
+      expect(html).not.toContain('id="treasure-edit-type"');
+    });
+
     it('renders a TreasureValueField wired to onOpenValueModal', function() {
       const handlers = buildHandlers();
       const element = TreasureEditHelper.render(buildState(), handlers);

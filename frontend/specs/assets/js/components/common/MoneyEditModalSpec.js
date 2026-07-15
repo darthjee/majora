@@ -9,12 +9,14 @@ describe('MoneyEditModal', function() {
     let capturedState;
     let capturedHandlers;
     let capturedContext;
+    let capturedGameType;
 
-    spyOn(MoneyEditModalHelper, 'render').and.callFake((show, state, handlers, context) => {
+    spyOn(MoneyEditModalHelper, 'render').and.callFake((show, state, handlers, context, gameType) => {
       capturedShow = show;
       capturedState = state;
       capturedHandlers = handlers;
       capturedContext = context;
+      capturedGameType = gameType;
       return React.createElement('div', null, 'modal');
     });
 
@@ -29,7 +31,11 @@ describe('MoneyEditModal', function() {
     );
 
     return {
-      show: capturedShow, state: capturedState, handlers: capturedHandlers, context: capturedContext,
+      show: capturedShow,
+      state: capturedState,
+      handlers: capturedHandlers,
+      context: capturedContext,
+      gameType: capturedGameType,
     };
   };
 
@@ -97,6 +103,41 @@ describe('MoneyEditModal', function() {
     const { handlers } = renderModal();
 
     expect(() => handlers.onFieldChange('gp', '5')).not.toThrow();
+  });
+
+  it('defaults the gameType to dnd when not given', function() {
+    const { gameType } = renderModal();
+
+    expect(gameType).toBe('dnd');
+  });
+
+  describe('with a "deadlands" gameType', function() {
+    it('seeds local state as a dense cents/dollars breakdown', function() {
+      const { state } = renderModal({ money: 350, gameType: 'deadlands' });
+
+      expect(state.breakdown).toEqual({ cents: 50, dollars: 3 });
+    });
+
+    it('forwards the gameType prop to the helper', function() {
+      const { gameType } = renderModal({ gameType: 'deadlands' });
+
+      expect(gameType).toBe('deadlands');
+    });
+
+    it('computes canConfirm as true for a freshly seeded breakdown', function() {
+      const { state } = renderModal({ money: 350, gameType: 'deadlands' });
+
+      expect(state.canConfirm).toBe(true);
+    });
+
+    it('calls onConfirm with the recalculated total from the seeded breakdown', function() {
+      const onConfirm = jasmine.createSpy('onConfirm');
+      const { handlers } = renderModal({ onConfirm, money: 350, gameType: 'deadlands' });
+
+      handlers.onConfirm();
+
+      expect(onConfirm).toHaveBeenCalledWith(350);
+    });
   });
 
   describe('with the treasure context', function() {

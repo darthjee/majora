@@ -26,6 +26,19 @@ class LoadedController {
   submitForm() {}
 }
 
+class DeadlandsLoadedController {
+  constructor(setCharacter, setLoading) {
+    setCharacter({ can_edit: true, game_type: 'deadlands' });
+    setLoading(false);
+  }
+
+  buildEffect() { return () => Noop.noop; }
+  // eslint-disable-next-line no-empty-function
+  applyLoadedCharacter() {}
+  // eslint-disable-next-line no-empty-function
+  submitForm() {}
+}
+
 describe('CharacterEdit money modal', function() {
   let getParamsFromHash;
   let EditHelper;
@@ -123,6 +136,51 @@ describe('CharacterEdit money modal', function() {
     );
 
     expect(capturedContext).toBe('character');
+  });
+
+  it('defaults the money modal gameType to dnd when the character has no game_type', function() {
+    let capturedGameType;
+    spyOn(EditHelper, 'render').and.returnValue(null);
+    spyOn(MoneyEditModalHelper, 'render').and.callFake((show, state, handlers, context, gameType) => {
+      capturedGameType = gameType;
+      return null;
+    });
+
+    renderToStaticMarkup(
+      React.createElement(CharacterEdit, {
+        ControllerClass: LoadedController,
+        getParamsFromHash,
+        EditHelper,
+        characterKind: 'npcs',
+      })
+    );
+
+    expect(capturedGameType).toBe('dnd');
+  });
+
+  it('passes the character\'s game_type into the money modal and edit form state', function() {
+    let capturedEditHelperState;
+    let capturedGameType;
+    spyOn(EditHelper, 'render').and.callFake((state) => {
+      capturedEditHelperState = state;
+      return null;
+    });
+    spyOn(MoneyEditModalHelper, 'render').and.callFake((show, state, handlers, context, gameType) => {
+      capturedGameType = gameType;
+      return null;
+    });
+
+    renderToStaticMarkup(
+      React.createElement(CharacterEdit, {
+        ControllerClass: DeadlandsLoadedController,
+        getParamsFromHash,
+        EditHelper,
+        characterKind: 'npcs',
+      })
+    );
+
+    expect(capturedEditHelperState.gameType).toBe('deadlands');
+    expect(capturedGameType).toBe('deadlands');
   });
 
   it('does not throw when the money modal is closed or confirmed', function() {

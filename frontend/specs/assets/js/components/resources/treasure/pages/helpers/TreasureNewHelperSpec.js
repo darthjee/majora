@@ -35,11 +35,13 @@ describe('TreasureNewHelper', function() {
     onSubmit: jasmine.createSpy('onSubmit'),
     onNameChange: jasmine.createSpy('onNameChange'),
     onOpenValueModal: jasmine.createSpy('onOpenValueModal'),
+    onGameTypeChange: jasmine.createSpy('onGameTypeChange'),
   });
 
   const buildState = (overrides = {}) => ({
     name: 'Golden Crown',
     value: '500',
+    gameType: 'dnd',
     status: 'idle',
     fieldErrors: {},
     ...overrides,
@@ -84,6 +86,43 @@ describe('TreasureNewHelper', function() {
 
       expect(html).toContain('type="submit"');
       expect(html).toContain('Create Treasure');
+    });
+
+    it('renders a currency-type dropdown with D&D and Deadlands options', function() {
+      const html = renderToStaticMarkup(TreasureNewHelper.render(buildState(), buildHandlers()));
+
+      expect(html).toContain('id="treasure-new-type"');
+      expect(html).toContain('Currency type');
+      expect(html).toContain('D&amp;D');
+      expect(html).toContain('Deadlands');
+    });
+
+    it('selects the current gameType value in the dropdown', function() {
+      const html = renderToStaticMarkup(
+        TreasureNewHelper.render(buildState({ gameType: 'deadlands' }), buildHandlers()),
+      );
+
+      expect(html).toContain('<option value="deadlands" selected=""');
+    });
+
+    it('wires the dropdown to onGameTypeChange', function() {
+      const handlers = buildHandlers();
+      const element = TreasureNewHelper.render(buildState(), handlers);
+      const select = findElement(element, (child) => child.type === 'select');
+
+      expect(select).not.toBeNull();
+
+      select.props.onChange({ target: { value: 'deadlands' } });
+
+      expect(handlers.onGameTypeChange).toHaveBeenCalledWith({ target: { value: 'deadlands' } });
+    });
+
+    it('renders a cents/dollars breakdown when gameType is deadlands', function() {
+      const html = renderToStaticMarkup(
+        TreasureNewHelper.render(buildState({ value: '350', gameType: 'deadlands' }), buildHandlers()),
+      );
+
+      expect(html).toContain('3 Dollars and 50 Cents');
     });
 
     it('disables the submit button while submitting', function() {

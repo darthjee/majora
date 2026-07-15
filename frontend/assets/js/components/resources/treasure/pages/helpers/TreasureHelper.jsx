@@ -16,6 +16,8 @@ export default class TreasureHelper {
    * @param {number} treasure.id - Treasure id.
    * @param {string} treasure.name - Treasure name.
    * @param {number} treasure.value - Treasure value.
+   * @param {string} [treasure.game_type] - Currency model name (e.g. `dnd`, `deadlands`)
+   *   determining which denominations the value is displayed in. Defaults to `dnd`.
    * @param {boolean} [treasure.can_edit] - Whether the current user can edit this treasure.
    * @returns {React.ReactElement} Treasure detail element.
    */
@@ -30,7 +32,7 @@ export default class TreasureHelper {
         <p className="mt-3">
           <strong>Value:</strong>
           {' '}
-          <TreasureMoney value={treasure.value} />
+          <TreasureMoney value={treasure.value} gameType={treasure.game_type} />
         </p>
       </div>
     );

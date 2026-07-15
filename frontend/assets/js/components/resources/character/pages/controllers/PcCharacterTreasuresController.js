@@ -29,6 +29,7 @@ export default class PcCharacterTreasuresController extends BaseCharacterTreasur
    * @param {Function} [setCharacter] - Character context setter, used for the "Add treasure"
    *   button's visibility and the exchange modal's affordability checks.
    * @param {import('../../../client/CharacterClient.js').default|null} [characterClient] - Character client override.
+   * @param {import('../../../client/GameClient.js').default|null} [gameClient] - Game client override.
    */
   constructor(
     setTreasures,
@@ -38,6 +39,7 @@ export default class PcCharacterTreasuresController extends BaseCharacterTreasur
     client = null,
     setCharacter = Noop.noop,
     characterClient = null,
+    gameClient = null,
   ) {
     super(
       { setTreasures, setPagination, setLoading, setError, setCharacter },
@@ -45,6 +47,7 @@ export default class PcCharacterTreasuresController extends BaseCharacterTreasur
       'pcs',
       client,
       characterClient,
+      gameClient,
     );
   }
 }

@@ -25,9 +25,13 @@ export default class CharacterTreasuresHelper {
    * @param {string} backHref - Hash path to the parent character page.
    * @param {boolean} [canEdit] - Whether the current user may acquire/sell treasures.
    * @param {Function} [onAddTreasure] - Handler invoked when the "Add treasure" button is clicked.
+   * @param {string} [gameType] - Currency model name (e.g. `dnd`, `deadlands`) of the
+   *   character's own game, used to render each owned treasure's value. Defaults to `dnd`.
    * @returns {React.ReactElement} Treasures card grid with pagination.
    */
-  static render(treasures, pagination, basePath, backHref, canEdit = false, onAddTreasure = Noop.noop) {
+  static render(
+    treasures, pagination, basePath, backHref, canEdit = false, onAddTreasure = Noop.noop, gameType = 'dnd',
+  ) {
     return (
       <div className="container mt-4">
         <PageActions backHref={backHref}>
@@ -43,6 +47,7 @@ export default class CharacterTreasuresHelper {
                 name: treasure.name,
                 value: treasure.value,
                 photo_path: treasure.photo_path,
+                game_type: gameType,
               }}
               quantity={treasure.quantity}
             />

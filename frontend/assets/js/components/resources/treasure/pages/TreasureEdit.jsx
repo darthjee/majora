@@ -57,7 +57,9 @@ export default function TreasureEdit() {
   return (
     <>
       {TreasureEditHelper.render(
-        { name, value, status, fieldErrors },
+        {
+          name, value, gameType: treasure?.game_type ?? 'dnd', status, fieldErrors,
+        },
         {
           onSubmit: handleSubmit,
           onNameChange: (event) => setName(event.target.value),
@@ -68,6 +70,7 @@ export default function TreasureEdit() {
         show={showValueModal}
         money={value}
         context="treasure"
+        gameType={treasure?.game_type ?? 'dnd'}
         onClose={() => setShowValueModal(false)}
         onConfirm={(newTotal) => {
           setValue(String(newTotal));

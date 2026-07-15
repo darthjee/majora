@@ -68,6 +68,18 @@ describe('GameTreasureNew', function() {
       expect(capturedContext).toBe('treasure');
     });
 
+    it('defaults the value modal gameType to dnd before the game fetch resolves', function() {
+      let capturedGameType;
+      spyOn(MoneyEditModalHelper, 'render').and.callFake((show, state, handlers, context, gameType) => {
+        capturedGameType = gameType;
+        return null;
+      });
+
+      renderToStaticMarkup(React.createElement(GameTreasureNew));
+
+      expect(capturedGameType).toBe('dnd');
+    });
+
     it('opens the value modal via onOpenValueModal without throwing', function() {
       let capturedHandlers;
       spyOn(GameTreasureNewHelper, 'render').and.callFake((state, handlers) => {

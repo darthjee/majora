@@ -29,6 +29,7 @@ export default class NpcCharacterEditController extends BaseCharacterEditControl
    * @param {import('../../../client/GenericClient.js').default|null} [client] - Client override,
    *   used for hash resolution.
    * @param {import('../../../client/CharacterClient.js').default|null} [characterClient] - Character client override.
+   * @param {import('../../../client/GameClient.js').default|null} [gameClient] - Game client override.
    */
   constructor(
     setCharacter,
@@ -37,6 +38,7 @@ export default class NpcCharacterEditController extends BaseCharacterEditControl
     setFieldErrors = Noop.noop,
     client = null,
     characterClient = null,
+    gameClient = null,
   ) {
     super(
       setCharacter,
@@ -48,6 +50,7 @@ export default class NpcCharacterEditController extends BaseCharacterEditControl
       'npcs',
       client,
       characterClient,
+      gameClient,
     );
   }
 }

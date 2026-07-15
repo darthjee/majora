@@ -17,21 +17,23 @@ export default class CharacterTreasuresPreviewHelper {
    *   `name`, `quantity`, `value`, `photo_path`).
    * @param {string} title - Section heading.
    * @param {string} seeAllHref - Hash href for the "See all" link.
+   * @param {string} [gameType] - Currency model name (e.g. `dnd`, `deadlands`) of the
+   *   character's own game, used to render each previewed treasure's value. Defaults to `dnd`.
    * @returns {React.ReactElement} Character treasures preview section element.
    */
-  static render(treasures, title, seeAllHref) {
+  static render(treasures, title, seeAllHref, gameType = 'dnd') {
     const preview = treasures.slice(0, MAX_PREVIEW_TREASURES);
 
     return (
       <div className="mt-4">
         <h2>{title}</h2>
-        {CharacterTreasuresPreviewHelper.#renderBody(preview)}
+        {CharacterTreasuresPreviewHelper.#renderBody(preview, gameType)}
         <a href={seeAllHref}>{Translator.t('character_preview_section.see_all').replace('{{title}}', title)}</a>
       </div>
     );
   }
 
-  static #renderBody(preview) {
+  static #renderBody(preview, gameType) {
     if (preview.length === 0) {
       return <p className="text-muted">{Translator.t('character_treasures_preview.empty')}</p>;
     }
@@ -46,6 +48,7 @@ export default class CharacterTreasuresPreviewHelper {
               name: treasure.name,
               value: treasure.value,
               photo_path: treasure.photo_path,
+              game_type: gameType,
             }}
             quantity={treasure.quantity}
           />
