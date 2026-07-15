@@ -31,5 +31,9 @@ export const findElement = (node, matcher) => {
     return node;
   }
 
+  if (typeof node.type === 'function') {
+    return findElement(node.type(node.props), matcher);
+  }
+
   return findElement(node.props?.children, matcher);
 };

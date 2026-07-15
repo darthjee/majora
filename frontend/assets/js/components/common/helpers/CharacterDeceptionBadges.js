@@ -17,8 +17,9 @@ import CharacterStatusBadges from './CharacterStatusBadges.js';
 export default class CharacterDeceptionBadges {
   /**
    * Build the allegiance-deception badge definition, or `null` when
-   * `character.allegiance`/`character.public_allegiance` are missing or
-   * equal.
+   * `character.allegiance`/`character.public_allegiance` are missing, equal,
+   * or either one is `'neutral'` — a neutral allegiance isn't a claimed side
+   * that turns out false, so it never counts as deception.
    *
    * @param {object} character - Character data object.
    * @param {string} [character.allegiance] - The character's real allegiance.
@@ -27,6 +28,10 @@ export default class CharacterDeceptionBadges {
    */
   static buildAllegianceDeception(character) {
     if (!CharacterDeceptionBadges.#differs(character.allegiance, character.public_allegiance)) {
+      return null;
+    }
+
+    if (character.allegiance === 'neutral' || character.public_allegiance === 'neutral') {
       return null;
     }
 
