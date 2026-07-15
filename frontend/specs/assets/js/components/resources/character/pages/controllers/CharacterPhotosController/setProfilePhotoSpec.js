@@ -34,7 +34,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
         );
       });
 
-      it('does not throw and leaves state untouched when the request fails', async function() {
+      it('rejects and leaves state untouched when the request fails', async function() {
         const setPhotos = jasmine.createSpy('setPhotos');
         const setPagination = jasmine.createSpy('setPagination');
         const setCharacter = jasmine.createSpy('setCharacter');
@@ -48,7 +48,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
           setPhotos, setPagination, setCharacter, setLoading, setError, client, characterClient,
         );
 
-        await expectAsync(controller.setProfilePhoto('demo', '7', '9')).toBeResolved();
+        await expectAsync(controller.setProfilePhoto('demo', '7', '9')).toBeRejected();
 
         expect(setCharacter).not.toHaveBeenCalled();
       });
