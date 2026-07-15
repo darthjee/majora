@@ -31,6 +31,24 @@ class TestPoll(TestCase):
         poll = Poll.objects.create(game=self.game)
         assert poll.status == Poll.STATUS_INACTIVE
 
+    def test_title_defaults_to_blank(self):
+        """Test that title defaults to an empty string when not specified."""
+        poll = Poll.objects.create(game=self.game)
+        assert poll.title == ''
+
+    def test_description_defaults_to_blank(self):
+        """Test that description defaults to an empty string when not specified."""
+        poll = Poll.objects.create(game=self.game)
+        assert poll.description == ''
+
+    def test_poll_creation_with_title_and_description(self):
+        """Test that a poll can be created with a title and description."""
+        poll = PollFactory(
+            game=self.game, title='Which tavern?', description='Pick one for tonight.',
+        )
+        assert poll.title == 'Which tavern?'
+        assert poll.description == 'Pick one for tonight.'
+
     def test_poll_str(self):
         """Test string representation of a poll."""
         poll = Poll(game=self.game, type=Poll.TYPE_SINGLE)

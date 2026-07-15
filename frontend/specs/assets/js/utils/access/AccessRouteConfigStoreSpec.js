@@ -22,6 +22,12 @@ describe('AccessRouteConfigStore', function() {
       expect(AccessRouteConfigStore.getKind('pcCharacter')).toEqual({ kind: 'character', characterKind: 'pcs' });
     });
 
+    it('returns the fallback game kind for the new poll pages', function() {
+      expect(AccessRouteConfigStore.getKind('gamePolls')).toEqual({ kind: 'game' });
+      expect(AccessRouteConfigStore.getKind('gamePoll')).toEqual({ kind: 'game' });
+      expect(AccessRouteConfigStore.getKind('gamePollNew')).toEqual({ kind: 'game' });
+    });
+
     it('returns undefined for a page with no resource-kind mapping', function() {
       expect(AccessRouteConfigStore.getKind('home')).toBeUndefined();
     });

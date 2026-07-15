@@ -17,6 +17,18 @@ describe('accessRouteConfig', function() {
       ]);
     });
 
+    it('declares a single game descriptor for the game polls pages', function() {
+      expect(accessRouteConfig.get('gamePolls')).toEqual([
+        { kind: 'game', pattern: '/games/:game_slug/polls', params: ['game_slug'] },
+      ]);
+      expect(accessRouteConfig.get('gamePollNew')).toEqual([
+        { kind: 'game', pattern: '/games/:game_slug/polls/new', params: ['game_slug'] },
+      ]);
+      expect(accessRouteConfig.get('gamePoll')).toEqual([
+        { kind: 'game', pattern: '/games/:game_slug/polls/:id', params: ['game_slug'] },
+      ]);
+    });
+
     it('declares a character descriptor for a PC character page', function() {
       expect(accessRouteConfig.get('pcCharacter')).toEqual([{
         kind: 'character',
@@ -61,8 +73,9 @@ describe('accessRouteConfig', function() {
     it('only uses recognized descriptor kinds', function() {
       const validKinds = ['game', 'character', 'treasure', 'superuser', 'staffOrSuperuser'];
       const pageKeys = [
-        'game', 'gameEdit', 'gameNpcs', 'gamePhotos', 'gameTasks', 'gameTreasures', 'gameSessions',
-        'gameNpcNew', 'gameSessionNew', 'gameTreasureNew', 'gameTreasureEdit',
+        'game', 'gameEdit', 'gameNpcs', 'gamePhotos', 'gameTasks', 'gamePolls', 'gamePoll',
+        'gameTreasures', 'gameSessions',
+        'gameNpcNew', 'gamePollNew', 'gameSessionNew', 'gameTreasureNew', 'gameTreasureEdit',
         'pcCharacter', 'npcCharacter', 'pcCharacterEdit', 'npcCharacterEdit',
         'pcCharacterPhotos', 'npcCharacterPhotos', 'pcCharacterTreasures', 'npcCharacterTreasures',
         'treasure', 'treasureEdit', 'treasureNew', 'treasures',

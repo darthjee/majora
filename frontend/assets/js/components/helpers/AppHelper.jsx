@@ -7,6 +7,9 @@ import GameNpcNew from '../resources/character/pages/GameNpcNew.jsx';
 import GameNpcs from '../resources/character/pages/GameNpcs.jsx';
 import GamePcs from '../resources/character/pages/GamePcs.jsx';
 import GamePhotos from '../resources/game/pages/GamePhotos.jsx';
+import GamePoll from '../resources/game/pages/GamePoll.jsx';
+import GamePollNew from '../resources/game/pages/GamePollNew.jsx';
+import GamePolls from '../resources/game/pages/GamePolls.jsx';
 import GameSession from '../resources/game_session/pages/GameSession.jsx';
 import GameSessionEdit from '../resources/game_session/pages/GameSessionEdit.jsx';
 import GameSessionNew from '../resources/game_session/pages/GameSessionNew.jsx';
@@ -44,6 +47,9 @@ const PAGES = {
   gameNpcs: <GameNpcs />,
   gameNpcNew: <GameNpcNew />,
   gamePhotos: <GamePhotos />,
+  gamePolls: <GamePolls />,
+  gamePollNew: <GamePollNew />,
+  gamePoll: <GamePoll />,
   gameTreasures: <GameTreasures />,
   gameTreasureNew: <GameTreasureNew />,
   gameTreasureEdit: <GameTreasureEdit />,
