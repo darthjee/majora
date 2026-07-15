@@ -32,4 +32,8 @@ describe('Icons', function() {
   it('maps viewAs to the filled file-person icon class', function() {
     expect(Icons.viewAs).toBe('bi-file-person-fill');
   });
+
+  it('maps gem to the gem icon class', function() {
+    expect(Icons.gem).toBe('bi-gem');
+  });
 });
