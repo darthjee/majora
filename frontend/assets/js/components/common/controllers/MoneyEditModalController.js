@@ -9,7 +9,7 @@ const DEFAULT_GAME_TYPE = 'dnd';
  * Pure denomination-breakdown transformation logic for the
  * {@link MoneyEditModal} local breakdown state, kept independent of React so
  * it can be unit tested directly. Supports multiple money contexts (e.g.
- * `character` with CP/SP/GP/PP/gems, `treasure` with CP/SP/GP only) and
+ * `character` with CP/SP/GP/PP, `treasure` with CP/SP/GP only) and
  * multiple currency models (`dnd`, `deadlands`), resolved via
  * {@link MoneyModelRegistry}.
  */

@@ -37,7 +37,7 @@ export default class CharacterMoneyHelper {
    * @param {{key: string, quantity: number}} entry - Denomination entry.
    * @param {Function} model - Resolved money model, used to look up the
    *   denomination's label translation key.
-   * @returns {string} Formatted entry (e.g. `20 CP` or `100 GP in gems`).
+   * @returns {string} Formatted entry (e.g. `20 CP` or `39 PP`).
    */
   static #formatEntry(entry, model) {
     return `${entry.quantity} ${Translator.t(model.labelKey(entry.key))}`;

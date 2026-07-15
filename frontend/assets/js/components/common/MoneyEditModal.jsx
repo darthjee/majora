@@ -7,8 +7,8 @@ import MoneyEditModalController from './controllers/MoneyEditModalController.js'
  * before committing the recalculated total. Holds its own local breakdown
  * state, seeded from `props.money` whenever the modal opens, independent
  * from the caller's money state until confirmed. Which denominations are
- * shown is driven by `props.context` (e.g. `character` renders CP/SP/GP/PP/
- * gems, `treasure` renders CP/SP/GP only) and `props.gameType` (e.g. `dnd`
+ * shown is driven by `props.context` (e.g. `character` renders CP/SP/GP/PP,
+ * `treasure` renders CP/SP/GP only) and `props.gameType` (e.g. `dnd`
  * renders coins, `deadlands` renders cents/dollars), resolved via
  * `MoneyModelRegistry`.
  *
