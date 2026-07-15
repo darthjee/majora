@@ -269,6 +269,13 @@ class TestSessionMessagesCreateView(TestCase):
         data = json.loads(response.content)
         assert 'content' in data['errors']
 
+    def test_overlong_content_returns_400(self):
+        """Test that a POST with content exceeding the max length returns 400."""
+        response = self._post({'content': 'x' * 5001}, token=self.dm_token)
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'content' in data['errors']
+
     def test_created_message_persists_to_database(self):
         """Test that the created message is persisted and linked to the session and user."""
         self._post({'content': 'Hello there'}, token=self.dm_token)

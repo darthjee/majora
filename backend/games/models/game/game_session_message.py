@@ -15,7 +15,7 @@ class GameSessionMessage(models.Model):
         'games.Player', on_delete=models.SET_NULL, null=True, blank=True,
         related_name='session_messages',
     )
-    content = models.TextField()
+    content = models.TextField(max_length=5000)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

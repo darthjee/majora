@@ -69,6 +69,11 @@ class TestGameSessionMessage(TestCase):
         message.refresh_from_db()
         assert message.player is None
 
+    def test_content_has_a_max_length(self):
+        """Test that the content field enforces a maximum length of 5000 characters."""
+        field = GameSessionMessage._meta.get_field('content')
+        assert field.max_length == 5000
+
     def test_message_str(self):
         """Test string representation of a message."""
         message = GameSessionMessage(session=self.session, user=self.user, content='Hi')
