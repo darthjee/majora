@@ -29,6 +29,18 @@ class TestGameSession(TestCase):
         )
         assert str(session.date) == '2026-01-01'
 
+    def test_game_session_creation_without_description(self):
+        """Test that description defaults to None when not provided."""
+        session = GameSession.objects.create(game=self.game, title='Session One')
+        assert session.description is None
+
+    def test_game_session_creation_with_description(self):
+        """Test that a session can be created with an optional description."""
+        session = GameSession.objects.create(
+            game=self.game, title='Session Two', description='Notes about the session.'
+        )
+        assert session.description == 'Notes about the session.'
+
     def test_game_session_str(self):
         """Test string representation of a session."""
         session = GameSession(game=self.game, title='The Ambush')

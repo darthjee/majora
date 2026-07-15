@@ -65,6 +65,7 @@ describe('CharacterEdit', function() {
 
   it('renders the edit form via EditHelper.render when the character is loaded', function() {
     const state = {
+      isFullEditor: true,
       name: 'Test Character',
       profile_photo_path: null,
       links: [],
@@ -74,6 +75,7 @@ describe('CharacterEdit', function() {
       money: '310',
       allegiance: 'ally',
       publicAllegiance: 'enemy',
+      publicSlain: false,
       status: 'idle',
       fieldErrors: {},
     };
@@ -86,6 +88,7 @@ describe('CharacterEdit', function() {
       onMoneyChange: Noop.noop,
       onAllegianceChange: Noop.noop,
       onPublicAllegianceChange: Noop.noop,
+      onPublicSlainChange: Noop.noop,
       onOpenUploadModal: Noop.noop,
       onOpenLinksModal: Noop.noop,
       onOpenMoneyModal: Noop.noop,

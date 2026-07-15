@@ -28,7 +28,13 @@ from .game import (
     game_pcs,
 )
 from .game_masters import game_master_detail, game_masters_list
-from .game_sessions import game_session_detail, game_sessions_list
+from .game_sessions import (
+    game_session_detail,
+    game_sessions_create,
+    game_sessions_future,
+    game_sessions_past,
+    game_sessions_unscheduled,
+)
 from .game_tasks import game_task_detail, game_tasks_list
 from .games import (
     game_access,
@@ -88,8 +94,11 @@ __all__ = [
     'game_npc_treasure_sell',
     'game_masters_list',
     'game_master_detail',
-    'game_sessions_list',
+    'game_sessions_create',
     'game_session_detail',
+    'game_sessions_past',
+    'game_sessions_future',
+    'game_sessions_unscheduled',
     'game_tasks_list',
     'game_task_detail',
     'language',

@@ -45,6 +45,10 @@ photo_upload_modal:
   title: Enviar Foto
 photo_view_modal:
   set_profile_photo: Definir como foto de perfil
+profile_photo_set_modal:
+  title: Foto de Perfil Atualizada
+  body: Esta imagem agora é a foto de perfil.
+  close: Fechar
 slain_confirm_modal:
   slain_title: Marcar como Morto
   revive_title: Reviver Personagem
@@ -73,6 +77,8 @@ game_page:
   treasures: Tesouros
   sessions: Sessões
   see_all_photos: Fotos
+  next_session_title: Próxima Sessão
+  no_next_session: Nenhuma sessão futura agendada.
 game_characters_page:
   loading: Carregando...
 character_page:
@@ -280,6 +286,9 @@ game_sessions_page:
   loading: Carregando sessões...
   title: Sessões
   new_session: Nova Sessão
+  past: Passadas
+  future: Próximas
+  unscheduled: Sem data
 game_session_page:
   loading: Carregando sessão...
   edit: Editar
@@ -288,12 +297,14 @@ game_session_new_page:
   title: Nova Sessão
   title_label: Título
   date_label: Data
+  description_label: Descrição
   submit: Criar Sessão
   error: Falha ao criar sessão. Tente novamente.
 game_session_edit_page:
   title: Editar Sessão
   title_label: Título
   date_label: Data
+  description_label: Descrição
   submit: Salvar alterações
   error: Falha ao salvar sessão. Tente novamente.
 game_tasks_page:
@@ -346,6 +357,8 @@ game_photos_page:
   title: Fotos
   loading: Carregando fotos...
   upload: Enviar foto
+character_photos_page:
+  set_profile_photo_error: Falha ao definir a foto de perfil. Por favor, tente novamente.
 pc_character_photos_page:
   title: Fotos
   loading: Carregando fotos...

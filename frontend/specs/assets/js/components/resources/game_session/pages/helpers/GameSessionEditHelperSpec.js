@@ -6,11 +6,13 @@ describe('GameSessionEditHelper', function() {
     onSubmit: jasmine.createSpy('onSubmit'),
     onTitleChange: jasmine.createSpy('onTitleChange'),
     onDateChange: jasmine.createSpy('onDateChange'),
+    onDescriptionChange: jasmine.createSpy('onDescriptionChange'),
   });
 
   const buildState = (overrides = {}) => ({
     title: 'Session 1',
     date: '2024-01-01',
+    description: 'A thrilling encounter.',
     status: 'idle',
     fieldErrors: {},
     ...overrides,
@@ -22,6 +24,7 @@ describe('GameSessionEditHelper', function() {
 
       expect(html).toContain('id="game-session-edit-title"');
       expect(html).toContain('id="game-session-edit-date"');
+      expect(html).toContain('id="game-session-edit-description"');
     });
 
     it('renders the current field values', function() {
@@ -29,6 +32,7 @@ describe('GameSessionEditHelper', function() {
 
       expect(html).toContain('value="Session 1"');
       expect(html).toContain('value="2024-01-01"');
+      expect(html).toContain('A thrilling encounter.');
     });
 
     it('renders the submit button', function() {
@@ -61,6 +65,18 @@ describe('GameSessionEditHelper', function() {
       );
 
       expect(html).toContain('is too short');
+      expect(html).toContain('alert-danger');
+    });
+
+    it('renders per-field errors for description when present', function() {
+      const html = renderToStaticMarkup(
+        GameSessionEditHelper.render(
+          buildState({ fieldErrors: { description: ['is too long'] } }),
+          buildHandlers(),
+        ),
+      );
+
+      expect(html).toContain('is too long');
       expect(html).toContain('alert-danger');
     });
 

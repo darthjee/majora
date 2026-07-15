@@ -52,10 +52,24 @@ class TestGameSessionDetailSerializer(TestCase):
         data = self._serialize()
         assert data['game_slug'] == 'test-game'
 
-    def test_only_exposes_expected_fields(self):
-        """Test that only id, title, date, game_slug, and can_edit are exposed."""
+    def test_serializes_description_as_none_when_unset(self):
+        """Test that description is null when the session has no description."""
         data = self._serialize()
-        assert set(data.keys()) == {'id', 'title', 'date', 'game_slug', 'can_edit'}
+        assert data['description'] is None
+
+    def test_serializes_description_when_set(self):
+        """Test that description is serialized when set."""
+        self.session.description = 'Some session notes.'
+        self.session.save()
+        data = self._serialize()
+        assert data['description'] == 'Some session notes.'
+
+    def test_only_exposes_expected_fields(self):
+        """Test that only id, title, date, description, game_slug, and can_edit are exposed."""
+        data = self._serialize()
+        assert set(data.keys()) == {
+            'id', 'title', 'date', 'description', 'game_slug', 'can_edit',
+        }
 
     def test_can_edit_is_false_for_anonymous_user(self):
         """Test that can_edit is false for an anonymous user."""

@@ -22,6 +22,7 @@ describe('GameSessionNew', function() {
 
     expect(html).toContain('id="game-session-new-title"');
     expect(html).toContain('id="game-session-new-date"');
+    expect(html).toContain('id="game-session-new-description"');
   });
 
   it('renders the submit button', function() {

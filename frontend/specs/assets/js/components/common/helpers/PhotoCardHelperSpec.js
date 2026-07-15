@@ -30,5 +30,21 @@ describe('PhotoCardHelper', function() {
 
       expect(onClick).toHaveBeenCalledWith(photo);
     });
+
+    it('applies the green profile-photo border when isProfilePhoto is true', function() {
+      const html = renderToStaticMarkup(
+        PhotoCardHelper.render(photo, 'Demo Game', Noop.noop, false, true)
+      );
+
+      expect(html).toContain('border border-success');
+    });
+
+    it('does not apply the profile-photo border when isProfilePhoto is false', function() {
+      const html = renderToStaticMarkup(
+        PhotoCardHelper.render(photo, 'Demo Game', Noop.noop, false, false)
+      );
+
+      expect(html).not.toContain('border-success');
+    });
   });
 });

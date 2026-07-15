@@ -3,9 +3,10 @@
 import json
 
 from django.test import TestCase
+from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
-from games.models import Link
+from games.models import GameSession, Link
 from games.tests.behaviors import DetailNotFoundBehaviorMixin, TokenAuthRequestMixin
 from games.tests.factories import GameFactory, GameMasterFactory, SuperUserFactory, UserFactory
 
@@ -51,6 +52,22 @@ class TestGameDetailView(DetailNotFoundBehaviorMixin, TestCase):
         data = json.loads(response.content)
         assert len(data['links']) == 1
         assert data['links'][0]['text'] == 'Rulebook'
+
+    def test_next_session_is_none_when_no_sessions(self):
+        """Test that next_session is null when the game has no sessions."""
+        response = self.client.get('/games/epic-quest.json')
+        data = json.loads(response.content)
+        assert data['next_session'] is None
+
+    def test_next_session_serializes_date_as_iso_string(self):
+        """Test that next_session's date is rendered as an ISO date string in JSON."""
+        today = timezone.now().date()
+        GameSession.objects.create(game=self.game, title='Upcoming Session', date=today)
+        response = self.client.get('/games/epic-quest.json')
+        data = json.loads(response.content)
+        assert data['next_session'] == {
+            'title': 'Upcoming Session', 'date': today.isoformat(),
+        }
 
 
 class TestGameDetailPatchView(TokenAuthRequestMixin, TestCase):

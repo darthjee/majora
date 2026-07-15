@@ -23,6 +23,8 @@ export default class GameHelper {
    * @param {string} [game.description] - Game description text.
    * @param {object[]} [game.links] - External link objects with text and url.
    * @param {boolean} [game.can_edit] - Whether the current user can edit this game.
+   * @param {{title: string, date: (string|null)}|null} [game.next_session] - Upcoming session
+   *   summary, or `null` when the game has no sessions at all.
    * @param {object[]} [pcs] - PCs preview list.
    * @param {object[]} [npcs] - NPCs preview list.
    * @param {{onOpenUploadModal: Function}} [handlers] - Event handlers.
@@ -71,7 +73,34 @@ export default class GameHelper {
           title={Translator.t('game_page.non_player_characters')}
           seeAllHref={`#/games/${game.game_slug}/npcs`}
         />
+        {GameHelper.#renderNextSession(game)}
       </div>
+    );
+  }
+
+  static #renderNextSession(game) {
+    return (
+      <div className="mt-4">
+        <h2>{Translator.t('game_page.next_session_title')}</h2>
+        {GameHelper.#renderNextSessionSummary(game.next_session)}
+        <a href={`#/games/${game.game_slug}/sessions`} className="btn btn-secondary mb-3">
+          {Translator.t('game_page.sessions')}
+        </a>
+      </div>
+    );
+  }
+
+  static #renderNextSessionSummary(nextSession) {
+    if (!nextSession) {
+      return <p className="text-muted">{Translator.t('game_page.no_next_session')}</p>;
+    }
+
+    return (
+      <p>
+        {nextSession.title}
+        {' — '}
+        {nextSession.date ?? Translator.t('game_session_page.no_date')}
+      </p>
     );
   }
 

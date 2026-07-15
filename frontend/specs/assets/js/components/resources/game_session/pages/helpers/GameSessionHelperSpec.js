@@ -39,6 +39,19 @@ describe('GameSessionHelper', function() {
       const html = renderToStaticMarkup(GameSessionHelper.render(session));
       expect(html).not.toContain('/edit');
     });
+
+    it('renders the description when present', function() {
+      const html = renderToStaticMarkup(
+        GameSessionHelper.render({ ...session, description: 'A thrilling encounter.' }),
+      );
+      expect(html).toContain('A thrilling encounter.');
+      expect(html).toContain('text-pre-wrap');
+    });
+
+    it('does not render a description paragraph when description is absent', function() {
+      const html = renderToStaticMarkup(GameSessionHelper.render(session));
+      expect(html).not.toContain('text-pre-wrap');
+    });
   });
 
   describe('.renderLoading', function() {

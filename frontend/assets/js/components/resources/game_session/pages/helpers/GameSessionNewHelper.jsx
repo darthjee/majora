@@ -1,5 +1,6 @@
 import React from 'react';
 import FormField from '../../../../common/FormField.jsx';
+import TextareaField from '../../../../common/TextareaField.jsx';
 import ErrorAlert from '../../../../common/ErrorAlert.jsx';
 import SubmitButton from '../../../../common/SubmitButton.jsx';
 import Translator from '../../../../../i18n/Translator.js';
@@ -11,8 +12,10 @@ export default class GameSessionNewHelper {
   /**
    * Render the session creation form.
    *
-   * @param {{title: string, date: string, status: string, fieldErrors: object}} formState - Form state.
-   * @param {{onSubmit: Function, onTitleChange: Function, onDateChange: Function}} handlers - Event handlers.
+   * @param {{title: string, date: string, description: string, status: string, fieldErrors:
+   *   object}} formState - Form state.
+   * @param {{onSubmit: Function, onTitleChange: Function, onDateChange: Function,
+   *   onDescriptionChange: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered new session page.
    */
   static render(formState, handlers) {
@@ -36,6 +39,13 @@ export default class GameSessionNewHelper {
             value={formState.date}
             onChange={handlers.onDateChange}
             errors={formState.fieldErrors.date ?? []}
+          />
+          <TextareaField
+            id="game-session-new-description"
+            label={Translator.t('game_session_new_page.description_label')}
+            value={formState.description}
+            onChange={handlers.onDescriptionChange}
+            errors={formState.fieldErrors.description ?? []}
           />
           <SubmitButton disabled={formState.status === 'submitting'}>
             {Translator.t('game_session_new_page.submit')}
