@@ -8,13 +8,16 @@ describe('NpcFiltersHelper', function() {
       onStatusChange: Noop.noop,
       onNameChange: Noop.noop,
       onAllegianceChange: Noop.noop,
+      onHiddenChange: Noop.noop,
       onQuery: Noop.noop,
       onClear: Noop.noop,
     };
 
     it('renders the status select, name input, allegiance select, query and clear buttons', function() {
       const html = renderToStaticMarkup(
-        NpcFiltersHelper.render({ status: '', name: '', allegiance: '' }, handlers)
+        NpcFiltersHelper.render({
+          status: '', name: '', allegiance: '', hidden: '', canEdit: false,
+        }, handlers)
       );
 
       expect(html).toContain('data-testid="npc-filters"');
@@ -27,7 +30,9 @@ describe('NpcFiltersHelper', function() {
 
     it('renders the current status and name values', function() {
       const html = renderToStaticMarkup(
-        NpcFiltersHelper.render({ status: 'slain', name: 'gob', allegiance: 'ally' }, handlers)
+        NpcFiltersHelper.render({
+          status: 'slain', name: 'gob', allegiance: 'ally', hidden: '', canEdit: false,
+        }, handlers)
       );
 
       expect(html).toContain('value="gob"');
@@ -35,9 +40,43 @@ describe('NpcFiltersHelper', function() {
 
     it('renders the current allegiance value as selected', function() {
       const html = renderToStaticMarkup(
-        NpcFiltersHelper.render({ status: '', name: '', allegiance: 'enemy' }, handlers)
+        NpcFiltersHelper.render({
+          status: '', name: '', allegiance: 'enemy', hidden: '', canEdit: false,
+        }, handlers)
       );
       const selectStart = html.indexOf('data-testid="npc-filter-allegiance"');
+
+      expect(selectStart).toBeGreaterThan(-1);
+      expect(html.indexOf('selected=""', selectStart)).toBeGreaterThan(-1);
+    });
+
+    it('does not render the hidden dropdown when canEdit is false', function() {
+      const html = renderToStaticMarkup(
+        NpcFiltersHelper.render({
+          status: '', name: '', allegiance: '', hidden: '', canEdit: false,
+        }, handlers)
+      );
+
+      expect(html).not.toContain('data-testid="npc-filter-hidden"');
+    });
+
+    it('renders the hidden dropdown when canEdit is true', function() {
+      const html = renderToStaticMarkup(
+        NpcFiltersHelper.render({
+          status: '', name: '', allegiance: '', hidden: '', canEdit: true,
+        }, handlers)
+      );
+
+      expect(html).toContain('data-testid="npc-filter-hidden"');
+    });
+
+    it('renders the current hidden value as selected', function() {
+      const html = renderToStaticMarkup(
+        NpcFiltersHelper.render({
+          status: '', name: '', allegiance: '', hidden: 'hidden', canEdit: true,
+        }, handlers)
+      );
+      const selectStart = html.indexOf('data-testid="npc-filter-hidden"');
 
       expect(selectStart).toBeGreaterThan(-1);
       expect(html.indexOf('selected=""', selectStart)).toBeGreaterThan(-1);

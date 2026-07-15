@@ -31,6 +31,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
   const [allegiance, setAllegiance] = useState('neutral');
   const [publicAllegiance, setPublicAllegiance] = useState('neutral');
   const [publicSlain, setPublicSlain] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const [links, setLinks] = useState([]);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showLinksModal, setShowLinksModal] = useState(false);
@@ -57,6 +58,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
       setAllegiance,
       setPublicAllegiance,
       setPublicSlain,
+      setHidden,
       setLinks,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -75,6 +77,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
       allegiance,
       publicAllegiance,
       publicSlain,
+      hidden,
       links,
     },
     { setStatus, setFieldErrors },
@@ -109,6 +112,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
           allegiance,
           publicAllegiance,
           publicSlain,
+          hidden,
           status,
           fieldErrors,
         },
@@ -122,6 +126,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
           onAllegianceChange: (event) => setAllegiance(event.target.value),
           onPublicAllegianceChange: (event) => setPublicAllegiance(event.target.value),
           onPublicSlainChange: (event) => setPublicSlain(event.target.checked),
+          onHiddenChange: (event) => setHidden(event.target.checked),
           onOpenUploadModal: () => setShowUploadModal(true),
           onOpenLinksModal: () => setShowLinksModal(true),
           onOpenMoneyModal: () => setShowMoneyModal(true),

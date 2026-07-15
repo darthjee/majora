@@ -31,18 +31,24 @@ describe('NpcFilters', function() {
       React.createElement(NpcFilters, { onQuery: jasmine.createSpy(), onClear: jasmine.createSpy() })
     );
 
-    expect(getCaptured().state).toEqual({ status: '', name: '', allegiance: '' });
+    expect(getCaptured().state).toEqual({
+      status: '', name: '', allegiance: '', hidden: '', canEdit: false,
+    });
   });
 
   it('pre-populates draft fields from the hash query params (deep link)', function() {
-    globalThis.window = { location: { hash: '#/games/demo/npcs?slain=true&name=gob&allegiance=ally' } };
+    globalThis.window = {
+      location: { hash: '#/games/demo/npcs?slain=true&name=gob&allegiance=ally&hidden=true' },
+    };
     const getCaptured = captureHandlers();
 
     renderToStaticMarkup(
       React.createElement(NpcFilters, { onQuery: jasmine.createSpy(), onClear: jasmine.createSpy() })
     );
 
-    expect(getCaptured().state).toEqual({ status: 'slain', name: 'gob', allegiance: 'ally' });
+    expect(getCaptured().state).toEqual({
+      status: 'slain', name: 'gob', allegiance: 'ally', hidden: 'hidden', canEdit: false,
+    });
   });
 
   it('calls onQuery with the built query when the Query handler runs', function() {
@@ -58,6 +64,19 @@ describe('NpcFilters', function() {
     expect(onQuery).toHaveBeenCalledWith({ slain: 'true', name: 'gob', allegiance: 'ally' });
   });
 
+  it('calls onQuery with the built hidden filter when set', function() {
+    globalThis.window = { location: { hash: '#/games/demo/npcs?hidden=true' } };
+    const onQuery = jasmine.createSpy('onQuery');
+    const getCaptured = captureHandlers();
+
+    renderToStaticMarkup(
+      React.createElement(NpcFilters, { onQuery, onClear: jasmine.createSpy() })
+    );
+    getCaptured().handlers.onQuery();
+
+    expect(onQuery).toHaveBeenCalledWith({ hidden: 'true' });
+  });
+
   it('calls onClear when the Clear handler runs', function() {
     globalThis.window = { location: { hash: '#/games/demo/npcs?slain=true&name=gob' } };
     const onClear = jasmine.createSpy('onClear');
@@ -69,5 +88,29 @@ describe('NpcFilters', function() {
     getCaptured().handlers.onClear();
 
     expect(onClear).toHaveBeenCalled();
+  });
+
+  it('defaults canEdit to false', function() {
+    globalThis.window = { location: { hash: '#/games/demo/npcs' } };
+    const getCaptured = captureHandlers();
+
+    renderToStaticMarkup(
+      React.createElement(NpcFilters, { onQuery: jasmine.createSpy(), onClear: jasmine.createSpy() })
+    );
+
+    expect(getCaptured().state.canEdit).toBe(false);
+  });
+
+  it('passes canEdit through to NpcFiltersHelper.render', function() {
+    globalThis.window = { location: { hash: '#/games/demo/npcs' } };
+    const getCaptured = captureHandlers();
+
+    renderToStaticMarkup(
+      React.createElement(NpcFilters, {
+        onQuery: jasmine.createSpy(), onClear: jasmine.createSpy(), canEdit: true,
+      })
+    );
+
+    expect(getCaptured().state.canEdit).toBe(true);
   });
 });

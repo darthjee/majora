@@ -115,6 +115,29 @@ describe('GameNpcNewHelper', function() {
       expect(html).toContain('checked=""');
     });
 
+    it('renders the hidden switch as a bootstrap switch', function() {
+      const html = renderToStaticMarkup(GameNpcNewHelper.render(buildState(), buildHandlers()));
+      const hiddenIndex = html.indexOf('id="game-npc-new-hidden"');
+
+      expect(hiddenIndex).toBeGreaterThan(-1);
+      expect(html).toContain('form-switch');
+      expect(html.lastIndexOf('role="switch"', hiddenIndex + 200)).toBeGreaterThan(-1);
+    });
+
+    it('does not dim the avatar preview when hidden is false', function() {
+      const html = renderToStaticMarkup(GameNpcNewHelper.render(buildState(), buildHandlers()));
+
+      expect(html).not.toContain('photo-hidden');
+    });
+
+    it('dims the avatar preview when hidden is true', function() {
+      const html = renderToStaticMarkup(
+        GameNpcNewHelper.render(buildState({ hidden: true }), buildHandlers()),
+      );
+
+      expect(html).toContain('photo-hidden');
+    });
+
     it('renders the submit button', function() {
       const html = renderToStaticMarkup(GameNpcNewHelper.render(buildState(), buildHandlers()));
 

@@ -26,5 +26,17 @@ describe('CharacterAvatarFieldHelper', function() {
       const html = renderToStaticMarkup(CharacterAvatarFieldHelper.render(null, 'Aragorn', false));
       expect(html).not.toContain('actions-overlay-button');
     });
+
+    it('does not dim the photo by default', function() {
+      const html = renderToStaticMarkup(CharacterAvatarFieldHelper.render(null, 'Aragorn', true, Noop.noop));
+      expect(html).not.toContain('photo-hidden');
+    });
+
+    it('dims the photo when dimmed is true', function() {
+      const html = renderToStaticMarkup(
+        CharacterAvatarFieldHelper.render(null, 'Aragorn', true, Noop.noop, true)
+      );
+      expect(html).toContain('photo-hidden');
+    });
   });
 });

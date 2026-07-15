@@ -39,9 +39,9 @@ export default class BaseCharacterEditHelper {
    * @param {{isFullEditor: boolean, name: string, profile_photo_path: string|null,
    *   links: object[], role: string, description: string, privateDescription: string,
    *   money: string, gameType: string, allegiance: string, publicAllegiance: string,
-   *   publicSlain: boolean, status: string, fieldErrors: object}} state - page state. `gameType`
-   *   is the currency model name (e.g. `dnd`, `deadlands`) of the character's own game,
-   *   defaulting to `dnd`.
+   *   publicSlain: boolean, hidden: boolean, status: string, fieldErrors: object}} state - page
+   *   state. `gameType` is the currency model name (e.g. `dnd`, `deadlands`) of the character's
+   *   own game, defaulting to `dnd`. `hidden` is NPC-only and DM/admin-only.
    * @param {{onSubmit: Function, onNameChange: Function,
    *   onRoleChange: Function,
    *   onDescriptionChange: Function, onPrivateDescriptionChange: Function,
@@ -49,7 +49,8 @@ export default class BaseCharacterEditHelper {
    *   onOpenMoneyModal: Function,
    *   onAllegianceChange: Function,
    *   onPublicAllegianceChange: Function,
-   *   onPublicSlainChange: Function}} handlers - event handlers.
+   *   onPublicSlainChange: Function,
+   *   onHiddenChange: Function}} handlers - event handlers.
    * @returns {React.ReactElement} rendered edit page.
    */
   render(state, handlers) {
@@ -66,7 +67,9 @@ export default class BaseCharacterEditHelper {
                 url={state.profile_photo_path}
                 alt={state.name}
                 onClick={handlers.onOpenUploadModal}
+                dimmed={state.hidden}
               />
+              {this.#renderHiddenField(state, handlers)}
               {this.#renderNameField(state, handlers)}
               <CharacterLinksField
                 links={state.links}
@@ -195,6 +198,30 @@ export default class BaseCharacterEditHelper {
         onChange={handlers.onNameChange}
         errors={state.fieldErrors.name ?? []}
       />
+    );
+  }
+
+  #renderHiddenField(state, handlers) {
+    if (this.idPrefix !== 'npc' || !state.isFullEditor) {
+      return null;
+    }
+
+    const { idPrefix, i18nNamespace } = this;
+
+    return (
+      <div className="form-check form-switch mb-3">
+        <input
+          id={`${idPrefix}-edit-hidden`}
+          type="checkbox"
+          role="switch"
+          className="form-check-input"
+          checked={state.hidden}
+          onChange={handlers.onHiddenChange}
+        />
+        <label htmlFor={`${idPrefix}-edit-hidden`} className="form-check-label">
+          {Translator.t(`${i18nNamespace}.hidden_label`)}
+        </label>
+      </div>
     );
   }
 

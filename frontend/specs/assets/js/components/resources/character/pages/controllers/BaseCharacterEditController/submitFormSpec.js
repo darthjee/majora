@@ -47,6 +47,7 @@ describe('BaseCharacterEditController', function() {
             allegiance: 'ally',
             publicAllegiance: 'enemy',
             publicSlain: true,
+            hidden: true,
             links: [
               { id: 12, text: 'Loot table', url: 'https://example.com/loot', link_type: 'lootstudio' },
               { text: '', url: 'https://example.com/new-link', link_type: '' },
@@ -69,6 +70,7 @@ describe('BaseCharacterEditController', function() {
             allegiance: 'ally',
             public_allegiance: 'enemy',
             public_slain: true,
+            hidden: true,
             links: [
               {
                 id: 12, text: 'Loot table', url: 'https://example.com/loot', link_type: 'lootstudio', delete: false,

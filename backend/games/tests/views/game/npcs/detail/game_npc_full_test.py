@@ -71,6 +71,7 @@ class TestGameNpcFullView(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert data['public_description'] == 'A wandering wizard.'
         assert data['private_description'] == 'The secret guardian of Middle Earth.'
+        assert data['hidden'] is False
 
     def test_returns_200_with_descriptions_for_dm(self, client):
         """Test that a DM gets full detail including both descriptions."""

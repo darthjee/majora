@@ -8,7 +8,7 @@ Characters are scoped to a game. Access is symmetric for PCs and NPCs unless not
 |----------|-------------|-----------------|
 | `GET /games/<slug>/pcs.json` | **AllowAny** | `id`, `name`, `game_slug`, `profile_photo_path`, `slain`, `allegiance` |
 | `GET /games/<slug>/npcs.json` | **AllowAny** | Same as above |
-| `GET /games/<slug>/npcs/all.json` | **GameEdit** | Same as `npcs.json` (via `CharacterFullListSerializer`), plus `public_allegiance` and `public_slain` — see "Allegiance fields" and "Slain fields" below. Includes hidden NPCs, unlike `npcs.json`. Always sets `X-Skip-Cache: true` |
+| `GET /games/<slug>/npcs/all.json` | **GameEdit** | Same as `npcs.json` (via `CharacterFullListSerializer`), plus `public_allegiance`, `public_slain`, and `hidden` — see "Allegiance fields", "Slain fields", and "Hidden field" below. Includes hidden NPCs, unlike `npcs.json`. Accepts an optional `?hidden=true\|false` filter (same tolerant convention as `?slain=`/`?allegiance=`). Always sets `X-Skip-Cache: true` |
 
 ## Detail
 
@@ -33,7 +33,7 @@ the plain detail endpoints above.
 
 | Endpoint | Who can read/write | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs/<id>/full.json` | **CharacterEdit** | All detail fields + `private_description` + `public_allegiance` + `public_slain` |
+| `GET /games/<slug>/pcs/<id>/full.json` | **CharacterEdit** | All detail fields + `private_description` + `public_allegiance` + `public_slain` + `hidden` |
 | `GET /games/<slug>/npcs/<id>/full.json` | **CharacterEdit** | Same as above |
 | `PATCH /games/<slug>/pcs/<id>/full.json` | **CharacterEdit** | Same response shape as the `GET` above |
 | `PATCH /games/<slug>/npcs/<id>/full.json` | **CharacterEdit** | Same as above |
@@ -112,6 +112,32 @@ PCs.
 **Filtering**: `npcs.json` filters `?slain=` on `public_slain`; `npcs/all.json` filters
 `?slain=` on the real `slain` field — same tolerant/unauthorized-safe convention as the
 `?allegiance=` filter above.
+
+## Hidden field
+
+`Character.hidden` is a single `BooleanField` (default `False`), shared by both PCs and NPCs,
+with no public/regular split (unlike `allegiance`/`slain` above) — there is only ever one real
+value, and it is never exposed on the public-facing endpoints at all (issue #545).
+
+**Read exposure**: not returned on the public list/detail endpoints (`pcs.json`, `npcs.json`,
+`pcs/<id>.json`, `npcs/<id>.json`) — those endpoints unconditionally exclude hidden NPCs from
+`npcs.json`'s queryset instead of exposing the field. Returned read-only on the DM/admin
+endpoints (`npcs/all.json` via `CharacterFullListSerializer`, `pcs/<id>/full.json` and
+`npcs/<id>/full.json` via `CharacterFullSerializer`), which is also the only place a hidden NPC
+is visible in a list at all.
+
+**Write access**: writable through `CharacterUpdateSerializer` (**CharacterEdit**-gated, same
+`full.json` routes as "Slain fields"/"Allegiance fields" above) and through
+`CharacterCreateSerializer` (**GameEdit**-gated, `POST /games/<slug>/npcs.json`) — see "Update
+(PATCH)" and "Create" below. Not accepted by the narrower `NpcPlayerUpdateSerializer`
+(`PATCH /games/<slug>/npcs/<id>.json`) — a regular player can never toggle a character's
+`hidden` state.
+
+**Filtering**: `npcs/all.json` accepts an optional `?hidden=true|false` query parameter
+(any other value silently ignored, same tolerant convention as `?slain=`/`?allegiance=`); no
+other endpoint filters on it. The hidden-NPC gate on the plain detail endpoints (see "Detail"
+above) is a separate, pre-existing mechanism (a 404 response, not a filter param) and is
+unaffected by this query parameter.
 
 ## Edit access status
 

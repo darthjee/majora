@@ -53,3 +53,10 @@ class TestCharacterFullListSerializer(TestCase):
         self.character.save()
         data = CharacterFullListSerializer(self.character).data
         assert data['public_slain'] is False
+
+    def test_serializes_hidden(self):
+        """Test that hidden is serialized."""
+        self.character.hidden = True
+        self.character.save()
+        data = CharacterFullListSerializer(self.character).data
+        assert data['hidden'] is True
