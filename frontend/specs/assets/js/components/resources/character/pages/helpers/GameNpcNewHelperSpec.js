@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameNpcNewHelper from '../../../../../../../../assets/js/components/resources/character/pages/helpers/GameNpcNewHelper.jsx';
+import { buildLink } from '../../../../../../../support/factories.js';
 
 describe('GameNpcNewHelper', function() {
   const buildHandlers = () => ({
@@ -8,6 +9,7 @@ describe('GameNpcNewHelper', function() {
     onRoleChange: jasmine.createSpy('onRoleChange'),
     onDescriptionChange: jasmine.createSpy('onDescriptionChange'),
     onPrivateDescriptionChange: jasmine.createSpy('onPrivateDescriptionChange'),
+    onOpenLinksModal: jasmine.createSpy('onOpenLinksModal'),
     onHiddenChange: jasmine.createSpy('onHiddenChange'),
     onMoneyChange: jasmine.createSpy('onMoneyChange'),
     onAllegianceChange: jasmine.createSpy('onAllegianceChange'),
@@ -19,6 +21,7 @@ describe('GameNpcNewHelper', function() {
     role: 'Villain',
     description: 'A menacing goblin.',
     privateDescription: 'Secretly a coward.',
+    links: [],
     hidden: false,
     money: '42',
     allegiance: 'neutral',
@@ -40,6 +43,47 @@ describe('GameNpcNewHelper', function() {
       expect(html).toContain('id="game-npc-new-hidden"');
       expect(html).toContain('id="game-npc-new-allegiance"');
       expect(html).toContain('id="game-npc-new-public-allegiance"');
+    });
+
+    it('renders a static avatar placeholder with no upload control in the left column', function() {
+      const html = renderToStaticMarkup(GameNpcNewHelper.render(buildState(), buildHandlers()));
+      const leftColStart = html.indexOf('class="col-md-4"');
+      const rightColStart = html.indexOf('class="col-md-8"');
+      // react-dom prepends an image preload <link> for the first occurrence of any
+      // <img> src, so the real, in-body avatar image is its *last* occurrence, not
+      // its first.
+      const avatarIndex = html.lastIndexOf('default_character.png');
+
+      expect(leftColStart).toBeGreaterThan(-1);
+      expect(rightColStart).toBeGreaterThan(leftColStart);
+      expect(avatarIndex).toBeGreaterThan(leftColStart);
+      expect(avatarIndex).toBeLessThan(rightColStart);
+      expect(html).not.toContain('actions-overlay-button');
+    });
+
+    it('renders the links field in the left column, wired to onOpenLinksModal', function() {
+      const handlers = buildHandlers();
+      const html = renderToStaticMarkup(
+        GameNpcNewHelper.render(
+          buildState({ links: [buildLink({ text: 'Wiki', url: 'https://example.com/wiki' })] }),
+          handlers,
+        )
+      );
+
+      expect(html).toContain('href="https://example.com/wiki"');
+      expect(html).toContain('Edit links');
+    });
+
+    it('renders role, description and DM notes fields in the right column', function() {
+      const html = renderToStaticMarkup(GameNpcNewHelper.render(buildState(), buildHandlers()));
+      const rightColStart = html.indexOf('class="col-md-8"');
+      const roleIndex = html.indexOf('id="game-npc-new-role"');
+      const descriptionIndex = html.indexOf('id="game-npc-new-description"');
+      const privateDescriptionIndex = html.indexOf('id="game-npc-new-private-description"');
+
+      expect(roleIndex).toBeGreaterThan(rightColStart);
+      expect(descriptionIndex).toBeGreaterThan(rightColStart);
+      expect(privateDescriptionIndex).toBeGreaterThan(rightColStart);
     });
 
     it('renders the allegiance and public allegiance selects with the current values', function() {
