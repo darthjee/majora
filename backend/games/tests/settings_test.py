@@ -151,3 +151,17 @@ class TestSettingsUploadExpirationMinutes:
         """Test that the default is returned when the env var is an empty string."""
         monkeypatch.setenv('MAJORA_UPLOAD_EXPIRATION_MINUTES', '')
         assert Settings.upload_expiration_minutes() == 60
+
+
+class TestSettingsGravatarBaseUrl:
+    """Tests for Settings.gravatar_base_url()."""
+
+    def test_returns_default_when_env_not_set(self, monkeypatch):
+        """Test that the default Gravatar base URL is returned when env var is absent."""
+        monkeypatch.delenv('MAJORA_GRAVATAR_BASE_URL', raising=False)
+        assert Settings.gravatar_base_url() == 'https://gravatar.com/avatar/'
+
+    def test_reads_value_from_env(self, monkeypatch):
+        """Test that the value from MAJORA_GRAVATAR_BASE_URL is used."""
+        monkeypatch.setenv('MAJORA_GRAVATAR_BASE_URL', 'https://example.com/avatar/')
+        assert Settings.gravatar_base_url() == 'https://example.com/avatar/'
