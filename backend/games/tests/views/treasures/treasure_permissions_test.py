@@ -27,6 +27,10 @@ class TestTreasurePermissionsView(TokenAuthRequestMixin, TestCase):
         cls.superuser_token = Token.objects.create(user=cls.superuser)
         cls.regular_user = UserFactory(username='player', password='secret-password')
         cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.staff_user = UserFactory(
+            username='staffer', password='secret-password', is_staff=True
+        )
+        cls.staff_token = Token.objects.create(user=cls.staff_user)
 
     def _get(self, client, token=None, query=''):
         """Issue a GET request to the treasure permissions endpoint."""
@@ -53,6 +57,21 @@ class TestTreasurePermissionsView(TokenAuthRequestMixin, TestCase):
     def test_regular_user_cannot_edit_global_treasure(self):
         """Test that a regular user gets can_edit False for a global treasure."""
         response = self._get(self.client, token=self.regular_token)
+        data = json.loads(response.content)
+        assert data == {'can_edit': False}
+
+    def test_staff_can_edit_global_treasure(self):
+        """Test that a staff user gets can_edit True for a global treasure."""
+        response = self._get(self.client, token=self.staff_token)
+        data = json.loads(response.content)
+        assert data == {'can_edit': True}
+
+    def test_staff_cannot_edit_game_exclusive_treasure(self):
+        """Test that a staff user gets can_edit False for a game-exclusive treasure."""
+        game = GameFactory(name='Test Game', game_slug='test-game')
+        self.treasure.game = game
+        self.treasure.save()
+        response = self._get(self.client, token=self.staff_token)
         data = json.loads(response.content)
         assert data == {'can_edit': False}
 

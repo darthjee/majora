@@ -60,6 +60,10 @@ class TestTreasureDetailPatchView(TokenAuthRequestMixin, TestCase):
         cls.superuser_token = Token.objects.create(user=cls.superuser)
         cls.regular_user = UserFactory(username='player', password='secret-password')
         cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.staff_user = UserFactory(
+            username='staffer', password='secret-password', is_staff=True
+        )
+        cls.staff_token = Token.objects.create(user=cls.staff_user)
 
     def _patch(self, client, payload, token=None):
         """Issue a PATCH request to the treasure detail endpoint, optionally with a token."""
@@ -68,6 +72,13 @@ class TestTreasureDetailPatchView(TokenAuthRequestMixin, TestCase):
     def test_superuser_can_patch(self):
         """Test that a superuser can update a treasure and receives 200."""
         response = self._patch(self.client, {'name': 'New Helmet'}, token=self.superuser_token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['name'] == 'New Helmet'
+
+    def test_staff_can_patch(self):
+        """Test that a staff user can update a global treasure and receives 200."""
+        response = self._patch(self.client, {'name': 'New Helmet'}, token=self.staff_token)
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['name'] == 'New Helmet'
@@ -114,6 +125,16 @@ class TestTreasureDetailPatchView(TokenAuthRequestMixin, TestCase):
         GameMasterFactory(game=game, user=dm_user)
         dm_token = Token.objects.create(user=dm_user)
         response = self._patch(self.client, {'name': 'Hacked Helmet'}, token=dm_token)
+        assert response.status_code == 403
+        self.treasure.refresh_from_db()
+        assert self.treasure.name == 'Old Helmet'
+
+    def test_patch_with_staff_on_game_exclusive_treasure_returns_403(self):
+        """Test that PATCH is rejected with 403 for a staff user on a game-exclusive treasure."""
+        game = GameFactory(name='Test Game', game_slug='test-game')
+        self.treasure.game = game
+        self.treasure.save()
+        response = self._patch(self.client, {'name': 'Hacked Helmet'}, token=self.staff_token)
         assert response.status_code == 403
         self.treasure.refresh_from_db()
         assert self.treasure.name == 'Old Helmet'

@@ -30,6 +30,10 @@ class TestTreasurePhotoUploadView(TestCase):
             username='player', password='secret-password'
         )
         cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.staff_user = UserFactory(
+            username='staffer', password='secret-password', is_staff=True
+        )
+        cls.staff_token = Token.objects.create(user=cls.staff_user)
 
     def _url(self, treasure_id=None):
         """Return the upload endpoint URL for the given treasure id (defaults to the treasure)."""
@@ -57,6 +61,11 @@ class TestTreasurePhotoUploadView(TestCase):
         """Test that an authenticated non-superuser is rejected with 403."""
         response = self._post(self.client, {'filename': 'photo.jpg'}, token=self.regular_token)
         assert response.status_code == 403
+
+    def test_staff_can_upload_photo_for_global_treasure(self):
+        """Test that a staff user succeeds uploading a photo for a global treasure."""
+        response = self._post(self.client, {'filename': 'photo.jpg'}, token=self.staff_token)
+        assert response.status_code == 201
 
     def test_unknown_treasure_id_returns_404(self):
         """Test that a non-existent treasure_id returns 404."""
@@ -181,6 +190,10 @@ class TestTreasurePhotoUploadGameExclusive(TestCase):
             username='player', password='secret-password'
         )
         cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.staff_user = UserFactory(
+            username='staffer', password='secret-password', is_staff=True
+        )
+        cls.staff_token = Token.objects.create(user=cls.staff_user)
 
     def _post(self, client, payload, token=None):
         """Issue a POST request to the photo upload endpoint, optionally with a token."""
@@ -202,4 +215,9 @@ class TestTreasurePhotoUploadGameExclusive(TestCase):
     def test_non_dm_regular_user_returns_403(self):
         """Test that a non-DM regular user is rejected with 403."""
         response = self._post(self.client, {'filename': 'gem.png'}, token=self.regular_token)
+        assert response.status_code == 403
+
+    def test_staff_user_returns_403(self):
+        """Test that a staff user is rejected with 403 for a game-exclusive treasure."""
+        response = self._post(self.client, {'filename': 'gem.png'}, token=self.staff_token)
         assert response.status_code == 403

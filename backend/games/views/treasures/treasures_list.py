@@ -34,7 +34,7 @@ def _create_treasure(request):
     if error_response:
         return error_response
 
-    if not request.user.is_superuser:
+    if not (request.user.is_superuser or request.user.is_staff):
         return Response({'errors': {'detail': ['not allowed']}}, status=403)
 
     serializer = TreasureCreateSerializer(data=request.data)
