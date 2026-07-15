@@ -2,18 +2,20 @@ import CoinBreakdown from './CoinBreakdown.js';
 import CoinPacker from './CoinPacker.js';
 import MoneyModelRegistry from './MoneyModelRegistry.js';
 
-// The `character` config intentionally omits `denominations` so CoinBreakdown
-// falls back to its own default denomination list: CoinBreakdown only
-// overflows leftover value into a `gems` entry when denominations were left
-// at that exact default, so passing an equivalent-looking array here would
-// silently disable the gems overflow behavior.
+// The `character` config intentionally passes its own explicit `denominations`
+// array (rather than relying on CoinBreakdown's default denomination list
+// reference) so that platinum absorbs all remaining value instead of
+// overflowing into a `gems` entry: CoinBreakdown/CoinPacker only trigger that
+// gems overflow special case when denominations were left at the exact
+// default reference, so an equivalent-looking but distinct array here
+// disables it.
 const CONTEXT_CONFIGS = {
-  character: { cascadeThreshold: 30 },
+  character: { denominations: ['cp', 'sp', 'gp', 'pp'], cascadeThreshold: 30 },
   treasure: { denominations: ['cp', 'sp', 'gp'], cascadeThreshold: 10 },
 };
 
 const DENOMINATION_KEYS_BY_CONTEXT = {
-  character: ['cp', 'sp', 'gp', 'pp', 'gems'],
+  character: ['cp', 'sp', 'gp', 'pp'],
   treasure: ['cp', 'sp', 'gp'],
 };
 

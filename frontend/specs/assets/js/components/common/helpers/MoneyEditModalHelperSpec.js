@@ -76,7 +76,7 @@ describe('MoneyEditModalHelper', function() {
 
   const buildState = (overrides = {}) => ({
     breakdown: {
-      cp: 22, sp: 21, gp: 1, pp: 0, gems: 0,
+      cp: 22, sp: 21, gp: 1, pp: 0,
     },
     canConfirm: true,
     ...overrides,
@@ -102,7 +102,7 @@ describe('MoneyEditModalHelper', function() {
     it('renders an input per denomination seeded with the breakdown value', function() {
       const element = MoneyEditModalHelper.render(true, buildState(), buildHandlers());
 
-      ['cp', 'sp', 'gp', 'pp', 'gems'].forEach((key) => {
+      ['cp', 'sp', 'gp', 'pp'].forEach((key) => {
         const input = findElement(element, (child) => child.type === 'input' && child.props.id === `money-edit-${key}`);
 
         expect(input.props.value).toBe(buildState().breakdown[key]);
@@ -153,11 +153,18 @@ describe('MoneyEditModalHelper', function() {
       expect(confirmButton.props.disabled).toBe(false);
     });
 
-    it('renders exactly 5 denomination inputs', function() {
+    it('renders exactly 4 denomination inputs', function() {
       const element = MoneyEditModalHelper.render(true, buildState(), buildHandlers());
       const inputs = findAllElements(element, (child) => child.type === 'input' && child.props.id?.startsWith('money-edit-'));
 
-      expect(inputs.length).toBe(5);
+      expect(inputs.length).toBe(4);
+    });
+
+    it('does not render a gems input', function() {
+      const element = MoneyEditModalHelper.render(true, buildState(), buildHandlers());
+
+      expect(findElement(element, (child) => child.type === 'input' && child.props.id === 'money-edit-gems'))
+        .toBeNull();
     });
 
     describe('with the treasure context', function() {
