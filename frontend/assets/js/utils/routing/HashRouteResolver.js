@@ -44,6 +44,9 @@ export default class HashRouteResolver {
     this.#router.register('/games/:game_slug/sessions/:id', 'gameSession');
     this.#router.register('/games/:game_slug/sessions', 'gameSessions');
     this.#router.register('/games/:game_slug/tasks', 'gameTasks');
+    this.#router.register('/games/:game_slug/polls/new', 'gamePollNew');
+    this.#router.register('/games/:game_slug/polls/:id', 'gamePoll');
+    this.#router.register('/games/:game_slug/polls', 'gamePolls');
     this.#router.register('/games/:game_slug/photos', 'gamePhotos');
     this.#router.register('/games/new', 'gameNew');
     this.#router.register('/games/:game_slug/edit', 'gameEdit');
@@ -108,10 +111,10 @@ export default class HashRouteResolver {
   }
 
   /**
-   * Return NPC filter query params from hash.
+   * Return NPC/poll filter query params from hash.
    *
-   * @returns {URLSearchParams} Filter params (`slain`/`name`/`allegiance`), only set when
-   *   present in hash.
+   * @returns {URLSearchParams} Filter params (`slain`/`name`/`allegiance`/`status`), only set
+   *   when present in hash.
    */
   getFilterParams() {
     const query = HashQueryParams.parse(this.currentHash());
@@ -120,6 +123,7 @@ export default class HashRouteResolver {
     const slain = query.get('slain');
     const name = query.get('name');
     const allegiance = query.get('allegiance');
+    const status = query.get('status');
 
     if (slain !== null) {
       params.set('slain', slain);
@@ -131,6 +135,10 @@ export default class HashRouteResolver {
 
     if (allegiance !== null) {
       params.set('allegiance', allegiance);
+    }
+
+    if (status !== null) {
+      params.set('status', status);
     }
 
     return params;

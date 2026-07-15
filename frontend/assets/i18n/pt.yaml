@@ -79,6 +79,9 @@ game_page:
   see_all_photos: Fotos
   next_session_title: Próxima Sessão
   no_next_session: Nenhuma sessão futura agendada.
+  polls_title: Enquetes
+  open_polls_count: '{{count}} enquete(s) aberta(s)'
+  view_polls: Ver enquetes
 game_characters_page:
   loading: Carregando...
 character_page:
@@ -314,6 +317,33 @@ game_session_edit_page:
   description_label: Descrição
   submit: Salvar alterações
   error: Falha ao salvar sessão. Tente novamente.
+game_polls_page:
+  loading: Carregando enquetes...
+  title: Enquetes
+  new_poll: Nova Enquete
+  empty: Nenhuma enquete ainda.
+  filter_status_label: Status
+  filter_query: Filtrar
+  filter_clear: Limpar
+  status_open: Aberta
+  status_inactive: Inativa
+  status_closed: Encerrada
+  error: Não foi possível carregar as enquetes.
+game_poll_page:
+  loading: Carregando enquete...
+  options_title: Opções
+  error: Não foi possível carregar a enquete.
+game_poll_new_page:
+  title: Nova Enquete
+  title_label: Título
+  description_label: Descrição
+  type_label: Tipo
+  type_single: Escolha única
+  type_multiple: Escolha múltipla
+  options_label: Opções
+  add_option: Adicionar opção
+  submit: Criar Enquete
+  error: Falha ao criar enquete. Tente novamente.
 game_tasks_page:
   loading: Carregando tarefas...
   title: Tarefas

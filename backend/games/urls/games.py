@@ -61,6 +61,12 @@ urlpatterns = [
         views.game_task_detail,
         name='game-task-detail',
     ),
+    path('games/<slug:game_slug>/polls.json', views.game_polls_list, name='game-polls-list'),
+    path(
+        'games/<slug:game_slug>/polls/<int:poll_id>.json',
+        views.game_poll_detail,
+        name='game-poll-detail',
+    ),
     path(
         'games/<slug:game_slug>/game-masters.json',
         views.game_masters_list,

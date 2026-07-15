@@ -40,6 +40,7 @@ regardless of any other rule listed below.
 - [GameSession](access-control/game-session.md)
 - [GameSessionMessage](access-control/game-session-message.md)
 - [Task](access-control/task.md)
+- [Poll](access-control/poll.md)
 
 ### Standalone endpoints
 

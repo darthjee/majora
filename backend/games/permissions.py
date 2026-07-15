@@ -121,3 +121,30 @@ class SessionMessagePermission(_EditPermission):
             game.players.filter(user=user).exists()
             or game.game_masters.filter(user=user).exists()
         )
+
+
+class PollPermission(_EditPermission):
+    """Encapsulate the authentication/authorization checks for game polls.
+
+    Unlike SessionMessagePermission, view and create share the exact same check: the
+    game's DM(s), players, and admins (superuser/staff) — no stricter create-only rule,
+    per the issue's explicit permission list for all three poll endpoints.
+    """
+
+    @classmethod
+    def check(cls, request, game):
+        """Return an error Response if `request.user` may not view/create polls for `game`."""
+        unauthenticated = cls._unauthenticated_response(request)
+        if unauthenticated:
+            return unauthenticated
+        if not cls._is_allowed(request.user, game):
+            return cls._forbidden_response()
+        return None
+
+    @classmethod
+    def _is_allowed(cls, user, game):
+        return (
+            user.is_superuser or user.is_staff
+            or game.players.filter(user=user).exists()
+            or game.game_masters.filter(user=user).exists()
+        )
