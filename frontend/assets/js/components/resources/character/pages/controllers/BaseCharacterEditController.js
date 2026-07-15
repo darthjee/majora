@@ -3,6 +3,7 @@ import GenericClient from '../../../../../client/GenericClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import BasePageController from '../../../../common/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
+import CharacterEditFieldsBuilder from './CharacterEditFieldsBuilder.js';
 
 /**
  * Base controller for character edit pages.
@@ -17,58 +18,17 @@ export default class BaseCharacterEditController extends BasePageController {
    * page, because it is missing or not editable. Only acts once the real
    * access/permissions check has resolved (`character.access_resolved`),
    * so a fail-closed `can_edit: false` produced while the real fetch is
-   * still in flight does not trigger a premature redirect.
+   * still in flight does not trigger a premature redirect. A player of the
+   * game (`character.is_player`) is also allowed to stay on the page even
+   * without `can_edit`, so they can reach the narrower player-editable form
+   * (NPCs only in practice, gated separately in {@link submitForm}).
    *
    * @param {object|null} character - Loaded character, or null while still loading.
    * @returns {boolean} True when the page should redirect away.
    */
   static #shouldRedirect(character) {
-    return Boolean(character) && character.access_resolved && !character.can_edit;
-  }
-
-  /**
-   * Shape the form-seed fields object from a loaded, editable character.
-   *
-   * @param {object} character - Loaded, editable character.
-   * @returns {object} Seed fields for the edit form.
-   */
-  static #fieldsFromCharacter(character) {
-    return {
-      name: character.name ?? '',
-      role: character.role ?? '',
-      public_description: character.public_description ?? '',
-      private_description: character.private_description ?? '',
-      money: String(character.money ?? 0),
-      allegiance: character.allegiance ?? 'neutral',
-      public_allegiance: character.public_allegiance ?? 'neutral',
-      links: character.links ?? [],
-    };
-  }
-
-  /**
-   * Maps the edit page's local links state to the wire shape expected by the
-   * character update/create endpoints: blank `text` defaults to the link's
-   * `url`, `id` is only included for persisted links, and `delete` reflects
-   * whether the link was marked for deletion in the modal.
-   *
-   * @param {object[]} links - Local links state (as edited via LinksEditModal).
-   * @returns {object[]} Links payload ready to send to the backend.
-   */
-  static #linksPayload(links = []) {
-    return links.map((link) => {
-      const payload = {
-        text: link.text?.trim() ? link.text : link.url,
-        url: link.url,
-        link_type: link.link_type ?? '',
-        delete: Boolean(link.delete),
-      };
-
-      if (link.id) {
-        payload.id = link.id;
-      }
-
-      return payload;
-    });
+    return Boolean(character) && character.access_resolved
+      && !character.can_edit && !character.is_player;
   }
 
   /**
@@ -126,23 +86,31 @@ export default class BaseCharacterEditController extends BasePageController {
   }
 
   /**
-   * Submit a partial update for the character.
+   * Submit a partial update for the character, either through the
+   * (dm/admin-only) full endpoint (`isFullEditor` true, the default) or,
+   * for a player-only NPC editor, through the narrower player-writable NPC
+   * endpoint (`isFullEditor` false).
    *
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
-   * @param {object} fields - Fields to update
-   *   (`name`, `role`, `public_description`, `private_description`, `money`, `links`,
-   *   and, for NPCs, `allegiance`/`public_allegiance`).
+   * @param {object} fields - Fields to update — the full set (`name`, `role`,
+   *   `public_description`, `private_description`, `money`, `links`, and, for NPCs,
+   *   `allegiance`/`public_allegiance`/`public_slain`) for a full editor, or the reduced
+   *   set (`public_description`, `allegiance`, `links`, `slain`) for a player-only editor.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
+   * @param {boolean} [isFullEditor] - Whether to PATCH the full (dm/admin) endpoint via
+   *   {@link CharacterClient#updateCharacter} (`true`, the default) or the narrower
+   *   player-writable NPC endpoint via {@link CharacterClient#updateNpcAsPlayer} (`false`).
    * @returns {Promise<void>} resolves when the request handling finishes.
    */
-  async handleSubmit(gameSlug, characterId, fields, setters) {
+  async handleSubmit(gameSlug, characterId, fields, setters, isFullEditor = true) {
     const token = AuthStorage.getToken();
+    const request = isFullEditor
+      ? this.characterClient.updateCharacter(this.routeSegment, gameSlug, characterId, token, fields)
+      : this.characterClient.updateNpcAsPlayer(gameSlug, characterId, token, fields);
 
     try {
-      const response = await this.characterClient.updateCharacter(
-        this.routeSegment, gameSlug, characterId, token, fields,
-      );
+      const response = await request;
 
       await this.#handleResponse(response, gameSlug, characterId, setters);
     } catch {
@@ -152,19 +120,28 @@ export default class BaseCharacterEditController extends BasePageController {
 
   /**
    * Handle the edit form submission: prevent the default browser submit,
-   * reset the page status/errors, build the fields payload, and delegate
-   * to {@link BaseCharacterEditController#handleSubmit}.
+   * reset the page status/errors, build the fields payload appropriate for
+   * the current viewer's editor kind, and delegate to
+   * {@link BaseCharacterEditController#handleSubmit}. A full (dm/admin)
+   * editor gets the full fields object PATCHed to `full.json`, unchanged; a
+   * player-only NPC editor (`is_player && !can_edit`, NPCs only — gated on
+   * `routeSegment === 'npcs'`) gets a reduced fields object PATCHed to the
+   * narrower player-writable NPC endpoint instead.
    *
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
    * @param {{name: string, role: string, description: string,
    *   privateDescription: string, money: string, allegiance: string,
-   *   publicAllegiance: string, links: object[]}} formValues - Raw form field values.
+   *   publicAllegiance: string, publicSlain: boolean, links: object[]}} formValues - Raw form
+   *   field values.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
+   * @param {boolean} [isFullEditor] - Whether the current viewer is a full (dm/admin)
+   *   editor (`character.can_edit`). Defaults to `true`, matching the pre-existing,
+   *   dm/admin-only behavior for callers that do not pass this flag.
    * @returns {Promise<void>} resolves when the request handling finishes.
    */
-  submitForm(event, gameSlug, characterId, formValues, setters) {
+  submitForm(event, gameSlug, characterId, formValues, setters, isFullEditor = true) {
     if (event && typeof event.preventDefault === 'function') {
       event.preventDefault();
     }
@@ -172,21 +149,12 @@ export default class BaseCharacterEditController extends BasePageController {
     setters.setStatus('submitting');
     setters.setFieldErrors({});
 
-    const fields = {
-      name: formValues.name,
-      role: formValues.role,
-      public_description: formValues.description,
-      private_description: formValues.privateDescription,
-      money: parseInt(formValues.money, 10),
-      links: BaseCharacterEditController.#linksPayload(formValues.links),
-    };
+    const usePlayerEndpoint = this.routeSegment === 'npcs' && !isFullEditor;
+    const fields = usePlayerEndpoint
+      ? CharacterEditFieldsBuilder.playerFields(formValues)
+      : CharacterEditFieldsBuilder.fullEditorFields(formValues, this.routeSegment);
 
-    if (this.routeSegment === 'npcs') {
-      fields.allegiance = formValues.allegiance;
-      fields.public_allegiance = formValues.publicAllegiance;
-    }
-
-    return this.handleSubmit(gameSlug, characterId, fields, setters);
+    return this.handleSubmit(gameSlug, characterId, fields, setters, !usePlayerEndpoint);
   }
 
   /**
@@ -198,7 +166,8 @@ export default class BaseCharacterEditController extends BasePageController {
    * @param {string|number} characterId - Character id, used to build the redirect hash.
    * @param {{setName: Function, setRole: Function, setDescription: Function,
    *   setPrivateDescription: Function, setMoney: Function, setAllegiance: Function,
-   *   setPublicAllegiance: Function, setLinks: Function}} setters - Form field setters.
+   *   setPublicAllegiance: Function, setPublicSlain: Function,
+   *   setLinks: Function}} setters - Form field setters.
    * @returns {void}
    */
   applyLoadedCharacter(character, gameSlug, characterId, setters) {
@@ -211,7 +180,7 @@ export default class BaseCharacterEditController extends BasePageController {
       return;
     }
 
-    const fields = BaseCharacterEditController.#fieldsFromCharacter(character);
+    const fields = CharacterEditFieldsBuilder.fieldsFromCharacter(character);
 
     setters.setName(fields.name);
     setters.setRole(fields.role);
@@ -220,6 +189,7 @@ export default class BaseCharacterEditController extends BasePageController {
     setters.setMoney(fields.money);
     setters.setAllegiance(fields.allegiance);
     setters.setPublicAllegiance(fields.public_allegiance);
+    setters.setPublicSlain(fields.public_slain);
     setters.setLinks(fields.links);
   }
 

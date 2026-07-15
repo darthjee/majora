@@ -26,5 +26,6 @@ export const KINDS = [
     getParamsFromHash: NpcCharacterEditController.getNpcCharacterEditParamsFromHash,
     allegiance: 'ally',
     publicAllegiance: 'enemy',
+    publicSlain: true,
   },
 ];

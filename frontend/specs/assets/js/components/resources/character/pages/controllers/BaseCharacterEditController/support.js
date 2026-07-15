@@ -39,6 +39,8 @@ export function buildContext() {
     setError: jasmine.createSpy('setError'),
     setFieldErrors: jasmine.createSpy('setFieldErrors'),
     client: jasmine.createSpyObj('client', ['currentHash']),
-    characterClient: jasmine.createSpyObj('characterClient', ['fetchCharacter', 'updateCharacter']),
+    characterClient: jasmine.createSpyObj(
+      'characterClient', ['fetchCharacter', 'updateCharacter', 'updateNpcAsPlayer'],
+    ),
   };
 }

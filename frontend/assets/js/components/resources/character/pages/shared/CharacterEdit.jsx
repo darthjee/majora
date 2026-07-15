@@ -30,6 +30,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
   const [money, setMoney] = useState('');
   const [allegiance, setAllegiance] = useState('neutral');
   const [publicAllegiance, setPublicAllegiance] = useState('neutral');
+  const [publicSlain, setPublicSlain] = useState(false);
   const [links, setLinks] = useState([]);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showLinksModal, setShowLinksModal] = useState(false);
@@ -55,6 +56,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
       setMoney,
       setAllegiance,
       setPublicAllegiance,
+      setPublicSlain,
       setLinks,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -65,14 +67,23 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
     gameSlug,
     characterId,
     {
-      name, role, description, privateDescription, money, allegiance, publicAllegiance, links,
+      name,
+      role,
+      description,
+      privateDescription,
+      money,
+      allegiance,
+      publicAllegiance,
+      publicSlain,
+      links,
     },
     { setStatus, setFieldErrors },
+    character?.can_edit,
   );
 
   if (loading) return CharacterHelper.renderLoading();
   if (error) return CharacterHelper.renderError(error);
-  if (!character || !character.can_edit) return EditHelper.renderLoading();
+  if (!character || (!character.can_edit && !character.is_player)) return EditHelper.renderLoading();
 
   const uploadPath = `/games/${gameSlug}/${characterKind}/${characterId}/photo_upload.json`;
 
@@ -85,6 +96,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
     <>
       {EditHelper.render(
         {
+          isFullEditor: character.can_edit,
           name,
           profile_photo_path: character.profile_photo_path,
           links,
@@ -94,6 +106,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
           money,
           allegiance,
           publicAllegiance,
+          publicSlain,
           status,
           fieldErrors,
         },
@@ -106,6 +119,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
           onMoneyChange: (event) => setMoney(event.target.value),
           onAllegianceChange: (event) => setAllegiance(event.target.value),
           onPublicAllegianceChange: (event) => setPublicAllegiance(event.target.value),
+          onPublicSlainChange: (event) => setPublicSlain(event.target.checked),
           onOpenUploadModal: () => setShowUploadModal(true),
           onOpenLinksModal: () => setShowLinksModal(true),
           onOpenMoneyModal: () => setShowMoneyModal(true),

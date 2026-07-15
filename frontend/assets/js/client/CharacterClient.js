@@ -7,8 +7,8 @@ import BaseClient from './BaseClient.js';
  *   `characterKind` argument (`'pcs'` or `'npcs'`), which is used both as the
  *   URL segment and to decide whether the (NPC-only) `X-Skip-Cache` header
  *   is required. NPC-only endpoints (`createNpc`, `fetchNpcsAll`,
- *   `setNpcSlain`, `setNpcPublicSlainAsPlayer`) have no PC counterpart and
- *   stay unparameterized.
+ *   `setNpcSlain`, `setNpcPublicSlainAsPlayer`, `updateNpcAsPlayer`) have no
+ *   PC counterpart and stay unparameterized.
  */
 export default class CharacterClient extends BaseClient {
   /**
@@ -241,7 +241,27 @@ export default class CharacterClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the plain NPC endpoint.
    */
   setNpcPublicSlainAsPlayer(gameSlug, characterId, token, slain) {
-    return this.patchJson(`/games/${gameSlug}/npcs/${characterId}.json`, token, { slain });
+    return this.updateNpcAsPlayer(gameSlug, characterId, token, { slain });
+  }
+
+  /**
+   * Submits a widened partial update for an NPC as a player of the game,
+   * through the plain (player-writable) NPC endpoint — not `full.json`,
+   * which stays DM/admin-only. Permitted for any player of the game, in
+   * addition to GMs/superusers. Any key other than the ones documented below
+   * is silently ignored by the backend.
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {{public_description: string, allegiance: string, slain: boolean,
+   *   links: object[]}} fields - Partial update body (all keys optional); `allegiance`
+   *   is sourced by the backend from `Character.public_allegiance`, and `slain` from
+   *   `Character.public_slain`.
+   * @returns {Promise<Response>} fetch response from the plain NPC endpoint.
+   */
+  updateNpcAsPlayer(gameSlug, characterId, token, fields) {
+    return this.patchJson(`/games/${gameSlug}/npcs/${characterId}.json`, token, fields);
   }
 
   #fetchCharacter(characterKind, gameSlug, characterId, token, suffix = null, signal, roles = []) {
