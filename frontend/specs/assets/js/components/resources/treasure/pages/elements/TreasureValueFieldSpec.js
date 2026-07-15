@@ -59,6 +59,20 @@ describe('TreasureValueField', function() {
     expect(html).toContain('0 GP');
   });
 
+  it('defaults gameType to dnd when not given', function() {
+    const html = renderToStaticMarkup(React.createElement(TreasureValueField, buildProps({ value: '500' })));
+
+    expect(html).toContain('5 GP');
+  });
+
+  it('renders a cents/dollars breakdown when gameType is deadlands', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(TreasureValueField, buildProps({ value: '350', gameType: 'deadlands' })),
+    );
+
+    expect(html).toContain('3 Dollars and 50 Cents');
+  });
+
   it('renders a button with the given editLabel', function() {
     const html = renderToStaticMarkup(React.createElement(TreasureValueField, buildProps({ editLabel: 'Edit' })));
 

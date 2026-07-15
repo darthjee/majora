@@ -68,6 +68,14 @@ describe('GameTreasureEditHelper', function() {
       expect(html).toContain('5 GP');
     });
 
+    it('renders a cents/dollars breakdown when gameType is deadlands', function() {
+      const html = renderToStaticMarkup(
+        GameTreasureEditHelper.render(buildState({ value: '350', gameType: 'deadlands' }), buildHandlers())
+      );
+
+      expect(html).toContain('3 Dollars and 50 Cents');
+    });
+
     it('renders a TreasureValueField wired to onOpenValueModal', function() {
       const handlers = buildHandlers();
       const element = GameTreasureEditHelper.render(buildState(), handlers);

@@ -37,8 +37,10 @@ export default class BaseCharacterEditHelper {
    *   are visible/editable regardless of editor kind.
    * @param {{isFullEditor: boolean, name: string, profile_photo_path: string|null,
    *   links: object[], role: string, description: string, privateDescription: string,
-   *   money: string, allegiance: string, publicAllegiance: string, publicSlain: boolean,
-   *   status: string, fieldErrors: object}} state - page state.
+   *   money: string, gameType: string, allegiance: string, publicAllegiance: string,
+   *   publicSlain: boolean, status: string, fieldErrors: object}} state - page state. `gameType`
+   *   is the currency model name (e.g. `dnd`, `deadlands`) of the character's own game,
+   *   defaulting to `dnd`.
    * @param {{onSubmit: Function, onNameChange: Function,
    *   onRoleChange: Function,
    *   onDescriptionChange: Function, onPrivateDescriptionChange: Function,
@@ -225,7 +227,7 @@ export default class BaseCharacterEditHelper {
     return (
       <div className="mb-3">
         <label className="form-label">{Translator.t(`${i18nNamespace}.money_label`)}</label>
-        <CharacterMoney money={Number(state.money) || 0} />
+        <CharacterMoney money={Number(state.money) || 0} gameType={state.gameType} />
         <button
           type="button"
           className="btn btn-outline-secondary btn-sm"

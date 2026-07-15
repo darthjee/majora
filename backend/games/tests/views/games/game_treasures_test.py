@@ -348,3 +348,29 @@ class TestGameTreasuresCreate(TestCase):
         assert response.status_code == 201
         treasure = Treasure.objects.get(name='Gem')
         assert treasure.game == self.game
+
+    def test_created_treasure_defaults_to_the_owning_games_type(self):
+        """Test that a treasure created in a deadlands game gets the game's type."""
+        deadlands_game = GameFactory(
+            name='Deadlands Game', game_slug='deadlands-game', game_type='deadlands',
+        )
+        GameMasterFactory(game=deadlands_game, user=self.dm_user)
+        self._post(
+            self.client, {'name': 'Bag of Cents', 'value': 100}, token=self.dm_token,
+            game_slug='deadlands-game',
+        )
+        treasure = Treasure.objects.get(name='Bag of Cents')
+        assert treasure.game_type == 'deadlands'
+
+    def test_created_treasure_game_type_overrides_client_provided_value(self):
+        """Test that a client-provided game_type is ignored in favor of the game's own type."""
+        deadlands_game = GameFactory(
+            name='Deadlands Game 2', game_slug='deadlands-game-2', game_type='deadlands',
+        )
+        GameMasterFactory(game=deadlands_game, user=self.dm_user)
+        self._post(
+            self.client, {'name': 'Sneaky Gem', 'value': 100, 'game_type': 'dnd'},
+            token=self.dm_token, game_slug='deadlands-game-2',
+        )
+        treasure = Treasure.objects.get(name='Sneaky Gem')
+        assert treasure.game_type == 'deadlands'

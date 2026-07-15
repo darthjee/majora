@@ -25,6 +25,13 @@ describe('CharacterHelper', function() {
       expect(html).not.toContain('character-money');
     });
 
+    it('renders a cents/dollars money breakdown when game_type is deadlands', function() {
+      const c = { ...character, money: 350, game_type: 'deadlands' };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).toContain('50 Cents');
+      expect(html).toContain('3 Dollars');
+    });
+
     it('renders the description', function() {
       expect(renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs')))
         .toContain('The future king of Gondor.');

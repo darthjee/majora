@@ -1,15 +1,16 @@
 import CharacterClient from '../../../../../client/CharacterClient.js';
 import GenericClient from '../../../../../client/GenericClient.js';
+import GameClient from '../../../../../client/GameClient.js';
 import BasePageController from '../../../../common/controllers/BasePageController.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import CharacterGameTypeResolver from './CharacterGameTypeResolver.js';
 
 /**
  * Base controller for character detail pages (PC and NPC).
  *
- * @description Parameterized by `characterKind` (`'pcs'` or `'npcs'`), so a
- *   single implementation covers both PC and NPC detail pages by delegating
- *   to {@link CharacterClient}'s parameterized methods.
+ * @description Parameterized by `characterKind` (`'pcs'` or `'npcs'`) so a single
+ *   implementation covers both, delegating to {@link CharacterClient}'s parameterized methods.
  */
 export default class CharacterController extends BasePageController {
   /**
@@ -19,11 +20,10 @@ export default class CharacterController extends BasePageController {
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
    * @param {GenericClient|null} client - Client override, used for hash resolution.
-   * @param {Function} paramsFromHash - Hash param extractor; concrete subclasses
-   *   provide a default via their own constructor default argument.
+   * @param {Function} paramsFromHash - Hash param extractor; subclasses default this.
    * @param {CharacterClient|null} [characterClient] - Character client override.
-   * @param {string} [characterKind] - Character kind (`'pcs'` or `'npcs'`), used to
-   *   build the correct URL segment for every character client call.
+   * @param {string} [characterKind] - Character kind (`'pcs'` or `'npcs'`), used as the URL segment.
+   * @param {GameClient|null} [gameClient] - Game client override, used for the game currency type.
    */
   constructor(
     setCharacter,
@@ -33,6 +33,7 @@ export default class CharacterController extends BasePageController {
     paramsFromHash,
     characterClient = null,
     characterKind = 'pcs',
+    gameClient = null,
   ) {
     super();
     this.setCharacter = setCharacter;
@@ -42,6 +43,7 @@ export default class CharacterController extends BasePageController {
     this.paramsFromHash = paramsFromHash;
     this.characterClient = characterClient ?? new CharacterClient();
     this.characterKind = characterKind;
+    this.gameClient = gameClient ?? new GameClient();
   }
 
   /**
@@ -93,9 +95,7 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
-   * Handle the full character response, merging every field of the
-   * authoritative full (DM-only) character data into the base character
-   * when available.
+   * Handle the full character response, merging in the full (DM-only) character data when available.
    *
    * @param {Response} fullResponse - Response from fetchCharacterFull.
    * @param {object} character - Base character data already loaded.
@@ -110,11 +110,9 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
-   * Merge every field from the full (DM-only) character response onto the
-   * base character and update the character state. The full response is
-   * authoritative for fields it exposes (e.g. `slain`, `public_slain`,
-   * `allegiance`, `public_allegiance`, `private_description`), overriding
-   * whatever the public serializer provided for those same fields.
+   * Merge every field from the full (DM-only) character response onto the base character
+   * (e.g. `slain`, `public_slain`, `allegiance`, `private_description`), overriding
+   * whatever the public serializer provided, and update the character state.
    *
    * @param {Response} fullResponse - Response from fetchCharacterFull.
    * @param {object} character - Base character data already loaded.
@@ -128,17 +126,9 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
-   * Resolve the character's access identity and edit permissions right away
-   * through {@link AccessStore}'s synchronous, fail-closed readers, merge
-   * them into the character, and load the full character detail if editing
-   * is permitted. Also starts the real access/permissions fetches in the
-   * background and re-runs this same merge-and-load pass once they resolve,
-   * so the page picks up the real values (and, if `can_edit` newly resolves
-   * `true`, the deferred full-character fetch) without blocking the first
-   * render. The merged character carries an `access_resolved` flag, `false`
-   * on this first, fail-closed pass and `true` once the real access/permissions
-   * fetches have resolved, so callers can tell a not-yet-known `can_edit`
-   * from a genuinely resolved denial.
+   * Resolve access via {@link AccessStore}'s fail-closed readers, merge it into the character, and
+   * load full detail if editing is permitted; re-runs the same pass once the real access/permissions
+   * fetches resolve, marking `access_resolved` `true` (vs. a not-yet-known fail-closed pass).
    *
    * @param {object} character - Base character data already loaded.
    * @param {object} params - Route params with game_slug and character_id.
@@ -180,8 +170,7 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
-   * Load the full character detail when the current user can edit it,
-   * merging the private description into the character state.
+   * Load the full character detail when the current user can edit it.
    *
    * @param {object} character - Base character data already loaded.
    * @param {object} params - Route params with game_slug and character_id.
@@ -211,10 +200,8 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
-   * Fetch the character's treasures and merge them onto the character as
-   * `character.treasures`. Treasures are supplementary, not essential, so any
-   * failure (network error or non-ok response) degrades to an empty array
-   * rather than failing the whole character page load.
+   * Fetch the character's treasures and merge them onto the character as `character.treasures`,
+   * degrading to an empty array on failure rather than failing the whole page load.
    *
    * @param {object} character - Base character data already loaded.
    * @param {object} params - Route params with game_slug and character_id.
@@ -229,10 +216,8 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
-   * Fetch the character's photos and merge them onto the character as
-   * `character.photos`. Photos are supplementary, not essential, so any
-   * failure (network error or non-ok response) degrades to an empty array
-   * rather than failing the whole character page load.
+   * Fetch the character's photos and merge them onto the character as `character.photos`,
+   * degrading to an empty array on failure rather than failing the whole page load.
    *
    * @param {object} character - Base character data already loaded.
    * @param {object} params - Route params with game_slug and character_id.
@@ -247,8 +232,30 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
-   * Load the character using the stored token, parse the response,
-   * merge treasures, photos, and access permissions, and update loading state.
+   * Fetch the character's own game.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string|null} token - Authentication token.
+   * @returns {Promise<Response>} Fetch response.
+   */
+  fetchGame(gameSlug, token) {
+    return this.gameClient.fetchGame(gameSlug, token);
+  }
+
+  /**
+   * Fetch and merge the character's own game `game_type`. See {@link CharacterGameTypeResolver}.
+   *
+   * @param {object} character - Base character data already loaded.
+   * @param {object} params - Route params with game_slug and character_id.
+   * @param {string|null} token - Authentication token.
+   * @returns {Promise<object>} Resolves to the character with game_type applied.
+   */
+  fetchAndMergeGameType(character, params, token) {
+    return CharacterGameTypeResolver.merge(character, this.fetchGame(params.game_slug, token));
+  }
+
+  /**
+   * Load the character, merge treasures/photos/game_type/access, and update loading state.
    *
    * @param {object} params - Route params with game_slug and character_id.
    * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
@@ -261,6 +268,7 @@ export default class CharacterController extends BasePageController {
       .then((response) => this.handleCharacterResponse(response))
       .then((character) => this.fetchAndMergeTreasures(character, params, token))
       .then((character) => this.fetchAndMergePhotos(character, params, token))
+      .then((character) => this.fetchAndMergeGameType(character, params, token))
       .then((character) => this.fetchAndMergeAccess(character, params, token, safeSet))
       .catch(() => safeSet(this.setError, 'Unable to load character.'))
       .finally(() => safeSet(this.setLoading, false));

@@ -63,6 +63,6 @@ def _create_game_treasure(request, game):
     if error_response:
         return error_response
 
-    treasure = serializer.save(game=game)
+    treasure = serializer.save(game=game, game_type=game.game_type)
     detail = TreasureDetailSerializer(treasure)
     return Response(detail.data, status=201)

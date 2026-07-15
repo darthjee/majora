@@ -14,10 +14,12 @@ export default class GameTreasureEditHelper {
    * Render the game treasure edit form.
    *
    * @param {{name: string, value: string, maxUnits: string, status: string, fieldErrors: object,
-   *   isExclusive: boolean}} formState - Form state. `maxUnits` is the raw (string) form value; an
-   *   empty string means unlimited (`null`). `isExclusive` marks a treasure exclusive to the game
-   *   (via the `Treasure.game` FK) rather than linked through the shared M2M — the `max_units`
-   *   field is hidden for exclusive treasures since the backend ignores it for them.
+   *   isExclusive: boolean, gameType: string}} formState - Form state. `maxUnits` is the raw
+   *   (string) form value; an empty string means unlimited (`null`). `isExclusive` marks a
+   *   treasure exclusive to the game (via the `Treasure.game` FK) rather than linked through
+   *   the shared M2M — the `max_units` field is hidden for exclusive treasures since the
+   *   backend ignores it for them. `gameType` is the treasure's own (fixed-at-creation)
+   *   currency model name, defaulting to `dnd`.
    * @param {{onSubmit: Function, onNameChange: Function, onOpenValueModal: Function,
    *   onMaxUnitsChange: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered edit page.
@@ -41,6 +43,7 @@ export default class GameTreasureEditHelper {
             editLabel={Translator.t('game_treasures_page.edit')}
             value={formState.value}
             errors={formState.fieldErrors.value ?? []}
+            gameType={formState.gameType}
             onOpenModal={handlers.onOpenValueModal}
           />
           {GameTreasureEditHelper.#renderMaxUnits(formState, handlers)}

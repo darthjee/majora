@@ -20,6 +20,8 @@ export default class TreasureCardHelper {
    * @param {number} treasure.id - Treasure ID.
    * @param {string} treasure.name - Treasure name.
    * @param {number} treasure.value - Treasure value.
+   * @param {string} [treasure.game_type] - Currency model name (e.g. `dnd`, `deadlands`)
+   *   determining which denominations the value is displayed in. Defaults to `dnd`.
    * @param {string|null} [treasure.photo_path] - Optional treasure photo path.
    * @param {number|null} [treasure.available_units] - Units currently available within the
    *   game, when the treasure is capped. `null`/absent when unlimited.
@@ -55,7 +57,9 @@ export default class TreasureCardHelper {
                 {treasure.name}
               </a>
             </h6>
-            <p className="card-text text-muted mb-0"><TreasureMoney value={treasure.value} /></p>
+            <p className="card-text text-muted mb-0">
+              <TreasureMoney value={treasure.value} gameType={treasure.game_type} />
+            </p>
             {TreasureCardHelper.#renderAvailability(treasure)}
             {TreasureCardHelper.#renderEditLink(canManage, editHref)}
           </div>

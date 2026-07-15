@@ -1,5 +1,6 @@
 import TreasureExchangeModalHelper
   from '../../../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/TreasureExchangeModalHelper.jsx';
+import TreasureMoney from '../../../../../../../../../../assets/js/components/common/TreasureMoney.jsx';
 import { buildHandlers, buildState, findElement } from './support.js';
 
 describe('TreasureExchangeModalHelper', function() {
@@ -80,6 +81,15 @@ describe('TreasureExchangeModalHelper', function() {
         const element = TreasureExchangeModalHelper.render(true, state, buildHandlers());
 
         expect(JSON.stringify(element)).not.toContain('alert-danger');
+      });
+
+      it('renders the selected treasure value using the given gameType', function() {
+        const state = buildState({ selected: { ...selected, value: 350 }, gameType: 'deadlands' });
+        const element = TreasureExchangeModalHelper.render(true, state, buildHandlers());
+        const moneyElement = findElement(element, (child) => child.type === TreasureMoney);
+
+        expect(moneyElement.props.value).toBe(350);
+        expect(moneyElement.props.gameType).toBe('deadlands');
       });
     });
   });

@@ -38,6 +38,13 @@ class TestTreasuresListView:
         assert data[0]['name'] == 'Gold Ring'
         assert data[0]['value'] == 100
 
+    def test_returns_game_type(self, client):
+        """Test that list items include the game_type field."""
+        TreasureFactory(name='Gold Ring', value=100, game_type='deadlands')
+        response = client.get('/treasures.json')
+        data = json.loads(response.content)
+        assert data[0]['game_type'] == 'deadlands'
+
     def test_url_by_name(self, client):
         """Test that the view is accessible by URL name."""
         url = reverse('treasures-list')
@@ -167,3 +174,19 @@ class TestTreasuresCreateView(TestCase):
         assert response.status_code == 400
         data = json.loads(response.content)
         assert 'value' in data['errors']
+
+    def test_created_treasure_defaults_game_type_to_dnd(self):
+        """Test that omitting game_type on standalone creation defaults to 'dnd'."""
+        response = self._post(self.client, {'name': 'Dragon Gem', 'value': 1000},
+                              token=self.superuser_token)
+        data = json.loads(response.content)
+        assert data['game_type'] == 'dnd'
+
+    def test_created_treasure_persists_explicit_game_type(self):
+        """Test that an explicit game_type is persisted on standalone creation."""
+        response = self._post(
+            self.client, {'name': 'Bag of Cents', 'value': 1000, 'game_type': 'deadlands'},
+            token=self.superuser_token,
+        )
+        data = json.loads(response.content)
+        assert data['game_type'] == 'deadlands'

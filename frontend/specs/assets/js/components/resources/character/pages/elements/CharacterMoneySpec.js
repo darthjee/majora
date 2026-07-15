@@ -27,4 +27,14 @@ describe('CharacterMoney', function() {
     const html = renderToStaticMarkup(React.createElement(CharacterMoney, { money: 0 }));
     expect(html).toBe('');
   });
+
+  it('renders a cents/dollars breakdown when gameType is deadlands', function() {
+    const html = renderToStaticMarkup(React.createElement(CharacterMoney, { money: 350, gameType: 'deadlands' }));
+    expect(html).toContain('50 Cents | 3 Dollars');
+  });
+
+  it('defaults gameType to dnd when not given', function() {
+    const html = renderToStaticMarkup(React.createElement(CharacterMoney, { money: 310 }));
+    expect(html).toContain('20 CP | 29 SP');
+  });
 });

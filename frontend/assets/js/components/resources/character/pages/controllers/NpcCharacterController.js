@@ -29,6 +29,7 @@ export default class NpcCharacterController extends CharacterController {
    *   subclasses/composed controllers whose route shape differs (e.g. the edit page).
    * @param {import('../../../client/CharacterClient.js').default|null} [characterClient] - Character
    *   client override.
+   * @param {import('../../../client/GameClient.js').default|null} [gameClient] - Game client override.
    */
   constructor(
     setCharacter,
@@ -37,7 +38,8 @@ export default class NpcCharacterController extends CharacterController {
     client = null,
     paramsFromHash = NpcCharacterController.getNpcCharacterParamsFromHash,
     characterClient = null,
+    gameClient = null,
   ) {
-    super(setCharacter, setLoading, setError, client, paramsFromHash, characterClient, 'npcs');
+    super(setCharacter, setLoading, setError, client, paramsFromHash, characterClient, 'npcs', gameClient);
   }
 }

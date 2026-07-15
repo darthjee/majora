@@ -67,5 +67,33 @@ describe('GameTreasureNewController', function() {
         delete globalThis.window;
       }
     });
+
+    it('fetches and applies the containing game\'s currency type', async function() {
+      const setError = jasmine.createSpy('setError');
+      const setGameType = jasmine.createSpy('setGameType');
+      const treasureClient = jasmine.createSpyObj('treasureClient', ['createGameTreasure']);
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame']);
+      const fakeWindow = { location: { hash: '#/games/demo/treasures/new' } };
+      globalThis.window = fakeWindow;
+
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+      gameClient.fetchGame.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ game_slug: 'demo', game_type: 'deadlands' }),
+      }));
+
+      try {
+        const controller = new GameTreasureNewController(
+          setError, Noop.noop, treasureClient, setGameType, gameClient,
+        );
+        controller.buildEffect()();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(gameClient.fetchGame).toHaveBeenCalledWith('demo', null);
+        expect(setGameType).toHaveBeenCalledWith('deadlands');
+      } finally {
+        delete globalThis.window;
+      }
+    });
   });
 });

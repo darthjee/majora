@@ -36,6 +36,12 @@ class TestTreasureDetailView(DetailNotFoundBehaviorMixin, TestCase):
         """Test that 404 is returned for a non-existent treasure id."""
         self.assert_returns_not_found(self.client, '/treasures/999999.json')
 
+    def test_returns_game_type(self):
+        """Test that the treasure detail response includes game_type."""
+        response = self.client.get(f'/treasures/{self.treasure.id}.json')
+        data = json.loads(response.content)
+        assert data['game_type'] == 'dnd'
+
     def test_url_by_name(self):
         """Test that the view is accessible by URL name."""
         url = reverse('treasure-detail', kwargs={'treasure_id': self.treasure.id})
