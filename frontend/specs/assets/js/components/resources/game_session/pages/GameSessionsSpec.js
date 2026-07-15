@@ -4,6 +4,7 @@ import GameSessions from '../../../../../../../assets/js/components/resources/ga
 import GameSessionsHelper from '../../../../../../../assets/js/components/resources/game_session/pages/helpers/GameSessionsHelper.jsx';
 import GameSessionsController from '../../../../../../../assets/js/components/resources/game_session/pages/controllers/GameSessionsController.js';
 import { buildDefaultSessionColumns } from '../../../../../../../assets/js/components/resources/game_session/pages/sessionColumns.js';
+import FacadeRefresh from '../../../../../../../assets/js/utils/access/useFacadeRefresh.js';
 import { stubBuildEffect, stubRenderLoading } from '../../../../../../support/controllerStubs.js';
 
 describe('GameSessions', function() {
@@ -25,6 +26,15 @@ describe('GameSessions', function() {
     const html = renderToStaticMarkup(React.createElement(GameSessions));
 
     expect(html).toContain('loading');
+  });
+
+  it('wires FacadeRefresh.useFacadeRefresh with the page controller', function() {
+    stubBuildEffect(GameSessionsController);
+    spyOn(FacadeRefresh, 'useFacadeRefresh');
+
+    renderToStaticMarkup(React.createElement(GameSessions));
+
+    expect(FacadeRefresh.useFacadeRefresh).toHaveBeenCalledWith(jasmine.any(GameSessionsController));
   });
 
   it('renders the new session button via GameSessionsHelper.render when canEdit is true', function() {

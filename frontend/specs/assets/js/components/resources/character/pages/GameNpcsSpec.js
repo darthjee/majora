@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import GameNpcs from '../../../../../../../assets/js/components/resources/character/pages/GameNpcs.jsx';
 import GameCharactersHelper from '../../../../../../../assets/js/components/resources/character/pages/helpers/GameCharactersHelper.jsx';
 import GameNpcsController from '../../../../../../../assets/js/components/resources/character/pages/controllers/GameNpcsController.js';
+import FacadeRefresh from '../../../../../../../assets/js/utils/access/useFacadeRefresh.js';
 import { stubBuildEffect, stubRenderLoading } from '../../../../../../support/controllerStubs.js';
 
 describe('GameNpcs', function() {
@@ -24,6 +25,15 @@ describe('GameNpcs', function() {
     const html = renderToStaticMarkup(React.createElement(GameNpcs));
 
     expect(html).toContain('loading');
+  });
+
+  it('wires FacadeRefresh.useFacadeRefresh with the page controller', function() {
+    stubBuildEffect(GameNpcsController);
+    spyOn(FacadeRefresh, 'useFacadeRefresh');
+
+    renderToStaticMarkup(React.createElement(GameNpcs));
+
+    expect(FacadeRefresh.useFacadeRefresh).toHaveBeenCalledWith(jasmine.any(GameNpcsController));
   });
 
   it('renders the new NPC button via GameCharactersHelper.render when canEdit is true', function() {

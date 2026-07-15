@@ -9,6 +9,7 @@ import SlainConfirmModal from './elements/SlainConfirmModal.jsx';
 import SlainConfirmController from './elements/controllers/SlainConfirmController.js';
 import PlayerSlainConfirmController from './elements/controllers/PlayerSlainConfirmController.js';
 import NpcFilters from './elements/NpcFilters.jsx';
+import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
 
 /**
  * Builds a slain-toggle controller/state pair for the given field, refreshing
@@ -80,6 +81,7 @@ export default function GameNpcs() {
   );
 
   useEffect(() => controller.buildEffect()(), [controller]);
+  FacadeRefresh.useFacadeRefresh(controller);
 
   const slain = useSlainTogglePair('slain', controller);
   const publicSlain = useSlainTogglePair('public_slain', controller);

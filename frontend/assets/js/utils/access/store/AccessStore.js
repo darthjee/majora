@@ -4,6 +4,7 @@ import TreasureClient from '../../../client/TreasureClient.js';
 import AuthClient from '../../../client/AuthClient.js';
 import accessRouteConfig from '../accessRouteConfig.js';
 import AccessCache from '../AccessCache.js';
+import AccessEvents from '../AccessEvents.js';
 import AccessStoreDescriptor from './AccessStoreDescriptor.js';
 import AccessStoreAdmin from './AccessStoreAdmin.js';
 import AccessStoreAccess from './AccessStoreAccess.js';
@@ -234,8 +235,8 @@ export default class AccessStore {
    * Enable/disable and configure the "view as" facade, then reset and
    * re-sync every per-resource check for the current page under the new
    * facade — naturally re-fetching each `*Permissions` check and re-emitting
-   * `AccessEvents` as each resolves, as if it had just received access
-   * information.
+   * `AccessEvents` as each resolves. Also emits `AccessEvents.emitFacadeChanged()`
+   * once, so pages subscribed to it can re-run their own data-loading effect.
    *
    * @param {object} facade - The new facade state.
    * @param {boolean} facade.enabled - Whether the facade is active.
@@ -244,12 +245,9 @@ export default class AccessStore {
    */
   static setFacade({ enabled, roles }) {
     AccessStoreFacade.set(enabled, roles);
-
     AccessStore.reset();
-
-    if (_pageKey !== null) {
-      AccessStore.syncForRoute(_pageKey, _hash);
-    }
+    AccessStore.#resyncCurrentRoute();
+    AccessEvents.emitFacadeChanged();
   }
 
   /**
@@ -280,12 +278,8 @@ export default class AccessStore {
    */
   static syncForAuthChange() {
     AccessStoreFacade.clear();
-
     AccessStore.reset();
-
-    if (_pageKey !== null) {
-      AccessStore.syncForRoute(_pageKey, _hash);
-    }
+    AccessStore.#resyncCurrentRoute();
   }
 
   /**
@@ -296,5 +290,11 @@ export default class AccessStore {
    */
   static reset() {
     cache.reset();
+  }
+
+  static #resyncCurrentRoute() {
+    if (_pageKey !== null) {
+      AccessStore.syncForRoute(_pageKey, _hash);
+    }
   }
 }

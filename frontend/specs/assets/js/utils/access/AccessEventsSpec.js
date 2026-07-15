@@ -20,6 +20,24 @@ describe('AccessEvents', function() {
     });
   });
 
+  describe('.emitFacadeChanged', function() {
+    it('does not throw when window is unavailable', function() {
+      expect(() => AccessEvents.emitFacadeChanged()).not.toThrow();
+    });
+  });
+
+  describe('.subscribeFacadeChanged', function() {
+    it('does not throw when window is unavailable', function() {
+      expect(() => AccessEvents.subscribeFacadeChanged(Noop.noop)).not.toThrow();
+    });
+  });
+
+  describe('.unsubscribeFacadeChanged', function() {
+    it('does not throw when window is unavailable', function() {
+      expect(() => AccessEvents.unsubscribeFacadeChanged(Noop.noop)).not.toThrow();
+    });
+  });
+
   describe('when window is available', function() {
     let fakeWindow;
 
@@ -67,6 +85,34 @@ describe('AccessEvents', function() {
       AccessEvents.unsubscribe(handler);
 
       AccessEvents.emit({ key: 'game:demo' });
+
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('notifies facade-changed subscribers when emitFacadeChanged is called', function() {
+      const handler = jasmine.createSpy('handler');
+      AccessEvents.subscribeFacadeChanged(handler);
+
+      AccessEvents.emitFacadeChanged();
+
+      expect(handler).toHaveBeenCalled();
+    });
+
+    it('does not notify facade-changed subscribers for a plain access:changed emit', function() {
+      const handler = jasmine.createSpy('handler');
+      AccessEvents.subscribeFacadeChanged(handler);
+
+      AccessEvents.emit({ key: 'game:demo' });
+
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('stops notifying facade-changed subscribers once unsubscribed', function() {
+      const handler = jasmine.createSpy('handler');
+      AccessEvents.subscribeFacadeChanged(handler);
+      AccessEvents.unsubscribeFacadeChanged(handler);
+
+      AccessEvents.emitFacadeChanged();
 
       expect(handler).not.toHaveBeenCalled();
     });

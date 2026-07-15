@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import CharacterHelper from '../helpers/CharacterHelper.jsx';
 import AuthEvents from '../../../../../utils/auth/AuthEvents.js';
+import FacadeRefresh from '../../../../../utils/access/useFacadeRefresh.js';
 import PhotoUploadModal from '../../../../common/PhotoUploadModal.jsx';
 
 /**
@@ -44,6 +45,7 @@ export default function CharacterDetail({
   );
 
   useEffect(() => controller.buildEffect()(), [controller]);
+  FacadeRefresh.useFacadeRefresh(controller);
 
   useEffect(() => {
     const handleAuthChanged = () => controller.buildEffect()();

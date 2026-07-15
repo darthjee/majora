@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import CharacterTreasuresHelper from '../helpers/CharacterTreasuresHelper.jsx';
 import TreasureExchangeModal from '../elements/TreasureExchangeModal.jsx';
 import mergeCharacterTreasureQuantity from '../../../../../utils/money/mergeCharacterTreasureQuantity.js';
+import FacadeRefresh from '../../../../../utils/access/useFacadeRefresh.js';
 
 /**
  * Shared character treasures index page component.
@@ -31,6 +32,7 @@ export default function CharacterTreasures({ ControllerClass, getParamsFromHash,
   );
 
   useEffect(() => controller.buildEffect()(), [controller]);
+  FacadeRefresh.useFacadeRefresh(controller);
 
   const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
   const { game_slug: gameSlug, character_id: characterId } = getParamsFromHash(currentHash);

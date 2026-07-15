@@ -6,6 +6,7 @@ import PcCharacterPhotosHelper from '../../../../../../../assets/js/components/r
 import NpcCharacterPhotosHelper from '../../../../../../../assets/js/components/resources/character/pages/helpers/NpcCharacterPhotosHelper.jsx';
 import PcCharacterPhotosController from '../../../../../../../assets/js/components/resources/character/pages/controllers/PcCharacterPhotosController.js';
 import NpcCharacterPhotosController from '../../../../../../../assets/js/components/resources/character/pages/controllers/NpcCharacterPhotosController.js';
+import FacadeRefresh from '../../../../../../../assets/js/utils/access/useFacadeRefresh.js';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
 import { stubBuildEffect, stubRenderLoading } from '../../../../../../support/controllerStubs.js';
 
@@ -35,6 +36,15 @@ KINDS.forEach(({ label, Component, Controller, Helper, characterKind }) => {
       const html = renderToStaticMarkup(React.createElement(Component));
 
       expect(html).toContain('loading');
+    });
+
+    it('wires FacadeRefresh.useFacadeRefresh with the page controller', function() {
+      stubBuildEffect(Controller);
+      spyOn(FacadeRefresh, 'useFacadeRefresh');
+
+      renderToStaticMarkup(React.createElement(Component));
+
+      expect(FacadeRefresh.useFacadeRefresh).toHaveBeenCalledWith(jasmine.any(Controller));
     });
 
     it('renders the upload button via the helper render when the character can be edited', function() {

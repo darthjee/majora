@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import GameTreasuresController from './controllers/GameTreasuresController.js';
 import GameTreasuresHelper from './helpers/GameTreasuresHelper.jsx';
 import PhotoUploadModal from '../../../common/PhotoUploadModal.jsx';
+import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
 
 /**
  * Game Treasures index page.
@@ -23,6 +24,7 @@ export default function GameTreasures() {
   );
 
   useEffect(() => controller.buildEffect()(), [controller]);
+  FacadeRefresh.useFacadeRefresh(controller);
 
   const gameSlug = GameTreasuresController.getGameSlugFromTreasuresHash(window.location.hash);
   const basePath = `#/games/${gameSlug}/treasures`;
