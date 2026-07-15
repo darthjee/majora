@@ -12,6 +12,13 @@
 list (via `GET /games/<slug>/treasures.json`), `cover_photo_path` (see [Photo path fields](common-rules.md#photo-path-fields)
 above) — returned on both `GET /games.json` and `GET /games/<slug>.json`, to anyone.
 
+`next_session` (`{title, date} | null`) — read-only, computed server-side from the game's own
+`GameSession`s (see [GameSession](game-session.md) above): the earliest-dated session with
+`date >= today`; if no session has any date at all, falls back to the first session by id;
+otherwise (every dated session is already in the past and none are unscheduled) `null`. No
+additional permission required — same public access as the rest of `Game` detail. Returned only
+on `GET /games/<slug>.json` (detail), **not** on `GET /games.json` (list).
+
 **Write fields** (create/update): `name` (required for create, optional for update),
 `description` (optional). `cover_photo_path` is read-only and cannot be set directly by any
 client — it is only ever assigned server-side (see [Upload](upload.md) below).
