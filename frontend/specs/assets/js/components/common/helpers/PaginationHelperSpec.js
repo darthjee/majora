@@ -60,5 +60,20 @@ describe('PaginationHelper', function() {
       expect(html).not.toContain('slain');
       expect(html).not.toContain('name=');
     });
+
+    it('defaults to page/per_page query param names', function() {
+      const html = renderToStaticMarkup(PaginationHelper.render(2, 5, 10, '#/games'));
+      expect(html).toContain('#/games?page=');
+      expect(html).toContain('per_page=');
+    });
+
+    it('uses the pageParam/perPageParam overrides when provided', function() {
+      const html = renderToStaticMarkup(
+        PaginationHelper.render(2, 5, 10, '#/games/demo/sessions', {}, 'past_page', 'past_per_page'),
+      );
+      expect(html).toContain('#/games/demo/sessions?past_page=');
+      expect(html).toContain('past_per_page=');
+      expect(html).not.toContain('?page=');
+    });
   });
 });

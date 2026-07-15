@@ -12,5 +12,5 @@ class GameSessionUpdateSerializer(serializers.ModelSerializer):
         """Metadata for the GameSessionUpdateSerializer."""
 
         model = GameSession
-        fields = ['title', 'date']
+        fields = ['title', 'date', 'description']
         extra_kwargs = {field: {'required': False} for field in fields}

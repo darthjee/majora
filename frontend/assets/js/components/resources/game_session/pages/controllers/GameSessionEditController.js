@@ -68,7 +68,7 @@ export default class GameSessionEditController extends BaseEditController {
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {string|number} id - Session id.
-   * @param {{title: string, date: string}} formValues - Raw form field values.
+   * @param {{title: string, date: string, description: string}} formValues - Raw form field values.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
@@ -81,6 +81,7 @@ export default class GameSessionEditController extends BaseEditController {
       () => this.sessionClient.updateSession(gameSlug, id, token, {
         title: formValues.title,
         date: formValues.date || null,
+        description: formValues.description || null,
       }),
       `/games/${gameSlug}/sessions/${id}`,
     );

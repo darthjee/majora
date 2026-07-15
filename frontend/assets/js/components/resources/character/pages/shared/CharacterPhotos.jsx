@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import Noop from '../../../../../utils/Noop.js';
 import PhotoUploadModal from '../../../../common/PhotoUploadModal.jsx';
 import PhotoViewModal from '../../../../common/PhotoViewModal.jsx';
+import ProfilePhotoSetModal from '../../../../common/ProfilePhotoSetModal.jsx';
+import ErrorAlert from '../../../../common/ErrorAlert.jsx';
+import Translator from '../../../../../i18n/Translator.js';
 
 /**
  * Shared character photos index page component.
@@ -25,6 +27,8 @@ export default function CharacterPhotos({ ControllerClass, getParamsFromHash, Ph
   const [error, setError] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [profilePhotoSet, setProfilePhotoSet] = useState(null);
+  const [actionError, setActionError] = useState('');
 
   const controller = useMemo(
     () => new ControllerClass(setPhotos, setPagination, setCharacter, setLoading, setError),
@@ -46,7 +50,12 @@ export default function CharacterPhotos({ ControllerClass, getParamsFromHash, Ph
   };
 
   const handleSetProfilePhoto = (photoId) => {
-    controller.setProfilePhoto(gameSlug, characterId, photoId).catch(Noop.noop);
+    setActionError('');
+    const photo = photos.find((p) => p.id === photoId) ?? selectedPhoto;
+
+    controller.setProfilePhoto(gameSlug, characterId, photoId)
+      .then(() => setProfilePhotoSet(photo))
+      .catch(() => setActionError(Translator.t('character_photos_page.set_profile_photo_error')));
   };
 
   if (loading) return PhotosHelper.renderLoading();
@@ -54,6 +63,7 @@ export default function CharacterPhotos({ ControllerClass, getParamsFromHash, Ph
 
   return (
     <>
+      {actionError && <ErrorAlert error={actionError} />}
       {PhotosHelper.render(
         photos, pagination, basePath, backHref, character.can_edit, alt, character.profile_photo_id, {
           onOpenUploadModal: () => setShowUploadModal(true),
@@ -75,6 +85,12 @@ export default function CharacterPhotos({ ControllerClass, getParamsFromHash, Ph
         canSetProfilePhoto={character.can_edit}
         isProfilePhoto={selectedPhoto?.id === character.profile_photo_id}
         onSetProfilePhoto={handleSetProfilePhoto}
+      />
+      <ProfilePhotoSetModal
+        show={profilePhotoSet !== null}
+        photo={profilePhotoSet}
+        alt={alt}
+        onClose={() => setProfilePhotoSet(null)}
       />
     </>
   );

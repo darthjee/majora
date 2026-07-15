@@ -14,6 +14,9 @@ from .models import (
     GameTreasure,
     Link,
     Player,
+    Poll,
+    PollOption,
+    PollVote,
     Task,
     Treasure,
     Upload,
@@ -48,3 +51,6 @@ admin.site.register(Treasure)
 admin.site.register(GameSession)
 admin.site.register(Task)
 admin.site.register(Upload)
+admin.site.register(Poll)
+admin.site.register(PollOption)
+admin.site.register(PollVote)

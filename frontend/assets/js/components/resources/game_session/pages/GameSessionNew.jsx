@@ -13,6 +13,7 @@ export default function GameSessionNew() {
   const [status, setStatus] = useState('idle');
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
+  const [description, setDescription] = useState('');
 
   const controller = useMemo(
     () => new GameSessionNewController(Noop.noop, setFieldErrors),
@@ -27,16 +28,17 @@ export default function GameSessionNew() {
   const handleSubmit = (event) => controller.submitForm(
     event,
     gameSlug,
-    { title, date },
+    { title, date, description },
     { setStatus, setFieldErrors },
   );
 
   return GameSessionNewHelper.render(
-    { title, date, status, fieldErrors },
+    { title, date, description, status, fieldErrors },
     {
       onSubmit: handleSubmit,
       onTitleChange: (event) => setTitle(event.target.value),
       onDateChange: (event) => setDate(event.target.value),
+      onDescriptionChange: (event) => setDescription(event.target.value),
     },
   );
 }

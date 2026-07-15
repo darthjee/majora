@@ -1,10 +1,16 @@
 import GenericClient from '../../../../../client/GenericClient.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/controllers/BasePageController.js';
+import HashQueryParams from '../../../../../utils/routing/HashQueryParams.js';
 import Noop from '../../../../../utils/Noop.js';
+import { SESSION_COLUMNS } from '../sessionColumns.js';
 
 /**
  * Controller for game sessions index page.
+ *
+ * @description Fetches the past/future/unscheduled session columns in
+ *   parallel, each independently paginated via its own hash query params
+ *   (see `sessionColumns.js`).
  */
 export default class GameSessionsController extends BasePageController {
   /**
@@ -20,24 +26,22 @@ export default class GameSessionsController extends BasePageController {
   /**
    * Create a game sessions controller.
    *
-   * @param {Function} setSessions - Sessions setter.
-   * @param {Function} setPagination - Pagination setter.
+   * @param {Function} setColumns - Setter for the 3-column state, called with an updater
+   *   function `(columns) => ({...columns, [key]: {sessions, pagination}})`.
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
    * @param {GenericClient|null} client - Client override.
    * @param {Function} [setCanEdit] - Can-edit flag setter, gates the "New session" button.
    */
   constructor(
-    setSessions,
-    setPagination,
+    setColumns,
     setLoading,
     setError,
     client = null,
     setCanEdit = Noop.noop,
   ) {
     super();
-    this.setSessions = setSessions;
-    this.setPagination = setPagination;
+    this.setColumns = setColumns;
     this.setLoading = setLoading;
     this.setError = setError;
     this.client = client ?? new GenericClient();
@@ -70,13 +74,31 @@ export default class GameSessionsController extends BasePageController {
   }
 
   #fetchSessions(gameSlug, safeSet) {
-    this.client.fetchIndex(`/games/${gameSlug}/sessions.json`)
-      .then(({ data, pagination }) => {
-        safeSet(this.setSessions, Array.isArray(data) ? data : []);
-        safeSet(this.setPagination, pagination);
+    const query = HashQueryParams.parse(this.client.currentHash());
+    const fetches = SESSION_COLUMNS.map((column) => this.#fetchColumn(gameSlug, column, query, safeSet));
+
+    Promise.allSettled(fetches)
+      .then((results) => {
+        if (results.some((result) => result.status === 'rejected')) {
+          safeSet(this.setError, 'Unable to load sessions.');
+        }
       })
-      .catch(() => safeSet(this.setError, 'Unable to load sessions.'))
       .finally(() => safeSet(this.setLoading, false));
+  }
+
+  #fetchColumn(gameSlug, column, query, safeSet) {
+    const params = {
+      page: query.get(column.pageParam),
+      per_page: query.get(column.perPageParam),
+    };
+
+    return this.client.fetchIndex(`/games/${gameSlug}/sessions/${column.key}.json`, params)
+      .then(({ data, pagination }) => {
+        safeSet(this.setColumns, (columns) => ({
+          ...columns,
+          [column.key]: { sessions: Array.isArray(data) ? data : [], pagination },
+        }));
+      });
   }
 
   #fetchAccess(gameSlug, safeSet) {

@@ -16,6 +16,7 @@ export default function GameSessionEdit() {
   const [status, setStatus] = useState('idle');
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
+  const [description, setDescription] = useState('');
 
   const controller = useMemo(
     () => new GameSessionEditController(setSession, setLoading, setError, setFieldErrors),
@@ -39,6 +40,7 @@ export default function GameSessionEdit() {
 
     setTitle(session.title ?? '');
     setDate(session.date ?? '');
+    setDescription(session.description ?? '');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
@@ -46,7 +48,7 @@ export default function GameSessionEdit() {
     event,
     gameSlug,
     id,
-    { title, date },
+    { title, date, description },
     { setStatus, setFieldErrors },
   );
 
@@ -54,11 +56,12 @@ export default function GameSessionEdit() {
   if (error) return GameSessionHelper.renderError(error);
 
   return GameSessionEditHelper.render(
-    { title, date, status, fieldErrors },
+    { title, date, description, status, fieldErrors },
     {
       onSubmit: handleSubmit,
       onTitleChange: (event) => setTitle(event.target.value),
       onDateChange: (event) => setDate(event.target.value),
+      onDescriptionChange: (event) => setDescription(event.target.value),
     },
   );
 }

@@ -15,7 +15,7 @@ class GameSessionDetailSerializer(serializers.ModelSerializer):
         """Metadata for the GameSessionDetailSerializer."""
 
         model = GameSession
-        fields = ['id', 'title', 'date', 'game_slug', 'can_edit']
+        fields = ['id', 'title', 'date', 'description', 'game_slug', 'can_edit']
 
     def get_can_edit(self, obj):
         """Return whether the requesting user (from context) may edit this session."""

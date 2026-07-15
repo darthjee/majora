@@ -9,6 +9,7 @@ class GameSession(models.Model):
     game = models.ForeignKey('games.Game', on_delete=models.CASCADE, related_name='sessions')
     title = models.CharField(max_length=200)
     date = models.DateField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
 
     class Meta:
         """Metadata for the GameSession model."""

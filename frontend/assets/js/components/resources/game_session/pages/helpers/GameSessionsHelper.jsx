@@ -5,26 +5,25 @@ import NewButton from '../../../../common/NewButton.jsx';
 import PageActions from '../../../../common/PageActions.jsx';
 import Pagination from '../../../../common/Pagination.jsx';
 import Translator from '../../../../../i18n/Translator.js';
+import { SESSION_COLUMNS } from '../sessionColumns.js';
 
 /**
  * Rendering helper for the Game Sessions listing page.
  */
 export default class GameSessionsHelper {
   /**
-   * Render the sessions list with pagination and a back button.
+   * Render the 3-column (past/future/unscheduled) sessions list with a back
+   * button and, when allowed, a "New session" button.
    *
-   * @param {object[]} sessions - List of session objects.
-   * @param {object} pagination - Pagination metadata.
-   * @param {number} pagination.page - Current page.
-   * @param {number} pagination.pages - Total pages.
-   * @param {number} pagination.perPage - Items per page.
+   * @param {object} columns - Map of column key to `{sessions, pagination}` state, keyed by
+   *   `past`/`future`/`unscheduled` (see `sessionColumns.js`).
    * @param {string} basePath - Base hash path used for pagination links.
    * @param {string} backHref - Hash path to the parent game page.
    * @param {boolean} [canEdit] - Whether the current user may create new sessions.
    * @param {string} [newHref] - Hash path to the new session form.
    * @returns {React.ReactElement} Sessions list with pagination.
    */
-  static render(sessions, pagination, basePath, backHref, canEdit = false, newHref = '') {
+  static render(columns, basePath, backHref, canEdit = false, newHref = '') {
     return (
       <div className="container mt-4">
         <PageActions backHref={backHref}>
@@ -35,15 +34,9 @@ export default class GameSessionsHelper {
           )}
         </PageActions>
         <h1 className="mb-4">{Translator.t('game_sessions_page.title')}</h1>
-        <ul className="list-group mb-4">
-          {sessions.map((session) => GameSessionsHelper.#renderSessionItem(session))}
-        </ul>
-        <Pagination
-          currentPage={pagination.page}
-          totalPages={pagination.pages}
-          perPage={pagination.perPage}
-          basePath={basePath}
-        />
+        <div className="row">
+          {SESSION_COLUMNS.map((column) => GameSessionsHelper.#renderColumn(column, columns, basePath))}
+        </div>
       </div>
     );
   }
@@ -65,6 +58,38 @@ export default class GameSessionsHelper {
    */
   static renderError(error) {
     return <ErrorAlert error={error} />;
+  }
+
+  static #renderColumn(column, columns, basePath) {
+    const { sessions, pagination } = columns[column.key];
+
+    return (
+      <div key={column.key} className="col-md-4">
+        <h2 className="h5">{Translator.t(`game_sessions_page.${column.key}`)}</h2>
+        <ul className="list-group mb-4">
+          {sessions.map((session) => GameSessionsHelper.#renderSessionItem(session))}
+        </ul>
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.pages}
+          perPage={pagination.perPage}
+          basePath={basePath}
+          pageParam={column.pageParam}
+          perPageParam={column.perPageParam}
+          extraParams={GameSessionsHelper.#buildOtherColumnsParams(column.key, columns)}
+        />
+      </div>
+    );
+  }
+
+  static #buildOtherColumnsParams(key, columns) {
+    return SESSION_COLUMNS
+      .filter((column) => column.key !== key)
+      .reduce((params, column) => ({
+        ...params,
+        [column.pageParam]: columns[column.key].pagination.page,
+        [column.perPageParam]: columns[column.key].pagination.perPage,
+      }), {});
   }
 
   static #renderSessionItem(session) {

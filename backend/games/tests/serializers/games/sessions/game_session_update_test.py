@@ -39,6 +39,15 @@ class TestGameSessionUpdateSerializer(TestCase):
         serializer = GameSessionUpdateSerializer(self.session, data={}, partial=True)
         assert serializer.is_valid()
 
+    def test_valid_partial_description_update(self):
+        """Test that a partial update with only description is valid."""
+        serializer = GameSessionUpdateSerializer(
+            self.session, data={'description': 'Updated notes.'}, partial=True
+        )
+        assert serializer.is_valid()
+        session = serializer.save()
+        assert session.description == 'Updated notes.'
+
     def test_does_not_include_game(self):
         """Test that the game field is not exposed."""
         data = GameSessionUpdateSerializer(self.session).data

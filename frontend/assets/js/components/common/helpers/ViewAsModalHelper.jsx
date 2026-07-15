@@ -1,4 +1,6 @@
 import Modal from 'react-bootstrap/cjs/Modal.js';
+import Form from 'react-bootstrap/cjs/Form.js';
+import Collapse from 'react-bootstrap/cjs/Collapse.js';
 import Translator from '../../../i18n/Translator.js';
 
 const ROLES = ['dm', 'player', 'owner'];
@@ -24,7 +26,11 @@ export default class ViewAsModalHelper {
         </Modal.Header>
         <Modal.Body>
           {ViewAsModalHelper.#renderEnabledCheckbox(state, handlers)}
-          {ROLES.map((role) => ViewAsModalHelper.#renderRoleCheckbox(role, state, handlers))}
+          <Collapse in={state.enabled}>
+            <div>
+              {ROLES.map((role) => ViewAsModalHelper.#renderRoleCheckbox(role, state, handlers))}
+            </div>
+          </Collapse>
         </Modal.Body>
         <Modal.Footer>
           <button className="btn btn-secondary" type="button" onClick={handlers.onCancel}>
@@ -40,18 +46,14 @@ export default class ViewAsModalHelper {
 
   static #renderEnabledCheckbox(state, handlers) {
     return (
-      <div className="form-check mb-3">
-        <input
-          id="view-as-modal-enabled"
-          type="checkbox"
-          className="form-check-input"
-          checked={state.enabled}
-          onChange={handlers.onToggleEnabled}
-        />
-        <label htmlFor="view-as-modal-enabled" className="form-check-label">
-          {Translator.t('view_as_modal.enabled_label')}
-        </label>
-      </div>
+      <Form.Check
+        id="view-as-modal-enabled"
+        type="switch"
+        className="mb-3"
+        label={Translator.t('view_as_modal.enabled_label')}
+        checked={state.enabled}
+        onChange={handlers.onToggleEnabled}
+      />
     );
   }
 
