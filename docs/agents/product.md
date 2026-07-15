@@ -130,14 +130,16 @@ Any other authenticated or unauthenticated user may not edit the character.
 This logic is implemented in `Character.can_be_edited_by(user)` and
 `Character.is_editor(user)` in `backend/games/models/character.py`.
 
-Separately, and narrower in scope (issue #416): a user who is a **player of the game** — the
-same `is_player` computation exposed on `.../access.json` endpoints, i.e. a `Player` record
-linked to `character.game` via `Player.games` whose `user` matches the requester — may toggle
-an NPC's `public_slain` (its player-facing "slain" state) through
-`PATCH /games/:game_slug/npcs/:id.json`, even without satisfying any of the three rules above.
-This is not a general editing right: it grants no access to any other field, and does not
-apply to PCs. It exists alongside (not instead of) the rules above, so a GameMaster/superuser
-can still use the same endpoint.
+Separately, and narrower in scope (issue #416, widened by issue #445): a user who is a
+**player of the game** — the same `is_player` computation exposed on `.../access.json`
+endpoints, i.e. a `Player` record linked to `character.game` via `Player.games` whose `user`
+matches the requester — may update an NPC's `public_description`, `links`, `allegiance`
+(its player-facing "allegiance", writing `public_allegiance`), and `slain` (its player-facing
+"slain" state, writing `public_slain`) through `PATCH /games/:game_slug/npcs/:id.json`, even
+without satisfying any of the three rules above. This is not a general editing right: it
+grants no access to `name`, `role`, `money`, `private_description`, or the real `slain`/
+`allegiance` fields, and does not apply to PCs. It exists alongside (not instead of) the rules
+above, so a GameMaster/superuser can still use the same endpoint.
 
 Issue #429 extends this same "player of the game" authorization to a second capability: NPC
 photo upload. A player of the game may initiate an NPC photo upload
@@ -160,5 +162,5 @@ superuser.
 | PC vs NPC | `npc=False` → PC (has player); `npc=True` → NPC (no player) |
 | Player account link | `Player.user` nullable — player without a login has no owner |
 | Staff role | `user.is_staff` — global, grants User-management access only (not other superuser actions) |
-| NPC public_slain toggle | Any player of the game (via `Player.games`), in addition to the Editing rights above — NPC-only, `public_slain` field only |
-| NPC photo upload (init/finalize) | Any player of the game (via `Player.games`), in addition to the Editing rights above — NPC-only, same `NpcPlayerEditPermission` as public_slain (issue #429) |
+| NPC narrow player PATCH | Any player of the game (via `Player.games`), in addition to the Editing rights above — NPC-only; `public_description`, `links`, `allegiance` (→`public_allegiance`), `slain` (→`public_slain`) fields only |
+| NPC photo upload (init/finalize) | Any player of the game (via `Player.games`), in addition to the Editing rights above — NPC-only, same `NpcPlayerEditPermission` as the narrow player PATCH row above (issue #429) |
