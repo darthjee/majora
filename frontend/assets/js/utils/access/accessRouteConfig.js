@@ -32,9 +32,12 @@ const ROUTE_TEMPLATES = {
   gameNpcs: [{ pattern: '/games/:game_slug/npcs', params: ['game_slug'] }],
   gamePhotos: [{ pattern: '/games/:game_slug/photos', params: ['game_slug'] }],
   gameTasks: [{ pattern: '/games/:game_slug/tasks', params: ['game_slug'] }],
+  gamePolls: [{ pattern: '/games/:game_slug/polls', params: ['game_slug'] }],
+  gamePoll: [{ pattern: '/games/:game_slug/polls/:id', params: ['game_slug'] }],
   gameTreasures: [{ pattern: '/games/:game_slug/treasures', params: ['game_slug'] }],
   gameSessions: [{ pattern: '/games/:game_slug/sessions', params: ['game_slug'] }],
   gameNpcNew: [{ pattern: '/games/:game_slug/npcs/new', params: ['game_slug'] }],
+  gamePollNew: [{ pattern: '/games/:game_slug/polls/new', params: ['game_slug'] }],
   gameSessionNew: [{ pattern: '/games/:game_slug/sessions/new', params: ['game_slug'] }],
   gameTreasureNew: [{ pattern: '/games/:game_slug/treasures/new', params: ['game_slug'] }],
   gameTreasureEdit: [

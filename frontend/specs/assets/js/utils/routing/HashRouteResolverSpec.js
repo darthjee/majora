@@ -16,6 +16,9 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7').getPage()).toBe('pcCharacter');
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/edit').getPage()).toBe('pcCharacterEdit');
     expect(new HashRouteResolver(() => '#/games/campaign/photos').getPage()).toBe('gamePhotos');
+    expect(new HashRouteResolver(() => '#/games/campaign/polls').getPage()).toBe('gamePolls');
+    expect(new HashRouteResolver(() => '#/games/campaign/polls/new').getPage()).toBe('gamePollNew');
+    expect(new HashRouteResolver(() => '#/games/campaign/polls/7').getPage()).toBe('gamePoll');
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/photos').getPage()).toBe('pcCharacterPhotos');
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/photos').getPage()).toBe('npcCharacterPhotos');
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/treasures').getPage()).toBe('pcCharacterTreasures');
@@ -88,6 +91,18 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/treasures').getPage()).toBe('gameTreasures');
   });
 
+  it('resolves /games/:game_slug/polls/new to gamePollNew, not gamePoll', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/polls/new').getPage()).toBe('gamePollNew');
+  });
+
+  it('resolves /games/:game_slug/polls/:id to gamePoll, not gamePolls', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/polls/7').getPage()).toBe('gamePoll');
+  });
+
+  it('still resolves /games/:game_slug/polls to gamePolls', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/polls').getPage()).toBe('gamePolls');
+  });
+
   it('falls back to home for unknown routes', function() {
     expect(new HashRouteResolver(() => '#/other').getPage()).toBe('home');
   });
@@ -107,6 +122,11 @@ describe('HashRouteResolver', function() {
   it('ignores filter params when absent from the hash', function() {
     const params = new HashRouteResolver(() => '#/games/campaign/npcs?page=2').getFilterParams();
     expect(params.toString()).toBe('');
+  });
+
+  it('extracts the poll status filter param', function() {
+    const params = new HashRouteResolver(() => '#/games/campaign/polls?status=open&page=2').getFilterParams();
+    expect(params.toString()).toBe('status=open');
   });
 
   describe('#getParams', function() {
