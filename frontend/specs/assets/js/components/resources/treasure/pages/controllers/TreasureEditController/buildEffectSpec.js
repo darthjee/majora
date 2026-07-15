@@ -21,7 +21,7 @@ describe('TreasureEditController', function() {
       setLoading = jasmine.createSpy('setLoading');
       setError = jasmine.createSpy('setError');
       treasureClient = jasmine.createSpyObj('treasureClient', ['fetchTreasure']);
-      spyOn(AccessStore, 'ensureSuperUser').and.returnValue(Promise.resolve(true));
+      spyOn(AccessStore, 'ensureStaffOrSuperUser').and.returnValue(Promise.resolve(true));
       spyOn(AccessStore, 'ensureTreasurePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
       fakeWindow = { location: { hash: '#/treasures/1/edit' } };
       globalThis.window = fakeWindow;
@@ -93,8 +93,8 @@ describe('TreasureEditController', function() {
       cleanup();
     });
 
-    it('redirects to home and does not fetch when the user is not a superuser', async function() {
-      AccessStore.ensureSuperUser.and.returnValue(Promise.resolve(false));
+    it('redirects to home and does not fetch when the user is neither staff nor a superuser', async function() {
+      AccessStore.ensureStaffOrSuperUser.and.returnValue(Promise.resolve(false));
 
       const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));

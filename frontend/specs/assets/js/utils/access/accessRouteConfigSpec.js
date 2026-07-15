@@ -47,15 +47,16 @@ describe('accessRouteConfig', function() {
       }]);
     });
 
-    it('declares both a superuser and a treasure descriptor for the treasure edit page', function() {
+    it('declares both a staffOrSuperuser and a treasure descriptor for the treasure edit page', function() {
       expect(accessRouteConfig.get('treasureEdit')).toEqual([
-        { kind: 'superuser' },
+        { kind: 'staffOrSuperuser' },
         { kind: 'treasure', pattern: '/treasures/:treasure_id/edit', params: ['treasure_id'] },
       ]);
     });
 
-    it('declares a superuser-only descriptor for the treasures index page', function() {
-      expect(accessRouteConfig.get('treasures')).toEqual([{ kind: 'superuser' }]);
+    it('declares a staffOrSuperuser-only descriptor for the treasures index and new pages', function() {
+      expect(accessRouteConfig.get('treasures')).toEqual([{ kind: 'staffOrSuperuser' }]);
+      expect(accessRouteConfig.get('treasureNew')).toEqual([{ kind: 'staffOrSuperuser' }]);
     });
 
     it('declares a staffOrSuperuser-only descriptor for the staff users pages', function() {

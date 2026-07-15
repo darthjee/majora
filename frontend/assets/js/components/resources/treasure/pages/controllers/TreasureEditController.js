@@ -37,19 +37,19 @@ export default class TreasureEditController extends BaseEditController {
 
   /**
    * Load the treasure and its access permissions, gated on the current user
-   * being a superuser (redirects home otherwise).
+   * being staff or a superuser (redirects home otherwise).
    *
    * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
    * @param {Function} isMounted - Returns whether the page is still mounted.
    * @returns {void}
    */
   loadResource(safeSet, isMounted) {
-    AccessStore.ensureSuperUser().then((isSuperUser) => {
+    AccessStore.ensureStaffOrSuperUser().then((isStaffOrSuperUser) => {
       if (!isMounted()) {
         return;
       }
 
-      if (!isSuperUser) {
+      if (!isStaffOrSuperUser) {
         this.redirectTo('/');
         return;
       }

@@ -38,14 +38,14 @@ describe('AccessStore', function() {
       expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('pcs', 'demo', '2', []);
     });
 
-    it('requests superuser, treasure access, and treasure permissions for the treasure edit page', function() {
-      spyOn(AccessStore, 'ensureSuperUser').and.returnValue(Promise.resolve(true));
+    it('requests staffOrSuperuser, treasure access, and treasure permissions for the treasure edit page', function() {
+      spyOn(AccessStore, 'ensureStaffOrSuperUser').and.returnValue(Promise.resolve(true));
       spyOn(AccessStore, 'ensureTreasureAccess').and.returnValue(Promise.resolve(ACCESS_DEFAULT));
       spyOn(AccessStore, 'ensureTreasurePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
       AccessStore.syncForRoute('treasureEdit', '#/treasures/42/edit');
 
-      expect(AccessStore.ensureSuperUser).toHaveBeenCalled();
+      expect(AccessStore.ensureStaffOrSuperUser).toHaveBeenCalled();
       expect(AccessStore.ensureTreasureAccess).toHaveBeenCalledWith('42');
       expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('42', []);
     });

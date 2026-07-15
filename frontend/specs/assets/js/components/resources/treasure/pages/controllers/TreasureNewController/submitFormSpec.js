@@ -141,8 +141,8 @@ describe('TreasureNewController', function() {
       expect(setStatus).toHaveBeenCalledWith('error');
     });
 
-    it('redirects to home when the user is not a superuser', async function() {
-      AccessStore.ensureSuperUser.and.returnValue(Promise.resolve(false));
+    it('redirects to home when the user is neither staff nor a superuser', async function() {
+      AccessStore.ensureStaffOrSuperUser.and.returnValue(Promise.resolve(false));
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 

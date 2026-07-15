@@ -17,7 +17,7 @@ describe('TreasureNewController', function() {
   });
 
   describe('#buildEffect', function() {
-    it('redirects to home when the user is not a superuser', async function() {
+    it('redirects to home when the user is neither staff nor a superuser', async function() {
       stubAccessStore(false);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
@@ -34,7 +34,7 @@ describe('TreasureNewController', function() {
       }
     });
 
-    it('does not redirect when the user is a superuser', async function() {
+    it('does not redirect when the user is staff or a superuser', async function() {
       stubAccessStore(true);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
