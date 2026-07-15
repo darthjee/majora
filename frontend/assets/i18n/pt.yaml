@@ -170,6 +170,7 @@ game_new_page:
   title: Novo Jogo
   name_label: Nome
   description_label: Descrição
+  game_type_label: Tipo de jogo
   submit: Criar Jogo
   error: Falha ao criar jogo. Por favor, tente novamente.
 language_selector:
