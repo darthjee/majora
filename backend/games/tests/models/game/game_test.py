@@ -52,6 +52,11 @@ class TestGame:
         assert games[0].id == first.id
         assert games[1].id == second.id
 
+    def test_game_type_defaults_to_dnd(self):
+        """Test that game_type defaults to 'dnd' when not given at creation."""
+        game = GameFactory(name='Test Game', game_slug='test-game')
+        assert game.game_type == Game.GAME_TYPE_DND
+
 
 class TestGameCanBeEditedBy(TestCase):
     """Tests for Game.can_be_edited_by()."""
