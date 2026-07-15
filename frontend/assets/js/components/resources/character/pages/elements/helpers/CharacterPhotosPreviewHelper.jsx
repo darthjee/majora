@@ -1,20 +1,22 @@
 import React from 'react';
 import CardPhoto from '../../../../../common/CardPhoto.jsx';
+import SeeAllCard from '../../../../../common/SeeAllCard.jsx';
 import { MAX_PREVIEW_PHOTOS } from '../../../../../common/characterPreviewConstants.js';
 import Translator from '../../../../../../i18n/Translator.js';
+import Icons from '../../../../../../utils/ui/Icons.js';
 
 /**
  * Rendering helper for the CharacterPhotosPreview element.
  */
 export default class CharacterPhotosPreviewHelper {
   /**
-   * Render a preview section with a heading, a static card grid of the
-   * first few photos (no click behavior, unlike the full gallery), and a
-   * "See all" link.
+   * Render a preview section with a heading and a static card grid of the
+   * first few photos (no click behavior, unlike the full gallery), ending
+   * with a "See all" card.
    *
    * @param {object[]} photos - List of photo objects (`id`, `path`).
    * @param {string} title - Section heading.
-   * @param {string} seeAllHref - Hash href for the "See all" link.
+   * @param {string} seeAllHref - Hash href for the "See all" card.
    * @returns {React.ReactElement} Character photos preview section element.
    */
   static render(photos, title, seeAllHref) {
@@ -23,15 +25,23 @@ export default class CharacterPhotosPreviewHelper {
     return (
       <div className="mt-4">
         <h2>{title}</h2>
-        {CharacterPhotosPreviewHelper.#renderBody(preview)}
-        <a href={seeAllHref}>{Translator.t('character_preview_section.see_all').replace('{{title}}', title)}</a>
+        {CharacterPhotosPreviewHelper.#renderBody(preview, title, seeAllHref)}
       </div>
     );
   }
 
-  static #renderBody(preview) {
+  static #renderBody(preview, title, seeAllHref) {
+    const seeAllText = Translator.t('character_preview_section.see_all').replace('{{title}}', title);
+
     if (preview.length === 0) {
-      return <p className="text-muted">{Translator.t('character_photos_preview.empty')}</p>;
+      return (
+        <>
+          <p className="text-muted">{Translator.t('character_photos_preview.empty')}</p>
+          <div className="row">
+            <SeeAllCard icon={Icons.camera} text={seeAllText} href={seeAllHref} />
+          </div>
+        </>
+      );
     }
 
     return (
@@ -43,6 +53,7 @@ export default class CharacterPhotosPreviewHelper {
             </div>
           </div>
         ))}
+        <SeeAllCard icon={Icons.camera} text={seeAllText} href={seeAllHref} />
       </div>
     );
   }

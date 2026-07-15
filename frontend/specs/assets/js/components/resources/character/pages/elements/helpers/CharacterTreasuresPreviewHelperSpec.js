@@ -46,10 +46,15 @@ describe('CharacterTreasuresPreviewHelper', function() {
       expect(html).not.toContain('Treasure 8');
     });
 
-    it('renders a see all link with the provided href', function() {
+    it('renders a see all card with the provided href', function() {
       const html = renderToStaticMarkup(CharacterTreasuresPreviewHelper.render(buildTreasures(1), title, seeAllHref));
       expect(html).toContain(`href="${seeAllHref}"`);
       expect(html).toContain('See all Treasures');
+    });
+
+    it('renders the see all card with the gem icon', function() {
+      const html = renderToStaticMarkup(CharacterTreasuresPreviewHelper.render(buildTreasures(1), title, seeAllHref));
+      expect(html).toContain('bi-gem');
     });
 
     it('renders an empty-state message and keeps the see all link when there are no treasures', function() {

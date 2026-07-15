@@ -1,12 +1,13 @@
 import React from 'react';
-import ActionsOverlay from '../../../../common/ActionsOverlay.jsx';
 import FormField from '../../../../common/FormField.jsx';
-import TextareaField from '../../../../common/TextareaField.jsx';
 import ErrorAlert from '../../../../common/ErrorAlert.jsx';
-import FieldErrors from '../../../../common/FieldErrors.jsx';
-import LinkList from '../../../../common/LinkList.jsx';
 import LoadingMessage from '../../../../common/LoadingMessage.jsx';
-import CharacterMoney from '../elements/CharacterMoney.jsx';
+import CharacterAvatarField from '../elements/CharacterAvatarField.jsx';
+import CharacterLinksField from '../elements/CharacterLinksField.jsx';
+import CharacterMoneyField from '../elements/CharacterMoneyField.jsx';
+import CharacterRoleField from '../elements/CharacterRoleField.jsx';
+import CharacterDescriptionField from '../elements/CharacterDescriptionField.jsx';
+import CharacterDmNotesField from '../elements/CharacterDmNotesField.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**
@@ -61,36 +62,53 @@ export default class BaseCharacterEditHelper {
         <form onSubmit={handlers.onSubmit}>
           <div className="row">
             <div className="col-md-4">
-              <ActionsOverlay
-                type="avatar"
+              <CharacterAvatarField
                 url={state.profile_photo_path}
                 alt={state.name}
-                canEdit
                 onClick={handlers.onOpenUploadModal}
               />
               {this.#renderNameField(state, handlers)}
-              <LinkList links={state.links.filter((link) => !link.delete)} />
-              <button
-                type="button"
-                className="btn btn-outline-secondary btn-sm mb-3"
-                onClick={handlers.onOpenLinksModal}
-              >
-                {Translator.t(`${i18nNamespace}.edit_links_button`)}
-              </button>
-              {this.#renderMoneyField(state, handlers)}
+              <CharacterLinksField
+                links={state.links}
+                buttonLabel={Translator.t(`${i18nNamespace}.edit_links_button`)}
+                onOpenLinksModal={handlers.onOpenLinksModal}
+              />
+              <CharacterMoneyField
+                isFullEditor={state.isFullEditor}
+                label={Translator.t(`${i18nNamespace}.money_label`)}
+                money={state.money}
+                gameType={state.gameType}
+                buttonLabel={Translator.t(`${i18nNamespace}.edit_money_button`)}
+                onOpenMoneyModal={handlers.onOpenMoneyModal}
+                errors={state.fieldErrors.money ?? []}
+              />
               {this.#renderAllegianceFields(state, handlers)}
               {this.#renderSlainField(state, handlers)}
             </div>
             <div className="col-md-8">
-              {this.#renderRoleField(state, handlers)}
-              <TextareaField
+              <CharacterRoleField
+                isFullEditor={state.isFullEditor}
+                id={`${idPrefix}-edit-role`}
+                label={Translator.t(`${i18nNamespace}.role_label`)}
+                value={state.role}
+                onChange={handlers.onRoleChange}
+                errors={state.fieldErrors.role ?? []}
+              />
+              <CharacterDescriptionField
                 id={`${idPrefix}-edit-description`}
                 label={Translator.t(`${i18nNamespace}.description_label`)}
                 value={state.description}
                 onChange={handlers.onDescriptionChange}
                 errors={state.fieldErrors.public_description ?? []}
               />
-              {this.#renderPrivateDescriptionField(state, handlers)}
+              <CharacterDmNotesField
+                isFullEditor={state.isFullEditor}
+                id={`${idPrefix}-edit-private-description`}
+                label={Translator.t(`${i18nNamespace}.private_description_label`)}
+                value={state.privateDescription}
+                onChange={handlers.onPrivateDescriptionChange}
+                errors={state.fieldErrors.private_description ?? []}
+              />
               <button className="btn btn-primary" type="submit" disabled={state.status === 'submitting'}>
                 {Translator.t(`${i18nNamespace}.submit`)}
               </button>
@@ -177,66 +195,6 @@ export default class BaseCharacterEditHelper {
         onChange={handlers.onNameChange}
         errors={state.fieldErrors.name ?? []}
       />
-    );
-  }
-
-  #renderRoleField(state, handlers) {
-    if (!state.isFullEditor) {
-      return null;
-    }
-
-    const { idPrefix, i18nNamespace } = this;
-
-    return (
-      <FormField
-        id={`${idPrefix}-edit-role`}
-        type="text"
-        label={Translator.t(`${i18nNamespace}.role_label`)}
-        value={state.role}
-        onChange={handlers.onRoleChange}
-        errors={state.fieldErrors.role ?? []}
-      />
-    );
-  }
-
-  #renderPrivateDescriptionField(state, handlers) {
-    if (!state.isFullEditor) {
-      return null;
-    }
-
-    const { idPrefix, i18nNamespace } = this;
-
-    return (
-      <TextareaField
-        id={`${idPrefix}-edit-private-description`}
-        label={Translator.t(`${i18nNamespace}.private_description_label`)}
-        value={state.privateDescription}
-        onChange={handlers.onPrivateDescriptionChange}
-        errors={state.fieldErrors.private_description ?? []}
-      />
-    );
-  }
-
-  #renderMoneyField(state, handlers) {
-    if (!state.isFullEditor) {
-      return null;
-    }
-
-    const { i18nNamespace } = this;
-
-    return (
-      <div className="mb-3">
-        <label className="form-label">{Translator.t(`${i18nNamespace}.money_label`)}</label>
-        <CharacterMoney money={Number(state.money) || 0} gameType={state.gameType} />
-        <button
-          type="button"
-          className="btn btn-outline-secondary btn-sm"
-          onClick={handlers.onOpenMoneyModal}
-        >
-          {Translator.t(`${i18nNamespace}.edit_money_button`)}
-        </button>
-        <FieldErrors errors={state.fieldErrors.money ?? []} />
-      </div>
     );
   }
 

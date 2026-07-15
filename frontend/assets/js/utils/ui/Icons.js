@@ -5,6 +5,7 @@
  */
 export default {
   camera: 'bi-camera-fill',
+  gem: 'bi-gem',
   heart: 'bi-heart-fill',
   heartOutline: 'bi-heart',
   skull: 'bi-skull',

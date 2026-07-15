@@ -44,6 +44,7 @@ describe('GameNpcNewController', function() {
             money: '42',
             allegiance: 'ally',
             publicAllegiance: 'enemy',
+            links: [{ text: 'Wiki', url: 'https://example.com/wiki' }],
           },
           { setStatus, setFieldErrors },
         );
@@ -63,7 +64,33 @@ describe('GameNpcNewController', function() {
             money: 42,
             allegiance: 'ally',
             public_allegiance: 'enemy',
+            links: [{ text: 'Wiki', url: 'https://example.com/wiki' }],
           },
+        );
+      } finally {
+        delete globalThis.window;
+      }
+    });
+
+    it('defaults links to an empty array when not provided in formValues', async function() {
+      const controller = new GameNpcNewController(setError, setFieldErrors, characterClient);
+      const fakeWindow = { location: { hash: '' } };
+      globalThis.window = fakeWindow;
+
+      try {
+        await controller.submitForm(
+          undefined,
+          'demo',
+          {
+            name: 'Goblin King', role: '', description: '', privateDescription: '', hidden: false, money: '0',
+          },
+          { setStatus, setFieldErrors },
+        );
+
+        expect(characterClient.createNpc).toHaveBeenCalledWith(
+          'demo',
+          'tok-abc',
+          jasmine.objectContaining({ links: [] }),
         );
       } finally {
         delete globalThis.window;

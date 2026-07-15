@@ -1,8 +1,12 @@
 import React from 'react';
 import FormField from '../../../../common/FormField.jsx';
-import TextareaField from '../../../../common/TextareaField.jsx';
 import ErrorAlert from '../../../../common/ErrorAlert.jsx';
 import SubmitButton from '../../../../common/SubmitButton.jsx';
+import CharacterAvatarField from '../elements/CharacterAvatarField.jsx';
+import CharacterLinksField from '../elements/CharacterLinksField.jsx';
+import CharacterRoleField from '../elements/CharacterRoleField.jsx';
+import CharacterDescriptionField from '../elements/CharacterDescriptionField.jsx';
+import CharacterDmNotesField from '../elements/CharacterDmNotesField.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**
@@ -12,13 +16,18 @@ export default class GameNpcNewHelper {
   /**
    * Render the NPC creation form.
    *
+   * @description The NPC does not exist yet, so there is no id to scope an avatar
+   *   upload or a money/treasures/photos breakdown to: the avatar is a static
+   *   placeholder (no upload control) and money stays a raw number field below
+   *   the columns, matching this app's existing precedent of deferring photo
+   *   upload to after the entity exists.
    * @param {{name: string, role: string, description: string, privateDescription: string,
-   *   hidden: boolean, money: string, allegiance: string, publicAllegiance: string,
-   *   status: string, fieldErrors: object}} formState - Form state.
+   *   links: object[], hidden: boolean, money: string, allegiance: string,
+   *   publicAllegiance: string, status: string, fieldErrors: object}} formState - Form state.
    * @param {{onSubmit: Function, onNameChange: Function, onRoleChange: Function,
    *   onDescriptionChange: Function, onPrivateDescriptionChange: Function,
-   *   onHiddenChange: Function, onMoneyChange: Function, onAllegianceChange: Function,
-   *   onPublicAllegianceChange: Function}} handlers - Event handlers.
+   *   onOpenLinksModal: Function, onHiddenChange: Function, onMoneyChange: Function,
+   *   onAllegianceChange: Function, onPublicAllegianceChange: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered new NPC page.
    */
   static render(formState, handlers) {
@@ -35,28 +44,41 @@ export default class GameNpcNewHelper {
             onChange={handlers.onNameChange}
             errors={formState.fieldErrors.name ?? []}
           />
-          <FormField
-            id="game-npc-new-role"
-            type="text"
-            label={Translator.t('game_npc_new_page.role_label')}
-            value={formState.role}
-            onChange={handlers.onRoleChange}
-            errors={formState.fieldErrors.role ?? []}
-          />
-          <TextareaField
-            id="game-npc-new-description"
-            label={Translator.t('game_npc_new_page.description_label')}
-            value={formState.description}
-            onChange={handlers.onDescriptionChange}
-            errors={formState.fieldErrors.public_description ?? []}
-          />
-          <TextareaField
-            id="game-npc-new-private-description"
-            label={Translator.t('game_npc_new_page.private_description_label')}
-            value={formState.privateDescription}
-            onChange={handlers.onPrivateDescriptionChange}
-            errors={formState.fieldErrors.private_description ?? []}
-          />
+          <div className="row">
+            <div className="col-md-4">
+              <CharacterAvatarField canEdit={false} alt={formState.name} />
+              <CharacterLinksField
+                links={formState.links}
+                buttonLabel={Translator.t('npc_edit_page.edit_links_button')}
+                onOpenLinksModal={handlers.onOpenLinksModal}
+              />
+            </div>
+            <div className="col-md-8">
+              <CharacterRoleField
+                isFullEditor
+                id="game-npc-new-role"
+                label={Translator.t('game_npc_new_page.role_label')}
+                value={formState.role}
+                onChange={handlers.onRoleChange}
+                errors={formState.fieldErrors.role ?? []}
+              />
+              <CharacterDescriptionField
+                id="game-npc-new-description"
+                label={Translator.t('game_npc_new_page.description_label')}
+                value={formState.description}
+                onChange={handlers.onDescriptionChange}
+                errors={formState.fieldErrors.public_description ?? []}
+              />
+              <CharacterDmNotesField
+                isFullEditor
+                id="game-npc-new-private-description"
+                label={Translator.t('game_npc_new_page.private_description_label')}
+                value={formState.privateDescription}
+                onChange={handlers.onPrivateDescriptionChange}
+                errors={formState.fieldErrors.private_description ?? []}
+              />
+            </div>
+          </div>
           <FormField
             id="game-npc-new-money"
             type="number"
