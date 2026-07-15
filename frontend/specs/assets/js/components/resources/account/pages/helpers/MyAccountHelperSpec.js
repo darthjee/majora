@@ -5,6 +5,7 @@ describe('MyAccountHelper', function() {
   const buildFormState = (overrides = {}) => ({
     name: 'Jane',
     email: 'jane@example.com',
+    avatarUrl: null,
     password: '',
     passwordConfirmation: '',
     status: 'idle',
@@ -27,6 +28,24 @@ describe('MyAccountHelper', function() {
 
       expect(html).toContain('value="Jane"');
       expect(html).toContain('value="jane@example.com"');
+    });
+
+    it('renders the avatar with the given avatarUrl', function() {
+      const html = renderToStaticMarkup(
+        MyAccountHelper.render(
+          buildFormState({ avatarUrl: 'http://example.com/avatar.png' }), buildHandlers()
+        )
+      );
+
+      expect(html).toContain('http://example.com/avatar.png');
+    });
+
+    it('renders the default avatar photo when avatarUrl is null', function() {
+      const html = renderToStaticMarkup(
+        MyAccountHelper.render(buildFormState({ avatarUrl: null }), buildHandlers())
+      );
+
+      expect(html).toContain('default_avatar.png');
     });
 
     it('renders the submit button', function() {

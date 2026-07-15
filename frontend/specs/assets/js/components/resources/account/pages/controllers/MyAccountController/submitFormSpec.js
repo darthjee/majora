@@ -9,6 +9,7 @@ describe('MyAccountController', function() {
   describe('#submitForm', function() {
     let setName;
     let setEmail;
+    let setAvatarUrl;
     let setLoading;
     let setFieldErrors;
     let setStatus;
@@ -17,6 +18,7 @@ describe('MyAccountController', function() {
     beforeEach(function() {
       setName = jasmine.createSpy('setName');
       setEmail = jasmine.createSpy('setEmail');
+      setAvatarUrl = jasmine.createSpy('setAvatarUrl');
       setLoading = jasmine.createSpy('setLoading');
       setFieldErrors = jasmine.createSpy('setFieldErrors');
       setStatus = jasmine.createSpy('setStatus');
@@ -29,7 +31,9 @@ describe('MyAccountController', function() {
       }));
     });
 
-    const buildController = () => new MyAccountController(setName, setEmail, setLoading, client);
+    const buildController = () => new MyAccountController(
+      setName, setEmail, setAvatarUrl, setLoading, client,
+    );
 
     it('prevents default, resets status/errors, and submits the fields payload', async function() {
       const event = jasmine.createSpyObj('event', ['preventDefault']);

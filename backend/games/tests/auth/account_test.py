@@ -1,5 +1,6 @@
 """Tests for the my-account endpoint (GET detail / PATCH update)."""
 
+import hashlib
 import json
 
 from django.test import TestCase
@@ -7,8 +8,15 @@ from django.urls import reverse
 from django.utils.crypto import get_random_string
 from rest_framework.authtoken.models import Token
 
+from games.settings import Settings
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import UserFactory
+
+
+def _avatar_url_for(email):
+    """Return the expected avatar_url for the given email."""
+    email_hash = hashlib.sha256(email.encode()).hexdigest()
+    return f'{Settings.gravatar_base_url()}{email_hash}'
 
 TEST_PASSWORD = get_random_string(20)
 
@@ -38,7 +46,11 @@ class TestAccountView(TokenAuthRequestMixin, TestCase):
         """Test that an authenticated GET returns the requester's own name/email."""
         response = self.get(self.client, ACCOUNT_URL, token=self.token)
         assert response.status_code == 200
-        assert json.loads(response.content) == {'name': 'alice', 'email': 'alice@example.com'}
+        assert json.loads(response.content) == {
+            'name': 'alice',
+            'email': 'alice@example.com',
+            'avatar_url': _avatar_url_for('alice@example.com'),
+        }
 
     def test_authenticated_never_returns_another_users_detail(self):
         """Test that the endpoint never returns another user's data."""
@@ -89,7 +101,11 @@ class TestAccountPatchView(TokenAuthRequestMixin, TestCase):
         )
         assert response.status_code == 200
         data = json.loads(response.content)
-        assert data == {'name': 'renamed', 'email': 'renamed@example.com'}
+        assert data == {
+            'name': 'renamed',
+            'email': 'renamed@example.com',
+            'avatar_url': _avatar_url_for('renamed@example.com'),
+        }
 
     def test_valid_update_persists_and_keeps_password(self):
         """Test that name/email updates persist and the password stays untouched."""

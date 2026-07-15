@@ -220,6 +220,7 @@ staff_user_edit_page:
 my_account_page:
   title: Minha Conta
   loading: Carregando conta...
+  avatar_alt: Avatar do usuário
   name_label: Nome
   email_label: E-mail
   password_label: Senha
@@ -295,6 +296,10 @@ game_session_page:
   loading: Carregando sessão...
   edit: Editar
   no_date: Sem data
+  messages_title: Mensagens
+  messages_content_label: Mensagem
+  messages_submit: Enviar
+  messages_load_more: Carregar mais mensagens
 game_session_new_page:
   title: Nova Sessão
   title_label: Título

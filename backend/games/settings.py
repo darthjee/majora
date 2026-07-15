@@ -50,3 +50,8 @@ class Settings:
             return int(os.environ.get('MAJORA_CACHE_CONTROL_AUTHENTICATED_SECONDS', 10))
         except (ValueError, TypeError):
             return 10
+
+    @staticmethod
+    def gravatar_base_url():
+        """Return the base URL to prefix an email hash with to build a Gravatar avatar URL."""
+        return os.environ.get('MAJORA_GRAVATAR_BASE_URL', 'https://gravatar.com/avatar/')

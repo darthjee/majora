@@ -11,13 +11,15 @@ export default class MyAccountController extends BasePageController {
    *
    * @param {Function} setName - Name setter, used to prefill the form.
    * @param {Function} setEmail - Email setter, used to prefill the form.
+   * @param {Function} setAvatarUrl - Avatar URL setter, used to prefill the page avatar.
    * @param {Function} setLoading - Loading setter.
    * @param {AuthClient|null} [client] - Client override.
    */
-  constructor(setName, setEmail, setLoading, client = null) {
+  constructor(setName, setEmail, setAvatarUrl, setLoading, client = null) {
     super();
     this.setName = setName;
     this.setEmail = setEmail;
+    this.setAvatarUrl = setAvatarUrl;
     this.setLoading = setLoading;
     this.client = client ?? new AuthClient();
   }
@@ -84,6 +86,7 @@ export default class MyAccountController extends BasePageController {
       .then((account) => {
         safeSet(this.setName, account.name ?? '');
         safeSet(this.setEmail, account.email ?? '');
+        safeSet(this.setAvatarUrl, account.avatar_url ?? null);
       })
       .catch(() => this.#redirectHome())
       .finally(() => safeSet(this.setLoading, false));

@@ -3,6 +3,7 @@ import EditButton from '../../../../common/EditButton.jsx';
 import ErrorAlert from '../../../../common/ErrorAlert.jsx';
 import LoadingMessage from '../../../../common/LoadingMessage.jsx';
 import PageActions from '../../../../common/PageActions.jsx';
+import SessionMessagesHelper from './SessionMessagesHelper.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**
@@ -19,9 +20,14 @@ export default class GameSessionHelper {
    * @param {string} session.game_slug - Game slug the session belongs to.
    * @param {boolean} [session.can_edit] - Whether the current user can edit this session.
    * @param {string} [session.description] - Session description text.
+   * @param {{messages: Array, nextEntryId: (number|string|null), loadingMore: boolean,
+   *   content: string, posting: boolean, fieldErrors: object}} [messagesState] - Session
+   *   messages section state.
+   * @param {{onLoadMore: Function, onContentChange: Function, onSubmit: Function}} [messagesHandlers] -
+   *   Session messages section event handlers.
    * @returns {React.ReactElement} Session detail element.
    */
-  static render(session) {
+  static render(session, messagesState, messagesHandlers) {
     return (
       <div className="container mt-4">
         <PageActions backHref={`#/games/${session.game_slug}/sessions`}>
@@ -38,6 +44,7 @@ export default class GameSessionHelper {
         {session.description && (
           <p className="mt-3 text-pre-wrap">{session.description}</p>
         )}
+        {SessionMessagesHelper.render(messagesState, messagesHandlers)}
       </div>
     );
   }

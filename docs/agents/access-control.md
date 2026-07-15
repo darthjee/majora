@@ -38,6 +38,7 @@ regardless of any other rule listed below.
 - [CharacterLink](access-control/character-link.md)
 - [Treasure](access-control/treasure.md)
 - [GameSession](access-control/game-session.md)
+- [GameSessionMessage](access-control/game-session-message.md)
 - [Task](access-control/task.md)
 
 ### Standalone endpoints

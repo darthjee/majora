@@ -31,6 +31,13 @@ body {
   }
 }
 
+.avatar-photo {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .text-pre-wrap {
   white-space: pre-wrap;
 }

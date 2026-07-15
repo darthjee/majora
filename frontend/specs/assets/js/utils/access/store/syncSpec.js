@@ -1,4 +1,5 @@
 import AccessStore from '../../../../../../assets/js/utils/access/store/AccessStore.js';
+import AccessStoreFacade from '../../../../../../assets/js/utils/access/store/AccessStoreFacade.js';
 import GameClient from '../../../../../../assets/js/client/GameClient.js';
 import { ACCESS_DEFAULT, fakeResponse } from './support.js';
 
@@ -8,7 +9,12 @@ describe('AccessStore', function() {
   });
 
   afterEach(function() {
-    AccessStore.reset();
+    // `#syncForRoute` records the page in module-level state, kept around
+    // (deliberately, for `#setFacade`/`#syncForAuthChange` re-syncs) beyond
+    // `#reset`. Clear it back to neutral so a later, unrelated spec calling
+    // `#setFacade` does not re-sync against a page left over from here,
+    // firing real (unmocked, in that other spec) client requests.
+    AccessStore.syncForRoute(null, '');
   });
 
   describe('#syncForRoute', function() {
@@ -67,6 +73,25 @@ describe('AccessStore', function() {
       AccessStore.syncForRoute('home', '#/');
 
       expect(AccessStore.getGameAccess('demo')).toEqual(ACCESS_DEFAULT);
+    });
+
+    it('clears the recorded page so a later #setFacade does not re-sync it', function() {
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve(ACCESS_DEFAULT));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+
+      AccessStore.syncForRoute('game', '#/games/demo');
+      AccessStore.syncForRoute(null, '');
+      AccessStore.ensureGameAccess.calls.reset();
+      AccessStore.ensureGamePermissions.calls.reset();
+
+      try {
+        AccessStore.setFacade({ enabled: true, roles: ['dm'] });
+
+        expect(AccessStore.ensureGameAccess).not.toHaveBeenCalled();
+        expect(AccessStore.ensureGamePermissions).not.toHaveBeenCalled();
+      } finally {
+        AccessStoreFacade.clear();
+      }
     });
   });
 
