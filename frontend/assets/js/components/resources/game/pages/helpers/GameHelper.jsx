@@ -7,6 +7,7 @@ import CharacterPreviewSection from '../../../../common/CharacterPreviewSection.
 import ErrorAlert from '../../../../common/ErrorAlert.jsx';
 import LinkList from '../../../../common/LinkList.jsx';
 import LoadingMessage from '../../../../common/LoadingMessage.jsx';
+import OpenPollsWidget from '../elements/OpenPollsWidget.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**
@@ -25,6 +26,14 @@ export default class GameHelper {
    * @param {boolean} [game.can_edit] - Whether the current user can edit this game.
    * @param {{title: string, date: (string|null)}|null} [game.next_session] - Upcoming session
    *   summary, or `null` when the game has no sessions at all.
+   * @param {boolean} [game.is_dm] - Whether the current user is a DM of the game, gating the
+   *   open-polls widget.
+   * @param {boolean} [game.is_player] - Whether the current user is a player of the game,
+   *   gating the open-polls widget.
+   * @param {boolean} [game.is_superuser] - Whether the current user is a superuser, gating the
+   *   open-polls widget.
+   * @param {boolean} [game.is_staff] - Whether the current user is staff, gating the open-polls
+   *   widget.
    * @param {object[]} [pcs] - PCs preview list.
    * @param {object[]} [npcs] - NPCs preview list.
    * @param {{onOpenUploadModal: Function}} [handlers] - Event handlers.
@@ -74,6 +83,7 @@ export default class GameHelper {
           seeAllHref={`#/games/${game.game_slug}/npcs`}
         />
         {GameHelper.#renderNextSession(game)}
+        <OpenPollsWidget game={game} />
       </div>
     );
   }
