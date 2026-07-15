@@ -43,7 +43,7 @@ describe('GameSessionEditController', function() {
           event,
           'demo',
           '7',
-          { title: 'Session 1 renamed', date: '2024-02-02' },
+          { title: 'Session 1 renamed', date: '2024-02-02', description: 'A thrilling encounter.' },
           { setStatus, setFieldErrors },
         );
 
@@ -54,7 +54,7 @@ describe('GameSessionEditController', function() {
           'demo',
           '7',
           'tok-abc',
-          { title: 'Session 1 renamed', date: '2024-02-02' },
+          { title: 'Session 1 renamed', date: '2024-02-02', description: 'A thrilling encounter.' },
         );
       } finally {
         delete globalThis.window;
@@ -70,7 +70,7 @@ describe('GameSessionEditController', function() {
         undefined,
         'demo',
         '7',
-        { title: 'Session 1', date: '' },
+        { title: 'Session 1', date: '', description: '' },
         { setStatus, setFieldErrors },
       );
 
@@ -78,7 +78,7 @@ describe('GameSessionEditController', function() {
         'demo',
         '7',
         'tok-abc',
-        { title: 'Session 1', date: null },
+        { title: 'Session 1', date: null, description: null },
       );
     });
 

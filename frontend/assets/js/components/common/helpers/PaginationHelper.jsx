@@ -17,9 +17,15 @@ export default class PaginationHelper {
    * @param {object|URLSearchParams} [extraParams] - Additional active query params (e.g. NPC
    *   filters) preserved on every pagination link. Defaults to none, so other callers of
    *   `PaginationHelper`/`Pagination` are unaffected.
+   * @param {string} [pageParam] - Query param name used for the page number. Defaults to
+   *   `'page'`, so other callers are unaffected.
+   * @param {string} [perPageParam] - Query param name used for the per-page count. Defaults to
+   *   `'per_page'`, so other callers are unaffected.
    * @returns {React.ReactElement|null} Pagination nav or null.
    */
-  static render(currentPage, totalPages, perPage, basePath, extraParams = {}) {
+  static render(
+    currentPage, totalPages, perPage, basePath, extraParams = {}, pageParam = 'page', perPageParam = 'per_page',
+  ) {
     const pages = this.#normalizePositiveInteger(totalPages, 1);
 
     if (pages <= 1) {
@@ -30,7 +36,8 @@ export default class PaginationHelper {
     const itemsPerPage = this.#normalizePositiveInteger(perPage, 10);
     const pageList = new PaginationController(page, pages).buildPageList();
     const extraQuery = new URLSearchParams(extraParams).toString();
-    const linkTemplate = `${basePath}?page=:page&per_page=:perPage${extraQuery ? `&${extraQuery}` : ''}`;
+    const linkTemplate =
+      `${basePath}?${pageParam}=:page&${perPageParam}=:perPage${extraQuery ? `&${extraQuery}` : ''}`;
 
     return (
       <nav aria-label={Translator.t('pagination.aria_label')} className="mt-4">

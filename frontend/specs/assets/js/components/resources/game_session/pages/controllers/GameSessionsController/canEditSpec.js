@@ -1,30 +1,20 @@
 import GameSessionsController
   from '../../../../../../../../../assets/js/components/resources/game_session/pages/controllers/GameSessionsController.js';
 import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import { buildClient } from './support.js';
 
 describe('GameSessionsController', function() {
   it('sets canEdit to true when the game access response allows editing', async function() {
-    const setSessions = jasmine.createSpy('setSessions');
-    const setPagination = jasmine.createSpy('setPagination');
+    const setColumns = jasmine.createSpy('setColumns');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const setCanEdit = jasmine.createSpy('setCanEdit');
-    const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
+    const client = buildClient('#/games/demo/sessions');
 
-    client.currentHash.and.returnValue('#/games/demo/sessions');
-    client.fetchIndex.and.returnValue(Promise.resolve({
-      data: [],
-      pagination: { page: 1, pages: 1, perPage: 10 },
-    }));
     spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
     const cleanup = new GameSessionsController(
-      setSessions,
-      setPagination,
-      setLoading,
-      setError,
-      client,
-      setCanEdit,
+      setColumns, setLoading, setError, client, setCanEdit,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -34,27 +24,16 @@ describe('GameSessionsController', function() {
   });
 
   it('sets canEdit to false when the access resolves with the fail-closed default', async function() {
-    const setSessions = jasmine.createSpy('setSessions');
-    const setPagination = jasmine.createSpy('setPagination');
+    const setColumns = jasmine.createSpy('setColumns');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const setCanEdit = jasmine.createSpy('setCanEdit');
-    const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
+    const client = buildClient('#/games/demo/sessions');
 
-    client.currentHash.and.returnValue('#/games/demo/sessions');
-    client.fetchIndex.and.returnValue(Promise.resolve({
-      data: [],
-      pagination: { page: 1, pages: 1, perPage: 10 },
-    }));
     spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
     const cleanup = new GameSessionsController(
-      setSessions,
-      setPagination,
-      setLoading,
-      setError,
-      client,
-      setCanEdit,
+      setColumns, setLoading, setError, client, setCanEdit,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -64,27 +43,16 @@ describe('GameSessionsController', function() {
   });
 
   it('sets canEdit to false when the access request throws', async function() {
-    const setSessions = jasmine.createSpy('setSessions');
-    const setPagination = jasmine.createSpy('setPagination');
+    const setColumns = jasmine.createSpy('setColumns');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const setCanEdit = jasmine.createSpy('setCanEdit');
-    const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
+    const client = buildClient('#/games/demo/sessions');
 
-    client.currentHash.and.returnValue('#/games/demo/sessions');
-    client.fetchIndex.and.returnValue(Promise.resolve({
-      data: [],
-      pagination: { page: 1, pages: 1, perPage: 10 },
-    }));
     spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.reject(new Error('network error')));
 
     const cleanup = new GameSessionsController(
-      setSessions,
-      setPagination,
-      setLoading,
-      setError,
-      client,
-      setCanEdit,
+      setColumns, setLoading, setError, client, setCanEdit,
     ).buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 

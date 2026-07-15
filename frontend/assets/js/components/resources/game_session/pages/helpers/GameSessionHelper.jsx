@@ -18,6 +18,7 @@ export default class GameSessionHelper {
    * @param {string|null} [session.date] - Session date (YYYY-MM-DD), if any.
    * @param {string} session.game_slug - Game slug the session belongs to.
    * @param {boolean} [session.can_edit] - Whether the current user can edit this session.
+   * @param {string} [session.description] - Session description text.
    * @returns {React.ReactElement} Session detail element.
    */
   static render(session) {
@@ -34,6 +35,9 @@ export default class GameSessionHelper {
         <p className="mt-3">
           {session.date ?? Translator.t('game_session_page.no_date')}
         </p>
+        {session.description && (
+          <p className="mt-3 text-pre-wrap">{session.description}</p>
+        )}
       </div>
     );
   }

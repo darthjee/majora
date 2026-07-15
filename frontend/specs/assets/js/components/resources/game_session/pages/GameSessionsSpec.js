@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import GameSessions from '../../../../../../../assets/js/components/resources/game_session/pages/GameSessions.jsx';
 import GameSessionsHelper from '../../../../../../../assets/js/components/resources/game_session/pages/helpers/GameSessionsHelper.jsx';
 import GameSessionsController from '../../../../../../../assets/js/components/resources/game_session/pages/controllers/GameSessionsController.js';
+import { buildDefaultSessionColumns } from '../../../../../../../assets/js/components/resources/game_session/pages/sessionColumns.js';
 import { stubBuildEffect, stubRenderLoading } from '../../../../../../support/controllerStubs.js';
 
 describe('GameSessions', function() {
@@ -29,11 +30,10 @@ describe('GameSessions', function() {
   it('renders the new session button via GameSessionsHelper.render when canEdit is true', function() {
     stubBuildEffect(GameSessionsController);
 
-    const sessions = [{ id: 1, title: 'Session 1', date: '2024-01-01', game_slug: 'demo' }];
-    const pagination = { page: 1, pages: 1, perPage: 10 };
+    const columns = buildDefaultSessionColumns();
     const html = renderToStaticMarkup(
       GameSessionsHelper.render(
-        sessions, pagination, '#/games/demo/sessions', '#/games/demo', true, '#/games/demo/sessions/new',
+        columns, '#/games/demo/sessions', '#/games/demo', true, '#/games/demo/sessions/new',
       ),
     );
 

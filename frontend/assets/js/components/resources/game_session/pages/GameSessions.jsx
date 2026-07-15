@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import GameSessionsController from './controllers/GameSessionsController.js';
 import GameSessionsHelper from './helpers/GameSessionsHelper.jsx';
+import { buildDefaultSessionColumns } from './sessionColumns.js';
 
 /**
  * Game Sessions index page.
@@ -8,14 +9,13 @@ import GameSessionsHelper from './helpers/GameSessionsHelper.jsx';
  * @returns {React.ReactElement} Game sessions page element.
  */
 export default function GameSessions() {
-  const [sessions, setSessions] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, pages: 1, perPage: 10 });
+  const [columns, setColumns] = useState(buildDefaultSessionColumns);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [canEdit, setCanEdit] = useState(false);
 
   const controller = useMemo(
-    () => new GameSessionsController(setSessions, setPagination, setLoading, setError, null, setCanEdit),
+    () => new GameSessionsController(setColumns, setLoading, setError, null, setCanEdit),
     [],
   );
 
@@ -29,5 +29,5 @@ export default function GameSessions() {
   if (loading) return GameSessionsHelper.renderLoading();
   if (error) return GameSessionsHelper.renderError(error);
 
-  return GameSessionsHelper.render(sessions, pagination, basePath, backHref, canEdit, newHref);
+  return GameSessionsHelper.render(columns, basePath, backHref, canEdit, newHref);
 }

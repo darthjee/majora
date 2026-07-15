@@ -77,6 +77,8 @@ game_page:
   treasures: Treasures
   sessions: Sessions
   see_all_photos: Photos
+  next_session_title: Next Session
+  no_next_session: No upcoming session scheduled.
 game_characters_page:
   loading: Loading...
 character_page:
@@ -284,6 +286,9 @@ game_sessions_page:
   loading: Loading sessions...
   title: Sessions
   new_session: New Session
+  past: Past
+  future: Upcoming
+  unscheduled: Unscheduled
 game_session_page:
   loading: Loading session...
   edit: Edit
@@ -292,12 +297,14 @@ game_session_new_page:
   title: New Session
   title_label: Title
   date_label: Date
+  description_label: Description
   submit: Create Session
   error: Failed to create session. Please try again.
 game_session_edit_page:
   title: Edit Session
   title_label: Title
   date_label: Date
+  description_label: Description
   submit: Save changes
   error: Failed to save session. Please try again.
 game_tasks_page:

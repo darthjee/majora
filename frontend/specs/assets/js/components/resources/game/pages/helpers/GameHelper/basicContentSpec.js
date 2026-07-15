@@ -21,7 +21,8 @@ describe('GameHelper', function() {
 
     it('does not render description paragraph when description is empty', function() {
       const gameNoDesc = { ...game, description: '' };
-      expect(renderToStaticMarkup(GameHelper.render(gameNoDesc))).not.toContain('<p');
+      const html = renderToStaticMarkup(GameHelper.render(gameNoDesc));
+      expect(html).not.toContain('text-pre-wrap');
     });
 
     it('renders a back button to the games page', function() {

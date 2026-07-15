@@ -35,7 +35,7 @@ describe('GameSessionNewController', function() {
         await controller.submitForm(
           event,
           'demo',
-          { title: 'Session 1', date: '2024-01-01' },
+          { title: 'Session 1', date: '2024-01-01', description: 'A thrilling encounter.' },
           { setStatus, setFieldErrors },
         );
 
@@ -45,7 +45,7 @@ describe('GameSessionNewController', function() {
         expect(sessionClient.createSession).toHaveBeenCalledWith(
           'demo',
           'tok-abc',
-          { title: 'Session 1', date: '2024-01-01' },
+          { title: 'Session 1', date: '2024-01-01', description: 'A thrilling encounter.' },
         );
       } finally {
         delete globalThis.window;
@@ -61,14 +61,14 @@ describe('GameSessionNewController', function() {
         await controller.submitForm(
           undefined,
           'demo',
-          { title: 'Session 1', date: '' },
+          { title: 'Session 1', date: '', description: '' },
           { setStatus, setFieldErrors },
         );
 
         expect(sessionClient.createSession).toHaveBeenCalledWith(
           'demo',
           'tok-abc',
-          { title: 'Session 1', date: null },
+          { title: 'Session 1', date: null, description: null },
         );
       } finally {
         delete globalThis.window;

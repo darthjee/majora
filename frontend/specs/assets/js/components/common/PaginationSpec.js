@@ -26,4 +26,23 @@ describe('Pagination', function() {
     );
     expect(html).toContain('slain=true');
   });
+
+  it('uses page/per_page as the default query param names', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(Pagination, { currentPage: 2, totalPages: 5, perPage: 10, basePath: '#/games' })
+    );
+    expect(html).toContain('page=');
+    expect(html).toContain('per_page=');
+  });
+
+  it('forwards pageParam/perPageParam overrides to build distinctly-named links', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(Pagination, {
+        currentPage: 2, totalPages: 5, perPage: 10, basePath: '#/games/demo/sessions',
+        pageParam: 'past_page', perPageParam: 'past_per_page',
+      })
+    );
+    expect(html).toContain('past_page=');
+    expect(html).toContain('past_per_page=');
+  });
 });
