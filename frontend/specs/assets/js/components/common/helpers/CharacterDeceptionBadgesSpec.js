@@ -46,6 +46,18 @@ describe('CharacterDeceptionBadges', function() {
         CharacterStatusBadges.buildPublicAllegiance(character),
       ]);
     });
+
+    it('returns null when allegiance is neutral and public_allegiance differs', function() {
+      const character = buildCharacter({ allegiance: 'neutral', public_allegiance: 'ally' });
+
+      expect(CharacterDeceptionBadges.buildAllegianceDeception(character)).toBeNull();
+    });
+
+    it('returns null when public_allegiance is neutral and allegiance differs', function() {
+      const character = buildCharacter({ allegiance: 'enemy', public_allegiance: 'neutral' });
+
+      expect(CharacterDeceptionBadges.buildAllegianceDeception(character)).toBeNull();
+    });
   });
 
   describe('.buildSlainDeception', function() {
