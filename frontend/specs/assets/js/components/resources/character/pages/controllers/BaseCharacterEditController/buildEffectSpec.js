@@ -50,6 +50,7 @@ describe('BaseCharacterEditController', function() {
         id: 1,
         treasures: [],
         photos: [],
+        game_type: 'dnd',
         can_edit: true,
         is_player: false,
         private_description: 'Notes.',

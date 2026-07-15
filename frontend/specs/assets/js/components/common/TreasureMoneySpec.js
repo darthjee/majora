@@ -32,4 +32,9 @@ describe('TreasureMoney', function() {
     const html = renderToStaticMarkup(React.createElement(TreasureMoney, { value: 100000000 }));
     expect(html).toEqual('1000000 GP');
   });
+
+  it('renders a cents/dollars breakdown when gameType is deadlands', function() {
+    const html = renderToStaticMarkup(React.createElement(TreasureMoney, { value: 350, gameType: 'deadlands' }));
+    expect(html).toEqual('3 Dollars and 50 Cents');
+  });
 });

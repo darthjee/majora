@@ -1,4 +1,5 @@
 import TreasureClient from '../../../../../client/TreasureClient.js';
+import GameClient from '../../../../../client/GameClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/controllers/BasePageController.js';
@@ -24,19 +25,28 @@ export default class GameTreasureNewController extends BasePageController {
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
    * @param {TreasureClient|null} [treasureClient] - Treasure client override.
+   * @param {Function} [setGameType] - Setter for the containing game's currency type,
+   *   used so the value-editing modal renders the right denominations. Optional — a
+   *   caller that does not need this display concern may omit it.
+   * @param {GameClient|null} [gameClient] - Game client override.
    */
-  constructor(setError, setFieldErrors = Noop.noop, treasureClient = null) {
+  constructor(
+    setError, setFieldErrors = Noop.noop, treasureClient = null, setGameType = Noop.noop, gameClient = null,
+  ) {
     super();
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;
     this.treasureClient = treasureClient ?? new TreasureClient();
+    this.setGameType = setGameType;
+    this.gameClient = gameClient ?? new GameClient();
   }
 
   /**
    * Build the page mount effect.
    *
    * @description Returns a callback that checks whether the current user may
-   *   edit the game and redirects to the treasures index when they cannot.
+   *   edit the game and redirects to the treasures index when they cannot, and
+   *   fetches the containing game's currency type for the value-editing modal.
    * @returns {Function} Effect callback.
    */
   buildEffect() {
@@ -47,7 +57,25 @@ export default class GameTreasureNewController extends BasePageController {
       AccessStore.ensureGamePermissions(gameSlug)
         .then((permissions) => this.#redirectIfNotAllowed(permissions, gameSlug))
         .catch(() => this.#redirectToTreasures(gameSlug));
+
+      this.fetchGameType(gameSlug, AuthStorage.getToken()).then((gameType) => this.setGameType(gameType));
     };
+  }
+
+  /**
+   * Fetch the containing game's currency type. Degrades to `'dnd'` when the
+   * game fetch fails or the response is not ok, rather than blocking the
+   * form.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string|null} token - Authentication token, if any.
+   * @returns {Promise<string>} Resolves to the game's `game_type`.
+   */
+  fetchGameType(gameSlug, token) {
+    return this.gameClient.fetchGame(gameSlug, token)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((game) => game?.game_type ?? 'dnd')
+      .catch(() => 'dnd');
   }
 
   /**

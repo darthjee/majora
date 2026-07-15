@@ -103,4 +103,32 @@ describe('DndMoneyModel', function() {
       });
     });
   });
+
+  describe('.denominationKeys', function() {
+    it('returns the 5 character denomination keys', function() {
+      expect(DndMoneyModel.denominationKeys('character')).toEqual(['cp', 'sp', 'gp', 'pp', 'gems']);
+    });
+
+    it('returns the 3 treasure denomination keys', function() {
+      expect(DndMoneyModel.denominationKeys('treasure')).toEqual(['cp', 'sp', 'gp']);
+    });
+
+    it('throws for an unrecognized context', function() {
+      expect(() => DndMoneyModel.denominationKeys('unknown'))
+        .toThrowError('Unknown dnd money context: unknown');
+    });
+  });
+
+  describe('.labelKey', function() {
+    it('resolves the abbreviation translation key for each coin denomination', function() {
+      expect(DndMoneyModel.labelKey('cp')).toBe('money.cp_abbreviation');
+      expect(DndMoneyModel.labelKey('sp')).toBe('money.sp_abbreviation');
+      expect(DndMoneyModel.labelKey('gp')).toBe('money.gp_abbreviation');
+      expect(DndMoneyModel.labelKey('pp')).toBe('money.pp_abbreviation');
+    });
+
+    it('resolves the gems overflow translation key', function() {
+      expect(DndMoneyModel.labelKey('gems')).toBe('money.gp_in_gems');
+    });
+  });
 });

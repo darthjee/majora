@@ -46,6 +46,9 @@ function buildOwnedByTreasureId(ownedTreasures) {
  * @param {object} props.character - Character context (`id`, `game_slug`, `is_pc`, `money`).
  * @param {object[]} [props.ownedTreasures] - Currently loaded owned-treasure entries, used to
  *   cross-reference "already owned" quantities on the Acquire tab.
+ * @param {string} [props.gameType] - Currency model name (e.g. `dnd`, `deadlands`) of the
+ *   character's own game, used to render browsed/selected treasure values. Every treasure
+ *   browsable/sellable here belongs to the same game as the character. Defaults to `dnd`.
  * @param {Function} props.onClose - Handler invoked when the modal is dismissed.
  * @param {Function} props.onSuccess - Handler invoked with `{treasureId, treasureInfo,
  *   quantity, money, acquired}` after a successful acquire/sell action. `acquired` is only
@@ -54,7 +57,7 @@ function buildOwnedByTreasureId(ownedTreasures) {
  * @returns {React.ReactElement} Rendered treasure exchange modal.
  */
 export default function TreasureExchangeModal({
-  show, character, ownedTreasures = [], onClose, onSuccess,
+  show, character, ownedTreasures = [], gameType = 'dnd', onClose, onSuccess,
 }) {
   const [activeTab, setActiveTab] = useState('acquire');
   const [browse, setBrowse] = useState({
@@ -153,7 +156,7 @@ export default function TreasureExchangeModal({
   return TreasureExchangeModalHelper.render(
     show,
     {
-      activeTab, browse, selected, quantity, submitting, actionError, partialNotice, ownedByTreasureId,
+      activeTab, browse, selected, quantity, submitting, actionError, partialNotice, ownedByTreasureId, gameType,
     },
     {
       onClose,

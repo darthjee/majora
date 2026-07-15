@@ -56,6 +56,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
           id: 2,
           treasures: [],
           photos: [],
+          game_type: 'dnd',
           can_edit: true,
           is_player: false,
           private_description: 'Secret.',

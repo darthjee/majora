@@ -86,6 +86,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
   if (!character || (!character.can_edit && !character.is_player)) return EditHelper.renderLoading();
 
   const uploadPath = `/games/${gameSlug}/${characterKind}/${characterId}/photo_upload.json`;
+  const gameType = character.game_type ?? 'dnd';
 
   const handleUploadSuccess = () => {
     setShowUploadModal(false);
@@ -104,6 +105,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
           description,
           privateDescription,
           money,
+          gameType,
           allegiance,
           publicAllegiance,
           publicSlain,
@@ -144,6 +146,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
         show={showMoneyModal}
         money={money}
         context="character"
+        gameType={gameType}
         onClose={() => setShowMoneyModal(false)}
         onConfirm={(newTotal) => {
           setMoney(String(newTotal));

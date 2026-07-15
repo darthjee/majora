@@ -29,7 +29,11 @@ export default class CharacterHelper {
    * @param {string} [character.public_description] - Character public description.
    * @param {string} [character.private_description] - Character private description (DM notes).
    * @param {object[]} [character.links] - External link objects with text and url.
-   * @param {number} [character.money] - Total money, expressed in copper pieces.
+   * @param {number} [character.money] - Total money, expressed in the currency's lowest
+   *   denomination.
+   * @param {string} [character.game_type] - Currency model name (e.g. `dnd`, `deadlands`)
+   *   of the character's own game, resolved live rather than stored on the character.
+   *   Defaults to `dnd`.
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
    * @param {boolean} [character.is_player] - Whether the current user is a player of the
    *   game (but not necessarily this character's editor), gates the single player-facing
@@ -72,7 +76,7 @@ export default class CharacterHelper {
             {CharacterHelper.#renderPicture(character, handlers)}
             <h1>{character.name}</h1>
             <LinkList links={character.links} />
-            <CharacterMoney money={character.money} />
+            <CharacterMoney money={character.money} gameType={character.game_type} />
           </div>
           <CharacterInfo
             role={character.role}
@@ -84,6 +88,7 @@ export default class CharacterHelper {
           treasures={character.treasures ?? []}
           title={Translator.t('character_page.treasures_title')}
           seeAllHref={`#/games/${character.game_slug}/${segment}/${character.id}/treasures`}
+          gameType={character.game_type}
         />
         <CharacterPhotosPreview
           photos={character.photos ?? []}

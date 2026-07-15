@@ -13,8 +13,11 @@ export default class TreasureNewHelper {
   /**
    * Render the treasure creation form.
    *
-   * @param {{name: string, value: string, status: string, fieldErrors: object}} formState - Form state.
-   * @param {{onSubmit: Function, onNameChange: Function, onOpenValueModal: Function}} handlers - Event handlers.
+   * @param {{name: string, value: string, gameType: string, status: string,
+   *   fieldErrors: object}} formState - Form state. `gameType` is the selected currency
+   *   model name (`dnd` or `deadlands`), defaulting to `dnd`.
+   * @param {{onSubmit: Function, onNameChange: Function, onOpenValueModal: Function,
+   *   onGameTypeChange: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered new treasure page.
    */
   static render(formState, handlers) {
@@ -36,8 +39,10 @@ export default class TreasureNewHelper {
             editLabel={Translator.t('treasure_page.edit')}
             value={formState.value}
             errors={formState.fieldErrors.value ?? []}
+            gameType={formState.gameType}
             onOpenModal={handlers.onOpenValueModal}
           />
+          {TreasureNewHelper.#renderGameTypeField(formState, handlers)}
           <SubmitButton disabled={formState.status === 'submitting'}>
             {Translator.t('treasure_new_page.submit')}
           </SubmitButton>
@@ -61,5 +66,24 @@ export default class TreasureNewHelper {
     }
 
     return <ErrorAlert error={Translator.t('treasure_new_page.error')} />;
+  }
+
+  static #renderGameTypeField(formState, handlers) {
+    return (
+      <div className="mb-3">
+        <label htmlFor="treasure-new-type" className="form-label">
+          {Translator.t('treasure_new_page.game_type_label')}
+        </label>
+        <select
+          id="treasure-new-type"
+          className="form-select"
+          value={formState.gameType}
+          onChange={handlers.onGameTypeChange}
+        >
+          <option value="dnd">D&amp;D</option>
+          <option value="deadlands">Deadlands</option>
+        </select>
+      </div>
+    );
   }
 }

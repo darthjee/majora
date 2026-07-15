@@ -48,7 +48,8 @@ export default class TreasureNewController extends BasePageController {
    *   field errors, sends a POST request, then redirects on success,
    *   sets field errors on 400, or sets error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
-   * @param {{name: string, value: string}} formValues - Raw form field values.
+   * @param {{name: string, value: string, gameType: string}} formValues - Raw form field
+   *   values. `gameType` is the selected currency model name (`dnd` or `deadlands`).
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
@@ -82,6 +83,7 @@ export default class TreasureNewController extends BasePageController {
     const response = await this.treasureClient.createTreasure(token, {
       name: formValues.name,
       value: parseInt(formValues.value, 10),
+      game_type: formValues.gameType,
     });
 
     await this.#handleResponse(response, setters);

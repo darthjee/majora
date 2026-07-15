@@ -37,3 +37,20 @@ export function buildCharacterClient(overrides = {}) {
 
   return Object.assign(characterClient, overrides);
 }
+
+/**
+ * @description Builds a fresh gameClient spy shared by every CharacterTreasuresController spec file.
+ * @param {object} overrides - properties to assign onto the built spy object.
+ * @returns {object} a gameClient spy with a default non-ok fetchGame.
+ */
+export function buildGameClient(overrides = {}) {
+  const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame']);
+
+  gameClient.fetchGame.and.returnValue(Promise.resolve({ ok: false }));
+
+  if (overrides.fetchGame) {
+    gameClient.fetchGame.and.callFake(overrides.fetchGame);
+  }
+
+  return gameClient;
+}

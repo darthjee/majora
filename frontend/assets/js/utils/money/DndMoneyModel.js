@@ -12,6 +12,19 @@ const CONTEXT_CONFIGS = {
   treasure: { denominations: ['cp', 'sp', 'gp'], cascadeThreshold: 10 },
 };
 
+const DENOMINATION_KEYS_BY_CONTEXT = {
+  character: ['cp', 'sp', 'gp', 'pp', 'gems'],
+  treasure: ['cp', 'sp', 'gp'],
+};
+
+const LABEL_KEYS = {
+  cp: 'money.cp_abbreviation',
+  sp: 'money.sp_abbreviation',
+  gp: 'money.gp_abbreviation',
+  pp: 'money.pp_abbreviation',
+  gems: 'money.gp_in_gems',
+};
+
 /**
  * D&D-style currency model. Converts a raw copper-piece total into a
  * cascading coin denomination breakdown, using a different denomination set
@@ -61,6 +74,34 @@ export default class DndMoneyModel {
    */
   static pack(breakdown, { context } = {}) {
     return new CoinPacker(DndMoneyModel.#resolveConfig(context)).pack(breakdown);
+  }
+
+  /**
+   * Resolve the ordered denomination keys relevant for a given context, used
+   * to seed a dense per-denomination breakdown (e.g. for the money edit
+   * modal).
+   *
+   * @param {string} context - Currency context (`character` or `treasure`).
+   * @returns {string[]} Denomination keys for the given context.
+   */
+  static denominationKeys(context) {
+    const keys = DENOMINATION_KEYS_BY_CONTEXT[context];
+
+    if (!keys) {
+      throw new Error(`Unknown dnd money context: ${context}`);
+    }
+
+    return keys;
+  }
+
+  /**
+   * Resolve the translation key for a denomination's display label.
+   *
+   * @param {string} denominationKey - Denomination key (e.g. `cp`, `gems`).
+   * @returns {string} Translation key for the denomination's label.
+   */
+  static labelKey(denominationKey) {
+    return LABEL_KEYS[denominationKey];
   }
 }
 

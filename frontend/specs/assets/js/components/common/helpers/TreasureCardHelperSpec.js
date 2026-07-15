@@ -16,6 +16,13 @@ describe('TreasureCardHelper', function() {
         .toContain('5 GP');
     });
 
+    it('renders the treasure value as cents/dollars when game_type is deadlands', function() {
+      const html = renderToStaticMarkup(
+        TreasureCardHelper.render({ ...treasure, value: 350, game_type: 'deadlands' })
+      );
+      expect(html).toContain('3 Dollars and 50 Cents');
+    });
+
     it('links to the treasure detail page', function() {
       expect(renderToStaticMarkup(TreasureCardHelper.render(treasure)))
         .toContain('href="#/treasures/42"');

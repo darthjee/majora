@@ -1,5 +1,5 @@
 import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
-import { KINDS, buildCharacterClient } from './support.js';
+import { KINDS, buildCharacterClient, buildGameClient } from './support.js';
 
 KINDS.forEach(({ label, Controller, kind, isPc, money }) => {
   describe(label, function() {
@@ -34,11 +34,12 @@ KINDS.forEach(({ label, Controller, kind, isPc, money }) => {
           buildClient(),
           setCharacter,
           characterClient,
+          buildGameClient(),
         ).buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(setCharacter).toHaveBeenCalledWith({
-          id: 2, game_slug: 'demo', is_pc: isPc, money, can_edit: true,
+          id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'dnd', can_edit: true,
         });
 
         cleanup();
@@ -58,6 +59,7 @@ KINDS.forEach(({ label, Controller, kind, isPc, money }) => {
           buildClient(),
           setCharacter,
           characterClient,
+          buildGameClient(),
         ).buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -85,15 +87,52 @@ KINDS.forEach(({ label, Controller, kind, isPc, money }) => {
             buildClient(),
             setCharacter,
             characterClient,
+            buildGameClient(),
           ).buildEffect()();
           await new Promise((resolve) => setTimeout(resolve, 0));
 
           expect(setCharacter).toHaveBeenCalledWith({
-            id: 2, game_slug: 'demo', is_pc: isPc, money, can_edit: false,
+            id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'dnd', can_edit: false,
           });
 
           cleanup();
         });
+
+      it('merges game_type from the character\'s own game', async function() {
+        const setCharacter = jasmine.createSpy('setCharacter');
+        const characterClient = buildCharacterClient();
+
+        characterClient.fetchCharacter.and.returnValue(Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
+        }));
+        spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+        const gameClient = buildGameClient({
+          fetchGame: () => Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ game_slug: 'demo', game_type: 'deadlands' }),
+          }),
+        });
+
+        const cleanup = new Controller(
+          jasmine.createSpy('setTreasures'),
+          jasmine.createSpy('setPagination'),
+          jasmine.createSpy('setLoading'),
+          jasmine.createSpy('setError'),
+          buildClient(),
+          setCharacter,
+          characterClient,
+          gameClient,
+        ).buildEffect()();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(gameClient.fetchGame).toHaveBeenCalledWith('demo', null);
+        expect(setCharacter).toHaveBeenCalledWith({
+          id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'deadlands', can_edit: true,
+        });
+
+        cleanup();
+      });
     });
   });
 });

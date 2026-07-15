@@ -38,6 +38,7 @@ export default function CharacterTreasures({ ControllerClass, getParamsFromHash,
   const { game_slug: gameSlug, character_id: characterId } = getParamsFromHash(currentHash);
   const basePath = `#/games/${gameSlug}/${characterKind}/${characterId}/treasures`;
   const backHref = `#/games/${gameSlug}/${characterKind}/${characterId}`;
+  const gameType = character?.game_type ?? 'dnd';
 
   const handleExchangeSuccess = ({ treasureId, treasureInfo, quantity, money }) => {
     setCharacter((prev) => (prev ? { ...prev, money } : prev));
@@ -51,13 +52,14 @@ export default function CharacterTreasures({ ControllerClass, getParamsFromHash,
     <>
       {CharacterTreasuresHelper.render(
         treasures, pagination, basePath, backHref, character?.can_edit,
-        () => setShowExchangeModal(true),
+        () => setShowExchangeModal(true), gameType,
       )}
       <TreasureExchangeModal
         show={showExchangeModal}
         character={{
           id: characterId, game_slug: gameSlug, is_pc: isPc, money: character?.money ?? 0,
         }}
+        gameType={gameType}
         ownedTreasures={treasures}
         onClose={() => setShowExchangeModal(false)}
         onSuccess={handleExchangeSuccess}

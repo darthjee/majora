@@ -23,7 +23,13 @@ describe('CharacterController', function() {
 
       expect(controller.fetchCharacter).toHaveBeenCalledWith('demo', '2', null);
       expect(setCharacter).toHaveBeenCalledWith({
-        id: 2, treasures: [], photos: [], can_edit: false, is_player: false, access_resolved: true,
+        id: 2,
+        treasures: [],
+        photos: [],
+        game_type: 'dnd',
+        can_edit: false,
+        is_player: false,
+        access_resolved: true,
       });
     });
 
@@ -47,7 +53,14 @@ describe('CharacterController', function() {
       await controller.loadCharacter(params, safeSet);
 
       expect(setCharacter).toHaveBeenCalledWith({
-        id: 2, treasures: [], photos: [], can_edit: false, is_player: false, slain: false, access_resolved: false,
+        id: 2,
+        treasures: [],
+        photos: [],
+        game_type: 'dnd',
+        can_edit: false,
+        is_player: false,
+        slain: false,
+        access_resolved: false,
       });
 
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -56,6 +69,7 @@ describe('CharacterController', function() {
         id: 2,
         treasures: [],
         photos: [],
+        game_type: 'dnd',
         can_edit: true,
         is_player: false,
         slain: true,

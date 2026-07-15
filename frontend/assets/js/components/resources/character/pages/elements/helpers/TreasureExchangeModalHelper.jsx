@@ -24,6 +24,8 @@ export default class TreasureExchangeModalHelper {
    * @param {string} [state.partialNotice] - Translated note shown above the browse list when
    *   the last acquire request was only partially fulfilled.
    * @param {object} state.ownedByTreasureId - Map of treasure id to owned quantity.
+   * @param {string} [state.gameType] - Currency model name (e.g. `dnd`, `deadlands`) used to
+   *   render browsed/selected treasure values. Defaults to `dnd`.
    * @param {object} handlers - Modal event handlers (`onClose`, `onTabChange`, `onSelect`,
    *   `onBack`, `onPrev`, `onNext`, `onQuantityChange`, `onConfirm`).
    * @returns {React.ReactElement} Rendered treasure exchange modal.
@@ -79,7 +81,9 @@ export default class TreasureExchangeModalHelper {
       <>
         {TreasureExchangeModalHelper.#renderPartialNotice(state.partialNotice)}
         {TreasureExchangeModalHelper.#renderPager(state.browse, handlers)}
-        {TreasureExchangeModalHelper.#renderBrowseList(state.browse, state.activeTab, handlers.onSelect)}
+        {TreasureExchangeModalHelper.#renderBrowseList(
+          state.browse, state.activeTab, state.gameType, handlers.onSelect
+        )}
       </>
     );
   }
@@ -120,7 +124,7 @@ export default class TreasureExchangeModalHelper {
     );
   }
 
-  static #renderBrowseList(browse, activeTab, onSelect) {
+  static #renderBrowseList(browse, activeTab, gameType, onSelect) {
     if (browse.loading) {
       return <p className="text-muted">{Translator.t('treasure_exchange_modal.loading')}</p>;
     }
@@ -145,7 +149,7 @@ export default class TreasureExchangeModalHelper {
             <span>{item.name}</span>
             <span className="d-flex align-items-center">
               {activeTab === 'acquire' && TreasureExchangeModalHelper.#renderAvailabilityBadge(item)}
-              <span className="text-muted"><TreasureMoney value={item.value} /></span>
+              <span className="text-muted"><TreasureMoney value={item.value} gameType={gameType} /></span>
             </span>
           </button>
         ))}
@@ -166,7 +170,7 @@ export default class TreasureExchangeModalHelper {
 
   static #renderDetail(state, handlers) {
     const {
-      activeTab, selected, quantity, submitting, actionError, ownedByTreasureId,
+      activeTab, selected, quantity, submitting, actionError, ownedByTreasureId, gameType,
     } = state;
     const treasureId = activeTab === 'acquire' ? selected.id : selected.treasure_id;
     const owned = activeTab === 'acquire' ? (ownedByTreasureId[treasureId] ?? 0) : selected.quantity;
@@ -183,7 +187,7 @@ export default class TreasureExchangeModalHelper {
           </div>
           <div className="ms-3">
             <h5>{selected.name}</h5>
-            <p className="mb-1"><TreasureMoney value={selected.value} /></p>
+            <p className="mb-1"><TreasureMoney value={selected.value} gameType={gameType} /></p>
             <p className="text-muted mb-0">
               {Translator.t('treasure_exchange_modal.already_owned').replace('{{quantity}}', owned)}
             </p>

@@ -38,7 +38,7 @@ describe('TreasureNewController', function() {
       try {
         await controller.submitForm(
           event,
-          { name: 'Sword', value: '100' },
+          { name: 'Sword', value: '100', gameType: 'dnd' },
           { setStatus, setFieldErrors },
         );
 
@@ -47,7 +47,7 @@ describe('TreasureNewController', function() {
         expect(setFieldErrors).toHaveBeenCalledWith({});
         expect(treasureClient.createTreasure).toHaveBeenCalledWith(
           'tok-abc',
-          { name: 'Sword', value: 100 },
+          { name: 'Sword', value: 100, game_type: 'dnd' },
         );
       } finally {
         delete globalThis.window;
@@ -68,13 +68,13 @@ describe('TreasureNewController', function() {
       try {
         await controller.submitForm(
           undefined,
-          { name: 'Ring', value: '250' },
+          { name: 'Ring', value: '250', gameType: 'deadlands' },
           { setStatus, setFieldErrors },
         );
 
         expect(treasureClient.createTreasure).toHaveBeenCalledWith(
           'tok-abc',
-          { name: 'Ring', value: 250 },
+          { name: 'Ring', value: 250, game_type: 'deadlands' },
         );
       } finally {
         delete globalThis.window;

@@ -8,6 +8,8 @@ import TreasureCardHelper from './helpers/TreasureCardHelper.jsx';
  * @param {number} props.treasure.id - Treasure ID.
  * @param {string} props.treasure.name - Treasure name.
  * @param {number} props.treasure.value - Treasure value.
+ * @param {string} [props.treasure.game_type] - Currency model name (e.g. `dnd`, `deadlands`)
+ *   determining which denominations the value is displayed in. Defaults to `dnd`.
  * @param {string|null} [props.treasure.photo_path] - Optional treasure photo path.
  * @param {number|null} [props.treasure.available_units] - Units currently available within the
  *   game, when the treasure is capped. `null`/absent when unlimited.

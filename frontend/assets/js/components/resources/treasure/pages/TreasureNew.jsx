@@ -14,6 +14,7 @@ export default function TreasureNew() {
   const [status, setStatus] = useState('idle');
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
+  const [gameType, setGameType] = useState('dnd');
   const [showValueModal, setShowValueModal] = useState(false);
 
   const controller = useMemo(
@@ -25,24 +26,28 @@ export default function TreasureNew() {
 
   const handleSubmit = (event) => controller.submitForm(
     event,
-    { name, value },
+    { name, value, gameType },
     { setStatus, setFieldErrors },
   );
 
   return (
     <>
       {TreasureNewHelper.render(
-        { name, value, status, fieldErrors },
+        {
+          name, value, gameType, status, fieldErrors,
+        },
         {
           onSubmit: handleSubmit,
           onNameChange: (event) => setName(event.target.value),
           onOpenValueModal: () => setShowValueModal(true),
+          onGameTypeChange: (event) => setGameType(event.target.value),
         },
       )}
       <MoneyEditModal
         show={showValueModal}
         money={value}
         context="treasure"
+        gameType={gameType}
         onClose={() => setShowValueModal(false)}
         onConfirm={(newTotal) => {
           setValue(String(newTotal));

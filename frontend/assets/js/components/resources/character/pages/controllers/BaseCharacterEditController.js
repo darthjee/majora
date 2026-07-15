@@ -1,5 +1,6 @@
 import CharacterClient from '../../../../../client/CharacterClient.js';
 import GenericClient from '../../../../../client/GenericClient.js';
+import GameClient from '../../../../../client/GameClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import BasePageController from '../../../../common/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
@@ -45,6 +46,7 @@ export default class BaseCharacterEditController extends BasePageController {
    *   also used as the `characterKind` passed to {@link CharacterClient#updateCharacter}.
    * @param {GenericClient|null} [client] - Client override, used for hash resolution.
    * @param {CharacterClient|null} [characterClient] - Character client override.
+   * @param {GameClient|null} [gameClient] - Game client override.
    */
   constructor(
     setCharacter,
@@ -56,6 +58,7 @@ export default class BaseCharacterEditController extends BasePageController {
     routeSegment,
     client = null,
     characterClient = null,
+    gameClient = null,
   ) {
     super();
     this.setCharacter = setCharacter;
@@ -72,6 +75,7 @@ export default class BaseCharacterEditController extends BasePageController {
       this.client,
       getParamsFromHash,
       this.characterClient,
+      gameClient ?? new GameClient(),
     );
   }
 

@@ -188,5 +188,52 @@ describe('MoneyEditModalHelper', function() {
           .toBeNull();
       });
     });
+
+    describe('with a "deadlands" gameType', function() {
+      const buildDeadlandsState = (overrides = {}) => ({
+        breakdown: { cents: 50, dollars: 3 },
+        canConfirm: true,
+        ...overrides,
+      });
+
+      it('renders exactly 2 denomination inputs, cents/dollars only', function() {
+        const element = MoneyEditModalHelper.render(
+          true, buildDeadlandsState(), buildHandlers(), 'character', 'deadlands',
+        );
+        const inputs = findAllElements(
+          element, (child) => child.type === 'input' && child.props.id?.startsWith('money-edit-'),
+        );
+
+        expect(inputs.length).toBe(2);
+        ['cents', 'dollars'].forEach((key) => {
+          expect(inputs.some((input) => input.props.id === `money-edit-${key}`)).toBe(true);
+        });
+      });
+
+      it('does not render cp/sp/gp/pp/gems inputs', function() {
+        const element = MoneyEditModalHelper.render(
+          true, buildDeadlandsState(), buildHandlers(), 'character', 'deadlands',
+        );
+
+        ['cp', 'sp', 'gp', 'pp', 'gems'].forEach((key) => {
+          expect(findElement(element, (child) => child.type === 'input' && child.props.id === `money-edit-${key}`))
+            .toBeNull();
+        });
+      });
+
+      it('seeds each input with the breakdown value', function() {
+        const element = MoneyEditModalHelper.render(
+          true, buildDeadlandsState(), buildHandlers(), 'character', 'deadlands',
+        );
+
+        ['cents', 'dollars'].forEach((key) => {
+          const input = findElement(
+            element, (child) => child.type === 'input' && child.props.id === `money-edit-${key}`,
+          );
+
+          expect(input.props.value).toBe(buildDeadlandsState().breakdown[key]);
+        });
+      });
+    });
   });
 });

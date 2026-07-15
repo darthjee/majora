@@ -37,7 +37,13 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       expect(characterClient.fetchCharacterFull).not.toHaveBeenCalled();
       expect(characterClient.fetchCharacterTreasures).toHaveBeenCalledWith(kind, 'demo', '2', null);
       expect(setCharacter).toHaveBeenCalledWith({
-        id: 2, treasures: [], photos: [], can_edit: false, is_player: false, access_resolved: true,
+        id: 2,
+        treasures: [],
+        photos: [],
+        game_type: 'dnd',
+        can_edit: false,
+        is_player: false,
+        access_resolved: true,
       });
       expect(setLoading).toHaveBeenCalledWith(false);
       expect(setError).not.toHaveBeenCalled();

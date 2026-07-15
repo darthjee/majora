@@ -2,19 +2,12 @@ import Modal from 'react-bootstrap/cjs/Modal.js';
 import Translator from '../../../i18n/Translator.js';
 import FormField from '../FormField.jsx';
 import MoneyEditModalController from '../controllers/MoneyEditModalController.js';
-
-const DENOMINATION_ROWS = [
-  { key: 'cp', labelKey: 'money.copper_piece' },
-  { key: 'sp', labelKey: 'money.silver_piece' },
-  { key: 'gp', labelKey: 'money.gold_piece' },
-  { key: 'pp', labelKey: 'money.platinum_piece' },
-  { key: 'gems', labelKey: 'money.gp_in_gems' },
-];
+import MoneyModelRegistry from '../../../utils/money/MoneyModelRegistry.js';
 
 /**
- * Renders the "Edit money" modal shell: one numeric input row per coin
- * denomination relevant to the given context, and Confirm/Cancel footer
- * actions.
+ * Renders the "Edit money" modal shell: one numeric input row per
+ * denomination relevant to the given context and currency model, and
+ * Confirm/Cancel footer actions.
  */
 export default class MoneyEditModalHelper {
   /**
@@ -27,10 +20,12 @@ export default class MoneyEditModalHelper {
    * @param {object} handlers - Modal event handlers (`onClose`, `onConfirm`, `onFieldChange`).
    * @param {string} [context] - Money context (`character` or `treasure`), determining which
    *   denomination rows are rendered.
+   * @param {string} [gameType] - Currency model name (e.g. `dnd`, `deadlands`), determining
+   *   which denominations exist. Defaults to `dnd`.
    * @returns {React.ReactElement} Rendered money edit modal.
    */
-  static render(show, state, handlers, context = 'character') {
-    const rows = MoneyEditModalHelper.#rowsForContext(context);
+  static render(show, state, handlers, context = 'character', gameType = 'dnd') {
+    const rows = MoneyEditModalHelper.#rowsFor(context, gameType);
 
     return (
       <Modal show={show} onHide={handlers.onClose}>
@@ -57,10 +52,11 @@ export default class MoneyEditModalHelper {
     );
   }
 
-  static #rowsForContext(context) {
-    const keys = MoneyEditModalController.denominationKeys(context);
+  static #rowsFor(context, gameType) {
+    const model = MoneyModelRegistry.resolve(gameType);
 
-    return DENOMINATION_ROWS.filter((row) => keys.includes(row.key));
+    return MoneyEditModalController.denominationKeys(context, gameType)
+      .map((key) => ({ key, labelKey: model.labelKey(key) }));
   }
 
   static #renderRow(row, state, handlers) {
