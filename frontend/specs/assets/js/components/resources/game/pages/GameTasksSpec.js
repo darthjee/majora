@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import GameTasks from '../../../../../../../assets/js/components/resources/game/pages/GameTasks.jsx';
 import GameTasksHelper from '../../../../../../../assets/js/components/resources/game/pages/helpers/GameTasksHelper.jsx';
 import GameTasksController from '../../../../../../../assets/js/components/resources/game/pages/controllers/GameTasksController.js';
+import FacadeRefresh from '../../../../../../../assets/js/utils/access/useFacadeRefresh.js';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
 import { stubBuildEffect, stubRenderLoading } from '../../../../../../support/controllerStubs.js';
 
@@ -25,6 +26,15 @@ describe('GameTasks', function() {
     const html = renderToStaticMarkup(React.createElement(GameTasks));
 
     expect(html).toContain('loading');
+  });
+
+  it('wires FacadeRefresh.useFacadeRefresh with the page controller', function() {
+    stubBuildEffect(GameTasksController);
+    spyOn(FacadeRefresh, 'useFacadeRefresh');
+
+    renderToStaticMarkup(React.createElement(GameTasks));
+
+    expect(FacadeRefresh.useFacadeRefresh).toHaveBeenCalledWith(jasmine.any(GameTasksController));
   });
 
   it('renders the add-task form via GameTasksHelper.render', function() {

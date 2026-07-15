@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import GameTasksController from './controllers/GameTasksController.js';
 import GameTasksHelper from './helpers/GameTasksHelper.jsx';
 import TaskDetailModal from '../../../common/TaskDetailModal.jsx';
+import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
 
 const EMPTY_FORM = { shortDescription: '', longDescription: '' };
 
@@ -28,6 +29,7 @@ export default function GameTasks() {
   );
 
   useEffect(() => controller.buildEffect()(), [controller]);
+  FacadeRefresh.useFacadeRefresh(controller);
 
   const gameSlug = GameTasksController.getGameSlugFromTasksHash(window.location.hash);
   const basePath = `#/games/${gameSlug}/tasks`;

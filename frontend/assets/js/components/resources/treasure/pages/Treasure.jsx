@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import TreasureController from './controllers/TreasureController.js';
 import TreasureHelper from './helpers/TreasureHelper.jsx';
+import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
 
 /**
  * Treasure detail page.
@@ -18,6 +19,7 @@ export default function Treasure() {
   );
 
   useEffect(() => controller.buildEffect()(), [controller]);
+  FacadeRefresh.useFacadeRefresh(controller);
 
   if (loading) return TreasureHelper.renderLoading();
   if (error) return TreasureHelper.renderError(error);

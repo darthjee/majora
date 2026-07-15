@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import GamePhotos from '../../../../../../../assets/js/components/resources/game/pages/GamePhotos.jsx';
 import GamePhotosHelper from '../../../../../../../assets/js/components/resources/game/pages/helpers/GamePhotosHelper.jsx';
 import GamePhotosController from '../../../../../../../assets/js/components/resources/game/pages/controllers/GamePhotosController.js';
+import FacadeRefresh from '../../../../../../../assets/js/utils/access/useFacadeRefresh.js';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
 import { stubBuildEffect, stubRenderLoading } from '../../../../../../support/controllerStubs.js';
 
@@ -14,6 +15,15 @@ describe('GamePhotos', function() {
     const html = renderToStaticMarkup(React.createElement(GamePhotos));
 
     expect(html).toContain('loading');
+  });
+
+  it('wires FacadeRefresh.useFacadeRefresh with the page controller', function() {
+    stubBuildEffect(GamePhotosController);
+    spyOn(FacadeRefresh, 'useFacadeRefresh');
+
+    renderToStaticMarkup(React.createElement(GamePhotos));
+
+    expect(FacadeRefresh.useFacadeRefresh).toHaveBeenCalledWith(jasmine.any(GamePhotosController));
   });
 
   it('renders the upload button via GamePhotosHelper.render when the game can be edited', function() {

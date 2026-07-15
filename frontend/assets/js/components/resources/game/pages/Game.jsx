@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import GameController from './controllers/GameController.js';
 import GameHelper from './helpers/GameHelper.jsx';
 import PhotoUploadModal from '../../../common/PhotoUploadModal.jsx';
+import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
 
 /**
  * Game detail page.
@@ -22,6 +23,7 @@ export default function Game() {
   );
 
   useEffect(() => controller.buildEffect()(), [controller]);
+  FacadeRefresh.useFacadeRefresh(controller);
 
   const handleUploadSuccess = () => {
     setShowUploadModal(false);

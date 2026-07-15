@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import GameTreasures from '../../../../../../../assets/js/components/resources/treasure/pages/GameTreasures.jsx';
 import GameTreasuresHelper from '../../../../../../../assets/js/components/resources/treasure/pages/helpers/GameTreasuresHelper.jsx';
 import GameTreasuresController from '../../../../../../../assets/js/components/resources/treasure/pages/controllers/GameTreasuresController.js';
+import FacadeRefresh from '../../../../../../../assets/js/utils/access/useFacadeRefresh.js';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
 import { stubBuildEffect, stubRenderLoading } from '../../../../../../support/controllerStubs.js';
 
@@ -25,6 +26,15 @@ describe('GameTreasures', function() {
     const html = renderToStaticMarkup(React.createElement(GameTreasures));
 
     expect(html).toContain('loading');
+  });
+
+  it('wires FacadeRefresh.useFacadeRefresh with the page controller', function() {
+    stubBuildEffect(GameTreasuresController);
+    spyOn(FacadeRefresh, 'useFacadeRefresh');
+
+    renderToStaticMarkup(React.createElement(GameTreasures));
+
+    expect(FacadeRefresh.useFacadeRefresh).toHaveBeenCalledWith(jasmine.any(GameTreasuresController));
   });
 
   it('renders an upload button per exclusive treasure via GameTreasuresHelper.render when canEdit is true', function() {

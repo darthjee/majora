@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import GameSessionsController from './controllers/GameSessionsController.js';
 import GameSessionsHelper from './helpers/GameSessionsHelper.jsx';
 import { buildDefaultSessionColumns } from './sessionColumns.js';
+import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
 
 /**
  * Game Sessions index page.
@@ -20,6 +21,7 @@ export default function GameSessions() {
   );
 
   useEffect(() => controller.buildEffect()(), [controller]);
+  FacadeRefresh.useFacadeRefresh(controller);
 
   const gameSlug = GameSessionsController.getGameSlugFromSessionsHash(window.location.hash);
   const basePath = `#/games/${gameSlug}/sessions`;

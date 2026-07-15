@@ -7,6 +7,7 @@ import PcCharacterTreasuresController
   from '../../../../../../../assets/js/components/resources/character/pages/controllers/PcCharacterTreasuresController.js';
 import NpcCharacterTreasuresController
   from '../../../../../../../assets/js/components/resources/character/pages/controllers/NpcCharacterTreasuresController.js';
+import FacadeRefresh from '../../../../../../../assets/js/utils/access/useFacadeRefresh.js';
 import { stubBuildEffect, stubRenderLoading } from '../../../../../../support/controllerStubs.js';
 
 const KINDS = [
@@ -23,6 +24,15 @@ KINDS.forEach(({ label, Component, Controller, kind }) => {
       const html = renderToStaticMarkup(React.createElement(Component));
 
       expect(html).toContain('loading');
+    });
+
+    it('wires FacadeRefresh.useFacadeRefresh with the page controller', function() {
+      stubBuildEffect(Controller);
+      spyOn(FacadeRefresh, 'useFacadeRefresh');
+
+      renderToStaticMarkup(React.createElement(Component));
+
+      expect(FacadeRefresh.useFacadeRefresh).toHaveBeenCalledWith(jasmine.any(Controller));
     });
 
     it('renders the error state via CharacterTreasuresHelper.renderError', function() {
