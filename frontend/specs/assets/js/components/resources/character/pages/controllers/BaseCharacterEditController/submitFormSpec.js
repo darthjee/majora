@@ -46,6 +46,7 @@ describe('BaseCharacterEditController', function() {
             money: '310',
             allegiance: 'ally',
             publicAllegiance: 'enemy',
+            publicSlain: true,
             links: [
               { id: 12, text: 'Loot table', url: 'https://example.com/loot', link_type: 'lootstudio' },
               { text: '', url: 'https://example.com/new-link', link_type: '' },
@@ -67,6 +68,7 @@ describe('BaseCharacterEditController', function() {
             money: 310,
             allegiance: 'ally',
             public_allegiance: 'enemy',
+            public_slain: true,
             links: [
               {
                 id: 12, text: 'Loot table', url: 'https://example.com/loot', link_type: 'lootstudio', delete: false,
@@ -152,6 +154,60 @@ describe('BaseCharacterEditController', function() {
 
       expect(setStatus).toHaveBeenCalledWith('error');
       expect(setError).not.toHaveBeenCalled();
+    });
+
+    describe('when isFullEditor is false (player-only NPC editor)', function() {
+      beforeEach(function() {
+        characterClient.updateNpcAsPlayer.and.returnValue(Promise.resolve({
+          ok: true, status: 200, json: () => Promise.resolve({ id: 1, can_edit: false, is_player: true }),
+        }));
+      });
+
+      it('PATCHes the reduced fields payload via updateNpcAsPlayer instead of updateCharacter', async function() {
+        const controller = new TestCharacterEditController(
+          setCharacter, setLoading, setError, setFieldErrors, client, characterClient,
+        );
+        const event = jasmine.createSpyObj('event', ['preventDefault']);
+        const fakeWindow = { location: { hash: '' } };
+        globalThis.window = fakeWindow;
+
+        try {
+          await controller.submitForm(
+            event, 'demo', '1',
+            {
+              name: 'Ignored Name',
+              role: 'Ignored Role',
+              description: 'A brave hero', privateDescription: 'Ignored DM notes',
+              money: '999',
+              allegiance: 'ally',
+              publicAllegiance: 'enemy',
+              publicSlain: true,
+              links: [
+                { id: 12, text: 'Loot table', url: 'https://example.com/loot', link_type: 'lootstudio' },
+              ],
+            },
+            { setStatus, setFieldErrors },
+            false,
+          );
+
+          expect(characterClient.updateNpcAsPlayer).toHaveBeenCalledWith(
+            'demo', '1', 'tok-test',
+            {
+              public_description: 'A brave hero',
+              allegiance: 'enemy',
+              links: [
+                {
+                  id: 12, text: 'Loot table', url: 'https://example.com/loot', link_type: 'lootstudio', delete: false,
+                },
+              ],
+              slain: true,
+            },
+          );
+          expect(characterClient.updateCharacter).not.toHaveBeenCalled();
+        } finally {
+          delete globalThis.window;
+        }
+      });
     });
   });
 });

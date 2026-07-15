@@ -1,13 +1,14 @@
-"""Tests for the NPC detail view (GET detail / hidden-NPC gate / player-facing slain PATCH).
+"""Tests for the NPC detail view (GET detail / hidden-NPC gate / player-facing update PATCH).
 
 Field-level serialization (every field, every can_edit permutation) is covered by
 `games/tests/serializers/test_character_detail.py`. This module only owns what those
 serializer tests cannot: routing, status codes, the request/token permission pipeline,
 and view-specific response shape (e.g. headers).
 
-`PATCH /games/<game_slug>/npcs/<id>.json` accepts a narrow `{"slain": true|false}`
-payload (issue #416), allowed for any player of the game (per the same computation
-backing `is_player`) or an existing `CharacterEditPermission` editor (GM/superuser). See
+`PATCH /games/<game_slug>/npcs/<id>.json` accepts a narrow
+`{"public_description", "allegiance", "slain", "links"}` payload (issue #416, widened by
+#445), allowed for any player of the game (per the same computation backing `is_player`)
+or an existing `CharacterEditPermission` editor (GM/superuser). See
 `docs/agents/security-guidelines.md` section 8 for why the "ignores non-editable
 fields" test must stay.
 """
@@ -155,7 +156,7 @@ class TestGameNpcDetailHidden(TokenAuthRequestMixin):
         assert response['X-Skip-Cache'] == 'true'
 
 
-class TestGameNpcSlainUpdateView(TokenAuthRequestMixin, TestCase):
+class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
     """Tests for the narrow player-facing PATCH on `/games/<game_slug>/npcs/<id>.json`."""
 
     @classmethod
@@ -210,6 +211,83 @@ class TestGameNpcSlainUpdateView(TokenAuthRequestMixin, TestCase):
 
         assert_json_response(response, 200, slain=True)
 
+    def test_patch_public_description_by_player_of_game_returns_200(self):
+        """Test that a player of the game can update `public_description`."""
+        token = Token.objects.create(user=self.player_user)
+
+        response = self._patch(
+            self.client, {'public_description': 'A wandering wizard.'}, token=token
+        )
+
+        assert_json_response(response, 200, public_description='A wandering wizard.')
+        self.npc.refresh_from_db()
+        assert self.npc.public_description == 'A wandering wizard.'
+
+    def test_patch_allegiance_by_player_of_game_returns_200(self):
+        """Test that a player of the game can update `allegiance` (writes public_allegiance)."""
+        token = Token.objects.create(user=self.player_user)
+
+        response = self._patch(self.client, {'allegiance': 'enemy'}, token=token)
+
+        assert response.status_code == 200
+        self.npc.refresh_from_db()
+        assert self.npc.public_allegiance == 'enemy'
+        assert self.npc.allegiance == 'neutral'
+
+    def test_patch_links_by_player_of_game_returns_200(self):
+        """Test that a player of the game can create a link via `links`."""
+        token = Token.objects.create(user=self.player_user)
+
+        response = self._patch(
+            self.client,
+            {'links': [{'text': 'Loot table', 'url': 'http://example.com/loot'}]},
+            token=token,
+        )
+
+        assert response.status_code == 200
+        assert self.npc.links.filter(url='http://example.com/loot').exists()
+
+    def test_patch_combined_fields_by_player_of_game_returns_200(self):
+        """Test that a player of the game can update every new field together."""
+        token = Token.objects.create(user=self.player_user)
+
+        response = self._patch(
+            self.client,
+            {
+                'public_description': 'A wandering wizard.',
+                'allegiance': 'ally',
+                'slain': True,
+                'links': [{'text': 'Loot table', 'url': 'http://example.com/loot'}],
+            },
+            token=token,
+        )
+
+        assert response.status_code == 200
+        self.npc.refresh_from_db()
+        assert self.npc.public_description == 'A wandering wizard.'
+        assert self.npc.public_allegiance == 'ally'
+        assert self.npc.public_slain is True
+        assert self.npc.links.filter(url='http://example.com/loot').exists()
+
+    def test_patch_public_description_by_dm_returns_200(self):
+        """Test that a GameMaster can also update `public_description`."""
+        token = Token.objects.create(user=self.dm_user)
+
+        response = self._patch(
+            self.client, {'public_description': 'A wandering wizard.'}, token=token
+        )
+
+        assert response.status_code == 200
+
+    def test_patch_allegiance_by_superuser_returns_200(self):
+        """Test that a superuser can also update `allegiance`."""
+        superuser = SuperUserFactory(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+
+        response = self._patch(self.client, {'allegiance': 'ally'}, token=token)
+
+        assert response.status_code == 200
+
     def test_patch_by_unrelated_user_returns_403(self):
         """Test that an authenticated user who is neither a player nor an editor gets 403."""
         other_user = UserFactory(username='other', password='secret-password')
@@ -245,7 +323,7 @@ class TestGameNpcSlainUpdateView(TokenAuthRequestMixin, TestCase):
         assert self.npc.public_slain is False
 
     def test_patch_ignores_non_editable_fields(self):
-        """Test that fields outside `slain` are silently ignored.
+        """Test that fields outside the curated player field set are silently ignored.
 
         This is the view-level regression test required for update serializers by
         `docs/agents/security-guidelines.md` section 8.
@@ -257,8 +335,11 @@ class TestGameNpcSlainUpdateView(TokenAuthRequestMixin, TestCase):
             {
                 'slain': True,
                 'name': 'Saruman',
+                'role': 'Dark Wizard',
                 'money': 999,
+                'private_description': 'Secretly Saruman.',
                 'public_allegiance': 'enemy',
+                'allegiance': 'enemy',
             },
             token=token,
         )
@@ -267,8 +348,11 @@ class TestGameNpcSlainUpdateView(TokenAuthRequestMixin, TestCase):
         self.npc.refresh_from_db()
         assert self.npc.public_slain is True
         assert self.npc.name == 'Gandalf'
+        assert self.npc.role is None
         assert self.npc.money == 0
-        assert self.npc.public_allegiance == 'neutral'
+        assert self.npc.private_description == ''
+        assert self.npc.public_allegiance == 'enemy'
+        assert self.npc.allegiance == 'neutral'
 
     def test_patch_response_matches_get_detail_shape(self):
         """Test that the PATCH response has the same shape as the GET detail response."""
@@ -297,8 +381,8 @@ class TestGameNpcSlainUpdateView(TokenAuthRequestMixin, TestCase):
         assert response.status_code == 404
 
 
-class TestGameNpcSlainUpdateHiddenGate(TokenAuthRequestMixin, TestCase):
-    """Tests for the hidden-NPC gate on the player-facing slain-toggle PATCH."""
+class TestGameNpcPlayerUpdateHiddenGate(TokenAuthRequestMixin, TestCase):
+    """Tests for the hidden-NPC gate on the narrow player-facing update PATCH."""
 
     @classmethod
     def setUpTestData(cls):
