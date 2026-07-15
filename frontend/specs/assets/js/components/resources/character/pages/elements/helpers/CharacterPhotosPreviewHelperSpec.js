@@ -36,10 +36,15 @@ describe('CharacterPhotosPreviewHelper', function() {
       expect(html).not.toContain('/photos/8.jpg');
     });
 
-    it('renders a see all link with the provided href', function() {
+    it('renders a see all card with the provided href', function() {
       const html = renderToStaticMarkup(CharacterPhotosPreviewHelper.render(buildPhotos(1), title, seeAllHref));
       expect(html).toContain(`href="${seeAllHref}"`);
       expect(html).toContain('See all Photos');
+    });
+
+    it('renders the see all card with the camera icon', function() {
+      const html = renderToStaticMarkup(CharacterPhotosPreviewHelper.render(buildPhotos(1), title, seeAllHref));
+      expect(html).toContain('bi-camera-fill');
     });
 
     it('renders an empty-state message and keeps the see all link when there are no photos', function() {
