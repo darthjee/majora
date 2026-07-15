@@ -1,5 +1,6 @@
 import AccessStore from '../../../../../../assets/js/utils/access/store/AccessStore.js';
 import AccessStoreFacade from '../../../../../../assets/js/utils/access/store/AccessStoreFacade.js';
+import AccessEvents from '../../../../../../assets/js/utils/access/AccessEvents.js';
 import GameClient from '../../../../../../assets/js/client/GameClient.js';
 import { fakeResponse } from './support.js';
 
@@ -39,6 +40,14 @@ describe('AccessStore', function() {
       expect(AccessStore.ensureGamePermissions).toHaveBeenCalledTimes(2);
     });
 
+    it('emits AccessEvents.emitFacadeChanged exactly once', function() {
+      spyOn(AccessEvents, 'emitFacadeChanged');
+
+      AccessStore.setFacade({ enabled: true, roles: ['dm'] });
+
+      expect(AccessEvents.emitFacadeChanged).toHaveBeenCalledTimes(1);
+    });
+
     it('threads the simulated roles into the next #ensureGamePermissions fetch', async function() {
       const fetchSpy = spyOn(GameClient.prototype, 'fetchGamePermissions').and.returnValue(
         Promise.resolve(fakeResponse({ can_edit: true })),
@@ -70,6 +79,14 @@ describe('AccessStore', function() {
       AccessStore.syncForAuthChange();
 
       expect(AccessStore.getFacade()).toEqual({ enabled: false, roles: [] });
+    });
+
+    it('does not emit AccessEvents.emitFacadeChanged', function() {
+      spyOn(AccessEvents, 'emitFacadeChanged');
+
+      AccessStore.syncForAuthChange();
+
+      expect(AccessEvents.emitFacadeChanged).not.toHaveBeenCalled();
     });
   });
 });
