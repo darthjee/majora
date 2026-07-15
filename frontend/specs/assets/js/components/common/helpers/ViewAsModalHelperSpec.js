@@ -1,5 +1,7 @@
 import ViewAsModalHelper from '../../../../../../assets/js/components/common/helpers/ViewAsModalHelper.jsx';
 import Modal from 'react-bootstrap/cjs/Modal.js';
+import Form from 'react-bootstrap/cjs/Form.js';
+import Collapse from 'react-bootstrap/cjs/Collapse.js';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -87,19 +89,32 @@ describe('ViewAsModalHelper', function() {
       expect(handlers.onSave).toHaveBeenCalled();
     });
 
-    it('renders the enabled checkbox reflecting state.enabled, wired to onToggleEnabled', function() {
+    it('renders the enabled switch reflecting state.enabled, wired to onToggleEnabled', function() {
       const handlers = buildHandlers();
       const element = ViewAsModalHelper.render(true, buildState({ enabled: true }), handlers);
-      const checkbox = findElement(
+      const enabledSwitch = findElement(
         element,
-        (child) => child.type === 'input' && child.props.id === 'view-as-modal-enabled'
+        (child) => child.type === Form.Check && child.props.id === 'view-as-modal-enabled'
       );
 
-      expect(checkbox.props.checked).toBe(true);
+      expect(enabledSwitch.props.type).toBe('switch');
+      expect(enabledSwitch.props.checked).toBe(true);
 
-      checkbox.props.onChange();
+      enabledSwitch.props.onChange();
 
       expect(handlers.onToggleEnabled).toHaveBeenCalled();
+    });
+
+    it('wraps the role checkboxes in a Collapse reflecting state.enabled', function() {
+      const handlers = buildHandlers();
+      const enabledElement = ViewAsModalHelper.render(true, buildState({ enabled: true }), handlers);
+      const disabledElement = ViewAsModalHelper.render(true, buildState({ enabled: false }), handlers);
+
+      const enabledCollapse = findElement(enabledElement, (child) => child.type === Collapse);
+      const disabledCollapse = findElement(disabledElement, (child) => child.type === Collapse);
+
+      expect(enabledCollapse.props.in).toBe(true);
+      expect(disabledCollapse.props.in).toBe(false);
     });
 
     it('renders one checkbox per simulatable role, reflecting state.roles', function() {
