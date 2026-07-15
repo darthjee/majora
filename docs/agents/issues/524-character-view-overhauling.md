@@ -30,7 +30,7 @@ Split the page into 2 columns, following the existing `col-md-4`/`col-md-8` conv
 
 ### New page scope
 The new (NPC creation) page has no persisted character yet, so Money breakdown, Treasures, and Photos do not apply. Its 2-column layout only includes:
-- Left column: Profile Avatar, Links
+- Left column: Profile Avatar (static placeholder image, no upload control — avatar upload requires an existing character id and is not available until after creation, matching this app's existing precedent of deferring photo upload to after the entity exists), Links (the NPC-creation backend endpoint already accepts `links`, so this is genuinely new frontend input, not just a relocation)
 - Right column: Role, Description, DM Notes
 
 ### Show and edit: display vs. edit variants
