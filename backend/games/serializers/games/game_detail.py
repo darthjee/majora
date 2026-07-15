@@ -26,6 +26,7 @@ class GameDetailSerializer(serializers.ModelSerializer):
             'name',
             'game_slug',
             'description',
+            'game_type',
             'links',
             'photos',
             'cover_photo_path',

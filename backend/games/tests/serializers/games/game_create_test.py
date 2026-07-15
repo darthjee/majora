@@ -56,3 +56,19 @@ class TestGameCreateSerializer:
         assert serializer.is_valid()
         game = serializer.save()
         assert game.game_slug != 'hacked-slug'
+
+    def test_game_type_defaults_to_dnd_when_omitted(self):
+        """Test that omitting game_type falls back to the model default 'dnd'."""
+        serializer = GameCreateSerializer(data={'name': 'No Type Game'})
+        assert serializer.is_valid()
+        game = serializer.save()
+        assert game.game_type == Game.GAME_TYPE_DND
+
+    def test_game_type_is_persisted_when_given(self):
+        """Test that passing game_type='deadlands' persists it."""
+        serializer = GameCreateSerializer(
+            data={'name': 'Deadlands Game', 'game_type': 'deadlands'}
+        )
+        assert serializer.is_valid()
+        game = serializer.save()
+        assert game.game_type == Game.GAME_TYPE_DEADLANDS

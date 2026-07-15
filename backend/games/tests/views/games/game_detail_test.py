@@ -39,6 +39,12 @@ class TestGameDetailView(DetailNotFoundBehaviorMixin, TestCase):
         data = json.loads(response.content)
         assert data['description'] == ''
 
+    def test_returns_game_type_field(self):
+        """Test that game_type is included in the detail response."""
+        response = self.client.get('/games/epic-quest.json')
+        data = json.loads(response.content)
+        assert data['game_type'] == 'dnd'
+
     def test_returns_404_for_unknown_slug(self):
         """Test that 404 is returned for a non-existent game_slug."""
         self.assert_returns_not_found(self.client, '/games/unknown-game.json')

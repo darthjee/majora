@@ -37,6 +37,11 @@ class TestGameDetailSerializer(TestCase):
         data = GameDetailSerializer(self.game).data
         assert data['description'] == 'A grand adventure.'
 
+    def test_serializes_game_type(self):
+        """Test that the game_type field is serialized."""
+        data = GameDetailSerializer(self.game).data
+        assert data['game_type'] == 'dnd'
+
     def test_serializes_empty_links(self):
         """Test that links is an empty list when the game has no links."""
         data = GameDetailSerializer(self.game).data
