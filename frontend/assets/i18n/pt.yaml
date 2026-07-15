@@ -45,6 +45,10 @@ photo_upload_modal:
   title: Enviar Foto
 photo_view_modal:
   set_profile_photo: Definir como foto de perfil
+profile_photo_set_modal:
+  title: Foto de Perfil Atualizada
+  body: Esta imagem agora é a foto de perfil.
+  close: Fechar
 slain_confirm_modal:
   slain_title: Marcar como Morto
   revive_title: Reviver Personagem
@@ -346,6 +350,8 @@ game_photos_page:
   title: Fotos
   loading: Carregando fotos...
   upload: Enviar foto
+character_photos_page:
+  set_profile_photo_error: Falha ao definir a foto de perfil. Por favor, tente novamente.
 pc_character_photos_page:
   title: Fotos
   loading: Carregando fotos...

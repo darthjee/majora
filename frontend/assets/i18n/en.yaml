@@ -45,6 +45,10 @@ photo_upload_modal:
   title: Upload Photo
 photo_view_modal:
   set_profile_photo: Set as profile photo
+profile_photo_set_modal:
+  title: Profile Photo Updated
+  body: This picture is now the profile photo.
+  close: Close
 slain_confirm_modal:
   slain_title: Mark as Slain
   revive_title: Revive Character
@@ -346,6 +350,8 @@ game_photos_page:
   title: Photos
   loading: Loading photos...
   upload: Upload photo
+character_photos_page:
+  set_profile_photo_error: Failed to set profile photo. Please try again.
 pc_character_photos_page:
   title: Photos
   loading: Loading photos...
