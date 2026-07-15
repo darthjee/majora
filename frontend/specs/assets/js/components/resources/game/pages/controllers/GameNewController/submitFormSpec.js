@@ -33,7 +33,7 @@ describe('GameNewController', function() {
       try {
         await controller.submitForm(
           event,
-          { name: 'New Game', description: 'An adventure.' },
+          { name: 'New Game', description: 'An adventure.', game_type: 'deadlands' },
           { setStatus, setFieldErrors },
         );
 
@@ -42,7 +42,7 @@ describe('GameNewController', function() {
         expect(setFieldErrors).toHaveBeenCalledWith({});
         expect(gameClient.createGame).toHaveBeenCalledWith(
           'tok-abc',
-          { name: 'New Game', description: 'An adventure.' },
+          { name: 'New Game', description: 'An adventure.', game_type: 'deadlands' },
         );
       } finally {
         delete globalThis.window;

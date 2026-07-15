@@ -9,9 +9,20 @@ from simple_history.models import HistoricalRecords
 class Game(models.Model):
     """Model representing an RPG game/campaign."""
 
+    GAME_TYPE_DND = 'dnd'
+    GAME_TYPE_DEADLANDS = 'deadlands'
+
+    GAME_TYPE_CHOICES = [
+        (GAME_TYPE_DND, 'D&D'),
+        (GAME_TYPE_DEADLANDS, 'Deadlands'),
+    ]
+
     name = models.CharField(max_length=200)
     game_slug = models.SlugField(unique=True, max_length=200)
     description = models.TextField(blank=True, default='')
+    game_type = models.CharField(
+        max_length=16, choices=GAME_TYPE_CHOICES, default=GAME_TYPE_DND
+    )
     links = GenericRelation('games.Link')
     treasures = models.ManyToManyField(
         'Treasure', through='GameTreasure', blank=True,

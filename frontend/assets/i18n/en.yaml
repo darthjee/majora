@@ -170,6 +170,7 @@ game_new_page:
   title: New Game
   name_label: Name
   description_label: Description
+  game_type_label: Game type
   submit: Create Game
   error: Failed to create game. Please try again.
 language_selector:

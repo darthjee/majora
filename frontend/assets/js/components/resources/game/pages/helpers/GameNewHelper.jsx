@@ -12,10 +12,10 @@ export default class GameNewHelper {
   /**
    * Render the game creation form.
    *
-   * @param {{name: string, description: string,
+   * @param {{name: string, description: string, gameType: string,
    *   status: string, fieldErrors: object}} formState - Form state.
    * @param {{onSubmit: Function, onNameChange: Function,
-   *   onDescriptionChange: Function}} handlers - Event handlers.
+   *   onDescriptionChange: Function, onGameTypeChange: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered new game page.
    */
   static render(formState, handlers) {
@@ -40,6 +40,20 @@ export default class GameNewHelper {
             onChange={handlers.onDescriptionChange}
             errors={formState.fieldErrors.description ?? []}
           />
+          <div className="mb-3">
+            <label htmlFor="game-new-type" className="form-label">
+              {Translator.t('game_new_page.game_type_label')}
+            </label>
+            <select
+              id="game-new-type"
+              className="form-select"
+              value={formState.gameType}
+              onChange={handlers.onGameTypeChange}
+            >
+              <option value="dnd">D&amp;D</option>
+              <option value="deadlands">Deadlands</option>
+            </select>
+          </div>
           <SubmitButton disabled={formState.status === 'submitting'}>
             {Translator.t('game_new_page.submit')}
           </SubmitButton>
