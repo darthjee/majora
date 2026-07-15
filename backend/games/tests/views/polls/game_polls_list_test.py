@@ -7,6 +7,7 @@ from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
 from games.models import Poll
+from games.serializers.games.polls.poll_create import MAX_OPTIONS
 from games.tests.factories import (
     GameFactory,
     GameMasterFactory,
@@ -289,6 +290,29 @@ class TestGamePollsCreateView(TestCase):
         assert response.status_code == 400
         data = json.loads(response.content)
         assert 'options' in data['errors']
+
+    def test_accepts_options_payload_at_max_cap(self):
+        """Test that exactly MAX_OPTIONS entries is accepted."""
+        options = [{'option': f'Option {i}'} for i in range(MAX_OPTIONS)]
+        response = self._post(self._payload(options=options), token=self.dm_token)
+        assert response.status_code == 201
+
+    def test_rejects_options_payload_over_max_cap(self):
+        """Test that more than MAX_OPTIONS entries is rejected with a 400 on options."""
+        options = [{'option': f'Option {i}'} for i in range(MAX_OPTIONS + 1)]
+        response = self._post(self._payload(options=options), token=self.dm_token)
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'options' in data['errors']
+
+    def test_description_over_max_length_returns_400(self):
+        """Test that a description longer than the model's max_length returns 400."""
+        response = self._post(
+            self._payload(description='x' * 5001), token=self.dm_token,
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'description' in data['errors']
 
     def test_response_includes_skip_cache_header(self):
         """Test that the response includes the X-Skip-Cache header."""

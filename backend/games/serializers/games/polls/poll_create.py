@@ -5,6 +5,10 @@ from rest_framework import serializers
 from games.models import Poll, PollOption
 from games.serializers.games.polls.poll_option_write import PollOptionWriteSerializer
 
+#: Maximum number of `options` entries accepted in a single poll create payload, to bound
+#: the size of the unbatched `bulk_create` issued per request.
+MAX_OPTIONS = 50
+
 
 class PollCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a new poll together with its options."""
@@ -23,9 +27,11 @@ class PollCreateSerializer(serializers.ModelSerializer):
         }
 
     def validate_options(self, value):
-        """Ensure at least one option is provided."""
+        """Ensure between one and `MAX_OPTIONS` options are provided."""
         if not value:
             raise serializers.ValidationError('At least one option is required.')
+        if len(value) > MAX_OPTIONS:
+            raise serializers.ValidationError(f'A poll may have at most {MAX_OPTIONS} options.')
         return value
 
     def create(self, validated_data):
