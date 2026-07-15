@@ -18,9 +18,10 @@ describe('CharacterMoney', function() {
     expect(html).not.toContain('PP');
   });
 
-  it('renders the gems overflow line', function() {
+  it('lets platinum absorb all remaining value instead of overflowing into gems', function() {
     const html = renderToStaticMarkup(React.createElement(CharacterMoney, { money: 32220 }));
-    expect(html).toContain('100 GP in gems');
+    expect(html).toContain('20 CP | 20 SP | 20 GP | 30 PP');
+    expect(html).not.toContain('gems');
   });
 
   it('renders nothing when money is 0', function() {

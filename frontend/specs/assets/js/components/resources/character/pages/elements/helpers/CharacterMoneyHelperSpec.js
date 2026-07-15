@@ -13,9 +13,19 @@ describe('CharacterMoneyHelper', function() {
       expect(html).toContain('20 CP | 1 SP');
     });
 
-    it('renders the gems overflow using the gp_in_gems translation', function() {
+    it('lets platinum absorb all remaining value instead of a gems entry', function() {
       const html = renderToStaticMarkup(CharacterMoneyHelper.render(32221, 'dnd'));
-      expect(html).toContain('21 CP | 20 SP | 20 GP | 20 PP | 100 GP in gems');
+      expect(html).toContain('21 CP | 20 SP | 20 GP | 30 PP');
+    });
+
+    it('absorbs the remainder into platinum for 42219', function() {
+      const html = renderToStaticMarkup(CharacterMoneyHelper.render(42219, 'dnd'));
+      expect(html).toContain('29 CP | 29 SP | 29 GP | 39 PP');
+    });
+
+    it('absorbs the remainder into platinum for 33219', function() {
+      const html = renderToStaticMarkup(CharacterMoneyHelper.render(33219, 'dnd'));
+      expect(html).toContain('29 CP | 29 SP | 29 GP | 30 PP');
     });
 
     it('returns null when money is 0', function() {

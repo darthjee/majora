@@ -30,13 +30,30 @@ describe('DndMoneyModel', function() {
         ]);
       });
 
-      it('overflows into gems once platinum absorbs its cascade threshold', function() {
+      it('lets platinum absorb all remaining value instead of overflowing into gems', function() {
         expect(DndMoneyModel.transform(32221, { context: 'character' })).toEqual([
           { key: 'cp', quantity: 21 },
           { key: 'sp', quantity: 20 },
           { key: 'gp', quantity: 20 },
-          { key: 'pp', quantity: 20 },
-          { key: 'gems', quantity: 100 },
+          { key: 'pp', quantity: 30 },
+        ]);
+      });
+
+      it('absorbs the remainder into platinum for 42219 (29 CP | 29 SP | 29 GP | 39 PP)', function() {
+        expect(DndMoneyModel.transform(42219, { context: 'character' })).toEqual([
+          { key: 'cp', quantity: 29 },
+          { key: 'sp', quantity: 29 },
+          { key: 'gp', quantity: 29 },
+          { key: 'pp', quantity: 39 },
+        ]);
+      });
+
+      it('absorbs the remainder into platinum for 33219 (29 CP | 29 SP | 29 GP | 30 PP)', function() {
+        expect(DndMoneyModel.transform(33219, { context: 'character' })).toEqual([
+          { key: 'cp', quantity: 29 },
+          { key: 'sp', quantity: 29 },
+          { key: 'gp', quantity: 29 },
+          { key: 'pp', quantity: 30 },
         ]);
       });
     });
@@ -74,10 +91,16 @@ describe('DndMoneyModel', function() {
     });
 
     describe('with the "character" context', function() {
-      it('sums copper, silver, gold, platinum and gems weighted by their relative value', function() {
+      it('sums copper, silver, gold and platinum weighted by their relative value', function() {
+        expect(DndMoneyModel.pack({
+          cp: 2, sp: 3, gp: 4, pp: 5,
+        }, { context: 'character' })).toBe(2 + 30 + 400 + 5000);
+      });
+
+      it('does not add a gems term even if a gems field is present', function() {
         expect(DndMoneyModel.pack({
           cp: 2, sp: 3, gp: 4, pp: 5, gems: 6,
-        }, { context: 'character' })).toBe(2 + 30 + 400 + 5000 + 600);
+        }, { context: 'character' })).toBe(2 + 30 + 400 + 5000);
       });
 
       it('round-trips with .transform for a representative total', function() {
@@ -105,8 +128,8 @@ describe('DndMoneyModel', function() {
   });
 
   describe('.denominationKeys', function() {
-    it('returns the 5 character denomination keys', function() {
-      expect(DndMoneyModel.denominationKeys('character')).toEqual(['cp', 'sp', 'gp', 'pp', 'gems']);
+    it('returns the 4 character denomination keys', function() {
+      expect(DndMoneyModel.denominationKeys('character')).toEqual(['cp', 'sp', 'gp', 'pp']);
     });
 
     it('returns the 3 treasure denomination keys', function() {

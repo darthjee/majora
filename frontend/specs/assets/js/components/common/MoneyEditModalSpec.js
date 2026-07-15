@@ -43,7 +43,7 @@ describe('MoneyEditModal', function() {
     const { state } = renderModal({ money: 332 });
 
     expect(state.breakdown).toEqual({
-      cp: 22, sp: 21, gp: 1, pp: 0, gems: 0,
+      cp: 22, sp: 21, gp: 1, pp: 0,
     });
   });
 
@@ -57,7 +57,7 @@ describe('MoneyEditModal', function() {
     const { state } = renderModal({ money: 0 });
 
     expect(state.breakdown).toEqual({
-      cp: 0, sp: 0, gp: 0, pp: 0, gems: 0,
+      cp: 0, sp: 0, gp: 0, pp: 0,
     });
   });
 
@@ -65,7 +65,7 @@ describe('MoneyEditModal', function() {
     const { state } = renderModal({ money: '332' });
 
     expect(state.breakdown).toEqual({
-      cp: 22, sp: 21, gp: 1, pp: 0, gems: 0,
+      cp: 22, sp: 21, gp: 1, pp: 0,
     });
   });
 

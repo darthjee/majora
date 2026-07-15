@@ -114,7 +114,7 @@ describe('CharacterEdit money modal', function() {
 
     expect(capturedEditHelperState.money).toBe('');
     expect(capturedMoneyModalState.breakdown).toEqual({
-      cp: 0, sp: 0, gp: 0, pp: 0, gems: 0,
+      cp: 0, sp: 0, gp: 0, pp: 0,
     });
   });
 
