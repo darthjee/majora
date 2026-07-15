@@ -14,7 +14,7 @@ any given serializer is always predictable from its path alone.
    directly in `characters/` and serve both PCs and NPCs generically. A PC/NPC sub-split
    (`characters/pcs/`, `characters/npcs/`) is used **only** for the serializers whose
    logic genuinely differs per role: `pc_access.py` (the PC-only access serializer exposing
-   `is_owner`) and `npc_slain_update.py` (the NPC-only player-facing slain-toggle
+   `is_owner`) and `npc_player_update.py` (the NPC-only, narrow player-facing update
    serializer).
 3. A resource's own nested sub-resources get their own subfolder, mirroring how the game
    itself owns sessions/tasks/treasures: `games/sessions/`, `games/tasks/`,
@@ -38,7 +38,7 @@ any given serializer is always predictable from its path alone.
 | `CharacterDetailSerializer` | `backend/games/serializers/characters/character_detail.py` |
 | `CharacterUpdateSerializer` | `backend/games/serializers/characters/character_update.py` |
 | `PcAccessSerializer` (PC-only) | `backend/games/serializers/characters/pcs/pc_access.py` |
-| `NpcSlainUpdateSerializer` (NPC-only) | `backend/games/serializers/characters/npcs/npc_slain_update.py` |
+| `NpcPlayerUpdateSerializer` (NPC-only) | `backend/games/serializers/characters/npcs/npc_player_update.py` |
 | `GameDetailSerializer` | `backend/games/serializers/games/game_detail.py` |
 | `GameSessionDetailSerializer` | `backend/games/serializers/games/sessions/game_session_detail.py` |
 | `GameTaskListSerializer` | `backend/games/serializers/games/tasks/game_task_list.py` |

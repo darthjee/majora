@@ -102,10 +102,11 @@ pre-existing NPCs' public and real death state started out identical.)
 DM/superuser-only in practice for NPCs, but a PC's own player can PATCH their own PC's
 `slain`/`public_slain` too.
 
-Additionally, `public_slain` alone (not `slain`) is writable for NPCs through a second, narrower
-path: `PATCH /games/<slug>/npcs/<id>.json` (the plain NPC detail endpoint), gated by
+Additionally, `public_slain` (alongside `public_description`, `public_allegiance`, and `links` —
+never the real `slain`) is writable for NPCs through a second, narrower path:
+`PATCH /games/<slug>/npcs/<id>.json` (the plain NPC detail endpoint), gated by
 **NpcPlayerEdit** instead of **CharacterEdit** — open to any player of the game, not just
-editors. See "Narrow NPC slain-toggle PATCH" under "Update (PATCH)" below. Does not apply to
+editors. See "Narrow player-facing NPC PATCH" under "Update (PATCH)" below. Does not apply to
 PCs.
 
 **Filtering**: `npcs.json` filters `?slain=` on `public_slain`; `npcs/all.json` filters
@@ -144,22 +145,26 @@ under "Create" below (`name`, `role`, `public_description`, `private_description
 `money`, `allegiance`, `public_allegiance`, all optional here too), a nested `links` array is
 accepted — see [CharacterLink](character-link.md) below for write semantics.
 
-### Narrow NPC slain-toggle PATCH
+### Narrow player-facing NPC PATCH
 
 `PATCH /games/<slug>/npcs/<id>.json` (the plain NPC detail endpoint) accepts `PATCH` again, but
-only for a single, narrow purpose: toggling the NPC's player-facing `public_slain` state.
+only for a small, curated, player-safe field set (originally just the `slain` toggle, issue
+#416; widened to the full set below by issue #445).
 
 | Endpoint | Who can write | Body | Effect |
 |----------|--------------|------|--------|
-| `PATCH /games/<slug>/npcs/<id>.json` | **NpcPlayerEdit** | `{"slain": true \| false}` only — any other key is silently ignored | Writes `Character.public_slain`; the real `slain` field is untouched and stays `full.json`-only |
+| `PATCH /games/<slug>/npcs/<id>.json` | **NpcPlayerEdit** | `{"public_description": "...", "allegiance": "ally"\|"enemy"\|"neutral", "slain": true\|false, "links": [...]}`, all keys optional — any other key is silently ignored | Writes `Character.public_description`, `Character.public_allegiance`, `Character.public_slain`, and syncs `links` (same shape/semantics as [CharacterLink](character-link.md)); `name`, `role`, `money`, `private_description`, and the real `slain`/`allegiance` fields are untouched and stay `full.json`-only |
 
-Validated by `NpcSlainUpdateSerializer` (`backend/games/serializers/npc_slain_update.py`), a
-`ModelSerializer` with a single `slain = BooleanField(source='public_slain')` field.
+Validated by `NpcPlayerUpdateSerializer`
+(`backend/games/serializers/characters/npcs/npc_player_update.py`), a `ModelSerializer` with
+`public_description` (direct passthrough), `allegiance = ChoiceField(source='public_allegiance')`,
+`slain = BooleanField(source='public_slain')`, and a nested, writable `links` field — the same
+`CharacterLinkWriteSerializer`/`CharacterLinksSync` pattern `CharacterUpdateSerializer` uses.
 
 The hidden-NPC gate (see "Detail" above) still applies: a hidden NPC returns 404 to a caller who
 is not an editor, same as `GET`. Success response: `200` with the same `CharacterDetailSerializer`
 body `GET` returns on this route, with `X-Skip-Cache: true`. This is additive only — the PC
-plain endpoint stays `GET`-only, and the DM-facing edit form/slain-toggle keep using `full.json`.
+plain endpoint stays `GET`-only, and the DM-facing edit form keeps using `full.json`.
 
 ## Create
 
