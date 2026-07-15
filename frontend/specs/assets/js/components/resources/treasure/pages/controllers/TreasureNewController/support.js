@@ -14,11 +14,11 @@ export function buildContext() {
 }
 
 /**
- * @description Stubs `AccessStore#ensureSuperUser` with a default resolved value, shared by
- *   every TreasureNewController spec file. Must be called from a `beforeEach`/`it` body.
- * @param {boolean} [isSuperUser] - Whether the stubbed access grants superuser permission.
+ * @description Stubs `AccessStore#ensureStaffOrSuperUser` with a default resolved value,
+ *   shared by every TreasureNewController spec file. Must be called from a `beforeEach`/`it` body.
+ * @param {boolean} [isStaffOrSuperUser] - Whether the stubbed access grants staff/superuser permission.
  * @returns {void}
  */
-export function stubAccessStore(isSuperUser = true) {
-  spyOn(AccessStore, 'ensureSuperUser').and.returnValue(Promise.resolve(isSuperUser));
+export function stubAccessStore(isStaffOrSuperUser = true) {
+  spyOn(AccessStore, 'ensureStaffOrSuperUser').and.returnValue(Promise.resolve(isStaffOrSuperUser));
 }

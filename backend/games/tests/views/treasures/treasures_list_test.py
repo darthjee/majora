@@ -118,6 +118,10 @@ class TestTreasuresCreateView(TestCase):
         cls.superuser_token = Token.objects.create(user=cls.superuser)
         cls.regular_user = UserFactory(username='player', password='secret-password')
         cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.staff_user = UserFactory(
+            username='staffer', password='secret-password', is_staff=True
+        )
+        cls.staff_token = Token.objects.create(user=cls.staff_user)
 
     def _post(self, client, payload, token=None):
         """Issue a POST request to the treasures list endpoint, optionally with a token."""
@@ -135,6 +139,12 @@ class TestTreasuresCreateView(TestCase):
         """Test that a superuser can create a treasure and receives 201."""
         response = self._post(self.client, {'name': 'Dragon Gem', 'value': 1000},
                               token=self.superuser_token)
+        assert response.status_code == 201
+
+    def test_staff_can_create_treasure(self):
+        """Test that a staff user can create a treasure and receives 201."""
+        response = self._post(self.client, {'name': 'Dragon Gem', 'value': 1000},
+                              token=self.staff_token)
         assert response.status_code == 201
 
     def test_create_returns_treasure_detail(self):

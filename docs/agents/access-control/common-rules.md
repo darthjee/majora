@@ -8,7 +8,7 @@ restated in every section:
 | **GameEdit** | `GameEditPermission` | That game's GameMaster, or superuser |
 | **CharacterEdit** | `CharacterEditPermission` | The character's own player, any GameMaster of that game, or superuser |
 | **NpcPlayerEdit** | `NpcPlayerEditPermission` | Everyone CharacterEdit grants, OR any player of that game (`is_player`, below) — NPC routes only |
-| **TreasureEdit** | `TreasureEditPermission` | Superuser only |
+| **TreasureEdit** | `TreasureEditPermission` | Superuser or Staff (staff only for a global treasure; a game-scoped treasure still requires GameEdit) |
 | **GameSessionEdit** | `GameSessionEditPermission` | Delegates entirely to GameEdit against the session's game |
 | **TaskEdit** | `TaskEditPermission` | Delegates entirely to GameEdit against the task's game; unlike every other rule here, also gates reads, not just writes (see [Task](task.md)) |
 | **Staff-or-superuser** | inline `require_staff` check | `user.is_staff or user.is_superuser` |
@@ -17,7 +17,7 @@ restated in every section:
 Full derivations:
 - `Game.can_be_edited_by(user)`: `True` when `user.is_superuser`, OR user has a `GameMaster` row for that game.
 - `Character.can_be_edited_by(user)`: `True` when `user.is_superuser`, OR user is the character's linked `Player.user`, OR user has a `GameMaster` row for the character's game.
-- `Treasure.can_be_edited_by(user)`: `True` when `user.is_superuser`. Game-scoped treasure routes (create/update/photo-upload under `/games/<slug>/...`) never use this method — they check GameEdit against the resolved game instead (see [Treasure](treasure.md)), so a treasure's own edit-rights method stays narrow while broader, game-derived access is layered on top only for routes explicitly scoped to a game.
+- `Treasure.can_be_edited_by(user)`: `True` when `user.is_superuser`, OR (`user.is_staff` AND the treasure is global, i.e. `game_id is None`). Game-scoped treasure routes (create/update/photo-upload under `/games/<slug>/...`) never use this method — they check GameEdit against the resolved game instead (see [Treasure](treasure.md)), so a treasure's own edit-rights method stays narrow while broader, game-derived access is layered on top only for routes explicitly scoped to a game.
 - `is_player` = `game.players.filter(user=user).exists()`. **Note:** `Player.games` is currently never written by any endpoint (only touched in a model test), so `is_player` reads `false` for every real authenticated user until a future issue builds a flow to populate it.
 
 Unless noted otherwise, an unauthenticated request to a non-AllowAny endpoint gets 401, and an

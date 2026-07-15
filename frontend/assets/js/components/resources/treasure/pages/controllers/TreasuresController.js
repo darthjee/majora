@@ -15,9 +15,9 @@ export default class TreasuresController extends BasePageController {
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
    * @param {GenericClient|null} client - Client override.
-   * @param {Function} [setIsSuperUser] - Superuser flag setter, for consistency/testability
-   *   with GameTreasuresController — this page is only ever reached by superusers, since
-   *   non-superusers are redirected away below.
+   * @param {Function} [setIsSuperUser] - Superuser/staff flag setter, for consistency/testability
+   *   with GameTreasuresController — this page is only ever reached by staff/superusers, since
+   *   any other user is redirected away below.
    */
   constructor(
     setTreasures,
@@ -39,8 +39,8 @@ export default class TreasuresController extends BasePageController {
   /**
    * Build page loading effect.
    *
-   * @description Redirects non-superusers to the home page before fetching
-   *   the treasures index.
+   * @description Redirects users who are neither staff nor superusers to the
+   *   home page before fetching the treasures index.
    * @returns {Function} Effect callback.
    */
   buildEffect() {
@@ -48,12 +48,12 @@ export default class TreasuresController extends BasePageController {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
 
-      AccessStore.ensureSuperUser().then((isSuperUser) => {
+      AccessStore.ensureStaffOrSuperUser().then((isStaffOrSuperUser) => {
         if (!mounted) {
           return;
         }
 
-        if (!isSuperUser) {
+        if (!isStaffOrSuperUser) {
           if (typeof window !== 'undefined') {
             window.location.hash = '/';
           }

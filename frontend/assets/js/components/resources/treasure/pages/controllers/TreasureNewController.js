@@ -26,13 +26,13 @@ export default class TreasureNewController extends BasePageController {
    * Build the page mount effect.
    *
    * @description Returns a callback that checks whether the current user is
-   *   a superuser and redirects to the home page when they are not.
+   *   staff or a superuser and redirects to the home page when they are not.
    * @returns {Function} Effect callback.
    */
   buildEffect() {
     return () => {
-      AccessStore.ensureSuperUser().then((isSuperUser) => {
-        if (!isSuperUser) {
+      AccessStore.ensureStaffOrSuperUser().then((isStaffOrSuperUser) => {
+        if (!isStaffOrSuperUser) {
           if (typeof window !== 'undefined') {
             window.location.hash = '/';
           }
@@ -61,9 +61,9 @@ export default class TreasureNewController extends BasePageController {
     setters.setStatus('submitting');
     setters.setFieldErrors({});
 
-    const isSuperUser = await AccessStore.ensureSuperUser();
+    const isStaffOrSuperUser = await AccessStore.ensureStaffOrSuperUser();
 
-    if (!isSuperUser) {
+    if (!isStaffOrSuperUser) {
       if (typeof window !== 'undefined') {
         window.location.hash = '/';
       }

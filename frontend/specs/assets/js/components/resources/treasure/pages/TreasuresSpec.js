@@ -38,7 +38,7 @@ describe('Treasures', function() {
     });
 
     it('passes the real state setters into their matching constructor slots (regression for #483)', async function() {
-      spyOn(AccessStore, 'ensureSuperUser').and.returnValue(Promise.resolve(true));
+      spyOn(AccessStore, 'ensureStaffOrSuperUser').and.returnValue(Promise.resolve(true));
       const fetchSpy = spyOn(globalThis, 'fetch').and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve([{ id: 1, name: 'Sword', value: 100 }]),
@@ -57,7 +57,7 @@ describe('Treasures', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
       cleanup();
 
-      expect(AccessStore.ensureSuperUser).toHaveBeenCalled();
+      expect(AccessStore.ensureStaffOrSuperUser).toHaveBeenCalled();
       expect(fetchSpy).toHaveBeenCalled();
       expect(capture.spies.setIsSuperUser).toHaveBeenCalledWith(true);
       expect(capture.spies.setTreasures).toHaveBeenCalledWith([{ id: 1, name: 'Sword', value: 100 }]);

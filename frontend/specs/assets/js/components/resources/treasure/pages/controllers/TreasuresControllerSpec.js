@@ -18,8 +18,8 @@ describe('TreasuresController', function() {
     client = jasmine.createSpyObj('client', ['fetchIndex']);
   });
 
-  it('fetches treasures and pagination when the user is a superuser', async function() {
-    spyOn(AccessStore, 'ensureSuperUser').and.returnValue(Promise.resolve(true));
+  it('fetches treasures and pagination when the user is staff or a superuser', async function() {
+    spyOn(AccessStore, 'ensureStaffOrSuperUser').and.returnValue(Promise.resolve(true));
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [{ id: 1, name: 'Sword', value: 100 }],
       pagination: { page: 1, pages: 1, perPage: 10 },
@@ -41,7 +41,7 @@ describe('TreasuresController', function() {
   });
 
   it('sets error when the fetch fails', async function() {
-    spyOn(AccessStore, 'ensureSuperUser').and.returnValue(Promise.resolve(true));
+    spyOn(AccessStore, 'ensureStaffOrSuperUser').and.returnValue(Promise.resolve(true));
     client.fetchIndex.and.returnValue(Promise.reject(new Error('network error')));
 
     const cleanup = new TreasuresController(
@@ -55,8 +55,8 @@ describe('TreasuresController', function() {
     cleanup();
   });
 
-  it('redirects to home and does not fetch when the user is not a superuser', async function() {
-    spyOn(AccessStore, 'ensureSuperUser').and.returnValue(Promise.resolve(false));
+  it('redirects to home and does not fetch when the user is neither staff nor superuser', async function() {
+    spyOn(AccessStore, 'ensureStaffOrSuperUser').and.returnValue(Promise.resolve(false));
     const fakeWindow = { location: { hash: '' } };
     globalThis.window = fakeWindow;
 

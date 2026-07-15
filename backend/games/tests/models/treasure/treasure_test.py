@@ -86,6 +86,18 @@ class TestTreasureCanBeEditedBy(TestCase):
         user = UserFactory(username='player', password='secret-password')
         assert self.treasure.can_be_edited_by(user) is False
 
+    def test_staff_user_can_edit_global_treasure(self):
+        """Test that a staff user may edit a global treasure."""
+        staff_user = UserFactory(username='staffer', password='secret-password', is_staff=True)
+        assert self.treasure.can_be_edited_by(staff_user) is True
+
+    def test_staff_user_cannot_edit_game_exclusive_treasure(self):
+        """Test that a staff user may not edit a game-exclusive treasure."""
+        game = GameFactory(name='Test Game', game_slug='test-game')
+        treasure = TreasureFactory(name='Game Gem', value=10, game=game)
+        staff_user = UserFactory(username='staffer', password='secret-password', is_staff=True)
+        assert treasure.can_be_edited_by(staff_user) is False
+
     def test_none_user_cannot_edit(self):
         """Test that None as user returns False."""
         assert self.treasure.can_be_edited_by(None) is False
