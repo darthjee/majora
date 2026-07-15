@@ -13,6 +13,7 @@ export default function GameNew() {
   const [status, setStatus] = useState('idle');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [gameType, setGameType] = useState('dnd');
 
   const controller = useMemo(
     () => new GameNewController(Noop.noop, setFieldErrors),
@@ -23,16 +24,17 @@ export default function GameNew() {
 
   const handleSubmit = (event) => controller.submitForm(
     event,
-    { name, description },
+    { name, description, game_type: gameType },
     { setStatus, setFieldErrors },
   );
 
   return GameNewHelper.render(
-    { name, description, status, fieldErrors },
+    { name, description, gameType, status, fieldErrors },
     {
       onSubmit: handleSubmit,
       onNameChange: (event) => setName(event.target.value),
       onDescriptionChange: (event) => setDescription(event.target.value),
+      onGameTypeChange: (event) => setGameType(event.target.value),
     },
   );
 }
