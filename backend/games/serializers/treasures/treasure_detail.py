@@ -17,5 +17,6 @@ class TreasureDetailSerializer(GameTreasureFieldsMixin, serializers.ModelSeriali
 
         model = Treasure
         fields = [
-            'id', 'name', 'value', 'photo_path', 'game_slug', 'available_units', 'max_units',
+            'id', 'name', 'value', 'game_type', 'photo_path', 'game_slug', 'available_units',
+            'max_units',
         ]
