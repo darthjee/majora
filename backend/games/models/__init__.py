@@ -8,6 +8,7 @@ from games.models.game.game import Game
 from games.models.game.game_master import GameMaster
 from games.models.game.game_photo import GamePhoto
 from games.models.game.game_session import GameSession
+from games.models.game.game_session_message import GameSessionMessage
 from games.models.game.game_treasure import GameTreasure
 from games.models.game.player import Player
 from games.models.link import Link
@@ -30,6 +31,7 @@ __all__ = [
     'GameMaster',
     'GamePhoto',
     'GameSession',
+    'GameSessionMessage',
     'GameTreasure',
     'Link',
     'PasswordResetToken',
