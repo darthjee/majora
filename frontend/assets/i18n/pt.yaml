@@ -77,6 +77,8 @@ game_page:
   treasures: Tesouros
   sessions: Sessões
   see_all_photos: Fotos
+  next_session_title: Próxima Sessão
+  no_next_session: Nenhuma sessão futura agendada.
 game_characters_page:
   loading: Carregando...
 character_page:
@@ -284,6 +286,9 @@ game_sessions_page:
   loading: Carregando sessões...
   title: Sessões
   new_session: Nova Sessão
+  past: Passadas
+  future: Próximas
+  unscheduled: Sem data
 game_session_page:
   loading: Carregando sessão...
   edit: Editar
@@ -292,12 +297,14 @@ game_session_new_page:
   title: Nova Sessão
   title_label: Título
   date_label: Data
+  description_label: Descrição
   submit: Criar Sessão
   error: Falha ao criar sessão. Tente novamente.
 game_session_edit_page:
   title: Editar Sessão
   title_label: Título
   date_label: Data
+  description_label: Descrição
   submit: Salvar alterações
   error: Falha ao salvar sessão. Tente novamente.
 game_tasks_page:

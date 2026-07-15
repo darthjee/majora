@@ -26,6 +26,27 @@ class TestGameSessionCreateSerializer(TestCase):
         )
         assert serializer.is_valid()
 
+    def test_valid_with_description(self):
+        """Test that a payload with a description is valid."""
+        serializer = GameSessionCreateSerializer(
+            data={'title': 'Session One', 'description': 'Some notes.'}
+        )
+        assert serializer.is_valid()
+
+    def test_valid_without_description(self):
+        """Test that a payload without a description is still valid."""
+        serializer = GameSessionCreateSerializer(data={'title': 'Session One'})
+        assert serializer.is_valid()
+
+    def test_saves_description(self):
+        """Test that a valid description is persisted on save."""
+        serializer = GameSessionCreateSerializer(
+            data={'title': 'Session One', 'description': 'Some notes.'}
+        )
+        assert serializer.is_valid()
+        session = serializer.save(game=self.game)
+        assert session.description == 'Some notes.'
+
     def test_invalid_without_title(self):
         """Test that a payload without title is invalid."""
         serializer = GameSessionCreateSerializer(data={'date': '2026-01-01'})

@@ -12,8 +12,9 @@ class GameSessionCreateSerializer(serializers.ModelSerializer):
         """Metadata for the GameSessionCreateSerializer."""
 
         model = GameSession
-        fields = ['title', 'date']
+        fields = ['title', 'date', 'description']
         extra_kwargs = {
             'title': {'required': True},
             'date': {'required': False},
+            'description': {'required': False},
         }

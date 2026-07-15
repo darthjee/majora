@@ -27,8 +27,23 @@ urlpatterns = [
     path('games/<slug:game_slug>/photos.json', views.game_photos, name='game-photos'),
     path(
         'games/<slug:game_slug>/sessions.json',
-        views.game_sessions_list,
+        views.game_sessions_create,
         name='game-sessions-list',
+    ),
+    path(
+        'games/<slug:game_slug>/sessions/past.json',
+        views.game_sessions_past,
+        name='game-sessions-past',
+    ),
+    path(
+        'games/<slug:game_slug>/sessions/future.json',
+        views.game_sessions_future,
+        name='game-sessions-future',
+    ),
+    path(
+        'games/<slug:game_slug>/sessions/unscheduled.json',
+        views.game_sessions_unscheduled,
+        name='game-sessions-unscheduled',
     ),
     path(
         'games/<slug:game_slug>/sessions/<int:session_id>.json',

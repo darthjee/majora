@@ -58,7 +58,7 @@ export default class GameSessionNewController extends BasePageController {
    *   sets field errors on 400, or sets error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
-   * @param {{title: string, date: string}} formValues - Raw form field values.
+   * @param {{title: string, date: string, description: string}} formValues - Raw form field values.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
@@ -76,6 +76,7 @@ export default class GameSessionNewController extends BasePageController {
       const response = await this.sessionClient.createSession(gameSlug, token, {
         title: formValues.title,
         date: formValues.date || null,
+        description: formValues.description || null,
       });
 
       await this.#handleResponse(response, gameSlug, setters);

@@ -1,4 +1,4 @@
-"""Tests for the game sessions list view (GET list / POST create)."""
+"""Tests for the game sessions create view (POST create)."""
 
 import json
 
@@ -8,95 +8,6 @@ from rest_framework.authtoken.models import Token
 
 from games.models import GameSession
 from games.tests.factories import GameFactory, GameMasterFactory, SuperUserFactory, UserFactory
-
-
-class TestGameSessionsListView(TestCase):
-    """Tests for the GET /games/<slug>/sessions.json endpoint."""
-
-    @classmethod
-    def setUpTestData(cls):
-        """Set up common test fixtures."""
-        cls.game = GameFactory(name='Test Game', game_slug='test-game')
-        cls.other_game = GameFactory(name='Other Game', game_slug='other-game')
-
-    def test_returns_empty_list_when_no_sessions(self):
-        """Test that an empty list is returned when the game has no sessions."""
-        response = self.client.get('/games/test-game/sessions.json')
-        assert response.status_code == 200
-        assert json.loads(response.content) == []
-
-    def test_returns_only_game_sessions(self):
-        """Test that only sessions linked to the game are returned."""
-        GameSession.objects.create(game=self.game, title='Session One')
-        GameSession.objects.create(game=self.other_game, title='Other Session')
-        response = self.client.get('/games/test-game/sessions.json')
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert len(data) == 1
-        assert data[0]['title'] == 'Session One'
-
-    def test_returns_id_title_date_game_slug_fields(self):
-        """Test that list items include id, title, date, and game_slug fields."""
-        session = GameSession.objects.create(
-            game=self.game, title='Session One', date='2026-01-01'
-        )
-        response = self.client.get('/games/test-game/sessions.json')
-        data = json.loads(response.content)
-        assert data[0]['id'] == session.id
-        assert data[0]['title'] == 'Session One'
-        assert data[0]['date'] == '2026-01-01'
-        assert data[0]['game_slug'] == 'test-game'
-
-    def test_returns_404_for_unknown_game_slug(self):
-        """Test that 404 is returned for a non-existent game slug."""
-        response = self.client.get('/games/unknown-game/sessions.json')
-        assert response.status_code == 404
-
-    def test_response_includes_page_header(self):
-        """Test that the response includes the page header."""
-        response = self.client.get('/games/test-game/sessions.json')
-        assert response['page'] == '1'
-
-    def test_response_includes_pages_header(self):
-        """Test that the response includes the total pages header."""
-        response = self.client.get('/games/test-game/sessions.json')
-        assert response['pages'] == '1'
-
-    def test_respects_per_page_param(self):
-        """Test that ?per_page=N limits the number of results returned."""
-        for i in range(5):
-            GameSession.objects.create(game=self.game, title=f'Session {i}')
-        response = self.client.get('/games/test-game/sessions.json?per_page=2')
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert len(data) == 2
-
-    def test_respects_page_param(self):
-        """Test that ?page=N returns the correct page of results."""
-        for i in range(5):
-            GameSession.objects.create(game=self.game, title=f'Session {i}')
-        response = self.client.get('/games/test-game/sessions.json?page=2&per_page=3')
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert len(data) == 2
-
-    def test_url_by_name(self):
-        """Test that the view is accessible by URL name."""
-        url = reverse('game-sessions-list', kwargs={'game_slug': 'test-game'})
-        response = self.client.get(url)
-        assert response.status_code == 200
-
-    def test_list_is_ordered_by_creation(self):
-        """Test that the list is ordered by id (creation order), not by date."""
-        first = GameSession.objects.create(
-            game=self.game, title='Later Date', date='2020-01-01'
-        )
-        second = GameSession.objects.create(
-            game=self.game, title='Earlier Date', date='2019-01-01'
-        )
-        response = self.client.get('/games/test-game/sessions.json')
-        data = json.loads(response.content)
-        assert [item['id'] for item in data] == [first.id, second.id]
 
 
 class TestGameSessionsCreateView(TestCase):
@@ -178,3 +89,24 @@ class TestGameSessionsCreateView(TestCase):
         """Test that the created session is persisted and linked to the game."""
         self._post(self.client, {'title': 'Session One'}, token=self.dm_token)
         assert GameSession.objects.filter(game=self.game, title='Session One').exists()
+
+    def test_create_with_description_persists_it(self):
+        """Test that a description sent on creation is persisted and returned."""
+        response = self._post(
+            self.client, {'title': 'Session One', 'description': 'Some notes.'},
+            token=self.dm_token,
+        )
+        data = json.loads(response.content)
+        assert data['description'] == 'Some notes.'
+
+    def test_get_is_not_allowed(self):
+        """Test that GET on the create-only endpoint returns 405."""
+        response = self.client.get('/games/test-game/sessions.json')
+        assert response.status_code == 405
+
+    def test_url_by_name_accepts_post(self):
+        """Test that the create endpoint is reachable via its URL name."""
+        url = reverse('game-sessions-list', kwargs={'game_slug': 'test-game'})
+        response = self._post(self.client, {'title': 'Session One'}, token=self.dm_token)
+        assert url == '/games/test-game/sessions.json'
+        assert response.status_code == 201
