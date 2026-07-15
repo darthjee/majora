@@ -13,13 +13,18 @@ describe('GameTreasureNewController', function() {
     it('does not redirect when the user can edit the game', async function() {
       const setError = jasmine.createSpy('setError');
       const treasureClient = jasmine.createSpyObj('treasureClient', ['createGameTreasure']);
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame']);
       const fakeWindow = { location: { hash: '#/games/demo/treasures/new' } };
       globalThis.window = fakeWindow;
 
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+      gameClient.fetchGame.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ game_slug: 'demo', game_type: 'dnd' }),
+      }));
 
       try {
-        const controller = new GameTreasureNewController(setError, Noop.noop, treasureClient);
+        const controller = new GameTreasureNewController(setError, Noop.noop, treasureClient, Noop.noop, gameClient);
         controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -33,13 +38,18 @@ describe('GameTreasureNewController', function() {
     it('redirects to the treasures index when the user cannot edit the game', async function() {
       const setError = jasmine.createSpy('setError');
       const treasureClient = jasmine.createSpyObj('treasureClient', ['createGameTreasure']);
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame']);
       const fakeWindow = { location: { hash: '#/games/demo/treasures/new' } };
       globalThis.window = fakeWindow;
 
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+      gameClient.fetchGame.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ game_slug: 'demo', game_type: 'dnd' }),
+      }));
 
       try {
-        const controller = new GameTreasureNewController(setError, Noop.noop, treasureClient);
+        const controller = new GameTreasureNewController(setError, Noop.noop, treasureClient, Noop.noop, gameClient);
         controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -52,13 +62,18 @@ describe('GameTreasureNewController', function() {
     it('redirects to the treasures index when the access request throws', async function() {
       const setError = jasmine.createSpy('setError');
       const treasureClient = jasmine.createSpyObj('treasureClient', ['createGameTreasure']);
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame']);
       const fakeWindow = { location: { hash: '#/games/demo/treasures/new' } };
       globalThis.window = fakeWindow;
 
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.reject(new Error('network error')));
+      gameClient.fetchGame.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ game_slug: 'demo', game_type: 'dnd' }),
+      }));
 
       try {
-        const controller = new GameTreasureNewController(setError, Noop.noop, treasureClient);
+        const controller = new GameTreasureNewController(setError, Noop.noop, treasureClient, Noop.noop, gameClient);
         controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
