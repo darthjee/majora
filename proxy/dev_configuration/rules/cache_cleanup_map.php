@@ -105,7 +105,7 @@ $cacheCleanupGroups = [
         ],
         'routes' => [
             '/treasures.json',
-            '/treasures/:treasure_id.json'
+            '/treasures/:treasure_id.json',
             '/games/:game_slug/treasures/:treasure_id.json',
             '/games/:game_slug/npcs/:character_id/treasures/acquire.json',
             '/games/:game_slug/npcs/:character_id/treasures/sell.json',
