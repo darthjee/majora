@@ -34,6 +34,7 @@ from .game_sessions import (
     game_sessions_future,
     game_sessions_past,
     game_sessions_unscheduled,
+    session_messages_list,
 )
 from .game_tasks import game_task_detail, game_tasks_list
 from .games import (
@@ -99,6 +100,7 @@ __all__ = [
     'game_sessions_past',
     'game_sessions_future',
     'game_sessions_unscheduled',
+    'session_messages_list',
     'game_tasks_list',
     'game_task_detail',
     'language',

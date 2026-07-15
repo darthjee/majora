@@ -30,6 +30,15 @@ from games.serializers.games.sessions.game_session_create import GameSessionCrea
 from games.serializers.games.sessions.game_session_detail import GameSessionDetailSerializer
 from games.serializers.games.sessions.game_session_list import GameSessionListSerializer
 from games.serializers.games.sessions.game_session_update import GameSessionUpdateSerializer
+from games.serializers.games.sessions.messages.session_message_create import (
+    SessionMessageCreateSerializer,
+)
+from games.serializers.games.sessions.messages.session_message_list import (
+    SessionMessageListSerializer,
+)
+from games.serializers.games.sessions.messages.session_message_user import (
+    SessionMessageUserSerializer,
+)
 from games.serializers.games.tasks.game_task_create import GameTaskCreateSerializer
 from games.serializers.games.tasks.game_task_list import GameTaskListSerializer
 from games.serializers.games.tasks.game_task_update import GameTaskUpdateSerializer
@@ -83,6 +92,9 @@ __all__ = [
     'NpcPlayerUpdateSerializer',
     'PcAccessSerializer',
     'PhotoUploadSerializer',
+    'SessionMessageCreateSerializer',
+    'SessionMessageListSerializer',
+    'SessionMessageUserSerializer',
     'StaffUserDetailSerializer',
     'StaffUserListSerializer',
     'StaffUserUpdateSerializer',
