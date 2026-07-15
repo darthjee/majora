@@ -79,6 +79,9 @@ game_page:
   see_all_photos: Photos
   next_session_title: Next Session
   no_next_session: No upcoming session scheduled.
+  polls_title: Polls
+  open_polls_count: '{{count}} open poll(s)'
+  view_polls: View polls
 game_characters_page:
   loading: Loading...
 character_page:
@@ -314,6 +317,31 @@ game_session_edit_page:
   description_label: Description
   submit: Save changes
   error: Failed to save session. Please try again.
+game_polls_page:
+  loading: Loading polls...
+  title: Polls
+  new_poll: New Poll
+  empty: No polls yet.
+  filter_status_label: Status
+  status_open: Open
+  status_inactive: Inactive
+  status_closed: Closed
+  error: Unable to load polls.
+game_poll_page:
+  loading: Loading poll...
+  options_title: Options
+  error: Unable to load poll.
+game_poll_new_page:
+  title: New Poll
+  title_label: Title
+  description_label: Description
+  type_label: Type
+  type_single: Single choice
+  type_multiple: Multiple choice
+  options_label: Options
+  add_option: Add option
+  submit: Create Poll
+  error: Failed to create poll. Please try again.
 game_tasks_page:
   loading: Loading tasks...
   title: Tasks
