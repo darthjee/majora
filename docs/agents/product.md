@@ -121,12 +121,26 @@ A **Staff** account is a Django `User` with `is_staff is True` (Django's built-i
 introduced for product use by issue #286). Staff, like Superuser, is a **global** role —
 not scoped to any game.
 
-Staff accounts (`is_staff` or `is_superuser`) may list, view, and edit the `name`
-(`username`) and `email` of any `User` account, and may generate a password-recovery link
-for any user without needing access to that user's email inbox. This is strictly
-**additive**: `is_staff` grants authority only over this User-management surface, never
-any other Superuser-only capability described elsewhere in this document or in the
-[access-control](access-control.md) reference (e.g. [Treasure](access-control/treasure.md) management).
+Staff has full parity with Superuser on any endpoint that is **not scoped under a
+specific game** (issue #526 broadens this from the original User-management-only carve-out
+of issue #286). Today that means:
+
+- User management: Staff accounts (`is_staff` or `is_superuser`) may list, view, and edit
+  the `name` (`username`) and `email` of any `User` account, and may generate a
+  password-recovery link for any user without needing access to that user's email inbox.
+- Global [Treasure](access-control/treasure.md) management: Staff may create and update a
+  *global* treasure (one with no owning `game`) and upload its photo, exactly like a
+  Superuser. This precedent — a Staff-or-superuser-gated endpoint outside User-management
+  — already existed for `POST /users/test-email.json` (`require_staff`,
+  [endpoints.md](access-control/endpoints.md)); the Treasure surface generalizes the same
+  policy rather than inventing a new one.
+
+Staff gains **no** authority over any game-scoped resource — Character, Player,
+GameMaster, GameSession, Task, or the `/games/:game_slug/treasures*` routes remain governed
+solely by GameMaster/Superuser, never Staff. Staff also never reaches into
+Django-admin-only actions (e.g. Treasure or Game deletion — see
+[access-control.md](access-control.md)'s existing admin carve-out), regardless of how far
+the Staff role's endpoint-level parity with Superuser grows.
 
 ---
 
@@ -175,6 +189,6 @@ superuser.
 | Editing rights | Superuser OR owner OR GameMaster of same game |
 | PC vs NPC | `npc=False` → PC (has player); `npc=True` → NPC (no player) |
 | Player account link | `Player.user` nullable — player without a login has no owner |
-| Staff role | `user.is_staff` — global, grants User-management access only (not other superuser actions) |
+| Staff role | `user.is_staff` — global; full parity with Superuser on any non-game-scoped endpoint (User management, global Treasure management); no authority over game-scoped resources or Django-admin-only actions |
 | NPC narrow player PATCH | Any player of the game (via `Player.games`), in addition to the Editing rights above — NPC-only; `public_description`, `links`, `allegiance` (→`public_allegiance`), `slain` (→`public_slain`) fields only |
 | NPC photo upload (init/finalize) | Any player of the game (via `Player.games`), in addition to the Editing rights above — NPC-only, same `NpcPlayerEditPermission` as the narrow player PATCH row above (issue #429) |

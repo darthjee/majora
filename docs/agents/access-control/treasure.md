@@ -2,7 +2,7 @@
 
 Treasures are global by default, but may optionally be exclusive to one game via a `game` FK.
 All read endpoints are public; write endpoints on the global routes (create and update) remain
-restricted to superusers. Treasures may also be associated with games via a separate, untouched
+restricted to superusers or staff. Treasures may also be associated with games via a separate, untouched
 M2M relationship and retrieved through the game-scoped list endpoint below — a treasure can be
 M2M-linked to any number of games *and/or* exclusively owned (via `game`) by at most one game,
 independently.
@@ -16,10 +16,10 @@ independently.
 | Create by game (`POST /games/<slug>/treasures.json`) | **GameEdit** — `game` is set server-side from the resolved game and never accepted from the request body |
 | Detail by game (`GET /games/<slug>/treasures/<int:treasure_id>.json`) | **AllowAny**, unless `hidden=True` — 404 if the treasure's `game` does not match the resolved game (including a global treasure id, or one exclusive to a different game), **and** 404 if the treasure is hidden and the requester cannot edit the game. A hidden treasure's detail is only visible to that game's GameMaster or a superuser; sets `X-Skip-Cache: true` whenever the treasure is hidden |
 | Update by game (`PATCH /games/<slug>/treasures/<int:treasure_id>.json`) | **GameEdit** — same 404 rule as the detail endpoint; a `PATCH` by a non-editor on a hidden treasure also 404s (not 403), so existence is not leaked. Also resolves treasures M2M-linked to the game (not just exclusive ones): for an exclusive treasure it updates `name`/`value`/`hidden`; for an M2M-linked treasure it instead accepts and persists `max_units` onto that game's `GameTreasure` row — `name`/`value`/`hidden` in the body are ignored in that case, and `acquired_units` can never be set through this endpoint |
-| Create (`POST /treasures.json`) | Superuser only |
-| Update (`PATCH /treasures/<id>.json`) | Superuser only (includes the GameMaster of a game-exclusive treasure's own owning game — the global endpoint stays superuser-only regardless of `game`) |
-| Create photo (`POST /treasures/<id>/photo_upload.json`) | Superuser always; additionally that treasure's owning game's GameMaster, when `treasure.game_id` is set |
-| Delete | Superuser only (via Django admin, out of scope) — deleting a treasure's owning `Game` also cascade-deletes the treasure; it does not delete treasures merely M2M-linked to that game |
+| Create (`POST /treasures.json`) | Superuser or Staff |
+| Update (`PATCH /treasures/<id>.json`) | Superuser or Staff (includes the GameMaster of a game-exclusive treasure's own owning game — the global endpoint stays superuser-or-staff-only regardless of `game`) |
+| Create photo (`POST /treasures/<id>/photo_upload.json`) | Superuser or Staff, always; additionally that treasure's owning game's GameMaster, when `treasure.game_id` is set |
+| Delete | Superuser only (via Django admin, out of scope) — there is no application-level delete endpoint for treasures at all (only `GET`/`POST` on `treasures_list.py`, `GET`/`PATCH` on `treasure_detail.py`); deletion is Django-admin-only and stays out of scope regardless of this issue. Deleting a treasure's owning `Game` also cascade-deletes the treasure; it does not delete treasures merely M2M-linked to that game |
 
 **Exposed fields** (read): `id`, `name`, `value`, `photo_path`, `game_slug`, `available_units`,
 `max_units` — all non-sensitive.
@@ -78,7 +78,11 @@ frontend config is needed.
 ## Edit permission
 
 `GET /treasures/<id>/permissions.json` — **AllowAny**; see [Edit permission endpoints](common-rules.md#edit-permission-endpoints-permissionsjson) above.
-With a `role` param, `can_edit` is computed via `Treasure.can_be_edited_by_roles(is_superuser,
-is_dm)` — a global treasure (`game_id` is `None`) is superuser-only even under simulation (the
-`dm` role is always a no-op there); only a game-exclusive treasure's `dm` role additionally
-grants `can_edit`, preserving the same dual-path logic as the real-identity check above.
+With no `role` param, the real-identity path (`Treasure.can_be_edited_by`) now includes staff
+for a global treasure, per the table above. With a `role` param, `can_edit` is computed via
+`Treasure.can_be_edited_by_roles(is_superuser, is_dm)` — a global treasure (`game_id` is `None`)
+remains superuser-only even under simulation (the `dm` role is always a no-op there, and `staff`
+is intentionally not simulated at all — see `parse_role_booleans`'s own docstring); only a
+game-exclusive treasure's `dm` role additionally grants `can_edit`, preserving the same
+dual-path logic as the real-identity check above. This asymmetry — staff granted for real but
+not under `?role=` simulation — is intentional, not a bug.
