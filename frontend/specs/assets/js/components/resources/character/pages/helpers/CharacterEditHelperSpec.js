@@ -30,14 +30,17 @@ KINDS.forEach(({ label, Helper, idPrefix, name, role, description }) => {
       onRoleChange: jasmine.createSpy('onRoleChange'),
       onDescriptionChange: jasmine.createSpy('onDescriptionChange'),
       onPrivateDescriptionChange: jasmine.createSpy('onPrivateDescriptionChange'),
+      onPublicSlainChange: jasmine.createSpy('onPublicSlainChange'),
     });
     const buildState = (overrides = {}) => ({
+      isFullEditor: true,
       name,
       profile_photo_path: null,
       links: [],
       role,
       description,
       privateDescription: 'Secret DM notes.',
+      publicSlain: false,
       status: 'idle',
       fieldErrors: {},
       ...overrides,

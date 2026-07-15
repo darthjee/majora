@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import ActionsOverlay from '../../../../../../../../../assets/js/components/common/ActionsOverlay.jsx';
+import Translator from '../../../../../../../../../assets/js/i18n/Translator.js';
 import { helper, npcHelper, buildHandlers, buildState, findElement } from './support.js';
 
 describe('BaseCharacterEditHelper', function() {
@@ -216,6 +217,67 @@ describe('BaseCharacterEditHelper', function() {
 
       expect(html.indexOf('selected=""', allegianceStart)).toBeGreaterThan(-1);
       expect(html.indexOf('selected=""', publicAllegianceStart)).toBeGreaterThan(-1);
+    });
+
+    it('does not render the slain toggle when idPrefix is not "npc"', function() {
+      const html = renderToStaticMarkup(helper.render(buildState(), buildHandlers()));
+
+      expect(html).not.toContain('id="test-edit-public-slain"');
+    });
+
+    it('renders the slain toggle when idPrefix is "npc"', function() {
+      const html = renderToStaticMarkup(npcHelper.render(buildState(), buildHandlers()));
+
+      expect(html).toContain('id="npc-edit-public-slain"');
+      expect(html).toContain('type="checkbox"');
+    });
+
+    it('checks the slain toggle when publicSlain is true', function() {
+      const checkedHtml = renderToStaticMarkup(
+        npcHelper.render(buildState({ publicSlain: true }), buildHandlers())
+      );
+      const uncheckedHtml = renderToStaticMarkup(
+        npcHelper.render(buildState({ publicSlain: false }), buildHandlers())
+      );
+
+      expect(checkedHtml).toContain('checked=""');
+      expect(uncheckedHtml).not.toContain('checked=""');
+    });
+
+    it('wires the slain toggle to onPublicSlainChange', function() {
+      const handlers = buildHandlers();
+      const element = npcHelper.render(buildState(), handlers);
+      const checkbox = findElement(
+        element,
+        (child) => child.type === 'input' && child.props.id === 'npc-edit-public-slain'
+      );
+
+      expect(checkbox).not.toBeNull();
+      expect(checkbox.props.onChange).toBe(handlers.onPublicSlainChange);
+    });
+
+    describe('player-only editor (isFullEditor: false)', function() {
+      it('hides the name, role, money, and private description inputs', function() {
+        const html = renderToStaticMarkup(
+          npcHelper.render(buildState({ isFullEditor: false }), buildHandlers())
+        );
+
+        expect(html).not.toContain('id="npc-edit-name"');
+        expect(html).not.toContain('id="npc-edit-role"');
+        expect(html).not.toContain('id="npc-edit-private-description"');
+        expect(html).not.toContain(Translator.t('npc_edit_page.money_label'));
+      });
+
+      it('keeps the description, links, allegiance, and slain toggle visible', function() {
+        const html = renderToStaticMarkup(
+          npcHelper.render(buildState({ isFullEditor: false }), buildHandlers())
+        );
+
+        expect(html).toContain('id="npc-edit-description"');
+        expect(html).toContain('id="npc-edit-allegiance"');
+        expect(html).toContain('id="npc-edit-public-allegiance"');
+        expect(html).toContain('id="npc-edit-public-slain"');
+      });
     });
   });
 });

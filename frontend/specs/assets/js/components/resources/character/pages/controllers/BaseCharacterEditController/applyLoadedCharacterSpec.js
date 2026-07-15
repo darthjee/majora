@@ -24,6 +24,7 @@ describe('BaseCharacterEditController', function() {
         setMoney: jasmine.createSpy('setMoney'),
         setAllegiance: jasmine.createSpy('setAllegiance'),
         setPublicAllegiance: jasmine.createSpy('setPublicAllegiance'),
+        setPublicSlain: jasmine.createSpy('setPublicSlain'),
         setLinks: jasmine.createSpy('setLinks'),
       };
     });
@@ -91,6 +92,28 @@ describe('BaseCharacterEditController', function() {
       }
     });
 
+    it('does not redirect when the character cannot be edited but is a player of the game', function() {
+      const controller = new TestCharacterEditController(
+        setCharacter, setLoading, setError, setFieldErrors, client, characterClient,
+      );
+      const fakeWindow = { location: { hash: '' } };
+      globalThis.window = fakeWindow;
+
+      try {
+        controller.applyLoadedCharacter(
+          {
+            id: 1, can_edit: false, access_resolved: true, is_player: true,
+          },
+          'demo', '1', setters,
+        );
+
+        expect(fakeWindow.location.hash).toBe('');
+        expect(setters.setName).toHaveBeenCalled();
+      } finally {
+        delete globalThis.window;
+      }
+    });
+
     it('seeds the form fields when the loaded character can be edited', function() {
       const controller = new TestCharacterEditController(
         setCharacter, setLoading, setError, setFieldErrors, client, characterClient,
@@ -103,6 +126,7 @@ describe('BaseCharacterEditController', function() {
         money: 310,
         allegiance: 'ally',
         public_allegiance: 'enemy',
+        public_slain: true,
         links,
       };
 
@@ -115,6 +139,7 @@ describe('BaseCharacterEditController', function() {
       expect(setters.setMoney).toHaveBeenCalledWith('310');
       expect(setters.setAllegiance).toHaveBeenCalledWith('ally');
       expect(setters.setPublicAllegiance).toHaveBeenCalledWith('enemy');
+      expect(setters.setPublicSlain).toHaveBeenCalledWith(true);
       expect(setters.setLinks).toHaveBeenCalledWith(links);
     });
 
@@ -132,7 +157,24 @@ describe('BaseCharacterEditController', function() {
       expect(setters.setMoney).toHaveBeenCalledWith('0');
       expect(setters.setAllegiance).toHaveBeenCalledWith('neutral');
       expect(setters.setPublicAllegiance).toHaveBeenCalledWith('neutral');
+      expect(setters.setPublicSlain).toHaveBeenCalledWith(false);
       expect(setters.setLinks).toHaveBeenCalledWith([]);
+    });
+
+    it('falls back public_allegiance/public_slain to the plain-detail keys for a player-only editor', function() {
+      const controller = new TestCharacterEditController(
+        setCharacter, setLoading, setError, setFieldErrors, client, characterClient,
+      );
+      const character = {
+        id: 1, can_edit: false, is_player: true, access_resolved: true,
+        allegiance: 'enemy', slain: true,
+      };
+
+      controller.applyLoadedCharacter(character, 'demo', '1', setters);
+
+      expect(setters.setAllegiance).toHaveBeenCalledWith('enemy');
+      expect(setters.setPublicAllegiance).toHaveBeenCalledWith('enemy');
+      expect(setters.setPublicSlain).toHaveBeenCalledWith(true);
     });
   });
 });
