@@ -296,6 +296,10 @@ game_session_page:
   loading: Loading session...
   edit: Edit
   no_date: No date
+  messages_title: Messages
+  messages_content_label: Message
+  messages_submit: Send
+  messages_load_more: Load more messages
 game_session_new_page:
   title: New Session
   title_label: Title
