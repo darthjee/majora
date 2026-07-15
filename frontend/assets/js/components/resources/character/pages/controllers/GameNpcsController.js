@@ -24,8 +24,9 @@ export default class GameNpcsController extends BasePageController {
    * Build the hash URL for applying NPC filters, resetting pagination to page 1.
    *
    * @param {string} basePath - Base hash path (e.g. `#/games/demo/npcs`).
-   * @param {{slain?: string, name?: string}} filters - Filters to apply, as built by
-   *   `NpcFiltersController#buildQuery` (blank fields already omitted).
+   * @param {{slain?: string, name?: string, allegiance?: string, hidden?: string}} filters -
+   *   Filters to apply, as built by `NpcFiltersController#buildQuery` (blank fields already
+   *   omitted).
    * @returns {string} Hash including the reset page and the active filters.
    */
   static buildFilterQueryHash(basePath, filters) {

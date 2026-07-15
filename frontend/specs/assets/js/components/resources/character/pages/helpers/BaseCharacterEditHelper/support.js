@@ -16,6 +16,7 @@ export const buildHandlers = () => ({
   onAllegianceChange: jasmine.createSpy('onAllegianceChange'),
   onPublicAllegianceChange: jasmine.createSpy('onPublicAllegianceChange'),
   onPublicSlainChange: jasmine.createSpy('onPublicSlainChange'),
+  onHiddenChange: jasmine.createSpy('onHiddenChange'),
 });
 
 export const buildState = (overrides = {}) => ({
@@ -30,6 +31,7 @@ export const buildState = (overrides = {}) => ({
   allegiance: 'neutral',
   publicAllegiance: 'neutral',
   publicSlain: false,
+  hidden: false,
   status: 'idle',
   fieldErrors: {},
   ...overrides,

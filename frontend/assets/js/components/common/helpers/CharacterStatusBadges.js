@@ -27,6 +27,8 @@ export default class CharacterStatusBadges {
    *   (`'enemy'`, `'ally'`, or `'neutral'`), NPC only.
    * @param {string} [character.public_allegiance] - The character's public allegiance
    *   (`'enemy'`, `'ally'`, or `'neutral'`), NPC only.
+   * @param {boolean} [character.hidden] - Whether the NPC is hidden from players
+   *   (DM/admin-only field), NPC only.
    * @returns {{icon: string, text: string, variant: string|null}[]} Ordered status item definitions.
    */
   static build(character) {
@@ -39,6 +41,7 @@ export default class CharacterStatusBadges {
       items.push(
         CharacterStatusBadges.buildAllegiance(character),
         CharacterStatusBadges.buildPublicAllegiance(character),
+        CharacterStatusBadges.buildHidden(character),
       );
     }
 
@@ -128,6 +131,26 @@ export default class CharacterStatusBadges {
       { enemy: Icons.emojiAngry, ally: Icons.emojiSmile, neutral: Icons.emojiExpressionless },
       { enemy: 'public_enemy', ally: 'public_ally', neutral: 'public_neutral' },
     );
+  }
+
+  /**
+   * Build the Hidden status item, or `null` when `character.hidden` is falsy.
+   *
+   * @param {object} character - Character data object.
+   * @param {boolean} [character.hidden] - Whether the NPC is hidden from players
+   *   (DM/admin-only field).
+   * @returns {{icon: string, text: string, variant: null}|null} The status item, or null.
+   */
+  static buildHidden(character) {
+    if (!character.hidden) {
+      return null;
+    }
+
+    return {
+      icon: Icons.eyeSlashFill,
+      text: Translator.t('character_status_badges.hidden'),
+      variant: null,
+    };
   }
 
   static #buildAllegianceItem(allegiance, icons, translationKeys) {

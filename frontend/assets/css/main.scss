@@ -108,6 +108,10 @@ body {
   filter: grayscale(100%);
 }
 
+.photo-hidden .card-photo-square img {
+  opacity: 0.8;
+}
+
 .card-action-link {
   position: relative;
   z-index: 2;

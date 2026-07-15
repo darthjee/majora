@@ -116,7 +116,7 @@ export default function GameNpcs() {
       {GameCharactersHelper.render(
         npcs, pagination, basePath, gameSlug, Translator.t('game_npcs_page.title'), 'npc', backHref,
         canEdit, newHref, setUploadTarget, slain.setTarget, publicSlain.setTarget, activeFilters,
-        <NpcFilters onQuery={handleFilterQuery} onClear={handleFilterClear} />,
+        <NpcFilters onQuery={handleFilterQuery} onClear={handleFilterClear} canEdit={canEdit} />,
         isPlayer, playerSlain.setTarget,
       )}
       <PhotoUploadModal

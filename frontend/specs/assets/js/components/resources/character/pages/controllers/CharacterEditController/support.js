@@ -27,5 +27,6 @@ export const KINDS = [
     allegiance: 'ally',
     publicAllegiance: 'enemy',
     publicSlain: true,
+    hidden: true,
   },
 ];

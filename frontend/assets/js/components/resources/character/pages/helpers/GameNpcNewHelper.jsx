@@ -46,7 +46,20 @@ export default class GameNpcNewHelper {
           />
           <div className="row">
             <div className="col-md-4">
-              <CharacterAvatarField canEdit={false} alt={formState.name} />
+              <CharacterAvatarField canEdit={false} alt={formState.name} dimmed={formState.hidden} />
+              <div className="form-check form-switch mb-3">
+                <input
+                  id="game-npc-new-hidden"
+                  type="checkbox"
+                  role="switch"
+                  className="form-check-input"
+                  checked={formState.hidden}
+                  onChange={handlers.onHiddenChange}
+                />
+                <label htmlFor="game-npc-new-hidden" className="form-check-label">
+                  {Translator.t('game_npc_new_page.hidden_label')}
+                </label>
+              </div>
               <CharacterLinksField
                 links={formState.links}
                 buttonLabel={Translator.t('npc_edit_page.edit_links_button')}
@@ -87,18 +100,6 @@ export default class GameNpcNewHelper {
             onChange={handlers.onMoneyChange}
             errors={formState.fieldErrors.money ?? []}
           />
-          <div className="form-check mb-3">
-            <input
-              id="game-npc-new-hidden"
-              type="checkbox"
-              className="form-check-input"
-              checked={formState.hidden}
-              onChange={handlers.onHiddenChange}
-            />
-            <label htmlFor="game-npc-new-hidden" className="form-check-label">
-              {Translator.t('game_npc_new_page.hidden_label')}
-            </label>
-          </div>
           <div className="mb-3">
             <label htmlFor="game-npc-new-allegiance" className="form-label">
               {Translator.t('game_npc_new_page.allegiance_label')}

@@ -112,6 +112,21 @@ describe('CharacterCardHelper', function() {
       expect(overlay.props.grayscale).toBe(true);
     });
 
+    it('applies dimmed for a hidden NPC', function() {
+      const c = { ...character, hidden: true };
+      const element = CharacterCardHelper.render(c, gameSlug, 'npc');
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
+
+      expect(overlay.props.dimmed).toBe(true);
+    });
+
+    it('does not apply dimmed for a non-hidden NPC', function() {
+      const element = CharacterCardHelper.render(character, gameSlug, 'npc');
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
+
+      expect(overlay.props.dimmed).toBeFalsy();
+    });
+
     it('does not render overlay buttons for NPCs when canEdit is false', function() {
       const html = renderToStaticMarkup(CharacterCardHelper.render(character, gameSlug, 'npc', 'normal', false));
       expect(html).not.toContain('<button');
