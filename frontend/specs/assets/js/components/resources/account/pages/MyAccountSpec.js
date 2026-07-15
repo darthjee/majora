@@ -22,8 +22,8 @@ describe('MyAccount', function() {
     const html = renderToStaticMarkup(
       MyAccountHelper.render(
         {
-          name: 'Jane', email: 'jane@example.com', password: '', passwordConfirmation: '',
-          status: 'idle', fieldErrors: {},
+          name: 'Jane', email: 'jane@example.com', avatarUrl: null, password: '',
+          passwordConfirmation: '', status: 'idle', fieldErrors: {},
         },
         {
           onSubmit: Noop.noop,

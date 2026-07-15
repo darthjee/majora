@@ -9,6 +9,7 @@ describe('MyAccountController', function() {
   describe('#buildEffect', function() {
     let setName;
     let setEmail;
+    let setAvatarUrl;
     let setLoading;
     let client;
     let fakeWindow;
@@ -16,13 +17,16 @@ describe('MyAccountController', function() {
     beforeEach(function() {
       setName = jasmine.createSpy('setName');
       setEmail = jasmine.createSpy('setEmail');
+      setAvatarUrl = jasmine.createSpy('setAvatarUrl');
       setLoading = jasmine.createSpy('setLoading');
       client = jasmine.createSpyObj('client', ['fetchAccount', 'updateAccount']);
       fakeWindow = { location: { hash: '#/my_account' } };
       globalThis.window = fakeWindow;
       client.fetchAccount.and.returnValue(Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ name: 'Jane', email: 'jane@example.com' }),
+        json: () => Promise.resolve({
+          name: 'Jane', email: 'jane@example.com', avatar_url: 'http://example.com/avatar.png',
+        }),
       }));
     });
 
@@ -30,16 +34,33 @@ describe('MyAccountController', function() {
       delete globalThis.window;
     });
 
-    const buildController = () => new MyAccountController(setName, setEmail, setLoading, client);
+    const buildController = () => new MyAccountController(
+      setName, setEmail, setAvatarUrl, setLoading, client,
+    );
 
-    it('fetches the account and prefills name/email', async function() {
+    it('fetches the account and prefills name/email/avatarUrl', async function() {
       const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(client.fetchAccount).toHaveBeenCalledWith(null);
       expect(setName).toHaveBeenCalledWith('Jane');
       expect(setEmail).toHaveBeenCalledWith('jane@example.com');
+      expect(setAvatarUrl).toHaveBeenCalledWith('http://example.com/avatar.png');
       expect(setLoading).toHaveBeenCalledWith(false);
+
+      cleanup();
+    });
+
+    it('prefills avatarUrl with null when the account has none', async function() {
+      client.fetchAccount.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ name: 'Jane', email: 'jane@example.com' }),
+      }));
+
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(setAvatarUrl).toHaveBeenCalledWith(null);
 
       cleanup();
     });
