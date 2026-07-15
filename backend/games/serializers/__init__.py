@@ -26,6 +26,11 @@ from games.serializers.games.game_master import GameMasterSerializer
 from games.serializers.games.game_permissions import GamePermissionsSerializer
 from games.serializers.games.game_photo import GamePhotoSerializer
 from games.serializers.games.game_update import GameUpdateSerializer
+from games.serializers.games.polls.poll_create import PollCreateSerializer
+from games.serializers.games.polls.poll_detail import PollDetailSerializer
+from games.serializers.games.polls.poll_list import PollListSerializer
+from games.serializers.games.polls.poll_option import PollOptionSerializer
+from games.serializers.games.polls.poll_option_write import PollOptionWriteSerializer
 from games.serializers.games.sessions.game_session_create import GameSessionCreateSerializer
 from games.serializers.games.sessions.game_session_detail import GameSessionDetailSerializer
 from games.serializers.games.sessions.game_session_list import GameSessionListSerializer
@@ -92,6 +97,11 @@ __all__ = [
     'NpcPlayerUpdateSerializer',
     'PcAccessSerializer',
     'PhotoUploadSerializer',
+    'PollCreateSerializer',
+    'PollDetailSerializer',
+    'PollListSerializer',
+    'PollOptionSerializer',
+    'PollOptionWriteSerializer',
     'SessionMessageCreateSerializer',
     'SessionMessageListSerializer',
     'SessionMessageUserSerializer',

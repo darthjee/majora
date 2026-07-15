@@ -25,6 +25,8 @@ class Poll(models.Model):
     ]
 
     game = models.ForeignKey('games.Game', on_delete=models.CASCADE, related_name='polls')
+    title = models.CharField(max_length=200, blank=True, default='')
+    description = models.TextField(blank=True, default='')
     type = models.CharField(max_length=16, choices=TYPE_CHOICES, default=TYPE_SINGLE)
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_INACTIVE)
 
