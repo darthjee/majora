@@ -24,6 +24,7 @@ return [
         'targets' => $pcsEntityTargets,
         'routes' => [
             '/games/:game_slug/pcs/:character_id.json',
+            '/games/:game_slug/pcs/:character_id/full.json',
             '/games/:game_slug/pcs/:character_id/photo_upload.json',
         ],
     ],
