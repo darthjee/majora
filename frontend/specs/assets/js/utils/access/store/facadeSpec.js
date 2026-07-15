@@ -11,7 +11,13 @@ describe('AccessStore', function() {
   });
 
   afterEach(function() {
-    AccessStore.reset();
+    // A few tests below call the real `#syncForRoute` (directly, or
+    // indirectly through `#setFacade`), which records the page in
+    // module-level state kept around beyond `#reset`. Clear it back to
+    // neutral so a later, unrelated spec calling `#setFacade` does not
+    // re-sync against a page left over from here, firing real (unmocked, in
+    // that other spec) client requests.
+    AccessStore.syncForRoute(null, '');
     AccessStoreFacade.clear();
   });
 

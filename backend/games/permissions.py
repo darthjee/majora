@@ -75,3 +75,49 @@ class GameSessionEditPermission(_EditPermission):
 
 class TaskEditPermission(_EditPermission):
     """Encapsulate the authentication/authorization checks for accessing/editing a task."""
+
+
+class SessionMessagePermission(_EditPermission):
+    """Encapsulate the authentication/authorization checks for session messages.
+
+    View is allowed for any player of the session's game, that game's DM, superusers, and
+    staff. Create is stricter: only an actual player or DM of the game (no superuser/staff
+    bypass), per the issue's explicit permission list.
+    """
+
+    @classmethod
+    def check_view(cls, request, session):
+        """Return an error Response if `request.user` may not view `session`'s messages."""
+        unauthenticated = cls._unauthenticated_response(request)
+        if unauthenticated:
+            return unauthenticated
+        if not cls._can_view(request.user, session):
+            return cls._forbidden_response()
+        return None
+
+    @classmethod
+    def check_create(cls, request, session):
+        """Return an error Response if `request.user` may not post to `session`."""
+        unauthenticated = cls._unauthenticated_response(request)
+        if unauthenticated:
+            return unauthenticated
+        if not cls._can_create(request.user, session):
+            return cls._forbidden_response()
+        return None
+
+    @classmethod
+    def _can_view(cls, user, session):
+        game = session.game
+        return (
+            user.is_superuser or user.is_staff
+            or game.players.filter(user=user).exists()
+            or game.game_masters.filter(user=user).exists()
+        )
+
+    @classmethod
+    def _can_create(cls, user, session):
+        game = session.game
+        return (
+            game.players.filter(user=user).exists()
+            or game.game_masters.filter(user=user).exists()
+        )

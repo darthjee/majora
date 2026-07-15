@@ -138,6 +138,18 @@ describe('BaseClient', function() {
     }));
   });
 
+  it('adds X-Skip-Cache to a session messages endpoint matching a configured suffix', async function() {
+    await client.request('/games/demo/sessions/7/messages.json', {
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/sessions/7/messages.json', jasmine.objectContaining({
+      method: 'GET',
+      headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
+      body: undefined,
+    }));
+  });
+
   it('adds X-Skip-Cache to a suffix-matched endpoint that also has a query string', async function() {
     await client.request('/games/demo/pcs/2/access.json?foo=bar', {
       headers: { Accept: 'application/json' },

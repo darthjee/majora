@@ -1,7 +1,10 @@
 """Tests for the MyAccountUpdateSerializer."""
 
+import hashlib
+
 from django.test import TestCase
 
+from games.models import UserProfile
 from games.serializers import MyAccountUpdateSerializer
 from games.tests.factories import UserFactory
 
@@ -146,6 +149,18 @@ class TestMyAccountUpdateSerializer(TestCase):
         )
         assert not serializer.is_valid()
         assert 'password_confirmation' in serializer.errors
+
+    def test_updating_email_refreshes_email_hash(self):
+        """Test that updating the email recomputes the profile's email_hash."""
+        serializer = MyAccountUpdateSerializer(
+            self.user, data={'name': 'alice', 'email': 'alice-new@example.com'}
+        )
+        assert serializer.is_valid()
+        user = serializer.save()
+
+        profile = UserProfile.objects.get(user=user)
+        expected = hashlib.sha256(b'alice-new@example.com').hexdigest()
+        assert profile.email_hash == expected
 
     def test_mismatched_password_and_confirmation_is_invalid(self):
         """Test that a mismatched password/password_confirmation pair fails validation."""

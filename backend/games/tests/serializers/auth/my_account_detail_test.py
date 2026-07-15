@@ -1,8 +1,11 @@
 """Tests for the MyAccountDetailSerializer."""
 
+import hashlib
+
 from django.test import TestCase
 
 from games.serializers import MyAccountDetailSerializer
+from games.settings import Settings
 from games.tests.factories import UserFactory
 
 
@@ -27,6 +30,18 @@ class TestMyAccountDetailSerializer(TestCase):
         assert data['email'] == 'alice@example.com'
 
     def test_only_exposes_expected_fields(self):
-        """Test that only name and email are exposed."""
+        """Test that only name, email, and avatar_url are exposed."""
         data = MyAccountDetailSerializer(self.user).data
-        assert set(data.keys()) == {'name', 'email'}
+        assert set(data.keys()) == {'name', 'email', 'avatar_url'}
+
+    def test_serializes_avatar_url_from_email_hash(self):
+        """Test that avatar_url is built from the Gravatar base URL and email_hash."""
+        expected_hash = hashlib.sha256(b'alice@example.com').hexdigest()
+        data = MyAccountDetailSerializer(self.user).data
+        assert data['avatar_url'] == f'{Settings.gravatar_base_url()}{expected_hash}'
+
+    def test_avatar_url_is_none_when_user_has_no_email(self):
+        """Test that avatar_url is null when the user has no email."""
+        user = UserFactory(username='bob', password='secret-password', email='')
+        data = MyAccountDetailSerializer(user).data
+        assert data['avatar_url'] is None

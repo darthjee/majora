@@ -29,3 +29,7 @@ endpoint already used for `GameEdit`.
 (optional, nullable `YYYY-MM-DD`), `description` (optional, nullable text). `game` is never
 accepted from the request payload — it is always assigned server-side from the `game_slug` URL
 segment.
+
+**Sub-resource**: session messages (`/games/<slug>/sessions/<id>/messages.json`) are a nested
+sub-resource of a session but use an independent, player/DM-based permission model distinct from
+**GameSessionEdit** — see [GameSessionMessage](game-session-message.md).

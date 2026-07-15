@@ -4,6 +4,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from rest_framework import serializers
 
+from ...models import UserProfile
+
 
 class MyAccountUpdateSerializer(serializers.ModelSerializer):
     """Serializer for the authenticated user's own account update, including an optional
@@ -55,4 +57,11 @@ class MyAccountUpdateSerializer(serializers.ModelSerializer):
         if password:
             instance.set_password(password)
         instance.save()
+        self._refresh_email_hash(instance)
         return instance
+
+    def _refresh_email_hash(self, instance):
+        """Recompute the profile's email_hash to match the just-updated user email."""
+        profile, _ = UserProfile.objects.get_or_create(user=instance)
+        profile.user = instance  # avoid a stale re-fetch of the just-updated email
+        profile.save()

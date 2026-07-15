@@ -11,6 +11,7 @@ import MyAccountHelper from './helpers/MyAccountHelper.jsx';
 export default function MyAccount() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState(null);
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [loading, setLoading] = useState(true);
@@ -18,7 +19,7 @@ export default function MyAccount() {
   const [status, setStatus] = useState('idle');
 
   const controller = useMemo(
-    () => new MyAccountController(setName, setEmail, setLoading),
+    () => new MyAccountController(setName, setEmail, setAvatarUrl, setLoading),
     [],
   );
 
@@ -33,7 +34,7 @@ export default function MyAccount() {
   if (loading) return MyAccountHelper.renderLoading();
 
   return MyAccountHelper.render(
-    { name, email, password, passwordConfirmation, status, fieldErrors },
+    { name, email, avatarUrl, password, passwordConfirmation, status, fieldErrors },
     {
       onSubmit: handleSubmit,
       onNameChange: (event) => setName(event.target.value),

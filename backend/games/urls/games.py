@@ -50,6 +50,11 @@ urlpatterns = [
         views.game_session_detail,
         name='game-session-detail',
     ),
+    path(
+        'games/<slug:game_slug>/sessions/<int:session_id>/messages.json',
+        views.session_messages_list,
+        name='session-messages-list',
+    ),
     path('games/<slug:game_slug>/tasks.json', views.game_tasks_list, name='game-tasks-list'),
     path(
         'games/<slug:game_slug>/tasks/<int:task_id>.json',
