@@ -10,6 +10,7 @@ describe('GameSessionClient', function() {
     itSendsAuthHeader({
       call: (token) => new GameSessionClient().fetchMessages('demo', 42, token),
       url: '/games/demo/sessions/42/messages.json',
+      headers: { 'X-Skip-Cache': 'true' },
       token: 'tok-abc',
     });
 
@@ -28,6 +29,18 @@ describe('GameSessionClient', function() {
       expect(globalThis.fetch).toHaveBeenCalledWith(
         '/games/demo/sessions/42/messages.json',
         jasmine.objectContaining({ method: 'GET' }),
+      );
+    });
+
+    it('sends X-Skip-Cache even when a next-entry-id cursor is present', async function() {
+      await new GameSessionClient().fetchMessages('demo', 42, 'tok-abc', 7);
+
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        '/games/demo/sessions/42/messages.json?next-entry-id=7',
+        jasmine.objectContaining({
+          method: 'GET',
+          headers: jasmine.objectContaining({ 'X-Skip-Cache': 'true' }),
+        }),
       );
     });
   });
