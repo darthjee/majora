@@ -13,6 +13,7 @@ describe('PollClient', function() {
       call: (token) => new PollClient().fetchPolls('demo', token),
       url: '/games/demo/polls.json',
       token: 'tok-abc',
+      headers: { 'X-Skip-Cache': 'true' },
     });
 
     it('appends pagination/filter params to the query string', async function() {
@@ -28,6 +29,7 @@ describe('PollClient', function() {
           headers: {
             Accept: 'application/json',
             Authorization: 'Token tok-abc',
+            'X-Skip-Cache': 'true',
           },
           body: undefined,
         }),

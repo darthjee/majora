@@ -5,7 +5,10 @@ import BaseClient from './BaseClient.js';
  */
 export default class PollClient extends BaseClient {
   /**
-   * Fetches the paginated list of polls for a game.
+   * Fetches the paginated list of polls for a game. Always sends
+   * `X-Skip-Cache: true`, since the response is identity-gated (it reflects
+   * the requester's own votes/permissions) and the `/games/<slug>/polls.json`
+   * path cannot be expressed as a static skip-cache suffix.
    *
    * @param {string} gameSlug - Game slug.
    * @param {string|null} token - Authentication token, if any.
@@ -16,11 +19,15 @@ export default class PollClient extends BaseClient {
     const query = params.toString();
     const path = query ? `/games/${gameSlug}/polls.json?${query}` : `/games/${gameSlug}/polls.json`;
 
-    return this.getJson(path, token);
+    return this.getJson(path, token, { 'X-Skip-Cache': 'true' });
   }
 
   /**
-   * Fetches the details of a game poll, including its options.
+   * Fetches the details of a game poll, including its options. Always sends
+   * `X-Skip-Cache: true`, since the response is identity-gated (it reflects
+   * the requester's own votes/permissions) and the numeric poll id in
+   * `/games/<slug>/polls/<id>.json` cannot be expressed as a static
+   * skip-cache suffix.
    *
    * @param {string} gameSlug - Game slug.
    * @param {number|string} id - Poll id.
@@ -28,7 +35,7 @@ export default class PollClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the poll endpoint.
    */
   fetchPoll(gameSlug, id, token) {
-    return this.getJson(`/games/${gameSlug}/polls/${id}.json`, token);
+    return this.getJson(`/games/${gameSlug}/polls/${id}.json`, token, { 'X-Skip-Cache': 'true' });
   }
 
   /**

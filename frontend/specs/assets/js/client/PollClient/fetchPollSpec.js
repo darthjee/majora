@@ -11,6 +11,7 @@ describe('PollClient', function() {
       call: (token) => new PollClient().fetchPoll('demo', 42, token),
       url: '/games/demo/polls/42.json',
       token: 'tok-abc',
+      headers: { 'X-Skip-Cache': 'true' },
     });
   });
 });
