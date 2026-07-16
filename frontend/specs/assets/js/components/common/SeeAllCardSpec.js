@@ -10,7 +10,7 @@ describe('SeeAllCard', function() {
     );
 
     expect(html).toContain('bi-gem');
-    expect(html).toContain('See all Treasures');
+    expect(html).toContain('aria-label="See all Treasures"');
     expect(html).toContain('href="#/treasures"');
   });
 });
