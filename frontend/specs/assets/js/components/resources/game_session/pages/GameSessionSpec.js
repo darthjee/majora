@@ -76,10 +76,10 @@ describe('GameSession', function() {
       globalThis.window = fakeWindow;
 
       try {
-        await instance.submitPoll('demo', 7, ['2024-01-01'], { setPollStatus });
+        await instance.submitPoll('demo', 7, ['2024-01-01'], 'multiple', { setPollStatus });
 
         expect(instance.sessionClient.createSessionPoll).toHaveBeenCalledWith(
-          'demo', 7, null, ['2024-01-01'],
+          'demo', 7, null, ['2024-01-01'], 'multiple',
         );
         expect(fakeWindow.location.hash).toBe('/games/demo/polls/9');
       } finally {
@@ -100,7 +100,7 @@ describe('GameSession', function() {
       }));
       const setPollStatus = jasmine.createSpy('setPollStatus');
 
-      await instance.submitPoll('demo', 7, ['2024-01-01'], { setPollStatus });
+      await instance.submitPoll('demo', 7, ['2024-01-01'], 'multiple', { setPollStatus });
 
       expect(setPollStatus).toHaveBeenCalledWith('error');
     });

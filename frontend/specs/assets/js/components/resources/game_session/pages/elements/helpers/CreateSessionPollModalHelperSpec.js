@@ -73,10 +73,12 @@ describe('CreateSessionPollModalHelper', function() {
     onConfirm: jasmine.createSpy('onConfirm'),
     onDateChange: jasmine.createSpy('onDateChange'),
     onDateRemove: jasmine.createSpy('onDateRemove'),
+    onTypeChange: jasmine.createSpy('onTypeChange'),
   });
 
   const buildState = (overrides = {}) => ({
     dates: [''],
+    type: 'multiple',
     canConfirm: false,
     ...overrides,
   });
@@ -194,6 +196,36 @@ describe('CreateSessionPollModalHelper', function() {
       const element = CreateSessionPollModalHelper.render(true, buildState(), buildHandlers());
 
       expect(findElement(element, (child) => child.props?.className === 'alert alert-danger')).toBeNull();
+    });
+
+    it('renders a radio button for each poll type', function() {
+      const element = CreateSessionPollModalHelper.render(true, buildState(), buildHandlers());
+
+      const single = findElement(element, (child) => child.type === 'input' && child.props.id === 'session-poll-type-single');
+      const multiple = findElement(element, (child) => child.type === 'input' && child.props.id === 'session-poll-type-multiple');
+
+      expect(single).not.toBeNull();
+      expect(multiple).not.toBeNull();
+    });
+
+    it('checks the radio matching the current type', function() {
+      const element = CreateSessionPollModalHelper.render(true, buildState({ type: 'single' }), buildHandlers());
+
+      const single = findElement(element, (child) => child.type === 'input' && child.props.id === 'session-poll-type-single');
+      const multiple = findElement(element, (child) => child.type === 'input' && child.props.id === 'session-poll-type-multiple');
+
+      expect(single.props.checked).toBe(true);
+      expect(multiple.props.checked).toBe(false);
+    });
+
+    it('wires each type radio to onTypeChange with its value', function() {
+      const handlers = buildHandlers();
+      const element = CreateSessionPollModalHelper.render(true, buildState(), handlers);
+      const single = findElement(element, (child) => child.type === 'input' && child.props.id === 'session-poll-type-single');
+
+      single.props.onChange();
+
+      expect(handlers.onTypeChange).toHaveBeenCalledWith('single');
     });
   });
 });

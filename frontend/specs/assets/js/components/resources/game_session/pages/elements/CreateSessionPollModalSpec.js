@@ -48,6 +48,12 @@ describe('CreateSessionPollModal', function() {
     expect(state.dates).toEqual(['']);
   });
 
+  it('defaults the type to multiple', function() {
+    const { state } = renderModal();
+
+    expect(state.type).toBe('multiple');
+  });
+
   it('forwards the error prop as-is', function() {
     const { state } = renderModal({ error: 'Failed to create pool.' });
 
@@ -69,7 +75,7 @@ describe('CreateSessionPollModal', function() {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('calls onConfirm with the non-blank dates computed by the controller', function() {
+  it('calls onConfirm with the non-blank dates computed by the controller and the current type', function() {
     spyOn(CreateSessionPollModalController, 'nonBlankDates').and.returnValue(['2024-01-01']);
     const onConfirm = jasmine.createSpy('onConfirm');
     const { handlers } = renderModal({ onConfirm });
@@ -77,7 +83,7 @@ describe('CreateSessionPollModal', function() {
     handlers.onConfirm();
 
     expect(CreateSessionPollModalController.nonBlankDates).toHaveBeenCalledWith(['']);
-    expect(onConfirm).toHaveBeenCalledWith(['2024-01-01']);
+    expect(onConfirm).toHaveBeenCalledWith(['2024-01-01'], 'multiple');
   });
 
   it('wires onDateChange to CreateSessionPollModalController.handleDateChange with the current dates', function() {
@@ -88,6 +94,12 @@ describe('CreateSessionPollModal', function() {
 
     expect(CreateSessionPollModalController.handleDateChange)
       .toHaveBeenCalledWith(0, '2024-01-01', [''], jasmine.any(Function));
+  });
+
+  it('exposes onTypeChange as a callable handler', function() {
+    const { handlers } = renderModal();
+
+    expect(() => handlers.onTypeChange('single')).not.toThrow();
   });
 
   it('wires onDateRemove to CreateSessionPollModalController.handleDateRemove with the current dates', function() {
