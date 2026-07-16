@@ -9,6 +9,7 @@ import PollOptionValue from '../elements/PollOptionValue.jsx';
 import PollOptionVoteInput from '../elements/PollOptionVoteInput.jsx';
 
 const DEFAULT_VOTE_STATE = { canVote: false, selectedOptionIds: [], voteStatus: 'idle' };
+const DEFAULT_CLOSE_STATE = { canClose: false };
 
 /**
  * Rendering helper for the Game Poll detail page.
@@ -40,15 +41,22 @@ export default class GamePollHelper {
    * @param {Function} [handlers.onToggleOption] - Called with an option id when its
    *   control is toggled.
    * @param {Function} [handlers.onSubmit] - Called on submitting the vote form.
+   * @param {Function} [handlers.onOpenCloseModal] - Called when the "Close Poll" button
+   *   is clicked, to open the close confirmation modal.
+   * @param {object} [closeState] - Close-related page state.
+   * @param {boolean} [closeState.canClose] - Whether the viewer may close the poll (DM
+   *   or superuser).
    * @returns {React.ReactElement} Poll detail element.
    */
-  static render(poll, voteState = DEFAULT_VOTE_STATE, handlers = {}) {
+  static render(poll, voteState = DEFAULT_VOTE_STATE, handlers = {}, closeState = DEFAULT_CLOSE_STATE) {
     const options = poll.options ?? [];
     const isVotable = poll.status === 'open' && options.length > 0;
 
     return (
       <div className="container mt-4">
-        <PageActions backHref={`#/games/${poll.game_slug}/polls`} />
+        <PageActions backHref={`#/games/${poll.game_slug}/polls`}>
+          {GamePollHelper.#renderCloseButton(poll, closeState.canClose, handlers)}
+        </PageActions>
         <h1>{poll.title}</h1>
         <p className="mt-3">
           <span className="badge bg-secondary me-2">
@@ -88,6 +96,18 @@ export default class GamePollHelper {
     return <ErrorAlert error={error} />;
   }
 
+  static #renderCloseButton(poll, canClose, handlers) {
+    if (!canClose || poll.status !== 'open') {
+      return null;
+    }
+
+    return (
+      <button type="button" className="btn btn-outline-danger mb-3" onClick={handlers.onOpenCloseModal}>
+        {Translator.t('game_poll_page.close_button')}
+      </button>
+    );
+  }
+
   static #renderOptions(options, optionType) {
     if (options.length === 0) {
       return null;
@@ -96,12 +116,21 @@ export default class GamePollHelper {
     return (
       <ul className="list-group">
         {options.map((option) => (
-          <li key={option.id} className="list-group-item">
+          <li key={option.id} className="list-group-item d-flex justify-content-between align-items-center">
             <PollOptionValue optionType={optionType} value={option.option} />
+            {GamePollHelper.#renderWinnerBadge(option)}
           </li>
         ))}
       </ul>
     );
+  }
+
+  static #renderWinnerBadge(option) {
+    if (!option.selected) {
+      return null;
+    }
+
+    return <span className="badge bg-success ms-2">{Translator.t('game_poll_page.winner_badge')}</span>;
   }
 
   static #renderVoteForm(options, poll, voteState, handlers) {

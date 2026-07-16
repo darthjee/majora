@@ -13,7 +13,9 @@ import Noop from '../../../../../utils/Noop.js';
  *   anyone else, before ever calling the poll endpoint (which would
  *   otherwise 401/403). Also resolves whether the viewer can vote (DM or
  *   player, not a pure admin) and, when they can, pre-fetches their current
- *   vote(s) for the poll to pre-populate the selection.
+ *   vote(s) for the poll to pre-populate the selection. Also resolves
+ *   whether the viewer can close the poll (DM or superuser only, narrower
+ *   than the voting rule).
  */
 export default class GamePollController extends BasePageController {
   /**
@@ -55,6 +57,8 @@ export default class GamePollController extends BasePageController {
    * @param {Function} setError - Error setter.
    * @param {PollClient|null} [pollClient] - Poll client override.
    * @param {Function} [setCanVote] - Setter for whether the viewer can vote (DM or player).
+   * @param {Function} [setCanClose] - Setter for whether the viewer can close the poll
+   *   (DM or superuser only, narrower than `setCanVote`).
    * @param {Function} [setSelectedOptionIds] - Setter for the pre-populated/current selection.
    * @param {AuthClient|null} [authClient] - Auth client override, used to resolve the
    *   current user's id before pre-fetching their vote(s).
@@ -65,6 +69,7 @@ export default class GamePollController extends BasePageController {
     setError,
     pollClient = null,
     setCanVote = Noop.noop,
+    setCanClose = Noop.noop,
     setSelectedOptionIds = Noop.noop,
     authClient = null
   ) {
@@ -74,6 +79,7 @@ export default class GamePollController extends BasePageController {
     this.setError = setError;
     this.pollClient = pollClient ?? new PollClient();
     this.setCanVote = setCanVote;
+    this.setCanClose = setCanClose;
     this.setSelectedOptionIds = setSelectedOptionIds;
     this.authClient = authClient ?? new AuthClient();
   }
@@ -113,6 +119,10 @@ export default class GamePollController extends BasePageController {
     return Boolean(access.is_dm || access.is_player);
   }
 
+  static #canClose(access) {
+    return Boolean(access.is_dm || access.is_superuser);
+  }
+
   #handleAccess(access, gameSlug, id, safeSet) {
     if (!GamePollController.#isAllowed(access)) {
       this.#redirectToGame(gameSlug);
@@ -122,6 +132,7 @@ export default class GamePollController extends BasePageController {
     const canVote = GamePollController.#canVote(access);
 
     safeSet(this.setCanVote, canVote);
+    safeSet(this.setCanClose, GamePollController.#canClose(access));
     this.#fetchPoll(gameSlug, id, safeSet);
 
     if (canVote) {

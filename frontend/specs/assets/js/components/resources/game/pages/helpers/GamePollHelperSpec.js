@@ -162,6 +162,77 @@ describe('GamePollHelper', function() {
       expect(html).not.toContain('type="radio"');
       expect(html).not.toContain('type="submit"');
     });
+
+    it('renders the close button when the viewer can close an open poll', function() {
+      const html = renderToStaticMarkup(GamePollHelper.render(
+        poll,
+        { canVote: true, selectedOptionIds: [], voteStatus: 'idle' },
+        { onToggleOption: Noop.noop, onSubmit: Noop.noop, onOpenCloseModal: Noop.noop },
+        { canClose: true },
+      ));
+
+      expect(html).toContain('Close Poll');
+    });
+
+    it('does not render the close button when the viewer cannot close the poll', function() {
+      const html = renderToStaticMarkup(GamePollHelper.render(
+        poll,
+        { canVote: true, selectedOptionIds: [], voteStatus: 'idle' },
+        { onToggleOption: Noop.noop, onSubmit: Noop.noop, onOpenCloseModal: Noop.noop },
+        { canClose: false },
+      ));
+
+      expect(html).not.toContain('Close Poll');
+    });
+
+    it('does not render the close button when the poll is not open, even if the viewer can close it', function() {
+      const html = renderToStaticMarkup(GamePollHelper.render(
+        { ...poll, status: 'closed' },
+        { canVote: true, selectedOptionIds: [], voteStatus: 'idle' },
+        { onToggleOption: Noop.noop, onSubmit: Noop.noop, onOpenCloseModal: Noop.noop },
+        { canClose: true },
+      ));
+
+      expect(html).not.toContain('Close Poll');
+    });
+
+    it('invokes onOpenCloseModal when the close button is clicked', function() {
+      const onOpenCloseModal = jasmine.createSpy('onOpenCloseModal');
+      const element = GamePollHelper.render(
+        poll,
+        { canVote: true, selectedOptionIds: [], voteStatus: 'idle' },
+        { onToggleOption: Noop.noop, onSubmit: Noop.noop, onOpenCloseModal },
+        { canClose: true },
+      );
+      const pageActions = element.props.children[0];
+      const closeButton = pageActions.props.children;
+
+      closeButton.props.onClick();
+
+      expect(onOpenCloseModal).toHaveBeenCalled();
+    });
+
+    it('marks the winning option with a winner badge once the poll is closed', function() {
+      const closedPoll = {
+        ...poll,
+        status: 'closed',
+        options: [{ id: 10, option: 'The Drunken Griffin', selected: true }, { id: 11, option: 'The Rusty Anchor' }],
+      };
+      const html = renderToStaticMarkup(GamePollHelper.render(closedPoll));
+
+      expect(html).toContain('Winner');
+    });
+
+    it('does not render a winner badge for a losing option', function() {
+      const closedPoll = {
+        ...poll,
+        status: 'closed',
+        options: [{ id: 10, option: 'The Drunken Griffin', selected: false }],
+      };
+      const html = renderToStaticMarkup(GamePollHelper.render(closedPoll));
+
+      expect(html).not.toContain('Winner');
+    });
   });
 
   describe('.renderLoading', function() {

@@ -8,13 +8,14 @@ describe('GamePollController', function() {
   let setLoading;
   let setError;
   let setCanVote;
+  let setCanClose;
   let setSelectedOptionIds;
   let pollClient;
   let authClient;
   let fakeWindow;
 
   const buildController = () => new GamePollController(
-    setPoll, setLoading, setError, pollClient, setCanVote, setSelectedOptionIds, authClient
+    setPoll, setLoading, setError, pollClient, setCanVote, setCanClose, setSelectedOptionIds, authClient
   );
 
   beforeEach(function() {
@@ -22,6 +23,7 @@ describe('GamePollController', function() {
     setLoading = jasmine.createSpy('setLoading');
     setError = jasmine.createSpy('setError');
     setCanVote = jasmine.createSpy('setCanVote');
+    setCanClose = jasmine.createSpy('setCanClose');
     setSelectedOptionIds = jasmine.createSpy('setSelectedOptionIds');
     pollClient = jasmine.createSpyObj('pollClient', ['fetchPoll', 'fetchPollVotes']);
     authClient = jasmine.createSpyObj('authClient', ['status']);
@@ -99,6 +101,68 @@ describe('GamePollController', function() {
       expect(setCanVote).toHaveBeenCalledWith(false);
       expect(authClient.status).not.toHaveBeenCalled();
       expect(pollClient.fetchPollVotes).not.toHaveBeenCalled();
+
+      cleanup();
+    });
+
+    it('marks the viewer as able to close the poll when they are a DM', async function() {
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ is_dm: true }));
+      pollClient.fetchPoll.and.returnValue(Promise.resolve({
+        ok: true, json: () => Promise.resolve({ id: 7 }),
+      }));
+
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(setCanClose).toHaveBeenCalledWith(true);
+
+      cleanup();
+    });
+
+    it('marks the viewer as able to close the poll when they are a superuser', async function() {
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({
+        is_dm: false, is_player: false, is_superuser: true, is_staff: false,
+      }));
+      pollClient.fetchPoll.and.returnValue(Promise.resolve({
+        ok: true, json: () => Promise.resolve({ id: 7 }),
+      }));
+
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(setCanClose).toHaveBeenCalledWith(true);
+
+      cleanup();
+    });
+
+    it('marks a player unable to close the poll', async function() {
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({
+        is_dm: false, is_player: true, is_superuser: false, is_staff: false,
+      }));
+      pollClient.fetchPoll.and.returnValue(Promise.resolve({
+        ok: true, json: () => Promise.resolve({ id: 7 }),
+      }));
+
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(setCanClose).toHaveBeenCalledWith(false);
+
+      cleanup();
+    });
+
+    it('marks a pure staff viewer unable to close the poll', async function() {
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({
+        is_dm: false, is_player: false, is_superuser: false, is_staff: true,
+      }));
+      pollClient.fetchPoll.and.returnValue(Promise.resolve({
+        ok: true, json: () => Promise.resolve({ id: 7 }),
+      }));
+
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(setCanClose).toHaveBeenCalledWith(false);
 
       cleanup();
     });

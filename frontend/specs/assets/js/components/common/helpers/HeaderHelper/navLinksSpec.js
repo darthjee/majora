@@ -23,8 +23,15 @@ describe('HeaderHelper', function() {
       expect(html).toContain('Treasures');
     });
 
-    it('does not render the Treasures nav link when the user is not a superuser', function() {
-      const html = render({ isSuperUser: false });
+    it('renders a Treasures nav link when the user is staff', function() {
+      const html = render({ isStaff: true });
+
+      expect(html).toContain('href="#/treasures"');
+      expect(html).toContain('Treasures');
+    });
+
+    it('does not render the Treasures nav link when the user is neither staff nor a superuser', function() {
+      const html = render({ isSuperUser: false, isStaff: false });
 
       expect(html).not.toContain('href="#/treasures"');
     });

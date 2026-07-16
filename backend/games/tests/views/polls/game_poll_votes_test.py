@@ -362,6 +362,20 @@ class TestGamePollVotesPutView(TestCase):
         response = self._put([1], token=self.player_token, poll_id=999999)
         assert response.status_code == 404
 
+    def test_put_on_non_open_poll_returns_400(self):
+        """Test that voting on a closed (non-open) poll is rejected with a 400."""
+        self.single_poll.status = Poll.STATUS_CLOSED
+        self.single_poll.save()
+
+        response = self._put([self.single_option_one.id], token=self.player_token)
+
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'detail' in data['errors']
+        assert not PollVote.objects.filter(
+            user=self.player_user, option=self.single_option_one,
+        ).exists()
+
     def test_get_not_disturbed_by_missing_body_on_put_route(self):
         """Test that the votes route still responds to GET for the same poll."""
         response = self.client.get(

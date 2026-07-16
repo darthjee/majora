@@ -46,6 +46,9 @@ def _list_votes(request, poll):
 
 def _cast_votes(request, poll):
     """Validate the payload and persist the requesting user's vote(s) for `poll`."""
+    if poll.status != Poll.STATUS_OPEN:
+        return Response({'errors': {'detail': ['Poll must be open to accept votes.']}}, status=400)
+
     serializer = PollVoteWriteSerializer(data=request.data, context={'poll': poll})
     error_response = validated_or_error(serializer)
     if error_response:
