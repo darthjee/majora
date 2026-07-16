@@ -207,7 +207,7 @@ export default class CharacterClient extends BaseClient {
    *
    * @param {string} gameSlug - Game slug the NPCs belong to.
    * @param {string|null} token - Authentication token, if any.
-   * @param {object} [params] - Query parameters (e.g. { per_page: 6 }).
+   * @param {object} [params] - Query parameters (e.g. { per_page: 5 }).
    * @returns {Promise<Response>} fetch response from the npcs/all endpoint.
    */
   fetchNpcsAll(gameSlug, token, params = {}) {

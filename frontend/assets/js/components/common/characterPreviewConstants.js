@@ -3,7 +3,7 @@
  *
  * @type {number}
  */
-export const MAX_PREVIEW_CHARACTERS = 6;
+export const MAX_PREVIEW_CHARACTERS = 5;
 
 /**
  * Maximum number of treasures shown in a character's treasure preview section.

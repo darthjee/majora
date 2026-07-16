@@ -15,8 +15,8 @@ describe('CharacterClient#fetchNpcsAll', function() {
   });
 
   it('appends query params to the URL', async function() {
-    await new CharacterClient().fetchNpcsAll('demo', 'abc123', { per_page: 6 });
-    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/all.json?per_page=6', jasmine.objectContaining({
+    await new CharacterClient().fetchNpcsAll('demo', 'abc123', { per_page: 5 });
+    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/all.json?per_page=5', jasmine.objectContaining({
       method: 'GET',
       headers: {
         Accept: 'application/json',
