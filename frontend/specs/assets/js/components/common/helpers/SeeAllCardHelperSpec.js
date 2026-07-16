@@ -8,9 +8,9 @@ describe('SeeAllCardHelper', function() {
       expect(html).toContain('bi-gem');
     });
 
-    it('renders the given text as a stretched link to href', function() {
+    it('renders the given text as the aria-label of a stretched link to href', function() {
       const html = renderToStaticMarkup(SeeAllCardHelper.render('bi-camera-fill', 'See all Photos', '#/photos'));
-      expect(html).toContain('See all Photos');
+      expect(html).toContain('aria-label="See all Photos"');
       expect(html).toContain('href="#/photos"');
       expect(html).toContain('stretched-link');
     });

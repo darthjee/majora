@@ -20,9 +20,11 @@ export default class SeeAllCardHelper {
             <i className={`bi ${icon} fs-1 text-muted`} aria-hidden="true"></i>
           </div>
           <div className="card-body">
-            <a href={href} className="stretched-link text-decoration-none text-dark">
-              {text}
-            </a>
+            <a
+              href={href}
+              className="stretched-link text-decoration-none text-dark"
+              aria-label={text}
+            ></a>
           </div>
         </div>
       </div>
