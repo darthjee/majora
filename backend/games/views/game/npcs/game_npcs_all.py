@@ -22,7 +22,9 @@ def game_npcs_all(request, game_slug):
     if error_response:
         return error_response
     npcs = game.characters.filter(npc=True)
-    npcs = _filter_characters(request, npcs, allegiance_field='allegiance', slain_field='slain')
+    npcs = _filter_characters(
+        request, npcs, allegiance_field='allegiance', slain_field='slain', hidden_field='hidden',
+    )
     response = paginated_list_response(request, npcs, CharacterFullListSerializer)
     response['X-Skip-Cache'] = 'true'
     return response

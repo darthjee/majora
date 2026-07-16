@@ -119,6 +119,13 @@ describe('HashRouteResolver', function() {
     expect(params.toString()).toBe('slain=true&name=gob&allegiance=ally');
   });
 
+  it('extracts the npc hidden filter param', function() {
+    const params = new HashRouteResolver(
+      () => '#/games/campaign/npcs?hidden=true&page=2',
+    ).getFilterParams();
+    expect(params.toString()).toBe('hidden=true');
+  });
+
   it('ignores filter params when absent from the hash', function() {
     const params = new HashRouteResolver(() => '#/games/campaign/npcs?page=2').getFilterParams();
     expect(params.toString()).toBe('');

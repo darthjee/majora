@@ -9,7 +9,8 @@ export default class CharacterEditFieldsBuilder {
    * loaded character only ever carries the plain-detail fields (no `full.json`
    * dual-load), so `public_allegiance`/`public_slain` fall back to the plain-detail
    * `allegiance`/`slain` keys, which the backend already aliases from the very same
-   * public fields for a non-editor.
+   * public fields for a non-editor. `hidden` is only ever present on a full (dm/admin)
+   * editor's `full.json` load, so it naturally defaults to `false` for a player-only editor.
    *
    * @param {object} character - Loaded character.
    * @returns {object} Seed fields for the edit form.
@@ -26,6 +27,7 @@ export default class CharacterEditFieldsBuilder {
         character.public_allegiance, character.allegiance, 'neutral',
       ),
       public_slain: CharacterEditFieldsBuilder.#fallback(character.public_slain, character.slain, false),
+      hidden: character.hidden ?? false,
       links: character.links ?? [],
     };
   }
@@ -51,6 +53,7 @@ export default class CharacterEditFieldsBuilder {
       fields.allegiance = formValues.allegiance;
       fields.public_allegiance = formValues.publicAllegiance;
       fields.public_slain = formValues.publicSlain;
+      fields.hidden = formValues.hidden;
     }
 
     return fields;

@@ -118,4 +118,47 @@ describe('ActionsOverlay', function() {
 
     expect(html).toContain('photo-grayscale');
   });
+
+  it('does not apply the photo-hidden class by default', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(ActionsOverlay, {
+        url: null,
+        alt: 'Epic Quest',
+        canEdit: true,
+        onClick: Noop.noop,
+      })
+    );
+
+    expect(html).not.toContain('photo-hidden');
+  });
+
+  it('applies the photo-hidden class when dimmed is true', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(ActionsOverlay, {
+        url: null,
+        alt: 'Epic Quest',
+        canEdit: true,
+        onClick: Noop.noop,
+        dimmed: true,
+      })
+    );
+
+    expect(html).toContain('photo-hidden');
+  });
+
+  it('applies both the grayscale and photo-hidden classes together', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(ActionsOverlay, {
+        url: null,
+        alt: 'Epic Quest',
+        canEdit: true,
+        onClick: Noop.noop,
+        grayscale: true,
+        dimmed: true,
+      })
+    );
+
+    expect(html).toContain('photo-grayscale');
+    expect(html).toContain('photo-hidden');
+  });
 });

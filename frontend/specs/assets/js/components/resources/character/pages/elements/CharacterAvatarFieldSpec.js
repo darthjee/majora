@@ -30,4 +30,18 @@ describe('CharacterAvatarField', function() {
     );
     expect(html).not.toContain('actions-overlay-button');
   });
+
+  it('does not dim the photo by default', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(CharacterAvatarField, { alt: 'Aragorn' })
+    );
+    expect(html).not.toContain('photo-hidden');
+  });
+
+  it('dims the photo when dimmed is true', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(CharacterAvatarField, { alt: 'Aragorn', dimmed: true })
+    );
+    expect(html).toContain('photo-hidden');
+  });
 });

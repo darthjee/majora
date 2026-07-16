@@ -14,6 +14,7 @@ describe('CharacterEditFieldsBuilder', function() {
         allegiance: 'ally',
         public_allegiance: 'enemy',
         public_slain: true,
+        hidden: true,
         links,
       };
 
@@ -26,11 +27,12 @@ describe('CharacterEditFieldsBuilder', function() {
         allegiance: 'ally',
         public_allegiance: 'enemy',
         public_slain: true,
+        hidden: true,
         links,
       });
     });
 
-    it('defaults missing fields to empty strings, "0" money, "neutral" allegiances, false slain, and no links', function() {
+    it('defaults missing fields to empty strings, "0" money, "neutral" allegiances, false slain/hidden, and no links', function() {
       expect(CharacterEditFieldsBuilder.fieldsFromCharacter({})).toEqual({
         name: '',
         role: '',
@@ -40,6 +42,7 @@ describe('CharacterEditFieldsBuilder', function() {
         allegiance: 'neutral',
         public_allegiance: 'neutral',
         public_slain: false,
+        hidden: false,
         links: [],
       });
     });
@@ -62,6 +65,7 @@ describe('CharacterEditFieldsBuilder', function() {
       allegiance: 'ally',
       publicAllegiance: 'enemy',
       publicSlain: true,
+      hidden: true,
       links: [{ id: 9, text: 'Wiki', url: 'https://example.com/wiki', link_type: '' }],
     };
 
@@ -78,12 +82,13 @@ describe('CharacterEditFieldsBuilder', function() {
       });
     });
 
-    it('adds allegiance, public_allegiance, and public_slain for an npc', function() {
+    it('adds allegiance, public_allegiance, public_slain, and hidden for an npc', function() {
       const fields = CharacterEditFieldsBuilder.fullEditorFields(formValues, 'npcs');
 
       expect(fields.allegiance).toBe('ally');
       expect(fields.public_allegiance).toBe('enemy');
       expect(fields.public_slain).toBe(true);
+      expect(fields.hidden).toBe(true);
     });
   });
 

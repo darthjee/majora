@@ -12,8 +12,12 @@ import CharacterAvatarFieldHelper from './helpers/CharacterAvatarFieldHelper.jsx
  * @param {string} props.alt - Alt text for the avatar image.
  * @param {boolean} [props.canEdit] - Whether the upload overlay button is shown. Defaults to true.
  * @param {Function} [props.onClick] - Handler invoked when the upload button is clicked.
+ * @param {boolean} [props.dimmed] - Whether to render the avatar with reduced opacity
+ *   (e.g. a hidden NPC).
  * @returns {React.ReactElement} Avatar field element.
  */
-export default function CharacterAvatarField({ url = null, alt, canEdit = true, onClick }) {
-  return CharacterAvatarFieldHelper.render(url, alt, canEdit, onClick);
+export default function CharacterAvatarField({
+  url = null, alt, canEdit = true, onClick, dimmed = false,
+}) {
+  return CharacterAvatarFieldHelper.render(url, alt, canEdit, onClick, dimmed);
 }

@@ -105,13 +105,75 @@ describe('NpcFiltersController', function() {
       const setStatus = jasmine.createSpy('setStatus');
       const setName = jasmine.createSpy('setName');
       const setAllegiance = jasmine.createSpy('setAllegiance');
-      const controller = new NpcFiltersController(setStatus, setName, setAllegiance);
+      const setHidden = jasmine.createSpy('setHidden');
+      const controller = new NpcFiltersController(setStatus, setName, setAllegiance, setHidden);
 
       controller.clear();
 
       expect(setStatus).toHaveBeenCalledWith('');
       expect(setName).toHaveBeenCalledWith('');
       expect(setAllegiance).toHaveBeenCalledWith('');
+      expect(setHidden).toHaveBeenCalledWith('');
+    });
+  });
+
+  describe('.hiddenToFilter', function() {
+    it('maps "true" to "hidden"', function() {
+      expect(NpcFiltersController.hiddenToFilter('true')).toBe('hidden');
+    });
+
+    it('maps "false" to "shown"', function() {
+      expect(NpcFiltersController.hiddenToFilter('false')).toBe('shown');
+    });
+
+    it('maps null to blank', function() {
+      expect(NpcFiltersController.hiddenToFilter(null)).toBe('');
+    });
+
+    it('maps any other value to blank', function() {
+      expect(NpcFiltersController.hiddenToFilter('other')).toBe('');
+    });
+  });
+
+  describe('.filterToHidden', function() {
+    it('maps "shown" to "false"', function() {
+      expect(NpcFiltersController.filterToHidden('shown')).toBe('false');
+    });
+
+    it('maps "hidden" to "true"', function() {
+      expect(NpcFiltersController.filterToHidden('hidden')).toBe('true');
+    });
+
+    it('maps blank to blank', function() {
+      expect(NpcFiltersController.filterToHidden('')).toBe('');
+    });
+  });
+
+  describe('#handleHiddenChange', function() {
+    it('sets the draft hidden filter', function() {
+      const setHidden = jasmine.createSpy('setHidden');
+      const controller = new NpcFiltersController(
+        jasmine.createSpy('setStatus'), jasmine.createSpy('setName'), jasmine.createSpy('setAllegiance'), setHidden,
+      );
+
+      controller.handleHiddenChange('hidden');
+
+      expect(setHidden).toHaveBeenCalledWith('hidden');
+    });
+  });
+
+  describe('#buildQuery with hidden', function() {
+    const controller = new NpcFiltersController(
+      jasmine.createSpy(), jasmine.createSpy(), jasmine.createSpy(), jasmine.createSpy(),
+    );
+
+    it('omits hidden when blank', function() {
+      expect(controller.buildQuery('', '', '', '')).toEqual({});
+    });
+
+    it('includes hidden when set', function() {
+      expect(controller.buildQuery('', '', '', 'shown')).toEqual({ hidden: 'false' });
+      expect(controller.buildQuery('', '', '', 'hidden')).toEqual({ hidden: 'true' });
     });
   });
 });

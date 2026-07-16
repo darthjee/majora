@@ -31,9 +31,10 @@ def _hidden_gate_response(character, request):
 
 
 def _filter_characters(
-    request, queryset, allegiance_field='public_allegiance', slain_field='public_slain'
+    request, queryset, allegiance_field='public_allegiance', slain_field='public_slain',
+    hidden_field=None,
 ):
-    """Narrow `queryset` by the optional `slain`/`name`/`allegiance` query params, if present."""
+    """Narrow `queryset` by the optional `slain`/`name`/`allegiance`/`hidden` query params."""
     slain = request.query_params.get('slain')
     if slain is not None and slain.lower() in ('true', 'false'):
         queryset = queryset.filter(**{slain_field: (slain.lower() == 'true')})
@@ -50,5 +51,10 @@ def _filter_characters(
     )
     if allegiance in allowed_allegiances:
         queryset = queryset.filter(**{allegiance_field: allegiance})
+
+    if hidden_field:
+        hidden = request.query_params.get('hidden')
+        if hidden is not None and hidden.lower() in ('true', 'false'):
+            queryset = queryset.filter(**{hidden_field: (hidden.lower() == 'true')})
 
     return queryset

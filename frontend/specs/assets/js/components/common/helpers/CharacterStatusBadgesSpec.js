@@ -174,5 +174,53 @@ describe('CharacterStatusBadges', function() {
         { icon: 'bi-emoji-smile', text: 'Known as Ally', variant: 'success' },
       ]);
     });
+
+    it('builds the Hidden item for an NPC when hidden is true', function() {
+      const character = buildCharacter({ is_pc: false, hidden: true });
+
+      expect(CharacterStatusBadges.build(character)).toEqual([
+        { icon: 'bi-eye-slash-fill', text: 'Hidden', variant: null },
+      ]);
+    });
+
+    it('omits the Hidden item when hidden is false', function() {
+      const character = buildCharacter({ is_pc: false, hidden: false });
+
+      expect(CharacterStatusBadges.build(character)).toEqual([]);
+    });
+
+    it('omits the Hidden item when hidden is missing', function() {
+      const character = buildCharacter({ is_pc: false });
+
+      expect(CharacterStatusBadges.build(character)).toEqual([]);
+    });
+
+    it('omits the Hidden item for a PC even when hidden is set', function() {
+      const character = buildCharacter({ is_pc: true, hidden: true });
+
+      expect(CharacterStatusBadges.build(character)).toEqual([]);
+    });
+  });
+
+  describe('.buildHidden', function() {
+    it('returns the Hidden item when hidden is true', function() {
+      const character = buildCharacter({ is_pc: false, hidden: true });
+
+      expect(CharacterStatusBadges.buildHidden(character)).toEqual(
+        { icon: 'bi-eye-slash-fill', text: 'Hidden', variant: null },
+      );
+    });
+
+    it('returns null when hidden is false', function() {
+      const character = buildCharacter({ is_pc: false, hidden: false });
+
+      expect(CharacterStatusBadges.buildHidden(character)).toBeNull();
+    });
+
+    it('returns null when hidden is missing', function() {
+      const character = buildCharacter({ is_pc: false });
+
+      expect(CharacterStatusBadges.buildHidden(character)).toBeNull();
+    });
   });
 });
