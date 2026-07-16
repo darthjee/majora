@@ -300,6 +300,7 @@ game_sessions_page:
 game_session_page:
   loading: Carregando sessão...
   edit: Editar
+  create_pool: Criar Enquete
   no_date: Sem data
   messages_title: Mensagens
   messages_content_label: Mensagem
@@ -319,6 +320,12 @@ game_session_edit_page:
   description_label: Descrição
   submit: Salvar alterações
   error: Falha ao salvar sessão. Tente novamente.
+session_poll_modal:
+  title: Criar Enquete
+  dates_label: Datas
+  confirm: Criar Enquete
+  cancel: Cancelar
+  error: Falha ao criar enquete. Tente novamente.
 game_polls_page:
   loading: Carregando enquetes...
   title: Enquetes
