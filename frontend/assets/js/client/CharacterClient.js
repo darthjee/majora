@@ -112,23 +112,26 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
-   * Fetches an explicit page of a character's treasures, used by the treasure
-   * exchange modal's Sell tab (local pagination, independent of the URL).
+   * Fetches an explicit page of a character's treasures, optionally filtered by
+   * name, used by the treasure exchange modal's Sell tab (local pagination,
+   * independent of the URL).
    *
    * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {string|number} characterId - Character id.
    * @param {string|null} token - Authentication token, if any.
-   * @param {{page: number, perPage: number}} [params] - Query params.
+   * @param {{page: number, perPage: number, search: string}} [params] - Query params.
+   *   `search` is a case-insensitive substring match on the treasure name.
    * @returns {Promise<Response>} fetch response from the character treasures endpoint.
    */
-  fetchTreasuresPage(characterKind, gameSlug, characterId, token, { page, perPage } = {}) {
-    const search = new URLSearchParams();
+  fetchTreasuresPage(characterKind, gameSlug, characterId, token, { page, perPage, search } = {}) {
+    const queryParams = new URLSearchParams();
 
-    if (page) search.set('page', page);
-    if (perPage) search.set('per_page', perPage);
+    if (page) queryParams.set('page', page);
+    if (perPage) queryParams.set('per_page', perPage);
+    if (search) queryParams.set('search', search);
 
-    const query = search.toString();
+    const query = queryParams.toString();
     const base = `/games/${gameSlug}/${characterKind}/${characterId}/treasures.json`;
     const skipCache = characterKind === 'npcs' ? { 'X-Skip-Cache': 'true' } : {};
 

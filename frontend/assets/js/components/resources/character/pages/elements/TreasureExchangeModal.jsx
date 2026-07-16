@@ -1,10 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import {
+  useEffect, useMemo, useRef, useState,
+} from 'react';
 import TreasureExchangeModalController from './controllers/TreasureExchangeModalController.js';
 import TreasureExchangeModalHelper from './helpers/TreasureExchangeModalHelper.jsx';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import Translator from '../../../../../i18n/Translator.js';
 
 const PER_PAGE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
 
 /**
  * Builds the partial-fulfillment notice shown above the browse list when an
@@ -34,6 +37,29 @@ export function buildPartialNotice(activeTab, requestedQuantity, acquired) {
  */
 function buildOwnedByTreasureId(ownedTreasures) {
   return ownedTreasures.reduce((map, entry) => ({ ...map, [entry.treasure_id]: entry.quantity }), {});
+}
+
+/**
+ * Builds the query params for a browse page request, forwarding the current
+ * name filter to both tabs and capping/sorting the Acquire tab (by the
+ * character's current money and always descending, per the modal's fixed
+ * sort — there is no sort-direction UI toggle).
+ *
+ * @param {string} tab - Currently active tab (`acquire` or `sell`).
+ * @param {number} page - Page number to request.
+ * @param {number} perPage - Page size.
+ * @param {object} character - Character context (`money`).
+ * @param {string} searchTerm - Current name filter.
+ * @returns {object} Query params for the matching controller fetch method.
+ */
+export function buildBrowseParams(tab, page, perPage, character, searchTerm) {
+  if (tab === 'acquire') {
+    return {
+      page, perPage, maxValue: character.money, search: searchTerm, ordering: 'desc',
+    };
+  }
+
+  return { page, perPage, search: searchTerm };
 }
 
 /**
@@ -68,20 +94,19 @@ export default function TreasureExchangeModal({
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState('');
   const [partialNotice, setPartialNotice] = useState('');
+  const [search, setSearch] = useState('');
 
   const controller = useMemo(() => new TreasureExchangeModalController(), []);
   const ownedByTreasureId = useMemo(() => buildOwnedByTreasureId(ownedTreasures), [ownedTreasures]);
+  const skipNextSearchEffect = useRef(true);
 
-  const loadPage = (tab, page) => {
+  const loadPage = (tab, page, searchTerm = search) => {
     setBrowse((prev) => ({ ...prev, loading: true, error: '' }));
     const token = AuthStorage.getToken();
+    const params = buildBrowseParams(tab, page, PER_PAGE, character, searchTerm);
     const request = tab === 'acquire'
-      ? controller.fetchAcquirePage(character.game_slug, token, {
-        page, perPage: PER_PAGE, maxValue: character.money,
-      })
-      : controller.fetchSellPage(character.game_slug, character.id, character.is_pc, token, {
-        page, perPage: PER_PAGE,
-      });
+      ? controller.fetchAcquirePage(character.game_slug, token, params)
+      : controller.fetchSellPage(character.game_slug, character.id, character.is_pc, token, params);
 
     request
       .then(({ data, pagination }) => setBrowse({
@@ -98,9 +123,30 @@ export default function TreasureExchangeModal({
     setSelected(null);
     setActionError('');
     setPartialNotice('');
-    loadPage('acquire', 1);
+    // Only arm the skip guard when clearing the search actually changes its
+    // value (and thus would otherwise re-trigger the debounce effect below):
+    // if it's already empty, that effect simply won't fire again, so nothing
+    // needs skipping (and arming it regardless would swallow the next real
+    // keystroke instead).
+    if (search !== '') {
+      skipNextSearchEffect.current = true;
+      setSearch('');
+    }
+    loadPage('acquire', 1, '');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [show]);
+
+  useEffect(() => {
+    if (skipNextSearchEffect.current) {
+      skipNextSearchEffect.current = false;
+      return undefined;
+    }
+
+    const timeoutId = setTimeout(() => loadPage(activeTab, 1, search), SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -156,7 +202,17 @@ export default function TreasureExchangeModal({
   return TreasureExchangeModalHelper.render(
     show,
     {
-      activeTab, browse, selected, quantity, submitting, actionError, partialNotice, ownedByTreasureId, gameType,
+      activeTab,
+      browse,
+      selected,
+      quantity,
+      submitting,
+      actionError,
+      partialNotice,
+      ownedByTreasureId,
+      gameType,
+      search,
+      character,
     },
     {
       onClose,
@@ -167,6 +223,7 @@ export default function TreasureExchangeModal({
       onNext: () => loadPage(activeTab, browse.page + 1),
       onQuantityChange: setQuantity,
       onConfirm: handleConfirm,
+      onSearchChange: setSearch,
     },
   );
 }

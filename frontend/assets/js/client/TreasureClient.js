@@ -82,22 +82,27 @@ export default class TreasureClient extends BaseClient {
 
   /**
    * Fetches an explicit page of a game's treasures, optionally capped to a maximum
-   * value. Used by the treasure exchange modal's Acquire tab (local pagination,
-   * independent of the URL).
+   * value, filtered by name, and sorted by value. Used by the treasure exchange
+   * modal's Acquire tab (local pagination, independent of the URL).
    *
    * @param {string} gameSlug - Game slug.
    * @param {string|null} token - Authentication token, if any.
-   * @param {{page: number, perPage: number, maxValue: number|null}} [params] - Query params.
+   * @param {{page: number, perPage: number, maxValue: number|null, search: string,
+   *   ordering: string}} [params] - Query params. `search` is a case-insensitive
+   *   substring match on the treasure name. `ordering` is `'asc'` or `'desc'`
+   *   (defaults to `'asc'` on the backend).
    * @returns {Promise<Response>} fetch response from the game treasures endpoint.
    */
-  fetchGameTreasuresPage(gameSlug, token, { page, perPage, maxValue } = {}) {
-    const search = new URLSearchParams();
+  fetchGameTreasuresPage(gameSlug, token, { page, perPage, maxValue, search, ordering } = {}) {
+    const queryParams = new URLSearchParams();
 
-    if (page) search.set('page', page);
-    if (perPage) search.set('per_page', perPage);
-    if (maxValue !== undefined && maxValue !== null) search.set('max_value', maxValue);
+    if (page) queryParams.set('page', page);
+    if (perPage) queryParams.set('per_page', perPage);
+    if (maxValue !== undefined && maxValue !== null) queryParams.set('max_value', maxValue);
+    if (search) queryParams.set('search', search);
+    if (ordering) queryParams.set('ordering', ordering);
 
-    const query = search.toString();
+    const query = queryParams.toString();
 
     return this.getJson(`/games/${gameSlug}/treasures.json${query ? `?${query}` : ''}`, token);
   }

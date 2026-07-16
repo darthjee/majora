@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import PcCharacterTreasures from '../../../../../../../assets/js/components/resources/character/pages/PcCharacterTreasures.jsx';
 import NpcCharacterTreasures from '../../../../../../../assets/js/components/resources/character/pages/NpcCharacterTreasures.jsx';
 import CharacterTreasuresHelper from '../../../../../../../assets/js/components/resources/character/pages/helpers/CharacterTreasuresHelper.jsx';
+import { applyExchangeSuccess } from '../../../../../../../assets/js/components/resources/character/pages/shared/CharacterTreasures.jsx';
 import PcCharacterTreasuresController
   from '../../../../../../../assets/js/components/resources/character/pages/controllers/PcCharacterTreasuresController.js';
 import NpcCharacterTreasuresController
@@ -55,5 +56,34 @@ KINDS.forEach(({ label, Component, Controller, kind }) => {
       expect(html).toContain('Golden Crown');
       expect(html).toContain(`href="#/games/demo/${kind}/7"`);
     });
+  });
+});
+
+describe('applyExchangeSuccess', function() {
+  it('refetches the character instead of locally patching its money', function() {
+    const controller = jasmine.createSpyObj('controller', ['refreshCharacter']);
+    const setTreasures = jasmine.createSpy('setTreasures');
+
+    applyExchangeSuccess(controller, setTreasures, {
+      treasureId: 9, treasureInfo: { name: 'Ring', value: 50 }, quantity: 3,
+    });
+
+    expect(controller.refreshCharacter).toHaveBeenCalled();
+  });
+
+  it('merges the exchanged treasure quantity into the treasures list', function() {
+    const controller = jasmine.createSpyObj('controller', ['refreshCharacter']);
+    const setTreasures = jasmine.createSpy('setTreasures');
+
+    applyExchangeSuccess(controller, setTreasures, {
+      treasureId: 9, treasureInfo: { name: 'Ring', value: 50 }, quantity: 3,
+    });
+
+    expect(setTreasures).toHaveBeenCalledWith(jasmine.any(Function));
+
+    const updater = setTreasures.calls.mostRecent().args[0];
+    expect(updater([])).toEqual([{
+      id: 9, treasure_id: 9, quantity: 3, name: 'Ring', value: 50,
+    }]);
   });
 });
