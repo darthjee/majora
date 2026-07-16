@@ -1,6 +1,8 @@
 """View for listing a poll's votes, or casting the requesting user's own vote(s)."""
 
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.db.models import Count
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny
@@ -10,7 +12,12 @@ from ...authentication import CookieTokenAuthentication
 from ...models import Game, Poll, PollVote
 from ...permissions import PollVotePermission
 from ...poll_vote_writer import MultiplePollVoteWriter, SinglePollVoteWriter
-from ...serializers import PollVoteSerializer, PollVoteWriteSerializer
+from ...serializers import (
+    PollOptionVoteCountSerializer,
+    PollVoteSerializer,
+    PollVoteUserSerializer,
+    PollVoteWriteSerializer,
+)
 from ..common import validated_or_error
 
 
@@ -38,10 +45,9 @@ def game_poll_votes(request, game_slug, poll_id):
 
 
 def _list_votes(request, poll):
-    """Serialize `poll`'s votes, optionally filtered by the `user_id` query param."""
-    queryset = _PollVoteQuerySet(poll).filter_by_user_id(request.query_params.get('user_id'))
-    serializer = PollVoteSerializer(queryset, many=True)
-    return _skip_cache_response(serializer.data)
+    """Return the votes_count/users/votes envelope, votes optionally filtered by `user_id`."""
+    votes = _PollVoteQuerySet(poll).filter_by_user_id(request.query_params.get('user_id'))
+    return _skip_cache_response(_PollVotesEnvelope(poll, votes).build())
 
 
 def _cast_votes(request, poll):
@@ -81,6 +87,33 @@ class _PollVoteQuerySet:
             except (TypeError, ValueError):
                 pass
         return queryset
+
+
+class _PollVotesEnvelope:
+    """Build the `votes_count`/`users`/`votes` envelope for the Vote List response."""
+
+    def __init__(self, poll, votes):
+        """Store the poll (for the full option tally) and the (filtered) votes queryset."""
+        self.poll = poll
+        self.votes = votes
+
+    def build(self):
+        """Return the serialized `{votes_count, users, votes}` envelope."""
+        return {
+            'votes_count': self._votes_count(),
+            'users': self._users(),
+            'votes': PollVoteSerializer(self.votes, many=True).data,
+        }
+
+    def _votes_count(self):
+        """Return every poll option's vote tally, unfiltered by any `user_id`."""
+        options = self.poll.options.annotate(count=Count('votes'))
+        return PollOptionVoteCountSerializer(options, many=True).data
+
+    def _users(self):
+        """Return the distinct users backing the (possibly filtered) votes queryset."""
+        users = User.objects.filter(poll_votes__in=self.votes).distinct()
+        return PollVoteUserSerializer(users, many=True).data
 
 
 def _skip_cache_response(data, status=200):
