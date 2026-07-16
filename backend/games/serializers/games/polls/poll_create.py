@@ -19,11 +19,12 @@ class PollCreateSerializer(serializers.ModelSerializer):
         """Metadata for the PollCreateSerializer."""
 
         model = Poll
-        fields = ['title', 'description', 'type', 'options']
+        fields = ['title', 'description', 'type', 'option_type', 'options']
         extra_kwargs = {
             'title': {'required': True, 'allow_blank': False},
             'description': {'required': False},
             'type': {'required': False},
+            'option_type': {'required': False},
         }
 
     def validate_options(self, value):

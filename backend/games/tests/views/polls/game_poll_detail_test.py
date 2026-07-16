@@ -97,16 +97,26 @@ class TestGamePollDetailView(TestCase):
         """Test that the detail payload includes options nested with their own ids."""
         response = self._get(token=self.dm_token)
         data = json.loads(response.content)
-        assert set(data.keys()) == {'id', 'title', 'description', 'type', 'status', 'options'}
+        assert set(data.keys()) == {
+            'id', 'title', 'description', 'type', 'status', 'option_type', 'options',
+        }
         assert data['id'] == self.poll.id
         assert data['title'] == 'Which tavern?'
         assert data['description'] == 'Pick one for tonight.'
         assert data['type'] == Poll.TYPE_SINGLE
         assert data['status'] == Poll.STATUS_OPEN
+        assert data['option_type'] == Poll.OPTION_TYPE_TEXT
         assert data['options'] == [
             {'id': self.option_one.id, 'option': 'The Drunken Griffin'},
             {'id': self.option_two.id, 'option': 'The Rusty Anchor'},
         ]
+
+    def test_returns_option_type_when_set_to_date(self):
+        """Test that a poll's option_type of date is reflected in the detail response."""
+        poll = PollFactory(game=self.game, option_type=Poll.OPTION_TYPE_DATE)
+        response = self._get(token=self.dm_token, poll_id=poll.id)
+        data = json.loads(response.content)
+        assert data['option_type'] == Poll.OPTION_TYPE_DATE
 
     def test_response_includes_skip_cache_header(self):
         """Test that the response includes the X-Skip-Cache header."""
