@@ -24,11 +24,22 @@ class Poll(models.Model):
         (STATUS_CLOSED, 'Closed'),
     ]
 
+    OPTION_TYPE_TEXT = 'text'
+    OPTION_TYPE_DATE = 'date'
+
+    OPTION_TYPE_CHOICES = [
+        (OPTION_TYPE_TEXT, 'Text'),
+        (OPTION_TYPE_DATE, 'Date'),
+    ]
+
     game = models.ForeignKey('games.Game', on_delete=models.CASCADE, related_name='polls')
     title = models.CharField(max_length=200, blank=True, default='')
     description = models.TextField(blank=True, default='', max_length=5000)
     type = models.CharField(max_length=16, choices=TYPE_CHOICES, default=TYPE_SINGLE)
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_INACTIVE)
+    option_type = models.CharField(
+        max_length=16, choices=OPTION_TYPE_CHOICES, default=OPTION_TYPE_TEXT,
+    )
 
     class Meta:
         """Metadata for the Poll model."""
