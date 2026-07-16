@@ -13,10 +13,11 @@ from games.serializers.characters.character_link_write import (
 class NpcPlayerUpdateSerializer(serializers.ModelSerializer):
     """Validate the narrow player-facing NPC payload, writing only its curated field set.
 
-    Deliberately narrower than `CharacterUpdateSerializer`: this only ever maps `public_description`
-    directly, the wire-level `allegiance` key onto `Character.public_allegiance`, the wire-level
-    `slain` key onto `Character.public_slain`, and `links` — `name`, `role`, `money`, and
-    `private_description` (and the real `allegiance`/`slain`) stay `full.json`-only.
+    Deliberately narrower than `CharacterUpdateSerializer`: this only ever maps `name`, `role`,
+    `public_description` directly, the wire-level `allegiance` key onto
+    `Character.public_allegiance`, the wire-level `slain` key onto `Character.public_slain`, and
+    `links` — `money` and `private_description` (and the real `allegiance`/`slain`) stay
+    `full.json`-only.
     """
 
     allegiance = serializers.ChoiceField(
@@ -29,8 +30,12 @@ class NpcPlayerUpdateSerializer(serializers.ModelSerializer):
         """Metadata for the NpcPlayerUpdateSerializer."""
 
         model = Character
-        fields = ['public_description', 'allegiance', 'slain', 'links']
-        extra_kwargs = {'public_description': {'required': False}}
+        fields = ['name', 'role', 'public_description', 'allegiance', 'slain', 'links']
+        extra_kwargs = {
+            'name': {'required': False},
+            'role': {'required': False},
+            'public_description': {'required': False},
+        }
 
     def validate_links(self, value):
         """Reject a `links` payload with more entries than `CharacterLinksSync` should batch."""

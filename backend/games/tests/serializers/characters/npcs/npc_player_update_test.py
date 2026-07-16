@@ -63,6 +63,8 @@ class TestNpcPlayerUpdateSerializer(TestCase):
         serializer = NpcPlayerUpdateSerializer(
             self.npc,
             data={
+                'name': 'Saruman',
+                'role': 'Wizard',
                 'public_description': 'A wandering wizard.',
                 'allegiance': 'ally',
                 'slain': True,
@@ -72,28 +74,30 @@ class TestNpcPlayerUpdateSerializer(TestCase):
         )
         assert serializer.is_valid()
         updated = serializer.save()
+        assert updated.name == 'Saruman'
+        assert updated.role == 'Wizard'
         assert updated.public_description == 'A wandering wizard.'
         assert updated.public_allegiance == 'ally'
         assert updated.public_slain is True
         assert updated.links.filter(url='http://example.com/wiki').exists()
 
-    def test_name_is_not_writable(self):
-        """Test that `name` is silently ignored, never written to the model."""
+    def test_name_is_writable(self):
+        """Test that a `name`-only payload is applied."""
         serializer = NpcPlayerUpdateSerializer(
             self.npc, data={'name': 'Saruman'}, partial=True
         )
         assert serializer.is_valid()
         updated = serializer.save()
-        assert updated.name == 'Gandalf'
+        assert updated.name == 'Saruman'
 
-    def test_role_is_not_writable(self):
-        """Test that `role` is silently ignored, never written to the model."""
+    def test_role_is_writable(self):
+        """Test that a `role`-only payload is applied."""
         serializer = NpcPlayerUpdateSerializer(
             self.npc, data={'role': 'Wizard'}, partial=True
         )
         assert serializer.is_valid()
         updated = serializer.save()
-        assert updated.role is None
+        assert updated.role == 'Wizard'
 
     def test_money_is_not_writable(self):
         """Test that `money` is silently ignored, never written to the model."""
