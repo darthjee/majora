@@ -1,20 +1,11 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GamePollHelper
-  from '../../../../../../../../assets/js/components/resources/game/pages/helpers/GamePollHelper.jsx';
-import Noop from '../../../../../../../../assets/js/utils/Noop.js';
+  from '../../../../../../../../../assets/js/components/resources/game/pages/helpers/GamePollHelper.jsx';
+import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
+import { poll } from './support.js';
 
 describe('GamePollHelper', function() {
   describe('.render', function() {
-    const poll = {
-      id: 1,
-      title: 'Which tavern?',
-      description: 'Pick one for tonight.',
-      type: 'single',
-      status: 'open',
-      game_slug: 'demo',
-      options: [{ id: 10, option: 'The Drunken Griffin' }, { id: 11, option: 'The Rusty Anchor' }],
-    };
-
     it('renders the poll title, description, type, and status', function() {
       const html = renderToStaticMarkup(GamePollHelper.render(poll));
 
@@ -232,20 +223,6 @@ describe('GamePollHelper', function() {
       const html = renderToStaticMarkup(GamePollHelper.render(closedPoll));
 
       expect(html).not.toContain('Winner');
-    });
-  });
-
-  describe('.renderLoading', function() {
-    it('renders the loading message', function() {
-      const html = renderToStaticMarkup(GamePollHelper.renderLoading());
-      expect(html).toContain('Loading poll...');
-    });
-  });
-
-  describe('.renderError', function() {
-    it('renders the error alert', function() {
-      const html = renderToStaticMarkup(GamePollHelper.renderError('Unable to load poll.'));
-      expect(html).toContain('Unable to load poll.');
     });
   });
 });

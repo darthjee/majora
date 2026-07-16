@@ -66,7 +66,11 @@ export default class PollClient extends BaseClient {
    * @param {number|string} pollId - Poll id.
    * @param {string|null} token - Authentication token, if any.
    * @param {URLSearchParams} [params] - Query params, e.g. `user_id` to filter to one voter.
-   * @returns {Promise<Response>} fetch response from the poll votes endpoint.
+   * @returns {Promise<Response>} fetch response from the poll votes endpoint, whose JSON body
+   *   resolves to `{votes_count: [{option, count}], users: [{id, name, avatar_url}],
+   *   votes: [{id, option, user_id}]}`. `votes_count` always lists every poll option
+   *   (including zero-vote ones), regardless of `params`; `users` and `votes` are scoped by
+   *   `params` (e.g. `user_id`) the same way as before.
    */
   fetchPollVotes(gameSlug, pollId, token, params = new URLSearchParams()) {
     const query = params.toString();
@@ -86,7 +90,9 @@ export default class PollClient extends BaseClient {
    * @param {number|string} pollId - Poll id.
    * @param {string|null} token - Authentication token, if any.
    * @param {number[]} optionIds - Full set of option ids being cast for this poll.
-   * @returns {Promise<Response>} fetch response from the poll votes endpoint.
+   * @returns {Promise<Response>} fetch response from the poll votes endpoint, whose JSON body
+   *   resolves to a flat array of `{id, option, user_id}` vote objects (not wrapped in the
+   *   envelope used by `fetchPollVotes`).
    */
   castPollVotes(gameSlug, pollId, token, optionIds) {
     return this.putJson(
