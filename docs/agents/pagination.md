@@ -13,7 +13,7 @@ Pagination is applied to collection endpoints that can return large result sets.
 `backend/games/settings.py` — `Settings.pagination_size()` returns the default page size:
 
 ```python
-Settings.pagination_size()  # reads MAJORA_PAGINATION_SIZE env var, defaults to 16
+Settings.pagination_size()  # reads MAJORA_PAGINATION_SIZE env var, defaults to 24
 ```
 
 ### Paginator

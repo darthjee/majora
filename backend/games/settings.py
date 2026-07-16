@@ -10,9 +10,9 @@ class Settings:
     def pagination_size():
         """Return the default number of items per page."""
         try:
-            return int(os.environ.get('MAJORA_PAGINATION_SIZE', 16))
+            return int(os.environ.get('MAJORA_PAGINATION_SIZE', 24))
         except (ValueError, TypeError):
-            return 16
+            return 24
 
     @staticmethod
     def password_reset_token_expiration_minutes():
