@@ -72,7 +72,7 @@ class TestStatisticsSessionMiddleware:
         assert session.ip == '2.2.2.2'
 
     def test_backfills_user_on_anonymous_session_when_request_is_authenticated(self, client):
-        """Test that an authenticated request attaches its user to an anonymous session."""
+        """Test that an authenticated request rotates an anonymous session to a new one."""
         user = UserFactory(username='alice')
         token = Token.objects.create(user=user)
         session = Session.objects.create(ip='1.2.3.4')
@@ -84,10 +84,15 @@ class TestStatisticsSessionMiddleware:
             HTTP_AUTHORIZATION=f'Token {token.key}',
         )
 
+        assert Session.objects.count() == 2
         post_cookie = response.cookies[cookies.COOKIE_NAME].value
-        assert cookies.unsign(post_cookie) == session.token
+        new_token = cookies.unsign(post_cookie)
+        assert new_token != session.token
+        new_session = Session.objects.get(token=new_token)
+        assert new_session.user_id == user.id
+        assert new_session.ip == '1.2.3.4'
         session.refresh_from_db()
-        assert session.user_id == user.id
+        assert session.user_id is None
 
     def test_leaves_session_untouched_when_already_tied_to_a_different_user(self, client):
         """Test that a session already tied to a user is not reattached/rotated on later hits."""

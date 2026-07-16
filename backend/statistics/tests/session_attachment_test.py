@@ -55,3 +55,29 @@ class TestAttachUser:
         assert result.id != session.id
         assert result.user_id == self.user.id
         assert Session.objects.count() == 2
+
+    def test_always_rotate_creates_new_session_even_when_anonymous(self):
+        """Test that `always_rotate=True` rotates even when the session had no user yet."""
+        session = Session.objects.create(ip='1.2.3.4')
+
+        result = attach_user(session, self.user, always_rotate=True)
+
+        assert result.id != session.id
+        assert result.user_id == self.user.id
+        assert result.ip == session.ip
+        session.refresh_from_db()
+        assert session.user_id is None
+
+    def test_rotates_when_in_place_update_loses_a_race(self):
+        """Test that a concurrently-claimed row falls through to rotation instead of failing."""
+        session = Session.objects.create(ip='1.2.3.4')
+        other_user = UserFactory(username='carol')
+        # Simulate another request claiming this row between our read and write.
+        Session.objects.filter(pk=session.pk).update(user=other_user)
+
+        result = attach_user(session, self.user)
+
+        assert result.id != session.id
+        assert result.user_id == self.user.id
+        session.refresh_from_db()
+        assert session.user_id == other_user.id

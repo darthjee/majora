@@ -53,12 +53,17 @@ class StatisticsSessionMiddleware:
         setter writes the resolved value back onto the underlying `HttpRequest`. So by the
         time `self.get_response(request)` has returned, `request.user` here reflects the
         real authenticated user, even though it was unresolved (anonymous) before dispatch.
+
+        Unlike the explicit `/login` flow, this generic backfill always rotates to a
+        brand-new `Session` row rather than attaching in place, so an anonymous session
+        lingering on a shared device is never silently claimed by whichever authenticated
+        request happens to hit it first.
         """
         session = request.statistics_session
         if session.user_id is not None or not request.user.is_authenticated:
             return
 
-        request.statistics_session = attach_user(session, request.user)
+        request.statistics_session = attach_user(session, request.user, always_rotate=True)
 
     def _session_from_cookie(self, request):
         """Return the `Session` referenced by the request's cookie, or `None` if invalid."""
