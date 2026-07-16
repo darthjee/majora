@@ -27,18 +27,25 @@ factory-boy = "^3.3"
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "majora_project.settings_test"
 pythonpath = ["."]
-testpaths = ["games/tests", "versioning/tests"]
+testpaths = ["games/tests", "versioning/tests", "statistics/tests"]
 python_files = ["*_test.py"]
 
 [tool.coverage.run]
-source = ["games", "versioning"]
+source = ["games", "versioning", "statistics"]
 omit = ["*/migrations/*", "*/tests/*"]
 
 [tool.coverage.report]
 omit = ["*/migrations/*", "*/tests/*"]
 
 [tool.bandit]
-exclude_dirs = ["games/tests", "backend/games/tests", "versioning/tests", "backend/versioning/tests"]
+exclude_dirs = [
+    "games/tests",
+    "backend/games/tests",
+    "versioning/tests",
+    "backend/versioning/tests",
+    "statistics/tests",
+    "backend/statistics/tests",
+]
 
 [tool.ruff]
 line-length = 100
@@ -46,6 +53,9 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "D211", "D106"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["games", "versioning", "statistics", "majora_project"]
 
 [build-system]
 requires = ["poetry-core"]
