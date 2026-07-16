@@ -77,6 +77,62 @@ describe('CoinBreakdown', function() {
     });
   });
 
+  describe('.buildDense', function() {
+    it('throws when the cascade threshold is not a multiple of 10', function() {
+      const breakdown = new CoinBreakdown({ cascadeThreshold: 29 });
+
+      expect(() => breakdown.buildDense(50)).toThrowError(
+        'Cascade threshold must be a multiple of 10, got 29'
+      );
+    });
+
+    it('returns every denomination entry, including zero-quantity ones, for 0', function() {
+      expect(new CoinBreakdown().buildDense(0)).toEqual([
+        { key: 'cp', quantity: 0 },
+        { key: 'sp', quantity: 0 },
+        { key: 'gp', quantity: 0 },
+        { key: 'pp', quantity: 0 },
+      ]);
+    });
+
+    it('returns every denomination entry when money is not provided', function() {
+      expect(new CoinBreakdown().buildDense()).toEqual([
+        { key: 'cp', quantity: 0 },
+        { key: 'sp', quantity: 0 },
+        { key: 'gp', quantity: 0 },
+        { key: 'pp', quantity: 0 },
+      ]);
+    });
+
+    it('keeps zero-quantity higher denominations for 1', function() {
+      expect(new CoinBreakdown().buildDense(1)).toEqual([
+        { key: 'cp', quantity: 1 },
+        { key: 'sp', quantity: 0 },
+        { key: 'gp', quantity: 0 },
+        { key: 'pp', quantity: 0 },
+      ]);
+    });
+
+    it('cascades the same way as .build for a mixed remainder of 332', function() {
+      expect(new CoinBreakdown().buildDense(332)).toEqual([
+        { key: 'cp', quantity: 22 },
+        { key: 'sp', quantity: 21 },
+        { key: 'gp', quantity: 1 },
+        { key: 'pp', quantity: 0 },
+      ]);
+    });
+
+    it('overflows into gems for 32220, keeping the gems entry non-zero', function() {
+      expect(new CoinBreakdown().buildDense(32220)).toEqual([
+        { key: 'cp', quantity: 20 },
+        { key: 'sp', quantity: 20 },
+        { key: 'gp', quantity: 20 },
+        { key: 'pp', quantity: 20 },
+        { key: 'gems', quantity: 100 },
+      ]);
+    });
+  });
+
   describe('with a restricted denomination subset', function() {
     it('absorbs all remaining value into the last denomination', function() {
       const breakdown = new CoinBreakdown({ denominations: ['cp', 'sp', 'gp'], cascadeThreshold: 10 });
@@ -92,6 +148,16 @@ describe('CoinBreakdown', function() {
       const breakdown = new CoinBreakdown({ denominations: ['cp', 'sp', 'gp'], cascadeThreshold: 10 });
 
       expect(breakdown.build(100000)).toEqual([{ key: 'gp', quantity: 1000 }]);
+    });
+
+    it('keeps zero-quantity entries for buildDense when money is 0', function() {
+      const breakdown = new CoinBreakdown({ denominations: ['cp', 'sp', 'gp'], cascadeThreshold: 10 });
+
+      expect(breakdown.buildDense(0)).toEqual([
+        { key: 'cp', quantity: 0 },
+        { key: 'sp', quantity: 0 },
+        { key: 'gp', quantity: 0 },
+      ]);
     });
 
     it('returns an empty array for 0', function() {

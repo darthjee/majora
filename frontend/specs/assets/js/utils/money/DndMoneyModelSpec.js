@@ -79,6 +79,47 @@ describe('DndMoneyModel', function() {
     });
   });
 
+  describe('.transformDense', function() {
+    it('throws for an unrecognized context', function() {
+      expect(() => DndMoneyModel.transformDense(100, { context: 'unknown' }))
+        .toThrowError('Unknown dnd money context: unknown');
+    });
+
+    it('throws when no context is given', function() {
+      expect(() => DndMoneyModel.transformDense(100))
+        .toThrowError('Unknown dnd money context: undefined');
+    });
+
+    describe('with the "character" context', function() {
+      it('returns all four denomination entries, including zeros, for 0', function() {
+        expect(DndMoneyModel.transformDense(0, { context: 'character' })).toEqual([
+          { key: 'cp', quantity: 0 },
+          { key: 'sp', quantity: 0 },
+          { key: 'gp', quantity: 0 },
+          { key: 'pp', quantity: 0 },
+        ]);
+      });
+
+      it('cascades copper into silver and gold, keeping platinum at 0, for 332', function() {
+        expect(DndMoneyModel.transformDense(332, { context: 'character' })).toEqual([
+          { key: 'cp', quantity: 22 },
+          { key: 'sp', quantity: 21 },
+          { key: 'gp', quantity: 1 },
+          { key: 'pp', quantity: 0 },
+        ]);
+      });
+
+      it('lets platinum absorb all remaining value instead of overflowing into gems', function() {
+        expect(DndMoneyModel.transformDense(32221, { context: 'character' })).toEqual([
+          { key: 'cp', quantity: 21 },
+          { key: 'sp', quantity: 20 },
+          { key: 'gp', quantity: 20 },
+          { key: 'pp', quantity: 30 },
+        ]);
+      });
+    });
+  });
+
   describe('.pack', function() {
     it('throws for an unrecognized context', function() {
       expect(() => DndMoneyModel.pack({}, { context: 'unknown' }))

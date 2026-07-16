@@ -69,13 +69,15 @@ export default class CoinBreakdown {
   }
 
   /**
-   * Build the coin denomination breakdown for a raw copper total.
+   * Build the full cascading denomination breakdown for a raw copper total,
+   * including zero-quantity entries. Shared by `build` (which filters out
+   * zero-quantity entries) and `buildDense` (which keeps them).
    *
-   * @param {number} [money] - Total money, expressed in copper pieces.
-   * @returns {{key: string, quantity: number}[]} Non-zero denomination
-   *   entries in display order, lowest to highest denomination.
+   * @param {number} money - Total money, expressed in copper pieces.
+   * @returns {{key: string, quantity: number}[]} All denomination entries in
+   *   display order, lowest to highest denomination.
    */
-  build(money = 0) {
+  #buildEntries(money) {
     const lastIndex = this.denominations.length - 1;
     let remaining = money;
     const entries = this.denominations.map((key, index) => {
@@ -97,6 +99,31 @@ export default class CoinBreakdown {
       entries.push({ key: 'gems', quantity: remaining * GEMS_MULTIPLIER });
     }
 
-    return entries.filter((entry) => entry.quantity !== 0);
+    return entries;
+  }
+
+  /**
+   * Build the coin denomination breakdown for a raw copper total.
+   *
+   * @param {number} [money] - Total money, expressed in copper pieces.
+   * @returns {{key: string, quantity: number}[]} Non-zero denomination
+   *   entries in display order, lowest to highest denomination.
+   */
+  build(money = 0) {
+    return this.#buildEntries(money).filter((entry) => entry.quantity !== 0);
+  }
+
+  /**
+   * Build the coin denomination breakdown for a raw copper total, keeping
+   * zero-quantity entries (e.g. for a display that always shows every
+   * denomination, such as the character money coin boxes).
+   *
+   * @param {number} [money] - Total money, expressed in copper pieces.
+   * @returns {{key: string, quantity: number}[]} All denomination entries in
+   *   display order, lowest to highest denomination, including zero-quantity
+   *   ones.
+   */
+  buildDense(money = 0) {
+    return this.#buildEntries(money);
   }
 }
