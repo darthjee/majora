@@ -3,33 +3,51 @@ import CharacterMoneyHelper from '../../../../../../../../../assets/js/component
 
 describe('CharacterMoneyHelper', function() {
   describe('.render', function() {
-    it('renders each non-zero denomination joined with a pipe', function() {
+    it('renders all four coin boxes, in cp/sp/gp/pp order, for a mixed remainder', function() {
       const html = renderToStaticMarkup(CharacterMoneyHelper.render(332, 'dnd'));
-      expect(html).toContain('22 CP | 21 SP | 1 GP');
+      const cpIndex = html.indexOf('coin-box-cp');
+      const spIndex = html.indexOf('coin-box-sp');
+      const gpIndex = html.indexOf('coin-box-gp');
+      const ppIndex = html.indexOf('coin-box-pp');
+
+      expect(html).toContain('22');
+      expect(html).toContain('21');
+      expect(html).toContain('>1<');
+      expect(html).toContain('>0<');
+      expect(cpIndex).toBeLessThan(spIndex);
+      expect(spIndex).toBeLessThan(gpIndex);
+      expect(gpIndex).toBeLessThan(ppIndex);
     });
 
-    it('renders platinum entries', function() {
+    it('shows 0 for platinum when there is no platinum remainder', function() {
       const html = renderToStaticMarkup(CharacterMoneyHelper.render(30, 'dnd'));
-      expect(html).toContain('20 CP | 1 SP');
+      expect(html).toContain('coin-box-pp');
+      expect(html).toContain('>0<');
     });
 
     it('lets platinum absorb all remaining value instead of a gems entry', function() {
       const html = renderToStaticMarkup(CharacterMoneyHelper.render(32221, 'dnd'));
-      expect(html).toContain('21 CP | 20 SP | 20 GP | 30 PP');
+      expect(html).toContain('coin-box-pp');
+      expect(html).toContain('30');
+      expect(html).not.toContain('gems');
     });
 
     it('absorbs the remainder into platinum for 42219', function() {
       const html = renderToStaticMarkup(CharacterMoneyHelper.render(42219, 'dnd'));
-      expect(html).toContain('29 CP | 29 SP | 29 GP | 39 PP');
+      expect(html).toContain('39');
     });
 
     it('absorbs the remainder into platinum for 33219', function() {
       const html = renderToStaticMarkup(CharacterMoneyHelper.render(33219, 'dnd'));
-      expect(html).toContain('29 CP | 29 SP | 29 GP | 30 PP');
+      expect(html).toContain('30');
     });
 
-    it('returns null when money is 0', function() {
-      expect(CharacterMoneyHelper.render(0, 'dnd')).toBeNull();
+    it('renders all four coin boxes at 0 when money is 0', function() {
+      const html = renderToStaticMarkup(CharacterMoneyHelper.render(0, 'dnd'));
+      expect(html).toContain('coin-box-cp');
+      expect(html).toContain('coin-box-sp');
+      expect(html).toContain('coin-box-gp');
+      expect(html).toContain('coin-box-pp');
     });
 
     it('renders a deadlands cents/dollars breakdown', function() {

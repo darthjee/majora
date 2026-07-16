@@ -65,6 +65,22 @@ export default class DndMoneyModel {
   }
 
   /**
+   * Transform a raw copper-piece total into a dense (zero-inclusive) coin
+   * denomination breakdown for the given context, keeping every
+   * denomination entry even when its quantity is 0.
+   *
+   * @param {number} value - Total value, expressed in copper pieces.
+   * @param {object} options - Transform options.
+   * @param {string} options.context - Currency context (only `character` is supported).
+   * @returns {{key: string, quantity: number}[]} All denomination entries in
+   *   display order, lowest to highest denomination, including zero-quantity
+   *   ones.
+   */
+  static transformDense(value, { context } = {}) {
+    return new CoinBreakdown(DndMoneyModel.#resolveConfig(context)).buildDense(value);
+  }
+
+  /**
    * Pack a coin denomination breakdown back into a raw copper-piece total
    * for the given context.
    *

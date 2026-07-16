@@ -12,17 +12,20 @@ describe('CharacterHelper', function() {
       expect(renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'))).toContain('Ranger');
     });
 
-    it('renders the character money breakdown', function() {
+    it('renders the character money breakdown as coin boxes', function() {
       const c = { ...character, money: 310 };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
-      expect(html).toContain('20 CP');
-      expect(html).toContain('29 SP');
+      expect(html).toContain('coin-box-cp');
+      expect(html).toContain('coin-box-sp');
+      expect(html).toContain('20');
+      expect(html).toContain('29');
     });
 
-    it('does not render a money line when money is 0', function() {
+    it('still renders all four coin boxes when money is 0', function() {
       const c = { ...character, money: 0 };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
-      expect(html).not.toContain('character-money');
+      expect(html).toContain('coin-box-cp');
+      expect(html).toContain('coin-box-pp');
     });
 
     it('renders a cents/dollars money breakdown when game_type is deadlands', function() {

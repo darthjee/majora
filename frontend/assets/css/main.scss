@@ -150,3 +150,62 @@ body {
   background-color: #d4edda;
   border-radius: 4px;
 }
+
+.coin-icon::before {
+  content: "";
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-image: url("../images/icons/coins.svg");
+  -webkit-mask-image: url("../images/icons/coins.svg");
+}
+
+.character-money-coins {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.coin-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.coin-box .coin-icon {
+  font-size: 1.1rem;
+}
+
+.coin-box-abbreviation {
+  min-width: 2ch;
+}
+
+.coin-box-cp {
+  color: #b5651d;
+}
+
+.coin-box-sp {
+  color: #6e7076;
+}
+
+.coin-box-gp {
+  color: #b8860b;
+}
+
+.coin-box-pp {
+  color: #45414a;
+  border: none;
+}

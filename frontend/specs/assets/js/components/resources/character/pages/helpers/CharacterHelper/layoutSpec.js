@@ -16,7 +16,7 @@ describe('CharacterHelper', function() {
       const rightColStart = html.indexOf('class="col-md-8"');
       const nameIndex = html.indexOf('Aragorn');
       const linkIndex = html.indexOf('href="https://example.com/wiki"');
-      const moneyIndex = html.indexOf('20 CP');
+      const moneyIndex = html.indexOf('coin-box-cp');
       const roleIndex = html.indexOf('Ranger');
 
       expect(leftColStart).toBeGreaterThan(-1);
