@@ -3,7 +3,9 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import GamePoll from '../../../../../../../assets/js/components/resources/game/pages/GamePoll.jsx';
 import GamePollHelper from '../../../../../../../assets/js/components/resources/game/pages/helpers/GamePollHelper.jsx';
 import GamePollController from '../../../../../../../assets/js/components/resources/game/pages/controllers/GamePollController.js';
-import { stubBuildEffect, stubRenderLoading } from '../../../../../../support/controllerStubs.js';
+import {
+  stubBuildEffect, stubRenderLoading, captureConstructorFields,
+} from '../../../../../../support/controllerStubs.js';
 
 describe('GamePoll', function() {
   let originalWindow;
@@ -33,5 +35,25 @@ describe('GamePoll', function() {
     const html = renderToStaticMarkup(GamePollHelper.render(poll));
 
     expect(html).toContain('Which tavern?');
+  });
+
+  describe('wiring into GamePollController', function() {
+    const fields = ['setCanVote', 'setCanClose', 'setSelectedOptionIds'];
+    let capture;
+
+    afterEach(function() {
+      capture.restore();
+    });
+
+    it('threads real React state setters into the matching constructor slots', function() {
+      stubBuildEffect(GamePollController);
+      capture = captureConstructorFields(GamePollController, fields);
+
+      renderToStaticMarkup(React.createElement(GamePoll));
+
+      expect(typeof capture.spies.setCanVote).toBe('function');
+      expect(typeof capture.spies.setCanClose).toBe('function');
+      expect(typeof capture.spies.setSelectedOptionIds).toBe('function');
+    });
   });
 });

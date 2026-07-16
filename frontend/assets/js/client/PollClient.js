@@ -96,4 +96,24 @@ export default class PollClient extends BaseClient {
       { 'X-Skip-Cache': 'true' }
     );
   }
+
+  /**
+   * Closes a poll, marking it `closed` and recording its winning option.
+   * Always sends `X-Skip-Cache: true`, mirroring `fetchPollVotes`.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {number|string} pollId - Poll id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {number|null} [optionId] - Explicit winning option id (override); when omitted or
+   *   `null`, the server auto-picks the winner (highest vote count, first by id on a tie).
+   * @returns {Promise<Response>} fetch response from the poll close endpoint.
+   */
+  closePoll(gameSlug, pollId, token, optionId = null) {
+    return this.patchJson(
+      `/games/${gameSlug}/polls/${pollId}/close.json`,
+      token,
+      optionId !== null ? { option_id: optionId } : {},
+      { 'X-Skip-Cache': 'true' }
+    );
+  }
 }
