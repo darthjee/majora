@@ -16,12 +16,14 @@ describe('CharacterDescriptionHelper', function() {
       expect(html).toContain('Line one.\nLine two.');
     });
 
-    it('returns null when description is absent', function() {
-      expect(CharacterDescriptionHelper.render()).toBeNull();
+    it('renders nothing when description is absent', function() {
+      const html = renderToStaticMarkup(CharacterDescriptionHelper.render());
+      expect(html).toBe('');
     });
 
-    it('returns null when description is empty', function() {
-      expect(CharacterDescriptionHelper.render('')).toBeNull();
+    it('renders nothing when description is empty', function() {
+      const html = renderToStaticMarkup(CharacterDescriptionHelper.render(''));
+      expect(html).toBe('');
     });
   });
 });

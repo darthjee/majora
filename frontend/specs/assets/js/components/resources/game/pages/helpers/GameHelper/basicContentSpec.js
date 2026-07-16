@@ -12,6 +12,11 @@ describe('GameHelper', function() {
       expect(renderToStaticMarkup(GameHelper.render(game))).toContain('A heroic adventure.');
     });
 
+    it('renders the description inside the shared bordered description box', function() {
+      const html = renderToStaticMarkup(GameHelper.render(game));
+      expect(html).toContain('border');
+    });
+
     it('renders the description with the text-pre-wrap class to preserve line breaks', function() {
       const gameWithMultilineDesc = { ...game, description: 'Line one.\nLine two.' };
       const html = renderToStaticMarkup(GameHelper.render(gameWithMultilineDesc));
@@ -19,7 +24,7 @@ describe('GameHelper', function() {
       expect(html).toContain('Line one.\nLine two.');
     });
 
-    it('does not render description paragraph when description is empty', function() {
+    it('does not render the description box when description is empty', function() {
       const gameNoDesc = { ...game, description: '' };
       const html = renderToStaticMarkup(GameHelper.render(gameNoDesc));
       expect(html).not.toContain('text-pre-wrap');

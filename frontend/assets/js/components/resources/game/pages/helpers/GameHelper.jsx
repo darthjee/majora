@@ -1,5 +1,5 @@
-import React from 'react';
 import ActionsOverlay from '../../../../common/ActionsOverlay.jsx';
+import DescriptionBox from '../../../../common/DescriptionBox.jsx';
 import EditButton from '../../../../common/EditButton.jsx';
 import PageActions from '../../../../common/PageActions.jsx';
 import ConditionalComponent from '../../../../common/ConditionalComponent.jsx';
@@ -62,9 +62,7 @@ export default class GameHelper {
             <h1>
               {game.name}
             </h1>
-            {game.description && (
-              <p className="mt-3 text-pre-wrap">{game.description}</p>
-            )}
+            <DescriptionBox description={game.description} />
             <LinkList links={game.links} />
           </div>
         </div>
