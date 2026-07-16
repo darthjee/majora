@@ -15,7 +15,7 @@ independently.
 | List all by game, including hidden (`GET /games/<slug>/treasures/all.json`) | **GameEdit** — same unfiltered union, without the `hidden=True` exclusion. Always sets `X-Skip-Cache: true` (stricter than `npcs/all.json`, which relies on cache invalidation instead) |
 | Create by game (`POST /games/<slug>/treasures.json`) | **GameEdit** — `game` is set server-side from the resolved game and never accepted from the request body |
 | Detail by game (`GET /games/<slug>/treasures/<int:treasure_id>.json`) | **AllowAny**, unless `hidden=True` — 404 if the treasure's `game` does not match the resolved game (including a global treasure id, or one exclusive to a different game), **and** 404 if the treasure is hidden and the requester cannot edit the game. A hidden treasure's detail is only visible to that game's GameMaster or a superuser; sets `X-Skip-Cache: true` whenever the treasure is hidden |
-| Update by game (`PATCH /games/<slug>/treasures/<int:treasure_id>.json`) | **GameEdit** — same 404 rule as the detail endpoint; a `PATCH` by a non-editor on a hidden treasure also 404s (not 403), so existence is not leaked. Also resolves treasures M2M-linked to the game (not just exclusive ones): for an exclusive treasure it updates `name`/`value`/`hidden`; for an M2M-linked treasure it instead accepts and persists `max_units` onto that game's `GameTreasure` row — `name`/`value`/`hidden` in the body are ignored in that case, and `acquired_units` can never be set through this endpoint |
+| Update by game (`PATCH /games/<slug>/treasures/<int:treasure_id>.json`) | **GameEdit** — same 404 rule as the detail endpoint; a `PATCH` by a non-editor on a hidden treasure also 404s (not 403), so existence is not leaked. Also resolves treasures M2M-linked to the game (not just exclusive ones): for an exclusive treasure it updates `name`/`value`/`hidden` and then mirrors the new `value` onto that treasure's own `GameTreasure` row (`GameTreasure.objects.filter(game=game, treasure=treasure).update(value=treasure.value)`), keeping the two values in sync now that reads resolve `value` from `GameTreasure` — a no-op when no such row exists; for an M2M-linked treasure it instead accepts and persists `max_units` onto that game's `GameTreasure` row — `name`/`value`/`hidden` in the body are ignored in that case, and `acquired_units` can never be set through this endpoint |
 | Create (`POST /treasures.json`) | Superuser or Staff |
 | Update (`PATCH /treasures/<id>.json`) | Superuser or Staff (includes the GameMaster of a game-exclusive treasure's own owning game — the global endpoint stays superuser-or-staff-only regardless of `game`) |
 | Create photo (`POST /treasures/<id>/photo_upload.json`) | Superuser or Staff, always; additionally that treasure's owning game's GameMaster, when `treasure.game_id` is set |
@@ -31,6 +31,19 @@ independently.
 the global, non-game-scoped endpoints (no game to scope to), and for treasures exclusive to a
 game (no `GameTreasure` row exists for those, since `max_units`/`acquired_units` only apply to
 the shared M2M relationship).
+
+`value` (`int`) resolves the same way, via the shared `resolve_treasure_value` helper: when a
+`game` is present in serializer context and a matching `GameTreasure` row exists for `(game,
+treasure)`, `value` is that row's `value`; otherwise it falls back to `Treasure.value` directly.
+This applies on the same three game-scoped endpoints listed above (all sharing
+`GameTreasureFieldsMixin`), as well as `CharacterTreasureSerializer` (see
+[CharacterTreasure](character-treasure.md) above) and the acquire/sell cost calculation (see
+[GameTreasure](game-treasure.md) above). On the global, non-game-scoped endpoints (`GET
+/treasures.json`, `GET /treasures/<id>.json`) there is no `game` in context, so `value` always
+falls back to `Treasure.value` — unchanged from prior behavior. Every treasure a game can see
+already has a matching `GameTreasure` row (backfilled by migration for pre-existing rows, created
+alongside every new linked/exclusive treasure), so the fallback in practice only applies to the
+global catalogue.
 
 `photo_path` — see [Photo path fields](common-rules.md#photo-path-fields) above; returned on both `GET /treasures.json` and
 `GET /treasures/<id>.json`, to anyone.

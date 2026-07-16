@@ -1,7 +1,12 @@
 """Shared implementation for the character treasures-list endpoint."""
 
+from django.db.models import IntegerField, OuterRef, Subquery
+from django.db.models.functions import Coalesce
+
+from ...models import GameTreasure
 from ...serializers import CharacterTreasureSerializer
 from ..common import paginated_list_response
+from ..games._treasure_context import game_treasures_context
 from ._shared import _get_character_or_404, _hidden_gate_response
 
 
@@ -20,9 +25,19 @@ def character_treasures(request, game, character_id, npc, check_hidden):
             return error_response
 
     treasures = character.character_treasures.select_related('treasure').filter(quantity__gt=0)
-    treasures = treasures.order_by('treasure__value', 'treasure__id')
+    game_value = Subquery(
+        GameTreasure.objects.filter(
+            game=game, treasure=OuterRef('treasure_id'),
+        ).values('value')[:1],
+        output_field=IntegerField(),
+    )
+    treasures = treasures.annotate(game_value=Coalesce(game_value, 'treasure__value'))
+    treasures = treasures.order_by('game_value', 'treasure__id')
     treasures = _filter_by_search(request, treasures)
-    response = paginated_list_response(request, treasures, CharacterTreasureSerializer)
+    context = game_treasures_context(game)
+    response = paginated_list_response(
+        request, treasures, CharacterTreasureSerializer, context=context,
+    )
     if check_hidden and character.hidden:
         response['X-Skip-Cache'] = 'true'
     return response

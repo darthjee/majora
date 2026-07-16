@@ -64,19 +64,20 @@ def _update_game_treasure(request, game, treasure):
         return error_response
 
     if treasure.game_id == game.id:
-        return _update_exclusive_treasure(request, treasure)
+        return _update_exclusive_treasure(request, game, treasure)
     return _update_linked_treasure(request, game, treasure)
 
 
-def _update_exclusive_treasure(request, treasure):
-    """Update name/value/hidden on a treasure exclusive to the game, returning the detail."""
+def _update_exclusive_treasure(request, game, treasure):
+    """Update name/value/hidden on the exclusive treasure, mirroring value onto its GameTreasure."""
     serializer = TreasureUpdateSerializer(treasure, data=request.data, partial=True)
     error_response = validated_or_error(serializer)
     if error_response:
         return error_response
 
     serializer.save()
-    return Response(TreasureDetailSerializer(treasure).data)
+    GameTreasure.objects.filter(game=game, treasure=treasure).update(value=treasure.value)
+    return Response(TreasureDetailSerializer(treasure, context={'game': game}).data)
 
 
 def _update_linked_treasure(request, game, treasure):

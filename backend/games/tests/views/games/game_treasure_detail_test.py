@@ -149,6 +149,39 @@ class TestGameTreasureUpdateView(TokenAuthRequestMixin, TestCase):
         self.treasure.refresh_from_db()
         assert self.treasure.value == 500
 
+    def test_patch_syncs_value_onto_existing_game_treasure_row(self):
+        """Test that PATCH-ing value mirrors it onto the exclusive treasure's GameTreasure row."""
+        GameTreasure.objects.create(game=self.game, treasure=self.treasure, value=500)
+        response = self._patch(self.client, {'value': 650}, token=self.dm_token)
+        assert response.status_code == 200
+        game_treasure = GameTreasure.objects.get(game=self.game, treasure=self.treasure)
+        assert game_treasure.value == 650
+
+    def test_patch_response_reflects_synced_game_treasure_value(self):
+        """Test that the PATCH response's value reflects the freshly synced GameTreasure row."""
+        GameTreasure.objects.create(game=self.game, treasure=self.treasure, value=500)
+        response = self._patch(self.client, {'value': 650}, token=self.dm_token)
+        data = json.loads(response.content)
+        assert data['value'] == 650
+
+    def test_patch_without_game_treasure_row_does_not_error(self):
+        """Test that PATCH on an exclusive treasure without a GameTreasure row still succeeds."""
+        assert not GameTreasure.objects.filter(game=self.game, treasure=self.treasure).exists()
+        response = self._patch(self.client, {'value': 650}, token=self.dm_token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['value'] == 650
+
+    def test_patch_does_not_sync_value_onto_other_games_treasure_row(self):
+        """Test that PATCH does not affect a GameTreasure row belonging to a different game."""
+        other_game = GameFactory(name='Other Game', game_slug='other-game-2')
+        other_game_treasure = GameTreasure.objects.create(
+            game=other_game, treasure=self.treasure, value=500,
+        )
+        self._patch(self.client, {'value': 650}, token=self.dm_token)
+        other_game_treasure.refresh_from_db()
+        assert other_game_treasure.value == 500
+
     def test_patch_ignores_game_field(self):
         """Test that a game field in the payload has no effect on the treasure's game."""
         other_game = GameFactory(name='Other Game', game_slug='other-game')

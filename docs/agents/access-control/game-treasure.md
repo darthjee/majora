@@ -6,17 +6,22 @@ relationship between `Game` and `Treasure` — distinct from, and independent of
 concept). It carries a per-`(game, treasure)` stock cap: a nullable `max_units` (unlimited when
 `null`) and an internal `acquired_units` bookkeeping counter (starts at `0`), from which a
 derived `available_units = max(max_units - acquired_units, 0)` (or `null` when `max_units` is
-`null`) is computed. There is no dedicated CRUD endpoint for `GameTreasure` itself — it is only
-ever read/written indirectly, through the `Treasure` endpoints below.
+`null`) is computed. It also carries a required, per-`(game, treasure)` `value` — an override of
+`Treasure.value` for that game, populated at creation time (for both M2M-linked and
+game-exclusive treasures) and kept in sync with an exclusive treasure's own `value` on update
+(see the "Update by game" row under [Treasure](treasure.md) above). There is no dedicated CRUD
+endpoint for `GameTreasure` itself — it is only ever read/written indirectly, through the
+`Treasure` endpoints below.
 
 | Action | Who can |
 |--------|---------|
-| Read `available_units`/`max_units` | **AllowAny**, via the game-scoped `Treasure` read endpoints — see [Treasure](treasure.md) below |
+| Read `available_units`/`max_units`/`value` | **AllowAny**, via the game-scoped `Treasure` read endpoints — see [Treasure](treasure.md) below |
 | Write `max_units` | **GameEdit**, via `PATCH /games/<slug>/treasures/<int:treasure_id>.json` when the treasure is M2M-linked to the game |
+| Write `value` | Not directly editable per game — only indirectly, by a DM `PATCH`-ing an exclusive treasure's own `value` (which the endpoint mirrors onto this row); out of scope for this issue to add a DM-facing endpoint to edit `GameTreasure.value` for an M2M-linked treasure |
 | Write `acquired_units` | Never directly by any client — only ever incremented/decremented as a side effect of the acquire/sell endpoints above |
 | Create/Delete the `(game, treasure)` link itself | Superuser only, via Django admin's `GameTreasureInline` on the `Game` admin page (no application-level endpoint) |
 
-**Exposed fields** (read, as `available_units`/`max_units` on `TreasureListSerializer`/
+**Exposed fields** (read, as `available_units`/`max_units`/`value` on `TreasureListSerializer`/
 `TreasureDetailSerializer`): see [Treasure](treasure.md) below for full exposure rules.
 
 **Write fields**: `max_units` only (`int >= 0`, or `null` for unlimited), via
@@ -33,3 +38,11 @@ the character/`CharacterTreasure` locks, in a consistent lock order, to prevent 
 requests from over-selling the available stock. A treasure with `available_units == 0` is not
 hidden from any list — it simply cannot be acquired further (an acquire request against it
 succeeds with `acquired: 0`).
+
+**Cost/refund calculation on acquire/sell**: the same locked `GameTreasure` row is also the
+source of the per-unit `value` used to compute cost (acquire) and refund (sell) — see
+[CharacterTreasure](character-treasure.md) above. When no `GameTreasure` row exists (a treasure
+that is exclusive to the game with no matching row, or one a character still owns after it was
+fully delisted from the game — the edge case `_find_treasure_by_id`'s docstring describes), the
+calculation falls back to `Treasure.value` directly, preserving prior behavior for that edge
+case.
