@@ -75,6 +75,23 @@ class TestGamePcTreasureSellView(TokenAuthRequestMixin):
         assert response.status_code == 200
         assert response.json() == {'quantity': 3, 'money': 110}
 
+    def test_sell_sets_character_treasure_total_value(self, client):
+        """Test that selling sets total_value to remaining quantity * Treasure.value."""
+        self._post(
+            client, {'treasure_id': self.treasure.id, 'quantity': 2}, token=self._editor_token(),
+        )
+        self.character_treasure.refresh_from_db()
+        assert self.character_treasure.total_value == 150
+
+    def test_sell_sets_total_value_using_game_treasure_value_when_it_differs(self, client):
+        """Test that total_value is computed from GameTreasure.value, not Treasure.value."""
+        GameTreasure.objects.create(game=self.game, treasure=self.treasure, value=5)
+        self._post(
+            client, {'treasure_id': self.treasure.id, 'quantity': 2}, token=self._editor_token(),
+        )
+        self.character_treasure.refresh_from_db()
+        assert self.character_treasure.total_value == 15
+
     def test_selling_delisted_treasure_still_succeeds(self, client):
         """Test that selling a still-owned treasure succeeds after it's delisted from the game."""
         self.treasure.game = None

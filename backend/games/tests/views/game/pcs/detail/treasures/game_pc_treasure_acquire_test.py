@@ -82,6 +82,27 @@ class TestGamePcTreasureAcquireView(TokenAuthRequestMixin):
         )
         assert character_treasure.quantity == 1
 
+    def test_acquire_sets_character_treasure_total_value(self, client):
+        """Test that acquiring sets total_value to quantity * Treasure.value."""
+        self._post(
+            client, {'treasure_id': self.treasure.id, 'quantity': 3}, token=self._editor_token(),
+        )
+        character_treasure = CharacterTreasure.objects.get(
+            character=self.character, treasure=self.treasure,
+        )
+        assert character_treasure.total_value == 300
+
+    def test_acquire_sets_total_value_using_game_treasure_value_when_it_differs(self, client):
+        """Test that total_value is computed from GameTreasure.value, not Treasure.value."""
+        GameTreasure.objects.create(game=self.game, treasure=self.treasure, value=10)
+        self._post(
+            client, {'treasure_id': self.treasure.id, 'quantity': 3}, token=self._editor_token(),
+        )
+        character_treasure = CharacterTreasure.objects.get(
+            character=self.character, treasure=self.treasure,
+        )
+        assert character_treasure.total_value == 30
+
     def test_insufficient_funds_returns_400(self, client):
         """Test that acquiring more than affordable returns 400 and leaves money unchanged."""
         response = self._post(
