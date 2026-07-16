@@ -215,7 +215,7 @@ class TestCharacterTreasureSellStockCap(TokenAuthRequestMixin):
         self.dm_token = Token.objects.create(user=self.dm_user)
         self.character = CharacterFactory(name='Frodo', game=self.game, npc=True, money=0)
         self.treasure = TreasureFactory(name='Limited Gem', value=10)
-        self.game.treasures.add(self.treasure)
+        self.game.treasures.add(self.treasure, through_defaults={'value': self.treasure.value})
         GameTreasure.objects.filter(game=self.game, treasure=self.treasure).update(
             max_units=10, acquired_units=5,
         )

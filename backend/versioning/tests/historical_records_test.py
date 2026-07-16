@@ -161,7 +161,9 @@ class TestGameTreasureRemainsUntracked:
         """Test that GameTreasure instances have no `history` manager attached."""
         game = GameFactory()
         treasure = TreasureFactory()
-        game_treasure = GameTreasure.objects.create(game=game, treasure=treasure, max_units=5)
+        game_treasure = GameTreasure.objects.create(
+            game=game, treasure=treasure, value=treasure.value, max_units=5,
+        )
         assert not hasattr(game_treasure, 'history')
 
     def test_no_historical_game_treasure_model_exists(self):

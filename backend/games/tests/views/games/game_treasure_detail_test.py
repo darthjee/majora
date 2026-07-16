@@ -254,7 +254,7 @@ class TestGameTreasureLinkedDetailView(TokenAuthRequestMixin, TestCase):
         cls.regular_user = UserFactory(username='player', password='secret-password')
         cls.regular_token = Token.objects.create(user=cls.regular_user)
         cls.treasure = TreasureFactory(name='Shared Gem', value=100)
-        cls.game.treasures.add(cls.treasure)
+        cls.game.treasures.add(cls.treasure, through_defaults={'value': cls.treasure.value})
 
     def _url(self):
         """Return the detail URL for the linked treasure."""
@@ -331,3 +331,17 @@ class TestGameTreasureLinkedDetailView(TokenAuthRequestMixin, TestCase):
         assert response.status_code == 403
         game_treasure = GameTreasure.objects.get(game=self.game, treasure=self.treasure)
         assert game_treasure.max_units is None
+
+    def test_patch_on_unlinked_global_treasure_returns_404(self):
+        """Test that PATCH-ing a global treasure with no GameTreasure row returns 404."""
+        unlinked_treasure = TreasureFactory(name='Unlinked Gem', value=50)
+        response = self.patch(
+            self.client,
+            f'/games/test-game/treasures/{unlinked_treasure.id}.json',
+            {'max_units': 5},
+            token=self.dm_token,
+        )
+        assert response.status_code == 404
+        assert not GameTreasure.objects.filter(
+            game=self.game, treasure=unlinked_treasure,
+        ).exists()
