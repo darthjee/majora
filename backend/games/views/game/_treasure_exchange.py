@@ -105,6 +105,7 @@ def _acquire(character, treasure, quantity, game):
 
         character_treasure = _lock_or_create_character_treasure(character, treasure)
         character_treasure.quantity += acquired
+        character_treasure.total_value = character_treasure.quantity * value
         character_treasure.save()
 
         character.money -= cost
@@ -143,11 +144,13 @@ def _sell(character, treasure, quantity, game):
         if quantity > character_treasure.quantity:
             return Response({'errors': {'quantity': ['not enough owned']}}, status=400)
 
-        character_treasure.quantity -= quantity
-        character_treasure.save()
-
         game_treasure = _lock_game_treasure(game, treasure)
         value = treasure.value if game_treasure is None else game_treasure.value
+
+        character_treasure.quantity -= quantity
+        character_treasure.total_value = character_treasure.quantity * value
+        character_treasure.save()
+
         character.money += quantity * value
         character.save()
 
