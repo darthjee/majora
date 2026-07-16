@@ -4,6 +4,8 @@ import SessionMessagesController from './controllers/SessionMessagesController.j
 import GameSessionClient from '../../../../client/GameSessionClient.js';
 import AuthStorage from '../../../../utils/auth/AuthStorage.js';
 import GameSessionHelper from './helpers/GameSessionHelper.jsx';
+import CreateSessionPollModal from './elements/CreateSessionPollModal.jsx';
+import Translator from '../../../../i18n/Translator.js';
 
 /**
  * Game session detail page.
@@ -21,6 +23,9 @@ export default function GameSession() {
   const [content, setContent] = useState('');
   const [posting, setPosting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
+
+  const [showPollModal, setShowPollModal] = useState(false);
+  const [pollStatus, setPollStatus] = useState('idle');
 
   const controller = useMemo(
     () => new GameSessionController(setSession, setLoading, setError),
@@ -65,13 +70,28 @@ export default function GameSession() {
       .finally(() => setPosting(false));
   };
 
-  return GameSessionHelper.render(
-    session,
-    { messages, nextEntryId, loadingMore, content, posting, fieldErrors },
-    {
-      onLoadMore: handleLoadMore,
-      onContentChange: (event) => setContent(event.target.value),
-      onSubmit: handleSubmit,
-    },
+  const handleCreatePoll = (dates) => controller.submitPoll(
+    session.game_slug, session.id, dates, { setPollStatus },
+  );
+
+  return (
+    <>
+      {GameSessionHelper.render(
+        session,
+        { messages, nextEntryId, loadingMore, content, posting, fieldErrors },
+        {
+          onLoadMore: handleLoadMore,
+          onContentChange: (event) => setContent(event.target.value),
+          onSubmit: handleSubmit,
+        },
+        () => setShowPollModal(true),
+      )}
+      <CreateSessionPollModal
+        show={showPollModal}
+        error={pollStatus === 'error' ? Translator.t('session_poll_modal.error') : ''}
+        onClose={() => setShowPollModal(false)}
+        onConfirm={handleCreatePoll}
+      />
+    </>
   );
 }

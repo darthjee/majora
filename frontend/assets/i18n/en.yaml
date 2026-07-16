@@ -300,6 +300,7 @@ game_sessions_page:
 game_session_page:
   loading: Loading session...
   edit: Edit
+  create_pool: Create Pool
   no_date: No date
   messages_title: Messages
   messages_content_label: Message
@@ -319,6 +320,12 @@ game_session_edit_page:
   description_label: Description
   submit: Save changes
   error: Failed to save session. Please try again.
+session_poll_modal:
+  title: Create Pool
+  dates_label: Dates
+  confirm: Create Pool
+  cancel: Cancel
+  error: Failed to create pool. Please try again.
 game_polls_page:
   loading: Loading polls...
   title: Polls

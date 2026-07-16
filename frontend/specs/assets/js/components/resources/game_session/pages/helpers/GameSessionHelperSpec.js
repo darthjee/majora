@@ -2,6 +2,46 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import GameSessionHelper from '../../../../../../../../assets/js/components/resources/game_session/pages/helpers/GameSessionHelper.jsx';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
+// Function components (e.g. PageActions, EditButton) are rendered by calling
+// them with their props so the search can traverse into their output.
+const isFunctionComponent = (type) => typeof type === 'function' && !type.prototype?.isReactComponent;
+
+const childrenOf = (node) => {
+  if (isFunctionComponent(node.type)) {
+    return node.type(node.props);
+  }
+
+  return node.props?.children;
+};
+
+const findElement = (node, matcher) => {
+  if (!node) {
+    return null;
+  }
+
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findElement(child, matcher);
+
+      if (match) {
+        return match;
+      }
+    }
+
+    return null;
+  }
+
+  if (typeof node !== 'object') {
+    return null;
+  }
+
+  if (matcher(node)) {
+    return node;
+  }
+
+  return findElement(childrenOf(node), matcher);
+};
+
 describe('GameSessionHelper', function() {
   const session = {
     id: 7, title: 'Session 1', date: '2024-01-01', game_slug: 'demo',
@@ -69,6 +109,47 @@ describe('GameSessionHelper', function() {
     it('renders the messages section', function() {
       const html = renderToStaticMarkup(GameSessionHelper.render(session, messagesState, messagesHandlers));
       expect(html).toContain('Messages');
+    });
+
+    it('renders a Create Pool button when can_edit is true and there is no date', function() {
+      const html = renderToStaticMarkup(
+        GameSessionHelper.render({ ...session, can_edit: true, date: null }, messagesState, messagesHandlers),
+      );
+      expect(html).toContain('Create Pool');
+      expect(html).toContain('data-testid="create-poll-button"');
+    });
+
+    it('does not render a Create Pool button when can_edit is true but a date is set', function() {
+      const html = renderToStaticMarkup(
+        GameSessionHelper.render({ ...session, can_edit: true, date: '2024-01-01' }, messagesState, messagesHandlers),
+      );
+      expect(html).not.toContain('data-testid="create-poll-button"');
+    });
+
+    it('does not render a Create Pool button when can_edit is false, even without a date', function() {
+      const html = renderToStaticMarkup(
+        GameSessionHelper.render({ ...session, can_edit: false, date: null }, messagesState, messagesHandlers),
+      );
+      expect(html).not.toContain('data-testid="create-poll-button"');
+    });
+
+    it('does not render a Create Pool button when can_edit is absent', function() {
+      const html = renderToStaticMarkup(
+        GameSessionHelper.render({ ...session, date: null }, messagesState, messagesHandlers),
+      );
+      expect(html).not.toContain('data-testid="create-poll-button"');
+    });
+
+    it('wires the Create Pool button click to the onOpenPollModal handler', function() {
+      const onOpenPollModal = jasmine.createSpy('onOpenPollModal');
+      const element = GameSessionHelper.render(
+        { ...session, can_edit: true, date: null }, messagesState, messagesHandlers, onOpenPollModal,
+      );
+      const button = findElement(element, (child) => child.props?.['data-testid'] === 'create-poll-button');
+
+      button.props.onClick();
+
+      expect(onOpenPollModal).toHaveBeenCalled();
     });
   });
 

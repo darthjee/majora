@@ -2,7 +2,7 @@
 
 from django.test import TestCase
 
-from games.models import Poll
+from games.models import GameSession, Poll
 from games.tests.factories import GameFactory, PollFactory
 
 
@@ -83,3 +83,17 @@ class TestPoll(TestCase):
         poll = PollFactory(game=self.game)
         self.game.delete()
         assert not Poll.objects.filter(id=poll.id).exists()
+
+    def test_content_object_defaults_to_none(self):
+        """Test that an unrelated poll has no content_type/object_id/content_object."""
+        poll = PollFactory(game=self.game)
+        assert poll.content_type is None
+        assert poll.object_id is None
+        assert poll.content_object is None
+
+    def test_poll_can_be_linked_to_a_game_session(self):
+        """Test that a poll can be created with a content_object pointing at a GameSession."""
+        session = GameSession.objects.create(game=self.game, title='Session One')
+        poll = PollFactory(game=self.game, content_object=session)
+        assert poll.content_object == session
+        assert poll.object_id == session.id
