@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'simple_history',
     'games',
     'versioning',
+    'statistics',
 ]
 
 MIDDLEWARE = [
@@ -39,6 +40,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'statistics.middleware.StatisticsSessionMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
     'games.middleware.CacheControlMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',

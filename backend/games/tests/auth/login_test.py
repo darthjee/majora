@@ -7,6 +7,8 @@ from django.utils.crypto import get_random_string
 from rest_framework.authtoken.models import Token
 
 from games.tests.factories import UserFactory
+from statistics import cookies
+from statistics.models import Session
 
 TEST_PASSWORD = get_random_string(20)
 
@@ -48,3 +50,57 @@ class TestLoginView:
         )
         data = json.loads(response.content)
         assert client.session['auth_token'] == data['token']
+
+    def test_attaches_user_to_fresh_anonymous_session_keeping_same_cookie(self, client):
+        """Test that logging in with a fresh anonymous session sets its user, same cookie."""
+        UserFactory(username='alice', password=TEST_PASSWORD)
+        pre_login_response = client.get('/ready.json')
+        pre_login_cookie = pre_login_response.cookies[cookies.COOKIE_NAME].value
+        session = Session.objects.get(token=cookies.unsign(pre_login_cookie))
+        assert session.user_id is None
+
+        response = client.post(
+            '/users/login.json',
+            data=json.dumps({'username': 'alice', 'password': TEST_PASSWORD}),
+            content_type='application/json',
+        )
+
+        post_login_cookie = response.cookies[cookies.COOKIE_NAME].value
+        assert post_login_cookie == pre_login_cookie
+        session.refresh_from_db()
+        assert session.user.username == 'alice'
+
+    def test_creates_new_session_when_current_one_already_has_a_user(self, client):
+        """Test that logging in with an already-user-tied session rotates to a new one."""
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
+        existing_session = Session.objects.create(ip='1.2.3.4', user=user)
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(existing_session.token)
+
+        response = client.post(
+            '/users/login.json',
+            data=json.dumps({'username': 'alice', 'password': TEST_PASSWORD}),
+            content_type='application/json',
+            REMOTE_ADDR='1.2.3.4',
+        )
+
+        post_login_cookie = response.cookies[cookies.COOKIE_NAME].value
+        assert cookies.unsign(post_login_cookie) != existing_session.token
+        new_session = Session.objects.get(token=cookies.unsign(post_login_cookie))
+        assert new_session.user_id == user.id
+        assert new_session.id != existing_session.id
+
+    def test_creates_new_session_when_same_user_logs_in_again(self, client):
+        """Test that a same-user re-login still rotates to a brand-new session."""
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
+        existing_session = Session.objects.create(ip='1.2.3.4', user=user)
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(existing_session.token)
+
+        response = client.post(
+            '/users/login.json',
+            data=json.dumps({'username': 'alice', 'password': TEST_PASSWORD}),
+            content_type='application/json',
+            REMOTE_ADDR='1.2.3.4',
+        )
+
+        post_login_cookie = response.cookies[cookies.COOKIE_NAME].value
+        assert cookies.unsign(post_login_cookie) != existing_session.token

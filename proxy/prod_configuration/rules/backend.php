@@ -17,6 +17,9 @@ Configuration::buildRule([
     ],
     'middlewares' => [
         [
+            'class' => 'Tent\\Middlewares\\SetClientIpMiddleware'
+        ],
+        [
             'class'    => 'Tent\\Middlewares\\CacheCleanupMiddleware',
             'location' => './cache',
             'clear'    => ['collection', 'entity'],
