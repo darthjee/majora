@@ -5,6 +5,8 @@ On the game session page (`/#/games/:game_slug/sessions/:id`), the DM-only "Crea
 
 Every other core resource (Game, PC, NPC, Treasure) has already been migrated off this pattern: each has a dedicated, never-cached `.../permissions.json` sub-endpoint (`BasePermissionsSerializer` subclasses, e.g. `GamePermissionsSerializer`) that the frontend fetches separately (`AccessStore.ensureXPermissions`/`getXPermissions`), merging the result into resource state once the (cacheable) detail fetch resolves. Session was missed in that migration — `GameSessionDetailSerializer` still embeds `can_edit` directly in the cacheable detail response.
 
+Notably, `GameSession.can_be_edited_by(user)` simply delegates to `self.game.can_be_edited_by(user)` — a session'\''s edit permission is always identical to its parent game'\''s, by design (there is no independent session-level ownership/edit concept). This mirrors the existing precedent for `access.json`: sessions have no dedicated `access.json` endpoint of their own, and the frontend already reuses `GET /games/:game_slug/access.json` for session-related identity checks (see `docs/agents/access-control/game-session.md`). The same reuse should apply here — no new backend endpoint is needed; the session page already knows its `game_slug` from the route and can reuse the existing `GET /games/:game_slug/permissions.json` endpoint.
+
 ## Problem
 - `can_edit` in the session detail JSON is per-user, but the response itself is cacheable, so a cached/shared response can leak a stale permission value to a different requester.
 - This most visibly hides the DM-only "Create Pool" button (and the "Edit" button) on the session page even for a legitimate DM.
@@ -12,24 +14,20 @@ Every other core resource (Game, PC, NPC, Treasure) has already been migrated of
 
 ## Expected Behavior
 - `/games/:game_slug/sessions/:id.json` no longer embeds `can_edit` and is safe to cache.
-- A new `/games/:game_slug/sessions/:id/permissions.json` endpoint (never cached for real-identity requests, following the existing `/permissions.json` convention, with role-simulation support via the `role` query param like the Game/PC/NPC/Treasure endpoints) returns `{ can_edit: <bool> }` for the session, computed the same way `GameSessionDetailSerializer.get_can_edit` does today (`session.can_be_edited_by(user)`).
-- The game session page fetches this endpoint and merges `can_edit` into session state once the cacheable detail fetch resolves (mirroring `GameController`'s `#renderGame`/`#mergeAccess` pattern), so the "Edit" and "Create Pool" buttons render correctly and consistently for DMs regardless of response caching.
+- No new backend endpoint is introduced. The game session page instead fetches the existing `GET /games/:game_slug/permissions.json` endpoint (already never-cached for real-identity requests, with role-simulation support via the `role` query param) using the `game_slug` already available from the route, since a session's `can_edit` is always identical to its game's.
+- The game session page merges that result into session state once the (cacheable) session detail fetch resolves (mirroring `GameController`'s `#renderGame`/`#mergeAccess` pattern), so the "Edit" and "Create Pool" buttons render correctly and consistently for DMs regardless of response caching.
 
 ## Solution
 Backend:
-- Add `SessionPermissionsSerializer` (subclass of `BasePermissionsSerializer`, mirroring `GamePermissionsSerializer`), delegating to `session.can_be_edited_by(user)` / the role-simulated equivalent.
-- Add a `session_permissions` view (mirroring `backend/games/views/games/game_permissions.py`), using the existing `parse_role_booleans`/`permissions_response` helpers from `views/common.py`.
-- Add route `games/<slug>/sessions/<id>/permissions.json` in `backend/games/urls/games.py`, next to the existing `game-session-detail` route.
-- Remove `can_edit` from `GameSessionDetailSerializer`.
+- Remove `can_edit` (and its `get_can_edit` method) from `GameSessionDetailSerializer` — no new serializer, view, or route needed, since the existing `GamePermissionsSerializer`/`game_permissions` endpoint already covers sessions (`GameSession.can_be_edited_by` delegates to `self.game.can_be_edited_by`).
 
 Frontend:
-- Add `fetchSessionPermissions` to `GameSessionClient.js` (mirroring `GameClient.fetchGamePermissions`).
-- Add `ensureGameSessionPermissions`/`getGameSessionPermissions` to `AccessStorePermissions`/`AccessStore` (mirroring the Game equivalents), with a fail-closed default of `{ can_edit: false }`.
-- Update `GameSessionController.js` to fetch and merge session permissions after the session detail fetch resolves, mirroring `GameController`'s `#renderGame`/`#mergeAccess`.
+- Update `GameSessionController.js` to fetch the game's permissions (reusing the existing `GameClient.fetchGamePermissions` / `AccessStore.ensureGamePermissions`/`getGamePermissions`, the same helpers `GameController` already uses) with the session's `game_slug`, and merge `can_edit` into session state once the session detail fetch resolves — mirroring `GameController`'s `#renderGame`/`#mergeAccess` pattern, with a fail-closed default of `can_edit: false`.
+- `GameSessionHelper`'s button-visibility checks keep reading `session.can_edit`, now sourced from the merged permissions value instead of the (removed) detail field.
 
 This also fixes the originally reported symptom (missing "Create Pool" button), since button visibility no longer depends on a cacheable field.
 
 ## Benefits
 - Reliably fixes the "missing Create Pool button" bug, by addressing the general staleness issue that causes it rather than only the specific report.
 - Closes a caching-correctness gap that also affects the "Edit" button, preventing cross-user permission staleness caused by HTTP/proxy caching.
-- Brings Session in line with the Game/PC/NPC/Treasure permissions-endpoint convention already established in the codebase.
+- Brings Session in line with the Game/PC/NPC/Treasure permissions-endpoint convention already established in the codebase, while avoiding a redundant new endpoint — consistent with the existing `access.json` reuse precedent for sessions.
