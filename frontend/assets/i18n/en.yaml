@@ -342,6 +342,9 @@ game_poll_page:
   loading: Loading poll...
   options_title: Options
   error: Unable to load poll.
+  cast_vote: Cast Vote
+  cast_votes: Cast Votes
+  vote_error: Failed to cast vote(s). Please try again.
 game_poll_new_page:
   title: New Poll
   title_label: Title

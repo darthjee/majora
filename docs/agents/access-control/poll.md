@@ -1,8 +1,9 @@
 # Poll
 
 A `Poll` is a game-scoped question with a fixed set of `PollOption`s, created by (and visible
-to) a game's participants. `PollVote` (linking a `Player` to the option they voted for) exists
-at the model level but has no endpoint yet — voting is out of scope until a future issue.
+to) a game's participants. `PollVote` links a `User` (not a `Player`) to the option they voted
+for — re-pointed from `Player` in #548 so a game's DM(s), who have no `Player` row, can vote too
+— and is now exposed via a dedicated `GET`/`PUT .../votes.json` endpoint (see the Vote row below).
 
 Unlike most other game sub-resources, view and create share the **exact same** permission rule
 (**PollPermission**), rather than create being stricter (contrast with
@@ -16,7 +17,8 @@ superuser/staff bypass that its view check allows) or view being open to everyon
 | Show (`GET /games/<game_slug>/polls/<id>.json`) | Same as List — **PollPermission.check**; 404 if the game slug or poll id is unknown, or the poll does not belong to that game |
 | Create (`POST /games/<game_slug>/polls.json`) | Same as List — **PollPermission.check**; no stricter create-only rule (a deliberate divergence from `SessionMessagePermission`, per the issue's explicit permission list) |
 | Update/Delete | Not exposed by any endpoint (Django admin only, out of scope) |
-| Vote (`PollVote`) | Not exposed by any endpoint — tracked separately, out of scope for this feature |
+| Vote List (`GET /games/<game_slug>/polls/<id>/votes.json`) | Player of the game, that game's GameMaster, Superuser, or Staff (`is_staff`) — **PollVotePermission.check_view**; 401 if unauthenticated, 403 if authenticated but none of the above; 404 if the game slug or poll id is unknown, or the poll does not belong to that game. Accepts an optional `?user_id=` filter (any `auth.User` id, not restricted to the requester's own); omitted or non-numeric, returns every vote for the poll |
+| Vote Cast (`PUT /games/<game_slug>/polls/<id>/votes.json`) | Only an actual player or GameMaster of the game — **PollVotePermission.check_vote**; unlike the view check above, there is **no** superuser/staff bypass, so a pure admin gets 403 just like an unrelated user. Body: `{"option_ids": [...]}`, the full set of options the requester is casting; each id must belong to the poll's own options (400 otherwise). Response: 200 with the requester's own resulting votes only |
 
 **Pagination**: standard numbered-page `Paginator` (same as `game_treasures`/`game_tasks`), not
 `SessionMessagePaginator`. List accepts an optional `?status=` filter (`open`/`inactive`/
@@ -24,12 +26,13 @@ superuser/staff bypass that its view check allows) or view being open to everyon
 an unrecognized value yields an empty page rather than a 400, matching the tolerant convention
 already used by `?allegiance=`/`?slain=` elsewhere.
 
-**Cache**: `X-Skip-Cache: true` is always set on all three responses (List/Show/Create) — see
-[Common Rules](common-rules.md) for the cache-bypass mechanism. On the frontend, `PollClient`
-(`frontend/assets/js/client/PollClient.js`) explicitly sends the `X-Skip-Cache` request header on
-every GET call (`fetchPolls`/`fetchPoll`) rather than relying on the static suffix-matching
-config in `skipCacheSuffixes.js` — the per-id `polls/<id>.json` shape can't be expressed as a
-fixed suffix, the same reasoning already applied to the NPC-only case in `CharacterClient.js`.
+**Cache**: `X-Skip-Cache: true` is always set on all responses (List/Show/Create/Vote List/Vote
+Cast) — see [Common Rules](common-rules.md) for the cache-bypass mechanism. On the frontend,
+`PollClient` (`frontend/assets/js/client/PollClient.js`) explicitly sends the `X-Skip-Cache`
+request header on every GET call (`fetchPolls`/`fetchPoll`) rather than relying on the static
+suffix-matching config in `skipCacheSuffixes.js` — the per-id `polls/<id>.json` shape can't be
+expressed as a fixed suffix, the same reasoning already applied to the NPC-only case in
+`CharacterClient.js`.
 
 **Exposed fields**:
 
@@ -37,7 +40,10 @@ fixed suffix, the same reasoning already applied to the NPC-only case in `Charac
   kept light for the list surface.
 - Show/Create-response (`PollDetailSerializer`): `id`, `title`, `description`, `type`, `status`,
   `option_type`, `options` (nested, `PollOptionSerializer`: `id`, `option` — no vote counts or
-  voter identities, since `PollVote` isn't surfaced yet).
+  voter identities; `PollVote` is surfaced separately via its own `.../votes.json` endpoint,
+  not nested here).
+- Vote List/Vote Cast response (`PollVoteSerializer`): `id`, `option`, `user` — both `option`
+  and `user` are plain FK ids, not nested objects.
 
 **Write fields** (create, `PollCreateSerializer`): `title` (required, non-blank), `description`
 (optional), `type` (optional, defaults to `Poll.TYPE_SINGLE`), `option_type` (optional, defaults
@@ -49,3 +55,24 @@ the URL segment (via serializer `context`), never from the request body. `status
 force-set to `Poll.STATUS_OPEN` on create, regardless of the model's own default
 (`Poll.STATUS_INACTIVE`) — since no status-change endpoint exists yet, a poll created any other
 way could never become visible as "open" for the game-show-page widget.
+
+**Write fields** (vote cast, `PollVoteWriteSerializer`): `option_ids` (required, a list of ints;
+each must be an id of one of `poll`'s own options, else 400 — an empty list is valid and clears
+the requester's vote(s)). Unlike the other poll serializers, this one is a plain
+`serializers.Serializer`, not a `ModelSerializer` — persistence is delegated to
+`SinglePollVoteWriter`/`MultiplePollVoteWriter` (`backend/games/poll_vote_writer.py`), selected
+by `poll.type`, rather than to `.save()`:
+
+- `single`-type: at most one `PollVote` row per user; switching the selected option updates that
+  row's `option` field in place (never a delete followed by a create); an empty `option_ids`
+  deletes the existing row instead.
+- `multiple`-type: diffs `option_ids` against the user's existing rows for the poll — creates
+  rows for newly selected options, deletes rows for options no longer selected, leaves unchanged
+  ones untouched.
+
+**Model**: `PollVote.user` is a `ForeignKey` to `auth.User` (`related_name='poll_votes'`),
+**not** `games.Player` — a game's GameMaster(s) have no `Player` row, so pointing votes at
+`Player` would leave DM-only users unable to vote. `PollVote.clean()`'s membership check is
+"user is a player or game master of `poll.game`"
+(`game.players.filter(user=user).exists() or game.game_masters.filter(user=user).exists()`),
+mirroring `PollVotePermission`'s own check. `unique_together = [('user', 'option')]`.

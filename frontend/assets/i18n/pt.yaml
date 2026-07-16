@@ -342,6 +342,9 @@ game_poll_page:
   loading: Carregando enquete...
   options_title: Opções
   error: Não foi possível carregar a enquete.
+  cast_vote: Votar
+  cast_votes: Votar
+  vote_error: Não foi possível registrar o(s) voto(s). Tente novamente.
 game_poll_new_page:
   title: Nova Enquete
   title_label: Título

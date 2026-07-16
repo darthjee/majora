@@ -73,6 +73,11 @@ urlpatterns = [
         name='game-poll-detail',
     ),
     path(
+        'games/<slug:game_slug>/polls/<int:poll_id>/votes.json',
+        views.game_poll_votes,
+        name='game-poll-votes',
+    ),
+    path(
         'games/<slug:game_slug>/game-masters.json',
         views.game_masters_list,
         name='game-masters-list',

@@ -7,14 +7,25 @@ describe('GamePollController', function() {
   let setPoll;
   let setLoading;
   let setError;
+  let setCanVote;
+  let setSelectedOptionIds;
   let pollClient;
+  let authClient;
   let fakeWindow;
+
+  const buildController = () => new GamePollController(
+    setPoll, setLoading, setError, pollClient, setCanVote, setSelectedOptionIds, authClient
+  );
 
   beforeEach(function() {
     setPoll = jasmine.createSpy('setPoll');
     setLoading = jasmine.createSpy('setLoading');
     setError = jasmine.createSpy('setError');
-    pollClient = jasmine.createSpyObj('pollClient', ['fetchPoll']);
+    setCanVote = jasmine.createSpy('setCanVote');
+    setSelectedOptionIds = jasmine.createSpy('setSelectedOptionIds');
+    pollClient = jasmine.createSpyObj('pollClient', ['fetchPoll', 'fetchPollVotes']);
+    authClient = jasmine.createSpyObj('authClient', ['status']);
+    authClient.status.and.returnValue(Promise.resolve({ ok: false }));
     fakeWindow = { location: { hash: '#/games/demo/polls/7' } };
     globalThis.window = fakeWindow;
   });
@@ -34,7 +45,7 @@ describe('GamePollController', function() {
         }),
       }));
 
-      const cleanup = new GamePollController(setPoll, setLoading, setError, pollClient).buildEffect()();
+      const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');
@@ -46,12 +57,98 @@ describe('GamePollController', function() {
       cleanup();
     });
 
+    it('marks the viewer as able to vote when they are a player', async function() {
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ is_player: true }));
+      pollClient.fetchPoll.and.returnValue(Promise.resolve({
+        ok: true, json: () => Promise.resolve({ id: 7 }),
+      }));
+
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(setCanVote).toHaveBeenCalledWith(true);
+
+      cleanup();
+    });
+
+    it('marks the viewer as able to vote when they are a DM', async function() {
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ is_dm: true }));
+      pollClient.fetchPoll.and.returnValue(Promise.resolve({
+        ok: true, json: () => Promise.resolve({ id: 7 }),
+      }));
+
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(setCanVote).toHaveBeenCalledWith(true);
+
+      cleanup();
+    });
+
+    it('marks a pure admin viewer as unable to vote', async function() {
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({
+        is_dm: false, is_player: false, is_superuser: true, is_staff: false,
+      }));
+      pollClient.fetchPoll.and.returnValue(Promise.resolve({
+        ok: true, json: () => Promise.resolve({ id: 7 }),
+      }));
+
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(setCanVote).toHaveBeenCalledWith(false);
+      expect(authClient.status).not.toHaveBeenCalled();
+      expect(pollClient.fetchPollVotes).not.toHaveBeenCalled();
+
+      cleanup();
+    });
+
+    it('pre-fetches the current user\'s votes, filtered by their user id, when they can vote', async function() {
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ is_player: true }));
+      pollClient.fetchPoll.and.returnValue(Promise.resolve({
+        ok: true, json: () => Promise.resolve({ id: 7 }),
+      }));
+      authClient.status.and.returnValue(Promise.resolve({
+        ok: true, json: () => Promise.resolve({ user_id: 42 }),
+      }));
+      pollClient.fetchPollVotes.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([{ id: 1, option: 10, user: 42 }, { id: 2, option: 11, user: 42 }]),
+      }));
+
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(authClient.status).toHaveBeenCalledWith(null);
+      expect(pollClient.fetchPollVotes).toHaveBeenCalledWith(
+        'demo', '7', null, new URLSearchParams({ user_id: '42' })
+      );
+      expect(setSelectedOptionIds).toHaveBeenCalledWith([10, 11]);
+
+      cleanup();
+    });
+
+    it('leaves the selection empty when the votes pre-fetch fails', async function() {
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ is_player: true }));
+      pollClient.fetchPoll.and.returnValue(Promise.resolve({
+        ok: true, json: () => Promise.resolve({ id: 7 }),
+      }));
+      authClient.status.and.returnValue(Promise.reject(new Error('network error')));
+
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(setSelectedOptionIds).not.toHaveBeenCalled();
+
+      cleanup();
+    });
+
     it('redirects to the game page when the user is not allowed', async function() {
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({
         is_dm: false, is_player: false, is_superuser: false, is_staff: false,
       }));
 
-      const cleanup = new GamePollController(setPoll, setLoading, setError, pollClient).buildEffect()();
+      const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(fakeWindow.location.hash).toBe('/games/demo');
@@ -63,7 +160,7 @@ describe('GamePollController', function() {
     it('redirects to the game page when the access request throws', async function() {
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.reject(new Error('network error')));
 
-      const cleanup = new GamePollController(setPoll, setLoading, setError, pollClient).buildEffect()();
+      const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(fakeWindow.location.hash).toBe('/games/demo');
@@ -76,7 +173,7 @@ describe('GamePollController', function() {
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ is_dm: true }));
       pollClient.fetchPoll.and.returnValue(Promise.reject(new Error('network error')));
 
-      const cleanup = new GamePollController(setPoll, setLoading, setError, pollClient).buildEffect()();
+      const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(setError).toHaveBeenCalledWith('Unable to load poll.');
@@ -88,7 +185,7 @@ describe('GamePollController', function() {
     it('sets an error when the hash has no game slug or id', async function() {
       globalThis.window = { location: { hash: '#/other' } };
 
-      const cleanup = new GamePollController(setPoll, setLoading, setError, pollClient).buildEffect()();
+      const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(setError).toHaveBeenCalledWith('Unable to load poll.');
@@ -104,7 +201,7 @@ describe('GamePollController', function() {
         ok: true, json: () => Promise.resolve({ id: 7 }),
       }));
 
-      const cleanup = new GamePollController(setPoll, setLoading, setError, pollClient).buildEffect()();
+      const cleanup = buildController().buildEffect()();
       cleanup();
       await new Promise((resolve) => setTimeout(resolve, 0));
 

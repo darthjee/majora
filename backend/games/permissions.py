@@ -148,3 +148,47 @@ class PollPermission(_EditPermission):
             or game.players.filter(user=user).exists()
             or game.game_masters.filter(user=user).exists()
         )
+
+
+class PollVotePermission(_EditPermission):
+    """Encapsulate the authentication/authorization checks for game poll votes.
+
+    Mirrors SessionMessagePermission's split: view is allowed for the game's DM(s),
+    players, and admins (superuser/staff); voting is stricter, only an actual player
+    or DM of the game may cast a vote (no superuser/staff bypass).
+    """
+
+    @classmethod
+    def check_view(cls, request, game):
+        """Return an error Response if `request.user` may not view `game`'s poll votes."""
+        unauthenticated = cls._unauthenticated_response(request)
+        if unauthenticated:
+            return unauthenticated
+        if not cls._can_view(request.user, game):
+            return cls._forbidden_response()
+        return None
+
+    @classmethod
+    def check_vote(cls, request, game):
+        """Return an error Response if `request.user` may not vote in `game`'s polls."""
+        unauthenticated = cls._unauthenticated_response(request)
+        if unauthenticated:
+            return unauthenticated
+        if not cls._can_vote(request.user, game):
+            return cls._forbidden_response()
+        return None
+
+    @classmethod
+    def _can_view(cls, user, game):
+        return (
+            user.is_superuser or user.is_staff
+            or game.players.filter(user=user).exists()
+            or game.game_masters.filter(user=user).exists()
+        )
+
+    @classmethod
+    def _can_vote(cls, user, game):
+        return (
+            game.players.filter(user=user).exists()
+            or game.game_masters.filter(user=user).exists()
+        )

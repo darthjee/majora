@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GamePollHelper
   from '../../../../../../../../assets/js/components/resources/game/pages/helpers/GamePollHelper.jsx';
+import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
 describe('GamePollHelper', function() {
   describe('.render', function() {
@@ -63,6 +64,103 @@ describe('GamePollHelper', function() {
       expect(html).not.toContain('2026-01-01');
       expect(html).toContain(new Date(2026, 7, 1).toLocaleDateString('en'));
       expect(html).toContain(new Date(2026, 0, 1).toLocaleDateString('en'));
+    });
+
+    it('renders a read-only options list without vote controls when the poll is not open', function() {
+      const html = renderToStaticMarkup(GamePollHelper.render(
+        { ...poll, status: 'closed' },
+        { canVote: true, selectedOptionIds: [], voteStatus: 'idle' },
+        { onToggleOption: Noop.noop, onSubmit: Noop.noop },
+      ));
+
+      expect(html).not.toContain('type="radio"');
+      expect(html).not.toContain('type="checkbox"');
+      expect(html).not.toContain('type="submit"');
+    });
+
+    it('renders a radio input per option for a single-type open poll', function() {
+      const html = renderToStaticMarkup(GamePollHelper.render(
+        poll,
+        { canVote: true, selectedOptionIds: [], voteStatus: 'idle' },
+        { onToggleOption: Noop.noop, onSubmit: Noop.noop },
+      ));
+
+      expect(html).toContain('type="radio"');
+      expect(html).not.toContain('type="checkbox"');
+    });
+
+    it('renders a checkbox input per option for a multiple-type open poll', function() {
+      const html = renderToStaticMarkup(GamePollHelper.render(
+        { ...poll, type: 'multiple' },
+        { canVote: true, selectedOptionIds: [], voteStatus: 'idle' },
+        { onToggleOption: Noop.noop, onSubmit: Noop.noop },
+      ));
+
+      expect(html).toContain('type="checkbox"');
+      expect(html).not.toContain('type="radio"');
+    });
+
+    it('renders the singular cast-vote label for a single-type poll', function() {
+      const html = renderToStaticMarkup(GamePollHelper.render(
+        poll,
+        { canVote: true, selectedOptionIds: [], voteStatus: 'idle' },
+        { onToggleOption: Noop.noop, onSubmit: Noop.noop },
+      ));
+
+      expect(html).toContain('Cast Vote<');
+    });
+
+    it('renders the plural cast-votes label for a multiple-type poll', function() {
+      const html = renderToStaticMarkup(GamePollHelper.render(
+        { ...poll, type: 'multiple' },
+        { canVote: true, selectedOptionIds: [], voteStatus: 'idle' },
+        { onToggleOption: Noop.noop, onSubmit: Noop.noop },
+      ));
+
+      expect(html).toContain('Cast Votes<');
+    });
+
+    it('pre-selects the options in selectedOptionIds', function() {
+      const html = renderToStaticMarkup(GamePollHelper.render(
+        poll,
+        { canVote: true, selectedOptionIds: [10], voteStatus: 'idle' },
+        { onToggleOption: Noop.noop, onSubmit: Noop.noop },
+      ));
+
+      const checkedOptionMatch = html.match(/id="game-poll-option-10"[^>]*checked=""/);
+      expect(checkedOptionMatch).not.toBeNull();
+    });
+
+    it('renders the vote controls and submit button disabled when the viewer cannot vote', function() {
+      const html = renderToStaticMarkup(GamePollHelper.render(
+        poll,
+        { canVote: false, selectedOptionIds: [], voteStatus: 'idle' },
+        { onToggleOption: Noop.noop, onSubmit: Noop.noop },
+      ));
+
+      expect(html).toContain('type="radio"');
+      expect(html).toContain('disabled=""');
+    });
+
+    it('renders the vote error message after a failed submission', function() {
+      const html = renderToStaticMarkup(GamePollHelper.render(
+        poll,
+        { canVote: true, selectedOptionIds: [], voteStatus: 'error' },
+        { onToggleOption: Noop.noop, onSubmit: Noop.noop },
+      ));
+
+      expect(html).toContain('Failed to cast vote');
+    });
+
+    it('does not render vote controls when the open poll has no options', function() {
+      const html = renderToStaticMarkup(GamePollHelper.render(
+        { ...poll, options: [] },
+        { canVote: true, selectedOptionIds: [], voteStatus: 'idle' },
+        { onToggleOption: Noop.noop, onSubmit: Noop.noop },
+      ));
+
+      expect(html).not.toContain('type="radio"');
+      expect(html).not.toContain('type="submit"');
     });
   });
 

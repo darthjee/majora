@@ -130,10 +130,10 @@ class PollOptionFactory(factory.django.DjangoModelFactory):
 class PollVoteFactory(factory.django.DjangoModelFactory):
     """Factory for PollVote.
 
-    `player` and `option` are independent sub-factories with no shared game by
+    `user` and `option` are independent sub-factories with no shared game by
     default, so `PollVote.clean()`'s game-membership check will fail unless the
-    caller explicitly adds the player to the poll's game (e.g.
-    `player.games.add(poll.game)`) before building a valid vote.
+    caller explicitly makes the user a player or game master of the poll's game
+    (e.g. `player.games.add(poll.game)`) before building a valid vote.
     """
 
     class Meta:
@@ -141,5 +141,5 @@ class PollVoteFactory(factory.django.DjangoModelFactory):
 
         model = PollVote
 
-    player = factory.SubFactory(PlayerFactory)
+    user = factory.SubFactory(UserFactory)
     option = factory.SubFactory(PollOptionFactory)
