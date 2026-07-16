@@ -1,5 +1,6 @@
 import Navbar from 'react-bootstrap/cjs/Navbar.js';
 import Nav from 'react-bootstrap/cjs/Nav.js';
+import NavDropdown from 'react-bootstrap/cjs/NavDropdown.js';
 import Container from 'react-bootstrap/cjs/Container.js';
 import LanguageSelector from '../LanguageSelector.jsx';
 import ResilienceIndicator from '../ResilienceIndicator.jsx';
@@ -16,7 +17,7 @@ export default class HeaderHelper {
   /**
    * Render the application header with navigation and auth controls.
    *
-   * @param {{loggedIn: boolean, showModal: boolean, testEmailStatus: (string|null), isSuperUser: boolean, serverStatus: (string|null), isStaff: boolean, route: ({page: string, gameSlug: (string|undefined), characterId: (string|undefined)}|undefined), canViewAs: boolean, showViewAsModal: boolean}} state - header auth state.
+   * @param {{loggedIn: boolean, showModal: boolean, testEmailStatus: (string|null), isSuperUser: boolean, serverStatus: (string|null), isStaff: boolean, route: ({page: string, gameSlug: (string|undefined), characterId: (string|undefined)}|undefined), gameAccess: ({is_dm: boolean, is_player: boolean, is_superuser: boolean, is_staff: boolean}|undefined), canViewAs: boolean, showViewAsModal: boolean}} state - header auth state.
    * @param {{onLoginClick: Function, onLogoffClick: Function, onModalClose: Function, onLoginSuccess: Function, onSendTestEmailClick: Function, onLanguageChange: Function, onViewAsClick: Function, onViewAsModalClose: Function}} handlers - header event handlers.
    * @returns {React.ReactElement} Header element.
    */
@@ -84,23 +85,51 @@ export default class HeaderHelper {
   }
 
   /**
-   * Renders the contextual Treasures/Sessions/Photos nav links while viewing a game page.
+   * Renders the "Game" nav dropdown while viewing any route nested under
+   * `/games/:game_slug/...`, listing the game's key sections.
    *
-   * @param {{route: ({page: string, gameSlug: (string|undefined)}|undefined)}} state - header auth state.
-   * @returns {React.ReactElement|null} game nav links, or null when not on the game route.
+   * @param {{route: ({gameSlug: (string|undefined)}|undefined), gameAccess: ({is_dm: boolean, is_player: boolean, is_superuser: boolean, is_staff: boolean}|undefined)}} state - header auth state.
+   * @returns {React.ReactElement|null} the Game nav dropdown, or null when not on a game-scoped route.
    */
   static #renderGameNavLinks(state) {
-    if (state.route?.page !== 'game') {
+    const { gameSlug } = state.route ?? {};
+
+    if (!gameSlug) {
       return null;
     }
 
-    const { gameSlug } = state.route;
+    return (
+      <NavDropdown title={Translator.t('header.nav_game')} id="header-game-nav-dropdown" renderMenuOnMount>
+        <NavDropdown.Item href={`#/games/${gameSlug}`}>{Translator.t('header.nav_game_show')}</NavDropdown.Item>
+        <NavDropdown.Item href={`#/games/${gameSlug}/pcs`}>{Translator.t('game_page.player_characters')}</NavDropdown.Item>
+        <NavDropdown.Item href={`#/games/${gameSlug}/npcs`}>{Translator.t('game_page.non_player_characters')}</NavDropdown.Item>
+        <NavDropdown.Item href={`#/games/${gameSlug}/treasures`}>{Translator.t('game_page.treasures')}</NavDropdown.Item>
+        {HeaderHelper.#renderGameAccessNavItems(state, gameSlug)}
+        <NavDropdown.Item href={`#/games/${gameSlug}/photos`}>{Translator.t('game_page.see_all_photos')}</NavDropdown.Item>
+      </NavDropdown>
+    );
+  }
+
+  /**
+   * Renders the Polls/Sessions dropdown items, restricted to the game's
+   * DM(s), players, and admins (superuser/staff) — the same audience rule
+   * used by `OpenPollsWidget`/`GamePollsController`.
+   *
+   * @param {{gameAccess: ({is_dm: boolean, is_player: boolean, is_superuser: boolean, is_staff: boolean}|undefined)}} state - header auth state.
+   * @param {string} gameSlug - current game slug.
+   * @returns {React.ReactElement|null} the Polls/Sessions dropdown items, or null when not allowed.
+   */
+  static #renderGameAccessNavItems(state, gameSlug) {
+    const access = state.gameAccess ?? {};
+
+    if (!(access.is_dm || access.is_player || access.is_superuser || access.is_staff)) {
+      return null;
+    }
 
     return (
       <>
-        <Nav.Link href={`#/games/${gameSlug}/treasures`}>{Translator.t('game_page.treasures')}</Nav.Link>
-        <Nav.Link href={`#/games/${gameSlug}/sessions`}>{Translator.t('game_page.sessions')}</Nav.Link>
-        <Nav.Link href={`#/games/${gameSlug}/photos`}>{Translator.t('game_page.see_all_photos')}</Nav.Link>
+        <NavDropdown.Item href={`#/games/${gameSlug}/polls`}>{Translator.t('game_page.polls_title')}</NavDropdown.Item>
+        <NavDropdown.Item href={`#/games/${gameSlug}/sessions`}>{Translator.t('game_page.sessions')}</NavDropdown.Item>
       </>
     );
   }

@@ -6,14 +6,9 @@ import Translator from '../../../i18n/Translator.js';
 import ActivityTracker from '../../../utils/logging/ActivityTracker.js';
 import Noop from '../../../utils/Noop.js';
 import HashRouteResolver from '../../../utils/routing/HashRouteResolver.js';
+import HeaderRouteResolver from './HeaderRouteResolver.js';
 
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
-
-const ROUTE_PATTERNS = {
-  game: '/games/:game_slug',
-  pcCharacter: '/games/:game_slug/pcs/:character_id',
-  npcCharacter: '/games/:game_slug/npcs/:character_id',
-};
 
 const NOOP_EVENT_TARGET = {
   addEventListener: Noop.noop,
@@ -83,16 +78,7 @@ export default class HeaderController {
    * @returns {{page: string, gameSlug: (string|undefined), characterId: (string|undefined)}} current route info.
    */
   getRoute() {
-    const page = this.routeResolver.getPage();
-    const pattern = ROUTE_PATTERNS[page];
-
-    if (!pattern) {
-      return { page };
-    }
-
-    const params = this.routeResolver.getParams(pattern);
-
-    return { page, gameSlug: params.game_slug, characterId: params.character_id };
+    return HeaderRouteResolver.resolve(this.routeResolver);
   }
 
   /**
