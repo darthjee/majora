@@ -330,6 +330,9 @@ game_session_edit_page:
 session_poll_modal:
   title: Create Pool
   dates_label: Dates
+  type_label: Type
+  type_single: Single choice
+  type_multiple: Multiple choice
   confirm: Create Pool
   cancel: Cancel
   error: Failed to create pool. Please try again.
