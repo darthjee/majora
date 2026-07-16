@@ -36,11 +36,13 @@ fixed suffix, the same reasoning already applied to the NPC-only case in `Charac
 - List (`PollListSerializer`): `id`, `title`, `type`, `status` — no `description`/`options`,
   kept light for the list surface.
 - Show/Create-response (`PollDetailSerializer`): `id`, `title`, `description`, `type`, `status`,
-  `options` (nested, `PollOptionSerializer`: `id`, `option` — no vote counts or voter identities,
-  since `PollVote` isn't surfaced yet).
+  `option_type`, `options` (nested, `PollOptionSerializer`: `id`, `option` — no vote counts or
+  voter identities, since `PollVote` isn't surfaced yet).
 
 **Write fields** (create, `PollCreateSerializer`): `title` (required, non-blank), `description`
-(optional), `type` (optional, defaults to `Poll.TYPE_SINGLE`), `options` (required, at least one
+(optional), `type` (optional, defaults to `Poll.TYPE_SINGLE`), `option_type` (optional, defaults
+to `Poll.OPTION_TYPE_TEXT`; applies to the whole poll, not per-option — controls whether the
+frontend renders/edits each option as plain text or as a date), `options` (required, at least one
 entry, each `{option: str}` via `PollOptionWriteSerializer`, capped at `MAX_OPTIONS` — mirrors
 `CharacterLinkWriteSerializer`'s `MAX_LINKS` bound). `game` is always assigned server-side from
 the URL segment (via serializer `context`), never from the request body. `status` is always
