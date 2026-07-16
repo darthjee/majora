@@ -5,7 +5,7 @@ import json
 import pytest
 from rest_framework.authtoken.models import Token
 
-from games.models import Character
+from games.models import Character, CharacterTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
@@ -13,6 +13,7 @@ from games.tests.factories import (
     GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
+    TreasureFactory,
     UserFactory,
 )
 
@@ -96,6 +97,21 @@ class TestGameNpcsView:
         assert response['per_page'] == '3'
         data = json.loads(response.content)
         assert len(data) == 3
+
+    def test_includes_treasure_value_summed_across_treasures(self, client):
+        """Test that treasure_value sums total_value across the NPC's treasure rows."""
+        npc = CharacterFactory(name='Villain', game=self.game, npc=True)
+        treasure_one = TreasureFactory(name='Potion', value=50)
+        treasure_two = TreasureFactory(name='Sword', value=100)
+        CharacterTreasure.objects.create(
+            character=npc, treasure=treasure_one, quantity=2, total_value=100,
+        )
+        CharacterTreasure.objects.create(
+            character=npc, treasure=treasure_two, quantity=1, total_value=100,
+        )
+        response = client.get(self._url())
+        data = json.loads(response.content)
+        assert data[0]['treasure_value'] == 200
 
 
 @pytest.mark.django_db

@@ -6,15 +6,27 @@ Characters are scoped to a game. Access is symmetric for PCs and NPCs unless not
 
 | Endpoint | Who can read | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs.json` | **AllowAny** | `id`, `name`, `game_slug`, `profile_photo_path`, `slain`, `allegiance` |
+| `GET /games/<slug>/pcs.json` | **AllowAny** | `id`, `name`, `game_slug`, `profile_photo_path`, `slain`, `allegiance`, `treasure_value` |
 | `GET /games/<slug>/npcs.json` | **AllowAny** | Same as above |
 | `GET /games/<slug>/npcs/all.json` | **GameEdit** | Same as `npcs.json` (via `CharacterFullListSerializer`), plus `public_allegiance`, `public_slain`, and `hidden` — see "Allegiance fields", "Slain fields", and "Hidden field" below. Includes hidden NPCs, unlike `npcs.json`. Accepts an optional `?hidden=true\|false` filter (same tolerant convention as `?slain=`/`?allegiance=`). Always sets `X-Skip-Cache: true` |
+
+`treasure_value` — an `IntegerField` computed as the sum of `total_value` across the
+character's `CharacterTreasure` rows (see [CharacterTreasure](character-treasure.md)), exposed
+read-only on every list/detail/full-detail endpoint below, at the same visibility level as the
+endpoint itself (issue #581). Unlike `money`, it is intentionally exposed on the public list
+endpoints (`pcs.json`/`npcs.json`) too — it discloses nothing not already computable by summing
+the per-treasure `value`/`quantity` already public via the treasure endpoints, so it carries no
+higher sensitivity than the data already available. Backed by a `Coalesce(Sum(...), 0)` queryset
+annotation (`_with_treasure_value` in `backend/games/views/game/_shared.py`) so list responses
+stay a single query; the serializer falls back to a live aggregate
+(`games/serializers/characters/_treasure_value.py`) when an object hasn't gone through the
+annotated queryset (e.g. serializer unit tests, or any other read path added in the future).
 
 ## Detail
 
 | Endpoint | Who can read | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs/<id>.json` | **AllowAny** | `id`, `name`, `role`, `public_description`, `is_pc`, `photos`, `links`, `game_slug`, `can_edit`, `profile_photo_path`, `profile_photo_id`, `money`, `slain`, `allegiance` |
+| `GET /games/<slug>/pcs/<id>.json` | **AllowAny** | `id`, `name`, `role`, `public_description`, `is_pc`, `photos`, `links`, `game_slug`, `can_edit`, `profile_photo_path`, `profile_photo_id`, `money`, `treasure_value`, `slain`, `allegiance` |
 | `GET /games/<slug>/npcs/<id>.json` | **AllowAny** | Same as above |
 
 `profile_photo_path` — see [Photo path fields](common-rules.md#photo-path-fields) above; returned on the list, detail, and

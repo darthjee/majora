@@ -12,12 +12,14 @@ and view-specific response shape (e.g. headers). PATCH-endpoint tests moved to
 import pytest
 from rest_framework.authtoken.models import Token
 
+from games.models import CharacterTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TreasureFactory,
     UserFactory,
 )
 from games.tests.views.support import assert_json_response
@@ -87,3 +89,16 @@ class TestGamePcDetailView(TokenAuthRequestMixin):
         token = Token.objects.create(user=user)
         response = self.get(client, self._url(), token=token)
         assert_json_response(response, 200, can_edit=True)
+
+    def test_includes_treasure_value_summed_across_treasures(self, client):
+        """Test that treasure_value sums total_value across the PC's treasure rows."""
+        treasure_one = TreasureFactory(name='Potion', value=50)
+        treasure_two = TreasureFactory(name='Sword', value=100)
+        CharacterTreasure.objects.create(
+            character=self.character, treasure=treasure_one, quantity=2, total_value=100,
+        )
+        CharacterTreasure.objects.create(
+            character=self.character, treasure=treasure_two, quantity=1, total_value=100,
+        )
+        response = self.get(client, self._url())
+        assert_json_response(response, 200, treasure_value=200)

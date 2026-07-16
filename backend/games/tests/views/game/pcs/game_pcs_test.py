@@ -4,7 +4,8 @@ import json
 
 import pytest
 
-from games.tests.factories import CharacterFactory, GameFactory, PlayerFactory
+from games.models import CharacterTreasure
+from games.tests.factories import CharacterFactory, GameFactory, PlayerFactory, TreasureFactory
 
 
 @pytest.mark.django_db
@@ -74,3 +75,18 @@ class TestGamePcsView:
         """Test that 404 is returned for a non-existent game_slug."""
         response = client.get('/games/unknown-game/pcs.json')
         assert response.status_code == 404
+
+    def test_includes_treasure_value_summed_across_treasures(self, client):
+        """Test that treasure_value sums total_value across the PC's treasure rows."""
+        pc = CharacterFactory(name='Hero', game=self.game, player=self.player, npc=False)
+        treasure_one = TreasureFactory(name='Potion', value=50)
+        treasure_two = TreasureFactory(name='Sword', value=100)
+        CharacterTreasure.objects.create(
+            character=pc, treasure=treasure_one, quantity=2, total_value=100,
+        )
+        CharacterTreasure.objects.create(
+            character=pc, treasure=treasure_two, quantity=1, total_value=100,
+        )
+        response = client.get(self._url())
+        data = json.loads(response.content)
+        assert data[0]['treasure_value'] == 200

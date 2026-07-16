@@ -3,6 +3,7 @@
 from rest_framework import serializers
 
 from games.models import Character
+from games.serializers.characters._treasure_value import resolve_treasure_value
 
 
 class CharacterListSerializer(serializers.ModelSerializer):
@@ -14,9 +15,17 @@ class CharacterListSerializer(serializers.ModelSerializer):
     )
     slain = serializers.BooleanField(source='public_slain', read_only=True)
     allegiance = serializers.CharField(source='public_allegiance', read_only=True)
+    treasure_value = serializers.SerializerMethodField()
 
     class Meta:
         """Metadata for the CharacterListSerializer."""
 
         model = Character
-        fields = ['id', 'name', 'game_slug', 'profile_photo_path', 'slain', 'allegiance']
+        fields = [
+            'id', 'name', 'game_slug', 'profile_photo_path', 'slain', 'allegiance',
+            'treasure_value',
+        ]
+
+    def get_treasure_value(self, obj):
+        """Return the character's total treasure value."""
+        return resolve_treasure_value(obj)

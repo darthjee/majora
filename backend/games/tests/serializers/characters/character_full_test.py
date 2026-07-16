@@ -4,8 +4,9 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 from rest_framework.test import APIRequestFactory
 
+from games.models import CharacterTreasure
 from games.serializers import CharacterFullSerializer
-from games.tests.factories import CharacterFactory, GameFactory
+from games.tests.factories import CharacterFactory, GameFactory, TreasureFactory
 
 
 class TestCharacterFullSerializer(TestCase):
@@ -97,3 +98,16 @@ class TestCharacterFullSerializer(TestCase):
         self.character.save()
         data = self._serialize()
         assert data['hidden'] is True
+
+    def test_serializes_treasure_value_summed_across_treasures(self):
+        """Test that treasure_value sums total_value across the character's treasure rows."""
+        treasure_one = TreasureFactory(name='Potion', value=50)
+        treasure_two = TreasureFactory(name='Sword', value=100)
+        CharacterTreasure.objects.create(
+            character=self.character, treasure=treasure_one, quantity=2, total_value=100,
+        )
+        CharacterTreasure.objects.create(
+            character=self.character, treasure=treasure_two, quantity=1, total_value=100,
+        )
+        data = self._serialize()
+        assert data['treasure_value'] == 200

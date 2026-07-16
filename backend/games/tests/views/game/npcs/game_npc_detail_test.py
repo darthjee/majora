@@ -17,6 +17,7 @@ import pytest
 from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
+from games.models import CharacterTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
@@ -24,6 +25,7 @@ from games.tests.factories import (
     GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
+    TreasureFactory,
     UserFactory,
 )
 from games.tests.views.support import assert_json_response
@@ -89,6 +91,19 @@ class TestGameNpcDetailView(TokenAuthRequestMixin):
         """Test that the response includes the X-Skip-Cache: true header."""
         response = self.get(client, self._url())
         assert response['X-Skip-Cache'] == 'true'
+
+    def test_includes_treasure_value_summed_across_treasures(self, client):
+        """Test that treasure_value sums total_value across the NPC's treasure rows."""
+        treasure_one = TreasureFactory(name='Potion', value=50)
+        treasure_two = TreasureFactory(name='Sword', value=100)
+        CharacterTreasure.objects.create(
+            character=self.character, treasure=treasure_one, quantity=2, total_value=100,
+        )
+        CharacterTreasure.objects.create(
+            character=self.character, treasure=treasure_two, quantity=1, total_value=100,
+        )
+        response = self.get(client, self._url())
+        assert_json_response(response, 200, treasure_value=200)
 
 
 @pytest.mark.django_db
