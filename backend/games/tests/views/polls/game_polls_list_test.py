@@ -257,10 +257,26 @@ class TestGamePollsCreateView(TestCase):
         assert data['description'] == 'Pick one for tonight.'
         assert data['type'] == Poll.TYPE_SINGLE
         assert data['status'] == Poll.STATUS_OPEN
+        assert data['option_type'] == Poll.OPTION_TYPE_TEXT
         assert [option['option'] for option in data['options']] == [
             'The Drunken Griffin', 'The Rusty Anchor',
         ]
         assert all('id' in option for option in data['options'])
+
+    def test_created_poll_option_type_defaults_to_text_when_omitted(self):
+        """Test that omitting option_type defaults the created poll's option_type to text."""
+        response = self._post(self._payload(), token=self.dm_token)
+        data = json.loads(response.content)
+        assert data['option_type'] == Poll.OPTION_TYPE_TEXT
+
+    def test_created_poll_can_have_option_type_date(self):
+        """Test that a poll can be created with option_type=date and it's returned as such."""
+        response = self._post(
+            self._payload(option_type=Poll.OPTION_TYPE_DATE), token=self.dm_token,
+        )
+        data = json.loads(response.content)
+        assert response.status_code == 201
+        assert data['option_type'] == Poll.OPTION_TYPE_DATE
 
     def test_created_poll_status_is_forced_to_open(self):
         """Test that a newly created poll's status is always open, regardless of payload."""

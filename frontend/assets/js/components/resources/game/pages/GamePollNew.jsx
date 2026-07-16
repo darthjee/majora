@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import GamePollNewController from './controllers/GamePollNewController.js';
 import Noop from '../../../../utils/Noop.js';
 import GamePollNewHelper from './helpers/GamePollNewHelper.jsx';
+import { OPTION_TYPE_TEXT } from './elements/PollOptionType.js';
 
 const POLL_TYPE_SINGLE = 'single';
 
@@ -16,6 +17,7 @@ export default function GamePollNew() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [type, setType] = useState(POLL_TYPE_SINGLE);
+  const [optionType, setOptionType] = useState(OPTION_TYPE_TEXT);
   const [options, setOptions] = useState(['']);
 
   const controller = useMemo(
@@ -32,20 +34,21 @@ export default function GamePollNew() {
     event,
     gameSlug,
     {
-      title, description, type, options,
+      title, description, type, option_type: optionType, options,
     },
     { setStatus, setFieldErrors },
   );
 
   return GamePollNewHelper.render(
     {
-      title, description, type, options, status, fieldErrors,
+      title, description, type, optionType, options, status, fieldErrors,
     },
     {
       onSubmit: handleSubmit,
       onTitleChange: (event) => setTitle(event.target.value),
       onDescriptionChange: (event) => setDescription(event.target.value),
       onTypeChange: (value) => setType(value),
+      onOptionTypeChange: (value) => setOptionType(value),
       onOptionChange: (index, value) => GamePollNewController.handleOptionChange(
         index, value, options, setOptions,
       ),

@@ -6,6 +6,8 @@ import ErrorAlert from '../../../../common/ErrorAlert.jsx';
 import SubmitButton from '../../../../common/SubmitButton.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import Icons from '../../../../../utils/ui/Icons.js';
+import PollOptionInput from '../elements/PollOptionInput.jsx';
+import { OPTION_TYPES } from '../elements/PollOptionType.js';
 
 const POLL_TYPES = ['single', 'multiple'];
 
@@ -17,11 +19,11 @@ export default class GamePollNewHelper {
    * Render the poll creation form: title, description, type radios, and a
    * dynamically-growing options list.
    *
-   * @param {{title: string, description: string, type: string, options: string[],
-   *   status: string, fieldErrors: object}} formState - Form state.
+   * @param {{title: string, description: string, type: string, optionType: string,
+   *   options: string[], status: string, fieldErrors: object}} formState - Form state.
    * @param {{onSubmit: Function, onTitleChange: Function, onDescriptionChange: Function,
-   *   onTypeChange: Function, onOptionChange: Function, onOptionRemove: Function}} handlers -
-   *   Event handlers.
+   *   onTypeChange: Function, onOptionTypeChange: Function, onOptionChange: Function,
+   *   onOptionRemove: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered new poll page.
    */
   static render(formState, handlers) {
@@ -45,6 +47,7 @@ export default class GamePollNewHelper {
             onChange={handlers.onDescriptionChange}
             errors={formState.fieldErrors.description ?? []}
           />
+          {GamePollNewHelper.#renderOptionTypeField(formState, handlers)}
           {GamePollNewHelper.#renderTypeField(formState, handlers)}
           {GamePollNewHelper.#renderOptions(formState, handlers)}
           <SubmitButton disabled={formState.status === 'submitting'}>
@@ -61,6 +64,29 @@ export default class GamePollNewHelper {
     }
 
     return <ErrorAlert error={Translator.t('game_poll_new_page.error')} />;
+  }
+
+  static #renderOptionTypeField(formState, handlers) {
+    return (
+      <div className="mb-3">
+        <label htmlFor="game-poll-new-option-type" className="form-label">
+          {Translator.t('game_poll_new_page.option_type_label')}
+        </label>
+        <select
+          id="game-poll-new-option-type"
+          data-testid="game-poll-new-option-type"
+          className="form-select"
+          value={formState.optionType}
+          onChange={(event) => handlers.onOptionTypeChange(event.target.value)}
+        >
+          {OPTION_TYPES.map((optionType) => (
+            <option key={optionType} value={optionType}>
+              {Translator.t(`game_poll_new_page.option_type_${optionType}`)}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
   }
 
   static #renderTypeField(formState, handlers) {
@@ -106,11 +132,10 @@ export default class GamePollNewHelper {
 
     return (
       <div className="input-group mb-2" key={index}>
-        <input
+        <PollOptionInput
           id={`game-poll-new-option-${index}`}
-          data-testid={`game-poll-new-option-${index}`}
-          type="text"
-          className="form-control"
+          dataTestId={`game-poll-new-option-${index}`}
+          optionType={formState.optionType}
           value={option}
           onChange={(event) => handlers.onOptionChange(index, event.target.value)}
         />

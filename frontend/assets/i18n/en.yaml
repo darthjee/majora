@@ -342,6 +342,9 @@ game_poll_new_page:
   type_label: Type
   type_single: Single choice
   type_multiple: Multiple choice
+  option_type_label: Option type
+  option_type_text: Text
+  option_type_date: Date
   options_label: Options
   add_option: Add option
   submit: Create Poll

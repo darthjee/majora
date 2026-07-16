@@ -15,4 +15,4 @@ class PollDetailSerializer(serializers.ModelSerializer):
         """Metadata for the PollDetailSerializer."""
 
         model = Poll
-        fields = ['id', 'title', 'description', 'type', 'status', 'options']
+        fields = ['id', 'title', 'description', 'type', 'status', 'option_type', 'options']

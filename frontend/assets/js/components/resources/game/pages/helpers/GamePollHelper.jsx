@@ -3,6 +3,7 @@ import ErrorAlert from '../../../../common/ErrorAlert.jsx';
 import LoadingMessage from '../../../../common/LoadingMessage.jsx';
 import PageActions from '../../../../common/PageActions.jsx';
 import Translator from '../../../../../i18n/Translator.js';
+import PollOptionValue from '../elements/PollOptionValue.jsx';
 
 /**
  * Rendering helper for the Game Poll detail page.
@@ -19,6 +20,8 @@ export default class GamePollHelper {
    * @param {string} poll.type - Poll type (`'single'` or `'multiple'`).
    * @param {string} poll.status - Poll status (`'open'`, `'inactive'`, or `'closed'`).
    * @param {string} poll.game_slug - Game slug the poll belongs to.
+   * @param {string} [poll.option_type] - Poll option type (`'text'` or `'date'`), controlling
+   *   how each option's value is displayed.
    * @param {{id: number, option: string}[]} [poll.options] - Poll options.
    * @returns {React.ReactElement} Poll detail element.
    */
@@ -41,7 +44,7 @@ export default class GamePollHelper {
           <p className="mt-3 text-pre-wrap">{poll.description}</p>
         )}
         <h2 className="h5 mt-4">{Translator.t('game_poll_page.options_title')}</h2>
-        {GamePollHelper.#renderOptions(options)}
+        {GamePollHelper.#renderOptions(options, poll.option_type)}
       </div>
     );
   }
@@ -65,7 +68,7 @@ export default class GamePollHelper {
     return <ErrorAlert error={error} />;
   }
 
-  static #renderOptions(options) {
+  static #renderOptions(options, optionType) {
     if (options.length === 0) {
       return null;
     }
@@ -73,7 +76,9 @@ export default class GamePollHelper {
     return (
       <ul className="list-group">
         {options.map((option) => (
-          <li key={option.id} className="list-group-item">{option.option}</li>
+          <li key={option.id} className="list-group-item">
+            <PollOptionValue optionType={optionType} value={option.option} />
+          </li>
         ))}
       </ul>
     );

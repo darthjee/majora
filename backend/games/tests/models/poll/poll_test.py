@@ -31,6 +31,16 @@ class TestPoll(TestCase):
         poll = Poll.objects.create(game=self.game)
         assert poll.status == Poll.STATUS_INACTIVE
 
+    def test_option_type_defaults_to_text(self):
+        """Test that option_type defaults to OPTION_TYPE_TEXT when not specified."""
+        poll = Poll.objects.create(game=self.game)
+        assert poll.option_type == Poll.OPTION_TYPE_TEXT
+
+    def test_poll_creation_with_option_type_date(self):
+        """Test that a poll can be created with option_type set to date."""
+        poll = PollFactory(game=self.game, option_type=Poll.OPTION_TYPE_DATE)
+        assert poll.option_type == Poll.OPTION_TYPE_DATE
+
     def test_title_defaults_to_blank(self):
         """Test that title defaults to an empty string when not specified."""
         poll = Poll.objects.create(game=self.game)
