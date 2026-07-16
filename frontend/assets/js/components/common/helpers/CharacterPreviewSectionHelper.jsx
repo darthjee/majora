@@ -1,5 +1,5 @@
 import React from 'react';
-import CharacterCard from '../CharacterCard.jsx';
+import CharacterPreviewCard from '../CharacterPreviewCard.jsx';
 import SeeAllCard from '../SeeAllCard.jsx';
 import { MAX_PREVIEW_CHARACTERS } from '../characterPreviewConstants.js';
 import Translator from '../../../i18n/Translator.js';
@@ -29,12 +29,11 @@ export default class CharacterPreviewSectionHelper {
         <h2>{title}</h2>
         <div className="row">
           {preview.map((character) => (
-            <CharacterCard
+            <CharacterPreviewCard
               key={character.id}
               character={character}
               gameSlug={gameSlug}
               characterType={characterType}
-              size="small"
             />
           ))}
           <SeeAllCard icon={icon} text={seeAllText} href={seeAllHref} />
