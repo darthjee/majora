@@ -66,6 +66,9 @@ pagination:
   aria_label: Pagina de Jogos
   previous: Anterior
   next: Próximo
+description_box:
+  show_more: Mostrar mais
+  show_less: Mostrar menos
 games_page:
   loading: Carregando jogos...
   back_href_label: Voltar
