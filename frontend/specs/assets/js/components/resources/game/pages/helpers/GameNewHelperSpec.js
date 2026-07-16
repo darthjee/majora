@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameNewHelper from '../../../../../../../../assets/js/components/resources/game/pages/helpers/GameNewHelper.jsx';
+import TextareaField from '../../../../../../../../assets/js/components/common/TextareaField.jsx';
 
 const findByTypeAndId = (node, type, id) => {
   if (!node) {
@@ -55,6 +56,13 @@ describe('GameNewHelper', function() {
       expect(html).toContain('id="game-new-type"');
     });
 
+    it('renders the description as a TextareaField rather than a single-line input', function() {
+      const element = GameNewHelper.render(buildState(), buildHandlers());
+      const textareaField = findByTypeAndId(element, TextareaField, 'game-new-description');
+
+      expect(textareaField).not.toBeNull();
+    });
+
     it('renders the game type dropdown with both options', function() {
       const html = renderToStaticMarkup(GameNewHelper.render(buildState(), buildHandlers()));
 
@@ -90,7 +98,7 @@ describe('GameNewHelper', function() {
       );
 
       expect(html).toContain('value="Epic Quest"');
-      expect(html).toContain('value="An adventure."');
+      expect(html).toContain('>An adventure.</textarea>');
     });
 
     it('renders the submit button', function() {

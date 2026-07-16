@@ -1,5 +1,5 @@
-import React from 'react';
 import Translator from '../../../../../../i18n/Translator.js';
+import DescriptionBox from '../../../../../common/DescriptionBox.jsx';
 
 /**
  * Rendering helper for the CharacterDmNotes element.
@@ -17,7 +17,7 @@ export default class CharacterDmNotesHelper {
     return (
       <div className="mt-4">
         <h5>{Translator.t('character_full_page.private_description_label')}</h5>
-        <div className="p-3 border rounded bg-light text-pre-wrap">{privateDescription}</div>
+        <DescriptionBox description={privateDescription} />
       </div>
     );
   }

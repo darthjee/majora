@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameEditHelper from '../../../../../../../../assets/js/components/resources/game/pages/helpers/GameEditHelper.jsx';
 import ActionsOverlay from '../../../../../../../../assets/js/components/common/ActionsOverlay.jsx';
+import TextareaField from '../../../../../../../../assets/js/components/common/TextareaField.jsx';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -54,11 +55,19 @@ describe('GameEditHelper', function() {
       expect(html).toContain('id="game-edit-description"');
     });
 
+    it('renders the description as a TextareaField rather than a single-line input', function() {
+      const element = GameEditHelper.render(buildState(), buildHandlers());
+      const textareaField = findElement(element, (child) => child.type === TextareaField
+        && child.props?.id === 'game-edit-description');
+
+      expect(textareaField).not.toBeNull();
+    });
+
     it('renders the current field values', function() {
       const html = renderToStaticMarkup(GameEditHelper.render(buildState(), buildHandlers()));
 
       expect(html).toContain('value="Epic Quest"');
-      expect(html).toContain('value="A heroic adventure."');
+      expect(html).toContain('>A heroic adventure.</textarea>');
     });
 
     it('renders the submit button', function() {
