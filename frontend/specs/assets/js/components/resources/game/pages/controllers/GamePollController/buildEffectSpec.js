@@ -10,12 +10,14 @@ describe('GamePollController', function() {
   let setCanVote;
   let setCanClose;
   let setSelectedOptionIds;
+  let setVotesPayload;
   let pollClient;
   let authClient;
   let fakeWindow;
 
   const buildController = () => new GamePollController(
-    setPoll, setLoading, setError, pollClient, setCanVote, setCanClose, setSelectedOptionIds, authClient
+    setPoll, setLoading, setError, pollClient, setCanVote, setCanClose, setSelectedOptionIds,
+    setVotesPayload, authClient
   );
 
   beforeEach(function() {
@@ -25,7 +27,11 @@ describe('GamePollController', function() {
     setCanVote = jasmine.createSpy('setCanVote');
     setCanClose = jasmine.createSpy('setCanClose');
     setSelectedOptionIds = jasmine.createSpy('setSelectedOptionIds');
+    setVotesPayload = jasmine.createSpy('setVotesPayload');
     pollClient = jasmine.createSpyObj('pollClient', ['fetchPoll', 'fetchPollVotes']);
+    pollClient.fetchPollVotes.and.returnValue(Promise.resolve({
+      ok: true, json: () => Promise.resolve({ votes_count: [], users: [], votes: [] }),
+    }));
     authClient = jasmine.createSpyObj('authClient', ['status']);
     authClient.status.and.returnValue(Promise.resolve({ ok: false }));
     fakeWindow = { location: { hash: '#/games/demo/polls/7' } };
@@ -100,7 +106,7 @@ describe('GamePollController', function() {
 
       expect(setCanVote).toHaveBeenCalledWith(false);
       expect(authClient.status).not.toHaveBeenCalled();
-      expect(pollClient.fetchPollVotes).not.toHaveBeenCalled();
+      expect(pollClient.fetchPollVotes).toHaveBeenCalledWith('demo', '7', null);
 
       cleanup();
     });
@@ -177,7 +183,11 @@ describe('GamePollController', function() {
       }));
       pollClient.fetchPollVotes.and.returnValue(Promise.resolve({
         ok: true,
-        json: () => Promise.resolve([{ id: 1, option: 10, user: 42 }, { id: 2, option: 11, user: 42 }]),
+        json: () => Promise.resolve({
+          votes_count: [{ option: 10, count: 1 }, { option: 11, count: 1 }],
+          users: [{ id: 42, name: 'alice', avatar_url: null }],
+          votes: [{ id: 1, option: 10, user_id: 42 }, { id: 2, option: 11, user_id: 42 }],
+        }),
       }));
 
       const cleanup = buildController().buildEffect()();

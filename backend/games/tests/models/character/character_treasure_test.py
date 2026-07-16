@@ -34,6 +34,13 @@ class TestCharacterTreasure(TestCase):
         )
         assert character_treasure.quantity == 0
 
+    def test_total_value_defaults_to_zero(self):
+        """Test that total_value defaults to 0 when not specified."""
+        character_treasure = CharacterTreasure.objects.create(
+            character=self.character, treasure=self.treasure,
+        )
+        assert character_treasure.total_value == 0
+
     def test_character_treasure_str(self):
         """Test string representation of a character treasure."""
         character_treasure = CharacterTreasure(

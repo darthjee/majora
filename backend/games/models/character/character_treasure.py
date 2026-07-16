@@ -14,6 +14,7 @@ class CharacterTreasure(models.Model):
         'games.Treasure', on_delete=models.CASCADE, related_name='character_treasures',
     )
     quantity = models.PositiveIntegerField(default=0)
+    total_value = models.PositiveIntegerField(default=0)
     history = HistoricalRecords(app='versioning', user_db_constraint=False)
 
     class Meta:

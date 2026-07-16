@@ -38,7 +38,7 @@ describe('GamePoll', function() {
   });
 
   describe('wiring into GamePollController', function() {
-    const fields = ['setCanVote', 'setCanClose', 'setSelectedOptionIds'];
+    const fields = ['setCanVote', 'setCanClose', 'setSelectedOptionIds', 'setVotesPayload'];
     let capture;
 
     afterEach(function() {
@@ -54,6 +54,7 @@ describe('GamePoll', function() {
       expect(typeof capture.spies.setCanVote).toBe('function');
       expect(typeof capture.spies.setCanClose).toBe('function');
       expect(typeof capture.spies.setSelectedOptionIds).toBe('function');
+      expect(typeof capture.spies.setVotesPayload).toBe('function');
     });
   });
 });

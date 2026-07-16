@@ -358,6 +358,7 @@ game_poll_page:
   override_decision_label: Substituir Decisão
   close_tie_alert: Houve um empate. Apenas a primeira opção empatada será selecionada; as demais serão ignoradas.
   winner_badge: Vencedora
+  votes_count_label: Votos
   close_submit: Encerrar Enquete
   close_cancel: Cancelar
   close_error: Não foi possível encerrar a enquete. Tente novamente.
