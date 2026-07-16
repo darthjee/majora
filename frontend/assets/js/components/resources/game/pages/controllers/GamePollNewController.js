@@ -99,8 +99,8 @@ export default class GamePollNewController extends BasePageController {
    *   sets error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
-   * @param {{title: string, description: string, type: string, options: string[]}} formValues -
-   *   Raw form field values.
+   * @param {{title: string, description: string, type: string, option_type: string,
+   *   options: string[]}} formValues - Raw form field values.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
@@ -119,6 +119,7 @@ export default class GamePollNewController extends BasePageController {
         title: formValues.title,
         description: formValues.description,
         type: formValues.type,
+        option_type: formValues.option_type,
         options: formValues.options
           .filter((option) => option.trim() !== '')
           .map((option) => ({ option })),

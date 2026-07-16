@@ -42,6 +42,28 @@ describe('GamePollHelper', function() {
       const html = renderToStaticMarkup(GamePollHelper.render({ ...poll, description: '' }));
       expect(html).not.toContain('Pick one for tonight.');
     });
+
+    it('renders text-type option values unchanged', function() {
+      const html = renderToStaticMarkup(GamePollHelper.render({ ...poll, option_type: 'text' }));
+
+      expect(html).toContain('The Drunken Griffin');
+      expect(html).toContain('The Rusty Anchor');
+    });
+
+    it('renders date-type option values formatted as dates', function() {
+      const datePoll = {
+        ...poll,
+        option_type: 'date',
+        options: [{ id: 10, option: '2026-08-01' }, { id: 11, option: '2026-01-01' }],
+      };
+
+      const html = renderToStaticMarkup(GamePollHelper.render(datePoll));
+
+      expect(html).not.toContain('2026-08-01');
+      expect(html).not.toContain('2026-01-01');
+      expect(html).toContain(new Date(2026, 7, 1).toLocaleDateString('en'));
+      expect(html).toContain(new Date(2026, 0, 1).toLocaleDateString('en'));
+    });
   });
 
   describe('.renderLoading', function() {

@@ -47,6 +47,8 @@ export default class PollClient extends BaseClient {
    * @param {string} fields.title - Poll title.
    * @param {string} [fields.description] - Poll description.
    * @param {string} fields.type - Poll type (`'single'` or `'multiple'`).
+   * @param {string} [fields.option_type] - Poll option type (`'text'` or `'date'`),
+   *   optional, defaulting server-side to `'text'` when omitted.
    * @param {{option: string}[]} fields.options - Poll options.
    * @returns {Promise<Response>} fetch response from the game polls endpoint.
    */

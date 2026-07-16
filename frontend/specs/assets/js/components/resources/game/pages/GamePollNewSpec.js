@@ -2,6 +2,8 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import GamePollNew from '../../../../../../../assets/js/components/resources/game/pages/GamePollNew.jsx';
 import GamePollNewController from '../../../../../../../assets/js/components/resources/game/pages/controllers/GamePollNewController.js';
+import GamePollNewHelper from '../../../../../../../assets/js/components/resources/game/pages/helpers/GamePollNewHelper.jsx';
+import Noop from '../../../../../../../assets/js/utils/Noop.js';
 import { stubBuildEffect } from '../../../../../../support/controllerStubs.js';
 
 describe('GamePollNew', function() {
@@ -37,5 +39,27 @@ describe('GamePollNew', function() {
     const html = renderToStaticMarkup(React.createElement(GamePollNew));
 
     expect(html).toContain('type="submit"');
+  });
+
+  it('renders the option type select, defaulted to text', function() {
+    const html = renderToStaticMarkup(React.createElement(GamePollNew));
+
+    expect(html).toContain('id="game-poll-new-option-type"');
+  });
+
+  it('includes the default option_type in the submit payload', function() {
+    let capturedHandlers;
+    spyOn(GamePollNewHelper, 'render').and.callFake((state, handlers) => {
+      capturedHandlers = handlers;
+      return null;
+    });
+    const submitFormSpy = spyOn(GamePollNewController.prototype, 'submitForm');
+
+    renderToStaticMarkup(React.createElement(GamePollNew));
+    capturedHandlers.onSubmit({ preventDefault: Noop.noop });
+
+    expect(submitFormSpy).toHaveBeenCalled();
+    const formValues = submitFormSpy.calls.mostRecent().args[2];
+    expect(formValues.option_type).toBe('text');
   });
 });
