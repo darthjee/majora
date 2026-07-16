@@ -5,6 +5,7 @@ from django.utils.crypto import get_random_string
 from rest_framework.authtoken.models import Token
 
 from games.tests.factories import UserFactory
+from statistics import cookies
 
 TEST_PASSWORD = get_random_string(20)
 
@@ -77,3 +78,17 @@ class TestLogoutView:
 
         assert response.status_code == 204
         assert not Token.objects.filter(user=user).exists()
+
+    def test_deletes_statistics_cookie(self, client):
+        """Test that logout's response deletes the statistics session cookie."""
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
+        token = Token.objects.create(user=user)
+
+        response = client.delete(
+            '/users/logout.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        statistics_cookie = response.cookies[cookies.COOKIE_NAME]
+        assert statistics_cookie.value == ''
+        assert statistics_cookie['max-age'] == 0
