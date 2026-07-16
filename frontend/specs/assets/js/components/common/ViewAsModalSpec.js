@@ -69,8 +69,19 @@ describe('ViewAsModal', function() {
 
     handlers.onSave();
 
-    expect(AccessStore.getFacade()).toEqual({ enabled: false, roles: [] });
+    expect(AccessStore.getFacade()).toEqual({ enabled: false, roles: [], gameSlug: null });
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('forwards the gameSlug prop into the save handler', function() {
+    spyOn(AccessStore, 'setFacade');
+    const { handlers } = renderModal({ gameSlug: 'epic-quest' });
+
+    handlers.onSave();
+
+    expect(AccessStore.setFacade).toHaveBeenCalledWith(
+      jasmine.objectContaining({ gameSlug: 'epic-quest' }),
+    );
   });
 
   it('exposes toggle handlers without throwing', function() {

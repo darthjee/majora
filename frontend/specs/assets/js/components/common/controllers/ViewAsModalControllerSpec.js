@@ -58,7 +58,16 @@ describe('ViewAsModalController', function() {
 
       controller.handleSave(true, ['dm']);
 
-      expect(AccessStore.setFacade).toHaveBeenCalledWith({ enabled: true, roles: ['dm'] });
+      expect(AccessStore.setFacade).toHaveBeenCalledWith({ enabled: true, roles: ['dm'], gameSlug: undefined });
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it('forwards the given gameSlug to AccessStore.setFacade', function() {
+      spyOn(AccessStore, 'setFacade');
+
+      controller.handleSave(true, ['dm'], 'epic-quest');
+
+      expect(AccessStore.setFacade).toHaveBeenCalledWith({ enabled: true, roles: ['dm'], gameSlug: 'epic-quest' });
       expect(onClose).toHaveBeenCalled();
     });
   });

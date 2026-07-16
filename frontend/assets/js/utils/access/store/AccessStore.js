@@ -3,6 +3,7 @@ import CharacterClient from '../../../client/CharacterClient.js';
 import TreasureClient from '../../../client/TreasureClient.js';
 import AuthClient from '../../../client/AuthClient.js';
 import accessRouteConfig from '../accessRouteConfig.js';
+import gameSlugFromHash from '../../routing/GameSlugFromHash.js';
 import AccessCache from '../AccessCache.js';
 import AccessEvents from '../AccessEvents.js';
 import AccessStoreDescriptor from './AccessStoreDescriptor.js';
@@ -21,18 +22,14 @@ let _pageKey = null;
 let _hash = '';
 
 /**
- * Centralized, frontend-only store for access-check state (game, character,
- * treasure, and staff/superuser access), reset on every route change and
- * (re)fetched per {@link accessRouteConfig}. Delegates caching/dedup/event
- * emission to {@link AccessCache}, identity checks to {@link AccessStoreAccess},
- * and role-aware edit-permissions checks to {@link AccessStorePermissions}.
- * Owns two kinds of per-resource checks: `*Access` (identity, always the
- * requester's own real identity) and `*Permissions` (`can_edit`, for the
- * real identity or, given a role set, simulated for those roles instead —
- * cached separately per role set).
- *
- * @description Also owns the "view as" facade (state delegated to
- *   {@link AccessStoreFacade}), threaded into every `*Permissions` fetch.
+ * Centralized, frontend-only store for access-check state (game, character, treasure, and
+ * staff/superuser access), reset on every route change and (re)fetched per {@link accessRouteConfig}.
+ * Delegates caching/dedup/event emission to {@link AccessCache}, identity checks to
+ * {@link AccessStoreAccess}, and role-aware edit-permissions checks to {@link AccessStorePermissions}.
+ * Owns two kinds of per-resource checks: `*Access` (identity, always the requester's real identity)
+ * and `*Permissions` (`can_edit`, real or, given a role set, simulated — cached separately per role
+ * set). Also owns the "view as" facade (state delegated to {@link AccessStoreFacade}), threaded into
+ * every `*Permissions` fetch.
  */
 export default class AccessStore {
   /**
@@ -212,8 +209,7 @@ export default class AccessStore {
   }
 
   /**
-   * Synchronously read whether the current user is staff or a superuser, without
-   * triggering a fetch.
+   * Synchronously read whether the current user is staff or a superuser, without triggering a fetch.
    *
    * @returns {boolean} The cached result, or `false` while unresolved.
    */
@@ -222,37 +218,36 @@ export default class AccessStore {
   }
 
   /**
-   * Synchronously read the current "view as" facade state, used to
-   * pre-populate the facade modal when it opens.
+   * Synchronously read the current facade state, used to pre-populate the facade modal when it opens.
    *
-   * @returns {{enabled: boolean, roles: string[]}} The current facade state.
+   * @returns {{enabled: boolean, roles: string[], gameSlug: (string|null)}} The current facade state.
    */
   static getFacade() {
     return AccessStoreFacade.get();
   }
 
   /**
-   * Enable/disable and configure the "view as" facade, then reset and
-   * re-sync every per-resource check for the current page under the new
-   * facade — naturally re-fetching each `*Permissions` check and re-emitting
-   * `AccessEvents` as each resolves. Also emits `AccessEvents.emitFacadeChanged()`
-   * once, so pages subscribed to it can re-run their own data-loading effect.
+   * Enable/disable and configure the "view as" facade, then reset/re-sync the current
+   * page's checks, emitting `AccessEvents.emitFacadeChanged()` once. A real staff/superuser
+   * gets an unscoped facade; a DM activation is scoped to `gameSlug` (auto-disengages via
+   * {@link syncForRoute} on navigation away).
    *
    * @param {object} facade - The new facade state.
    * @param {boolean} facade.enabled - Whether the facade is active.
    * @param {string[]} facade.roles - Roles to simulate (`'dm'`, `'player'`, `'owner'`) while active.
+   * @param {string} [facade.gameSlug] - Game slug the facade activates from (DM activations only).
    * @returns {void}
    */
-  static setFacade({ enabled, roles }) {
-    AccessStoreFacade.set(enabled, roles);
+  static setFacade({ enabled, roles, gameSlug }) {
+    AccessStoreFacade.set(enabled, roles, AccessStore.isStaffOrSuperUser() ? null : (gameSlug ?? null));
     AccessStore.reset();
     AccessStore.#resyncCurrentRoute();
     AccessEvents.emitFacadeChanged();
   }
 
   /**
-   * Reset all cached/pending access state, record the current route, and
-   * (re)start whichever access checks {@link accessRouteConfig} declares for it.
+   * Reset all cached/pending access state, record the current route, disengage a DM-scoped
+   * facade on game mismatch, and (re)start whichever access checks {@link accessRouteConfig} declares for it.
    *
    * @param {string} pageKey - Resolved page identifier (as returned by `HashRouteResolver#getPage`).
    * @param {string} hash - Current hash, used to extract route params.
@@ -262,6 +257,10 @@ export default class AccessStore {
     AccessStore.reset();
     _pageKey = pageKey;
     _hash = hash;
+
+    if (AccessStoreFacade.syncRoute(gameSlugFromHash(hash))) {
+      AccessEvents.emitFacadeChanged();
+    }
 
     const descriptors = accessRouteConfig.get(pageKey);
 

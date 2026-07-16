@@ -1,5 +1,6 @@
 import AccessStore from '../../../../../../assets/js/utils/access/store/AccessStore.js';
 import AccessStoreFacade from '../../../../../../assets/js/utils/access/store/AccessStoreFacade.js';
+import AccessEvents from '../../../../../../assets/js/utils/access/AccessEvents.js';
 import GameClient from '../../../../../../assets/js/client/GameClient.js';
 import { ACCESS_DEFAULT, fakeResponse } from './support.js';
 
@@ -73,6 +74,48 @@ describe('AccessStore', function() {
       AccessStore.syncForRoute('home', '#/');
 
       expect(AccessStore.getGameAccess('demo')).toEqual(ACCESS_DEFAULT);
+    });
+
+    it('clears a DM-scoped facade when navigating to a different game', function() {
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve(ACCESS_DEFAULT));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+      spyOn(AccessEvents, 'emitFacadeChanged');
+      AccessStoreFacade.set(true, ['dm'], 'demo');
+
+      AccessStore.syncForRoute('game', '#/games/other-game');
+
+      expect(AccessStoreFacade.get()).toEqual({ enabled: false, roles: [], gameSlug: null });
+      expect(AccessEvents.emitFacadeChanged).toHaveBeenCalled();
+    });
+
+    it('keeps a DM-scoped facade when the route still matches its gameSlug', function() {
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve(ACCESS_DEFAULT));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+      spyOn(AccessEvents, 'emitFacadeChanged');
+      AccessStoreFacade.set(true, ['dm'], 'demo');
+
+      try {
+        AccessStore.syncForRoute('game', '#/games/demo');
+
+        expect(AccessStoreFacade.get()).toEqual({ enabled: true, roles: ['dm'], gameSlug: 'demo' });
+        expect(AccessEvents.emitFacadeChanged).not.toHaveBeenCalled();
+      } finally {
+        AccessStoreFacade.clear();
+      }
+    });
+
+    it('does not touch an unscoped (admin/staff) facade when navigating', function() {
+      spyOn(AccessEvents, 'emitFacadeChanged');
+      AccessStoreFacade.set(true, ['dm']);
+
+      try {
+        AccessStore.syncForRoute('home', '#/');
+
+        expect(AccessStoreFacade.get()).toEqual({ enabled: true, roles: ['dm'], gameSlug: null });
+        expect(AccessEvents.emitFacadeChanged).not.toHaveBeenCalled();
+      } finally {
+        AccessStoreFacade.clear();
+      }
     });
 
     it('clears the recorded page so a later #setFacade does not re-sync it', function() {
