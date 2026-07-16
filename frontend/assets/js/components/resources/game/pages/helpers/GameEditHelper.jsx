@@ -1,5 +1,5 @@
-import React from 'react';
 import FormField from '../../../../common/FormField.jsx';
+import TextareaField from '../../../../common/TextareaField.jsx';
 import ErrorAlert from '../../../../common/ErrorAlert.jsx';
 import SubmitButton from '../../../../common/SubmitButton.jsx';
 import ActionsOverlay from '../../../../common/ActionsOverlay.jsx';
@@ -44,9 +44,8 @@ export default class GameEditHelper {
                 onChange={handlers.onNameChange}
                 errors={formState.fieldErrors.name ?? []}
               />
-              <FormField
+              <TextareaField
                 id="game-edit-description"
-                type="text"
                 label={Translator.t('game_edit_page.description_label')}
                 value={formState.description}
                 onChange={handlers.onDescriptionChange}
