@@ -102,7 +102,32 @@ class TestSessionPollCreateView(TestCase):
         assert poll.title == DEFAULT_TITLE
         assert poll.status == Poll.STATUS_OPEN
         assert poll.option_type == Poll.OPTION_TYPE_DATE
+        assert poll.type == Poll.TYPE_MULTIPLE
+
+    def test_created_poll_defaults_to_multiple_type_when_type_omitted(self):
+        """Test that omitting `type` defaults the created poll's type to multiple."""
+        self._post(self._payload(), token=self.dm_token)
+        poll = Poll.objects.get(game=self.game)
+        assert poll.type == Poll.TYPE_MULTIPLE
+
+    def test_created_poll_type_single_when_requested(self):
+        """Test that requesting `type='single'` creates a single-choice poll."""
+        self._post(self._payload(type=Poll.TYPE_SINGLE), token=self.dm_token)
+        poll = Poll.objects.get(game=self.game)
         assert poll.type == Poll.TYPE_SINGLE
+
+    def test_created_poll_type_multiple_when_requested(self):
+        """Test that requesting `type='multiple'` creates a multiple-choice poll."""
+        self._post(self._payload(type=Poll.TYPE_MULTIPLE), token=self.dm_token)
+        poll = Poll.objects.get(game=self.game)
+        assert poll.type == Poll.TYPE_MULTIPLE
+
+    def test_invalid_type_returns_400(self):
+        """Test that an invalid `type` value returns 400 with a field error on type."""
+        response = self._post(self._payload(type='bogus'), token=self.dm_token)
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'type' in data['errors']
 
     def test_created_poll_is_linked_to_the_session(self):
         """Test that the created poll's content_object is the originating session."""
@@ -126,7 +151,7 @@ class TestSessionPollCreateView(TestCase):
             'id', 'title', 'description', 'type', 'status', 'option_type', 'options',
         }
         assert data['title'] == DEFAULT_TITLE
-        assert data['type'] == Poll.TYPE_SINGLE
+        assert data['type'] == Poll.TYPE_MULTIPLE
         assert data['status'] == Poll.STATUS_OPEN
         assert data['option_type'] == Poll.OPTION_TYPE_DATE
         assert [option['option'] for option in data['options']] == [
