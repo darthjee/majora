@@ -36,7 +36,8 @@ describe('CharacterPreviewSectionHelper', function() {
       const html = renderToStaticMarkup(
         CharacterPreviewSectionHelper.render(buildCharacters(8), gameSlug, 'pc', title, seeAllHref, icon)
       );
-      expect(html).toContain('Character 6');
+      expect(html).toContain('Character 5');
+      expect(html).not.toContain('Character 6');
       expect(html).not.toContain('Character 7');
       expect(html).not.toContain('Character 8');
     });

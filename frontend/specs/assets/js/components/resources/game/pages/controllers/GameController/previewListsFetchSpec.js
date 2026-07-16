@@ -33,7 +33,7 @@ describe('GameController', function() {
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(client.fetch).toHaveBeenCalledWith('/games/demo/pcs.json?per_page=6');
+    expect(client.fetch).toHaveBeenCalledWith('/games/demo/pcs.json?per_page=5');
     expect(setPcs).toHaveBeenCalledWith(pcs);
 
     cleanup();
@@ -60,7 +60,7 @@ describe('GameController', function() {
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(client.fetch).toHaveBeenCalledWith('/games/demo/npcs.json?per_page=6');
+    expect(client.fetch).toHaveBeenCalledWith('/games/demo/npcs.json?per_page=5');
     expect(setNpcs).toHaveBeenCalledWith(npcs);
 
     cleanup();
