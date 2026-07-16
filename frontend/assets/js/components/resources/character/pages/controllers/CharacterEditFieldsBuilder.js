@@ -68,6 +68,8 @@ export default class CharacterEditFieldsBuilder {
    */
   static playerFields(formValues) {
     return {
+      name: formValues.name,
+      role: formValues.role,
       public_description: formValues.description,
       allegiance: formValues.publicAllegiance,
       links: CharacterEditFieldsBuilder.linksPayload(formValues.links),

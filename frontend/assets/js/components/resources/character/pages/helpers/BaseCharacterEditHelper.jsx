@@ -33,9 +33,11 @@ export default class BaseCharacterEditHelper {
    *
    * @description `state.links` may include entries marked `delete: true` (kept so the
    *   "Edit links" modal can restore them); those are filtered out of the visible
-   *   `LinkList` here. `name`, `role`, `money`, and `private_description` are dm/admin-only
-   *   (`state.isFullEditor`); `public_description`, `links`, allegiance, and the slain toggle
-   *   are visible/editable regardless of editor kind.
+   *   `LinkList` here. `money` and `private_description` are dm/admin-only
+   *   (`state.isFullEditor`); `name` and `role` are dm/admin-only for a PC but visible/editable
+   *   for any NPC editor (a player editor only ever reaches this render for an NPC, since
+   *   `CharacterEdit.jsx` redirects everyone else away first); `public_description`, `links`,
+   *   allegiance, and the slain toggle are visible/editable regardless of editor kind.
    * @param {{isFullEditor: boolean, name: string, profile_photo_path: string|null,
    *   links: object[], role: string, description: string, privateDescription: string,
    *   money: string, gameType: string, allegiance: string, publicAllegiance: string,
@@ -90,7 +92,10 @@ export default class BaseCharacterEditHelper {
             </div>
             <div className="col-md-8">
               <CharacterRoleField
-                isFullEditor={state.isFullEditor}
+                // Really "can see/edit this field": always true for an NPC editor
+                // (player or full), since anyone reaching this render for an NPC may
+                // already edit name/role; still full-editor-only for a PC.
+                isFullEditor={state.isFullEditor || this.idPrefix === 'npc'}
                 id={`${idPrefix}-edit-role`}
                 label={Translator.t(`${i18nNamespace}.role_label`)}
                 value={state.role}
@@ -183,7 +188,7 @@ export default class BaseCharacterEditHelper {
   }
 
   #renderNameField(state, handlers) {
-    if (!state.isFullEditor) {
+    if (this.idPrefix !== 'npc' && !state.isFullEditor) {
       return null;
     }
 

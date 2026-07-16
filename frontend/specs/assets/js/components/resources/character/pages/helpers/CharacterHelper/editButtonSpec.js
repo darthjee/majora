@@ -29,6 +29,23 @@ describe('CharacterHelper', function() {
       expect(html).not.toContain('/edit"');
     });
 
+    it('renders an npcs edit button for a player editor when can_edit is false', function() {
+      const c = {
+        ...character, can_edit: false, is_player: true, is_pc: false, game_slug: 'demo', id: 7,
+      };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
+      expect(html).toContain('href="#/games/demo/npcs/7/edit"');
+      expect(html).toContain('Edit');
+    });
+
+    it('does not render an edit button for a player on a pc even when is_player is true', function() {
+      const c = {
+        ...character, can_edit: false, is_player: true, is_pc: true, game_slug: 'demo', id: 7,
+      };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).not.toContain('/edit"');
+    });
+
     it('does not use mt-2 class on the edit button', function() {
       const c = { ...character, can_edit: true, is_pc: true, game_slug: 'demo', id: 7 };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));

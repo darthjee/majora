@@ -95,6 +95,8 @@ describe('CharacterEditFieldsBuilder', function() {
   describe('.playerFields', function() {
     it('builds the reduced player-only NPC editor payload', function() {
       const formValues = {
+        name: 'Grumbleknuckle',
+        role: 'Shopkeeper',
         description: 'A brave hero',
         publicAllegiance: 'enemy',
         publicSlain: true,
@@ -102,6 +104,8 @@ describe('CharacterEditFieldsBuilder', function() {
       };
 
       expect(CharacterEditFieldsBuilder.playerFields(formValues)).toEqual({
+        name: 'Grumbleknuckle',
+        role: 'Shopkeeper',
         public_description: 'A brave hero',
         allegiance: 'enemy',
         links: [{
