@@ -66,6 +66,23 @@ class TestGameTreasuresView(TestCase):
         assert len(data) == 1
         assert data[0]['name'] == 'Cheap Gem'
 
+    def test_filters_by_max_value_using_game_treasure_value_not_treasure_value(self):
+        """Test that max_value filters on GameTreasure.value even when Treasure.value differs."""
+        treasure = TreasureFactory(name='Discounted Gem', value=500)
+        self.game.treasures.add(treasure, through_defaults={'value': 50})
+        response = self.client.get('/games/test-game/treasures.json?max_value=100')
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Discounted Gem'
+
+    def test_filters_out_by_max_value_using_game_treasure_value_not_treasure_value(self):
+        """Test that max_value excludes a treasure whose GameTreasure.value exceeds it."""
+        treasure = TreasureFactory(name='Marked Up Gem', value=50)
+        self.game.treasures.add(treasure, through_defaults={'value': 500})
+        response = self.client.get('/games/test-game/treasures.json?max_value=100')
+        data = json.loads(response.content)
+        assert data == []
+
     def test_returns_all_treasures_when_max_value_absent(self):
         """Test that all treasures are returned when max_value is not provided."""
         cheap = TreasureFactory(name='Cheap Gem', value=50)
@@ -241,6 +258,16 @@ class TestGameTreasuresView(TestCase):
         data = json.loads(response.content)
         assert [item['id'] for item in data] == [first.id, second.id]
 
+    def test_orders_by_game_treasure_value_not_treasure_value(self):
+        """Test that ordering uses GameTreasure.value even when Treasure.value disagrees."""
+        first = TreasureFactory(name='First Gem', value=500)
+        second = TreasureFactory(name='Second Gem', value=50)
+        self.game.treasures.add(first, through_defaults={'value': 10})
+        self.game.treasures.add(second, through_defaults={'value': 200})
+        response = self.client.get('/games/test-game/treasures.json')
+        data = json.loads(response.content)
+        assert [item['name'] for item in data] == ['First Gem', 'Second Gem']
+
     def test_filters_by_search_substring(self):
         """Test that only treasures whose name contains the search term are returned."""
         ring = TreasureFactory(name='Gold Ring', value=100)
@@ -303,6 +330,16 @@ class TestGameTreasuresView(TestCase):
         response = self.client.get('/games/test-game/treasures.json?ordering=bogus')
         data = json.loads(response.content)
         assert [item['name'] for item in data] == ['Cheap Gem', 'Expensive Gem']
+
+    def test_exclusive_treasure_filters_and_displays_by_game_treasure_value(self):
+        """Test that an exclusive treasure's filter/display reflects its GameTreasure.value."""
+        treasure = TreasureFactory(name='Exclusive Gem', value=500, game=self.game)
+        GameTreasure.objects.create(game=self.game, treasure=treasure, value=50)
+        response = self.client.get('/games/test-game/treasures.json?max_value=100')
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Exclusive Gem'
+        assert data[0]['value'] == 50
 
     def test_ordering_absent_defaults_to_ascending(self):
         """Test that omitting ordering still returns today's ascending order."""

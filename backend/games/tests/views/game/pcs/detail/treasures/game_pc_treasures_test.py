@@ -44,6 +44,15 @@ class TestGamePcTreasuresView(TokenAuthRequestMixin):
         assert data[0]['quantity'] == 1
         assert data[0]['value'] == 1000
 
+    def test_value_reflects_the_game_treasure_row(self, client):
+        """Test that value reflects the game's GameTreasure row, not the treasure's own value."""
+        treasure = TreasureFactory(name='Discounted Gem', value=1000)
+        self.game.treasures.add(treasure, through_defaults={'value': 100})
+        CharacterTreasure.objects.create(character=self.character, treasure=treasure, quantity=1)
+        response = client.get(self._url())
+        data = json.loads(response.content)
+        assert data[0]['value'] == 100
+
     def test_excludes_zero_quantity_treasures(self, client):
         """Test that a CharacterTreasure row with quantity 0 is excluded from the response."""
         treasure = TreasureFactory(name='Empty Pouch', value=10)
@@ -121,6 +130,20 @@ class TestGamePcTreasuresView(TokenAuthRequestMixin):
         """Test that treasures with equal value are ordered by treasure id ascending."""
         first = TreasureFactory(name='First Gem', value=100)
         second = TreasureFactory(name='Second Gem', value=100)
+        for treasure in (first, second):
+            CharacterTreasure.objects.create(
+                character=self.character, treasure=treasure, quantity=1,
+            )
+        response = client.get(self._url())
+        data = json.loads(response.content)
+        assert [item['name'] for item in data] == ['First Gem', 'Second Gem']
+
+    def test_orders_by_game_treasure_value_not_treasure_value(self, client):
+        """Test that ordering uses GameTreasure.value even when Treasure.value disagrees."""
+        first = TreasureFactory(name='First Gem', value=500)
+        second = TreasureFactory(name='Second Gem', value=50)
+        self.game.treasures.add(first, through_defaults={'value': 10})
+        self.game.treasures.add(second, through_defaults={'value': 200})
         for treasure in (first, second):
             CharacterTreasure.objects.create(
                 character=self.character, treasure=treasure, quantity=1,

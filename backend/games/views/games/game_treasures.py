@@ -1,6 +1,7 @@
 """View for listing a game's treasures, or creating one exclusive to that game."""
 
-from django.db.models import Q
+from django.db.models import IntegerField, OuterRef, Q, Subquery
+from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny
@@ -32,6 +33,11 @@ def game_treasures(request, game_slug):
 
     treasures = Treasure.objects.filter(Q(linked_game=game) | Q(game=game)).distinct()
     treasures = treasures.filter(hidden=False)
+    game_value = Subquery(
+        GameTreasure.objects.filter(game=game, treasure=OuterRef('pk')).values('value')[:1],
+        output_field=IntegerField(),
+    )
+    treasures = treasures.annotate(game_value=Coalesce(game_value, 'value'))
     treasures = _filter_by_max_value(request, treasures)
     treasures = _filter_by_search(request, treasures)
     treasures = _apply_ordering(request, treasures)
@@ -40,7 +46,7 @@ def game_treasures(request, game_slug):
 
 
 def _filter_by_max_value(request, treasures):
-    """Filter `treasures` to `value__lte` an optional `max_value` query param."""
+    """Filter `treasures` to `game_value__lte` an optional `max_value` query param."""
     max_value = request.GET.get('max_value')
     if max_value is None:
         return treasures
@@ -50,7 +56,7 @@ def _filter_by_max_value(request, treasures):
     except ValueError:
         return treasures
 
-    return treasures.filter(value__lte=max_value)
+    return treasures.filter(game_value__lte=max_value)
 
 
 def _filter_by_search(request, treasures):
@@ -66,9 +72,9 @@ def _apply_ordering(request, treasures):
     """Order `treasures` by `value` descending when `ordering` is `desc`, ascending otherwise."""
     ordering = request.GET.get('ordering')
     if ordering == 'desc':
-        return treasures.order_by('-value', 'id')
+        return treasures.order_by('-game_value', 'id')
 
-    return treasures.order_by('value', 'id')
+    return treasures.order_by('game_value', 'id')
 
 
 def _create_game_treasure(request, game):
