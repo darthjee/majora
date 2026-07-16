@@ -51,7 +51,7 @@ from .games import (
 from .health import health
 from .password_reset import recover, reset_password
 from .photo_upload import photo_upload
-from .polls import game_poll_detail, game_polls_list
+from .polls import game_poll_detail, game_poll_votes, game_polls_list
 from .ready import ready
 from .staff import staff_user_detail, staff_user_recovery_link, staff_users_list
 from .treasures import (
@@ -118,6 +118,7 @@ __all__ = [
     'photo_upload',
     'game_polls_list',
     'game_poll_detail',
+    'game_poll_votes',
     'staff_users_list',
     'staff_user_detail',
     'staff_user_recovery_link',
