@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
 import CharacterPreviewSection from '../../../../../assets/js/components/common/CharacterPreviewSection.jsx';
+import Icons from '../../../../../assets/js/utils/ui/Icons.js';
 import { buildCharacter } from '../../../../support/factories.js';
 
 describe('CharacterPreviewSection', function() {
@@ -17,11 +18,13 @@ describe('CharacterPreviewSection', function() {
         characterType: 'pc',
         title: 'Player Characters',
         seeAllHref: '#/games/epic-quest/pcs',
+        icon: Icons.filePerson,
       })
     );
     expect(html).toContain('Player Characters');
     expect(html).toContain('Aragorn');
     expect(html).toContain('Legolas');
     expect(html).toContain('href="#/games/epic-quest/pcs"');
+    expect(html).toContain(Icons.filePerson);
   });
 });

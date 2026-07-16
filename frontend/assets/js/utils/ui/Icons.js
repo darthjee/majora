@@ -13,6 +13,8 @@ export default {
   trash: 'bi-trash-fill',
   restore: 'bi-plus-circle-fill',
   viewAs: 'bi-file-person-fill',
+  filePerson: 'bi-file-earmark-person',
+  filePersonFill: 'bi-file-earmark-person-fill',
   envelope: 'bi-envelope-fill',
   infoCircleFill: 'bi-info-circle-fill',
   emojiAngry: 'bi-emoji-angry',

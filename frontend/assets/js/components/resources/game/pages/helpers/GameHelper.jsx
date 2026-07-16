@@ -9,6 +9,7 @@ import LinkList from '../../../../common/LinkList.jsx';
 import LoadingMessage from '../../../../common/LoadingMessage.jsx';
 import OpenPollsWidget from '../elements/OpenPollsWidget.jsx';
 import Translator from '../../../../../i18n/Translator.js';
+import Icons from '../../../../../utils/ui/Icons.js';
 
 /**
  * Rendering helper for the Game detail page.
@@ -57,6 +58,11 @@ export default class GameHelper {
               canEdit={game.can_edit}
               onClick={handlers.onOpenUploadModal}
             />
+            {GameHelper.#renderNextSession(game)}
+            <OpenPollsWidget game={game} />
+            <a href={`#/games/${game.game_slug}/treasures`} className="btn btn-secondary mt-3">
+              {Translator.t('game_page.treasures')}
+            </a>
           </div>
           <div className="col-md-8">
             <h1>
@@ -64,24 +70,24 @@ export default class GameHelper {
             </h1>
             <DescriptionBox description={game.description} />
             <LinkList links={game.links} />
+            <CharacterPreviewSection
+              characters={pcs}
+              gameSlug={game.game_slug}
+              characterType="pc"
+              title={Translator.t('game_page.player_characters')}
+              seeAllHref={`#/games/${game.game_slug}/pcs`}
+              icon={Icons.filePerson}
+            />
+            <CharacterPreviewSection
+              characters={npcs}
+              gameSlug={game.game_slug}
+              characterType="npc"
+              title={Translator.t('game_page.non_player_characters')}
+              seeAllHref={`#/games/${game.game_slug}/npcs`}
+              icon={Icons.filePersonFill}
+            />
           </div>
         </div>
-        <CharacterPreviewSection
-          characters={pcs}
-          gameSlug={game.game_slug}
-          characterType="pc"
-          title={Translator.t('game_page.player_characters')}
-          seeAllHref={`#/games/${game.game_slug}/pcs`}
-        />
-        <CharacterPreviewSection
-          characters={npcs}
-          gameSlug={game.game_slug}
-          characterType="npc"
-          title={Translator.t('game_page.non_player_characters')}
-          seeAllHref={`#/games/${game.game_slug}/npcs`}
-        />
-        {GameHelper.#renderNextSession(game)}
-        <OpenPollsWidget game={game} />
       </div>
     );
   }

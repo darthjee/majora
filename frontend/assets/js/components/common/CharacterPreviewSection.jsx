@@ -9,11 +9,12 @@ import CharacterPreviewSectionHelper from './helpers/CharacterPreviewSectionHelp
  * @param {string} props.gameSlug - Game slug used to build each card's detail link.
  * @param {string} props.characterType - Character type, either 'pc' or 'npc'.
  * @param {string} props.title - Section heading.
- * @param {string} props.seeAllHref - Hash href for the "See all" link.
+ * @param {string} props.seeAllHref - Hash href for the "See all" card.
+ * @param {string} props.icon - Bootstrap icon class name (see `Icons.js`) for the "See all" card.
  * @returns {React.ReactElement} Character preview section element.
  */
 export default function CharacterPreviewSection({
-  characters, gameSlug, characterType, title, seeAllHref,
+  characters, gameSlug, characterType, title, seeAllHref, icon,
 }) {
-  return CharacterPreviewSectionHelper.render(characters, gameSlug, characterType, title, seeAllHref);
+  return CharacterPreviewSectionHelper.render(characters, gameSlug, characterType, title, seeAllHref, icon);
 }

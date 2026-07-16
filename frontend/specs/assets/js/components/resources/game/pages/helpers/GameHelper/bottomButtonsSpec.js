@@ -4,9 +4,9 @@ import { game } from './support.js';
 
 describe('GameHelper', function() {
   describe('.render', function() {
-    it('does not render the treasures/photos buttons at the bottom of the page', function() {
+    it('renders a treasures button and does not render a photos button', function() {
       const html = renderToStaticMarkup(GameHelper.render(game));
-      expect(html).not.toContain(`href="#/games/${game.game_slug}/treasures"`);
+      expect(html).toContain(`href="#/games/${game.game_slug}/treasures"`);
       expect(html).not.toContain(`href="#/games/${game.game_slug}/photos"`);
     });
 
