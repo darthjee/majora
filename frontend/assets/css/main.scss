@@ -145,3 +145,8 @@ body {
   mask-image: url("../images/icons/skull-fill.svg");
   -webkit-mask-image: url("../images/icons/skull-fill.svg");
 }
+
+.view-as-link.view-as-active {
+  background-color: #d4edda;
+  border-radius: 4px;
+}

@@ -13,15 +13,20 @@
 export default class AccessStoreFacade {
   static #enabled = false;
   static #roles = new Set();
+  static #gameSlug = null;
 
   /**
    * Synchronously read the current facade state, used to pre-populate the
    * facade modal when it opens.
    *
-   * @returns {{enabled: boolean, roles: string[]}} The current facade state.
+   * @returns {{enabled: boolean, roles: string[], gameSlug: (string|null)}} The current facade state.
    */
   static get() {
-    return { enabled: AccessStoreFacade.#enabled, roles: Array.from(AccessStoreFacade.#roles) };
+    return {
+      enabled: AccessStoreFacade.#enabled,
+      roles: Array.from(AccessStoreFacade.#roles),
+      gameSlug: AccessStoreFacade.#gameSlug,
+    };
   }
 
   /**
@@ -29,11 +34,14 @@ export default class AccessStoreFacade {
    *
    * @param {boolean} enabled - Whether the facade is active.
    * @param {string[]} roles - Roles to simulate while the facade is active.
+   * @param {string|null} [gameSlug] - Game slug the facade is scoped to (DM
+   *   activations only); `null` for an unscoped (admin/staff) facade.
    * @returns {void}
    */
-  static set(enabled, roles) {
+  static set(enabled, roles, gameSlug = null) {
     AccessStoreFacade.#enabled = enabled;
     AccessStoreFacade.#roles = new Set(roles);
+    AccessStoreFacade.#gameSlug = gameSlug;
   }
 
   /**
@@ -45,6 +53,31 @@ export default class AccessStoreFacade {
   static clear() {
     AccessStoreFacade.#enabled = false;
     AccessStoreFacade.#roles = new Set();
+    AccessStoreFacade.#gameSlug = null;
+  }
+
+  /**
+   * Clears the facade when it is scoped to a `gameSlug` (a DM activation)
+   * and the current route's game slug no longer strictly matches it —
+   * including navigating away from any game page. Facades with no stored
+   * `gameSlug` (admin/staff activations) are never touched.
+   *
+   * @param {string|undefined} currentGameSlug - The `gameSlug` of the route
+   *   just navigated to, or `undefined` when not on a game-scoped route.
+   * @returns {boolean} Whether the facade was cleared by this call.
+   */
+  static syncRoute(currentGameSlug) {
+    if (AccessStoreFacade.#gameSlug === null) {
+      return false;
+    }
+
+    if (AccessStoreFacade.#gameSlug === currentGameSlug) {
+      return false;
+    }
+
+    AccessStoreFacade.clear();
+
+    return true;
   }
 
   /**

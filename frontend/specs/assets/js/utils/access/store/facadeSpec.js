@@ -23,7 +23,7 @@ describe('AccessStore', function() {
 
   describe('#getFacade', function() {
     it('returns disabled/empty by default', function() {
-      expect(AccessStore.getFacade()).toEqual({ enabled: false, roles: [] });
+      expect(AccessStore.getFacade()).toEqual({ enabled: false, roles: [], gameSlug: null });
     });
   });
 
@@ -31,7 +31,23 @@ describe('AccessStore', function() {
     it('updates the facade state readable via #getFacade', function() {
       AccessStore.setFacade({ enabled: true, roles: ['dm'] });
 
-      expect(AccessStore.getFacade()).toEqual({ enabled: true, roles: ['dm'] });
+      expect(AccessStore.getFacade()).toEqual({ enabled: true, roles: ['dm'], gameSlug: null });
+    });
+
+    it('scopes the facade to the given gameSlug for a non-admin (DM) activation', function() {
+      spyOn(AccessStore, 'isStaffOrSuperUser').and.returnValue(false);
+
+      AccessStore.setFacade({ enabled: true, roles: ['dm'], gameSlug: 'epic-quest' });
+
+      expect(AccessStore.getFacade()).toEqual({ enabled: true, roles: ['dm'], gameSlug: 'epic-quest' });
+    });
+
+    it('ignores the given gameSlug for a real staff/superuser activation', function() {
+      spyOn(AccessStore, 'isStaffOrSuperUser').and.returnValue(true);
+
+      AccessStore.setFacade({ enabled: true, roles: ['dm'], gameSlug: 'epic-quest' });
+
+      expect(AccessStore.getFacade()).toEqual({ enabled: true, roles: ['dm'], gameSlug: null });
     });
 
     it('resets cached state and re-syncs the current page route', function() {
@@ -84,7 +100,7 @@ describe('AccessStore', function() {
 
       AccessStore.syncForAuthChange();
 
-      expect(AccessStore.getFacade()).toEqual({ enabled: false, roles: [] });
+      expect(AccessStore.getFacade()).toEqual({ enabled: false, roles: [], gameSlug: null });
     });
 
     it('does not emit AccessEvents.emitFacadeChanged', function() {

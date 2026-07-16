@@ -56,10 +56,12 @@ export default class ViewAsModalController {
    *
    * @param {boolean} enabled - Whether the facade should be active.
    * @param {string[]} roles - Roles to simulate while the facade is active.
+   * @param {string} [gameSlug] - Current route's game slug, threaded through
+   *   to `AccessStore.setFacade` (ignored for real admin/staff activations).
    * @returns {void}
    */
-  handleSave(enabled, roles) {
-    AccessStore.setFacade({ enabled, roles });
+  handleSave(enabled, roles, gameSlug) {
+    AccessStore.setFacade({ enabled, roles, gameSlug });
     this.onClose();
   }
 }

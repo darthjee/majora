@@ -23,5 +23,18 @@ describe('HeaderHelper', function() {
     it('does not throw when the view-as modal is open', function() {
       expect(() => render({ loggedIn: true, canViewAs: true, showViewAsModal: true })).not.toThrow();
     });
+
+    it('does not add the view-as-active class when the facade is disabled', function() {
+      const html = render({ loggedIn: true, canViewAs: true, facadeEnabled: false });
+
+      expect(html).toContain('view-as-link');
+      expect(html).not.toContain('view-as-active');
+    });
+
+    it('adds the view-as-active class when the facade is enabled', function() {
+      const html = render({ loggedIn: true, canViewAs: true, facadeEnabled: true });
+
+      expect(html).toContain('view-as-link view-as-active');
+    });
   });
 });

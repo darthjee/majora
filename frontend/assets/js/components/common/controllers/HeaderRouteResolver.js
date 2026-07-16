@@ -1,13 +1,9 @@
+import gameSlugFromHash from '../../../utils/routing/GameSlugFromHash.js';
+
 const CHARACTER_ROUTE_PATTERNS = {
   pcCharacter: '/games/:game_slug/pcs/:character_id',
   npcCharacter: '/games/:game_slug/npcs/:character_id',
 };
-
-// Matches the game slug segment on any `/games/:game_slug/...` route, from
-// the raw hash, so every game-scoped route resolves `gameSlug` without a
-// hand-maintained per-page pattern entry. `/games/new` (game creation) is
-// excluded by treating a captured `new` slug as absent.
-const GAME_SLUG_PATTERN = /^#?\/games\/([^/?]+)/;
 
 /**
  * Resolves the header's current route (page identifier and its params) from
@@ -33,8 +29,7 @@ export default class HeaderRouteResolver {
       return { page, gameSlug: params.game_slug, characterId: params.character_id };
     }
 
-    const match = GAME_SLUG_PATTERN.exec(routeResolver.currentHash());
-    const gameSlug = match && match[1] !== 'new' ? match[1] : undefined;
+    const gameSlug = gameSlugFromHash(routeResolver.currentHash());
 
     return gameSlug ? { page, gameSlug } : { page };
   }
