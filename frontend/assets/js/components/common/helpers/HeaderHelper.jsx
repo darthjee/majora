@@ -56,13 +56,13 @@ export default class HeaderHelper {
   }
 
   /**
-   * Renders the admin-only Treasures nav link.
+   * Renders the admin-or-staff-only Treasures nav link.
    *
-   * @param {{isSuperUser: boolean}} state - header auth state.
+   * @param {{isSuperUser: boolean, isStaff: boolean}} state - header auth state.
    * @returns {React.ReactElement|null} treasures nav link, or null for non-superusers.
    */
   static #renderTreasuresNavLink(state) {
-    if (!state.isSuperUser) {
+    if (!state.isSuperUser && !state.isStaff) {
       return null;
     }
 
