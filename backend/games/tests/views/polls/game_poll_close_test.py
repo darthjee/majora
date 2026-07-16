@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from games.models import Poll, PollOption, PollVote
+from games.models import GameSession, Poll, PollOption, PollVote
 from games.tests.factories import (
     GameFactory,
     GameMasterFactory,
@@ -282,3 +282,86 @@ class TestGamePollCloseMultipleType(TestCase):
         selected = PollOption.objects.filter(poll=self.poll, selected=True)
         assert selected.count() == 1
         assert selected.first() == self.option_b
+
+
+class TestGamePollCloseSessionLinked(TestCase):
+    """Tests exercising the close endpoint against a session-linked, date-type poll."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up a game, a session, and an open date poll linked to the session."""
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.session = GameSession.objects.create(game=cls.game, title='Session One')
+        cls.poll = PollFactory(
+            game=cls.game,
+            type=Poll.TYPE_SINGLE,
+            status=Poll.STATUS_OPEN,
+            option_type=Poll.OPTION_TYPE_DATE,
+            content_object=cls.session,
+        )
+        cls.option_one = PollOptionFactory(poll=cls.poll, option='2026-08-01')
+        cls.option_two = PollOptionFactory(poll=cls.poll, option='2026-08-08')
+        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        cls.dm_token = Token.objects.create(user=cls.dm_user)
+
+    def _patch(self, payload=None):
+        """Issue a PATCH request to the poll close endpoint as the game's DM."""
+        return self.client.patch(
+            f'/games/{self.game.game_slug}/polls/{self.poll.id}/close.json',
+            data=json.dumps(payload or {}),
+            content_type='application/json',
+            HTTP_AUTHORIZATION=f'Token {self.dm_token.key}',
+        )
+
+    def test_closing_by_vote_tally_sets_session_date(self):
+        """Test that closing via vote tally parses the winner into the session's date."""
+        PollVote.objects.create(user=self.dm_user, option=self.option_two)
+
+        response = self._patch()
+
+        assert response.status_code == 200
+        self.session.refresh_from_db()
+        assert self.session.date.isoformat() == '2026-08-08'
+
+    def test_closing_by_explicit_option_id_sets_session_date(self):
+        """Test that closing via an explicit option_id parses the winner into the session's date."""
+        response = self._patch({'option_id': self.option_one.id})
+
+        assert response.status_code == 200
+        self.session.refresh_from_db()
+        assert self.session.date.isoformat() == '2026-08-01'
+
+    def test_unparseable_option_returns_400_and_rolls_back(self):
+        """Test that an unparseable option string aborts the close entirely."""
+        bad_option = PollOptionFactory(poll=self.poll, option='not-a-date')
+
+        response = self._patch({'option_id': bad_option.id})
+
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'detail' in data['errors']
+        self.poll.refresh_from_db()
+        bad_option.refresh_from_db()
+        assert self.poll.status == Poll.STATUS_OPEN
+        assert bad_option.selected is False
+        self.session.refresh_from_db()
+        assert self.session.date is None
+
+    def test_closing_a_poll_with_no_linked_entity_is_unaffected(self):
+        """Test that closing a poll with no linked entity behaves exactly as before."""
+        unlinked_poll = PollFactory(game=self.game, status=Poll.STATUS_OPEN)
+        option = PollOptionFactory(poll=unlinked_poll, option='Some choice')
+
+        response = self.client.patch(
+            f'/games/{self.game.game_slug}/polls/{unlinked_poll.id}/close.json',
+            data=json.dumps({'option_id': option.id}),
+            content_type='application/json',
+            HTTP_AUTHORIZATION=f'Token {self.dm_token.key}',
+        )
+
+        assert response.status_code == 200
+        unlinked_poll.refresh_from_db()
+        option.refresh_from_db()
+        assert unlinked_poll.status == Poll.STATUS_CLOSED
+        assert option.selected is True
