@@ -14,7 +14,8 @@ describe('CharacterMoneyFieldHelper', function() {
         CharacterMoneyFieldHelper.render(true, 'Money', 310, 'dnd', 'Edit money', Noop.noop, [])
       );
       expect(html).toContain('Money');
-      expect(html).toContain('20 CP');
+      expect(html).toContain('coin-box-cp');
+      expect(html).toContain('20');
     });
 
     it('renders the edit money button', function() {
@@ -35,7 +36,8 @@ describe('CharacterMoneyFieldHelper', function() {
       const html = renderToStaticMarkup(
         CharacterMoneyFieldHelper.render(true, 'Money', undefined, 'dnd', 'Edit money', Noop.noop, [])
       );
-      expect(html).not.toContain('character-money');
+      expect(html).toContain('coin-box-cp');
+      expect(html).toContain('>0<');
     });
   });
 });

@@ -16,7 +16,7 @@ describe('CharacterMoneyField', function() {
 
   it('delegates rendering to CharacterMoneyFieldHelper', function() {
     const html = renderToStaticMarkup(React.createElement(CharacterMoneyField, buildProps()));
-    expect(html).toContain('20 CP');
+    expect(html).toContain('coin-box-cp');
     expect(html).toContain('Edit money');
   });
 

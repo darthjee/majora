@@ -3,22 +3,29 @@ import MoneyModelRegistry from '../../../../../../utils/money/MoneyModelRegistry
 import '../../../../../../utils/money/DndMoneyModel.js';
 import '../../../../../../utils/money/DeadlandsMoneyModel.js';
 import Translator from '../../../../../../i18n/Translator.js';
+import CharacterMoneyCoins from '../CharacterMoneyCoins.jsx';
 
 /**
  * Rendering helper for the CharacterMoney element.
  */
 export default class CharacterMoneyHelper {
   /**
-   * Render the character's money as a cascading coin denomination
-   * breakdown line. Renders null when money is 0 (no denomination entries).
+   * Render the character's money. For `dnd`, renders a dense, always-four
+   * coin box stack (CP/SP/GP/PP, including zero amounts). For any other
+   * game type, renders a cascading coin denomination breakdown line,
+   * returning null when money is 0 (no denomination entries).
    *
    * @param {number} money - Total money, expressed in the currency's lowest
    *   denomination (copper pieces for `dnd`, cents for `deadlands`).
    * @param {string} gameType - Currency model name to resolve (e.g. `dnd`,
    *   `deadlands`).
-   * @returns {React.ReactElement|null} Money breakdown paragraph, or null.
+   * @returns {React.ReactElement|null} Money breakdown element, or null.
    */
   static render(money, gameType) {
+    if (gameType === 'dnd') {
+      return <CharacterMoneyCoins money={money} />;
+    }
+
     const model = MoneyModelRegistry.resolve(gameType);
     const entries = model.transform(money, { context: 'character' });
 
