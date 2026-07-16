@@ -23,9 +23,12 @@ export default function GamePoll() {
   const [selectedOptionIds, setSelectedOptionIds] = useState([]);
   const [voteStatus, setVoteStatus] = useState('idle');
   const [showCloseModal, setShowCloseModal] = useState(false);
+  const [votesPayload, setVotesPayload] = useState(null);
 
   const controller = useMemo(
-    () => new GamePollController(setPoll, setLoading, setError, null, setCanVote, setCanClose, setSelectedOptionIds),
+    () => new GamePollController(
+      setPoll, setLoading, setError, null, setCanVote, setCanClose, setSelectedOptionIds, setVotesPayload
+    ),
     [],
   );
 
@@ -59,6 +62,7 @@ export default function GamePoll() {
           onOpenCloseModal: () => setShowCloseModal(true),
         },
         { canClose },
+        votesPayload,
       )}
       <PollCloseModal
         show={showCloseModal}

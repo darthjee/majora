@@ -42,8 +42,20 @@ expressed as a fixed suffix, the same reasoning already applied to the NPC-only 
   `option_type`, `options` (nested, `PollOptionSerializer`: `id`, `option` — no vote counts or
   voter identities; `PollVote` is surfaced separately via its own `.../votes.json` endpoint,
   not nested here).
-- Vote List/Vote Cast response (`PollVoteSerializer`): `id`, `option`, `user` — both `option`
-  and `user` are plain FK ids, not nested objects.
+- Vote List response is an envelope, not a flat array of votes:
+  `{votes_count, users, votes}`.
+  - `votes_count` (`PollOptionVoteCountSerializer`): one entry per poll option, **always** —
+    including zero-vote options — and never filtered by `?user_id=`, since a per-user tally
+    wouldn't be meaningful. Fields: `option` (the `PollOption` id) and `count`.
+  - `users` (`PollVoteUserSerializer`): the distinct users backing the (`?user_id=`-filtered)
+    `votes` list below — i.e. only users who cast at least one vote captured there. Fields:
+    `id`, `name` (`User.username`), `avatar_url` (Gravatar-based, same pattern as
+    `SessionMessageUserSerializer`; `None` if the user has no email hash).
+  - `votes` (`PollVoteSerializer`): the same per-vote rows as before, still respecting the
+    `?user_id=` filter. Fields: `id`, `option`, `user_id` — both plain FK ids, not nested
+    objects (`user_id` was renamed from `user`).
+- Vote Cast response (`PollVoteSerializer`): a **flat array** (not the envelope above) of
+  `id`, `option`, `user_id` — both plain FK ids, not nested objects.
 
 **Write fields** (create, `PollCreateSerializer`): `title` (required, non-blank), `description`
 (optional), `type` (optional, defaults to `Poll.TYPE_SINGLE`), `option_type` (optional, defaults

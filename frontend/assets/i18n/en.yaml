@@ -358,6 +358,7 @@ game_poll_page:
   override_decision_label: Override Decision
   close_tie_alert: There was a tie. Only the first tied option will be selected; the others will be ignored.
   winner_badge: Winner
+  votes_count_label: Votes
   close_submit: Close Poll
   close_cancel: Cancel
   close_error: Failed to close poll. Please try again.

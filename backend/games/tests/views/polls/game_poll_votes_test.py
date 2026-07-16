@@ -101,16 +101,16 @@ class TestGamePollVotesGetView(TestCase):
         PollVote.objects.create(user=self.other_player_user, option=self.option_two)
         response = self._get(token=self.dm_token)
         data = json.loads(response.content)
-        assert len(data) == 2
+        assert len(data['votes']) == 2
 
     def test_user_id_filter_narrows_to_one_user(self):
-        """Test that ?user_id= filters the response to that user's vote(s)."""
+        """Test that ?user_id= filters the votes list to that user's vote(s)."""
         vote = PollVote.objects.create(user=self.player_user, option=self.option_one)
         PollVote.objects.create(user=self.other_player_user, option=self.option_two)
         response = self._get(token=self.dm_token, query=f'?user_id={self.player_user.id}')
         data = json.loads(response.content)
-        assert len(data) == 1
-        assert data[0]['id'] == vote.id
+        assert len(data['votes']) == 1
+        assert data['votes'][0]['id'] == vote.id
 
     def test_user_id_filter_can_target_another_users_votes(self):
         """Test that ?user_id= is not restricted to the requester's own id."""
@@ -118,8 +118,8 @@ class TestGamePollVotesGetView(TestCase):
         other_vote = PollVote.objects.create(user=self.other_player_user, option=self.option_two)
         response = self._get(token=self.dm_token, query=f'?user_id={self.other_player_user.id}')
         data = json.loads(response.content)
-        assert len(data) == 1
-        assert data[0]['id'] == other_vote.id
+        assert len(data['votes']) == 1
+        assert data['votes'][0]['id'] == other_vote.id
 
     def test_invalid_user_id_filter_returns_every_vote(self):
         """Test that a non-numeric ?user_id= is tolerated and returns every vote."""
@@ -127,16 +127,73 @@ class TestGamePollVotesGetView(TestCase):
         response = self._get(token=self.dm_token, query='?user_id=not-a-number')
         assert response.status_code == 200
         data = json.loads(response.content)
-        assert len(data) == 1
+        assert len(data['votes']) == 1
 
     def test_returns_expected_payload_shape(self):
-        """Test that each vote entry includes id, option, and user."""
+        """Test that each vote entry includes id, option, and user_id."""
         vote = PollVote.objects.create(user=self.player_user, option=self.option_one)
         response = self._get(token=self.dm_token)
         data = json.loads(response.content)
-        assert data == [
-            {'id': vote.id, 'option': self.option_one.id, 'user': self.player_user.id},
+        assert data['votes'] == [
+            {'id': vote.id, 'option': self.option_one.id, 'user_id': self.player_user.id},
         ]
+
+    def test_votes_count_includes_every_option_with_zero_vote_options(self):
+        """Test that votes_count lists every option, including ones with zero votes."""
+        PollVote.objects.create(user=self.player_user, option=self.option_one)
+        response = self._get(token=self.dm_token)
+        data = json.loads(response.content)
+        assert data['votes_count'] == [
+            {'option': self.option_one.id, 'count': 1},
+            {'option': self.option_two.id, 'count': 0},
+        ]
+
+    def test_votes_count_stays_full_poll_even_when_user_id_filter_is_applied(self):
+        """Test that votes_count is never filtered by ?user_id=."""
+        PollVote.objects.create(user=self.player_user, option=self.option_one)
+        PollVote.objects.create(user=self.other_player_user, option=self.option_two)
+        response = self._get(token=self.dm_token, query=f'?user_id={self.player_user.id}')
+        data = json.loads(response.content)
+        assert data['votes_count'] == [
+            {'option': self.option_one.id, 'count': 1},
+            {'option': self.option_two.id, 'count': 1},
+        ]
+
+    def test_users_only_includes_voters_present_in_the_filtered_votes(self):
+        """Test that users is scoped to the (possibly filtered) votes result."""
+        PollVote.objects.create(user=self.player_user, option=self.option_one)
+        PollVote.objects.create(user=self.other_player_user, option=self.option_two)
+        response = self._get(token=self.dm_token, query=f'?user_id={self.player_user.id}')
+        data = json.loads(response.content)
+        assert [user['id'] for user in data['users']] == [self.player_user.id]
+
+    def test_users_include_name_and_avatar_url(self):
+        """Test that each user entry includes id, name, and avatar_url."""
+        PollVote.objects.create(user=self.player_user, option=self.option_one)
+        response = self._get(token=self.dm_token)
+        data = json.loads(response.content)
+        assert data['users'] == [
+            {
+                'id': self.player_user.id,
+                'name': self.player_user.username,
+                'avatar_url': None,
+            },
+        ]
+
+    def test_users_list_a_single_voter_once_for_a_multiple_type_poll(self):
+        """Test that a user voting for more than one option appears once in users."""
+        multiple_poll = PollFactory(
+            game=self.game, type=Poll.TYPE_MULTIPLE, status=Poll.STATUS_OPEN,
+        )
+        option_a = PollOptionFactory(poll=multiple_poll, option='A')
+        option_b = PollOptionFactory(poll=multiple_poll, option='B')
+        PollVote.objects.create(user=self.player_user, option=option_a)
+        PollVote.objects.create(user=self.player_user, option=option_b)
+        response = self._get(token=self.dm_token, poll_id=multiple_poll.id)
+        data = json.loads(response.content)
+        assert len(data['users']) == 1
+        assert data['users'][0]['id'] == self.player_user.id
+        assert len(data['votes']) == 2
 
     def test_response_includes_skip_cache_header(self):
         """Test that the response includes the X-Skip-Cache header."""
@@ -267,7 +324,7 @@ class TestGamePollVotesPutView(TestCase):
         response = self._put([self.single_option_two.id], token=self.player_token)
         data = json.loads(response.content)
         assert len(data) == 1
-        assert data[0]['user'] == self.player_user.id
+        assert data[0]['user_id'] == self.player_user.id
 
     def test_response_includes_skip_cache_header(self):
         """Test that the response includes the X-Skip-Cache header."""
