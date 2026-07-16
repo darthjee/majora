@@ -60,6 +60,8 @@ export default class GamePollController extends BasePageController {
    * @param {Function} [setCanClose] - Setter for whether the viewer can close the poll
    *   (DM or superuser only, narrower than `setCanVote`).
    * @param {Function} [setSelectedOptionIds] - Setter for the pre-populated/current selection.
+   * @param {Function} [setVotesPayload] - Setter for the full, unfiltered votes payload
+   *   (`{votes_count, users, votes}`), fetched unconditionally for every allowed viewer.
    * @param {AuthClient|null} [authClient] - Auth client override, used to resolve the
    *   current user's id before pre-fetching their vote(s).
    */
@@ -71,6 +73,7 @@ export default class GamePollController extends BasePageController {
     setCanVote = Noop.noop,
     setCanClose = Noop.noop,
     setSelectedOptionIds = Noop.noop,
+    setVotesPayload = Noop.noop,
     authClient = null
   ) {
     super();
@@ -81,6 +84,7 @@ export default class GamePollController extends BasePageController {
     this.setCanVote = setCanVote;
     this.setCanClose = setCanClose;
     this.setSelectedOptionIds = setSelectedOptionIds;
+    this.setVotesPayload = setVotesPayload;
     this.authClient = authClient ?? new AuthClient();
   }
 
@@ -134,6 +138,7 @@ export default class GamePollController extends BasePageController {
     safeSet(this.setCanVote, canVote);
     safeSet(this.setCanClose, GamePollController.#canClose(access));
     this.#fetchPoll(gameSlug, id, safeSet);
+    this.#fetchVotesPayload(gameSlug, id, safeSet);
 
     if (canVote) {
       this.#fetchCurrentVotes(gameSlug, id, safeSet);
@@ -156,6 +161,28 @@ export default class GamePollController extends BasePageController {
       .then((poll) => safeSet(this.setPoll, { ...poll, game_slug: gameSlug }))
       .catch(() => safeSet(this.setError, 'Unable to load poll.'))
       .finally(() => safeSet(this.setLoading, false));
+  }
+
+  /**
+   * Fetches the full, unfiltered votes payload (`{votes_count, users, votes}`) for the
+   * poll, for every viewer allowed onto the page (mirrors `#fetchPoll`, unlike
+   * `#fetchCurrentVotes`, which is gated by `canVote`). Silently no-ops on failure,
+   * leaving the payload unset.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string} id - Poll id.
+   * @param {Function} safeSet - Mount-aware setter wrapper.
+   * @returns {void}
+   */
+  #fetchVotesPayload(gameSlug, id, safeSet) {
+    const token = AuthStorage.getToken();
+
+    this.pollClient.fetchPollVotes(gameSlug, id, token)
+      .then((response) => (response.ok
+        ? response.json()
+        : Promise.reject(new Error('votes failed'))))
+      .then((payload) => safeSet(this.setVotesPayload, payload))
+      .catch(Noop.noop);
   }
 
   /**
@@ -182,7 +209,7 @@ export default class GamePollController extends BasePageController {
       .then((response) => (response.ok
         ? response.json()
         : Promise.reject(new Error('votes failed'))))
-      .then((votes) => safeSet(this.setSelectedOptionIds, votes.map((vote) => vote.option)))
+      .then((payload) => safeSet(this.setSelectedOptionIds, payload.votes.map((vote) => vote.option)))
       .catch(Noop.noop);
   }
 

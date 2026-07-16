@@ -8,8 +8,10 @@ from games.models import PollVote
 class PollVoteSerializer(serializers.ModelSerializer):
     """Serializer for a single poll vote, exposing plain FK ids (not nested)."""
 
+    user_id = serializers.IntegerField()
+
     class Meta:
         """Metadata for the PollVoteSerializer."""
 
         model = PollVote
-        fields = ['id', 'option', 'user']
+        fields = ['id', 'option', 'user_id']
