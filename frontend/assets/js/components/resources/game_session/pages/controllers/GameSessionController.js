@@ -102,16 +102,17 @@ export default class GameSessionController extends BasePageController {
    * @param {string} gameSlug - Game slug.
    * @param {number|string} sessionId - Session id.
    * @param {string[]} dates - Candidate dates (YYYY-MM-DD), in submission order.
+   * @param {string} type - Poll type (`single` or `multiple`).
    * @param {{setPollStatus: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
-  async submitPoll(gameSlug, sessionId, dates, setters) {
+  async submitPoll(gameSlug, sessionId, dates, type, setters) {
     setters.setPollStatus('submitting');
 
     const token = AuthStorage.getToken();
 
     try {
-      const response = await this.sessionClient.createSessionPoll(gameSlug, sessionId, token, dates);
+      const response = await this.sessionClient.createSessionPoll(gameSlug, sessionId, token, dates, type);
 
       await this.#handlePollResponse(response, gameSlug, setters);
     } catch {

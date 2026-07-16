@@ -77,9 +77,10 @@ export default class GameSessionClient extends BaseClient {
    * @param {number|string} sessionId - Session id.
    * @param {string|null} token - Authentication token, if any.
    * @param {string[]} dates - Candidate dates (YYYY-MM-DD), in submission order.
+   * @param {string} type - Poll type (`single` or `multiple`).
    * @returns {Promise<Response>} fetch response from the session poll endpoint.
    */
-  createSessionPoll(gameSlug, sessionId, token, dates) {
-    return this.postJson(`/games/${gameSlug}/sessions/${sessionId}/poll.json`, token, { dates });
+  createSessionPoll(gameSlug, sessionId, token, dates, type) {
+    return this.postJson(`/games/${gameSlug}/sessions/${sessionId}/poll.json`, token, { dates, type });
   }
 }

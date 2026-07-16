@@ -12,25 +12,29 @@ import CreateSessionPollModalController from './controllers/CreateSessionPollMod
  * @param {boolean} props.show - Whether the modal is visible.
  * @param {string} [props.error] - Error message to display, if any (e.g. after a failed submit).
  * @param {Function} props.onClose - Handler invoked when the modal is cancelled/dismissed.
- * @param {Function} props.onConfirm - Handler invoked with the non-blank dates array when the
- *   user confirms.
+ * @param {Function} props.onConfirm - Handler invoked with the non-blank dates array and the
+ *   selected poll type when the user confirms.
  * @returns {React.ReactElement} Rendered create-session-poll modal.
  */
 export default function CreateSessionPollModal({
   show, error, onClose, onConfirm,
 }) {
   const [dates, setDates] = useState(['']);
+  const [type, setType] = useState('multiple');
 
   useEffect(() => {
     if (!show) return;
     setDates(['']);
+    setType('multiple');
   }, [show]);
 
-  const handleConfirm = () => onConfirm(CreateSessionPollModalController.nonBlankDates(dates));
+  const handleConfirm = () => onConfirm(CreateSessionPollModalController.nonBlankDates(dates), type);
 
   return CreateSessionPollModalHelper.render(
     show,
-    { dates, canConfirm: CreateSessionPollModalController.canConfirm(dates), error },
+    {
+      dates, type, canConfirm: CreateSessionPollModalController.canConfirm(dates), error,
+    },
     {
       onClose,
       onConfirm: handleConfirm,
@@ -38,6 +42,7 @@ export default function CreateSessionPollModal({
         index, value, dates, setDates,
       ),
       onDateRemove: (index) => CreateSessionPollModalController.handleDateRemove(index, dates, setDates),
+      onTypeChange: (value) => setType(value),
     },
   );
 }

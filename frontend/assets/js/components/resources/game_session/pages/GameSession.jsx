@@ -70,8 +70,8 @@ export default function GameSession() {
       .finally(() => setPosting(false));
   };
 
-  const handleCreatePoll = (dates) => controller.submitPoll(
-    session.game_slug, session.id, dates, { setPollStatus },
+  const handleCreatePoll = (dates, type) => controller.submitPoll(
+    session.game_slug, session.id, dates, type, { setPollStatus },
   );
 
   return (

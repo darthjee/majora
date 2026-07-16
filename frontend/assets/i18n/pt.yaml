@@ -330,6 +330,9 @@ game_session_edit_page:
 session_poll_modal:
   title: Criar Enquete
   dates_label: Datas
+  type_label: Tipo
+  type_single: Escolha única
+  type_multiple: Escolha múltipla
   confirm: Criar Enquete
   cancel: Cancelar
   error: Falha ao criar enquete. Tente novamente.

@@ -13,6 +13,9 @@ class SessionPollCreateSerializer(serializers.Serializer):
     """Serializer for creating a session-scoped, date-options poll from a list of dates."""
 
     dates = serializers.ListField(child=serializers.DateField(), allow_empty=False)
+    type = serializers.ChoiceField(
+        choices=Poll.TYPE_CHOICES, required=False, default=Poll.TYPE_MULTIPLE,
+    )
 
     def validate_dates(self, value):
         """Ensure at most `MAX_OPTIONS` dates are provided."""
@@ -26,7 +29,7 @@ class SessionPollCreateSerializer(serializers.Serializer):
             game=self.context['game'],
             status=Poll.STATUS_OPEN,
             option_type=Poll.OPTION_TYPE_DATE,
-            type=Poll.TYPE_SINGLE,
+            type=validated_data['type'],
             title=DEFAULT_TITLE,
             content_object=self.context['session'],
         )

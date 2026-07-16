@@ -221,11 +221,11 @@ describe('GameSessionController', function() {
       globalThis.window = fakeWindow;
 
       try {
-        await controller.submitPoll('demo', 7, ['2024-01-01', '2024-01-02'], { setPollStatus });
+        await controller.submitPoll('demo', 7, ['2024-01-01', '2024-01-02'], 'single', { setPollStatus });
 
         expect(setPollStatus).toHaveBeenCalledWith('submitting');
         expect(sessionClient.createSessionPoll).toHaveBeenCalledWith(
-          'demo', 7, 'tok-abc', ['2024-01-01', '2024-01-02'],
+          'demo', 7, 'tok-abc', ['2024-01-01', '2024-01-02'], 'single',
         );
       } finally {
         delete globalThis.window;
@@ -245,7 +245,7 @@ describe('GameSessionController', function() {
       globalThis.window = fakeWindow;
 
       try {
-        await controller.submitPoll('demo', 7, ['2024-01-01'], { setPollStatus });
+        await controller.submitPoll('demo', 7, ['2024-01-01'], 'multiple', { setPollStatus });
 
         expect(fakeWindow.location.hash).toBe('/games/demo/polls/9');
       } finally {
@@ -263,7 +263,7 @@ describe('GameSessionController', function() {
         jasmine.createSpy('setSession'), jasmine.createSpy('setLoading'), jasmine.createSpy('setError'), sessionClient,
       );
 
-      await controller.submitPoll('demo', 7, ['2024-01-01'], { setPollStatus });
+      await controller.submitPoll('demo', 7, ['2024-01-01'], 'multiple', { setPollStatus });
 
       expect(setPollStatus).toHaveBeenCalledWith('error');
     });
@@ -275,7 +275,7 @@ describe('GameSessionController', function() {
         jasmine.createSpy('setSession'), jasmine.createSpy('setLoading'), jasmine.createSpy('setError'), sessionClient,
       );
 
-      await controller.submitPoll('demo', 7, ['2024-01-01'], { setPollStatus });
+      await controller.submitPoll('demo', 7, ['2024-01-01'], 'multiple', { setPollStatus });
 
       expect(setPollStatus).toHaveBeenCalledWith('error');
     });
