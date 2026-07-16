@@ -1,5 +1,6 @@
 import GameSessionClient from '../../../../../client/GameSessionClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
+import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/controllers/BasePageController.js';
 
 /**
@@ -64,9 +65,31 @@ export default class GameSessionController extends BasePageController {
       .then((response) => (response.ok
         ? response.json()
         : Promise.reject(new Error('session failed'))))
-      .then((session) => safeSet(this.setSession, session))
+      .then((session) => this.#renderSession(session.game_slug, session, safeSet))
       .catch(() => safeSet(this.setError, 'Unable to load session.'))
       .finally(() => safeSet(this.setLoading, false));
+  }
+
+  /**
+   * Render the session right away using AccessStore's synchronous, fail-closed
+   * permissions reader, then re-render once the real value resolves in the
+   * background so the page picks it up without blocking the first render on
+   * the permissions fetch.
+   *
+   * @param {string} gameSlug - Game slug the session belongs to.
+   * @param {object} session - Base session data already loaded.
+   * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
+   * @returns {void}
+   */
+  #renderSession(gameSlug, session, safeSet) {
+    safeSet(this.setSession, this.#mergePermissions(gameSlug, session));
+
+    AccessStore.ensureGamePermissions(gameSlug)
+      .then(() => safeSet(this.setSession, this.#mergePermissions(gameSlug, session)));
+  }
+
+  #mergePermissions(gameSlug, session) {
+    return { ...session, ...AccessStore.getGamePermissions(gameSlug) };
   }
 
   /**
