@@ -12,6 +12,7 @@ class GameTreasure(models.Model):
     treasure = models.ForeignKey(
         'games.Treasure', on_delete=models.CASCADE, related_name='game_treasures',
     )
+    value = models.IntegerField()
     max_units = models.PositiveIntegerField(null=True, blank=True)
     acquired_units = models.PositiveIntegerField(default=0)
 

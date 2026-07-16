@@ -10,7 +10,17 @@ roles, flags, etc.) is preserved by passing overrides at the call site.
 import factory
 from django.contrib.auth.models import User
 
-from games.models import Character, Game, GameMaster, Player, Poll, PollOption, PollVote, Treasure
+from games.models import (
+    Character,
+    Game,
+    GameMaster,
+    GameTreasure,
+    Player,
+    Poll,
+    PollOption,
+    PollVote,
+    Treasure,
+)
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -100,6 +110,19 @@ class TreasureFactory(factory.django.DjangoModelFactory):
     name = 'Test Treasure'
     value = 100
     hidden = False
+
+
+class GameTreasureFactory(factory.django.DjangoModelFactory):
+    """Factory for GameTreasure, defaulting value to its linked treasure's value."""
+
+    class Meta:
+        """Factory configuration."""
+
+        model = GameTreasure
+
+    game = factory.SubFactory(GameFactory)
+    treasure = factory.SubFactory(TreasureFactory)
+    value = factory.LazyAttribute(lambda o: o.treasure.value)
 
 
 class PollFactory(factory.django.DjangoModelFactory):

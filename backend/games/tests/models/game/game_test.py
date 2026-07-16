@@ -123,23 +123,23 @@ class TestGameTreasuresThroughModel(TestCase):
 
     def test_add_creates_a_game_treasure_row(self):
         """Test that adding a treasure to a game creates a GameTreasure through-row."""
-        self.game.treasures.add(self.treasure)
+        self.game.treasures.add(self.treasure, through_defaults={'value': self.treasure.value})
         assert GameTreasure.objects.filter(game=self.game, treasure=self.treasure).exists()
 
     def test_added_game_treasure_defaults(self):
         """Test that a freshly created GameTreasure row has unlimited/zero-acquired defaults."""
-        self.game.treasures.add(self.treasure)
+        self.game.treasures.add(self.treasure, through_defaults={'value': self.treasure.value})
         game_treasure = GameTreasure.objects.get(game=self.game, treasure=self.treasure)
         assert game_treasure.max_units is None
         assert game_treasure.acquired_units == 0
 
     def test_treasures_relation_reflects_added_treasures(self):
         """Test that the treasures M2M accessor reflects rows added through the through-model."""
-        self.game.treasures.add(self.treasure)
+        self.game.treasures.add(self.treasure, through_defaults={'value': self.treasure.value})
         assert list(self.game.treasures.all()) == [self.treasure]
 
     def test_remove_deletes_the_game_treasure_row(self):
         """Test that removing a treasure from a game deletes the through-row."""
-        self.game.treasures.add(self.treasure)
+        self.game.treasures.add(self.treasure, through_defaults={'value': self.treasure.value})
         self.game.treasures.remove(self.treasure)
         assert not GameTreasure.objects.filter(game=self.game, treasure=self.treasure).exists()

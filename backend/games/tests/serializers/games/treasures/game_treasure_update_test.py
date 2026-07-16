@@ -15,7 +15,9 @@ class TestGameTreasureUpdateSerializer(TestCase):
         """Set up a game treasure instance for testing."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.treasure = TreasureFactory(name='Golden Crown', value=500)
-        cls.game_treasure = GameTreasure.objects.create(game=cls.game, treasure=cls.treasure)
+        cls.game_treasure = GameTreasure.objects.create(
+            game=cls.game, treasure=cls.treasure, value=500,
+        )
 
     def test_valid_max_units_update(self):
         """Test that a partial update with a max_units integer is valid and persisted."""

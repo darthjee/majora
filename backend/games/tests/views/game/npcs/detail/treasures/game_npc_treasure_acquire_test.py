@@ -198,7 +198,7 @@ class TestCharacterTreasureAcquireStockCap(TokenAuthRequestMixin):
         self.dm_token = Token.objects.create(user=self.dm_user)
         self.character = CharacterFactory(name='Frodo', game=self.game, npc=True, money=1000)
         self.treasure = TreasureFactory(name='Limited Gem', value=10)
-        self.game.treasures.add(self.treasure)
+        self.game.treasures.add(self.treasure, through_defaults={'value': self.treasure.value})
 
     def _acquire(self, client, quantity):
         """Issue a POST request acquiring `quantity` of the limited treasure for the NPC."""
@@ -252,7 +252,9 @@ class TestCharacterTreasureAcquireStockCap(TokenAuthRequestMixin):
     def test_insufficient_funds_checked_against_capped_quantity(self, client):
         """Test that funds are checked against the capped amount, not the raw requested quantity."""
         expensive_treasure = TreasureFactory(name='Pricey Gem', value=1000)
-        self.game.treasures.add(expensive_treasure)
+        self.game.treasures.add(
+            expensive_treasure, through_defaults={'value': expensive_treasure.value},
+        )
         GameTreasure.objects.filter(game=self.game, treasure=expensive_treasure).update(
             max_units=2,
         )

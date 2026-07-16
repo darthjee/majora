@@ -94,7 +94,7 @@ class TestTreasureListSerializer(TestCase):
     def test_available_units_and_max_units_reflect_the_game_treasure_row(self):
         """Test that available_units/max_units reflect the linked GameTreasure row."""
         game = GameFactory(name='Test Game', game_slug='test-game')
-        game.treasures.add(self.treasure)
+        game.treasures.add(self.treasure, through_defaults={'value': self.treasure.value})
         GameTreasure.objects.filter(game=game, treasure=self.treasure).update(
             max_units=10, acquired_units=4,
         )
@@ -105,7 +105,7 @@ class TestTreasureListSerializer(TestCase):
     def test_max_units_is_none_when_unlimited(self):
         """Test that max_units/available_units are None when the game treasure is unlimited."""
         game = GameFactory(name='Test Game', game_slug='test-game')
-        game.treasures.add(self.treasure)
+        game.treasures.add(self.treasure, through_defaults={'value': self.treasure.value})
         data = TreasureListSerializer(self.treasure, context={'game': game}).data
         assert data['max_units'] is None
         assert data['available_units'] is None
@@ -113,7 +113,7 @@ class TestTreasureListSerializer(TestCase):
     def test_uses_prefetched_game_treasures_map_when_provided(self):
         """Test that a prefetched game_treasures_by_treasure_id map is used over a query."""
         game = GameFactory(name='Test Game', game_slug='test-game')
-        game.treasures.add(self.treasure)
+        game.treasures.add(self.treasure, through_defaults={'value': self.treasure.value})
         game_treasure = GameTreasure.objects.get(game=game, treasure=self.treasure)
         game_treasure.max_units = 5
         game_treasure.acquired_units = 2

@@ -53,7 +53,7 @@ class TestTreasure:
         """Test that deleting a game does not delete a treasure merely M2M-linked to it."""
         game = GameFactory(name='Test Game', game_slug='test-game')
         treasure = TreasureFactory(name='Linked Gem', value=10)
-        game.treasures.add(treasure)
+        game.treasures.add(treasure, through_defaults={'value': treasure.value})
         game.delete()
         assert Treasure.objects.filter(id=treasure.id).exists()
 

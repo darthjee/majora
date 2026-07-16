@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from ...authentication import CookieTokenAuthentication
-from ...models import Game, Treasure
+from ...models import Game, GameTreasure, Treasure
 from ...permissions import GameEditPermission
 from ...serializers import (
     TreasureCreateSerializer,
@@ -83,5 +83,6 @@ def _create_game_treasure(request, game):
         return error_response
 
     treasure = serializer.save(game=game, game_type=game.game_type)
+    GameTreasure.objects.create(game=game, treasure=treasure, value=treasure.value)
     detail = TreasureDetailSerializer(treasure)
     return Response(detail.data, status=201)

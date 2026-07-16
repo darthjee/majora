@@ -81,7 +81,7 @@ def _update_exclusive_treasure(request, treasure):
 
 def _update_linked_treasure(request, game, treasure):
     """Update max_units on the GameTreasure row linking `treasure` to `game`."""
-    game_treasure, _created = GameTreasure.objects.get_or_create(game=game, treasure=treasure)
+    game_treasure = get_object_or_404(GameTreasure, game=game, treasure=treasure)
     serializer = GameTreasureUpdateSerializer(game_treasure, data=request.data, partial=True)
     error_response = validated_or_error(serializer)
     if error_response:

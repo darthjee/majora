@@ -93,7 +93,7 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
     def test_available_units_and_max_units_reflect_the_game_treasure_row(self):
         """Test that available_units/max_units reflect the linked GameTreasure row's cap."""
         linked_treasure = TreasureFactory(name='Limited Gem', value=100)
-        self.game.treasures.add(linked_treasure)
+        self.game.treasures.add(linked_treasure, through_defaults={'value': linked_treasure.value})
         GameTreasure.objects.filter(game=self.game, treasure=linked_treasure).update(
             max_units=5, acquired_units=2,
         )

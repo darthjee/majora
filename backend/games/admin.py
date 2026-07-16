@@ -28,7 +28,7 @@ class GameTreasureInline(admin.TabularInline):
 
     model = GameTreasure
     extra = 0
-    fields = ('treasure', 'max_units', 'acquired_units')
+    fields = ('treasure', 'value', 'max_units', 'acquired_units')
     readonly_fields = ('acquired_units',)
 
 

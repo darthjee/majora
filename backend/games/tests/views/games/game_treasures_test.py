@@ -35,8 +35,10 @@ class TestGameTreasuresView(TestCase):
         """Test that only treasures linked to the game are returned."""
         treasure = TreasureFactory(name='Gold Ring', value=100)
         other_treasure = TreasureFactory(name='Silver Dagger', value=50)
-        self.game.treasures.add(treasure)
-        self.other_game.treasures.add(other_treasure)
+        self.game.treasures.add(treasure, through_defaults={'value': treasure.value})
+        self.other_game.treasures.add(
+            other_treasure, through_defaults={'value': other_treasure.value},
+        )
         response = self.client.get('/games/test-game/treasures.json')
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -46,7 +48,7 @@ class TestGameTreasuresView(TestCase):
     def test_returns_id_name_value_fields(self):
         """Test that list items include id, name, and value fields."""
         treasure = TreasureFactory(name='Enchanted Bow', value=750)
-        self.game.treasures.add(treasure)
+        self.game.treasures.add(treasure, through_defaults={'value': treasure.value})
         response = self.client.get('/games/test-game/treasures.json')
         data = json.loads(response.content)
         assert data[0]['id'] == treasure.id
@@ -57,8 +59,8 @@ class TestGameTreasuresView(TestCase):
         """Test that only treasures with value <= max_value are returned."""
         cheap = TreasureFactory(name='Cheap Gem', value=50)
         expensive = TreasureFactory(name='Expensive Gem', value=500)
-        self.game.treasures.add(cheap)
-        self.game.treasures.add(expensive)
+        self.game.treasures.add(cheap, through_defaults={'value': cheap.value})
+        self.game.treasures.add(expensive, through_defaults={'value': expensive.value})
         response = self.client.get('/games/test-game/treasures.json?max_value=100')
         data = json.loads(response.content)
         assert len(data) == 1
@@ -68,8 +70,8 @@ class TestGameTreasuresView(TestCase):
         """Test that all treasures are returned when max_value is not provided."""
         cheap = TreasureFactory(name='Cheap Gem', value=50)
         expensive = TreasureFactory(name='Expensive Gem', value=500)
-        self.game.treasures.add(cheap)
-        self.game.treasures.add(expensive)
+        self.game.treasures.add(cheap, through_defaults={'value': cheap.value})
+        self.game.treasures.add(expensive, through_defaults={'value': expensive.value})
         response = self.client.get('/games/test-game/treasures.json')
         data = json.loads(response.content)
         assert len(data) == 2
@@ -77,7 +79,7 @@ class TestGameTreasuresView(TestCase):
     def test_ignores_non_numeric_max_value(self):
         """Test that a non-numeric max_value is ignored rather than erroring."""
         treasure = TreasureFactory(name='Gem', value=50)
-        self.game.treasures.add(treasure)
+        self.game.treasures.add(treasure, through_defaults={'value': treasure.value})
         response = self.client.get('/games/test-game/treasures.json?max_value=not-a-number')
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -107,7 +109,7 @@ class TestGameTreasuresView(TestCase):
         """Test that ?page=N returns the correct page of results."""
         for i in range(5):
             treasure = TreasureFactory(name=f'Treasure {i}', value=i * 10)
-            self.game.treasures.add(treasure)
+            self.game.treasures.add(treasure, through_defaults={'value': treasure.value})
         response = self.client.get('/games/test-game/treasures.json?page=2&per_page=3')
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -117,7 +119,7 @@ class TestGameTreasuresView(TestCase):
         """Test that ?per_page=N limits the number of results returned."""
         for i in range(5):
             treasure = TreasureFactory(name=f'Treasure {i}', value=i * 10)
-            self.game.treasures.add(treasure)
+            self.game.treasures.add(treasure, through_defaults={'value': treasure.value})
         response = self.client.get('/games/test-game/treasures.json?per_page=2')
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -148,7 +150,7 @@ class TestGameTreasuresView(TestCase):
     def test_returns_union_of_linked_and_exclusive_treasures(self):
         """Test that both M2M-linked and FK-owned treasures are returned, without duplicates."""
         linked = TreasureFactory(name='Linked Gem', value=100)
-        self.game.treasures.add(linked)
+        self.game.treasures.add(linked, through_defaults={'value': linked.value})
         exclusive = TreasureFactory(name='Exclusive Gem', value=200, game=self.game)
         response = self.client.get('/games/test-game/treasures.json')
         data = json.loads(response.content)
@@ -167,7 +169,7 @@ class TestGameTreasuresView(TestCase):
     def test_excludes_hidden_linked_treasures(self):
         """Test that a hidden treasure linked to the game via M2M is excluded."""
         hidden = TreasureFactory(name='Hidden Gem', value=100, hidden=True)
-        self.game.treasures.add(hidden)
+        self.game.treasures.add(hidden, through_defaults={'value': hidden.value})
         response = self.client.get('/games/test-game/treasures.json')
         data = json.loads(response.content)
         assert data == []
@@ -191,7 +193,7 @@ class TestGameTreasuresView(TestCase):
     def test_available_units_and_max_units_are_none_when_unlimited(self):
         """Test that available_units/max_units are None for a treasure without a stock cap."""
         treasure = TreasureFactory(name='Unlimited Gem', value=100)
-        self.game.treasures.add(treasure)
+        self.game.treasures.add(treasure, through_defaults={'value': treasure.value})
         response = self.client.get('/games/test-game/treasures.json')
         data = json.loads(response.content)
         assert data[0]['available_units'] is None
@@ -200,7 +202,7 @@ class TestGameTreasuresView(TestCase):
     def test_available_units_and_max_units_reflect_the_game_treasure_row(self):
         """Test that available_units/max_units reflect the linked GameTreasure row's cap."""
         treasure = TreasureFactory(name='Limited Gem', value=100)
-        self.game.treasures.add(treasure)
+        self.game.treasures.add(treasure, through_defaults={'value': treasure.value})
         GameTreasure.objects.filter(game=self.game, treasure=treasure).update(
             max_units=10, acquired_units=3,
         )
@@ -222,7 +224,9 @@ class TestGameTreasuresView(TestCase):
         expensive = TreasureFactory(name='Expensive Gem', value=300)
         cheap = TreasureFactory(name='Cheap Gem', value=50)
         mid = TreasureFactory(name='Mid Gem', value=150)
-        self.game.treasures.add(expensive, cheap, mid)
+        self.game.treasures.add(expensive, through_defaults={'value': expensive.value})
+        self.game.treasures.add(cheap, through_defaults={'value': cheap.value})
+        self.game.treasures.add(mid, through_defaults={'value': mid.value})
         response = self.client.get('/games/test-game/treasures.json')
         data = json.loads(response.content)
         assert [item['name'] for item in data] == ['Cheap Gem', 'Mid Gem', 'Expensive Gem']
@@ -231,7 +235,8 @@ class TestGameTreasuresView(TestCase):
         """Test that treasures with equal value are ordered by id ascending."""
         first = TreasureFactory(name='First Gem', value=100)
         second = TreasureFactory(name='Second Gem', value=100)
-        self.game.treasures.add(first, second)
+        self.game.treasures.add(first, through_defaults={'value': first.value})
+        self.game.treasures.add(second, through_defaults={'value': second.value})
         response = self.client.get('/games/test-game/treasures.json')
         data = json.loads(response.content)
         assert [item['id'] for item in data] == [first.id, second.id]
@@ -240,7 +245,8 @@ class TestGameTreasuresView(TestCase):
         """Test that only treasures whose name contains the search term are returned."""
         ring = TreasureFactory(name='Gold Ring', value=100)
         dagger = TreasureFactory(name='Silver Dagger', value=50)
-        self.game.treasures.add(ring, dagger)
+        self.game.treasures.add(ring, through_defaults={'value': ring.value})
+        self.game.treasures.add(dagger, through_defaults={'value': dagger.value})
         response = self.client.get('/games/test-game/treasures.json?search=Ring')
         data = json.loads(response.content)
         assert len(data) == 1
@@ -249,7 +255,7 @@ class TestGameTreasuresView(TestCase):
     def test_search_is_case_insensitive(self):
         """Test that the search filter matches regardless of case."""
         ring = TreasureFactory(name='Gold Ring', value=100)
-        self.game.treasures.add(ring)
+        self.game.treasures.add(ring, through_defaults={'value': ring.value})
         response = self.client.get('/games/test-game/treasures.json?search=gold ring')
         data = json.loads(response.content)
         assert len(data) == 1
@@ -258,7 +264,7 @@ class TestGameTreasuresView(TestCase):
     def test_search_with_no_match_returns_empty_list(self):
         """Test that a search term matching nothing returns an empty list."""
         ring = TreasureFactory(name='Gold Ring', value=100)
-        self.game.treasures.add(ring)
+        self.game.treasures.add(ring, through_defaults={'value': ring.value})
         response = self.client.get('/games/test-game/treasures.json?search=Nonexistent')
         data = json.loads(response.content)
         assert data == []
@@ -268,7 +274,9 @@ class TestGameTreasuresView(TestCase):
         cheap_ring = TreasureFactory(name='Cheap Ring', value=50)
         expensive_ring = TreasureFactory(name='Expensive Ring', value=500)
         dagger = TreasureFactory(name='Cheap Dagger', value=50)
-        self.game.treasures.add(cheap_ring, expensive_ring, dagger)
+        self.game.treasures.add(cheap_ring, through_defaults={'value': cheap_ring.value})
+        self.game.treasures.add(expensive_ring, through_defaults={'value': expensive_ring.value})
+        self.game.treasures.add(dagger, through_defaults={'value': dagger.value})
         response = self.client.get('/games/test-game/treasures.json?search=Ring&max_value=100')
         data = json.loads(response.content)
         assert len(data) == 1
@@ -279,7 +287,9 @@ class TestGameTreasuresView(TestCase):
         cheap = TreasureFactory(name='Cheap Gem', value=50)
         expensive = TreasureFactory(name='Expensive Gem', value=300)
         mid = TreasureFactory(name='Mid Gem', value=150)
-        self.game.treasures.add(cheap, expensive, mid)
+        self.game.treasures.add(cheap, through_defaults={'value': cheap.value})
+        self.game.treasures.add(expensive, through_defaults={'value': expensive.value})
+        self.game.treasures.add(mid, through_defaults={'value': mid.value})
         response = self.client.get('/games/test-game/treasures.json?ordering=desc')
         data = json.loads(response.content)
         assert [item['name'] for item in data] == ['Expensive Gem', 'Mid Gem', 'Cheap Gem']
@@ -288,7 +298,8 @@ class TestGameTreasuresView(TestCase):
         """Test that an invalid ordering value falls back to the ascending default."""
         cheap = TreasureFactory(name='Cheap Gem', value=50)
         expensive = TreasureFactory(name='Expensive Gem', value=300)
-        self.game.treasures.add(cheap, expensive)
+        self.game.treasures.add(cheap, through_defaults={'value': cheap.value})
+        self.game.treasures.add(expensive, through_defaults={'value': expensive.value})
         response = self.client.get('/games/test-game/treasures.json?ordering=bogus')
         data = json.loads(response.content)
         assert [item['name'] for item in data] == ['Cheap Gem', 'Expensive Gem']
@@ -297,7 +308,8 @@ class TestGameTreasuresView(TestCase):
         """Test that omitting ordering still returns today's ascending order."""
         cheap = TreasureFactory(name='Cheap Gem', value=50)
         expensive = TreasureFactory(name='Expensive Gem', value=300)
-        self.game.treasures.add(cheap, expensive)
+        self.game.treasures.add(cheap, through_defaults={'value': cheap.value})
+        self.game.treasures.add(expensive, through_defaults={'value': expensive.value})
         response = self.client.get('/games/test-game/treasures.json')
         data = json.loads(response.content)
         assert [item['name'] for item in data] == ['Cheap Gem', 'Expensive Gem']
@@ -349,6 +361,13 @@ class TestGameTreasuresCreate(TestCase):
         self._post(self.client, {'name': 'Gem', 'value': 100}, token=self.dm_token)
         treasure = Treasure.objects.get(name='Gem')
         assert treasure.game == self.game
+
+    def test_create_also_creates_the_game_treasure_row(self):
+        """Test that a GameTreasure row is created with the posted value."""
+        self._post(self.client, {'name': 'Gem', 'value': 100}, token=self.dm_token)
+        treasure = Treasure.objects.get(name='Gem')
+        game_treasure = GameTreasure.objects.get(game=self.game, treasure=treasure)
+        assert game_treasure.value == 100
 
     def test_create_returns_treasure_detail(self):
         """Test that the response body contains id, name, value, and game_slug."""
