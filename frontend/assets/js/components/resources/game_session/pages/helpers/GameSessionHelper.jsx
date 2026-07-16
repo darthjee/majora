@@ -25,9 +25,11 @@ export default class GameSessionHelper {
    *   messages section state.
    * @param {{onLoadMore: Function, onContentChange: Function, onSubmit: Function}} [messagesHandlers] -
    *   Session messages section event handlers.
+   * @param {Function} [onOpenPollModal] - Handler invoked to open the create-poll modal, used by
+   *   the DM-only "Create Pool" button shown when the session has no date yet.
    * @returns {React.ReactElement} Session detail element.
    */
-  static render(session, messagesState, messagesHandlers) {
+  static render(session, messagesState, messagesHandlers, onOpenPollModal) {
     return (
       <div className="container mt-4">
         <PageActions backHref={`#/games/${session.game_slug}/sessions`}>
@@ -36,6 +38,7 @@ export default class GameSessionHelper {
               {Translator.t('game_session_page.edit')}
             </EditButton>
           )}
+          {GameSessionHelper.#renderCreatePollButton(session, onOpenPollModal)}
         </PageActions>
         <h1>{session.title}</h1>
         <p className="mt-3">
@@ -46,6 +49,23 @@ export default class GameSessionHelper {
         )}
         {SessionMessagesHelper.render(messagesState, messagesHandlers)}
       </div>
+    );
+  }
+
+  static #renderCreatePollButton(session, onOpenPollModal) {
+    if (!session.can_edit || session.date) {
+      return null;
+    }
+
+    return (
+      <button
+        type="button"
+        className="btn btn-secondary mb-3"
+        data-testid="create-poll-button"
+        onClick={onOpenPollModal}
+      >
+        {Translator.t('game_session_page.create_pool')}
+      </button>
     );
   }
 

@@ -69,4 +69,17 @@ export default class GameSessionClient extends BaseClient {
   createMessage(gameSlug, sessionId, token, content) {
     return this.postJson(`/games/${gameSlug}/sessions/${sessionId}/messages.json`, token, { content });
   }
+
+  /**
+   * Creates a date poll scoped to a session.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {number|string} sessionId - Session id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {string[]} dates - Candidate dates (YYYY-MM-DD), in submission order.
+   * @returns {Promise<Response>} fetch response from the session poll endpoint.
+   */
+  createSessionPoll(gameSlug, sessionId, token, dates) {
+    return this.postJson(`/games/${gameSlug}/sessions/${sessionId}/poll.json`, token, { dates });
+  }
 }

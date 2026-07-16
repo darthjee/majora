@@ -68,4 +68,44 @@ export default class GameSessionController extends BasePageController {
       .catch(() => safeSet(this.setError, 'Unable to load session.'))
       .finally(() => safeSet(this.setLoading, false));
   }
+
+  /**
+   * Submit a new date poll for the session.
+   *
+   * @description Marks the poll submission as in progress, sends a POST
+   *   request, then redirects to the new poll's detail page on success
+   *   (201), or marks the poll submission as failed otherwise (including
+   *   network failures).
+   * @param {string} gameSlug - Game slug.
+   * @param {number|string} sessionId - Session id.
+   * @param {string[]} dates - Candidate dates (YYYY-MM-DD), in submission order.
+   * @param {{setPollStatus: Function}} setters - Page state setters.
+   * @returns {Promise<void>} Resolves when the request handling finishes.
+   */
+  async submitPoll(gameSlug, sessionId, dates, setters) {
+    setters.setPollStatus('submitting');
+
+    const token = AuthStorage.getToken();
+
+    try {
+      const response = await this.sessionClient.createSessionPoll(gameSlug, sessionId, token, dates);
+
+      await this.#handlePollResponse(response, gameSlug, setters);
+    } catch {
+      setters.setPollStatus('error');
+    }
+  }
+
+  async #handlePollResponse(response, gameSlug, setters) {
+    if (response.status === 201) {
+      const data = await response.json();
+
+      if (typeof window !== 'undefined') {
+        window.location.hash = `/games/${gameSlug}/polls/${data.id}`;
+      }
+      return;
+    }
+
+    setters.setPollStatus('error');
+  }
 }

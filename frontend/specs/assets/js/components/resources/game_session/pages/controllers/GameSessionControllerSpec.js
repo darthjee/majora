@@ -155,4 +155,87 @@ describe('GameSessionController', function() {
       }
     });
   });
+
+  describe('#submitPoll', function() {
+    let setPollStatus;
+    let sessionClient;
+
+    beforeEach(function() {
+      setPollStatus = jasmine.createSpy('setPollStatus');
+      sessionClient = jasmine.createSpyObj('sessionClient', ['createSessionPoll']);
+      spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
+    });
+
+    it('marks the poll submission as submitting and sends the dates payload', async function() {
+      sessionClient.createSessionPoll.and.returnValue(Promise.resolve({
+        status: 201,
+        json: () => Promise.resolve({ id: 9 }),
+      }));
+
+      const controller = new GameSessionController(
+        jasmine.createSpy('setSession'), jasmine.createSpy('setLoading'), jasmine.createSpy('setError'), sessionClient,
+      );
+      const fakeWindow = { location: { hash: '' } };
+      globalThis.window = fakeWindow;
+
+      try {
+        await controller.submitPoll('demo', 7, ['2024-01-01', '2024-01-02'], { setPollStatus });
+
+        expect(setPollStatus).toHaveBeenCalledWith('submitting');
+        expect(sessionClient.createSessionPoll).toHaveBeenCalledWith(
+          'demo', 7, 'tok-abc', ['2024-01-01', '2024-01-02'],
+        );
+      } finally {
+        delete globalThis.window;
+      }
+    });
+
+    it('redirects to the new poll detail page on a 201 response', async function() {
+      sessionClient.createSessionPoll.and.returnValue(Promise.resolve({
+        status: 201,
+        json: () => Promise.resolve({ id: 9 }),
+      }));
+
+      const controller = new GameSessionController(
+        jasmine.createSpy('setSession'), jasmine.createSpy('setLoading'), jasmine.createSpy('setError'), sessionClient,
+      );
+      const fakeWindow = { location: { hash: '' } };
+      globalThis.window = fakeWindow;
+
+      try {
+        await controller.submitPoll('demo', 7, ['2024-01-01'], { setPollStatus });
+
+        expect(fakeWindow.location.hash).toBe('/games/demo/polls/9');
+      } finally {
+        delete globalThis.window;
+      }
+    });
+
+    it('marks the poll submission as failed on a non-201 response', async function() {
+      sessionClient.createSessionPoll.and.returnValue(Promise.resolve({
+        status: 403,
+        json: () => Promise.resolve({}),
+      }));
+
+      const controller = new GameSessionController(
+        jasmine.createSpy('setSession'), jasmine.createSpy('setLoading'), jasmine.createSpy('setError'), sessionClient,
+      );
+
+      await controller.submitPoll('demo', 7, ['2024-01-01'], { setPollStatus });
+
+      expect(setPollStatus).toHaveBeenCalledWith('error');
+    });
+
+    it('marks the poll submission as failed when the request throws', async function() {
+      sessionClient.createSessionPoll.and.returnValue(Promise.reject(new Error('network error')));
+
+      const controller = new GameSessionController(
+        jasmine.createSpy('setSession'), jasmine.createSpy('setLoading'), jasmine.createSpy('setError'), sessionClient,
+      );
+
+      await controller.submitPoll('demo', 7, ['2024-01-01'], { setPollStatus });
+
+      expect(setPollStatus).toHaveBeenCalledWith('error');
+    });
+  });
 });
