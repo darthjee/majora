@@ -145,7 +145,7 @@ pc_edit_page:
   role_label: Função
   description_label: Descrição
   private_description_label: Notas do Mestre
-  money_label: Dinheiro (peças de cobre)
+  money_label: Dinheiro
   submit: Salvar alterações
   error: Falha ao salvar o personagem. Tente novamente.
   upload_photo_button: Enviar Foto
@@ -422,7 +422,7 @@ game_npc_new_page:
   allegiance_ally: Aliado
   allegiance_enemy: Inimigo
   allegiance_neutral: Neutro
-  money_label: Dinheiro (peças de cobre)
+  money_label: Dinheiro
   submit: Criar NPC
   error: Falha ao criar o personagem. Tente novamente.
 game_photos_page:
