@@ -124,3 +124,29 @@ class TestTreasureListSerializer(TestCase):
         data = TreasureListSerializer(self.treasure, context=context).data
         assert data['max_units'] == 5
         assert data['available_units'] == 3
+
+    def test_value_falls_back_to_treasure_value_when_treasure_not_linked(self):
+        """Test that value falls back to Treasure.value when there is no GameTreasure row."""
+        game = GameFactory(name='Test Game', game_slug='test-game')
+        data = TreasureListSerializer(self.treasure, context={'game': game}).data
+        assert data['value'] == 500
+
+    def test_value_reflects_the_game_treasure_row(self):
+        """Test that value reflects the linked GameTreasure row's value, not Treasure.value."""
+        game = GameFactory(name='Test Game', game_slug='test-game')
+        game.treasures.add(self.treasure, through_defaults={'value': 750})
+        data = TreasureListSerializer(self.treasure, context={'game': game}).data
+        assert data['value'] == 750
+
+    def test_value_uses_prefetched_game_treasures_map_when_provided(self):
+        """Test that value uses a prefetched game_treasures_by_treasure_id map over a query."""
+        game = GameFactory(name='Test Game', game_slug='test-game')
+        game.treasures.add(self.treasure, through_defaults={'value': 750})
+        game_treasure = GameTreasure.objects.get(game=game, treasure=self.treasure)
+        game_treasure.value = 900
+        context = {
+            'game': game,
+            'game_treasures_by_treasure_id': {self.treasure.id: game_treasure},
+        }
+        data = TreasureListSerializer(self.treasure, context=context).data
+        assert data['value'] == 900

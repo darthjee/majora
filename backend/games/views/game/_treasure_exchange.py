@@ -98,7 +98,8 @@ def _acquire(character, treasure, quantity, game):
         character = _lock_character(character)
         game_treasure = _lock_game_treasure(game, treasure)
         acquired = _capped_quantity(quantity, game_treasure)
-        cost = acquired * treasure.value
+        value = treasure.value if game_treasure is None else game_treasure.value
+        cost = acquired * value
         if cost > character.money:
             return Response({'errors': {'quantity': ['insufficient funds']}}, status=400)
 
@@ -132,7 +133,7 @@ def _record_acquired_units(game_treasure, acquired):
 
 
 def _sell(character, treasure, quantity, game):
-    """Atomically remove `quantity` of `treasure` from `character`, refunding their money."""
+    """Atomically remove `quantity` of `treasure` from `character`, refunding their value."""
     with transaction.atomic():
         character = _lock_character(character)
         character_treasure = _lock_character_treasure(character, treasure)
@@ -145,10 +146,12 @@ def _sell(character, treasure, quantity, game):
         character_treasure.quantity -= quantity
         character_treasure.save()
 
-        character.money += quantity * treasure.value
+        game_treasure = _lock_game_treasure(game, treasure)
+        value = treasure.value if game_treasure is None else game_treasure.value
+        character.money += quantity * value
         character.save()
 
-        _release_acquired_units(_lock_game_treasure(game, treasure), quantity)
+        _release_acquired_units(game_treasure, quantity)
 
     return Response({'quantity': character_treasure.quantity, 'money': character.money})
 

@@ -6,7 +6,7 @@ import pytest
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from games.models import CharacterTreasure
+from games.models import CharacterTreasure, GameTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
@@ -60,6 +60,17 @@ class TestGamePcTreasureAcquireView(TokenAuthRequestMixin):
         )
         assert response.status_code == 200
         assert response.json() == {'quantity': 3, 'money': 700, 'acquired': 3}
+
+    def test_acquire_cost_uses_game_treasure_value_when_it_differs_from_treasure_value(
+        self, client,
+    ):
+        """Test that acquire cost is computed from GameTreasure.value, not Treasure.value."""
+        GameTreasure.objects.create(game=self.game, treasure=self.treasure, value=10)
+        response = self._post(
+            client, {'treasure_id': self.treasure.id, 'quantity': 3}, token=self._editor_token(),
+        )
+        assert response.status_code == 200
+        assert response.json() == {'quantity': 3, 'money': 970, 'acquired': 3}
 
     def test_acquire_creates_character_treasure_row(self, client):
         """Test that a CharacterTreasure row is created on the first acquire."""
