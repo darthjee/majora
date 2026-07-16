@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from statistics.models import Session
+from statistics.session_attachment import attach_user
 
 
 @api_view(['POST'])
@@ -29,11 +29,8 @@ def login(request):
 def _attach_statistics_session(request, user):
     """Tie the request's statistics session to `user`, rotating it if already tied to one."""
     session = request.statistics_session
-    if session.user_id is None:
-        session.user = user
-        session.save(update_fields=['user'])
-    else:
-        new_session = Session.objects.create(ip=session.ip, user=user)
+    new_session = attach_user(session, user)
+    if new_session is not session:
         _set_statistics_session(request, new_session)
 
 
