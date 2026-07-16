@@ -1,7 +1,9 @@
 """Tests for `StatisticsSessionMiddleware`."""
 
 import pytest
+from rest_framework.authtoken.models import Token
 
+from games.tests.factories import UserFactory
 from statistics import cookies
 from statistics.models import Session
 
@@ -68,3 +70,51 @@ class TestStatisticsSessionMiddleware:
 
         session = Session.objects.get()
         assert session.ip == '2.2.2.2'
+
+    def test_backfills_user_on_anonymous_session_when_request_is_authenticated(self, client):
+        """Test that an authenticated request attaches its user to an anonymous session."""
+        user = UserFactory(username='alice')
+        token = Token.objects.create(user=user)
+        session = Session.objects.create(ip='1.2.3.4')
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
+
+        response = client.get(
+            '/games.json',
+            REMOTE_ADDR='1.2.3.4',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        post_cookie = response.cookies[cookies.COOKIE_NAME].value
+        assert cookies.unsign(post_cookie) == session.token
+        session.refresh_from_db()
+        assert session.user_id == user.id
+
+    def test_leaves_session_untouched_when_already_tied_to_a_different_user(self, client):
+        """Test that a session already tied to a user is not reattached/rotated on later hits."""
+        other_user = UserFactory(username='bob')
+        existing_session = Session.objects.create(ip='1.2.3.4', user=other_user)
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(existing_session.token)
+
+        user = UserFactory(username='alice')
+        token = Token.objects.create(user=user)
+
+        response = client.get(
+            '/games.json',
+            REMOTE_ADDR='1.2.3.4',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        post_cookie = response.cookies[cookies.COOKIE_NAME].value
+        assert cookies.unsign(post_cookie) == existing_session.token
+        existing_session.refresh_from_db()
+        assert existing_session.user_id == other_user.id
+
+    def test_does_not_backfill_user_for_unauthenticated_request(self, client):
+        """Test that an unauthenticated request leaves the session's user untouched."""
+        session = Session.objects.create(ip='1.2.3.4')
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
+
+        client.get('/games.json', REMOTE_ADDR='1.2.3.4')
+
+        session.refresh_from_db()
+        assert session.user_id is None
