@@ -8,6 +8,7 @@ class PollOption(models.Model):
 
     poll = models.ForeignKey('games.Poll', on_delete=models.CASCADE, related_name='options')
     option = models.CharField(max_length=200)
+    selected = models.BooleanField(default=False)
 
     class Meta:
         """Metadata for the PollOption model."""

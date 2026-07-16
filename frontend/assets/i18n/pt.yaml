@@ -348,6 +348,15 @@ game_poll_page:
   cast_vote: Votar
   cast_votes: Votar
   vote_error: Não foi possível registrar o(s) voto(s). Tente novamente.
+  close_button: Encerrar Enquete
+  close_modal_title: Encerrar Enquete
+  close_confirm_message: Tem certeza de que deseja encerrar esta enquete?
+  override_decision_label: Substituir Decisão
+  close_tie_alert: Houve um empate. Apenas a primeira opção empatada será selecionada; as demais serão ignoradas.
+  winner_badge: Vencedora
+  close_submit: Encerrar Enquete
+  close_cancel: Cancelar
+  close_error: Não foi possível encerrar a enquete. Tente novamente.
 game_poll_new_page:
   title: Nova Enquete
   title_label: Título

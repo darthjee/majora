@@ -348,6 +348,15 @@ game_poll_page:
   cast_vote: Cast Vote
   cast_votes: Cast Votes
   vote_error: Failed to cast vote(s). Please try again.
+  close_button: Close Poll
+  close_modal_title: Close Poll
+  close_confirm_message: Are you sure you want to close this poll?
+  override_decision_label: Override Decision
+  close_tie_alert: There was a tie. Only the first tied option will be selected; the others will be ignored.
+  winner_badge: Winner
+  close_submit: Close Poll
+  close_cancel: Cancel
+  close_error: Failed to close poll. Please try again.
 game_poll_new_page:
   title: New Poll
   title_label: Title

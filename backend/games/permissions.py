@@ -150,6 +150,16 @@ class PollPermission(_EditPermission):
         )
 
 
+class PollClosePermission(_EditPermission):
+    """Encapsulate the authentication/authorization checks for closing a game poll.
+
+    Unlike `PollPermission` (which also allows players and staff), closing a poll is
+    restricted to the game's DM(s) or superusers only — this is exactly the rule
+    `Game.can_be_edited_by` already implements, so `_EditPermission.check`'s default
+    `obj.can_be_edited_by(user)` behavior is reused verbatim.
+    """
+
+
 class PollVotePermission(_EditPermission):
     """Encapsulate the authentication/authorization checks for game poll votes.
 

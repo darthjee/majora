@@ -44,3 +44,8 @@ class TestPollOption(TestCase):
         option = PollOptionFactory(poll=self.poll)
         self.poll.delete()
         assert not PollOption.objects.filter(id=option.id).exists()
+
+    def test_selected_defaults_to_false(self):
+        """Test that a new poll option is not selected by default."""
+        option = PollOptionFactory(poll=self.poll)
+        assert option.selected is False
