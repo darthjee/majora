@@ -104,6 +104,7 @@ character_status_badges:
   alive: Alive
   public_slain: Known as Slain
   public_alive: Known as Alive
+  hidden: Hidden
   enemy: Enemy
   ally: Ally
   neutral: Neutral
@@ -151,6 +152,7 @@ npc_edit_page:
   role_label: Role
   description_label: Description
   private_description_label: DM Notes
+  hidden_label: Hidden Character
   allegiance_label: Allegiance
   public_allegiance_label: Public Allegiance
   allegiance_ally: Ally
@@ -340,6 +342,9 @@ game_poll_new_page:
   type_label: Type
   type_single: Single choice
   type_multiple: Multiple choice
+  option_type_label: Option type
+  option_type_text: Text
+  option_type_date: Date
   options_label: Options
   add_option: Add option
   submit: Create Poll
@@ -367,6 +372,9 @@ game_npcs_page:
   filter_status_label: Status
   filter_status_alive: Alive
   filter_status_slain: Slain
+  filter_hidden_label: Hidden
+  filter_hidden_shown: Shown
+  filter_hidden_only: Hidden
   filter_allegiance_label: Allegiance
   filter_allegiance_ally: Ally
   filter_allegiance_enemy: Enemy
@@ -381,7 +389,7 @@ game_npc_new_page:
   role_label: Role
   description_label: Description
   private_description_label: DM Notes
-  hidden_label: Hidden
+  hidden_label: Hidden Character
   allegiance_label: Allegiance
   public_allegiance_label: Public Allegiance
   allegiance_ally: Ally

@@ -26,6 +26,8 @@ const PHOTO_COMPONENTS = {
  * @param {boolean} [props.canEdit] - Whether the current user may upload a new photo.
  * @param {Function} props.onClick - Handler invoked when the upload button is clicked.
  * @param {boolean} [props.grayscale] - Whether to render the photo in grayscale.
+ * @param {boolean} [props.dimmed] - Whether to render the photo with reduced opacity
+ *   (e.g. a hidden NPC).
  * @param {{label: string, variant: string, icon: string, onClick: Function}[]} [props.secondaryButtons] - Optional
  *   secondary overlay buttons (e.g. real/public Slain-Revive), stacked at the bottom right,
  *   rendered when the primary upload button is present on the left.
@@ -34,10 +36,10 @@ const PHOTO_COMPONENTS = {
  * @returns {React.ReactElement} Rendered photo/avatar with optional upload/secondary overlay buttons.
  */
 export default function ActionsOverlay({
-  type, url, alt, canEdit, onClick, grayscale = false, secondaryButtons = [], infoBarItems = [],
+  type, url, alt, canEdit, onClick, grayscale = false, dimmed = false, secondaryButtons = [], infoBarItems = [],
 }) {
   const Photo = PHOTO_COMPONENTS[type] || CardPhoto;
-  const className = `actions-overlay${grayscale ? ' photo-grayscale' : ''}`;
+  const className = `actions-overlay${grayscale ? ' photo-grayscale' : ''}${dimmed ? ' photo-hidden' : ''}`;
 
   return (
     <div className={className}>

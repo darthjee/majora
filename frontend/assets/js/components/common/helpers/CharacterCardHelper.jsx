@@ -39,6 +39,8 @@ export default class CharacterCardHelper {
    *   (NPC only, DM-facing data only).
    * @param {string} [character.allegiance] - Allegiance value (`'ally'`, `'enemy'`,
    *   `'neutral'`, or missing), drives the card border color for NPCs only.
+   * @param {boolean} [character.hidden] - Whether the NPC is hidden from players
+   *   (NPC only, DM/admin-facing data only); dims the card photo when true.
    * @param {string} gameSlug - Game slug used to build the detail link.
    * @param {string} characterType - Character type, either 'pc' or 'npc'.
    * @param {string} [size] - Card size, either 'normal' or 'small'.
@@ -180,6 +182,7 @@ export default class CharacterCardHelper {
         canEdit={canUploadPhoto}
         onClick={CharacterCardHelper.#buildOverlayClickHandler(onUploadClick, character)}
         grayscale={character.slain}
+        dimmed={character.hidden}
         secondaryButtons={CharacterCardHelper.#buildSecondaryButtons(
           character, canEdit, onSlainClick, onPublicSlainClick, playerOptions,
         )}

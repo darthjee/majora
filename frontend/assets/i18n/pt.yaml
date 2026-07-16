@@ -104,6 +104,7 @@ character_status_badges:
   alive: Vivo
   public_slain: Conhecido como Morto
   public_alive: Conhecido como Vivo
+  hidden: Oculto
   enemy: Inimigo
   ally: Aliado
   neutral: Neutro
@@ -151,6 +152,7 @@ npc_edit_page:
   role_label: Função
   description_label: Descrição
   private_description_label: Notas do Mestre
+  hidden_label: Personagem Oculto
   allegiance_label: Facção
   public_allegiance_label: Facção Pública
   allegiance_ally: Aliado
@@ -340,6 +342,9 @@ game_poll_new_page:
   type_label: Tipo
   type_single: Escolha única
   type_multiple: Escolha múltipla
+  option_type_label: Tipo de opção
+  option_type_text: Texto
+  option_type_date: Data
   options_label: Opções
   add_option: Adicionar opção
   submit: Criar Enquete
@@ -367,6 +372,9 @@ game_npcs_page:
   filter_status_label: Status
   filter_status_alive: Vivo
   filter_status_slain: Morto
+  filter_hidden_label: Oculto
+  filter_hidden_shown: Visível
+  filter_hidden_only: Oculto
   filter_allegiance_label: Facção
   filter_allegiance_ally: Aliado
   filter_allegiance_enemy: Inimigo
@@ -381,7 +389,7 @@ game_npc_new_page:
   role_label: Função
   description_label: Descrição
   private_description_label: Notas do Mestre
-  hidden_label: Oculto
+  hidden_label: Personagem Oculto
   allegiance_label: Facção
   public_allegiance_label: Facção Pública
   allegiance_ally: Aliado

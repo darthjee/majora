@@ -60,6 +60,16 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         assert 'Visible NPC' in names
         assert 'Hidden NPC' in names
 
+    def test_returns_200_with_hidden_field_in_response_body(self):
+        """Test that the response body includes the correct `hidden` value for each NPC."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get(self.client, token=token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        by_name = {item['name']: item['hidden'] for item in data}
+        assert by_name['Visible NPC'] is False
+        assert by_name['Hidden NPC'] is True
+
     def test_returns_200_for_superuser_with_all_npcs(self):
         """Test that a superuser gets 200 with both visible and hidden NPCs."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
@@ -190,6 +200,25 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         """Test that an unrecognized allegiance value applies no filter and does not 400."""
         token = Token.objects.create(user=self.dm_user)
         response = self._get_with_query(self.client, '?allegiance=unknown', token=token)
+        assert response.status_code == 200
+        assert sorted(self._names(response)) == ['Hidden NPC', 'Visible NPC']
+
+    def test_hidden_true_returns_only_hidden_npcs(self):
+        """Test that hidden=true returns only hidden NPCs."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get_with_query(self.client, '?hidden=true', token=token)
+        assert self._names(response) == ['Hidden NPC']
+
+    def test_hidden_false_returns_only_visible_npcs(self):
+        """Test that hidden=false returns only visible NPCs."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get_with_query(self.client, '?hidden=false', token=token)
+        assert self._names(response) == ['Visible NPC']
+
+    def test_invalid_hidden_value_is_ignored(self):
+        """Test that an unrecognized hidden value applies no filter and does not 400."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get_with_query(self.client, '?hidden=unknown', token=token)
         assert response.status_code == 200
         assert sorted(self._names(response)) == ['Hidden NPC', 'Visible NPC']
 

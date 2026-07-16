@@ -39,6 +39,7 @@ describe('GamePollNewController', function() {
             title: 'Which tavern?',
             description: 'Pick one for tonight.',
             type: 'single',
+            option_type: 'text',
             options: ['The Drunken Griffin', 'The Rusty Anchor', '   ', ''],
           },
           { setStatus, setFieldErrors },
@@ -51,6 +52,7 @@ describe('GamePollNewController', function() {
           title: 'Which tavern?',
           description: 'Pick one for tonight.',
           type: 'single',
+          option_type: 'text',
           options: [{ option: 'The Drunken Griffin' }, { option: 'The Rusty Anchor' }],
         });
       } finally {

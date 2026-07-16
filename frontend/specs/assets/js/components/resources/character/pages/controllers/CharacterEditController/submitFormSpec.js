@@ -2,7 +2,7 @@ import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthSto
 import { KINDS } from './support.js';
 
 KINDS.forEach(({
-  label, Controller, kind, name, role, description, allegiance, publicAllegiance, publicSlain,
+  label, Controller, kind, name, role, description, allegiance, publicAllegiance, publicSlain, hidden,
 }) => {
   describe(`${label}#submitForm`, function() {
     let setCharacter;
@@ -64,6 +64,7 @@ KINDS.forEach(({
             allegiance,
             publicAllegiance,
             publicSlain,
+            hidden,
             links,
           },
           { setStatus, setFieldErrors },
@@ -88,6 +89,7 @@ KINDS.forEach(({
           expectedFields.allegiance = allegiance;
           expectedFields.public_allegiance = publicAllegiance;
           expectedFields.public_slain = publicSlain;
+          expectedFields.hidden = hidden;
         }
 
         expect(characterClient.updateCharacter).toHaveBeenCalledWith(
