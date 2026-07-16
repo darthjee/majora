@@ -41,11 +41,11 @@ describe('CharacterPreviewSectionHelper', function() {
       expect(html).not.toContain('Character 8');
     });
 
-    it('renders small character cards', function() {
+    it('renders character preview cards matching the SeeAllCard column classes', function() {
       const html = renderToStaticMarkup(
         CharacterPreviewSectionHelper.render(buildCharacters(1), gameSlug, 'pc', title, seeAllHref, icon)
       );
-      expect(html).toContain('col-sm-3 col-md-2 col-lg-1');
+      expect(html).toContain('col-6 col-sm-4 col-md-3 col-lg-2');
     });
 
     it('renders a see all card with the provided href and icon', function() {
@@ -70,6 +70,14 @@ describe('CharacterPreviewSectionHelper', function() {
         CharacterPreviewSectionHelper.render(buildCharacters(1), gameSlug, 'npc', title, seeAllHref, icon)
       );
       expect(html).toContain('href="#/games/epic-quest/npcs/1"');
+    });
+
+    it('renders CharacterPreviewCard instead of CharacterCard, with no management overlay', function() {
+      const html = renderToStaticMarkup(
+        CharacterPreviewSectionHelper.render(buildCharacters(1), gameSlug, 'npc', title, seeAllHref, icon)
+      );
+      expect(html).not.toContain('actions-overlay');
+      expect(html).not.toContain('info-overlay');
     });
   });
 });
