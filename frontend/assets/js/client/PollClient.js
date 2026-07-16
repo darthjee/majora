@@ -55,4 +55,45 @@ export default class PollClient extends BaseClient {
   createPoll(gameSlug, token, fields) {
     return this.postJson(`/games/${gameSlug}/polls.json`, token, fields);
   }
+
+  /**
+   * Fetches votes cast for a poll, optionally filtered to a single user.
+   * Always sends `X-Skip-Cache: true`, since the response is identity-gated
+   * and the numeric poll id in `/games/<slug>/polls/<id>/votes.json` cannot
+   * be expressed as a static skip-cache suffix.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {number|string} pollId - Poll id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {URLSearchParams} [params] - Query params, e.g. `user_id` to filter to one voter.
+   * @returns {Promise<Response>} fetch response from the poll votes endpoint.
+   */
+  fetchPollVotes(gameSlug, pollId, token, params = new URLSearchParams()) {
+    const query = params.toString();
+    const path = query
+      ? `/games/${gameSlug}/polls/${pollId}/votes.json?${query}`
+      : `/games/${gameSlug}/polls/${pollId}/votes.json`;
+
+    return this.getJson(path, token, { 'X-Skip-Cache': 'true' });
+  }
+
+  /**
+   * Casts the requesting user's vote(s) for a poll, replacing any previous
+   * vote(s) they had for it. Always sends `X-Skip-Cache: true`, mirroring
+   * `fetchPollVotes`.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {number|string} pollId - Poll id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {number[]} optionIds - Full set of option ids being cast for this poll.
+   * @returns {Promise<Response>} fetch response from the poll votes endpoint.
+   */
+  castPollVotes(gameSlug, pollId, token, optionIds) {
+    return this.putJson(
+      `/games/${gameSlug}/polls/${pollId}/votes.json`,
+      token,
+      { option_ids: optionIds },
+      { 'X-Skip-Cache': 'true' }
+    );
+  }
 }

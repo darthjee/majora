@@ -181,10 +181,23 @@ export default class BaseClient {
   }
 
   /**
-   * Perform a JSON write request (POST/PATCH), serializing the given fields
+   * Perform a PUT request with a JSON body and `Content-Type` header.
+   *
+   * @param {string} path - Request path.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {object} fields - Fields to serialize as the JSON request body.
+   * @param {object} [extraHeaders] - Additional headers to merge in.
+   * @returns {Promise<Response>} The fetch response.
+   */
+  putJson(path, token, fields, extraHeaders = {}) {
+    return this.#writeJson('PUT', path, token, fields, extraHeaders);
+  }
+
+  /**
+   * Perform a JSON write request (POST/PATCH/PUT), serializing the given fields
    * as the request body and adding the `Content-Type` header.
    *
-   * @param {string} method - HTTP method to use (POST or PATCH).
+   * @param {string} method - HTTP method to use (POST, PATCH, or PUT).
    * @param {string} path - Request path.
    * @param {string|null} token - Authentication token, if any.
    * @param {object} fields - Fields to serialize as the JSON request body.
