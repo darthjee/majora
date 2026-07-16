@@ -23,6 +23,7 @@ export const buildState = (overrides = {}) => ({
   gameAccess: undefined,
   canViewAs: false,
   showViewAsModal: false,
+  facadeEnabled: false,
   ...overrides,
 });
 

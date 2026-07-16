@@ -93,6 +93,58 @@ describe('Header', function() {
         capturedHandlers.onViewAsModalClose();
       }).not.toThrow();
     });
+
+    it('shows the view-as icon for a DM even when not really staff/superuser', function() {
+      let capturedState;
+      const originalWindow = globalThis.window;
+      globalThis.window = { location: { hash: '#/games/campaign' } };
+      spyOn(AccessStore, 'getGameAccess').and.returnValue({ is_dm: true, is_player: false, is_superuser: false, is_staff: false });
+
+      spyOn(HeaderHelper, 'render').and.callFake((state, _handlers) => {
+        capturedState = state;
+        return React.createElement('div', null, 'header');
+      });
+
+      renderToStaticMarkup(React.createElement(Header));
+      globalThis.window = originalWindow;
+
+      expect(capturedState.canViewAs).toBe(true);
+    });
+
+    it('does not show the view-as icon for a non-DM, non-admin/staff user', function() {
+      let capturedState;
+      const originalWindow = globalThis.window;
+      globalThis.window = { location: { hash: '#/games/campaign' } };
+      spyOn(AccessStore, 'getGameAccess').and.returnValue({ is_dm: false, is_player: true, is_superuser: false, is_staff: false });
+
+      spyOn(HeaderHelper, 'render').and.callFake((state, _handlers) => {
+        capturedState = state;
+        return React.createElement('div', null, 'header');
+      });
+
+      renderToStaticMarkup(React.createElement(Header));
+      globalThis.window = originalWindow;
+
+      expect(capturedState.canViewAs).toBe(false);
+    });
+
+    it('passes the current facade-enabled state and reacts to facade-changed events', function() {
+      let capturedState;
+
+      spyOn(AccessStore, 'getFacade').and.returnValue({ enabled: false, roles: [], gameSlug: null });
+      spyOn(HeaderHelper, 'render').and.callFake((state, _handlers) => {
+        capturedState = state;
+        return React.createElement('div', null, 'header');
+      });
+
+      renderToStaticMarkup(React.createElement(Header));
+
+      expect(capturedState.facadeEnabled).toBe(false);
+    });
+
+    it('does not throw when wiring the facade-changed subscription lifecycle', function() {
+      expect(() => renderToStaticMarkup(React.createElement(Header))).not.toThrow();
+    });
   });
 
   describe('game access wiring', function() {

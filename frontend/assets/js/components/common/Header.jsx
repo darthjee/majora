@@ -5,6 +5,7 @@ import HeaderGameAccessController from './controllers/HeaderGameAccessController
 import HeaderHelper from './helpers/HeaderHelper.jsx';
 import AuthEvents from '../../utils/auth/AuthEvents.js';
 import AccessStore from '../../utils/access/store/AccessStore.js';
+import AccessEvents from '../../utils/access/AccessEvents.js';
 
 /**
  * Render application header, tracking authentication state and the login modal.
@@ -22,6 +23,7 @@ export default function Header() {
   const [gameAccess, setGameAccess] = useState(() => AccessStore.getGameAccess(route.gameSlug));
   const [canViewAs, setCanViewAs] = useState(false);
   const [showViewAsModal, setShowViewAsModal] = useState(false);
+  const [facadeEnabled, setFacadeEnabled] = useState(() => AccessStore.getFacade().enabled);
   const lastLoggedInRef = useRef(loggedIn);
 
   const controller = new HeaderController(
@@ -58,11 +60,16 @@ export default function Header() {
 
     AuthEvents.subscribe(handleAuthChanged);
 
+    const handleFacadeChanged = () => setFacadeEnabled(AccessStore.getFacade().enabled);
+
+    AccessEvents.subscribeFacadeChanged(handleFacadeChanged);
+
     const cleanupRoute = controller.buildRouteEffect()();
 
     return () => {
       controller.stopHealthCheck();
       AuthEvents.unsubscribe(handleAuthChanged);
+      AccessEvents.unsubscribeFacadeChanged(handleFacadeChanged);
       cleanupRoute();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -82,8 +89,9 @@ export default function Header() {
       isStaff,
       route,
       gameAccess,
-      canViewAs,
+      canViewAs: canViewAs || Boolean(gameAccess.is_dm),
       showViewAsModal,
+      facadeEnabled,
     },
     {
       onLoginClick: () => controller.handleLoginClick(),

@@ -17,7 +17,7 @@ export default class HeaderHelper {
   /**
    * Render the application header with navigation and auth controls.
    *
-   * @param {{loggedIn: boolean, showModal: boolean, testEmailStatus: (string|null), isSuperUser: boolean, serverStatus: (string|null), isStaff: boolean, route: ({page: string, gameSlug: (string|undefined), characterId: (string|undefined)}|undefined), gameAccess: ({is_dm: boolean, is_player: boolean, is_superuser: boolean, is_staff: boolean}|undefined), canViewAs: boolean, showViewAsModal: boolean}} state - header auth state.
+   * @param {{loggedIn: boolean, showModal: boolean, testEmailStatus: (string|null), isSuperUser: boolean, serverStatus: (string|null), isStaff: boolean, route: ({page: string, gameSlug: (string|undefined), characterId: (string|undefined)}|undefined), gameAccess: ({is_dm: boolean, is_player: boolean, is_superuser: boolean, is_staff: boolean}|undefined), canViewAs: boolean, showViewAsModal: boolean, facadeEnabled: boolean}} state - header auth state.
    * @param {{onLoginClick: Function, onLogoffClick: Function, onModalClose: Function, onLoginSuccess: Function, onSendTestEmailClick: Function, onLanguageChange: Function, onViewAsClick: Function, onViewAsModalClose: Function}} handlers - header event handlers.
    * @returns {React.ReactElement} Header element.
    */
@@ -51,7 +51,7 @@ export default class HeaderHelper {
           onClose={handlers.onModalClose}
           onSuccess={handlers.onLoginSuccess}
         />
-        <ViewAsModal show={state.showViewAsModal} onClose={handlers.onViewAsModalClose} />
+        <ViewAsModal show={state.showViewAsModal} onClose={handlers.onViewAsModalClose} gameSlug={state.route?.gameSlug} />
       </Navbar>
     );
   }
@@ -252,9 +252,9 @@ export default class HeaderHelper {
   }
 
   /**
-   * Renders the "view as" button, visible only to real (facade-independent) superusers/staff.
+   * Renders the "view as" button (real staff/superuser or DM), green ("engaged") while active.
    *
-   * @param {{canViewAs: boolean}} state - header auth state.
+   * @param {{canViewAs: boolean, facadeEnabled: boolean}} state - header auth state.
    * @param {{onViewAsClick: Function}} handlers - header event handlers.
    * @returns {React.ReactElement|null} view-as button, or null when not applicable.
    */
@@ -263,10 +263,13 @@ export default class HeaderHelper {
       return null;
     }
 
+    const activeClass = state.facadeEnabled ? ' view-as-active' : '';
+
     return (
       <Nav.Link
         href="#"
         data-testid="view-as-link"
+        className={`view-as-link${activeClass}`}
         onClick={(event) => {
           event.preventDefault();
           handlers.onViewAsClick();

@@ -9,10 +9,10 @@ import ViewAsModalHelper from './helpers/ViewAsModalHelper.jsx';
  * its own local edit state, seeded from `AccessStore.getFacade()` whenever
  * the modal opens, independent from the committed facade until saved.
  *
- * @param {{show: boolean, onClose: Function}} props - Component props.
+ * @param {{show: boolean, onClose: Function, gameSlug: (string|undefined)}} props - Component props.
  * @returns {React.ReactElement} Rendered view-as modal.
  */
-export default function ViewAsModal({ show, onClose }) {
+export default function ViewAsModal({ show, onClose, gameSlug }) {
   const [enabled, setEnabled] = useState(() => AccessStore.getFacade().enabled);
   const [roles, setRoles] = useState(() => AccessStore.getFacade().roles);
 
@@ -35,7 +35,7 @@ export default function ViewAsModal({ show, onClose }) {
     { enabled, roles },
     {
       onCancel: () => controller.handleCancel(),
-      onSave: () => controller.handleSave(enabled, roles),
+      onSave: () => controller.handleSave(enabled, roles, gameSlug),
       onToggleEnabled: () => controller.handleToggleEnabled(),
       onToggleRole: (role) => controller.handleToggleRole(role),
     },
