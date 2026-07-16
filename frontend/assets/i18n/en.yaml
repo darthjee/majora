@@ -145,7 +145,7 @@ pc_edit_page:
   role_label: Role
   description_label: Description
   private_description_label: DM Notes
-  money_label: Money (copper pieces)
+  money_label: Money
   submit: Save changes
   error: Failed to save character. Please try again.
   upload_photo_button: Upload Photo
@@ -163,7 +163,7 @@ npc_edit_page:
   allegiance_ally: Ally
   allegiance_enemy: Enemy
   allegiance_neutral: Neutral
-  money_label: Money (copper pieces)
+  money_label: Money
   submit: Save changes
   error: Failed to save character. Please try again.
   upload_photo_button: Upload Photo
