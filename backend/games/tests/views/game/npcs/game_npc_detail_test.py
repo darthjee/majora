@@ -6,9 +6,9 @@ serializer tests cannot: routing, status codes, the request/token permission pip
 and view-specific response shape (e.g. headers).
 
 `PATCH /games/<game_slug>/npcs/<id>.json` accepts a narrow
-`{"public_description", "allegiance", "slain", "links"}` payload (issue #416, widened by
-#445), allowed for any player of the game (per the same computation backing `is_player`)
-or an existing `CharacterEditPermission` editor (GM/superuser). See
+`{"name", "role", "public_description", "allegiance", "slain", "links"}` payload (issue #416,
+widened by #445, #578), allowed for any player of the game (per the same computation backing
+`is_player`) or an existing `CharacterEditPermission` editor (GM/superuser). See
 `docs/agents/security-guidelines.md` section 8 for why the "ignores non-editable
 fields" test must stay.
 """
@@ -223,6 +223,19 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
         self.npc.refresh_from_db()
         assert self.npc.public_description == 'A wandering wizard.'
 
+    def test_patch_name_and_role_by_player_of_game_returns_200(self):
+        """Test that a player of the game can update `name` and `role`."""
+        token = Token.objects.create(user=self.player_user)
+
+        response = self._patch(
+            self.client, {'name': 'Saruman', 'role': 'Dark Wizard'}, token=token
+        )
+
+        assert_json_response(response, 200, name='Saruman', role='Dark Wizard')
+        self.npc.refresh_from_db()
+        assert self.npc.name == 'Saruman'
+        assert self.npc.role == 'Dark Wizard'
+
     def test_patch_allegiance_by_player_of_game_returns_200(self):
         """Test that a player of the game can update `allegiance` (writes public_allegiance)."""
         token = Token.objects.create(user=self.player_user)
@@ -254,6 +267,8 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
         response = self._patch(
             self.client,
             {
+                'name': 'Saruman',
+                'role': 'Dark Wizard',
                 'public_description': 'A wandering wizard.',
                 'allegiance': 'ally',
                 'slain': True,
@@ -264,6 +279,8 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
 
         assert response.status_code == 200
         self.npc.refresh_from_db()
+        assert self.npc.name == 'Saruman'
+        assert self.npc.role == 'Dark Wizard'
         assert self.npc.public_description == 'A wandering wizard.'
         assert self.npc.public_allegiance == 'ally'
         assert self.npc.public_slain is True
@@ -334,8 +351,6 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
             self.client,
             {
                 'slain': True,
-                'name': 'Saruman',
-                'role': 'Dark Wizard',
                 'money': 999,
                 'private_description': 'Secretly Saruman.',
                 'public_allegiance': 'enemy',
@@ -347,8 +362,6 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
         assert response.status_code == 200
         self.npc.refresh_from_db()
         assert self.npc.public_slain is True
-        assert self.npc.name == 'Gandalf'
-        assert self.npc.role is None
         assert self.npc.money == 0
         assert self.npc.private_description == ''
         assert self.npc.public_allegiance == 'enemy'

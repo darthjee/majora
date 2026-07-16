@@ -177,8 +177,8 @@ describe('BaseCharacterEditController', function() {
           await controller.submitForm(
             event, 'demo', '1',
             {
-              name: 'Ignored Name',
-              role: 'Ignored Role',
+              name: 'Grumbleknuckle',
+              role: 'Shopkeeper',
               description: 'A brave hero', privateDescription: 'Ignored DM notes',
               money: '999',
               allegiance: 'ally',
@@ -195,6 +195,8 @@ describe('BaseCharacterEditController', function() {
           expect(characterClient.updateNpcAsPlayer).toHaveBeenCalledWith(
             'demo', '1', 'tok-test',
             {
+              name: 'Grumbleknuckle',
+              role: 'Shopkeeper',
               public_description: 'A brave hero',
               allegiance: 'enemy',
               links: [

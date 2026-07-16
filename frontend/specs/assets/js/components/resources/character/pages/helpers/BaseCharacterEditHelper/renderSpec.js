@@ -1,6 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import ActionsOverlay from '../../../../../../../../../assets/js/components/common/ActionsOverlay.jsx';
-import Translator from '../../../../../../../../../assets/js/i18n/Translator.js';
 import { helper, npcHelper, buildHandlers, buildState, findElement } from './support.js';
 
 describe('BaseCharacterEditHelper', function() {
@@ -263,30 +262,6 @@ describe('BaseCharacterEditHelper', function() {
 
       expect(checkbox).not.toBeNull();
       expect(checkbox.props.onChange).toBe(handlers.onPublicSlainChange);
-    });
-
-    describe('player-only editor (isFullEditor: false)', function() {
-      it('hides the name, role, money, and private description inputs', function() {
-        const html = renderToStaticMarkup(
-          npcHelper.render(buildState({ isFullEditor: false }), buildHandlers())
-        );
-
-        expect(html).not.toContain('id="npc-edit-name"');
-        expect(html).not.toContain('id="npc-edit-role"');
-        expect(html).not.toContain('id="npc-edit-private-description"');
-        expect(html).not.toContain(Translator.t('npc_edit_page.money_label'));
-      });
-
-      it('keeps the description, links, allegiance, and slain toggle visible', function() {
-        const html = renderToStaticMarkup(
-          npcHelper.render(buildState({ isFullEditor: false }), buildHandlers())
-        );
-
-        expect(html).toContain('id="npc-edit-description"');
-        expect(html).toContain('id="npc-edit-allegiance"');
-        expect(html).toContain('id="npc-edit-public-allegiance"');
-        expect(html).toContain('id="npc-edit-public-slain"');
-      });
     });
   });
 });

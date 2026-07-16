@@ -36,7 +36,8 @@ export default class CharacterHelper {
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
    * @param {boolean} [character.is_player] - Whether the current user is a player of the
    *   game (but not necessarily this character's editor), gates the single player-facing
-   *   slain/revive button.
+   *   slain/revive button, and (together with `!is_pc`) also gates the Edit button for
+   *   NPCs, since any player may edit an NPC's player-writable fields.
    * @param {boolean} [character.is_pc] - Whether the character is a PC (vs. an NPC), used
    *   to build the correct edit link segment and to gate the slain/revive button.
    * @param {boolean} [character.slain] - Whether the character is (really) slain for a DM,
@@ -64,7 +65,7 @@ export default class CharacterHelper {
     return (
       <div className="container mt-4">
         <PageActions backHref={backHref}>
-          <ConditionalComponent render={character.can_edit}>
+          <ConditionalComponent render={character.can_edit || (character.is_player && !character.is_pc)}>
             <EditButton href={`#/games/${character.game_slug}/${segment}/${character.id}/edit`}>
               {Translator.t('character_page.edit')}
             </EditButton>
