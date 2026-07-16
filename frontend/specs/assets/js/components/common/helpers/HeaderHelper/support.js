@@ -20,6 +20,7 @@ export const buildState = (overrides = {}) => ({
   serverStatus: null,
   isStaff: false,
   route: { page: 'home' },
+  gameAccess: undefined,
   canViewAs: false,
   showViewAsModal: false,
   ...overrides,

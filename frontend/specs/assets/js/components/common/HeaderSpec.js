@@ -5,6 +5,7 @@ import AuthClient from '../../../../../assets/js/client/AuthClient.js';
 import HealthClient from '../../../../../assets/js/client/HealthClient.js';
 import HeaderController from '../../../../../assets/js/components/common/controllers/HeaderController.js';
 import HeaderHelper from '../../../../../assets/js/components/common/helpers/HeaderHelper.jsx';
+import AccessStore from '../../../../../assets/js/utils/access/store/AccessStore.js';
 
 describe('Header', function() {
   beforeEach(function() {
@@ -94,6 +95,39 @@ describe('Header', function() {
     });
   });
 
+  describe('game access wiring', function() {
+    it('passes the fail-closed default gameAccess before any game route is resolved', function() {
+      let capturedState;
+
+      spyOn(HeaderHelper, 'render').and.callFake((state, _handlers) => {
+        capturedState = state;
+        return React.createElement('div', null, 'header');
+      });
+
+      renderToStaticMarkup(React.createElement(Header));
+
+      expect(capturedState.gameAccess).toEqual(jasmine.objectContaining({ is_dm: null, is_player: false }));
+    });
+
+    it('reads the cached game access for the resolved gameSlug', function() {
+      let capturedState;
+      const originalWindow = globalThis.window;
+      globalThis.window = { location: { hash: '#/games/campaign' } };
+      spyOn(AccessStore, 'getGameAccess').and.returnValue({ is_dm: true, is_player: false, is_superuser: false, is_staff: false });
+
+      spyOn(HeaderHelper, 'render').and.callFake((state, _handlers) => {
+        capturedState = state;
+        return React.createElement('div', null, 'header');
+      });
+
+      renderToStaticMarkup(React.createElement(Header));
+      globalThis.window = originalWindow;
+
+      expect(AccessStore.getGameAccess).toHaveBeenCalledWith('campaign');
+      expect(capturedState.gameAccess).toEqual({ is_dm: true, is_player: false, is_superuser: false, is_staff: false });
+    });
+  });
+
   describe('route state', function() {
     let originalWindow;
 
@@ -105,13 +139,23 @@ describe('Header', function() {
       globalThis.window = originalWindow;
     });
 
-    it('initializes route from the current hash and renders the game nav links', function() {
+    it('initializes route from the current hash and renders the game nav dropdown', function() {
       globalThis.window = { location: { hash: '#/games/campaign' } };
       const html = renderToStaticMarkup(React.createElement(Header));
 
+      expect(html).toContain('href="#/games/campaign"');
+      expect(html).toContain('href="#/games/campaign/pcs"');
+      expect(html).toContain('href="#/games/campaign/npcs"');
       expect(html).toContain('href="#/games/campaign/treasures"');
-      expect(html).toContain('href="#/games/campaign/sessions"');
       expect(html).toContain('href="#/games/campaign/photos"');
+    });
+
+    it('does not render the Polls/Sessions items before the game access effect resolves', function() {
+      globalThis.window = { location: { hash: '#/games/campaign' } };
+      const html = renderToStaticMarkup(React.createElement(Header));
+
+      expect(html).not.toContain('href="#/games/campaign/polls"');
+      expect(html).not.toContain('href="#/games/campaign/sessions"');
     });
 
     it('renders the character photos nav link on a pc character route', function() {

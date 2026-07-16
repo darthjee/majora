@@ -2,6 +2,8 @@ header:
   title: Majora
   subtitle: RPG
   nav_games: Campanhas
+  nav_game: Jogo
+  nav_game_show: Ver
   nav_treasures: Tesouros
   nav_staff_users: Usuários
   login: Login

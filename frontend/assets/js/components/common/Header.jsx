@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import HeaderController from './controllers/HeaderController.js';
 import HeaderViewAsController from './controllers/HeaderViewAsController.js';
+import HeaderGameAccessController from './controllers/HeaderGameAccessController.js';
 import HeaderHelper from './helpers/HeaderHelper.jsx';
 import AuthEvents from '../../utils/auth/AuthEvents.js';
+import AccessStore from '../../utils/access/store/AccessStore.js';
 
 /**
  * Render application header, tracking authentication state and the login modal.
@@ -17,6 +19,7 @@ export default function Header() {
   const [serverStatus, setServerStatus] = useState(null);
   const [isStaff, setIsStaff] = useState(false);
   const [route, setRoute] = useState(() => new HeaderController().getRoute());
+  const [gameAccess, setGameAccess] = useState(() => AccessStore.getGameAccess(route.gameSlug));
   const [canViewAs, setCanViewAs] = useState(false);
   const [showViewAsModal, setShowViewAsModal] = useState(false);
   const lastLoggedInRef = useRef(loggedIn);
@@ -33,6 +36,7 @@ export default function Header() {
     setRoute
   );
   const viewAsController = new HeaderViewAsController(setCanViewAs, setShowViewAsModal);
+  const gameAccessController = new HeaderGameAccessController(setGameAccess);
 
   useEffect(() => {
     controller.checkStatus();
@@ -64,9 +68,22 @@ export default function Header() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => gameAccessController.buildEffect(route.gameSlug)(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [route.gameSlug]);
+
   return HeaderHelper.render(
     {
-      loggedIn, showModal, testEmailStatus, isSuperUser, serverStatus, isStaff, route, canViewAs, showViewAsModal,
+      loggedIn,
+      showModal,
+      testEmailStatus,
+      isSuperUser,
+      serverStatus,
+      isStaff,
+      route,
+      gameAccess,
+      canViewAs,
+      showViewAsModal,
     },
     {
       onLoginClick: () => controller.handleLoginClick(),
