@@ -68,5 +68,23 @@ describe('CharacterClient', function() {
         body: undefined,
       }));
     });
+
+    it('includes the search query param when provided', async function() {
+      const client = new CharacterClient();
+
+      await client.fetchTreasuresPage('pcs', 'demo', '2', 'abc123', { page: 1, perPage: 10, search: 'sword' });
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        '/games/demo/pcs/2/treasures.json?page=1&per_page=10&search=sword',
+        jasmine.objectContaining({
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            Authorization: 'Token abc123',
+          },
+          body: undefined,
+        }),
+      );
+    });
   });
 });

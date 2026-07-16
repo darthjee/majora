@@ -16,6 +16,8 @@ import CharacterGameTypeResolver from './CharacterGameTypeResolver.js';
  *   {@link CharacterClient} calls.
  */
 export default class BaseCharacterTreasuresController extends BasePageController {
+  #mounted = false;
+
   /**
    * Create a base character treasures controller.
    *
@@ -53,6 +55,7 @@ export default class BaseCharacterTreasuresController extends BasePageController
     this.setCharacter = setCharacter;
     this.characterClient = characterClient ?? new CharacterClient();
     this.gameClient = gameClient ?? new GameClient();
+    this.#mounted = true;
   }
 
   /**
@@ -72,13 +75,33 @@ export default class BaseCharacterTreasuresController extends BasePageController
         safeSet(this.setLoading, false);
       } else {
         this.#fetchTreasures(gameSlug, characterId, safeSet);
-        this.#fetchCharacter(gameSlug, characterId, safeSet);
+        this.#fetchCharacterData(gameSlug, characterId, safeSet);
       }
 
       return () => {
         mounted = false;
+        this.#mounted = false;
       };
     };
+  }
+
+  /**
+   * Re-fetch and re-set the character context, without touching the treasures
+   * list/pagination. Meant to be called after a successful acquire/sell so the
+   * character's money (and any other field) reflects a fresh server read,
+   * independent of the effect built by {@link buildEffect}.
+   *
+   * @returns {void}
+   */
+  refreshCharacter() {
+    const { game_slug: gameSlug, character_id: characterId } =
+      this.getParamsFromHash(this.client.currentHash());
+
+    if (!gameSlug || !characterId) {
+      return;
+    }
+
+    this.#fetchCharacterData(gameSlug, characterId, this.buildSafeSetter(() => this.#mounted));
   }
 
   #fetchTreasures(gameSlug, characterId, safeSet) {
@@ -91,7 +114,7 @@ export default class BaseCharacterTreasuresController extends BasePageController
       .finally(() => safeSet(this.setLoading, false));
   }
 
-  #fetchCharacter(gameSlug, characterId, safeSet) {
+  #fetchCharacterData(gameSlug, characterId, safeSet) {
     const token = AuthStorage.getToken();
 
     this.characterClient.fetchCharacter(this.characterKind, gameSlug, characterId, token)

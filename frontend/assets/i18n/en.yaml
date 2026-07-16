@@ -241,9 +241,11 @@ character_treasures_page:
   name_column: Name
   quantity_column: Quantity
   value_column: Value
-  add_treasure: Add Treasure
+  add_treasure: Exchange Treasure
 treasure_exchange_modal:
   title: Treasure Exchange
+  search_placeholder: Search treasures...
+  your_money: 'Your money:'
   acquire_tab: Acquire
   sell_tab: Sell
   quantity_label: Quantity

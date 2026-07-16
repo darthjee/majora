@@ -7,6 +7,7 @@ export const buildHandlers = () => ({
   onNext: jasmine.createSpy('onNext'),
   onQuantityChange: jasmine.createSpy('onQuantityChange'),
   onConfirm: jasmine.createSpy('onConfirm'),
+  onSearchChange: jasmine.createSpy('onSearchChange'),
 });
 
 export const buildState = (overrides = {}) => ({
@@ -18,6 +19,7 @@ export const buildState = (overrides = {}) => ({
   actionError: '',
   partialNotice: '',
   ownedByTreasureId: {},
+  search: '',
   ...overrides,
 });
 

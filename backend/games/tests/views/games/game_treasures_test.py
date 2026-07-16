@@ -236,6 +236,72 @@ class TestGameTreasuresView(TestCase):
         data = json.loads(response.content)
         assert [item['id'] for item in data] == [first.id, second.id]
 
+    def test_filters_by_search_substring(self):
+        """Test that only treasures whose name contains the search term are returned."""
+        ring = TreasureFactory(name='Gold Ring', value=100)
+        dagger = TreasureFactory(name='Silver Dagger', value=50)
+        self.game.treasures.add(ring, dagger)
+        response = self.client.get('/games/test-game/treasures.json?search=Ring')
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Gold Ring'
+
+    def test_search_is_case_insensitive(self):
+        """Test that the search filter matches regardless of case."""
+        ring = TreasureFactory(name='Gold Ring', value=100)
+        self.game.treasures.add(ring)
+        response = self.client.get('/games/test-game/treasures.json?search=gold ring')
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Gold Ring'
+
+    def test_search_with_no_match_returns_empty_list(self):
+        """Test that a search term matching nothing returns an empty list."""
+        ring = TreasureFactory(name='Gold Ring', value=100)
+        self.game.treasures.add(ring)
+        response = self.client.get('/games/test-game/treasures.json?search=Nonexistent')
+        data = json.loads(response.content)
+        assert data == []
+
+    def test_search_combined_with_max_value(self):
+        """Test that search and max_value filters both apply together."""
+        cheap_ring = TreasureFactory(name='Cheap Ring', value=50)
+        expensive_ring = TreasureFactory(name='Expensive Ring', value=500)
+        dagger = TreasureFactory(name='Cheap Dagger', value=50)
+        self.game.treasures.add(cheap_ring, expensive_ring, dagger)
+        response = self.client.get('/games/test-game/treasures.json?search=Ring&max_value=100')
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Cheap Ring'
+
+    def test_ordering_desc_reverses_order_by_value(self):
+        """Test that ordering=desc returns treasures in descending order of value."""
+        cheap = TreasureFactory(name='Cheap Gem', value=50)
+        expensive = TreasureFactory(name='Expensive Gem', value=300)
+        mid = TreasureFactory(name='Mid Gem', value=150)
+        self.game.treasures.add(cheap, expensive, mid)
+        response = self.client.get('/games/test-game/treasures.json?ordering=desc')
+        data = json.loads(response.content)
+        assert [item['name'] for item in data] == ['Expensive Gem', 'Mid Gem', 'Cheap Gem']
+
+    def test_ordering_invalid_value_falls_back_to_ascending(self):
+        """Test that an invalid ordering value falls back to the ascending default."""
+        cheap = TreasureFactory(name='Cheap Gem', value=50)
+        expensive = TreasureFactory(name='Expensive Gem', value=300)
+        self.game.treasures.add(cheap, expensive)
+        response = self.client.get('/games/test-game/treasures.json?ordering=bogus')
+        data = json.loads(response.content)
+        assert [item['name'] for item in data] == ['Cheap Gem', 'Expensive Gem']
+
+    def test_ordering_absent_defaults_to_ascending(self):
+        """Test that omitting ordering still returns today's ascending order."""
+        cheap = TreasureFactory(name='Cheap Gem', value=50)
+        expensive = TreasureFactory(name='Expensive Gem', value=300)
+        self.game.treasures.add(cheap, expensive)
+        response = self.client.get('/games/test-game/treasures.json')
+        data = json.loads(response.content)
+        assert [item['name'] for item in data] == ['Cheap Gem', 'Expensive Gem']
+
 
 class TestGameTreasuresCreate(TestCase):
     """Tests for the POST /games/<slug>/treasures.json endpoint."""

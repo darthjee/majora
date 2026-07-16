@@ -1,6 +1,6 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import TreasureExchangeModal, { buildPartialNotice }
+import TreasureExchangeModal, { buildPartialNotice, buildBrowseParams }
   from '../../../../../../../../assets/js/components/resources/character/pages/elements/TreasureExchangeModal.jsx';
 import TreasureExchangeModalHelper from '../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/TreasureExchangeModalHelper.jsx';
 import TreasureExchangeModalController
@@ -54,6 +54,20 @@ describe('TreasureExchangeModal', function() {
     expect(state.submitting).toBe(false);
     expect(state.actionError).toBe('');
     expect(state.gameType).toBe('dnd');
+    expect(state.search).toBe('');
+  });
+
+  it('passes the character prop through to the helper for the money display', function() {
+    const { state } = renderModal();
+
+    expect(state.character).toBe(character);
+  });
+
+  it('exposes an onSearchChange handler', function() {
+    const { handlers } = renderModal();
+
+    expect(typeof handlers.onSearchChange).toBe('function');
+    expect(() => handlers.onSearchChange('sword')).not.toThrow();
   });
 
   it('forwards the gameType prop to the helper', function() {
@@ -88,7 +102,19 @@ describe('TreasureExchangeModal', function() {
     handlers.onTabChange('sell');
 
     expect(TreasureExchangeModalController.prototype.fetchSellPage).toHaveBeenCalledWith(
-      'demo', 7, true, null, { page: 1, perPage: 10 }
+      'demo', 7, true, null, { page: 1, perPage: 10, search: '' }
+    );
+  });
+
+  it('fetches the acquire page with ordering desc via the controller when the tab changes to acquire', function() {
+    const { handlers } = renderModal();
+
+    handlers.onTabChange('acquire');
+
+    expect(TreasureExchangeModalController.prototype.fetchAcquirePage).toHaveBeenCalledWith(
+      'demo', null, {
+        page: 1, perPage: 10, maxValue: 500, search: '', ordering: 'desc',
+      }
     );
   });
 
@@ -98,7 +124,9 @@ describe('TreasureExchangeModal', function() {
     handlers.onPrev();
 
     expect(TreasureExchangeModalController.prototype.fetchAcquirePage).toHaveBeenCalledWith(
-      'demo', null, { page: 0, perPage: 10, maxValue: 500 }
+      'demo', null, {
+        page: 0, perPage: 10, maxValue: 500, search: '', ordering: 'desc',
+      }
     );
   });
 
@@ -108,8 +136,32 @@ describe('TreasureExchangeModal', function() {
     handlers.onNext();
 
     expect(TreasureExchangeModalController.prototype.fetchAcquirePage).toHaveBeenCalledWith(
-      'demo', null, { page: 2, perPage: 10, maxValue: 500 }
+      'demo', null, {
+        page: 2, perPage: 10, maxValue: 500, search: '', ordering: 'desc',
+      }
     );
+  });
+});
+
+describe('buildBrowseParams', function() {
+  const character = buildCharacter({ money: 500 });
+
+  it('includes maxValue, search, and a fixed desc ordering for the acquire tab', function() {
+    expect(buildBrowseParams('acquire', 2, 10, character, 'sword')).toEqual({
+      page: 2, perPage: 10, maxValue: 500, search: 'sword', ordering: 'desc',
+    });
+  });
+
+  it('includes only page, perPage, and search for the sell tab', function() {
+    expect(buildBrowseParams('sell', 3, 10, character, 'sword')).toEqual({
+      page: 3, perPage: 10, search: 'sword',
+    });
+  });
+
+  it('forwards an empty search term as-is', function() {
+    expect(buildBrowseParams('acquire', 1, 10, character, '')).toEqual({
+      page: 1, perPage: 10, maxValue: 500, search: '', ordering: 'desc',
+    });
   });
 });
 

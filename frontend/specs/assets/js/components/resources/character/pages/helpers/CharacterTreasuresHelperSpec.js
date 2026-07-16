@@ -54,7 +54,7 @@ describe('CharacterTreasuresHelper', function() {
           treasures, pagination, '#/games/demo/pcs/1/treasures', '#/games/demo/pcs/1', false
         )
       );
-      expect(html).not.toContain('Add Treasure');
+      expect(html).not.toContain('Exchange Treasure');
     });
 
     it('renders the "Add treasure" button when canEdit is true', function() {
@@ -63,7 +63,7 @@ describe('CharacterTreasuresHelper', function() {
           treasures, pagination, '#/games/demo/pcs/1/treasures', '#/games/demo/pcs/1', true
         )
       );
-      expect(html).toContain('Add Treasure');
+      expect(html).toContain('Exchange Treasure');
     });
 
     it('renders each treasure value using the given gameType', function() {

@@ -31,9 +31,10 @@ def game_treasures(request, game_slug):
         return _create_game_treasure(request, game)
 
     treasures = Treasure.objects.filter(Q(linked_game=game) | Q(game=game)).distinct()
-    treasures = treasures.order_by('value', 'id')
     treasures = treasures.filter(hidden=False)
     treasures = _filter_by_max_value(request, treasures)
+    treasures = _filter_by_search(request, treasures)
+    treasures = _apply_ordering(request, treasures)
     context = game_treasures_context(game)
     return paginated_list_response(request, treasures, TreasureListSerializer, context=context)
 
@@ -50,6 +51,24 @@ def _filter_by_max_value(request, treasures):
         return treasures
 
     return treasures.filter(value__lte=max_value)
+
+
+def _filter_by_search(request, treasures):
+    """Filter `treasures` to a case-insensitive `name` substring match on `search`."""
+    search = request.GET.get('search')
+    if not search:
+        return treasures
+
+    return treasures.filter(name__icontains=search)
+
+
+def _apply_ordering(request, treasures):
+    """Order `treasures` by `value` descending when `ordering` is `desc`, ascending otherwise."""
+    ordering = request.GET.get('ordering')
+    if ordering == 'desc':
+        return treasures.order_by('-value', 'id')
+
+    return treasures.order_by('value', 'id')
 
 
 def _create_game_treasure(request, game):

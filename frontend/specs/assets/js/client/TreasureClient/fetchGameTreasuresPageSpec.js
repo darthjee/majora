@@ -52,5 +52,40 @@ describe('TreasureClient', function() {
         body: undefined,
       }));
     });
+
+    it('includes search and ordering query params when provided', async function() {
+      const client = new TreasureClient();
+
+      await client.fetchGameTreasuresPage('demo', 'tok-abc', {
+        page: 1, perPage: 10, search: 'sword', ordering: 'desc',
+      });
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        '/games/demo/treasures.json?page=1&per_page=10&search=sword&ordering=desc',
+        jasmine.objectContaining({
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            Authorization: 'Token tok-abc',
+          },
+          body: undefined,
+        }),
+      );
+    });
+
+    it('omits search and ordering when not provided', async function() {
+      const client = new TreasureClient();
+
+      await client.fetchGameTreasuresPage('demo', 'tok-abc', { page: 1, perPage: 10 });
+
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/treasures.json?page=1&per_page=10', jasmine.objectContaining({
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          Authorization: 'Token tok-abc',
+        },
+        body: undefined,
+      }));
+    });
   });
 });

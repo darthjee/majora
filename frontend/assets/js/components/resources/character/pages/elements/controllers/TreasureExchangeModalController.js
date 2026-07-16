@@ -44,7 +44,9 @@ export default class TreasureExchangeModalController {
    *
    * @param {string} gameSlug - Game slug.
    * @param {string|null} token - Authentication token, if any.
-   * @param {{page: number, perPage: number, maxValue: number}} params - Browse params.
+   * @param {{page: number, perPage: number, maxValue: number, search: string,
+   *   ordering: string}} params - Browse params. `search` is an optional name filter;
+   *   `ordering` (`'asc'`/`'desc'`) is forwarded as-is, always `'desc'` in this modal.
    * @returns {Promise<{data: object[], pagination: object}>} Page of treasures with
    *   pagination metadata.
    */
@@ -60,7 +62,8 @@ export default class TreasureExchangeModalController {
    * @param {string|number} characterId - Character id.
    * @param {boolean} isPc - Whether the character is a PC (vs. an NPC).
    * @param {string|null} token - Authentication token, if any.
-   * @param {{page: number, perPage: number}} params - Browse params.
+   * @param {{page: number, perPage: number, search: string}} params - Browse params.
+   *   `search` is an optional name filter.
    * @returns {Promise<{data: object[], pagination: object}>} Page of owned treasures with
    *   pagination metadata.
    */

@@ -26,8 +26,11 @@ export default class TreasureExchangeModalHelper {
    * @param {object} state.ownedByTreasureId - Map of treasure id to owned quantity.
    * @param {string} [state.gameType] - Currency model name (e.g. `dnd`, `deadlands`) used to
    *   render browsed/selected treasure values. Defaults to `dnd`.
+   * @param {string} [state.search] - Current search term, bound to the browse pane's search input.
+   * @param {object} [state.character] - Character context (`money`), used to render the
+   *   character's current money at the top of the modal.
    * @param {object} handlers - Modal event handlers (`onClose`, `onTabChange`, `onSelect`,
-   *   `onBack`, `onPrev`, `onNext`, `onQuantityChange`, `onConfirm`).
+   *   `onBack`, `onPrev`, `onNext`, `onQuantityChange`, `onConfirm`, `onSearchChange`).
    * @returns {React.ReactElement} Rendered treasure exchange modal.
    */
   static render(show, state, handlers) {
@@ -37,6 +40,7 @@ export default class TreasureExchangeModalHelper {
           <Modal.Title>{Translator.t('treasure_exchange_modal.title')}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          {TreasureExchangeModalHelper.#renderMoney(state.character, state.gameType)}
           {TreasureExchangeModalHelper.#renderTabs(state.activeTab, handlers.onTabChange)}
           {state.selected
             ? TreasureExchangeModalHelper.#renderDetail(state, handlers)
@@ -48,6 +52,20 @@ export default class TreasureExchangeModalHelper {
           </button>
         </Modal.Footer>
       </Modal>
+    );
+  }
+
+  static #renderMoney(character, gameType) {
+    if (!character) {
+      return null;
+    }
+
+    return (
+      <p className="mb-3">
+        <strong>{Translator.t('treasure_exchange_modal.your_money')}</strong>
+        {' '}
+        <TreasureMoney value={character.money} gameType={gameType} />
+      </p>
     );
   }
 
@@ -80,11 +98,24 @@ export default class TreasureExchangeModalHelper {
     return (
       <>
         {TreasureExchangeModalHelper.#renderPartialNotice(state.partialNotice)}
+        {TreasureExchangeModalHelper.#renderSearchInput(state.search, handlers.onSearchChange)}
         {TreasureExchangeModalHelper.#renderPager(state.browse, handlers)}
         {TreasureExchangeModalHelper.#renderBrowseList(
           state.browse, state.activeTab, state.gameType, handlers.onSelect
         )}
       </>
+    );
+  }
+
+  static #renderSearchInput(search, onSearchChange) {
+    return (
+      <input
+        type="text"
+        className="form-control mb-3"
+        placeholder={Translator.t('treasure_exchange_modal.search_placeholder')}
+        value={search ?? ''}
+        onChange={(event) => onSearchChange(event.target.value)}
+      />
     );
   }
 
