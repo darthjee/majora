@@ -5,6 +5,7 @@ import json
 from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
+from games.models import CharacterTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
@@ -12,6 +13,7 @@ from games.tests.factories import (
     GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
+    TreasureFactory,
     UserFactory,
 )
 
@@ -84,6 +86,23 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         token = Token.objects.create(user=self.dm_user)
         response = self.get(self.client, '/games/unknown-game/npcs/all.json', token=token)
         assert response.status_code == 404
+
+    def test_includes_treasure_value_summed_across_treasures(self):
+        """Test that treasure_value sums total_value across an NPC's treasure rows."""
+        treasure_one = TreasureFactory(name='Potion', value=50)
+        treasure_two = TreasureFactory(name='Sword', value=100)
+        CharacterTreasure.objects.create(
+            character=self.visible_npc, treasure=treasure_one, quantity=2, total_value=100,
+        )
+        CharacterTreasure.objects.create(
+            character=self.visible_npc, treasure=treasure_two, quantity=1, total_value=100,
+        )
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get(self.client, token=token)
+        data = json.loads(response.content)
+        by_name = {item['name']: item['treasure_value'] for item in data}
+        assert by_name['Visible NPC'] == 200
+        assert by_name['Hidden NPC'] == 0
 
     def test_response_includes_pagination_headers(self):
         """Test that the response includes page/pages/per_page/total headers."""

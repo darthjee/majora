@@ -9,7 +9,7 @@ from ....models import Game
 from ....permissions import GameEditPermission
 from ....serializers import CharacterFullListSerializer
 from ...common import paginated_list_response
-from .._shared import _filter_characters
+from .._shared import _filter_characters, _with_treasure_value
 
 
 @api_view(['GET'])
@@ -25,6 +25,7 @@ def game_npcs_all(request, game_slug):
     npcs = _filter_characters(
         request, npcs, allegiance_field='allegiance', slain_field='slain', hidden_field='hidden',
     )
+    npcs = _with_treasure_value(npcs)
     response = paginated_list_response(request, npcs, CharacterFullListSerializer)
     response['X-Skip-Cache'] = 'true'
     return response

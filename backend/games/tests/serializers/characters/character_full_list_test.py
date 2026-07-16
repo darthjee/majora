@@ -2,8 +2,9 @@
 
 from django.test import TestCase
 
+from games.models import CharacterTreasure
 from games.serializers import CharacterFullListSerializer
-from games.tests.factories import CharacterFactory, GameFactory
+from games.tests.factories import CharacterFactory, GameFactory, TreasureFactory
 
 
 class TestCharacterFullListSerializer(TestCase):
@@ -60,3 +61,16 @@ class TestCharacterFullListSerializer(TestCase):
         self.character.save()
         data = CharacterFullListSerializer(self.character).data
         assert data['hidden'] is True
+
+    def test_serializes_treasure_value_summed_across_treasures(self):
+        """Test that treasure_value sums total_value across the character's treasure rows."""
+        treasure_one = TreasureFactory(name='Potion', value=50)
+        treasure_two = TreasureFactory(name='Sword', value=100)
+        CharacterTreasure.objects.create(
+            character=self.character, treasure=treasure_one, quantity=2, total_value=100,
+        )
+        CharacterTreasure.objects.create(
+            character=self.character, treasure=treasure_two, quantity=1, total_value=100,
+        )
+        data = CharacterFullListSerializer(self.character).data
+        assert data['treasure_value'] == 200

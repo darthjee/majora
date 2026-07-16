@@ -2,9 +2,9 @@
 
 from django.test import TestCase
 
-from games.models import CharacterPhoto
+from games.models import CharacterPhoto, CharacterTreasure
 from games.serializers import CharacterListSerializer
-from games.tests.factories import CharacterFactory, GameFactory
+from games.tests.factories import CharacterFactory, GameFactory, TreasureFactory
 
 
 class TestCharacterListSerializer(TestCase):
@@ -83,3 +83,31 @@ class TestCharacterListSerializer(TestCase):
         self.character.save()
         data = CharacterListSerializer(self.character).data
         assert data['allegiance'] == 'ally'
+
+    def test_serializes_treasure_value_as_zero_when_no_treasures(self):
+        """Test that treasure_value is 0 for a character with no treasure rows."""
+        data = CharacterListSerializer(self.character).data
+        assert data['treasure_value'] == 0
+
+    def test_serializes_treasure_value_summed_across_treasures(self):
+        """Test that treasure_value sums total_value across the character's treasure rows."""
+        treasure_one = TreasureFactory(name='Potion', value=50)
+        treasure_two = TreasureFactory(name='Sword', value=100)
+        CharacterTreasure.objects.create(
+            character=self.character, treasure=treasure_one, quantity=2, total_value=100,
+        )
+        CharacterTreasure.objects.create(
+            character=self.character, treasure=treasure_two, quantity=1, total_value=100,
+        )
+        data = CharacterListSerializer(self.character).data
+        assert data['treasure_value'] == 200
+
+    def test_serializes_treasure_value_from_annotation_when_present(self):
+        """Test that treasure_value uses the queryset annotation instead of recomputing."""
+        treasure = TreasureFactory(name='Potion', value=50)
+        CharacterTreasure.objects.create(
+            character=self.character, treasure=treasure, quantity=2, total_value=100,
+        )
+        self.character.treasure_value = 999
+        data = CharacterListSerializer(self.character).data
+        assert data['treasure_value'] == 999

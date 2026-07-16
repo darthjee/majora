@@ -9,7 +9,7 @@ import json
 import pytest
 from rest_framework.authtoken.models import Token
 
-from games.models import CharacterLink
+from games.models import CharacterLink, CharacterTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
@@ -17,6 +17,7 @@ from games.tests.factories import (
     GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
+    TreasureFactory,
     UserFactory,
 )
 from games.tests.views.support import assert_json_response
@@ -112,6 +113,20 @@ class TestGamePcFullView(TokenAuthRequestMixin):
         token = self._editor_token()
         response = self.get(client, self._url(character_id=npc.id), token=token)
         assert response.status_code == 404
+
+    def test_includes_treasure_value_summed_across_treasures(self, client):
+        """Test that treasure_value sums total_value across the PC's treasure rows."""
+        treasure_one = TreasureFactory(name='Potion', value=50)
+        treasure_two = TreasureFactory(name='Sword', value=100)
+        CharacterTreasure.objects.create(
+            character=self.character, treasure=treasure_one, quantity=2, total_value=100,
+        )
+        CharacterTreasure.objects.create(
+            character=self.character, treasure=treasure_two, quantity=1, total_value=100,
+        )
+        token = self._editor_token()
+        response = self.get(client, self._url(), token=token)
+        assert_json_response(response, 200, treasure_value=200)
 
 
 @pytest.mark.django_db

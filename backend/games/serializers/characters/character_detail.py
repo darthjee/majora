@@ -3,6 +3,7 @@
 from rest_framework import serializers
 
 from games.models import Character
+from games.serializers.characters._treasure_value import resolve_treasure_value
 from games.serializers.characters.character_link import CharacterLinkSerializer
 
 
@@ -21,6 +22,7 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
     )
     slain = serializers.BooleanField(source='public_slain', read_only=True)
     allegiance = serializers.CharField(source='public_allegiance', read_only=True)
+    treasure_value = serializers.SerializerMethodField()
 
     class Meta:
         """Metadata for the CharacterDetailSerializer."""
@@ -38,6 +40,7 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
             'profile_photo_path',
             'profile_photo_id',
             'money',
+            'treasure_value',
             'slain',
             'allegiance',
         ]
@@ -47,3 +50,7 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         user = request.user if request else None
         return obj.can_be_edited_by(user)
+
+    def get_treasure_value(self, obj):
+        """Return the character's total treasure value."""
+        return resolve_treasure_value(obj)

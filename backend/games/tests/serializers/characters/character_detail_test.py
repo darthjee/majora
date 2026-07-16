@@ -4,7 +4,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 from rest_framework.test import APIRequestFactory
 
-from games.models import CharacterLink, CharacterPhoto
+from games.models import CharacterLink, CharacterPhoto, CharacterTreasure
 from games.serializers import CharacterDetailSerializer
 from games.tests.factories import (
     CharacterFactory,
@@ -12,6 +12,7 @@ from games.tests.factories import (
     GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
+    TreasureFactory,
     UserFactory,
 )
 
@@ -207,3 +208,21 @@ class TestCharacterDetailSerializer(TestCase):
         self.character.save()
         data = self._serialize()
         assert data['allegiance'] == 'ally'
+
+    def test_serializes_treasure_value_as_zero_when_no_treasures(self):
+        """Test that treasure_value is 0 for a character with no treasure rows."""
+        data = self._serialize()
+        assert data['treasure_value'] == 0
+
+    def test_serializes_treasure_value_summed_across_treasures(self):
+        """Test that treasure_value sums total_value across the character's treasure rows."""
+        treasure_one = TreasureFactory(name='Potion', value=50)
+        treasure_two = TreasureFactory(name='Sword', value=100)
+        CharacterTreasure.objects.create(
+            character=self.character, treasure=treasure_one, quantity=2, total_value=100,
+        )
+        CharacterTreasure.objects.create(
+            character=self.character, treasure=treasure_two, quantity=1, total_value=100,
+        )
+        data = self._serialize()
+        assert data['treasure_value'] == 200
