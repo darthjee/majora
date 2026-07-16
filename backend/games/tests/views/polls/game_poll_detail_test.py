@@ -107,8 +107,8 @@ class TestGamePollDetailView(TestCase):
         assert data['status'] == Poll.STATUS_OPEN
         assert data['option_type'] == Poll.OPTION_TYPE_TEXT
         assert data['options'] == [
-            {'id': self.option_one.id, 'option': 'The Drunken Griffin'},
-            {'id': self.option_two.id, 'option': 'The Rusty Anchor'},
+            {'id': self.option_one.id, 'option': 'The Drunken Griffin', 'selected': False},
+            {'id': self.option_two.id, 'option': 'The Rusty Anchor', 'selected': False},
         ]
 
     def test_returns_option_type_when_set_to_date(self):

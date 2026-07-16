@@ -12,4 +12,4 @@ class PollOptionSerializer(serializers.ModelSerializer):
         """Metadata for the PollOptionSerializer."""
 
         model = PollOption
-        fields = ['id', 'option']
+        fields = ['id', 'option', 'selected']
