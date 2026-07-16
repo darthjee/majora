@@ -1,9 +1,11 @@
 """Resolve and persist the winning option when a DM/admin closes a poll."""
 
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Count
 
 from games.models import Poll
+from games.poll_close_processors import process as process_poll_close
 
 
 class PollCloseWriter:
@@ -20,10 +22,16 @@ class PollCloseWriter:
         return cls(poll, option_id)._write()
 
     def _write(self):
-        """Validate the poll is open, then persist the resolved winning option."""
-        self._validate_open()
-        winner = self._resolve_winner()
-        self._persist(winner)
+        """Validate the poll is open, persist the winner, and dispatch its entity processing.
+
+        Runs inside a transaction so a failure in entity-specific processing (e.g. an
+        unparseable date) rolls back the poll status and option selection too.
+        """
+        with transaction.atomic():
+            self._validate_open()
+            winner = self._resolve_winner()
+            self._persist(winner)
+            process_poll_close(self.poll, winner)
         return winner
 
     def _validate_open(self):

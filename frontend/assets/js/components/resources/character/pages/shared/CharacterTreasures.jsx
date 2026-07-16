@@ -5,6 +5,22 @@ import mergeCharacterTreasureQuantity from '../../../../../utils/money/mergeChar
 import FacadeRefresh from '../../../../../utils/access/useFacadeRefresh.js';
 
 /**
+ * Applies the result of a successful treasure exchange: re-fetches the character (so its
+ * money, and any other field, reflects a fresh server read instead of a local patch) and
+ * merges the exchanged treasure's quantity into the currently loaded treasures list.
+ *
+ * @param {object} controller - The page's treasures controller instance.
+ * @param {Function} setTreasures - Treasures list setter.
+ * @param {{treasureId: number, treasureInfo: object, quantity: number}} payload - Exchange
+ *   result payload from the modal's `onSuccess` handler.
+ * @returns {void}
+ */
+export function applyExchangeSuccess(controller, setTreasures, { treasureId, treasureInfo, quantity }) {
+  controller.refreshCharacter();
+  setTreasures((prev) => mergeCharacterTreasureQuantity(prev, treasureId, treasureInfo, quantity));
+}
+
+/**
  * Shared character treasures index page component.
  *
  * @description Accepts a type-specific controller class, hash param extractor, and
@@ -40,10 +56,7 @@ export default function CharacterTreasures({ ControllerClass, getParamsFromHash,
   const backHref = `#/games/${gameSlug}/${characterKind}/${characterId}`;
   const gameType = character?.game_type ?? 'dnd';
 
-  const handleExchangeSuccess = ({ treasureId, treasureInfo, quantity, money }) => {
-    setCharacter((prev) => (prev ? { ...prev, money } : prev));
-    setTreasures((prev) => mergeCharacterTreasureQuantity(prev, treasureId, treasureInfo, quantity));
-  };
+  const handleExchangeSuccess = (payload) => applyExchangeSuccess(controller, setTreasures, payload);
 
   if (loading) return CharacterTreasuresHelper.renderLoading();
   if (error) return CharacterTreasuresHelper.renderError(error);

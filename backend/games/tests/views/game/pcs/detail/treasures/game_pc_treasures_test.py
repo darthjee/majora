@@ -128,3 +128,33 @@ class TestGamePcTreasuresView(TokenAuthRequestMixin):
         response = client.get(self._url())
         data = json.loads(response.content)
         assert [item['name'] for item in data] == ['First Gem', 'Second Gem']
+
+    def test_filters_by_search_substring(self, client):
+        """Test that only treasures whose name contains the search term are returned."""
+        ring = TreasureFactory(name='Gold Ring', value=100)
+        dagger = TreasureFactory(name='Silver Dagger', value=50)
+        for treasure in (ring, dagger):
+            CharacterTreasure.objects.create(
+                character=self.character, treasure=treasure, quantity=1,
+            )
+        response = client.get(f'{self._url()}?search=Ring')
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Gold Ring'
+
+    def test_search_is_case_insensitive(self, client):
+        """Test that the search filter matches regardless of case."""
+        ring = TreasureFactory(name='Gold Ring', value=100)
+        CharacterTreasure.objects.create(character=self.character, treasure=ring, quantity=1)
+        response = client.get(f'{self._url()}?search=gold ring')
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Gold Ring'
+
+    def test_search_with_no_match_returns_empty_list(self, client):
+        """Test that a search term matching nothing returns an empty list."""
+        ring = TreasureFactory(name='Gold Ring', value=100)
+        CharacterTreasure.objects.create(character=self.character, treasure=ring, quantity=1)
+        response = client.get(f'{self._url()}?search=Nonexistent')
+        data = json.loads(response.content)
+        assert data == []
