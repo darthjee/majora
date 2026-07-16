@@ -46,7 +46,7 @@ class TestGameSessionsCreateView(TestCase):
         assert response.status_code == 201
 
     def test_create_returns_session_detail(self):
-        """Test that the response body contains id, title, date, game_slug, and can_edit."""
+        """Test that the response body contains id, title, date, and game_slug."""
         response = self._post(
             self.client, {'title': 'Session One', 'date': '2026-01-01'}, token=self.dm_token
         )
@@ -54,7 +54,6 @@ class TestGameSessionsCreateView(TestCase):
         assert data['title'] == 'Session One'
         assert data['date'] == '2026-01-01'
         assert data['game_slug'] == 'test-game'
-        assert data['can_edit'] is True
         assert 'id' in data
 
     def test_unauthenticated_post_returns_401(self):

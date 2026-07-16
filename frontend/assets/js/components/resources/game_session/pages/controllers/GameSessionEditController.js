@@ -1,5 +1,6 @@
 import GameSessionClient from '../../../../../client/GameSessionClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
+import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BaseEditController from '../../../../common/controllers/BaseEditController.js';
 import BasePageController from '../../../../common/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
@@ -52,8 +53,9 @@ export default class GameSessionEditController extends BaseEditController {
 
     const token = AuthStorage.getToken();
 
-    this.fetchSingle(
+    this.fetchWithAccess(
       this.sessionClient.fetchSession(gameSlug, id, token),
+      AccessStore.ensureGamePermissions(gameSlug),
       safeSet,
       'Unable to load session.',
     );

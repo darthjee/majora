@@ -17,13 +17,14 @@ owner/player concept for sessions — write access mirrors `Game.can_be_edited_b
 **Exposed fields** (list — same fields on all three past/future/unscheduled endpoints):
 `id`, `title`, `date`, `game_slug`.
 
-**Exposed fields** (detail): all list fields plus `description` (nullable text) and `can_edit` —
-`can_edit` is computed the same way the `Character` detail serializer surfaces it (a
-`SerializerMethodField` evaluated against `request.user` from the serializer context), unlike
-`Treasure`, which uses a separate `access.json` endpoint. There is no separate
-`GET /games/<slug>/sessions/<id>/access.json` endpoint: since a session's edit rights are
-identical to its game's, the frontend relies on the existing `GET /games/<slug>/access.json`
-endpoint already used for `GameEdit`.
+**Exposed fields** (detail): all list fields plus `description` (nullable text). There is no
+separate `GET /games/<slug>/sessions/<id>/access.json` endpoint: since a session's edit rights
+are identical to its game's, the frontend relies on the existing `GET /games/<slug>/access.json`
+endpoint already used for `GameEdit`. Likewise, there is no separate
+`GET /games/<slug>/sessions/<id>/permissions.json` endpoint: since `GameSession.can_be_edited_by`
+delegates entirely to `Game.can_be_edited_by`, the frontend reuses the existing
+`GET /games/<slug>/permissions.json` endpoint instead of embedding a per-user `can_edit` field in
+the (cacheable) session detail response.
 
 **Write fields** (create/update): `title` (required for create, optional for update), `date`
 (optional, nullable `YYYY-MM-DD`), `description` (optional, nullable text). `game` is never

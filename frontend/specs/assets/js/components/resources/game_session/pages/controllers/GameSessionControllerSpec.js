@@ -1,6 +1,7 @@
 import GameSessionController
   from '../../../../../../../../assets/js/components/resources/game_session/pages/controllers/GameSessionController.js';
 import AuthStorage from '../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import { stubEnsureGamePermissions } from '../../../game/pages/controllers/GameController/support.js';
 
 describe('GameSessionController', function() {
   afterEach(function() {
@@ -20,6 +21,7 @@ describe('GameSessionController', function() {
 
   describe('#buildEffect', function() {
     it('fetches the session and calls setSession with the result', async function() {
+      stubEnsureGamePermissions({ can_edit: true }, { can_edit: false });
       const setSession = jasmine.createSpy('setSession');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -30,7 +32,7 @@ describe('GameSessionController', function() {
       sessionClient.fetchSession.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({
-          id: 7, title: 'Session 1', date: '2024-01-01', game_slug: 'demo', can_edit: true,
+          id: 7, title: 'Session 1', date: '2024-01-01', game_slug: 'demo',
         }),
       }));
 
@@ -53,6 +55,7 @@ describe('GameSessionController', function() {
     });
 
     it('sends the token when the user is authenticated', async function() {
+      stubEnsureGamePermissions();
       const setSession = jasmine.createSpy('setSession');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -81,6 +84,7 @@ describe('GameSessionController', function() {
     });
 
     it('sets error when the session fetch fails', async function() {
+      stubEnsureGamePermissions();
       const setSession = jasmine.createSpy('setSession');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -106,6 +110,7 @@ describe('GameSessionController', function() {
     });
 
     it('sets error without fetching when the id is missing', async function() {
+      stubEnsureGamePermissions();
       const setSession = jasmine.createSpy('setSession');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -129,6 +134,7 @@ describe('GameSessionController', function() {
     });
 
     it('does not update state after unmount', async function() {
+      stubEnsureGamePermissions();
       const setSession = jasmine.createSpy('setSession');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -150,6 +156,42 @@ describe('GameSessionController', function() {
 
         expect(setSession).not.toHaveBeenCalled();
         expect(setLoading).not.toHaveBeenCalled();
+      } finally {
+        delete globalThis.window;
+      }
+    });
+
+    it('renders can_edit false first, then merges the real can_edit once AccessStore resolves', async function() {
+      const ensureGamePermissions = stubEnsureGamePermissions({ can_edit: true }, { can_edit: false });
+      const setSession = jasmine.createSpy('setSession');
+      const setLoading = jasmine.createSpy('setLoading');
+      const setError = jasmine.createSpy('setError');
+      const sessionClient = jasmine.createSpyObj('sessionClient', ['fetchSession']);
+      const fakeWindow = { location: { hash: '#/games/demo/sessions/7' } };
+      globalThis.window = fakeWindow;
+
+      sessionClient.fetchSession.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          id: 7, title: 'Session 1', date: '2024-01-01', game_slug: 'demo',
+        }),
+      }));
+
+      try {
+        const controller = new GameSessionController(setSession, setLoading, setError, sessionClient);
+        const cleanup = controller.buildEffect()();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(ensureGamePermissions).toHaveBeenCalledWith('demo');
+        expect(setSession.calls.count()).toBe(2);
+        expect(setSession.calls.argsFor(0)[0]).toEqual(
+          jasmine.objectContaining({ game_slug: 'demo', can_edit: false }),
+        );
+        expect(setSession.calls.argsFor(1)[0]).toEqual(
+          jasmine.objectContaining({ game_slug: 'demo', can_edit: true }),
+        );
+
+        cleanup();
       } finally {
         delete globalThis.window;
       }

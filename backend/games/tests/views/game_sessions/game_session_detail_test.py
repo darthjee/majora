@@ -28,7 +28,6 @@ class TestGameSessionDetailView(TestCase):
         assert data['id'] == self.session.id
         assert data['title'] == 'Session One'
         assert data['game_slug'] == 'test-game'
-        assert data['can_edit'] is False
 
     def test_returns_404_for_unknown_session_id(self):
         """Test that 404 is returned for a non-existent session id."""
