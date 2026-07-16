@@ -241,9 +241,11 @@ character_treasures_page:
   name_column: Nome
   quantity_column: Quantidade
   value_column: Valor
-  add_treasure: Adicionar Tesouro
+  add_treasure: Trocar Tesouros
 treasure_exchange_modal:
   title: Troca de Tesouro
+  search_placeholder: Buscar tesouros...
+  your_money: 'Seu dinheiro:'
   acquire_tab: Adquirir
   sell_tab: Vender
   quantity_label: Quantidade
