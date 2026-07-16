@@ -31,6 +31,7 @@ from games.serializers.games.polls.poll_detail import PollDetailSerializer
 from games.serializers.games.polls.poll_list import PollListSerializer
 from games.serializers.games.polls.poll_option import PollOptionSerializer
 from games.serializers.games.polls.poll_option_write import PollOptionWriteSerializer
+from games.serializers.games.polls.session_poll_create import SessionPollCreateSerializer
 from games.serializers.games.sessions.game_session_create import GameSessionCreateSerializer
 from games.serializers.games.sessions.game_session_detail import GameSessionDetailSerializer
 from games.serializers.games.sessions.game_session_list import GameSessionListSerializer
@@ -105,6 +106,7 @@ __all__ = [
     'SessionMessageCreateSerializer',
     'SessionMessageListSerializer',
     'SessionMessageUserSerializer',
+    'SessionPollCreateSerializer',
     'StaffUserDetailSerializer',
     'StaffUserListSerializer',
     'StaffUserUpdateSerializer',
