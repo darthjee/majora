@@ -1,5 +1,7 @@
 import BaseClient from './BaseClient.js';
 
+const UPLOAD_TIMEOUT_MS = 20000;
+
 /**
  * HTTP client for photo upload requests.
  */
@@ -23,6 +25,7 @@ export default class UploadClient extends BaseClient {
         Authorization: `Token ${token}`,
       },
       body: JSON.stringify({ filename }),
+      signal: AbortSignal.timeout(UPLOAD_TIMEOUT_MS),
     });
   }
 
@@ -48,6 +51,7 @@ export default class UploadClient extends BaseClient {
         'X-Upload-Token': uploadToken,
       },
       body: formData,
+      signal: AbortSignal.timeout(UPLOAD_TIMEOUT_MS),
     });
   }
 }

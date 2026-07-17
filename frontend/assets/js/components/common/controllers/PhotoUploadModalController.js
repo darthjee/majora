@@ -49,6 +49,7 @@ export default class PhotoUploadModalController {
         return;
       }
 
+      this.setUploading(false);
       this.onSuccess();
     } catch {
       this.setError(true);

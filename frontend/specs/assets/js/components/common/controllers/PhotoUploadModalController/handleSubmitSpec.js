@@ -32,6 +32,7 @@ describe('PhotoUploadModalController', function() {
       expect(client.initUpload).toHaveBeenCalledWith('/games/my-game/photo_upload.json', 'photo.jpg', 'auth-token');
       expect(client.submitUpload).toHaveBeenCalledWith(1, 'up-token', file);
       expect(onSuccess).toHaveBeenCalled();
+      expect(setUploading).toHaveBeenCalledWith(false);
       expect(setError).not.toHaveBeenCalledWith(true);
     });
 
