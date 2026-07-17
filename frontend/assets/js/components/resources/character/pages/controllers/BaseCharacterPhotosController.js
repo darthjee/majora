@@ -19,7 +19,8 @@ export default class BaseCharacterPhotosController extends BasePageController {
    * @param {object} setters - Page state setters.
    * @param {Function} setters.setPhotos - Photos setter.
    * @param {Function} setters.setPagination - Pagination setter.
-   * @param {Function} setters.setCharacter - Character setter, merged with can_edit for the upload button gate.
+   * @param {Function} setters.setCharacter - Character setter, merged with can_edit/is_player/is_staff
+   *   for the upload button gate.
    * @param {Function} setters.setLoading - Loading setter.
    * @param {Function} setters.setError - Error setter.
    * @param {Function} getParamsFromHash - Hash param extractor returning `game_slug`/`character_id`.
@@ -116,7 +117,14 @@ export default class BaseCharacterPhotosController extends BasePageController {
       return Promise.resolve();
     }
 
-    return AccessStore.ensureCharacterPermissions(this.characterKind, gameSlug, characterId)
-      .then((permissions) => safeSet(this.setCharacter, { ...character, ...permissions }));
+    return Promise.all([
+      AccessStore.ensureCharacterAccess(this.characterKind, gameSlug, characterId),
+      AccessStore.ensureCharacterPermissions(this.characterKind, gameSlug, characterId),
+    ]).then(([access, permissions]) => safeSet(this.setCharacter, {
+      ...character,
+      ...permissions,
+      is_player: access.is_player,
+      is_staff: Boolean(access.is_staff),
+    }));
   }
 }

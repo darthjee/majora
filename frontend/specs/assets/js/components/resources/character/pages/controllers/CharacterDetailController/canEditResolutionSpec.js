@@ -10,7 +10,7 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
 
     it('sets can_edit to false when AccessStore resolves with the fail-closed default', async function() {
       spyOn(AccessStore, 'ensureCharacterAccess')
-        .and.returnValue(Promise.resolve({ can_edit: false, is_player: false }));
+        .and.returnValue(Promise.resolve({ can_edit: false, is_player: false, is_staff: false }));
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -40,6 +40,7 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
         game_type: 'dnd',
         can_edit: false,
         is_player: false,
+        is_staff: false,
         access_resolved: true,
       });
       expect(characterClient.fetchCharacterFull).not.toHaveBeenCalled();

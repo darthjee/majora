@@ -51,9 +51,33 @@ describe('CharacterAvatarHelper', function() {
       expect(html).toContain('actions-overlay-button');
     });
 
-    it('does not grant upload access to a PC player without edit rights', function() {
+    it('grants PC upload access to any player of the game without edit rights', function() {
       const character = buildCharacter({
         name: 'Aragorn', is_pc: true, can_edit: false, is_player: true,
+      });
+      const html = renderToStaticMarkup(CharacterAvatarHelper.render(character, {}));
+      expect(html).toContain('actions-overlay-button');
+    });
+
+    it('grants PC upload access to staff without edit rights', function() {
+      const character = buildCharacter({
+        name: 'Aragorn', is_pc: true, can_edit: false, is_player: false, is_staff: true,
+      });
+      const html = renderToStaticMarkup(CharacterAvatarHelper.render(character, {}));
+      expect(html).toContain('actions-overlay-button');
+    });
+
+    it('does not grant NPC upload access to staff without edit rights or player access', function() {
+      const character = buildCharacter({
+        name: 'Goblin', is_pc: false, can_edit: false, is_player: false, is_staff: true,
+      });
+      const html = renderToStaticMarkup(CharacterAvatarHelper.render(character, {}));
+      expect(html).not.toContain('actions-overlay-button');
+    });
+
+    it('does not grant PC upload access when neither editor, player, nor staff', function() {
+      const character = buildCharacter({
+        name: 'Aragorn', is_pc: true, can_edit: false, is_player: false, is_staff: false,
       });
       const html = renderToStaticMarkup(CharacterAvatarHelper.render(character, {}));
       expect(html).not.toContain('actions-overlay-button');

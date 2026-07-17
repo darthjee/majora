@@ -9,7 +9,10 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
     });
 
     it('fetches full detail and merges private_description once the resolved can_edit is true', async function() {
-      stubAccessPair('ensureCharacterAccess', 'getCharacterAccess', { is_player: false }, { is_player: false });
+      stubAccessPair(
+        'ensureCharacterAccess', 'getCharacterAccess',
+        { is_player: false, is_staff: false }, { is_player: false, is_staff: false },
+      );
       stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: true }, { can_edit: false });
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
@@ -45,6 +48,7 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
         game_type: 'dnd',
         can_edit: true,
         is_player: false,
+        is_staff: false,
         private_description: privateDescription,
         access_resolved: true,
       });
@@ -53,7 +57,10 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
     });
 
     it('does not fetch full detail when can_edit is false', async function() {
-      stubAccessPair('ensureCharacterAccess', 'getCharacterAccess', { is_player: false }, { is_player: false });
+      stubAccessPair(
+        'ensureCharacterAccess', 'getCharacterAccess',
+        { is_player: false, is_staff: false }, { is_player: false, is_staff: false },
+      );
       stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: false }, { can_edit: false });
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
@@ -85,6 +92,7 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
         game_type: 'dnd',
         can_edit: false,
         is_player: false,
+        is_staff: false,
         access_resolved: true,
       });
 
@@ -92,7 +100,10 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
     });
 
     it('falls back to character without private_description when full fetch fails', async function() {
-      stubAccessPair('ensureCharacterAccess', 'getCharacterAccess', { is_player: false }, { is_player: false });
+      stubAccessPair(
+        'ensureCharacterAccess', 'getCharacterAccess',
+        { is_player: false, is_staff: false }, { is_player: false, is_staff: false },
+      );
       stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: true }, { can_edit: false });
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
@@ -124,6 +135,7 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
         game_type: 'dnd',
         can_edit: true,
         is_player: false,
+        is_staff: false,
         access_resolved: true,
       });
       expect(setError).not.toHaveBeenCalled();
