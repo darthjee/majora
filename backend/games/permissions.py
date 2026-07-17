@@ -91,6 +91,38 @@ class CharacterPhotoUploadPermission(_EditPermission):
         return user.is_staff or is_player_of_game or character.can_be_edited_by(user)
 
 
+class CharacterMoneyEditPermission(_EditPermission):
+    """Encapsulate checks for the narrow, money-only character edit endpoint (issue #615).
+
+    Grants the same access as full CharacterEditPermission (superuser, the character's
+    owning player, or a GameMaster of the game) plus any Staff account (globally, not
+    scoped to games the Staff user is otherwise involved in) — mirroring
+    CharacterPhotoUploadPermission's Staff bypass (issue #619), but deliberately without its
+    additional "any player of the game" grant: NPCs have no owner, so this stays
+    admin/dm/staff-only for NPCs, and a regular player may only use it on their own PC (via
+    the inherited owner check), never on an NPC.
+
+    Exposes `is_allowed` as a public classmethod (unlike CharacterPhotoUploadPermission's
+    private `_is_allowed`) because CharacterDetailSerializer's `can_edit_money` field needs
+    the exact same rule, computed from a `request.user` that may be anonymous.
+    """
+
+    @classmethod
+    def check(cls, request, character):
+        """Return an error Response if `request.user` may not edit `character`'s money."""
+        unauthenticated = cls._unauthenticated_response(request)
+        if unauthenticated:
+            return unauthenticated
+        if not cls.is_allowed(request.user, character):
+            return cls._forbidden_response()
+        return None
+
+    @classmethod
+    def is_allowed(cls, user, character):
+        """Return whether `user` may edit `character`'s money (Staff bypass or full edit rights)."""
+        return bool(user and user.is_staff) or character.can_be_edited_by(user)
+
+
 class TreasureEditPermission(_EditPermission):
     """Encapsulate the authentication/authorization checks for editing a treasure."""
 

@@ -18,6 +18,11 @@ urlpatterns = [
         name='game-npc-full',
     ),
     path(
+        'games/<slug:game_slug>/npcs/<int:character_id>/money.json',
+        views.game_npc_money,
+        name='game-npc-money',
+    ),
+    path(
         'games/<slug:game_slug>/npcs/<int:character_id>/photos.json',
         views.game_npc_photos,
         name='game-npc-photos',

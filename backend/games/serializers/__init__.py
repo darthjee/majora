@@ -12,6 +12,7 @@ from games.serializers.characters.character_full_list import CharacterFullListSe
 from games.serializers.characters.character_link import CharacterLinkSerializer
 from games.serializers.characters.character_link_write import CharacterLinkWriteSerializer
 from games.serializers.characters.character_list import CharacterListSerializer
+from games.serializers.characters.character_money_update import CharacterMoneyUpdateSerializer
 from games.serializers.characters.character_permissions import CharacterPermissionsSerializer
 from games.serializers.characters.character_photo import CharacterPhotoSerializer
 from games.serializers.characters.character_treasure import CharacterTreasureSerializer
@@ -76,6 +77,7 @@ __all__ = [
     'CharacterLinkSerializer',
     'CharacterLinkWriteSerializer',
     'CharacterListSerializer',
+    'CharacterMoneyUpdateSerializer',
     'CharacterPermissionsSerializer',
     'CharacterPhotoSerializer',
     'CharacterTreasureSerializer',

@@ -43,6 +43,15 @@ class TokenAuthRequestMixin:
             **self.auth_kwargs(token),
         )
 
+    def put(self, client, url, payload, token=None):
+        """Issue a PUT request to `url` with a JSON `payload`, optionally with `token`."""
+        return client.put(
+            url,
+            data=json.dumps(payload),
+            content_type='application/json',
+            **self.auth_kwargs(token),
+        )
+
 
 class DetailNotFoundBehaviorMixin:
     """Mixin for the recurring "GET detail returns 200 / unknown id returns 404" shape."""
