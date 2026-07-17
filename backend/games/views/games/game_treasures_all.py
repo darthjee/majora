@@ -8,7 +8,7 @@ from rest_framework.permissions import AllowAny
 from ...authentication import CookieTokenAuthentication
 from ...models import Game, Treasure
 from ...permissions import GameEditPermission
-from ...serializers import TreasureListSerializer
+from ...serializers import TreasureAllListSerializer
 from ..common import paginated_list_response
 from ._treasure_context import game_treasures_context
 
@@ -27,6 +27,8 @@ def game_treasures_all(request, game_slug):
         return error_response
     treasures = Treasure.objects.filter(Q(linked_game=game) | Q(game=game)).distinct()
     context = game_treasures_context(game)
-    response = paginated_list_response(request, treasures, TreasureListSerializer, context=context)
+    response = paginated_list_response(
+        request, treasures, TreasureAllListSerializer, context=context,
+    )
     response['X-Skip-Cache'] = 'true'
     return response

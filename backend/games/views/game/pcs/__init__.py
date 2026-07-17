@@ -8,6 +8,7 @@ from .detail.game_pc_photo_upload import game_pc_photo_upload
 from .detail.photos.game_pc_photo_set import game_pc_photo_set
 from .detail.photos.game_pc_photos import game_pc_photos
 from .detail.treasures.game_pc_treasure_acquire import game_pc_treasure_acquire
+from .detail.treasures.game_pc_treasure_acquire_all import game_pc_treasure_acquire_all
 from .detail.treasures.game_pc_treasure_sell import game_pc_treasure_sell
 from .detail.treasures.game_pc_treasures import game_pc_treasures
 from .game_pc_detail import game_pc_detail
@@ -25,5 +26,6 @@ __all__ = [
     'game_pc_photos',
     'game_pc_treasures',
     'game_pc_treasure_acquire',
+    'game_pc_treasure_acquire_all',
     'game_pc_treasure_sell',
 ]

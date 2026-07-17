@@ -3,7 +3,10 @@
 from rest_framework import serializers
 
 from games.models import CharacterTreasure
-from games.serializers.games.treasures.game_treasure_fields import resolve_treasure_value
+from games.serializers.games.treasures.game_treasure_fields import (
+    resolve_treasure_hidden,
+    resolve_treasure_value,
+)
 
 
 class CharacterTreasureSerializer(serializers.ModelSerializer):
@@ -23,3 +26,23 @@ class CharacterTreasureSerializer(serializers.ModelSerializer):
 
         model = CharacterTreasure
         fields = ['id', 'treasure_id', 'name', 'quantity', 'value', 'photo_path']
+
+
+class CharacterTreasureAllSerializer(CharacterTreasureSerializer):
+    """Serializer for a character's treasure assignment, including hidden treasures (DM-only).
+
+    Used only by `GET /games/:slug/npcs/:id/treasures/all.json` — adds `hidden` on top of
+    everything `CharacterTreasureSerializer` already exposes; the regular, player-facing
+    treasures list keeps omitting it entirely.
+    """
+
+    hidden = serializers.SerializerMethodField()
+
+    def get_hidden(self, character_treasure):
+        """Return whether the held treasure is hidden in the context game."""
+        return resolve_treasure_hidden(self.context, character_treasure.treasure)
+
+    class Meta(CharacterTreasureSerializer.Meta):
+        """Metadata for the CharacterTreasureAllSerializer."""
+
+        fields = CharacterTreasureSerializer.Meta.fields + ['hidden']
