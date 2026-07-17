@@ -22,9 +22,15 @@ export default class TreasuresHelper {
    * @param {number} pagination.perPage - Items per page.
    * @param {boolean} [isSuperUser] - Whether the current user may upload treasure photos.
    * @param {Function} [onUploadClick] - Handler invoked with a treasure when its upload button is clicked.
+   * @param {object|URLSearchParams} [activeFilters] - Additional active query params (e.g.
+   *   treasure filters) preserved on every pagination link.
+   * @param {React.ReactNode} [filters] - Optional filter bar rendered below the page actions
+   *   and above the treasures grid (e.g. TreasureFilters).
    * @returns {React.ReactElement} Treasures list with pagination.
    */
-  static render(treasures, pagination, isSuperUser = false, onUploadClick = Noop.noop) {
+  static render(
+    treasures, pagination, isSuperUser = false, onUploadClick = Noop.noop, activeFilters = {}, filters = null,
+  ) {
     return (
       <div className="container mt-4">
         <PageActions backHref="#/">
@@ -32,6 +38,7 @@ export default class TreasuresHelper {
             {Translator.t('treasures_page.new_treasure')}
           </NewButton>
         </PageActions>
+        {filters}
         <div className="row">
           {treasures.map((treasure) => (
             <TreasureCard
@@ -47,6 +54,7 @@ export default class TreasuresHelper {
           totalPages={pagination.pages}
           perPage={pagination.perPage}
           basePath="#/treasures"
+          extraParams={activeFilters}
         />
       </div>
     );

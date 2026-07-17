@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import TreasuresController from './controllers/TreasuresController.js';
 import TreasuresHelper from './helpers/TreasuresHelper.jsx';
 import PhotoUploadModal from '../../../common/PhotoUploadModal.jsx';
+import TreasureFilters from './elements/TreasureFilters.jsx';
+import HashRouteResolver from '../../../../utils/routing/HashRouteResolver.js';
 
 /**
  * Render treasures index page.
@@ -24,6 +26,9 @@ export default function Treasures() {
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
+  const basePath = '#/treasures';
+  const activeFilters = Object.fromEntries(new HashRouteResolver().getFilterParams());
+
   const handleUploadClick = (treasure) => {
     setSelectedTreasure(treasure);
     setShowUploadModal(true);
@@ -31,6 +36,16 @@ export default function Treasures() {
 
   const handleUploadSuccess = () => {
     setShowUploadModal(false);
+    controller.buildEffect()();
+  };
+
+  const handleFilterQuery = (filters) => {
+    window.location.hash = TreasuresController.buildFilterQueryHash(basePath, filters);
+    controller.buildEffect()();
+  };
+
+  const handleFilterClear = () => {
+    window.location.hash = basePath;
     controller.buildEffect()();
   };
 
@@ -44,7 +59,10 @@ export default function Treasures() {
 
   return (
     <>
-      {TreasuresHelper.render(treasures, pagination, isSuperUser, handleUploadClick)}
+      {TreasuresHelper.render(
+        treasures, pagination, isSuperUser, handleUploadClick, activeFilters,
+        <TreasureFilters onQuery={handleFilterQuery} onClear={handleFilterClear} />,
+      )}
       <PhotoUploadModal
         show={showUploadModal}
         uploadPath={`/treasures/${selectedTreasure?.id}/photo_upload.json`}
