@@ -20,9 +20,14 @@ class _TreasureExchangeSerializer(serializers.Serializer):
     quantity = serializers.IntegerField(min_value=1)
 
 
-def character_treasure_acquire(request, game, character):
-    """Spend `character`'s money to acquire a quantity of a treasure available in `game`."""
-    resolve_treasure = partial(_find_game_treasure, game)
+def character_treasure_acquire(request, game, character, allow_hidden=False):
+    """Spend `character`'s money to acquire a quantity of a treasure available in `game`.
+
+    `allow_hidden` bypasses the hidden-treasure 404 gate — reserved for the DM-only
+    `/acquire/all.json` endpoints; the regular player-facing acquire endpoints must always
+    call this with the default `False` so a hidden treasure stays inaccessible to players.
+    """
+    resolve_treasure = partial(_find_game_treasure, game, allow_hidden=allow_hidden)
     error_response, treasure, quantity = _authorize_and_parse(
         request, character, resolve_treasure,
     )
@@ -65,14 +70,26 @@ def _authorize_and_parse(request, character, resolve_treasure):
     return None, treasure, serializer.validated_data['quantity']
 
 
-def _find_game_treasure(game, treasure_id):
-    """Return the Treasure matching `treasure_id` scoped to `game`, or raise Http404."""
+def _find_game_treasure(game, treasure_id, allow_hidden=False):
+    """Return the Treasure matching `treasure_id` scoped to `game`, or raise Http404.
+
+    Also 404s when the treasure's `GameTreasure` row for `game` is hidden, unless
+    `allow_hidden` is `True` (the DM-only `/acquire/all.json` variant).
+    """
     treasure = Treasure.objects.filter(
         Q(linked_game=game) | Q(game=game), id=treasure_id,
     ).distinct().first()
     if treasure is None:
         raise Http404
+    if not allow_hidden and _is_hidden(game, treasure):
+        raise Http404
     return treasure
+
+
+def _is_hidden(game, treasure):
+    """Return whether `treasure`'s GameTreasure row for `game` is hidden."""
+    game_treasure = GameTreasure.objects.filter(game=game, treasure=treasure).first()
+    return game_treasure is not None and game_treasure.hidden
 
 
 def _find_treasure_by_id(treasure_id):

@@ -11,18 +11,19 @@ independently.
 |--------|---------|
 | List (`GET /treasures.json`) | **AllowAny** — returns only global treasures (`game__isnull=True`); game-exclusive treasures are excluded |
 | Detail (`GET /treasures/<id>.json`) | **AllowAny** |
-| List by game (`GET /games/<slug>/treasures.json`) | **AllowAny** — returns the union of treasures M2M-linked to that game and treasures whose `game` FK points at it, excluding any with `hidden=True`; 404 if game slug unknown |
-| List all by game, including hidden (`GET /games/<slug>/treasures/all.json`) | **GameEdit** — same unfiltered union, without the `hidden=True` exclusion. Always sets `X-Skip-Cache: true` (stricter than `npcs/all.json`, which relies on cache invalidation instead) |
+| List by game (`GET /games/<slug>/treasures.json`) | **AllowAny** — returns the union of treasures M2M-linked to that game and treasures whose `game` FK points at it, excluding any whose per-game `GameTreasure.hidden` (see [GameTreasure](game-treasure.md) below) is `True`; 404 if game slug unknown |
+| List all by game, including hidden (`GET /games/<slug>/treasures/all.json`) | **GameEdit** — same unfiltered union, without the `GameTreasure.hidden` exclusion, and each item additionally carries a `hidden: boolean` field (via `TreasureAllListSerializer`, a `TreasureListSerializer` subclass used only by this endpoint). Always sets `X-Skip-Cache: true` (stricter than `npcs/all.json`, which relies on cache invalidation instead) |
 | Create by game (`POST /games/<slug>/treasures.json`) | **GameEdit** — `game` is set server-side from the resolved game and never accepted from the request body |
-| Detail by game (`GET /games/<slug>/treasures/<int:treasure_id>.json`) | **AllowAny**, unless `hidden=True` — 404 if the treasure's `game` does not match the resolved game (including a global treasure id, or one exclusive to a different game), **and** 404 if the treasure is hidden and the requester cannot edit the game. A hidden treasure's detail is only visible to that game's GameMaster or a superuser; sets `X-Skip-Cache: true` whenever the treasure is hidden |
-| Update by game (`PATCH /games/<slug>/treasures/<int:treasure_id>.json`) | **GameEdit** — same 404 rule as the detail endpoint; a `PATCH` by a non-editor on a hidden treasure also 404s (not 403), so existence is not leaked. Also resolves treasures M2M-linked to the game (not just exclusive ones): for an exclusive treasure it updates `name`/`value`/`hidden` and then mirrors the new `value` onto that treasure's own `GameTreasure` row (`GameTreasure.objects.filter(game=game, treasure=treasure).update(value=treasure.value)`), keeping the two values in sync now that reads resolve `value` from `GameTreasure` — a no-op when no such row exists; for an M2M-linked treasure it instead accepts and persists `max_units` onto that game's `GameTreasure` row — `name`/`value`/`hidden` in the body are ignored in that case, and `acquired_units` can never be set through this endpoint |
+| Detail by game (`GET /games/<slug>/treasures/<int:treasure_id>.json`) | **AllowAny**, unless the treasure's `GameTreasure` row for this game has `hidden=True` — 404 if the treasure's `game` does not match the resolved game (including a global treasure id, or one exclusive to a different game), **and** 404 if the treasure is hidden for this game and the requester cannot edit the game. A hidden treasure's detail is only visible to that game's GameMaster or a superuser; sets `X-Skip-Cache: true` whenever the treasure is hidden |
+| Update by game (`PATCH /games/<slug>/treasures/<int:treasure_id>.json`) | **GameEdit** — same 404 rule as the detail endpoint; a `PATCH` by a non-editor on a hidden treasure also 404s (not 403), so existence is not leaked. Also resolves treasures M2M-linked to the game (not just exclusive ones): for an exclusive treasure it updates `name`/`value` and then mirrors the new `value` (always) and `hidden` (only when present in the request body, so a partial update never resets it) onto that treasure's own `GameTreasure` row (`GameTreasure.objects.filter(game=game, treasure=treasure).update(value=treasure.value, ...)`), keeping the two in sync now that reads resolve both from `GameTreasure` — a no-op when no such row exists; for an M2M-linked treasure it instead accepts and persists `max_units` onto that game's `GameTreasure` row — `name`/`value`/`hidden` in the body are ignored in that case, and `acquired_units` can never be set through this endpoint |
 | Create (`POST /treasures.json`) | Superuser or Staff |
-| Update (`PATCH /treasures/<id>.json`) | Superuser or Staff (includes the GameMaster of a game-exclusive treasure's own owning game — the global endpoint stays superuser-or-staff-only regardless of `game`) |
+| Update (`PATCH /treasures/<id>.json`) | Superuser or Staff (includes the GameMaster of a game-exclusive treasure's own owning game — the global endpoint stays superuser-or-staff-only regardless of `game`). When the treasure is exclusive to a game (`game_id` is set), a `hidden` key in the request body is also written onto that treasure's own `GameTreasure` row (mirroring the game-scoped update above); when `game_id` is `None` (a truly global treasure), `hidden` is silently dropped — there is no game to scope it to |
 | Create photo (`POST /treasures/<id>/photo_upload.json`) | Superuser or Staff, always; additionally that treasure's owning game's GameMaster, when `treasure.game_id` is set |
 | Delete | Superuser only (via Django admin, out of scope) — there is no application-level delete endpoint for treasures at all (only `GET`/`POST` on `treasures_list.py`, `GET`/`PATCH` on `treasure_detail.py`); deletion is Django-admin-only and stays out of scope regardless of this issue. Deleting a treasure's owning `Game` also cascade-deletes the treasure; it does not delete treasures merely M2M-linked to that game |
 
 **Exposed fields** (read): `id`, `name`, `value`, `photo_path`, `game_slug`, `available_units`,
-`max_units` — all non-sensitive.
+`max_units` — all non-sensitive. `GET /games/<slug>/treasures/all.json` additionally exposes
+`hidden` (`boolean`) per item — see the `hidden` section below; no other read endpoint exposes it.
 
 `available_units`/`max_units` (`int|null`) are derived from a `GameTreasure` row (see
 [GameTreasure](game-treasure.md) above). Returned, computed relative to the resolved game, on
@@ -54,29 +55,49 @@ more games. Returned on `GET /treasures.json`, `GET /treasures/<id>.json`, and t
 list/detail endpoints, to anyone.
 
 **Write fields** (create/update): `name` (required for create, optional for update), `value`
-(required for create, optional for update), `hidden` (optional, defaults to `False`).
-`photo_path` and `game_slug` are read-only and cannot be set directly by any client — `game` is
-only ever assigned server-side, either left `null` (global create) or set from the `<slug>` URL
-segment (game-scoped create); `photo_path` is only ever assigned via [Upload](upload.md) above.
+(required for create, optional for update). `photo_path` and `game_slug` are read-only and cannot
+be set directly by any client — `game` is only ever assigned server-side, either left `null`
+(global create) or set from the `<slug>` URL segment (game-scoped create); `photo_path` is only
+ever assigned via [Upload](upload.md) above. `hidden` is accepted in the request body on the
+game-scoped endpoints (and the global `PATCH` for an exclusive treasure) but is handled entirely
+outside `TreasureCreateSerializer`/`TreasureUpdateSerializer` — see below.
 
-`hidden` is a `BooleanField` (default `False`) on `Treasure`, settable via
-`TreasureCreateSerializer`/`TreasureUpdateSerializer` on both global and game-scoped treasures
-(shared serializers). It is **not** exposed in any read serializer — used purely server-side to
-filter/gate the game-scoped endpoints: `GET /games/<slug>/treasures.json` excludes
-`hidden=True`, `GET /games/<slug>/treasures/<int:treasure_id>.json` 404s for a hidden treasure
-unless the requester can edit the game, and `GET /games/<slug>/treasures/all.json` deliberately
-reveals hidden treasures to an authorized DM/superuser. A character's own treasure listings
-(`CharacterTreasure`-backed) are unaffected by `hidden` — a character keeps seeing treasure it
-already owns even if that treasure is later hidden from the catalog.
+`hidden` (`BooleanField`, default `False`) lives on **`GameTreasure`**, not `Treasure` — it is a
+genuinely per-`(game, treasure)` attribute, not a single flag shared across every game a treasure
+happens to be linked to (see [GameTreasure](game-treasure.md) below). Because of that,
+`TreasureCreateSerializer`/`TreasureUpdateSerializer` (which serialize the `Treasure` model) no
+longer include `hidden` in `Meta.fields` at all; the game-scoped views instead extract `hidden`
+directly from the raw request body (defaulting to `False` on create) and write it onto the
+resolved `GameTreasure` row themselves:
+- `POST /games/<slug>/treasures.json` passes `hidden` into the `GameTreasure.objects.create(...)`
+  call alongside the new exclusive treasure.
+- `PATCH /games/<slug>/treasures/<int:treasure_id>.json` and `PATCH /treasures/<id>.json` (when
+  `treasure.game_id` is set) only write `hidden` onto the `GameTreasure` row when the key is
+  present in the request body, so a partial update that omits `hidden` never resets it to `False`.
 
-**Scope limitation:** `hidden` currently has no filtering effect on the global, non-game-scoped
-endpoints (`GET /treasures.json`, `GET /treasures/<id>.json`) — a superuser can set
-`hidden=True` on a global treasure via those endpoints' create/update, but the global list/detail
-endpoints do not honor it, so the treasure remains publicly visible there. This is a deliberate
-scope decision (only the game-scoped catalog was in scope), not an oversight — global treasures
-are already fully public by design (`GET /treasures.json` is **AllowAny** regardless of
-`hidden`), so this grants no caller any additional access. A future issue can extend the same
-filter/gate used on the game-scoped endpoints to `treasures_list`/`treasure_detail`.
+`hidden` is **not** exposed in any read serializer except `GET /games/<slug>/treasures/all.json`'s
+`TreasureAllListSerializer` (DM/superuser only) — every other read endpoint (including the
+regular `GET /games/<slug>/treasures.json` and `GET /games/<slug>/treasures/<id>.json`) omits it
+entirely, both to avoid leaking it to players and because `TreasureListSerializer`/
+`TreasureDetailSerializer` are shared with those regular endpoints. Server-side, `hidden` gates:
+`GET /games/<slug>/treasures.json` excludes any treasure whose `GameTreasure.hidden` is `True`,
+`GET /games/<slug>/treasures/<int:treasure_id>.json` 404s for a hidden treasure unless the
+requester can edit the game, `GET /games/<slug>/treasures/all.json` deliberately reveals hidden
+treasures (with their `hidden` value) to an authorized DM/superuser, and the acquire/NPC-list
+endpoints documented under [CharacterTreasure](character-treasure.md) above now also gate on it
+(see that doc for the acquire 404 and NPC held-treasures filter, plus the three new DM-only
+"accept hidden" endpoints). A PC's own treasure listing is unaffected by `hidden` — a PC keeps
+seeing treasure it already owns even if that treasure is later hidden from the catalog; the same
+applies to a *sell* of a treasure a character already owns, even a hidden one.
+
+**Scope limitation:** since `hidden` now lives on `GameTreasure`, a genuinely global treasure (no
+owning/linked game at all) has no `GameTreasure` row and so has no way to be marked hidden — the
+global, non-game-scoped endpoints (`POST /treasures.json`, and `PATCH /treasures/<id>.json` when
+`treasure.game_id` is `None`) silently drop any `hidden` key from the request body, and the
+global list/detail endpoints (`GET /treasures.json`, `GET /treasures/<id>.json`) have no filtering
+concept for it at all. This is a deliberate scope decision (only the game-scoped catalog is in
+scope for `hidden`), not an oversight — global treasures are already fully public by design (`GET
+/treasures.json` is **AllowAny** unconditionally), so this grants no caller any additional access.
 
 ## Edit access status
 

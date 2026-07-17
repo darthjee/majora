@@ -297,6 +297,7 @@ game_treasures_page:
   new_treasure: New Treasure
   edit: Edit
   available_units_label: 'Available: {{available}} / {{max}}'
+  hidden_label: Hidden
 game_treasure_new_page:
   title: New Treasure
   name_label: Name

@@ -41,21 +41,14 @@ class TestTreasureCreateSerializer:
         serializer = TreasureCreateSerializer(data={'name': 'Worthless Trinket', 'value': 0})
         assert serializer.is_valid()
 
-    def test_hidden_defaults_to_false_when_omitted(self):
-        """Test that hidden defaults to False when not provided."""
-        serializer = TreasureCreateSerializer(data={'name': 'Golden Crown', 'value': 500})
-        assert serializer.is_valid()
-        treasure = serializer.save()
-        assert treasure.hidden is False
-
-    def test_hidden_can_be_set_true_on_create(self):
-        """Test that hidden can be set to True on creation."""
+    def test_hidden_is_not_a_model_field_and_is_ignored(self):
+        """Test that a `hidden` payload key is ignored (hidden lives on GameTreasure now)."""
         serializer = TreasureCreateSerializer(
             data={'name': 'Secret Crown', 'value': 500, 'hidden': True}
         )
         assert serializer.is_valid()
         treasure = serializer.save()
-        assert treasure.hidden is True
+        assert not hasattr(treasure, 'hidden')
 
     def test_game_type_defaults_to_dnd_when_omitted(self):
         """Test that omitting game_type falls back to the model default 'dnd'."""

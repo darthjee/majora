@@ -58,5 +58,50 @@ describe('TreasureExchangeModalController', function() {
 
       expect(result).toEqual({ ok: false, errorKey: 'treasure_exchange_modal.generic_error' });
     });
+
+    it('uses the acquire/all endpoint for a PC when canEdit is true', async function() {
+      const { characterClient, treasureClient } = buildClients();
+      characterClient.acquireTreasureAll.and.returnValue(
+        Promise.resolve(buildResponse(200, { quantity: 3, money: 50, acquired: 3 }))
+      );
+      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+
+      const result = await controller.acquire('demo', 7, true, 'tok', { treasureId: 9, quantity: 3 }, true);
+
+      expect(characterClient.acquireTreasureAll).toHaveBeenCalledWith(
+        'pcs', 'demo', 7, 'tok', { treasure_id: 9, quantity: 3 }
+      );
+      expect(characterClient.acquireTreasure).not.toHaveBeenCalled();
+      expect(result).toEqual({ ok: true, quantity: 3, money: 50, acquired: 3 });
+    });
+
+    it('uses the acquire/all endpoint for an NPC when canEdit is true', async function() {
+      const { characterClient, treasureClient } = buildClients();
+      characterClient.acquireTreasureAll.and.returnValue(
+        Promise.resolve(buildResponse(200, { quantity: 1, money: 10, acquired: 1 }))
+      );
+      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+
+      await controller.acquire('demo', 7, false, 'tok', { treasureId: 9, quantity: 1 }, true);
+
+      expect(characterClient.acquireTreasureAll).toHaveBeenCalledWith(
+        'npcs', 'demo', 7, 'tok', { treasure_id: 9, quantity: 1 }
+      );
+    });
+
+    it('uses the regular acquire endpoint when canEdit is omitted', async function() {
+      const { characterClient, treasureClient } = buildClients();
+      characterClient.acquireTreasure.and.returnValue(
+        Promise.resolve(buildResponse(200, { quantity: 1, money: 10, acquired: 1 }))
+      );
+      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+
+      await controller.acquire('demo', 7, true, 'tok', { treasureId: 9, quantity: 1 });
+
+      expect(characterClient.acquireTreasure).toHaveBeenCalledWith(
+        'pcs', 'demo', 7, 'tok', { treasure_id: 9, quantity: 1 }
+      );
+      expect(characterClient.acquireTreasureAll).not.toHaveBeenCalled();
+    });
   });
 });

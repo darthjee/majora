@@ -22,6 +22,17 @@ def resolve_treasure_value(context, treasure):
     return treasure.value if game_treasure is None else game_treasure.value
 
 
+def resolve_treasure_hidden(context, treasure):
+    """Return whether `treasure` is hidden in the context game, defaulting to `False`.
+
+    Used only by the DM-only serializers that expose `hidden`; deliberately not part of
+    `GameTreasureFieldsMixin` so player-facing serializers can't accidentally start
+    leaking it.
+    """
+    game_treasure = resolve_game_treasure(context, treasure)
+    return False if game_treasure is None else game_treasure.hidden
+
+
 class GameTreasureFieldsMixin(serializers.Serializer):
     """Adds `available_units`/`max_units`/`value` fields computed from a `game` in context."""
 

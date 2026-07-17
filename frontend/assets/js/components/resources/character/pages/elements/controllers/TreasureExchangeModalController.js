@@ -47,12 +47,18 @@ export default class TreasureExchangeModalController {
    * @param {{page: number, perPage: number, maxValue: number, search: string,
    *   ordering: string}} params - Browse params. `search` is an optional name filter;
    *   `ordering` (`'asc'`/`'desc'`) is forwarded as-is, always `'desc'` in this modal.
+   * @param {boolean} [canEdit] - Whether the requester can edit the game (DM/admin). When
+   *   true, browses the full catalog (including hidden treasures) through the `treasures/all.json`
+   *   endpoint instead of the player-facing, hidden-filtered one.
    * @returns {Promise<{data: object[], pagination: object}>} Page of treasures with
    *   pagination metadata.
    */
-  fetchAcquirePage(gameSlug, token, params) {
-    return this.treasureClient.fetchGameTreasuresPage(gameSlug, token, params)
-      .then((response) => this.#parseIndexResponse(response));
+  fetchAcquirePage(gameSlug, token, params, canEdit = false) {
+    const request = canEdit
+      ? this.treasureClient.fetchGameTreasuresAllPage(gameSlug, token, params)
+      : this.treasureClient.fetchGameTreasuresPage(gameSlug, token, params);
+
+    return request.then((response) => this.#parseIndexResponse(response));
   }
 
   /**
@@ -81,17 +87,22 @@ export default class TreasureExchangeModalController {
    * @param {boolean} isPc - Whether the character is a PC (vs. an NPC).
    * @param {string|null} token - Authentication token, if any.
    * @param {{treasureId: number, quantity: number}} fields - Acquire request fields.
+   * @param {boolean} [canEdit] - Whether the requester can edit the game (DM/admin). When
+   *   true, submits through the `treasures/acquire/all.json` endpoint instead of the
+   *   player-facing one, so acquiring a hidden treasure on behalf of the character doesn't 404.
    * @returns {Promise<object>} Resolves to `{ok: true, quantity, money, acquired}` on success
    *   (`acquired` is the number of units actually acquired in this request, which may be less
    *   than the requested `quantity` when the treasure was capped), or `{ok: false, errorKey}`
    *   on a 400 validation failure.
    */
-  acquire(gameSlug, characterId, isPc, token, fields) {
+  acquire(gameSlug, characterId, isPc, token, fields, canEdit = false) {
     const body = TreasureExchangeModalController.#toBody(fields);
+    const characterKind = TreasureExchangeModalController.#characterKind(isPc);
+    const request = canEdit
+      ? this.characterClient.acquireTreasureAll(characterKind, gameSlug, characterId, token, body)
+      : this.characterClient.acquireTreasure(characterKind, gameSlug, characterId, token, body);
 
-    return this.characterClient.acquireTreasure(
-      TreasureExchangeModalController.#characterKind(isPc), gameSlug, characterId, token, body,
-    ).then((response) => this.#parseActionResponse(response));
+    return request.then((response) => this.#parseActionResponse(response));
   }
 
   /**

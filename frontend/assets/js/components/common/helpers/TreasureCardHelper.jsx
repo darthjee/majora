@@ -4,6 +4,7 @@ import Badge from '../Badge.jsx';
 import Translator from '../../../i18n/Translator.js';
 import Noop from '../../../utils/Noop.js';
 import TreasureMoney from '../TreasureMoney.jsx';
+import Icons from '../../../utils/ui/Icons.js';
 
 /**
  * Rendering helper for the TreasureCard element.
@@ -28,6 +29,8 @@ export default class TreasureCardHelper {
    * @param {number|null} [treasure.max_units] - Maximum units obtainable within the game, when
    *   the treasure is capped. `null`/absent when unlimited; when set, an availability line is
    *   shown in the card body.
+   * @param {boolean} [treasure.hidden] - Whether the treasure is hidden from players for this
+   *   game (DM/admin-facing data only); shown as a badge in the overlay's info bar when true.
    * @param {boolean} [canManage] - Whether the current user may upload a photo and edit this treasure.
    * @param {Function} [onUploadClick] - Handler invoked with the treasure when the upload button is clicked.
    * @param {string} [editHref] - Hash path to the treasure's edit page. When omitted, no edit
@@ -46,7 +49,7 @@ export default class TreasureCardHelper {
             alt={treasure.name}
             canEdit={canManage}
             onClick={() => onUploadClick(treasure)}
-            infoBarItems={TreasureCardHelper.#buildQuantityInfoBarItems(quantity)}
+            infoBarItems={TreasureCardHelper.#buildInfoBarItems(treasure, quantity)}
           />
           <div className="card-body">
             <h6 className="card-title">
@@ -66,6 +69,33 @@ export default class TreasureCardHelper {
         </div>
       </div>
     );
+  }
+
+  /**
+   * Build the overlay's info-bar items: an optional Hidden badge (DM/admin-facing,
+   * shown when `treasure.hidden` is true) followed by an optional quantity badge.
+   *
+   * @param {object} treasure - Treasure data object.
+   * @param {boolean} [treasure.hidden] - Whether the treasure is hidden from players for this game.
+   * @param {number|null} quantity - Owned quantity.
+   * @returns {{key: string, label: React.ReactElement}[]} Info-bar item definitions.
+   */
+  static #buildInfoBarItems(treasure, quantity) {
+    return [
+      ...TreasureCardHelper.#buildHiddenInfoBarItems(treasure),
+      ...TreasureCardHelper.#buildQuantityInfoBarItems(quantity),
+    ];
+  }
+
+  static #buildHiddenInfoBarItems(treasure) {
+    if (!treasure.hidden) {
+      return [];
+    }
+
+    return [{
+      key: 'hidden',
+      label: <Badge icon={Icons.eyeSlashFill} text={Translator.t('game_treasures_page.hidden_label')} />,
+    }];
   }
 
   static #buildQuantityInfoBarItems(quantity) {

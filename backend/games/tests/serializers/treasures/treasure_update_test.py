@@ -54,21 +54,12 @@ class TestTreasureUpdateSerializer(TestCase):
         assert treasure.name == 'Silver Crown'
         assert treasure.id == original_id
 
-    def test_valid_partial_hidden_update(self):
-        """Test that a partial update with only hidden is valid."""
+    def test_hidden_is_not_a_model_field_and_is_ignored(self):
+        """Test that a `hidden` payload key is ignored (hidden lives on GameTreasure now)."""
         serializer = TreasureUpdateSerializer(self.treasure, data={'hidden': True}, partial=True)
         assert serializer.is_valid()
         treasure = serializer.save()
-        assert treasure.hidden is True
-
-    def test_hidden_defaults_to_false_when_omitted(self):
-        """Test that hidden stays False when not included in the update payload."""
-        serializer = TreasureUpdateSerializer(
-            self.treasure, data={'name': 'Silver Crown'}, partial=True
-        )
-        assert serializer.is_valid()
-        treasure = serializer.save()
-        assert treasure.hidden is False
+        assert not hasattr(treasure, 'hidden')
 
     def test_game_is_not_included(self):
         """Test that game is not a field in the serializer and cannot be reassigned."""

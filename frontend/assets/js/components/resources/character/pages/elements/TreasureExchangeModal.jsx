@@ -69,7 +69,9 @@ export function buildBrowseParams(tab, page, perPage, character, searchTerm) {
  *
  * @param {object} props - Component props.
  * @param {boolean} props.show - Whether the modal is visible.
- * @param {object} props.character - Character context (`id`, `game_slug`, `is_pc`, `money`).
+ * @param {object} props.character - Character context (`id`, `game_slug`, `is_pc`, `money`,
+ *   `canEdit`). `canEdit` routes the Acquire tab's browse/submit requests through the
+ *   DM/admin-only `all.json` endpoints, which include hidden treasures.
  * @param {object[]} [props.ownedTreasures] - Currently loaded owned-treasure entries, used to
  *   cross-reference "already owned" quantities on the Acquire tab.
  * @param {string} [props.gameType] - Currency model name (e.g. `dnd`, `deadlands`) of the
@@ -105,7 +107,7 @@ export default function TreasureExchangeModal({
     const token = AuthStorage.getToken();
     const params = buildBrowseParams(tab, page, PER_PAGE, character, searchTerm);
     const request = tab === 'acquire'
-      ? controller.fetchAcquirePage(character.game_slug, token, params)
+      ? controller.fetchAcquirePage(character.game_slug, token, params, character.canEdit)
       : controller.fetchSellPage(character.game_slug, character.id, character.is_pc, token, params);
 
     request
@@ -173,7 +175,9 @@ export default function TreasureExchangeModal({
     const requestedQuantity = quantity;
     const token = AuthStorage.getToken();
     const submit = activeTab === 'acquire'
-      ? controller.acquire(character.game_slug, character.id, character.is_pc, token, { treasureId, quantity })
+      ? controller.acquire(
+        character.game_slug, character.id, character.is_pc, token, { treasureId, quantity }, character.canEdit,
+      )
       : controller.sell(character.game_slug, character.id, character.is_pc, token, { treasureId, quantity });
 
     setSubmitting(true);

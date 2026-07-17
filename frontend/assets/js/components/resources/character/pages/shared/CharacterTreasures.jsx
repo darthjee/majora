@@ -21,6 +21,29 @@ export function applyExchangeSuccess(controller, setTreasures, { treasureId, tre
 }
 
 /**
+ * Builds the character context object passed to the treasure exchange modal,
+ * threading through the game-scoped ids and the DM/admin `canEdit` flag (issue #632)
+ * so the modal's Acquire tab routes through the `all.json` endpoints — letting a DM
+ * browse and acquire hidden treasures on behalf of the character — instead of always
+ * hitting the player-facing, hidden-filtered ones.
+ *
+ * @param {string|number} characterId - Character id.
+ * @param {string} gameSlug - Game slug the character belongs to.
+ * @param {boolean} isPc - Whether the character is a PC (vs. an NPC).
+ * @param {object|null} character - Currently loaded character context, or `null` while loading.
+ * @returns {object} Character context for {@link TreasureExchangeModal}.
+ */
+export function buildExchangeCharacter(characterId, gameSlug, isPc, character) {
+  return {
+    id: characterId,
+    game_slug: gameSlug,
+    is_pc: isPc,
+    money: character?.money ?? 0,
+    canEdit: character?.can_edit,
+  };
+}
+
+/**
  * Shared character treasures index page component.
  *
  * @description Accepts a type-specific controller class, hash param extractor, and
@@ -69,9 +92,7 @@ export default function CharacterTreasures({ ControllerClass, getParamsFromHash,
       )}
       <TreasureExchangeModal
         show={showExchangeModal}
-        character={{
-          id: characterId, game_slug: gameSlug, is_pc: isPc, money: character?.money ?? 0,
-        }}
+        character={buildExchangeCharacter(characterId, gameSlug, isPc, character)}
         gameType={gameType}
         ownedTreasures={treasures}
         onClose={() => setShowExchangeModal(false)}

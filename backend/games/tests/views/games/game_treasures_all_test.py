@@ -10,6 +10,7 @@ from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     GameFactory,
     GameMasterFactory,
+    GameTreasureFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -27,11 +28,14 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         GameMasterFactory(game=cls.game, user=cls.dm_user)
-        cls.visible_treasure = TreasureFactory(
-            name='Visible Gem', value=100, game=cls.game, hidden=False
+        cls.visible_treasure = TreasureFactory(name='Visible Gem', value=100, game=cls.game)
+        GameTreasureFactory(
+            game=cls.game, treasure=cls.visible_treasure, value=cls.visible_treasure.value,
         )
-        cls.hidden_treasure = TreasureFactory(
-            name='Hidden Gem', value=100, game=cls.game, hidden=True
+        cls.hidden_treasure = TreasureFactory(name='Hidden Gem', value=100, game=cls.game)
+        GameTreasureFactory(
+            game=cls.game, treasure=cls.hidden_treasure, value=cls.hidden_treasure.value,
+            hidden=True,
         )
 
     def _get(self, client, token=None):
@@ -107,10 +111,22 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
     def test_does_not_include_other_games_treasures(self):
         """Test that treasures exclusive/linked to a different game are excluded."""
         other_game = GameFactory(name='Other Game', game_slug='other-game')
-        TreasureFactory(name='Other Game Gem', value=100, game=other_game, hidden=True)
+        other_treasure = TreasureFactory(name='Other Game Gem', value=100, game=other_game)
+        GameTreasureFactory(
+            game=other_game, treasure=other_treasure, value=other_treasure.value, hidden=True,
+        )
         token = Token.objects.create(user=self.dm_user)
         response = self._get(self.client, token=token)
         assert response.status_code == 200
         data = json.loads(response.content)
         names = [item['name'] for item in data]
         assert 'Other Game Gem' not in names
+
+    def test_response_includes_hidden_field_per_item(self):
+        """Test that each item in the response carries its own hidden flag."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get(self.client, token=token)
+        data = json.loads(response.content)
+        by_name = {item['name']: item['hidden'] for item in data}
+        assert by_name['Visible Gem'] is False
+        assert by_name['Hidden Gem'] is True

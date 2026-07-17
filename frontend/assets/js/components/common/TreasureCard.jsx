@@ -16,6 +16,8 @@ import TreasureCardHelper from './helpers/TreasureCardHelper.jsx';
  * @param {number|null} [props.treasure.max_units] - Maximum units obtainable within the game,
  *   when the treasure is capped. `null`/absent when unlimited; when set, an availability line
  *   (`Available: {available} / {max}`) is shown in the card body.
+ * @param {boolean} [props.treasure.hidden] - Whether the treasure is hidden from players for
+ *   this game (DM/admin-facing data only); shown as a badge when true.
  * @param {boolean} [props.canManage] - Whether the current user may upload a photo and edit this treasure.
  * @param {Function} [props.onUploadClick] - Handler invoked with the treasure when the upload button is clicked.
  * @param {string} [props.editHref] - Hash path to the treasure's edit page. When omitted, no

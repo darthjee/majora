@@ -171,6 +171,51 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
+   * Acquires a quantity of a treasure for a character, spending its money, through
+   * the DM/admin-only endpoint that also accepts hidden treasures (issue #632). Used
+   * by the treasure exchange modal when the requester can edit the game, so a DM
+   * granting a hidden treasure to a PC or NPC doesn't get a 404.
+   *
+   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {{treasure_id: number, quantity: number}} fields - Acquire request fields.
+   * @returns {Promise<Response>} fetch response from the acquire/all endpoint.
+   */
+  acquireTreasureAll(characterKind, gameSlug, characterId, token, fields) {
+    return this.postJson(
+      `/games/${gameSlug}/${characterKind}/${characterId}/treasures/acquire/all.json`, token, fields,
+    );
+  }
+
+  /**
+   * Fetches an explicit page of an NPC's owned treasures, including hidden ones
+   * (DM/admin-only endpoint; no PC counterpart exists). Mirrors {@link fetchTreasuresPage}'s
+   * params/pagination handling. Used for a DM viewing an NPC's full treasure set,
+   * so a hidden treasure already sitting in that NPC's inventory isn't filtered out.
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - NPC character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {{page: number, perPage: number, search: string}} [params] - Query params.
+   *   `search` is a case-insensitive substring match on the treasure name.
+   * @returns {Promise<Response>} fetch response from the NPC treasures/all endpoint.
+   */
+  fetchTreasuresAllPage(gameSlug, characterId, token, { page, perPage, search } = {}) {
+    const queryParams = new URLSearchParams();
+
+    if (page) queryParams.set('page', page);
+    if (perPage) queryParams.set('per_page', perPage);
+    if (search) queryParams.set('search', search);
+
+    const query = queryParams.toString();
+    const path = `/games/${gameSlug}/npcs/${characterId}/treasures/all.json`;
+
+    return this.getJson(`${path}${query ? `?${query}` : ''}`, token, { 'X-Skip-Cache': 'true' });
+  }
+
+  /**
    * Sells a quantity of an owned treasure for a character, gaining money.
    *
    * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).

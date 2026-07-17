@@ -169,5 +169,32 @@ describe('TreasureCardHelper', function() {
       );
       expect(html).toContain('Available: 0 / 10');
     });
+
+    it('does not render a hidden badge when hidden is omitted', function() {
+      const html = renderToStaticMarkup(TreasureCardHelper.render(treasure));
+      expect(html).not.toContain('info-overlay-item');
+      expect(html).not.toContain('bi-eye-slash-fill');
+    });
+
+    it('does not render a hidden badge when hidden is false', function() {
+      const html = renderToStaticMarkup(TreasureCardHelper.render({ ...treasure, hidden: false }));
+      expect(html).not.toContain('info-overlay-item');
+      expect(html).not.toContain('bi-eye-slash-fill');
+    });
+
+    it('renders a hidden badge in the overlay info bar when hidden is true', function() {
+      const html = renderToStaticMarkup(TreasureCardHelper.render({ ...treasure, hidden: true }));
+      expect(html).toContain('info-overlay-item');
+      expect(html).toContain('bi-eye-slash-fill');
+      expect(html).toContain('Hidden');
+    });
+
+    it('renders both the hidden and quantity badges together', function() {
+      const html = renderToStaticMarkup(
+        TreasureCardHelper.render({ ...treasure, hidden: true }, false, Noop.noop, '', 5)
+      );
+      expect(html).toContain('bi-eye-slash-fill');
+      expect(html).toContain('×5');
+    });
   });
 });

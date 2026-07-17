@@ -114,7 +114,7 @@ describe('TreasureExchangeModal', function() {
     expect(TreasureExchangeModalController.prototype.fetchAcquirePage).toHaveBeenCalledWith(
       'demo', null, {
         page: 1, perPage: 10, maxValue: 500, search: '', ordering: 'desc',
-      }
+      }, character.canEdit,
     );
   });
 
@@ -126,7 +126,7 @@ describe('TreasureExchangeModal', function() {
     expect(TreasureExchangeModalController.prototype.fetchAcquirePage).toHaveBeenCalledWith(
       'demo', null, {
         page: 0, perPage: 10, maxValue: 500, search: '', ordering: 'desc',
-      }
+      }, character.canEdit,
     );
   });
 
@@ -138,7 +138,20 @@ describe('TreasureExchangeModal', function() {
     expect(TreasureExchangeModalController.prototype.fetchAcquirePage).toHaveBeenCalledWith(
       'demo', null, {
         page: 2, perPage: 10, maxValue: 500, search: '', ordering: 'desc',
-      }
+      }, character.canEdit,
+    );
+  });
+
+  it('threads the character\'s canEdit flag through to the acquire page fetch', function() {
+    const editorCharacter = { ...character, canEdit: true };
+    const { handlers } = renderModal({ character: editorCharacter });
+
+    handlers.onTabChange('acquire');
+
+    expect(TreasureExchangeModalController.prototype.fetchAcquirePage).toHaveBeenCalledWith(
+      'demo', null, {
+        page: 1, perPage: 10, maxValue: 500, search: '', ordering: 'desc',
+      }, true,
     );
   });
 });

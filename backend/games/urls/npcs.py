@@ -53,9 +53,19 @@ urlpatterns = [
         name='game-npc-treasures',
     ),
     path(
+        'games/<slug:game_slug>/npcs/<int:character_id>/treasures/all.json',
+        views.game_npc_treasures_all,
+        name='game-npc-treasures-all',
+    ),
+    path(
         'games/<slug:game_slug>/npcs/<int:character_id>/treasures/acquire.json',
         views.game_npc_treasure_acquire,
         name='game-npc-treasure-acquire',
+    ),
+    path(
+        'games/<slug:game_slug>/npcs/<int:character_id>/treasures/acquire/all.json',
+        views.game_npc_treasure_acquire_all,
+        name='game-npc-treasure-acquire-all',
     ),
     path(
         'games/<slug:game_slug>/npcs/<int:character_id>/treasures/sell.json',

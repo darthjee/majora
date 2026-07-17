@@ -56,19 +56,11 @@ export default class GameTreasuresController extends BasePageController {
       const safeSet = this.buildSafeSetter(() => mounted);
       const gameSlug = GameTreasuresController.getGameSlugFromTreasuresHash(this.client.currentHash());
 
-      this.#fetchAccess(gameSlug, safeSet);
-
       if (!gameSlug) {
         safeSet(this.setError, 'Unable to load treasures.');
         safeSet(this.setLoading, false);
       } else {
-        this.client.fetchIndex(`/games/${gameSlug}/treasures.json`)
-          .then(({ data, pagination }) => {
-            safeSet(this.setTreasures, Array.isArray(data) ? data : []);
-            safeSet(this.setPagination, pagination);
-          })
-          .catch(() => safeSet(this.setError, 'Unable to load treasures.'))
-          .finally(() => safeSet(this.setLoading, false));
+        this.#loadTreasures(gameSlug, safeSet);
       }
 
       return () => {
@@ -77,9 +69,38 @@ export default class GameTreasuresController extends BasePageController {
     };
   }
 
-  #fetchAccess(gameSlug, safeSet) {
+  /**
+   * Resolve the requester's edit permission for the game, then fetch the matching
+   * treasures list: the full catalog (including hidden treasures) through
+   * `treasures/all.json` for an editor, or the player-facing, hidden-filtered
+   * `treasures.json` otherwise.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {Function} safeSet - Setter wrapper guarding against a stale/unmounted update.
+   * @returns {void}
+   */
+  #loadTreasures(gameSlug, safeSet) {
     AccessStore.ensureGamePermissions(gameSlug)
-      .then((permissions) => safeSet(this.setCanEdit, Boolean(permissions.can_edit)))
-      .catch(() => safeSet(this.setCanEdit, false));
+      .then((permissions) => {
+        const canEdit = Boolean(permissions.can_edit);
+        safeSet(this.setCanEdit, canEdit);
+        return this.#fetchTreasures(gameSlug, canEdit, safeSet);
+      })
+      .catch(() => {
+        safeSet(this.setCanEdit, false);
+        return this.#fetchTreasures(gameSlug, false, safeSet);
+      });
+  }
+
+  #fetchTreasures(gameSlug, canEdit, safeSet) {
+    const path = canEdit ? `/games/${gameSlug}/treasures/all.json` : `/games/${gameSlug}/treasures.json`;
+
+    return this.client.fetchIndex(path)
+      .then(({ data, pagination }) => {
+        safeSet(this.setTreasures, Array.isArray(data) ? data : []);
+        safeSet(this.setPagination, pagination);
+      })
+      .catch(() => safeSet(this.setError, 'Unable to load treasures.'))
+      .finally(() => safeSet(this.setLoading, false));
   }
 }

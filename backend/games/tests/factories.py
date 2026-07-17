@@ -109,7 +109,6 @@ class TreasureFactory(factory.django.DjangoModelFactory):
 
     name = 'Test Treasure'
     value = 100
-    hidden = False
 
 
 class GameTreasureFactory(factory.django.DjangoModelFactory):
@@ -123,6 +122,7 @@ class GameTreasureFactory(factory.django.DjangoModelFactory):
     game = factory.SubFactory(GameFactory)
     treasure = factory.SubFactory(TreasureFactory)
     value = factory.LazyAttribute(lambda o: o.treasure.value)
+    hidden = False
 
 
 class PollFactory(factory.django.DjangoModelFactory):

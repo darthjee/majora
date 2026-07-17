@@ -10,6 +10,7 @@ from games.tests.behaviors import DetailNotFoundBehaviorMixin, TokenAuthRequestM
 from games.tests.factories import (
     GameFactory,
     GameMasterFactory,
+    GameTreasureFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -138,3 +139,18 @@ class TestTreasureDetailPatchView(TokenAuthRequestMixin, TestCase):
         assert response.status_code == 403
         self.treasure.refresh_from_db()
         assert self.treasure.name == 'Old Helmet'
+
+    def test_patch_with_malformed_hidden_returns_400(self):
+        """Test that a non-boolean hidden value is rejected with 400 rather than coerced."""
+        game = GameFactory(name='Test Game', game_slug='test-game')
+        self.treasure.game = game
+        self.treasure.save()
+        game_treasure = GameTreasureFactory(
+            game=game, treasure=self.treasure, value=self.treasure.value, hidden=False,
+        )
+        response = self._patch(self.client, {'hidden': 123}, token=self.superuser_token)
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'hidden' in data['errors']
+        game_treasure.refresh_from_db()
+        assert game_treasure.hidden is False

@@ -15,6 +15,7 @@ class GameTreasure(models.Model):
     value = models.IntegerField()
     max_units = models.PositiveIntegerField(null=True, blank=True)
     acquired_units = models.PositiveIntegerField(default=0)
+    hidden = models.BooleanField(default=False)
 
     class Meta:
         """Metadata for the GameTreasure model."""

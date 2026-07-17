@@ -1,3 +1,4 @@
+import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 import { KINDS, buildCharacterClient } from './support.js';
 
 KINDS.forEach(({ label, Controller, kind }) => {
@@ -14,6 +15,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
         data: [{ id: 1, name: 'Sword', quantity: 1, value: 100 }],
         pagination: { page: 2, pages: 3, perPage: 4 },
       }));
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
       const cleanup = new Controller(
         setTreasures, setPagination, setLoading, setError, client, undefined, buildCharacterClient(),

@@ -1,3 +1,4 @@
+import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 import { KINDS, buildCharacterClient } from './support.js';
 
 KINDS.forEach(({ label, Controller, kind }) => {
@@ -11,6 +12,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
 
       client.currentHash.and.returnValue(`#/games/demo/${kind}/2/treasures`);
       client.fetchIndex.and.returnValue(Promise.reject(new Error('network error')));
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
       const cleanup = new Controller(
         setTreasures, setPagination, setLoading, setError, client, undefined, buildCharacterClient(),

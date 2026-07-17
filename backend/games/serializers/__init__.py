@@ -15,7 +15,10 @@ from games.serializers.characters.character_list import CharacterListSerializer
 from games.serializers.characters.character_money_update import CharacterMoneyUpdateSerializer
 from games.serializers.characters.character_permissions import CharacterPermissionsSerializer
 from games.serializers.characters.character_photo import CharacterPhotoSerializer
-from games.serializers.characters.character_treasure import CharacterTreasureSerializer
+from games.serializers.characters.character_treasure import (
+    CharacterTreasureAllSerializer,
+    CharacterTreasureSerializer,
+)
 from games.serializers.characters.character_update import CharacterUpdateSerializer
 from games.serializers.characters.npcs.npc_player_update import NpcPlayerUpdateSerializer
 from games.serializers.characters.pcs.pc_access import PcAccessSerializer
@@ -59,10 +62,14 @@ from games.serializers.photo_upload import PhotoUploadSerializer
 from games.serializers.staff.staff_user_detail import StaffUserDetailSerializer
 from games.serializers.staff.staff_user_list import StaffUserListSerializer
 from games.serializers.staff.staff_user_update import StaffUserUpdateSerializer
+from games.serializers.treasures.hidden_field import HiddenFieldSerializer
 from games.serializers.treasures.treasure_access import TreasureAccessSerializer
 from games.serializers.treasures.treasure_create import TreasureCreateSerializer
 from games.serializers.treasures.treasure_detail import TreasureDetailSerializer
-from games.serializers.treasures.treasure_list import TreasureListSerializer
+from games.serializers.treasures.treasure_list import (
+    TreasureAllListSerializer,
+    TreasureListSerializer,
+)
 from games.serializers.treasures.treasure_permissions import TreasurePermissionsSerializer
 from games.serializers.treasures.treasure_update import TreasureUpdateSerializer
 
@@ -80,6 +87,7 @@ __all__ = [
     'CharacterMoneyUpdateSerializer',
     'CharacterPermissionsSerializer',
     'CharacterPhotoSerializer',
+    'CharacterTreasureAllSerializer',
     'CharacterTreasureSerializer',
     'CharacterUpdateSerializer',
     'GameAccessSerializer',
@@ -98,6 +106,7 @@ __all__ = [
     'GameTaskUpdateSerializer',
     'GameTreasureUpdateSerializer',
     'GameUpdateSerializer',
+    'HiddenFieldSerializer',
     'LinkSerializer',
     'MyAccountDetailSerializer',
     'MyAccountUpdateSerializer',
@@ -121,6 +130,7 @@ __all__ = [
     'StaffUserListSerializer',
     'StaffUserUpdateSerializer',
     'TreasureAccessSerializer',
+    'TreasureAllListSerializer',
     'TreasureCreateSerializer',
     'TreasureDetailSerializer',
     'TreasureListSerializer',
