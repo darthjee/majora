@@ -454,6 +454,7 @@ money:
   copper_piece: peça(s) de cobre
   gems: gemas
   gp_in_gems: PO em gemas
+  in_gems: em Gemas
   pp_abbreviation: PL
   gp_abbreviation: PO
   sp_abbreviation: PP
