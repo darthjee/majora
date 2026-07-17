@@ -15,7 +15,35 @@ export default class CharacterMoneyHelper {
    * coin box stack (CP/SP/GP/PP, including zero amounts). For `deadlands`,
    * renders a dense dollar-bill box (cents/dollars, including zero amounts).
    * For any other game type, renders a cascading coin denomination breakdown
-   * line, returning null when money is 0 (no denomination entries).
+   * line, returning null when money is 0 (no denomination entries). When
+   * `canEditMoney` is true, appends an "Edit" link/button beneath the
+   * breakdown (issue #615), invoking `onEditMoney` when clicked.
+   *
+   * @param {number} money - Total money, expressed in the currency's lowest
+   *   denomination (copper pieces for `dnd`, cents for `deadlands`).
+   * @param {string} gameType - Currency model name to resolve (e.g. `dnd`,
+   *   `deadlands`).
+   * @param {boolean} [canEditMoney] - Whether to render the "Edit" link
+   *   beneath the breakdown. Defaults to `false`.
+   * @param {Function} [onEditMoney] - Handler invoked when the "Edit" link
+   *   is clicked.
+   * @returns {React.ReactElement|null} Money breakdown element, or null.
+   */
+  static render(money, gameType, canEditMoney = false, onEditMoney) {
+    const breakdown = CharacterMoneyHelper.#renderBreakdown(money, gameType);
+
+    if (!canEditMoney) return breakdown;
+
+    return (
+      <>
+        {breakdown}
+        {CharacterMoneyHelper.#renderEditLink(onEditMoney)}
+      </>
+    );
+  }
+
+  /**
+   * Render the money breakdown, without the optional edit link.
    *
    * @param {number} money - Total money, expressed in the currency's lowest
    *   denomination (copper pieces for `dnd`, cents for `deadlands`).
@@ -23,7 +51,7 @@ export default class CharacterMoneyHelper {
    *   `deadlands`).
    * @returns {React.ReactElement|null} Money breakdown element, or null.
    */
-  static render(money, gameType) {
+  static #renderBreakdown(money, gameType) {
     if (gameType === 'dnd') {
       return <CharacterMoneyCoins money={money} />;
     }
@@ -41,6 +69,22 @@ export default class CharacterMoneyHelper {
       <p className="character-money">
         {entries.map((entry) => CharacterMoneyHelper.#formatEntry(entry, model)).join(' | ')}
       </p>
+    );
+  }
+
+  /**
+   * Render the money "Edit" link/button (issue #615).
+   *
+   * @param {Function} onEditMoney - Handler invoked when the link is clicked.
+   * @returns {React.ReactElement} Edit link element.
+   */
+  static #renderEditLink(onEditMoney) {
+    return (
+      <div>
+        <button type="button" className="btn btn-link btn-sm p-0" onClick={onEditMoney}>
+          {Translator.t('character_page.edit_money_button')}
+        </button>
+      </div>
     );
   }
 

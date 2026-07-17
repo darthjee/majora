@@ -34,6 +34,9 @@ export default class CharacterHelper {
    *   of the character's own game, resolved live rather than stored on the character.
    *   Defaults to `dnd`.
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
+   * @param {boolean} [character.can_edit_money] - Whether the current user may edit this
+   *   character's money through the narrow money-only endpoint (issue #615), gating the
+   *   "Edit" link rendered beneath the money breakdown independently of `can_edit`.
    * @param {boolean} [character.is_player] - Whether the current user is a player of the
    *   game (but not necessarily this character's editor), gates the single player-facing
    *   slain/revive button, and (together with `!is_pc`) also gates the Edit button for
@@ -56,7 +59,8 @@ export default class CharacterHelper {
    *   (`id`, `path`), rendered as a static card grid with a link to the full gallery page.
    * @param {string} backHref - Hash path to the character's index page.
    * @param {{onOpenUploadModal: Function, onOpenSlainModal: Function,
-   *   onOpenPublicSlainModal: Function, onOpenPlayerSlainModal: Function}} [handlers] - Event handlers.
+   *   onOpenPublicSlainModal: Function, onOpenPlayerSlainModal: Function,
+   *   onOpenMoneyModal: Function}} [handlers] - Event handlers.
    * @returns {React.ReactElement} Character detail element.
    */
   static render(character, backHref, handlers = {}) {
@@ -76,7 +80,12 @@ export default class CharacterHelper {
             <CharacterAvatar character={character} handlers={handlers} />
             <h1>{character.name}</h1>
             <LinkList links={character.links} />
-            <CharacterMoney money={character.money} gameType={character.game_type} />
+            <CharacterMoney
+              money={character.money}
+              gameType={character.game_type}
+              canEditMoney={character.can_edit_money}
+              onEditMoney={handlers.onOpenMoneyModal}
+            />
           </div>
           <div className="col-md-8">
             <CharacterRole role={character.role} />

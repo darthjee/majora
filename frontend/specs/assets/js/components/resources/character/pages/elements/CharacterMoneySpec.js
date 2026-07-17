@@ -49,4 +49,25 @@ describe('CharacterMoney', function() {
     expect(html).toContain('character-money-coins');
     expect(html).not.toContain('character-money"');
   });
+
+  it('does not render an edit link by default (no new props passed)', function() {
+    const html = renderToStaticMarkup(React.createElement(CharacterMoney, { money: 310 }));
+    expect(html).not.toContain('Edit money');
+    expect(html).not.toContain('<button');
+  });
+
+  it('does not render an edit link when canEditMoney is false', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(CharacterMoney, { money: 310, canEditMoney: false })
+    );
+    expect(html).not.toContain('Edit money');
+  });
+
+  it('renders an edit link when canEditMoney is true', function() {
+    const onEditMoney = jasmine.createSpy('onEditMoney');
+    const html = renderToStaticMarkup(
+      React.createElement(CharacterMoney, { money: 310, canEditMoney: true, onEditMoney })
+    );
+    expect(html).toContain('Edit money');
+  });
 });

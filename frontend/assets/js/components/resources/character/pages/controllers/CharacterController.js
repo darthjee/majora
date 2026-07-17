@@ -5,6 +5,7 @@ import BasePageController from '../../../../common/controllers/BasePageControlle
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import CharacterGameTypeResolver from './CharacterGameTypeResolver.js';
+import CharacterAccessResolver from './CharacterAccessResolver.js';
 
 /**
  * Base controller for character detail pages (PC and NPC).
@@ -68,6 +69,19 @@ export default class CharacterController extends BasePageController {
    */
   fetchCharacterFull(gameSlug, characterId, token) {
     return this.characterClient.fetchCharacterFull(this.characterKind, gameSlug, characterId, token);
+  }
+
+  /**
+   * Update a character's money through the narrow, money-only endpoint (issue #615).
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token.
+   * @param {number} money - New total money value.
+   * @returns {Promise<Response>} Fetch response.
+   */
+  updateCharacterMoney(gameSlug, characterId, token, money) {
+    return this.characterClient.updateCharacterMoney(this.characterKind, gameSlug, characterId, token, money);
   }
 
   /**
@@ -148,22 +162,9 @@ export default class CharacterController extends BasePageController {
   }
 
   #loadCharacterAccess(character, params, token, safeSet, resolved) {
-    const characterWithAccess = this.#mergeAccess(character, params, resolved);
+    const characterWithAccess = CharacterAccessResolver.merge(this.characterKind, character, params, resolved);
 
     return this.loadFullCharacter(characterWithAccess, params, token, safeSet);
-  }
-
-  #mergeAccess(character, params, resolved) {
-    const access = AccessStore.getCharacterAccess(this.characterKind, params.game_slug, params.character_id);
-    const permissions = AccessStore.getCharacterPermissions(this.characterKind, params.game_slug, params.character_id);
-
-    return {
-      ...character,
-      can_edit: permissions.can_edit,
-      is_player: access.is_player,
-      is_staff: Boolean(access.is_staff),
-      access_resolved: resolved,
-    };
   }
 
   /**

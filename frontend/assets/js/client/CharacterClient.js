@@ -112,6 +112,22 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
+   * Updates a character's money through the narrow, money-only endpoint (issue #615).
+   *
+   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {number} money - New total money value.
+   * @returns {Promise<Response>} fetch response from the money endpoint.
+   */
+  updateCharacterMoney(characterKind, gameSlug, characterId, token, money) {
+    return this.putJson(
+      `/games/${gameSlug}/${characterKind}/${characterId}/money.json`, token, { money }, { 'X-Skip-Cache': 'true' },
+    );
+  }
+
+  /**
    * Fetches an explicit page of a character's treasures, optionally filtered by
    * name, used by the treasure exchange modal's Sell tab (local pagination,
    * independent of the URL).

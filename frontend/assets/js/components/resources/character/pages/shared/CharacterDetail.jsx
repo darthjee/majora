@@ -3,6 +3,8 @@ import CharacterHelper from '../helpers/CharacterHelper.jsx';
 import AuthEvents from '../../../../../utils/auth/AuthEvents.js';
 import FacadeRefresh from '../../../../../utils/access/useFacadeRefresh.js';
 import PhotoUploadModal from '../../../../common/PhotoUploadModal.jsx';
+import MoneyEditModal from '../../../../common/MoneyEditModal.jsx';
+import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 
 /**
  * Default extension hook, used when a character kind has no extra
@@ -37,6 +39,7 @@ export default function CharacterDetail({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showMoneyModal, setShowMoneyModal] = useState(false);
 
   const controller = useMemo(
     () => new ControllerClass(setCharacter, setLoading, setError),
@@ -64,6 +67,15 @@ export default function CharacterDetail({
     controller.buildEffect()();
   };
 
+  const handleMoneyConfirm = (newTotal) => {
+    const token = AuthStorage.getToken();
+
+    return controller.updateCharacterMoney(gameSlug, character.id, token, newTotal).then(() => {
+      setShowMoneyModal(false);
+      controller.buildEffect()();
+    });
+  };
+
   if (loading) return CharacterHelper.renderLoading();
   if (error) return CharacterHelper.renderError(error);
 
@@ -71,6 +83,7 @@ export default function CharacterDetail({
     <>
       {CharacterHelper.render(character, backHref, {
         onOpenUploadModal: () => setShowUploadModal(true),
+        onOpenMoneyModal: () => setShowMoneyModal(true),
         ...extraHandlers,
       })}
       <PhotoUploadModal
@@ -78,6 +91,14 @@ export default function CharacterDetail({
         uploadPath={`/games/${gameSlug}/${characterKind}/${character.id}/photo_upload.json`}
         onClose={() => setShowUploadModal(false)}
         onSuccess={handleUploadSuccess}
+      />
+      <MoneyEditModal
+        show={showMoneyModal}
+        money={character.money}
+        context="character"
+        gameType={character.game_type}
+        onClose={() => setShowMoneyModal(false)}
+        onConfirm={handleMoneyConfirm}
       />
       {extraModal}
     </>
