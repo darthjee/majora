@@ -83,6 +83,65 @@ class TestMyAccountUpdateSerializer(TestCase):
         assert not serializer.is_valid()
         assert 'name' in serializer.errors
 
+    def test_valid_first_and_last_name_update(self):
+        """Test that a valid first_name/last_name update is accepted and persisted."""
+        serializer = MyAccountUpdateSerializer(
+            self.user,
+            data={
+                'name': 'alice', 'email': 'alice@example.com',
+                'first_name': 'Alice', 'last_name': 'Smith',
+            },
+        )
+        assert serializer.is_valid()
+        user = serializer.save()
+        assert user.first_name == 'Alice'
+        assert user.last_name == 'Smith'
+
+    def test_first_and_last_name_are_optional(self):
+        """Test that omitting first_name/last_name is valid and saves them as ''."""
+        serializer = MyAccountUpdateSerializer(
+            self.user, data={'name': 'alice', 'email': 'alice@example.com'}
+        )
+        assert serializer.is_valid()
+        user = serializer.save()
+        assert user.first_name == ''
+        assert user.last_name == ''
+
+    def test_blank_first_and_last_name_are_accepted(self):
+        """Test that explicit blank first_name/last_name values are valid."""
+        serializer = MyAccountUpdateSerializer(
+            self.user,
+            data={
+                'name': 'alice', 'email': 'alice@example.com',
+                'first_name': '', 'last_name': '',
+            },
+        )
+        assert serializer.is_valid()
+
+    def test_rejects_first_name_longer_than_150_characters(self):
+        """Test that a first_name over 150 characters is rejected."""
+        serializer = MyAccountUpdateSerializer(
+            self.user,
+            data={
+                'name': 'alice', 'email': 'alice@example.com',
+                'first_name': 'a' * 151,
+            },
+        )
+        assert not serializer.is_valid()
+        assert 'first_name' in serializer.errors
+
+    def test_rejects_last_name_longer_than_150_characters(self):
+        """Test that a last_name over 150 characters is rejected."""
+        serializer = MyAccountUpdateSerializer(
+            self.user,
+            data={
+                'name': 'alice', 'email': 'alice@example.com',
+                'last_name': 'a' * 151,
+            },
+        )
+        assert not serializer.is_valid()
+        assert 'last_name' in serializer.errors
+
     def test_rejects_name_with_invalid_characters(self):
         """Test that a name with characters outside the username charset is rejected."""
         serializer = MyAccountUpdateSerializer(

@@ -14,6 +14,8 @@ class MyAccountUpdateSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
         source='username', max_length=150, validators=[UnicodeUsernameValidator()],
     )
+    first_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
+    last_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
     password_confirmation = serializers.CharField(
@@ -24,7 +26,7 @@ class MyAccountUpdateSerializer(serializers.ModelSerializer):
         """Metadata for the MyAccountUpdateSerializer."""
 
         model = User
-        fields = ['name', 'email', 'password', 'password_confirmation']
+        fields = ['name', 'first_name', 'last_name', 'email', 'password', 'password_confirmation']
 
     def validate_name(self, value):
         """Reject a name already used by a different user."""
@@ -49,10 +51,13 @@ class MyAccountUpdateSerializer(serializers.ModelSerializer):
         return attrs
 
     def update(self, instance, validated_data):
-        """Persist name/email, and the new password only when one was provided."""
+        """Persist name/first_name/last_name/email, and the new password only when one was
+        provided."""
         password = validated_data.pop('password', '') or ''
         validated_data.pop('password_confirmation', None)
         instance.username = validated_data['username']
+        instance.first_name = validated_data.get('first_name', '')
+        instance.last_name = validated_data.get('last_name', '')
         instance.email = validated_data['email']
         if password:
             instance.set_password(password)
