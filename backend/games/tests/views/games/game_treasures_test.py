@@ -10,6 +10,7 @@ from games.models import GameTreasure, Treasure
 from games.tests.factories import (
     GameFactory,
     GameMasterFactory,
+    GameTreasureFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -185,23 +186,26 @@ class TestGameTreasuresView(TestCase):
 
     def test_excludes_hidden_linked_treasures(self):
         """Test that a hidden treasure linked to the game via M2M is excluded."""
-        hidden = TreasureFactory(name='Hidden Gem', value=100, hidden=True)
+        hidden = TreasureFactory(name='Hidden Gem', value=100)
         self.game.treasures.add(hidden, through_defaults={'value': hidden.value})
+        GameTreasure.objects.filter(game=self.game, treasure=hidden).update(hidden=True)
         response = self.client.get('/games/test-game/treasures.json')
         data = json.loads(response.content)
         assert data == []
 
     def test_excludes_hidden_exclusive_treasures(self):
         """Test that a hidden treasure exclusive to the game is excluded."""
-        TreasureFactory(name='Hidden Exclusive Gem', value=100, game=self.game, hidden=True)
+        treasure = TreasureFactory(name='Hidden Exclusive Gem', value=100, game=self.game)
+        GameTreasureFactory(game=self.game, treasure=treasure, value=treasure.value, hidden=True)
         response = self.client.get('/games/test-game/treasures.json')
         data = json.loads(response.content)
         assert data == []
 
     def test_includes_visible_treasures_alongside_hidden_ones(self):
         """Test that non-hidden treasures are still returned when hidden ones exist too."""
-        visible = TreasureFactory(name='Visible Gem', value=100, game=self.game, hidden=False)
-        TreasureFactory(name='Hidden Gem', value=100, game=self.game, hidden=True)
+        visible = TreasureFactory(name='Visible Gem', value=100, game=self.game)
+        hidden = TreasureFactory(name='Hidden Gem', value=100, game=self.game)
+        GameTreasureFactory(game=self.game, treasure=hidden, value=hidden.value, hidden=True)
         response = self.client.get('/games/test-game/treasures.json')
         data = json.loads(response.content)
         assert len(data) == 1
@@ -454,12 +458,20 @@ class TestGameTreasuresCreate(TestCase):
         assert response.status_code == 404
 
     def test_created_treasure_can_be_marked_hidden(self):
-        """Test that a treasure can be created as hidden via the POST payload."""
+        """Test that a treasure's GameTreasure row is marked hidden via the POST payload."""
         self._post(
             self.client, {'name': 'Secret Gem', 'value': 100, 'hidden': True}, token=self.dm_token
         )
         treasure = Treasure.objects.get(name='Secret Gem')
-        assert treasure.hidden is True
+        game_treasure = GameTreasure.objects.get(game=self.game, treasure=treasure)
+        assert game_treasure.hidden is True
+
+    def test_created_treasure_defaults_to_not_hidden(self):
+        """Test that a treasure's GameTreasure row defaults to not hidden when omitted."""
+        self._post(self.client, {'name': 'Open Gem', 'value': 100}, token=self.dm_token)
+        treasure = Treasure.objects.get(name='Open Gem')
+        game_treasure = GameTreasure.objects.get(game=self.game, treasure=treasure)
+        assert game_treasure.hidden is False
 
     def test_game_field_in_body_is_ignored(self):
         """Test that a game value in the request body does not override the resolved game."""

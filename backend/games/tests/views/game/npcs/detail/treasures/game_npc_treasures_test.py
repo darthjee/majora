@@ -12,6 +12,7 @@ from games.tests.factories import (
     CharacterFactory,
     GameFactory,
     GameMasterFactory,
+    GameTreasureFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -194,6 +195,28 @@ class TestGameNpcTreasuresView(TokenAuthRequestMixin):
         """Test that a visible NPC's response does not include X-Skip-Cache."""
         response = client.get(self._url())
         assert 'X-Skip-Cache' not in response
+
+    def test_excludes_treasures_hidden_for_the_game(self, client):
+        """Test that a held treasure whose GameTreasure row is hidden is excluded."""
+        visible = TreasureFactory(name='Visible Gem', value=10)
+        hidden = TreasureFactory(name='Hidden Gem', value=10)
+        CharacterTreasure.objects.create(character=self.character, treasure=visible, quantity=1)
+        CharacterTreasure.objects.create(character=self.character, treasure=hidden, quantity=1)
+        GameTreasureFactory(game=self.game, treasure=hidden, value=hidden.value, hidden=True)
+        response = client.get(self._url())
+        data = json.loads(response.content)
+        names = [item['name'] for item in data]
+        assert names == ['Visible Gem']
+
+    def test_does_not_exclude_hidden_treasures_for_a_pc(self, client):
+        """Test that a PC's own treasures list keeps showing hidden-for-the-game treasures."""
+        pc = CharacterFactory(name='Aragorn', game=self.game, npc=False)
+        hidden = TreasureFactory(name='Hidden Gem', value=10)
+        CharacterTreasure.objects.create(character=pc, treasure=hidden, quantity=1)
+        GameTreasureFactory(game=self.game, treasure=hidden, value=hidden.value, hidden=True)
+        response = client.get(f'/games/test-game/pcs/{pc.id}/treasures.json')
+        data = json.loads(response.content)
+        assert [item['name'] for item in data] == ['Hidden Gem']
 
 
 @pytest.mark.django_db

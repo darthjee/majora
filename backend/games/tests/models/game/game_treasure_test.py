@@ -46,6 +46,20 @@ class TestGameTreasure(TestCase):
         )
         assert game_treasure.acquired_units == 0
 
+    def test_hidden_defaults_to_false(self):
+        """Test that a game treasure is not hidden by default."""
+        game_treasure = GameTreasure.objects.create(
+            game=self.game, treasure=self.treasure, value=500,
+        )
+        assert game_treasure.hidden is False
+
+    def test_game_treasure_can_be_hidden(self):
+        """Test that a game treasure can be created as hidden."""
+        game_treasure = GameTreasure.objects.create(
+            game=self.game, treasure=self.treasure, value=500, hidden=True,
+        )
+        assert game_treasure.hidden is True
+
     def test_game_treasure_str(self):
         """Test string representation of a game treasure."""
         game_treasure = GameTreasure(game=self.game, treasure=self.treasure, value=500)

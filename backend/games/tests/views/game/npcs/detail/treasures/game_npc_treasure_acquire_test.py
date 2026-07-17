@@ -12,6 +12,7 @@ from games.tests.factories import (
     CharacterFactory,
     GameFactory,
     GameMasterFactory,
+    GameTreasureFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -216,6 +217,39 @@ class TestGameNpcTreasureAcquireHidden(TokenAuthRequestMixin):
         token = Token.objects.create(user=other)
         response = self._post(client, token=token)
         assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestGameNpcTreasureAcquireHiddenTreasure(TokenAuthRequestMixin):
+    """Tests for acquiring a treasure that is hidden (GameTreasure.hidden) for the game."""
+
+    def setup_method(self):
+        """Set up a game, a DM, an NPC with money, and a hidden treasure."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        GameMasterFactory(game=self.game, user=self.dm_user)
+        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True, money=1000)
+        self.treasure = TreasureFactory(name='Secret Gem', value=100, game=self.game)
+        GameTreasureFactory(
+            game=self.game, treasure=self.treasure, value=self.treasure.value, hidden=True,
+        )
+
+    def _post(self, client, token=None):
+        """Issue a POST request to acquire the hidden treasure."""
+        return self.post(
+            client,
+            f'/games/test-game/npcs/{self.character.id}/treasures/acquire.json',
+            {'treasure_id': self.treasure.id, 'quantity': 1},
+            token=token,
+        )
+
+    def test_dm_gets_404_acquiring_a_hidden_treasure(self, client):
+        """Test that acquiring a hidden treasure returns 404, even for the DM."""
+        response = self._post(client, token=self.dm_token)
+        assert response.status_code == 404
+        self.character.refresh_from_db()
+        assert self.character.money == 1000
 
 
 @pytest.mark.django_db

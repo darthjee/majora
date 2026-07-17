@@ -10,6 +10,7 @@ from games.tests.behaviors import DetailNotFoundBehaviorMixin, TokenAuthRequestM
 from games.tests.factories import (
     GameFactory,
     GameMasterFactory,
+    GameTreasureFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -182,6 +183,30 @@ class TestGameTreasureUpdateView(TokenAuthRequestMixin, TestCase):
         other_game_treasure.refresh_from_db()
         assert other_game_treasure.value == 500
 
+    def test_patch_hidden_writes_onto_existing_game_treasure_row(self):
+        """Test that PATCH-ing hidden mirrors it onto the exclusive treasure's GameTreasure row."""
+        GameTreasure.objects.create(game=self.game, treasure=self.treasure, value=500)
+        response = self._patch(self.client, {'hidden': True}, token=self.dm_token)
+        assert response.status_code == 200
+        game_treasure = GameTreasure.objects.get(game=self.game, treasure=self.treasure)
+        assert game_treasure.hidden is True
+
+    def test_patch_without_hidden_in_body_leaves_it_unchanged(self):
+        """Test that omitting hidden from the PATCH body does not reset it to False."""
+        GameTreasure.objects.create(
+            game=self.game, treasure=self.treasure, value=500, hidden=True,
+        )
+        response = self._patch(self.client, {'value': 650}, token=self.dm_token)
+        assert response.status_code == 200
+        game_treasure = GameTreasure.objects.get(game=self.game, treasure=self.treasure)
+        assert game_treasure.hidden is True
+
+    def test_patch_hidden_without_game_treasure_row_does_not_error(self):
+        """Test that PATCH-ing hidden on a treasure without a GameTreasure row still succeeds."""
+        assert not GameTreasure.objects.filter(game=self.game, treasure=self.treasure).exists()
+        response = self._patch(self.client, {'hidden': True}, token=self.dm_token)
+        assert response.status_code == 200
+
     def test_patch_ignores_game_field(self):
         """Test that a game field in the payload has no effect on the treasure's game."""
         other_game = GameFactory(name='Other Game', game_slug='other-game')
@@ -211,8 +236,10 @@ class TestGameTreasureDetailHidden(TokenAuthRequestMixin, TestCase):
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         GameMasterFactory(game=cls.game, user=cls.dm_user)
-        cls.hidden_treasure = TreasureFactory(
-            name='Secret Idol', value=999, game=cls.game, hidden=True
+        cls.hidden_treasure = TreasureFactory(name='Secret Idol', value=999, game=cls.game)
+        GameTreasureFactory(
+            game=cls.game, treasure=cls.hidden_treasure, value=cls.hidden_treasure.value,
+            hidden=True,
         )
 
     def _url(self, treasure=None):
@@ -247,9 +274,7 @@ class TestGameTreasureDetailHidden(TokenAuthRequestMixin, TestCase):
 
     def test_visible_treasure_returns_200_for_anonymous(self):
         """Test that a non-hidden treasure is still accessible to anonymous users."""
-        visible_treasure = TreasureFactory(
-            name='Visible Gem', value=42, game=self.game, hidden=False
-        )
+        visible_treasure = TreasureFactory(name='Visible Gem', value=42, game=self.game)
         response = self.get(self.client, self._url(treasure=visible_treasure))
         assert response.status_code == 200
 
