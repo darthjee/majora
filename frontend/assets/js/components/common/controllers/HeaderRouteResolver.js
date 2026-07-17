@@ -2,7 +2,13 @@ import gameSlugFromHash from '../../../utils/routing/GameSlugFromHash.js';
 
 const CHARACTER_ROUTE_PATTERNS = {
   pcCharacter: '/games/:game_slug/pcs/:character_id',
+  pcCharacterEdit: '/games/:game_slug/pcs/:character_id/edit',
+  pcCharacterPhotos: '/games/:game_slug/pcs/:character_id/photos',
+  pcCharacterTreasures: '/games/:game_slug/pcs/:character_id/treasures',
   npcCharacter: '/games/:game_slug/npcs/:character_id',
+  npcCharacterEdit: '/games/:game_slug/npcs/:character_id/edit',
+  npcCharacterPhotos: '/games/:game_slug/npcs/:character_id/photos',
+  npcCharacterTreasures: '/games/:game_slug/npcs/:character_id/treasures',
 };
 
 /**

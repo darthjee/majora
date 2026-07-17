@@ -16,43 +16,31 @@ describe('HeaderHelper', function() {
       expect(html).toContain('Games');
     });
 
-    it('renders a Treasures nav link when the user is a superuser', function() {
-      const html = render({ isSuperUser: true });
+    describe('admin nav dropdown', function() {
+      it('renders the Admin dropdown with Treasures/Staff Users items when the user is a superuser', function() {
+        const html = render({ isSuperUser: true });
 
-      expect(html).toContain('href="#/treasures"');
-      expect(html).toContain('Treasures');
-    });
+        expect(html).toContain('Admin');
+        expect(html).toContain('href="#/treasures"');
+        expect(html).toContain('Treasures');
+        expect(html).toContain('href="#/staff/users"');
+        expect(html).toContain('Users');
+      });
 
-    it('renders a Treasures nav link when the user is staff', function() {
-      const html = render({ isStaff: true });
+      it('renders the Admin dropdown with Treasures/Staff Users items when the user is staff', function() {
+        const html = render({ isStaff: true });
 
-      expect(html).toContain('href="#/treasures"');
-      expect(html).toContain('Treasures');
-    });
+        expect(html).toContain('Admin');
+        expect(html).toContain('href="#/treasures"');
+        expect(html).toContain('href="#/staff/users"');
+      });
 
-    it('does not render the Treasures nav link when the user is neither staff nor a superuser', function() {
-      const html = render({ isSuperUser: false, isStaff: false });
+      it('does not render the Admin dropdown when the user is neither staff nor a superuser', function() {
+        const html = render({ isSuperUser: false, isStaff: false });
 
-      expect(html).not.toContain('href="#/treasures"');
-    });
-
-    it('renders a Staff Users nav link when the user is a superuser', function() {
-      const html = render({ isSuperUser: true });
-
-      expect(html).toContain('href="#/staff/users"');
-      expect(html).toContain('Users');
-    });
-
-    it('renders a Staff Users nav link when the user is staff', function() {
-      const html = render({ isStaff: true });
-
-      expect(html).toContain('href="#/staff/users"');
-    });
-
-    it('does not render the Staff Users nav link when the user is neither staff nor a superuser', function() {
-      const html = render({ isSuperUser: false, isStaff: false });
-
-      expect(html).not.toContain('href="#/staff/users"');
+        expect(html).not.toContain('href="#/treasures"');
+        expect(html).not.toContain('href="#/staff/users"');
+      });
     });
   });
 });
