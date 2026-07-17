@@ -454,6 +454,7 @@ money:
   copper_piece: copper piece(s)
   gems: gems
   gp_in_gems: GP in gems
+  in_gems: in Gems
   pp_abbreviation: PP
   gp_abbreviation: GP
   sp_abbreviation: SP

@@ -7,8 +7,10 @@ import CharacterMoneyBillHelper from './helpers/CharacterMoneyBillHelper.jsx';
  *
  * @param {object} props - Component props.
  * @param {number} props.money - Total money, expressed in cents.
+ * @param {number} [props.treasureValue] - Treasure value, expressed in cents, rendered as an
+ *   additional gold-background box below the money box (issue #616). Defaults to `0`.
  * @returns {React.ReactElement} Dollar bill box element.
  */
-export default function CharacterMoneyBill({ money }) {
-  return CharacterMoneyBillHelper.render(money);
+export default function CharacterMoneyBill({ money, treasureValue = 0 }) {
+  return CharacterMoneyBillHelper.render(money, treasureValue);
 }

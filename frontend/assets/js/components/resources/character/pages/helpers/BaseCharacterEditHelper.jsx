@@ -40,10 +40,12 @@ export default class BaseCharacterEditHelper {
    *   allegiance, and the slain toggle are visible/editable regardless of editor kind.
    * @param {{isFullEditor: boolean, name: string, profile_photo_path: string|null,
    *   links: object[], role: string, description: string, privateDescription: string,
-   *   money: string, gameType: string, allegiance: string, publicAllegiance: string,
-   *   publicSlain: boolean, hidden: boolean, status: string, fieldErrors: object}} state - page
+   *   money: string, treasureValue: number, gameType: string, allegiance: string,
+   *   publicAllegiance: string, publicSlain: boolean, hidden: boolean, status: string,
+   *   fieldErrors: object}} state - page
    *   state. `gameType` is the currency model name (e.g. `dnd`, `deadlands`) of the character's
-   *   own game, defaulting to `dnd`. `hidden` is NPC-only and DM/admin-only.
+   *   own game, defaulting to `dnd`. `hidden` is NPC-only and DM/admin-only. `treasureValue` is
+   *   the character's read-only treasure value (issue #616), rendered alongside `money`.
    * @param {{onSubmit: Function, onNameChange: Function,
    *   onRoleChange: Function,
    *   onDescriptionChange: Function, onPrivateDescriptionChange: Function,
@@ -82,6 +84,7 @@ export default class BaseCharacterEditHelper {
                 isFullEditor={state.isFullEditor}
                 label={Translator.t(`${i18nNamespace}.money_label`)}
                 money={state.money}
+                treasureValue={state.treasureValue}
                 gameType={state.gameType}
                 buttonLabel={Translator.t(`${i18nNamespace}.edit_money_button`)}
                 onOpenMoneyModal={handlers.onOpenMoneyModal}

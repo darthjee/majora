@@ -30,6 +30,8 @@ export default class CharacterHelper {
    * @param {object[]} [character.links] - External link objects with text and url.
    * @param {number} [character.money] - Total money, expressed in the currency's lowest
    *   denomination.
+   * @param {number} [character.treasure_value] - Treasure value, expressed in the currency's
+   *   lowest denomination, rendered read-only alongside `money` (issue #616).
    * @param {string} [character.game_type] - Currency model name (e.g. `dnd`, `deadlands`)
    *   of the character's own game, resolved live rather than stored on the character.
    *   Defaults to `dnd`.
@@ -82,6 +84,7 @@ export default class CharacterHelper {
             <LinkList links={character.links} />
             <CharacterMoney
               money={character.money}
+              treasureValue={character.treasure_value}
               gameType={character.game_type}
               canEditMoney={character.can_edit_money}
               onEditMoney={handlers.onOpenMoneyModal}

@@ -70,4 +70,40 @@ describe('CharacterMoney', function() {
     );
     expect(html).toContain('Edit money');
   });
+
+  it('does not render a dnd treasure box when treasureValue is 0', function() {
+    const html = renderToStaticMarkup(React.createElement(CharacterMoney, { money: 310 }));
+    expect(html).not.toContain('coin-box-treasure');
+  });
+
+  it('renders "20 GP in Gems" for a dnd treasureValue of 2000', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(CharacterMoney, { money: 310, treasureValue: 2000 })
+    );
+    expect(html).toContain('coin-box-treasure');
+    expect(html).toContain('20 GP in Gems');
+  });
+
+  it('renders "2 SP | 20 GP in Gems" for a dnd treasureValue of 2020', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(CharacterMoney, { money: 310, treasureValue: 2020 })
+    );
+    expect(html).toContain('2 SP | 20 GP in Gems');
+  });
+
+  it('does not render a deadlands treasure box when treasureValue is 0', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(CharacterMoney, { money: 350, gameType: 'deadlands' })
+    );
+    expect(html).not.toContain('character-money-bill-treasure');
+  });
+
+  it('renders a gold deadlands treasure box for a non-zero treasureValue', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(CharacterMoney, { money: 350, treasureValue: 10002, gameType: 'deadlands' })
+    );
+    expect(html).toContain('character-money-bill-treasure');
+    expect(html).toContain('100,02');
+    expect(html).toContain('in Gems');
+  });
 });

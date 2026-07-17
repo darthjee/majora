@@ -33,4 +33,17 @@ describe('CharacterMoneyField', function() {
     );
     expect(html).toContain('must be positive');
   });
+
+  it('forwards treasureValue into the money breakdown', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(CharacterMoneyField, buildProps({ treasureValue: 2000 }))
+    );
+    expect(html).toContain('coin-box-treasure');
+    expect(html).toContain('20 GP in Gems');
+  });
+
+  it('does not render a treasure box when treasureValue is not given', function() {
+    const html = renderToStaticMarkup(React.createElement(CharacterMoneyField, buildProps()));
+    expect(html).not.toContain('coin-box-treasure');
+  });
 });
