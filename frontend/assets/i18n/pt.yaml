@@ -297,6 +297,7 @@ game_treasures_page:
   new_treasure: Novo Tesouro
   edit: Editar
   available_units_label: 'Disponível: {{available}} / {{max}}'
+  hidden_label: Oculto
 game_treasure_new_page:
   title: Novo Tesouro
   name_label: Nome

@@ -108,6 +108,36 @@ export default class TreasureClient extends BaseClient {
   }
 
   /**
+   * Fetches an explicit page of a game's full treasure catalog, including hidden
+   * treasures (DM/admin-only endpoint). Mirrors {@link fetchGameTreasuresPage}'s
+   * params/pagination handling; each returned item additionally carries a
+   * `hidden` boolean field. Used by the treasure exchange modal's Acquire tab
+   * when the requester can edit the game, so a DM can browse (and later acquire)
+   * hidden treasures without a 404.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {{page: number, perPage: number, maxValue: number|null, search: string,
+   *   ordering: string}} [params] - Query params. `search` is a case-insensitive
+   *   substring match on the treasure name. `ordering` is `'asc'` or `'desc'`
+   *   (defaults to `'asc'` on the backend).
+   * @returns {Promise<Response>} fetch response from the game treasures/all endpoint.
+   */
+  fetchGameTreasuresAllPage(gameSlug, token, { page, perPage, maxValue, search, ordering } = {}) {
+    const queryParams = new URLSearchParams();
+
+    if (page) queryParams.set('page', page);
+    if (perPage) queryParams.set('per_page', perPage);
+    if (maxValue !== undefined && maxValue !== null) queryParams.set('max_value', maxValue);
+    if (search) queryParams.set('search', search);
+    if (ordering) queryParams.set('ordering', ordering);
+
+    const query = queryParams.toString();
+
+    return this.getJson(`/games/${gameSlug}/treasures/all.json${query ? `?${query}` : ''}`, token);
+  }
+
+  /**
    * Fetches the details of a game-scoped treasure.
    *
    * @param {string} gameSlug - Game slug.

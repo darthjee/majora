@@ -6,6 +6,7 @@ import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import Noop from '../../../../../utils/Noop.js';
 import CharacterGameTypeResolver from './CharacterGameTypeResolver.js';
+import HashQueryParams from '../../../../../utils/routing/HashQueryParams.js';
 
 /**
  * Base controller for character treasures index pages (PC and NPC).
@@ -105,6 +106,15 @@ export default class BaseCharacterTreasuresController extends BasePageController
   }
 
   #fetchTreasures(gameSlug, characterId, safeSet) {
+    if (this.characterKind === 'npcs') {
+      this.#fetchNpcTreasures(gameSlug, characterId, safeSet);
+      return;
+    }
+
+    this.#fetchTreasuresIndex(gameSlug, characterId, safeSet);
+  }
+
+  #fetchTreasuresIndex(gameSlug, characterId, safeSet) {
     this.client.fetchIndex(`/games/${gameSlug}/${this.characterKind}/${characterId}/treasures.json`)
       .then(({ data, pagination }) => {
         safeSet(this.setTreasures, Array.isArray(data) ? data : []);
@@ -112,6 +122,74 @@ export default class BaseCharacterTreasuresController extends BasePageController
       })
       .catch(() => safeSet(this.setError, 'Unable to load treasures.'))
       .finally(() => safeSet(this.setLoading, false));
+  }
+
+  /**
+   * Resolve the viewer's edit permission for the NPC before deciding which
+   * treasures endpoint to fetch: the full, hidden-inclusive `treasures/all.json`
+   * for an editor (DM/staff/superuser), so a hidden treasure already sitting in
+   * the NPC's inventory isn't filtered out of its own page, or the regular,
+   * hidden-filtered `treasures.json` otherwise. Falls back to the regular
+   * endpoint when the permission check itself fails.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string|number} characterId - NPC character id.
+   * @param {Function} safeSet - Setter wrapper guarding against a stale/unmounted update.
+   * @returns {void}
+   */
+  #fetchNpcTreasures(gameSlug, characterId, safeSet) {
+    AccessStore.ensureCharacterPermissions('npcs', gameSlug, characterId)
+      .then((permissions) => (permissions.can_edit
+        ? this.#fetchNpcTreasuresAll(gameSlug, characterId, safeSet)
+        : this.#fetchTreasuresIndex(gameSlug, characterId, safeSet)))
+      .catch(() => this.#fetchTreasuresIndex(gameSlug, characterId, safeSet));
+  }
+
+  #fetchNpcTreasuresAll(gameSlug, characterId, safeSet) {
+    const token = AuthStorage.getToken();
+    const params = BaseCharacterTreasuresController.#paginationParamsFromHash(this.client.currentHash());
+
+    this.characterClient.fetchTreasuresAllPage(gameSlug, characterId, token, params)
+      .then((response) => BaseCharacterTreasuresController.#parsePageResponse(response))
+      .then(({ data, pagination }) => {
+        safeSet(this.setTreasures, data);
+        safeSet(this.setPagination, pagination);
+      })
+      .catch(() => safeSet(this.setError, 'Unable to load treasures.'))
+      .finally(() => safeSet(this.setLoading, false));
+  }
+
+  static #paginationParamsFromHash(hash) {
+    const query = HashQueryParams.parse(hash);
+    const page = query.get('page');
+    const perPage = query.get('per_page');
+
+    return {
+      page: page ? Number.parseInt(page, 10) : undefined,
+      perPage: perPage ? Number.parseInt(perPage, 10) : undefined,
+    };
+  }
+
+  static async #parsePageResponse(response) {
+    if (!response.ok) {
+      throw new Error('Unable to load treasures.');
+    }
+
+    const data = await response.json();
+
+    return {
+      data: Array.isArray(data) ? data : [],
+      pagination: {
+        page: BaseCharacterTreasuresController.#parseInt(response.headers.get('page'), 1),
+        pages: BaseCharacterTreasuresController.#parseInt(response.headers.get('pages'), 1),
+        perPage: BaseCharacterTreasuresController.#parseInt(response.headers.get('per_page'), 10),
+      },
+    };
+  }
+
+  static #parseInt(value, fallback) {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
   }
 
   #fetchCharacterData(gameSlug, characterId, safeSet) {
