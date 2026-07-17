@@ -189,6 +189,13 @@ language_selector:
 treasures_page:
   loading: Carregando tesouros...
   new_treasure: Novo Tesouro
+  filter_game_type_label: Tipo de jogo
+  filter_min_value_label: Valor mínimo
+  filter_max_value_label: Valor máximo
+  filter_name_label: Nome
+  filter_name_placeholder: Buscar por nome...
+  filter_query: Filtrar
+  filter_clear: Limpar
 treasure_page:
   loading: Carregando tesouro...
   edit: Editar

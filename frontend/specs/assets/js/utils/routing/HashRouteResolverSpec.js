@@ -131,6 +131,13 @@ describe('HashRouteResolver', function() {
     expect(params.toString()).toBe('');
   });
 
+  it('extracts the treasure filter params', function() {
+    const params = new HashRouteResolver(
+      () => '#/treasures?game_type=dnd&min_value=10&max_value=100&name=sword&page=2',
+    ).getFilterParams();
+    expect(params.toString()).toBe('name=sword&game_type=dnd&min_value=10&max_value=100');
+  });
+
   it('extracts the poll status filter param', function() {
     const params = new HashRouteResolver(() => '#/games/campaign/polls?status=open&page=2').getFilterParams();
     expect(params.toString()).toBe('status=open');

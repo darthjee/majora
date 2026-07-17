@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from ...authentication import CookieTokenAuthentication
-from ...models import Treasure
+from ...models import Game, Treasure
 from ...serializers import (
     TreasureCreateSerializer,
     TreasureDetailSerializer,
@@ -24,8 +24,60 @@ def treasures_list(request):
     if request.method == 'POST':
         return _create_treasure(request)
 
-    treasures = Treasure.objects.filter(game__isnull=True).order_by('value', 'id')
+    treasures = Treasure.objects.filter(game__isnull=True)
+    treasures = _filter_by_game_type(request, treasures)
+    treasures = _filter_by_min_value(request, treasures)
+    treasures = _filter_by_max_value(request, treasures)
+    treasures = _filter_by_name(request, treasures)
+    treasures = treasures.order_by('value', 'id')
     return paginated_list_response(request, treasures, TreasureListSerializer)
+
+
+def _filter_by_game_type(request, treasures):
+    """Filter `treasures` to an exact `game_type` match when it is a recognized choice."""
+    game_type = request.GET.get('game_type')
+    valid_game_types = {key for key, _label in Game.GAME_TYPE_CHOICES}
+    if game_type not in valid_game_types:
+        return treasures
+
+    return treasures.filter(game_type=game_type)
+
+
+def _filter_by_min_value(request, treasures):
+    """Filter `treasures` to `value__gte` an optional `min_value` query param."""
+    min_value = request.GET.get('min_value')
+    if min_value is None:
+        return treasures
+
+    try:
+        min_value = int(min_value)
+    except ValueError:
+        return treasures
+
+    return treasures.filter(value__gte=min_value)
+
+
+def _filter_by_max_value(request, treasures):
+    """Filter `treasures` to `value__lte` an optional `max_value` query param."""
+    max_value = request.GET.get('max_value')
+    if max_value is None:
+        return treasures
+
+    try:
+        max_value = int(max_value)
+    except ValueError:
+        return treasures
+
+    return treasures.filter(value__lte=max_value)
+
+
+def _filter_by_name(request, treasures):
+    """Filter `treasures` to a case-insensitive `name` substring match on `name`."""
+    name = request.GET.get('name')
+    if not name:
+        return treasures
+
+    return treasures.filter(name__icontains=name)
 
 
 def _create_treasure(request):

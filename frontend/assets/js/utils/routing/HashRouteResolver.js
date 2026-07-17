@@ -111,10 +111,10 @@ export default class HashRouteResolver {
   }
 
   /**
-   * Return NPC/poll filter query params from hash.
+   * Return NPC/poll/treasure filter query params from hash.
    *
-   * @returns {URLSearchParams} Filter params (`slain`/`name`/`allegiance`/`status`/`hidden`),
-   *   only set when present in hash.
+   * @returns {URLSearchParams} Filter params (`slain`/`name`/`allegiance`/`status`/`hidden`/
+   *   `game_type`/`min_value`/`max_value`), only set when present in hash.
    */
   getFilterParams() {
     const query = HashQueryParams.parse(this.currentHash());
@@ -125,6 +125,9 @@ export default class HashRouteResolver {
     const allegiance = query.get('allegiance');
     const status = query.get('status');
     const hidden = query.get('hidden');
+    const gameType = query.get('game_type');
+    const minValue = query.get('min_value');
+    const maxValue = query.get('max_value');
 
     if (slain !== null) {
       params.set('slain', slain);
@@ -144,6 +147,18 @@ export default class HashRouteResolver {
 
     if (hidden !== null) {
       params.set('hidden', hidden);
+    }
+
+    if (gameType !== null) {
+      params.set('game_type', gameType);
+    }
+
+    if (minValue !== null) {
+      params.set('min_value', minValue);
+    }
+
+    if (maxValue !== null) {
+      params.set('max_value', maxValue);
     }
 
     return params;
