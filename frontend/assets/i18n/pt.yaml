@@ -92,6 +92,7 @@ game_characters_page:
 character_page:
   loading: Carregando personagem...
   edit: Editar
+  edit_money_button: Editar dinheiro
   see_all_photos: Fotos
   slain_button: Marcar como Morto
   revive_button: Reviver
