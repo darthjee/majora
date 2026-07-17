@@ -142,6 +142,12 @@ Django-admin-only actions (e.g. Treasure or Game deletion — see
 [access-control.md](access-control.md)'s existing admin carve-out), regardless of how far
 the Staff role's endpoint-level parity with Superuser grows.
 
+The one explicit, named exception to this game-scoped carve-out (issue #619): Staff may
+upload a photo for a **PC** (`POST /games/:game_slug/pcs/:id/photo_upload.json`), for any
+game, without being a player or GameMaster of that game. This does not extend to NPC photo
+upload (`NpcPlayerEditPermission` is unchanged and still has no Staff bypass) nor to any
+other game-scoped resource.
+
 ---
 
 ## Editing Rules
@@ -175,8 +181,17 @@ photo upload. A player of the game may initiate an NPC photo upload
 (`PATCH /uploads/:id.json`), even without being that NPC's owner (moot, since NPCs have no
 owner) or a GameMaster/superuser. Both checkpoints reuse the same
 `NpcPlayerEditPermission` introduced by #416, rather than a new permission — this remains
-NPC-only; PC photo upload still requires the character's owning player, a GameMaster, or a
-superuser.
+NPC-only.
+
+Issue #619 extends a parallel, PC-specific leniency to **PC photo upload**
+(`POST /games/:game_slug/pcs/:id/photo_upload.json`). In addition to the Editing rights above
+(superuser, the PC's owning player, or a GameMaster of the same game), this single endpoint
+also allows: any other player of the game (via `Player.games`, regardless of whether they
+own this specific PC), and any Staff account (`user.is_staff`, global — not scoped to games
+the Staff user is otherwise involved in). This is implemented by a new, narrowly-scoped
+`CharacterPhotoUploadPermission`, distinct from both `NpcPlayerEditPermission` (which has no
+Staff bypass and stays NPC-only) and `CharacterEditPermission` (which still governs full PC
+editing — name, description, and other fields — unchanged and unaffected by this issue).
 
 ---
 
@@ -192,3 +207,4 @@ superuser.
 | Staff role | `user.is_staff` — global; full parity with Superuser on any non-game-scoped endpoint (User management, global Treasure management); no authority over game-scoped resources or Django-admin-only actions |
 | NPC narrow player PATCH | Any player of the game (via `Player.games`), in addition to the Editing rights above — NPC-only; `public_description`, `links`, `allegiance` (→`public_allegiance`), `slain` (→`public_slain`) fields only |
 | NPC photo upload (init/finalize) | Any player of the game (via `Player.games`), in addition to the Editing rights above — NPC-only, same `NpcPlayerEditPermission` as the narrow player PATCH row above (issue #429) |
+| PC photo upload (init) | Any player of the game (via `Player.games`), OR any Staff account (`user.is_staff`, global), in addition to the Editing rights above — PC-only, new `CharacterPhotoUploadPermission` (issue #619); full PC editing still uses `CharacterEditPermission` unchanged |
