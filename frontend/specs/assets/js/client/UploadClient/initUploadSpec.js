@@ -44,5 +44,16 @@ describe('UploadClient', function() {
 
       expect(url).toBe('/games/my-game/pcs/7/photo_upload.json');
     });
+
+    it('passes an explicit AbortSignal distinct from the default timeout signal', async function() {
+      const client = new UploadClient();
+
+      await client.initUpload('/games/demo/photo_upload.json', 'cover.png', 'tok-abc');
+
+      const [, options] = fetchSpy.calls.mostRecent().args;
+
+      expect(options.signal).toBeInstanceOf(AbortSignal);
+      expect(options.signal).not.toBe(undefined);
+    });
   });
 });

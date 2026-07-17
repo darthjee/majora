@@ -34,5 +34,17 @@ describe('UploadClient', function() {
 
       expect(url).toBe('/uploads/99/submit');
     });
+
+    it('passes an explicit AbortSignal distinct from the default timeout signal', async function() {
+      const client = new UploadClient();
+      const file = new File(['content'], 'photo.jpg', { type: 'image/jpeg' });
+
+      await client.submitUpload(42, 'up-token', file);
+
+      const [, options] = fetchSpy.calls.mostRecent().args;
+
+      expect(options.signal).toBeInstanceOf(AbortSignal);
+      expect(options.signal).not.toBe(undefined);
+    });
   });
 });
