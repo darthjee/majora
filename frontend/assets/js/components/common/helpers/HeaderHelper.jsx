@@ -33,10 +33,9 @@ export default class HeaderHelper {
           <Navbar.Collapse id="header-navbar">
             <Nav className="me-auto">
               <Nav.Link href="#/games">{Translator.t('header.nav_games')}</Nav.Link>
-              {HeaderHelper.#renderTreasuresNavLink(state)}
-              {HeaderHelper.#renderStaffUsersNavLink(state)}
+              {HeaderHelper.#renderAdminNavLinks(state)}
               {HeaderHelper.#renderGameNavLinks(state)}
-              {HeaderHelper.#renderCharacterPhotosNavLink(state)}
+              {HeaderHelper.#renderCharacterNavLinks(state)}
             </Nav>
             <Nav className="align-items-center">
               {HeaderHelper.#renderServerStatus(state)}
@@ -57,31 +56,23 @@ export default class HeaderHelper {
   }
 
   /**
-   * Renders the admin-or-staff-only Treasures nav link.
+   * Renders the admin-or-staff-only "Admin" nav dropdown, grouping the
+   * Treasures and Staff Users links.
    *
    * @param {{isSuperUser: boolean, isStaff: boolean}} state - header auth state.
-   * @returns {React.ReactElement|null} treasures nav link, or null for non-superusers.
+   * @returns {React.ReactElement|null} the Admin nav dropdown, or null for non-staff/non-superusers.
    */
-  static #renderTreasuresNavLink(state) {
+  static #renderAdminNavLinks(state) {
     if (!state.isSuperUser && !state.isStaff) {
       return null;
     }
 
-    return <Nav.Link href="#/treasures">{Translator.t('header.nav_treasures')}</Nav.Link>;
-  }
-
-  /**
-   * Renders the admin-or-staff-only Staff Users nav link.
-   *
-   * @param {{isSuperUser: boolean, isStaff: boolean}} state - header auth state.
-   * @returns {React.ReactElement|null} staff users nav link, or null for non-staff/non-superusers.
-   */
-  static #renderStaffUsersNavLink(state) {
-    if (!state.isSuperUser && !state.isStaff) {
-      return null;
-    }
-
-    return <Nav.Link href="#/staff/users">{Translator.t('header.nav_staff_users')}</Nav.Link>;
+    return (
+      <NavDropdown title={Translator.t('header.nav_admin')} id="header-admin-nav-dropdown" renderMenuOnMount>
+        <NavDropdown.Item href="#/treasures">{Translator.t('header.nav_treasures')}</NavDropdown.Item>
+        <NavDropdown.Item href="#/staff/users">{Translator.t('header.nav_staff_users')}</NavDropdown.Item>
+      </NavDropdown>
+    );
   }
 
   /**
@@ -135,25 +126,33 @@ export default class HeaderHelper {
   }
 
   /**
-   * Renders the contextual Photos nav link while viewing a PC or NPC character page.
+   * Renders the contextual "PC"/"NPC" nav dropdown while viewing any PC or
+   * NPC character sub-route, listing the character's key sections.
    *
    * @param {{route: ({page: string, gameSlug: (string|undefined), characterId: (string|undefined)}|undefined)}} state - header auth state.
-   * @returns {React.ReactElement|null} photos nav link, or null when not on a character route.
+   * @returns {React.ReactElement|null} the PC/NPC nav dropdown, or null when not on a character route.
    */
-  static #renderCharacterPhotosNavLink(state) {
+  static #renderCharacterNavLinks(state) {
     const page = state.route?.page;
+    const isPc = page?.startsWith('pcCharacter');
+    const isNpc = page?.startsWith('npcCharacter');
 
-    if (page !== 'pcCharacter' && page !== 'npcCharacter') {
+    if (!isPc && !isNpc) {
       return null;
     }
 
-    const segment = page === 'pcCharacter' ? 'pcs' : 'npcs';
+    const segment = isPc ? 'pcs' : 'npcs';
     const { gameSlug, characterId } = state.route;
+    const base = `#/games/${gameSlug}/${segment}/${characterId}`;
+    const title = Translator.t(isPc ? 'header.nav_pc' : 'header.nav_npc');
+    const dropdownId = isPc ? 'header-pc-nav-dropdown' : 'header-npc-nav-dropdown';
 
     return (
-      <Nav.Link href={`#/games/${gameSlug}/${segment}/${characterId}/photos`}>
-        {Translator.t('character_page.see_all_photos')}
-      </Nav.Link>
+      <NavDropdown title={title} id={dropdownId} renderMenuOnMount>
+        <NavDropdown.Item href={base}>{Translator.t('header.nav_game_show')}</NavDropdown.Item>
+        <NavDropdown.Item href={`${base}/photos`}>{Translator.t('character_page.see_all_photos')}</NavDropdown.Item>
+        <NavDropdown.Item href={`${base}/treasures`}>{Translator.t('character_page.treasures_title')}</NavDropdown.Item>
+      </NavDropdown>
     );
   }
 
