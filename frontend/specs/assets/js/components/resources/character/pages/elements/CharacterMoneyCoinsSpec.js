@@ -12,4 +12,19 @@ describe('CharacterMoneyCoins', function() {
     expect(html).toContain('coin-box-gp');
     expect(html).toContain('coin-box-pp');
   });
+
+  it('forwards treasureValue into a treasure coin box', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(CharacterMoneyCoins, { money: 332, treasureValue: 2000 })
+    );
+
+    expect(html).toContain('coin-box-treasure');
+    expect(html).toContain('20 GP in Gems');
+  });
+
+  it('does not render a treasure coin box when treasureValue is 0', function() {
+    const html = renderToStaticMarkup(React.createElement(CharacterMoneyCoins, { money: 332 }));
+
+    expect(html).not.toContain('coin-box-treasure');
+  });
 });

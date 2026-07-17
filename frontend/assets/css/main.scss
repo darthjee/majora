@@ -209,6 +209,10 @@ body {
   color: #6e7076;
 }
 
+.coin-box-treasure {
+  color: red;
+}
+
 .character-money-bill {
   display: flex;
   align-items: center;
@@ -225,4 +229,10 @@ body {
 
 .character-money-bill .coin-icon {
   font-size: 1.1rem;
+}
+
+.character-money-bill-treasure {
+  background-color: gold;
+  border-color: #b8860b;
+  color: #ffffff;
 }

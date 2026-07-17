@@ -35,5 +35,25 @@ describe('CharacterMoneyBillHelper', function() {
 
       expect(html).toContain('coin-icon');
     });
+
+    it('does not render a treasure box when treasureValue is not given', function() {
+      const html = renderToStaticMarkup(CharacterMoneyBillHelper.render(350));
+
+      expect(html).not.toContain('character-money-bill-treasure');
+    });
+
+    it('does not render a treasure box when treasureValue is 0', function() {
+      const html = renderToStaticMarkup(CharacterMoneyBillHelper.render(350, 0));
+
+      expect(html).not.toContain('character-money-bill-treasure');
+    });
+
+    it('renders a gold treasure box below the money box for a non-zero treasureValue', function() {
+      const html = renderToStaticMarkup(CharacterMoneyBillHelper.render(350, 10002));
+
+      expect(html).toContain('character-money-bill-treasure');
+      expect(html).toContain('100,02');
+      expect(html).toContain('in Gems');
+    });
   });
 });

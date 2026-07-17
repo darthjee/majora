@@ -13,19 +13,21 @@ export default class CharacterMoneyFieldHelper {
    * @param {boolean} isFullEditor - Whether the current editor may see/edit money.
    * @param {string} label - Translated money field label.
    * @param {number} money - Total money, expressed in the currency's lowest denomination.
+   * @param {number} treasureValue - Treasure value, expressed in the currency's lowest
+   *   denomination, rendered read-only alongside `money` (issue #616).
    * @param {string} gameType - Currency model name (e.g. `dnd`, `deadlands`).
    * @param {string} buttonLabel - Translated "Edit money" button label.
    * @param {Function} onOpenMoneyModal - Handler invoked when the button is clicked.
    * @param {string[]} errors - Field-level error messages to display below the field.
    * @returns {React.ReactElement|null} Money field element, or null.
    */
-  static render(isFullEditor, label, money, gameType, buttonLabel, onOpenMoneyModal, errors) {
+  static render(isFullEditor, label, money, treasureValue, gameType, buttonLabel, onOpenMoneyModal, errors) {
     if (!isFullEditor) return null;
 
     return (
       <div className="mb-3">
         <label className="form-label">{label}</label>
-        <CharacterMoney money={Number(money) || 0} gameType={gameType} />
+        <CharacterMoney money={Number(money) || 0} treasureValue={treasureValue} gameType={gameType} />
         <button
           type="button"
           className="btn btn-outline-secondary btn-sm"

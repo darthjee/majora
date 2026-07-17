@@ -108,6 +108,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
           description,
           privateDescription,
           money,
+          treasureValue: character?.treasure_value ?? 0,
           gameType,
           allegiance,
           publicAllegiance,

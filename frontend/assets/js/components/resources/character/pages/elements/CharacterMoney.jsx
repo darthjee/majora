@@ -9,6 +9,9 @@ import CharacterMoneyHelper from './helpers/CharacterMoneyHelper.jsx';
  * @param {object} props - Component props.
  * @param {number} props.money - Total money, expressed in the currency's
  *   lowest denomination.
+ * @param {number} [props.treasureValue] - Treasure value, expressed in the
+ *   currency's lowest denomination, rendered read-only alongside `money`
+ *   (issue #616). Defaults to `0`.
  * @param {string} [props.gameType] - Currency model name (e.g. `dnd`,
  *   `deadlands`). Defaults to `dnd`.
  * @param {boolean} [props.canEditMoney] - Whether to render the "Edit" link
@@ -18,7 +21,7 @@ import CharacterMoneyHelper from './helpers/CharacterMoneyHelper.jsx';
  * @returns {React.ReactElement|null} Money breakdown element, or null.
  */
 export default function CharacterMoney({
-  money, gameType = 'dnd', canEditMoney = false, onEditMoney,
+  money, treasureValue = 0, gameType = 'dnd', canEditMoney = false, onEditMoney,
 }) {
-  return CharacterMoneyHelper.render(money, gameType, canEditMoney, onEditMoney);
+  return CharacterMoneyHelper.render(money, treasureValue, gameType, canEditMoney, onEditMoney);
 }

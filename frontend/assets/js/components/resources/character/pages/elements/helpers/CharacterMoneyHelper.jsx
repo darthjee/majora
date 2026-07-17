@@ -21,6 +21,9 @@ export default class CharacterMoneyHelper {
    *
    * @param {number} money - Total money, expressed in the currency's lowest
    *   denomination (copper pieces for `dnd`, cents for `deadlands`).
+   * @param {number} treasureValue - Treasure value, expressed in the
+   *   currency's lowest denomination, rendered read-only alongside `money`
+   *   (issue #616).
    * @param {string} gameType - Currency model name to resolve (e.g. `dnd`,
    *   `deadlands`).
    * @param {boolean} [canEditMoney] - Whether to render the "Edit" link
@@ -29,8 +32,8 @@ export default class CharacterMoneyHelper {
    *   is clicked.
    * @returns {React.ReactElement|null} Money breakdown element, or null.
    */
-  static render(money, gameType, canEditMoney = false, onEditMoney) {
-    const breakdown = CharacterMoneyHelper.#renderBreakdown(money, gameType);
+  static render(money, treasureValue, gameType, canEditMoney = false, onEditMoney) {
+    const breakdown = CharacterMoneyHelper.#renderBreakdown(money, treasureValue, gameType);
 
     if (!canEditMoney) return breakdown;
 
@@ -47,17 +50,20 @@ export default class CharacterMoneyHelper {
    *
    * @param {number} money - Total money, expressed in the currency's lowest
    *   denomination (copper pieces for `dnd`, cents for `deadlands`).
+   * @param {number} treasureValue - Treasure value, expressed in the
+   *   currency's lowest denomination, rendered read-only alongside `money`
+   *   (issue #616).
    * @param {string} gameType - Currency model name to resolve (e.g. `dnd`,
    *   `deadlands`).
    * @returns {React.ReactElement|null} Money breakdown element, or null.
    */
-  static #renderBreakdown(money, gameType) {
+  static #renderBreakdown(money, treasureValue, gameType) {
     if (gameType === 'dnd') {
-      return <CharacterMoneyCoins money={money} />;
+      return <CharacterMoneyCoins money={money} treasureValue={treasureValue} />;
     }
 
     if (gameType === 'deadlands') {
-      return <CharacterMoneyBill money={money} />;
+      return <CharacterMoneyBill money={money} treasureValue={treasureValue} />;
     }
 
     const model = MoneyModelRegistry.resolve(gameType);
