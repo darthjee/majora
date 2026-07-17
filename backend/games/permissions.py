@@ -97,10 +97,10 @@ class CharacterMoneyEditPermission(_EditPermission):
     Grants the same access as full CharacterEditPermission (superuser, the character's
     owning player, or a GameMaster of the game) plus any Staff account (globally, not
     scoped to games the Staff user is otherwise involved in) — mirroring
-    CharacterPhotoUploadPermission's Staff bypass (issue #619), but deliberately without its
-    additional "any player of the game" grant: NPCs have no owner, so this stays
-    admin/dm/staff-only for NPCs, and a regular player may only use it on their own PC (via
-    the inherited owner check), never on an NPC.
+    CharacterPhotoUploadPermission's Staff bypass (issue #619). For PCs, this also mirrors
+    CharacterPhotoUploadPermission's "any player of the game" grant (issue #625). NPCs have
+    no owner concept, so that leniency is deliberately PC-only: NPC money editing stays
+    admin/dm/staff-only.
 
     Exposes `is_allowed` as a public classmethod (unlike CharacterPhotoUploadPermission's
     private `_is_allowed`) because CharacterDetailSerializer's `can_edit_money` field needs
@@ -119,8 +119,19 @@ class CharacterMoneyEditPermission(_EditPermission):
 
     @classmethod
     def is_allowed(cls, user, character):
-        """Return whether `user` may edit `character`'s money (Staff bypass or full edit rights)."""
-        return bool(user and user.is_staff) or character.can_be_edited_by(user)
+        """Return whether `user` may edit `character`'s money.
+
+        Staff bypass applies globally to both PCs and NPCs. The "any player of the game"
+        leniency is PC-only (issue #625) — NPCs have no owner concept and stay
+        admin/dm/staff-only.
+        """
+        if not user or not user.is_authenticated:
+            return False
+        if user.is_staff:
+            return True
+        if character.is_pc and character.game.players.filter(user=user).exists():
+            return True
+        return character.can_be_edited_by(user)
 
 
 class TreasureEditPermission(_EditPermission):

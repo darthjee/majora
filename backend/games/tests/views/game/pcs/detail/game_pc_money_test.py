@@ -76,6 +76,16 @@ class TestGamePcMoneyView(TokenAuthRequestMixin):
         self.character.refresh_from_db()
         assert self.character.money == 200
 
+    def test_put_updates_money_for_regular_player_of_the_game(self, client):
+        """Test that any player of the game (not just the owner) can update PC money."""
+        token = Token.objects.create(user=self.regular_player_user)
+
+        response = self._put(client, {'money': 250}, token=token)
+
+        assert_json_response(response, 200, money=250)
+        self.character.refresh_from_db()
+        assert self.character.money == 250
+
     def test_put_updates_money_for_dm(self, client):
         """Test that a DM of the game can update money."""
         token = Token.objects.create(user=self.dm_user)

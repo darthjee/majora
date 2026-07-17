@@ -226,10 +226,11 @@ link can live directly on the show page without requiring full editor access (is
 **CharacterMoneyEdit** (`CharacterMoneyEditPermission`, `backend/games/permissions.py`): grants
 the same access as **CharacterEdit** (superuser, the character's owning player, or a GameMaster
 of the game) plus any global Staff account (`user.is_staff`), mirroring the Staff bypass
-`CharacterPhotoUploadPermission` added for PC photo upload (issue #619) — but, unlike that
-class, with no additional "any player of the game" grant. Since an NPC has no owning player,
-this makes NPC money edits admin/dm/staff-only in practice; a regular player may only use this
-route on their own PC.
+`CharacterPhotoUploadPermission` added for PC photo upload (issue #619). For a **PC**, this also
+grants any player of that PC's game (issue #625), mirroring `CharacterPhotoUploadPermission`'s
+"any player of the game" leniency — but that leniency is **PC-only**: since an NPC has no owning
+player, NPC money edits stay admin/dm/staff-only, and a regular player who isn't otherwise a
+GameMaster/superuser/staff gets no access to it.
 
 Validated by `CharacterMoneyUpdateSerializer` (`backend/games/serializers/characters/character_money_update.py`),
 a `ModelSerializer` restricted to `fields = ['money']` (required) — `money` being a
