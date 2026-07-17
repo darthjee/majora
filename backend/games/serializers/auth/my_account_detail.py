@@ -17,7 +17,7 @@ class MyAccountDetailSerializer(serializers.ModelSerializer):
         """Metadata for the MyAccountDetailSerializer."""
 
         model = User
-        fields = ['name', 'email', 'avatar_url']
+        fields = ['name', 'first_name', 'last_name', 'email', 'avatar_url']
 
     def get_avatar_url(self, user):
         """Return the Gravatar avatar URL built from the user's email_hash, or None."""
