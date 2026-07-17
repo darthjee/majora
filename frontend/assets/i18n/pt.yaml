@@ -242,7 +242,9 @@ my_account_page:
   title: Minha Conta
   loading: Carregando conta...
   avatar_alt: Avatar do usuário
-  name_label: Nome
+  name_label: Usuario
+  first_name_label: Nome
+  last_name_label: Sobrenome
   email_label: E-mail
   password_label: Senha
   password_confirmation_label: Confirmar senha
