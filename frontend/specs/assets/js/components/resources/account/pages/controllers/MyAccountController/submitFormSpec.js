@@ -8,6 +8,8 @@ describe('MyAccountController', function() {
 
   describe('#submitForm', function() {
     let setName;
+    let setFirstName;
+    let setLastName;
     let setEmail;
     let setAvatarUrl;
     let setLoading;
@@ -17,6 +19,8 @@ describe('MyAccountController', function() {
 
     beforeEach(function() {
       setName = jasmine.createSpy('setName');
+      setFirstName = jasmine.createSpy('setFirstName');
+      setLastName = jasmine.createSpy('setLastName');
       setEmail = jasmine.createSpy('setEmail');
       setAvatarUrl = jasmine.createSpy('setAvatarUrl');
       setLoading = jasmine.createSpy('setLoading');
@@ -32,7 +36,7 @@ describe('MyAccountController', function() {
     });
 
     const buildController = () => new MyAccountController(
-      setName, setEmail, setAvatarUrl, setLoading, client,
+      setName, setFirstName, setLastName, setEmail, setAvatarUrl, setLoading, client,
     );
 
     it('prevents default, resets status/errors, and submits the fields payload', async function() {
@@ -41,7 +45,8 @@ describe('MyAccountController', function() {
       await buildController().submitForm(
         event,
         {
-          name: 'Jane', email: 'jane@example.com', password: '', passwordConfirmation: '',
+          name: 'Jane', firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com',
+          password: '', passwordConfirmation: '',
         },
         { setStatus, setFieldErrors },
       );
@@ -52,7 +57,8 @@ describe('MyAccountController', function() {
       expect(client.updateAccount).toHaveBeenCalledWith(
         'tok-abc',
         {
-          name: 'Jane', email: 'jane@example.com', password: '', passwordConfirmation: '',
+          name: 'Jane', firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com',
+          password: '', passwordConfirmation: '',
         },
       );
     });
@@ -61,7 +67,8 @@ describe('MyAccountController', function() {
       await buildController().submitForm(
         undefined,
         {
-          name: 'Jane', email: 'jane@example.com', password: '', passwordConfirmation: '',
+          name: 'Jane', firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com',
+          password: '', passwordConfirmation: '',
         },
         { setStatus, setFieldErrors },
       );

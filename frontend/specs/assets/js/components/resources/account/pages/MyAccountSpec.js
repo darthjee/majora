@@ -22,12 +22,14 @@ describe('MyAccount', function() {
     const html = renderToStaticMarkup(
       MyAccountHelper.render(
         {
-          name: 'Jane', email: 'jane@example.com', avatarUrl: null, password: '',
-          passwordConfirmation: '', status: 'idle', fieldErrors: {},
+          name: 'Jane', firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com',
+          avatarUrl: null, password: '', passwordConfirmation: '', status: 'idle', fieldErrors: {},
         },
         {
           onSubmit: Noop.noop,
           onNameChange: Noop.noop,
+          onFirstNameChange: Noop.noop,
+          onLastNameChange: Noop.noop,
           onEmailChange: Noop.noop,
           onPasswordChange: Noop.noop,
           onPasswordConfirmationChange: Noop.noop,
@@ -36,5 +38,6 @@ describe('MyAccount', function() {
     );
 
     expect(html).toContain('value="Jane"');
+    expect(html).toContain('value="Doe"');
   });
 });

@@ -17,7 +17,13 @@ describe('HeaderRouteResolver', function() {
 
     [
       { page: 'pcCharacter', pattern: '/games/:game_slug/pcs/:character_id', params: { game_slug: 'campaign', character_id: '7' }, characterId: '7' },
+      { page: 'pcCharacterEdit', pattern: '/games/:game_slug/pcs/:character_id/edit', params: { game_slug: 'campaign', character_id: '7' }, characterId: '7' },
+      { page: 'pcCharacterPhotos', pattern: '/games/:game_slug/pcs/:character_id/photos', params: { game_slug: 'campaign', character_id: '7' }, characterId: '7' },
+      { page: 'pcCharacterTreasures', pattern: '/games/:game_slug/pcs/:character_id/treasures', params: { game_slug: 'campaign', character_id: '7' }, characterId: '7' },
       { page: 'npcCharacter', pattern: '/games/:game_slug/npcs/:character_id', params: { game_slug: 'campaign', character_id: '9' }, characterId: '9' },
+      { page: 'npcCharacterEdit', pattern: '/games/:game_slug/npcs/:character_id/edit', params: { game_slug: 'campaign', character_id: '9' }, characterId: '9' },
+      { page: 'npcCharacterPhotos', pattern: '/games/:game_slug/npcs/:character_id/photos', params: { game_slug: 'campaign', character_id: '9' }, characterId: '9' },
+      { page: 'npcCharacterTreasures', pattern: '/games/:game_slug/npcs/:character_id/treasures', params: { game_slug: 'campaign', character_id: '9' }, characterId: '9' },
     ].forEach(({ page, pattern, params, characterId }) => {
       it(`returns the gameSlug/characterId for the ${page} route`, function() {
         const routeResolver = { getPage: () => page, getParams: jasmine.createSpy('getParams').and.returnValue(params) };

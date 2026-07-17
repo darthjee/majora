@@ -16,11 +16,11 @@ import Icons from '../../../../../utils/ui/Icons.js';
  */
 export default class GameHelper {
   /**
-   * Render the game detail view with description, character previews, and treasures link.
+   * Render the game detail view with description and character previews.
    *
    * @param {object} game - Game data object.
    * @param {string} game.name - Game name.
-   * @param {string} game.game_slug - Game slug used to build the treasures href.
+   * @param {string} game.game_slug - Game slug used to build section hrefs (sessions, PCs, NPCs).
    * @param {string|null} [game.cover_photo_path] - Optional cover photo URL.
    * @param {string} [game.description] - Game description text.
    * @param {object[]} [game.links] - External link objects with text and url.
@@ -60,9 +60,6 @@ export default class GameHelper {
             />
             {GameHelper.#renderNextSession(game)}
             <OpenPollsWidget game={game} />
-            <a href={`#/games/${game.game_slug}/treasures`} className="btn btn-secondary mt-3">
-              {Translator.t('game_page.treasures')}
-            </a>
           </div>
           <div className="col-md-8">
             <h1>

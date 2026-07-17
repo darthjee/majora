@@ -10,14 +10,18 @@ export default class MyAccountController extends BasePageController {
    * Create a my account controller.
    *
    * @param {Function} setName - Name setter, used to prefill the form.
+   * @param {Function} setFirstName - First name setter, used to prefill the form.
+   * @param {Function} setLastName - Last name setter, used to prefill the form.
    * @param {Function} setEmail - Email setter, used to prefill the form.
    * @param {Function} setAvatarUrl - Avatar URL setter, used to prefill the page avatar.
    * @param {Function} setLoading - Loading setter.
    * @param {AuthClient|null} [client] - Client override.
    */
-  constructor(setName, setEmail, setAvatarUrl, setLoading, client = null) {
+  constructor(setName, setFirstName, setLastName, setEmail, setAvatarUrl, setLoading, client = null) {
     super();
     this.setName = setName;
+    this.setFirstName = setFirstName;
+    this.setLastName = setLastName;
     this.setEmail = setEmail;
     this.setAvatarUrl = setAvatarUrl;
     this.setLoading = setLoading;
@@ -52,8 +56,8 @@ export default class MyAccountController extends BasePageController {
    *   field errors, sends a PATCH request, then sets a success status on
    *   success, field errors on `400`, or an error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
-   * @param {{name: string, email: string, password: string,
-   *   passwordConfirmation: string}} formValues - Raw form field values.
+   * @param {{name: string, firstName: string, lastName: string, email: string,
+   *   password: string, passwordConfirmation: string}} formValues - Raw form field values.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
@@ -85,6 +89,8 @@ export default class MyAccountController extends BasePageController {
         : Promise.reject(new Error('account fetch failed'))))
       .then((account) => {
         safeSet(this.setName, account.name ?? '');
+        safeSet(this.setFirstName, account.first_name ?? '');
+        safeSet(this.setLastName, account.last_name ?? '');
         safeSet(this.setEmail, account.email ?? '');
         safeSet(this.setAvatarUrl, account.avatar_url ?? null);
       })

@@ -48,6 +48,8 @@ class TestAccountView(TokenAuthRequestMixin, TestCase):
         assert response.status_code == 200
         assert json.loads(response.content) == {
             'name': 'alice',
+            'first_name': '',
+            'last_name': '',
             'email': 'alice@example.com',
             'avatar_url': _avatar_url_for('alice@example.com'),
         }
@@ -103,6 +105,8 @@ class TestAccountPatchView(TokenAuthRequestMixin, TestCase):
         data = json.loads(response.content)
         assert data == {
             'name': 'renamed',
+            'first_name': '',
+            'last_name': '',
             'email': 'renamed@example.com',
             'avatar_url': _avatar_url_for('renamed@example.com'),
         }

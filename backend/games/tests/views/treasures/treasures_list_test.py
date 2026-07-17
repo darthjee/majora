@@ -107,6 +107,109 @@ class TestTreasuresListView:
         data = json.loads(response.content)
         assert [item['id'] for item in data] == [first.id, second.id]
 
+    def test_filters_by_game_type(self, client):
+        """Test that only treasures matching game_type are returned."""
+        TreasureFactory(name='Sword', value=100, game_type='dnd')
+        TreasureFactory(name='Six-Shooter', value=100, game_type='deadlands')
+        response = client.get('/treasures.json?game_type=deadlands')
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Six-Shooter'
+
+    def test_ignores_unrecognized_game_type(self, client):
+        """Test that an unrecognized game_type value returns the unfiltered list."""
+        TreasureFactory(name='Sword', value=100, game_type='dnd')
+        TreasureFactory(name='Six-Shooter', value=100, game_type='deadlands')
+        response = client.get('/treasures.json?game_type=bogus')
+        data = json.loads(response.content)
+        assert len(data) == 2
+
+    def test_ignores_blank_game_type(self, client):
+        """Test that a blank game_type value returns the unfiltered list."""
+        TreasureFactory(name='Sword', value=100, game_type='dnd')
+        TreasureFactory(name='Six-Shooter', value=100, game_type='deadlands')
+        response = client.get('/treasures.json?game_type=')
+        data = json.loads(response.content)
+        assert len(data) == 2
+
+    def test_filters_by_min_value_inclusive(self, client):
+        """Test that a treasure with value exactly equal to min_value is included."""
+        TreasureFactory(name='Cheap Gem', value=50)
+        TreasureFactory(name='Boundary Gem', value=100)
+        TreasureFactory(name='Expensive Gem', value=200)
+        response = client.get('/treasures.json?min_value=100')
+        data = json.loads(response.content)
+        names = {item['name'] for item in data}
+        assert names == {'Boundary Gem', 'Expensive Gem'}
+
+    def test_filters_by_max_value_inclusive(self, client):
+        """Test that a treasure with value exactly equal to max_value is included."""
+        TreasureFactory(name='Cheap Gem', value=50)
+        TreasureFactory(name='Boundary Gem', value=100)
+        TreasureFactory(name='Expensive Gem', value=200)
+        response = client.get('/treasures.json?max_value=100')
+        data = json.loads(response.content)
+        names = {item['name'] for item in data}
+        assert names == {'Cheap Gem', 'Boundary Gem'}
+
+    def test_ignores_non_numeric_min_value(self, client):
+        """Test that a non-numeric min_value is ignored rather than erroring."""
+        TreasureFactory(name='Gem', value=100)
+        response = client.get('/treasures.json?min_value=not-a-number')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 1
+
+    def test_ignores_non_numeric_max_value(self, client):
+        """Test that a non-numeric max_value is ignored rather than erroring."""
+        TreasureFactory(name='Gem', value=100)
+        response = client.get('/treasures.json?max_value=not-a-number')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 1
+
+    def test_filters_by_name_case_insensitive_partial_match(self, client):
+        """Test that name filters case-insensitively on a partial match."""
+        TreasureFactory(name='Iron Sword', value=100)
+        TreasureFactory(name='Silver Dagger', value=50)
+        response = client.get('/treasures.json?name=sword')
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Iron Sword'
+
+    def test_ignores_blank_name(self, client):
+        """Test that a blank name value returns the unfiltered list."""
+        TreasureFactory(name='Iron Sword', value=100)
+        TreasureFactory(name='Silver Dagger', value=50)
+        response = client.get('/treasures.json?name=')
+        data = json.loads(response.content)
+        assert len(data) == 2
+
+    def test_combined_filters_apply_with_and(self, client):
+        """Test that combining filters narrows the list via AND, not OR."""
+        TreasureFactory(name='Iron Sword', value=100, game_type='dnd')
+        TreasureFactory(name='Iron Shield', value=500, game_type='dnd')
+        TreasureFactory(name='Iron Sword', value=100, game_type='deadlands')
+        response = client.get(
+            '/treasures.json?game_type=dnd&name=sword&min_value=50&max_value=150'
+        )
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Iron Sword'
+        assert data[0]['game_type'] == 'dnd'
+
+    def test_filters_still_exclude_game_exclusive_treasures(self, client):
+        """Test that a game-exclusive treasure matching all filters is still excluded."""
+        game = GameFactory(name='Test Game', game_slug='test-game')
+        TreasureFactory(
+            name='Exclusive Sword', value=100, game_type='dnd', game=game,
+        )
+        response = client.get(
+            '/treasures.json?game_type=dnd&name=sword&min_value=50&max_value=150'
+        )
+        data = json.loads(response.content)
+        assert data == []
+
 
 class TestTreasuresCreateView(TestCase):
     """Tests for the POST /treasures.json endpoint."""

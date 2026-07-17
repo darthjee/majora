@@ -4,6 +4,9 @@ header:
   nav_games: Games
   nav_game: Game
   nav_game_show: Show
+  nav_admin: Admin
+  nav_pc: PC
+  nav_npc: NPC
   nav_treasures: Treasures
   nav_staff_users: Users
   login: Login
@@ -189,6 +192,13 @@ language_selector:
 treasures_page:
   loading: Loading treasures...
   new_treasure: New Treasure
+  filter_game_type_label: Game type
+  filter_min_value_label: Min value
+  filter_max_value_label: Max value
+  filter_name_label: Name
+  filter_name_placeholder: Search by name...
+  filter_query: Query
+  filter_clear: Clear
 treasure_page:
   loading: Loading treasure...
   edit: Edit
@@ -232,7 +242,9 @@ my_account_page:
   title: My Account
   loading: Loading account...
   avatar_alt: User avatar
-  name_label: Name
+  name_label: Username
+  first_name_label: First name
+  last_name_label: Last name
   email_label: Email
   password_label: Password
   password_confirmation_label: Confirm password

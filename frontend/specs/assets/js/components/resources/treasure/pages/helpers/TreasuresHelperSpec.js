@@ -1,3 +1,4 @@
+import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import TreasuresHelper from '../../../../../../../../assets/js/components/resources/treasure/pages/helpers/TreasuresHelper.jsx';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
@@ -52,6 +53,22 @@ describe('TreasuresHelper', function() {
       const html = renderToStaticMarkup(TreasuresHelper.render(treasures, pagination, true, Noop.noop));
       const matches = html.match(/actions-overlay-button/g) || [];
       expect(matches.length).toBe(treasures.length);
+    });
+
+    it('renders the filters node when provided', function() {
+      const html = renderToStaticMarkup(
+        TreasuresHelper.render(
+          treasures, pagination, false, Noop.noop, {}, React.createElement('div', { 'data-testid': 'my-filters' }, 'filters'),
+        )
+      );
+      expect(html).toContain('data-testid="my-filters"');
+    });
+
+    it('passes activeFilters through to Pagination as extraParams', function() {
+      const html = renderToStaticMarkup(
+        TreasuresHelper.render(treasures, pagination, false, Noop.noop, { name: 'sword' })
+      );
+      expect(html).toContain('name=sword');
     });
   });
 
