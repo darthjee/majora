@@ -208,3 +208,21 @@ body {
 .coin-box-pp {
   color: #6e7076;
 }
+
+.character-money-bill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  padding: 0.25rem 0.6rem;
+  margin-bottom: 1rem;
+  background-color: #14532d;
+  border: 1px solid #0b3018;
+  border-radius: 4px;
+  color: #f0fff4;
+  font-weight: 600;
+}
+
+.character-money-bill .coin-icon {
+  font-size: 1.1rem;
+}
