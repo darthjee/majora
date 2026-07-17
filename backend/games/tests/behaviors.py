@@ -13,7 +13,7 @@ from games.tests.views.support import assert_json_response
 
 
 class TokenAuthRequestMixin:
-    """Mixin adding token-authenticated GET/PATCH/POST helpers to a test class."""
+    """Mixin adding token-authenticated GET/PATCH/POST/PUT helpers to a test class."""
 
     def auth_kwargs(self, token=None):
         """Return the extra request kwargs carrying the Token auth header, if any."""
