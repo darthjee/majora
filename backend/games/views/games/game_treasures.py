@@ -1,6 +1,6 @@
 """View for listing a game's treasures, or creating one exclusive to that game."""
 
-from django.db.models import IntegerField, OuterRef, Q, Subquery
+from django.db.models import Exists, IntegerField, OuterRef, Q, Subquery
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -32,7 +32,7 @@ def game_treasures(request, game_slug):
         return _create_game_treasure(request, game)
 
     treasures = Treasure.objects.filter(Q(linked_game=game) | Q(game=game)).distinct()
-    treasures = treasures.filter(hidden=False)
+    treasures = _exclude_hidden(game, treasures)
     game_value = Subquery(
         GameTreasure.objects.filter(game=game, treasure=OuterRef('pk')).values('value')[:1],
         output_field=IntegerField(),
@@ -43,6 +43,14 @@ def game_treasures(request, game_slug):
     treasures = _apply_ordering(request, treasures)
     context = game_treasures_context(game)
     return paginated_list_response(request, treasures, TreasureListSerializer, context=context)
+
+
+def _exclude_hidden(game, treasures):
+    """Exclude treasures whose GameTreasure row (for `game`) is hidden."""
+    hidden_game_treasure = GameTreasure.objects.filter(
+        game=game, treasure=OuterRef('pk'), hidden=True,
+    )
+    return treasures.exclude(Exists(hidden_game_treasure))
 
 
 def _filter_by_max_value(request, treasures):
@@ -89,6 +97,9 @@ def _create_game_treasure(request, game):
         return error_response
 
     treasure = serializer.save(game=game, game_type=game.game_type)
-    GameTreasure.objects.create(game=game, treasure=treasure, value=treasure.value)
+    hidden = bool(request.data.get('hidden', False))
+    GameTreasure.objects.create(
+        game=game, treasure=treasure, value=treasure.value, hidden=hidden,
+    )
     detail = TreasureDetailSerializer(treasure)
     return Response(detail.data, status=201)

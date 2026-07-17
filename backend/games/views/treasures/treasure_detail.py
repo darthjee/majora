@@ -5,16 +5,16 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from ...authentication import CookieTokenAuthentication
-from ...models import Treasure
+from ...models import GameTreasure, Treasure
 from ...permissions import TreasureEditPermission
 from ...serializers import TreasureDetailSerializer, TreasureUpdateSerializer
-from ..common import detail_or_update
+from ..common import detail_or_update, validated_or_error
 
 
 @api_view(['GET', 'PATCH'])
 @authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public; PATCH authentication/authorisation is
-# enforced inline in detail_or_update via TreasureEditPermission.check().
+# enforced inline in detail_or_update/_patch_treasure via TreasureEditPermission.check().
 @permission_classes([AllowAny])
 def treasure_detail(request, treasure_id):
     """Return or update detail for a specific treasure identified by treasure_id."""
@@ -23,7 +23,34 @@ def treasure_detail(request, treasure_id):
     except Treasure.DoesNotExist:
         return Response({'errors': {'detail': ['not found']}}, status=404)
 
+    if request.method == 'PATCH':
+        return _patch_treasure(request, treasure)
     return detail_or_update(
         request, treasure, TreasureEditPermission, TreasureUpdateSerializer,
         TreasureDetailSerializer,
     )
+
+
+def _patch_treasure(request, treasure):
+    """Validate permission/payload, persist the update, and mirror `hidden` when game-scoped.
+
+    A treasure exclusive to a game (`game_id` set) still accepts `hidden` in the body, writing
+    it onto that treasure's own `GameTreasure` row; a fully global treasure has no game to scope
+    `hidden` to, so it is silently dropped (matching this endpoint's existing "ignored field"
+    convention, e.g. `game` in the body is never honored either).
+    """
+    error_response = TreasureEditPermission.check(request, treasure)
+    if error_response:
+        return error_response
+
+    serializer = TreasureUpdateSerializer(treasure, data=request.data, partial=True)
+    error_response = validated_or_error(serializer)
+    if error_response:
+        return error_response
+
+    serializer.save()
+    if treasure.game_id is not None and 'hidden' in request.data:
+        GameTreasure.objects.filter(game_id=treasure.game_id, treasure=treasure).update(
+            hidden=bool(request.data.get('hidden')),
+        )
+    return Response(TreasureDetailSerializer(treasure).data)

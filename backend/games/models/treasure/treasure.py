@@ -21,7 +21,6 @@ class Treasure(models.Model):
         'games.Game', on_delete=models.CASCADE, null=True, blank=True,
         related_name='exclusive_treasures',
     )
-    hidden = models.BooleanField(default=False)
     history = HistoricalRecords(app='versioning', user_db_constraint=False)
 
     class Meta:

@@ -27,8 +27,9 @@ def game_treasure_detail(request, game_slug, treasure_id):
     """Return or update detail for a treasure linked to (or exclusive to) a specific game."""
     game = get_object_or_404(Game, game_slug=game_slug)
     treasure = _get_game_treasure_or_404(game, treasure_id)
+    game_treasure = GameTreasure.objects.filter(game=game, treasure=treasure).first()
 
-    error_response = _hidden_gate_response(treasure, game, request)
+    error_response = _hidden_gate_response(game_treasure, game, request)
     if error_response:
         return error_response
 
@@ -37,7 +38,7 @@ def game_treasure_detail(request, game_slug, treasure_id):
     else:
         response = Response(TreasureDetailSerializer(treasure, context={'game': game}).data)
 
-    if treasure.hidden:
+    if game_treasure is not None and game_treasure.hidden:
         response['X-Skip-Cache'] = 'true'
     return response
 
@@ -48,9 +49,10 @@ def _get_game_treasure_or_404(game, treasure_id):
     return get_object_or_404(treasures, id=treasure_id)
 
 
-def _hidden_gate_response(treasure, game, request):
-    """Return a 404 Response with X-Skip-Cache set if treasure is hidden and game not editable."""
-    if treasure.hidden and not game.can_be_edited_by(request.user):
+def _hidden_gate_response(game_treasure, game, request):
+    """Return a 404 Response with X-Skip-Cache set if hidden and game not editable."""
+    is_hidden = game_treasure is not None and game_treasure.hidden
+    if is_hidden and not game.can_be_edited_by(request.user):
         response = Response(status=404)
         response['X-Skip-Cache'] = 'true'
         return response
@@ -69,14 +71,17 @@ def _update_game_treasure(request, game, treasure):
 
 
 def _update_exclusive_treasure(request, game, treasure):
-    """Update name/value/hidden on the exclusive treasure, mirroring value onto its GameTreasure."""
+    """Update name/value on the exclusive treasure, mirroring value/hidden onto its GameTreasure."""
     serializer = TreasureUpdateSerializer(treasure, data=request.data, partial=True)
     error_response = validated_or_error(serializer)
     if error_response:
         return error_response
 
     serializer.save()
-    GameTreasure.objects.filter(game=game, treasure=treasure).update(value=treasure.value)
+    updates = {'value': treasure.value}
+    if 'hidden' in request.data:
+        updates['hidden'] = bool(request.data.get('hidden'))
+    GameTreasure.objects.filter(game=game, treasure=treasure).update(**updates)
     return Response(TreasureDetailSerializer(treasure, context={'game': game}).data)
 
 
