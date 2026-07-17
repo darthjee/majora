@@ -14,6 +14,14 @@ describe('CharacterMoneyCoinBox', function() {
     expect(html).toContain('20');
   });
 
+  it('renders the amount before the abbreviation', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(CharacterMoneyCoinBox, { denominationKey: 'cp', quantity: 20 })
+    );
+
+    expect(html.indexOf('coin-box-amount')).toBeLessThan(html.indexOf('coin-box-abbreviation'));
+  });
+
   it('renders each denomination with its own color class', function() {
     ['cp', 'sp', 'gp', 'pp'].forEach((key) => {
       const html = renderToStaticMarkup(

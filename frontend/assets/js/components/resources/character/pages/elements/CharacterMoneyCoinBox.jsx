@@ -16,8 +16,8 @@ export default function CharacterMoneyCoinBox({ denominationKey, quantity = 0 })
   return (
     <div className={`coin-box coin-box-${denominationKey}`}>
       <span className="coin-icon" aria-hidden="true"></span>
-      <span className="coin-box-abbreviation">{Translator.t(DndMoneyModel.labelKey(denominationKey))}</span>
       <span className="coin-box-amount">{quantity || 0}</span>
+      <span className="coin-box-abbreviation">{Translator.t(DndMoneyModel.labelKey(denominationKey))}</span>
     </div>
   );
 }
