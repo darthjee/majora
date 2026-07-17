@@ -193,6 +193,20 @@ the Staff user is otherwise involved in). This is implemented by a new, narrowly
 Staff bypass and stays NPC-only) and `CharacterEditPermission` (which still governs full PC
 editing — name, description, and other fields — unchanged and unaffected by this issue).
 
+Issue #615 adds a narrower, dedicated **money-only edit** capability
+(`PUT /games/:game_slug/pcs/:id/money.json`, `PUT /games/:game_slug/npcs/:id/money.json`), so a
+quick "Edit" link can sit directly on the character show page instead of requiring the full
+character edit page. Access is: superuser, the character's owning player (PC only, via the
+existing ownership chain), any GameMaster of the game, or any Staff account (`user.is_staff`,
+global) — implemented by a new `CharacterMoneyEditPermission`. Unlike issue #619's
+`CharacterPhotoUploadPermission`, this grants **no** "any player of the game" leniency: since an
+NPC has no owning player, this makes NPC money edits admin/dm/staff-only in practice, and a
+regular player may only use this route on their own PC — matching the narrower rule the issue
+explicitly asked for. `CharacterDetailSerializer` also gains a `can_edit_money` boolean field
+(computed with the same rule), letting the frontend hide the edit link entirely for a caller who
+isn't authorized, independently of the existing `can_edit` field (which stays `false` for a
+Staff-only caller, since Staff isn't a full editor).
+
 ---
 
 ## Summary Table
@@ -208,3 +222,4 @@ editing — name, description, and other fields — unchanged and unaffected by 
 | NPC narrow player PATCH | Any player of the game (via `Player.games`), in addition to the Editing rights above — NPC-only; `public_description`, `links`, `allegiance` (→`public_allegiance`), `slain` (→`public_slain`) fields only |
 | NPC photo upload (init/finalize) | Any player of the game (via `Player.games`), in addition to the Editing rights above — NPC-only, same `NpcPlayerEditPermission` as the narrow player PATCH row above (issue #429) |
 | PC photo upload (init) | Any player of the game (via `Player.games`), OR any Staff account (`user.is_staff`, global), in addition to the Editing rights above — PC-only, new `CharacterPhotoUploadPermission` (issue #619); full PC editing still uses `CharacterEditPermission` unchanged |
+| Character money edit | Editing rights above (superuser, owner (PC only), GameMaster), OR any Staff account (`user.is_staff`, global) — no "any player of the game" grant; new `CharacterMoneyEditPermission` (issue #615), gates `PUT .../pcs/<id>/money.json` and `PUT .../npcs/<id>/money.json`, plus the new `can_edit_money` read field |

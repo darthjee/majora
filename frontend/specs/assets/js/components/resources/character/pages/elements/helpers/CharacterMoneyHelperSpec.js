@@ -61,5 +61,35 @@ describe('CharacterMoneyHelper', function() {
       expect(html).toContain('character-money-bill');
       expect(html).toContain('0,00');
     });
+
+    it('does not render an edit link by default', function() {
+      const html = renderToStaticMarkup(CharacterMoneyHelper.render(310, 'dnd'));
+      expect(html).not.toContain('Edit money');
+    });
+
+    it('does not render an edit link when canEditMoney is false', function() {
+      const html = renderToStaticMarkup(CharacterMoneyHelper.render(310, 'dnd', false));
+      expect(html).not.toContain('Edit money');
+    });
+
+    it('renders an edit link beneath the breakdown when canEditMoney is true', function() {
+      const html = renderToStaticMarkup(
+        CharacterMoneyHelper.render(310, 'dnd', true, jasmine.createSpy('onEditMoney'))
+      );
+      expect(html).toContain('coin-box-cp');
+      expect(html).toContain('Edit money');
+    });
+
+    it('invokes onEditMoney when the edit link is clicked', function() {
+      const onEditMoney = jasmine.createSpy('onEditMoney');
+      const element = CharacterMoneyHelper.render(310, 'dnd', true, onEditMoney);
+      const fragmentChildren = element.props.children;
+      const editLinkContainer = fragmentChildren[1];
+      const button = editLinkContainer.props.children;
+
+      button.props.onClick();
+
+      expect(onEditMoney).toHaveBeenCalled();
+    });
   });
 });

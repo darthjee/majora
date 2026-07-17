@@ -2,6 +2,7 @@
 
 from .detail.game_pc_access import game_pc_access
 from .detail.game_pc_full import game_pc_full
+from .detail.game_pc_money import game_pc_money
 from .detail.game_pc_permissions import game_pc_permissions
 from .detail.game_pc_photo_upload import game_pc_photo_upload
 from .detail.photos.game_pc_photo_set import game_pc_photo_set
@@ -16,6 +17,7 @@ __all__ = [
     'game_pcs',
     'game_pc_detail',
     'game_pc_full',
+    'game_pc_money',
     'game_pc_access',
     'game_pc_permissions',
     'game_pc_photo_upload',

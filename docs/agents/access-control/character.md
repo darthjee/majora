@@ -26,11 +26,20 @@ annotated queryset (e.g. serializer unit tests, or any other read path added in 
 
 | Endpoint | Who can read | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs/<id>.json` | **AllowAny** | `id`, `name`, `role`, `public_description`, `is_pc`, `photos`, `links`, `game_slug`, `can_edit`, `profile_photo_path`, `profile_photo_id`, `money`, `treasure_value`, `slain`, `allegiance` |
+| `GET /games/<slug>/pcs/<id>.json` | **AllowAny** | `id`, `name`, `role`, `public_description`, `is_pc`, `photos`, `links`, `game_slug`, `can_edit`, `can_edit_money`, `profile_photo_path`, `profile_photo_id`, `money`, `treasure_value`, `slain`, `allegiance` |
 | `GET /games/<slug>/npcs/<id>.json` | **AllowAny** | Same as above |
 
 `profile_photo_path` — see [Photo path fields](common-rules.md#photo-path-fields) above; returned on the list, detail, and
 full-detail endpoints, to anyone.
+
+`can_edit_money` — a `bool`, computed the same way as `can_edit` (from the requester's own
+identity via `self.context['request']`) but against **CharacterMoneyEdit** instead of
+**CharacterEdit** (issue #615): `true` for a superuser, any GameMaster of the game, the PC's own
+owning player, or any global Staff account (`user.is_staff`), else `false`, including for an
+anonymous requester. Returned on this detail endpoint and inherited onto the full-detail endpoint
+below. Gates the money "Edit" link on the frontend show page, and is deliberately distinct from
+`can_edit`, since a pure Staff account may edit money without qualifying as a full editor (see
+"Money-only update" below).
 
 `slain` is a `BooleanField` (default `False`) shared by `Character` for both PCs and NPCs,
 returned read-only on the list and detail endpoints to anyone — there it is sourced from the
@@ -203,6 +212,35 @@ The hidden-NPC gate (see "Detail" above) still applies: a hidden NPC returns 404
 is not an editor, same as `GET`. Success response: `200` with the same `CharacterDetailSerializer`
 body `GET` returns on this route, with `X-Skip-Cache: true`. This is additive only — the PC
 plain endpoint stays `GET`-only, and the DM-facing edit form keeps using `full.json`.
+
+## Money-only update (PUT)
+
+A narrower, dedicated route for adjusting just a character's `money`, added so a quick "Edit"
+link can live directly on the show page without requiring full editor access (issue #615):
+
+| Endpoint | Who can write | Body | Effect |
+|----------|--------------|------|--------|
+| `PUT /games/<slug>/pcs/<id>/money.json` | **CharacterMoneyEdit** | `{"money": <non-negative integer>}`, required | Writes `Character.money` only |
+| `PUT /games/<slug>/npcs/<id>/money.json` | **CharacterMoneyEdit** | Same as above | Same as above |
+
+**CharacterMoneyEdit** (`CharacterMoneyEditPermission`, `backend/games/permissions.py`): grants
+the same access as **CharacterEdit** (superuser, the character's owning player, or a GameMaster
+of the game) plus any global Staff account (`user.is_staff`), mirroring the Staff bypass
+`CharacterPhotoUploadPermission` added for PC photo upload (issue #619) — but, unlike that
+class, with no additional "any player of the game" grant. Since an NPC has no owning player,
+this makes NPC money edits admin/dm/staff-only in practice; a regular player may only use this
+route on their own PC.
+
+Validated by `CharacterMoneyUpdateSerializer` (`backend/games/serializers/characters/character_money_update.py`),
+a `ModelSerializer` restricted to `fields = ['money']` (required) — `money` being a
+`PositiveIntegerField` on the model, DRF derives a `min_value=0` integer validator automatically;
+a missing, negative, or non-integer `money` value returns `400`.
+
+Success response: `200` with the same `CharacterDetailSerializer` body the plain detail endpoint
+returns (not `CharacterFullSerializer` — so `private_description` and other full-editor-only
+fields are never exposed to a Staff caller who edits money without being a full editor), with
+`X-Skip-Cache: true`. Unauthenticated → `401`; authenticated but not allowed → `403`; unknown
+`game_slug`/`character_id`, or an id belonging to the other PC/NPC kind → `404`.
 
 ## Create
 

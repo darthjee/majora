@@ -139,6 +139,35 @@ class TestCharacterDetailSerializer(TestCase):
         data = CharacterDetailSerializer(self.character, context={}).data
         assert data['can_edit'] is False
 
+    def test_can_edit_money_is_false_for_anonymous_user(self):
+        """Test that can_edit_money is false for an anonymous user."""
+        data = self._serialize(AnonymousUser())
+        assert data['can_edit_money'] is False
+
+    def test_can_edit_money_is_true_for_owning_player(self):
+        """Test that can_edit_money is true for the user linked to the character's player."""
+        user = UserFactory(username='owner', password='secret-password')
+        player = PlayerFactory(name='Owner', user=user)
+        self.character.player = player
+        self.character.save()
+        data = self._serialize(user)
+        assert data['can_edit_money'] is True
+
+    def test_can_edit_money_is_true_for_staff_only_user(self):
+        """Test that can_edit_money is true for a Staff account with no other edit rights."""
+        staff_user = UserFactory(
+            username='staff_user', password='secret-password', is_staff=True,
+        )
+        data = self._serialize(staff_user)
+        assert data['can_edit_money'] is True
+        assert data['can_edit'] is False
+
+    def test_can_edit_money_is_false_for_unrelated_player(self):
+        """Test that can_edit_money is false for an unrelated authenticated user."""
+        other_user = UserFactory(username='other', password='secret-password')
+        data = self._serialize(other_user)
+        assert data['can_edit_money'] is False
+
     def test_serializes_profile_photo_path_as_none_when_unset(self):
         """Test that profile_photo_path is null when the character has no profile photo."""
         data = self._serialize()
