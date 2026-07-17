@@ -189,6 +189,13 @@ language_selector:
 treasures_page:
   loading: Loading treasures...
   new_treasure: New Treasure
+  filter_game_type_label: Game type
+  filter_min_value_label: Min value
+  filter_max_value_label: Max value
+  filter_name_label: Name
+  filter_name_placeholder: Search by name...
+  filter_query: Query
+  filter_clear: Clear
 treasure_page:
   loading: Loading treasure...
   edit: Edit
