@@ -154,11 +154,10 @@ class TestCharacterMoneyEditPermissionCheck(TestCase):
         request = _make_request(self.owner)
         assert CharacterMoneyEditPermission.check(request, self.character) is None
 
-    def test_returns_403_for_regular_player_on_own_pc_they_do_not_own(self):
-        """Test that a regular player of the game gets 403 on a PC they do not own."""
+    def test_returns_none_for_regular_player_on_pc_they_do_not_own(self):
+        """Test that any player of the game passes the check on a PC they do not own."""
         request = _make_request(self.regular_player_user)
-        response = CharacterMoneyEditPermission.check(request, self.character)
-        assert response.status_code == 403
+        assert CharacterMoneyEditPermission.check(request, self.character) is None
 
     def test_returns_403_for_regular_player_on_npc(self):
         """Test that a regular player of the game gets 403 on an NPC (no player bypass)."""
@@ -179,6 +178,20 @@ class TestCharacterMoneyEditPermissionCheck(TestCase):
         """Test that is_allowed returns True for the PC's owning player."""
         assert CharacterMoneyEditPermission.is_allowed(self.owner, self.character) is True
 
+    def test_is_allowed_returns_true_for_any_player_of_game_on_pc(self):
+        """Test that is_allowed returns True for any player of the game on a PC."""
+        assert (
+            CharacterMoneyEditPermission.is_allowed(self.regular_player_user, self.character)
+            is True
+        )
+
+    def test_is_allowed_returns_false_for_any_player_of_game_on_npc(self):
+        """Test that is_allowed returns False for a non-owner player of the game on an NPC."""
+        assert (
+            CharacterMoneyEditPermission.is_allowed(self.regular_player_user, self.npc)
+            is False
+        )
+
     def test_is_allowed_returns_false_for_unrelated_user(self):
         """Test that is_allowed returns False for an unrelated authenticated user."""
         other_user = UserFactory(username='other2', password='secret-password')
@@ -187,6 +200,10 @@ class TestCharacterMoneyEditPermissionCheck(TestCase):
     def test_is_allowed_returns_false_for_none_user(self):
         """Test that is_allowed returns False for a None user."""
         assert CharacterMoneyEditPermission.is_allowed(None, self.character) is False
+
+    def test_is_allowed_returns_false_for_anonymous_user(self):
+        """Test that is_allowed returns False for an AnonymousUser."""
+        assert CharacterMoneyEditPermission.is_allowed(AnonymousUser(), self.character) is False
 
 
 class TestNpcPlayerEditPermissionCheck(TestCase):
