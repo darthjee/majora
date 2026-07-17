@@ -29,5 +29,38 @@ describe('TreasureExchangeModalController', function() {
 
       await expectAsync(controller.fetchAcquirePage('demo', 'tok', {})).toBeRejected();
     });
+
+    it('uses the treasures/all endpoint when canEdit is true', async function() {
+      const { characterClient, treasureClient } = buildClients();
+      treasureClient.fetchGameTreasuresAllPage.and.returnValue(Promise.resolve(
+        buildResponse(200, [{ id: 1, name: 'Hidden Sword', value: 100, hidden: true }],
+          { page: '1', pages: '1', per_page: '10' })
+      ));
+      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+
+      const result = await controller.fetchAcquirePage('demo', 'tok', { page: 1, perPage: 10 }, true);
+
+      expect(treasureClient.fetchGameTreasuresAllPage).toHaveBeenCalledWith(
+        'demo', 'tok', { page: 1, perPage: 10 }
+      );
+      expect(treasureClient.fetchGameTreasuresPage).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        data: [{ id: 1, name: 'Hidden Sword', value: 100, hidden: true }],
+        pagination: { page: 1, pages: 1, perPage: 10 },
+      });
+    });
+
+    it('uses the regular endpoint when canEdit is omitted', async function() {
+      const { characterClient, treasureClient } = buildClients();
+      treasureClient.fetchGameTreasuresPage.and.returnValue(Promise.resolve(
+        buildResponse(200, [], { page: '1', pages: '1', per_page: '10' })
+      ));
+      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+
+      await controller.fetchAcquirePage('demo', 'tok', {});
+
+      expect(treasureClient.fetchGameTreasuresPage).toHaveBeenCalledWith('demo', 'tok', {});
+      expect(treasureClient.fetchGameTreasuresAllPage).not.toHaveBeenCalled();
+    });
   });
 });

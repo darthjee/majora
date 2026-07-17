@@ -3,7 +3,9 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import PcCharacterTreasures from '../../../../../../../assets/js/components/resources/character/pages/PcCharacterTreasures.jsx';
 import NpcCharacterTreasures from '../../../../../../../assets/js/components/resources/character/pages/NpcCharacterTreasures.jsx';
 import CharacterTreasuresHelper from '../../../../../../../assets/js/components/resources/character/pages/helpers/CharacterTreasuresHelper.jsx';
-import { applyExchangeSuccess } from '../../../../../../../assets/js/components/resources/character/pages/shared/CharacterTreasures.jsx';
+import {
+  applyExchangeSuccess, buildExchangeCharacter,
+} from '../../../../../../../assets/js/components/resources/character/pages/shared/CharacterTreasures.jsx';
 import PcCharacterTreasuresController
   from '../../../../../../../assets/js/components/resources/character/pages/controllers/PcCharacterTreasuresController.js';
 import NpcCharacterTreasuresController
@@ -85,5 +87,29 @@ describe('applyExchangeSuccess', function() {
     expect(updater([])).toEqual([{
       id: 9, treasure_id: 9, quantity: 3, name: 'Ring', value: 50,
     }]);
+  });
+});
+
+describe('buildExchangeCharacter', function() {
+  it('threads canEdit from the loaded character\'s can_edit field', function() {
+    const character = { money: 250, can_edit: true };
+
+    expect(buildExchangeCharacter('7', 'demo', true, character)).toEqual({
+      id: '7', game_slug: 'demo', is_pc: true, money: 250, canEdit: true,
+    });
+  });
+
+  it('threads canEdit as false when the loaded character cannot edit', function() {
+    const character = { money: 100, can_edit: false };
+
+    expect(buildExchangeCharacter('7', 'demo', false, character)).toEqual({
+      id: '7', game_slug: 'demo', is_pc: false, money: 100, canEdit: false,
+    });
+  });
+
+  it('defaults money to 0 and canEdit to undefined while the character has not loaded yet', function() {
+    expect(buildExchangeCharacter('7', 'demo', true, null)).toEqual({
+      id: '7', game_slug: 'demo', is_pc: true, money: 0, canEdit: undefined,
+    });
   });
 });
