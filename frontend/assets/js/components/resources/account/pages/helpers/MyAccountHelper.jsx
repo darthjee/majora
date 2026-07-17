@@ -13,10 +13,12 @@ export default class MyAccountHelper {
   /**
    * Render the account edit form.
    *
-   * @param {{name: string, email: string, avatarUrl: string|null, password: string,
-   *   passwordConfirmation: string, status: string, fieldErrors: object}} formState - Form state.
-   * @param {{onSubmit: Function, onNameChange: Function, onEmailChange: Function,
-   *   onPasswordChange: Function, onPasswordConfirmationChange: Function}} handlers - Event handlers.
+   * @param {{name: string, firstName: string, lastName: string, email: string,
+   *   avatarUrl: string|null, password: string, passwordConfirmation: string, status: string,
+   *   fieldErrors: object}} formState - Form state.
+   * @param {{onSubmit: Function, onNameChange: Function, onFirstNameChange: Function,
+   *   onLastNameChange: Function, onEmailChange: Function, onPasswordChange: Function,
+   *   onPasswordConfirmationChange: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered account page.
    */
   static render(formState, handlers) {
@@ -33,6 +35,22 @@ export default class MyAccountHelper {
             value={formState.name}
             onChange={handlers.onNameChange}
             errors={formState.fieldErrors.name ?? []}
+          />
+          <FormField
+            id="my-account-first-name"
+            type="text"
+            label={Translator.t('my_account_page.first_name_label')}
+            value={formState.firstName}
+            onChange={handlers.onFirstNameChange}
+            errors={formState.fieldErrors.first_name ?? []}
+          />
+          <FormField
+            id="my-account-last-name"
+            type="text"
+            label={Translator.t('my_account_page.last_name_label')}
+            value={formState.lastName}
+            onChange={handlers.onLastNameChange}
+            errors={formState.fieldErrors.last_name ?? []}
           />
           <FormField
             id="my-account-email"

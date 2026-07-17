@@ -116,13 +116,16 @@ export default class AuthClient extends BaseClient {
    * Updates the authenticated user's own account details.
    *
    * @param {string} token - Authentication token for the requesting user.
-   * @param {{name: string, email: string, password: (string|undefined),
-   *   passwordConfirmation: (string|undefined)}} account - Account field values.
+   * @param {{name: string, firstName: string, lastName: string, email: string,
+   *   password: (string|undefined), passwordConfirmation: (string|undefined)}} account -
+   *   Account field values.
    * @returns {Promise<Response>} fetch response from the account endpoint.
    */
-  updateAccount(token, { name, email, password, passwordConfirmation }) {
+  updateAccount(token, { name, firstName, lastName, email, password, passwordConfirmation }) {
     return this.patchJson('/users/account.json', token, {
       name,
+      first_name: firstName,
+      last_name: lastName,
       email,
       password,
       password_confirmation: passwordConfirmation,
