@@ -33,13 +33,13 @@ describe('BaseCharacterEditHelper', function() {
       expect(html).not.toContain('id="test-edit-money"');
     });
 
-    it('renders a cents/dollars money breakdown when gameType is deadlands', function() {
+    it('renders a dollar bill box when gameType is deadlands', function() {
       const html = renderToStaticMarkup(
         helper.render(buildState({ money: '350', gameType: 'deadlands' }), buildHandlers())
       );
 
-      expect(html).toContain('50 Cents');
-      expect(html).toContain('3 Dollars');
+      expect(html).toContain('character-money-bill');
+      expect(html).toContain('3,50');
     });
 
     it('renders an Edit money button wired to onOpenMoneyModal', function() {

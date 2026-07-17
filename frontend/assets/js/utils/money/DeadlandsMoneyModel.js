@@ -35,6 +35,26 @@ export default class DeadlandsMoneyModel {
   }
 
   /**
+   * Transform a raw cents total into a dense (zero-inclusive) cents/dollars
+   * breakdown, keeping both entries even when their quantity is 0.
+   *
+   * @param {number} value - Total value, expressed in cents.
+   * @param {object} [_options] - Transform options, accepted for interface
+   *   symmetry with {@link DndMoneyModel} and ignored.
+   * @returns {{key: string, quantity: number}[]} Both denomination entries,
+   *   lowest to highest denomination, including zero-quantity ones.
+   */
+  static transformDense(value = 0, _options = {}) {
+    const dollars = Math.floor(value / 100);
+    const cents = value % 100;
+
+    return [
+      { key: 'cents', quantity: cents },
+      { key: 'dollars', quantity: dollars },
+    ];
+  }
+
+  /**
    * Pack a cents/dollars breakdown back into a raw cents total.
    *
    * @param {object} [breakdown] - Map of denomination key to quantity (e.g.

@@ -38,9 +38,10 @@ describe('CharacterMoney', function() {
     expect(html).toContain('coin-box-pp');
   });
 
-  it('renders a cents/dollars breakdown when gameType is deadlands', function() {
+  it('renders a dollar bill box when gameType is deadlands', function() {
     const html = renderToStaticMarkup(React.createElement(CharacterMoney, { money: 350, gameType: 'deadlands' }));
-    expect(html).toContain('50 Cents | 3 Dollars');
+    expect(html).toContain('character-money-bill');
+    expect(html).toContain('3,50');
   });
 
   it('defaults gameType to dnd when not given', function() {

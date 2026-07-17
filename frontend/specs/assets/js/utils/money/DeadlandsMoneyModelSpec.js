@@ -43,6 +43,48 @@ describe('DeadlandsMoneyModel', function() {
     });
   });
 
+  describe('.transformDense', function() {
+    it('breaks a mixed value into cents and dollars', function() {
+      expect(DeadlandsMoneyModel.transformDense(350)).toEqual([
+        { key: 'cents', quantity: 50 },
+        { key: 'dollars', quantity: 3 },
+      ]);
+    });
+
+    it('keeps both entries, including zero-quantity ones, for a value of 0', function() {
+      expect(DeadlandsMoneyModel.transformDense(0)).toEqual([
+        { key: 'cents', quantity: 0 },
+        { key: 'dollars', quantity: 0 },
+      ]);
+    });
+
+    it('keeps both entries when no value is given', function() {
+      expect(DeadlandsMoneyModel.transformDense()).toEqual([
+        { key: 'cents', quantity: 0 },
+        { key: 'dollars', quantity: 0 },
+      ]);
+    });
+
+    it('keeps the dollars entry at 0 for a value under 100 cents', function() {
+      expect(DeadlandsMoneyModel.transformDense(50)).toEqual([
+        { key: 'cents', quantity: 50 },
+        { key: 'dollars', quantity: 0 },
+      ]);
+    });
+
+    it('keeps the cents entry at 0 for an exact multiple of 100', function() {
+      expect(DeadlandsMoneyModel.transformDense(300)).toEqual([
+        { key: 'cents', quantity: 0 },
+        { key: 'dollars', quantity: 3 },
+      ]);
+    });
+
+    it('ignores the context option, behaving identically for character and treasure', function() {
+      expect(DeadlandsMoneyModel.transformDense(350, { context: 'character' }))
+        .toEqual(DeadlandsMoneyModel.transformDense(350, { context: 'treasure' }));
+    });
+  });
+
   describe('.pack', function() {
     it('sums cents and dollars weighted by their relative value', function() {
       expect(DeadlandsMoneyModel.pack({ cents: 50, dollars: 3 })).toBe(350);

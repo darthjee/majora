@@ -28,11 +28,11 @@ describe('CharacterHelper', function() {
       expect(html).toContain('coin-box-pp');
     });
 
-    it('renders a cents/dollars money breakdown when game_type is deadlands', function() {
+    it('renders a dollar bill box when game_type is deadlands', function() {
       const c = { ...character, money: 350, game_type: 'deadlands' };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
-      expect(html).toContain('50 Cents');
-      expect(html).toContain('3 Dollars');
+      expect(html).toContain('character-money-bill');
+      expect(html).toContain('3,50');
     });
 
     it('renders the description', function() {

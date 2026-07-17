@@ -4,6 +4,7 @@ import '../../../../../../utils/money/DndMoneyModel.js';
 import '../../../../../../utils/money/DeadlandsMoneyModel.js';
 import Translator from '../../../../../../i18n/Translator.js';
 import CharacterMoneyCoins from '../CharacterMoneyCoins.jsx';
+import CharacterMoneyBill from '../CharacterMoneyBill.jsx';
 
 /**
  * Rendering helper for the CharacterMoney element.
@@ -11,9 +12,10 @@ import CharacterMoneyCoins from '../CharacterMoneyCoins.jsx';
 export default class CharacterMoneyHelper {
   /**
    * Render the character's money. For `dnd`, renders a dense, always-four
-   * coin box stack (CP/SP/GP/PP, including zero amounts). For any other
-   * game type, renders a cascading coin denomination breakdown line,
-   * returning null when money is 0 (no denomination entries).
+   * coin box stack (CP/SP/GP/PP, including zero amounts). For `deadlands`,
+   * renders a dense dollar-bill box (cents/dollars, including zero amounts).
+   * For any other game type, renders a cascading coin denomination breakdown
+   * line, returning null when money is 0 (no denomination entries).
    *
    * @param {number} money - Total money, expressed in the currency's lowest
    *   denomination (copper pieces for `dnd`, cents for `deadlands`).
@@ -24,6 +26,10 @@ export default class CharacterMoneyHelper {
   static render(money, gameType) {
     if (gameType === 'dnd') {
       return <CharacterMoneyCoins money={money} />;
+    }
+
+    if (gameType === 'deadlands') {
+      return <CharacterMoneyBill money={money} />;
     }
 
     const model = MoneyModelRegistry.resolve(gameType);

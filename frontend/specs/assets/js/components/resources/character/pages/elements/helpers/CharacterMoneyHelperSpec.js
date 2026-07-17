@@ -50,13 +50,16 @@ describe('CharacterMoneyHelper', function() {
       expect(html).toContain('coin-box-pp');
     });
 
-    it('renders a deadlands cents/dollars breakdown', function() {
+    it('renders a deadlands dollar bill box', function() {
       const html = renderToStaticMarkup(CharacterMoneyHelper.render(350, 'deadlands'));
-      expect(html).toContain('50 Cents | 3 Dollars');
+      expect(html).toContain('character-money-bill');
+      expect(html).toContain('3,50');
     });
 
-    it('returns null for deadlands when money is 0', function() {
-      expect(CharacterMoneyHelper.render(0, 'deadlands')).toBeNull();
+    it('renders the deadlands dollar bill box even when money is 0', function() {
+      const html = renderToStaticMarkup(CharacterMoneyHelper.render(0, 'deadlands'));
+      expect(html).toContain('character-money-bill');
+      expect(html).toContain('0,00');
     });
   });
 });
