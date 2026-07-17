@@ -2,11 +2,26 @@ import GenericClient from '../../../../../client/GenericClient.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
+import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js';
 
 /**
  * Controller for treasures index page.
  */
 export default class TreasuresController extends BasePageController {
+  /**
+   * Build the hash URL for applying treasure filters, resetting pagination to page 1.
+   *
+   * @param {string} basePath - Base hash path (e.g. `#/treasures`).
+   * @param {{game_type?: string, min_value?: string, max_value?: string, name?: string}} filters -
+   *   Filters to apply, as built by `TreasureFiltersController#buildQuery` (blank fields already
+   *   omitted).
+   * @returns {string} Hash including the reset page and the active filters.
+   */
+  static buildFilterQueryHash(basePath, filters) {
+    const params = new URLSearchParams({ page: '1', ...filters });
+    return `${basePath}?${params.toString()}`;
+  }
+
   /**
    * Create a treasures controller.
    *
@@ -34,6 +49,7 @@ export default class TreasuresController extends BasePageController {
     this.setError = setError;
     this.client = client ?? new GenericClient();
     this.setIsSuperUser = setIsSuperUser;
+    this.hashResolver = new HashRouteResolver(() => this.client.currentHash());
   }
 
   /**
@@ -62,7 +78,9 @@ export default class TreasuresController extends BasePageController {
 
         safeSet(this.setIsSuperUser, true);
 
-        this.client.fetchIndex('/treasures.json')
+        const filterParams = Object.fromEntries(this.hashResolver.getFilterParams());
+
+        this.client.fetchIndex('/treasures.json', filterParams)
           .then(({ data, pagination }) => {
             safeSet(this.setTreasures, Array.isArray(data) ? data : []);
             safeSet(this.setPagination, pagination);
