@@ -473,6 +473,18 @@ class TestGameTreasuresCreate(TestCase):
         game_treasure = GameTreasure.objects.get(game=self.game, treasure=treasure)
         assert game_treasure.hidden is False
 
+    def test_malformed_hidden_returns_400(self):
+        """Test that a non-boolean hidden value is rejected with 400 rather than coerced."""
+        response = self._post(
+            self.client,
+            {'name': 'Ambiguous Gem', 'value': 100, 'hidden': 'maybe'},
+            token=self.dm_token,
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'hidden' in data['errors']
+        assert not Treasure.objects.filter(name='Ambiguous Gem').exists()
+
     def test_game_field_in_body_is_ignored(self):
         """Test that a game value in the request body does not override the resolved game."""
         other_game = GameFactory(name='Other Game', game_slug='other-game')

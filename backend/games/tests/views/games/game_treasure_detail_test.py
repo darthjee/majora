@@ -207,6 +207,28 @@ class TestGameTreasureUpdateView(TokenAuthRequestMixin, TestCase):
         response = self._patch(self.client, {'hidden': True}, token=self.dm_token)
         assert response.status_code == 200
 
+    def test_patch_with_malformed_hidden_returns_400(self):
+        """Test that a non-boolean hidden value is rejected with 400 rather than coerced."""
+        GameTreasure.objects.create(
+            game=self.game, treasure=self.treasure, value=500, hidden=False,
+        )
+        response = self._patch(self.client, {'hidden': 'maybe'}, token=self.dm_token)
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'hidden' in data['errors']
+        game_treasure = GameTreasure.objects.get(game=self.game, treasure=self.treasure)
+        assert game_treasure.hidden is False
+
+    def test_patch_with_string_false_hidden_correctly_unhides(self):
+        """Test that the JSON string 'false' for hidden is parsed as False, not truthy-coerced."""
+        GameTreasure.objects.create(
+            game=self.game, treasure=self.treasure, value=500, hidden=True,
+        )
+        response = self._patch(self.client, {'hidden': 'false'}, token=self.dm_token)
+        assert response.status_code == 200
+        game_treasure = GameTreasure.objects.get(game=self.game, treasure=self.treasure)
+        assert game_treasure.hidden is False
+
     def test_patch_ignores_game_field(self):
         """Test that a game field in the payload has no effect on the treasure's game."""
         other_game = GameFactory(name='Other Game', game_slug='other-game')

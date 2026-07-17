@@ -11,6 +11,7 @@ from ...models import Game, GameTreasure, Treasure
 from ...permissions import GameEditPermission
 from ...serializers import (
     GameTreasureUpdateSerializer,
+    HiddenFieldSerializer,
     TreasureDetailSerializer,
     TreasureUpdateSerializer,
 )
@@ -77,10 +78,15 @@ def _update_exclusive_treasure(request, game, treasure):
     if error_response:
         return error_response
 
+    hidden_serializer = HiddenFieldSerializer(data=request.data)
+    error_response = validated_or_error(hidden_serializer)
+    if error_response:
+        return error_response
+
     serializer.save()
     updates = {'value': treasure.value}
-    if 'hidden' in request.data:
-        updates['hidden'] = bool(request.data.get('hidden'))
+    if 'hidden' in hidden_serializer.validated_data:
+        updates['hidden'] = hidden_serializer.validated_data['hidden']
     GameTreasure.objects.filter(game=game, treasure=treasure).update(**updates)
     return Response(TreasureDetailSerializer(treasure, context={'game': game}).data)
 

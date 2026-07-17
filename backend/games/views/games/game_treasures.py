@@ -11,6 +11,7 @@ from ...authentication import CookieTokenAuthentication
 from ...models import Game, GameTreasure, Treasure
 from ...permissions import GameEditPermission
 from ...serializers import (
+    HiddenFieldSerializer,
     TreasureCreateSerializer,
     TreasureDetailSerializer,
     TreasureListSerializer,
@@ -96,8 +97,13 @@ def _create_game_treasure(request, game):
     if error_response:
         return error_response
 
+    hidden_serializer = HiddenFieldSerializer(data=request.data)
+    error_response = validated_or_error(hidden_serializer)
+    if error_response:
+        return error_response
+
     treasure = serializer.save(game=game, game_type=game.game_type)
-    hidden = bool(request.data.get('hidden', False))
+    hidden = hidden_serializer.validated_data.get('hidden', False)
     GameTreasure.objects.create(
         game=game, treasure=treasure, value=treasure.value, hidden=hidden,
     )

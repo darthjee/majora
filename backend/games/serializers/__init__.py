@@ -62,6 +62,7 @@ from games.serializers.photo_upload import PhotoUploadSerializer
 from games.serializers.staff.staff_user_detail import StaffUserDetailSerializer
 from games.serializers.staff.staff_user_list import StaffUserListSerializer
 from games.serializers.staff.staff_user_update import StaffUserUpdateSerializer
+from games.serializers.treasures.hidden_field import HiddenFieldSerializer
 from games.serializers.treasures.treasure_access import TreasureAccessSerializer
 from games.serializers.treasures.treasure_create import TreasureCreateSerializer
 from games.serializers.treasures.treasure_detail import TreasureDetailSerializer
@@ -105,6 +106,7 @@ __all__ = [
     'GameTaskUpdateSerializer',
     'GameTreasureUpdateSerializer',
     'GameUpdateSerializer',
+    'HiddenFieldSerializer',
     'LinkSerializer',
     'MyAccountDetailSerializer',
     'MyAccountUpdateSerializer',
