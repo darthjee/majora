@@ -27,10 +27,15 @@ export default class CharacterTreasuresHelper {
    * @param {Function} [onAddTreasure] - Handler invoked when the "Add treasure" button is clicked.
    * @param {string} [gameType] - Currency model name (e.g. `dnd`, `deadlands`) of the
    *   character's own game, used to render each owned treasure's value. Defaults to `dnd`.
+   * @param {object|URLSearchParams} [activeFilters] - Additional active query params (e.g.
+   *   treasure filters) preserved on every pagination link.
+   * @param {React.ReactNode} [filters] - Optional filter bar rendered above the treasures
+   *   grid (e.g. TreasureFilters).
    * @returns {React.ReactElement} Treasures card grid with pagination.
    */
   static render(
     treasures, pagination, basePath, backHref, canEdit = false, onAddTreasure = Noop.noop, gameType = 'dnd',
+    activeFilters = {}, filters = null,
   ) {
     return (
       <div className="container mt-4">
@@ -38,6 +43,7 @@ export default class CharacterTreasuresHelper {
           {CharacterTreasuresHelper.#renderAddButton(canEdit, onAddTreasure)}
         </PageActions>
         <h1 className="mb-4">{Translator.t('character_treasures_page.title')}</h1>
+        {filters}
         <div className="row">
           {treasures.map((treasure) => (
             <TreasureCard
@@ -58,6 +64,7 @@ export default class CharacterTreasuresHelper {
           totalPages={pagination.pages}
           perPage={pagination.perPage}
           basePath={basePath}
+          extraParams={activeFilters}
         />
       </div>
     );

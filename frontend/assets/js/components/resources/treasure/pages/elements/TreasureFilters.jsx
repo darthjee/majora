@@ -15,9 +15,12 @@ import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js
  *   max_value, name}` query object (blank fields omitted) when the Query button is clicked.
  * @param {Function} props.onClear - Called when the Clear button is clicked, after the
  *   draft fields have been reset to blank.
+ * @param {boolean} [props.showGameType] - Whether to render the Game type dropdown. Defaults
+ *   to `true`; pages already scoped to a single game pass `false` to hide it and omit
+ *   `game_type` from the built query.
  * @returns {React.ReactElement} rendered treasure filters bar.
  */
-export default function TreasureFilters({ onQuery, onClear }) {
+export default function TreasureFilters({ onQuery, onClear, showGameType = true }) {
   const initialFilters = new HashRouteResolver().getFilterParams();
   const [gameType, setGameType] = useState(initialFilters.get('game_type') ?? '');
   const [minValue, setMinValue] = useState(initialFilters.get('min_value') ?? '');
@@ -47,5 +50,6 @@ export default function TreasureFilters({ onQuery, onClear }) {
       onQuery: handleQuery,
       onClear: handleClear,
     },
+    showGameType,
   );
 }

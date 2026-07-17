@@ -22,7 +22,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(client.fetchIndex).toHaveBeenCalledWith(`/games/demo/${kind}/2/treasures.json`);
+      expect(client.fetchIndex).toHaveBeenCalledWith(`/games/demo/${kind}/2/treasures.json`, {});
       expect(setTreasures).toHaveBeenCalledWith([{ id: 1, name: 'Sword', quantity: 1, value: 100 }]);
       expect(setPagination).toHaveBeenCalledWith({ page: 2, pages: 3, perPage: 4 });
       expect(setLoading).toHaveBeenCalledWith(false);
@@ -30,5 +30,34 @@ KINDS.forEach(({ label, Controller, kind }) => {
 
       cleanup();
     });
+
+    it(`fetches ${kind === 'pcs' ? 'pc' : 'npc'} character treasures with the filter params from the hash`,
+      async function() {
+        const setTreasures = jasmine.createSpy('setTreasures');
+        const setPagination = jasmine.createSpy('setPagination');
+        const setLoading = jasmine.createSpy('setLoading');
+        const setError = jasmine.createSpy('setError');
+        const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
+
+        client.currentHash.and.returnValue(
+          `#/games/demo/${kind}/2/treasures?min_value=10&max_value=100&name=sword`,
+        );
+        client.fetchIndex.and.returnValue(Promise.resolve({
+          data: [],
+          pagination: { page: 1, pages: 1, perPage: 10 },
+        }));
+        spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+
+        const cleanup = new Controller(
+          setTreasures, setPagination, setLoading, setError, client, undefined, buildCharacterClient(),
+        ).buildEffect()();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(client.fetchIndex).toHaveBeenCalledWith(`/games/demo/${kind}/2/treasures.json`, {
+          min_value: '10', max_value: '100', name: 'sword',
+        });
+
+        cleanup();
+      });
   });
 });
