@@ -11,7 +11,7 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
     it('passes the token when one exists', async function() {
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
       spyOn(AccessStore, 'ensureCharacterAccess')
-        .and.returnValue(Promise.resolve({ can_edit: false, is_player: false }));
+        .and.returnValue(Promise.resolve({ can_edit: false, is_player: false, is_staff: false }));
 
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
@@ -44,6 +44,7 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
         game_type: 'dnd',
         can_edit: false,
         is_player: false,
+        is_staff: false,
         access_resolved: true,
       });
 
@@ -53,7 +54,7 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
     it('passes a null token when no token exists', async function() {
       spyOn(AuthStorage, 'getToken').and.returnValue(null);
       spyOn(AccessStore, 'ensureCharacterAccess')
-        .and.returnValue(Promise.resolve({ can_edit: false, is_player: false }));
+        .and.returnValue(Promise.resolve({ can_edit: false, is_player: false, is_staff: false }));
 
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
@@ -86,7 +87,7 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
     it('resolves access through AccessStore regardless of the stored token', async function() {
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-xyz');
       spyOn(AccessStore, 'ensureCharacterAccess')
-        .and.returnValue(Promise.resolve({ can_edit: false, is_player: false }));
+        .and.returnValue(Promise.resolve({ can_edit: false, is_player: false, is_staff: false }));
 
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');

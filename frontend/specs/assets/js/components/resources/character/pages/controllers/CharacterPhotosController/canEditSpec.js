@@ -9,6 +9,9 @@ KINDS.forEach(({ label, Controller, kind }) => {
     beforeEach(function() {
       AuthStorage.clearToken();
       characterClient = buildCharacterClient();
+      spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(
+        Promise.resolve({ is_player: false, is_staff: false }),
+      );
     });
 
     it('merges can_edit from AccessStore onto the character object', async function() {
@@ -33,6 +36,36 @@ KINDS.forEach(({ label, Controller, kind }) => {
       expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith(kind, 'demo', '7');
       expect(setCharacter).toHaveBeenCalledWith(
         jasmine.objectContaining({ name: 'Aragorn', can_edit: true }),
+      );
+
+      cleanup();
+    });
+
+    it('merges is_player and is_staff from AccessStore onto the character object', async function() {
+      AccessStore.ensureCharacterAccess.and.returnValue(
+        Promise.resolve({ is_player: true, is_staff: true }),
+      );
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+      const setPhotos = jasmine.createSpy('setPhotos');
+      const setPagination = jasmine.createSpy('setPagination');
+      const setCharacter = jasmine.createSpy('setCharacter');
+      const setLoading = jasmine.createSpy('setLoading');
+      const setError = jasmine.createSpy('setError');
+      const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
+
+      client.currentHash.and.returnValue(`#/games/demo/${kind}/7/photos`);
+      client.fetchIndex.and.returnValue(Promise.resolve({
+        data: [], pagination: { page: 1, pages: 1, perPage: 20 },
+      }));
+
+      const cleanup = new Controller(
+        setPhotos, setPagination, setCharacter, setLoading, setError, client, characterClient,
+      ).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(AccessStore.ensureCharacterAccess).toHaveBeenCalledWith(kind, 'demo', '7');
+      expect(setCharacter).toHaveBeenCalledWith(
+        jasmine.objectContaining({ name: 'Aragorn', can_edit: false, is_player: true, is_staff: true }),
       );
 
       cleanup();

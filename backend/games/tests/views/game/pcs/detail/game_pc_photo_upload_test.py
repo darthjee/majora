@@ -156,3 +156,23 @@ class TestGamePcPhotoUploadView(TokenAuthRequestMixin):
         """Test that a DM of the character's game may upload a photo."""
         response = self._post(client, {'filename': 'hero.png'}, token=self.dm_token)
         assert response.status_code == 201
+
+    def test_player_of_game_returns_201(self, client):
+        """Test that a player of the game (via Player.games) can upload the PC's photo."""
+        player_user = UserFactory(username='player_user', password='secret-password')
+        player = PlayerFactory(name='Alice', user=player_user)
+        player.games.add(self.game)
+        token = Token.objects.create(user=player_user)
+
+        response = self._post(client, {'filename': 'photo.jpg'}, token=token)
+
+        assert response.status_code == 201
+
+    def test_staff_user_returns_201(self, client):
+        """Test that an is_staff=True user unrelated to the game can upload the PC's photo."""
+        staff_user = UserFactory(username='staff_user', password='secret-password', is_staff=True)
+        token = Token.objects.create(user=staff_user)
+
+        response = self._post(client, {'filename': 'photo.jpg'}, token=token)
+
+        assert response.status_code == 201

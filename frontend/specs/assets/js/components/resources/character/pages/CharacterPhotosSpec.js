@@ -55,7 +55,7 @@ KINDS.forEach(({ label, Component, Controller, Helper, characterKind }) => {
       const html = renderToStaticMarkup(
         Helper.render(
           [], pagination, `#/games/demo/${characterKind}/7/photos`, `#/games/demo/${characterKind}/7`,
-          true, 'Aragorn', null, handlers,
+          true, true, 'Aragorn', null, handlers,
         )
       );
 
@@ -71,7 +71,7 @@ KINDS.forEach(({ label, Component, Controller, Helper, characterKind }) => {
       const html = renderToStaticMarkup(
         Helper.render(
           photos, pagination, `#/games/demo/${characterKind}/7/photos`, `#/games/demo/${characterKind}/7`,
-          true, 'Aragorn', 999, handlers,
+          true, true, 'Aragorn', 999, handlers,
         )
       );
 

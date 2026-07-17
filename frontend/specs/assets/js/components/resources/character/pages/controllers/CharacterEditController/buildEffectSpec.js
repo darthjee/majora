@@ -11,7 +11,10 @@ KINDS.forEach(({ label, Controller, kind }) => {
 
     describe('#buildEffect', function() {
       it('requests the character detail using the edit route params', async function() {
-        stubAccessPair('ensureCharacterAccess', 'getCharacterAccess', { is_player: false }, { is_player: false });
+        stubAccessPair(
+          'ensureCharacterAccess', 'getCharacterAccess',
+          { is_player: false, is_staff: false }, { is_player: false, is_staff: false },
+        );
         stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: true }, { can_edit: false });
         const setCharacter = jasmine.createSpy('setCharacter');
         const setLoading = jasmine.createSpy('setLoading');
@@ -59,6 +62,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
           game_type: 'dnd',
           can_edit: true,
           is_player: false,
+          is_staff: false,
           private_description: 'Secret.',
           access_resolved: true,
         });

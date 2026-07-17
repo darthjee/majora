@@ -11,7 +11,9 @@ import CharacterAvatarHelper from './helpers/CharacterAvatarHelper.jsx';
  * @param {string} props.character.name - Character name.
  * @param {boolean} [props.character.can_edit] - Whether the current user may edit this character.
  * @param {boolean} [props.character.is_player] - Whether the current user is a player of the game,
- *   grants NPC upload access even without edit rights.
+ *   grants upload access (for both PCs and NPCs) even without edit rights.
+ * @param {boolean} [props.character.is_staff] - Whether the current user is Django staff, grants
+ *   upload access for PCs even without edit rights (does not affect NPC upload eligibility).
  * @param {boolean} [props.character.slain] - Whether the character is (really) slain, or its
  *   public-facing slain alias for a non-editor.
  * @param {boolean} [props.character.public_slain] - Whether the character is publicly slain.

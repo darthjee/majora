@@ -154,17 +154,14 @@ export default class CharacterController extends BasePageController {
   }
 
   #mergeAccess(character, params, resolved) {
-    const access = AccessStore.getCharacterAccess(
-      this.characterKind, params.game_slug, params.character_id,
-    );
-    const permissions = AccessStore.getCharacterPermissions(
-      this.characterKind, params.game_slug, params.character_id,
-    );
+    const access = AccessStore.getCharacterAccess(this.characterKind, params.game_slug, params.character_id);
+    const permissions = AccessStore.getCharacterPermissions(this.characterKind, params.game_slug, params.character_id);
 
     return {
       ...character,
       can_edit: permissions.can_edit,
       is_player: access.is_player,
+      is_staff: Boolean(access.is_staff),
       access_resolved: resolved,
     };
   }

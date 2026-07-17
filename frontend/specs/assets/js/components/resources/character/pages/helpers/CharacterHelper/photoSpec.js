@@ -72,9 +72,25 @@ describe('CharacterHelper', function() {
       expect(html).not.toContain('actions-overlay-button');
     });
 
-    it('does not render the photo upload overlay button for a PC, even when is_player is true', function() {
+    it('renders the photo upload overlay button for a PC when is_player is true, even without can_edit', function() {
       const c = {
         ...character, is_pc: true, can_edit: false, is_player: true,
+      };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).toContain('actions-overlay-button');
+    });
+
+    it('renders the photo upload overlay button for a PC when is_staff is true, even without can_edit or is_player', function() {
+      const c = {
+        ...character, is_pc: true, can_edit: false, is_player: false, is_staff: true,
+      };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).toContain('actions-overlay-button');
+    });
+
+    it('does not render the photo upload overlay button for a PC when neither an editor, player, nor staff', function() {
+      const c = {
+        ...character, is_pc: true, can_edit: false, is_player: false, is_staff: false,
       };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
       expect(html).not.toContain('actions-overlay-button');

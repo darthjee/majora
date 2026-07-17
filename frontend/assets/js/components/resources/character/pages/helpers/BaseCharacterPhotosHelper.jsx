@@ -35,8 +35,9 @@ export default class BaseCharacterPhotosHelper {
    * @param {number} pagination.perPage - Items per page.
    * @param {string} basePath - Base hash path used for pagination links.
    * @param {string} backHref - Hash path to the parent character page.
-   * @param {boolean} canEdit - Whether the current user can upload photos and mark one
-   *   of them as the character's profile photo.
+   * @param {boolean} canUploadPhoto - Whether the current user can upload new photos.
+   * @param {boolean} canSetProfilePhoto - Whether the current user can mark a photo as the
+   *   character's profile photo.
    * @param {string} alt - Alt text applied to each photo image.
    * @param {number|null} profilePhotoId - Id of the character's current profile photo,
    *   or null/undefined when none is set.
@@ -44,13 +45,13 @@ export default class BaseCharacterPhotosHelper {
    *   handlers.
    * @returns {React.ReactElement} Photos list with pagination.
    */
-  render(photos, pagination, basePath, backHref, canEdit, alt, profilePhotoId, handlers) {
+  render(photos, pagination, basePath, backHref, canUploadPhoto, canSetProfilePhoto, alt, profilePhotoId, handlers) {
     const { i18nNamespace } = this;
 
     return (
       <div className="container mt-4">
         <PageActions backHref={backHref}>
-          {this.#renderUploadButton(canEdit, handlers)}
+          {this.#renderUploadButton(canUploadPhoto, handlers)}
         </PageActions>
         <h1 className="mb-4">{Translator.t(`${i18nNamespace}.title`)}</h1>
         <div className="row">
@@ -60,7 +61,7 @@ export default class BaseCharacterPhotosHelper {
               photo={photo}
               alt={alt}
               onClick={handlers.onSelectPhoto}
-              canSetProfilePhoto={canEdit}
+              canSetProfilePhoto={canSetProfilePhoto}
               isProfilePhoto={photo.id === profilePhotoId}
               onSetProfilePhoto={handlers.onSetProfilePhoto}
             />
@@ -95,8 +96,8 @@ export default class BaseCharacterPhotosHelper {
     return <ErrorAlert error={error} />;
   }
 
-  #renderUploadButton(canEdit, handlers) {
-    if (!canEdit) return null;
+  #renderUploadButton(canUploadPhoto, handlers) {
+    if (!canUploadPhoto) return null;
 
     return (
       <UploadButton onClick={handlers.onOpenUploadModal} label={Translator.t(`${this.i18nNamespace}.upload`)}>

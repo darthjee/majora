@@ -19,7 +19,10 @@ describe('BaseCharacterEditController', function() {
 
   describe('#buildEffect', function() {
     it('delegates to the load controller buildEffect', async function() {
-      stubAccessPair('ensureCharacterAccess', 'getCharacterAccess', { is_player: false }, { is_player: false });
+      stubAccessPair(
+        'ensureCharacterAccess', 'getCharacterAccess',
+        { is_player: false, is_staff: false }, { is_player: false, is_staff: false },
+      );
       stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: true }, { can_edit: false });
       const fullCharacterClient = jasmine.createSpyObj('characterClient', [
         'fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterPhotos', 'updateCharacter',
@@ -53,6 +56,7 @@ describe('BaseCharacterEditController', function() {
         game_type: 'dnd',
         can_edit: true,
         is_player: false,
+        is_staff: false,
         private_description: 'Notes.',
         access_resolved: true,
       });
