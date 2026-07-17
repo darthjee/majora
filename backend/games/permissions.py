@@ -65,6 +65,32 @@ class NpcPlayerEditPermission(_EditPermission):
         return is_player_of_game or character.can_be_edited_by(user)
 
 
+class CharacterPhotoUploadPermission(_EditPermission):
+    """Encapsulate the checks for the broadened PC photo-upload action (issue #619).
+
+    Allows any player of the character's game, or any staff user (globally), in addition
+    to the standard can_be_edited_by chain (superuser, DM, owner). Deliberately narrower
+    in scope than NpcPlayerEditPermission's reuse: this class exists only for PC photo
+    upload and must not be reused for general PC editing.
+    """
+
+    @classmethod
+    def check(cls, request, character):
+        """Return an error Response if `request.user` may not upload a photo for `character`."""
+        unauthenticated = cls._unauthenticated_response(request)
+        if unauthenticated:
+            return unauthenticated
+        if not cls._is_allowed(request.user, character):
+            return cls._forbidden_response()
+        return None
+
+    @classmethod
+    def _is_allowed(cls, user, character):
+        """Return whether `user` is staff, a player of the game, or may edit outright."""
+        is_player_of_game = character.game.players.filter(user=user).exists()
+        return user.is_staff or is_player_of_game or character.can_be_edited_by(user)
+
+
 class TreasureEditPermission(_EditPermission):
     """Encapsulate the authentication/authorization checks for editing a treasure."""
 

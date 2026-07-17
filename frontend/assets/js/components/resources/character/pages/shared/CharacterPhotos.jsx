@@ -45,6 +45,8 @@ export default function CharacterPhotos({ ControllerClass, getParamsFromHash, Ph
   const basePath = `#/games/${gameSlug}/${characterKind}/${characterId}/photos`;
   const backHref = `#/games/${gameSlug}/${characterKind}/${characterId}`;
   const alt = character.name || '';
+  const canUploadPhoto = character.can_edit || character.is_player
+    || (character.is_pc && character.is_staff);
 
   const handleUploadSuccess = () => {
     setShowUploadModal(false);
@@ -67,7 +69,8 @@ export default function CharacterPhotos({ ControllerClass, getParamsFromHash, Ph
     <>
       {actionError && <ErrorAlert error={actionError} />}
       {PhotosHelper.render(
-        photos, pagination, basePath, backHref, character.can_edit, alt, character.profile_photo_id, {
+        photos, pagination, basePath, backHref, canUploadPhoto, character.can_edit, alt,
+        character.profile_photo_id, {
           onOpenUploadModal: () => setShowUploadModal(true),
           onSelectPhoto: setSelectedPhoto,
           onSetProfilePhoto: handleSetProfilePhoto,

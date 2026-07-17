@@ -7,7 +7,7 @@ generically for a `GamePhoto`, `CharacterPhoto`, or `TreasurePhoto`, via a `Gene
 | Action | Who can |
 |--------|---------|
 | Create (`POST /games/<slug>/photo_upload.json`) | **GameEdit** |
-| Create (`POST /games/<slug>/pcs/<id>/photo_upload.json`) | **CharacterEdit** |
+| Create (`POST /games/<slug>/pcs/<id>/photo_upload.json`) | **CharacterPhotoUpload** |
 | Create (`POST /games/<slug>/npcs/<id>/photo_upload.json`) | **NpcPlayerEdit** |
 | Create (`POST /treasures/<id>/photo_upload.json`) | Superuser, or that treasure's owning game's GameMaster when `treasure.game_id` is set (see [Treasure photo upload init endpoint](#treasure-photo-upload-init-endpoint) below) |
 | Read | Only the user who initiated the upload (indirectly, via the 201 response at creation time) |
@@ -50,7 +50,7 @@ Unknown `game_slug` → 404. Missing or invalid `filename` body field → 400.
 
 | Endpoint | Method | Who can call | Response fields |
 |----------|--------|-------------|-----------------|
-| `/games/<slug>/pcs/<id>/photo_upload.json` | POST | **CharacterEdit** | `upload_id`, `token`, `character_id` |
+| `/games/<slug>/pcs/<id>/photo_upload.json` | POST | **CharacterPhotoUpload** | `upload_id`, `token`, `character_id` |
 | `/games/<slug>/npcs/<id>/photo_upload.json` | POST | **NpcPlayerEdit** | `upload_id`, `token`, `character_id` |
 
 Unknown `game_slug` or `character_id` (or a `character_id` that does not belong to `game_slug`,

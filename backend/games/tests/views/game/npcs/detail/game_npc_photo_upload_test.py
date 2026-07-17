@@ -167,8 +167,8 @@ class TestGameNpcPhotoUploadView(TokenAuthRequestMixin):
 
         assert response.status_code == 201
 
-    def test_player_of_game_cannot_upload_pc_photo(self, client):
-        """Test that a player of the game (via Player.games) still can't upload a PC's photo."""
+    def test_player_of_game_can_upload_pc_photo(self, client):
+        """Test that a player of the game (via Player.games) can upload a PC's photo."""
         player_user = UserFactory(username='player_user', password='secret-password')
         player = PlayerFactory(name='Bob', user=player_user)
         player.games.add(self.game)
@@ -182,4 +182,4 @@ class TestGameNpcPhotoUploadView(TokenAuthRequestMixin):
             token=token,
         )
 
-        assert response.status_code == 403
+        assert response.status_code == 201

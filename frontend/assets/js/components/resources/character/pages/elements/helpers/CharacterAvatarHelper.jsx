@@ -17,8 +17,11 @@ export default class CharacterAvatarHelper {
    * @param {string} character.name - Character name.
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
    * @param {boolean} [character.is_player] - Whether the current user is a player of the game,
-   *   grants NPC upload access even without edit rights (never widens `can_edit` itself, so
-   *   it does not affect the DM edit button or the slain/revive button set).
+   *   grants upload access (for both PCs and NPCs) even without edit rights (never widens
+   *   `can_edit` itself, so it does not affect the DM edit button or the slain/revive button
+   *   set).
+   * @param {boolean} [character.is_staff] - Whether the current user is Django staff, grants
+   *   upload access for PCs even without edit rights (does not affect NPC upload eligibility).
    * @param {boolean} [character.slain] - Whether the character is (really) slain.
    * @param {boolean} [character.public_slain] - Whether the character is publicly slain.
    * @param {boolean} [character.is_pc] - Whether the character is a PC.
@@ -32,7 +35,7 @@ export default class CharacterAvatarHelper {
         type="avatar"
         url={character.profile_photo_path}
         alt={character.name}
-        canEdit={character.can_edit || (!character.is_pc && character.is_player)}
+        canEdit={character.can_edit || character.is_player || (character.is_pc && character.is_staff)}
         onClick={handlers.onOpenUploadModal}
         grayscale={character.slain}
         secondaryButtons={CharacterAvatarHelper.#buildSecondaryButtons(character, handlers)}
