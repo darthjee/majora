@@ -4,6 +4,9 @@ header:
   nav_games: Campanhas
   nav_game: Jogo
   nav_game_show: Ver
+  nav_admin: Admin
+  nav_pc: PC
+  nav_npc: NPC
   nav_treasures: Tesouros
   nav_staff_users: Usuários
   login: Login

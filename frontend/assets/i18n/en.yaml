@@ -4,6 +4,9 @@ header:
   nav_games: Games
   nav_game: Game
   nav_game_show: Show
+  nav_admin: Admin
+  nav_pc: PC
+  nav_npc: NPC
   nav_treasures: Treasures
   nav_staff_users: Users
   login: Login
