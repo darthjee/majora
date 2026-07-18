@@ -10,7 +10,6 @@ from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
     UserFactory,
@@ -26,7 +25,7 @@ class TestGameNpcPhotoUploadView(TokenAuthRequestMixin):
         self.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True)
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.dm_token = Token.objects.create(user=self.dm_user)
 
     def _editor_token(self):

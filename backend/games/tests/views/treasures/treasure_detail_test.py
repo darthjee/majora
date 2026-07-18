@@ -9,8 +9,8 @@ from rest_framework.authtoken.models import Token
 from games.tests.behaviors import DetailNotFoundBehaviorMixin, TokenAuthRequestMixin
 from games.tests.factories import (
     GameFactory,
-    GameMasterFactory,
     GameTreasureFactory,
+    PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -123,7 +123,7 @@ class TestTreasureDetailPatchView(TokenAuthRequestMixin, TestCase):
         self.treasure.game = game
         self.treasure.save()
         dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=game, user=dm_user)
+        PlayerFactory(game=game, user=dm_user, is_dm=True)
         dm_token = Token.objects.create(user=dm_user)
         response = self._patch(self.client, {'name': 'Hacked Helmet'}, token=dm_token)
         assert response.status_code == 403

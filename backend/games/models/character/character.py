@@ -64,7 +64,7 @@ class Character(models.Model):
         """Return queryset of users with explicit edit rights (player + DMs, no superusers)."""
         from django.db.models import Q
 
-        dm_ids = self.game.game_masters.values_list('user_id', flat=True)
+        dm_ids = self.game.players.filter(is_dm=True).values_list('user_id', flat=True)
         q = Q(id__in=dm_ids)
         if self.player_id is not None and self.player.user_id is not None:
             q |= Q(id=self.player.user_id)

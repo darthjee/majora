@@ -17,8 +17,8 @@ restated in every section:
 | **AllowAny** | DRF `AllowAny` | Anyone, unauthenticated included |
 
 Full derivations:
-- `Game.can_be_edited_by(user)`: `True` when `user.is_superuser`, OR user has a `GameMaster` row for that game.
-- `Character.can_be_edited_by(user)`: `True` when `user.is_superuser`, OR user is the character's linked `Player.user`, OR user has a `GameMaster` row for the character's game.
+- `Game.can_be_edited_by(user)`: `True` when `user.is_superuser`, OR user has a `Player` row with `is_dm=True` for that game.
+- `Character.can_be_edited_by(user)`: `True` when `user.is_superuser`, OR user is the character's linked `Player.user`, OR user has a `Player` row with `is_dm=True` for the character's game.
 - `Treasure.can_be_edited_by(user)`: `True` when `user.is_superuser`, OR (`user.is_staff` AND the treasure is global, i.e. `game_id is None`). Game-scoped treasure routes (create/update/photo-upload under `/games/<slug>/...`) never use this method — they check GameEdit against the resolved game instead (see [Treasure](treasure.md)), so a treasure's own edit-rights method stays narrow while broader, game-derived access is layered on top only for routes explicitly scoped to a game.
 - `is_player` = `game.players.filter(user=user).exists()`. **Note:** `Player.games` is currently never written by any endpoint (only touched in a model test), so `is_player` reads `false` for every real authenticated user until a future issue builds a flow to populate it.
 
@@ -46,7 +46,7 @@ Every `access.json` endpoint (Game, Character/PC/NPC, Treasure) shares one
 | `username` | `str \| null` | Requester's username, or `null` if unauthenticated |
 | `is_superuser` | `bool \| null` | Whether requester is a Django superuser, or `null` if unauthenticated |
 | `is_staff` | `bool \| null` | Whether requester is Django staff, or `null` if unauthenticated |
-| `is_dm` | `bool \| null` | Whether requester is a GameMaster of the relevant game, or `null` if unauthenticated. For Treasure, `false` (not `null`) when authenticated but the treasure has no owning game |
+| `is_dm` | `bool \| null` | Whether requester has a `Player` row with `is_dm=True` for the relevant game, or `null` if unauthenticated. For Treasure, `false` (not `null`) when authenticated but the treasure has no owning game |
 | `is_player` | `bool \| null` | `is_player` as defined above, or `null` if unauthenticated; always `false` (never `null`, even when anonymous) for Treasure, which isn't nested under `/games/<slug>/` and deliberately never evaluates this |
 | `is_owner` | `bool \| null` | **PC only**: `character.player.user_id == requester.id`, or `null` if unauthenticated. Always `false` (never `null`) for Game, NPC, and Treasure, which have no ownership concept |
 

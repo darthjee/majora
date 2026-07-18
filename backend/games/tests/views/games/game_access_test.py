@@ -6,7 +6,7 @@ from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import GameFactory, GameMasterFactory, SuperUserFactory, UserFactory
+from games.tests.factories import GameFactory, PlayerFactory, SuperUserFactory, UserFactory
 
 
 class TestGameAccessView(TokenAuthRequestMixin, TestCase):
@@ -17,7 +17,7 @@ class TestGameAccessView(TokenAuthRequestMixin, TestCase):
         """Set up a game and a DM user."""
         cls.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
 
     def _get(self, client, token=None):
         """Issue a GET request to the game access endpoint, optionally with a token."""
@@ -55,7 +55,11 @@ class TestGameAccessView(TokenAuthRequestMixin, TestCase):
         assert data['is_owner'] is False
 
     def test_dm_returns_correct_user_context_fields(self):
-        """Test that DM request returns correct username, is_superuser=False, is_dm=True."""
+        """Test that DM request returns correct username, is_superuser=False, is_dm=True.
+
+        The DM is also a Player of the game (Player.is_dm=True is the single source of
+        truth for DM status), so is_player is True too.
+        """
         token = Token.objects.create(user=self.dm_user)
         response = self._get(self.client, token=token)
         data = json.loads(response.content)
@@ -63,7 +67,7 @@ class TestGameAccessView(TokenAuthRequestMixin, TestCase):
         assert data['is_superuser'] is False
         assert data['is_staff'] is False
         assert data['is_dm'] is True
-        assert data['is_player'] is False
+        assert data['is_player'] is True
         assert data['is_owner'] is False
 
     def test_superuser_returns_correct_user_context_fields(self):

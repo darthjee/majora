@@ -5,7 +5,6 @@ from games.models.character.character_link import CharacterLink
 from games.models.character.character_photo import CharacterPhoto
 from games.models.character.character_treasure import CharacterTreasure
 from games.models.game.game import Game
-from games.models.game.game_master import GameMaster
 from games.models.game.game_photo import GamePhoto
 from games.models.game.game_session import GameSession
 from games.models.game.game_session_message import GameSessionMessage
@@ -28,7 +27,6 @@ __all__ = [
     'CharacterPhoto',
     'CharacterTreasure',
     'Game',
-    'GameMaster',
     'GamePhoto',
     'GameSession',
     'GameSessionMessage',

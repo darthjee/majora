@@ -11,8 +11,8 @@ from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
-    GameMasterFactory,
     GameTreasureFactory,
+    PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -28,7 +28,7 @@ class TestGameNpcTreasureAcquireView(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True, money=1000)
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.dm_token = Token.objects.create(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
         self.other_token = Token.objects.create(user=self.other_user)
@@ -185,7 +185,7 @@ class TestGameNpcTreasureAcquireHidden(TokenAuthRequestMixin):
         """Set up a game, a hidden NPC with money, a DM, and a treasure."""
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.dm_token = Token.objects.create(user=self.dm_user)
         self.hidden_npc = CharacterFactory(
             name='Secret NPC', game=self.game, npc=True, hidden=True, money=1000,
@@ -227,7 +227,7 @@ class TestGameNpcTreasureAcquireHiddenTreasure(TokenAuthRequestMixin):
         """Set up a game, a DM, an NPC with money, and a hidden treasure."""
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.dm_token = Token.objects.create(user=self.dm_user)
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True, money=1000)
         self.treasure = TreasureFactory(name='Secret Gem', value=100, game=self.game)
@@ -260,7 +260,7 @@ class TestCharacterTreasureAcquireStockCap(TokenAuthRequestMixin):
         """Set up a game, a DM, an NPC with money, and a treasure linked via the M2M."""
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.dm_token = Token.objects.create(user=self.dm_user)
         self.character = CharacterFactory(name='Frodo', game=self.game, npc=True, money=1000)
         self.treasure = TreasureFactory(name='Limited Gem', value=10)

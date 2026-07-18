@@ -26,7 +26,6 @@ from games.serializers.games.game_access import GameAccessSerializer
 from games.serializers.games.game_create import GameCreateSerializer
 from games.serializers.games.game_detail import GameDetailSerializer
 from games.serializers.games.game_list import GameListSerializer
-from games.serializers.games.game_master import GameMasterSerializer
 from games.serializers.games.game_permissions import GamePermissionsSerializer
 from games.serializers.games.game_photo import GamePhotoSerializer
 from games.serializers.games.game_update import GameUpdateSerializer
@@ -95,7 +94,6 @@ __all__ = [
     'GameCreateSerializer',
     'GameDetailSerializer',
     'GameListSerializer',
-    'GameMasterSerializer',
     'GamePermissionsSerializer',
     'GamePhotoSerializer',
     'GameSessionCreateSerializer',

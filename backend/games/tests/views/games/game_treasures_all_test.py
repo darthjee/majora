@@ -9,8 +9,8 @@ from games.models import GameTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     GameFactory,
-    GameMasterFactory,
     GameTreasureFactory,
+    PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -27,7 +27,7 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
         """Set up common test fixtures."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.visible_treasure = TreasureFactory(name='Visible Gem', value=100, game=cls.game)
         GameTreasureFactory(
             game=cls.game, treasure=cls.visible_treasure, value=cls.visible_treasure.value,

@@ -9,7 +9,6 @@ from rest_framework.authtoken.models import Token
 from games.models import Poll
 from games.tests.factories import (
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     PollFactory,
     PollOptionFactory,
@@ -34,7 +33,7 @@ class TestGamePollDetailView(TestCase):
         cls.option_one = PollOptionFactory(poll=cls.poll, option='The Drunken Griffin')
         cls.option_two = PollOptionFactory(poll=cls.poll, option='The Rusty Anchor')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
         cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)

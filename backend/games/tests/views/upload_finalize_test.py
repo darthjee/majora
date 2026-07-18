@@ -15,7 +15,6 @@ from games.models import (
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
@@ -31,7 +30,7 @@ class TestUploadFinalizeView(TestCase):
         """Set up a game, a DM user, an upload, and a linked game photo."""
         cls.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
 
         cls.upload = Upload.objects.create(

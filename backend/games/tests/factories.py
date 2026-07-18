@@ -13,7 +13,6 @@ from django.contrib.auth.models import User
 from games.models import (
     Character,
     Game,
-    GameMaster,
     GameTreasure,
     Player,
     Poll,
@@ -99,18 +98,6 @@ class CharacterFactory(factory.django.DjangoModelFactory):
     name = 'Test Character'
     game = factory.SubFactory(GameFactory)
     npc = True
-
-
-class GameMasterFactory(factory.django.DjangoModelFactory):
-    """Factory for GameMaster."""
-
-    class Meta:
-        """Factory configuration."""
-
-        model = GameMaster
-
-    game = factory.SubFactory(GameFactory)
-    user = factory.SubFactory(UserFactory)
 
 
 class TreasureFactory(factory.django.DjangoModelFactory):

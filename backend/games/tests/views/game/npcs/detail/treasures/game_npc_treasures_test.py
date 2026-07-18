@@ -11,8 +11,8 @@ from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
-    GameMasterFactory,
     GameTreasureFactory,
+    PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -267,7 +267,7 @@ class TestGameNpcTreasuresHidden(TokenAuthRequestMixin):
         """Set up common test fixtures."""
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.hidden_npc = CharacterFactory(
             name='Secret NPC', game=self.game, npc=True, hidden=True
         )

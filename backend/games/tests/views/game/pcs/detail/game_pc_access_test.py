@@ -9,7 +9,6 @@ from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
     UserFactory,
@@ -28,7 +27,7 @@ class TestGamePcAccessView(TokenAuthRequestMixin):
         self.player.user = self.owner
         self.player.save()
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.character = CharacterFactory(
             name='Aragorn', game=self.game, player=self.player, npc=False
         )
@@ -78,7 +77,11 @@ class TestGamePcAccessView(TokenAuthRequestMixin):
         assert data['is_owner'] is None
 
     def test_dm_returns_correct_user_context_fields(self, client):
-        """Test that DM returns username, is_superuser=False, is_dm=True."""
+        """Test that DM returns username, is_superuser=False, is_dm=True.
+
+        The DM is also a Player of the game (Player.is_dm=True is the single source of
+        truth for DM status), so is_player is True too.
+        """
         token = Token.objects.create(user=self.dm_user)
         response = self.get(client, self._url(), token=token)
         data = json.loads(response.content)
@@ -86,7 +89,7 @@ class TestGamePcAccessView(TokenAuthRequestMixin):
         assert data['is_superuser'] is False
         assert data['is_staff'] is False
         assert data['is_dm'] is True
-        assert data['is_player'] is False
+        assert data['is_player'] is True
         assert data['is_owner'] is False
 
     def test_superuser_returns_correct_user_context_fields(self, client):

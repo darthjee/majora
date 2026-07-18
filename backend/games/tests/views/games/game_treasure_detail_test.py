@@ -9,8 +9,8 @@ from games.models import GameTreasure
 from games.tests.behaviors import DetailNotFoundBehaviorMixin, TokenAuthRequestMixin
 from games.tests.factories import (
     GameFactory,
-    GameMasterFactory,
     GameTreasureFactory,
+    PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -73,7 +73,7 @@ class TestGameTreasureUpdateView(TokenAuthRequestMixin, TestCase):
             name='Golden Crown', value=500, game=cls.game
         )
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
         cls.superuser = SuperUserFactory(
             username='admin', password='secret-password'
@@ -257,7 +257,7 @@ class TestGameTreasureDetailHidden(TokenAuthRequestMixin, TestCase):
         """Set up common test fixtures."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.hidden_treasure = TreasureFactory(name='Secret Idol', value=999, game=cls.game)
         GameTreasureFactory(
             game=cls.game, treasure=cls.hidden_treasure, value=cls.hidden_treasure.value,
@@ -329,7 +329,7 @@ class TestGameTreasureLinkedDetailView(TokenAuthRequestMixin, TestCase):
         """Set up a game, a DM, and a treasure linked to the game via the M2M."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
         cls.regular_user = UserFactory(username='player', password='secret-password')
         cls.regular_token = Token.objects.create(user=cls.regular_user)
