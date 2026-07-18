@@ -6,6 +6,7 @@ describe('CharacterMoneyBillHelper', function() {
     it('renders 10002 cents as 100,02', function() {
       const html = renderToStaticMarkup(CharacterMoneyBillHelper.render(10002));
 
+      expect(html).toContain('character-money-bill-group');
       expect(html).toContain('character-money-bill');
       expect(html).toContain('$');
       expect(html).toContain('100,02');
@@ -54,6 +55,17 @@ describe('CharacterMoneyBillHelper', function() {
       expect(html).toContain('character-money-bill-treasure');
       expect(html).toContain('100,02');
       expect(html).toContain('in Gems');
+    });
+
+    it('wraps the money bill and treasure bill in a shared character-money-bill-group container', function() {
+      const html = renderToStaticMarkup(CharacterMoneyBillHelper.render(350, 10002));
+      const groupIndex = html.indexOf('character-money-bill-group');
+      const billIndex = html.indexOf('character-money-bill"');
+      const treasureIndex = html.indexOf('character-money-bill-treasure');
+
+      expect(groupIndex).toBeGreaterThan(-1);
+      expect(groupIndex).toBeLessThan(billIndex);
+      expect(groupIndex).toBeLessThan(treasureIndex);
     });
   });
 });

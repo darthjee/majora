@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterMoneyTreasureBillHelper
   from '../../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/CharacterMoneyTreasureBillHelper.jsx';
+import Icons from '../../../../../../../../../assets/js/utils/ui/Icons.js';
 
 describe('CharacterMoneyTreasureBillHelper', function() {
   describe('.render', function() {
@@ -28,10 +29,11 @@ describe('CharacterMoneyTreasureBillHelper', function() {
       expect(html).toContain('100,00');
     });
 
-    it('reuses the coin-icon class instead of a bespoke icon', function() {
+    it('uses the bi-gem icon instead of the coin-icon class', function() {
       const html = renderToStaticMarkup(CharacterMoneyTreasureBillHelper.render(350));
 
-      expect(html).toContain('coin-icon');
+      expect(html).toContain(Icons.gem);
+      expect(html).not.toContain('coin-icon');
     });
   });
 });
