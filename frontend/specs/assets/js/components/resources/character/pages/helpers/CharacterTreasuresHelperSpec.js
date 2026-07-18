@@ -74,7 +74,7 @@ describe('CharacterTreasuresHelper', function() {
           pagination, '#/games/demo/pcs/1/treasures', '#/games/demo/pcs/1', false, undefined, 'deadlands'
         )
       );
-      expect(html).toContain('3 Dollars and 50 Cents');
+      expect(html).toContain('$ 3,50');
     });
 
     it('renders each treasure value as a dnd coin breakdown by default', function() {

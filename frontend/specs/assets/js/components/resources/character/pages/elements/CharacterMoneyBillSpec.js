@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
 import CharacterMoneyBill from '../../../../../../../../assets/js/components/resources/character/pages/elements/CharacterMoneyBill.jsx';
+import Icons from '../../../../../../../../assets/js/utils/ui/Icons.js';
 
 describe('CharacterMoneyBill', function() {
   it('delegates rendering to CharacterMoneyBillHelper', function() {
@@ -8,7 +9,7 @@ describe('CharacterMoneyBill', function() {
 
     expect(html).toContain('character-money-bill-group');
     expect(html).toContain('character-money-bill');
-    expect(html).toContain('coin-icon');
+    expect(html).toContain(Icons.cashCoin);
     expect(html).toContain('100,02');
   });
 

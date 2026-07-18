@@ -31,21 +31,25 @@ describe('TreasureMoneyHelper', function() {
     });
 
     describe('with a "deadlands" gameType', function() {
-      it('renders 0 as "0 Dollars"', function() {
-        expect(TreasureMoneyHelper.render(0, 'deadlands')).toEqual('0 Dollars');
+      it('renders 0 as "$ 0,00"', function() {
+        expect(TreasureMoneyHelper.render(0, 'deadlands')).toEqual('$ 0,00');
       });
 
-      it('renders "0 Dollars" when value is not provided', function() {
-        expect(TreasureMoneyHelper.render(undefined, 'deadlands')).toEqual('0 Dollars');
+      it('renders "$ 0,00" when value is not provided', function() {
+        expect(TreasureMoneyHelper.render(undefined, 'deadlands')).toEqual('$ 0,00');
       });
 
-      it('joins dollars and cents with "and"', function() {
-        expect(TreasureMoneyHelper.render(350, 'deadlands')).toEqual('3 Dollars and 50 Cents');
+      it('renders dollars and cents as "$ dollars,cents"', function() {
+        expect(TreasureMoneyHelper.render(350, 'deadlands')).toEqual('$ 3,50');
       });
 
-      it('omits a zero-quantity denomination', function() {
-        expect(TreasureMoneyHelper.render(300, 'deadlands')).toEqual('3 Dollars');
-        expect(TreasureMoneyHelper.render(50, 'deadlands')).toEqual('50 Cents');
+      it('zero-pads a single-digit cents value', function() {
+        expect(TreasureMoneyHelper.render(300, 'deadlands')).toEqual('$ 3,00');
+        expect(TreasureMoneyHelper.render(50, 'deadlands')).toEqual('$ 0,50');
+      });
+
+      it('renders large values without capping dollars', function() {
+        expect(TreasureMoneyHelper.render(10000002, 'deadlands')).toEqual('$ 100000,02');
       });
     });
   });

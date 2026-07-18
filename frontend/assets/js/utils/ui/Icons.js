@@ -5,6 +5,7 @@
  */
 export default {
   camera: 'bi-camera-fill',
+  cashCoin: 'bi-cash-coin',
   gem: 'bi-gem',
   heart: 'bi-heart-fill',
   heartOutline: 'bi-heart',
