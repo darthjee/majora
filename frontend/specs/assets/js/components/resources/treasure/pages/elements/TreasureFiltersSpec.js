@@ -80,4 +80,36 @@ describe('TreasureFilters', function() {
 
     expect(onClear).toHaveBeenCalled();
   });
+
+  it('passes showGameType through to TreasureFiltersHelper.render, defaulting to true', function() {
+    globalThis.window = { location: { hash: '#/treasures' } };
+    let showGameType;
+    spyOn(TreasureFiltersHelper, 'render').and.callFake((_state, _handlers, passedShowGameType) => {
+      showGameType = passedShowGameType;
+      return React.createElement('div', null, 'filters');
+    });
+
+    renderToStaticMarkup(
+      React.createElement(TreasureFilters, { onQuery: jasmine.createSpy(), onClear: jasmine.createSpy() })
+    );
+
+    expect(showGameType).toBe(true);
+  });
+
+  it('passes showGameType={false} through to TreasureFiltersHelper.render when set', function() {
+    globalThis.window = { location: { hash: '#/games/demo/treasures' } };
+    let showGameType;
+    spyOn(TreasureFiltersHelper, 'render').and.callFake((_state, _handlers, passedShowGameType) => {
+      showGameType = passedShowGameType;
+      return React.createElement('div', null, 'filters');
+    });
+
+    renderToStaticMarkup(
+      React.createElement(
+        TreasureFilters, { onQuery: jasmine.createSpy(), onClear: jasmine.createSpy(), showGameType: false },
+      )
+    );
+
+    expect(showGameType).toBe(false);
+  });
 });

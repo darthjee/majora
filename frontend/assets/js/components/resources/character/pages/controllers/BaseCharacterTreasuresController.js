@@ -7,6 +7,7 @@ import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import Noop from '../../../../../utils/Noop.js';
 import CharacterGameTypeResolver from './CharacterGameTypeResolver.js';
 import HashQueryParams from '../../../../../utils/routing/HashQueryParams.js';
+import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js';
 
 /**
  * Base controller for character treasures index pages (PC and NPC).
@@ -18,6 +19,19 @@ import HashQueryParams from '../../../../../utils/routing/HashQueryParams.js';
  */
 export default class BaseCharacterTreasuresController extends BasePageController {
   #mounted = false;
+
+  /**
+   * Build the hash URL for applying treasure filters, resetting pagination to page 1.
+   *
+   * @param {string} basePath - Base hash path (e.g. `#/games/demo/pcs/2/treasures`).
+   * @param {{min_value?: string, max_value?: string, name?: string}} filters - Filters to
+   *   apply, as built by `TreasureFiltersController#buildQuery` (blank fields already omitted).
+   * @returns {string} Hash including the reset page and the active filters.
+   */
+  static buildFilterQueryHash(basePath, filters) {
+    const params = new URLSearchParams({ page: '1', ...filters });
+    return `${basePath}?${params.toString()}`;
+  }
 
   /**
    * Create a base character treasures controller.
@@ -56,6 +70,7 @@ export default class BaseCharacterTreasuresController extends BasePageController
     this.setCharacter = setCharacter;
     this.characterClient = characterClient ?? new CharacterClient();
     this.gameClient = gameClient ?? new GameClient();
+    this.hashResolver = new HashRouteResolver(() => this.client.currentHash());
     this.#mounted = true;
   }
 
@@ -115,7 +130,11 @@ export default class BaseCharacterTreasuresController extends BasePageController
   }
 
   #fetchTreasuresIndex(gameSlug, characterId, safeSet) {
-    this.client.fetchIndex(`/games/${gameSlug}/${this.characterKind}/${characterId}/treasures.json`)
+    const filterParams = Object.fromEntries(this.hashResolver.getFilterParams());
+
+    this.client.fetchIndex(
+      `/games/${gameSlug}/${this.characterKind}/${characterId}/treasures.json`, filterParams,
+    )
       .then(({ data, pagination }) => {
         safeSet(this.setTreasures, Array.isArray(data) ? data : []);
         safeSet(this.setPagination, pagination);
@@ -147,7 +166,9 @@ export default class BaseCharacterTreasuresController extends BasePageController
 
   #fetchNpcTreasuresAll(gameSlug, characterId, safeSet) {
     const token = AuthStorage.getToken();
-    const params = BaseCharacterTreasuresController.#paginationParamsFromHash(this.client.currentHash());
+    const paginationParams = BaseCharacterTreasuresController.#paginationParamsFromHash(this.client.currentHash());
+    const filterParams = Object.fromEntries(this.hashResolver.getFilterParams());
+    const params = { ...paginationParams, ...filterParams };
 
     this.characterClient.fetchTreasuresAllPage(gameSlug, characterId, token, params)
       .then((response) => BaseCharacterTreasuresController.#parsePageResponse(response))

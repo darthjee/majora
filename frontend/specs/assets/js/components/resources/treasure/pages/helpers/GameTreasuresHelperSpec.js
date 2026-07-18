@@ -1,3 +1,4 @@
+import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameTreasuresHelper from '../../../../../../../../assets/js/components/resources/treasure/pages/helpers/GameTreasuresHelper.jsx';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
@@ -88,6 +89,28 @@ describe('GameTreasuresHelper', function() {
       const uploadMatches = html.match(/actions-overlay-button/g) || [];
       expect(uploadMatches.length).toBe(1);
       expect(html).toContain('href="#/games/demo/treasures/1/edit"');
+    });
+
+    it('renders the given filter bar above the treasures grid', function() {
+      const html = renderToStaticMarkup(
+        GameTreasuresHelper.render(
+          treasures, pagination, '#/games/demo/treasures', 'demo', '#/games/demo', false, '', Noop.noop, {},
+          React.createElement('div', { 'data-testid': 'treasure-filters' }, 'filters'),
+        )
+      );
+
+      expect(html).toContain('data-testid="treasure-filters"');
+    });
+
+    it('preserves active filters on pagination links', function() {
+      const html = renderToStaticMarkup(
+        GameTreasuresHelper.render(
+          treasures, pagination, '#/games/demo/treasures', 'demo', '#/games/demo', false, '', Noop.noop,
+          { name: 'sword' },
+        )
+      );
+
+      expect(html).toContain('name=sword');
     });
   });
 

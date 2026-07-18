@@ -10,7 +10,9 @@ import PcCharacterTreasuresController
   from '../../../../../../../assets/js/components/resources/character/pages/controllers/PcCharacterTreasuresController.js';
 import NpcCharacterTreasuresController
   from '../../../../../../../assets/js/components/resources/character/pages/controllers/NpcCharacterTreasuresController.js';
+import TreasureFilters from '../../../../../../../assets/js/components/resources/treasure/pages/elements/TreasureFilters.jsx';
 import FacadeRefresh from '../../../../../../../assets/js/utils/access/useFacadeRefresh.js';
+import Noop from '../../../../../../../assets/js/utils/Noop.js';
 import { stubBuildEffect, stubRenderLoading } from '../../../../../../support/controllerStubs.js';
 
 const KINDS = [
@@ -57,6 +59,71 @@ KINDS.forEach(({ label, Component, Controller, kind }) => {
 
       expect(html).toContain('Golden Crown');
       expect(html).toContain(`href="#/games/demo/${kind}/7"`);
+    });
+
+    describe('filter query/clear interaction', function() {
+      // CharacterTreasures.jsx wires TreasureFilters' onQuery/onClear to update
+      // window.location.hash (via ControllerClass.buildFilterQueryHash) and re-trigger the
+      // page's fetch effect, the same wiring contract as GameTreasures.jsx/Treasures.jsx build.
+      const basePath = `#/games/demo/${kind}/7/treasures`;
+      let originalWindow;
+
+      beforeEach(function() {
+        originalWindow = globalThis.window;
+        globalThis.window = { location: { hash: basePath } };
+      });
+
+      afterEach(function() {
+        globalThis.window = originalWindow;
+      });
+
+      const buildHandlers = (controller) => ({
+        onQuery: (filters) => {
+          window.location.hash = Controller.buildFilterQueryHash(basePath, filters);
+          controller.buildEffect()();
+        },
+        onClear: () => {
+          window.location.hash = basePath;
+          controller.buildEffect()();
+        },
+      });
+
+      it('updates the hash and re-triggers the fetch on filter query', function() {
+        const buildEffectSpy = stubBuildEffect(Controller);
+        const controller = new Controller(Noop.noop, Noop.noop, Noop.noop, Noop.noop);
+        const { onQuery } = buildHandlers(controller);
+
+        onQuery({ name: 'sword' });
+
+        expect(window.location.hash).toBe(`${basePath}?page=1&name=sword`);
+        expect(buildEffectSpy).toHaveBeenCalled();
+      });
+
+      it('resets the hash to the base path and re-triggers the fetch on filter clear', function() {
+        window.location.hash = `${basePath}?name=sword`;
+        const buildEffectSpy = stubBuildEffect(Controller);
+        const controller = new Controller(Noop.noop, Noop.noop, Noop.noop, Noop.noop);
+        const { onClear } = buildHandlers(controller);
+
+        onClear();
+
+        expect(window.location.hash).toBe(basePath);
+        expect(buildEffectSpy).toHaveBeenCalled();
+      });
+
+      it('renders TreasureFilters with the game type dropdown hidden', function() {
+        stubBuildEffect(Controller);
+
+        const html = renderToStaticMarkup(
+          CharacterTreasuresHelper.render(
+            [], { page: 1, pages: 1, perPage: 10 }, basePath, `#/games/demo/${kind}/7`, false, undefined, 'dnd', {},
+            React.createElement(TreasureFilters, { onQuery: Noop.noop, onClear: Noop.noop, showGameType: false }),
+          )
+        );
+
+        expect(html).toContain('data-testid="treasure-filters"');
+        expect(html).not.toContain('data-testid="treasure-filter-game-type"');
+      });
     });
   });
 });

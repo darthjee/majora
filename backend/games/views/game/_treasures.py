@@ -7,6 +7,7 @@ from ...models import GameTreasure
 from ...serializers import CharacterTreasureSerializer
 from ..common import paginated_list_response
 from ..games._treasure_context import game_treasures_context
+from ..games._treasure_filters import filter_by_max_value, filter_by_min_value, filter_by_name
 from ._shared import _get_character_or_404, _hidden_gate_response
 
 
@@ -46,7 +47,9 @@ def character_treasures(
     )
     treasures = treasures.annotate(game_value=Coalesce(game_value, 'treasure__value'))
     treasures = treasures.order_by('game_value', 'treasure__id')
-    treasures = _filter_by_search(request, treasures)
+    treasures = filter_by_min_value(request, treasures)
+    treasures = filter_by_max_value(request, treasures)
+    treasures = filter_by_name(request, treasures, field='treasure__name')
     context = game_treasures_context(game)
     response = paginated_list_response(
         request, treasures, serializer_class, context=context,
@@ -62,12 +65,3 @@ def _exclude_hidden_treasures(game, treasures):
         game=game, treasure=OuterRef('treasure_id'), hidden=True,
     )
     return treasures.exclude(Exists(hidden_game_treasure))
-
-
-def _filter_by_search(request, treasures):
-    """Filter `treasures` to a case-insensitive `treasure__name` substring match on `search`."""
-    search = request.GET.get('search')
-    if not search:
-        return treasures
-
-    return treasures.filter(treasure__name__icontains=search)
