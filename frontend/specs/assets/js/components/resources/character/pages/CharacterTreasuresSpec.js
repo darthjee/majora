@@ -158,20 +158,27 @@ describe('applyExchangeSuccess', function() {
 });
 
 describe('buildExchangeCharacter', function() {
-  it('threads canEdit from the loaded character\'s can_edit field', function() {
-    const character = { money: 250, can_edit: true };
+  it('threads canEdit from the loaded character\'s game_can_edit field', function() {
+    const character = { money: 250, can_edit: true, game_can_edit: true };
 
     expect(buildExchangeCharacter('7', 'demo', true, character)).toEqual({
       id: '7', game_slug: 'demo', is_pc: true, money: 250, canEdit: true,
     });
   });
 
-  it('threads canEdit as false when the loaded character cannot edit', function() {
-    const character = { money: 100, can_edit: false };
+  it('threads canEdit as false when the loaded character\'s game_can_edit is false', function() {
+    const character = { money: 100, can_edit: true, game_can_edit: false };
 
     expect(buildExchangeCharacter('7', 'demo', false, character)).toEqual({
       id: '7', game_slug: 'demo', is_pc: false, money: 100, canEdit: false,
     });
+  });
+
+  it('is not driven by the character-level can_edit field (a PC\'s own owning player can '
+    + 'edit their character but must not be routed through the DM-only endpoints)', function() {
+    const character = { money: 100, can_edit: true, game_can_edit: false };
+
+    expect(buildExchangeCharacter('7', 'demo', true, character).canEdit).toBe(false);
   });
 
   it('defaults money to 0 and canEdit to undefined while the character has not loaded yet', function() {
