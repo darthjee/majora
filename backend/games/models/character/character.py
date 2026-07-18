@@ -53,6 +53,19 @@ class Character(models.Model):
         """Metadata for the Character model."""
 
         ordering = ['id']
+        constraints = [
+            # No `condition=` here: MySQL doesn't support Django's partial/conditional
+            # unique constraints (`connection.features.supports_partial_indexes` is False),
+            # so it would silently no-op. A plain UniqueConstraint already achieves the
+            # intended "at most one PC per Player" rule on MySQL without one, since MySQL's
+            # standard NULL semantics treat every NULL as distinct in a unique index —
+            # any number of NPCs/unowned PCs with `player=None` remain unaffected, only
+            # non-null `player` values are constrained to be unique.
+            models.UniqueConstraint(
+                fields=['player'],
+                name='unique_player_character',
+            ),
+        ]
 
     @property
     def is_pc(self):

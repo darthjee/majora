@@ -56,7 +56,8 @@ class TestGamePcsView:
     def test_respects_page_param(self, client):
         """Test that ?page=N returns the correct page of results."""
         for i in range(5):
-            CharacterFactory(name=f'Character {i}', game=self.game, player=self.player, npc=False)
+            player = PlayerFactory(name=f'Player {i}', game=self.game)
+            CharacterFactory(name=f'Character {i}', game=self.game, player=player, npc=False)
         response = client.get(self._url('?page=2&per_page=3'))
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -65,7 +66,8 @@ class TestGamePcsView:
     def test_respects_per_page_param(self, client):
         """Test that ?per_page=N limits the number of results returned."""
         for i in range(5):
-            CharacterFactory(name=f'Character {i}', game=self.game, player=self.player, npc=False)
+            player = PlayerFactory(name=f'Player {i}', game=self.game)
+            CharacterFactory(name=f'Character {i}', game=self.game, player=player, npc=False)
         response = client.get(self._url('?per_page=2'))
         assert response.status_code == 200
         data = json.loads(response.content)
