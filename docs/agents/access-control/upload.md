@@ -27,8 +27,9 @@ sets that primary photo reference. Dispatches on the upload's `content_object` t
 - **`GamePhoto`**: if the photo's game does not already have a `cover_photo`, sets
   `Game.cover_photo` to that photo. Gated by **GameEdit**.
 - **`CharacterPhoto`**: if the photo's character does not already have a `profile_photo`, sets
-  `Character.profile_photo` to that photo. Gated by **CharacterEdit** for a PC, or
-  **NpcPlayerEdit** for an NPC.
+  `Character.profile_photo` to that photo. Gated by **CharacterPhotoUpload** for a PC, or
+  **NpcPlayerEdit** for an NPC (issue #668 aligned the PC finalize step with the same
+  **CharacterPhotoUpload** rule already used at PC upload init, below).
 - **`TreasurePhoto`**: unconditionally sets `Treasure.photo` to that photo — unlike the
   `GamePhoto`/`CharacterPhoto` cases, there is no "if unset" guard, since a treasure has at most
   one photo and re-uploading always replaces it. Gated by **TreasureEdit** for a global

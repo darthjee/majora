@@ -70,8 +70,9 @@ class CharacterPhotoUploadPermission(_EditPermission):
 
     Allows any player of the character's game, or any staff user (globally), in addition
     to the standard can_be_edited_by chain (superuser, DM, owner). Deliberately narrower
-    in scope than NpcPlayerEditPermission's reuse: this class exists only for PC photo
-    upload and must not be reused for general PC editing.
+    in scope than NpcPlayerEditPermission's reuse: this class exists only for the PC
+    photo-upload init endpoint (issue #619) and the PC branch of upload_finalize's
+    _check_permission (issue #668), and must not be reused for general PC editing.
     """
 
     @classmethod

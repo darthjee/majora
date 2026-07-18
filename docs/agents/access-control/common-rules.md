@@ -8,7 +8,7 @@ restated in every section:
 | **GameEdit** | `GameEditPermission` | That game's GameMaster, or superuser |
 | **CharacterEdit** | `CharacterEditPermission` | The character's own player, any GameMaster of that game, or superuser |
 | **NpcPlayerEdit** | `NpcPlayerEditPermission` | Everyone CharacterEdit grants, OR any player of that game (`is_player`, below) — NPC routes only |
-| **CharacterPhotoUpload** | `CharacterPhotoUploadPermission` | Everyone CharacterEdit grants, OR any player of that game, OR any global Staff account (`user.is_staff`) — PC photo-upload route only (issue #619) |
+| **CharacterPhotoUpload** | `CharacterPhotoUploadPermission` | Everyone CharacterEdit grants, OR any player of that game, OR any global Staff account (`user.is_staff`) — PC photo-upload flow only: both the init route (issue #619) and the finalize route's PC branch (issue #668) |
 | **CharacterMoneyEdit** | `CharacterMoneyEditPermission` | Everyone CharacterEdit grants, OR any global Staff account (`user.is_staff`) — no "any player of the game" grant, unlike CharacterPhotoUpload; PC/NPC money-only routes (issue #615) |
 | **TreasureEdit** | `TreasureEditPermission` | Superuser or Staff (staff only for a global treasure; a game-scoped treasure still requires GameEdit) |
 | **GameSessionEdit** | `GameSessionEditPermission` | Delegates entirely to GameEdit against the session's game |
