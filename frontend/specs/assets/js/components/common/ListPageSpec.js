@@ -73,4 +73,32 @@ describe('ListPage', function() {
 
     expect(() => renderToStaticMarkup(React.createElement(ListPage, baseProps))).not.toThrow();
   });
+
+  it('propagates the freshly fetched items to onItemsChange', async function() {
+    const fields = ['setItems', 'setPagination', 'setLoading', 'setError', 'setCanEdit'];
+    const capture = captureConstructorFields(ListPageController, fields);
+    const onItemsChange = jasmine.createSpy('onItemsChange');
+
+    spyOn(listTypeConfig.treasures, 'fetchList').and.returnValue(Promise.resolve({
+      data: [{ id: 1, name: 'Sword' }],
+      pagination: { page: 1, pages: 1, perPage: 10 },
+      canEdit: false,
+    }));
+
+    renderToStaticMarkup(React.createElement(ListPage, { ...baseProps, onItemsChange }));
+
+    const cleanup = capture.getInstance().buildEffect()();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    cleanup();
+
+    expect(onItemsChange).toHaveBeenCalledWith([{ id: 1, name: 'Sword' }]);
+
+    capture.restore();
+  });
+
+  it('defaults onItemsChange to a no-op', function() {
+    stubBuildEffect(ListPageController);
+
+    expect(() => renderToStaticMarkup(React.createElement(ListPage, baseProps))).not.toThrow();
+  });
 });
