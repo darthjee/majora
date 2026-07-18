@@ -25,6 +25,7 @@ KINDS.forEach(({ label, Controller, kind, isPc, money }) => {
           json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
         }));
         spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+        spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
         const cleanup = new Controller(
           jasmine.createSpy('setTreasures'),
@@ -39,7 +40,72 @@ KINDS.forEach(({ label, Controller, kind, isPc, money }) => {
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(setCharacter).toHaveBeenCalledWith({
-          id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'dnd', can_edit: true,
+          id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'dnd', can_edit: true, game_can_edit: true,
+        });
+
+        cleanup();
+      });
+
+      it('merges game_can_edit false from AccessStore.ensureGamePermissions onto the fetched character '
+        + 'for a DM/superuser', async function() {
+        const setCharacter = jasmine.createSpy('setCharacter');
+        const characterClient = buildCharacterClient();
+
+        characterClient.fetchCharacter.and.returnValue(Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
+        }));
+        spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+        spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+        const cleanup = new Controller(
+          jasmine.createSpy('setTreasures'),
+          jasmine.createSpy('setPagination'),
+          jasmine.createSpy('setLoading'),
+          jasmine.createSpy('setError'),
+          buildClient(),
+          setCharacter,
+          characterClient,
+          buildGameClient(),
+        ).buildEffect()();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+        expect(setCharacter).toHaveBeenCalledWith({
+          id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'dnd', can_edit: false, game_can_edit: true,
+        });
+
+        cleanup();
+      });
+
+      it('keeps game_can_edit false for a character-editing owner who is not a DM/superuser '
+        + '(character-level and game-level can_edit disagree)', async function() {
+        const setCharacter = jasmine.createSpy('setCharacter');
+        const characterClient = buildCharacterClient();
+
+        characterClient.fetchCharacter.and.returnValue(Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
+        }));
+        // The character's own owning player can edit the character itself, but is not a
+        // DM/superuser for the game.
+        spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+        spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+
+        const cleanup = new Controller(
+          jasmine.createSpy('setTreasures'),
+          jasmine.createSpy('setPagination'),
+          jasmine.createSpy('setLoading'),
+          jasmine.createSpy('setError'),
+          buildClient(),
+          setCharacter,
+          characterClient,
+          buildGameClient(),
+        ).buildEffect()();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(setCharacter).toHaveBeenCalledWith({
+          id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'dnd', can_edit: true, game_can_edit: false,
         });
 
         cleanup();
@@ -78,6 +144,7 @@ KINDS.forEach(({ label, Controller, kind, isPc, money }) => {
             json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
           }));
           spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+          spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
           const cleanup = new Controller(
             jasmine.createSpy('setTreasures'),
@@ -92,11 +159,41 @@ KINDS.forEach(({ label, Controller, kind, isPc, money }) => {
           await new Promise((resolve) => setTimeout(resolve, 0));
 
           expect(setCharacter).toHaveBeenCalledWith({
-            id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'dnd', can_edit: false,
+            id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'dnd', can_edit: false, game_can_edit: false,
           });
 
           cleanup();
         });
+
+      it('falls back to game_can_edit false when AccessStore.ensureGamePermissions rejects', async function() {
+        const setCharacter = jasmine.createSpy('setCharacter');
+        const characterClient = buildCharacterClient();
+
+        characterClient.fetchCharacter.and.returnValue(Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
+        }));
+        spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+        spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.reject(new Error('network error')));
+
+        const cleanup = new Controller(
+          jasmine.createSpy('setTreasures'),
+          jasmine.createSpy('setPagination'),
+          jasmine.createSpy('setLoading'),
+          jasmine.createSpy('setError'),
+          buildClient(),
+          setCharacter,
+          characterClient,
+          buildGameClient(),
+        ).buildEffect()();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(setCharacter).toHaveBeenCalledWith({
+          id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'dnd', can_edit: true, game_can_edit: false,
+        });
+
+        cleanup();
+      });
 
       it('merges game_type from the character\'s own game', async function() {
         const setCharacter = jasmine.createSpy('setCharacter');
@@ -107,6 +204,7 @@ KINDS.forEach(({ label, Controller, kind, isPc, money }) => {
           json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
         }));
         spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+        spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
         const gameClient = buildGameClient({
           fetchGame: () => Promise.resolve({
             ok: true,
@@ -128,7 +226,7 @@ KINDS.forEach(({ label, Controller, kind, isPc, money }) => {
 
         expect(gameClient.fetchGame).toHaveBeenCalledWith('demo', null);
         expect(setCharacter).toHaveBeenCalledWith({
-          id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'deadlands', can_edit: true,
+          id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'deadlands', can_edit: true, game_can_edit: true,
         });
 
         cleanup();

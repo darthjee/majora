@@ -16,6 +16,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
         pagination: { page: 2, pages: 3, perPage: 4 },
       }));
       spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
       const cleanup = new Controller(
         setTreasures, setPagination, setLoading, setError, client, undefined, buildCharacterClient(),
@@ -47,6 +48,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
           pagination: { page: 1, pages: 1, perPage: 10 },
         }));
         spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+        spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
         const cleanup = new Controller(
           setTreasures, setPagination, setLoading, setError, client, undefined, buildCharacterClient(),
