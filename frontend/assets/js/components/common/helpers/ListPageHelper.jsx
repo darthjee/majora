@@ -70,10 +70,12 @@ export default class ListPageHelper {
   static #renderItem(rawItem, config, context) {
     const item = new config.wrapperClass(rawItem);
     const href = config.buildItemHref(item, context);
+    const extraCardClassName = config.buildCardClassName ? config.buildCardClassName(item) : '';
+    const cardClassName = `card h-100 position-relative${extraCardClassName ? ` ${extraCardClassName}` : ''}`;
 
     return (
       <div className="col-6 col-sm-4 col-md-3 col-lg-2 mb-4" key={rawItem.id}>
-        <div className="card h-100 position-relative">
+        <div className={cardClassName}>
           <ActionsOverlay
             type={config.photoType}
             url={item.photoUrl}

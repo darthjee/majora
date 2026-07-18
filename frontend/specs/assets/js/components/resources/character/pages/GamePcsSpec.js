@@ -1,9 +1,7 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import GamePcs from '../../../../../../../assets/js/components/resources/character/pages/GamePcs.jsx';
-import GameCharactersHelper from '../../../../../../../assets/js/components/resources/character/pages/helpers/GameCharactersHelper.jsx';
-import GamePcsController from '../../../../../../../assets/js/components/resources/character/pages/controllers/GamePcsController.js';
-import { stubBuildEffect, stubRenderLoading } from '../../../../../../support/controllerStubs.js';
+import GamePcsHelper from '../../../../../../../assets/js/components/resources/character/pages/helpers/GamePcsHelper.jsx';
 
 describe('GamePcs', function() {
   let originalWindow;
@@ -17,24 +15,11 @@ describe('GamePcs', function() {
     globalThis.window = originalWindow;
   });
 
-  it('renders the loading state while fetching', function() {
-    stubBuildEffect(GamePcsController);
-    stubRenderLoading(GameCharactersHelper);
+  it('delegates rendering to GamePcsHelper.render with the game slug from the hash', function() {
+    const renderSpy = spyOn(GamePcsHelper, 'render').and.callThrough();
 
-    const html = renderToStaticMarkup(React.createElement(GamePcs));
+    renderToStaticMarkup(React.createElement(GamePcs));
 
-    expect(html).toContain('loading');
-  });
-
-  it('does not render a New button when GameCharactersHelper.render is called without canEdit/newHref', function() {
-    const html = renderToStaticMarkup(
-      GameCharactersHelper.render(
-        [], { page: 1, pages: 1, perPage: 10 }, '#/games/demo/pcs', 'demo',
-        'Player Characters', 'pc', '#/games/demo',
-      ),
-    );
-
-    expect(html).not.toContain('New NPC');
-    expect(html).not.toContain('btn btn-primary mb-3');
+    expect(renderSpy).toHaveBeenCalledWith('demo');
   });
 });

@@ -1,59 +1,72 @@
 import { useEffect, useMemo, useState } from 'react';
-import GameNpcsController from './controllers/GameNpcsController.js';
 import GameCharactersHelper from './helpers/GameCharactersHelper.jsx';
-import Translator from '../../../../i18n/Translator.js';
+import GameNpcsAccessController from './controllers/GameNpcsAccessController.js';
+import BasePageController from '../../../common/controllers/BasePageController.js';
 import AuthStorage from '../../../../utils/auth/AuthStorage.js';
 import HashRouteResolver from '../../../../utils/routing/HashRouteResolver.js';
 import PhotoUploadModal from '../../../common/PhotoUploadModal.jsx';
 import SlainConfirmModal from './elements/SlainConfirmModal.jsx';
 import SlainConfirmController from './elements/controllers/SlainConfirmController.js';
 import PlayerSlainConfirmController from './elements/controllers/PlayerSlainConfirmController.js';
-import NpcFilters from './elements/NpcFilters.jsx';
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
 
+const PATTERN = '/games/:game_slug/npcs';
+
 /**
- * Builds a slain-toggle controller/state pair for the given field, refreshing
- * the NPC list and clearing the target once the request succeeds.
+ * Build the hash URL for applying NPC filters, resetting pagination to page 1.
+ *
+ * @param {string} basePath - Base hash path (e.g. `#/games/demo/npcs`).
+ * @param {{slain?: string, name?: string, allegiance?: string, hidden?: string}} filters -
+ *   Filters to apply, as built by `NpcFiltersController#buildQuery` (blank fields already
+ *   omitted).
+ * @returns {string} Hash including the reset page and the active filters.
+ */
+function buildFilterQueryHash(basePath, filters) {
+  const params = new URLSearchParams({ page: '1', ...filters });
+  return `${basePath}?${params.toString()}`;
+}
+
+/**
+ * Builds a slain-toggle controller/state pair for the given field, refreshing the NPC list and
+ * clearing the target once the request succeeds.
  *
  * @param {'slain'|'public_slain'} field - Character field this pair toggles.
- * @param {import('./controllers/GameNpcsController.js').default} controller - List controller,
- *   whose effect is re-run to refresh the NPC list after toggling.
+ * @param {Function} refresh - Called to re-trigger the NPC list fetch after toggling.
  * @returns {{target: object|null, setTarget: Function, slainController: SlainConfirmController}} Slain
  *   toggle state and controller pair.
  */
-function useSlainTogglePair(field, controller) {
+function useSlainTogglePair(field, refresh) {
   const [target, setTarget] = useState(null);
 
   const slainController = useMemo(
     () => new SlainConfirmController(() => {
       setTarget(null);
-      controller.buildEffect()();
+      refresh();
     }, field),
-    [controller, field],
+    [refresh, field],
   );
 
   return { target, setTarget, slainController };
 }
 
 /**
- * Builds the target state and controller pair for the player-facing slain
- * toggle, which PATCHes the plain NPC endpoint as a player of the game
- * (rather than the DM's `full.json` endpoint used by {@link useSlainTogglePair}).
+ * Builds the target state and controller pair for the player-facing slain toggle, which
+ * PATCHes the plain NPC endpoint as a player of the game (rather than the DM's `full.json`
+ * endpoint used by {@link useSlainTogglePair}).
  *
- * @param {import('./controllers/GameNpcsController.js').default} controller - List controller,
- *   whose effect is re-run to refresh the NPC list after toggling.
+ * @param {Function} refresh - Called to re-trigger the NPC list fetch after toggling.
  * @returns {{target: object|null, setTarget: Function, playerSlainController:
  *   PlayerSlainConfirmController}} Player-facing slain toggle state and controller pair.
  */
-function usePlayerSlainTogglePair(controller) {
+function usePlayerSlainTogglePair(refresh) {
   const [target, setTarget] = useState(null);
 
   const playerSlainController = useMemo(
     () => new PlayerSlainConfirmController(() => {
       setTarget(null);
-      controller.buildEffect()();
+      refresh();
     }),
-    [controller],
+    [refresh],
   );
 
   return { target, setTarget, playerSlainController };
@@ -65,59 +78,62 @@ function usePlayerSlainTogglePair(controller) {
  * @returns {React.ReactElement} Game NPCs page element.
  */
 export default function GameNpcs() {
-  const [npcs, setNpcs] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, pages: 1, perPage: 10 });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [canEdit, setCanEdit] = useState(false);
   const [isPlayer, setIsPlayer] = useState(false);
   const [uploadTarget, setUploadTarget] = useState(null);
+  const [refreshToken, setRefreshToken] = useState(0);
 
-  const controller = useMemo(
-    () => new GameNpcsController(
-      setNpcs, setPagination, setLoading, setError, null, null, setCanEdit, setIsPlayer,
-    ),
-    [],
-  );
-
-  useEffect(() => controller.buildEffect()(), [controller]);
-  FacadeRefresh.useFacadeRefresh(controller);
-
-  const slain = useSlainTogglePair('slain', controller);
-  const publicSlain = useSlainTogglePair('public_slain', controller);
-  const playerSlain = usePlayerSlainTogglePair(controller);
-
-  const gameSlug = GameNpcsController.getGameSlugFromNpcsHash(window.location.hash);
+  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const gameSlug = BasePageController.extractParam(PATTERN, 'game_slug', currentHash);
   const basePath = `#/games/${gameSlug}/npcs`;
   const backHref = `#/games/${gameSlug}`;
   const newHref = `#/games/${gameSlug}/npcs/new`;
   const activeFilters = Object.fromEntries(new HashRouteResolver().getFilterParams());
 
+  const refresh = () => setRefreshToken((token) => token + 1);
+
+  const accessController = useMemo(
+    () => new GameNpcsAccessController(gameSlug, setIsPlayer),
+    [gameSlug],
+  );
+
+  useEffect(() => accessController.buildEffect()(), [accessController]);
+  FacadeRefresh.useFacadeRefresh(accessController);
+
+  const slain = useSlainTogglePair('slain', refresh);
+  const publicSlain = useSlainTogglePair('public_slain', refresh);
+  const playerSlain = usePlayerSlainTogglePair(refresh);
+
   const handleUploadSuccess = () => {
     setUploadTarget(null);
-    controller.buildEffect()();
+    refresh();
   };
 
   const handleFilterQuery = (filters) => {
-    window.location.hash = GameNpcsController.buildFilterQueryHash(basePath, filters);
-    controller.buildEffect()();
+    window.location.hash = buildFilterQueryHash(basePath, filters);
+    refresh();
   };
 
   const handleFilterClear = () => {
     window.location.hash = basePath;
-    controller.buildEffect()();
+    refresh();
   };
-
-  if (loading) return GameCharactersHelper.renderLoading();
-  if (error) return GameCharactersHelper.renderError(error);
 
   return (
     <>
       {GameCharactersHelper.render(
-        npcs, pagination, basePath, gameSlug, Translator.t('game_npcs_page.title'), 'npc', backHref,
-        canEdit, newHref, setUploadTarget, slain.setTarget, publicSlain.setTarget, activeFilters,
-        <NpcFilters onQuery={handleFilterQuery} onClear={handleFilterClear} canEdit={canEdit} />,
-        isPlayer, playerSlain.setTarget,
+        {
+          gameSlug, basePath, backHref, newHref, canEdit, isPlayer, refreshToken, activeFilters,
+        },
+        {
+          onCanEditChange: setCanEdit,
+          onUploadClick: setUploadTarget,
+          onSlainClick: slain.setTarget,
+          onPublicSlainClick: publicSlain.setTarget,
+          onPlayerSlainClick: playerSlain.setTarget,
+          onFilterQuery: handleFilterQuery,
+          onFilterClear: handleFilterClear,
+        },
       )}
       <PhotoUploadModal
         show={uploadTarget !== null}

@@ -8,6 +8,10 @@ import CharacterItemListItem from './CharacterItemListItem.js';
 import TreasureFilters from '../../resources/treasure/pages/elements/TreasureFilters.jsx';
 import TreasureCardHelper from '../helpers/TreasureCardHelper.jsx';
 import ItemCardHelper from '../helpers/ItemCardHelper.jsx';
+import gamesListType from './configs/gamesListType.js';
+import characterListTypes from './configs/characterListTypes.js';
+import characterTreasureListTypes from './configs/characterTreasureListTypes.js';
+import globalTreasureListType from './configs/globalTreasureListType.js';
 
 /**
  * Fetch a page of a game's treasures, resolving the requester's edit permission first to
@@ -185,15 +189,20 @@ function buildNullItemHref() {
 
 /**
  * Per-list-type configuration consumed by `ListPage`/`ListPageHelper`, keyed by list type
- * (`'treasures'`, `'items'`, `'pc-items'`, `'npc-items'`, extendable later to the `pcs`/`npcs`
- * full-list variants), matching the existing `PHOTO_COMPONENTS` precedent in
- * `ActionsOverlay.jsx`. Each entry holds:
+ * (`'treasures'`, `'items'`, `'pc-items'`, `'npc-items'`, `'games'`, `'pcs'`, `'npcs'`,
+ * `'pc-treasures'`, `'npc-treasures'`, `'treasures-global'`), matching the existing
+ * `PHOTO_COMPONENTS` precedent in `ActionsOverlay.jsx`. The `games`/`pcs`/`npcs`/
+ * `pc-treasures`/`npc-treasures`/`treasures-global` entries live in `./configs/`, split out of
+ * this file to keep it under the project's max-lines limit; they are merged into this object
+ * below. Each entry holds:
  * - `fetchList(gameSlug, hashResolver, client?)` — fetches one page of list data.
  * - `wrapperClass` — the `BaseListItem` subclass normalizing each raw entry.
  * - `filtersComponent` — filter bar rendered above the grid, or `null`.
  * - `photoType` — `ActionsOverlay`'s `type` prop for this entity's photo/avatar.
  * - `buildActionBarProps(item, context)` / `buildInfoBarItems(item, context)` — delegate to
  *   the existing per-card helpers rather than re-implementing them.
+ * - `buildCardClassName(item)` — optional; extra class(es) appended to the outer card div
+ *   (e.g. the NPC allegiance border). Defaults to no-op when omitted.
  * - `showCaption` — whether caption text (display text + optional formatted value + optional
  *   availability text) appears under the photo.
  * - `buildItemHref(item, context)` — click-through URL builder; `null` when the type has no
@@ -240,6 +249,10 @@ const listTypeConfig = {
     showCaption: true,
     buildItemHref: buildNullItemHref,
   },
+  games: gamesListType,
+  ...characterListTypes,
+  ...characterTreasureListTypes,
+  'treasures-global': globalTreasureListType,
 };
 
 export default listTypeConfig;
