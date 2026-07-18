@@ -1,8 +1,44 @@
 # Player
 
-Players have no dedicated public endpoint. They are read indirectly through character data.
-The `Player` model (`name`, `game` FK, `is_dm`) is not exposed in any list or detail endpoint
-as a standalone resource; no write endpoint exists.
+A `Player` is now exposed as a standalone resource via a dedicated roster endpoint (issue
+#589); it remains otherwise read indirectly through character data. No write endpoint exists.
+
+| Action | Who can |
+|--------|---------|
+| List (`GET /games/<game_slug>/players.json`) | Player of the game, that game's GameMaster, Superuser, or Staff (`is_staff`) — **PlayerPermission.check**; 401 if unauthenticated, 403 if authenticated but none of the above; 404 if the game slug is unknown |
+| Show/Create/Update/Delete | Not exposed by any endpoint (Django admin only, out of scope) |
+
+**Pagination**: standard numbered-page `Paginator` (same as `game_treasures`/`game_polls_list`).
+No filters. Ordering follows `Player.Meta.ordering` (`['name']`).
+
+**Cache**: `X-Skip-Cache: true` is always set on the response — see
+[Common Rules](common-rules.md) for the cache-bypass mechanism, since this is
+authorization-gated, per-viewer data.
+
+**Exposed fields** (`PlayerListSerializer`): `id`, `user`, `character`.
+
+- `user` (`PlayerUserSerializer`) is `null` when the `Player` has no linked `User` account (a
+  named participant with no login identity). Otherwise: `display_name`
+  (`UserProfile.display_name`, not the player's real `username`/login credential) and
+  `photo_url` (Gravatar-based, same pattern as `SessionMessageUserSerializer`/
+  `MyAccountDetailSerializer`; `None` if the user has no email hash).
+- `character` (`PlayerCharacterSerializer`) is `null` for a `Player` who owns no PC (e.g. the
+  DM). Otherwise: `name` and `photo_url` (`source='profile_photo.path'`, `None` if the
+  character has no photo). Resolved via `player.characters.filter(npc=False).first()` — the
+  player's first (only, per the `unique_player_character` constraint below) owned PC.
+
+## One PC per Player
+
+`Character.player`, once set (non-null), is enforced unique at the database level via a
+plain `UniqueConstraint` (`unique_player_character`, `fields=['player']`) — a `Player` may
+own at most one PC. Deliberately **no** `condition=` clause: MySQL (this project's DB) does
+not support Django's partial/conditional unique constraints
+(`connection.features.supports_partial_indexes` is `False`), so one would silently no-op.
+A plain `UniqueConstraint` already achieves the same effect on MySQL without it, since
+MySQL's standard unique-index semantics treat every `NULL` as distinct — any number of
+NPCs/unowned PCs with `player=None` remain unaffected; only non-null `player` values are
+constrained to be unique. This is a schema-only change (issue #589); no backfill migration
+is included.
 
 ## GameMaster (DM) role
 
