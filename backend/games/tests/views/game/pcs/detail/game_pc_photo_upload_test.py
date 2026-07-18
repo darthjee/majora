@@ -158,10 +158,9 @@ class TestGamePcPhotoUploadView(TokenAuthRequestMixin):
         assert response.status_code == 201
 
     def test_player_of_game_returns_201(self, client):
-        """Test that a player of the game (via Player.games) can upload the PC's photo."""
+        """Test that a player of the game (via Player.game) can upload the PC's photo."""
         player_user = UserFactory(username='player_user', password='secret-password')
-        player = PlayerFactory(name='Alice', user=player_user)
-        player.games.add(self.game)
+        PlayerFactory(name='Alice', user=player_user, game=self.game)
         token = Token.objects.create(user=player_user)
 
         response = self._post(client, {'filename': 'photo.jpg'}, token=token)

@@ -101,8 +101,7 @@ class TestTreasureAccessSerializer(TestCase):
         """Test that is_player stays False for a player of the treasure's owning game."""
         game = GameFactory(name='Test Game', game_slug='test-game')
         player_user = UserFactory(username='player_user', password='secret-password')
-        player = PlayerFactory(name='Alice', user=player_user)
-        player.games.add(game)
+        PlayerFactory(name='Alice', user=player_user, game=game)
         self.treasure.game = game
         self.treasure.save()
         request = _make_request(player_user)

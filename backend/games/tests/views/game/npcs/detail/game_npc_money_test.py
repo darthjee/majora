@@ -30,8 +30,9 @@ class TestGameNpcMoneyView(TokenAuthRequestMixin):
         self.regular_player_user = UserFactory(
             username='regular_player', password='secret-password',
         )
-        self.regular_player = PlayerFactory(name='Alice', user=self.regular_player_user)
-        self.regular_player.games.add(self.game)
+        self.regular_player = PlayerFactory(
+            name='Alice', user=self.regular_player_user, game=self.game
+        )
 
     def _dm_token(self):
         """Return the DM's user token."""

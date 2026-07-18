@@ -7,7 +7,7 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from games.models import GameMaster
+from games.models import GameMaster, Player
 from games.tests.factories import GameFactory, UserFactory
 
 
@@ -156,3 +156,16 @@ class TestGamesCreateView(TestCase):
         """Test that exactly one GameMaster record is created after a single POST."""
         self._post(self.client, {'name': 'Solo Campaign'}, token=self.token)
         assert GameMaster.objects.filter(user=self.user).count() == 1
+
+    def test_post_creates_dm_player_for_creator(self):
+        """Test that a Player record with is_dm=True is created for the authenticated creator."""
+        response = self._post(self.client, {'name': 'DM Game'}, token=self.token)
+        assert response.status_code == 201
+        data = json.loads(response.content)
+        player = Player.objects.get(game__game_slug=data['game_slug'], user=self.user)
+        assert player.is_dm is True
+
+    def test_post_creates_exactly_one_player_for_creator(self):
+        """Test that exactly one Player record is created after a single POST."""
+        self._post(self.client, {'name': 'Solo Campaign'}, token=self.token)
+        assert Player.objects.filter(user=self.user).count() == 1

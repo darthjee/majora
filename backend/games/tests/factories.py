@@ -85,6 +85,7 @@ class PlayerFactory(factory.django.DjangoModelFactory):
         model = Player
 
     name = 'Test Player'
+    game = factory.SubFactory(GameFactory)
 
 
 class CharacterFactory(factory.django.DjangoModelFactory):
@@ -169,7 +170,7 @@ class PollVoteFactory(factory.django.DjangoModelFactory):
     `user` and `option` are independent sub-factories with no shared game by
     default, so `PollVote.clean()`'s game-membership check will fail unless the
     caller explicitly makes the user a player or game master of the poll's game
-    (e.g. `player.games.add(poll.game)`) before building a valid vote.
+    (e.g. `player.game = poll.game; player.save()`) before building a valid vote.
     """
 
     class Meta:

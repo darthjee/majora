@@ -181,8 +181,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         GameMasterFactory(game=cls.game, user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
-        cls.player = PlayerFactory(name='Bob', user=cls.player_user)
-        cls.player.games.add(cls.game)
+        cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
         cls.npc = CharacterFactory(name='Gandalf', game=cls.game, npc=True)
 
     def _url(self, character=None):
@@ -200,7 +199,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
         assert response.status_code == 401
 
     def test_patch_by_player_of_game_returns_200(self):
-        """Test that a player of the game (via Player.games) can toggle slain."""
+        """Test that a player of the game (via Player.game) can toggle slain."""
         token = Token.objects.create(user=self.player_user)
 
         response = self._patch(self.client, {'slain': True}, token=token)
@@ -419,8 +418,7 @@ class TestGameNpcPlayerUpdateHiddenGate(TokenAuthRequestMixin, TestCase):
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         GameMasterFactory(game=cls.game, user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
-        cls.player = PlayerFactory(name='Bob', user=cls.player_user)
-        cls.player.games.add(cls.game)
+        cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
         cls.hidden_npc = CharacterFactory(
             name='Secret NPC', game=cls.game, npc=True, hidden=True
         )
