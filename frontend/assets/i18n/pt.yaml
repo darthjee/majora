@@ -83,6 +83,7 @@ game_page:
   player_characters: Personagens
   non_player_characters: NPCs
   treasures: Tesouros
+  items: Itens
   sessions: Sessões
   see_all_photos: Fotos
   next_session_title: Próxima Sessão
@@ -265,6 +266,7 @@ character_treasures_page:
 character_items_page:
   loading: Carregando itens...
   title: Itens
+  hidden_label: Oculto
 treasure_exchange_modal:
   title: Troca de Tesouro
   search_placeholder: Buscar tesouros...
@@ -315,6 +317,7 @@ game_treasures_page:
 game_items_page:
   loading: Carregando itens...
   title: Itens
+  hidden_label: Oculto
 add_game_treasure_modal:
   title: Adicionar Tesouro
   value_label: Valor

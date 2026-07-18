@@ -83,6 +83,7 @@ game_page:
   player_characters: Player Characters
   non_player_characters: Non-Player Characters
   treasures: Treasures
+  items: Items
   sessions: Sessions
   see_all_photos: Photos
   next_session_title: Next Session
@@ -265,6 +266,7 @@ character_treasures_page:
 character_items_page:
   loading: Loading items...
   title: Items
+  hidden_label: Hidden
 treasure_exchange_modal:
   title: Treasure Exchange
   search_placeholder: Search treasures...
@@ -315,6 +317,7 @@ game_treasures_page:
 game_items_page:
   loading: Loading items...
   title: Items
+  hidden_label: Hidden
 add_game_treasure_modal:
   title: Add Treasure
   value_label: Value

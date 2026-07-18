@@ -8,14 +8,16 @@ describe('HeaderHelper', function() {
         { page: 'pcCharacterEdit', label: 'PC' },
         { page: 'pcCharacterPhotos', label: 'PC' },
         { page: 'pcCharacterTreasures', label: 'PC' },
+        { page: 'pcCharacterItems', label: 'PC' },
       ].forEach(({ page, label }) => {
-        it(`renders the ${label} dropdown with Overview/Photos/Treasures items on the ${page} route`, function() {
+        it(`renders the ${label} dropdown with Overview/Photos/Treasures/Items items on the ${page} route`, function() {
           const html = render({ route: { page, gameSlug: 'epic-quest', characterId: '7' } });
 
           expect(html).toContain(label);
           expect(html).toContain('href="#/games/epic-quest/pcs/7"');
           expect(html).toContain('href="#/games/epic-quest/pcs/7/photos"');
           expect(html).toContain('href="#/games/epic-quest/pcs/7/treasures"');
+          expect(html).toContain('href="#/games/epic-quest/pcs/7/items"');
         });
       });
 
@@ -24,14 +26,16 @@ describe('HeaderHelper', function() {
         { page: 'npcCharacterEdit', label: 'NPC' },
         { page: 'npcCharacterPhotos', label: 'NPC' },
         { page: 'npcCharacterTreasures', label: 'NPC' },
+        { page: 'npcCharacterItems', label: 'NPC' },
       ].forEach(({ page, label }) => {
-        it(`renders the ${label} dropdown with Overview/Photos/Treasures items on the ${page} route`, function() {
+        it(`renders the ${label} dropdown with Overview/Photos/Treasures/Items items on the ${page} route`, function() {
           const html = render({ route: { page, gameSlug: 'epic-quest', characterId: '9' } });
 
           expect(html).toContain(label);
           expect(html).toContain('href="#/games/epic-quest/npcs/9"');
           expect(html).toContain('href="#/games/epic-quest/npcs/9/photos"');
           expect(html).toContain('href="#/games/epic-quest/npcs/9/treasures"');
+          expect(html).toContain('href="#/games/epic-quest/npcs/9/items"');
         });
       });
 

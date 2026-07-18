@@ -24,6 +24,10 @@ export class StubCharacterController extends CharacterController {
     return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
   }
 
+  fetchCharacterItems(gameSlug, characterId, token) { // eslint-disable-line no-unused-vars
+    return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+  }
+
   fetchCharacterPhotos(gameSlug, characterId, token) { // eslint-disable-line no-unused-vars
     return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
   }
@@ -58,6 +62,9 @@ export const buildController = (setCharacter, overrides = {}) => {
   }
   if (overrides.fetchCharacterTreasures) {
     spyOn(controller, 'fetchCharacterTreasures').and.callFake(overrides.fetchCharacterTreasures);
+  }
+  if (overrides.fetchCharacterItems) {
+    spyOn(controller, 'fetchCharacterItems').and.callFake(overrides.fetchCharacterItems);
   }
   if (overrides.fetchCharacterPhotos) {
     spyOn(controller, 'fetchCharacterPhotos').and.callFake(overrides.fetchCharacterPhotos);
