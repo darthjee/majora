@@ -144,9 +144,9 @@ export default class BaseCharacterTreasuresController extends BasePageController
   }
 
   /**
-   * Resolve the viewer's edit permission for the NPC before deciding which
+   * Resolve the viewer's game-level edit permission before deciding which NPC
    * treasures endpoint to fetch: the full, hidden-inclusive `treasures/all.json`
-   * for an editor (DM/staff/superuser), so a hidden treasure already sitting in
+   * for a game editor (DM/staff/superuser), so a hidden treasure already sitting in
    * the NPC's inventory isn't filtered out of its own page, or the regular,
    * hidden-filtered `treasures.json` otherwise. Falls back to the regular
    * endpoint when the permission check itself fails.
@@ -157,7 +157,7 @@ export default class BaseCharacterTreasuresController extends BasePageController
    * @returns {void}
    */
   #fetchNpcTreasures(gameSlug, characterId, safeSet) {
-    AccessStore.ensureCharacterPermissions('npcs', gameSlug, characterId)
+    AccessStore.ensureGamePermissions(gameSlug)
       .then((permissions) => (permissions.can_edit
         ? this.#fetchNpcTreasuresAll(gameSlug, characterId, safeSet)
         : this.#fetchTreasuresIndex(gameSlug, characterId, safeSet)))
@@ -231,13 +231,38 @@ export default class BaseCharacterTreasuresController extends BasePageController
     return CharacterGameTypeResolver.merge(character, this.gameClient.fetchGame(gameSlug, token));
   }
 
+  /**
+   * Merge both the character-level and game-level edit permissions onto the loaded
+   * character before publishing it: `can_edit` (character-level, `true` for the DM,
+   * a superuser, or — for a PC — the character's own owning player) still gates
+   * character-editing actions like the "Add treasure" button, while `game_can_edit`
+   * (game-level, DM/superuser only) drives the treasure exchange modal's choice
+   * between the public and `all.json` endpoints. Resolved in parallel to avoid an
+   * extra sequential round-trip. Each check falls back to `false` independently if
+   * it fails.
+   *
+   * @param {object|null} character - Character payload, or `null` if it failed to load.
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {Function} safeSet - Setter wrapper guarding against a stale/unmounted update.
+   * @returns {Promise<void>} Resolves once the character (with merged permissions) is set.
+   */
   #mergeAccess(character, gameSlug, characterId, safeSet) {
     if (!character) {
       safeSet(this.setCharacter, null);
       return Promise.resolve();
     }
 
-    return AccessStore.ensureCharacterPermissions(this.characterKind, gameSlug, characterId)
-      .then((permissions) => safeSet(this.setCharacter, { ...character, can_edit: Boolean(permissions.can_edit) }));
+    const characterPermissions = AccessStore.ensureCharacterPermissions(this.characterKind, gameSlug, characterId)
+      .then((permissions) => Boolean(permissions.can_edit))
+      .catch(() => false);
+    const gamePermissions = AccessStore.ensureGamePermissions(gameSlug)
+      .then((permissions) => Boolean(permissions.can_edit))
+      .catch(() => false);
+
+    return Promise.all([characterPermissions, gamePermissions])
+      .then(([canEdit, gameCanEdit]) => safeSet(
+        this.setCharacter, { ...character, can_edit: canEdit, game_can_edit: gameCanEdit },
+      ));
   }
 }

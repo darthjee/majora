@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import GameTreasuresController from './controllers/GameTreasuresController.js';
 import GameTreasuresHelper from './helpers/GameTreasuresHelper.jsx';
 import PhotoUploadModal from '../../../common/PhotoUploadModal.jsx';
+import AddGameTreasureModal from './elements/AddGameTreasureModal.jsx';
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
 import TreasureFilters from './elements/TreasureFilters.jsx';
 import HashRouteResolver from '../../../../utils/routing/HashRouteResolver.js';
@@ -18,6 +19,7 @@ export default function GameTreasures() {
   const [error, setError] = useState('');
   const [canEdit, setCanEdit] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [selectedTreasure, setSelectedTreasure] = useState(null);
 
   const controller = useMemo(
@@ -44,6 +46,11 @@ export default function GameTreasures() {
     controller.buildEffect()();
   };
 
+  const handleAddSuccess = () => {
+    setShowAddModal(false);
+    controller.buildEffect()();
+  };
+
   const handleFilterQuery = (filters) => {
     window.location.hash = GameTreasuresController.buildFilterQueryHash(basePath, filters);
     controller.buildEffect()();
@@ -61,6 +68,7 @@ export default function GameTreasures() {
     <>
       {GameTreasuresHelper.render(
         treasures, pagination, basePath, gameSlug, backHref, canEdit, newHref, handleUploadClick,
+        () => setShowAddModal(true),
         activeFilters,
         <TreasureFilters onQuery={handleFilterQuery} onClear={handleFilterClear} showGameType={false} />,
       )}
@@ -69,6 +77,12 @@ export default function GameTreasures() {
         uploadPath={`/treasures/${selectedTreasure?.id}/photo_upload.json`}
         onClose={() => setShowUploadModal(false)}
         onSuccess={handleUploadSuccess}
+      />
+      <AddGameTreasureModal
+        show={showAddModal}
+        gameSlug={gameSlug}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={handleAddSuccess}
       />
     </>
   );

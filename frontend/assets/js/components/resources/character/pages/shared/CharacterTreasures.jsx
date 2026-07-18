@@ -24,10 +24,15 @@ export function applyExchangeSuccess(controller, setTreasures, { treasureId, tre
 
 /**
  * Builds the character context object passed to the treasure exchange modal,
- * threading through the game-scoped ids and the DM/admin `canEdit` flag (issue #632)
- * so the modal's Acquire tab routes through the `all.json` endpoints — letting a DM
- * browse and acquire hidden treasures on behalf of the character — instead of always
- * hitting the player-facing, hidden-filtered ones.
+ * threading through the game-scoped ids and the DM/admin `canEdit` flag (issue #632,
+ * fixed to source from game-level permissions by issue #641) so the modal's Acquire
+ * tab routes through the `all.json` endpoints — letting a DM browse and acquire
+ * hidden treasures on behalf of the character — instead of always hitting the
+ * player-facing, hidden-filtered ones. Sourced from `character.game_can_edit`
+ * (game-level, DM/superuser only, via `AccessStore.ensureGamePermissions`) rather
+ * than `character.can_edit` (character-level, also `true` for a PC's own owning
+ * player), since only the former matches what the `all.json` endpoints actually
+ * authorize.
  *
  * @param {string|number} characterId - Character id.
  * @param {string} gameSlug - Game slug the character belongs to.
@@ -41,7 +46,7 @@ export function buildExchangeCharacter(characterId, gameSlug, isPc, character) {
     game_slug: gameSlug,
     is_pc: isPc,
     money: character?.money ?? 0,
-    canEdit: character?.can_edit,
+    canEdit: character?.game_can_edit,
   };
 }
 

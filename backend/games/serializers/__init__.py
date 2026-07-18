@@ -56,6 +56,7 @@ from games.serializers.games.sessions.messages.session_message_user import (
 from games.serializers.games.tasks.game_task_create import GameTaskCreateSerializer
 from games.serializers.games.tasks.game_task_list import GameTaskListSerializer
 from games.serializers.games.tasks.game_task_update import GameTaskUpdateSerializer
+from games.serializers.games.treasures.game_treasure_link import GameTreasureLinkSerializer
 from games.serializers.games.treasures.game_treasure_update import GameTreasureUpdateSerializer
 from games.serializers.link import LinkSerializer
 from games.serializers.photo_upload import PhotoUploadSerializer
@@ -104,6 +105,7 @@ __all__ = [
     'GameTaskCreateSerializer',
     'GameTaskListSerializer',
     'GameTaskUpdateSerializer',
+    'GameTreasureLinkSerializer',
     'GameTreasureUpdateSerializer',
     'GameUpdateSerializer',
     'HiddenFieldSerializer',
