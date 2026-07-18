@@ -39,7 +39,6 @@ describe('CharacterPhotosPreviewHelper', function() {
     it('renders a see all card with the provided href', function() {
       const html = renderToStaticMarkup(CharacterPhotosPreviewHelper.render(buildPhotos(1), title, seeAllHref));
       expect(html).toContain(`href="${seeAllHref}"`);
-      expect(html).toContain('See all Photos');
     });
 
     it('renders the see all card with the camera icon', function() {

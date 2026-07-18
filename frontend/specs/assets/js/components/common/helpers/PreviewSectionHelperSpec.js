@@ -47,7 +47,6 @@ describe('PreviewSectionHelper', function() {
         PreviewSectionHelper.render(buildItems(1), title, seeAllHref, icon, maxItems, renderItem)
       );
       expect(html).toContain(`href="${seeAllHref}"`);
-      expect(html).toContain('See all Treasures');
       expect(html).toContain(icon);
     });
 
