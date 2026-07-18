@@ -32,6 +32,20 @@ describe('ActionsOverlay', function() {
     expect(html).toContain('default_treasure.png');
   });
 
+  it('renders a CardItemImage when type is item', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(ActionsOverlay, {
+        type: 'item',
+        url: null,
+        alt: 'Cloak of Elvenkind',
+        canEdit: true,
+        onClick: Noop.noop,
+      })
+    );
+
+    expect(html).toContain('default_item.png');
+  });
+
   it('renders a CardAvatar when type is avatar', function() {
     const html = renderToStaticMarkup(
       React.createElement(ActionsOverlay, {

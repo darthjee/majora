@@ -22,7 +22,10 @@ KINDS.forEach(({ label, Controller, kind }) => {
         const client = jasmine.createSpyObj('client', ['currentHash']);
         const characterClient = jasmine.createSpyObj(
           'characterClient',
-          ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterPhotos', 'updateCharacter'],
+          [
+            'fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterItems',
+            'fetchCharacterPhotos', 'updateCharacter',
+          ],
         );
 
         client.currentHash.and.returnValue(`#/games/demo/${kind}/2/edit`);
@@ -31,6 +34,10 @@ KINDS.forEach(({ label, Controller, kind }) => {
           json: () => Promise.resolve({ id: 2, can_edit: false }),
         }));
         characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([]),
+        }));
+        characterClient.fetchCharacterItems.and.returnValue(Promise.resolve({
           ok: true,
           json: () => Promise.resolve([]),
         }));
@@ -58,6 +65,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
         expect(setCharacter).toHaveBeenCalledWith({
           id: 2,
           treasures: [],
+          items: [],
           photos: [],
           game_type: 'dnd',
           can_edit: true,

@@ -1,8 +1,8 @@
-import listTypeConfig from '../../../../../../assets/js/components/common/listTypes/listTypeConfig.js';
-import TreasureListItem from '../../../../../../assets/js/components/common/listTypes/TreasureListItem.js';
-import TreasureFilters from '../../../../../../assets/js/components/resources/treasure/pages/elements/TreasureFilters.jsx';
-import TreasureCardHelper from '../../../../../../assets/js/components/common/helpers/TreasureCardHelper.jsx';
-import AccessStore from '../../../../../../assets/js/utils/access/store/AccessStore.js';
+import listTypeConfig from '../../../../../../../assets/js/components/common/listTypes/listTypeConfig.js';
+import TreasureListItem from '../../../../../../../assets/js/components/common/listTypes/TreasureListItem.js';
+import TreasureFilters from '../../../../../../../assets/js/components/resources/treasure/pages/elements/TreasureFilters.jsx';
+import TreasureCardHelper from '../../../../../../../assets/js/components/common/helpers/TreasureCardHelper.jsx';
+import AccessStore from '../../../../../../../assets/js/utils/access/store/AccessStore.js';
 
 describe('listTypeConfig', function() {
   describe('treasures', function() {

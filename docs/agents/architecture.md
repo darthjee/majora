@@ -73,9 +73,10 @@ summary; `backend/games/urls.py` and `backend/games/models/` are the authoritati
 Cross-cutting change-history infrastructure, not game domain logic — the second top-level
 Django app besides `games`. Wraps `django-simple-history` to keep full-state (not diff)
 snapshots of every save/delete on the tracked `games` models: `Game`, `Player`, `Character`,
-`Treasure`, `CharacterTreasure`, `GamePhoto`, `CharacterPhoto`, `Link`, `CharacterLink`, and
-`TreasurePhoto` — added via a `history = HistoricalRecords(app='versioning')` field on each
-model in `games/models/`. `GameTreasure` is intentionally excluded from tracking.
+`Treasure`, `CharacterTreasure`, `GamePhoto`, `CharacterPhoto`, `Link`, `CharacterLink`,
+`TreasurePhoto`, `GameItem`, `GameItemPhoto`, `CharacterItem`, and `CharacterItemPhoto` — added
+via a `history = HistoricalRecords(app='versioning')` field on each model in `games/models/`.
+`GameTreasure` is intentionally excluded from tracking.
 
 - `HistoricalRecords(app='versioning')` routes each generated `Historical<Model>` table's
   migration into `versioning/migrations/` instead of `games/migrations/`, keeping the

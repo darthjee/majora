@@ -2,6 +2,8 @@
 
 from .game_access import game_access
 from .game_detail import game_detail
+from .game_items import game_items
+from .game_items_all import game_items_all
 from .game_permissions import game_permissions
 from .game_photos import game_photos
 from .game_treasure_detail import game_treasure_detail
@@ -21,5 +23,7 @@ __all__ = [
     'game_treasures_missing',
     'game_treasure_link',
     'game_treasure_detail',
+    'game_items',
+    'game_items_all',
     'game_photos',
 ]

@@ -85,6 +85,32 @@ describe('DeadlandsMoneyModel', function() {
     });
   });
 
+  describe('.formatDense', function() {
+    it('splits a mixed value into dollars and zero-padded cents', function() {
+      expect(DeadlandsMoneyModel.formatDense(350)).toEqual({ dollars: 3, cents: '50' });
+    });
+
+    it('zero-pads a single-digit cents value', function() {
+      expect(DeadlandsMoneyModel.formatDense(302)).toEqual({ dollars: 3, cents: '02' });
+    });
+
+    it('returns "0,00" for a value of 0', function() {
+      expect(DeadlandsMoneyModel.formatDense(0)).toEqual({ dollars: 0, cents: '00' });
+    });
+
+    it('returns "0,00" when no value is given', function() {
+      expect(DeadlandsMoneyModel.formatDense()).toEqual({ dollars: 0, cents: '00' });
+    });
+
+    it('keeps the dollars entry at 0 for a value under 100 cents', function() {
+      expect(DeadlandsMoneyModel.formatDense(50)).toEqual({ dollars: 0, cents: '50' });
+    });
+
+    it('keeps the cents entry zero-padded for an exact multiple of 100', function() {
+      expect(DeadlandsMoneyModel.formatDense(300)).toEqual({ dollars: 3, cents: '00' });
+    });
+  });
+
   describe('.pack', function() {
     it('sums cents and dollars weighted by their relative value', function() {
       expect(DeadlandsMoneyModel.pack({ cents: 50, dollars: 3 })).toBe(350);

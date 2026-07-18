@@ -5,6 +5,7 @@
  */
 export default {
   camera: 'bi-camera-fill',
+  cashCoin: 'bi-cash-coin',
   gem: 'bi-gem',
   heart: 'bi-heart-fill',
   heartOutline: 'bi-heart',
@@ -34,6 +35,7 @@ export default {
   feather: 'bi-feather',
   musicNoteList: 'bi-music-note-list',
   box: 'bi-box',
+  box2HeartFill: 'bi-box2-heart-fill',
   bookHalf: 'bi-book-half',
   bookmarkStarFill: 'bi-bookmark-star-fill',
 };

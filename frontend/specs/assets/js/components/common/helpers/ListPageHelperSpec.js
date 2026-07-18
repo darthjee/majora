@@ -114,6 +114,37 @@ describe('ListPageHelper', function() {
     });
   });
 
+  describe('items (a list type with no detail page)', function() {
+    const items = [
+      { id: 1, name: 'Cloak of Elvenkind' },
+      { id: 2, name: 'Bag of Holding', hidden: true },
+    ];
+    const itemContext = { gameSlug: 'demo', canEdit: false };
+
+    it('renders each item display text as plain, non-linked text', function() {
+      const html = renderToStaticMarkup(
+        ListPageHelper.render('items', items, pagination, '#/games/demo/items', itemContext)
+      );
+      expect(html).toContain('Cloak of Elvenkind');
+      expect(html).toContain('Bag of Holding');
+      expect(html).not.toContain('stretched-link');
+    });
+
+    it('never renders an upload button, since items are read-only', function() {
+      const html = renderToStaticMarkup(
+        ListPageHelper.render('items', items, pagination, '#/games/demo/items', itemContext)
+      );
+      expect(html).not.toContain('actions-overlay-button');
+    });
+
+    it('renders a hidden badge for hidden items', function() {
+      const html = renderToStaticMarkup(
+        ListPageHelper.render('items', items, pagination, '#/games/demo/items', itemContext)
+      );
+      expect(html).toContain('bi-eye-slash-fill');
+    });
+  });
+
   describe('.renderLoading', function() {
     it('renders the given loading message', function() {
       const html = renderToStaticMarkup(ListPageHelper.renderLoading('Loading treasures...'));

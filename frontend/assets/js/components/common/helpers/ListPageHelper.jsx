@@ -95,15 +95,35 @@ export default class ListPageHelper {
     return (
       <div className="card-body">
         <h6 className="card-title">
-          <a href={href} className="stretched-link text-decoration-none text-dark">
-            {item.displayText}
-          </a>
+          {ListPageHelper.#renderTitleLink(item, href)}
         </h6>
         {item.formattedValue && <p className="card-text text-muted mb-0">{item.formattedValue}</p>}
         {item.availabilityText && (
           <p className="card-text text-muted small mb-0">{item.availabilityText}</p>
         )}
       </div>
+    );
+  }
+
+  /**
+   * Render the caption title, as a stretched clickable link when `href` is given, or as
+   * plain text otherwise — some list types (e.g. items, which have no standalone detail
+   * page in scope) have nothing to link the caption to.
+   *
+   * @param {import('../listTypes/BaseListItem.js').default} item - Wrapped list item.
+   * @param {string|null} href - Click-through href built by the type's `buildItemHref`, or
+   *   `null` when the type has no detail page to link to.
+   * @returns {React.ReactElement} Title link or plain text element.
+   */
+  static #renderTitleLink(item, href) {
+    if (!href) {
+      return <span className="text-dark">{item.displayText}</span>;
+    }
+
+    return (
+      <a href={href} className="stretched-link text-decoration-none text-dark">
+        {item.displayText}
+      </a>
     );
   }
 }
