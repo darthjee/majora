@@ -173,6 +173,7 @@ const characterListTypes = {
     buildInfoBarItems: buildCharacterInfoBarItems,
     showCaption: true,
     buildItemHref: buildCharacterItemHref('pcs'),
+    itemsPerRow: 4,
   },
   npcs: {
     fetchList: fetchNpcs,
@@ -184,6 +185,7 @@ const characterListTypes = {
     buildCardClassName: buildNpcCardClassName,
     showCaption: true,
     buildItemHref: buildCharacterItemHref('npcs'),
+    itemsPerRow: 4,
   },
 };
 

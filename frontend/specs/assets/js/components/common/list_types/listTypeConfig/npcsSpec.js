@@ -24,6 +24,10 @@ describe('listTypeConfig', function() {
       expect(npcs.showCaption).toBe(true);
     });
 
+    it('renders 4 items per row', function() {
+      expect(npcs.itemsPerRow).toBe(4);
+    });
+
     describe('.buildItemHref', function() {
       it('links to the npc detail page', function() {
         const item = new NpcListItem({ id: 1, name: 'Goblin' });

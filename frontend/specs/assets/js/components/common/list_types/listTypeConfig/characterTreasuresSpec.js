@@ -40,6 +40,10 @@ describe('listTypeConfig', function() {
         expect(config.showCaption).toBe(true);
       });
 
+      it('renders 6 items per row (the default)', function() {
+        expect(config.itemsPerRow).toBe(6);
+      });
+
       describe('.buildItemHref', function() {
         it('links to the underlying treasure\'s global detail page', function() {
           const item = new CharacterTreasureListItem({ id: 1, treasure_id: 11, name: 'Golden Crown' });

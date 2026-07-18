@@ -93,6 +93,7 @@ const globalTreasureListType = {
   buildInfoBarItems,
   showCaption: true,
   buildItemHref,
+  itemsPerRow: 6,
 };
 
 export default globalTreasureListType;

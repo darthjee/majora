@@ -72,9 +72,11 @@ export default class ListPageHelper {
     const href = config.buildItemHref(item, context);
     const extraCardClassName = config.buildCardClassName ? config.buildCardClassName(item) : '';
     const cardClassName = `card h-100 position-relative${extraCardClassName ? ` ${extraCardClassName}` : ''}`;
+    const largeColumnClass = ListPageHelper.#largeColumnClass(config.itemsPerRow);
+    const columnClassName = `col-6 col-sm-4 col-md-3 ${largeColumnClass} mb-4`;
 
     return (
-      <div className="col-6 col-sm-4 col-md-3 col-lg-2 mb-4" key={rawItem.id}>
+      <div className={columnClassName} key={rawItem.id}>
         <div className={cardClassName}>
           <ActionsOverlay
             type={config.photoType}
@@ -87,6 +89,19 @@ export default class ListPageHelper {
         </div>
       </div>
     );
+  }
+
+  /**
+   * Pick the outer card column's largest-breakpoint (`lg`) Bootstrap class based on a list
+   * type's configured items-per-row, so `#renderItem` doesn't hardcode a single column count
+   * for every list type.
+   *
+   * @param {number} [itemsPerRow] - Number of cards per row at the `lg` breakpoint, from the
+   *   active list type's config; defaults to `6` when omitted.
+   * @returns {string} Bootstrap `col-lg-*` class for the requested items-per-row count.
+   */
+  static #largeColumnClass(itemsPerRow) {
+    return itemsPerRow === 4 ? 'col-lg-3' : 'col-lg-2';
   }
 
   static #renderCaption(item, href, showCaption) {

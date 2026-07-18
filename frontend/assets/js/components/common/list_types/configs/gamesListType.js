@@ -65,6 +65,7 @@ const gamesListType = {
   buildInfoBarItems: buildEmptyInfoBarItems,
   showCaption: true,
   buildItemHref,
+  itemsPerRow: 4,
 };
 
 export default gamesListType;
