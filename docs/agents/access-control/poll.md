@@ -97,8 +97,8 @@ by `poll.type`, rather than to `.save()`:
   ones untouched.
 
 **Model**: `PollVote.user` is a `ForeignKey` to `auth.User` (`related_name='poll_votes'`),
-**not** `games.Player` — a game's GameMaster(s) have no `Player` row, so pointing votes at
-`Player` would leave DM-only users unable to vote. `PollVote.clean()`'s membership check is
-"user is a player or game master of `poll.game`"
-(`game.players.filter(user=user).exists() or game.game_masters.filter(user=user).exists()`),
-mirroring `PollVotePermission`'s own check. `unique_together = [('user', 'option')]`.
+**not** `games.Player` — `PollVote.clean()`'s membership check is "user is a player of
+`poll.game`" (`game.players.filter(user=user).exists()`), mirroring `PollVotePermission`'s
+own check. Since `Player.is_dm=True` is itself a `Player` row, this single check already
+covers the game's GameMaster(s) too — no separate DM check is needed.
+`unique_together = [('user', 'option')]`.

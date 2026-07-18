@@ -15,9 +15,9 @@ route is always predictable from its path alone.
    resource's own actions: list/create and single-item detail/update.
 2. When a route nests a *different* resource under a specific item — e.g.
    `games/:slug/pcs`, `games/:slug/npcs`, `games/:slug/treasures`, `games/:slug/sessions`,
-   `games/:slug/game-masters`, `games/:slug/access`, `games/:slug/photos` — those live in
-   the sibling singular folder `game/`, one subfolder per nested resource: `game/pcs/`,
-   `game/treasures/`, `game/sessions/`, `game/game_masters/`, etc.
+   `games/:slug/access`, `games/:slug/photos` — those live in the sibling singular folder
+   `game/`, one subfolder per nested resource: `game/pcs/`, `game/treasures/`,
+   `game/sessions/`, etc.
 3. When a route adds a *member action* on the same single item rather than a separate
    resource — e.g. `pcs/:id/full`, `pcs/:id/access`, `pcs/:id/photo_upload`,
    `pcs/:id/treasures`, `npcs/:id/slain`, `treasures/:id/access`,
@@ -54,7 +54,7 @@ match the new paths whenever a slice is actually carried out.
 
 The convention is not yet applied to the existing tree. Today, `views/` groups files into
 flat per-resource packages (`characters/`, `games/`, `treasures/`, `game_sessions/`,
-`game_masters/`, `staff/`, `auth/`, `password_reset/`) without distinguishing a resource's
+`staff/`, `auth/`, `password_reset/`) without distinguishing a resource's
 own actions from nested sub-resources or member actions on a single item — e.g.
 `characters/` alone holds both PC and NPC endpoints (list, detail, full, access, photos,
 photo upload, photo set, treasures, slain-set) in ~29 flat files.
@@ -65,6 +65,6 @@ Migrating the existing tree is deferred to smaller follow-up issues/PRs, each re
 1. `characters/` => `game/pcs/` + `game/npcs/` (the folder that motivated this convention).
 2. `games/`'s nested sub-resources (`access`, `treasures`, `photos`, `photo_upload`) =>
    `game/`.
-3. `game_sessions/` => `game/sessions/`, `game_masters/` => `game/game_masters/`.
+3. `game_sessions/` => `game/sessions/`.
 4. `treasures/` and `staff/` detail-nesting for their member routes (`access`,
    `photo_upload`, `recovery-link`).
