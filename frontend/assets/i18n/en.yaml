@@ -102,6 +102,7 @@ character_page:
   public_slain_button: Mark as Publicly Slain
   public_revive_button: Publicly Revive
   treasures_title: Treasures
+  items_title: Items
   photos_title: Photos
 character_full_page:
   loading: Loading character...
@@ -125,6 +126,8 @@ character_preview_section:
   see_all: See all {{title}}
 character_treasures_preview:
   empty: No treasures yet.
+character_items_preview:
+  empty: No items yet.
 character_photos_preview:
   empty: No photos yet.
 recover_password_page:
@@ -259,6 +262,9 @@ character_treasures_page:
   quantity_column: Quantity
   value_column: Value
   add_treasure: Exchange Treasure
+character_items_page:
+  loading: Loading items...
+  title: Items
 treasure_exchange_modal:
   title: Treasure Exchange
   search_placeholder: Search treasures...
@@ -306,6 +312,9 @@ game_treasures_page:
   edit: Edit
   available_units_label: 'Available: {{available}} / {{max}}'
   hidden_label: Hidden
+game_items_page:
+  loading: Loading items...
+  title: Items
 add_game_treasure_modal:
   title: Add Treasure
   value_label: Value
