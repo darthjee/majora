@@ -1,6 +1,7 @@
 import React from 'react';
 import DeadlandsMoneyModel from '../../../../../../utils/money/DeadlandsMoneyModel.js';
 import Translator from '../../../../../../i18n/Translator.js';
+import Icons from '../../../../../../utils/ui/Icons.js';
 
 /**
  * Rendering helper for the CharacterMoneyTreasureBill element.
@@ -25,7 +26,7 @@ export default class CharacterMoneyTreasureBillHelper {
 
     return (
       <div className="character-money-bill character-money-bill-treasure">
-        <span className="coin-icon" aria-hidden="true"></span>
+        <i className={`bi ${Icons.gem}`} aria-hidden="true"></i>
         <span className="character-money-bill-currency">$</span>
         <span className="character-money-bill-amount">
           {dollars},{paddedCents} {Translator.t('money.in_gems')}

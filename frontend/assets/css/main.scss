@@ -168,8 +168,8 @@ body {
 }
 
 .character-money-coins {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: max-content;
   gap: 0.35rem;
   margin-bottom: 1rem;
 }
@@ -178,7 +178,6 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  width: fit-content;
   padding: 0.25rem 0.6rem;
   border: 1px solid currentColor;
   border-radius: 4px;
@@ -186,6 +185,10 @@ body {
 }
 
 .coin-box .coin-icon {
+  font-size: 1.1rem;
+}
+
+.coin-box-treasure .bi-gem {
   font-size: 1.1rem;
 }
 
@@ -213,13 +216,17 @@ body {
   color: red;
 }
 
+.character-money-bill-group {
+  display: grid;
+  grid-template-columns: max-content;
+  margin-bottom: 1rem;
+}
+
 .character-money-bill {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  width: fit-content;
   padding: 0.25rem 0.6rem;
-  margin-bottom: 1rem;
   background-color: #14532d;
   border: 1px solid #0b3018;
   border-radius: 4px;
@@ -235,4 +242,8 @@ body {
   background-color: gold;
   border-color: #b8860b;
   color: #ffffff;
+}
+
+.character-money-bill-treasure .bi-gem {
+  font-size: 1.1rem;
 }
