@@ -32,8 +32,12 @@ A **User** is a Django authentication account (`django.contrib.auth.models.User`
 FK). Without a `Player` link, a `User` may still join a game as a GameMaster.
 
 A `User` is **not** scoped to any single game — unlike `Character`, `Player`, and
-`GameMaster`, a `User` is a global identity. Its "name" for management purposes is the
-Django `username` field; there is no separate first/last name field.
+`GameMaster`, a `User` is a global identity. It has a `username` (the real, unique login
+credential; also editable as first/last name via `first_name`/`last_name`) plus a
+`UserProfile.display_name` (unique, public-facing name shown to other users wherever a
+user's name is displayed to a general audience, e.g. session message authors and poll
+voters). Only the user themselves (`/#/my_account`) and staff (`/#/staff/users`) can see
+the real `username`; `display_name` never exposes the login credential.
 
 ### Character
 

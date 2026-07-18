@@ -50,8 +50,9 @@ expressed as a fixed suffix, the same reasoning already applied to the NPC-only 
     wouldn't be meaningful. Fields: `option` (the `PollOption` id) and `count`.
   - `users` (`PollVoteUserSerializer`): the distinct users backing the (`?user_id=`-filtered)
     `votes` list below — i.e. only users who cast at least one vote captured there. Fields:
-    `id`, `name` (`User.username`), `avatar_url` (Gravatar-based, same pattern as
-    `SessionMessageUserSerializer`; `None` if the user has no email hash).
+    `id`, `name` (`UserProfile.display_name`, not the voter's real `username`/login credential),
+    `avatar_url` (Gravatar-based, same pattern as `SessionMessageUserSerializer`; `None` if the
+    user has no email hash).
   - `votes` (`PollVoteSerializer`): the same per-vote rows as before, still respecting the
     `?user_id=` filter. Fields: `id`, `option`, `user_id` — both plain FK ids, not nested
     objects (`user_id` was renamed from `user`).
