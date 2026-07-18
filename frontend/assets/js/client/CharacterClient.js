@@ -137,7 +137,8 @@ export default class CharacterClient extends BaseClient {
    * @param {string|number} characterId - Character id.
    * @param {string|null} token - Authentication token, if any.
    * @param {{page: number, perPage: number, search: string}} [params] - Query params.
-   *   `search` is a case-insensitive substring match on the treasure name.
+   *   `search` is a case-insensitive substring match on the treasure name, sent as the
+   *   endpoint's `name` query param.
    * @returns {Promise<Response>} fetch response from the character treasures endpoint.
    */
   fetchTreasuresPage(characterKind, gameSlug, characterId, token, { page, perPage, search } = {}) {
@@ -145,7 +146,7 @@ export default class CharacterClient extends BaseClient {
 
     if (page) queryParams.set('page', page);
     if (perPage) queryParams.set('per_page', perPage);
-    if (search) queryParams.set('search', search);
+    if (search) queryParams.set('name', search);
 
     const query = queryParams.toString();
     const base = `/games/${gameSlug}/${characterKind}/${characterId}/treasures.json`;
@@ -198,16 +199,21 @@ export default class CharacterClient extends BaseClient {
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {string|number} characterId - NPC character id.
    * @param {string|null} token - Authentication token, if any.
-   * @param {{page: number, perPage: number, search: string}} [params] - Query params.
-   *   `search` is a case-insensitive substring match on the treasure name.
+   * @param {{page: number, perPage: number, name: string, min_value: string,
+   *   max_value: string}} [params] - Query params. `name` is a case-insensitive substring
+   *   match on the treasure name; `min_value`/`max_value` filter on the treasure's value.
    * @returns {Promise<Response>} fetch response from the NPC treasures/all endpoint.
    */
-  fetchTreasuresAllPage(gameSlug, characterId, token, { page, perPage, search } = {}) {
+  fetchTreasuresAllPage(gameSlug, characterId, token, {
+    page, perPage, name, min_value: minValue, max_value: maxValue,
+  } = {}) {
     const queryParams = new URLSearchParams();
 
     if (page) queryParams.set('page', page);
     if (perPage) queryParams.set('per_page', perPage);
-    if (search) queryParams.set('search', search);
+    if (name) queryParams.set('name', name);
+    if (minValue) queryParams.set('min_value', minValue);
+    if (maxValue) queryParams.set('max_value', maxValue);
 
     const query = queryParams.toString();
     const path = `/games/${gameSlug}/npcs/${characterId}/treasures/all.json`;

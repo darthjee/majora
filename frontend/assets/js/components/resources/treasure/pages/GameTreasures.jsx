@@ -3,6 +3,8 @@ import GameTreasuresController from './controllers/GameTreasuresController.js';
 import GameTreasuresHelper from './helpers/GameTreasuresHelper.jsx';
 import PhotoUploadModal from '../../../common/PhotoUploadModal.jsx';
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
+import TreasureFilters from './elements/TreasureFilters.jsx';
+import HashRouteResolver from '../../../../utils/routing/HashRouteResolver.js';
 
 /**
  * Game Treasures index page.
@@ -30,6 +32,7 @@ export default function GameTreasures() {
   const basePath = `#/games/${gameSlug}/treasures`;
   const backHref = `#/games/${gameSlug}`;
   const newHref = `#/games/${gameSlug}/treasures/new`;
+  const activeFilters = Object.fromEntries(new HashRouteResolver().getFilterParams());
 
   const handleUploadClick = (treasure) => {
     setSelectedTreasure(treasure);
@@ -41,6 +44,16 @@ export default function GameTreasures() {
     controller.buildEffect()();
   };
 
+  const handleFilterQuery = (filters) => {
+    window.location.hash = GameTreasuresController.buildFilterQueryHash(basePath, filters);
+    controller.buildEffect()();
+  };
+
+  const handleFilterClear = () => {
+    window.location.hash = basePath;
+    controller.buildEffect()();
+  };
+
   if (loading) return GameTreasuresHelper.renderLoading();
   if (error) return GameTreasuresHelper.renderError(error);
 
@@ -48,6 +61,8 @@ export default function GameTreasures() {
     <>
       {GameTreasuresHelper.render(
         treasures, pagination, basePath, gameSlug, backHref, canEdit, newHref, handleUploadClick,
+        activeFilters,
+        <TreasureFilters onQuery={handleFilterQuery} onClear={handleFilterClear} showGameType={false} />,
       )}
       <PhotoUploadModal
         show={showUploadModal}

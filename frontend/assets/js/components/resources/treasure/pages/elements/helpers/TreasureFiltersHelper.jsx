@@ -14,27 +14,14 @@ export default class TreasureFiltersHelper {
    * @param {{onGameTypeChange: Function, onMinValueChange: Function, onMaxValueChange: Function,
    *   onNameChange: Function, onQuery: Function, onClear: Function}} handlers - filters
    *   event handlers.
+   * @param {boolean} [showGameType] - Whether to render the Game type dropdown. Defaults to
+   *   `true`; pages already scoped to a single game pass `false` to hide it.
    * @returns {React.ReactElement} rendered filters bar.
    */
-  static render(state, handlers) {
+  static render(state, handlers, showGameType = true) {
     return (
       <div className="row g-2 align-items-end mb-4" data-testid="treasure-filters">
-        <div className="col-auto">
-          <label htmlFor="treasure-filter-game-type" className="form-label">
-            {Translator.t('treasures_page.filter_game_type_label')}
-          </label>
-          <select
-            id="treasure-filter-game-type"
-            data-testid="treasure-filter-game-type"
-            className="form-select"
-            value={state.gameType}
-            onChange={(event) => handlers.onGameTypeChange(event.target.value)}
-          >
-            <option value="" />
-            <option value="dnd">D&amp;D</option>
-            <option value="deadlands">Deadlands</option>
-          </select>
-        </div>
+        {TreasureFiltersHelper.#renderGameType(state, handlers, showGameType)}
         <div className="col-auto">
           <label htmlFor="treasure-filter-min-value" className="form-label">
             {Translator.t('treasures_page.filter_min_value_label')}
@@ -95,6 +82,29 @@ export default class TreasureFiltersHelper {
             {Translator.t('treasures_page.filter_clear')}
           </button>
         </div>
+      </div>
+    );
+  }
+
+  static #renderGameType(state, handlers, showGameType) {
+    if (!showGameType) return null;
+
+    return (
+      <div className="col-auto">
+        <label htmlFor="treasure-filter-game-type" className="form-label">
+          {Translator.t('treasures_page.filter_game_type_label')}
+        </label>
+        <select
+          id="treasure-filter-game-type"
+          data-testid="treasure-filter-game-type"
+          className="form-select"
+          value={state.gameType}
+          onChange={(event) => handlers.onGameTypeChange(event.target.value)}
+        >
+          <option value="" />
+          <option value="dnd">D&amp;D</option>
+          <option value="deadlands">Deadlands</option>
+        </select>
       </div>
     );
   }
