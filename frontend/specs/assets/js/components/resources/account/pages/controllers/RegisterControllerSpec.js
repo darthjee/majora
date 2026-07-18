@@ -26,9 +26,11 @@ describe('RegisterController', function() {
       globalThis.window = fakeWindow;
 
       try {
-        await controller.handleSubmit('Jane Doe', 'jane@example.com', 'secret', 'secret');
+        await controller.handleSubmit('Jane Doe', 'Jane', 'jane@example.com', 'secret', 'secret');
 
-        expect(client.register).toHaveBeenCalledWith('Jane Doe', 'jane@example.com', 'secret', 'secret');
+        expect(client.register).toHaveBeenCalledWith(
+          'Jane Doe', 'Jane', 'jane@example.com', 'secret', 'secret',
+        );
         expect(setStatus).toHaveBeenCalledWith('submitting');
         expect(AuthStorage.setToken).toHaveBeenCalledWith('tok-abc');
         expect(AuthEvents.emit).toHaveBeenCalledWith(true);
@@ -47,7 +49,7 @@ describe('RegisterController', function() {
 
       const controller = new RegisterController(setStatus, client);
 
-      await controller.handleSubmit('Jane Doe', 'jane@example.com', 'secret', 'secret');
+      await controller.handleSubmit('Jane Doe', 'Jane', 'jane@example.com', 'secret', 'secret');
 
       expect(setStatus).toHaveBeenCalledWith('error');
       expect(AuthStorage.setToken).not.toHaveBeenCalled();
@@ -61,7 +63,7 @@ describe('RegisterController', function() {
 
       const controller = new RegisterController(setStatus, client);
 
-      await controller.handleSubmit('Jane Doe', 'jane@example.com', 'secret', 'secret');
+      await controller.handleSubmit('Jane Doe', 'Jane', 'jane@example.com', 'secret', 'secret');
 
       expect(setStatus).toHaveBeenCalledWith('error');
     });
@@ -71,7 +73,7 @@ describe('RegisterController', function() {
 
       const controller = new RegisterController(setStatus, client);
 
-      await controller.handleSubmit('Jane Doe', 'jane@example.com', 'secret', 'secret');
+      await controller.handleSubmit('Jane Doe', 'Jane', 'jane@example.com', 'secret', 'secret');
 
       expect(setStatus).toHaveBeenCalledWith('error');
     });

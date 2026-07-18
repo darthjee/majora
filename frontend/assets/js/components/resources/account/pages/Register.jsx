@@ -10,6 +10,7 @@ import RegisterHelper from './helpers/RegisterHelper.jsx';
  */
 export default function Register() {
   const [name, setName] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
@@ -25,12 +26,13 @@ export default function Register() {
       event.preventDefault();
     }
 
-    return controller.handleSubmit(name, email, password, passwordConfirmation);
+    return controller.handleSubmit(name, displayName, email, password, passwordConfirmation);
   };
 
   return RegisterHelper.render(
     {
       name,
+      displayName,
       email,
       password,
       passwordConfirmation,
@@ -39,6 +41,7 @@ export default function Register() {
     {
       onSubmit: handleSubmit,
       onNameChange: (event) => setName(event.target.value),
+      onDisplayNameChange: (event) => setDisplayName(event.target.value),
       onEmailChange: (event) => setEmail(event.target.value),
       onPasswordChange: (event) => setPassword(event.target.value),
       onPasswordConfirmationChange: (event) => setPasswordConfirmation(event.target.value),

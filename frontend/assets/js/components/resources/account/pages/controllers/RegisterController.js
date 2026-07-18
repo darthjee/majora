@@ -24,16 +24,19 @@ export default class RegisterController {
    * redirects to the home page.
    *
    * @param {string} name - name to register.
+   * @param {string} displayName - display name to register.
    * @param {string} email - email to register.
    * @param {string} password - password to register.
    * @param {string} passwordConfirmation - confirmation of the password.
    * @returns {Promise<void>} resolves when the request handling finishes.
    */
-  async handleSubmit(name, email, password, passwordConfirmation) {
+  async handleSubmit(name, displayName, email, password, passwordConfirmation) {
     this.setStatus('submitting');
 
     try {
-      const response = await this.client.register(name, email, password, passwordConfirmation);
+      const response = await this.client.register(
+        name, displayName, email, password, passwordConfirmation,
+      );
 
       await this.#handleResponse(response);
     } catch {

@@ -22,12 +22,14 @@ describe('MyAccount', function() {
     const html = renderToStaticMarkup(
       MyAccountHelper.render(
         {
-          name: 'Jane', firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com',
-          avatarUrl: null, password: '', passwordConfirmation: '', status: 'idle', fieldErrors: {},
+          name: 'Jane', displayName: 'Jane D', firstName: 'Jane', lastName: 'Doe',
+          email: 'jane@example.com', avatarUrl: null, password: '', passwordConfirmation: '',
+          status: 'idle', fieldErrors: {},
         },
         {
           onSubmit: Noop.noop,
           onNameChange: Noop.noop,
+          onDisplayNameChange: Noop.noop,
           onFirstNameChange: Noop.noop,
           onLastNameChange: Noop.noop,
           onEmailChange: Noop.noop,

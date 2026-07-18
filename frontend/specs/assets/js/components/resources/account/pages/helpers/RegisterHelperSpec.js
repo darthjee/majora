@@ -5,12 +5,14 @@ describe('RegisterHelper', function() {
   const buildHandlers = () => ({
     onSubmit: jasmine.createSpy('onSubmit'),
     onNameChange: jasmine.createSpy('onNameChange'),
+    onDisplayNameChange: jasmine.createSpy('onDisplayNameChange'),
     onEmailChange: jasmine.createSpy('onEmailChange'),
     onPasswordChange: jasmine.createSpy('onPasswordChange'),
     onPasswordConfirmationChange: jasmine.createSpy('onPasswordConfirmationChange'),
   });
   const buildState = (overrides = {}) => ({
     name: '',
+    displayName: '',
     email: '',
     password: '',
     passwordConfirmation: '',
@@ -19,10 +21,11 @@ describe('RegisterHelper', function() {
   });
 
   describe('.render', function() {
-    it('renders the name, email, password, and confirmation fields', function() {
+    it('renders the name, display name, email, password, and confirmation fields', function() {
       const html = renderToStaticMarkup(RegisterHelper.render(buildState(), buildHandlers()));
 
       expect(html).toContain('id="register-name"');
+      expect(html).toContain('id="register-display-name"');
       expect(html).toContain('id="register-email"');
       expect(html).toContain('id="register-password"');
       expect(html).toContain('id="register-password-confirmation"');

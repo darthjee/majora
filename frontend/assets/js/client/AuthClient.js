@@ -77,14 +77,16 @@ export default class AuthClient extends BaseClient {
    * Submits a registration request for a new user account.
    *
    * @param {string} name - Name to register, used as the username.
+   * @param {string} displayName - Display name to register, shown to other users.
    * @param {string} email - Email address to register.
    * @param {string} password - Password to register.
    * @param {string} passwordConfirmation - Confirmation of the password.
    * @returns {Promise<Response>} fetch response from the register endpoint.
    */
-  register(name, email, password, passwordConfirmation) {
+  register(name, displayName, email, password, passwordConfirmation) {
     return this.postJson('/users/register.json', null, {
       name,
+      display_name: displayName,
       email,
       password,
       password_confirmation: passwordConfirmation,
@@ -116,14 +118,17 @@ export default class AuthClient extends BaseClient {
    * Updates the authenticated user's own account details.
    *
    * @param {string} token - Authentication token for the requesting user.
-   * @param {{name: string, firstName: string, lastName: string, email: string,
-   *   password: (string|undefined), passwordConfirmation: (string|undefined)}} account -
-   *   Account field values.
+   * @param {{name: string, displayName: string, firstName: string, lastName: string,
+   *   email: string, password: (string|undefined), passwordConfirmation: (string|undefined)}}
+   *   account - Account field values.
    * @returns {Promise<Response>} fetch response from the account endpoint.
    */
-  updateAccount(token, { name, firstName, lastName, email, password, passwordConfirmation }) {
+  updateAccount(token, {
+    name, displayName, firstName, lastName, email, password, passwordConfirmation,
+  }) {
     return this.patchJson('/users/account.json', token, {
       name,
+      display_name: displayName,
       first_name: firstName,
       last_name: lastName,
       email,
