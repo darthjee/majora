@@ -22,7 +22,6 @@ from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
@@ -118,7 +117,7 @@ class TestGameNpcDetailHidden(TokenAuthRequestMixin):
         """Set up common test fixtures."""
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.hidden_npc = CharacterFactory(
             name='Secret NPC', game=self.game, npc=True, hidden=True
         )
@@ -179,7 +178,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
         """Set up a game, a DM, a player linked to the game, and an NPC."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
         cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
         cls.npc = CharacterFactory(name='Gandalf', game=cls.game, npc=True)
@@ -416,7 +415,7 @@ class TestGameNpcPlayerUpdateHiddenGate(TokenAuthRequestMixin, TestCase):
         """Set up a game, a DM, a player linked to the game, and a hidden NPC."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
         cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
         cls.hidden_npc = CharacterFactory(

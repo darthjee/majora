@@ -9,7 +9,6 @@ from games.models import Character
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
     UserFactory,
@@ -168,7 +167,7 @@ class TestCharacter(TestCase):
     def test_can_be_edited_by_returns_true_for_game_master(self):
         """Test that a DM of the character's game can edit the character."""
         dm_user = UserFactory(username='dm', password='secret-password')
-        GameMasterFactory(game=self.game, user=dm_user)
+        PlayerFactory(game=self.game, user=dm_user, is_dm=True)
         character = CharacterFactory(name='Frodo', game=self.game)
         assert character.can_be_edited_by(dm_user) is True
 
@@ -176,7 +175,7 @@ class TestCharacter(TestCase):
         """Test that a DM of a different game cannot edit the character."""
         other_game = GameFactory(name='Other Game', game_slug='other-game')
         dm_user = UserFactory(username='dm', password='secret-password')
-        GameMasterFactory(game=other_game, user=dm_user)
+        PlayerFactory(game=other_game, user=dm_user, is_dm=True)
         character = CharacterFactory(name='Frodo', game=self.game)
         assert character.can_be_edited_by(dm_user) is False
 
@@ -192,8 +191,8 @@ class TestCharacter(TestCase):
         """Test that the editors queryset includes all DM users of the game."""
         dm1 = UserFactory(username='dm1', password='secret-password')
         dm2 = UserFactory(username='dm2', password='secret-password')
-        GameMasterFactory(game=self.game, user=dm1)
-        GameMasterFactory(game=self.game, user=dm2)
+        PlayerFactory(game=self.game, user=dm1, is_dm=True)
+        PlayerFactory(game=self.game, user=dm2, is_dm=True)
         character = CharacterFactory(name='Frodo', game=self.game)
         assert dm1 in character.editors
         assert dm2 in character.editors
@@ -220,7 +219,7 @@ class TestCharacter(TestCase):
     def test_is_editor_returns_true_for_game_master(self):
         """Test that a DM of the game is an editor."""
         dm_user = UserFactory(username='dm', password='secret-password')
-        GameMasterFactory(game=self.game, user=dm_user)
+        PlayerFactory(game=self.game, user=dm_user, is_dm=True)
         character = CharacterFactory(name='Frodo', game=self.game)
         assert character.is_editor(dm_user) is True
 

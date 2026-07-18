@@ -7,7 +7,6 @@ from django.test import TestCase
 
 from games.models import Poll, PollVote
 from games.tests.factories import (
-    GameMasterFactory,
     PlayerFactory,
     PollFactory,
     PollOptionFactory,
@@ -72,7 +71,7 @@ class TestPollVote(TestCase):
     def test_dm_without_player_row_can_vote(self):
         """Test that a DM with no Player row can still vote via the game-master membership."""
         dm_user = UserFactory(username='dm-only')
-        GameMasterFactory(game=self.poll.game, user=dm_user)
+        PlayerFactory(game=self.poll.game, user=dm_user, is_dm=True)
         vote = PollVoteFactory(user=dm_user, option=self.option)
         assert vote.user == dm_user
 

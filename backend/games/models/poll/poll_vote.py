@@ -29,10 +29,7 @@ class PollVote(models.Model):
     def _validate_user_belongs_to_game(self):
         """Raise ValidationError if the user is not a player or DM of the poll's game."""
         game = self.option.poll.game
-        is_member = (
-            game.players.filter(user=self.user).exists()
-            or game.game_masters.filter(user=self.user).exists()
-        )
+        is_member = game.players.filter(user=self.user).exists()
         if not is_member:
             raise ValidationError(
                 'User must be a player or game master of the poll game to vote.'

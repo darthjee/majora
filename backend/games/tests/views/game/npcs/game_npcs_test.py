@@ -10,7 +10,6 @@ from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
@@ -254,7 +253,7 @@ class TestGameNpcsCreate(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.player = PlayerFactory(name='Alice')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.dm_token = Token.objects.create(user=self.dm_user)
         self.superuser = SuperUserFactory(username='admin', password='secret-password')
         self.superuser_token = Token.objects.create(user=self.superuser)

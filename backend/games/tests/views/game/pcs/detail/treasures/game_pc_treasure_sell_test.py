@@ -11,7 +11,6 @@ from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     TreasureFactory,
     UserFactory,
@@ -33,7 +32,7 @@ class TestGamePcTreasureSellView(TokenAuthRequestMixin):
             name='Aragorn', game=self.game, npc=False, player=self.player, money=100,
         )
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.dm_token = Token.objects.create(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
         self.other_token = Token.objects.create(user=self.other_user)

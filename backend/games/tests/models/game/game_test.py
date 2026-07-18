@@ -8,7 +8,7 @@ from django.utils.text import slugify
 from games.models import Game, GameTreasure
 from games.tests.factories import (
     GameFactory,
-    GameMasterFactory,
+    PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -66,7 +66,7 @@ class TestGameCanBeEditedBy(TestCase):
         """Set up a game and a DM user."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
 
     def test_superuser_can_edit(self):
         """Test that a superuser may edit the game."""

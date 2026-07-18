@@ -11,7 +11,7 @@ from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
-    GameMasterFactory,
+    PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -27,7 +27,7 @@ class TestGameNpcTreasureSellView(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True, money=100)
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.dm_token = Token.objects.create(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
         self.other_token = Token.objects.create(user=self.other_user)
@@ -194,7 +194,7 @@ class TestGameNpcTreasureSellHidden(TokenAuthRequestMixin):
         """Set up a game, a hidden NPC owning a treasure, and a DM."""
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.dm_token = Token.objects.create(user=self.dm_user)
         self.hidden_npc = CharacterFactory(
             name='Secret NPC', game=self.game, npc=True, hidden=True, money=0,
@@ -239,7 +239,7 @@ class TestCharacterTreasureSellStockCap(TokenAuthRequestMixin):
         """Set up a game, a DM, an NPC owning a limited treasure, and its through-row cap."""
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.dm_token = Token.objects.create(user=self.dm_user)
         self.character = CharacterFactory(name='Frodo', game=self.game, npc=True, money=0)
         self.treasure = TreasureFactory(name='Limited Gem', value=10)

@@ -93,16 +93,6 @@ urlpatterns = [
         name='game-poll-close',
     ),
     path(
-        'games/<slug:game_slug>/game-masters.json',
-        views.game_masters_list,
-        name='game-masters-list',
-    ),
-    path(
-        'games/<slug:game_slug>/game-masters/<int:game_master_id>.json',
-        views.game_master_detail,
-        name='game-master-detail',
-    ),
-    path(
         'games/<slug:game_slug>/photo_upload.json',
         views.photo_upload,
         name='game-photo-upload',

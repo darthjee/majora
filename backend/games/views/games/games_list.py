@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from ...authentication import CookieTokenAuthentication
-from ...models import Game, GameMaster, Player
+from ...models import Game, Player
 from ...serializers import GameCreateSerializer, GameDetailSerializer, GameListSerializer
 from ..common import paginated_list_response, require_authenticated, validated_or_error
 
@@ -35,7 +35,6 @@ def _create_game(request):
         return error_response
 
     game = serializer.save()
-    GameMaster.objects.create(game=game, user=request.user)
     Player.objects.get_or_create(
         game=game,
         user=request.user,

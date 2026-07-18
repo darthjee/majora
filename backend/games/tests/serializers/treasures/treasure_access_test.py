@@ -7,7 +7,6 @@ from rest_framework.test import APIRequestFactory
 from games.serializers import TreasureAccessSerializer
 from games.tests.factories import (
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
@@ -77,7 +76,7 @@ class TestTreasureAccessSerializer(TestCase):
         """Test that the DM of a treasure's owning game gets is_dm True."""
         game = GameFactory(name='Test Game', game_slug='test-game')
         dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=game, user=dm_user)
+        PlayerFactory(game=game, user=dm_user, is_dm=True)
         self.treasure.game = game
         self.treasure.save()
         request = _make_request(dm_user)
@@ -90,7 +89,7 @@ class TestTreasureAccessSerializer(TestCase):
         game = GameFactory(name='Test Game', game_slug='test-game')
         other_game = GameFactory(name='Other Game', game_slug='other-game')
         dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=other_game, user=dm_user)
+        PlayerFactory(game=other_game, user=dm_user, is_dm=True)
         self.treasure.game = game
         self.treasure.save()
         request = _make_request(dm_user)

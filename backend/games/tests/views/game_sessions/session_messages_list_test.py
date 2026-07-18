@@ -10,7 +10,6 @@ from games.models import GameSession, GameSessionMessage
 from games.session_message_paginator import PAGE_SIZE
 from games.tests.factories import (
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
     UserFactory,
@@ -29,7 +28,7 @@ class TestSessionMessagesListView(TestCase):
         cls.session = GameSession.objects.create(game=cls.game, title='Session One')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         UserProfileFactory(user=cls.dm_user, display_name='dm_display')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
         cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
@@ -210,7 +209,7 @@ class TestSessionMessagesCreateView(TestCase):
         cls.session = GameSession.objects.create(game=cls.game, title='Session One')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         UserProfileFactory(user=cls.dm_user, display_name='dm_display')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        cls.dm_player = PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
         cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
@@ -299,11 +298,15 @@ class TestSessionMessagesCreateView(TestCase):
         message = GameSessionMessage.objects.get(user=self.player_user)
         assert message.player == self.player
 
-    def test_message_from_dm_has_no_player(self):
-        """Test that a message posted by the DM (not a player) leaves player null."""
+    def test_message_from_dm_has_dm_player(self):
+        """Test that a message posted by the DM links its own Player record.
+
+        Player.is_dm=True is the single source of truth for DM status, so the DM is
+        always also a Player of the game.
+        """
         self._post({'content': 'Hello there'}, token=self.dm_token)
         message = GameSessionMessage.objects.get(user=self.dm_user)
-        assert message.player is None
+        assert message.player == self.dm_player
 
     def test_response_includes_skip_cache_header(self):
         """Test that the response includes the X-Skip-Cache header."""

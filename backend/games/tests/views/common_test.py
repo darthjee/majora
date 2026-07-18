@@ -14,7 +14,7 @@ from games.serializers import (
     GamePermissionsSerializer,
     GameUpdateSerializer,
 )
-from games.tests.factories import GameFactory, GameMasterFactory, UserFactory
+from games.tests.factories import GameFactory, PlayerFactory, UserFactory
 from games.views.common import (
     UNAUTHENTICATED_RESPONSE_DATA,
     access_response,
@@ -112,7 +112,7 @@ class TestDetailOrUpdate(TestCase):
         """Set up a game and a DM user."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
 
     def _call(self, request):
         """Invoke detail_or_update for self.game with GameEditPermission."""
@@ -179,7 +179,7 @@ class TestAccessResponse(TestCase):
         """Set up a game and a DM user."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
 
     def test_returns_serialized_data_with_skip_cache_header(self):
         """Test that the response includes serialized data and the X-Skip-Cache header."""
@@ -265,7 +265,7 @@ class TestPermissionsResponse(TestCase):
         """Set up a game and a DM user."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
 
     def test_real_identity_path_sets_skip_cache_header(self):
         """Test that a None role_booleans (real-identity path) sets X-Skip-Cache: true."""

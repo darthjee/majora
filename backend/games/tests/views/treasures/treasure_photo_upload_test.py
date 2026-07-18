@@ -8,7 +8,7 @@ from rest_framework.authtoken.models import Token
 from games.models import TreasurePhoto, Upload
 from games.tests.factories import (
     GameFactory,
-    GameMasterFactory,
+    PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -184,7 +184,7 @@ class TestTreasurePhotoUploadGameExclusive(TestCase):
             name='Game Gem', value=500, game=cls.game
         )
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
         cls.regular_user = UserFactory(
             username='player', password='secret-password'

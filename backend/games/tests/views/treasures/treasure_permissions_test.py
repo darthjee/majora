@@ -9,7 +9,7 @@ from rest_framework.authtoken.models import Token
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     GameFactory,
-    GameMasterFactory,
+    PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -85,7 +85,7 @@ class TestTreasurePermissionsView(TokenAuthRequestMixin, TestCase):
         """Test that the DM of a treasure's owning game gets can_edit True."""
         game = GameFactory(name='Test Game', game_slug='test-game')
         dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=game, user=dm_user)
+        PlayerFactory(game=game, user=dm_user, is_dm=True)
         self.treasure.game = game
         self.treasure.save()
         token = Token.objects.create(user=dm_user)
@@ -97,7 +97,7 @@ class TestTreasurePermissionsView(TokenAuthRequestMixin, TestCase):
         """Test that a DM (of some game) cannot edit a global (gameless) treasure."""
         game = GameFactory(name='Test Game', game_slug='test-game')
         dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=game, user=dm_user)
+        PlayerFactory(game=game, user=dm_user, is_dm=True)
         token = Token.objects.create(user=dm_user)
         response = self._get(self.client, token=token)
         data = json.loads(response.content)

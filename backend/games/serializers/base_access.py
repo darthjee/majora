@@ -58,7 +58,7 @@ class BaseAccessSerializer(serializers.Serializer):
             return None
         game = self._game_for_dm(obj)
         user = self._user()
-        return game.game_masters.filter(user=user).exists() if game else False
+        return game.players.filter(user=user, is_dm=True).exists() if game else False
 
     def _game_for_dm(self, obj):
         """Return the game relevant to DM resolution for obj; None unless a subclass overrides."""

@@ -14,7 +14,6 @@ from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
@@ -31,7 +30,7 @@ class TestGameNpcFullView(TokenAuthRequestMixin):
         """Set up a game, a DM, a player, and the NPC."""
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.player = PlayerFactory(name='Bob')
         self.character = CharacterFactory(
             name='Gandalf',
@@ -145,7 +144,7 @@ class TestGameNpcFullUpdateView(TokenAuthRequestMixin):
         """Set up a game, a DM, a player, and the NPC."""
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.player = PlayerFactory(name='Bob')
         self.character = CharacterFactory(
             name='Gandalf',
