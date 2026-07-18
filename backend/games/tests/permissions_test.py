@@ -40,7 +40,7 @@ class TestCharacterEditPermissionCheck(TestCase):
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         GameMasterFactory(game=cls.game, user=cls.dm_user)
-        cls.player = PlayerFactory(name='Bob')
+        cls.player = PlayerFactory(name='Bob', game=cls.game)
         cls.owner = UserFactory(username='owner', password='secret-password')
         cls.player.user = cls.owner
         cls.player.save()
@@ -95,7 +95,7 @@ class TestCharacterMoneyEditPermissionCheck(TestCase):
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         GameMasterFactory(game=cls.game, user=cls.dm_user)
-        cls.player = PlayerFactory(name='Bob')
+        cls.player = PlayerFactory(name='Bob', game=cls.game)
         cls.owner = UserFactory(username='owner', password='secret-password')
         cls.player.user = cls.owner
         cls.player.save()
@@ -106,8 +106,9 @@ class TestCharacterMoneyEditPermissionCheck(TestCase):
         cls.regular_player_user = UserFactory(
             username='regular_player', password='secret-password',
         )
-        cls.regular_player = PlayerFactory(name='Alice', user=cls.regular_player_user)
-        cls.regular_player.games.add(cls.game)
+        cls.regular_player = PlayerFactory(
+            name='Alice', user=cls.regular_player_user, game=cls.game
+        )
 
     def test_returns_401_response_for_anonymous_user(self):
         """Test that an anonymous user gets a 401 error response."""
@@ -216,8 +217,7 @@ class TestNpcPlayerEditPermissionCheck(TestCase):
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         GameMasterFactory(game=cls.game, user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
-        cls.player = PlayerFactory(name='Bob', user=cls.player_user)
-        cls.player.games.add(cls.game)
+        cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
         cls.npc = CharacterFactory(name='Gandalf', game=cls.game, npc=True)
 
     def test_returns_401_response_for_anonymous_user(self):
@@ -242,7 +242,7 @@ class TestNpcPlayerEditPermissionCheck(TestCase):
         assert response.data == {'errors': {'detail': ['not allowed']}}
 
     def test_returns_none_for_player_of_the_game(self):
-        """Test that a player linked to the NPC's game via Player.games passes the check."""
+        """Test that a player linked to the NPC's game via Player.game passes the check."""
         request = _make_request(self.player_user)
         assert NpcPlayerEditPermission.check(request, self.npc) is None
 
@@ -356,8 +356,7 @@ class TestSessionMessagePermissionCheckView(TestCase):
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         GameMasterFactory(game=cls.game, user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
-        cls.player = PlayerFactory(name='Bob', user=cls.player_user)
-        cls.player.games.add(cls.game)
+        cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
 
     def test_returns_401_for_anonymous_user(self):
         """Test that an anonymous user gets a 401 error response."""
@@ -416,8 +415,7 @@ class TestSessionMessagePermissionCheckCreate(TestCase):
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         GameMasterFactory(game=cls.game, user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
-        cls.player = PlayerFactory(name='Bob', user=cls.player_user)
-        cls.player.games.add(cls.game)
+        cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
 
     def test_returns_401_for_anonymous_user(self):
         """Test that an anonymous user gets a 401 error response."""

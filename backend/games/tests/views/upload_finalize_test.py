@@ -70,8 +70,9 @@ class TestUploadFinalizeView(TestCase):
         cls.player_of_game_user = UserFactory(
             username='player_of_game', password='secret-password'
         )
-        cls.player_of_game = PlayerFactory(name='Pippin', user=cls.player_of_game_user)
-        cls.player_of_game.games.add(cls.game)
+        cls.player_of_game = PlayerFactory(
+            name='Pippin', user=cls.player_of_game_user, game=cls.game
+        )
         cls.player_of_game_token = Token.objects.create(user=cls.player_of_game_user)
 
         cls.npc = CharacterFactory(name='Gandalf', game=cls.game, npc=True)
