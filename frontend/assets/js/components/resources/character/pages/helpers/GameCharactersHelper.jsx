@@ -1,111 +1,75 @@
 import React from 'react';
-import CharacterCard from '../../../../common/CharacterCard.jsx';
-import ConditionalComponent from '../../../../common/ConditionalComponent.jsx';
-import ErrorAlert from '../../../../common/ErrorAlert.jsx';
-import LoadingMessage from '../../../../common/LoadingMessage.jsx';
-import NewButton from '../../../../common/NewButton.jsx';
-import PageActions from '../../../../common/PageActions.jsx';
-import Pagination from '../../../../common/Pagination.jsx';
+import ConditionalComponent from '../../../../common/misc/ConditionalComponent.jsx';
+import ListPage from '../../../../common/list_page/ListPage.jsx';
+import NewButton from '../../../../common/buttons/NewButton.jsx';
+import PageActions from '../../../../common/list_page/PageActions.jsx';
 import Translator from '../../../../../i18n/Translator.js';
-import Noop from '../../../../../utils/Noop.js';
 
 /**
- * Rendering helper shared by the GamePcs and GameNpcs pages.
+ * Rendering helper for the Game NPCs listing page (NPC-only; PCs render through the separate
+ * `GamePcsHelper`, since their page chrome no longer overlaps once both are backed by the
+ * shared `ListPage`/`listTypeConfig` abstraction).
  */
 export default class GameCharactersHelper {
   /**
-   * Render a character grid with pagination.
+   * Render the NPCs page: header (back button, "New NPC" action gated on `canEdit`, heading)
+   * and the shared `ListPage` grid (type `npcs`), threading `isPlayer`/the slain-toggle click
+   * handlers/the `NpcFilters` props through `ListPage`'s `context`/`filtersProps`.
    *
-   * @param {object[]} characters - List of character objects.
-   * @param {object} pagination - Pagination metadata.
-   * @param {number} pagination.page - Current page.
-   * @param {number} pagination.pages - Total pages.
-   * @param {number} pagination.perPage - Items per page.
-   * @param {string} basePath - Base hash path used for pagination links (e.g. "#/games/slug/pcs").
-   * @param {string} gameSlug - Game slug passed to each CharacterCard for its detail link.
-   * @param {string} title - Page heading (e.g. "Player Characters").
-   * @param {string} characterType - Character type, either 'pc' or 'npc'.
-   * @param {string} backHref - Hash path to the parent game page.
-   * @param {boolean} [canEdit] - Whether the current user may create new characters, and
-   *   (when characterType is 'npc') edit each individual NPC's photo/slain state.
-   * @param {string} [newHref] - Hash path to the new character form.
-   * @param {Function} [onUploadClick] - Called with the character object when an NPC card's
-   *   upload overlay button is clicked (ignored for PCs).
-   * @param {Function} [onSlainClick] - Called with the character object when an NPC card's
-   *   real slain/revive overlay button is clicked (ignored for PCs).
-   * @param {Function} [onPublicSlainClick] - Called with the character object when an NPC card's
-   *   public slain/revive overlay button is clicked (ignored for PCs).
-   * @param {object|URLSearchParams} [extraParams] - Additional active query params (e.g. NPC
-   *   filters) preserved on every pagination link.
-   * @param {React.ReactNode} [filters] - Optional filter bar rendered below the title and
-   *   above the character grid (e.g. NpcFilters for GameNpcs, unused by GamePcs).
-   * @param {boolean} [isPlayer] - Whether the current user is a player of the game, gating
-   *   each NPC card's single player-facing slain/revive button (ignored for PCs).
-   * @param {Function} [onPlayerSlainClick] - Called with the character object when an NPC
-   *   card's player-facing slain/revive overlay button is clicked (ignored for PCs).
-   * @returns {React.ReactElement} Characters grid with pagination.
+   * @param {object} state - Page state.
+   * @param {string} state.gameSlug - Current game slug.
+   * @param {string} state.basePath - Base hash path for the NPCs list.
+   * @param {string} state.backHref - Hash path to the parent game page.
+   * @param {string} state.newHref - Hash path to the new NPC form.
+   * @param {boolean} state.canEdit - Whether the current user may create/manage NPCs.
+   * @param {boolean} state.isPlayer - Whether the current user is a player of the game.
+   * @param {number} state.refreshToken - Opaque value bumped to re-trigger the list fetch.
+   * @param {object} state.activeFilters - Active filter query params preserved on pagination links.
+   * @param {object} handlers - Page event handlers.
+   * @param {Function} handlers.onCanEditChange - Called with the list's resolved edit permission.
+   * @param {Function} handlers.onUploadClick - Called with an NPC when its upload button is clicked.
+   * @param {Function} handlers.onSlainClick - Called with an NPC when its real slain/revive button is clicked.
+   * @param {Function} handlers.onPublicSlainClick - Called with an NPC when its public slain/revive
+   *   button is clicked.
+   * @param {Function} handlers.onPlayerSlainClick - Called with an NPC when its player-facing
+   *   slain/revive button is clicked.
+   * @param {Function} handlers.onFilterQuery - Called with the built filter query object.
+   * @param {Function} handlers.onFilterClear - Called when the filters are cleared.
+   * @returns {React.ReactElement} Rendered NPCs page.
    */
-  static render(
-    characters, pagination, basePath, gameSlug, title, characterType, backHref,
-    canEdit = false, newHref = '', onUploadClick = Noop.noop, onSlainClick = Noop.noop,
-    onPublicSlainClick = Noop.noop, extraParams = {}, filters = null,
-    isPlayer = false, onPlayerSlainClick = Noop.noop,
-  ) {
-    const isNpc = characterType === 'npc';
-
+  static render(state, handlers) {
     return (
-      <div className="container mt-4">
-        <PageActions backHref={backHref}>
-          <ConditionalComponent render={canEdit}>
-            <NewButton href={newHref}>
-              {Translator.t('game_npcs_page.new_npc')}
-            </NewButton>
-          </ConditionalComponent>
-        </PageActions>
-        <h1 className="mb-4">{title}</h1>
-        {filters}
-        <div className="row">
-          {characters.map((character) => (
-            <CharacterCard
-              key={character.id}
-              character={character}
-              gameSlug={gameSlug}
-              characterType={characterType}
-              {...(isNpc
-                ? {
-                  canEdit, onUploadClick, onSlainClick, onPublicSlainClick, isPlayer, onPlayerSlainClick,
-                }
-                : {})}
-            />
-          ))}
+      <>
+        <div className="container mt-4">
+          <PageActions backHref={state.backHref}>
+            <ConditionalComponent render={state.canEdit}>
+              <NewButton href={state.newHref}>
+                {Translator.t('game_npcs_page.new_npc')}
+              </NewButton>
+            </ConditionalComponent>
+          </PageActions>
+          <h1 className="mb-4">{Translator.t('game_npcs_page.title')}</h1>
         </div>
-        <Pagination
-          currentPage={pagination.page}
-          totalPages={pagination.pages}
-          perPage={pagination.perPage}
-          basePath={basePath}
-          extraParams={extraParams}
+        <ListPage
+          type="npcs"
+          gameSlug={state.gameSlug}
+          basePath={state.basePath}
+          loadingMessage={Translator.t('game_characters_page.loading')}
+          context={{
+            isPlayer: state.isPlayer,
+            onUploadClick: handlers.onUploadClick,
+            onSlainClick: handlers.onSlainClick,
+            onPublicSlainClick: handlers.onPublicSlainClick,
+            onPlayerSlainClick: handlers.onPlayerSlainClick,
+          }}
+          filtersProps={{
+            onQuery: handlers.onFilterQuery, onClear: handlers.onFilterClear, canEdit: state.canEdit,
+          }}
+          activeFilters={state.activeFilters}
+          refreshToken={state.refreshToken}
+          onCanEditChange={handlers.onCanEditChange}
         />
-      </div>
+      </>
     );
-  }
-
-  /**
-   * Render the loading state.
-   *
-   * @returns {React.ReactElement} Loading message.
-   */
-  static renderLoading() {
-    return <LoadingMessage message={Translator.t('game_characters_page.loading')} />;
-  }
-
-  /**
-   * Render the error state.
-   *
-   * @param {string} error - Error message.
-   * @returns {React.ReactElement} Error alert.
-   */
-  static renderError(error) {
-    return <ErrorAlert error={error} />;
   }
 }

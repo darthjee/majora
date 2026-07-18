@@ -1,62 +1,60 @@
 import React from 'react';
-import ErrorAlert from '../../../../common/ErrorAlert.jsx';
-import LoadingMessage from '../../../../common/LoadingMessage.jsx';
-import NewButton from '../../../../common/NewButton.jsx';
-import PageActions from '../../../../common/PageActions.jsx';
-import Pagination from '../../../../common/Pagination.jsx';
-import TreasureCard from '../../../../common/TreasureCard.jsx';
+import ListPage from '../../../../common/list_page/ListPage.jsx';
+import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
+import NewButton from '../../../../common/buttons/NewButton.jsx';
+import PageActions from '../../../../common/list_page/PageActions.jsx';
+import PhotoUploadModal from '../../../../common/modals/PhotoUploadModal.jsx';
 import Translator from '../../../../../i18n/Translator.js';
-import Noop from '../../../../../utils/Noop.js';
 
 /**
  * Rendering helper for the Treasures listing page.
  */
 export default class TreasuresHelper {
   /**
-   * Render the treasures list with pagination.
+   * Render the treasures page: header (back button, "New Treasure" action, always shown since
+   * this page is already staff/superuser-only), the shared `ListPage` grid (type
+   * `treasures-global`), and the photo upload modal.
    *
-   * @param {object[]} treasures - List of treasure objects.
-   * @param {object} pagination - Pagination metadata.
-   * @param {number} pagination.page - Current page.
-   * @param {number} pagination.pages - Total pages.
-   * @param {number} pagination.perPage - Items per page.
-   * @param {boolean} [isSuperUser] - Whether the current user may upload treasure photos.
-   * @param {Function} [onUploadClick] - Handler invoked with a treasure when its upload button is clicked.
-   * @param {object|URLSearchParams} [activeFilters] - Additional active query params (e.g.
-   *   treasure filters) preserved on every pagination link.
-   * @param {React.ReactNode} [filters] - Optional filter bar rendered below the page actions
-   *   and above the treasures grid (e.g. TreasureFilters).
-   * @returns {React.ReactElement} Treasures list with pagination.
+   * @param {object} state - Page state.
+   * @param {string} state.basePath - Base hash path for the treasures list.
+   * @param {number} state.refreshToken - Opaque value bumped to re-trigger the list fetch.
+   * @param {object} state.activeFilters - Active filter query params preserved on pagination links.
+   * @param {boolean} state.showUploadModal - Whether the photo upload modal is visible.
+   * @param {object|null} state.selectedTreasure - Treasure currently targeted by the upload modal.
+   * @param {object} handlers - Page event handlers.
+   * @param {Function} handlers.onUploadClick - Called with a treasure when its upload button is clicked.
+   * @param {Function} handlers.onUploadClose - Called when the upload modal is dismissed.
+   * @param {Function} handlers.onUploadSuccess - Called after a successful photo upload.
+   * @param {Function} handlers.onFilterQuery - Called with the built filter query object.
+   * @param {Function} handlers.onFilterClear - Called when the filters are cleared.
+   * @returns {React.ReactElement} Rendered treasures page.
    */
-  static render(
-    treasures, pagination, isSuperUser = false, onUploadClick = Noop.noop, activeFilters = {}, filters = null,
-  ) {
+  static render(state, handlers) {
     return (
-      <div className="container mt-4">
-        <PageActions backHref="#/">
-          <NewButton href="#/treasures/new">
-            {Translator.t('treasures_page.new_treasure')}
-          </NewButton>
-        </PageActions>
-        {filters}
-        <div className="row">
-          {treasures.map((treasure) => (
-            <TreasureCard
-              key={treasure.id}
-              treasure={treasure}
-              canManage={isSuperUser}
-              onUploadClick={onUploadClick}
-            />
-          ))}
+      <>
+        <div className="container mt-4">
+          <PageActions backHref="#/">
+            <NewButton href="#/treasures/new">
+              {Translator.t('treasures_page.new_treasure')}
+            </NewButton>
+          </PageActions>
         </div>
-        <Pagination
-          currentPage={pagination.page}
-          totalPages={pagination.pages}
-          perPage={pagination.perPage}
-          basePath="#/treasures"
-          extraParams={activeFilters}
+        <ListPage
+          type="treasures-global"
+          basePath={state.basePath}
+          loadingMessage={Translator.t('treasures_page.loading')}
+          context={{ onUploadClick: handlers.onUploadClick }}
+          filtersProps={{ onQuery: handlers.onFilterQuery, onClear: handlers.onFilterClear }}
+          activeFilters={state.activeFilters}
+          refreshToken={state.refreshToken}
         />
-      </div>
+        <PhotoUploadModal
+          show={state.showUploadModal}
+          uploadPath={`/treasures/${state.selectedTreasure?.id}/photo_upload.json`}
+          onClose={handlers.onUploadClose}
+          onSuccess={handlers.onUploadSuccess}
+        />
+      </>
     );
   }
 
@@ -67,15 +65,5 @@ export default class TreasuresHelper {
    */
   static renderLoading() {
     return <LoadingMessage message={Translator.t('treasures_page.loading')} />;
-  }
-
-  /**
-   * Render the error state.
-   *
-   * @param {string} error - Error message.
-   * @returns {React.ReactElement} Error alert.
-   */
-  static renderError(error) {
-    return <ErrorAlert error={error} />;
   }
 }

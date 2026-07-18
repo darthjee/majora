@@ -117,12 +117,12 @@ describe('TreasureNewHelper', function() {
       expect(handlers.onGameTypeChange).toHaveBeenCalledWith({ target: { value: 'deadlands' } });
     });
 
-    it('renders a cents/dollars breakdown when gameType is deadlands', function() {
+    it('renders a "$ dollars,cents" value when gameType is deadlands', function() {
       const html = renderToStaticMarkup(
         TreasureNewHelper.render(buildState({ value: '350', gameType: 'deadlands' }), buildHandlers()),
       );
 
-      expect(html).toContain('3 Dollars and 50 Cents');
+      expect(html).toContain('$ 3,50');
     });
 
     it('disables the submit button while submitting', function() {

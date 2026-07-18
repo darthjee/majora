@@ -1,99 +1,64 @@
 import React from 'react';
-import ErrorAlert from '../../../../common/ErrorAlert.jsx';
-import LoadingMessage from '../../../../common/LoadingMessage.jsx';
-import PageActions from '../../../../common/PageActions.jsx';
-import Pagination from '../../../../common/Pagination.jsx';
-import TreasureCard from '../../../../common/TreasureCard.jsx';
-import UploadButton from '../../../../common/UploadButton.jsx';
+import ListPage from '../../../../common/list_page/ListPage.jsx';
+import PageActions from '../../../../common/list_page/PageActions.jsx';
+import UploadButton from '../../../../common/buttons/UploadButton.jsx';
 import Translator from '../../../../../i18n/Translator.js';
-import Noop from '../../../../../utils/Noop.js';
 
 /**
  * Rendering helper for the Character Treasures (PC and NPC) listing page.
  */
 export default class CharacterTreasuresHelper {
   /**
-   * Render the treasures card grid with pagination and a back button.
+   * Render the treasures page: header (back button, "Exchange Treasure" action gated on
+   * `canEdit`, heading) and the shared `ListPage` grid (type `pc-treasures`/`npc-treasures`).
    *
-   * @param {object[]} treasures - List of owned treasure objects (`id`, `treasure_id`,
-   *   `name`, `quantity`, `value`, `photo_path`).
-   * @param {object} pagination - Pagination metadata.
-   * @param {number} pagination.page - Current page.
-   * @param {number} pagination.pages - Total pages.
-   * @param {number} pagination.perPage - Items per page.
-   * @param {string} basePath - Base hash path used for pagination links.
-   * @param {string} backHref - Hash path to the parent character page.
-   * @param {boolean} [canEdit] - Whether the current user may acquire/sell treasures.
-   * @param {Function} [onAddTreasure] - Handler invoked when the "Add treasure" button is clicked.
-   * @param {string} [gameType] - Currency model name (e.g. `dnd`, `deadlands`) of the
-   *   character's own game, used to render each owned treasure's value. Defaults to `dnd`.
-   * @param {object|URLSearchParams} [activeFilters] - Additional active query params (e.g.
-   *   treasure filters) preserved on every pagination link.
-   * @param {React.ReactNode} [filters] - Optional filter bar rendered above the treasures
-   *   grid (e.g. TreasureFilters).
-   * @returns {React.ReactElement} Treasures card grid with pagination.
+   * @param {object} state - Page state.
+   * @param {string} state.gameSlug - Game slug the character belongs to.
+   * @param {string} state.listType - `listTypeConfig` key for this character kind
+   *   (`'pc-treasures'`/`'npc-treasures'`).
+   * @param {string} state.basePath - Base hash path for the treasures list.
+   * @param {string} state.backHref - Hash path to the parent character page.
+   * @param {boolean} [state.canEdit] - Whether the current user may acquire/sell treasures.
+   * @param {number} state.refreshToken - Opaque value bumped to re-trigger the list fetch.
+   * @param {object} state.activeFilters - Active filter query params preserved on pagination links.
+   * @param {object} handlers - Page event handlers.
+   * @param {Function} handlers.onAddTreasure - Handler invoked when the "Exchange Treasure" button is clicked.
+   * @param {Function} handlers.onFilterQuery - Called with the built filter query object.
+   * @param {Function} handlers.onFilterClear - Called when the filters are cleared.
+   * @param {Function} handlers.onItemsChange - Called with the freshly fetched raw treasures,
+   *   so the owning page can cross-reference them in the exchange modal.
+   * @returns {React.ReactElement} Rendered treasures page.
    */
-  static render(
-    treasures, pagination, basePath, backHref, canEdit = false, onAddTreasure = Noop.noop, gameType = 'dnd',
-    activeFilters = {}, filters = null,
-  ) {
+  static render(state, handlers) {
     return (
-      <div className="container mt-4">
-        <PageActions backHref={backHref}>
-          {CharacterTreasuresHelper.#renderAddButton(canEdit, onAddTreasure)}
-        </PageActions>
-        <h1 className="mb-4">{Translator.t('character_treasures_page.title')}</h1>
-        {filters}
-        <div className="row">
-          {treasures.map((treasure) => (
-            <TreasureCard
-              key={treasure.id}
-              treasure={{
-                id: treasure.treasure_id,
-                name: treasure.name,
-                value: treasure.value,
-                photo_path: treasure.photo_path,
-                game_type: gameType,
-              }}
-              quantity={treasure.quantity}
-            />
-          ))}
+      <>
+        <div className="container mt-4">
+          <PageActions backHref={state.backHref}>
+            {CharacterTreasuresHelper.#renderAddButton(state, handlers)}
+          </PageActions>
+          <h1 className="mb-4">{Translator.t('character_treasures_page.title')}</h1>
         </div>
-        <Pagination
-          currentPage={pagination.page}
-          totalPages={pagination.pages}
-          perPage={pagination.perPage}
-          basePath={basePath}
-          extraParams={activeFilters}
+        <ListPage
+          type={state.listType}
+          gameSlug={state.gameSlug}
+          basePath={state.basePath}
+          loadingMessage={Translator.t('character_treasures_page.loading')}
+          filtersProps={{
+            onQuery: handlers.onFilterQuery, onClear: handlers.onFilterClear, showGameType: false,
+          }}
+          activeFilters={state.activeFilters}
+          refreshToken={state.refreshToken}
+          onItemsChange={handlers.onItemsChange}
         />
-      </div>
+      </>
     );
   }
 
-  /**
-   * Render the loading state.
-   *
-   * @returns {React.ReactElement} Loading message.
-   */
-  static renderLoading() {
-    return <LoadingMessage message={Translator.t('character_treasures_page.loading')} />;
-  }
-
-  /**
-   * Render the error state.
-   *
-   * @param {string} error - Error message.
-   * @returns {React.ReactElement} Error alert.
-   */
-  static renderError(error) {
-    return <ErrorAlert error={error} />;
-  }
-
-  static #renderAddButton(canEdit, onAddTreasure) {
-    if (!canEdit) return null;
+  static #renderAddButton(state, handlers) {
+    if (!state.canEdit) return null;
 
     return (
-      <UploadButton onClick={onAddTreasure}>
+      <UploadButton onClick={handlers.onAddTreasure}>
         {Translator.t('character_treasures_page.add_treasure')}
       </UploadButton>
     );

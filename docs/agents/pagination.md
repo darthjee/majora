@@ -71,7 +71,7 @@ Links use the pattern: `{basePath}?page=N&per_page=M`
 |------|------|
 | `frontend/assets/js/client/GenericClient.js` | Reads pagination headers |
 | `frontend/assets/js/utils/HashRouteResolver.js` | Extracts page/per_page from hash URL |
-| `frontend/assets/js/components/common/Pagination.jsx` | Pagination component |
-| `frontend/assets/js/components/common/helpers/PaginationHelper.jsx` | Renders Bootstrap nav |
-| `frontend/assets/js/components/common/controllers/PaginationController.js` | Builds page list with ellipsis |
-| `frontend/assets/js/components/common/controllers/PaginationBuilder.js` | Builds page link URLs |
+| `frontend/assets/js/components/common/pagination/Pagination.jsx` | Pagination component |
+| `frontend/assets/js/components/common/pagination/helpers/PaginationHelper.jsx` | Renders Bootstrap nav |
+| `frontend/assets/js/components/common/pagination/controllers/PaginationController.js` | Builds page list with ellipsis |
+| `frontend/assets/js/components/common/pagination/controllers/PaginationBuilder.js` | Builds page link URLs |

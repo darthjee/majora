@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import CharacterHelper from '../helpers/CharacterHelper.jsx';
 import AuthEvents from '../../../../../utils/auth/AuthEvents.js';
 import FacadeRefresh from '../../../../../utils/access/useFacadeRefresh.js';
-import PhotoUploadModal from '../../../../common/PhotoUploadModal.jsx';
-import MoneyEditModal from '../../../../common/MoneyEditModal.jsx';
+import PhotoUploadModal from '../../../../common/modals/PhotoUploadModal.jsx';
+import MoneyEditModal from '../../../../common/modals/MoneyEditModal.jsx';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 
 /**

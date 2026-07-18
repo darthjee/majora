@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterDetail from '../../../../../../../../assets/js/components/resources/character/pages/shared/CharacterDetail.jsx';
 import CharacterHelper from '../../../../../../../../assets/js/components/resources/character/pages/helpers/CharacterHelper.jsx';
 import MoneyEditModalHelper
-  from '../../../../../../../../assets/js/components/common/helpers/MoneyEditModalHelper.jsx';
+  from '../../../../../../../../assets/js/components/common/modals/helpers/MoneyEditModalHelper.jsx';
 import AuthStorage from '../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 

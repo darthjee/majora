@@ -1,8 +1,8 @@
 import React from 'react';
-import EditButton from '../../../../common/EditButton.jsx';
-import ErrorAlert from '../../../../common/ErrorAlert.jsx';
-import LoadingMessage from '../../../../common/LoadingMessage.jsx';
-import PageActions from '../../../../common/PageActions.jsx';
+import EditButton from '../../../../common/buttons/EditButton.jsx';
+import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
+import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
+import PageActions from '../../../../common/list_page/PageActions.jsx';
 import SessionMessagesHelper from './SessionMessagesHelper.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 

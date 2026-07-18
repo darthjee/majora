@@ -1,5 +1,4 @@
 import CharacterTreasures from './shared/CharacterTreasures.jsx';
-import NpcCharacterTreasuresController from './controllers/NpcCharacterTreasuresController.js';
 
 /**
  * NPC character Treasures index page.
@@ -7,12 +6,5 @@ import NpcCharacterTreasuresController from './controllers/NpcCharacterTreasures
  * @returns {React.ReactElement} NPC character treasures page element.
  */
 export default function NpcCharacterTreasures() {
-  return (
-    <CharacterTreasures
-      ControllerClass={NpcCharacterTreasuresController}
-      getParamsFromHash={NpcCharacterTreasuresController.getNpcCharacterTreasuresParamsFromHash}
-      characterKind="npcs"
-      isPc={false}
-    />
-  );
+  return <CharacterTreasures characterKind="npcs" listType="npc-treasures" isPc={false} />;
 }

@@ -1,8 +1,8 @@
 import React from 'react';
-import Avatar from '../../../../common/Avatar.jsx';
-import TextareaField from '../../../../common/TextareaField.jsx';
-import SubmitButton from '../../../../common/SubmitButton.jsx';
-import LoadMoreButton from '../../../../common/LoadMoreButton.jsx';
+import Avatar from '../../../../common/misc/Avatar.jsx';
+import TextareaField from '../../../../common/forms/TextareaField.jsx';
+import SubmitButton from '../../../../common/buttons/SubmitButton.jsx';
+import LoadMoreButton from '../../../../common/buttons/LoadMoreButton.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**

@@ -1,5 +1,5 @@
 import React from 'react';
-import FormField from '../../../../../common/FormField.jsx';
+import FormField from '../../../../../common/forms/FormField.jsx';
 
 /**
  * Rendering helper for the CharacterRoleField element.

@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
-import GamePcsController from './controllers/GamePcsController.js';
-import GameCharactersHelper from './helpers/GameCharactersHelper.jsx';
+import GamePcsHelper from './helpers/GamePcsHelper.jsx';
+import BasePageController from '../../../common/base/controllers/BasePageController.js';
+
+const PATTERN = '/games/:game_slug/pcs';
 
 /**
  * Game Player Characters index page.
@@ -8,25 +9,8 @@ import GameCharactersHelper from './helpers/GameCharactersHelper.jsx';
  * @returns {React.ReactElement} Game PCs page element.
  */
 export default function GamePcs() {
-  const [pcs, setPcs] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, pages: 1, perPage: 10 });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const gameSlug = BasePageController.extractParam(PATTERN, 'game_slug', currentHash);
 
-  const controller = useMemo(
-    () => new GamePcsController(setPcs, setPagination, setLoading, setError),
-    [],
-  );
-
-  useEffect(() => controller.buildEffect()(), [controller]);
-
-  const gameSlug = GamePcsController.getGameSlugFromPcsHash(window.location.hash);
-  const basePath = `#/games/${gameSlug}/pcs`;
-  const backHref = `#/games/${gameSlug}`;
-
-  if (loading) return GameCharactersHelper.renderLoading();
-  if (error) return GameCharactersHelper.renderError(error);
-  return GameCharactersHelper.render(
-    pcs, pagination, basePath, gameSlug, 'Player Characters', 'pc', backHref,
-  );
+  return GamePcsHelper.render(gameSlug);
 }

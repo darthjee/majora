@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import GameController from './controllers/GameController.js';
 import GameHelper from './helpers/GameHelper.jsx';
-import PhotoUploadModal from '../../../common/PhotoUploadModal.jsx';
+import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
 
 /**

@@ -1,74 +1,89 @@
-import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import TreasuresHelper from '../../../../../../../../assets/js/components/resources/treasure/pages/helpers/TreasuresHelper.jsx';
-import Noop from '../../../../../../../../assets/js/utils/Noop.js';
+import ListPage from '../../../../../../../../assets/js/components/common/list_page/ListPage.jsx';
+import PhotoUploadModal from '../../../../../../../../assets/js/components/common/modals/PhotoUploadModal.jsx';
+
+const findElement = (node, matcher) => {
+  if (!node) {
+    return null;
+  }
+
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findElement(child, matcher);
+
+      if (match) {
+        return match;
+      }
+    }
+
+    return null;
+  }
+
+  if (typeof node !== 'object') {
+    return null;
+  }
+
+  if (matcher(node)) {
+    return node;
+  }
+
+  return findElement(node.props?.children, matcher);
+};
 
 describe('TreasuresHelper', function() {
-  const treasures = [
-    { id: 1, name: 'Golden Crown', value: 500 },
-    { id: 2, name: 'Silver Ring', value: 50 },
-  ];
-  const pagination = { page: 1, pages: 3, perPage: 10 };
+  const buildState = (overrides = {}) => ({
+    basePath: '#/treasures',
+    refreshToken: 0,
+    activeFilters: {},
+    showUploadModal: false,
+    selectedTreasure: null,
+    ...overrides,
+  });
+
+  const buildHandlers = () => ({
+    onUploadClick: jasmine.createSpy('onUploadClick'),
+    onUploadClose: jasmine.createSpy('onUploadClose'),
+    onUploadSuccess: jasmine.createSpy('onUploadSuccess'),
+    onFilterQuery: jasmine.createSpy('onFilterQuery'),
+    onFilterClear: jasmine.createSpy('onFilterClear'),
+  });
 
   describe('.render', function() {
-    it('renders each treasure name', function() {
-      const html = renderToStaticMarkup(TreasuresHelper.render(treasures, pagination));
-      expect(html).toContain('Golden Crown');
-      expect(html).toContain('Silver Ring');
-    });
-
-    it('renders each treasure value as a coin breakdown', function() {
-      const html = renderToStaticMarkup(TreasuresHelper.render(treasures, pagination));
-      expect(html).toContain('5 GP');
-      expect(html).toContain('5 SP');
-    });
-
-    it('renders treasure links to the treasure detail pages', function() {
-      const html = renderToStaticMarkup(TreasuresHelper.render(treasures, pagination));
-      expect(html).toContain('href="#/treasures/1"');
-      expect(html).toContain('href="#/treasures/2"');
-    });
-
     it('renders a back button to the home page', function() {
-      const html = renderToStaticMarkup(TreasuresHelper.render(treasures, pagination));
+      const html = renderToStaticMarkup(TreasuresHelper.render(buildState(), buildHandlers()));
       expect(html).toContain('href="#/"');
     });
 
     it('renders a New Treasure link', function() {
-      const html = renderToStaticMarkup(TreasuresHelper.render(treasures, pagination));
+      const html = renderToStaticMarkup(TreasuresHelper.render(buildState(), buildHandlers()));
       expect(html).toContain('href="#/treasures/new"');
     });
 
-    it('renders pagination', function() {
-      const html = renderToStaticMarkup(TreasuresHelper.render(treasures, pagination));
-      expect(html).toContain('pagination');
+    it('wires a ListPage of type treasures-global with the expected props', function() {
+      const handlers = buildHandlers();
+      const element = TreasuresHelper.render(buildState(), handlers);
+      const listPage = findElement(element, (child) => child.type === ListPage);
+
+      expect(listPage).not.toBeNull();
+      expect(listPage.props.type).toBe('treasures-global');
+      expect(listPage.props.basePath).toBe('#/treasures');
+      expect(listPage.props.context.onUploadClick).toBe(handlers.onUploadClick);
+      expect(listPage.props.filtersProps.onQuery).toBe(handlers.onFilterQuery);
+      expect(listPage.props.filtersProps.onClear).toBe(handlers.onFilterClear);
     });
 
-    it('does not render upload buttons when isSuperUser is false', function() {
-      const html = renderToStaticMarkup(TreasuresHelper.render(treasures, pagination, false, Noop.noop));
-      expect(html).not.toContain('actions-overlay-button');
-    });
-
-    it('renders an upload button per treasure when isSuperUser is true', function() {
-      const html = renderToStaticMarkup(TreasuresHelper.render(treasures, pagination, true, Noop.noop));
-      const matches = html.match(/actions-overlay-button/g) || [];
-      expect(matches.length).toBe(treasures.length);
-    });
-
-    it('renders the filters node when provided', function() {
-      const html = renderToStaticMarkup(
-        TreasuresHelper.render(
-          treasures, pagination, false, Noop.noop, {}, React.createElement('div', { 'data-testid': 'my-filters' }, 'filters'),
-        )
+    it('wires the photo upload modal to the selected treasure', function() {
+      const handlers = buildHandlers();
+      const element = TreasuresHelper.render(
+        buildState({ showUploadModal: true, selectedTreasure: { id: 7 } }), handlers,
       );
-      expect(html).toContain('data-testid="my-filters"');
-    });
+      const uploadModal = findElement(element, (child) => child.type === PhotoUploadModal);
 
-    it('passes activeFilters through to Pagination as extraParams', function() {
-      const html = renderToStaticMarkup(
-        TreasuresHelper.render(treasures, pagination, false, Noop.noop, { name: 'sword' })
-      );
-      expect(html).toContain('name=sword');
+      expect(uploadModal.props.show).toBe(true);
+      expect(uploadModal.props.uploadPath).toBe('/treasures/7/photo_upload.json');
+      expect(uploadModal.props.onClose).toBe(handlers.onUploadClose);
+      expect(uploadModal.props.onSuccess).toBe(handlers.onUploadSuccess);
     });
   });
 
@@ -76,14 +91,6 @@ describe('TreasuresHelper', function() {
     it('renders a loading message', function() {
       const html = renderToStaticMarkup(TreasuresHelper.renderLoading());
       expect(html).toContain('Loading');
-    });
-  });
-
-  describe('.renderError', function() {
-    it('renders the error in an alert', function() {
-      const html = renderToStaticMarkup(TreasuresHelper.renderError('Something went wrong'));
-      expect(html).toContain('Something went wrong');
-      expect(html).toContain('alert');
     });
   });
 });

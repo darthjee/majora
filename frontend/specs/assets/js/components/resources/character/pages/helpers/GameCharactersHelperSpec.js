@@ -1,236 +1,108 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import React from 'react';
 import GameCharactersHelper from '../../../../../../../../assets/js/components/resources/character/pages/helpers/GameCharactersHelper.jsx';
-import CharacterCard from '../../../../../../../../assets/js/components/common/CharacterCard.jsx';
-import { buildCharacter } from '../../../../../../../support/factories.js';
+import ListPage from '../../../../../../../../assets/js/components/common/list_page/ListPage.jsx';
+import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
-const findElements = (node, matcher, found = []) => {
+const findElement = (node, matcher) => {
   if (!node) {
-    return found;
+    return null;
   }
 
   if (Array.isArray(node)) {
-    node.forEach((child) => findElements(child, matcher, found));
-    return found;
+    for (const child of node) {
+      const match = findElement(child, matcher);
+
+      if (match) {
+        return match;
+      }
+    }
+
+    return null;
   }
 
   if (typeof node !== 'object') {
-    return found;
+    return null;
   }
 
   if (matcher(node)) {
-    found.push(node);
+    return node;
   }
 
-  findElements(node.props?.children, matcher, found);
-  return found;
+  return findElement(node.props?.children, matcher);
 };
 
 describe('GameCharactersHelper', function() {
-  const characters = [
-    buildCharacter({ id: 1, name: 'Aragorn' }),
-    buildCharacter({ id: 2, name: 'Legolas' }),
-  ];
-  const pagination = { page: 1, pages: 3, perPage: 10 };
+  const baseState = {
+    gameSlug: 'demo',
+    basePath: '#/games/demo/npcs',
+    backHref: '#/games/demo',
+    newHref: '#/games/demo/npcs/new',
+    canEdit: false,
+    isPlayer: false,
+    refreshToken: 0,
+    activeFilters: {},
+  };
+  const baseHandlers = {
+    onCanEditChange: Noop.noop,
+    onUploadClick: Noop.noop,
+    onSlainClick: Noop.noop,
+    onPublicSlainClick: Noop.noop,
+    onPlayerSlainClick: Noop.noop,
+    onFilterQuery: Noop.noop,
+    onFilterClear: Noop.noop,
+  };
 
   describe('.render', function() {
     it('renders the page title', function() {
-      const html = renderToStaticMarkup(
-        GameCharactersHelper.render(
-          characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters', 'pc', '#/games/eq',
-        )
-      );
-      expect(html).toContain('Player Characters');
-    });
-
-    it('renders each character name', function() {
-      const html = renderToStaticMarkup(
-        GameCharactersHelper.render(
-          characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters', 'pc', '#/games/eq',
-        )
-      );
-      expect(html).toContain('Aragorn');
-      expect(html).toContain('Legolas');
-    });
-
-    it('renders character links using gameSlug and characterType', function() {
-      const html = renderToStaticMarkup(
-        GameCharactersHelper.render(
-          characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters', 'pc', '#/games/eq',
-        )
-      );
-      expect(html).toContain('href="#/games/eq/pcs/1"');
-      expect(html).toContain('href="#/games/eq/pcs/2"');
-    });
-
-    it('renders npc character links when characterType is npc', function() {
-      const html = renderToStaticMarkup(
-        GameCharactersHelper.render(
-          characters, pagination, '#/games/eq/npcs', 'eq', 'Non-Player Characters', 'npc', '#/games/eq',
-        )
-      );
-      expect(html).toContain('href="#/games/eq/npcs/1"');
-      expect(html).toContain('href="#/games/eq/npcs/2"');
-    });
-
-    it('renders pagination', function() {
-      const html = renderToStaticMarkup(
-        GameCharactersHelper.render(
-          characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters', 'pc', '#/games/eq',
-        )
-      );
-      expect(html).toContain('pagination');
+      const html = renderToStaticMarkup(GameCharactersHelper.render(baseState, baseHandlers));
+      expect(html).toContain('Non-Player Characters');
     });
 
     it('renders a back button to the parent game page', function() {
-      const html = renderToStaticMarkup(
-        GameCharactersHelper.render(
-          characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters', 'pc', '#/games/eq',
-        )
-      );
-      expect(html).toContain('href="#/games/eq"');
-    });
-
-    it('does not render the new NPC button when canEdit is omitted', function() {
-      const html = renderToStaticMarkup(
-        GameCharactersHelper.render(
-          characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters', 'pc', '#/games/eq',
-        )
-      );
-      expect(html).not.toContain('New NPC');
+      const html = renderToStaticMarkup(GameCharactersHelper.render(baseState, baseHandlers));
+      expect(html).toContain('href="#/games/demo"');
     });
 
     it('does not render the new NPC button when canEdit is false', function() {
-      const html = renderToStaticMarkup(
-        GameCharactersHelper.render(
-          characters, pagination, '#/games/eq/npcs', 'eq', 'Non-Player Characters', 'npc', '#/games/eq',
-          false, '#/games/eq/npcs/new',
-        )
-      );
+      const html = renderToStaticMarkup(GameCharactersHelper.render(baseState, baseHandlers));
       expect(html).not.toContain('New NPC');
     });
 
     it('renders the new NPC button when canEdit is true', function() {
       const html = renderToStaticMarkup(
-        GameCharactersHelper.render(
-          characters, pagination, '#/games/eq/npcs', 'eq', 'Non-Player Characters', 'npc', '#/games/eq',
-          true, '#/games/eq/npcs/new',
-        )
+        GameCharactersHelper.render({ ...baseState, canEdit: true }, baseHandlers),
       );
       expect(html).toContain('New NPC');
-      expect(html).toContain('href="#/games/eq/npcs/new"');
+      expect(html).toContain('href="#/games/demo/npcs/new"');
     });
 
-    it('forwards canEdit and click handlers to CharacterCard for npc characterType', function() {
-      const onUploadClick = jasmine.createSpy('onUploadClick');
-      const onSlainClick = jasmine.createSpy('onSlainClick');
-      const onPublicSlainClick = jasmine.createSpy('onPublicSlainClick');
-      const element = GameCharactersHelper.render(
-        characters, pagination, '#/games/eq/npcs', 'eq', 'Non-Player Characters', 'npc', '#/games/eq',
-        true, '#/games/eq/npcs/new', onUploadClick, onSlainClick, onPublicSlainClick,
-      );
-      const cards = findElements(element, (child) => child.type === CharacterCard);
+    it('wires a ListPage of type npcs with the expected props', function() {
+      const handlers = {
+        ...baseHandlers,
+        onUploadClick: jasmine.createSpy('onUploadClick'),
+        onSlainClick: jasmine.createSpy('onSlainClick'),
+        onPublicSlainClick: jasmine.createSpy('onPublicSlainClick'),
+        onPlayerSlainClick: jasmine.createSpy('onPlayerSlainClick'),
+        onFilterQuery: jasmine.createSpy('onFilterQuery'),
+        onFilterClear: jasmine.createSpy('onFilterClear'),
+        onCanEditChange: jasmine.createSpy('onCanEditChange'),
+      };
+      const element = GameCharactersHelper.render({ ...baseState, isPlayer: true }, handlers);
+      const listPage = findElement(element, (child) => child.type === ListPage);
 
-      expect(cards.length).toBe(2);
-      cards.forEach((card) => {
-        expect(card.props.canEdit).toBe(true);
-        expect(card.props.onUploadClick).toBe(onUploadClick);
-        expect(card.props.onSlainClick).toBe(onSlainClick);
-        expect(card.props.onPublicSlainClick).toBe(onPublicSlainClick);
-      });
-    });
-
-    it('forwards isPlayer and onPlayerSlainClick to CharacterCard for npc characterType', function() {
-      const onPlayerSlainClick = jasmine.createSpy('onPlayerSlainClick');
-      const element = GameCharactersHelper.render(
-        characters, pagination, '#/games/eq/npcs', 'eq', 'Non-Player Characters', 'npc', '#/games/eq',
-        false, '#/games/eq/npcs/new', undefined, undefined, undefined, {}, null,
-        true, onPlayerSlainClick,
-      );
-      const cards = findElements(element, (child) => child.type === CharacterCard);
-
-      expect(cards.length).toBe(2);
-      cards.forEach((card) => {
-        expect(card.props.isPlayer).toBe(true);
-        expect(card.props.onPlayerSlainClick).toBe(onPlayerSlainClick);
-      });
-    });
-
-    it('does not forward isPlayer or onPlayerSlainClick to CharacterCard for pc characterType', function() {
-      const onPlayerSlainClick = jasmine.createSpy('onPlayerSlainClick');
-      const element = GameCharactersHelper.render(
-        characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters', 'pc', '#/games/eq',
-        false, '', undefined, undefined, undefined, {}, null, true, onPlayerSlainClick,
-      );
-      const cards = findElements(element, (child) => child.type === CharacterCard);
-
-      expect(cards.length).toBe(2);
-      cards.forEach((card) => {
-        expect(card.props.isPlayer).toBeUndefined();
-        expect(card.props.onPlayerSlainClick).toBeUndefined();
-      });
-    });
-
-    it('forwards extraParams to the Pagination links when provided', function() {
-      const paginated = { page: 1, pages: 3, perPage: 10 };
-      const html = renderToStaticMarkup(
-        GameCharactersHelper.render(
-          characters, paginated, '#/games/eq/npcs', 'eq', 'Non-Player Characters', 'npc', '#/games/eq',
-          false, '', undefined, undefined, undefined, { slain: 'true', name: 'gob' },
-        )
-      );
-      expect(html).toContain('slain=true');
-      expect(html).toContain('name=gob');
-    });
-
-    it('renders the filters node between the title and the character grid when provided', function() {
-      const filtersMarker = React.createElement('div', { 'data-testid': 'npc-filters-marker' }, 'filters');
-      const html = renderToStaticMarkup(
-        GameCharactersHelper.render(
-          characters, pagination, '#/games/eq/npcs', 'eq', 'Non-Player Characters', 'npc', '#/games/eq',
-          false, '', undefined, undefined, undefined, {}, filtersMarker,
-        )
-      );
-      expect(html).toContain('data-testid="npc-filters-marker"');
-    });
-
-    it('renders no filters node when omitted', function() {
-      const html = renderToStaticMarkup(
-        GameCharactersHelper.render(
-          characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters', 'pc', '#/games/eq',
-        )
-      );
-      expect(html).not.toContain('npc-filters-marker');
-    });
-
-    it('does not forward canEdit or click handlers to CharacterCard for pc characterType', function() {
-      const element = GameCharactersHelper.render(
-        characters, pagination, '#/games/eq/pcs', 'eq', 'Player Characters', 'pc', '#/games/eq',
-        true,
-      );
-      const cards = findElements(element, (child) => child.type === CharacterCard);
-
-      expect(cards.length).toBe(2);
-      cards.forEach((card) => {
-        expect(card.props.canEdit).toBeUndefined();
-        expect(card.props.onUploadClick).toBeUndefined();
-        expect(card.props.onSlainClick).toBeUndefined();
-        expect(card.props.onPublicSlainClick).toBeUndefined();
-      });
-    });
-  });
-
-  describe('.renderLoading', function() {
-    it('renders a loading message', function() {
-      expect(renderToStaticMarkup(GameCharactersHelper.renderLoading())).toContain('Loading');
-    });
-  });
-
-  describe('.renderError', function() {
-    it('renders the error in an alert', function() {
-      const html = renderToStaticMarkup(GameCharactersHelper.renderError('Oops'));
-      expect(html).toContain('Oops');
-      expect(html).toContain('alert');
+      expect(listPage).not.toBeNull();
+      expect(listPage.props.type).toBe('npcs');
+      expect(listPage.props.gameSlug).toBe('demo');
+      expect(listPage.props.basePath).toBe('#/games/demo/npcs');
+      expect(listPage.props.context.isPlayer).toBe(true);
+      expect(listPage.props.context.onUploadClick).toBe(handlers.onUploadClick);
+      expect(listPage.props.context.onSlainClick).toBe(handlers.onSlainClick);
+      expect(listPage.props.context.onPublicSlainClick).toBe(handlers.onPublicSlainClick);
+      expect(listPage.props.context.onPlayerSlainClick).toBe(handlers.onPlayerSlainClick);
+      expect(listPage.props.filtersProps.onQuery).toBe(handlers.onFilterQuery);
+      expect(listPage.props.filtersProps.onClear).toBe(handlers.onFilterClear);
+      expect(listPage.props.filtersProps.canEdit).toBe(false);
+      expect(listPage.props.onCanEditChange).toBe(handlers.onCanEditChange);
     });
   });
 });

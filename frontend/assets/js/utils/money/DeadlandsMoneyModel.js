@@ -55,6 +55,24 @@ export default class DeadlandsMoneyModel {
   }
 
   /**
+   * Transform a raw cents total into a dense dollars/cents breakdown ready
+   * for display, with cents zero-padded to two digits. Used everywhere the
+   * `dollars,cents` split needs to be rendered (character money boxes, and
+   * the deadlands branch of {@link TreasureMoneyHelper}).
+   *
+   * @param {number} value - Total value, expressed in cents.
+   * @returns {{dollars: number, cents: string}} Dollars and zero-padded cents.
+   */
+  static formatDense(value = 0) {
+    const entries = DeadlandsMoneyModel.transformDense(value);
+    const { cents, dollars } = entries.reduce(
+      (acc, entry) => ({ ...acc, [entry.key]: entry.quantity }), {}
+    );
+
+    return { dollars, cents: String(cents).padStart(2, '0') };
+  }
+
+  /**
    * Pack a cents/dollars breakdown back into a raw cents total.
    *
    * @param {object} [breakdown] - Map of denomination key to quantity (e.g.

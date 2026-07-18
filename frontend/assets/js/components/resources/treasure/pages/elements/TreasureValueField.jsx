@@ -1,5 +1,5 @@
-import FieldErrors from '../../../../common/FieldErrors.jsx';
-import TreasureMoney from '../../../../common/TreasureMoney.jsx';
+import FieldErrors from '../../../../common/forms/FieldErrors.jsx';
+import TreasureMoney from '../../../../common/misc/TreasureMoney.jsx';
 
 /**
  * Collapsed value display used on treasure new/edit forms, paired

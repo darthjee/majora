@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterHelper from '../../../../../../../../../assets/js/components/resources/character/pages/helpers/CharacterHelper.jsx';
-import PreviewSection from '../../../../../../../../../assets/js/components/common/PreviewSection.jsx';
-import TreasurePreviewCard from '../../../../../../../../../assets/js/components/common/TreasurePreviewCard.jsx';
+import PreviewSection from '../../../../../../../../../assets/js/components/common/cards/PreviewSection.jsx';
+import TreasurePreviewCard from '../../../../../../../../../assets/js/components/common/cards/TreasurePreviewCard.jsx';
 import { character } from './support.js';
 
 /**
@@ -105,7 +105,7 @@ describe('CharacterHelper', function() {
       const content = buildTooltipContent(withTreasures, '#/games/demo/pcs', treasure);
       const html = renderToStaticMarkup(content);
 
-      expect(html).toContain('3 Dollars and 50 Cents');
+      expect(html).toContain('$ 3,50');
     });
 
     it('renders a see all link to the pcs treasures page', function() {

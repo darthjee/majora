@@ -1,14 +1,14 @@
-import ActionsOverlay from '../../../../common/ActionsOverlay.jsx';
-import DescriptionBox from '../../../../common/DescriptionBox.jsx';
-import EditButton from '../../../../common/EditButton.jsx';
-import PageActions from '../../../../common/PageActions.jsx';
-import ConditionalComponent from '../../../../common/ConditionalComponent.jsx';
-import PreviewSection from '../../../../common/PreviewSection.jsx';
-import CharacterPreviewCard from '../../../../common/CharacterPreviewCard.jsx';
-import { PREVIEW_LIST_TYPES } from '../../../../common/characterPreviewConstants.js';
-import ErrorAlert from '../../../../common/ErrorAlert.jsx';
-import LinkList from '../../../../common/LinkList.jsx';
-import LoadingMessage from '../../../../common/LoadingMessage.jsx';
+import ActionsOverlay from '../../../../common/misc/ActionsOverlay.jsx';
+import DescriptionBox from '../../../../common/misc/DescriptionBox.jsx';
+import EditButton from '../../../../common/buttons/EditButton.jsx';
+import PageActions from '../../../../common/list_page/PageActions.jsx';
+import ConditionalComponent from '../../../../common/misc/ConditionalComponent.jsx';
+import PreviewSection from '../../../../common/cards/PreviewSection.jsx';
+import CharacterPreviewCard from '../../../../common/cards/CharacterPreviewCard.jsx';
+import { PREVIEW_LIST_TYPES } from '../../../../common/cards/characterPreviewConstants.js';
+import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
+import LinkList from '../../../../common/misc/LinkList.jsx';
+import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
 import OpenPollsWidget from '../elements/OpenPollsWidget.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 

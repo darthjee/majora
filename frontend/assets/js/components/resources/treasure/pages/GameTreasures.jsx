@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import GameTreasuresHelper from './helpers/GameTreasuresHelper.jsx';
-import BasePageController from '../../../common/controllers/BasePageController.js';
+import BasePageController from '../../../common/base/controllers/BasePageController.js';
 import HashRouteResolver from '../../../../utils/routing/HashRouteResolver.js';
 
 /**

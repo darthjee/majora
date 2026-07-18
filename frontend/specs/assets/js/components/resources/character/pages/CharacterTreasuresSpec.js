@@ -4,156 +4,98 @@ import PcCharacterTreasures from '../../../../../../../assets/js/components/reso
 import NpcCharacterTreasures from '../../../../../../../assets/js/components/resources/character/pages/NpcCharacterTreasures.jsx';
 import CharacterTreasuresHelper from '../../../../../../../assets/js/components/resources/character/pages/helpers/CharacterTreasuresHelper.jsx';
 import {
-  applyExchangeSuccess, buildExchangeCharacter,
+  mergeOwnedTreasures, buildExchangeCharacter,
 } from '../../../../../../../assets/js/components/resources/character/pages/shared/CharacterTreasures.jsx';
-import PcCharacterTreasuresController
-  from '../../../../../../../assets/js/components/resources/character/pages/controllers/PcCharacterTreasuresController.js';
-import NpcCharacterTreasuresController
-  from '../../../../../../../assets/js/components/resources/character/pages/controllers/NpcCharacterTreasuresController.js';
-import TreasureFilters from '../../../../../../../assets/js/components/resources/treasure/pages/elements/TreasureFilters.jsx';
+import CharacterContextController
+  from '../../../../../../../assets/js/components/resources/character/pages/controllers/CharacterContextController.js';
 import FacadeRefresh from '../../../../../../../assets/js/utils/access/useFacadeRefresh.js';
-import Noop from '../../../../../../../assets/js/utils/Noop.js';
-import { stubBuildEffect, stubRenderLoading } from '../../../../../../support/controllerStubs.js';
+import { stubBuildEffect } from '../../../../../../support/controllerStubs.js';
 
 const KINDS = [
-  { label: 'PcCharacterTreasures', Component: PcCharacterTreasures, Controller: PcCharacterTreasuresController, kind: 'pcs' },
-  { label: 'NpcCharacterTreasures', Component: NpcCharacterTreasures, Controller: NpcCharacterTreasuresController, kind: 'npcs' },
+  { label: 'PcCharacterTreasures', Component: PcCharacterTreasures, kind: 'pcs' },
+  { label: 'NpcCharacterTreasures', Component: NpcCharacterTreasures, kind: 'npcs' },
 ];
 
-KINDS.forEach(({ label, Component, Controller, kind }) => {
+KINDS.forEach(({ label, Component, kind }) => {
   describe(label, function() {
-    it('renders the loading state while fetching', function() {
-      stubBuildEffect(Controller);
-      stubRenderLoading(CharacterTreasuresHelper);
+    let originalWindow;
 
-      const html = renderToStaticMarkup(React.createElement(Component));
-
-      expect(html).toContain('loading');
+    beforeEach(function() {
+      originalWindow = globalThis.window;
+      globalThis.window = { location: { hash: `#/games/demo/${kind}/7/treasures` } };
     });
 
-    it('wires FacadeRefresh.useFacadeRefresh with the page controller', function() {
-      stubBuildEffect(Controller);
+    afterEach(function() {
+      globalThis.window = originalWindow;
+    });
+
+    it('wires FacadeRefresh.useFacadeRefresh with the character context controller', function() {
+      stubBuildEffect(CharacterContextController);
       spyOn(FacadeRefresh, 'useFacadeRefresh');
 
       renderToStaticMarkup(React.createElement(Component));
 
-      expect(FacadeRefresh.useFacadeRefresh).toHaveBeenCalledWith(jasmine.any(Controller));
+      expect(FacadeRefresh.useFacadeRefresh).toHaveBeenCalledWith(jasmine.any(CharacterContextController));
     });
 
-    it('renders the error state via CharacterTreasuresHelper.renderError', function() {
-      const html = renderToStaticMarkup(CharacterTreasuresHelper.renderError('Unable to load treasures.'));
+    it('renders via CharacterTreasuresHelper.render with the expected list type/base path', function() {
+      stubBuildEffect(CharacterContextController);
+      const renderSpy = spyOn(CharacterTreasuresHelper, 'render').and.callThrough();
 
-      expect(html).toContain('Unable to load treasures.');
+      renderToStaticMarkup(React.createElement(Component));
+
+      const [state] = renderSpy.calls.mostRecent().args;
+      expect(state.listType).toBe(`${kind === 'pcs' ? 'pc' : 'npc'}-treasures`);
+      expect(state.gameSlug).toBe('demo');
+      expect(state.basePath).toBe(`#/games/demo/${kind}/7/treasures`);
+      expect(state.backHref).toBe(`#/games/demo/${kind}/7`);
     });
 
-    it('renders the treasures table via CharacterTreasuresHelper.render', function() {
-      stubBuildEffect(Controller);
+    it('renders without an "Exchange Treasure" button before the character loads', function() {
+      stubBuildEffect(CharacterContextController);
 
-      const treasures = [{ id: 1, name: 'Golden Crown', quantity: 1, value: 500 }];
-      const pagination = { page: 1, pages: 1, perPage: 10 };
-      const html = renderToStaticMarkup(
-        CharacterTreasuresHelper.render(
-          treasures, pagination, `#/games/demo/${kind}/7/treasures`, `#/games/demo/${kind}/7`,
-        )
-      );
+      const html = renderToStaticMarkup(React.createElement(Component));
 
-      expect(html).toContain('Golden Crown');
-      expect(html).toContain(`href="#/games/demo/${kind}/7"`);
+      expect(html).not.toContain('Exchange Treasure');
     });
 
     describe('filter query/clear interaction', function() {
-      // CharacterTreasures.jsx wires TreasureFilters' onQuery/onClear to update
-      // window.location.hash (via ControllerClass.buildFilterQueryHash) and re-trigger the
-      // page's fetch effect, the same wiring contract as GameTreasures.jsx/Treasures.jsx build.
       const basePath = `#/games/demo/${kind}/7/treasures`;
-      let originalWindow;
-
-      beforeEach(function() {
-        originalWindow = globalThis.window;
-        globalThis.window = { location: { hash: basePath } };
-      });
-
-      afterEach(function() {
-        globalThis.window = originalWindow;
-      });
-
-      const buildHandlers = (controller) => ({
-        onQuery: (filters) => {
-          window.location.hash = Controller.buildFilterQueryHash(basePath, filters);
-          controller.buildEffect()();
-        },
-        onClear: () => {
-          window.location.hash = basePath;
-          controller.buildEffect()();
-        },
-      });
 
       it('updates the hash and re-triggers the fetch on filter query', function() {
-        const buildEffectSpy = stubBuildEffect(Controller);
-        const controller = new Controller(Noop.noop, Noop.noop, Noop.noop, Noop.noop);
-        const { onQuery } = buildHandlers(controller);
+        stubBuildEffect(CharacterContextController);
+        const renderSpy = spyOn(CharacterTreasuresHelper, 'render').and.callThrough();
 
-        onQuery({ name: 'sword' });
+        renderToStaticMarkup(React.createElement(Component));
+
+        const [, handlers] = renderSpy.calls.mostRecent().args;
+        handlers.onFilterQuery({ name: 'sword' });
 
         expect(window.location.hash).toBe(`${basePath}?page=1&name=sword`);
-        expect(buildEffectSpy).toHaveBeenCalled();
       });
 
-      it('resets the hash to the base path and re-triggers the fetch on filter clear', function() {
-        window.location.hash = `${basePath}?name=sword`;
-        const buildEffectSpy = stubBuildEffect(Controller);
-        const controller = new Controller(Noop.noop, Noop.noop, Noop.noop, Noop.noop);
-        const { onClear } = buildHandlers(controller);
+      it('resets the hash to the base path on filter clear', function() {
+        stubBuildEffect(CharacterContextController);
+        const renderSpy = spyOn(CharacterTreasuresHelper, 'render').and.callThrough();
 
-        onClear();
+        renderToStaticMarkup(React.createElement(Component));
+
+        const [, handlers] = renderSpy.calls.mostRecent().args;
+        handlers.onFilterClear();
 
         expect(window.location.hash).toBe(basePath);
-        expect(buildEffectSpy).toHaveBeenCalled();
-      });
-
-      it('renders TreasureFilters with the game type dropdown hidden', function() {
-        stubBuildEffect(Controller);
-
-        const html = renderToStaticMarkup(
-          CharacterTreasuresHelper.render(
-            [], { page: 1, pages: 1, perPage: 10 }, basePath, `#/games/demo/${kind}/7`, false, undefined, 'dnd', {},
-            React.createElement(TreasureFilters, { onQuery: Noop.noop, onClear: Noop.noop, showGameType: false }),
-          )
-        );
-
-        expect(html).toContain('data-testid="treasure-filters"');
-        expect(html).not.toContain('data-testid="treasure-filter-game-type"');
       });
     });
   });
 });
 
-describe('applyExchangeSuccess', function() {
-  it('refetches the character instead of locally patching its money', function() {
-    const controller = jasmine.createSpyObj('controller', ['refreshCharacter']);
-    const setTreasures = jasmine.createSpy('setTreasures');
-
-    applyExchangeSuccess(controller, setTreasures, {
+describe('mergeOwnedTreasures', function() {
+  it('merges the exchanged treasure quantity into the owned-treasures snapshot', function() {
+    const result = mergeOwnedTreasures([], {
       treasureId: 9, treasureInfo: { name: 'Ring', value: 50 }, quantity: 3,
     });
 
-    expect(controller.refreshCharacter).toHaveBeenCalled();
-  });
-
-  it('merges the exchanged treasure quantity into the treasures list', function() {
-    const controller = jasmine.createSpyObj('controller', ['refreshCharacter']);
-    const setTreasures = jasmine.createSpy('setTreasures');
-
-    applyExchangeSuccess(controller, setTreasures, {
-      treasureId: 9, treasureInfo: { name: 'Ring', value: 50 }, quantity: 3,
-    });
-
-    expect(setTreasures).toHaveBeenCalledWith(jasmine.any(Function));
-
-    const updater = setTreasures.calls.mostRecent().args[0];
-    expect(updater([])).toEqual([{
-      id: 9, treasure_id: 9, quantity: 3, name: 'Ring', value: 50,
-    }]);
+    expect(result).toEqual([{ id: 9, treasure_id: 9, quantity: 3, name: 'Ring', value: 50 }]);
   });
 });
 

@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterItemsHelper from '../../../../../../../../assets/js/components/resources/character/pages/helpers/CharacterItemsHelper.jsx';
-import ListPage from '../../../../../../../../assets/js/components/common/ListPage.jsx';
+import ListPage from '../../../../../../../../assets/js/components/common/list_page/ListPage.jsx';
 
 const findElement = (node, matcher) => {
   if (!node) {

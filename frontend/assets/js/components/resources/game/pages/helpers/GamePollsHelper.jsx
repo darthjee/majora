@@ -1,9 +1,9 @@
 import React from 'react';
-import ErrorAlert from '../../../../common/ErrorAlert.jsx';
-import LoadingMessage from '../../../../common/LoadingMessage.jsx';
-import NewButton from '../../../../common/NewButton.jsx';
-import PageActions from '../../../../common/PageActions.jsx';
-import Pagination from '../../../../common/Pagination.jsx';
+import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
+import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
+import NewButton from '../../../../common/buttons/NewButton.jsx';
+import PageActions from '../../../../common/list_page/PageActions.jsx';
+import Pagination from '../../../../common/pagination/Pagination.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**

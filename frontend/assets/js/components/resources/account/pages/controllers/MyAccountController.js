@@ -1,6 +1,6 @@
 import AuthClient from '../../../../../client/AuthClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
-import BasePageController from '../../../../common/controllers/BasePageController.js';
+import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 
 /**
  * Controller for the my account page.

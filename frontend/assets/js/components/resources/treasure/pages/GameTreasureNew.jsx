@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import GameTreasureNewController from './controllers/GameTreasureNewController.js';
 import GameTreasureNewHelper from './helpers/GameTreasureNewHelper.jsx';
-import MoneyEditModal from '../../../common/MoneyEditModal.jsx';
+import MoneyEditModal from '../../../common/modals/MoneyEditModal.jsx';
 import Noop from '../../../../utils/Noop.js';
 
 /**

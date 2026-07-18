@@ -1,6 +1,6 @@
 import GameClient from '../../../../../client/GameClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
-import BasePageController from '../../../../common/controllers/BasePageController.js';
+import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
 
 /**
