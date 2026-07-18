@@ -21,4 +21,9 @@ export default new Set([
   // players/DM/superuser/staff of the game may view them), so a cached
   // response must never be served to another client.
   '/messages.json',
+  // Players rosters are authorization-gated, per-viewer data (only
+  // players/DM/superuser/staff of the game may view them, per
+  // docs/agents/access-control/player.md), so a cached response must never
+  // be served to another client.
+  '/players.json',
 ]);

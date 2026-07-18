@@ -104,6 +104,12 @@ body {
   position: relative;
 }
 
+.user-avatar-badge {
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+}
+
 .photo-grayscale .card-photo-square img {
   filter: grayscale(100%);
 }

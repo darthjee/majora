@@ -86,7 +86,7 @@ export default class HeaderNavHelper {
   }
 
   /**
-   * Renders the Polls/Sessions dropdown items, restricted to the game's
+   * Renders the Players/Polls/Sessions dropdown items, restricted to the game's
    * DM(s), players, and admins (superuser/staff) — the same audience rule
    * used by `OpenPollsWidget`/`GamePollsController`.
    *
@@ -103,6 +103,7 @@ export default class HeaderNavHelper {
 
     return (
       <>
+        <NavDropdown.Item href={`#/games/${gameSlug}/players`}>{Translator.t('game_page.players')}</NavDropdown.Item>
         <NavDropdown.Item href={`#/games/${gameSlug}/polls`}>{Translator.t('game_page.polls_title')}</NavDropdown.Item>
         <NavDropdown.Item href={`#/games/${gameSlug}/sessions`}>{Translator.t('game_page.sessions')}</NavDropdown.Item>
       </>
