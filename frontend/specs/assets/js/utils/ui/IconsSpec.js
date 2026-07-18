@@ -36,4 +36,8 @@ describe('Icons', function() {
   it('maps gem to the gem icon class', function() {
     expect(Icons.gem).toBe('bi-gem');
   });
+
+  it('maps pencilFill to the filled pencil icon class', function() {
+    expect(Icons.pencilFill).toBe('bi-pencil-fill');
+  });
 });
