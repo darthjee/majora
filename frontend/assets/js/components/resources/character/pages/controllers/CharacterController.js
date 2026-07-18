@@ -1,19 +1,20 @@
-import CharacterClient from '../../../../../client/CharacterClient.js';
 import GenericClient from '../../../../../client/GenericClient.js';
 import GameClient from '../../../../../client/GameClient.js';
-import BasePageController from '../../../../common/controllers/BasePageController.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import CharacterGameTypeResolver from './CharacterGameTypeResolver.js';
 import CharacterAccessResolver from './CharacterAccessResolver.js';
+import CharacterListsController from './CharacterListsController.js';
 
 /**
  * Base controller for character detail pages (PC and NPC).
  *
  * @description Parameterized by `characterKind` (`'pcs'` or `'npcs'`) so a single
  *   implementation covers both, delegating to {@link CharacterClient}'s parameterized methods.
+ *   Extends {@link CharacterListsController} (treasures/items/photos fetch+merge) to keep both
+ *   files under the project's per-file line limit.
  */
-export default class CharacterController extends BasePageController {
+export default class CharacterController extends CharacterListsController {
   /**
    * Create a character controller.
    *
@@ -36,14 +37,12 @@ export default class CharacterController extends BasePageController {
     characterKind = 'pcs',
     gameClient = null,
   ) {
-    super();
+    super(characterClient, characterKind);
     this.setCharacter = setCharacter;
     this.setLoading = setLoading;
     this.setError = setError;
     this.client = client ?? new GenericClient();
     this.paramsFromHash = paramsFromHash;
-    this.characterClient = characterClient ?? new CharacterClient();
-    this.characterKind = characterKind;
     this.gameClient = gameClient ?? new GameClient();
   }
 
@@ -82,30 +81,6 @@ export default class CharacterController extends BasePageController {
    */
   updateCharacterMoney(gameSlug, characterId, token, money) {
     return this.characterClient.updateCharacterMoney(this.characterKind, gameSlug, characterId, token, money);
-  }
-
-  /**
-   * Fetch a first page of the character's treasures from the API.
-   *
-   * @param {string} gameSlug - Game slug.
-   * @param {string} characterId - Character id.
-   * @param {string|null} token - Authentication token.
-   * @returns {Promise<Response>} Fetch response.
-   */
-  fetchCharacterTreasures(gameSlug, characterId, token) {
-    return this.characterClient.fetchCharacterTreasures(this.characterKind, gameSlug, characterId, token);
-  }
-
-  /**
-   * Fetch a first page of the character's photos from the API.
-   *
-   * @param {string} gameSlug - Game slug.
-   * @param {string} characterId - Character id.
-   * @param {string|null} token - Authentication token.
-   * @returns {Promise<Response>} Fetch response.
-   */
-  fetchCharacterPhotos(gameSlug, characterId, token) {
-    return this.characterClient.fetchCharacterPhotos(this.characterKind, gameSlug, characterId, token);
   }
 
   /**
@@ -198,38 +173,6 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
-   * Fetch the character's treasures and merge them onto the character as `character.treasures`,
-   * degrading to an empty array on failure rather than failing the whole page load.
-   *
-   * @param {object} character - Base character data already loaded.
-   * @param {object} params - Route params with game_slug and character_id.
-   * @param {string|null} token - Authentication token.
-   * @returns {Promise<object>} Resolves to the character with treasures applied.
-   */
-  fetchAndMergeTreasures(character, params, token) {
-    return this.fetchCharacterTreasures(params.game_slug, params.character_id, token)
-      .then((response) => (response.ok ? response.json() : []))
-      .then((treasures) => ({ ...character, treasures: Array.isArray(treasures) ? treasures : [] }))
-      .catch(() => ({ ...character, treasures: [] }));
-  }
-
-  /**
-   * Fetch the character's photos and merge them onto the character as `character.photos`,
-   * degrading to an empty array on failure rather than failing the whole page load.
-   *
-   * @param {object} character - Base character data already loaded.
-   * @param {object} params - Route params with game_slug and character_id.
-   * @param {string|null} token - Authentication token.
-   * @returns {Promise<object>} Resolves to the character with photos applied.
-   */
-  fetchAndMergePhotos(character, params, token) {
-    return this.fetchCharacterPhotos(params.game_slug, params.character_id, token)
-      .then((response) => (response.ok ? response.json() : []))
-      .then((photos) => ({ ...character, photos: Array.isArray(photos) ? photos : [] }))
-      .catch(() => ({ ...character, photos: [] }));
-  }
-
-  /**
    * Fetch the character's own game.
    *
    * @param {string} gameSlug - Game slug.
@@ -253,7 +196,7 @@ export default class CharacterController extends BasePageController {
   }
 
   /**
-   * Load the character, merge treasures/photos/game_type/access, and update loading state.
+   * Load the character, merge treasures/items/photos/game_type/access, and update loading state.
    *
    * @param {object} params - Route params with game_slug and character_id.
    * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
@@ -265,6 +208,7 @@ export default class CharacterController extends BasePageController {
     return this.fetchCharacter(params.game_slug, params.character_id, token)
       .then((response) => this.handleCharacterResponse(response))
       .then((character) => this.fetchAndMergeTreasures(character, params, token))
+      .then((character) => this.fetchAndMergeItems(character, params, token))
       .then((character) => this.fetchAndMergePhotos(character, params, token))
       .then((character) => this.fetchAndMergeGameType(character, params, token))
       .then((character) => this.fetchAndMergeAccess(character, params, token, safeSet))

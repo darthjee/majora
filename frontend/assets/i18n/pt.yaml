@@ -83,6 +83,7 @@ game_page:
   player_characters: Personagens
   non_player_characters: NPCs
   treasures: Tesouros
+  items: Itens
   sessions: Sessões
   see_all_photos: Fotos
   next_session_title: Próxima Sessão
@@ -102,6 +103,7 @@ character_page:
   public_slain_button: Marcar como Publicamente Morto
   public_revive_button: Reviver Publicamente
   treasures_title: Tesouros
+  items_title: Itens
   photos_title: Fotos
 character_full_page:
   loading: Carregando personagem...
@@ -125,6 +127,8 @@ character_preview_section:
   see_all: Ver todos {{title}}
 character_treasures_preview:
   empty: Nenhum tesouro ainda.
+character_items_preview:
+  empty: Nenhum item ainda.
 character_photos_preview:
   empty: Nenhuma foto ainda.
 recover_password_page:
@@ -259,6 +263,10 @@ character_treasures_page:
   quantity_column: Quantidade
   value_column: Valor
   add_treasure: Trocar Tesouros
+character_items_page:
+  loading: Carregando itens...
+  title: Itens
+  hidden_label: Oculto
 treasure_exchange_modal:
   title: Troca de Tesouro
   search_placeholder: Buscar tesouros...
@@ -305,6 +313,10 @@ game_treasures_page:
   add_treasure: Adicionar Tesouro
   edit: Editar
   available_units_label: 'Disponível: {{available}} / {{max}}'
+  hidden_label: Oculto
+game_items_page:
+  loading: Carregando itens...
+  title: Itens
   hidden_label: Oculto
 add_game_treasure_modal:
   title: Adicionar Tesouro

@@ -9,10 +9,14 @@ from django.contrib import admin
 
 from games.models import (
     Character,
+    CharacterItem,
+    CharacterItemPhoto,
     CharacterLink,
     CharacterPhoto,
     CharacterTreasure,
     Game,
+    GameItem,
+    GameItemPhoto,
     GamePhoto,
     Link,
     Player,
@@ -22,10 +26,14 @@ from games.models import (
 
 HISTORICAL_MODELS = [
     Character.history.model,
+    CharacterItem.history.model,
+    CharacterItemPhoto.history.model,
     CharacterLink.history.model,
     CharacterPhoto.history.model,
     CharacterTreasure.history.model,
     Game.history.model,
+    GameItem.history.model,
+    GameItemPhoto.history.model,
     GamePhoto.history.model,
     Link.history.model,
     Player.history.model,

@@ -12,6 +12,7 @@ import LinkList from '../../../../common/LinkList.jsx';
 import LoadingMessage from '../../../../common/LoadingMessage.jsx';
 import PreviewSection from '../../../../common/PreviewSection.jsx';
 import TreasurePreviewCard from '../../../../common/TreasurePreviewCard.jsx';
+import ItemPreviewCard from '../../../../common/ItemPreviewCard.jsx';
 import { PREVIEW_LIST_TYPES } from '../../../../common/characterPreviewConstants.js';
 import CharacterPhotosPreview from '../elements/CharacterPhotosPreview.jsx';
 import Translator from '../../../../../i18n/Translator.js';
@@ -59,6 +60,9 @@ export default class CharacterHelper {
    * @param {object[]} [character.treasures] - Preview list of the character's treasures
    *   (`id`, `treasure_id`, `name`, `quantity`, `value`, `photo_path`), rendered as a card
    *   grid with a link to the full list page.
+   * @param {object[]} [character.items] - Preview list of the character's items
+   *   (`id`, `game_item_id`, `name`, `description`, `photo_path`, already fallback-resolved
+   *   server-side), rendered as a card grid with a link to the full list page.
    * @param {object[]} [character.photos] - Preview list of the character's photos
    *   (`id`, `path`), rendered as a static card grid with a link to the full gallery page.
    * @param {string} backHref - Hash path to the character's index page.
@@ -115,6 +119,14 @@ export default class CharacterHelper {
                   quantity={treasure.quantity}
                 />
               )}
+            />
+            <PreviewSection
+              items={character.items ?? []}
+              title={Translator.t(PREVIEW_LIST_TYPES.item.titleKey)}
+              seeAllHref={`#/games/${character.game_slug}/${segment}/${character.id}/items`}
+              icon={PREVIEW_LIST_TYPES.item.icon}
+              emptyText={Translator.t('character_items_preview.empty')}
+              renderItem={(item) => <ItemPreviewCard key={item.id} item={item} />}
             />
           </div>
         </div>

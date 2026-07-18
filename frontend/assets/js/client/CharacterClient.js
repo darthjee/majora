@@ -81,6 +81,20 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
+   * Fetches a page of the character's items, used to populate the item preview grid on
+   * the character show page (issue #658).
+   *
+   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @returns {Promise<Response>} fetch response from the character items endpoint.
+   */
+  fetchCharacterItems(characterKind, gameSlug, characterId, token) {
+    return this.#fetchCharacter(characterKind, gameSlug, characterId, token, 'items');
+  }
+
+  /**
    * Fetches a page of a character's photos, used to populate the photo
    * preview grid on the character show/edit pages.
    *
@@ -337,7 +351,7 @@ export default class CharacterClient extends BaseClient {
   #fetchCharacter(characterKind, gameSlug, characterId, token, suffix = null, signal, roles = []) {
     const base = `/games/${gameSlug}/${characterKind}/${characterId}`;
     const path = suffix ? `${base}/${suffix}.json` : `${base}.json`;
-    const skipCache = characterKind === 'npcs' && (suffix === null || suffix === 'treasures');
+    const skipCache = characterKind === 'npcs' && (suffix === null || suffix === 'treasures' || suffix === 'items');
 
     return this.getJson(
       `${path}${this.buildRoleQuery(roles)}`, token, skipCache ? { 'X-Skip-Cache': 'true' } : {}, signal,

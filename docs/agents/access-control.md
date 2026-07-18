@@ -33,6 +33,8 @@ regardless of any other rule listed below.
 - [CharacterPhoto](access-control/character-photo.md)
 - [CharacterTreasure](access-control/character-treasure.md)
 - [GameTreasure](access-control/game-treasure.md)
+- [GameItem](access-control/game-item.md)
+- [CharacterItem](access-control/character-item.md)
 - [Link](access-control/link.md)
 - [CharacterLink](access-control/character-link.md)
 - [Treasure](access-control/treasure.md)

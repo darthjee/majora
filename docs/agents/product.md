@@ -74,6 +74,19 @@ game-scoped endpoints; the pre-existing global treasure endpoints remain superus
 regardless of a treasure's `game`. See [access-control/treasure.md](access-control/treasure.md) for the full
 endpoint and permission breakdown.
 
+### GameItem / CharacterItem
+
+A **GameItem** is a special magic item belonging to exactly one game (`name`, `description`,
+optional photo, `hidden`) — simpler than `Treasure`: there is no shared cross-game registry, so
+`GameItem` itself is the top of the item hierarchy rather than a per-game link to a separately
+owned catalog row. A **CharacterItem** links a `GameItem` to a PC or NPC, with its own optional
+`name`/`description`/`photo` overrides that fall back to the linked `GameItem`'s values when
+`null`, and its own independent `hidden` flag. Both are read-only in the current issue (no
+create, update, or photo upload flow) — see
+[access-control/game-item.md](access-control/game-item.md) and
+[access-control/character-item.md](access-control/character-item.md) for the full endpoint and
+permission breakdown.
+
 ### Poll
 
 A **Poll** is a game-scoped question (`title`, `description`, a `type` of single- or

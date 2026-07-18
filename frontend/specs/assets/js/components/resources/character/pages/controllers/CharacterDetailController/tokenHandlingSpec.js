@@ -19,9 +19,10 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       const client = jasmine.createSpyObj('client', ['currentHash']);
       const characterClient = jasmine.createSpyObj(
         'characterClient',
-        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterPhotos'],
+        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterItems', 'fetchCharacterPhotos'],
       );
       characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
+      characterClient.fetchCharacterItems.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
       characterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
       client.currentHash.and.returnValue(`#/games/demo/${kind}/2`);
@@ -40,6 +41,7 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       expect(setCharacter).toHaveBeenCalledWith({
         id: 2,
         treasures: [],
+        items: [],
         photos: [],
         game_type: 'dnd',
         can_edit: false,
@@ -62,9 +64,10 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       const client = jasmine.createSpyObj('client', ['currentHash']);
       const characterClient = jasmine.createSpyObj(
         'characterClient',
-        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterPhotos'],
+        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterItems', 'fetchCharacterPhotos'],
       );
       characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
+      characterClient.fetchCharacterItems.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
       characterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
       client.currentHash.and.returnValue(`#/games/demo/${kind}/2`);
@@ -95,9 +98,10 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       const client = jasmine.createSpyObj('client', ['currentHash']);
       const characterClient = jasmine.createSpyObj(
         'characterClient',
-        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterPhotos'],
+        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterItems', 'fetchCharacterPhotos'],
       );
       characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
+      characterClient.fetchCharacterItems.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
       characterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
       client.currentHash.and.returnValue(`#/games/demo/${kind}/2`);
