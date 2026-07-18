@@ -26,11 +26,13 @@ export default class HashRouteResolver {
     this.#router.register('/staff/users/:id', 'staffUser');
     this.#router.register('/staff/users', 'staffUsers');
     this.#router.register('/games/:game_slug/npcs/:character_id/treasures', 'npcCharacterTreasures');
+    this.#router.register('/games/:game_slug/npcs/:character_id/items', 'npcCharacterItems');
     this.#router.register('/games/:game_slug/npcs/:character_id/photos', 'npcCharacterPhotos');
     this.#router.register('/games/:game_slug/npcs/:character_id/edit', 'npcCharacterEdit');
     this.#router.register('/games/:game_slug/npcs/new', 'gameNpcNew');
     this.#router.register('/games/:game_slug/npcs/:character_id', 'npcCharacter');
     this.#router.register('/games/:game_slug/pcs/:character_id/treasures', 'pcCharacterTreasures');
+    this.#router.register('/games/:game_slug/pcs/:character_id/items', 'pcCharacterItems');
     this.#router.register('/games/:game_slug/pcs/:character_id/photos', 'pcCharacterPhotos');
     this.#router.register('/games/:game_slug/pcs/:character_id/edit', 'pcCharacterEdit');
     this.#router.register('/games/:game_slug/pcs/:character_id', 'pcCharacter');
@@ -39,6 +41,7 @@ export default class HashRouteResolver {
     this.#router.register('/games/:game_slug/treasures/new', 'gameTreasureNew');
     this.#router.register('/games/:game_slug/treasures/:treasure_id/edit', 'gameTreasureEdit');
     this.#router.register('/games/:game_slug/treasures', 'gameTreasures');
+    this.#router.register('/games/:game_slug/items', 'gameItems');
     this.#router.register('/games/:game_slug/sessions/new', 'gameSessionNew');
     this.#router.register('/games/:game_slug/sessions/:id/edit', 'gameSessionEdit');
     this.#router.register('/games/:game_slug/sessions/:id', 'gameSession');

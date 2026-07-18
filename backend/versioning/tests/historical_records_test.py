@@ -16,7 +16,6 @@ from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     TreasureFactory,
     UserFactory,
@@ -134,7 +133,7 @@ class TestHistoricalRecordsUser(TokenAuthRequestMixin, TestCase):
             name='Epic Quest', game_slug='epic-quest', description='Original description.'
         )
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
 
     def test_patch_via_authenticated_endpoint_sets_history_user(self):

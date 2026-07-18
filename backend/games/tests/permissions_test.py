@@ -16,7 +16,6 @@ from games.permissions import (
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
     UserFactory,
@@ -39,7 +38,7 @@ class TestCharacterEditPermissionCheck(TestCase):
         """Set up a game, a DM, an owning player and an NPC character."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.player = PlayerFactory(name='Bob', game=cls.game)
         cls.owner = UserFactory(username='owner', password='secret-password')
         cls.player.user = cls.owner
@@ -94,7 +93,7 @@ class TestCharacterMoneyEditPermissionCheck(TestCase):
         """Set up a game, a DM, an owning player/PC, an NPC, and a regular player."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.player = PlayerFactory(name='Bob', game=cls.game)
         cls.owner = UserFactory(username='owner', password='secret-password')
         cls.player.user = cls.owner
@@ -215,7 +214,7 @@ class TestNpcPlayerEditPermissionCheck(TestCase):
         """Set up a game, a DM, a player of the game, and an NPC."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
         cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
         cls.npc = CharacterFactory(name='Gandalf', game=cls.game, npc=True)
@@ -266,7 +265,7 @@ class TestGameEditPermissionCheck(TestCase):
         """Set up a game and a DM user."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
 
     def test_returns_401_for_anonymous_user(self):
         """Test that an anonymous user gets a 401 error response."""
@@ -310,7 +309,7 @@ class TestTaskEditPermissionCheck(TestCase):
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.task = Task.objects.create(game=cls.game, short_description='Prep the ambush')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
 
     def test_returns_401_for_anonymous_user(self):
         """Test that an anonymous user gets a 401 error response."""
@@ -354,7 +353,7 @@ class TestSessionMessagePermissionCheckView(TestCase):
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.session = GameSession.objects.create(game=cls.game, title='Session One')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
         cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
 
@@ -413,7 +412,7 @@ class TestSessionMessagePermissionCheckCreate(TestCase):
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.session = GameSession.objects.create(game=cls.game, title='Session One')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
         cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
 

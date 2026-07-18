@@ -4,7 +4,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 
 from games.models import GameSession, Task
-from games.tests.factories import GameFactory, GameMasterFactory, SuperUserFactory, UserFactory
+from games.tests.factories import GameFactory, PlayerFactory, SuperUserFactory, UserFactory
 
 
 class TestTask(TestCase):
@@ -59,7 +59,7 @@ class TestTaskCanBeEditedBy(TestCase):
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.task = Task.objects.create(game=cls.game, short_description='Prep the ambush')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
 
     def test_superuser_can_edit(self):
         """Test that a superuser may edit the task."""
@@ -74,7 +74,7 @@ class TestTaskCanBeEditedBy(TestCase):
         """Test that a DM of a different game cannot edit the task."""
         other_game = GameFactory(name='Other Game', game_slug='other-game')
         other_dm = UserFactory(username='other_dm', password='secret-password')
-        GameMasterFactory(game=other_game, user=other_dm)
+        PlayerFactory(game=other_game, user=other_dm, is_dm=True)
         assert self.task.can_be_edited_by(other_dm) is False
 
     def test_non_dm_user_cannot_edit(self):

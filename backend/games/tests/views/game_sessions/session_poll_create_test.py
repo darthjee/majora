@@ -11,7 +11,6 @@ from games.serializers.games.polls.poll_create import MAX_OPTIONS
 from games.serializers.games.polls.session_poll_create import DEFAULT_TITLE
 from games.tests.factories import (
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
     UserFactory,
@@ -28,7 +27,7 @@ class TestSessionPollCreateView(TestCase):
         cls.other_game = GameFactory(name='Other Game', game_slug='other-game')
         cls.session = GameSession.objects.create(game=cls.game, title='Session One')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
         cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)

@@ -8,8 +8,8 @@ from rest_framework.authtoken.models import Token
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     GameFactory,
-    GameMasterFactory,
     GameTreasureFactory,
+    PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -26,7 +26,7 @@ class TestGameTreasuresMissingView(TokenAuthRequestMixin, TestCase):
         """Set up common test fixtures."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
 
     def _get(self, client, token=None, url=None):
         """Issue a GET request to the treasures/missing endpoint, optionally with a token."""

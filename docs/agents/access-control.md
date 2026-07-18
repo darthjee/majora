@@ -28,12 +28,13 @@ regardless of any other rule listed below.
 - [Upload](access-control/upload.md) — the `Upload` model plus the Game/Character/Treasure photo
   upload init endpoints
 - [Character (PC and NPC)](access-control/character.md)
-- [GameMaster](access-control/game-master.md)
-- [Player](access-control/player.md)
+- [Player](access-control/player.md) — includes the DM/GameMaster role (`Player.is_dm`)
 - [User (Staff Management)](access-control/user.md)
 - [CharacterPhoto](access-control/character-photo.md)
 - [CharacterTreasure](access-control/character-treasure.md)
 - [GameTreasure](access-control/game-treasure.md)
+- [GameItem](access-control/game-item.md)
+- [CharacterItem](access-control/character-item.md)
 - [Link](access-control/link.md)
 - [CharacterLink](access-control/character-link.md)
 - [Treasure](access-control/treasure.md)

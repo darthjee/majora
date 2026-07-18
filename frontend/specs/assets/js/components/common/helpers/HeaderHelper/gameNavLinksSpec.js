@@ -3,7 +3,7 @@ import { render } from './support.js';
 describe('HeaderHelper', function() {
   describe('.render', function() {
     describe('game nav dropdown', function() {
-      it('renders Show/PCs/NPCs/Treasures/Photos on any route with a resolved gameSlug', function() {
+      it('renders Show/PCs/NPCs/Treasures/Items/Photos on any route with a resolved gameSlug', function() {
         const html = render({ route: { page: 'gameTasks', gameSlug: 'epic-quest' } });
 
         expect(html).toContain('Game');
@@ -11,6 +11,7 @@ describe('HeaderHelper', function() {
         expect(html).toContain('href="#/games/epic-quest/pcs"');
         expect(html).toContain('href="#/games/epic-quest/npcs"');
         expect(html).toContain('href="#/games/epic-quest/treasures"');
+        expect(html).toContain('href="#/games/epic-quest/items"');
         expect(html).toContain('href="#/games/epic-quest/photos"');
       });
 

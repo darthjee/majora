@@ -6,7 +6,7 @@ from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
 from games.models import GamePhoto, Upload
-from games.tests.factories import GameFactory, GameMasterFactory, SuperUserFactory, UserFactory
+from games.tests.factories import GameFactory, PlayerFactory, SuperUserFactory, UserFactory
 
 
 class TestPhotoUploadView(TestCase):
@@ -17,7 +17,7 @@ class TestPhotoUploadView(TestCase):
         """Set up a game, a DM user, and a non-DM user."""
         cls.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
 
     def _post(self, client, payload, token=None):

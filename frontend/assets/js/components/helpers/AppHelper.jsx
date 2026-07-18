@@ -15,6 +15,7 @@ import GameSessionEdit from '../resources/game_session/pages/GameSessionEdit.jsx
 import GameSessionNew from '../resources/game_session/pages/GameSessionNew.jsx';
 import GameSessions from '../resources/game_session/pages/GameSessions.jsx';
 import GameTasks from '../resources/game/pages/GameTasks.jsx';
+import GameItems from '../resources/item/pages/GameItems.jsx';
 import GameTreasureEdit from '../resources/treasure/pages/GameTreasureEdit.jsx';
 import GameTreasureNew from '../resources/treasure/pages/GameTreasureNew.jsx';
 import GameTreasures from '../resources/treasure/pages/GameTreasures.jsx';
@@ -22,10 +23,12 @@ import Games from '../resources/game/pages/Games.jsx';
 import MyAccount from '../resources/account/pages/MyAccount.jsx';
 import NpcCharacter from '../resources/character/pages/NpcCharacter.jsx';
 import NpcCharacterEdit from '../resources/character/pages/NpcCharacterEdit.jsx';
+import NpcCharacterItems from '../resources/character/pages/NpcCharacterItems.jsx';
 import NpcCharacterPhotos from '../resources/character/pages/NpcCharacterPhotos.jsx';
 import NpcCharacterTreasures from '../resources/character/pages/NpcCharacterTreasures.jsx';
 import PcCharacter from '../resources/character/pages/PcCharacter.jsx';
 import PcCharacterEdit from '../resources/character/pages/PcCharacterEdit.jsx';
+import PcCharacterItems from '../resources/character/pages/PcCharacterItems.jsx';
 import PcCharacterPhotos from '../resources/character/pages/PcCharacterPhotos.jsx';
 import PcCharacterTreasures from '../resources/character/pages/PcCharacterTreasures.jsx';
 import RecoverPassword from '../resources/account/pages/RecoverPassword.jsx';
@@ -53,6 +56,7 @@ const PAGES = {
   gameTreasures: <GameTreasures />,
   gameTreasureNew: <GameTreasureNew />,
   gameTreasureEdit: <GameTreasureEdit />,
+  gameItems: <GameItems />,
   gameSessions: <GameSessions />,
   gameSessionNew: <GameSessionNew />,
   gameSession: <GameSession />,
@@ -63,10 +67,12 @@ const PAGES = {
   npcCharacterEdit: <NpcCharacterEdit />,
   npcCharacterPhotos: <NpcCharacterPhotos />,
   npcCharacterTreasures: <NpcCharacterTreasures />,
+  npcCharacterItems: <NpcCharacterItems />,
   pcCharacter: <PcCharacter />,
   pcCharacterEdit: <PcCharacterEdit />,
   pcCharacterPhotos: <PcCharacterPhotos />,
   pcCharacterTreasures: <PcCharacterTreasures />,
+  pcCharacterItems: <PcCharacterItems />,
   recoverPassword: <RecoverPassword />,
   register: <Register />,
   staffUsers: <StaffUsers />,

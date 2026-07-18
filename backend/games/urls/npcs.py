@@ -48,6 +48,16 @@ urlpatterns = [
         name='game-npc-photo-set',
     ),
     path(
+        'games/<slug:game_slug>/npcs/<int:character_id>/items.json',
+        views.game_npc_items,
+        name='game-npc-items',
+    ),
+    path(
+        'games/<slug:game_slug>/npcs/<int:character_id>/items/all.json',
+        views.game_npc_items_all,
+        name='game-npc-items-all',
+    ),
+    path(
         'games/<slug:game_slug>/npcs/<int:character_id>/treasures.json',
         views.game_npc_treasures,
         name='game-npc-treasures',

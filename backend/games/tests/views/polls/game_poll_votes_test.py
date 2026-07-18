@@ -9,7 +9,6 @@ from rest_framework.authtoken.models import Token
 from games.models import Poll, PollVote
 from games.tests.factories import (
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     PollFactory,
     PollOptionFactory,
@@ -31,7 +30,7 @@ class TestGamePollVotesGetView(TestCase):
         cls.option_one = PollOptionFactory(poll=cls.poll, option='The Drunken Griffin')
         cls.option_two = PollOptionFactory(poll=cls.poll, option='The Rusty Anchor')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
         UserProfileFactory(user=cls.player_user, display_name='player_display')
@@ -251,7 +250,7 @@ class TestGamePollVotesPutView(TestCase):
         cls.multiple_option_c = PollOptionFactory(poll=cls.multiple_poll, option='C')
 
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
 
         cls.player_user = UserFactory(username='player_user', password='secret-password')

@@ -6,7 +6,7 @@ from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import GameFactory, GameMasterFactory, SuperUserFactory, UserFactory
+from games.tests.factories import GameFactory, PlayerFactory, SuperUserFactory, UserFactory
 
 
 class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
@@ -17,7 +17,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
         """Set up a game and a DM user."""
         cls.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
 
     def _get(self, client, token=None, query=''):
         """Issue a GET request to the game permissions endpoint, optionally with a token/query."""

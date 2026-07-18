@@ -9,7 +9,6 @@ from games.serializers import CharacterDetailSerializer
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
@@ -124,7 +123,7 @@ class TestCharacterDetailSerializer(TestCase):
     def test_can_edit_is_true_for_game_master(self):
         """Test that can_edit is true for a DM of the character's game."""
         dm_user = UserFactory(username='dm', password='secret-password')
-        GameMasterFactory(game=self.game, user=dm_user)
+        PlayerFactory(game=self.game, user=dm_user, is_dm=True)
         data = self._serialize(dm_user)
         assert data['can_edit'] is True
 

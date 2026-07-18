@@ -9,6 +9,10 @@ from games.serializers.characters.character_create import CharacterCreateSeriali
 from games.serializers.characters.character_detail import CharacterDetailSerializer
 from games.serializers.characters.character_full import CharacterFullSerializer
 from games.serializers.characters.character_full_list import CharacterFullListSerializer
+from games.serializers.characters.character_item import (
+    CharacterItemAllSerializer,
+    CharacterItemSerializer,
+)
 from games.serializers.characters.character_link import CharacterLinkSerializer
 from games.serializers.characters.character_link_write import CharacterLinkWriteSerializer
 from games.serializers.characters.character_list import CharacterListSerializer
@@ -26,10 +30,13 @@ from games.serializers.games.game_access import GameAccessSerializer
 from games.serializers.games.game_create import GameCreateSerializer
 from games.serializers.games.game_detail import GameDetailSerializer
 from games.serializers.games.game_list import GameListSerializer
-from games.serializers.games.game_master import GameMasterSerializer
 from games.serializers.games.game_permissions import GamePermissionsSerializer
 from games.serializers.games.game_photo import GamePhotoSerializer
 from games.serializers.games.game_update import GameUpdateSerializer
+from games.serializers.games.items.game_item_list import (
+    GameItemAllListSerializer,
+    GameItemListSerializer,
+)
 from games.serializers.games.polls.poll_create import PollCreateSerializer
 from games.serializers.games.polls.poll_detail import PollDetailSerializer
 from games.serializers.games.polls.poll_list import PollListSerializer
@@ -82,6 +89,8 @@ __all__ = [
     'CharacterDetailSerializer',
     'CharacterFullListSerializer',
     'CharacterFullSerializer',
+    'CharacterItemAllSerializer',
+    'CharacterItemSerializer',
     'CharacterLinkSerializer',
     'CharacterLinkWriteSerializer',
     'CharacterListSerializer',
@@ -94,8 +103,9 @@ __all__ = [
     'GameAccessSerializer',
     'GameCreateSerializer',
     'GameDetailSerializer',
+    'GameItemAllListSerializer',
+    'GameItemListSerializer',
     'GameListSerializer',
-    'GameMasterSerializer',
     'GamePermissionsSerializer',
     'GamePhotoSerializer',
     'GameSessionCreateSerializer',

@@ -18,21 +18,22 @@ game.
 
 ### Player
 
-A **Player** is a human participant in one or more games. Each Player record has a
-display name and may be linked to a Django `User` account (`player.user`). A `Player`
-without a linked `User` is a named participant with no login identity.
+A **Player** is a human participant in a game. Each Player record has a display name and
+may be linked to a Django `User` account (`player.user`). A `Player` without a linked
+`User` is a named participant with no login identity.
 
-A Player may belong to multiple games (many-to-many relationship). Within a game, a
-Player owns zero or more characters.
+A Player belongs to exactly one game (`Player.game` FK). Within a game, a Player owns
+zero or more characters. A Player's `is_dm` flag marks them as that game's DM/GameMaster
+— see [GameMaster Role](#gamemaster-role) below.
 
 ### User (Account)
 
 A **User** is a Django authentication account (`django.contrib.auth.models.User`). A
 `User` may be linked to at most one `Player` record per game (through the `Player.user`
-FK). Without a `Player` link, a `User` may still join a game as a GameMaster.
+FK).
 
-A `User` is **not** scoped to any single game — unlike `Character`, `Player`, and
-`GameMaster`, a `User` is a global identity. It has a `username` (the real, unique login
+A `User` is **not** scoped to any single game — unlike `Character` and `Player`, a `User`
+is a global identity. It has a `username` (the real, unique login
 credential; also editable as first/last name via `first_name`/`last_name`) plus a
 `UserProfile.display_name` (unique, public-facing name shown to other users wherever a
 user's name is displayed to a general audience, e.g. session message authors and poll
@@ -53,9 +54,11 @@ all), and a private description (visible only to editors).
 
 ### GameMaster (DM / Dungeon Master)
 
-A **GameMaster** record links a `User` to a `Game`, granting that user full editorial
-authority over all characters in that game. A user may be a GameMaster in multiple
-games simultaneously, and a game may have multiple GameMasters.
+A **GameMaster** (DM) is a `Player` of a game with `is_dm=True`, granting that user full
+editorial authority over all characters in that game. `Player.is_dm` is the single source
+of truth for DM status — there is no separate GameMaster model or table. A user may be a
+GameMaster in multiple games simultaneously (one `Player` row per game), and a game may
+have multiple GameMasters.
 
 ### Treasure
 
@@ -70,6 +73,19 @@ game's GameMaster (or a superuser) may create or edit a game-exclusive treasure 
 game-scoped endpoints; the pre-existing global treasure endpoints remain superuser-only
 regardless of a treasure's `game`. See [access-control/treasure.md](access-control/treasure.md) for the full
 endpoint and permission breakdown.
+
+### GameItem / CharacterItem
+
+A **GameItem** is a special magic item belonging to exactly one game (`name`, `description`,
+optional photo, `hidden`) — simpler than `Treasure`: there is no shared cross-game registry, so
+`GameItem` itself is the top of the item hierarchy rather than a per-game link to a separately
+owned catalog row. A **CharacterItem** links a `GameItem` to a PC or NPC, with its own optional
+`name`/`description`/`photo` overrides that fall back to the linked `GameItem`'s values when
+`null`, and its own independent `hidden` flag. Both are read-only in the current issue (no
+create, update, or photo upload flow) — see
+[access-control/game-item.md](access-control/game-item.md) and
+[access-control/character-item.md](access-control/character-item.md) for the full endpoint and
+permission breakdown.
 
 ### Poll
 
@@ -109,8 +125,8 @@ This chain is the single source of truth for character ownership. Any code that 
 
 ## GameMaster Role
 
-A user is a **GameMaster** (DM) for a game when a `GameMaster` record exists with
-`game_master.game == character.game` and `game_master.user == user`.
+A user is a **GameMaster** (DM) for a game when a `Player` record exists with
+`player.game == character.game`, `player.user == user`, and `player.is_dm is True`.
 
 GameMasters can edit any character in their game — PCs and NPCs alike.
 
@@ -140,8 +156,8 @@ of issue #286). Today that means:
   policy rather than inventing a new one.
 
 Staff gains **no** authority over any game-scoped resource — Character, Player,
-GameMaster, GameSession, Task, or the `/games/:game_slug/treasures*` routes remain governed
-solely by GameMaster/Superuser, never Staff. Staff also never reaches into
+GameSession, Task, or the `/games/:game_slug/treasures*` routes remain governed solely by
+GameMaster/Superuser, never Staff. Staff also never reaches into
 Django-admin-only actions (e.g. Treasure or Game deletion — see
 [access-control.md](access-control.md)'s existing admin carve-out), regardless of how far
 the Staff role's endpoint-level parity with Superuser grows.
@@ -160,8 +176,8 @@ A user may edit a character when **any** of the following is true:
 
 1. The user is a **superuser** (`user.is_superuser is True`) — full access everywhere.
 2. The user is the character's **owner** per the Ownership Chain above.
-3. The user is a **GameMaster** for the same game — i.e. a `GameMaster` record exists
-   linking `user` to `character.game`.
+3. The user is a **GameMaster** for the same game — i.e. a `Player` record links `user`
+   to `character.game` with `is_dm=True`.
 
 Any other authenticated or unauthenticated user may not edit the character.
 

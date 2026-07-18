@@ -20,9 +20,9 @@ export const MAX_PREVIEW_PHOTOS = 6;
  * a `Icons.js` icon used on the "see all" card, and (for `pc`/`npc`, whose
  * endpoint is a simple self-contained template string) an endpoint builder.
  *
- * @description `treasure`'s endpoint is deliberately not built here: it is
- *   already built by `CharacterClient#fetchCharacterTreasures` /
- *   `CharacterController#fetchCharacterTreasures`, a generic
+ * @description `treasure`/`item`'s endpoints are deliberately not built here: they are
+ *   already built by `CharacterClient#fetchCharacterTreasures`/`#fetchCharacterItems`
+ *   (`CharacterController#fetchCharacterTreasures`/`#fetchCharacterItems`), a generic
  *   per-character-suffix client shared with unrelated endpoints (`full`,
  *   `access`, `permissions`, `money`, `photos`), so routing it through a
  *   type-keyed endpoint builder here would entangle two unrelated
@@ -44,5 +44,9 @@ export const PREVIEW_LIST_TYPES = {
   treasure: {
     titleKey: 'character_page.treasures_title',
     icon: Icons.gem,
+  },
+  item: {
+    titleKey: 'character_page.items_title',
+    icon: Icons.box2HeartFill,
   },
 };

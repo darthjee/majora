@@ -34,6 +34,12 @@ urlpatterns = [
         views.game_treasure_detail,
         name='game-treasure-detail',
     ),
+    path('games/<slug:game_slug>/items.json', views.game_items, name='game-items'),
+    path(
+        'games/<slug:game_slug>/items/all.json',
+        views.game_items_all,
+        name='game-items-all',
+    ),
     path('games/<slug:game_slug>/photos.json', views.game_photos, name='game-photos'),
     path(
         'games/<slug:game_slug>/sessions.json',
@@ -91,16 +97,6 @@ urlpatterns = [
         'games/<slug:game_slug>/polls/<int:poll_id>/close.json',
         views.game_poll_close,
         name='game-poll-close',
-    ),
-    path(
-        'games/<slug:game_slug>/game-masters.json',
-        views.game_masters_list,
-        name='game-masters-list',
-    ),
-    path(
-        'games/<slug:game_slug>/game-masters/<int:game_master_id>.json',
-        views.game_master_detail,
-        name='game-master-detail',
     ),
     path(
         'games/<slug:game_slug>/photo_upload.json',
