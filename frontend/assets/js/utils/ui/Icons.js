@@ -30,4 +30,9 @@ export default {
   hourglassSplit: 'bi-hourglass-split',
   postage: 'bi-postage-fill',
   eyeSlashFill: 'bi-eye-slash-fill',
+  feather: 'bi-feather',
+  musicNoteList: 'bi-music-note-list',
+  box: 'bi-box',
+  bookHalf: 'bi-book-half',
+  bookmarkStarFill: 'bi-bookmark-star-fill',
 };

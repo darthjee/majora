@@ -31,4 +31,44 @@ describe('LinkIcon', function() {
     );
     expect(html).toContain('bi-link-45deg');
   });
+
+  it('renders the type-specific bootstrap icon when linkType is diary', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(LinkIcon, { linkType: 'diary' })
+    );
+    expect(html).toContain('bi-feather');
+    expect(html).not.toContain('bi-link-45deg');
+  });
+
+  it('renders the type-specific bootstrap icon when linkType is music', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(LinkIcon, { linkType: 'music' })
+    );
+    expect(html).toContain('bi-music-note-list');
+    expect(html).not.toContain('bi-link-45deg');
+  });
+
+  it('renders the type-specific bootstrap icon when linkType is stl', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(LinkIcon, { linkType: 'stl' })
+    );
+    expect(html).toContain('bi-box');
+    expect(html).not.toContain('bi-link-45deg');
+  });
+
+  it('renders the type-specific bootstrap icon when linkType is background', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(LinkIcon, { linkType: 'background' })
+    );
+    expect(html).toContain('bi-book-half');
+    expect(html).not.toContain('bi-link-45deg');
+  });
+
+  it('renders the type-specific bootstrap icon when linkType is reference', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(LinkIcon, { linkType: 'reference' })
+    );
+    expect(html).toContain('bi-bookmark-star-fill');
+    expect(html).not.toContain('bi-link-45deg');
+  });
 });
