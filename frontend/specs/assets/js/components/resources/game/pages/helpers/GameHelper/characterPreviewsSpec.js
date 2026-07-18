@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameHelper from '../../../../../../../../../assets/js/components/resources/game/pages/helpers/GameHelper.jsx';
-import PreviewSection from '../../../../../../../../../assets/js/components/common/PreviewSection.jsx';
-import CharacterPreviewCard from '../../../../../../../../../assets/js/components/common/CharacterPreviewCard.jsx';
+import PreviewSection from '../../../../../../../../../assets/js/components/common/cards/PreviewSection.jsx';
+import CharacterPreviewCard from '../../../../../../../../../assets/js/components/common/cards/CharacterPreviewCard.jsx';
 import { buildCharacter } from '../../../../../../../../support/factories.js';
 import { game, findElement } from './support.js';
 

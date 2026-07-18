@@ -3,7 +3,7 @@ import GameClient from '../../../../../client/GameClient.js';
 import GenericClient from '../../../../../client/GenericClient.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
-import BasePageController from '../../../../common/controllers/BasePageController.js';
+import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import CharacterGameTypeResolver from './CharacterGameTypeResolver.js';
 
 /**

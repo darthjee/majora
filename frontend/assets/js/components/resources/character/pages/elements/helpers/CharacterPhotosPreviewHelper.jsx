@@ -1,7 +1,7 @@
 import React from 'react';
-import CardPhoto from '../../../../../common/CardPhoto.jsx';
-import SeeAllCard from '../../../../../common/SeeAllCard.jsx';
-import { MAX_PREVIEW_PHOTOS } from '../../../../../common/characterPreviewConstants.js';
+import CardPhoto from '../../../../../common/cards/CardPhoto.jsx';
+import SeeAllCard from '../../../../../common/cards/SeeAllCard.jsx';
+import { MAX_PREVIEW_PHOTOS } from '../../../../../common/cards/characterPreviewConstants.js';
 import Translator from '../../../../../../i18n/Translator.js';
 import Icons from '../../../../../../utils/ui/Icons.js';
 

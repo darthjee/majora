@@ -1,6 +1,6 @@
 import TreasureExchangeModalHelper
   from '../../../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/TreasureExchangeModalHelper.jsx';
-import TreasureMoney from '../../../../../../../../../../assets/js/components/common/TreasureMoney.jsx';
+import TreasureMoney from '../../../../../../../../../../assets/js/components/common/misc/TreasureMoney.jsx';
 import { buildHandlers, buildState, findElement } from './support.js';
 
 describe('TreasureExchangeModalHelper', function() {

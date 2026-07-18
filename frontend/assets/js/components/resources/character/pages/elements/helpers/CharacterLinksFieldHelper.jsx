@@ -1,5 +1,5 @@
 import React from 'react';
-import LinkList from '../../../../../common/LinkList.jsx';
+import LinkList from '../../../../../common/misc/LinkList.jsx';
 
 /**
  * Rendering helper for the CharacterLinksField element.

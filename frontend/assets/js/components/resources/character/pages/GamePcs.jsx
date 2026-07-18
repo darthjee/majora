@@ -1,5 +1,5 @@
 import GamePcsHelper from './helpers/GamePcsHelper.jsx';
-import BasePageController from '../../../common/controllers/BasePageController.js';
+import BasePageController from '../../../common/base/controllers/BasePageController.js';
 
 const PATTERN = '/games/:game_slug/pcs';
 

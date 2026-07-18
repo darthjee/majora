@@ -1,10 +1,10 @@
 import React from 'react';
-import PageActions from '../../../../common/PageActions.jsx';
-import ErrorAlert from '../../../../common/ErrorAlert.jsx';
-import LoadingMessage from '../../../../common/LoadingMessage.jsx';
-import Pagination from '../../../../common/Pagination.jsx';
-import PhotoCard from '../../../../common/PhotoCard.jsx';
-import UploadButton from '../../../../common/UploadButton.jsx';
+import PageActions from '../../../../common/list_page/PageActions.jsx';
+import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
+import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
+import Pagination from '../../../../common/pagination/Pagination.jsx';
+import PhotoCard from '../../../../common/cards/PhotoCard.jsx';
+import UploadButton from '../../../../common/buttons/UploadButton.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import Icons from '../../../../../utils/ui/Icons.js';
 

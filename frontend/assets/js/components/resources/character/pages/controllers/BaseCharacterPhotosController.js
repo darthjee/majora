@@ -2,7 +2,7 @@ import GenericClient from '../../../../../client/GenericClient.js';
 import CharacterClient from '../../../../../client/CharacterClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
-import BasePageController from '../../../../common/controllers/BasePageController.js';
+import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 
 /**
  * Base controller for character photos index pages (PC and NPC).

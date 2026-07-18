@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterHelper from '../../../../../../../../../assets/js/components/resources/character/pages/helpers/CharacterHelper.jsx';
-import PreviewSection from '../../../../../../../../../assets/js/components/common/PreviewSection.jsx';
-import ItemPreviewCard from '../../../../../../../../../assets/js/components/common/ItemPreviewCard.jsx';
+import PreviewSection from '../../../../../../../../../assets/js/components/common/cards/PreviewSection.jsx';
+import ItemPreviewCard from '../../../../../../../../../assets/js/components/common/cards/ItemPreviewCard.jsx';
 import { character } from './support.js';
 
 /**

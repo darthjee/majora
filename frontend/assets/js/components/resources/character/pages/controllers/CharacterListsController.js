@@ -1,5 +1,5 @@
 import CharacterClient from '../../../../../client/CharacterClient.js';
-import BasePageController from '../../../../common/controllers/BasePageController.js';
+import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import CharacterListMerger from './CharacterListMerger.js';
 
 /**

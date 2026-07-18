@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import GameTreasureNew from '../../../../../../../assets/js/components/resources/treasure/pages/GameTreasureNew.jsx';
 import GameTreasureNewController from '../../../../../../../assets/js/components/resources/treasure/pages/controllers/GameTreasureNewController.js';
 import GameTreasureNewHelper from '../../../../../../../assets/js/components/resources/treasure/pages/helpers/GameTreasureNewHelper.jsx';
-import MoneyEditModalHelper from '../../../../../../../assets/js/components/common/helpers/MoneyEditModalHelper.jsx';
+import MoneyEditModalHelper from '../../../../../../../assets/js/components/common/modals/helpers/MoneyEditModalHelper.jsx';
 import { stubBuildEffect } from '../../../../../../support/controllerStubs.js';
 
 describe('GameTreasureNew', function() {

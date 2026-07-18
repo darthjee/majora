@@ -2,8 +2,8 @@ import GenericClient from '../../../../../client/GenericClient.js';
 import CharacterClient from '../../../../../client/CharacterClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
-import BasePageController from '../../../../common/controllers/BasePageController.js';
-import { MAX_PREVIEW_ITEMS, PREVIEW_LIST_TYPES } from '../../../../common/characterPreviewConstants.js';
+import BasePageController from '../../../../common/base/controllers/BasePageController.js';
+import { MAX_PREVIEW_ITEMS, PREVIEW_LIST_TYPES } from '../../../../common/cards/characterPreviewConstants.js';
 import Noop from '../../../../../utils/Noop.js';
 
 /**

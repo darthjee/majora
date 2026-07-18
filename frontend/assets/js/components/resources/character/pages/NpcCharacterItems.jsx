@@ -1,5 +1,5 @@
 import CharacterItemsHelper from './helpers/CharacterItemsHelper.jsx';
-import BasePageController from '../../../common/controllers/BasePageController.js';
+import BasePageController from '../../../common/base/controllers/BasePageController.js';
 
 const PATTERN = '/games/:game_slug/npcs/:character_id/items';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import ActionsOverlay from '../../../../../common/ActionsOverlay.jsx';
+import ActionsOverlay from '../../../../../common/misc/ActionsOverlay.jsx';
 
 /**
  * Rendering helper for the CharacterAvatarField element.

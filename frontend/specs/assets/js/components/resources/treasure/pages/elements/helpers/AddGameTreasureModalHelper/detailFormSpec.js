@@ -1,6 +1,6 @@
 import AddGameTreasureModalHelper
   from '../../../../../../../../../../assets/js/components/resources/treasure/pages/elements/helpers/AddGameTreasureModalHelper.jsx';
-import TreasureMoney from '../../../../../../../../../../assets/js/components/common/TreasureMoney.jsx';
+import TreasureMoney from '../../../../../../../../../../assets/js/components/common/misc/TreasureMoney.jsx';
 import { buildHandlers, buildState, findElement } from './support.js';
 
 describe('AddGameTreasureModalHelper', function() {

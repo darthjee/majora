@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import GameTreasureEditController from './controllers/GameTreasureEditController.js';
 import GameTreasureEditHelper from './helpers/GameTreasureEditHelper.jsx';
-import MoneyEditModal from '../../../common/MoneyEditModal.jsx';
+import MoneyEditModal from '../../../common/modals/MoneyEditModal.jsx';
 
 /**
  * Game treasure edit page.

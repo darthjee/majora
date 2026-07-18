@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterHelper from '../../../../../../../../../assets/js/components/resources/character/pages/helpers/CharacterHelper.jsx';
-import ActionsOverlay from '../../../../../../../../../assets/js/components/common/ActionsOverlay.jsx';
-import InfoBarRules from '../../../../../../../../../assets/js/components/common/helpers/InfoBarRules.js';
+import ActionsOverlay from '../../../../../../../../../assets/js/components/common/misc/ActionsOverlay.jsx';
+import InfoBarRules from '../../../../../../../../../assets/js/components/common/misc/helpers/InfoBarRules.js';
 import { character, findElement } from './support.js';
 
 describe('CharacterHelper', function() {

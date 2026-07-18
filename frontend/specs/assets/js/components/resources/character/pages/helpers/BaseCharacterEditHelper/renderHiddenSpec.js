@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import ActionsOverlay from '../../../../../../../../../assets/js/components/common/ActionsOverlay.jsx';
+import ActionsOverlay from '../../../../../../../../../assets/js/components/common/misc/ActionsOverlay.jsx';
 import { helper, npcHelper, buildHandlers, buildState, findElement } from './support.js';
 
 describe('BaseCharacterEditHelper', function() {
