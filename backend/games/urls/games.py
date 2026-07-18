@@ -20,6 +20,16 @@ urlpatterns = [
         name='game-treasures-all',
     ),
     path(
+        'games/<slug:game_slug>/treasures/missing.json',
+        views.game_treasures_missing,
+        name='game-treasures-missing',
+    ),
+    path(
+        'games/<slug:game_slug>/treasures/link.json',
+        views.game_treasure_link,
+        name='game-treasure-link',
+    ),
+    path(
         'games/<slug:game_slug>/treasures/<int:treasure_id>.json',
         views.game_treasure_detail,
         name='game-treasure-detail',
