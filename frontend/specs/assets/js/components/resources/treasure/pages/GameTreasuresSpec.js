@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import GameTreasures from '../../../../../../../assets/js/components/resources/treasure/pages/GameTreasures.jsx';
 import GameTreasuresHelper from '../../../../../../../assets/js/components/resources/treasure/pages/helpers/GameTreasuresHelper.jsx';
 import GameTreasuresController from '../../../../../../../assets/js/components/resources/treasure/pages/controllers/GameTreasuresController.js';
+import TreasureFilters from '../../../../../../../assets/js/components/resources/treasure/pages/elements/TreasureFilters.jsx';
 import FacadeRefresh from '../../../../../../../assets/js/utils/access/useFacadeRefresh.js';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
 import { stubBuildEffect, stubRenderLoading } from '../../../../../../support/controllerStubs.js';
@@ -64,5 +65,59 @@ describe('GameTreasures', function() {
 
     expect(html).toContain('New Treasure');
     expect(html).toContain('href="#/games/demo/treasures/new"');
+  });
+
+  describe('filter query/clear interaction', function() {
+    // GameTreasures.jsx wires TreasureFilters' onQuery/onClear to update window.location.hash
+    // (via GameTreasuresController.buildFilterQueryHash) and re-trigger the page's fetch
+    // effect, the same wiring contract as Treasures.jsx builds for the global page.
+    const buildHandlers = (controller, basePath) => ({
+      onQuery: (filters) => {
+        window.location.hash = GameTreasuresController.buildFilterQueryHash(basePath, filters);
+        controller.buildEffect()();
+      },
+      onClear: () => {
+        window.location.hash = basePath;
+        controller.buildEffect()();
+      },
+    });
+
+    it('updates the hash and re-triggers the fetch on filter query', function() {
+      const buildEffectSpy = stubBuildEffect(GameTreasuresController);
+      const controller = new GameTreasuresController(Noop.noop, Noop.noop, Noop.noop, Noop.noop);
+      const { onQuery } = buildHandlers(controller, '#/games/demo/treasures');
+
+      onQuery({ name: 'sword' });
+
+      expect(window.location.hash).toBe('#/games/demo/treasures?page=1&name=sword');
+      expect(buildEffectSpy).toHaveBeenCalled();
+    });
+
+    it('resets the hash to the base path and re-triggers the fetch on filter clear', function() {
+      window.location.hash = '#/games/demo/treasures?name=sword';
+      const buildEffectSpy = stubBuildEffect(GameTreasuresController);
+      const controller = new GameTreasuresController(Noop.noop, Noop.noop, Noop.noop, Noop.noop);
+      const { onClear } = buildHandlers(controller, '#/games/demo/treasures');
+
+      onClear();
+
+      expect(window.location.hash).toBe('#/games/demo/treasures');
+      expect(buildEffectSpy).toHaveBeenCalled();
+    });
+
+    it('renders TreasureFilters with the game type dropdown hidden', function() {
+      stubBuildEffect(GameTreasuresController);
+
+      const html = renderToStaticMarkup(
+        GameTreasuresHelper.render(
+          [], { page: 1, pages: 1, perPage: 10 }, '#/games/demo/treasures', 'demo', '#/games/demo', false, '',
+          Noop.noop, Noop.noop, {},
+          React.createElement(TreasureFilters, { onQuery: Noop.noop, onClear: Noop.noop, showGameType: false }),
+        )
+      );
+
+      expect(html).toContain('data-testid="treasure-filters"');
+      expect(html).not.toContain('data-testid="treasure-filter-game-type"');
+    });
   });
 });

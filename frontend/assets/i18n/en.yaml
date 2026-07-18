@@ -295,9 +295,18 @@ game_treasures_page:
   title: Treasures
   treasures: Treasures
   new_treasure: New Treasure
+  add_treasure: Add Treasure
   edit: Edit
   available_units_label: 'Available: {{available}} / {{max}}'
   hidden_label: Hidden
+add_game_treasure_modal:
+  title: Add Treasure
+  value_label: Value
+  max_units_label: Max units
+  save: Save
+  load_error: Unable to load treasures. Please try again.
+  save_error: Unable to add this treasure. Please try again.
+  empty: No treasures left to add.
 game_treasure_new_page:
   title: New Treasure
   name_label: Name

@@ -5,8 +5,10 @@ from .game_detail import game_detail
 from .game_permissions import game_permissions
 from .game_photos import game_photos
 from .game_treasure_detail import game_treasure_detail
+from .game_treasure_link import game_treasure_link
 from .game_treasures import game_treasures
 from .game_treasures_all import game_treasures_all
+from .game_treasures_missing import game_treasures_missing
 from .games_list import games_list
 
 __all__ = [
@@ -16,6 +18,8 @@ __all__ = [
     'game_permissions',
     'game_treasures',
     'game_treasures_all',
+    'game_treasures_missing',
+    'game_treasure_link',
     'game_treasure_detail',
     'game_photos',
 ]

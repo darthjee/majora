@@ -13,6 +13,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
       client.currentHash.and.returnValue(`#/games/demo/${kind}/2/treasures`);
       client.fetchIndex.and.returnValue(Promise.reject(new Error('network error')));
       spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
       const cleanup = new Controller(
         setTreasures, setPagination, setLoading, setError, client, undefined, buildCharacterClient(),

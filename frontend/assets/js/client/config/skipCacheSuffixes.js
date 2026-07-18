@@ -14,6 +14,9 @@ export default new Set([
   '/access.json',
   '/all.json',
   '/full.json',
+  // Missing-treasures listings change as soon as a treasure is linked to the game (via
+  // `/link.json`), so a stale cached response could keep showing an already-linked treasure.
+  '/missing.json',
   // Session messages are user-specific, authorization-gated data (only
   // players/DM/superuser/staff of the game may view them), so a cached
   // response must never be served to another client.

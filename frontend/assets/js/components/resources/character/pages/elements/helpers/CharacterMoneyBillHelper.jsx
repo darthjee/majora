@@ -22,14 +22,14 @@ export default class CharacterMoneyBillHelper {
     const paddedCents = String(cents).padStart(2, '0');
 
     return (
-      <>
+      <div className="character-money-bill-group">
         <div className="character-money-bill">
           <span className="coin-icon" aria-hidden="true"></span>
           <span className="character-money-bill-currency">$</span>
           <span className="character-money-bill-amount">{dollars},{paddedCents}</span>
         </div>
         <CharacterMoneyTreasureBill treasureValue={treasureValue} />
-      </>
+      </div>
     );
   }
 }

@@ -111,3 +111,41 @@ class TestGameNpcTreasuresAllView(TokenAuthRequestMixin):
         )
         response = self.get(client, url, token=self.dm_token)
         assert response.status_code == 200
+
+    def test_filters_by_min_value(self, client):
+        """Test that only treasures with value >= min_value are returned."""
+        response = self.get(client, f'{self._url()}?min_value=150', token=self.dm_token)
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Hidden Gem'
+
+    def test_filters_by_max_value(self, client):
+        """Test that only treasures with value <= max_value are returned."""
+        response = self.get(client, f'{self._url()}?max_value=150', token=self.dm_token)
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Visible Gem'
+
+    def test_min_and_max_value_combined(self, client):
+        """Test that min_value and max_value filters both apply together."""
+        response = self.get(
+            client, f'{self._url()}?min_value=50&max_value=250', token=self.dm_token,
+        )
+        data = json.loads(response.content)
+        names = [item['name'] for item in data]
+        assert 'Visible Gem' in names
+        assert 'Hidden Gem' in names
+
+    def test_filters_by_name(self, client):
+        """Test that only treasures whose name contains the name term are returned."""
+        response = self.get(client, f'{self._url()}?name=Visible', token=self.dm_token)
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Visible Gem'
+
+    def test_name_filter_is_case_insensitive(self, client):
+        """Test that the name filter matches regardless of case."""
+        response = self.get(client, f'{self._url()}?name=visible gem', token=self.dm_token)
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Visible Gem'

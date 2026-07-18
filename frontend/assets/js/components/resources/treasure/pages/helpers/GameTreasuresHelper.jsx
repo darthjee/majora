@@ -28,11 +28,18 @@ export default class GameTreasuresHelper {
    *   this game's exclusive treasures (upload photos, edit).
    * @param {string} [newHref] - Hash path to the new treasure form.
    * @param {Function} [onUploadClick] - Handler invoked with a treasure when its upload button is clicked.
+   * @param {Function} [onAddClick] - Handler invoked when the "Add Treasure" button is clicked,
+   *   opening the modal that links an existing catalog treasure to the game.
+   * @param {object|URLSearchParams} [activeFilters] - Additional active query params (e.g.
+   *   treasure filters) preserved on every pagination link.
+   * @param {React.ReactNode} [filters] - Optional filter bar rendered above the treasures
+   *   grid (e.g. TreasureFilters).
    * @returns {React.ReactElement} Treasures list with pagination.
    */
   static render(
     treasures, pagination, basePath, gameSlug, backHref,
-    canEdit = false, newHref = '', onUploadClick = Noop.noop,
+    canEdit = false, newHref = '', onUploadClick = Noop.noop, onAddClick = Noop.noop,
+    activeFilters = {}, filters = null,
   ) {
     return (
       <div className="container mt-4">
@@ -42,8 +49,14 @@ export default class GameTreasuresHelper {
               {Translator.t('game_treasures_page.new_treasure')}
             </NewButton>
           )}
+          {canEdit && (
+            <button type="button" className="btn btn-primary mb-3 ms-2" onClick={onAddClick}>
+              {Translator.t('game_treasures_page.add_treasure')}
+            </button>
+          )}
         </PageActions>
         <h1 className="mb-4">{Translator.t('game_treasures_page.treasures')}</h1>
+        {filters}
         <div className="row">
           {treasures.map((treasure) => (
             <TreasureCard
@@ -60,6 +73,7 @@ export default class GameTreasuresHelper {
           totalPages={pagination.pages}
           perPage={pagination.perPage}
           basePath={basePath}
+          extraParams={activeFilters}
         />
       </div>
     );

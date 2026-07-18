@@ -40,14 +40,14 @@ describe('NpcCharacterTreasuresController', function() {
         )),
       });
 
-      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
       const cleanup = new NpcCharacterTreasuresController(
         setTreasures, setPagination, setLoading, setError, client, undefined, characterClient,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('npcs', 'demo', '2');
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
       expect(characterClient.fetchTreasuresAllPage).toHaveBeenCalledWith(
         'demo', '2', null, { page: 2, perPage: 5 }
       );
@@ -62,6 +62,39 @@ describe('NpcCharacterTreasuresController', function() {
       cleanup();
     });
 
+    it('forwards the min_value/max_value/name filter params from the hash', async function() {
+      const setTreasures = jasmine.createSpy('setTreasures');
+      const setPagination = jasmine.createSpy('setPagination');
+      const setLoading = jasmine.createSpy('setLoading');
+      const setError = jasmine.createSpy('setError');
+      const client = buildClient(
+        '#/games/demo/npcs/2/treasures?page=2&per_page=5&min_value=10&max_value=100&name=blade',
+      );
+      const characterClient = buildCharacterClient({
+        fetchTreasuresAllPage: jasmine.createSpy('fetchTreasuresAllPage').and.returnValue(Promise.resolve(
+          buildAllResponse(
+            [{ id: 1, name: 'Hidden Blade', quantity: 1, value: 200, hidden: true }],
+            { page: '2', pages: '4', per_page: '5' },
+          )
+        )),
+      });
+
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+      const cleanup = new NpcCharacterTreasuresController(
+        setTreasures, setPagination, setLoading, setError, client, undefined, characterClient,
+      ).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(characterClient.fetchTreasuresAllPage).toHaveBeenCalledWith(
+        'demo', '2', null, {
+          page: 2, perPage: 5, min_value: '10', max_value: '100', name: 'blade',
+        }
+      );
+
+      cleanup();
+    });
+
     it('falls back to the hidden-filtered treasures.json page when can_edit is false', async function() {
       const setTreasures = jasmine.createSpy('setTreasures');
       const setPagination = jasmine.createSpy('setPagination');
@@ -72,14 +105,41 @@ describe('NpcCharacterTreasuresController', function() {
         fetchTreasuresAllPage: jasmine.createSpy('fetchTreasuresAllPage'),
       });
 
-      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
       const cleanup = new NpcCharacterTreasuresController(
         setTreasures, setPagination, setLoading, setError, client, undefined, characterClient,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs/2/treasures.json');
+      expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs/2/treasures.json', {});
+      expect(characterClient.fetchTreasuresAllPage).not.toHaveBeenCalled();
+      expect(setTreasures).toHaveBeenCalledWith([{ id: 1, name: 'Sword', quantity: 1, value: 100 }]);
+
+      cleanup();
+    });
+
+    it('routes by game-level can_edit, not character-level can_edit, when they disagree '
+      + '(owner who can edit their own character but is not a DM/superuser)', async function() {
+      const setTreasures = jasmine.createSpy('setTreasures');
+      const setPagination = jasmine.createSpy('setPagination');
+      const setLoading = jasmine.createSpy('setLoading');
+      const setError = jasmine.createSpy('setError');
+      const client = buildClient();
+      const characterClient = buildCharacterClient({
+        fetchTreasuresAllPage: jasmine.createSpy('fetchTreasuresAllPage'),
+      });
+
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+
+      const cleanup = new NpcCharacterTreasuresController(
+        setTreasures, setPagination, setLoading, setError, client, undefined, characterClient,
+      ).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+      expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs/2/treasures.json', {});
       expect(characterClient.fetchTreasuresAllPage).not.toHaveBeenCalled();
       expect(setTreasures).toHaveBeenCalledWith([{ id: 1, name: 'Sword', quantity: 1, value: 100 }]);
 
@@ -96,14 +156,14 @@ describe('NpcCharacterTreasuresController', function() {
         fetchTreasuresAllPage: jasmine.createSpy('fetchTreasuresAllPage'),
       });
 
-      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.reject(new Error('network error')));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.reject(new Error('network error')));
 
       const cleanup = new NpcCharacterTreasuresController(
         setTreasures, setPagination, setLoading, setError, client, undefined, characterClient,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs/2/treasures.json');
+      expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs/2/treasures.json', {});
       expect(characterClient.fetchTreasuresAllPage).not.toHaveBeenCalled();
       expect(setTreasures).toHaveBeenCalledWith([{ id: 1, name: 'Sword', quantity: 1, value: 100 }]);
       expect(setError).not.toHaveBeenCalled();
@@ -123,7 +183,7 @@ describe('NpcCharacterTreasuresController', function() {
         ),
       });
 
-      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
       const cleanup = new NpcCharacterTreasuresController(
         setTreasures, setPagination, setLoading, setError, client, undefined, characterClient,
@@ -148,7 +208,7 @@ describe('NpcCharacterTreasuresController', function() {
         )),
       });
 
-      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
       const cleanup = new NpcCharacterTreasuresController(
         setTreasures, setPagination, setLoading, setError, client, undefined, characterClient,
@@ -187,7 +247,7 @@ describe('NpcCharacterTreasuresController', function() {
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/pcs/2/treasures.json');
+      expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/pcs/2/treasures.json', {});
       expect(characterClient.fetchTreasuresAllPage).not.toHaveBeenCalled();
 
       cleanup();

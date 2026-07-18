@@ -18,6 +18,7 @@ from ...serializers import (
 )
 from ..common import paginated_list_response, validated_or_error
 from ._treasure_context import game_treasures_context
+from ._treasure_filters import filter_by_max_value, filter_by_min_value, filter_by_name
 
 
 @api_view(['GET', 'POST'])
@@ -39,8 +40,9 @@ def game_treasures(request, game_slug):
         output_field=IntegerField(),
     )
     treasures = treasures.annotate(game_value=Coalesce(game_value, 'value'))
-    treasures = _filter_by_max_value(request, treasures)
-    treasures = _filter_by_search(request, treasures)
+    treasures = filter_by_min_value(request, treasures)
+    treasures = filter_by_max_value(request, treasures)
+    treasures = filter_by_name(request, treasures)
     treasures = _apply_ordering(request, treasures)
     context = game_treasures_context(game)
     return paginated_list_response(request, treasures, TreasureListSerializer, context=context)
@@ -52,29 +54,6 @@ def _exclude_hidden(game, treasures):
         game=game, treasure=OuterRef('pk'), hidden=True,
     )
     return treasures.exclude(Exists(hidden_game_treasure))
-
-
-def _filter_by_max_value(request, treasures):
-    """Filter `treasures` to `game_value__lte` an optional `max_value` query param."""
-    max_value = request.GET.get('max_value')
-    if max_value is None:
-        return treasures
-
-    try:
-        max_value = int(max_value)
-    except ValueError:
-        return treasures
-
-    return treasures.filter(game_value__lte=max_value)
-
-
-def _filter_by_search(request, treasures):
-    """Filter `treasures` to a case-insensitive `name` substring match on `search`."""
-    search = request.GET.get('search')
-    if not search:
-        return treasures
-
-    return treasures.filter(name__icontains=search)
 
 
 def _apply_ordering(request, treasures):

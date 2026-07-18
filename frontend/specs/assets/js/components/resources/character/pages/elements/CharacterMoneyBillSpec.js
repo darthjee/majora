@@ -6,6 +6,7 @@ describe('CharacterMoneyBill', function() {
   it('delegates rendering to CharacterMoneyBillHelper', function() {
     const html = renderToStaticMarkup(React.createElement(CharacterMoneyBill, { money: 10002 }));
 
+    expect(html).toContain('character-money-bill-group');
     expect(html).toContain('character-money-bill');
     expect(html).toContain('coin-icon');
     expect(html).toContain('100,02');

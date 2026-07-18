@@ -63,5 +63,28 @@ describe('TreasureFiltersHelper', function() {
       expect(selectStart).toBeGreaterThan(-1);
       expect(html.indexOf('selected=""', selectStart)).toBeGreaterThan(-1);
     });
+
+    it('renders the game type dropdown by default', function() {
+      const html = renderToStaticMarkup(
+        TreasureFiltersHelper.render({
+          gameType: '', minValue: '', maxValue: '', name: '',
+        }, handlers)
+      );
+
+      expect(html).toContain('data-testid="treasure-filter-game-type"');
+    });
+
+    it('hides the game type dropdown when showGameType is false', function() {
+      const html = renderToStaticMarkup(
+        TreasureFiltersHelper.render({
+          gameType: '', minValue: '', maxValue: '', name: '',
+        }, handlers, false)
+      );
+
+      expect(html).not.toContain('data-testid="treasure-filter-game-type"');
+      expect(html).toContain('data-testid="treasure-filter-min-value"');
+      expect(html).toContain('data-testid="treasure-filter-max-value"');
+      expect(html).toContain('data-testid="treasure-filter-name"');
+    });
   });
 });
