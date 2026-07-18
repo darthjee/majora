@@ -10,9 +10,19 @@ class Link(models.Model):
     """Model representing an external link related to any game object."""
 
     LINK_TYPE_LOOTSTUDIO = 'lootstudio'
+    LINK_TYPE_DIARY = 'diary'
+    LINK_TYPE_MUSIC = 'music'
+    LINK_TYPE_STL = 'stl'
+    LINK_TYPE_BACKGROUND = 'background'
+    LINK_TYPE_REFERENCE = 'reference'
 
     LINK_TYPE_CHOICES = [
         (LINK_TYPE_LOOTSTUDIO, 'LootStudio'),
+        (LINK_TYPE_DIARY, 'Diary'),
+        (LINK_TYPE_MUSIC, 'Music'),
+        (LINK_TYPE_STL, 'STL'),
+        (LINK_TYPE_BACKGROUND, 'Background'),
+        (LINK_TYPE_REFERENCE, 'Reference'),
     ]
 
     text = models.CharField(max_length=200)
