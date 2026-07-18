@@ -1,6 +1,7 @@
 import React from 'react';
 import DeadlandsMoneyModel from '../../../../../../utils/money/DeadlandsMoneyModel.js';
 import CharacterMoneyTreasureBill from '../CharacterMoneyTreasureBill.jsx';
+import Icons from '../../../../../../utils/ui/Icons.js';
 
 /**
  * Rendering helper for the CharacterMoneyBill element.
@@ -17,16 +18,14 @@ export default class CharacterMoneyBillHelper {
    * @returns {React.ReactElement} Dollar bill box element.
    */
   static render(money, treasureValue = 0) {
-    const entries = DeadlandsMoneyModel.transformDense(money);
-    const { cents, dollars } = entries.reduce((acc, entry) => ({ ...acc, [entry.key]: entry.quantity }), {});
-    const paddedCents = String(cents).padStart(2, '0');
+    const { dollars, cents } = DeadlandsMoneyModel.formatDense(money);
 
     return (
       <div className="character-money-bill-group">
         <div className="character-money-bill">
-          <span className="coin-icon" aria-hidden="true"></span>
+          <i className={`bi ${Icons.cashCoin}`} aria-hidden="true"></i>
           <span className="character-money-bill-currency">$</span>
-          <span className="character-money-bill-amount">{dollars},{paddedCents}</span>
+          <span className="character-money-bill-amount">{dollars},{cents}</span>
         </div>
         <CharacterMoneyTreasureBill treasureValue={treasureValue} />
       </div>

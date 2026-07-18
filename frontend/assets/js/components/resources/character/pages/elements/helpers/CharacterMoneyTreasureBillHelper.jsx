@@ -20,16 +20,14 @@ export default class CharacterMoneyTreasureBillHelper {
   static render(treasureValue) {
     if (!treasureValue) return null;
 
-    const entries = DeadlandsMoneyModel.transformDense(treasureValue);
-    const { cents, dollars } = entries.reduce((acc, entry) => ({ ...acc, [entry.key]: entry.quantity }), {});
-    const paddedCents = String(cents).padStart(2, '0');
+    const { dollars, cents } = DeadlandsMoneyModel.formatDense(treasureValue);
 
     return (
       <div className="character-money-bill character-money-bill-treasure">
         <i className={`bi ${Icons.gem}`} aria-hidden="true"></i>
         <span className="character-money-bill-currency">$</span>
         <span className="character-money-bill-amount">
-          {dollars},{paddedCents} {Translator.t('money.in_gems')}
+          {dollars},{cents} {Translator.t('money.in_gems')}
         </span>
       </div>
     );

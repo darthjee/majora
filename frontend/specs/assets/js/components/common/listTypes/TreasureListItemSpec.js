@@ -26,12 +26,12 @@ describe('TreasureListItem', function() {
       expect(item.formattedValue).toBe('5 GP');
     });
 
-    it('delegates to TreasureMoneyHelper for deadlands cents/dollars', function() {
+    it('delegates to TreasureMoneyHelper for deadlands "$ dollars,cents"', function() {
       const item = new TreasureListItem({
         id: 1, name: 'Golden Crown', value: 350, game_type: 'deadlands',
       });
 
-      expect(item.formattedValue).toBe('3 Dollars and 50 Cents');
+      expect(item.formattedValue).toBe('$ 3,50');
     });
   });
 

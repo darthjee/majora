@@ -33,8 +33,13 @@ describe('TreasureMoney', function() {
     expect(html).toEqual('1000000 GP');
   });
 
-  it('renders a cents/dollars breakdown when gameType is deadlands', function() {
+  it('renders "$ dollars,cents" when gameType is deadlands', function() {
     const html = renderToStaticMarkup(React.createElement(TreasureMoney, { value: 350, gameType: 'deadlands' }));
-    expect(html).toEqual('3 Dollars and 50 Cents');
+    expect(html).toEqual('$ 3,50');
+  });
+
+  it('renders "$ 0,00" when value is 0 and gameType is deadlands', function() {
+    const html = renderToStaticMarkup(React.createElement(TreasureMoney, { value: 0, gameType: 'deadlands' }));
+    expect(html).toEqual('$ 0,00');
   });
 });

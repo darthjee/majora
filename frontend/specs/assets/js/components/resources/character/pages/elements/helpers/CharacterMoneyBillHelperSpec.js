@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterMoneyBillHelper from '../../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/CharacterMoneyBillHelper.jsx';
+import Icons from '../../../../../../../../../assets/js/utils/ui/Icons.js';
 
 describe('CharacterMoneyBillHelper', function() {
   describe('.render', function() {
@@ -31,10 +32,11 @@ describe('CharacterMoneyBillHelper', function() {
       expect(html).toContain('0,00');
     });
 
-    it('reuses the coin-icon class instead of a bespoke icon', function() {
+    it('uses the bi-cash-coin icon', function() {
       const html = renderToStaticMarkup(CharacterMoneyBillHelper.render(350));
 
-      expect(html).toContain('coin-icon');
+      expect(html).toContain(Icons.cashCoin);
+      expect(html).not.toContain('coin-icon');
     });
 
     it('does not render a treasure box when treasureValue is not given', function() {

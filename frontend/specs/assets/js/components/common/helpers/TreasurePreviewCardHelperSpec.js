@@ -69,7 +69,7 @@ describe('TreasurePreviewCardHelper', function() {
       const rendered = TreasurePreviewCardHelper.render(t);
       const html = renderToStaticMarkup(rendered.props.children.props.content);
 
-      expect(html).toContain('3 Dollars and 50 Cents');
+      expect(html).toContain('$ 3,50');
     });
 
     it('defaults the tooltip content gameType to dnd when not given', function() {

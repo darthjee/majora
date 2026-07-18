@@ -105,7 +105,7 @@ describe('CharacterHelper', function() {
       const content = buildTooltipContent(withTreasures, '#/games/demo/pcs', treasure);
       const html = renderToStaticMarkup(content);
 
-      expect(html).toContain('3 Dollars and 50 Cents');
+      expect(html).toContain('$ 3,50');
     });
 
     it('renders a see all link to the pcs treasures page', function() {
