@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import CharacterTreasuresHelper from '../helpers/CharacterTreasuresHelper.jsx';
 import TreasureExchangeModal from '../elements/TreasureExchangeModal.jsx';
 import CharacterContextController from '../controllers/CharacterContextController.js';
-import BasePageController from '../../../../common/controllers/BasePageController.js';
+import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import mergeCharacterTreasureQuantity from '../../../../../utils/money/mergeCharacterTreasureQuantity.js';
 import FacadeRefresh from '../../../../../utils/access/useFacadeRefresh.js';
 import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js';

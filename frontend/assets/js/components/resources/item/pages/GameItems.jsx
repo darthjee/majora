@@ -1,5 +1,5 @@
 import GameItemsHelper from './helpers/GameItemsHelper.jsx';
-import BasePageController from '../../../common/controllers/BasePageController.js';
+import BasePageController from '../../../common/base/controllers/BasePageController.js';
 
 /**
  * Game Items index page.

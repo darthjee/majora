@@ -1,9 +1,9 @@
 import React from 'react';
-import Avatar from '../../../../common/Avatar.jsx';
-import FormField from '../../../../common/FormField.jsx';
-import ErrorAlert from '../../../../common/ErrorAlert.jsx';
-import LoadingMessage from '../../../../common/LoadingMessage.jsx';
-import SubmitButton from '../../../../common/SubmitButton.jsx';
+import Avatar from '../../../../common/misc/Avatar.jsx';
+import FormField from '../../../../common/forms/FormField.jsx';
+import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
+import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
+import SubmitButton from '../../../../common/buttons/SubmitButton.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**

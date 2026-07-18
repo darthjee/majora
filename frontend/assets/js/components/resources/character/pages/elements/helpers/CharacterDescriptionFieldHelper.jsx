@@ -1,5 +1,5 @@
 import React from 'react';
-import TextareaField from '../../../../../common/TextareaField.jsx';
+import TextareaField from '../../../../../common/forms/TextareaField.jsx';
 
 /**
  * Rendering helper for the CharacterDescriptionField element.

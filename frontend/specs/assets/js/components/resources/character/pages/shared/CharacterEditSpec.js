@@ -5,9 +5,9 @@ import CharacterHelper from '../../../../../../../../assets/js/components/resour
 import BaseCharacterEditHelper
   from '../../../../../../../../assets/js/components/resources/character/pages/helpers/BaseCharacterEditHelper.jsx';
 import PhotoUploadModalHelper
-  from '../../../../../../../../assets/js/components/common/helpers/PhotoUploadModalHelper.jsx';
+  from '../../../../../../../../assets/js/components/common/modals/helpers/PhotoUploadModalHelper.jsx';
 import PhotoUploadModalController
-  from '../../../../../../../../assets/js/components/common/controllers/PhotoUploadModalController.js';
+  from '../../../../../../../../assets/js/components/common/modals/controllers/PhotoUploadModalController.js';
 import AuthStorage from '../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 import { stubRenderLoading } from '../../../../../../../support/controllerStubs.js';

@@ -4,7 +4,7 @@ import CharacterEdit from '../../../../../../../../assets/js/components/resource
 import BaseCharacterEditHelper
   from '../../../../../../../../assets/js/components/resources/character/pages/helpers/BaseCharacterEditHelper.jsx';
 import MoneyEditModalHelper
-  from '../../../../../../../../assets/js/components/common/helpers/MoneyEditModalHelper.jsx';
+  from '../../../../../../../../assets/js/components/common/modals/helpers/MoneyEditModalHelper.jsx';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
 // Sets character/loading state synchronously during render (in the useMemo

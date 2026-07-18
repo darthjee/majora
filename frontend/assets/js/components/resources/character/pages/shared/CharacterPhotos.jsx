@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import PhotoUploadModal from '../../../../common/PhotoUploadModal.jsx';
-import PhotoViewModal from '../../../../common/PhotoViewModal.jsx';
-import ProfilePhotoSetModal from '../../../../common/ProfilePhotoSetModal.jsx';
-import ErrorAlert from '../../../../common/ErrorAlert.jsx';
+import PhotoUploadModal from '../../../../common/modals/PhotoUploadModal.jsx';
+import PhotoViewModal from '../../../../common/modals/PhotoViewModal.jsx';
+import ProfilePhotoSetModal from '../../../../common/modals/ProfilePhotoSetModal.jsx';
+import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import FacadeRefresh from '../../../../../utils/access/useFacadeRefresh.js';
 

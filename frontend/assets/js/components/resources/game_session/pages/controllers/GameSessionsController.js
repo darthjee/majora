@@ -1,6 +1,6 @@
 import GenericClient from '../../../../../client/GenericClient.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
-import BasePageController from '../../../../common/controllers/BasePageController.js';
+import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import HashQueryParams from '../../../../../utils/routing/HashQueryParams.js';
 import Noop from '../../../../../utils/Noop.js';
 import { SESSION_COLUMNS } from '../sessionColumns.js';

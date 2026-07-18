@@ -1,8 +1,8 @@
 import React from 'react';
-import ActionsOverlay from '../../../../../common/ActionsOverlay.jsx';
+import ActionsOverlay from '../../../../../common/misc/ActionsOverlay.jsx';
 import allegianceBorderClass from '../../../../../../utils/ui/AllegianceBorder.js';
-import SlainSecondaryButtons from '../../../../../common/helpers/SlainSecondaryButtons.js';
-import InfoBarRules from '../../../../../common/helpers/InfoBarRules.js';
+import SlainSecondaryButtons from '../../../../../common/list_types/SlainSecondaryButtons.js';
+import InfoBarRules from '../../../../../common/misc/helpers/InfoBarRules.js';
 
 /**
  * Rendering helper for the CharacterAvatar element.

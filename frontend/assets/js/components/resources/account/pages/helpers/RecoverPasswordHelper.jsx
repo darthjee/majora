@@ -1,4 +1,4 @@
-import FormField from '../../../../common/FormField.jsx';
+import FormField from '../../../../common/forms/FormField.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**

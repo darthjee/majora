@@ -1,6 +1,6 @@
 import React from 'react';
 import CharacterMoney from '../CharacterMoney.jsx';
-import FieldErrors from '../../../../../common/FieldErrors.jsx';
+import FieldErrors from '../../../../../common/forms/FieldErrors.jsx';
 
 /**
  * Rendering helper for the CharacterMoneyField element.

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import GameCharactersHelper from './helpers/GameCharactersHelper.jsx';
 import GameNpcsAccessController from './controllers/GameNpcsAccessController.js';
-import BasePageController from '../../../common/controllers/BasePageController.js';
+import BasePageController from '../../../common/base/controllers/BasePageController.js';
 import AuthStorage from '../../../../utils/auth/AuthStorage.js';
 import HashRouteResolver from '../../../../utils/routing/HashRouteResolver.js';
-import PhotoUploadModal from '../../../common/PhotoUploadModal.jsx';
+import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
 import SlainConfirmModal from './elements/SlainConfirmModal.jsx';
 import SlainConfirmController from './elements/controllers/SlainConfirmController.js';
 import PlayerSlainConfirmController from './elements/controllers/PlayerSlainConfirmController.js';

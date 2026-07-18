@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import CharacterHelper from '../helpers/CharacterHelper.jsx';
-import PhotoUploadModal from '../../../../common/PhotoUploadModal.jsx';
+import PhotoUploadModal from '../../../../common/modals/PhotoUploadModal.jsx';
 import LinksEditModal from '../elements/LinksEditModal.jsx';
-import MoneyEditModal from '../../../../common/MoneyEditModal.jsx';
+import MoneyEditModal from '../../../../common/modals/MoneyEditModal.jsx';
 
 /**
  * Shared character edit page component.

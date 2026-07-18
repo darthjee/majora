@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameCharactersHelper from '../../../../../../../../assets/js/components/resources/character/pages/helpers/GameCharactersHelper.jsx';
-import ListPage from '../../../../../../../../assets/js/components/common/ListPage.jsx';
+import ListPage from '../../../../../../../../assets/js/components/common/list_page/ListPage.jsx';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
 const findElement = (node, matcher) => {

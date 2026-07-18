@@ -1,8 +1,8 @@
 import React from 'react';
-import ConditionalComponent from '../../../../common/ConditionalComponent.jsx';
-import ListPage from '../../../../common/ListPage.jsx';
-import NewButton from '../../../../common/NewButton.jsx';
-import PageActions from '../../../../common/PageActions.jsx';
+import ConditionalComponent from '../../../../common/misc/ConditionalComponent.jsx';
+import ListPage from '../../../../common/list_page/ListPage.jsx';
+import NewButton from '../../../../common/buttons/NewButton.jsx';
+import PageActions from '../../../../common/list_page/PageActions.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**

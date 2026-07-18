@@ -1,8 +1,8 @@
 import React from 'react';
-import PageActions from '../../../../common/PageActions.jsx';
-import NewButton from '../../../../common/NewButton.jsx';
-import ListPage from '../../../../common/ListPage.jsx';
-import PhotoUploadModal from '../../../../common/PhotoUploadModal.jsx';
+import PageActions from '../../../../common/list_page/PageActions.jsx';
+import NewButton from '../../../../common/buttons/NewButton.jsx';
+import ListPage from '../../../../common/list_page/ListPage.jsx';
+import PhotoUploadModal from '../../../../common/modals/PhotoUploadModal.jsx';
 import AddGameTreasureModal from '../elements/AddGameTreasureModal.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 

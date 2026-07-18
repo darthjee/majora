@@ -1,9 +1,9 @@
 import React from 'react';
-import ListPage from '../../../../common/ListPage.jsx';
-import LoadingMessage from '../../../../common/LoadingMessage.jsx';
-import NewButton from '../../../../common/NewButton.jsx';
-import PageActions from '../../../../common/PageActions.jsx';
-import PhotoUploadModal from '../../../../common/PhotoUploadModal.jsx';
+import ListPage from '../../../../common/list_page/ListPage.jsx';
+import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
+import NewButton from '../../../../common/buttons/NewButton.jsx';
+import PageActions from '../../../../common/list_page/PageActions.jsx';
+import PhotoUploadModal from '../../../../common/modals/PhotoUploadModal.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**

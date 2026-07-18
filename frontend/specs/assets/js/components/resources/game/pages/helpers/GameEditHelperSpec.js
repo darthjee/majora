@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameEditHelper from '../../../../../../../../assets/js/components/resources/game/pages/helpers/GameEditHelper.jsx';
-import ActionsOverlay from '../../../../../../../../assets/js/components/common/ActionsOverlay.jsx';
-import TextareaField from '../../../../../../../../assets/js/components/common/TextareaField.jsx';
+import ActionsOverlay from '../../../../../../../../assets/js/components/common/misc/ActionsOverlay.jsx';
+import TextareaField from '../../../../../../../../assets/js/components/common/forms/TextareaField.jsx';
 
 const findElement = (node, matcher) => {
   if (!node) {

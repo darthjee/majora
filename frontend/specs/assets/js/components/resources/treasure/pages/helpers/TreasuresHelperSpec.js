@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import TreasuresHelper from '../../../../../../../../assets/js/components/resources/treasure/pages/helpers/TreasuresHelper.jsx';
-import ListPage from '../../../../../../../../assets/js/components/common/ListPage.jsx';
-import PhotoUploadModal from '../../../../../../../../assets/js/components/common/PhotoUploadModal.jsx';
+import ListPage from '../../../../../../../../assets/js/components/common/list_page/ListPage.jsx';
+import PhotoUploadModal from '../../../../../../../../assets/js/components/common/modals/PhotoUploadModal.jsx';
 
 const findElement = (node, matcher) => {
   if (!node) {

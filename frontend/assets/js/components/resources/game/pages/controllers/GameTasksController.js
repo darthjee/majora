@@ -2,7 +2,7 @@ import GameTaskClient from '../../../../../client/GameTaskClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js';
-import BasePageController from '../../../../common/controllers/BasePageController.js';
+import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 
 /**
  * Controller for the game tasks index page.

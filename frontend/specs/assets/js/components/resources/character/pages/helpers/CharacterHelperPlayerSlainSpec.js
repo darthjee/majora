@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterHelper from '../../../../../../../../assets/js/components/resources/character/pages/helpers/CharacterHelper.jsx';
-import ActionsOverlay from '../../../../../../../../assets/js/components/common/ActionsOverlay.jsx';
+import ActionsOverlay from '../../../../../../../../assets/js/components/common/misc/ActionsOverlay.jsx';
 import { buildCharacter } from '../../../../../../../support/factories.js';
 
 const findElement = (node, matcher) => {

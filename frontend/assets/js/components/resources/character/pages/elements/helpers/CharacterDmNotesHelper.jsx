@@ -1,5 +1,5 @@
 import Translator from '../../../../../../i18n/Translator.js';
-import DescriptionBox from '../../../../../common/DescriptionBox.jsx';
+import DescriptionBox from '../../../../../common/misc/DescriptionBox.jsx';
 
 /**
  * Rendering helper for the CharacterDmNotes element.

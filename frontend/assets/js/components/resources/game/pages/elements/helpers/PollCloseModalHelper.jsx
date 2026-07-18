@@ -1,7 +1,7 @@
 import Modal from 'react-bootstrap/cjs/Modal.js';
 import Form from 'react-bootstrap/cjs/Form.js';
 import Translator from '../../../../../../i18n/Translator.js';
-import FieldErrors from '../../../../../common/FieldErrors.jsx';
+import FieldErrors from '../../../../../common/forms/FieldErrors.jsx';
 import PollOptionValue from '../PollOptionValue.jsx';
 
 const WINNER_BG_CLASS = 'bg-success-subtle';

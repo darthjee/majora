@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameNewHelper from '../../../../../../../../assets/js/components/resources/game/pages/helpers/GameNewHelper.jsx';
-import TextareaField from '../../../../../../../../assets/js/components/common/TextareaField.jsx';
+import TextareaField from '../../../../../../../../assets/js/components/common/forms/TextareaField.jsx';
 
 const findByTypeAndId = (node, type, id) => {
   if (!node) {
