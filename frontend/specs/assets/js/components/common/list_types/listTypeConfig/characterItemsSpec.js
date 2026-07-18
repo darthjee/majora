@@ -28,6 +28,10 @@ describe('listTypeConfig', function() {
         expect(config.showCaption).toBe(true);
       });
 
+      it('renders 6 items per row (the default)', function() {
+        expect(config.itemsPerRow).toBe(6);
+      });
+
       describe('.buildItemHref', function() {
         it('returns null, since items have no standalone detail page', function() {
           const item = new CharacterItemListItem({ id: 1, game_item_id: 5, name: 'Cloak of Elvenkind' });

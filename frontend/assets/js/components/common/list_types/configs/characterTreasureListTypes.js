@@ -165,6 +165,7 @@ const characterTreasureListTypes = {
     buildInfoBarItems,
     showCaption: true,
     buildItemHref,
+    itemsPerRow: 6,
   },
   'npc-treasures': {
     fetchList: buildFetchCharacterTreasures('npcs'),
@@ -175,6 +176,7 @@ const characterTreasureListTypes = {
     buildInfoBarItems,
     showCaption: true,
     buildItemHref,
+    itemsPerRow: 6,
   },
 };
 

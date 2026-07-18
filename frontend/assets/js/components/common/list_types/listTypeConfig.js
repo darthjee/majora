@@ -208,6 +208,9 @@ function buildNullItemHref() {
  *   availability text) appears under the photo.
  * - `buildItemHref(item, context)` — click-through URL builder; `null` when the type has no
  *   detail page to link to (e.g. items).
+ * - `itemsPerRow` — number of cards per row at the largest (`lg`) breakpoint, read by
+ *   `ListPageHelper` to pick the outer card column class (`6` → `col-lg-2`, `4` → `col-lg-3`);
+ *   defaults to `6` when omitted.
  */
 const listTypeConfig = {
   treasures: {
@@ -219,6 +222,7 @@ const listTypeConfig = {
     buildInfoBarItems,
     showCaption: true,
     buildItemHref,
+    itemsPerRow: 6,
   },
   items: {
     fetchList: fetchGameItems,
@@ -229,6 +233,7 @@ const listTypeConfig = {
     buildInfoBarItems: buildItemInfoBarItems('game_items_page.hidden_label'),
     showCaption: true,
     buildItemHref: buildNullItemHref,
+    itemsPerRow: 6,
   },
   'pc-items': {
     fetchList: buildFetchCharacterItems('pcs'),
@@ -239,6 +244,7 @@ const listTypeConfig = {
     buildInfoBarItems: buildItemInfoBarItems('character_items_page.hidden_label'),
     showCaption: true,
     buildItemHref: buildNullItemHref,
+    itemsPerRow: 6,
   },
   'npc-items': {
     fetchList: buildFetchCharacterItems('npcs'),
@@ -249,6 +255,7 @@ const listTypeConfig = {
     buildInfoBarItems: buildItemInfoBarItems('character_items_page.hidden_label'),
     showCaption: true,
     buildItemHref: buildNullItemHref,
+    itemsPerRow: 6,
   },
   games: gamesListType,
   players: playersListType,

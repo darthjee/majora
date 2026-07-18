@@ -24,6 +24,10 @@ describe('listTypeConfig', function() {
       expect(config.showCaption).toBe(true);
     });
 
+    it('renders 6 items per row (the default)', function() {
+      expect(config.itemsPerRow).toBe(6);
+    });
+
     describe('.buildItemHref', function() {
       it('links to the global treasure detail page', function() {
         const item = new TreasureListItem({ id: 42, name: 'Golden Crown', value: 500 });

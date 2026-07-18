@@ -21,6 +21,10 @@ describe('listTypeConfig', function() {
       expect(games.showCaption).toBe(true);
     });
 
+    it('renders 4 items per row', function() {
+      expect(games.itemsPerRow).toBe(4);
+    });
+
     describe('.buildItemHref', function() {
       it('links to the game detail page', function() {
         const item = new GameListItem({ name: 'Test Game', game_slug: 'test-game' });

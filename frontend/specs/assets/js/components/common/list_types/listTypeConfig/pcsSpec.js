@@ -21,6 +21,10 @@ describe('listTypeConfig', function() {
       expect(pcs.showCaption).toBe(true);
     });
 
+    it('renders 4 items per row', function() {
+      expect(pcs.itemsPerRow).toBe(4);
+    });
+
     describe('.buildItemHref', function() {
       it('links to the pc detail page', function() {
         const item = new PcListItem({ id: 1, name: 'Aragorn' });
