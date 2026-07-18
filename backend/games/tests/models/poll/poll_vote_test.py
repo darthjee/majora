@@ -24,8 +24,7 @@ class TestPollVote(TestCase):
         """Set up common test fixtures."""
         cls.poll = PollFactory(type=Poll.TYPE_SINGLE)
         cls.option = PollOptionFactory(poll=cls.poll, option='Yes')
-        cls.player = PlayerFactory(user=UserFactory())
-        cls.player.games.add(cls.poll.game)
+        cls.player = PlayerFactory(user=UserFactory(), game=cls.poll.game)
 
     def test_poll_vote_creation(self):
         """Test that a poll vote can be created for a user who belongs to the game."""
@@ -40,8 +39,7 @@ class TestPollVote(TestCase):
 
     def test_poll_vote_ordering(self):
         """Test that poll votes are ordered by id."""
-        other_player = PlayerFactory(name='Other Player', user=UserFactory())
-        other_player.games.add(self.poll.game)
+        other_player = PlayerFactory(name='Other Player', user=UserFactory(), game=self.poll.game)
         first = PollVoteFactory(user=self.player.user, option=self.option)
         second = PollVoteFactory(user=other_player.user, option=self.option)
         votes = list(PollVote.objects.all())

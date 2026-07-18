@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from ...authentication import CookieTokenAuthentication
-from ...models import Game, GameMaster
+from ...models import Game, GameMaster, Player
 from ...serializers import GameCreateSerializer, GameDetailSerializer, GameListSerializer
 from ..common import paginated_list_response, require_authenticated, validated_or_error
 
@@ -36,5 +36,18 @@ def _create_game(request):
 
     game = serializer.save()
     GameMaster.objects.create(game=game, user=request.user)
+    Player.objects.get_or_create(
+        game=game,
+        user=request.user,
+        defaults={'name': _dm_display_name(request.user), 'is_dm': True},
+    )
     detail = GameDetailSerializer(game)
     return Response(detail.data, status=201)
+
+
+def _dm_display_name(user):
+    """Return `user`'s profile display name, falling back to their username when unset."""
+    profile = getattr(user, 'profile', None)
+    if profile and profile.display_name:
+        return profile.display_name
+    return user.username

@@ -24,7 +24,7 @@ class TestGamePcMoneyView(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         GameMasterFactory(game=self.game, user=self.dm_user)
-        self.player = PlayerFactory(name='Bob')
+        self.player = PlayerFactory(name='Bob', game=self.game)
         self.character = CharacterFactory(
             name='Aragorn', game=self.game, player=self.player, money=100, npc=False,
         )
@@ -34,8 +34,9 @@ class TestGamePcMoneyView(TokenAuthRequestMixin):
         self.regular_player_user = UserFactory(
             username='regular_player', password='secret-password',
         )
-        self.regular_player = PlayerFactory(name='Alice', user=self.regular_player_user)
-        self.regular_player.games.add(self.game)
+        self.regular_player = PlayerFactory(
+            name='Alice', user=self.regular_player_user, game=self.game
+        )
 
     def _owner_token(self):
         """Return the PC's owning player's user token."""

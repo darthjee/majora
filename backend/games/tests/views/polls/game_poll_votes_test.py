@@ -35,14 +35,12 @@ class TestGamePollVotesGetView(TestCase):
         cls.dm_token = Token.objects.create(user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
         UserProfileFactory(user=cls.player_user, display_name='player_display')
-        cls.player = PlayerFactory(name='Bob', user=cls.player_user)
-        cls.player.games.add(cls.game)
+        cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
         cls.player_token = Token.objects.create(user=cls.player_user)
         cls.other_player_user = UserFactory(
             username='other_player_user', password='secret-password',
         )
-        cls.other_player = PlayerFactory(name='Alice', user=cls.other_player_user)
-        cls.other_player.games.add(cls.game)
+        cls.other_player = PlayerFactory(name='Alice', user=cls.other_player_user, game=cls.game)
         cls.other_player_token = Token.objects.create(user=cls.other_player_user)
         cls.superuser = SuperUserFactory(username='admin', password='secret-password')
         cls.superuser_token = Token.objects.create(user=cls.superuser)
@@ -257,8 +255,7 @@ class TestGamePollVotesPutView(TestCase):
         cls.dm_token = Token.objects.create(user=cls.dm_user)
 
         cls.player_user = UserFactory(username='player_user', password='secret-password')
-        cls.player = PlayerFactory(name='Bob', user=cls.player_user)
-        cls.player.games.add(cls.game)
+        cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
         cls.player_token = Token.objects.create(user=cls.player_user)
 
         cls.superuser = SuperUserFactory(username='admin', password='secret-password')

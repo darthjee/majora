@@ -46,11 +46,10 @@ class TestBaseAccessSerializerIsPlayer:
     """Tests for BaseAccessSerializer's _get_is_player(), exercised via a concrete subclass."""
 
     def test_player_of_game_returns_true(self):
-        """Test that a user linked to the game via Player.games gets is_player True."""
+        """Test that a user linked to the game via Player.game gets is_player True."""
         game = GameFactory(name='Epic Quest', game_slug='epic-quest')
         user = UserFactory(username='player', password='secret-password')
-        player = PlayerFactory(name='Alice', user=user)
-        player.games.add(game)
+        PlayerFactory(name='Alice', user=user, game=game)
         request = _make_request(user)
         data = GameAccessSerializer(game, context={'request': request}).data
         assert data['is_player'] is True
