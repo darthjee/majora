@@ -47,6 +47,16 @@ urlpatterns = [
         name='game-pc-photo-set',
     ),
     path(
+        'games/<slug:game_slug>/pcs/<int:character_id>/items.json',
+        views.game_pc_items,
+        name='game-pc-items',
+    ),
+    path(
+        'games/<slug:game_slug>/pcs/<int:character_id>/items/all.json',
+        views.game_pc_items_all,
+        name='game-pc-items-all',
+    ),
+    path(
         'games/<slug:game_slug>/pcs/<int:character_id>/treasures.json',
         views.game_pc_treasures,
         name='game-pc-treasures',

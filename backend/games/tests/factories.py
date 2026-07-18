@@ -12,7 +12,9 @@ from django.contrib.auth.models import User
 
 from games.models import (
     Character,
+    CharacterItem,
     Game,
+    GameItem,
     GameTreasure,
     Player,
     Poll,
@@ -124,6 +126,31 @@ class GameTreasureFactory(factory.django.DjangoModelFactory):
     treasure = factory.SubFactory(TreasureFactory)
     value = factory.LazyAttribute(lambda o: o.treasure.value)
     hidden = False
+
+
+class GameItemFactory(factory.django.DjangoModelFactory):
+    """Factory for GameItem."""
+
+    class Meta:
+        """Factory configuration."""
+
+        model = GameItem
+
+    game = factory.SubFactory(GameFactory)
+    name = 'Test Item'
+    description = 'A test item.'
+
+
+class CharacterItemFactory(factory.django.DjangoModelFactory):
+    """Factory for CharacterItem."""
+
+    class Meta:
+        """Factory configuration."""
+
+        model = CharacterItem
+
+    character = factory.SubFactory(CharacterFactory)
+    game_item = factory.SubFactory(GameItemFactory)
 
 
 class PollFactory(factory.django.DjangoModelFactory):
