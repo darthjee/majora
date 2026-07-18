@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from ..authentication import CookieTokenAuthentication
 from ..models import CharacterPhoto, TreasurePhoto, Upload
 from ..permissions import (
-    CharacterEditPermission,
+    CharacterPhotoUploadPermission,
     GameEditPermission,
     NpcPlayerEditPermission,
     TreasureEditPermission,
@@ -77,7 +77,9 @@ def _check_permission(request, upload):
         return TreasureEditPermission.check(request, content_object.treasure)
     if isinstance(content_object, CharacterPhoto):
         character = content_object.character
-        permission_class = NpcPlayerEditPermission if character.npc else CharacterEditPermission
+        permission_class = (
+            NpcPlayerEditPermission if character.npc else CharacterPhotoUploadPermission
+        )
         return permission_class.check(request, character)
     return GameEditPermission.check(request, content_object.game)
 

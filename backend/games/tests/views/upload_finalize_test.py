@@ -99,6 +99,23 @@ class TestUploadFinalizeView(TestCase):
         cls.pc_upload_by_player_of_game.content_object = cls.pc_photo_by_player_of_game
         cls.pc_upload_by_player_of_game.save()
 
+        cls.staff_user = UserFactory(
+            username='staff_user', password='secret-password', is_staff=True
+        )
+        cls.staff_token = Token.objects.create(user=cls.staff_user)
+
+        cls.pc_upload_by_staff = Upload.objects.create(
+            user=cls.staff_user,
+            file_path='photos/games/epic-quest/characters/1/pc_staff.jpg',
+        )
+        cls.pc_photo_by_staff = CharacterPhoto.objects.create(
+            character=cls.character,
+            path='photos/games/epic-quest/characters/1/pc_staff.jpg',
+            ready=False,
+        )
+        cls.pc_upload_by_staff.content_object = cls.pc_photo_by_staff
+        cls.pc_upload_by_staff.save()
+
         cls.superuser = SuperUserFactory(
             username='admin', password='secret-password'
         )
@@ -380,8 +397,8 @@ class TestUploadFinalizeView(TestCase):
         self.npc_photo.refresh_from_db()
         assert self.npc_photo.ready is True
 
-    def test_player_of_game_returns_403_for_pc_upload(self):
-        """Test that a player of the game cannot finalize a PC CharacterPhoto upload."""
+    def test_player_of_game_returns_200_for_pc_upload(self):
+        """Test that a player of the game can finalize a PC CharacterPhoto upload."""
         response = self._patch(
             self.client,
             self.pc_upload_by_player_of_game.id,
@@ -389,7 +406,44 @@ class TestUploadFinalizeView(TestCase):
             token=self.player_of_game_token,
             upload_token=self.pc_upload_by_player_of_game.token,
         )
-        assert response.status_code == 403
+        assert response.status_code == 200
+
+    def test_uploaded_status_sets_pc_photo_ready_for_player_of_game(self):
+        """Test that status=uploaded sets PC CharacterPhoto.ready for a player of the game."""
+        response = self._patch(
+            self.client,
+            self.pc_upload_by_player_of_game.id,
+            {'status': 'uploaded'},
+            token=self.player_of_game_token,
+            upload_token=self.pc_upload_by_player_of_game.token,
+        )
+        assert response.status_code == 200
+        self.pc_photo_by_player_of_game.refresh_from_db()
+        assert self.pc_photo_by_player_of_game.ready is True
+
+    def test_uploading_status_returns_200_for_pc_upload_by_staff(self):
+        """Test that a staff user (not owner) finalizing a PC upload's 'uploading' step gets 200."""
+        response = self._patch(
+            self.client,
+            self.pc_upload_by_staff.id,
+            {'status': 'uploading'},
+            token=self.staff_token,
+            upload_token=self.pc_upload_by_staff.token,
+        )
+        assert response.status_code == 200
+
+    def test_uploaded_status_sets_pc_photo_ready_for_staff(self):
+        """Test that status=uploaded sets PC CharacterPhoto.ready for a staff user (not owner)."""
+        response = self._patch(
+            self.client,
+            self.pc_upload_by_staff.id,
+            {'status': 'uploaded'},
+            token=self.staff_token,
+            upload_token=self.pc_upload_by_staff.token,
+        )
+        assert response.status_code == 200
+        self.pc_photo_by_staff.refresh_from_db()
+        assert self.pc_photo_by_staff.ready is True
 
     def test_unauthenticated_request_returns_401_for_treasure_upload(self):
         """Test that an unauthenticated request on a TreasurePhoto upload returns 401."""
