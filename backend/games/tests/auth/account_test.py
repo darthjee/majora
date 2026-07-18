@@ -10,7 +10,7 @@ from rest_framework.authtoken.models import Token
 
 from games.settings import Settings
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import UserFactory
+from games.tests.factories import UserFactory, UserProfileFactory
 
 
 def _avatar_url_for(email):
@@ -32,10 +32,12 @@ class TestAccountView(TokenAuthRequestMixin, TestCase):
         cls.user = UserFactory(
             username='alice', password=TEST_PASSWORD, email='alice@example.com'
         )
+        cls.profile = UserProfileFactory(user=cls.user, display_name='alice-display')
         cls.token = Token.objects.create(user=cls.user)
         cls.other_user = UserFactory(
             username='bob', password=TEST_PASSWORD, email='bob@example.com'
         )
+        UserProfileFactory(user=cls.other_user, display_name='bob-display')
 
     def test_unauthenticated_returns_401(self):
         """Test that an unauthenticated GET returns 401."""
@@ -48,6 +50,7 @@ class TestAccountView(TokenAuthRequestMixin, TestCase):
         assert response.status_code == 200
         assert json.loads(response.content) == {
             'name': 'alice',
+            'display_name': 'alice-display',
             'first_name': '',
             'last_name': '',
             'email': 'alice@example.com',
@@ -59,6 +62,7 @@ class TestAccountView(TokenAuthRequestMixin, TestCase):
         response = self.get(self.client, ACCOUNT_URL, token=self.token)
         data = json.loads(response.content)
         assert data['name'] != self.other_user.username
+        assert data['display_name'] != 'bob-display'
         assert data['email'] != self.other_user.email
 
     def test_url_by_name(self):
@@ -82,10 +86,12 @@ class TestAccountPatchView(TokenAuthRequestMixin, TestCase):
         cls.user = UserFactory(
             username='alice', password=TEST_PASSWORD, email='alice@example.com'
         )
+        cls.profile = UserProfileFactory(user=cls.user, display_name='alice-display')
         cls.token = Token.objects.create(user=cls.user)
         cls.other_user = UserFactory(
             username='bob', password=TEST_PASSWORD, email='bob@example.com'
         )
+        UserProfileFactory(user=cls.other_user, display_name='bob-display')
 
     def _patch(self, client, payload, token=None):
         """Issue a PATCH request to the account endpoint, optionally with a token."""
@@ -93,18 +99,27 @@ class TestAccountPatchView(TokenAuthRequestMixin, TestCase):
 
     def test_unauthenticated_returns_401(self):
         """Test that PATCH without a token returns 401."""
-        response = self._patch(self.client, {'name': 'renamed', 'email': 'renamed@example.com'})
+        response = self._patch(
+            self.client,
+            {'name': 'renamed', 'display_name': 'renamed-display', 'email': 'renamed@example.com'},
+        )
         assert response.status_code == 401
 
     def test_valid_name_and_email_update(self):
-        """Test that valid name/email (no password) updates the account."""
+        """Test that valid name/display_name/email (no password) updates the account."""
         response = self._patch(
-            self.client, {'name': 'renamed', 'email': 'renamed@example.com'}, token=self.token
+            self.client,
+            {
+                'name': 'renamed', 'display_name': 'renamed-display',
+                'email': 'renamed@example.com',
+            },
+            token=self.token,
         )
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data == {
             'name': 'renamed',
+            'display_name': 'renamed-display',
             'first_name': '',
             'last_name': '',
             'email': 'renamed@example.com',
@@ -112,12 +127,19 @@ class TestAccountPatchView(TokenAuthRequestMixin, TestCase):
         }
 
     def test_valid_update_persists_and_keeps_password(self):
-        """Test that name/email updates persist and the password stays untouched."""
+        """Test that name/display_name/email updates persist and the password stays untouched."""
         self._patch(
-            self.client, {'name': 'renamed', 'email': 'renamed@example.com'}, token=self.token
+            self.client,
+            {
+                'name': 'renamed', 'display_name': 'renamed-display',
+                'email': 'renamed@example.com',
+            },
+            token=self.token,
         )
         self.user.refresh_from_db()
+        self.profile.refresh_from_db()
         assert self.user.username == 'renamed'
+        assert self.profile.display_name == 'renamed-display'
         assert self.user.email == 'renamed@example.com'
         assert self.user.check_password(TEST_PASSWORD)
 
@@ -127,7 +149,7 @@ class TestAccountPatchView(TokenAuthRequestMixin, TestCase):
         response = self._patch(
             self.client,
             {
-                'name': 'alice', 'email': 'alice@example.com',
+                'name': 'alice', 'display_name': 'alice-display', 'email': 'alice@example.com',
                 'password': new_password, 'password_confirmation': new_password,
             },
             token=self.token,
@@ -141,7 +163,7 @@ class TestAccountPatchView(TokenAuthRequestMixin, TestCase):
         response = self._patch(
             self.client,
             {
-                'name': 'alice', 'email': 'alice@example.com',
+                'name': 'alice', 'display_name': 'alice-display', 'email': 'alice@example.com',
                 'password': get_random_string(20),
             },
             token=self.token,
@@ -155,7 +177,7 @@ class TestAccountPatchView(TokenAuthRequestMixin, TestCase):
         response = self._patch(
             self.client,
             {
-                'name': 'alice', 'email': 'alice@example.com',
+                'name': 'alice', 'display_name': 'alice-display', 'email': 'alice@example.com',
                 'password_confirmation': get_random_string(20),
             },
             token=self.token,
@@ -169,7 +191,7 @@ class TestAccountPatchView(TokenAuthRequestMixin, TestCase):
         response = self._patch(
             self.client,
             {
-                'name': 'alice', 'email': 'alice@example.com',
+                'name': 'alice', 'display_name': 'alice-display', 'email': 'alice@example.com',
                 'password': '', 'password_confirmation': '',
             },
             token=self.token,
@@ -180,14 +202,29 @@ class TestAccountPatchView(TokenAuthRequestMixin, TestCase):
 
     def test_missing_name_returns_400(self):
         """Test that a PATCH missing name returns 400."""
-        response = self._patch(self.client, {'email': 'renamed@example.com'}, token=self.token)
+        response = self._patch(
+            self.client,
+            {'display_name': 'alice-display', 'email': 'renamed@example.com'},
+            token=self.token,
+        )
         assert response.status_code == 400
         data = json.loads(response.content)
         assert 'name' in data['errors']
 
+    def test_missing_display_name_returns_400(self):
+        """Test that a PATCH missing display_name returns 400."""
+        response = self._patch(
+            self.client, {'name': 'renamed', 'email': 'renamed@example.com'}, token=self.token
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'display_name' in data['errors']
+
     def test_missing_email_returns_400(self):
         """Test that a PATCH missing email returns 400."""
-        response = self._patch(self.client, {'name': 'renamed'}, token=self.token)
+        response = self._patch(
+            self.client, {'name': 'renamed', 'display_name': 'renamed-display'}, token=self.token
+        )
         assert response.status_code == 400
         data = json.loads(response.content)
         assert 'email' in data['errors']
@@ -195,32 +232,54 @@ class TestAccountPatchView(TokenAuthRequestMixin, TestCase):
     def test_duplicate_name_returns_400(self):
         """Test that reusing another user's name returns 400."""
         response = self._patch(
-            self.client, {'name': 'bob', 'email': 'alice@example.com'}, token=self.token
+            self.client,
+            {'name': 'bob', 'display_name': 'alice-display', 'email': 'alice@example.com'},
+            token=self.token,
         )
         assert response.status_code == 400
         data = json.loads(response.content)
         assert 'name' in data['errors']
 
+    def test_duplicate_display_name_returns_400(self):
+        """Test that reusing another user's display_name returns 400."""
+        response = self._patch(
+            self.client,
+            {'name': 'alice', 'display_name': 'bob-display', 'email': 'alice@example.com'},
+            token=self.token,
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'display_name' in data['errors']
+
     def test_duplicate_email_returns_400(self):
         """Test that reusing another user's email returns 400."""
         response = self._patch(
-            self.client, {'name': 'alice', 'email': 'bob@example.com'}, token=self.token
+            self.client,
+            {'name': 'alice', 'display_name': 'alice-display', 'email': 'bob@example.com'},
+            token=self.token,
         )
         assert response.status_code == 400
         data = json.loads(response.content)
         assert 'email' in data['errors']
 
     def test_keeping_own_current_name_and_email_succeeds(self):
-        """Test that resubmitting the requester's own current name/email succeeds."""
+        """Test that resubmitting the requester's own current name/display_name/email succeeds."""
         response = self._patch(
-            self.client, {'name': 'alice', 'email': 'alice@example.com'}, token=self.token
+            self.client,
+            {'name': 'alice', 'display_name': 'alice-display', 'email': 'alice@example.com'},
+            token=self.token,
         )
         assert response.status_code == 200
 
     def test_valid_update_returns_skip_cache_header(self):
         """Test that the PATCH success response includes the X-Skip-Cache: true header."""
         response = self._patch(
-            self.client, {'name': 'renamed', 'email': 'renamed@example.com'}, token=self.token
+            self.client,
+            {
+                'name': 'renamed', 'display_name': 'renamed-display',
+                'email': 'renamed@example.com',
+            },
+            token=self.token,
         )
         assert response['X-Skip-Cache'] == 'true'
 
@@ -228,7 +287,10 @@ class TestAccountPatchView(TokenAuthRequestMixin, TestCase):
         """Test that no user id is accepted, and the other user's account stays untouched."""
         self._patch(
             self.client,
-            {'name': 'renamed', 'email': 'renamed@example.com', 'id': self.other_user.id},
+            {
+                'name': 'renamed', 'display_name': 'renamed-display',
+                'email': 'renamed@example.com', 'id': self.other_user.id,
+            },
             token=self.token,
         )
         self.other_user.refresh_from_db()

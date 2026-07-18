@@ -10,6 +10,7 @@ describe('AuthClient', function() {
     itSendsAuthHeader({
       call: (token) => new AuthClient().updateAccount(token, {
         name: 'Jane Doe',
+        displayName: 'Jane',
         firstName: 'Jane',
         lastName: 'Doe',
         email: 'jane@example.com',
@@ -21,6 +22,7 @@ describe('AuthClient', function() {
       headers: { 'Content-Type': 'application/json', 'X-Skip-Cache': 'true' },
       body: (token) => JSON.stringify({
         name: 'Jane Doe',
+        display_name: 'Jane',
         first_name: 'Jane',
         last_name: 'Doe',
         email: 'jane@example.com',

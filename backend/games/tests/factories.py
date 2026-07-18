@@ -20,6 +20,7 @@ from games.models import (
     PollOption,
     PollVote,
     Treasure,
+    UserProfile,
 )
 
 
@@ -49,6 +50,18 @@ class SuperUserFactory(UserFactory):
         """Create the user through `create_superuser` so the password is properly hashed."""
         manager = cls._get_manager(model_class)
         return manager.create_superuser(*args, **kwargs)
+
+
+class UserProfileFactory(factory.django.DjangoModelFactory):
+    """Factory for UserProfile, defaulting display_name to its linked user's username."""
+
+    class Meta:
+        """Factory configuration."""
+
+        model = UserProfile
+
+    user = factory.SubFactory(UserFactory)
+    display_name = factory.LazyAttribute(lambda o: o.user.username)
 
 
 class GameFactory(factory.django.DjangoModelFactory):

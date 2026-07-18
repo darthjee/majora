@@ -30,10 +30,10 @@ model (**SessionMessagePermission**) with different rules for viewing versus pos
 **Exposed fields** (list and create-response — same shape):
 `id`, `content`, `user` (nested, reduced view — see below), `created_at`.
 
-**Reduced author view** (`user` field): only `name` (the poster's username) and `avatar_url`
-(the poster's Gravatar URL, built via the shared `GravatarUrlBuilder`, `null` when the poster has
-no email hash) — no `email` or any other `User`/`UserProfile` field is ever exposed through this
-endpoint.
+**Reduced author view** (`user` field): only `name` (the poster's `UserProfile.display_name`, not
+their real `username`/login credential) and `avatar_url` (the poster's Gravatar URL, built via the
+shared `GravatarUrlBuilder`, `null` when the poster has no email hash) — no `email` or any other
+`User`/`UserProfile` field is ever exposed through this endpoint.
 
 **Write fields** (create): `content` only (required, length-bounded — see the model). `session`
 is always assigned server-side from the URL segment; `user` is always the requester; `player` is

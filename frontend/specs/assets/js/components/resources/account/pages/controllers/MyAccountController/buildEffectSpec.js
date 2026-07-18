@@ -8,6 +8,7 @@ describe('MyAccountController', function() {
 
   describe('#buildEffect', function() {
     let setName;
+    let setDisplayName;
     let setFirstName;
     let setLastName;
     let setEmail;
@@ -18,6 +19,7 @@ describe('MyAccountController', function() {
 
     beforeEach(function() {
       setName = jasmine.createSpy('setName');
+      setDisplayName = jasmine.createSpy('setDisplayName');
       setFirstName = jasmine.createSpy('setFirstName');
       setLastName = jasmine.createSpy('setLastName');
       setEmail = jasmine.createSpy('setEmail');
@@ -29,8 +31,8 @@ describe('MyAccountController', function() {
       client.fetchAccount.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({
-          name: 'Jane', first_name: 'Jane', last_name: 'Doe', email: 'jane@example.com',
-          avatar_url: 'http://example.com/avatar.png',
+          name: 'Jane', display_name: 'Jane D', first_name: 'Jane', last_name: 'Doe',
+          email: 'jane@example.com', avatar_url: 'http://example.com/avatar.png',
         }),
       }));
     });
@@ -40,15 +42,16 @@ describe('MyAccountController', function() {
     });
 
     const buildController = () => new MyAccountController(
-      setName, setFirstName, setLastName, setEmail, setAvatarUrl, setLoading, client,
+      setName, setDisplayName, setFirstName, setLastName, setEmail, setAvatarUrl, setLoading, client,
     );
 
-    it('fetches the account and prefills name/firstName/lastName/email/avatarUrl', async function() {
+    it('fetches the account and prefills name/displayName/firstName/lastName/email/avatarUrl', async function() {
       const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(client.fetchAccount).toHaveBeenCalledWith(null);
       expect(setName).toHaveBeenCalledWith('Jane');
+      expect(setDisplayName).toHaveBeenCalledWith('Jane D');
       expect(setFirstName).toHaveBeenCalledWith('Jane');
       expect(setLastName).toHaveBeenCalledWith('Doe');
       expect(setEmail).toHaveBeenCalledWith('jane@example.com');
@@ -83,6 +86,20 @@ describe('MyAccountController', function() {
 
       expect(setFirstName).toHaveBeenCalledWith('');
       expect(setLastName).toHaveBeenCalledWith('');
+
+      cleanup();
+    });
+
+    it('prefills displayName with an empty string when the account has none', async function() {
+      client.fetchAccount.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ name: 'Jane', email: 'jane@example.com' }),
+      }));
+
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(setDisplayName).toHaveBeenCalledWith('');
 
       cleanup();
     });

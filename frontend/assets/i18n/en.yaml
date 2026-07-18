@@ -138,6 +138,7 @@ recover_password_page:
 register_page:
   title: Register
   name_label: Name
+  display_name_label: Display name
   email_label: Email
   password_label: Password
   password_confirmation_label: Confirm password
@@ -243,6 +244,7 @@ my_account_page:
   loading: Loading account...
   avatar_alt: User avatar
   name_label: Username
+  display_name_label: Display name
   first_name_label: First name
   last_name_label: Last name
   email_label: Email

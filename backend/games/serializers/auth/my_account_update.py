@@ -14,6 +14,7 @@ class MyAccountUpdateSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
         source='username', max_length=150, validators=[UnicodeUsernameValidator()],
     )
+    display_name = serializers.CharField(max_length=150)
     first_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
     last_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
     email = serializers.EmailField()
@@ -26,12 +27,23 @@ class MyAccountUpdateSerializer(serializers.ModelSerializer):
         """Metadata for the MyAccountUpdateSerializer."""
 
         model = User
-        fields = ['name', 'first_name', 'last_name', 'email', 'password', 'password_confirmation']
+        fields = [
+            'name', 'display_name', 'first_name', 'last_name', 'email', 'password',
+            'password_confirmation',
+        ]
 
     def validate_name(self, value):
         """Reject a name already used by a different user."""
         if User.objects.exclude(pk=self.instance.pk).filter(username=value).exists():
             raise serializers.ValidationError('name already exists')
+        return value
+
+    def validate_display_name(self, value):
+        """Reject a display_name already used by a different user's profile."""
+        if UserProfile.objects.exclude(user=self.instance).filter(
+            display_name=value
+        ).exists():
+            raise serializers.ValidationError('display name already exists')
         return value
 
     def validate_email(self, value):
@@ -55,6 +67,7 @@ class MyAccountUpdateSerializer(serializers.ModelSerializer):
         provided."""
         password = validated_data.pop('password', '') or ''
         validated_data.pop('password_confirmation', None)
+        display_name = validated_data.pop('display_name')
         instance.username = validated_data['username']
         instance.first_name = validated_data.get('first_name', '')
         instance.last_name = validated_data.get('last_name', '')
@@ -62,11 +75,12 @@ class MyAccountUpdateSerializer(serializers.ModelSerializer):
         if password:
             instance.set_password(password)
         instance.save()
-        self._refresh_email_hash(instance)
+        self._update_profile(instance, display_name)
         return instance
 
-    def _refresh_email_hash(self, instance):
-        """Recompute the profile's email_hash to match the just-updated user email."""
+    def _update_profile(self, instance, display_name):
+        """Persist display_name and recompute email_hash on the user's profile."""
         profile, _ = UserProfile.objects.get_or_create(user=instance)
         profile.user = instance  # avoid a stale re-fetch of the just-updated email
+        profile.display_name = display_name
         profile.save()

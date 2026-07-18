@@ -14,6 +14,7 @@ describe('Register', function() {
       expect(RegisterHelper.render).toHaveBeenCalledWith(
         {
           name: '',
+          displayName: '',
           email: '',
           password: '',
           passwordConfirmation: '',
@@ -22,6 +23,7 @@ describe('Register', function() {
         jasmine.objectContaining({
           onSubmit: jasmine.any(Function),
           onNameChange: jasmine.any(Function),
+          onDisplayNameChange: jasmine.any(Function),
           onEmailChange: jasmine.any(Function),
           onPasswordChange: jasmine.any(Function),
           onPasswordConfirmationChange: jasmine.any(Function),

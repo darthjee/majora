@@ -12,6 +12,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     favorite_language = models.CharField(max_length=10, default='en')
     email_hash = models.CharField(max_length=64, null=True, blank=True)
+    display_name = models.CharField(max_length=150, unique=True, null=True)
 
     def save(self, *args, **kwargs):
         """Save the profile, recomputing email_hash from the linked user's email."""

@@ -8,10 +8,11 @@ export default class RegisterHelper {
   /**
    * Render the register page.
    *
-   * @param {{name: string, email: string, password: string, passwordConfirmation: string,
-   *   status: string}} state - page state.
-   * @param {{onSubmit: Function, onNameChange: Function, onEmailChange: Function,
-   *   onPasswordChange: Function, onPasswordConfirmationChange: Function}} handlers - event handlers.
+   * @param {{name: string, displayName: string, email: string, password: string,
+   *   passwordConfirmation: string, status: string}} state - page state.
+   * @param {{onSubmit: Function, onNameChange: Function, onDisplayNameChange: Function,
+   *   onEmailChange: Function, onPasswordChange: Function,
+   *   onPasswordConfirmationChange: Function}} handlers - event handlers.
    * @returns {React.ReactElement} rendered register page.
    */
   static render(state, handlers) {
@@ -26,6 +27,13 @@ export default class RegisterHelper {
             label={Translator.t('register_page.name_label')}
             value={state.name}
             onChange={handlers.onNameChange}
+          />
+          <FormField
+            id="register-display-name"
+            type="text"
+            label={Translator.t('register_page.display_name_label')}
+            value={state.displayName}
+            onChange={handlers.onDisplayNameChange}
           />
           <FormField
             id="register-email"

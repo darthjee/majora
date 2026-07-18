@@ -8,9 +8,10 @@ from django.core.validators import validate_email
 from django.template.loader import render_to_string
 from rest_framework.authtoken.models import Token
 
+from games.models import UserProfile
 from games.settings import Settings
 
-REGISTER_REQUIRED_FIELDS = {'name', 'email', 'password', 'password_confirmation'}
+REGISTER_REQUIRED_FIELDS = {'name', 'display_name', 'email', 'password', 'password_confirmation'}
 
 
 def send_test_email(user):
@@ -48,6 +49,7 @@ def _validate_register_payload(data):
         _validate_email_format,
         _validate_passwords_match,
         _validate_unique_name,
+        _validate_unique_display_name,
         _validate_unique_email,
     )
     for validator in validators:
@@ -62,7 +64,7 @@ def _validate_required_fields(data):
     if set(data.keys()) != REGISTER_REQUIRED_FIELDS:
         return 'unexpected or missing fields'
     if any(not data.get(field) for field in REGISTER_REQUIRED_FIELDS):
-        return 'name, email, password and password_confirmation are required'
+        return 'name, display_name, email, password and password_confirmation are required'
     return None
 
 
@@ -89,6 +91,13 @@ def _validate_unique_name(data):
     return None
 
 
+def _validate_unique_display_name(data):
+    """Return an error message if the given display_name is already registered, else None."""
+    if UserProfile.objects.filter(display_name=data.get('display_name')).exists():
+        return 'display name already exists'
+    return None
+
+
 def _validate_unique_email(data):
     """Return an error message if the given email is already registered, else None."""
     if User.objects.filter(email=data.get('email')).exists():
@@ -97,12 +106,13 @@ def _validate_unique_email(data):
 
 
 def _create_registered_user(data):
-    """Create a new user and auth token from a validated registration payload."""
+    """Create a new user, profile, and auth token from a validated registration payload."""
     user = User.objects.create_user(
         username=data.get('name'),
         email=data.get('email'),
         password=data.get('password'),
     )
+    UserProfile.objects.create(user=user, display_name=data.get('display_name'))
     token, _ = Token.objects.get_or_create(user=user)
     return user, token
 

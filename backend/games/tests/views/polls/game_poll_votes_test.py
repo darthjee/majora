@@ -15,6 +15,7 @@ from games.tests.factories import (
     PollOptionFactory,
     SuperUserFactory,
     UserFactory,
+    UserProfileFactory,
 )
 
 
@@ -33,6 +34,7 @@ class TestGamePollVotesGetView(TestCase):
         GameMasterFactory(game=cls.game, user=cls.dm_user)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
+        UserProfileFactory(user=cls.player_user, display_name='player_display')
         cls.player = PlayerFactory(name='Bob', user=cls.player_user)
         cls.player.games.add(cls.game)
         cls.player_token = Token.objects.create(user=cls.player_user)
@@ -175,10 +177,17 @@ class TestGamePollVotesGetView(TestCase):
         assert data['users'] == [
             {
                 'id': self.player_user.id,
-                'name': self.player_user.username,
+                'name': 'player_display',
                 'avatar_url': None,
             },
         ]
+
+    def test_users_name_is_the_display_name_not_the_real_username(self):
+        """Test that the exposed voter name never leaks the real username/login credential."""
+        PollVote.objects.create(user=self.player_user, option=self.option_one)
+        response = self._get(token=self.dm_token)
+        data = json.loads(response.content)
+        assert data['users'][0]['name'] != self.player_user.username
 
     def test_users_list_a_single_voter_once_for_a_multiple_type_poll(self):
         """Test that a user voting for more than one option appears once in users."""

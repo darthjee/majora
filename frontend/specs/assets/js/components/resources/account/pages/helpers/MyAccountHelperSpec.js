@@ -4,6 +4,7 @@ import MyAccountHelper from '../../../../../../../../assets/js/components/resour
 describe('MyAccountHelper', function() {
   const buildFormState = (overrides = {}) => ({
     name: 'Jane',
+    displayName: 'Jane D',
     email: 'jane@example.com',
     avatarUrl: null,
     password: '',
@@ -15,6 +16,7 @@ describe('MyAccountHelper', function() {
   const buildHandlers = () => ({
     onSubmit: jasmine.createSpy('onSubmit'),
     onNameChange: jasmine.createSpy('onNameChange'),
+    onDisplayNameChange: jasmine.createSpy('onDisplayNameChange'),
     onEmailChange: jasmine.createSpy('onEmailChange'),
     onPasswordChange: jasmine.createSpy('onPasswordChange'),
     onPasswordConfirmationChange: jasmine.createSpy('onPasswordConfirmationChange'),
@@ -27,6 +29,7 @@ describe('MyAccountHelper', function() {
       );
 
       expect(html).toContain('value="Jane"');
+      expect(html).toContain('value="Jane D"');
       expect(html).toContain('value="jane@example.com"');
     });
 
@@ -68,6 +71,16 @@ describe('MyAccountHelper', function() {
       const html = renderToStaticMarkup(
         MyAccountHelper.render(
           buildFormState({ fieldErrors: { email: ['is already taken'] } }), buildHandlers()
+        )
+      );
+
+      expect(html).toContain('is already taken');
+    });
+
+    it('renders display name field errors when present', function() {
+      const html = renderToStaticMarkup(
+        MyAccountHelper.render(
+          buildFormState({ fieldErrors: { display_name: ['is already taken'] } }), buildHandlers()
         )
       );
 

@@ -10,6 +10,7 @@ import MyAccountHelper from './helpers/MyAccountHelper.jsx';
  */
 export default function MyAccount() {
   const [name, setName] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -21,7 +22,9 @@ export default function MyAccount() {
   const [status, setStatus] = useState('idle');
 
   const controller = useMemo(
-    () => new MyAccountController(setName, setFirstName, setLastName, setEmail, setAvatarUrl, setLoading),
+    () => new MyAccountController(
+      setName, setDisplayName, setFirstName, setLastName, setEmail, setAvatarUrl, setLoading,
+    ),
     [],
   );
 
@@ -29,7 +32,7 @@ export default function MyAccount() {
 
   const handleSubmit = (event) => controller.submitForm(
     event,
-    { name, firstName, lastName, email, password, passwordConfirmation },
+    { name, displayName, firstName, lastName, email, password, passwordConfirmation },
     { setStatus, setFieldErrors },
   );
 
@@ -37,11 +40,21 @@ export default function MyAccount() {
 
   return MyAccountHelper.render(
     {
-      name, firstName, lastName, email, avatarUrl, password, passwordConfirmation, status, fieldErrors,
+      name,
+      displayName,
+      firstName,
+      lastName,
+      email,
+      avatarUrl,
+      password,
+      passwordConfirmation,
+      status,
+      fieldErrors,
     },
     {
       onSubmit: handleSubmit,
       onNameChange: (event) => setName(event.target.value),
+      onDisplayNameChange: (event) => setDisplayName(event.target.value),
       onFirstNameChange: (event) => setFirstName(event.target.value),
       onLastNameChange: (event) => setLastName(event.target.value),
       onEmailChange: (event) => setEmail(event.target.value),

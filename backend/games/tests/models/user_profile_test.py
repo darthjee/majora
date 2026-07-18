@@ -2,6 +2,8 @@
 
 import hashlib
 
+import pytest
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 
 from games.models import UserProfile
@@ -34,6 +36,26 @@ class TestUserProfile(TestCase):
         """Test string representation of a user profile."""
         profile = UserProfile(user=self.user)
         assert str(profile) == 'UserProfile(user=alice)'
+
+    def test_display_name_defaults_to_none(self):
+        """Test that a new profile has no display_name set by default."""
+        profile = UserProfile.objects.create(user=self.user)
+        assert profile.display_name is None
+
+    def test_display_name_can_be_set_and_persisted(self):
+        """Test that display_name can be set and persisted."""
+        profile = UserProfile.objects.create(user=self.user, display_name='Alice Display')
+        profile.refresh_from_db()
+        assert profile.display_name == 'Alice Display'
+
+    def test_display_name_must_be_unique(self):
+        """Test that two profiles cannot share the same display_name."""
+        UserProfile.objects.create(user=self.user, display_name='Shared Name')
+        other_user = UserFactory(username='eve', password='secret-password')
+
+        with transaction.atomic():
+            with pytest.raises(IntegrityError):
+                UserProfile.objects.create(user=other_user, display_name='Shared Name')
 
 
 class TestUserProfileEmailHash(TestCase):
