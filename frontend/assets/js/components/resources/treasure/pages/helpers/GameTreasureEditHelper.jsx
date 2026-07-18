@@ -1,9 +1,9 @@
 import React from 'react';
 import FormField from '../../../../common/FormField.jsx';
 import ErrorAlert from '../../../../common/ErrorAlert.jsx';
+import LoadingMessage from '../../../../common/LoadingMessage.jsx';
 import SubmitButton from '../../../../common/SubmitButton.jsx';
 import Translator from '../../../../../i18n/Translator.js';
-import GameTreasuresHelper from './GameTreasuresHelper.jsx';
 import TreasureValueField from '../elements/TreasureValueField.jsx';
 
 /**
@@ -61,7 +61,7 @@ export default class GameTreasureEditHelper {
    * @returns {React.ReactElement} Loading message.
    */
   static renderLoading() {
-    return GameTreasuresHelper.renderLoading();
+    return <LoadingMessage message={Translator.t('game_treasures_page.loading')} />;
   }
 
   /**
@@ -71,7 +71,7 @@ export default class GameTreasureEditHelper {
    * @returns {React.ReactElement} Error alert.
    */
   static renderError(error) {
-    return GameTreasuresHelper.renderError(error);
+    return <ErrorAlert error={error} />;
   }
 
   static #renderError(formState) {

@@ -1,10 +1,12 @@
 import React from 'react';
 import ActionsOverlay from '../ActionsOverlay.jsx';
 import Badge from '../Badge.jsx';
+import TooltipBadge from '../TooltipBadge.jsx';
 import Translator from '../../../i18n/Translator.js';
 import Noop from '../../../utils/Noop.js';
 import TreasureMoney from '../TreasureMoney.jsx';
 import Icons from '../../../utils/ui/Icons.js';
+import TreasureListItem from '../listTypes/TreasureListItem.js';
 
 /**
  * Rendering helper for the TreasureCard element.
@@ -49,7 +51,7 @@ export default class TreasureCardHelper {
             alt={treasure.name}
             canEdit={canManage}
             onClick={() => onUploadClick(treasure)}
-            infoBarItems={TreasureCardHelper.#buildInfoBarItems(treasure, quantity)}
+            infoBarItems={TreasureCardHelper.buildInfoBarItems(treasure, quantity)}
           />
           <div className="card-body">
             <h6 className="card-title">
@@ -73,14 +75,16 @@ export default class TreasureCardHelper {
 
   /**
    * Build the overlay's info-bar items: an optional Hidden badge (DM/admin-facing,
-   * shown when `treasure.hidden` is true) followed by an optional quantity badge.
+   * shown when `treasure.hidden` is true) followed by an optional quantity badge. Exposed
+   * publicly (rather than kept private) so `listTypeConfig`'s `treasures` entry can reuse the
+   * same item shape without duplicating it.
    *
    * @param {object} treasure - Treasure data object.
    * @param {boolean} [treasure.hidden] - Whether the treasure is hidden from players for this game.
-   * @param {number|null} quantity - Owned quantity.
+   * @param {number|null} [quantity] - Owned quantity.
    * @returns {{key: string, label: React.ReactElement}[]} Info-bar item definitions.
    */
-  static #buildInfoBarItems(treasure, quantity) {
+  static buildInfoBarItems(treasure, quantity) {
     return [
       ...TreasureCardHelper.#buildHiddenInfoBarItems(treasure),
       ...TreasureCardHelper.#buildQuantityInfoBarItems(quantity),
@@ -94,7 +98,16 @@ export default class TreasureCardHelper {
 
     return [{
       key: 'hidden',
-      label: <Badge icon={Icons.eyeSlashFill} text={Translator.t('game_treasures_page.hidden_label')} />,
+      label: (
+        <TooltipBadge
+          icon={Icons.eyeSlashFill}
+          items={[{
+            icon: Icons.eyeSlashFill,
+            text: Translator.t('game_treasures_page.hidden_label'),
+            variant: null,
+          }]}
+        />
+      ),
     }];
   }
 
@@ -107,13 +120,11 @@ export default class TreasureCardHelper {
   }
 
   static #renderAvailability(treasure) {
-    if (treasure.max_units === null || treasure.max_units === undefined) {
+    const label = new TreasureListItem(treasure).availabilityText;
+
+    if (!label) {
       return null;
     }
-
-    const label = Translator.t('game_treasures_page.available_units_label')
-      .replace('{{available}}', treasure.available_units)
-      .replace('{{max}}', treasure.max_units);
 
     return <p className="card-text text-muted small mb-0">{label}</p>;
   }

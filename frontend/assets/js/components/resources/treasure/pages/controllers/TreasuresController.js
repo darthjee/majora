@@ -31,8 +31,8 @@ export default class TreasuresController extends BasePageController {
    * @param {Function} setError - Error setter.
    * @param {GenericClient|null} client - Client override.
    * @param {Function} [setIsSuperUser] - Superuser/staff flag setter, for consistency/testability
-   *   with GameTreasuresController — this page is only ever reached by staff/superusers, since
-   *   any other user is redirected away below.
+   *   with the other index-page controllers (e.g. `ListPageController`'s `setCanEdit`) — this page
+   *   is only ever reached by staff/superusers, since any other user is redirected away below.
    */
   constructor(
     setTreasures,

@@ -1,100 +1,102 @@
 import React from 'react';
-import ErrorAlert from '../../../../common/ErrorAlert.jsx';
-import LoadingMessage from '../../../../common/LoadingMessage.jsx';
-import NewButton from '../../../../common/NewButton.jsx';
 import PageActions from '../../../../common/PageActions.jsx';
-import Pagination from '../../../../common/Pagination.jsx';
-import TreasureCard from '../../../../common/TreasureCard.jsx';
+import NewButton from '../../../../common/NewButton.jsx';
+import ListPage from '../../../../common/ListPage.jsx';
+import PhotoUploadModal from '../../../../common/PhotoUploadModal.jsx';
+import AddGameTreasureModal from '../elements/AddGameTreasureModal.jsx';
 import Translator from '../../../../../i18n/Translator.js';
-import Noop from '../../../../../utils/Noop.js';
 
 /**
  * Rendering helper for the Game Treasures listing page.
  */
 export default class GameTreasuresHelper {
   /**
-   * Render the treasures list with pagination and a back button.
+   * Render the treasures page: header (back button, "New"/"Add Treasure" actions, heading),
+   * the shared `ListPage` grid (type `treasures`), and the upload/add modals.
    *
-   * @param {object[]} treasures - List of treasure objects.
-   * @param {object} pagination - Pagination metadata.
-   * @param {number} pagination.page - Current page.
-   * @param {number} pagination.pages - Total pages.
-   * @param {number} pagination.perPage - Items per page.
-   * @param {string} basePath - Base hash path used for pagination links.
-   * @param {string} gameSlug - Current game slug, used to build each card's edit link and to
-   *   determine per-treasure manage permission via an exact `game_slug` match.
-   * @param {string} backHref - Hash path to the parent game page.
-   * @param {boolean} [canEdit] - Whether the current user may create new treasures and manage
-   *   this game's exclusive treasures (upload photos, edit).
-   * @param {string} [newHref] - Hash path to the new treasure form.
-   * @param {Function} [onUploadClick] - Handler invoked with a treasure when its upload button is clicked.
-   * @param {Function} [onAddClick] - Handler invoked when the "Add Treasure" button is clicked,
-   *   opening the modal that links an existing catalog treasure to the game.
-   * @param {object|URLSearchParams} [activeFilters] - Additional active query params (e.g.
-   *   treasure filters) preserved on every pagination link.
-   * @param {React.ReactNode} [filters] - Optional filter bar rendered above the treasures
-   *   grid (e.g. TreasureFilters).
-   * @returns {React.ReactElement} Treasures list with pagination.
+   * @param {object} state - Page state.
+   * @param {string} state.gameSlug - Current game slug.
+   * @param {string} state.basePath - Base hash path for the treasures list.
+   * @param {string} state.backHref - Hash path to the parent game page.
+   * @param {string} state.newHref - Hash path to the new treasure form.
+   * @param {boolean} state.canEdit - Whether the current user may create/manage treasures.
+   * @param {number} state.refreshToken - Opaque value bumped to re-trigger the list fetch.
+   * @param {object} state.activeFilters - Active filter query params preserved on pagination links.
+   * @param {boolean} state.showUploadModal - Whether the photo upload modal is visible.
+   * @param {object|null} state.selectedTreasure - Treasure currently targeted by the upload modal.
+   * @param {boolean} state.showAddModal - Whether the "Add Treasure" modal is visible.
+   * @param {object} handlers - Page event handlers.
+   * @param {Function} handlers.onCanEditChange - Called with the list's resolved edit permission.
+   * @param {Function} handlers.onUploadClick - Called with a treasure when its upload button is clicked.
+   * @param {Function} handlers.onUploadClose - Called when the upload modal is dismissed.
+   * @param {Function} handlers.onUploadSuccess - Called after a successful photo upload.
+   * @param {Function} handlers.onAddClick - Called when the "Add Treasure" button is clicked.
+   * @param {Function} handlers.onAddClose - Called when the "Add Treasure" modal is dismissed.
+   * @param {Function} handlers.onAddSuccess - Called after a successful treasure link.
+   * @param {Function} handlers.onFilterQuery - Called with the built filter query object.
+   * @param {Function} handlers.onFilterClear - Called when the filters are cleared.
+   * @returns {React.ReactElement} Rendered treasures page.
    */
-  static render(
-    treasures, pagination, basePath, gameSlug, backHref,
-    canEdit = false, newHref = '', onUploadClick = Noop.noop, onAddClick = Noop.noop,
-    activeFilters = {}, filters = null,
-  ) {
+  static render(state, handlers) {
     return (
-      <div className="container mt-4">
-        <PageActions backHref={backHref}>
-          {canEdit && (
-            <NewButton href={newHref}>
-              {Translator.t('game_treasures_page.new_treasure')}
-            </NewButton>
-          )}
-          {canEdit && (
-            <button type="button" className="btn btn-primary mb-3 ms-2" onClick={onAddClick}>
-              {Translator.t('game_treasures_page.add_treasure')}
-            </button>
-          )}
-        </PageActions>
-        <h1 className="mb-4">{Translator.t('game_treasures_page.treasures')}</h1>
-        {filters}
-        <div className="row">
-          {treasures.map((treasure) => (
-            <TreasureCard
-              key={treasure.id}
-              treasure={treasure}
-              canManage={canEdit && treasure.game_slug === gameSlug}
-              onUploadClick={onUploadClick}
-              editHref={`#/games/${gameSlug}/treasures/${treasure.id}/edit`}
-            />
-          ))}
+      <>
+        <div className="container mt-4">
+          <PageActions backHref={state.backHref}>
+            {GameTreasuresHelper.#renderNewButton(state)}
+            {GameTreasuresHelper.#renderAddButton(state, handlers)}
+          </PageActions>
+          <h1 className="mb-4">{Translator.t('game_treasures_page.treasures')}</h1>
         </div>
-        <Pagination
-          currentPage={pagination.page}
-          totalPages={pagination.pages}
-          perPage={pagination.perPage}
-          basePath={basePath}
-          extraParams={activeFilters}
+        <ListPage
+          type="treasures"
+          gameSlug={state.gameSlug}
+          basePath={state.basePath}
+          loadingMessage={Translator.t('game_treasures_page.loading')}
+          context={{ onUploadClick: handlers.onUploadClick }}
+          filtersProps={{
+            onQuery: handlers.onFilterQuery, onClear: handlers.onFilterClear, showGameType: false,
+          }}
+          activeFilters={state.activeFilters}
+          refreshToken={state.refreshToken}
+          onCanEditChange={handlers.onCanEditChange}
         />
-      </div>
+        <PhotoUploadModal
+          show={state.showUploadModal}
+          uploadPath={`/treasures/${state.selectedTreasure?.id}/photo_upload.json`}
+          onClose={handlers.onUploadClose}
+          onSuccess={handlers.onUploadSuccess}
+        />
+        <AddGameTreasureModal
+          show={state.showAddModal}
+          gameSlug={state.gameSlug}
+          onClose={handlers.onAddClose}
+          onSuccess={handlers.onAddSuccess}
+        />
+      </>
     );
   }
 
-  /**
-   * Render the loading state.
-   *
-   * @returns {React.ReactElement} Loading message.
-   */
-  static renderLoading() {
-    return <LoadingMessage message={Translator.t('game_treasures_page.loading')} />;
+  static #renderNewButton(state) {
+    if (!state.canEdit) {
+      return null;
+    }
+
+    return (
+      <NewButton href={state.newHref}>
+        {Translator.t('game_treasures_page.new_treasure')}
+      </NewButton>
+    );
   }
 
-  /**
-   * Render the error state.
-   *
-   * @param {string} error - Error message.
-   * @returns {React.ReactElement} Error alert.
-   */
-  static renderError(error) {
-    return <ErrorAlert error={error} />;
+  static #renderAddButton(state, handlers) {
+    if (!state.canEdit) {
+      return null;
+    }
+
+    return (
+      <button type="button" className="btn btn-primary mb-3 ms-2" onClick={handlers.onAddClick}>
+        {Translator.t('game_treasures_page.add_treasure')}
+      </button>
+    );
   }
 }

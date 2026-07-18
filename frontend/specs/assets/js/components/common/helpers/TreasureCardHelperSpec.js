@@ -1,5 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import TreasureCardHelper from '../../../../../../assets/js/components/common/helpers/TreasureCardHelper.jsx';
+import TooltipBadge from '../../../../../../assets/js/components/common/TooltipBadge.jsx';
+import Translator from '../../../../../../assets/js/i18n/Translator.js';
 import Noop from '../../../../../../assets/js/utils/Noop.js';
 
 describe('TreasureCardHelper', function() {
@@ -186,7 +188,17 @@ describe('TreasureCardHelper', function() {
       const html = renderToStaticMarkup(TreasureCardHelper.render({ ...treasure, hidden: true }));
       expect(html).toContain('info-overlay-item');
       expect(html).toContain('bi-eye-slash-fill');
-      expect(html).toContain('Hidden');
+    });
+
+    it('renders the hidden badge as a TooltipBadge with the hidden label as tooltip content', function() {
+      const items = TreasureCardHelper.buildInfoBarItems({ ...treasure, hidden: true });
+
+      expect(items[0].label.type).toBe(TooltipBadge);
+      expect(items[0].label.props.items).toEqual([{
+        icon: 'bi-eye-slash-fill',
+        text: Translator.t('game_treasures_page.hidden_label'),
+        variant: null,
+      }]);
     });
 
     it('renders both the hidden and quantity badges together', function() {
