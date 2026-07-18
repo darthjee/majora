@@ -130,3 +130,64 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
         by_name = {item['name']: item['hidden'] for item in data}
         assert by_name['Visible Gem'] is False
         assert by_name['Hidden Gem'] is True
+
+    def test_filters_by_min_value(self):
+        """Test that only treasures with value >= min_value are returned."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self.get(
+            self.client, f'{TREASURES_ALL_URL}?min_value=150', token=token,
+        )
+        data = json.loads(response.content)
+        assert data == []
+
+    def test_filters_by_max_value(self):
+        """Test that only treasures with value <= max_value are returned."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self.get(
+            self.client, f'{TREASURES_ALL_URL}?max_value=50', token=token,
+        )
+        data = json.loads(response.content)
+        assert data == []
+
+    def test_min_and_max_value_combined(self):
+        """Test that min_value and max_value filters both apply together."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self.get(
+            self.client, f'{TREASURES_ALL_URL}?min_value=50&max_value=150', token=token,
+        )
+        data = json.loads(response.content)
+        names = [item['name'] for item in data]
+        assert 'Visible Gem' in names
+        assert 'Hidden Gem' in names
+
+    def test_filters_by_name(self):
+        """Test that only treasures whose name contains the name term are returned."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self.get(
+            self.client, f'{TREASURES_ALL_URL}?name=Visible', token=token,
+        )
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Visible Gem'
+
+    def test_name_filter_is_case_insensitive(self):
+        """Test that the name filter matches regardless of case."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self.get(
+            self.client, f'{TREASURES_ALL_URL}?name=visible gem', token=token,
+        )
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Visible Gem'
+
+    def test_uses_game_treasure_value_not_treasure_value_for_min_and_max(self):
+        """Test that min_value/max_value filter on GameTreasure.value, not Treasure.value."""
+        treasure = TreasureFactory(name='Discounted Gem', value=500, game=self.game)
+        GameTreasureFactory(game=self.game, treasure=treasure, value=50)
+        token = Token.objects.create(user=self.dm_user)
+        response = self.get(
+            self.client, f'{TREASURES_ALL_URL}?max_value=60', token=token,
+        )
+        data = json.loads(response.content)
+        names = [item['name'] for item in data]
+        assert names == ['Discounted Gem']
