@@ -8,16 +8,26 @@ describe('SeeAllCardHelper', function() {
       expect(html).toContain('bi-gem');
     });
 
-    it('renders the given text as the aria-label of a stretched link to href', function() {
+    it('renders a link to href', function() {
       const html = renderToStaticMarkup(SeeAllCardHelper.render('bi-camera-fill', 'See all Photos', '#/photos'));
-      expect(html).toContain('aria-label="See all Photos"');
       expect(html).toContain('href="#/photos"');
-      expect(html).toContain('stretched-link');
     });
 
     it('renders the grid-cell column classes matching other preview cards', function() {
       const html = renderToStaticMarkup(SeeAllCardHelper.render('bi-gem', 'See all Treasures', '#/treasures'));
       expect(html).toContain('col-6 col-sm-4 col-md-3 col-lg-2');
+    });
+
+    it('does not render a card body', function() {
+      const html = renderToStaticMarkup(SeeAllCardHelper.render('bi-gem', 'See all Treasures', '#/treasures'));
+      expect(html).not.toContain('card-body');
+    });
+
+    it('feeds the text to the tooltip content', function() {
+      const rendered = SeeAllCardHelper.render('bi-gem', 'See all Treasures', '#/treasures');
+      const tooltip = rendered.props.children;
+
+      expect(tooltip.props.content).toBe('See all Treasures');
     });
   });
 });
