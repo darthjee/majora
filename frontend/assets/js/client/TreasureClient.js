@@ -150,6 +150,46 @@ export default class TreasureClient extends BaseClient {
   }
 
   /**
+   * Fetches an explicit page of catalog treasures matching a game's `game_type` that are not
+   * yet linked to it as a `GameTreasure` (DM/admin-only endpoint). Mirrors
+   * {@link fetchGameTreasuresAllPage}'s pagination-only param handling — this endpoint does not
+   * support `maxValue`/`search`/`ordering`. Used by the Add Treasure modal's browse list.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {{page: number, perPage: number}} [params] - Pagination params.
+   * @returns {Promise<Response>} fetch response from the game treasures/missing endpoint.
+   */
+  fetchMissingGameTreasuresPage(gameSlug, token, { page, perPage } = {}) {
+    const queryParams = new URLSearchParams();
+
+    if (page) queryParams.set('page', page);
+    if (perPage) queryParams.set('per_page', perPage);
+
+    const query = queryParams.toString();
+
+    return this.getJson(`/games/${gameSlug}/treasures/missing.json${query ? `?${query}` : ''}`, token);
+  }
+
+  /**
+   * Links an existing catalog treasure to a game, creating the corresponding `GameTreasure`
+   * row.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {object} fields - Fields for the new link.
+   * @param {number} fields.treasure_id - Id of the catalog treasure to link.
+   * @param {number} fields.value - Game-specific value for the linked treasure.
+   * @param {boolean} [fields.hidden] - Whether the linked treasure starts hidden.
+   * @param {number|null} [fields.max_units] - Maximum obtainable units within the game, or
+   *   `null` for unlimited.
+   * @returns {Promise<Response>} fetch response from the game treasures/link endpoint.
+   */
+  linkGameTreasure(gameSlug, token, fields) {
+    return this.postJson(`/games/${gameSlug}/treasures/link.json`, token, fields);
+  }
+
+  /**
    * Submits a partial update for a game-scoped treasure.
    *
    * @param {string} gameSlug - Game slug.

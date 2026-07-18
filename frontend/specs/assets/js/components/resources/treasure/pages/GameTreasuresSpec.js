@@ -111,7 +111,7 @@ describe('GameTreasures', function() {
       const html = renderToStaticMarkup(
         GameTreasuresHelper.render(
           [], { page: 1, pages: 1, perPage: 10 }, '#/games/demo/treasures', 'demo', '#/games/demo', false, '',
-          Noop.noop, {},
+          Noop.noop, Noop.noop, {},
           React.createElement(TreasureFilters, { onQuery: Noop.noop, onClear: Noop.noop, showGameType: false }),
         )
       );
