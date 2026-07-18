@@ -136,12 +136,13 @@ describe('LinksEditModalHelper', function() {
       expect(handlers.onUrlChange).toHaveBeenCalledWith(0, 'https://example.com/new');
     });
 
-    it('renders a link_type select with a blank "none" option and the lootstudio option', function() {
+    it('renders a link_type select with a blank "none" option and all recognized link type options', function() {
       const element = LinksEditModalHelper.render(true, buildState(), buildHandlers());
       const select = findElement(element, (child) => child.type === 'select');
       const options = findAllElements(select, (child) => child.type === 'option');
 
-      expect(options.map((option) => option.props.value)).toEqual(['', 'lootstudio']);
+      expect(options.map((option) => option.props.value))
+        .toEqual(['', 'lootstudio', 'diary', 'music', 'stl', 'background', 'reference']);
     });
 
     it('wires the link_type select change to onLinkTypeChange with the entry index', function() {

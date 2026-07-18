@@ -285,6 +285,11 @@ links_edit_modal:
   link_type_label: Tipo
   link_type_none: Nenhum
   link_type_lootstudio: LootStudio
+  link_type_diary: Diário
+  link_type_music: Música
+  link_type_stl: STL
+  link_type_background: Cenário
+  link_type_reference: Referência
   add_link: Adicionar Link
   confirm: Confirmar
   cancel: Cancelar

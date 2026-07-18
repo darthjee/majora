@@ -2,9 +2,9 @@ import Modal from 'react-bootstrap/cjs/Modal.js';
 import Translator from '../../../../../../i18n/Translator.js';
 import Icons from '../../../../../../utils/ui/Icons.js';
 import FormField from '../../../../../common/FormField.jsx';
-import LinkIcon, { LINK_TYPE_ICONS } from '../../../../../common/LinkIcon.jsx';
+import LinkIcon, { LINK_TYPES } from '../../../../../common/LinkIcon.jsx';
 
-const LINK_TYPE_VALUES = ['', ...Object.keys(LINK_TYPE_ICONS)];
+const LINK_TYPE_VALUES = ['', ...LINK_TYPES];
 
 /**
  * Renders the "Edit links" modal shell: a list of link blocks, an "Add Link"

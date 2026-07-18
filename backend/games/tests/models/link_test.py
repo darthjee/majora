@@ -49,6 +49,56 @@ class TestLink(TestCase):
         )
         assert link.link_type == 'lootstudio'
 
+    def test_link_creation_with_link_type_diary(self):
+        """Test that a link can be created with the diary link_type."""
+        link = Link.objects.create(
+            text='Frodo Diary',
+            url='http://example.com/diary',
+            content_object=self.game,
+            link_type=Link.LINK_TYPE_DIARY,
+        )
+        assert link.link_type == 'diary'
+
+    def test_link_creation_with_link_type_music(self):
+        """Test that a link can be created with the music link_type."""
+        link = Link.objects.create(
+            text='Theme Song',
+            url='http://example.com/music',
+            content_object=self.game,
+            link_type=Link.LINK_TYPE_MUSIC,
+        )
+        assert link.link_type == 'music'
+
+    def test_link_creation_with_link_type_stl(self):
+        """Test that a link can be created with the stl link_type."""
+        link = Link.objects.create(
+            text='Mini Model',
+            url='http://example.com/model.stl',
+            content_object=self.game,
+            link_type=Link.LINK_TYPE_STL,
+        )
+        assert link.link_type == 'stl'
+
+    def test_link_creation_with_link_type_background(self):
+        """Test that a link can be created with the background link_type."""
+        link = Link.objects.create(
+            text='World Lore',
+            url='http://example.com/lore',
+            content_object=self.game,
+            link_type=Link.LINK_TYPE_BACKGROUND,
+        )
+        assert link.link_type == 'background'
+
+    def test_link_creation_with_link_type_reference(self):
+        """Test that a link can be created with the reference link_type."""
+        link = Link.objects.create(
+            text='Rules Reference',
+            url='http://example.com/reference',
+            content_object=self.game,
+            link_type=Link.LINK_TYPE_REFERENCE,
+        )
+        assert link.link_type == 'reference'
+
     def test_link_default_link_type_is_blank(self):
         """Test that link_type defaults to an empty string when not set."""
         link = Link.objects.create(
