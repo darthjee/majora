@@ -65,9 +65,21 @@ frontend/
             pages/ ...
           account/
             pages/ ...
-        common/              # elements/controllers/helpers shared across more than one resource
-          controllers/        # shared controllers (.js), e.g. BasePageController, BaseEditController
-          helpers/            # shared element JSX helpers (.jsx)
+        common/              # elements shared across more than one resource, grouped by theme
+          base/                # shared base classes not tied to one component
+            controllers/         # e.g. BasePageController, BaseEditController
+          buttons/             # BackButton, EditButton, LoadMoreButton, NewButton, ...
+          modals/              # LoginModal, MoneyEditModal, PhotoUploadModal, ...
+          cards/               # CardAvatar, CardPhoto, CharacterPreviewCard, ...
+          badges/              # Badge, InfoBadgeList, TooltipBadge
+          forms/               # FieldErrors, FormField, TextareaField
+          header/              # Header + its controllers/helpers
+          pagination/          # Pagination, PageLink + their controllers/helpers
+          list_page/           # ListPage, PageActions + their controller/helper
+          list_types/          # per-resource list item components/configs (unchanged)
+          misc/                # standalone shared elements (ActionBar, Avatar, ErrorAlert, ...)
+          # each theme folder above has its own controllers/ and helpers/ sub-folders
+          # when it has files for those (no empty sub-folders)
       i18n/                # translation singleton, storage, and events (.js)
       utils/              # non-JSX utility classes (.js)
       main.jsx            # SPA entry point
@@ -88,9 +100,11 @@ sub-folders). The six resources are `game`, `game_session`, `character` (covers 
 pages), `treasure`, `staff_user`, and `account` (my-account, register, recover-password).
 
 Anything genuinely shared across more than one resource (or used by the app shell itself, like
-`Header.jsx`) lives under `components/common/`, with its own `controllers/` and `helpers/`
-sub-folders — e.g. `common/Pagination.jsx`, `common/FormField.jsx`,
-`common/controllers/BasePageController.js`. `App.jsx`, `AppController.js`, and
+`Header.jsx`) lives under `components/common/`, grouped into themed subfolders (`buttons/`,
+`modals/`, `cards/`, `badges/`, `forms/`, `header/`, `pagination/`, `list_page/`, `list_types/`,
+`misc/`, `base/`), each with its own `controllers/` and `helpers/` sub-folders when it has files
+for those — e.g. `common/pagination/Pagination.jsx`, `common/forms/FormField.jsx`,
+`common/base/controllers/BasePageController.js`. `App.jsx`, `AppController.js`, and
 `helpers/AppHelper.jsx` stay at the `components/` root and import from `resources/<resource>/`
 and `common/` as needed. `utils/` (non-JSX utility classes) is untouched by the resource split.
 
@@ -118,7 +132,7 @@ example).
 
 ### Controller (`.js` in `controllers/`)
 
-A plain JS class, extending `BasePageController` (`components/common/controllers/BasePageController.js`).
+A plain JS class, extending `BasePageController` (`components/common/base/controllers/BasePageController.js`).
 Responsible for:
 
 - Data fetching via the API client
@@ -142,10 +156,10 @@ Pick one of these four extraction patterns, depending on what the condition guar
 
 1. **Condition wrapping a large block of HTML** — extract a dedicated component that receives
    the relevant attributes, so the call site becomes `{canEdit && <EditableSomething ... />}`.
-   See `resources/character/pages/elements/CharacterInfo.jsx` / `common/CardAvatar.jsx` for
+   See `resources/character/pages/elements/CharacterInfo.jsx` / `common/cards/CardAvatar.jsx` for
    examples of components with conditional behaviour at their root.
 2. **Condition wrapping a non-trivial existing component** — use
-   `components/common/ConditionalComponent.jsx`, which takes a `render` boolean prop and
+   `components/common/misc/ConditionalComponent.jsx`, which takes a `render` boolean prop and
    renders its `children` when true, `null` otherwise. The call site becomes
    `<ConditionalComponent render={canEdit}>...</ConditionalComponent>`. See
    `resources/game/pages/helpers/GameHelper.jsx`, `resources/character/pages/helpers/CharacterHelper.jsx`,
@@ -186,7 +200,7 @@ by the `character` resource despite their generic-sounding names, while `Treasur
    `components/resources/<resource>/pages/` folder (with `controllers/`/`helpers/`
    sub-folders) first.
 2. Create `components/resources/<resource>/pages/controllers/MyPageController.js` — extend
-   `BasePageController` (`components/common/controllers/BasePageController.js`), implement
+   `BasePageController` (`components/common/base/controllers/BasePageController.js`), implement
    `buildEffect()`.
 3. Create `components/resources/<resource>/pages/helpers/MyPageHelper.jsx` — static class with
    all JSX factories.
@@ -198,11 +212,14 @@ by the `character` resource despite their generic-sounding names, while `Treasur
 1. Decide whether the element is specific to one resource or genuinely shared (see "Pages vs
    Elements" above).
 2. Resource-specific: create `components/resources/<resource>/pages/elements/MyElement.jsx`.
-   Shared: create `components/common/MyElement.jsx`.
+   Shared: create `components/common/<theme>/MyElement.jsx`, picking (or creating) the themed
+   subfolder it belongs to (`buttons/`, `modals/`, `cards/`, `badges/`, `forms/`, `header/`,
+   `pagination/`, `list_page/`, `list_types/`, `misc/`, ...) rather than dropping it flat under
+   `common/`.
 3. If it has logic: add a `controllers/MyElementController.js` alongside it (under
-   `pages/elements/controllers/` or `common/controllers/`, respectively).
+   `pages/elements/controllers/` or `common/<theme>/controllers/`, respectively).
 4. If it has complex rendering: add a `helpers/MyElementHelper.jsx` alongside it (under
-   `pages/elements/helpers/` or `common/helpers/`, respectively).
+   `pages/elements/helpers/` or `common/<theme>/helpers/`, respectively).
 
 ---
 
@@ -217,8 +234,8 @@ separately via `getPaginationParams()`.
 
 ## Pagination
 
-The pagination element set lives in `components/common/` (`Pagination.jsx`, `PageLink.jsx`,
-`helpers/PaginationHelper.jsx`, `controllers/PaginationController.js`,
+The pagination element set lives in `components/common/pagination/` (`Pagination.jsx`,
+`PageLink.jsx`, `helpers/PaginationHelper.jsx`, `controllers/PaginationController.js`,
 `controllers/PaginationBuilder.js`), since it's shared across every resource. See
 [pagination.md](pagination.md) for the full breakdown, including the ellipsis algorithm and
 the `<Pagination>` prop contract.
