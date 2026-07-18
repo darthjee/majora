@@ -98,8 +98,8 @@ function buildItemHref(item) {
  * - `photoType` — `ActionsOverlay`'s `type` prop for this entity's photo/avatar.
  * - `buildActionBarProps(item, context)` / `buildInfoBarItems(item, context)` — delegate to
  *   the existing per-card helpers rather than re-implementing them.
- * - `showCaption` — whether caption text (display text + optional formatted value) appears
- *   under the photo.
+ * - `showCaption` — whether caption text (display text + optional formatted value + optional
+ *   availability text) appears under the photo.
  * - `buildItemHref(item, context)` — click-through URL builder.
  */
 const listTypeConfig = {

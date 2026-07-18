@@ -37,4 +37,12 @@ describe('BaseListItem', function() {
       expect(item.formattedValue).toBeNull();
     });
   });
+
+  describe('#availabilityText', function() {
+    it('defaults to null', function() {
+      const item = new BaseListItem({ id: 1, name: 'Golden Crown' });
+
+      expect(item.availabilityText).toBeNull();
+    });
+  });
 });

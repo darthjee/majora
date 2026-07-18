@@ -1,10 +1,11 @@
 import BaseListItem from './BaseListItem.js';
 import TreasureMoneyHelper from '../helpers/TreasureMoneyHelper.jsx';
+import Translator from '../../../i18n/Translator.js';
 
 /**
- * List-item wrapper for a treasure entry, adding the formatted money value
- * and hidden flag treasure list rendering needs beyond the base
- * photo/display-text accessors.
+ * List-item wrapper for a treasure entry, adding the formatted money value,
+ * hidden flag, and availability line treasure list rendering needs beyond
+ * the base photo/display-text accessors.
  */
 export default class TreasureListItem extends BaseListItem {
   /**
@@ -26,5 +27,24 @@ export default class TreasureListItem extends BaseListItem {
    */
   get hidden() {
     return Boolean(this.data.hidden);
+  }
+
+  /**
+   * Availability line text (e.g. "Available: 3 / 10") for capped treasures
+   * (`max_units` set), or `null` when the treasure is uncapped, matching the
+   * guard `TreasureCardHelper` used before this list migrated onto the shared
+   * `ListPage` abstraction. `TreasureCardHelper#renderAvailability` delegates
+   * to this getter so the formatting logic has a single source of truth.
+   *
+   * @returns {string|null} Formatted availability text, or null when uncapped.
+   */
+  get availabilityText() {
+    if (this.data.max_units === null || this.data.max_units === undefined) {
+      return null;
+    }
+
+    return Translator.t('game_treasures_page.available_units_label')
+      .replace('{{available}}', this.data.available_units)
+      .replace('{{max}}', this.data.max_units);
   }
 }

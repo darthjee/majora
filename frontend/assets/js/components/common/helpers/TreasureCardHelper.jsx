@@ -6,6 +6,7 @@ import Translator from '../../../i18n/Translator.js';
 import Noop from '../../../utils/Noop.js';
 import TreasureMoney from '../TreasureMoney.jsx';
 import Icons from '../../../utils/ui/Icons.js';
+import TreasureListItem from '../listTypes/TreasureListItem.js';
 
 /**
  * Rendering helper for the TreasureCard element.
@@ -119,13 +120,11 @@ export default class TreasureCardHelper {
   }
 
   static #renderAvailability(treasure) {
-    if (treasure.max_units === null || treasure.max_units === undefined) {
+    const label = new TreasureListItem(treasure).availabilityText;
+
+    if (!label) {
       return null;
     }
-
-    const label = Translator.t('game_treasures_page.available_units_label')
-      .replace('{{available}}', treasure.available_units)
-      .replace('{{max}}', treasure.max_units);
 
     return <p className="card-text text-muted small mb-0">{label}</p>;
   }

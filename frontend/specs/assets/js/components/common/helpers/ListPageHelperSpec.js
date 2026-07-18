@@ -97,6 +97,21 @@ describe('ListPageHelper', function() {
       );
       expect(html).toContain('bi-eye-slash-fill');
     });
+
+    it('renders the availability line under the caption for capped treasures', function() {
+      const capped = { ...treasures[0], available_units: 3, max_units: 10 };
+      const html = renderToStaticMarkup(
+        ListPageHelper.render('treasures', [capped], pagination, '#/games/demo/treasures', baseContext)
+      );
+      expect(html).toContain('Available: 3 / 10');
+    });
+
+    it('does not render an availability line for uncapped treasures', function() {
+      const html = renderToStaticMarkup(
+        ListPageHelper.render('treasures', treasures, pagination, '#/games/demo/treasures', baseContext)
+      );
+      expect(html).not.toContain('Available:');
+    });
   });
 
   describe('.renderLoading', function() {

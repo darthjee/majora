@@ -100,6 +100,9 @@ export default class ListPageHelper {
           </a>
         </h6>
         {item.formattedValue && <p className="card-text text-muted mb-0">{item.formattedValue}</p>}
+        {item.availabilityText && (
+          <p className="card-text text-muted small mb-0">{item.availabilityText}</p>
+        )}
       </div>
     );
   }

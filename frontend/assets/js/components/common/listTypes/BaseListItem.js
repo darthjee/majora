@@ -43,4 +43,15 @@ export default class BaseListItem {
   get formattedValue() {
     return null;
   }
+
+  /**
+   * Optional availability line text (e.g. "Available: X / Y" for capped
+   * treasures) shown below the caption, alongside `formattedValue`. `null`
+   * when the entity type has none.
+   *
+   * @returns {string|null} Availability text, or null.
+   */
+  get availabilityText() {
+    return null;
+  }
 }

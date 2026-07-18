@@ -50,4 +50,36 @@ describe('TreasureListItem', function() {
       expect(item.hidden).toBe(false);
     });
   });
+
+  describe('#availabilityText', function() {
+    it('is null when max_units is absent', function() {
+      const item = new TreasureListItem({ id: 1, name: 'Golden Crown', value: 500 });
+
+      expect(item.availabilityText).toBeNull();
+    });
+
+    it('is null when max_units is null', function() {
+      const item = new TreasureListItem({
+        id: 1, name: 'Golden Crown', value: 500, available_units: null, max_units: null,
+      });
+
+      expect(item.availabilityText).toBeNull();
+    });
+
+    it('formats the available/max units when max_units is present', function() {
+      const item = new TreasureListItem({
+        id: 1, name: 'Golden Crown', value: 500, available_units: 3, max_units: 10,
+      });
+
+      expect(item.availabilityText).toBe('Available: 3 / 10');
+    });
+
+    it('formats the line even when available_units is 0', function() {
+      const item = new TreasureListItem({
+        id: 1, name: 'Golden Crown', value: 500, available_units: 0, max_units: 10,
+      });
+
+      expect(item.availabilityText).toBe('Available: 0 / 10');
+    });
+  });
 });
