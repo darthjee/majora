@@ -15,19 +15,21 @@ describe('HeaderHelper', function() {
         expect(html).toContain('href="#/games/epic-quest/photos"');
       });
 
-      it('does not render the Polls/Sessions items when gameAccess grants no role', function() {
+      it('does not render the Players/Polls/Sessions items when gameAccess grants no role', function() {
         const html = render({
           route: { page: 'game', gameSlug: 'epic-quest' },
           gameAccess: { is_dm: false, is_player: false, is_superuser: false, is_staff: false },
         });
 
+        expect(html).not.toContain('href="#/games/epic-quest/players"');
         expect(html).not.toContain('href="#/games/epic-quest/polls"');
         expect(html).not.toContain('href="#/games/epic-quest/sessions"');
       });
 
-      it('does not render the Polls/Sessions items when gameAccess is absent', function() {
+      it('does not render the Players/Polls/Sessions items when gameAccess is absent', function() {
         const html = render({ route: { page: 'game', gameSlug: 'epic-quest' }, gameAccess: undefined });
 
+        expect(html).not.toContain('href="#/games/epic-quest/players"');
         expect(html).not.toContain('href="#/games/epic-quest/polls"');
         expect(html).not.toContain('href="#/games/epic-quest/sessions"');
       });
@@ -38,9 +40,10 @@ describe('HeaderHelper', function() {
         { role: 'is_superuser', gameAccess: { is_dm: false, is_player: false, is_superuser: true, is_staff: false } },
         { role: 'is_staff', gameAccess: { is_dm: false, is_player: false, is_superuser: false, is_staff: true } },
       ].forEach(({ role, gameAccess }) => {
-        it(`renders the Polls/Sessions items when the user is ${role}`, function() {
+        it(`renders the Players/Polls/Sessions items when the user is ${role}`, function() {
           const html = render({ route: { page: 'game', gameSlug: 'epic-quest' }, gameAccess });
 
+          expect(html).toContain('href="#/games/epic-quest/players"');
           expect(html).toContain('href="#/games/epic-quest/polls"');
           expect(html).toContain('href="#/games/epic-quest/sessions"');
         });

@@ -23,8 +23,19 @@ may be linked to a Django `User` account (`player.user`). A `Player` without a l
 `User` is a named participant with no login identity.
 
 A Player belongs to exactly one game (`Player.game` FK). Within a game, a Player owns
-zero or more characters. A Player's `is_dm` flag marks them as that game's DM/GameMaster
-— see [GameMaster Role](#gamemaster-role) below.
+zero or one characters — enforced at the database level by a plain `UniqueConstraint` on
+`Character.player` (`unique_player_character`, issue #589), narrowed from the previous
+"zero or more" since nothing else in the model ever assumed a Player could own more than
+one PC. No `condition=` clause is used (unlike a typical "partial unique" pattern) since
+MySQL, this project's database, doesn't support Django's conditional unique constraints —
+a plain constraint already suffices here, since MySQL's standard unique-index semantics
+already treat every `NULL` as distinct, so any number of NPCs/unowned PCs sharing
+`player=None` remain unaffected. A Player's `is_dm` flag marks them as that game's
+DM/GameMaster — see [GameMaster Role](#gamemaster-role) below.
+
+A game's full roster (its DM(s) and players, alongside each player's owned PC and linked
+`User`, if any) is exposed via `GET /games/:game_slug/players.json` — see
+[access-control/player.md](access-control/player.md) (issue #589).
 
 ### User (Account)
 
@@ -155,18 +166,27 @@ of issue #286). Today that means:
   [endpoints.md](access-control/endpoints.md)); the Treasure surface generalizes the same
   policy rather than inventing a new one.
 
-Staff gains **no** authority over any game-scoped resource — Character, Player,
-GameSession, Task, or the `/games/:game_slug/treasures*` routes remain governed solely by
-GameMaster/Superuser, never Staff. Staff also never reaches into
+Staff gains **no** authority over any game-scoped **editing** action — Character,
+GameSession, Task, or the `/games/:game_slug/treasures*` write routes remain governed
+solely by GameMaster/Superuser, never Staff. Staff also never reaches into
 Django-admin-only actions (e.g. Treasure or Game deletion — see
 [access-control.md](access-control.md)'s existing admin carve-out), regardless of how far
 the Staff role's endpoint-level parity with Superuser grows.
 
-The one explicit, named exception to this game-scoped carve-out (issue #619): Staff may
-upload a photo for a **PC** (`POST /games/:game_slug/pcs/:id/photo_upload.json`), for any
-game, without being a player or GameMaster of that game. This does not extend to NPC photo
-upload (`NpcPlayerEditPermission` is unchanged and still has no Staff bypass) nor to any
-other game-scoped resource.
+Two explicit, named exceptions to this game-scoped carve-out exist:
+
+- (Issue #619) Staff may upload a photo for a **PC**
+  (`POST /games/:game_slug/pcs/:id/photo_upload.json`), for any game, without being a
+  player or GameMaster of that game. This does not extend to NPC photo upload
+  (`NpcPlayerEditPermission` is unchanged and still has no Staff bypass) nor to any other
+  game-scoped resource.
+- (Issue #589) Staff may list a game's **players roster**
+  (`GET /games/:game_slug/players.json`), for any game, without being a player or
+  GameMaster of that game — `PlayerPermission`, the same `is_superuser or is_staff or
+  game.players.filter(user=user).exists()` shape already used by `PollPermission`/
+  `SessionMessagePermission`'s view checks. This is read-only (List is the only endpoint
+  `Player` exposes) and does not grant Staff any edit capability over `Player` or
+  `Character` rows.
 
 ---
 
@@ -238,8 +258,10 @@ link entirely for a caller who isn't authorized, independently of the existing `
 | Editing rights | Superuser OR owner OR GameMaster of same game |
 | PC vs NPC | `npc=False` → PC (has player); `npc=True` → NPC (no player) |
 | Player account link | `Player.user` nullable — player without a login has no owner |
-| Staff role | `user.is_staff` — global; full parity with Superuser on any non-game-scoped endpoint (User management, global Treasure management); no authority over game-scoped resources or Django-admin-only actions |
+| Player PC ownership | Zero or one — `unique_player_character` plain `UniqueConstraint` on `Character.player`, no `condition=` (MySQL doesn't support it; unnecessary anyway since MySQL already treats every `NULL` as distinct) (issue #589) |
+| Staff role | `user.is_staff` — global; full parity with Superuser on any non-game-scoped endpoint (User management, global Treasure management); no authority over game-scoped editing, with two named read-only exceptions (PC photo upload init, Player roster List) |
 | NPC narrow player PATCH | Any player of the game (via `Player.games`), in addition to the Editing rights above — NPC-only; `public_description`, `links`, `allegiance` (→`public_allegiance`), `slain` (→`public_slain`) fields only |
 | NPC photo upload (init/finalize) | Any player of the game (via `Player.games`), in addition to the Editing rights above — NPC-only, same `NpcPlayerEditPermission` as the narrow player PATCH row above (issue #429) |
 | PC photo upload (init) | Any player of the game (via `Player.games`), OR any Staff account (`user.is_staff`, global), in addition to the Editing rights above — PC-only, new `CharacterPhotoUploadPermission` (issue #619); full PC editing still uses `CharacterEditPermission` unchanged |
 | Character money edit | Editing rights above (superuser, owner, GameMaster), OR any Staff account (`user.is_staff`, global), OR — PC-only — any player of the game (issue #625); NPCs get no player leniency, staying admin/dm/staff-only; `CharacterMoneyEditPermission` (issue #615), gates `PUT .../pcs/<id>/money.json` and `PUT .../npcs/<id>/money.json`, plus the `can_edit_money` read field |
+| Player roster List | Player of the game, GameMaster, Superuser, OR any Staff account (`user.is_staff`, global) — `PlayerPermission` (issue #589), gates `GET /games/:game_slug/players.json`; read-only, List is the only endpoint `Player` exposes |

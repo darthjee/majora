@@ -3,6 +3,7 @@
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 
 from games.models import Character
@@ -278,3 +279,30 @@ class TestCharacterCanBeEditedByRoles(TestCase):
         """Test that the owner role never flips can_edit to True for an NPC."""
         npc = CharacterFactory(name='Gandalf', game=self.game, npc=True)
         assert npc.can_be_edited_by_roles(is_superuser=False, is_dm=False, is_owner=True) is False
+
+
+class TestCharacterUniquePlayerConstraint(TestCase):
+    """Tests for the unique_player_character DB constraint."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up a game and a player already owning one PC."""
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.player = PlayerFactory(name='Bob', game=cls.game)
+        cls.pc = CharacterFactory(name='Aragorn', game=cls.game, player=cls.player, npc=False)
+
+    def test_second_pc_for_same_player_raises_integrity_error(self):
+        """Test that assigning a second PC to an already-owning player raises IntegrityError."""
+        with pytest.raises(IntegrityError):
+            with transaction.atomic():
+                CharacterFactory(name='Boromir', game=self.game, player=self.player, npc=False)
+
+    def test_multiple_characters_with_no_player_are_allowed(self):
+        """Test that several characters with player=None do not violate the constraint."""
+        CharacterFactory(name='Gandalf', game=self.game, npc=True)
+        CharacterFactory(name='Saruman', game=self.game, npc=True)
+
+    def test_second_player_can_own_a_different_pc(self):
+        """Test that a different player can still own their own PC."""
+        other_player = PlayerFactory(name='Alice', game=self.game)
+        CharacterFactory(name='Legolas', game=self.game, player=other_player, npc=False)
