@@ -27,11 +27,15 @@ import Noop from '../../utils/Noop.js';
  *   after a modal success or a filter change), without remounting the component.
  * @param {Function} [props.onCanEditChange] - Called whenever the resolved edit permission
  *   changes, so the owning page can gate its own page-level actions.
+ * @param {Function} [props.onItemsChange] - Called with the freshly fetched raw items whenever
+ *   they change, so an owning page can read back the currently loaded page (e.g. the character
+ *   treasures page cross-references it for the treasure exchange modal's "already owned"
+ *   indicator) without this component having to expose its internal state directly.
  * @returns {React.ReactElement} Rendered list page body.
  */
 export default function ListPage({
   type, gameSlug, basePath, loadingMessage, context = {}, filtersProps = {}, activeFilters = {},
-  refreshToken = 0, onCanEditChange = Noop.noop,
+  refreshToken = 0, onCanEditChange = Noop.noop, onItemsChange = Noop.noop,
 }) {
   const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, perPage: 10 });
@@ -44,10 +48,17 @@ export default function ListPage({
     onCanEditChange(value);
   };
 
-  // handleCanEditChange is intentionally left out of the deps below: it's recreated every
-  // render, but only type/gameSlug should force a new controller.
+  const handleItemsChange = (value) => {
+    setItems(value);
+    onItemsChange(value);
+  };
+
+  // handleCanEditChange/handleItemsChange are intentionally left out of the deps below: they're
+  // recreated every render, but only type/gameSlug should force a new controller.
   const controller = useMemo(
-    () => new ListPageController(type, gameSlug, setItems, setPagination, setLoading, setError, handleCanEditChange),
+    () => new ListPageController(
+      type, gameSlug, handleItemsChange, setPagination, setLoading, setError, handleCanEditChange,
+    ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [type, gameSlug],
   );

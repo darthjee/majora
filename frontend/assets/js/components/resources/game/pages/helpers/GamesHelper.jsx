@@ -1,10 +1,7 @@
 import React from 'react';
-import ErrorAlert from '../../../../common/ErrorAlert.jsx';
-import GameCard from '../elements/GameCard.jsx';
-import LoadingMessage from '../../../../common/LoadingMessage.jsx';
+import ListPage from '../../../../common/ListPage.jsx';
 import NewButton from '../../../../common/NewButton.jsx';
 import PageActions from '../../../../common/PageActions.jsx';
-import Pagination from '../../../../common/Pagination.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**
@@ -12,57 +9,30 @@ import Translator from '../../../../../i18n/Translator.js';
  */
 export default class GamesHelper {
   /**
-   * Render the games grid with pagination.
+   * Render the games page: header (back button, "New Game" action, gated on `loggedIn`) and the
+   * shared `ListPage` grid (type `games`).
    *
-   * @param {object[]} games - List of game objects.
-   * @param {object} pagination - Pagination metadata.
-   * @param {number} pagination.page - Current page.
-   * @param {number} pagination.pages - Total pages.
-   * @param {number} pagination.perPage - Items per page.
-   * @param {boolean} loggedIn - Whether the user is currently logged in.
-   * @returns {React.ReactElement} Games grid with pagination.
+   * @param {boolean} loggedIn - Whether the current user is logged in, gating the "New Game" button.
+   * @returns {React.ReactElement} Rendered games page.
    */
-  static render(games, pagination, loggedIn) {
+  static render(loggedIn) {
     return (
-      <div className="container mt-4">
-        <PageActions backHref="#/">
-          {loggedIn && (
-            <NewButton href="#/games/new">
-              {Translator.t('games_page.new_game')}
-            </NewButton>
-          )}
-        </PageActions>
-        <div className="row">
-          {games.map((game) => (
-            <GameCard key={game.game_slug} game={game} />
-          ))}
+      <>
+        <div className="container mt-4">
+          <PageActions backHref="#/">
+            {loggedIn && (
+              <NewButton href="#/games/new">
+                {Translator.t('games_page.new_game')}
+              </NewButton>
+            )}
+          </PageActions>
         </div>
-        <Pagination
-          currentPage={pagination.page}
-          totalPages={pagination.pages}
-          perPage={pagination.perPage}
+        <ListPage
+          type="games"
           basePath="#/games"
+          loadingMessage={Translator.t('games_page.loading')}
         />
-      </div>
+      </>
     );
-  }
-
-  /**
-   * Render the loading state.
-   *
-   * @returns {React.ReactElement} Loading message.
-   */
-  static renderLoading() {
-    return <LoadingMessage message={Translator.t('games_page.loading')} />;
-  }
-
-  /**
-   * Render the error state.
-   *
-   * @param {string} error - Error message.
-   * @returns {React.ReactElement} Error alert.
-   */
-  static renderError(error) {
-    return <ErrorAlert error={error} />;
   }
 }

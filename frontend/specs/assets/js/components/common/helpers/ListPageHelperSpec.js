@@ -145,6 +145,31 @@ describe('ListPageHelper', function() {
     });
   });
 
+  describe('npcs (a list type with a per-item buildCardClassName hook)', function() {
+    const npcs = [
+      { id: 1, name: 'Goblin', allegiance: 'enemy' },
+      { id: 2, name: 'Villager', allegiance: 'ally' },
+    ];
+    const npcContext = { gameSlug: 'demo', canEdit: false };
+
+    it('appends the allegiance border class to the outer card div', function() {
+      const html = renderToStaticMarkup(
+        ListPageHelper.render('npcs', npcs, pagination, '#/games/demo/npcs', npcContext)
+      );
+      expect(html).toContain('border border-danger');
+      expect(html).toContain('border border-success');
+    });
+  });
+
+  describe('treasures (a list type with no buildCardClassName hook)', function() {
+    it('renders the outer card div without any extra class name', function() {
+      const html = renderToStaticMarkup(
+        ListPageHelper.render('treasures', treasures, pagination, '#/games/demo/treasures', baseContext)
+      );
+      expect(html).toContain('class="card h-100 position-relative"');
+    });
+  });
+
   describe('.renderLoading', function() {
     it('renders the given loading message', function() {
       const html = renderToStaticMarkup(ListPageHelper.renderLoading('Loading treasures...'));
