@@ -89,8 +89,8 @@ export default class TreasureClient extends BaseClient {
    * @param {string|null} token - Authentication token, if any.
    * @param {{page: number, perPage: number, maxValue: number|null, search: string,
    *   ordering: string}} [params] - Query params. `search` is a case-insensitive
-   *   substring match on the treasure name. `ordering` is `'asc'` or `'desc'`
-   *   (defaults to `'asc'` on the backend).
+   *   substring match on the treasure name, sent as the endpoint's `name` query param.
+   *   `ordering` is `'asc'` or `'desc'` (defaults to `'asc'` on the backend).
    * @returns {Promise<Response>} fetch response from the game treasures endpoint.
    */
   fetchGameTreasuresPage(gameSlug, token, { page, perPage, maxValue, search, ordering } = {}) {
@@ -99,7 +99,7 @@ export default class TreasureClient extends BaseClient {
     if (page) queryParams.set('page', page);
     if (perPage) queryParams.set('per_page', perPage);
     if (maxValue !== undefined && maxValue !== null) queryParams.set('max_value', maxValue);
-    if (search) queryParams.set('search', search);
+    if (search) queryParams.set('name', search);
     if (ordering) queryParams.set('ordering', ordering);
 
     const query = queryParams.toString();
@@ -119,8 +119,8 @@ export default class TreasureClient extends BaseClient {
    * @param {string|null} token - Authentication token, if any.
    * @param {{page: number, perPage: number, maxValue: number|null, search: string,
    *   ordering: string}} [params] - Query params. `search` is a case-insensitive
-   *   substring match on the treasure name. `ordering` is `'asc'` or `'desc'`
-   *   (defaults to `'asc'` on the backend).
+   *   substring match on the treasure name, sent as the endpoint's `name` query param.
+   *   `ordering` is `'asc'` or `'desc'` (defaults to `'asc'` on the backend).
    * @returns {Promise<Response>} fetch response from the game treasures/all endpoint.
    */
   fetchGameTreasuresAllPage(gameSlug, token, { page, perPage, maxValue, search, ordering } = {}) {
@@ -129,7 +129,7 @@ export default class TreasureClient extends BaseClient {
     if (page) queryParams.set('page', page);
     if (perPage) queryParams.set('per_page', perPage);
     if (maxValue !== undefined && maxValue !== null) queryParams.set('max_value', maxValue);
-    if (search) queryParams.set('search', search);
+    if (search) queryParams.set('name', search);
     if (ordering) queryParams.set('ordering', ordering);
 
     const query = queryParams.toString();

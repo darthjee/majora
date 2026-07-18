@@ -69,13 +69,13 @@ describe('CharacterClient', function() {
       }));
     });
 
-    it('includes the search query param when provided', async function() {
+    it('sends the search value as the name query param when provided', async function() {
       const client = new CharacterClient();
 
       await client.fetchTreasuresPage('pcs', 'demo', '2', 'abc123', { page: 1, perPage: 10, search: 'sword' });
 
       expect(fetchSpy).toHaveBeenCalledWith(
-        '/games/demo/pcs/2/treasures.json?page=1&per_page=10&search=sword',
+        '/games/demo/pcs/2/treasures.json?page=1&per_page=10&name=sword',
         jasmine.objectContaining({
           method: 'GET',
           headers: {

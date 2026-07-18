@@ -25,6 +25,7 @@ KINDS.forEach(({ label, Controller, kind, isPc, money }) => {
           json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
         }));
         spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+        spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
         const controller = new Controller(
           jasmine.createSpy('setTreasures'),
@@ -42,7 +43,7 @@ KINDS.forEach(({ label, Controller, kind, isPc, money }) => {
 
         expect(characterClient.fetchCharacter).toHaveBeenCalledWith(kind, 'demo', '2', null);
         expect(setCharacter).toHaveBeenCalledWith({
-          id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'dnd', can_edit: true,
+          id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'dnd', can_edit: true, game_can_edit: true,
         });
       });
 
@@ -80,6 +81,7 @@ KINDS.forEach(({ label, Controller, kind, isPc, money }) => {
           json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
         }));
         spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+        spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
         const controller = new Controller(
           jasmine.createSpy('setTreasures'),

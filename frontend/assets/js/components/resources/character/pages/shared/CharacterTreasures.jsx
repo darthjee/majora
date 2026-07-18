@@ -3,6 +3,8 @@ import CharacterTreasuresHelper from '../helpers/CharacterTreasuresHelper.jsx';
 import TreasureExchangeModal from '../elements/TreasureExchangeModal.jsx';
 import mergeCharacterTreasureQuantity from '../../../../../utils/money/mergeCharacterTreasureQuantity.js';
 import FacadeRefresh from '../../../../../utils/access/useFacadeRefresh.js';
+import TreasureFilters from '../../../treasure/pages/elements/TreasureFilters.jsx';
+import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js';
 
 /**
  * Applies the result of a successful treasure exchange: re-fetches the character (so its
@@ -22,10 +24,15 @@ export function applyExchangeSuccess(controller, setTreasures, { treasureId, tre
 
 /**
  * Builds the character context object passed to the treasure exchange modal,
- * threading through the game-scoped ids and the DM/admin `canEdit` flag (issue #632)
- * so the modal's Acquire tab routes through the `all.json` endpoints — letting a DM
- * browse and acquire hidden treasures on behalf of the character — instead of always
- * hitting the player-facing, hidden-filtered ones.
+ * threading through the game-scoped ids and the DM/admin `canEdit` flag (issue #632,
+ * fixed to source from game-level permissions by issue #641) so the modal's Acquire
+ * tab routes through the `all.json` endpoints — letting a DM browse and acquire
+ * hidden treasures on behalf of the character — instead of always hitting the
+ * player-facing, hidden-filtered ones. Sourced from `character.game_can_edit`
+ * (game-level, DM/superuser only, via `AccessStore.ensureGamePermissions`) rather
+ * than `character.can_edit` (character-level, also `true` for a PC's own owning
+ * player), since only the former matches what the `all.json` endpoints actually
+ * authorize.
  *
  * @param {string|number} characterId - Character id.
  * @param {string} gameSlug - Game slug the character belongs to.
@@ -39,7 +46,7 @@ export function buildExchangeCharacter(characterId, gameSlug, isPc, character) {
     game_slug: gameSlug,
     is_pc: isPc,
     money: character?.money ?? 0,
-    canEdit: character?.can_edit,
+    canEdit: character?.game_can_edit,
   };
 }
 
@@ -49,7 +56,8 @@ export function buildExchangeCharacter(characterId, gameSlug, isPc, character) {
  * @description Accepts a type-specific controller class, hash param extractor, and
  *   character kind as props, so NPC and PC treasures pages can share identical logic.
  * @param {object} props - Component props.
- * @param {Function} props.ControllerClass - Treasures controller class to instantiate.
+ * @param {Function} props.ControllerClass - Treasures controller class to instantiate, also
+ *   used statically to build the filter-query hash via `ControllerClass.buildFilterQueryHash`.
  * @param {Function} props.getParamsFromHash - Hash-parsing function for this character type.
  * @param {string} props.characterKind - Character kind URL segment (`'pcs'` or `'npcs'`).
  * @param {boolean} props.isPc - Whether the character is a PC (vs. an NPC), passed through
@@ -78,8 +86,19 @@ export default function CharacterTreasures({ ControllerClass, getParamsFromHash,
   const basePath = `#/games/${gameSlug}/${characterKind}/${characterId}/treasures`;
   const backHref = `#/games/${gameSlug}/${characterKind}/${characterId}`;
   const gameType = character?.game_type ?? 'dnd';
+  const activeFilters = Object.fromEntries(new HashRouteResolver().getFilterParams());
 
   const handleExchangeSuccess = (payload) => applyExchangeSuccess(controller, setTreasures, payload);
+
+  const handleFilterQuery = (filters) => {
+    window.location.hash = ControllerClass.buildFilterQueryHash(basePath, filters);
+    controller.buildEffect()();
+  };
+
+  const handleFilterClear = () => {
+    window.location.hash = basePath;
+    controller.buildEffect()();
+  };
 
   if (loading) return CharacterTreasuresHelper.renderLoading();
   if (error) return CharacterTreasuresHelper.renderError(error);
@@ -88,7 +107,8 @@ export default function CharacterTreasures({ ControllerClass, getParamsFromHash,
     <>
       {CharacterTreasuresHelper.render(
         treasures, pagination, basePath, backHref, character?.can_edit,
-        () => setShowExchangeModal(true), gameType,
+        () => setShowExchangeModal(true), gameType, activeFilters,
+        <TreasureFilters onQuery={handleFilterQuery} onClear={handleFilterClear} showGameType={false} />,
       )}
       <TreasureExchangeModal
         show={showExchangeModal}

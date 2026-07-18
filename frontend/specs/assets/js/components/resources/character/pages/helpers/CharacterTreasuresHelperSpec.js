@@ -1,3 +1,4 @@
+import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterTreasuresHelper
   from '../../../../../../../../assets/js/components/resources/character/pages/helpers/CharacterTreasuresHelper.jsx';
@@ -93,6 +94,28 @@ describe('CharacterTreasuresHelper', function() {
       button.props.onClick();
 
       expect(onAddTreasure).toHaveBeenCalled();
+    });
+
+    it('renders the given filter bar above the treasures grid', function() {
+      const html = renderToStaticMarkup(
+        CharacterTreasuresHelper.render(
+          treasures, pagination, '#/games/demo/pcs/1/treasures', '#/games/demo/pcs/1', false, undefined, 'dnd', {},
+          React.createElement('div', { 'data-testid': 'treasure-filters' }, 'filters'),
+        )
+      );
+
+      expect(html).toContain('data-testid="treasure-filters"');
+    });
+
+    it('preserves active filters on pagination links', function() {
+      const html = renderToStaticMarkup(
+        CharacterTreasuresHelper.render(
+          treasures, pagination, '#/games/demo/pcs/1/treasures', '#/games/demo/pcs/1', false, undefined, 'dnd',
+          { name: 'sword' },
+        )
+      );
+
+      expect(html).toContain('name=sword');
     });
   });
 

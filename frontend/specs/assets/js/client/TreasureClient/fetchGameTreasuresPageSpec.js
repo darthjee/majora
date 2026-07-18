@@ -53,7 +53,7 @@ describe('TreasureClient', function() {
       }));
     });
 
-    it('includes search and ordering query params when provided', async function() {
+    it('sends the search value as the name query param, alongside ordering, when provided', async function() {
       const client = new TreasureClient();
 
       await client.fetchGameTreasuresPage('demo', 'tok-abc', {
@@ -61,7 +61,7 @@ describe('TreasureClient', function() {
       });
 
       expect(fetchSpy).toHaveBeenCalledWith(
-        '/games/demo/treasures.json?page=1&per_page=10&search=sword&ordering=desc',
+        '/games/demo/treasures.json?page=1&per_page=10&name=sword&ordering=desc',
         jasmine.objectContaining({
           method: 'GET',
           headers: {
