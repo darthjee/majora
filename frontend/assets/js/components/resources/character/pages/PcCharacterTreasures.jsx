@@ -1,5 +1,4 @@
 import CharacterTreasures from './shared/CharacterTreasures.jsx';
-import PcCharacterTreasuresController from './controllers/PcCharacterTreasuresController.js';
 
 /**
  * PC character Treasures index page.
@@ -7,12 +6,5 @@ import PcCharacterTreasuresController from './controllers/PcCharacterTreasuresCo
  * @returns {React.ReactElement} PC character treasures page element.
  */
 export default function PcCharacterTreasures() {
-  return (
-    <CharacterTreasures
-      ControllerClass={PcCharacterTreasuresController}
-      getParamsFromHash={PcCharacterTreasuresController.getPcCharacterTreasuresParamsFromHash}
-      characterKind="pcs"
-      isPc
-    />
-  );
+  return <CharacterTreasures characterKind="pcs" listType="pc-treasures" isPc />;
 }
