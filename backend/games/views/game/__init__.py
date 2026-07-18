@@ -36,9 +36,11 @@ from .pcs import (
     game_pc_treasures,
     game_pcs,
 )
+from .players import game_players
 
 __all__ = [
     'game_pcs',
+    'game_players',
     'game_npcs',
     'game_npc_detail',
     'game_npcs_all',

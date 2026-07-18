@@ -10,6 +10,7 @@ from games.permissions import (
     CharacterMoneyEditPermission,
     GameEditPermission,
     NpcPlayerEditPermission,
+    PlayerPermission,
     SessionMessagePermission,
     TaskEditPermission,
 )
@@ -464,3 +465,61 @@ class TestSessionMessagePermissionCheckCreate(TestCase):
         """Test that a DM of the game passes the check."""
         request = _make_request(self.dm_user)
         assert SessionMessagePermission.check_create(request, self.session) is None
+
+
+class TestPlayerPermissionCheck(TestCase):
+    """Tests for PlayerPermission.check()."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up a game, a DM, and a player."""
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
+        cls.player_user = UserFactory(username='player_user', password='secret-password')
+        cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
+
+    def test_returns_401_response_for_anonymous_user(self):
+        """Test that an anonymous user gets a 401 error response."""
+        request = _make_request(AnonymousUser())
+        response = PlayerPermission.check(request, self.game)
+        assert response.status_code == 401
+        assert response.data == {'errors': {'detail': ['authentication required']}}
+
+    def test_returns_401_response_for_none_user(self):
+        """Test that a None user gets a 401 error response."""
+        request = _make_request(None)
+        response = PlayerPermission.check(request, self.game)
+        assert response.status_code == 401
+
+    def test_returns_403_response_for_outsider(self):
+        """Test that a user unrelated to the game gets a 403 error response."""
+        outsider = UserFactory(username='outsider', password='secret-password')
+        request = _make_request(outsider)
+        response = PlayerPermission.check(request, self.game)
+        assert response.status_code == 403
+        assert response.data == {'errors': {'detail': ['not allowed']}}
+
+    def test_returns_none_for_player(self):
+        """Test that a player of the game passes the check."""
+        request = _make_request(self.player_user)
+        assert PlayerPermission.check(request, self.game) is None
+
+    def test_returns_none_for_dm(self):
+        """Test that a DM of the game passes the check."""
+        request = _make_request(self.dm_user)
+        assert PlayerPermission.check(request, self.game) is None
+
+    def test_returns_none_for_superuser(self):
+        """Test that a superuser passes the check."""
+        superuser = SuperUserFactory(username='admin', password='secret-password')
+        request = _make_request(superuser)
+        assert PlayerPermission.check(request, self.game) is None
+
+    def test_returns_none_for_staff(self):
+        """Test that a staff user passes the check."""
+        staff_user = UserFactory(username='staff_user', password='secret-password')
+        staff_user.is_staff = True
+        staff_user.save()
+        request = _make_request(staff_user)
+        assert PlayerPermission.check(request, self.game) is None

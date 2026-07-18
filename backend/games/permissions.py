@@ -215,6 +215,28 @@ class PollPermission(_EditPermission):
         )
 
 
+class PlayerPermission(_EditPermission):
+    """Encapsulate the authentication/authorization checks for a game's players list."""
+
+    @classmethod
+    def check(cls, request, game):
+        """Return an error Response if `request.user` may not view `game`'s players."""
+        unauthenticated = cls._unauthenticated_response(request)
+        if unauthenticated:
+            return unauthenticated
+        if not cls._is_allowed(request.user, game):
+            return cls._forbidden_response()
+        return None
+
+    @classmethod
+    def _is_allowed(cls, user, game):
+        """Return whether `user` is a superuser, staff, a player, or the DM of `game`."""
+        return (
+            user.is_superuser or user.is_staff
+            or game.players.filter(user=user).exists()
+        )
+
+
 class PollClosePermission(_EditPermission):
     """Encapsulate the authentication/authorization checks for closing a game poll.
 
