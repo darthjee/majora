@@ -94,5 +94,12 @@ describe('CharacterPreviewCardHelper', function() {
       expect(html).not.toContain('card-body');
       expect(html).not.toContain('>Aragorn<');
     });
+
+    it('feeds the character name to the tooltip content', function() {
+      const rendered = CharacterPreviewCardHelper.render(character, gameSlug, 'pc');
+      const tooltip = rendered.props.children;
+
+      expect(tooltip.props.content).toBe('Aragorn');
+    });
   });
 });
