@@ -6,7 +6,7 @@ from django.test import TestCase
 
 from games.serializers import MyAccountDetailSerializer
 from games.settings import Settings
-from games.tests.factories import UserFactory
+from games.tests.factories import UserFactory, UserProfileFactory
 
 
 class TestMyAccountDetailSerializer(TestCase):
@@ -18,11 +18,23 @@ class TestMyAccountDetailSerializer(TestCase):
         cls.user = UserFactory(
             username='alice', password='secret-password', email='alice@example.com'
         )
+        cls.profile = UserProfileFactory(user=cls.user, display_name='alice-display')
 
     def test_serializes_name_from_username(self):
         """Test that the name field is sourced from username."""
         data = MyAccountDetailSerializer(self.user).data
         assert data['name'] == 'alice'
+
+    def test_serializes_display_name_from_profile(self):
+        """Test that display_name is sourced from the linked UserProfile."""
+        data = MyAccountDetailSerializer(self.user).data
+        assert data['display_name'] == 'alice-display'
+
+    def test_display_name_is_none_when_profile_has_none_set(self):
+        """Test that display_name is null when the profile has no display_name set."""
+        user = UserFactory(username='eve', password='secret-password')
+        data = MyAccountDetailSerializer(user).data
+        assert data['display_name'] is None
 
     def test_serializes_email(self):
         """Test that the email field is serialized."""
@@ -45,9 +57,11 @@ class TestMyAccountDetailSerializer(TestCase):
         assert data['last_name'] == ''
 
     def test_only_exposes_expected_fields(self):
-        """Test that only name, first_name, last_name, email, and avatar_url are exposed."""
+        """Test that only the documented fields are exposed."""
         data = MyAccountDetailSerializer(self.user).data
-        assert set(data.keys()) == {'name', 'first_name', 'last_name', 'email', 'avatar_url'}
+        assert set(data.keys()) == {
+            'name', 'display_name', 'first_name', 'last_name', 'email', 'avatar_url',
+        }
 
     def test_serializes_avatar_url_from_email_hash(self):
         """Test that avatar_url is built from the Gravatar base URL and email_hash."""

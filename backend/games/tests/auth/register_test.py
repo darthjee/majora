@@ -9,7 +9,8 @@ from django.test import TestCase
 from django.utils.crypto import get_random_string
 from rest_framework.authtoken.models import Token
 
-from games.tests.factories import UserFactory
+from games.models import UserProfile
+from games.tests.factories import UserFactory, UserProfileFactory
 
 TEST_PASSWORD = get_random_string(20)
 
@@ -22,6 +23,7 @@ class TestRegisterView(TestCase):
         """Set up common test fixtures."""
         cls.valid_payload = {
             'name': 'bob',
+            'display_name': 'bob-display',
             'email': 'bob@example.com',
             'password': TEST_PASSWORD,
             'password_confirmation': TEST_PASSWORD,
@@ -50,6 +52,9 @@ class TestRegisterView(TestCase):
         assert 'token' in data
         assert User.objects.filter(username='bob', email='bob@example.com').exists()
         assert Token.objects.filter(key=data['token'], user__username='bob').exists()
+        assert UserProfile.objects.filter(
+            user__username='bob', display_name='bob-display'
+        ).exists()
 
     def test_stores_token_in_session_on_success(self):
         """Test that a successful registration stores the auth token in the session."""
@@ -61,6 +66,12 @@ class TestRegisterView(TestCase):
     def test_rejects_missing_name(self):
         """Test that registering without a name fails."""
         payload = {**self.valid_payload, 'name': ''}
+        response = self._post(self.client, payload)
+        assert response.status_code == 400
+
+    def test_rejects_missing_display_name(self):
+        """Test that registering without a display_name fails."""
+        payload = {**self.valid_payload, 'display_name': ''}
         response = self._post(self.client, payload)
         assert response.status_code == 400
 
@@ -105,6 +116,13 @@ class TestRegisterView(TestCase):
     def test_rejects_duplicate_name(self):
         """Test that registering with an already-used name fails."""
         UserFactory(username='bob', password=TEST_PASSWORD)
+        response = self._post(self.client, self.valid_payload)
+        assert response.status_code == 400
+
+    def test_rejects_duplicate_display_name(self):
+        """Test that registering with an already-used display_name fails."""
+        other_user = UserFactory(username='alice', password=TEST_PASSWORD)
+        UserProfileFactory(user=other_user, display_name='bob-display')
         response = self._post(self.client, self.valid_payload)
         assert response.status_code == 400
 

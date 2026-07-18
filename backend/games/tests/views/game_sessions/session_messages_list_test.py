@@ -14,6 +14,7 @@ from games.tests.factories import (
     PlayerFactory,
     SuperUserFactory,
     UserFactory,
+    UserProfileFactory,
 )
 
 
@@ -27,6 +28,7 @@ class TestSessionMessagesListView(TestCase):
         cls.other_game = GameFactory(name='Other Game', game_slug='other-game')
         cls.session = GameSession.objects.create(game=cls.game, title='Session One')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        UserProfileFactory(user=cls.dm_user, display_name='dm_display')
         GameMasterFactory(game=cls.game, user=cls.dm_user)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
@@ -106,9 +108,18 @@ class TestSessionMessagesListView(TestCase):
         item = data[0]
         assert set(item.keys()) == {'id', 'content', 'user', 'created_at'}
         assert item['content'] == 'Hello there'
-        assert item['user']['name'] == 'dm_user'
+        assert item['user']['name'] == 'dm_display'
         assert 'avatar_url' in item['user']
         assert set(item['user'].keys()) == {'name', 'avatar_url'}
+
+    def test_user_name_is_the_display_name_not_the_real_username(self):
+        """Test that the exposed author name never leaks the real username/login credential."""
+        GameSessionMessage.objects.create(
+            session=self.session, user=self.dm_user, content='Hello there'
+        )
+        response = self._get(token=self.dm_token)
+        data = json.loads(response.content)
+        assert data[0]['user']['name'] != self.dm_user.username
 
     def test_returns_most_recent_first(self):
         """Test that messages are returned most-recent-first."""
@@ -199,6 +210,7 @@ class TestSessionMessagesCreateView(TestCase):
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.session = GameSession.objects.create(game=cls.game, title='Session One')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        UserProfileFactory(user=cls.dm_user, display_name='dm_display')
         GameMasterFactory(game=cls.game, user=cls.dm_user)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
@@ -258,7 +270,7 @@ class TestSessionMessagesCreateView(TestCase):
         response = self._post({'content': 'Hello there'}, token=self.dm_token)
         data = json.loads(response.content)
         assert data['content'] == 'Hello there'
-        assert data['user']['name'] == 'dm_user'
+        assert data['user']['name'] == 'dm_display'
         assert 'id' in data
         assert 'created_at' in data
 
