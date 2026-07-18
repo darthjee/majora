@@ -37,6 +37,9 @@ from games.serializers.games.items.game_item_list import (
     GameItemAllListSerializer,
     GameItemListSerializer,
 )
+from games.serializers.games.players.player_character import PlayerCharacterSerializer
+from games.serializers.games.players.player_list import PlayerListSerializer
+from games.serializers.games.players.player_user import PlayerUserSerializer
 from games.serializers.games.polls.poll_create import PollCreateSerializer
 from games.serializers.games.polls.poll_detail import PollDetailSerializer
 from games.serializers.games.polls.poll_list import PollListSerializer
@@ -125,6 +128,9 @@ __all__ = [
     'NpcPlayerUpdateSerializer',
     'PcAccessSerializer',
     'PhotoUploadSerializer',
+    'PlayerCharacterSerializer',
+    'PlayerListSerializer',
+    'PlayerUserSerializer',
     'PollCreateSerializer',
     'PollDetailSerializer',
     'PollListSerializer',

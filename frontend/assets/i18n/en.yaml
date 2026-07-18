@@ -85,6 +85,7 @@ game_page:
   treasures: Treasures
   items: Items
   sessions: Sessions
+  players: Players
   see_all_photos: Photos
   next_session_title: Next Session
   no_next_session: No upcoming session scheduled.
@@ -93,6 +94,8 @@ game_page:
   view_polls: View polls
 game_characters_page:
   loading: Loading...
+game_players_page:
+  loading: Loading players...
 character_page:
   loading: Loading character...
   edit: Edit

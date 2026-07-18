@@ -85,6 +85,7 @@ game_page:
   treasures: Tesouros
   items: Itens
   sessions: Sessões
+  players: Jogadores
   see_all_photos: Fotos
   next_session_title: Próxima Sessão
   no_next_session: Nenhuma sessão futura agendada.
@@ -93,6 +94,8 @@ game_page:
   view_polls: Ver enquetes
 game_characters_page:
   loading: Carregando...
+game_players_page:
+  loading: Carregando jogadores...
 character_page:
   loading: Carregando personagem...
   edit: Editar

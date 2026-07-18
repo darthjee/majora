@@ -1,5 +1,6 @@
 import Navbar from 'react-bootstrap/cjs/Navbar.js';
 import Nav from 'react-bootstrap/cjs/Nav.js';
+import NavDropdown from 'react-bootstrap/cjs/NavDropdown.js';
 import Container from 'react-bootstrap/cjs/Container.js';
 import LanguageSelector from '../../misc/LanguageSelector.jsx';
 import ResilienceIndicator from '../../misc/ResilienceIndicator.jsx';
@@ -98,9 +99,23 @@ export default class HeaderHelper {
           </button>
           {HeaderHelper.#renderSendTestEmailButton(state, handlers)}
           {HeaderHelper.#renderTestEmailStatus(state)}
-          <Nav.Link href="#/my_account" data-testid="my-account-link">
-            <img src={myAccountIcon} alt={Translator.t('header.my_account_alt')} />
-          </Nav.Link>
+          <NavDropdown
+            title={(
+              <img
+                src={myAccountIcon}
+                alt={Translator.t('header.my_account_alt')}
+                title={Translator.t('header.my_account_alt')}
+              />
+            )}
+            id="header-account-nav-dropdown"
+            data-testid="my-account-dropdown"
+            aria-label={Translator.t('header.my_account_alt')}
+            renderMenuOnMount
+          >
+            <NavDropdown.Item href="#/my_account" data-testid="my-account-link">
+              {Translator.t('header.my_account_alt')}
+            </NavDropdown.Item>
+          </NavDropdown>
           {HeaderHelper.#renderViewAsLink(state, handlers)}
         </>
       );

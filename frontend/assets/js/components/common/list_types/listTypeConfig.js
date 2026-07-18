@@ -12,6 +12,7 @@ import gamesListType from './configs/gamesListType.js';
 import characterListTypes from './configs/characterListTypes.js';
 import characterTreasureListTypes from './configs/characterTreasureListTypes.js';
 import globalTreasureListType from './configs/globalTreasureListType.js';
+import playersListType from './configs/playersListType.js';
 
 /**
  * Fetch a page of a game's treasures, resolving the requester's edit permission first to
@@ -189,9 +190,9 @@ function buildNullItemHref() {
 
 /**
  * Per-list-type configuration consumed by `ListPage`/`ListPageHelper`, keyed by list type
- * (`'treasures'`, `'items'`, `'pc-items'`, `'npc-items'`, `'games'`, `'pcs'`, `'npcs'`,
- * `'pc-treasures'`, `'npc-treasures'`, `'treasures-global'`), matching the existing
- * `PHOTO_COMPONENTS` precedent in `ActionsOverlay.jsx`. The `games`/`pcs`/`npcs`/
+ * (`'treasures'`, `'items'`, `'pc-items'`, `'npc-items'`, `'games'`, `'players'`, `'pcs'`,
+ * `'npcs'`, `'pc-treasures'`, `'npc-treasures'`, `'treasures-global'`), matching the existing
+ * `PHOTO_COMPONENTS` precedent in `ActionsOverlay.jsx`. The `games`/`players`/`pcs`/`npcs`/
  * `pc-treasures`/`npc-treasures`/`treasures-global` entries live in `./configs/`, split out of
  * this file to keep it under the project's max-lines limit; they are merged into this object
  * below. Each entry holds:
@@ -250,6 +251,7 @@ const listTypeConfig = {
     buildItemHref: buildNullItemHref,
   },
   games: gamesListType,
+  players: playersListType,
   ...characterListTypes,
   ...characterTreasureListTypes,
   'treasures-global': globalTreasureListType,
