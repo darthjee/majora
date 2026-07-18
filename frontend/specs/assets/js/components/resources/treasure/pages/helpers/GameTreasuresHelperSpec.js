@@ -94,7 +94,8 @@ describe('GameTreasuresHelper', function() {
     it('renders the given filter bar above the treasures grid', function() {
       const html = renderToStaticMarkup(
         GameTreasuresHelper.render(
-          treasures, pagination, '#/games/demo/treasures', 'demo', '#/games/demo', false, '', Noop.noop, {},
+          treasures, pagination, '#/games/demo/treasures', 'demo', '#/games/demo', false, '', Noop.noop,
+          Noop.noop, {},
           React.createElement('div', { 'data-testid': 'treasure-filters' }, 'filters'),
         )
       );
@@ -106,11 +107,32 @@ describe('GameTreasuresHelper', function() {
       const html = renderToStaticMarkup(
         GameTreasuresHelper.render(
           treasures, pagination, '#/games/demo/treasures', 'demo', '#/games/demo', false, '', Noop.noop,
-          { name: 'sword' },
+          Noop.noop, { name: 'sword' },
         )
       );
 
       expect(html).toContain('name=sword');
+    });
+
+    it('does not render the add treasure button when canEdit is false', function() {
+      const html = renderToStaticMarkup(
+        GameTreasuresHelper.render(
+          treasures, pagination, '#/games/demo/treasures', 'demo', '#/games/demo', false,
+          '#/games/demo/treasures/new', Noop.noop,
+        )
+      );
+      expect(html).not.toContain('Add Treasure');
+    });
+
+    it('renders the add treasure button when canEdit is true', function() {
+      const onAddClick = jasmine.createSpy('onAddClick');
+      const html = renderToStaticMarkup(
+        GameTreasuresHelper.render(
+          treasures, pagination, '#/games/demo/treasures', 'demo', '#/games/demo', true,
+          '#/games/demo/treasures/new', Noop.noop, onAddClick,
+        )
+      );
+      expect(html).toContain('Add Treasure');
     });
   });
 

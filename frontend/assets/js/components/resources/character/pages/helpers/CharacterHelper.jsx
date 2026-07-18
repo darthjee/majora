@@ -10,7 +10,9 @@ import CharacterMoney from '../elements/CharacterMoney.jsx';
 import ErrorAlert from '../../../../common/ErrorAlert.jsx';
 import LinkList from '../../../../common/LinkList.jsx';
 import LoadingMessage from '../../../../common/LoadingMessage.jsx';
-import CharacterTreasuresPreview from '../elements/CharacterTreasuresPreview.jsx';
+import PreviewSection from '../../../../common/PreviewSection.jsx';
+import TreasurePreviewCard from '../../../../common/TreasurePreviewCard.jsx';
+import { PREVIEW_LIST_TYPES } from '../../../../common/characterPreviewConstants.js';
 import CharacterPhotosPreview from '../elements/CharacterPhotosPreview.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
@@ -94,11 +96,25 @@ export default class CharacterHelper {
             <CharacterRole role={character.role} />
             <CharacterDescription description={character.public_description} />
             <CharacterDmNotes privateDescription={character.private_description} />
-            <CharacterTreasuresPreview
-              treasures={character.treasures ?? []}
-              title={Translator.t('character_page.treasures_title')}
+            <PreviewSection
+              items={character.treasures ?? []}
+              title={Translator.t(PREVIEW_LIST_TYPES.treasure.titleKey)}
               seeAllHref={`#/games/${character.game_slug}/${segment}/${character.id}/treasures`}
-              gameType={character.game_type}
+              icon={PREVIEW_LIST_TYPES.treasure.icon}
+              emptyText={Translator.t('character_treasures_preview.empty')}
+              renderItem={(treasure) => (
+                <TreasurePreviewCard
+                  key={treasure.id}
+                  treasure={{
+                    id: treasure.treasure_id,
+                    name: treasure.name,
+                    value: treasure.value,
+                    photo_path: treasure.photo_path,
+                    game_type: character.game_type,
+                  }}
+                  quantity={treasure.quantity}
+                />
+              )}
             />
           </div>
         </div>

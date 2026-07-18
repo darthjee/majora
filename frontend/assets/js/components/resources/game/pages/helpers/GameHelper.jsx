@@ -3,13 +3,14 @@ import DescriptionBox from '../../../../common/DescriptionBox.jsx';
 import EditButton from '../../../../common/EditButton.jsx';
 import PageActions from '../../../../common/PageActions.jsx';
 import ConditionalComponent from '../../../../common/ConditionalComponent.jsx';
-import CharacterPreviewSection from '../../../../common/CharacterPreviewSection.jsx';
+import PreviewSection from '../../../../common/PreviewSection.jsx';
+import CharacterPreviewCard from '../../../../common/CharacterPreviewCard.jsx';
+import { PREVIEW_LIST_TYPES } from '../../../../common/characterPreviewConstants.js';
 import ErrorAlert from '../../../../common/ErrorAlert.jsx';
 import LinkList from '../../../../common/LinkList.jsx';
 import LoadingMessage from '../../../../common/LoadingMessage.jsx';
 import OpenPollsWidget from '../elements/OpenPollsWidget.jsx';
 import Translator from '../../../../../i18n/Translator.js';
-import Icons from '../../../../../utils/ui/Icons.js';
 
 /**
  * Rendering helper for the Game detail page.
@@ -67,21 +68,33 @@ export default class GameHelper {
             </h1>
             <DescriptionBox description={game.description} />
             <LinkList links={game.links} />
-            <CharacterPreviewSection
-              characters={pcs}
-              gameSlug={game.game_slug}
-              characterType="pc"
-              title={Translator.t('game_page.player_characters')}
+            <PreviewSection
+              items={pcs}
+              title={Translator.t(PREVIEW_LIST_TYPES.pc.titleKey)}
               seeAllHref={`#/games/${game.game_slug}/pcs`}
-              icon={Icons.filePerson}
+              icon={PREVIEW_LIST_TYPES.pc.icon}
+              renderItem={(character) => (
+                <CharacterPreviewCard
+                  key={character.id}
+                  character={character}
+                  gameSlug={game.game_slug}
+                  characterType="pc"
+                />
+              )}
             />
-            <CharacterPreviewSection
-              characters={npcs}
-              gameSlug={game.game_slug}
-              characterType="npc"
-              title={Translator.t('game_page.non_player_characters')}
+            <PreviewSection
+              items={npcs}
+              title={Translator.t(PREVIEW_LIST_TYPES.npc.titleKey)}
               seeAllHref={`#/games/${game.game_slug}/npcs`}
-              icon={Icons.filePersonFill}
+              icon={PREVIEW_LIST_TYPES.npc.icon}
+              renderItem={(character) => (
+                <CharacterPreviewCard
+                  key={character.id}
+                  character={character}
+                  gameSlug={game.game_slug}
+                  characterType="npc"
+                />
+              )}
             />
           </div>
         </div>

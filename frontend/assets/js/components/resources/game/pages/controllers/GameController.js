@@ -3,7 +3,7 @@ import CharacterClient from '../../../../../client/CharacterClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/controllers/BasePageController.js';
-import { MAX_PREVIEW_CHARACTERS } from '../../../../common/characterPreviewConstants.js';
+import { MAX_PREVIEW_ITEMS, PREVIEW_LIST_TYPES } from '../../../../common/characterPreviewConstants.js';
 import Noop from '../../../../../utils/Noop.js';
 
 /**
@@ -120,7 +120,9 @@ export default class GameController extends BasePageController {
    * @returns {void}
    */
   #fetchPcsPreview(gameSlug, safeSet) {
-    this.client.fetch(`/games/${gameSlug}/pcs.json?per_page=${MAX_PREVIEW_CHARACTERS}`)
+    const endpoint = PREVIEW_LIST_TYPES.pc.buildEndpoint({ gameSlug });
+
+    this.client.fetch(`${endpoint}?per_page=${MAX_PREVIEW_ITEMS}`)
       .then((pcs) => safeSet(this.setPcs, Array.isArray(pcs) ? pcs : []))
       .catch(() => safeSet(this.setPcs, []));
   }
@@ -136,11 +138,10 @@ export default class GameController extends BasePageController {
    */
   #fetchNpcsPreview(gameSlug, safeSet) {
     const token = AuthStorage.getToken();
-    const publicFetch = this.client.fetch(
-      `/games/${gameSlug}/npcs.json?per_page=${MAX_PREVIEW_CHARACTERS}`,
-    );
+    const endpoint = PREVIEW_LIST_TYPES.npc.buildEndpoint({ gameSlug });
+    const publicFetch = this.client.fetch(`${endpoint}?per_page=${MAX_PREVIEW_ITEMS}`);
     const allFetch = token
-      ? this.characterClient.fetchNpcsAll(gameSlug, token, { per_page: MAX_PREVIEW_CHARACTERS })
+      ? this.characterClient.fetchNpcsAll(gameSlug, token, { per_page: MAX_PREVIEW_ITEMS })
       : Promise.resolve(null);
 
     Promise.allSettled([publicFetch, allFetch])

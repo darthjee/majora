@@ -295,9 +295,18 @@ game_treasures_page:
   title: Tesouros
   treasures: Tesouros
   new_treasure: Novo Tesouro
+  add_treasure: Adicionar Tesouro
   edit: Editar
   available_units_label: 'Disponível: {{available}} / {{max}}'
   hidden_label: Oculto
+add_game_treasure_modal:
+  title: Adicionar Tesouro
+  value_label: Valor
+  max_units_label: Unidades máximas
+  save: Salvar
+  load_error: Falha ao carregar tesouros. Por favor, tente novamente.
+  save_error: Não foi possível adicionar este tesouro. Por favor, tente novamente.
+  empty: Não há tesouros para adicionar.
 game_treasure_new_page:
   title: Novo Tesouro
   name_label: Nome

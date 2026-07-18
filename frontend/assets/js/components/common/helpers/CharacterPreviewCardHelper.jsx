@@ -1,5 +1,6 @@
 import React from 'react';
 import CardAvatar from '../CardAvatar.jsx';
+import CardHoverTooltip from '../CardHoverTooltip.jsx';
 import allegianceBorderClass from '../../../utils/ui/AllegianceBorder.js';
 
 /**
@@ -30,16 +31,18 @@ export default class CharacterPreviewCardHelper {
 
     return (
       <div className="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">
-        <a
-          href={`#/games/${gameSlug}/${characterType}s/${character.id}`}
-          className="text-decoration-none text-dark"
-        >
-          <div className={cardClass}>
-            <div className={photoClass}>
-              <CardAvatar url={character.profile_photo_path} alt={character.name} />
+        <CardHoverTooltip content={character.name}>
+          <a
+            href={`#/games/${gameSlug}/${characterType}s/${character.id}`}
+            className="text-decoration-none text-dark"
+          >
+            <div className={cardClass}>
+              <div className={photoClass}>
+                <CardAvatar url={character.profile_photo_path} alt={character.name} />
+              </div>
             </div>
-          </div>
-        </a>
+          </a>
+        </CardHoverTooltip>
       </div>
     );
   }

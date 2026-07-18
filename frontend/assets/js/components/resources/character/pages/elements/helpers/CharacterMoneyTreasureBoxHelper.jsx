@@ -1,6 +1,7 @@
 import React from 'react';
 import DndMoneyModel from '../../../../../../utils/money/DndMoneyModel.js';
 import Translator from '../../../../../../i18n/Translator.js';
+import Icons from '../../../../../../utils/ui/Icons.js';
 
 /**
  * Rendering helper for the CharacterMoneyTreasureBox element.
@@ -25,7 +26,7 @@ export default class CharacterMoneyTreasureBoxHelper {
 
     return (
       <div className="coin-box coin-box-treasure">
-        <span className="coin-icon" aria-hidden="true"></span>
+        <i className={`bi ${Icons.gem}`} aria-hidden="true"></i>
         <span className="coin-box-amount">{breakdown} {Translator.t('money.in_gems')}</span>
       </div>
     );

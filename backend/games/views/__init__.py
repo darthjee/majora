@@ -49,8 +49,10 @@ from .games import (
     game_permissions,
     game_photos,
     game_treasure_detail,
+    game_treasure_link,
     game_treasures,
     game_treasures_all,
+    game_treasures_missing,
     games_list,
 )
 from .health import health
@@ -75,6 +77,8 @@ __all__ = [
     'game_permissions',
     'game_treasures',
     'game_treasures_all',
+    'game_treasures_missing',
+    'game_treasure_link',
     'game_treasure_detail',
     'game_photos',
     'game_pcs',

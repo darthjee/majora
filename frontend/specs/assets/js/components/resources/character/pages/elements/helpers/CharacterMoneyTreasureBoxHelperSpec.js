@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterMoneyTreasureBoxHelper
   from '../../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/CharacterMoneyTreasureBoxHelper.jsx';
+import Icons from '../../../../../../../../../assets/js/utils/ui/Icons.js';
 
 describe('CharacterMoneyTreasureBoxHelper', function() {
   describe('.render', function() {
@@ -26,10 +27,11 @@ describe('CharacterMoneyTreasureBoxHelper', function() {
       expect(html).toContain('2 SP | 20 GP in Gems');
     });
 
-    it('reuses the coin-icon class', function() {
+    it('uses the bi-gem icon instead of the coin-icon class', function() {
       const html = renderToStaticMarkup(CharacterMoneyTreasureBoxHelper.render(2000));
 
-      expect(html).toContain('coin-icon');
+      expect(html).toContain(Icons.gem);
+      expect(html).not.toContain('coin-icon');
     });
   });
 });
