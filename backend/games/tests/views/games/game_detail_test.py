@@ -8,7 +8,7 @@ from rest_framework.authtoken.models import Token
 
 from games.models import GameSession, Link
 from games.tests.behaviors import DetailNotFoundBehaviorMixin, TokenAuthRequestMixin
-from games.tests.factories import GameFactory, GameMasterFactory, SuperUserFactory, UserFactory
+from games.tests.factories import GameFactory, PlayerFactory, SuperUserFactory, UserFactory
 
 
 class TestGameDetailView(DetailNotFoundBehaviorMixin, TestCase):
@@ -88,7 +88,7 @@ class TestGameDetailPatchView(TokenAuthRequestMixin, TestCase):
             description='Original description.',
         )
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
 
     def _patch(self, client, payload, token=None):

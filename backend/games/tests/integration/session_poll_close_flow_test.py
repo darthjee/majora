@@ -6,7 +6,7 @@ from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
 from games.models import GameSession, Poll
-from games.tests.factories import GameFactory, GameMasterFactory, UserFactory
+from games.tests.factories import GameFactory, PlayerFactory, UserFactory
 
 
 class TestSessionPollCloseFlow(TestCase):
@@ -18,7 +18,7 @@ class TestSessionPollCloseFlow(TestCase):
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.session = GameSession.objects.create(game=cls.game, title='Session One')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
 
     def _auth_headers(self):

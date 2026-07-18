@@ -9,8 +9,8 @@ from games.models import GameTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     GameFactory,
-    GameMasterFactory,
     GameTreasureFactory,
+    PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -25,7 +25,7 @@ class TestGameTreasureLinkView(TokenAuthRequestMixin, TestCase):
         """Set up a game, a DM, a superuser, and a regular user."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
         cls.superuser = SuperUserFactory(username='admin', password='secret-password')
         cls.superuser_token = Token.objects.create(user=cls.superuser)

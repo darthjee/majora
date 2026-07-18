@@ -9,8 +9,8 @@ from rest_framework.authtoken.models import Token
 from games.models import GameTreasure, Treasure
 from games.tests.factories import (
     GameFactory,
-    GameMasterFactory,
     GameTreasureFactory,
+    PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
     UserFactory,
@@ -408,7 +408,7 @@ class TestGameTreasuresCreate(TestCase):
         """Set up a game, a DM, a superuser, and a regular user."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
         cls.superuser = SuperUserFactory(
             username='admin', password='secret-password'
@@ -544,7 +544,7 @@ class TestGameTreasuresCreate(TestCase):
         deadlands_game = GameFactory(
             name='Deadlands Game', game_slug='deadlands-game', game_type='deadlands',
         )
-        GameMasterFactory(game=deadlands_game, user=self.dm_user)
+        PlayerFactory(game=deadlands_game, user=self.dm_user, is_dm=True)
         self._post(
             self.client, {'name': 'Bag of Cents', 'value': 100}, token=self.dm_token,
             game_slug='deadlands-game',
@@ -557,7 +557,7 @@ class TestGameTreasuresCreate(TestCase):
         deadlands_game = GameFactory(
             name='Deadlands Game 2', game_slug='deadlands-game-2', game_type='deadlands',
         )
-        GameMasterFactory(game=deadlands_game, user=self.dm_user)
+        PlayerFactory(game=deadlands_game, user=self.dm_user, is_dm=True)
         self._post(
             self.client, {'name': 'Sneaky Gem', 'value': 100, 'game_type': 'dnd'},
             token=self.dm_token, game_slug='deadlands-game-2',

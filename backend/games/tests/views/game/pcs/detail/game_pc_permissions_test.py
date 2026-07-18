@@ -9,7 +9,6 @@ from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
     UserFactory,
@@ -28,7 +27,7 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
         self.player.user = self.owner
         self.player.save()
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.character = CharacterFactory(
             name='Aragorn', game=self.game, player=self.player, npc=False
         )

@@ -32,7 +32,6 @@ from .game import (
     game_pc_treasures,
     game_pcs,
 )
-from .game_masters import game_master_detail, game_masters_list
 from .game_sessions import (
     game_session_detail,
     game_sessions_create,
@@ -109,8 +108,6 @@ __all__ = [
     'game_npc_treasure_acquire',
     'game_npc_treasure_acquire_all',
     'game_npc_treasure_sell',
-    'game_masters_list',
-    'game_master_detail',
     'game_sessions_create',
     'game_session_detail',
     'game_sessions_past',

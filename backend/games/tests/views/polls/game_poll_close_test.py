@@ -9,7 +9,6 @@ from rest_framework.authtoken.models import Token
 from games.models import GameSession, Poll, PollOption, PollVote
 from games.tests.factories import (
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     PollFactory,
     PollOptionFactory,
@@ -32,7 +31,7 @@ class TestGamePollCloseView(TestCase):
         cls.option_one = PollOptionFactory(poll=cls.poll, option='The Drunken Griffin')
         cls.option_two = PollOptionFactory(poll=cls.poll, option='The Rusty Anchor')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
         cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
@@ -264,7 +263,7 @@ class TestGamePollCloseMultipleType(TestCase):
         cls.option_b = PollOptionFactory(poll=cls.poll, option='B')
         cls.option_c = PollOptionFactory(poll=cls.poll, option='C')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
 
     def test_closing_a_multiple_type_poll_resolves_to_a_single_winner(self):
@@ -301,7 +300,7 @@ class TestGamePollCloseSessionLinked(TestCase):
         cls.option_one = PollOptionFactory(poll=cls.poll, option='2026-08-01')
         cls.option_two = PollOptionFactory(poll=cls.poll, option='2026-08-08')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=cls.game, user=cls.dm_user)
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
 
     def _patch(self, payload=None):

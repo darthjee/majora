@@ -8,7 +8,6 @@ from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
-    GameMasterFactory,
     PlayerFactory,
     SuperUserFactory,
     UserFactory,
@@ -33,7 +32,7 @@ class TestGamePcPhotoSetView(TokenAuthRequestMixin):
             path='photos/games/epic-quest/characters/1/img1.jpg', character=self.character
         )
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        GameMasterFactory(game=self.game, user=self.dm_user)
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.owner_token = Token.objects.create(user=self.owner)
         self.dm_token = Token.objects.create(user=self.dm_user)
 

@@ -180,16 +180,12 @@ class SessionMessagePermission(_EditPermission):
         return (
             user.is_superuser or user.is_staff
             or game.players.filter(user=user).exists()
-            or game.game_masters.filter(user=user).exists()
         )
 
     @classmethod
     def _can_create(cls, user, session):
         game = session.game
-        return (
-            game.players.filter(user=user).exists()
-            or game.game_masters.filter(user=user).exists()
-        )
+        return game.players.filter(user=user).exists()
 
 
 class PollPermission(_EditPermission):
@@ -215,7 +211,6 @@ class PollPermission(_EditPermission):
         return (
             user.is_superuser or user.is_staff
             or game.players.filter(user=user).exists()
-            or game.game_masters.filter(user=user).exists()
         )
 
 
@@ -262,12 +257,8 @@ class PollVotePermission(_EditPermission):
         return (
             user.is_superuser or user.is_staff
             or game.players.filter(user=user).exists()
-            or game.game_masters.filter(user=user).exists()
         )
 
     @classmethod
     def _can_vote(cls, user, game):
-        return (
-            game.players.filter(user=user).exists()
-            or game.game_masters.filter(user=user).exists()
-        )
+        return game.players.filter(user=user).exists()

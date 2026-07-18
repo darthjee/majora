@@ -13,9 +13,9 @@ is always predictable from its path alone.
    `Character` is a single model — the `npc` boolean field distinguishes a PC from an NPC,
    not a separate model or table — so `models/character/` is not further split into
    `pcs/`/`npcs/` subfolders.
-3. `models/game/` also holds `player.py`: a `Player` only exists in relation to the games
-   they're linked to, and `Game`/`Player`/`GameMaster`/`GameSession`/`GameTreasure` form one
-   tightly coupled resource group.
+3. `models/game/` also holds `player.py`: a `Player` only exists in relation to the game
+   it's linked to, and `Game`/`Player`/`GameSession`/`GameTreasure` form one tightly coupled
+   resource group. DM/GameMaster status is a `Player.is_dm` flag, not a separate model.
 4. Cross-cutting or standalone models that aren't owned by one specific resource stay at
    the top level of `models/`: `link.py` (a generic link attachable to multiple object
    types via `GenericForeignKey`), `upload.py` (a generic pending-upload record),
@@ -34,7 +34,6 @@ is always predictable from its path alone.
 | `CharacterPhoto` | `backend/games/models/character/character_photo.py` |
 | `CharacterTreasure` | `backend/games/models/character/character_treasure.py` |
 | `Game` | `backend/games/models/game/game.py` |
-| `GameMaster` | `backend/games/models/game/game_master.py` |
 | `GamePhoto` | `backend/games/models/game/game_photo.py` |
 | `GameSession` | `backend/games/models/game/game_session.py` |
 | `GameTreasure` | `backend/games/models/game/game_treasure.py` |
