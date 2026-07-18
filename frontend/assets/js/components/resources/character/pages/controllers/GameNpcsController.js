@@ -84,8 +84,7 @@ export default class GameNpcsController extends BasePageController {
         safeSet(this.setError, 'Unable to load NPCs.');
         safeSet(this.setLoading, false);
       } else {
-        this.#fetchAccess(gameSlug, safeSet);
-        this.#fetchNpcs(gameSlug, safeSet);
+        this.#loadNpcs(gameSlug, safeSet);
       }
 
       return () => {
@@ -94,72 +93,82 @@ export default class GameNpcsController extends BasePageController {
     };
   }
 
-  #fetchAccess(gameSlug, safeSet) {
+  /**
+   * Resolve the requester's game access (`is_player`, used only to gate the
+   * player-facing slain/revive button) and edit permission (facade-aware, so
+   * it reflects a "View as" simulated role), then fetch the NPC list from the
+   * single endpoint matching that resolved permission.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {Function} safeSet - Setter wrapper guarding against a stale/unmounted update.
+   * @returns {void}
+   */
+  #loadNpcs(gameSlug, safeSet) {
     Promise.all([
       AccessStore.ensureGameAccess(gameSlug),
       AccessStore.ensureGamePermissions(gameSlug),
     ])
       .then(([access, permissions]) => {
-        safeSet(this.setCanEdit, Boolean(permissions.can_edit));
+        const canEdit = Boolean(permissions.can_edit);
         safeSet(this.setIsPlayer, Boolean(access.is_player));
+        safeSet(this.setCanEdit, canEdit);
+        return this.#fetchNpcs(gameSlug, canEdit, safeSet);
       })
       .catch(() => {
-        safeSet(this.setCanEdit, false);
         safeSet(this.setIsPlayer, false);
+        safeSet(this.setCanEdit, false);
+        return this.#fetchNpcs(gameSlug, false, safeSet);
       });
   }
 
-  #fetchNpcs(gameSlug, safeSet) {
-    const token = AuthStorage.getToken();
-    const paginationParams = Object.fromEntries(this.hashResolver.getPaginationParams());
+  /**
+   * Fetch the NPC list from the single endpoint matching the resolved edit
+   * permission: the full catalog (including hidden NPCs) through
+   * `npcs/all.json` for an editor, or the player-facing `npcs.json` otherwise.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {boolean} canEdit - Whether the requester (or simulated "View as" role) can edit
+   *   the game.
+   * @param {Function} safeSet - Setter wrapper guarding against a stale/unmounted update.
+   * @returns {Promise<void>} Resolves once the NPC list request settles.
+   */
+  #fetchNpcs(gameSlug, canEdit, safeSet) {
     const filterParams = Object.fromEntries(this.hashResolver.getFilterParams());
-    const publicFetch = this.client.fetchIndex(`/games/${gameSlug}/npcs.json`, filterParams);
-    const allFetch = token
-      ? this.characterClient.fetchNpcsAll(gameSlug, token, { ...paginationParams, ...filterParams })
-      : Promise.resolve(null);
 
-    Promise.allSettled([publicFetch, allFetch])
-      .then(([publicResult, allResult]) => this.#applyNpcsResult(publicResult, allResult, safeSet))
+    if (canEdit) {
+      return this.#fetchNpcsAll(gameSlug, filterParams, safeSet);
+    }
+
+    return this.client.fetchIndex(`/games/${gameSlug}/npcs.json`, filterParams)
+      .then(({ data, pagination }) => {
+        safeSet(this.setNpcs, Array.isArray(data) ? data : []);
+        safeSet(this.setPagination, pagination);
+      })
       .catch(() => safeSet(this.setError, 'Unable to load NPCs.'))
       .finally(() => safeSet(this.setLoading, false));
   }
 
-  async #applyNpcsResult(publicResult, allResult, safeSet) {
-    const authResult = await this.#tryGetAuthNpcs(allResult);
+  #fetchNpcsAll(gameSlug, filterParams, safeSet) {
+    const token = AuthStorage.getToken();
+    const paginationParams = Object.fromEntries(this.hashResolver.getPaginationParams());
 
-    if (authResult !== null) {
-      this.#applyAuthNpcs(authResult, safeSet);
-      return;
-    }
+    return this.characterClient.fetchNpcsAll(gameSlug, token, { ...paginationParams, ...filterParams })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Unable to load NPCs.');
+        }
 
-    this.#applyPublicNpcs(publicResult, safeSet);
-  }
-
-  #applyPublicNpcs(publicResult, safeSet) {
-    if (publicResult.status === 'fulfilled') {
-      const { data, pagination } = publicResult.value;
-      safeSet(this.setNpcs, Array.isArray(data) ? data : []);
-      safeSet(this.setPagination, pagination);
-    } else {
-      throw new Error('Unable to load NPCs.');
-    }
-  }
-
-  #applyAuthNpcs(authResult, safeSet) {
-    safeSet(this.setNpcs, authResult.npcs);
-    safeSet(this.setPagination, authResult.pagination);
-  }
-
-  #tryGetAuthNpcs(allResult) {
-    if (allResult.status !== 'fulfilled' || !allResult.value?.ok) {
-      return Promise.resolve(null);
-    }
-    const response = allResult.value;
-    return response.json()
-      .then((data) => (
-        Array.isArray(data) ? { npcs: data, pagination: this.#parsePagination(response) } : null
-      ))
-      .catch(() => null);
+        return response.json().then((data) => ({
+          data: Array.isArray(data) ? data : [],
+          pagination: this.#parsePagination(response),
+        }));
+      })
+      .then(({ data, pagination }) => {
+        safeSet(this.setNpcs, data);
+        safeSet(this.setPagination, pagination);
+      })
+      .catch(() => safeSet(this.setError, 'Unable to load NPCs.'))
+      .finally(() => safeSet(this.setLoading, false));
   }
 
   #parsePagination(response) {

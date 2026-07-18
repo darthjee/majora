@@ -9,7 +9,7 @@ describe('GameNpcsController', function() {
   });
 
   describe('canEdit', function() {
-    const buildController = (setCanEdit) => {
+    const buildController = (setCanEdit, characterClient = null) => {
       const setNpcs = jasmine.createSpy('setNpcs');
       const setPagination = jasmine.createSpy('setPagination');
       const setLoading = jasmine.createSpy('setLoading');
@@ -23,21 +23,28 @@ describe('GameNpcsController', function() {
       }));
 
       return new GameNpcsController(
-        setNpcs, setPagination, setLoading, setError, client, null, setCanEdit,
+        setNpcs, setPagination, setLoading, setError, client, characterClient, setCanEdit,
       );
     };
 
     it('sets canEdit to true when the game permissions response allows editing', async function() {
       const setCanEdit = jasmine.createSpy('setCanEdit');
+      const characterClient = jasmine.createSpyObj('characterClient', ['fetchNpcsAll']);
 
+      characterClient.fetchNpcsAll.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([]),
+        headers: { get: () => null },
+      }));
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
-      const cleanup = buildController(setCanEdit).buildEffect()();
+      const cleanup = buildController(setCanEdit, characterClient).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
       expect(setCanEdit).toHaveBeenCalledWith(true);
+      expect(characterClient.fetchNpcsAll).toHaveBeenCalled();
 
       cleanup();
     });
