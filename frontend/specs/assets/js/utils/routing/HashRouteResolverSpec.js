@@ -33,6 +33,8 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/staff/users').getPage()).toBe('staffUsers');
     expect(new HashRouteResolver(() => '#/staff/users/7').getPage()).toBe('staffUser');
     expect(new HashRouteResolver(() => '#/staff/users/7/edit').getPage()).toBe('staffUserEdit');
+    expect(new HashRouteResolver(() => '#/games/campaign/players').getPage()).toBe('gamePlayers');
+    expect(new HashRouteResolver(() => '#/games/campaign/players/7').getPage()).toBe('gamePlayer');
   });
 
   it('resolves /staff/users/:id/edit to staffUserEdit, not staffUser', function() {
@@ -85,6 +87,14 @@ describe('HashRouteResolver', function() {
 
   it('resolves /games/:game_slug/photos to gamePhotos, not game', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/photos').getPage()).toBe('gamePhotos');
+  });
+
+  it('resolves /games/:game_slug/players/:id to gamePlayer, not gamePlayers', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/players/7').getPage()).toBe('gamePlayer');
+  });
+
+  it('still resolves /games/:game_slug/players to gamePlayers', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/players').getPage()).toBe('gamePlayers');
   });
 
   it('resolves /games/:game_slug/npcs/new to gameNpcNew, not npcCharacter', function() {

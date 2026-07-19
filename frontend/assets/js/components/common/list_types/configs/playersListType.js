@@ -59,13 +59,14 @@ function buildPlayerInfoBarItems(item) {
 }
 
 /**
- * Build a player's click-through href: always `null`, since players have no standalone detail
- * page in scope for this issue — `ListPageHelper` renders the caption as plain text in that case.
+ * Build a player's click-through href, linking to the player's own detail page (issue #695).
  *
- * @returns {null} Always null.
+ * @param {import('../PlayerListItem.js').default} item - Wrapped player list item.
+ * @param {{gameSlug: string}} context - Rendering context, supplying the game slug.
+ * @returns {string} Hash path to the player's detail page.
  */
-function buildPlayerItemHref() {
-  return null;
+function buildPlayerItemHref(item, context) {
+  return `#/games/${context.gameSlug}/players/${item.data.id}`;
 }
 
 /**

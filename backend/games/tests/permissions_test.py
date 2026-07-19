@@ -510,16 +510,20 @@ class TestPlayerPermissionCheck(TestCase):
         request = _make_request(self.dm_user)
         assert PlayerPermission.check(request, self.game) is None
 
-    def test_returns_none_for_superuser(self):
-        """Test that a superuser passes the check."""
+    def test_returns_403_for_superuser_who_is_not_a_player_or_dm(self):
+        """Test that a superuser with no game link gets 403 (no bypass, issue #695)."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
         request = _make_request(superuser)
-        assert PlayerPermission.check(request, self.game) is None
+        response = PlayerPermission.check(request, self.game)
+        assert response.status_code == 403
+        assert response.data == {'errors': {'detail': ['not allowed']}}
 
-    def test_returns_none_for_staff(self):
-        """Test that a staff user passes the check."""
+    def test_returns_403_for_staff_who_is_not_a_player_or_dm(self):
+        """Test that a staff user with no game link gets 403 (no bypass, issue #695)."""
         staff_user = UserFactory(username='staff_user', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
         request = _make_request(staff_user)
-        assert PlayerPermission.check(request, self.game) is None
+        response = PlayerPermission.check(request, self.game)
+        assert response.status_code == 403
+        assert response.data == {'errors': {'detail': ['not allowed']}}

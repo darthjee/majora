@@ -28,6 +28,7 @@ const ROUTES = [
   ['/games/:game_slug/pcs/:character_id', 'pcCharacter'],
   ['/games/:game_slug/pcs', 'gamePcs'],
   ['/games/:game_slug/npcs', 'gameNpcs'],
+  ['/games/:game_slug/players/:id', 'gamePlayer'],
   ['/games/:game_slug/players', 'gamePlayers'],
   ['/games/:game_slug/treasures/new', 'gameTreasureNew'],
   ['/games/:game_slug/treasures/:treasure_id/edit', 'gameTreasureEdit'],

@@ -3,6 +3,7 @@
 from .access_route_config import access_route_config
 from .auth import account, language, login, logout, register, status, test_email
 from .game import (
+    game_conversations,
     game_npc_access,
     game_npc_detail,
     game_npc_full,
@@ -35,6 +36,7 @@ from .game import (
     game_pc_treasure_sell,
     game_pc_treasures,
     game_pcs,
+    game_player_detail,
     game_players,
 )
 from .game_sessions import (
@@ -93,6 +95,8 @@ __all__ = [
     'my_games_list',
     'game_pcs',
     'game_players',
+    'game_player_detail',
+    'game_conversations',
     'game_npcs',
     'game_npcs_all',
     'game_npc_access',

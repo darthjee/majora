@@ -1,12 +1,24 @@
 # Player
 
 A `Player` is now exposed as a standalone resource via a dedicated roster endpoint (issue
-#589); it remains otherwise read indirectly through character data. No write endpoint exists.
+#589) and a single-player detail endpoint (issue #695); it remains otherwise read indirectly
+through character data. No write endpoint exists.
+
+> **Access-control exception (issue #695):** unlike almost every other endpoint in this
+> codebase, and contrary to `access-control.md`'s top-level default ("Superusers always have
+> full access to everything, regardless of any other rule listed below"), **Superuser and
+> Staff (`is_staff`) are explicitly excluded** from both endpoints below. This was a deliberate
+> product decision during #695's refinement — staff/superuser have no legitimate reason to
+> browse a game's roster — so `PlayerPermission` grants access to a player or that game's
+> GameMaster only. Do not "fix" this back to the default in a future change; the same
+> exception applies to [Conversation](conversation.md)'s `conversations.json` endpoint, which
+> reuses `PlayerPermission`.
 
 | Action | Who can |
 |--------|---------|
-| List (`GET /games/<game_slug>/players.json`) | Player of the game, that game's GameMaster, Superuser, or Staff (`is_staff`) — **PlayerPermission.check**; 401 if unauthenticated, 403 if authenticated but none of the above; 404 if the game slug is unknown |
-| Show/Create/Update/Delete | Not exposed by any endpoint (Django admin only, out of scope) |
+| List (`GET /games/<game_slug>/players.json`) | Player of the game, or that game's GameMaster — **PlayerPermission.check**; 401 if unauthenticated, 403 if authenticated but neither of the above (including Superuser/Staff); 404 if the game slug is unknown |
+| Show (`GET /games/<game_slug>/players/<id>.json`) | Player of the game or that game's GameMaster — **PlayerPermission.check**; 401/403 as the list endpoint; 404 if the game slug or player id is unknown, or the player id belongs to a different game |
+| Create/Update/Delete | Not exposed by any endpoint (Django admin only, out of scope) |
 
 **Pagination**: standard numbered-page `Paginator` (same as `game_treasures`/`game_polls_list`).
 No filters. Ordering follows `Player.Meta.ordering` (`['name']`).
@@ -15,7 +27,8 @@ No filters. Ordering follows `Player.Meta.ordering` (`['name']`).
 [Common Rules](common-rules.md) for the cache-bypass mechanism, since this is
 authorization-gated, per-viewer data.
 
-**Exposed fields** (`PlayerListSerializer`): `id`, `user`, `character`.
+**Exposed fields** (`PlayerListSerializer`, reused as-is by both List and Show above):
+`id`, `user`, `character`.
 
 - `user` (`PlayerUserSerializer`) is `null` when the `Player` has no linked `User` account (a
   named participant with no login identity). Otherwise: `display_name`

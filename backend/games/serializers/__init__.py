@@ -26,6 +26,7 @@ from games.serializers.characters.character_treasure import (
 from games.serializers.characters.character_update import CharacterUpdateSerializer
 from games.serializers.characters.npcs.npc_player_update import NpcPlayerUpdateSerializer
 from games.serializers.characters.pcs.pc_access import PcAccessSerializer
+from games.serializers.games.conversations.conversation_list import ConversationListSerializer
 from games.serializers.games.game_access import GameAccessSerializer
 from games.serializers.games.game_create import GameCreateSerializer
 from games.serializers.games.game_detail import GameDetailSerializer
@@ -104,6 +105,7 @@ __all__ = [
     'CharacterTreasureAllSerializer',
     'CharacterTreasureSerializer',
     'CharacterUpdateSerializer',
+    'ConversationListSerializer',
     'GameAccessSerializer',
     'GameCreateSerializer',
     'GameDetailSerializer',

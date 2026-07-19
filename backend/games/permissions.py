@@ -186,7 +186,15 @@ class PollPermission(_EditPermission):
 
 
 class PlayerPermission(_EditPermission):
-    """Encapsulate the authentication/authorization checks for a game's players list."""
+    """Encapsulate the authentication/authorization checks for a game's players/conversations.
+
+    Deliberately narrower than most permission checks in this module: no superuser/staff
+    bypass. Staff/superuser have no legitimate reason to browse a game's roster or a
+    player's conversations (issue #695), so this class intentionally breaks the
+    project-wide "superusers always have full access" default documented in
+    `docs/agents/access-control.md` — see `docs/agents/access-control/player.md` and
+    `docs/agents/access-control/conversation.md`.
+    """
 
     @classmethod
     def check(cls, request, game):
@@ -195,8 +203,8 @@ class PlayerPermission(_EditPermission):
 
     @classmethod
     def _is_allowed(cls, user, game):
-        """Return whether `user` is a superuser, staff, a player, or the DM of `game`."""
-        return cls._is_admin_or_player(user, game)
+        """Return whether `user` is a player or the DM of `game`."""
+        return game.has_player(user)
 
 
 class PollClosePermission(_EditPermission):
