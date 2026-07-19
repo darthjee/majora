@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import TreasuresHelper from './helpers/TreasuresHelper.jsx';
 import TreasuresAccessController from './controllers/TreasuresAccessController.js';
 import HashRouteResolver from '../../../../utils/routing/HashRouteResolver.js';
+import buildFilteredHref from '../../../../utils/routing/buildFilteredHref.js';
 
 const BASE_PATH = '#/treasures';
 
@@ -14,8 +15,7 @@ const BASE_PATH = '#/treasures';
  * @returns {string} Hash including the reset page and the active filters.
  */
 export function buildFilterQueryHash(filters) {
-  const params = new URLSearchParams({ page: '1', ...filters });
-  return `${BASE_PATH}?${params.toString()}`;
+  return buildFilteredHref(BASE_PATH, filters);
 }
 
 /**

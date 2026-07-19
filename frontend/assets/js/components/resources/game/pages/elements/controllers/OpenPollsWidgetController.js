@@ -1,5 +1,6 @@
 import PollClient from '../../../../../../client/PollClient.js';
 import AuthStorage from '../../../../../../utils/auth/AuthStorage.js';
+import parsePositiveInt from '../../../../../../utils/parsePositiveInt.js';
 
 /**
  * Manages the open-polls count fetch for the OpenPollsWidget element.
@@ -60,11 +61,6 @@ export default class OpenPollsWidgetController {
       return;
     }
 
-    this.setCount(this.#parseInt(response.headers.get('total'), 0));
-  }
-
-  #parseInt(value, fallback) {
-    const parsed = Number.parseInt(value, 10);
-    return Number.isNaN(parsed) || parsed < 0 ? fallback : parsed;
+    this.setCount(parsePositiveInt(response.headers.get('total'), 0));
   }
 }

@@ -1,5 +1,63 @@
 import Router from './Router.js';
 import HashQueryParams from './HashQueryParams.js';
+import getCurrentHash from './currentHash.js';
+
+/**
+ * Ordered `[path, key]` route table registered on every resolver instance.
+ *
+ * @type {Array<Array<string>>}
+ */
+const ROUTES = [
+  ['/treasures/new', 'treasureNew'],
+  ['/treasures/:id/edit', 'treasureEdit'],
+  ['/treasures/:id', 'treasure'],
+  ['/treasures', 'treasures'],
+  ['/staff/users/:id/edit', 'staffUserEdit'],
+  ['/staff/users/:id', 'staffUser'],
+  ['/staff/users', 'staffUsers'],
+  ['/games/:game_slug/npcs/:character_id/treasures', 'npcCharacterTreasures'],
+  ['/games/:game_slug/npcs/:character_id/items', 'npcCharacterItems'],
+  ['/games/:game_slug/npcs/:character_id/photos', 'npcCharacterPhotos'],
+  ['/games/:game_slug/npcs/:character_id/edit', 'npcCharacterEdit'],
+  ['/games/:game_slug/npcs/new', 'gameNpcNew'],
+  ['/games/:game_slug/npcs/:character_id', 'npcCharacter'],
+  ['/games/:game_slug/pcs/:character_id/treasures', 'pcCharacterTreasures'],
+  ['/games/:game_slug/pcs/:character_id/items', 'pcCharacterItems'],
+  ['/games/:game_slug/pcs/:character_id/photos', 'pcCharacterPhotos'],
+  ['/games/:game_slug/pcs/:character_id/edit', 'pcCharacterEdit'],
+  ['/games/:game_slug/pcs/:character_id', 'pcCharacter'],
+  ['/games/:game_slug/pcs', 'gamePcs'],
+  ['/games/:game_slug/npcs', 'gameNpcs'],
+  ['/games/:game_slug/players', 'gamePlayers'],
+  ['/games/:game_slug/treasures/new', 'gameTreasureNew'],
+  ['/games/:game_slug/treasures/:treasure_id/edit', 'gameTreasureEdit'],
+  ['/games/:game_slug/treasures', 'gameTreasures'],
+  ['/games/:game_slug/items', 'gameItems'],
+  ['/games/:game_slug/sessions/new', 'gameSessionNew'],
+  ['/games/:game_slug/sessions/:id/edit', 'gameSessionEdit'],
+  ['/games/:game_slug/sessions/:id', 'gameSession'],
+  ['/games/:game_slug/sessions', 'gameSessions'],
+  ['/games/:game_slug/tasks', 'gameTasks'],
+  ['/games/:game_slug/polls/new', 'gamePollNew'],
+  ['/games/:game_slug/polls/:id', 'gamePoll'],
+  ['/games/:game_slug/polls', 'gamePolls'],
+  ['/games/:game_slug/photos', 'gamePhotos'],
+  ['/games/new', 'gameNew'],
+  ['/games/:game_slug/edit', 'gameEdit'],
+  ['/games/:game_slug', 'game'],
+  ['/games', 'games'],
+  ['/recover-password', 'recoverPassword'],
+  ['/users/register', 'register'],
+  ['/my_account', 'myAccount'],
+  ['/', 'home'],
+];
+
+/**
+ * Query keys read from the hash by {@link HashRouteResolver#getFilterParams}.
+ *
+ * @type {Array<string>}
+ */
+const FILTER_KEYS = ['slain', 'name', 'allegiance', 'status', 'hidden', 'game_type', 'min_value', 'max_value'];
 
 /**
  * Resolver for hash-based application routes.
@@ -14,52 +72,11 @@ export default class HashRouteResolver {
    *
    * @param {Function} hashProvider - Function returning current hash.
    */
-  constructor(hashProvider = () => (typeof window === 'undefined' ? '' : window.location.hash)) {
+  constructor(hashProvider = getCurrentHash) {
     this.#hashProvider = hashProvider;
     this.#router = new Router();
 
-    this.#router.register('/treasures/new', 'treasureNew');
-    this.#router.register('/treasures/:id/edit', 'treasureEdit');
-    this.#router.register('/treasures/:id', 'treasure');
-    this.#router.register('/treasures', 'treasures');
-    this.#router.register('/staff/users/:id/edit', 'staffUserEdit');
-    this.#router.register('/staff/users/:id', 'staffUser');
-    this.#router.register('/staff/users', 'staffUsers');
-    this.#router.register('/games/:game_slug/npcs/:character_id/treasures', 'npcCharacterTreasures');
-    this.#router.register('/games/:game_slug/npcs/:character_id/items', 'npcCharacterItems');
-    this.#router.register('/games/:game_slug/npcs/:character_id/photos', 'npcCharacterPhotos');
-    this.#router.register('/games/:game_slug/npcs/:character_id/edit', 'npcCharacterEdit');
-    this.#router.register('/games/:game_slug/npcs/new', 'gameNpcNew');
-    this.#router.register('/games/:game_slug/npcs/:character_id', 'npcCharacter');
-    this.#router.register('/games/:game_slug/pcs/:character_id/treasures', 'pcCharacterTreasures');
-    this.#router.register('/games/:game_slug/pcs/:character_id/items', 'pcCharacterItems');
-    this.#router.register('/games/:game_slug/pcs/:character_id/photos', 'pcCharacterPhotos');
-    this.#router.register('/games/:game_slug/pcs/:character_id/edit', 'pcCharacterEdit');
-    this.#router.register('/games/:game_slug/pcs/:character_id', 'pcCharacter');
-    this.#router.register('/games/:game_slug/pcs', 'gamePcs');
-    this.#router.register('/games/:game_slug/npcs', 'gameNpcs');
-    this.#router.register('/games/:game_slug/players', 'gamePlayers');
-    this.#router.register('/games/:game_slug/treasures/new', 'gameTreasureNew');
-    this.#router.register('/games/:game_slug/treasures/:treasure_id/edit', 'gameTreasureEdit');
-    this.#router.register('/games/:game_slug/treasures', 'gameTreasures');
-    this.#router.register('/games/:game_slug/items', 'gameItems');
-    this.#router.register('/games/:game_slug/sessions/new', 'gameSessionNew');
-    this.#router.register('/games/:game_slug/sessions/:id/edit', 'gameSessionEdit');
-    this.#router.register('/games/:game_slug/sessions/:id', 'gameSession');
-    this.#router.register('/games/:game_slug/sessions', 'gameSessions');
-    this.#router.register('/games/:game_slug/tasks', 'gameTasks');
-    this.#router.register('/games/:game_slug/polls/new', 'gamePollNew');
-    this.#router.register('/games/:game_slug/polls/:id', 'gamePoll');
-    this.#router.register('/games/:game_slug/polls', 'gamePolls');
-    this.#router.register('/games/:game_slug/photos', 'gamePhotos');
-    this.#router.register('/games/new', 'gameNew');
-    this.#router.register('/games/:game_slug/edit', 'gameEdit');
-    this.#router.register('/games/:game_slug', 'game');
-    this.#router.register('/games', 'games');
-    this.#router.register('/recover-password', 'recoverPassword');
-    this.#router.register('/users/register', 'register');
-    this.#router.register('/my_account', 'myAccount');
-    this.#router.register('/', 'home');
+    ROUTES.forEach(([path, key]) => this.#router.register(path, key));
   }
 
   /**
@@ -124,46 +141,13 @@ export default class HashRouteResolver {
     const query = HashQueryParams.parse(this.currentHash());
     const params = new URLSearchParams();
 
-    const slain = query.get('slain');
-    const name = query.get('name');
-    const allegiance = query.get('allegiance');
-    const status = query.get('status');
-    const hidden = query.get('hidden');
-    const gameType = query.get('game_type');
-    const minValue = query.get('min_value');
-    const maxValue = query.get('max_value');
+    FILTER_KEYS.forEach((key) => {
+      const value = query.get(key);
 
-    if (slain !== null) {
-      params.set('slain', slain);
-    }
-
-    if (name !== null) {
-      params.set('name', name);
-    }
-
-    if (allegiance !== null) {
-      params.set('allegiance', allegiance);
-    }
-
-    if (status !== null) {
-      params.set('status', status);
-    }
-
-    if (hidden !== null) {
-      params.set('hidden', hidden);
-    }
-
-    if (gameType !== null) {
-      params.set('game_type', gameType);
-    }
-
-    if (minValue !== null) {
-      params.set('min_value', minValue);
-    }
-
-    if (maxValue !== null) {
-      params.set('max_value', maxValue);
-    }
+      if (value !== null) {
+        params.set(key, value);
+      }
+    });
 
     return params;
   }

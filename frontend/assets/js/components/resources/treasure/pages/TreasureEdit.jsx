@@ -3,6 +3,7 @@ import TreasureEditController from './controllers/TreasureEditController.js';
 import TreasureEditHelper from './helpers/TreasureEditHelper.jsx';
 import TreasureHelper from './helpers/TreasureHelper.jsx';
 import MoneyEditModal from '../../../common/modals/MoneyEditModal.jsx';
+import getCurrentHash from '../../../../utils/routing/currentHash.js';
 
 /**
  * Treasure edit page.
@@ -24,7 +25,7 @@ export default function TreasureEdit() {
     [],
   );
 
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const currentHash = getCurrentHash();
   const treasureId = TreasureEditController.getTreasureIdFromEditHash(currentHash);
 
   useEffect(() => controller.buildEffect()(), [controller]);

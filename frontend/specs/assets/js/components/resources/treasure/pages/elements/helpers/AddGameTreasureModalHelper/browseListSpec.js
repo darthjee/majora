@@ -1,5 +1,6 @@
 import AddGameTreasureModalHelper
   from '../../../../../../../../../../assets/js/components/resources/treasure/pages/elements/helpers/AddGameTreasureModalHelper.jsx';
+import BrowsePager from '../../../../../../../../../../assets/js/components/common/pagination/BrowsePager.jsx';
 import { buildHandlers, buildState, findElement } from './support.js';
 
 describe('AddGameTreasureModalHelper', function() {
@@ -42,33 +43,16 @@ describe('AddGameTreasureModalHelper', function() {
       expect(handlers.onSelect).toHaveBeenCalledWith(item);
     });
 
-    it('does not render pager controls when there is only one page', function() {
-      const element = AddGameTreasureModalHelper.render(true, buildState(), buildHandlers());
-
-      expect(JSON.stringify(element)).not.toContain('1 / 1');
-    });
-
-    it('renders pager controls and wires onPrev/onNext when there are multiple pages', function() {
+    it('passes the browse state and handlers to BrowsePager', function() {
       const handlers = buildHandlers();
-      const state = buildState({
-        browse: { items: [], page: 2, pages: 3, loading: false, error: '' },
-      });
+      const browse = { items: [], page: 2, pages: 3, loading: false, error: '' };
+      const state = buildState({ browse });
       const element = AddGameTreasureModalHelper.render(true, state, handlers);
+      const pager = findElement(element, (child) => child.type === BrowsePager);
 
-      expect(JSON.stringify(element)).toContain('2 / 3');
-
-      const prevButton = findElement(
-        element, (child) => child.type === 'button' && child.props.children === 'Previous'
-      );
-      const nextButton = findElement(
-        element, (child) => child.type === 'button' && child.props.children === 'Next'
-      );
-
-      prevButton.props.onClick();
-      nextButton.props.onClick();
-
-      expect(handlers.onPrev).toHaveBeenCalled();
-      expect(handlers.onNext).toHaveBeenCalled();
+      expect(pager.props.browse).toBe(browse);
+      expect(pager.props.onPrev).toBe(handlers.onPrev);
+      expect(pager.props.onNext).toBe(handlers.onNext);
     });
   });
 });

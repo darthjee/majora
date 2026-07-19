@@ -1,4 +1,5 @@
 import React from 'react';
+import FilterSelect from '../../../../../common/forms/FilterSelect.jsx';
 import Translator from '../../../../../../i18n/Translator.js';
 
 /**
@@ -19,39 +20,27 @@ export default class NpcFiltersHelper {
   static render(state, handlers) {
     return (
       <div className="row g-2 align-items-end mb-4" data-testid="npc-filters">
-        <div className="col-auto">
-          <label htmlFor="npc-filter-status" className="form-label">
-            {Translator.t('game_npcs_page.filter_status_label')}
-          </label>
-          <select
-            id="npc-filter-status"
-            data-testid="npc-filter-status"
-            className="form-select"
-            value={state.status}
-            onChange={(event) => handlers.onStatusChange(event.target.value)}
-          >
-            <option value="" />
-            <option value="alive">{Translator.t('game_npcs_page.filter_status_alive')}</option>
-            <option value="slain">{Translator.t('game_npcs_page.filter_status_slain')}</option>
-          </select>
-        </div>
-        <div className="col-auto">
-          <label htmlFor="npc-filter-allegiance" className="form-label">
-            {Translator.t('game_npcs_page.filter_allegiance_label')}
-          </label>
-          <select
-            id="npc-filter-allegiance"
-            data-testid="npc-filter-allegiance"
-            className="form-select"
-            value={state.allegiance}
-            onChange={(event) => handlers.onAllegianceChange(event.target.value)}
-          >
-            <option value="" />
-            <option value="ally">{Translator.t('game_npcs_page.filter_allegiance_ally')}</option>
-            <option value="enemy">{Translator.t('game_npcs_page.filter_allegiance_enemy')}</option>
-            <option value="neutral">{Translator.t('game_npcs_page.filter_allegiance_neutral')}</option>
-          </select>
-        </div>
+        <FilterSelect
+          id="npc-filter-status"
+          label={Translator.t('game_npcs_page.filter_status_label')}
+          value={state.status}
+          onChange={handlers.onStatusChange}
+          options={[
+            { value: 'alive', label: Translator.t('game_npcs_page.filter_status_alive') },
+            { value: 'slain', label: Translator.t('game_npcs_page.filter_status_slain') },
+          ]}
+        />
+        <FilterSelect
+          id="npc-filter-allegiance"
+          label={Translator.t('game_npcs_page.filter_allegiance_label')}
+          value={state.allegiance}
+          onChange={handlers.onAllegianceChange}
+          options={[
+            { value: 'ally', label: Translator.t('game_npcs_page.filter_allegiance_ally') },
+            { value: 'enemy', label: Translator.t('game_npcs_page.filter_allegiance_enemy') },
+            { value: 'neutral', label: Translator.t('game_npcs_page.filter_allegiance_neutral') },
+          ]}
+        />
         {NpcFiltersHelper.#renderHiddenFilter(state, handlers)}
         <div className="col-auto">
           <label htmlFor="npc-filter-name" className="form-label">
@@ -104,22 +93,16 @@ export default class NpcFiltersHelper {
     }
 
     return (
-      <div className="col-auto">
-        <label htmlFor="npc-filter-hidden" className="form-label">
-          {Translator.t('game_npcs_page.filter_hidden_label')}
-        </label>
-        <select
-          id="npc-filter-hidden"
-          data-testid="npc-filter-hidden"
-          className="form-select"
-          value={state.hidden}
-          onChange={(event) => handlers.onHiddenChange(event.target.value)}
-        >
-          <option value="" />
-          <option value="shown">{Translator.t('game_npcs_page.filter_hidden_shown')}</option>
-          <option value="hidden">{Translator.t('game_npcs_page.filter_hidden_only')}</option>
-        </select>
-      </div>
+      <FilterSelect
+        id="npc-filter-hidden"
+        label={Translator.t('game_npcs_page.filter_hidden_label')}
+        value={state.hidden}
+        onChange={handlers.onHiddenChange}
+        options={[
+          { value: 'shown', label: Translator.t('game_npcs_page.filter_hidden_shown') },
+          { value: 'hidden', label: Translator.t('game_npcs_page.filter_hidden_only') },
+        ]}
+      />
     );
   }
 }

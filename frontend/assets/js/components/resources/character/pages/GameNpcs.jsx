@@ -9,22 +9,10 @@ import SlainConfirmModal from './elements/SlainConfirmModal.jsx';
 import SlainConfirmController from './elements/controllers/SlainConfirmController.js';
 import PlayerSlainConfirmController from './elements/controllers/PlayerSlainConfirmController.js';
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
+import getCurrentHash from '../../../../utils/routing/currentHash.js';
+import buildFilterQueryHash from '../../../../utils/routing/buildFilteredHref.js';
 
 const PATTERN = '/games/:game_slug/npcs';
-
-/**
- * Build the hash URL for applying NPC filters, resetting pagination to page 1.
- *
- * @param {string} basePath - Base hash path (e.g. `#/games/demo/npcs`).
- * @param {{slain?: string, name?: string, allegiance?: string, hidden?: string}} filters -
- *   Filters to apply, as built by `NpcFiltersController#buildQuery` (blank fields already
- *   omitted).
- * @returns {string} Hash including the reset page and the active filters.
- */
-function buildFilterQueryHash(basePath, filters) {
-  const params = new URLSearchParams({ page: '1', ...filters });
-  return `${basePath}?${params.toString()}`;
-}
 
 /**
  * Builds a slain-toggle controller/state pair for the given field, refreshing the NPC list and
@@ -37,12 +25,14 @@ function buildFilterQueryHash(basePath, filters) {
  */
 function useSlainTogglePair(field, refresh) {
   const [target, setTarget] = useState(null);
+  const handleToggled = () => {
+    setTarget(null);
+    refresh();
+  };
 
   const slainController = useMemo(
-    () => new SlainConfirmController(() => {
-      setTarget(null);
-      refresh();
-    }, field),
+    () => new SlainConfirmController(handleToggled, field),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [refresh, field],
   );
 
@@ -60,12 +50,14 @@ function useSlainTogglePair(field, refresh) {
  */
 function usePlayerSlainTogglePair(refresh) {
   const [target, setTarget] = useState(null);
+  const handleToggled = () => {
+    setTarget(null);
+    refresh();
+  };
 
   const playerSlainController = useMemo(
-    () => new PlayerSlainConfirmController(() => {
-      setTarget(null);
-      refresh();
-    }),
+    () => new PlayerSlainConfirmController(handleToggled),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [refresh],
   );
 
@@ -83,7 +75,7 @@ export default function GameNpcs() {
   const [uploadTarget, setUploadTarget] = useState(null);
   const [refreshToken, setRefreshToken] = useState(0);
 
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const currentHash = getCurrentHash();
   const gameSlug = BasePageController.extractParam(PATTERN, 'game_slug', currentHash);
   const basePath = `#/games/${gameSlug}/npcs`;
   const backHref = `#/games/${gameSlug}`;

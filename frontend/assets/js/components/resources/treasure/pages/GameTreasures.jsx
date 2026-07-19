@@ -2,19 +2,7 @@ import { useState } from 'react';
 import GameTreasuresHelper from './helpers/GameTreasuresHelper.jsx';
 import BasePageController from '../../../common/base/controllers/BasePageController.js';
 import HashRouteResolver from '../../../../utils/routing/HashRouteResolver.js';
-
-/**
- * Build the hash URL for applying treasure filters, resetting pagination to page 1.
- *
- * @param {string} basePath - Base hash path (e.g. `#/games/demo/treasures`).
- * @param {{min_value?: string, max_value?: string, name?: string}} filters - Filters to apply,
- *   as built by `TreasureFiltersController#buildQuery` (blank fields already omitted).
- * @returns {string} Hash including the reset page and the active filters.
- */
-function buildFilterQueryHash(basePath, filters) {
-  const params = new URLSearchParams({ page: '1', ...filters });
-  return `${basePath}?${params.toString()}`;
-}
+import buildFilterQueryHash from '../../../../utils/routing/buildFilteredHref.js';
 
 /**
  * Game Treasures index page.

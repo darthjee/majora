@@ -100,7 +100,7 @@ export default function Header() {
       onLoginSuccess: () => controller.handleLoginSuccess(),
       onSendTestEmailClick: () => controller.handleSendTestEmailClick(),
       onLanguageChange: (language) => controller.handleLanguageChange(language, loggedIn),
-      onViewAsClick: () => viewAsController.handleViewAsClick(),
+      onViewAsClick: (event) => controller.handleViewAsClick(event, () => viewAsController.handleViewAsClick()),
       onViewAsModalClose: () => viewAsController.handleViewAsModalClose(),
     }
   );

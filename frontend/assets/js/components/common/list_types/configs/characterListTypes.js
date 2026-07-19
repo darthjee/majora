@@ -1,6 +1,6 @@
 import GenericClient from '../../../../client/GenericClient.js';
-import AccessStore from '../../../../utils/access/store/AccessStore.js';
 import allegianceBorderClass from '../../../../utils/ui/AllegianceBorder.js';
+import fetchWithEditableEndpoint from './fetchWithEditableEndpoint.js';
 import SlainSecondaryButtons from '../SlainSecondaryButtons.js';
 import InfoBarRules from '../../misc/helpers/InfoBarRules.js';
 import NpcFilters from '../../../resources/character/pages/elements/NpcFilters.jsx';
@@ -43,19 +43,9 @@ function fetchPcs(gameSlug, hashResolver, client = new GenericClient()) {
  *   fetched NPCs, pagination metadata, and the resolved edit permission.
  */
 function fetchNpcs(gameSlug, hashResolver, client = new GenericClient()) {
-  return AccessStore.ensureGamePermissions(gameSlug)
-    .then((permissions) => Boolean(permissions.can_edit))
-    .catch(() => false)
-    .then((canEdit) => {
-      const path = canEdit ? `/games/${gameSlug}/npcs/all.json` : `/games/${gameSlug}/npcs.json`;
-      const filterParams = Object.fromEntries(hashResolver.getFilterParams());
+  const filterParams = Object.fromEntries(hashResolver.getFilterParams());
 
-      return client.fetchIndex(path, filterParams).then(({ data, pagination }) => ({
-        data: Array.isArray(data) ? data : [],
-        pagination,
-        canEdit,
-      }));
-    });
+  return fetchWithEditableEndpoint(gameSlug, `/games/${gameSlug}/npcs`, filterParams, client);
 }
 
 /**

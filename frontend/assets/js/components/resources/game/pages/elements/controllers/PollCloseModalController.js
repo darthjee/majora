@@ -1,4 +1,5 @@
 import PollClient from '../../../../../../client/PollClient.js';
+import BaseClient from '../../../../../../client/BaseClient.js';
 
 /**
  * Manages the vote tally computation and close request for the
@@ -69,9 +70,7 @@ export default class PollCloseModalController {
    */
   fetchTallies(gameSlug, pollId, token) {
     return this.pollClient.fetchPollVotes(gameSlug, pollId, token)
-      .then((response) => (response.ok
-        ? response.json()
-        : Promise.reject(new Error('votes failed'))))
+      .then((response) => BaseClient.parseJsonOrReject(response, 'votes failed'))
       .then((votes) => PollCloseModalController.tallyVotes(votes));
   }
 

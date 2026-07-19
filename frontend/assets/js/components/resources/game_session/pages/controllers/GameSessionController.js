@@ -1,7 +1,9 @@
 import GameSessionClient from '../../../../../client/GameSessionClient.js';
+import BaseClient from '../../../../../client/BaseClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
+import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 
 /**
  * Controller for the game session detail page.
@@ -42,7 +44,7 @@ export default class GameSessionController extends BasePageController {
     return () => {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
-      const hash = typeof window === 'undefined' ? '' : window.location.hash;
+      const hash = getCurrentHash();
       const { game_slug: gameSlug, id } = GameSessionController.getSessionParamsFromHash(hash);
 
       if (!gameSlug || !id) {
@@ -62,9 +64,7 @@ export default class GameSessionController extends BasePageController {
     const token = AuthStorage.getToken();
 
     this.sessionClient.fetchSession(gameSlug, id, token)
-      .then((response) => (response.ok
-        ? response.json()
-        : Promise.reject(new Error('session failed'))))
+      .then((response) => BaseClient.parseJsonOrReject(response, 'session failed'))
       .then((session) => this.#renderSession(session.game_slug, session, safeSet))
       .catch(() => safeSet(this.setError, 'Unable to load session.'))
       .finally(() => safeSet(this.setLoading, false));

@@ -111,25 +111,34 @@ export default class HeaderController {
    * @returns {void}
    */
   startHealthCheck(intervalMs = 60000) {
-    this.healthIntervalId = setInterval(async () => {
-      const lastActivity = ActivityTracker.getLastActivity();
+    this.healthIntervalId = setInterval(() => this.#pollHealth(), intervalMs);
+  }
 
-      if (lastActivity === null || Date.now() - lastActivity > THIRTY_MINUTES_MS) {
-        return;
-      }
+  /**
+   * Performs a single health-check poll, skipping the request when the user
+   * has been idle for more than 30 minutes, and updates the server status
+   * state with the outcome.
+   *
+   * @returns {Promise<void>} resolves when the poll finishes.
+   */
+  async #pollHealth() {
+    const lastActivity = ActivityTracker.getLastActivity();
 
-      try {
-        const response = await this.healthClient.check();
+    if (lastActivity === null || Date.now() - lastActivity > THIRTY_MINUTES_MS) {
+      return;
+    }
 
-        if (response.status === 502) {
-          this.setServerStatus('down');
-        } else {
-          this.setServerStatus('up');
-        }
-      } catch {
+    try {
+      const response = await this.healthClient.check();
+
+      if (response.status === 502) {
         this.setServerStatus('down');
+      } else {
+        this.setServerStatus('up');
       }
-    }, intervalMs);
+    } catch {
+      this.setServerStatus('down');
+    }
   }
 
   /**
@@ -185,6 +194,19 @@ export default class HeaderController {
     if (favoriteLanguage && favoriteLanguage !== Translator.getLanguage()) {
       Translator.setLanguage(favoriteLanguage);
     }
+  }
+
+  /**
+   * Prevents the default link navigation for the "view as" link and
+   * delegates to the given view-as click handler.
+   *
+   * @param {Event} event - DOM click event from the view-as link.
+   * @param {Function} onViewAsClick - View-as click handler to invoke after preventing default.
+   * @returns {void}
+   */
+  handleViewAsClick(event, onViewAsClick) {
+    event.preventDefault();
+    onViewAsClick();
   }
 
   /**

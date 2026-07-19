@@ -2,6 +2,7 @@ import React from 'react';
 import PaginationController from '../controllers/PaginationController.js';
 import PageLink from '../PageLink.jsx';
 import Translator from '../../../../i18n/Translator.js';
+import parsePositiveInt from '../../../../utils/parsePositiveInt.js';
 
 /**
  * Renders the Bootstrap pagination UI from raw pagination data.
@@ -26,14 +27,14 @@ export default class PaginationHelper {
   static render(
     currentPage, totalPages, perPage, basePath, extraParams = {}, pageParam = 'page', perPageParam = 'per_page',
   ) {
-    const pages = this.#normalizePositiveInteger(totalPages, 1);
+    const pages = parsePositiveInt(totalPages, 1);
 
     if (pages <= 1) {
       return null;
     }
 
-    const page = this.#clamp(this.#normalizePositiveInteger(currentPage, 1), 1, pages);
-    const itemsPerPage = this.#normalizePositiveInteger(perPage, 10);
+    const page = this.#clamp(parsePositiveInt(currentPage, 1), 1, pages);
+    const itemsPerPage = parsePositiveInt(perPage, 10);
     const pageList = new PaginationController(page, pages).buildPageList();
     const extraQuery = new URLSearchParams(extraParams).toString();
     const linkTemplate =
@@ -50,18 +51,6 @@ export default class PaginationHelper {
         </ul>
       </nav>
     );
-  }
-
-  /**
-   * Parse a positive integer, returning a fallback for invalid values.
-   *
-   * @param {number|string} value - Value to parse.
-   * @param {number} fallback - Fallback for invalid values.
-   * @returns {number} Positive integer.
-   */
-  static #normalizePositiveInteger(value, fallback) {
-    const parsed = Number.parseInt(value, 10);
-    return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
   }
 
   /**

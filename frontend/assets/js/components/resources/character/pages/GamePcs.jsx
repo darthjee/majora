@@ -1,5 +1,6 @@
 import GamePcsHelper from './helpers/GamePcsHelper.jsx';
 import BasePageController from '../../../common/base/controllers/BasePageController.js';
+import getCurrentHash from '../../../../utils/routing/currentHash.js';
 
 const PATTERN = '/games/:game_slug/pcs';
 
@@ -9,7 +10,7 @@ const PATTERN = '/games/:game_slug/pcs';
  * @returns {React.ReactElement} Game PCs page element.
  */
 export default function GamePcs() {
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const currentHash = getCurrentHash();
   const gameSlug = BasePageController.extractParam(PATTERN, 'game_slug', currentHash);
 
   return GamePcsHelper.render(gameSlug);

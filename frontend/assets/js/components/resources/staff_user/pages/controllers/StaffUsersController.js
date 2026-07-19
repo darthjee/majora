@@ -2,6 +2,7 @@ import StaffUserClient from '../../../../../client/StaffUserClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js';
+import parsePositiveInt from '../../../../../utils/parsePositiveInt.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 
 /**
@@ -127,17 +128,12 @@ export default class StaffUsersController extends BasePageController {
       .then(({ data, headers }) => {
         safeSet(this.setUsers, Array.isArray(data) ? data : []);
         safeSet(this.setPagination, {
-          page: this.#parseInt(headers.get('page'), 1),
-          pages: this.#parseInt(headers.get('pages'), 1),
-          perPage: this.#parseInt(headers.get('per_page'), 10),
+          page: parsePositiveInt(headers.get('page'), 1),
+          pages: parsePositiveInt(headers.get('pages'), 1),
+          perPage: parsePositiveInt(headers.get('per_page'), 10),
         });
       })
       .catch(() => safeSet(this.setError, 'Unable to load users.'))
       .finally(() => safeSet(this.setLoading, false));
-  }
-
-  #parseInt(value, fallback) {
-    const parsed = Number.parseInt(value, 10);
-    return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
   }
 }

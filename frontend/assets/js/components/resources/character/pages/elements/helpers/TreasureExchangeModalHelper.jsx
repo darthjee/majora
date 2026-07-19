@@ -1,7 +1,27 @@
 import Modal from 'react-bootstrap/cjs/Modal.js';
 import CardTreasureImage from '../../../../../common/cards/CardTreasureImage.jsx';
 import TreasureMoney from '../../../../../common/misc/TreasureMoney.jsx';
+import BrowsePager from '../../../../../common/pagination/BrowsePager.jsx';
 import Translator from '../../../../../../i18n/Translator.js';
+
+/**
+ * Resolve the tab-dependent detail values (owned treasure id, quantity already
+ * owned, and the sell-tab max quantity) for the currently selected treasure.
+ *
+ * @param {object} state - Modal state (see {@link TreasureExchangeModalHelper#render}).
+ * @param {string} state.activeTab - Currently active tab (`acquire` or `sell`).
+ * @param {object} state.selected - Currently selected browse item.
+ * @param {object} state.ownedByTreasureId - Map of treasure id to owned quantity.
+ * @returns {{treasureId: number, owned: number, maxQuantity: number|undefined}} Resolved
+ *   detail values for the active tab.
+ */
+export function resolveDetailValues({ activeTab, selected, ownedByTreasureId }) {
+  const treasureId = activeTab === 'acquire' ? selected.id : selected.treasure_id;
+  const owned = activeTab === 'acquire' ? (ownedByTreasureId[treasureId] ?? 0) : selected.quantity;
+  const maxQuantity = activeTab === 'sell' ? selected.quantity : undefined;
+
+  return { treasureId, owned, maxQuantity };
+}
 
 /**
  * Renders the treasure exchange modal shell: the Acquire/Sell tabs, the
@@ -99,7 +119,7 @@ export default class TreasureExchangeModalHelper {
       <>
         {TreasureExchangeModalHelper.#renderPartialNotice(state.partialNotice)}
         {TreasureExchangeModalHelper.#renderSearchInput(state.search, handlers.onSearchChange)}
-        {TreasureExchangeModalHelper.#renderPager(state.browse, handlers)}
+        <BrowsePager browse={state.browse} onPrev={handlers.onPrev} onNext={handlers.onNext} />
         {TreasureExchangeModalHelper.#renderBrowseList(
           state.browse, state.activeTab, state.gameType, handlers.onSelect
         )}
@@ -125,34 +145,6 @@ export default class TreasureExchangeModalHelper {
     }
 
     return <div className="alert alert-info">{partialNotice}</div>;
-  }
-
-  static #renderPager(browse, handlers) {
-    if (browse.pages <= 1) {
-      return null;
-    }
-
-    return (
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <button
-          type="button"
-          className="btn btn-sm btn-outline-secondary"
-          onClick={handlers.onPrev}
-          disabled={browse.page <= 1}
-        >
-          {Translator.t('pagination.previous')}
-        </button>
-        <span>{`${browse.page} / ${browse.pages}`}</span>
-        <button
-          type="button"
-          className="btn btn-sm btn-outline-secondary"
-          onClick={handlers.onNext}
-          disabled={browse.page >= browse.pages}
-        >
-          {Translator.t('pagination.next')}
-        </button>
-      </div>
-    );
   }
 
   static #renderBrowseList(browse, activeTab, gameType, onSelect) {
@@ -200,12 +192,8 @@ export default class TreasureExchangeModalHelper {
   }
 
   static #renderDetail(state, handlers) {
-    const {
-      activeTab, selected, quantity, submitting, actionError, ownedByTreasureId, gameType,
-    } = state;
-    const treasureId = activeTab === 'acquire' ? selected.id : selected.treasure_id;
-    const owned = activeTab === 'acquire' ? (ownedByTreasureId[treasureId] ?? 0) : selected.quantity;
-    const maxQuantity = activeTab === 'sell' ? selected.quantity : undefined;
+    const { selected, quantity, submitting, actionError, gameType } = state;
+    const { owned, maxQuantity } = resolveDetailValues(state);
 
     return (
       <div>

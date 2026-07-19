@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import GameSessionEditController from './controllers/GameSessionEditController.js';
 import GameSessionEditHelper from './helpers/GameSessionEditHelper.jsx';
 import GameSessionHelper from './helpers/GameSessionHelper.jsx';
+import getCurrentHash from '../../../../utils/routing/currentHash.js';
 
 /**
  * Game session edit page.
@@ -23,7 +24,7 @@ export default function GameSessionEdit() {
     [],
   );
 
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const currentHash = getCurrentHash();
   const { game_slug: gameSlug, id } = GameSessionEditController.getSessionParamsFromEditHash(currentHash);
 
   useEffect(() => controller.buildEffect()(), [controller]);

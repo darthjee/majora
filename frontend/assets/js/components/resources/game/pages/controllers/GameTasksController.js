@@ -2,6 +2,8 @@ import GameTaskClient from '../../../../../client/GameTaskClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js';
+import getCurrentHash from '../../../../../utils/routing/currentHash.js';
+import parsePositiveInt from '../../../../../utils/parsePositiveInt.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 
 /**
@@ -58,7 +60,7 @@ export default class GameTasksController extends BasePageController {
     return () => {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
-      const hash = typeof window === 'undefined' ? '' : window.location.hash;
+      const hash = getCurrentHash();
       const gameSlug = GameTasksController.getGameSlugFromTasksHash(hash);
 
       AccessStore.ensureGamePermissions(gameSlug)
@@ -200,9 +202,9 @@ export default class GameTasksController extends BasePageController {
       .then(({ data, headers }) => {
         safeSet(this.setTasks, Array.isArray(data) ? data : []);
         safeSet(this.setPagination, {
-          page: this.#parseInt(headers.get('page'), 1),
-          pages: this.#parseInt(headers.get('pages'), 1),
-          perPage: this.#parseInt(headers.get('per_page'), 10),
+          page: parsePositiveInt(headers.get('page'), 1),
+          pages: parsePositiveInt(headers.get('pages'), 1),
+          perPage: parsePositiveInt(headers.get('per_page'), 10),
         });
       })
       .catch(() => safeSet(this.setError, 'Unable to load tasks.'))
@@ -226,10 +228,5 @@ export default class GameTasksController extends BasePageController {
     }
 
     setters.setError('Unable to create task.');
-  }
-
-  #parseInt(value, fallback) {
-    const parsed = Number.parseInt(value, 10);
-    return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
   }
 }

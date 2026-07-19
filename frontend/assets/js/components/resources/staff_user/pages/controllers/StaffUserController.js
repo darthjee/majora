@@ -1,7 +1,9 @@
 import StaffUserClient from '../../../../../client/StaffUserClient.js';
+import BaseClient from '../../../../../client/BaseClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
+import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 
 /**
  * Controller for the staff user detail page.
@@ -57,7 +59,7 @@ export default class StaffUserController extends BasePageController {
           return;
         }
 
-        const hash = typeof window === 'undefined' ? '' : window.location.hash;
+        const hash = getCurrentHash();
         const id = StaffUserController.getStaffUserIdFromHash(hash);
 
         if (!id) {
@@ -78,9 +80,7 @@ export default class StaffUserController extends BasePageController {
     const token = AuthStorage.getToken();
 
     this.client.fetchUser(id, token)
-      .then((response) => (response.ok
-        ? response.json()
-        : Promise.reject(new Error('user failed'))))
+      .then((response) => BaseClient.parseJsonOrReject(response, 'user failed'))
       .then((user) => safeSet(this.setUser, user))
       .catch(() => safeSet(this.setError, true))
       .finally(() => safeSet(this.setLoading, false));

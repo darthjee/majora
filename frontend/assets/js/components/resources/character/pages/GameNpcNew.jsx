@@ -3,6 +3,7 @@ import GameNpcNewController from './controllers/GameNpcNewController.js';
 import Noop from '../../../../utils/Noop.js';
 import GameNpcNewHelper from './helpers/GameNpcNewHelper.jsx';
 import LinksEditModal from './elements/LinksEditModal.jsx';
+import getCurrentHash from '../../../../utils/routing/currentHash.js';
 
 /**
  * Game NPC creation page.
@@ -28,7 +29,7 @@ export default function GameNpcNew() {
     [],
   );
 
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const currentHash = getCurrentHash();
   const gameSlug = GameNpcNewController.getGameSlugFromNpcNewHash(currentHash);
 
   useEffect(() => controller.buildEffect()(), [controller]);

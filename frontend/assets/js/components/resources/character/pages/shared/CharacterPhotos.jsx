@@ -5,6 +5,7 @@ import ProfilePhotoSetModal from '../../../../common/modals/ProfilePhotoSetModal
 import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import FacadeRefresh from '../../../../../utils/access/useFacadeRefresh.js';
+import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 
 /**
  * Shared character photos index page component.
@@ -40,7 +41,7 @@ export default function CharacterPhotos({ ControllerClass, getParamsFromHash, Ph
   useEffect(() => controller.buildEffect()(), [controller]);
   FacadeRefresh.useFacadeRefresh(controller);
 
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const currentHash = getCurrentHash();
   const { game_slug: gameSlug, character_id: characterId } = getParamsFromHash(currentHash);
   const basePath = `#/games/${gameSlug}/${characterKind}/${characterId}/photos`;
   const backHref = `#/games/${gameSlug}/${characterKind}/${characterId}`;

@@ -142,6 +142,26 @@ export default class BaseClient {
   }
 
   /**
+   * Build a `URLSearchParams` from ordered `[key, value]` entries, including only entries
+   * whose value is defined (i.e. not `undefined`, `null`, or an empty string).
+   *
+   * @param {Array<[string, string|number]>} entries - Query entries as `[key, value]` pairs,
+   *   in the order they should appear in the resulting query string.
+   * @returns {URLSearchParams} Query params with blank/undefined/null entries omitted.
+   */
+  buildQuery(entries) {
+    const params = new URLSearchParams();
+
+    entries.forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.set(key, value);
+      }
+    });
+
+    return params;
+  }
+
+  /**
    * Perform a GET request with JSON `Accept`/`Authorization` headers.
    *
    * @param {string} path - Request path, optionally including a query string.
@@ -210,5 +230,17 @@ export default class BaseClient {
       headers: { ...this.buildHeaders(token, extraHeaders), 'Content-Type': 'application/json' },
       body: JSON.stringify(fields),
     });
+  }
+
+  /**
+   * Parse a response body as JSON when the response is ok, otherwise reject
+   * with an `Error` carrying the given message.
+   *
+   * @param {Response} response - The fetch response to parse.
+   * @param {string} message - Error message used when the response is not ok.
+   * @returns {Promise<object>} The parsed JSON body.
+   */
+  static parseJsonOrReject(response, message) {
+    return response.ok ? response.json() : Promise.reject(new Error(message));
   }
 }

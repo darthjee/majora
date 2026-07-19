@@ -183,10 +183,7 @@ export default class HeaderHelper {
         href="#"
         data-testid="view-as-link"
         className={`view-as-link${activeClass}`}
-        onClick={(event) => {
-          event.preventDefault();
-          handlers.onViewAsClick();
-        }}
+        onClick={handlers.onViewAsClick}
       >
         <i className={`bi ${Icons.viewAs}`} aria-hidden="true" title={Translator.t('header.view_as_alt')}></i>
       </Nav.Link>

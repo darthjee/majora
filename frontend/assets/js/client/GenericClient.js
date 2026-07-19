@@ -1,5 +1,7 @@
 import HashRouteResolver from '../utils/routing/HashRouteResolver.js';
 import HashQueryParams from '../utils/routing/HashQueryParams.js';
+import getCurrentHash from '../utils/routing/currentHash.js';
+import parsePositiveInt from '../utils/parsePositiveInt.js';
 import BaseClient from './BaseClient.js';
 
 /**
@@ -15,7 +17,7 @@ export default class GenericClient extends BaseClient {
    *
    * @param {Function} hashProvider - Function returning current hash.
    */
-  constructor(hashProvider = () => (typeof window === 'undefined' ? '' : window.location.hash)) {
+  constructor(hashProvider = getCurrentHash) {
     super();
     this.#hashProvider = hashProvider;
     this.#resolver = new HashRouteResolver(hashProvider);
@@ -61,9 +63,9 @@ export default class GenericClient extends BaseClient {
     return {
       data: await response.json(),
       pagination: {
-        page: this.#parseInt(response.headers.get('page'), 1),
-        pages: this.#parseInt(response.headers.get('pages'), 1),
-        perPage: this.#parseInt(response.headers.get('per_page'), 10),
+        page: parsePositiveInt(response.headers.get('page'), 1),
+        pages: parsePositiveInt(response.headers.get('pages'), 1),
+        perPage: parsePositiveInt(response.headers.get('per_page'), 10),
       },
     };
   }
@@ -126,18 +128,6 @@ export default class GenericClient extends BaseClient {
   #buildUrl(path, params) {
     const query = params.toString();
     return query ? `${path}?${query}` : path;
-  }
-
-  /**
-   * Parse positive integer values.
-   *
-   * @param {string|null} value - Raw value.
-   * @param {number} fallback - Fallback value.
-   * @returns {number} Parsed number.
-   */
-  #parseInt(value, fallback) {
-    const parsed = Number.parseInt(value, 10);
-    return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
   }
 
   /**

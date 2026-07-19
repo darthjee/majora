@@ -4,6 +4,7 @@ import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
+import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 
 /**
  * Controller for the game treasure creation page.
@@ -51,7 +52,7 @@ export default class GameTreasureNewController extends BasePageController {
    */
   buildEffect() {
     return () => {
-      const hash = typeof window === 'undefined' ? '' : window.location.hash;
+      const hash = getCurrentHash();
       const gameSlug = GameTreasureNewController.getGameSlugFromTreasureNewHash(hash);
 
       AccessStore.ensureGamePermissions(gameSlug)

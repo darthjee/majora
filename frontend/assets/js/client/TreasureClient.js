@@ -94,15 +94,9 @@ export default class TreasureClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the game treasures endpoint.
    */
   fetchGameTreasuresPage(gameSlug, token, { page, perPage, maxValue, search, ordering } = {}) {
-    const queryParams = new URLSearchParams();
-
-    if (page) queryParams.set('page', page);
-    if (perPage) queryParams.set('per_page', perPage);
-    if (maxValue !== undefined && maxValue !== null) queryParams.set('max_value', maxValue);
-    if (search) queryParams.set('name', search);
-    if (ordering) queryParams.set('ordering', ordering);
-
-    const query = queryParams.toString();
+    const query = this.buildQuery([
+      ['page', page], ['per_page', perPage], ['max_value', maxValue], ['name', search], ['ordering', ordering],
+    ]).toString();
 
     return this.getJson(`/games/${gameSlug}/treasures.json${query ? `?${query}` : ''}`, token);
   }
@@ -124,15 +118,9 @@ export default class TreasureClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the game treasures/all endpoint.
    */
   fetchGameTreasuresAllPage(gameSlug, token, { page, perPage, maxValue, search, ordering } = {}) {
-    const queryParams = new URLSearchParams();
-
-    if (page) queryParams.set('page', page);
-    if (perPage) queryParams.set('per_page', perPage);
-    if (maxValue !== undefined && maxValue !== null) queryParams.set('max_value', maxValue);
-    if (search) queryParams.set('name', search);
-    if (ordering) queryParams.set('ordering', ordering);
-
-    const query = queryParams.toString();
+    const query = this.buildQuery([
+      ['page', page], ['per_page', perPage], ['max_value', maxValue], ['name', search], ['ordering', ordering],
+    ]).toString();
 
     return this.getJson(`/games/${gameSlug}/treasures/all.json${query ? `?${query}` : ''}`, token);
   }
@@ -161,12 +149,7 @@ export default class TreasureClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the game treasures/missing endpoint.
    */
   fetchMissingGameTreasuresPage(gameSlug, token, { page, perPage } = {}) {
-    const queryParams = new URLSearchParams();
-
-    if (page) queryParams.set('page', page);
-    if (perPage) queryParams.set('per_page', perPage);
-
-    const query = queryParams.toString();
+    const query = this.buildQuery([['page', page], ['per_page', perPage]]).toString();
 
     return this.getJson(`/games/${gameSlug}/treasures/missing.json${query ? `?${query}` : ''}`, token);
   }
