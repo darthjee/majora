@@ -24,6 +24,6 @@ change a password directly, or toggle `is_staff`/`is_superuser`/`is_active`.
 
 **Recovery-link endpoint**: reuses a valid (unexpired, unused) `PasswordResetToken` for the
 target user if one exists, otherwise creates a new one (`get_or_create_recovery_token` in
-`backend/games/views/password_reset/_shared.py`), and returns its URL directly in the response
+`backend/accounts/views/password_reset/_shared.py`), and returns its URL directly in the response
 body. Unlike `/users/recover.json`, it never sends an email — the URL is meant to be shared by
 staff directly with the user out-of-band.

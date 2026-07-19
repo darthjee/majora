@@ -18,9 +18,11 @@ is always predictable from its path alone.
    resource group. DM/GameMaster status is a `Player.is_dm` flag, not a separate model.
 4. Cross-cutting or standalone models that aren't owned by one specific resource stay at
    the top level of `models/`: `link.py` (a generic link attachable to multiple object
-   types via `GenericForeignKey`), `upload.py` (a generic pending-upload record),
-   `user_profile.py`, `password_reset_token.py`, and `task.py` (a DM checklist item scoped
-   to a game, but modeled as its own standalone concept rather than a `Game` sub-model).
+   types via `GenericForeignKey`), `upload.py` (a generic pending-upload record), and
+   `task.py` (a DM checklist item scoped to a game, but modeled as its own standalone
+   concept rather than a `Game` sub-model). `UserProfile`/`PasswordResetToken` used to live
+   here too, but now live in the dedicated `backend/accounts/models/` app instead — see
+   [architecture.md](architecture.md)'s `accounts/` section.
 5. Filenames keep their current descriptive names — only their folder location changes. No
    renaming to generic names like `index.py`/`model.py`.
 6. `backend/games/tests/models/` mirrors the identical tree, one test file per model file.
@@ -40,7 +42,7 @@ is always predictable from its path alone.
 | `Player` | `backend/games/models/game/player.py` |
 | `Treasure` | `backend/games/models/treasure/treasure.py` |
 | `TreasurePhoto` | `backend/games/models/treasure/treasure_photo.py` |
-| `Link`, `Upload`, `UserProfile`, `PasswordResetToken`, `Task` | stay at `backend/games/models/` (cross-cutting/standalone) |
+| `Link`, `Upload`, `Task` | stay at `backend/games/models/` (cross-cutting/standalone) |
 
 ## Stability of public re-exports
 

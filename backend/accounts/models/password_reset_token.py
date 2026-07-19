@@ -19,6 +19,11 @@ class PasswordResetToken(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     used_at = models.DateTimeField(null=True, blank=True)
 
+    class Meta:
+        """Metadata for the PasswordResetToken model."""
+
+        db_table = 'games_passwordresettoken'
+
     def is_valid(self):
         """Return True if the token has not been used and has not expired."""
         if self.used_at is not None:

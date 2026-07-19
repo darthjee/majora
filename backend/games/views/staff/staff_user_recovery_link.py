@@ -6,9 +6,10 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from ...authentication import CookieTokenAuthentication
+from accounts.authentication import CookieTokenAuthentication
+from accounts.views.password_reset._shared import build_recovery_url, get_or_create_recovery_token
+
 from ..common import require_staff
-from ..password_reset._shared import build_recovery_url, get_or_create_recovery_token
 
 
 @api_view(['POST'])

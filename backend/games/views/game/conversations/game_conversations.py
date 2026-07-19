@@ -5,9 +5,9 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from accounts.authentication import CookieTokenAuthentication
 from conversations.models import Conversation
 
-from ....authentication import CookieTokenAuthentication
 from ....models import Game
 from ....permissions import PlayerPermission
 from ....serializers import ConversationListSerializer

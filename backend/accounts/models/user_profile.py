@@ -14,6 +14,11 @@ class UserProfile(models.Model):
     email_hash = models.CharField(max_length=64, null=True, blank=True)
     display_name = models.CharField(max_length=150, unique=True, null=True)
 
+    class Meta:
+        """Metadata for the UserProfile model."""
+
+        db_table = 'games_userprofile'
+
     def save(self, *args, **kwargs):
         """Save the profile, recomputing email_hash from the linked user's email."""
         self.email_hash = self._compute_email_hash()

@@ -15,7 +15,6 @@ from games.models.game.game_session_message import GameSessionMessage
 from games.models.game.game_treasure import GameTreasure
 from games.models.game.player import Player
 from games.models.link import Link
-from games.models.password_reset_token import PasswordResetToken
 from games.models.poll.poll import Poll
 from games.models.poll.poll_option import PollOption
 from games.models.poll.poll_vote import PollVote
@@ -23,7 +22,6 @@ from games.models.task import Task
 from games.models.treasure.treasure import Treasure
 from games.models.treasure.treasure_photo import TreasurePhoto
 from games.models.upload import Upload
-from games.models.user_profile import UserProfile
 
 __all__ = [
     'Character',
@@ -40,7 +38,6 @@ __all__ = [
     'GameSessionMessage',
     'GameTreasure',
     'Link',
-    'PasswordResetToken',
     'Player',
     'Poll',
     'PollOption',
@@ -49,5 +46,4 @@ __all__ = [
     'Treasure',
     'TreasurePhoto',
     'Upload',
-    'UserProfile',
 ]
