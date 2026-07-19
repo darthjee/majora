@@ -2,8 +2,8 @@
 
 from rest_framework import serializers
 
+from accounts.models import UserProfile
 from games.gravatar import GravatarUrlBuilder
-from games.models import UserProfile
 
 
 class PlayerUserSerializer(serializers.Serializer):

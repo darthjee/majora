@@ -4,7 +4,8 @@ from django.contrib.auth.models import User
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny
 
-from ...authentication import CookieTokenAuthentication
+from accounts.authentication import CookieTokenAuthentication
+
 from ...serializers import StaffUserListSerializer
 from ..common import paginated_list_response, require_staff
 

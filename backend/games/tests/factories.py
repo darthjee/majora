@@ -10,6 +10,7 @@ roles, flags, etc.) is preserved by passing overrides at the call site.
 import factory
 from django.contrib.auth.models import User
 
+from accounts.models import UserProfile
 from conversations.models import (
     Conversation,
     ConversationParticipant,
@@ -27,7 +28,6 @@ from games.models import (
     PollOption,
     PollVote,
     Treasure,
-    UserProfile,
 )
 
 

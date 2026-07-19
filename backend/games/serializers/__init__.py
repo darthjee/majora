@@ -1,7 +1,5 @@
 """Serializers package for the games app."""
 
-from games.serializers.auth.my_account_detail import MyAccountDetailSerializer
-from games.serializers.auth.my_account_update import MyAccountUpdateSerializer
 from games.serializers.base_access import BaseAccessSerializer
 from games.serializers.base_permissions import BasePermissionsSerializer
 from games.serializers.characters.character_access import CharacterAccessSerializer
@@ -126,8 +124,6 @@ __all__ = [
     'GameUpdateSerializer',
     'HiddenFieldSerializer',
     'LinkSerializer',
-    'MyAccountDetailSerializer',
-    'MyAccountUpdateSerializer',
     'MyGamesItemSerializer',
     'NpcPlayerUpdateSerializer',
     'PcAccessSerializer',

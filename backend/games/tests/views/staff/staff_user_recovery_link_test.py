@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
-from games.models import PasswordResetToken
+from accounts.models import PasswordResetToken
 from games.tests.factories import SuperUserFactory, UserFactory
 
 

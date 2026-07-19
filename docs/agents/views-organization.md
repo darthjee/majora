@@ -30,8 +30,11 @@ route is always predictable from its path alone.
    `treasure_access.py`) — only their folder location changes. No renaming to generic
    names like `index.py`/`show.py`.
 6. `backend/games/tests/views/` mirrors the identical tree, one test file per view file.
-7. `auth/` and `password_reset/` are excluded: every route there is a flat action on the
-   current user with no id-nesting or member routes, so the convention adds nothing.
+7. `backend/accounts/views/auth/` and `backend/accounts/views/password_reset/` (a separate
+   app, not part of `games/views/` at all — see [architecture.md](architecture.md)'s
+   `accounts/` section) are exempt from this convention for the same reason: every route
+   there is a flat action on the current user with no id-nesting or member routes, so the
+   convention would add nothing.
 
 ## Worked examples
 
@@ -54,7 +57,7 @@ match the new paths whenever a slice is actually carried out.
 
 The convention is not yet applied to the existing tree. Today, `views/` groups files into
 flat per-resource packages (`characters/`, `games/`, `treasures/`, `game_sessions/`,
-`staff/`, `auth/`, `password_reset/`) without distinguishing a resource's
+`staff/`) without distinguishing a resource's
 own actions from nested sub-resources or member actions on a single item — e.g.
 `characters/` alone holds both PC and NPC endpoints (list, detail, full, access, photos,
 photo upload, photo set, treasures, slain-set) in ~29 flat files.

@@ -1,7 +1,6 @@
 """Views package for the games app."""
 
 from .access_route_config import access_route_config
-from .auth import account, language, login, logout, register, status, test_email
 from .game import (
     game_conversations,
     game_npc_access,
@@ -65,7 +64,6 @@ from .games import (
     my_games_list,
 )
 from .health import health
-from .password_reset import recover, reset_password
 from .photo_upload import photo_upload
 from .polls import game_poll_close, game_poll_detail, game_poll_votes, game_polls_list
 from .ready import ready
@@ -137,15 +135,6 @@ __all__ = [
     'session_poll_create',
     'game_tasks_list',
     'game_task_detail',
-    'language',
-    'login',
-    'logout',
-    'register',
-    'status',
-    'test_email',
-    'account',
-    'recover',
-    'reset_password',
     'photo_upload',
     'game_polls_list',
     'game_poll_close',

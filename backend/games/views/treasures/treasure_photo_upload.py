@@ -6,7 +6,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
-from ...authentication import CookieTokenAuthentication
+from accounts.authentication import CookieTokenAuthentication
+
 from ...models import Treasure, TreasurePhoto
 from ...permissions import GameEditPermission, TreasureEditPermission
 from .._upload_init import UploadInitiator
