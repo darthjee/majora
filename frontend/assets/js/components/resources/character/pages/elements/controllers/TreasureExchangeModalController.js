@@ -1,5 +1,6 @@
 import CharacterClient from '../../../../../../client/CharacterClient.js';
 import TreasureClient from '../../../../../../client/TreasureClient.js';
+import parsePositiveInt from '../../../../../../utils/parsePositiveInt.js';
 
 const ERROR_KEY_BY_MESSAGE = {
   'insufficient funds': 'treasure_exchange_modal.insufficient_funds',
@@ -7,19 +8,6 @@ const ERROR_KEY_BY_MESSAGE = {
 };
 
 const GENERIC_ERROR_KEY = 'treasure_exchange_modal.generic_error';
-
-/**
- * Parses a pagination header value into a positive integer, falling back
- * when the value is missing or invalid.
- *
- * @param {string|null} value - Raw header value.
- * @param {number} fallback - Fallback value.
- * @returns {number} Parsed positive integer.
- */
-function parsePositiveInt(value, fallback) {
-  const parsed = Number.parseInt(value, 10);
-  return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
-}
 
 /**
  * Manages browsing (Acquire/Sell tab) and acquire/sell action requests for

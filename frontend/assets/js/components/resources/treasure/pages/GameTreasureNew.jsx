@@ -3,6 +3,7 @@ import GameTreasureNewController from './controllers/GameTreasureNewController.j
 import GameTreasureNewHelper from './helpers/GameTreasureNewHelper.jsx';
 import MoneyEditModal from '../../../common/modals/MoneyEditModal.jsx';
 import Noop from '../../../../utils/Noop.js';
+import getCurrentHash from '../../../../utils/routing/currentHash.js';
 
 /**
  * Game treasure creation page.
@@ -22,7 +23,7 @@ export default function GameTreasureNew() {
     [],
   );
 
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const currentHash = getCurrentHash();
   const gameSlug = GameTreasureNewController.getGameSlugFromTreasureNewHash(currentHash);
 
   useEffect(() => controller.buildEffect()(), [controller]);

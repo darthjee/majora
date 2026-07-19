@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import StaffUserEditController from './controllers/StaffUserEditController.js';
 import StaffUserEditHelper from './helpers/StaffUserEditHelper.jsx';
 import StaffUserHelper from './helpers/StaffUserHelper.jsx';
+import getCurrentHash from '../../../../utils/routing/currentHash.js';
 
 /**
  * Staff user edit page.
@@ -22,7 +23,7 @@ export default function StaffUserEdit() {
     [],
   );
 
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const currentHash = getCurrentHash();
   const userId = StaffUserEditController.getStaffUserIdFromEditHash(currentHash);
 
   useEffect(() => controller.buildEffect()(), [controller]);

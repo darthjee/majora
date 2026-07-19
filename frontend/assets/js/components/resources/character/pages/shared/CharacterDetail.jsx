@@ -5,6 +5,7 @@ import FacadeRefresh from '../../../../../utils/access/useFacadeRefresh.js';
 import PhotoUploadModal from '../../../../common/modals/PhotoUploadModal.jsx';
 import MoneyEditModal from '../../../../common/modals/MoneyEditModal.jsx';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
+import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 
 /**
  * Default extension hook, used when a character kind has no extra
@@ -58,7 +59,7 @@ export default function CharacterDetail({
 
   const { handlers: extraHandlers, modal: extraModal } = useExtra(character, controller);
 
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const currentHash = getCurrentHash();
   const { game_slug: gameSlug } = getParamsFromHash(currentHash);
   const backHref = `#/games/${gameSlug}/${characterKind}`;
 

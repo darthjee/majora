@@ -1,6 +1,7 @@
 import Modal from 'react-bootstrap/cjs/Modal.js';
 import CardTreasureImage from '../../../../../common/cards/CardTreasureImage.jsx';
 import TreasureMoney from '../../../../../common/misc/TreasureMoney.jsx';
+import BrowsePager from '../../../../../common/pagination/BrowsePager.jsx';
 import Translator from '../../../../../../i18n/Translator.js';
 
 /**
@@ -58,37 +59,9 @@ export default class AddGameTreasureModalHelper {
   static #renderBrowsePane(state, handlers) {
     return (
       <>
-        {AddGameTreasureModalHelper.#renderPager(state.browse, handlers)}
+        <BrowsePager browse={state.browse} onPrev={handlers.onPrev} onNext={handlers.onNext} />
         {AddGameTreasureModalHelper.#renderBrowseList(state.browse, handlers.onSelect)}
       </>
-    );
-  }
-
-  static #renderPager(browse, handlers) {
-    if (browse.pages <= 1) {
-      return null;
-    }
-
-    return (
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <button
-          type="button"
-          className="btn btn-sm btn-outline-secondary"
-          onClick={handlers.onPrev}
-          disabled={browse.page <= 1}
-        >
-          {Translator.t('pagination.previous')}
-        </button>
-        <span>{`${browse.page} / ${browse.pages}`}</span>
-        <button
-          type="button"
-          className="btn btn-sm btn-outline-secondary"
-          onClick={handlers.onNext}
-          disabled={browse.page >= browse.pages}
-        >
-          {Translator.t('pagination.next')}
-        </button>
-      </div>
     );
   }
 

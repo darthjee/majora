@@ -4,6 +4,7 @@ import GamePhotosHelper from './helpers/GamePhotosHelper.jsx';
 import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
 import PhotoViewModal from '../../../common/modals/PhotoViewModal.jsx';
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
+import getCurrentHash from '../../../../utils/routing/currentHash.js';
 
 /**
  * Game Photos index page.
@@ -27,7 +28,7 @@ export default function GamePhotos() {
   useEffect(() => controller.buildEffect()(), [controller]);
   FacadeRefresh.useFacadeRefresh(controller);
 
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const currentHash = getCurrentHash();
   const gameSlug = GamePhotosController.getGameSlugFromPhotosHash(currentHash);
   const basePath = `#/games/${gameSlug}/photos`;
   const backHref = `#/games/${gameSlug}`;

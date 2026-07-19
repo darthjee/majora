@@ -6,19 +6,8 @@ import BasePageController from '../../../../common/base/controllers/BasePageCont
 import mergeCharacterTreasureQuantity from '../../../../../utils/money/mergeCharacterTreasureQuantity.js';
 import FacadeRefresh from '../../../../../utils/access/useFacadeRefresh.js';
 import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js';
-
-/**
- * Build the hash URL for applying treasure filters, resetting pagination to page 1.
- *
- * @param {string} basePath - Base hash path (e.g. `#/games/demo/pcs/2/treasures`).
- * @param {{min_value?: string, max_value?: string, name?: string}} filters - Filters to apply,
- *   as built by `TreasureFiltersController#buildQuery` (blank fields already omitted).
- * @returns {string} Hash including the reset page and the active filters.
- */
-function buildFilterQueryHash(basePath, filters) {
-  const params = new URLSearchParams({ page: '1', ...filters });
-  return `${basePath}?${params.toString()}`;
-}
+import getCurrentHash from '../../../../../utils/routing/currentHash.js';
+import buildFilterQueryHash from '../../../../../utils/routing/buildFilteredHref.js';
 
 /**
  * Merge a successful exchange's result into the currently loaded owned-treasures snapshot kept
@@ -85,7 +74,7 @@ export default function CharacterTreasures({ characterKind, listType, isPc }) {
   const [showExchangeModal, setShowExchangeModal] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
 
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const currentHash = getCurrentHash();
   const { game_slug: gameSlug, character_id: characterId } = BasePageController.extractParams(
     `/games/:game_slug/${characterKind}/:character_id/treasures`, currentHash, ['game_slug', 'character_id'],
   );

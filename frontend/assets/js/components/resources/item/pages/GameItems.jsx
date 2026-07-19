@@ -1,5 +1,6 @@
 import GameItemsHelper from './helpers/GameItemsHelper.jsx';
 import BasePageController from '../../../common/base/controllers/BasePageController.js';
+import getCurrentHash from '../../../../utils/routing/currentHash.js';
 
 /**
  * Game Items index page.
@@ -7,7 +8,7 @@ import BasePageController from '../../../common/base/controllers/BasePageControl
  * @returns {React.ReactElement} Game items page element.
  */
 export default function GameItems() {
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const currentHash = getCurrentHash();
   const gameSlug = BasePageController.extractParam('/games/:game_slug/items', 'game_slug', currentHash);
   const basePath = `#/games/${gameSlug}/items`;
   const backHref = `#/games/${gameSlug}`;

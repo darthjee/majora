@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import GameTreasureEditController from './controllers/GameTreasureEditController.js';
 import GameTreasureEditHelper from './helpers/GameTreasureEditHelper.jsx';
 import MoneyEditModal from '../../../common/modals/MoneyEditModal.jsx';
+import getCurrentHash from '../../../../utils/routing/currentHash.js';
 
 /**
  * Game treasure edit page.
@@ -24,7 +25,7 @@ export default function GameTreasureEdit() {
     [],
   );
 
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const currentHash = getCurrentHash();
   const { game_slug: gameSlug, treasure_id: treasureId } =
     GameTreasureEditController.getGameTreasureEditParamsFromHash(currentHash);
   const isExclusive = GameTreasureEditController.isExclusiveTreasure(treasure);

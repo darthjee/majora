@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import GameSessionNewController from './controllers/GameSessionNewController.js';
 import Noop from '../../../../utils/Noop.js';
 import GameSessionNewHelper from './helpers/GameSessionNewHelper.jsx';
+import getCurrentHash from '../../../../utils/routing/currentHash.js';
 
 /**
  * Game session creation page.
@@ -20,7 +21,7 @@ export default function GameSessionNew() {
     [],
   );
 
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const currentHash = getCurrentHash();
   const gameSlug = GameSessionNewController.getGameSlugFromSessionNewHash(currentHash);
 
   useEffect(() => controller.buildEffect()(), [controller]);

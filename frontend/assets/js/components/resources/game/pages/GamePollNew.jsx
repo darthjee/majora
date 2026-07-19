@@ -3,6 +3,7 @@ import GamePollNewController from './controllers/GamePollNewController.js';
 import Noop from '../../../../utils/Noop.js';
 import GamePollNewHelper from './helpers/GamePollNewHelper.jsx';
 import { OPTION_TYPE_TEXT } from './elements/PollOptionType.js';
+import getCurrentHash from '../../../../utils/routing/currentHash.js';
 
 const POLL_TYPE_SINGLE = 'single';
 
@@ -25,7 +26,7 @@ export default function GamePollNew() {
     [],
   );
 
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const currentHash = getCurrentHash();
   const gameSlug = GamePollNewController.getGameSlugFromPollNewHash(currentHash);
 
   useEffect(() => controller.buildEffect()(), [controller]);

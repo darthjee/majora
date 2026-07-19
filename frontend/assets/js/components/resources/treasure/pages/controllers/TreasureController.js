@@ -1,7 +1,9 @@
 import TreasureClient from '../../../../../client/TreasureClient.js';
+import BaseClient from '../../../../../client/BaseClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
+import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 
 /**
  * Controller for treasure detail page.
@@ -42,7 +44,7 @@ export default class TreasureController extends BasePageController {
     return () => {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
-      const hash = typeof window === 'undefined' ? '' : window.location.hash;
+      const hash = getCurrentHash();
       const id = TreasureController.getTreasureIdFromHash(hash);
 
       if (!id) {
@@ -62,9 +64,7 @@ export default class TreasureController extends BasePageController {
     const token = AuthStorage.getToken();
 
     this.treasureClient.fetchTreasure(id, token)
-      .then((response) => (response.ok
-        ? response.json()
-        : Promise.reject(new Error('treasure failed'))))
+      .then((response) => BaseClient.parseJsonOrReject(response, 'treasure failed'))
       .then((treasure) => this.#renderTreasure(id, treasure, safeSet))
       .catch(() => safeSet(this.setError, 'Unable to load treasure.'))
       .finally(() => safeSet(this.setLoading, false));

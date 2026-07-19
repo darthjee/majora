@@ -3,6 +3,7 @@ import CharacterHelper from '../helpers/CharacterHelper.jsx';
 import PhotoUploadModal from '../../../../common/modals/PhotoUploadModal.jsx';
 import LinksEditModal from '../elements/LinksEditModal.jsx';
 import MoneyEditModal from '../../../../common/modals/MoneyEditModal.jsx';
+import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 
 /**
  * Shared character edit page component.
@@ -43,7 +44,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
     [],
   );
 
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const currentHash = getCurrentHash();
   const { game_slug: gameSlug, character_id: characterId } = getParamsFromHash(currentHash);
 
   useEffect(() => controller.buildEffect()(), [controller]);

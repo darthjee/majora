@@ -4,6 +4,7 @@ import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BaseEditController from '../../../../common/base/controllers/BaseEditController.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
+import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 
 /**
  * Controller for the treasure edit page.
@@ -54,7 +55,7 @@ export default class TreasureEditController extends BaseEditController {
         return;
       }
 
-      const hash = typeof window === 'undefined' ? '' : window.location.hash;
+      const hash = getCurrentHash();
       const id = TreasureEditController.getTreasureIdFromEditHash(hash);
 
       if (!id) {

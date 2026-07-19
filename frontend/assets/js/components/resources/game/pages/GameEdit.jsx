@@ -3,6 +3,7 @@ import GameEditController from './controllers/GameEditController.js';
 import GameEditHelper from './helpers/GameEditHelper.jsx';
 import GameHelper from './helpers/GameHelper.jsx';
 import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
+import getCurrentHash from '../../../../utils/routing/currentHash.js';
 
 /**
  * Game edit page.
@@ -24,7 +25,7 @@ export default function GameEdit() {
     [],
   );
 
-  const currentHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const currentHash = getCurrentHash();
   const gameSlug = GameEditController.getGameSlugFromEditHash(currentHash);
 
   useEffect(() => controller.buildEffect()(), [controller]);
