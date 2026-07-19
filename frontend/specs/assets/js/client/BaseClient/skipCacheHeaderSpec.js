@@ -90,6 +90,18 @@ describe('BaseClient', function() {
     }));
   });
 
+  it('adds X-Skip-Cache to the my-games endpoint', async function() {
+    await client.request('/my-games.json', {
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/my-games.json', jasmine.objectContaining({
+      method: 'GET',
+      headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
+      body: undefined,
+    }));
+  });
+
   it('matches a configured endpoint by pathname only, ignoring the query string', async function() {
     await client.request('/users/status.json?foo=bar', {
       headers: { Accept: 'application/json' },

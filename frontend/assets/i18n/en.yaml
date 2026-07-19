@@ -9,6 +9,7 @@ header:
   nav_npc: NPC
   nav_treasures: Treasures
   nav_staff_users: Users
+  nav_my_games: My Games
   login: Login
   logoff: Logoff
   send_test_email: Send test email
@@ -505,3 +506,8 @@ money:
   cp_abbreviation: CP
   cents_abbreviation: Cents
   dollars_abbreviation: Dollars
+my_games:
+  role_dm: DM
+  role_player: Player
+  following_tooltip: 'Following {{count}} conversations'
+  unread_tooltip: '{{count}} unread conversations'

@@ -115,6 +115,9 @@ export default class HeaderHelper {
             <NavDropdown.Item href="#/my_account" data-testid="my-account-link">
               {Translator.t('header.my_account_alt')}
             </NavDropdown.Item>
+            <NavDropdown.Item href="#/my-games" data-testid="my-games-link">
+              {Translator.t('header.nav_my_games')}
+            </NavDropdown.Item>
           </NavDropdown>
           {HeaderHelper.#renderViewAsLink(state, handlers)}
         </>
@@ -159,7 +162,7 @@ export default class HeaderHelper {
         aria-label={Translator.t('header.send_test_email')}
         onClick={handlers.onSendTestEmailClick}
       >
-        <i className={`bi ${Icons.envelope}`} aria-hidden="true"></i>
+        <i className={`bi ${Icons.envelopeFill}`} aria-hidden="true"></i>
       </button>
     );
   }

@@ -40,6 +40,25 @@ describe('HeaderHelper', function() {
       expect(html).toContain('>My account</a>');
     });
 
+    it('does not render the my-games link when logged out', function() {
+      const html = render();
+
+      expect(html).not.toContain('data-testid="my-games-link"');
+    });
+
+    it('renders the my-games link when logged in', function() {
+      const html = render({ loggedIn: true });
+
+      expect(html).toContain('data-testid="my-games-link"');
+      expect(html).toContain('href="#/my-games"');
+    });
+
+    it('renders the "My Games" text inside the dropdown item', function() {
+      const html = render({ loggedIn: true });
+
+      expect(html).toContain('>My Games</a>');
+    });
+
     it('renders the language selector', function() {
       const html = render();
 

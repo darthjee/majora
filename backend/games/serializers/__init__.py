@@ -37,6 +37,7 @@ from games.serializers.games.items.game_item_list import (
     GameItemAllListSerializer,
     GameItemListSerializer,
 )
+from games.serializers.games.my_games.my_games_item import MyGamesItemSerializer
 from games.serializers.games.players.player_character import PlayerCharacterSerializer
 from games.serializers.games.players.player_list import PlayerListSerializer
 from games.serializers.games.players.player_user import PlayerUserSerializer
@@ -125,6 +126,7 @@ __all__ = [
     'LinkSerializer',
     'MyAccountDetailSerializer',
     'MyAccountUpdateSerializer',
+    'MyGamesItemSerializer',
     'NpcPlayerUpdateSerializer',
     'PcAccessSerializer',
     'PhotoUploadSerializer',

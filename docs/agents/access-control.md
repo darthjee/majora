@@ -42,6 +42,9 @@ regardless of any other rule listed below.
 - [GameSessionMessage](access-control/game-session-message.md)
 - [Task](access-control/task.md)
 - [Poll](access-control/poll.md)
+- [Conversation](access-control/conversation.md) — `Conversation`, `ConversationParticipant`,
+  `Message`, `MessageVisualisation` (`conversations` app); currently only exposed in aggregate
+  form via `Game`'s `GET /my-games.json`
 
 ### Standalone endpoints
 

@@ -13,4 +13,5 @@ export default new Set([
   '/users/language.json',
   '/users/register.json',
   '/users/account.json',
+  '/my-games.json',
 ]);
