@@ -3,6 +3,7 @@ import GameSessionEditController from './controllers/GameSessionEditController.j
 import GameSessionEditHelper from './helpers/GameSessionEditHelper.jsx';
 import GameSessionHelper from './helpers/GameSessionHelper.jsx';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
+import useFormState from '../../../../utils/useFormState.js';
 
 /**
  * Game session edit page.
@@ -15,9 +16,7 @@ export default function GameSessionEdit() {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [status, setStatus] = useState('idle');
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
-  const [description, setDescription] = useState('');
+  const { state: fields, setField, handleChange } = useFormState({ title: '', date: '', description: '' });
 
   const controller = useMemo(
     () => new GameSessionEditController(setSession, setLoading, setError, setFieldErrors),
@@ -39,9 +38,9 @@ export default function GameSessionEdit() {
       return;
     }
 
-    setTitle(session.title ?? '');
-    setDate(session.date ?? '');
-    setDescription(session.description ?? '');
+    setField('title', session.title ?? '');
+    setField('date', session.date ?? '');
+    setField('description', session.description ?? '');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
@@ -49,7 +48,7 @@ export default function GameSessionEdit() {
     event,
     gameSlug,
     id,
-    { title, date, description },
+    fields,
     { setStatus, setFieldErrors },
   );
 
@@ -57,12 +56,12 @@ export default function GameSessionEdit() {
   if (error) return GameSessionHelper.renderError(error);
 
   return GameSessionEditHelper.render(
-    { title, date, description, status, fieldErrors },
+    { ...fields, status, fieldErrors },
     {
       onSubmit: handleSubmit,
-      onTitleChange: (event) => setTitle(event.target.value),
-      onDateChange: (event) => setDate(event.target.value),
-      onDescriptionChange: (event) => setDescription(event.target.value),
+      onTitleChange: handleChange('title'),
+      onDateChange: handleChange('date'),
+      onDescriptionChange: handleChange('description'),
     },
   );
 }

@@ -160,33 +160,31 @@ export default class BaseCharacterEditHelper {
           <label htmlFor={`${idPrefix}-edit-allegiance`} className="form-label">
             {Translator.t(`${i18nNamespace}.allegiance_label`)}
           </label>
-          <select
-            id={`${idPrefix}-edit-allegiance`}
-            className="form-select"
-            value={state.allegiance}
-            onChange={handlers.onAllegianceChange}
-          >
-            <option value="ally">{Translator.t(`${i18nNamespace}.allegiance_ally`)}</option>
-            <option value="enemy">{Translator.t(`${i18nNamespace}.allegiance_enemy`)}</option>
-            <option value="neutral">{Translator.t(`${i18nNamespace}.allegiance_neutral`)}</option>
-          </select>
+          {this.#renderAllegianceSelect(
+            `${idPrefix}-edit-allegiance`, state.allegiance, handlers.onAllegianceChange,
+          )}
         </div>
         <div className="mb-3">
           <label htmlFor={`${idPrefix}-edit-public-allegiance`} className="form-label">
             {Translator.t(`${i18nNamespace}.public_allegiance_label`)}
           </label>
-          <select
-            id={`${idPrefix}-edit-public-allegiance`}
-            className="form-select"
-            value={state.publicAllegiance}
-            onChange={handlers.onPublicAllegianceChange}
-          >
-            <option value="ally">{Translator.t(`${i18nNamespace}.allegiance_ally`)}</option>
-            <option value="enemy">{Translator.t(`${i18nNamespace}.allegiance_enemy`)}</option>
-            <option value="neutral">{Translator.t(`${i18nNamespace}.allegiance_neutral`)}</option>
-          </select>
+          {this.#renderAllegianceSelect(
+            `${idPrefix}-edit-public-allegiance`, state.publicAllegiance, handlers.onPublicAllegianceChange,
+          )}
         </div>
       </>
+    );
+  }
+
+  #renderAllegianceSelect(id, value, onChange) {
+    const { i18nNamespace } = this;
+
+    return (
+      <select id={id} className="form-select" value={value} onChange={onChange}>
+        <option value="ally">{Translator.t(`${i18nNamespace}.allegiance_ally`)}</option>
+        <option value="enemy">{Translator.t(`${i18nNamespace}.allegiance_enemy`)}</option>
+        <option value="neutral">{Translator.t(`${i18nNamespace}.allegiance_neutral`)}</option>
+      </select>
     );
   }
 

@@ -1,5 +1,5 @@
 import PollClient from '../../../../../../client/PollClient.js';
-import BaseClient from '../../../../../../client/BaseClient.js';
+import parseJsonOrReject from '../../../../../../utils/http/parseJsonOrReject.js';
 
 /**
  * Manages the vote tally computation and close request for the
@@ -70,7 +70,7 @@ export default class PollCloseModalController {
    */
   fetchTallies(gameSlug, pollId, token) {
     return this.pollClient.fetchPollVotes(gameSlug, pollId, token)
-      .then((response) => BaseClient.parseJsonOrReject(response, 'votes failed'))
+      .then((response) => parseJsonOrReject(response, 'votes failed'))
       .then((votes) => PollCloseModalController.tallyVotes(votes));
   }
 

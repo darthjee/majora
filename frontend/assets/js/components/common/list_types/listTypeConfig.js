@@ -8,6 +8,7 @@ import CharacterItemListItem from './CharacterItemListItem.js';
 import TreasureFilters from '../../resources/treasure/pages/elements/TreasureFilters.jsx';
 import TreasureCardHelper from '../cards/helpers/TreasureCardHelper.jsx';
 import ItemCardHelper from './ItemCardHelper.jsx';
+import fetchPermissionGatedIndex from './fetchPermissionGatedIndex.js';
 import gamesListType from './configs/gamesListType.js';
 import characterListTypes from './configs/characterListTypes.js';
 import characterTreasureListTypes from './configs/characterTreasureListTypes.js';
@@ -28,19 +29,11 @@ import playersListType from './configs/playersListType.js';
  *   fetched treasures, pagination metadata, and the resolved edit permission.
  */
 function fetchTreasures(gameSlug, hashResolver, client = new GenericClient()) {
-  return AccessStore.ensureGamePermissions(gameSlug)
-    .then((permissions) => Boolean(permissions.can_edit))
-    .catch(() => false)
-    .then((canEdit) => {
-      const path = canEdit ? `/games/${gameSlug}/treasures/all.json` : `/games/${gameSlug}/treasures.json`;
-      const filterParams = Object.fromEntries(hashResolver.getFilterParams());
+  const filterParams = Object.fromEntries(hashResolver.getFilterParams());
 
-      return client.fetchIndex(path, filterParams).then(({ data, pagination }) => ({
-        data: Array.isArray(data) ? data : [],
-        pagination,
-        canEdit,
-      }));
-    });
+  return fetchPermissionGatedIndex(
+    AccessStore.ensureGamePermissions(gameSlug), `/games/${gameSlug}/treasures`, filterParams, client,
+  );
 }
 
 /**
@@ -107,18 +100,9 @@ function buildItemHref(item) {
  *   fetched items, pagination metadata, and the resolved edit permission.
  */
 function fetchGameItems(gameSlug, hashResolver, client = new GenericClient()) {
-  return AccessStore.ensureGamePermissions(gameSlug)
-    .then((permissions) => Boolean(permissions.can_edit))
-    .catch(() => false)
-    .then((canEdit) => {
-      const path = canEdit ? `/games/${gameSlug}/items/all.json` : `/games/${gameSlug}/items.json`;
-
-      return client.fetchIndex(path).then(({ data, pagination }) => ({
-        data: Array.isArray(data) ? data : [],
-        pagination,
-        canEdit,
-      }));
-    });
+  return fetchPermissionGatedIndex(
+    AccessStore.ensureGamePermissions(gameSlug), `/games/${gameSlug}/items`, undefined, client,
+  );
 }
 
 /**
@@ -137,30 +121,22 @@ function buildFetchCharacterItems(characterKind) {
     const { character_id: characterId } = hashResolver.getParams(
       `/games/:game_slug/${characterKind}/:character_id/items`,
     );
+    const base = `/games/${gameSlug}/${characterKind}/${characterId}/items`;
 
-    return AccessStore.ensureCharacterPermissions(characterKind, gameSlug, characterId)
-      .then((permissions) => Boolean(permissions.can_edit))
-      .catch(() => false)
-      .then((canEdit) => {
-        const base = `/games/${gameSlug}/${characterKind}/${characterId}/items`;
-        const path = canEdit ? `${base}/all.json` : `${base}.json`;
-
-        return client.fetchIndex(path).then(({ data, pagination }) => ({
-          data: Array.isArray(data) ? data : [],
-          pagination,
-          canEdit,
-        }));
-      });
+    return fetchPermissionGatedIndex(
+      AccessStore.ensureCharacterPermissions(characterKind, gameSlug, characterId), base, undefined, client,
+    );
   };
 }
 
 /**
- * Build an item's action-bar props: always non-manageable, since items have no upload/edit
- * affordance in scope (read-only feature, issue #658).
+ * Build a read-only action-bar props object: always non-manageable, no secondary buttons.
+ * Shared by every list type with no per-item upload/edit affordance in scope (items, PCs,
+ * character-owned treasures).
  *
  * @returns {{canEdit: boolean, secondaryButtons: object[]}} Action-bar props for `ActionsOverlay`.
  */
-function buildReadOnlyActionBarProps() {
+export function buildReadOnlyActionBarProps() {
   return { canEdit: false, secondaryButtons: [] };
 }
 

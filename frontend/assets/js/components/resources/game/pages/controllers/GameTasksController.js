@@ -65,7 +65,7 @@ export default class GameTasksController extends BasePageController {
 
       AccessStore.ensureGamePermissions(gameSlug)
         .then((permissions) => this.#handlePermissions(permissions, gameSlug, safeSet))
-        .catch(() => this.#redirectToGame(gameSlug));
+        .catch(() => this.redirectTo(`/games/${gameSlug}`));
 
       return () => {
         mounted = false;
@@ -174,17 +174,11 @@ export default class GameTasksController extends BasePageController {
 
   #handlePermissions(permissions, gameSlug, safeSet) {
     if (!permissions.can_edit) {
-      this.#redirectToGame(gameSlug);
+      this.redirectTo(`/games/${gameSlug}`);
       return;
     }
 
     this.#fetchTasks(gameSlug, safeSet);
-  }
-
-  #redirectToGame(gameSlug) {
-    if (typeof window !== 'undefined') {
-      window.location.hash = `/games/${gameSlug}`;
-    }
   }
 
   #fetchTasks(gameSlug, safeSet) {

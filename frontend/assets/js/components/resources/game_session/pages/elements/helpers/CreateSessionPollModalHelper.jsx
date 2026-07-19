@@ -1,10 +1,8 @@
 import Modal from 'react-bootstrap/cjs/Modal.js';
 import Translator from '../../../../../../i18n/Translator.js';
-import Icons from '../../../../../../utils/ui/Icons.js';
-import PollOptionInput from '../../../../game/pages/elements/PollOptionInput.jsx';
+import RemovableOptionRow from '../../../../../common/forms/RemovableOptionRow.jsx';
+import PollTypeRadioGroup from '../../../../../common/forms/PollTypeRadioGroup.jsx';
 import { OPTION_TYPE_DATE } from '../../../../game/pages/elements/PollOptionType.js';
-
-const POLL_TYPES = ['single', 'multiple'];
 
 /**
  * Renders the "Create session poll" modal shell: a dynamically-growing list
@@ -68,50 +66,30 @@ export default class CreateSessionPollModalHelper {
     return (
       <div className="mb-3">
         <span className="form-label d-block">{Translator.t('session_poll_modal.type_label')}</span>
-        {POLL_TYPES.map((type) => (
-          <div className="form-check form-check-inline" key={type}>
-            <input
-              id={`session-poll-type-${type}`}
-              type="radio"
-              className="form-check-input"
-              name="session-poll-type"
-              value={type}
-              checked={state.type === type}
-              onChange={() => handlers.onTypeChange(type)}
-            />
-            <label className="form-check-label" htmlFor={`session-poll-type-${type}`}>
-              {Translator.t(`session_poll_modal.type_${type}`)}
-            </label>
-          </div>
-        ))}
+        <PollTypeRadioGroup
+          idPrefix="session-poll-type"
+          name="session-poll-type"
+          translationPrefix="session_poll_modal.type"
+          value={state.type}
+          onChange={handlers.onTypeChange}
+        />
       </div>
     );
   }
 
   static #renderDate(date, index, state, handlers) {
-    const isLast = index === state.dates.length - 1;
-    const isBlank = date.trim() === '';
-
     return (
-      <div className="input-group mb-2" key={index}>
-        <PollOptionInput
-          id={`session-poll-date-${index}`}
-          dataTestId={`session-poll-date-${index}`}
-          optionType={OPTION_TYPE_DATE}
-          value={date}
-          onChange={(event) => handlers.onDateChange(index, event.target.value)}
-        />
-        {!(isLast && isBlank) && (
-          <button
-            type="button"
-            className="btn btn-outline-danger"
-            data-testid={`session-poll-date-remove-${index}`}
-            onClick={() => handlers.onDateRemove(index)}
-          >
-            <i className={`bi ${Icons.trash}`} aria-hidden="true"></i>
-          </button>
-        )}
-      </div>
+      <RemovableOptionRow
+        key={index}
+        id={`session-poll-date-${index}`}
+        testId={`session-poll-date-${index}`}
+        removeTestId={`session-poll-date-remove-${index}`}
+        optionType={OPTION_TYPE_DATE}
+        value={date}
+        isLast={index === state.dates.length - 1}
+        onChange={(event) => handlers.onDateChange(index, event.target.value)}
+        onRemove={() => handlers.onDateRemove(index)}
+      />
     );
   }
 }

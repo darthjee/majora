@@ -1,5 +1,5 @@
 import AuthClient from '../../../../../client/AuthClient.js';
-import BaseClient from '../../../../../client/BaseClient.js';
+import parseJsonOrReject from '../../../../../utils/http/parseJsonOrReject.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 
@@ -91,7 +91,7 @@ export default class MyAccountController extends BasePageController {
     const token = AuthStorage.getToken();
 
     this.client.fetchAccount(token)
-      .then((response) => BaseClient.parseJsonOrReject(response, 'account fetch failed'))
+      .then((response) => parseJsonOrReject(response, 'account fetch failed'))
       .then((account) => {
         safeSet(this.setName, account.name ?? '');
         safeSet(this.setDisplayName, account.display_name ?? '');

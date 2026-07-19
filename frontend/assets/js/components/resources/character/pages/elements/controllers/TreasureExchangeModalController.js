@@ -1,6 +1,8 @@
 import CharacterClient from '../../../../../../client/CharacterClient.js';
 import TreasureClient from '../../../../../../client/TreasureClient.js';
+import AuthStorage from '../../../../../../utils/auth/AuthStorage.js';
 import parsePositiveInt from '../../../../../../utils/parsePositiveInt.js';
+import Translator from '../../../../../../i18n/Translator.js';
 
 const ERROR_KEY_BY_MESSAGE = {
   'insufficient funds': 'treasure_exchange_modal.insufficient_funds',
@@ -8,6 +10,53 @@ const ERROR_KEY_BY_MESSAGE = {
 };
 
 const GENERIC_ERROR_KEY = 'treasure_exchange_modal.generic_error';
+
+/**
+ * Default page size for the modal's browse list, shared by every `loadPage` call.
+ */
+export const PER_PAGE = 10;
+
+/**
+ * Builds the query params for a browse page request, forwarding the current
+ * name filter to both tabs and capping/sorting the Acquire tab (by the
+ * character's current money and always descending, per the modal's fixed
+ * sort — there is no sort-direction UI toggle).
+ *
+ * @param {string} tab - Currently active tab (`acquire` or `sell`).
+ * @param {number} page - Page number to request.
+ * @param {number} perPage - Page size.
+ * @param {object} character - Character context (`money`).
+ * @param {string} searchTerm - Current name filter.
+ * @returns {object} Query params for the matching controller fetch method.
+ */
+export function buildBrowseParams(tab, page, perPage, character, searchTerm) {
+  if (tab === 'acquire') {
+    return {
+      page, perPage, maxValue: character.money, search: searchTerm, ordering: 'desc',
+    };
+  }
+
+  return { page, perPage, search: searchTerm };
+}
+
+/**
+ * Builds the partial-fulfillment notice shown above the browse list when an
+ * acquire request was capped by the treasure's availability.
+ *
+ * @param {string} activeTab - Currently active tab (`acquire` or `sell`).
+ * @param {number} requestedQuantity - Quantity that was requested.
+ * @param {number|undefined} acquired - Units actually acquired, per the server response.
+ * @returns {string} Translated notice, or an empty string when not applicable.
+ */
+export function buildPartialNotice(activeTab, requestedQuantity, acquired) {
+  if (activeTab !== 'acquire' || typeof acquired !== 'number' || acquired >= requestedQuantity) {
+    return '';
+  }
+
+  return Translator.t('treasure_exchange_modal.partially_fulfilled')
+    .replace('{{acquired}}', acquired)
+    .replace('{{requested}}', requestedQuantity);
+}
 
 /**
  * Manages browsing (Acquire/Sell tab) and acquire/sell action requests for
@@ -68,6 +117,37 @@ export default class TreasureExchangeModalController {
   }
 
   /**
+   * Loads one page of the browse list for the given tab (Acquire or Sell), updating `setBrowse`
+   * through the loading/success/error cycle. Owns the tab-to-fetch-method dispatch and browse
+   * param building, so the modal component only needs to wire this to its `useState` setter.
+   *
+   * @param {string} tab - Tab to load (`'acquire'` or `'sell'`).
+   * @param {number} page - Page number to request.
+   * @param {object} character - Character context (`id`, `game_slug`, `is_pc`, `money`, `canEdit`).
+   * @param {string} searchTerm - Current name filter.
+   * @param {Function} setBrowse - React state setter for the browse state
+   *   (`{items, page, pages, loading, error}`).
+   * @returns {Promise<void>} Resolves once `setBrowse` has been called with the outcome.
+   */
+  loadPage(tab, page, character, searchTerm, setBrowse) {
+    setBrowse((prev) => ({ ...prev, loading: true, error: '' }));
+
+    const token = AuthStorage.getToken();
+    const params = buildBrowseParams(tab, page, PER_PAGE, character, searchTerm);
+    const request = tab === 'acquire'
+      ? this.fetchAcquirePage(character.game_slug, token, params, character.canEdit)
+      : this.fetchSellPage(character.game_slug, character.id, character.is_pc, token, params);
+
+    return request
+      .then(({ data, pagination }) => setBrowse({
+        items: data, page: pagination.page, pages: pagination.pages, loading: false, error: '',
+      }))
+      .catch(() => setBrowse((prev) => ({
+        ...prev, loading: false, error: 'treasure_exchange_modal.load_error',
+      })));
+  }
+
+  /**
    * Submit an acquire request for the given treasure and quantity.
    *
    * @param {string} gameSlug - Game slug.
@@ -110,6 +190,56 @@ export default class TreasureExchangeModalController {
     return this.characterClient.sellTreasure(
       TreasureExchangeModalController.#characterKind(isPc), gameSlug, characterId, token, body,
     ).then((response) => this.#parseActionResponse(response));
+  }
+
+  /**
+   * Submits the acquire/sell request for the currently selected treasure, dispatching to
+   * {@link TreasureExchangeModalController#acquire}/{@link TreasureExchangeModalController#sell}
+   * per the active tab, then applying the outcome: clearing the selection and reloading the
+   * browse page on success (invoking `onSuccess` with the exchange result first), or surfacing
+   * the error key otherwise. Owns the whole confirm flow so the modal component only wires its
+   * `useState` setters and `onSuccess` prop through.
+   *
+   * @param {string} activeTab - Currently active tab (`'acquire'` or `'sell'`).
+   * @param {object} selected - Currently selected browse item.
+   * @param {number} quantity - Quantity to acquire/sell for the selected item.
+   * @param {object} character - Character context (`id`, `game_slug`, `is_pc`, `canEdit`).
+   * @param {{setSubmitting: Function, setSelected: Function, setPartialNotice: Function,
+   *   setActionError: Function, onSuccess: Function, reload: Function}} setters - State setters
+   *   and callbacks: `reload()` re-fetches the current browse page after a successful exchange.
+   * @returns {Promise<void>} Resolves once the outcome has been fully applied.
+   */
+  confirmExchange(activeTab, selected, quantity, character, setters) {
+    const treasureId = activeTab === 'acquire' ? selected.id : selected.treasure_id;
+    const requestedQuantity = quantity;
+    const token = AuthStorage.getToken();
+    const submit = activeTab === 'acquire'
+      ? this.acquire(
+        character.game_slug, character.id, character.is_pc, token, { treasureId, quantity }, character.canEdit,
+      )
+      : this.sell(character.game_slug, character.id, character.is_pc, token, { treasureId, quantity });
+
+    setters.setSubmitting(true);
+
+    return submit.then((result) => {
+      setters.setSubmitting(false);
+
+      if (!result.ok) {
+        setters.setActionError(result.errorKey);
+        return;
+      }
+
+      setters.setSelected(null);
+      setters.setPartialNotice(buildPartialNotice(activeTab, requestedQuantity, result.acquired));
+      setters.onSuccess({
+        treasureId,
+        treasureInfo: { name: selected.name, value: selected.value, photo_path: selected.photo_path },
+        quantity: result.quantity,
+        money: result.money,
+        acquired: result.acquired,
+      });
+      setters.reload();
+    });
   }
 
   static #toBody({ treasureId, quantity }) {

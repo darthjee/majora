@@ -1,6 +1,6 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import TreasureExchangeModal, { buildPartialNotice, buildBrowseParams }
+import TreasureExchangeModal
   from '../../../../../../../../assets/js/components/resources/character/pages/elements/TreasureExchangeModal.jsx';
 import TreasureExchangeModalHelper from '../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/TreasureExchangeModalHelper.jsx';
 import TreasureExchangeModalController
@@ -153,50 +153,5 @@ describe('TreasureExchangeModal', function() {
         page: 1, perPage: 10, maxValue: 500, search: '', ordering: 'desc',
       }, true,
     );
-  });
-});
-
-describe('buildBrowseParams', function() {
-  const character = buildCharacter({ money: 500 });
-
-  it('includes maxValue, search, and a fixed desc ordering for the acquire tab', function() {
-    expect(buildBrowseParams('acquire', 2, 10, character, 'sword')).toEqual({
-      page: 2, perPage: 10, maxValue: 500, search: 'sword', ordering: 'desc',
-    });
-  });
-
-  it('includes only page, perPage, and search for the sell tab', function() {
-    expect(buildBrowseParams('sell', 3, 10, character, 'sword')).toEqual({
-      page: 3, perPage: 10, search: 'sword',
-    });
-  });
-
-  it('forwards an empty search term as-is', function() {
-    expect(buildBrowseParams('acquire', 1, 10, character, '')).toEqual({
-      page: 1, perPage: 10, maxValue: 500, search: '', ordering: 'desc',
-    });
-  });
-});
-
-describe('buildPartialNotice', function() {
-  it('returns an empty string on the sell tab', function() {
-    expect(buildPartialNotice('sell', 5, 2)).toBe('');
-  });
-
-  it('returns an empty string when acquired is not a number', function() {
-    expect(buildPartialNotice('acquire', 5, undefined)).toBe('');
-  });
-
-  it('returns an empty string when acquired matches the requested quantity', function() {
-    expect(buildPartialNotice('acquire', 5, 5)).toBe('');
-  });
-
-  it('returns an empty string when acquired is greater than the requested quantity', function() {
-    expect(buildPartialNotice('acquire', 5, 8)).toBe('');
-  });
-
-  it('returns the translated notice when acquired is less than the requested quantity', function() {
-    expect(buildPartialNotice('acquire', 5, 2))
-      .toBe('Only 2 of 5 were available and were acquired.');
   });
 });

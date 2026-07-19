@@ -1,5 +1,5 @@
 import StaffUserClient from '../../../../../client/StaffUserClient.js';
-import BaseClient from '../../../../../client/BaseClient.js';
+import parseJsonOrReject from '../../../../../utils/http/parseJsonOrReject.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
@@ -80,7 +80,7 @@ export default class StaffUserController extends BasePageController {
     const token = AuthStorage.getToken();
 
     this.client.fetchUser(id, token)
-      .then((response) => BaseClient.parseJsonOrReject(response, 'user failed'))
+      .then((response) => parseJsonOrReject(response, 'user failed'))
       .then((user) => safeSet(this.setUser, user))
       .catch(() => safeSet(this.setError, true))
       .finally(() => safeSet(this.setLoading, false));

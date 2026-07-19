@@ -4,6 +4,7 @@ import TreasureEditHelper from './helpers/TreasureEditHelper.jsx';
 import TreasureHelper from './helpers/TreasureHelper.jsx';
 import MoneyEditModal from '../../../common/modals/MoneyEditModal.jsx';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
+import useFormState from '../../../../utils/useFormState.js';
 
 /**
  * Treasure edit page.
@@ -16,9 +17,8 @@ export default function TreasureEdit() {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [status, setStatus] = useState('idle');
-  const [name, setName] = useState('');
-  const [value, setValue] = useState('');
   const [showValueModal, setShowValueModal] = useState(false);
+  const { state: fields, setField, handleChange } = useFormState({ name: '', value: '' });
 
   const controller = useMemo(
     () => new TreasureEditController(setTreasure, setLoading, setError, setFieldErrors),
@@ -40,15 +40,15 @@ export default function TreasureEdit() {
       return;
     }
 
-    setName(treasure.name ?? '');
-    setValue(treasure.value !== null ? String(treasure.value) : '');
+    setField('name', treasure.name ?? '');
+    setField('value', treasure.value !== null ? String(treasure.value) : '');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [treasure]);
 
   const handleSubmit = (event) => controller.submitForm(
     event,
     treasureId,
-    { name, value },
+    fields,
     { setStatus, setFieldErrors },
   );
 
@@ -59,22 +59,22 @@ export default function TreasureEdit() {
     <>
       {TreasureEditHelper.render(
         {
-          name, value, gameType: treasure?.game_type ?? 'dnd', status, fieldErrors,
+          ...fields, gameType: treasure?.game_type ?? 'dnd', status, fieldErrors,
         },
         {
           onSubmit: handleSubmit,
-          onNameChange: (event) => setName(event.target.value),
+          onNameChange: handleChange('name'),
           onOpenValueModal: () => setShowValueModal(true),
         },
       )}
       <MoneyEditModal
         show={showValueModal}
-        money={value}
+        money={fields.value}
         context="treasure"
         gameType={treasure?.game_type ?? 'dnd'}
         onClose={() => setShowValueModal(false)}
         onConfirm={(newTotal) => {
-          setValue(String(newTotal));
+          setField('value', String(newTotal));
           setShowValueModal(false);
         }}
       />

@@ -1,5 +1,5 @@
 import GameSessionClient from '../../../../../client/GameSessionClient.js';
-import BaseClient from '../../../../../client/BaseClient.js';
+import parseJsonOrReject from '../../../../../utils/http/parseJsonOrReject.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
@@ -64,7 +64,7 @@ export default class GameSessionController extends BasePageController {
     const token = AuthStorage.getToken();
 
     this.sessionClient.fetchSession(gameSlug, id, token)
-      .then((response) => BaseClient.parseJsonOrReject(response, 'session failed'))
+      .then((response) => parseJsonOrReject(response, 'session failed'))
       .then((session) => this.#renderSession(session.game_slug, session, safeSet))
       .catch(() => safeSet(this.setError, 'Unable to load session.'))
       .finally(() => safeSet(this.setLoading, false));

@@ -3,6 +3,7 @@ import StaffUserEditController from './controllers/StaffUserEditController.js';
 import StaffUserEditHelper from './helpers/StaffUserEditHelper.jsx';
 import StaffUserHelper from './helpers/StaffUserHelper.jsx';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
+import useFormState from '../../../../utils/useFormState.js';
 
 /**
  * Staff user edit page.
@@ -15,8 +16,7 @@ export default function StaffUserEdit() {
   const [error, setError] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [status, setStatus] = useState('idle');
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const { state: fields, setField, handleChange } = useFormState({ name: '', email: '' });
 
   const controller = useMemo(
     () => new StaffUserEditController(setUser, setLoading, setError, setFieldErrors),
@@ -31,14 +31,15 @@ export default function StaffUserEdit() {
   useEffect(() => {
     if (!user) return;
 
-    setName(user.name ?? '');
-    setEmail(user.email ?? '');
+    setField('name', user.name ?? '');
+    setField('email', user.email ?? '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const handleSubmit = (event) => controller.submitForm(
     event,
     userId,
-    { name, email },
+    fields,
     { setStatus, setFieldErrors },
   );
 
@@ -46,11 +47,11 @@ export default function StaffUserEdit() {
   if (error) return StaffUserHelper.renderError();
 
   return StaffUserEditHelper.render(
-    { name, email, status, fieldErrors },
+    { ...fields, status, fieldErrors },
     {
       onSubmit: handleSubmit,
-      onNameChange: (event) => setName(event.target.value),
-      onEmailChange: (event) => setEmail(event.target.value),
+      onNameChange: handleChange('name'),
+      onEmailChange: handleChange('email'),
     },
   );
 }

@@ -80,7 +80,7 @@ describe('listTypeConfig', function() {
 
         const result = await items.fetchList('demo', hashResolver, client);
 
-        expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/items.json');
+        expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/items.json', undefined);
         expect(result.data).toEqual([{ id: 5, name: 'Cloak of Elvenkind' }]);
         expect(result.canEdit).toBe(false);
       });
@@ -96,7 +96,7 @@ describe('listTypeConfig', function() {
 
         const result = await items.fetchList('demo', hashResolver, client);
 
-        expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/items/all.json');
+        expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/items/all.json', undefined);
         expect(result.canEdit).toBe(true);
       });
 

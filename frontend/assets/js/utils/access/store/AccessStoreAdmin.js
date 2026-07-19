@@ -1,5 +1,6 @@
 import AuthStorage from '../../auth/AuthStorage.js';
 import AccessStoreLogging from './AccessStoreLogging.js';
+import parseJsonOrReject from '../../http/parseJsonOrReject.js';
 
 const SUPERUSER_KEY = 'admin:superuser';
 const STAFF_KEY = 'admin:staff';
@@ -93,10 +94,6 @@ export default class AccessStoreAdmin {
   }
 
   static #parseStatusResponse(response, extract) {
-    if (!response.ok) {
-      return Promise.reject(new Error('status request failed'));
-    }
-
-    return response.json().then(extract);
+    return parseJsonOrReject(response, 'status request failed').then(extract);
   }
 }

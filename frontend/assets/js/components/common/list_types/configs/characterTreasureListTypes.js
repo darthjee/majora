@@ -1,9 +1,11 @@
 import GenericClient from '../../../../client/GenericClient.js';
 import GameClient from '../../../../client/GameClient.js';
+import AccessStore from '../../../../utils/access/store/AccessStore.js';
 import TreasureFilters from '../../../resources/treasure/pages/elements/TreasureFilters.jsx';
 import TreasureCardHelper from '../../cards/helpers/TreasureCardHelper.jsx';
 import CharacterTreasureListItem from '../CharacterTreasureListItem.js';
-import fetchWithEditableEndpoint from './fetchWithEditableEndpoint.js';
+import fetchPermissionGatedIndex from '../fetchPermissionGatedIndex.js';
+import { buildReadOnlyActionBarProps } from '../listTypeConfig.js';
 
 /**
  * Resolve a character's own game currency type (`game_type`), degrading to `'dnd'` when the
@@ -70,7 +72,7 @@ function fetchPcTreasuresList(base, filterParams, client) {
  *   fetched treasures, pagination metadata, and the resolved game-level edit permission.
  */
 function fetchNpcTreasuresList(gameSlug, base, filterParams, client) {
-  return fetchWithEditableEndpoint(gameSlug, base, filterParams, client);
+  return fetchPermissionGatedIndex(AccessStore.ensureGamePermissions(gameSlug), base, filterParams, client);
 }
 
 /**
@@ -102,17 +104,6 @@ function buildFetchCharacterTreasures(characterKind) {
     return Promise.all([listPromise, resolveGameType(gameSlug, gameClient)])
       .then(([result, gameType]) => mergeGameType(result, gameType));
   };
-}
-
-/**
- * Build a character-owned treasure's action-bar props: always non-manageable, since the
- * exchange/acquire/sell flow stays a page-level modal (`TreasureExchangeModal`), not a per-item
- * action.
- *
- * @returns {{canEdit: boolean, secondaryButtons: object[]}} Action-bar props for `ActionsOverlay`.
- */
-function buildReadOnlyActionBarProps() {
-  return { canEdit: false, secondaryButtons: [] };
 }
 
 /**

@@ -1,6 +1,6 @@
 import BasePageController from './BasePageController.js';
 import Noop from '../../../../utils/Noop.js';
-import BaseClient from '../../../../client/BaseClient.js';
+import parseJsonOrReject from '../../../../utils/http/parseJsonOrReject.js';
 
 /**
  * Base controller for entity Edit pages (Game, Treasure, GameSession,
@@ -95,7 +95,7 @@ export default class BaseEditController extends BasePageController {
    */
   fetchWithAccess(resourcePromise, permissionsPromise, safeSet, errorMessage) {
     Promise.all([
-      resourcePromise.then((response) => BaseClient.parseJsonOrReject(response, 'resource failed')),
+      resourcePromise.then((response) => parseJsonOrReject(response, 'resource failed')),
       permissionsPromise,
     ])
       .then(([resource, permissions]) => safeSet(this.setResource, { ...resource, ...permissions }))
@@ -114,7 +114,7 @@ export default class BaseEditController extends BasePageController {
    */
   fetchSingle(resourcePromise, safeSet, errorValue) {
     resourcePromise
-      .then((response) => BaseClient.parseJsonOrReject(response, 'resource failed'))
+      .then((response) => parseJsonOrReject(response, 'resource failed'))
       .then((resource) => safeSet(this.setResource, resource))
       .catch(() => safeSet(this.setError, errorValue))
       .finally(() => safeSet(this.setLoading, false));

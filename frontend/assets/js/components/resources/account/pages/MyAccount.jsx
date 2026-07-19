@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import MyAccountController from './controllers/MyAccountController.js';
 import MyAccountHelper from './helpers/MyAccountHelper.jsx';
+import useFormState from '../../../../utils/useFormState.js';
 
 /**
  * My account page, letting the logged-in user edit their own username,
@@ -9,22 +10,31 @@ import MyAccountHelper from './helpers/MyAccountHelper.jsx';
  * @returns {React.ReactElement} My account page element.
  */
 export default function MyAccount() {
-  const [name, setName] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
   const [avatarUrl, setAvatarUrl] = useState(null);
-  const [password, setPassword] = useState('');
-  const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [loading, setLoading] = useState(true);
   const [fieldErrors, setFieldErrors] = useState({});
   const [status, setStatus] = useState('idle');
+  const { state: fields, setField, handleChange } = useFormState({
+    name: '',
+    displayName: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    passwordConfirmation: '',
+  });
 
   const controller = useMemo(
     () => new MyAccountController(
-      setName, setDisplayName, setFirstName, setLastName, setEmail, setAvatarUrl, setLoading,
+      (value) => setField('name', value),
+      (value) => setField('displayName', value),
+      (value) => setField('firstName', value),
+      (value) => setField('lastName', value),
+      (value) => setField('email', value),
+      setAvatarUrl,
+      setLoading,
     ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
@@ -32,34 +42,23 @@ export default function MyAccount() {
 
   const handleSubmit = (event) => controller.submitForm(
     event,
-    { name, displayName, firstName, lastName, email, password, passwordConfirmation },
+    fields,
     { setStatus, setFieldErrors },
   );
 
   if (loading) return MyAccountHelper.renderLoading();
 
   return MyAccountHelper.render(
-    {
-      name,
-      displayName,
-      firstName,
-      lastName,
-      email,
-      avatarUrl,
-      password,
-      passwordConfirmation,
-      status,
-      fieldErrors,
-    },
+    { ...fields, avatarUrl, status, fieldErrors },
     {
       onSubmit: handleSubmit,
-      onNameChange: (event) => setName(event.target.value),
-      onDisplayNameChange: (event) => setDisplayName(event.target.value),
-      onFirstNameChange: (event) => setFirstName(event.target.value),
-      onLastNameChange: (event) => setLastName(event.target.value),
-      onEmailChange: (event) => setEmail(event.target.value),
-      onPasswordChange: (event) => setPassword(event.target.value),
-      onPasswordConfirmationChange: (event) => setPasswordConfirmation(event.target.value),
+      onNameChange: handleChange('name'),
+      onDisplayNameChange: handleChange('displayName'),
+      onFirstNameChange: handleChange('firstName'),
+      onLastNameChange: handleChange('lastName'),
+      onEmailChange: handleChange('email'),
+      onPasswordChange: handleChange('password'),
+      onPasswordConfirmationChange: handleChange('passwordConfirmation'),
     },
   );
 }

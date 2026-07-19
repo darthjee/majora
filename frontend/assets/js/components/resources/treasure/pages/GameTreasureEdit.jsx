@@ -3,6 +3,7 @@ import GameTreasureEditController from './controllers/GameTreasureEditController
 import GameTreasureEditHelper from './helpers/GameTreasureEditHelper.jsx';
 import MoneyEditModal from '../../../common/modals/MoneyEditModal.jsx';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
+import useFormState from '../../../../utils/useFormState.js';
 
 /**
  * Game treasure edit page.
@@ -15,10 +16,8 @@ export default function GameTreasureEdit() {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [status, setStatus] = useState('idle');
-  const [name, setName] = useState('');
-  const [value, setValue] = useState('');
-  const [maxUnits, setMaxUnits] = useState('');
   const [showValueModal, setShowValueModal] = useState(false);
+  const { state: fields, setField, handleChange } = useFormState({ name: '', value: '', maxUnits: '' });
 
   const controller = useMemo(
     () => new GameTreasureEditController(setTreasure, setLoading, setError, setFieldErrors),
@@ -35,16 +34,19 @@ export default function GameTreasureEdit() {
   useEffect(() => {
     if (!treasure) return;
 
-    setName(treasure.name ?? '');
-    setValue(treasure.value !== null ? String(treasure.value) : '');
-    setMaxUnits(treasure.max_units !== null && treasure.max_units !== undefined ? String(treasure.max_units) : '');
+    setField('name', treasure.name ?? '');
+    setField('value', treasure.value !== null ? String(treasure.value) : '');
+    setField(
+      'maxUnits', treasure.max_units !== null && treasure.max_units !== undefined ? String(treasure.max_units) : '',
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [treasure]);
 
   const handleSubmit = (event) => controller.submitForm(
     event,
     gameSlug,
     treasureId,
-    { name, value, maxUnits, isExclusive },
+    { ...fields, isExclusive },
     { setStatus, setFieldErrors },
   );
 
@@ -55,23 +57,23 @@ export default function GameTreasureEdit() {
     <>
       {GameTreasureEditHelper.render(
         {
-          name, value, maxUnits, status, fieldErrors, isExclusive, gameType: treasure?.game_type ?? 'dnd',
+          ...fields, status, fieldErrors, isExclusive, gameType: treasure?.game_type ?? 'dnd',
         },
         {
           onSubmit: handleSubmit,
-          onNameChange: (event) => setName(event.target.value),
+          onNameChange: handleChange('name'),
           onOpenValueModal: () => setShowValueModal(true),
-          onMaxUnitsChange: (event) => setMaxUnits(event.target.value),
+          onMaxUnitsChange: handleChange('maxUnits'),
         },
       )}
       <MoneyEditModal
         show={showValueModal}
-        money={value}
+        money={fields.value}
         context="treasure"
         gameType={treasure?.game_type ?? 'dnd'}
         onClose={() => setShowValueModal(false)}
         onConfirm={(newTotal) => {
-          setValue(String(newTotal));
+          setField('value', String(newTotal));
           setShowValueModal(false);
         }}
       />

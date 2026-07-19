@@ -4,6 +4,7 @@ import PhotoUploadModal from '../../../../common/modals/PhotoUploadModal.jsx';
 import LinksEditModal from '../elements/LinksEditModal.jsx';
 import MoneyEditModal from '../../../../common/modals/MoneyEditModal.jsx';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
+import useFormState from '../../../../../utils/useFormState.js';
 
 /**
  * Shared character edit page component.
@@ -24,19 +25,21 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [status, setStatus] = useState('idle');
-  const [name, setName] = useState('');
-  const [role, setRole] = useState('');
-  const [description, setDescription] = useState('');
-  const [privateDescription, setPrivateDescription] = useState('');
-  const [money, setMoney] = useState('');
-  const [allegiance, setAllegiance] = useState('neutral');
-  const [publicAllegiance, setPublicAllegiance] = useState('neutral');
-  const [publicSlain, setPublicSlain] = useState(false);
-  const [hidden, setHidden] = useState(false);
   const [links, setLinks] = useState([]);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showLinksModal, setShowLinksModal] = useState(false);
   const [showMoneyModal, setShowMoneyModal] = useState(false);
+  const { state: fields, setField, handleChange, handleCheckboxChange } = useFormState({
+    name: '',
+    role: '',
+    description: '',
+    privateDescription: '',
+    money: '',
+    allegiance: 'neutral',
+    publicAllegiance: 'neutral',
+    publicSlain: false,
+    hidden: false,
+  });
 
   const controller = useMemo(
     () => new ControllerClass(setCharacter, setLoading, setError, setFieldErrors),
@@ -51,15 +54,15 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
 
   useEffect(() => {
     controller.applyLoadedCharacter(character, gameSlug, characterId, {
-      setName,
-      setRole,
-      setDescription,
-      setPrivateDescription,
-      setMoney,
-      setAllegiance,
-      setPublicAllegiance,
-      setPublicSlain,
-      setHidden,
+      setName: (value) => setField('name', value),
+      setRole: (value) => setField('role', value),
+      setDescription: (value) => setField('description', value),
+      setPrivateDescription: (value) => setField('privateDescription', value),
+      setMoney: (value) => setField('money', value),
+      setAllegiance: (value) => setField('allegiance', value),
+      setPublicAllegiance: (value) => setField('publicAllegiance', value),
+      setPublicSlain: (value) => setField('publicSlain', value),
+      setHidden: (value) => setField('hidden', value),
       setLinks,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -69,18 +72,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
     event,
     gameSlug,
     characterId,
-    {
-      name,
-      role,
-      description,
-      privateDescription,
-      money,
-      allegiance,
-      publicAllegiance,
-      publicSlain,
-      hidden,
-      links,
-    },
+    { ...fields, links },
     { setStatus, setFieldErrors },
     character?.can_edit,
   );
@@ -102,33 +94,25 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
       {EditHelper.render(
         {
           isFullEditor: character.can_edit,
-          name,
+          ...fields,
           profile_photo_path: character.profile_photo_path,
           links,
-          role,
-          description,
-          privateDescription,
-          money,
           treasureValue: character?.treasure_value ?? 0,
           gameType,
-          allegiance,
-          publicAllegiance,
-          publicSlain,
-          hidden,
           status,
           fieldErrors,
         },
         {
           onSubmit: handleSubmit,
-          onNameChange: (event) => setName(event.target.value),
-          onRoleChange: (event) => setRole(event.target.value),
-          onDescriptionChange: (event) => setDescription(event.target.value),
-          onPrivateDescriptionChange: (event) => setPrivateDescription(event.target.value),
-          onMoneyChange: (event) => setMoney(event.target.value),
-          onAllegianceChange: (event) => setAllegiance(event.target.value),
-          onPublicAllegianceChange: (event) => setPublicAllegiance(event.target.value),
-          onPublicSlainChange: (event) => setPublicSlain(event.target.checked),
-          onHiddenChange: (event) => setHidden(event.target.checked),
+          onNameChange: handleChange('name'),
+          onRoleChange: handleChange('role'),
+          onDescriptionChange: handleChange('description'),
+          onPrivateDescriptionChange: handleChange('privateDescription'),
+          onMoneyChange: handleChange('money'),
+          onAllegianceChange: handleChange('allegiance'),
+          onPublicAllegianceChange: handleChange('publicAllegiance'),
+          onPublicSlainChange: handleCheckboxChange('publicSlain'),
+          onHiddenChange: handleCheckboxChange('hidden'),
           onOpenUploadModal: () => setShowUploadModal(true),
           onOpenLinksModal: () => setShowLinksModal(true),
           onOpenMoneyModal: () => setShowMoneyModal(true),
@@ -151,12 +135,12 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
       />
       <MoneyEditModal
         show={showMoneyModal}
-        money={money}
+        money={fields.money}
         context="character"
         gameType={gameType}
         onClose={() => setShowMoneyModal(false)}
         onConfirm={(newTotal) => {
-          setMoney(String(newTotal));
+          setField('money', String(newTotal));
           setShowMoneyModal(false);
         }}
       />

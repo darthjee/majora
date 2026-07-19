@@ -2,14 +2,12 @@ import React from 'react';
 import FieldErrors from '../../../../common/forms/FieldErrors.jsx';
 import FormField from '../../../../common/forms/FormField.jsx';
 import TextareaField from '../../../../common/forms/TextareaField.jsx';
+import RemovableOptionRow from '../../../../common/forms/RemovableOptionRow.jsx';
+import PollTypeRadioGroup from '../../../../common/forms/PollTypeRadioGroup.jsx';
 import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
 import SubmitButton from '../../../../common/buttons/SubmitButton.jsx';
 import Translator from '../../../../../i18n/Translator.js';
-import Icons from '../../../../../utils/ui/Icons.js';
-import PollOptionInput from '../elements/PollOptionInput.jsx';
 import { OPTION_TYPES } from '../elements/PollOptionType.js';
-
-const POLL_TYPES = ['single', 'multiple'];
 
 /**
  * Rendering helper for the game poll creation page.
@@ -93,22 +91,13 @@ export default class GamePollNewHelper {
     return (
       <div className="mb-3">
         <span className="form-label d-block">{Translator.t('game_poll_new_page.type_label')}</span>
-        {POLL_TYPES.map((type) => (
-          <div className="form-check form-check-inline" key={type}>
-            <input
-              id={`game-poll-new-type-${type}`}
-              type="radio"
-              className="form-check-input"
-              name="game-poll-new-type"
-              value={type}
-              checked={formState.type === type}
-              onChange={() => handlers.onTypeChange(type)}
-            />
-            <label className="form-check-label" htmlFor={`game-poll-new-type-${type}`}>
-              {Translator.t(`game_poll_new_page.type_${type}`)}
-            </label>
-          </div>
-        ))}
+        <PollTypeRadioGroup
+          idPrefix="game-poll-new-type"
+          name="game-poll-new-type"
+          translationPrefix="game_poll_new_page.type"
+          value={formState.type}
+          onChange={handlers.onTypeChange}
+        />
         <FieldErrors errors={formState.fieldErrors.type ?? []} />
       </div>
     );
@@ -119,36 +108,19 @@ export default class GamePollNewHelper {
       <div className="mb-3">
         <span className="form-label d-block">{Translator.t('game_poll_new_page.options_label')}</span>
         {formState.options.map((option, index) => (
-          GamePollNewHelper.#renderOption(option, index, formState, handlers)
+          <RemovableOptionRow
+            key={index}
+            id={`game-poll-new-option-${index}`}
+            testId={`game-poll-new-option-${index}`}
+            removeTestId={`game-poll-new-option-remove-${index}`}
+            optionType={formState.optionType}
+            value={option}
+            isLast={index === formState.options.length - 1}
+            onChange={(event) => handlers.onOptionChange(index, event.target.value)}
+            onRemove={() => handlers.onOptionRemove(index)}
+          />
         ))}
         <FieldErrors errors={formState.fieldErrors.options ?? []} />
-      </div>
-    );
-  }
-
-  static #renderOption(option, index, formState, handlers) {
-    const isLast = index === formState.options.length - 1;
-    const isBlank = option.trim() === '';
-
-    return (
-      <div className="input-group mb-2" key={index}>
-        <PollOptionInput
-          id={`game-poll-new-option-${index}`}
-          dataTestId={`game-poll-new-option-${index}`}
-          optionType={formState.optionType}
-          value={option}
-          onChange={(event) => handlers.onOptionChange(index, event.target.value)}
-        />
-        {!(isLast && isBlank) && (
-          <button
-            type="button"
-            className="btn btn-outline-danger"
-            data-testid={`game-poll-new-option-remove-${index}`}
-            onClick={() => handlers.onOptionRemove(index)}
-          >
-            <i className={`bi ${Icons.trash}`} aria-hidden="true"></i>
-          </button>
-        )}
       </div>
     );
   }

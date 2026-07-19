@@ -1,7 +1,7 @@
-import fetchWithEditableEndpoint from '../../../../../../../assets/js/components/common/list_types/configs/fetchWithEditableEndpoint.js';
-import AccessStore from '../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import fetchPermissionGatedIndex
+  from '../../../../../../assets/js/components/common/list_types/fetchPermissionGatedIndex.js';
 
-describe('fetchWithEditableEndpoint', function() {
+describe('fetchPermissionGatedIndex', function() {
   it('fetches the /all.json endpoint when the requester can edit', async function() {
     const client = jasmine.createSpyObj('client', ['fetchIndex']);
 
@@ -9,9 +9,10 @@ describe('fetchWithEditableEndpoint', function() {
       data: [{ id: 1, name: 'Goblin' }],
       pagination: { page: 1, pages: 1, perPage: 10 },
     }));
-    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
-    const result = await fetchWithEditableEndpoint('demo', '/games/demo/npcs', {}, client);
+    const result = await fetchPermissionGatedIndex(
+      Promise.resolve({ can_edit: true }), '/games/demo/npcs', {}, client,
+    );
 
     expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs/all.json', {});
     expect(result.data).toEqual([{ id: 1, name: 'Goblin' }]);
@@ -24,9 +25,10 @@ describe('fetchWithEditableEndpoint', function() {
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [], pagination: { page: 1, pages: 1, perPage: 10 },
     }));
-    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
-    const result = await fetchWithEditableEndpoint('demo', '/games/demo/npcs', {}, client);
+    const result = await fetchPermissionGatedIndex(
+      Promise.resolve({ can_edit: false }), '/games/demo/npcs', {}, client,
+    );
 
     expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs.json', {});
     expect(result.canEdit).toBe(false);
@@ -38,9 +40,10 @@ describe('fetchWithEditableEndpoint', function() {
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [], pagination: { page: 1, pages: 1, perPage: 10 },
     }));
-    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.reject(new Error('nope')));
 
-    const result = await fetchWithEditableEndpoint('demo', '/games/demo/npcs', {}, client);
+    const result = await fetchPermissionGatedIndex(
+      Promise.reject(new Error('nope')), '/games/demo/npcs', {}, client,
+    );
 
     expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs.json', {});
     expect(result.canEdit).toBe(false);
@@ -52,9 +55,10 @@ describe('fetchWithEditableEndpoint', function() {
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: null, pagination: { page: 1, pages: 1, perPage: 10 },
     }));
-    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
-    const result = await fetchWithEditableEndpoint('demo', '/games/demo/npcs', {}, client);
+    const result = await fetchPermissionGatedIndex(
+      Promise.resolve({ can_edit: false }), '/games/demo/npcs', {}, client,
+    );
 
     expect(result.data).toEqual([]);
   });
@@ -65,9 +69,10 @@ describe('fetchWithEditableEndpoint', function() {
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [], pagination: { page: 1, pages: 1, perPage: 10 },
     }));
-    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
-    await fetchWithEditableEndpoint('demo', '/games/demo/npcs', { name: 'gob' }, client);
+    await fetchPermissionGatedIndex(
+      Promise.resolve({ can_edit: false }), '/games/demo/npcs', { name: 'gob' }, client,
+    );
 
     expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs.json', { name: 'gob' });
   });
