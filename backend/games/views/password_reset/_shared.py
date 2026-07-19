@@ -3,11 +3,10 @@
 import secrets
 
 from django.conf import settings
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
 
 from games.models import PasswordResetToken
 from games.settings import Settings
+from games.views.auth._shared import _send_email
 
 INVALID_OR_EXPIRED_TOKEN_ERROR = {'error': 'Invalid or expired token'}
 
@@ -19,22 +18,11 @@ def build_recovery_url(token):
 
 def send_password_reset_email(user, token):
     """Send a password recovery email containing the reset link to the user."""
-    if not Settings.emails_enabled():
-        return
-
-    message = render_to_string(
-        'games/password_reset_email.txt',
-        {
-            'recovery_url': build_recovery_url(token),
-            'expiration_minutes': Settings.password_reset_token_expiration_minutes(),
-        },
-    )
-    send_mail(
-        subject='Majora password reset',
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email],
-    )
+    context = {
+        'recovery_url': build_recovery_url(token),
+        'expiration_minutes': Settings.password_reset_token_expiration_minutes(),
+    }
+    _send_email(user, 'games/password_reset_email.txt', 'Majora password reset', context)
 
 
 def _create_and_send_reset_token(user):

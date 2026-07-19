@@ -8,37 +8,36 @@ from django.core.validators import validate_email
 from django.template.loader import render_to_string
 from rest_framework.authtoken.models import Token
 
+from games.account_uniqueness import display_name_taken, email_taken, username_taken
 from games.models import UserProfile
 from games.settings import Settings
 
 REGISTER_REQUIRED_FIELDS = {'name', 'display_name', 'email', 'password', 'password_confirmation'}
 
 
-def send_test_email(user):
-    """Send a test email to the given user's address."""
+def _send_email(user, template, subject, context=None):
+    """Render `template` with `context` and email it to `user`, when emails are enabled."""
     if not Settings.emails_enabled():
         return
 
-    message = render_to_string('games/test_email.txt', {'username': user.username})
+    message = render_to_string(template, context or {})
     send_mail(
-        subject='Majora test email',
+        subject=subject,
         message=message,
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user.email],
     )
 
 
+def send_test_email(user):
+    """Send a test email to the given user's address."""
+    _send_email(user, 'games/test_email.txt', 'Majora test email', {'username': user.username})
+
+
 def send_welcome_email(user):
     """Send a welcome email to the given user's address."""
-    if not Settings.emails_enabled():
-        return
-
-    message = render_to_string('games/welcome_email.txt', {'username': user.username})
-    send_mail(
-        subject='Welcome to Majora',
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email],
+    _send_email(
+        user, 'games/welcome_email.txt', 'Welcome to Majora', {'username': user.username},
     )
 
 
@@ -86,21 +85,21 @@ def _validate_passwords_match(data):
 
 def _validate_unique_name(data):
     """Return an error message if the given name is already registered, else None."""
-    if User.objects.filter(username=data.get('name')).exists():
+    if username_taken(data.get('name')):
         return 'name already exists'
     return None
 
 
 def _validate_unique_display_name(data):
     """Return an error message if the given display_name is already registered, else None."""
-    if UserProfile.objects.filter(display_name=data.get('display_name')).exists():
+    if display_name_taken(data.get('display_name')):
         return 'display name already exists'
     return None
 
 
 def _validate_unique_email(data):
     """Return an error message if the given email is already registered, else None."""
-    if User.objects.filter(email=data.get('email')).exists():
+    if email_taken(data.get('email')):
         return 'email already exists'
     return None
 

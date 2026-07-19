@@ -9,11 +9,16 @@ class _EditPermission:
     @classmethod
     def check(cls, request, obj):
         """Return an error Response if `request.user` may not edit `obj`, else None."""
+        return cls._guarded_check(request, lambda: obj.can_be_edited_by(request.user))
+
+    @classmethod
+    def _guarded_check(cls, request, predicate):
+        """Return a 401/403 error Response if unauthenticated/`predicate()` is False, else None."""
         unauthenticated = cls._unauthenticated_response(request)
         if unauthenticated:
             return unauthenticated
 
-        if not obj.can_be_edited_by(request.user):
+        if not predicate():
             return cls._forbidden_response()
 
         return None
@@ -29,6 +34,11 @@ class _EditPermission:
     def _forbidden_response(cls):
         """Return a 403 Response for an authenticated user lacking edit rights."""
         return Response({'errors': {'detail': ['not allowed']}}, status=403)
+
+    @classmethod
+    def _is_admin_or_player(cls, user, game):
+        """Return whether `user` is a superuser, staff, or a player of `game`."""
+        return user.is_superuser or user.is_staff or game.players.filter(user=user).exists()
 
 
 class GameEditPermission(_EditPermission):
@@ -49,14 +59,7 @@ class NpcPlayerEditPermission(_EditPermission):
     @classmethod
     def check(cls, request, character):
         """Return an error Response if `request.user` may not perform this NPC edit."""
-        unauthenticated = cls._unauthenticated_response(request)
-        if unauthenticated:
-            return unauthenticated
-
-        if not cls._is_allowed(request.user, character):
-            return cls._forbidden_response()
-
-        return None
+        return cls._guarded_check(request, lambda: cls._is_allowed(request.user, character))
 
     @classmethod
     def _is_allowed(cls, user, character):
@@ -78,12 +81,7 @@ class CharacterPhotoUploadPermission(_EditPermission):
     @classmethod
     def check(cls, request, character):
         """Return an error Response if `request.user` may not upload a photo for `character`."""
-        unauthenticated = cls._unauthenticated_response(request)
-        if unauthenticated:
-            return unauthenticated
-        if not cls._is_allowed(request.user, character):
-            return cls._forbidden_response()
-        return None
+        return cls._guarded_check(request, lambda: cls._is_allowed(request.user, character))
 
     @classmethod
     def _is_allowed(cls, user, character):
@@ -111,12 +109,7 @@ class CharacterMoneyEditPermission(_EditPermission):
     @classmethod
     def check(cls, request, character):
         """Return an error Response if `request.user` may not edit `character`'s money."""
-        unauthenticated = cls._unauthenticated_response(request)
-        if unauthenticated:
-            return unauthenticated
-        if not cls.is_allowed(request.user, character):
-            return cls._forbidden_response()
-        return None
+        return cls._guarded_check(request, lambda: cls.is_allowed(request.user, character))
 
     @classmethod
     def is_allowed(cls, user, character):
@@ -158,35 +151,20 @@ class SessionMessagePermission(_EditPermission):
     @classmethod
     def check_view(cls, request, session):
         """Return an error Response if `request.user` may not view `session`'s messages."""
-        unauthenticated = cls._unauthenticated_response(request)
-        if unauthenticated:
-            return unauthenticated
-        if not cls._can_view(request.user, session):
-            return cls._forbidden_response()
-        return None
+        return cls._guarded_check(request, lambda: cls._can_view(request.user, session))
 
     @classmethod
     def check_create(cls, request, session):
         """Return an error Response if `request.user` may not post to `session`."""
-        unauthenticated = cls._unauthenticated_response(request)
-        if unauthenticated:
-            return unauthenticated
-        if not cls._can_create(request.user, session):
-            return cls._forbidden_response()
-        return None
+        return cls._guarded_check(request, lambda: cls._can_create(request.user, session))
 
     @classmethod
     def _can_view(cls, user, session):
-        game = session.game
-        return (
-            user.is_superuser or user.is_staff
-            or game.players.filter(user=user).exists()
-        )
+        return cls._is_admin_or_player(user, session.game)
 
     @classmethod
     def _can_create(cls, user, session):
-        game = session.game
-        return game.players.filter(user=user).exists()
+        return session.game.players.filter(user=user).exists()
 
 
 class PollPermission(_EditPermission):
@@ -200,19 +178,11 @@ class PollPermission(_EditPermission):
     @classmethod
     def check(cls, request, game):
         """Return an error Response if `request.user` may not view/create polls for `game`."""
-        unauthenticated = cls._unauthenticated_response(request)
-        if unauthenticated:
-            return unauthenticated
-        if not cls._is_allowed(request.user, game):
-            return cls._forbidden_response()
-        return None
+        return cls._guarded_check(request, lambda: cls._is_allowed(request.user, game))
 
     @classmethod
     def _is_allowed(cls, user, game):
-        return (
-            user.is_superuser or user.is_staff
-            or game.players.filter(user=user).exists()
-        )
+        return cls._is_admin_or_player(user, game)
 
 
 class PlayerPermission(_EditPermission):
@@ -221,20 +191,12 @@ class PlayerPermission(_EditPermission):
     @classmethod
     def check(cls, request, game):
         """Return an error Response if `request.user` may not view `game`'s players."""
-        unauthenticated = cls._unauthenticated_response(request)
-        if unauthenticated:
-            return unauthenticated
-        if not cls._is_allowed(request.user, game):
-            return cls._forbidden_response()
-        return None
+        return cls._guarded_check(request, lambda: cls._is_allowed(request.user, game))
 
     @classmethod
     def _is_allowed(cls, user, game):
         """Return whether `user` is a superuser, staff, a player, or the DM of `game`."""
-        return (
-            user.is_superuser or user.is_staff
-            or game.players.filter(user=user).exists()
-        )
+        return cls._is_admin_or_player(user, game)
 
 
 class PollClosePermission(_EditPermission):
@@ -258,29 +220,16 @@ class PollVotePermission(_EditPermission):
     @classmethod
     def check_view(cls, request, game):
         """Return an error Response if `request.user` may not view `game`'s poll votes."""
-        unauthenticated = cls._unauthenticated_response(request)
-        if unauthenticated:
-            return unauthenticated
-        if not cls._can_view(request.user, game):
-            return cls._forbidden_response()
-        return None
+        return cls._guarded_check(request, lambda: cls._can_view(request.user, game))
 
     @classmethod
     def check_vote(cls, request, game):
         """Return an error Response if `request.user` may not vote in `game`'s polls."""
-        unauthenticated = cls._unauthenticated_response(request)
-        if unauthenticated:
-            return unauthenticated
-        if not cls._can_vote(request.user, game):
-            return cls._forbidden_response()
-        return None
+        return cls._guarded_check(request, lambda: cls._can_vote(request.user, game))
 
     @classmethod
     def _can_view(cls, user, game):
-        return (
-            user.is_superuser or user.is_staff
-            or game.players.filter(user=user).exists()
-        )
+        return cls._is_admin_or_player(user, game)
 
     @classmethod
     def _can_vote(cls, user, game):
