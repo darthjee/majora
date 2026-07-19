@@ -2,10 +2,9 @@
 
 import secrets
 
-from django.conf import settings
-
 from games.models import PasswordResetToken
 from games.settings import Settings
+from games.url_builder import FrontendBaseUrl
 from games.views.auth._shared import _send_email
 
 INVALID_OR_EXPIRED_TOKEN_ERROR = {'error': 'Invalid or expired token'}
@@ -13,7 +12,7 @@ INVALID_OR_EXPIRED_TOKEN_ERROR = {'error': 'Invalid or expired token'}
 
 def build_recovery_url(token):
     """Build the frontend URL the user follows to set a new password."""
-    return f'{settings.FRONTEND_BASE_URL}/#/recover-password?token={token}'
+    return f'{FrontendBaseUrl().build()}/#/recover-password?token={token}'
 
 
 def send_password_reset_email(user, token):
