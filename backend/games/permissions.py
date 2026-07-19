@@ -38,7 +38,7 @@ class _EditPermission:
     @classmethod
     def _is_admin_or_player(cls, user, game):
         """Return whether `user` is a superuser, staff, or a player of `game`."""
-        return user.is_superuser or user.is_staff or game.players.filter(user=user).exists()
+        return user.is_superuser or user.is_staff or game.has_player(user)
 
 
 class GameEditPermission(_EditPermission):
@@ -64,7 +64,7 @@ class NpcPlayerEditPermission(_EditPermission):
     @classmethod
     def _is_allowed(cls, user, character):
         """Return whether `user` is a player of `character`'s game, or may edit it outright."""
-        is_player_of_game = character.game.players.filter(user=user).exists()
+        is_player_of_game = character.game.has_player(user)
         return is_player_of_game or character.can_be_edited_by(user)
 
 
@@ -86,7 +86,7 @@ class CharacterPhotoUploadPermission(_EditPermission):
     @classmethod
     def _is_allowed(cls, user, character):
         """Return whether `user` is staff, a player of the game, or may edit outright."""
-        is_player_of_game = character.game.players.filter(user=user).exists()
+        is_player_of_game = character.game.has_player(user)
         return user.is_staff or is_player_of_game or character.can_be_edited_by(user)
 
 
@@ -123,7 +123,7 @@ class CharacterMoneyEditPermission(_EditPermission):
             return False
         if user.is_staff:
             return True
-        if character.is_pc and character.game.players.filter(user=user).exists():
+        if character.is_pc and character.game.has_player(user):
             return True
         return character.can_be_edited_by(user)
 
@@ -164,7 +164,7 @@ class SessionMessagePermission(_EditPermission):
 
     @classmethod
     def _can_create(cls, user, session):
-        return session.game.players.filter(user=user).exists()
+        return session.game.has_player(user)
 
 
 class PollPermission(_EditPermission):
@@ -233,4 +233,4 @@ class PollVotePermission(_EditPermission):
 
     @classmethod
     def _can_vote(cls, user, game):
-        return game.players.filter(user=user).exists()
+        return game.has_player(user)

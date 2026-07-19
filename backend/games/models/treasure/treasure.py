@@ -1,9 +1,18 @@
 """Treasure model for Majora RPG Campaign Management System."""
 
 from django.db import models
+from django.db.models import Q
 from simple_history.models import HistoricalRecords
 
 from games.models.game.game import Game
+
+
+class TreasureQuerySet(models.QuerySet):
+    """Custom queryset for Treasure, adding game-scoped lookups."""
+
+    def for_game(self, game):
+        """Return treasures exclusive to, or catalog-linked to, `game`, deduplicated."""
+        return self.filter(Q(game=game) | Q(linked_game=game)).distinct()
 
 
 class Treasure(models.Model):
@@ -22,6 +31,7 @@ class Treasure(models.Model):
         related_name='exclusive_treasures',
     )
     history = HistoricalRecords(app='versioning', user_db_constraint=False)
+    objects = TreasureQuerySet.as_manager()
 
     class Meta:
         """Metadata for the Treasure model."""

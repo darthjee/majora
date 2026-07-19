@@ -3,13 +3,13 @@
 from functools import partial
 
 from django.db import transaction
-from django.db.models import Q
 from django.http import Http404
 from rest_framework import serializers
 from rest_framework.response import Response
 
 from ...models import Character, CharacterTreasure, GameTreasure, Treasure
 from ...permissions import CharacterEditPermission
+from ...serializers.games.treasures.game_treasure_fields import resolve_treasure_value
 from ..common import validated_or_error
 
 
@@ -76,9 +76,7 @@ def _find_game_treasure(game, treasure_id, allow_hidden=False):
     Also 404s when the treasure's `GameTreasure` row for `game` is hidden, unless
     `allow_hidden` is `True` (the DM-only `/acquire/all.json` variant).
     """
-    treasure = Treasure.objects.filter(
-        Q(linked_game=game) | Q(game=game), id=treasure_id,
-    ).distinct().first()
+    treasure = Treasure.objects.for_game(game).filter(id=treasure_id).first()
     if treasure is None:
         raise Http404
     if not allow_hidden and _is_hidden(game, treasure):
@@ -90,6 +88,17 @@ def _is_hidden(game, treasure):
     """Return whether `treasure`'s GameTreasure row for `game` is hidden."""
     game_treasure = GameTreasure.objects.filter(game=game, treasure=treasure).first()
     return game_treasure is not None and game_treasure.hidden
+
+
+def _resolve_value(game, treasure, game_treasure):
+    """Return `treasure`'s effective value in `game`, reusing an already-fetched `game_treasure`.
+
+    Delegates to the shared `resolve_treasure_value()`, prefetching `game_treasure` into its
+    context so it doesn't re-query — `game_treasure` may already be locked (`select_for_update`)
+    by the caller.
+    """
+    context = {'game': game, 'game_treasures_by_treasure_id': {treasure.id: game_treasure}}
+    return resolve_treasure_value(context, treasure)
 
 
 def _find_treasure_by_id(treasure_id):
@@ -115,7 +124,7 @@ def _acquire(character, treasure, quantity, game):
         character = _lock_character(character)
         game_treasure = _lock_game_treasure(game, treasure)
         acquired = _capped_quantity(quantity, game_treasure)
-        value = treasure.value if game_treasure is None else game_treasure.value
+        value = _resolve_value(game, treasure, game_treasure)
         cost = acquired * value
         if cost > character.money:
             return Response({'errors': {'quantity': ['insufficient funds']}}, status=400)
@@ -162,7 +171,7 @@ def _sell(character, treasure, quantity, game):
             return Response({'errors': {'quantity': ['not enough owned']}}, status=400)
 
         game_treasure = _lock_game_treasure(game, treasure)
-        value = treasure.value if game_treasure is None else game_treasure.value
+        value = _resolve_value(game, treasure, game_treasure)
 
         character_treasure.quantity -= quantity
         character_treasure.total_value = character_treasure.quantity * value

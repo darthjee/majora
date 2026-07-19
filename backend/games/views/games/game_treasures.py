@@ -1,6 +1,6 @@
 """View for listing a game's treasures, or creating one exclusive to that game."""
 
-from django.db.models import Exists, IntegerField, OuterRef, Q, Subquery
+from django.db.models import Exists, IntegerField, OuterRef, Subquery
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -11,12 +11,11 @@ from ...authentication import CookieTokenAuthentication
 from ...models import Game, GameTreasure, Treasure
 from ...permissions import GameEditPermission
 from ...serializers import (
-    HiddenFieldSerializer,
     TreasureCreateSerializer,
     TreasureDetailSerializer,
     TreasureListSerializer,
 )
-from ..common import paginated_list_response, validated_or_error
+from ..common import paginated_list_response, validate_with_hidden_field
 from ._treasure_context import game_treasures_context
 from ._treasure_filters import filter_by_max_value, filter_by_min_value, filter_by_name
 
@@ -33,7 +32,7 @@ def game_treasures(request, game_slug):
     if request.method == 'POST':
         return _create_game_treasure(request, game)
 
-    treasures = Treasure.objects.filter(Q(linked_game=game) | Q(game=game)).distinct()
+    treasures = Treasure.objects.for_game(game)
     treasures = _exclude_hidden(game, treasures)
     game_value = Subquery(
         GameTreasure.objects.filter(game=game, treasure=OuterRef('pk')).values('value')[:1],
@@ -72,12 +71,7 @@ def _create_game_treasure(request, game):
         return error_response
 
     serializer = TreasureCreateSerializer(data=request.data)
-    error_response = validated_or_error(serializer)
-    if error_response:
-        return error_response
-
-    hidden_serializer = HiddenFieldSerializer(data=request.data)
-    error_response = validated_or_error(hidden_serializer)
+    hidden_serializer, error_response = validate_with_hidden_field(serializer, request.data)
     if error_response:
         return error_response
 

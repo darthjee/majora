@@ -8,12 +8,8 @@ from rest_framework.response import Response
 from ...authentication import CookieTokenAuthentication
 from ...models import Game, GameTreasure
 from ...permissions import GameEditPermission
-from ...serializers import (
-    GameTreasureLinkSerializer,
-    HiddenFieldSerializer,
-    TreasureDetailSerializer,
-)
-from ..common import validated_or_error
+from ...serializers import GameTreasureLinkSerializer, TreasureDetailSerializer
+from ..common import validate_with_hidden_field
 
 
 @api_view(['POST'])
@@ -30,12 +26,7 @@ def game_treasure_link(request, game_slug):
         return error_response
 
     serializer = GameTreasureLinkSerializer(data=request.data, context={'game': game})
-    error_response = validated_or_error(serializer)
-    if error_response:
-        return error_response
-
-    hidden_serializer = HiddenFieldSerializer(data=request.data)
-    error_response = validated_or_error(hidden_serializer)
+    hidden_serializer, error_response = validate_with_hidden_field(serializer, request.data)
     if error_response:
         return error_response
 

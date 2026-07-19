@@ -7,6 +7,7 @@ from games.serializers.games.items.character_item_fields import (
     resolve_character_item_field,
     resolve_character_item_photo_path,
 )
+from games.serializers.hidden_field_mixin import HiddenFieldMixin
 
 
 class CharacterItemSerializer(serializers.ModelSerializer):
@@ -36,7 +37,7 @@ class CharacterItemSerializer(serializers.ModelSerializer):
         fields = ['id', 'game_item_id', 'name', 'description', 'photo_path']
 
 
-class CharacterItemAllSerializer(CharacterItemSerializer):
+class CharacterItemAllSerializer(HiddenFieldMixin, CharacterItemSerializer):
     """Serializer for a character's item assignment, including hidden items (DM-only).
 
     Used only by the `/items/all.json` variants — adds `hidden` on top of everything

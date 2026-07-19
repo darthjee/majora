@@ -6,13 +6,11 @@ import uuid
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 
 from ..authentication import CookieTokenAuthentication
-from ..models import Game, GamePhoto, Upload
+from ..models import Game, GamePhoto
 from ..permissions import GameEditPermission
-from ..serializers import PhotoUploadSerializer
-from .common import validated_or_error
+from ._upload_init import UploadInitiator
 
 
 @api_view(['POST'])
@@ -26,22 +24,16 @@ def photo_upload(request, game_slug):
     if error_response:
         return error_response
 
-    serializer = PhotoUploadSerializer(data=request.data)
-    error_response = validated_or_error(serializer)
-    if error_response:
-        return error_response
-
-    filename = serializer.validated_data['filename']
-    file_path = _build_file_path(game_slug, filename)
-
-    upload = Upload.objects.create(user=request.user, file_path=file_path)
-    game_photo = GamePhoto.objects.create(game=game, path=file_path, ready=False)
-    upload.content_object = game_photo
-    upload.save()
-
-    return Response(
-        {'upload_id': upload.id, 'token': upload.token, 'game_id': game.id}, status=201
+    initiator = UploadInitiator(
+        request,
+        build_file_path=lambda filename: _build_file_path(game_slug, filename),
+        create_photo=lambda file_path: GamePhoto.objects.create(
+            game=game, path=file_path, ready=False
+        ),
+        id_field='game_id',
+        id_value=game.id,
     )
+    return initiator.run()
 
 
 def _build_file_path(game_slug, filename):
