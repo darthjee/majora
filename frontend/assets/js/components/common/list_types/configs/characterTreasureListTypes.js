@@ -1,9 +1,9 @@
 import GenericClient from '../../../../client/GenericClient.js';
 import GameClient from '../../../../client/GameClient.js';
-import AccessStore from '../../../../utils/access/store/AccessStore.js';
 import TreasureFilters from '../../../resources/treasure/pages/elements/TreasureFilters.jsx';
 import TreasureCardHelper from '../../cards/helpers/TreasureCardHelper.jsx';
 import CharacterTreasureListItem from '../CharacterTreasureListItem.js';
+import fetchWithEditableEndpoint from './fetchWithEditableEndpoint.js';
 
 /**
  * Resolve a character's own game currency type (`game_type`), degrading to `'dnd'` when the
@@ -70,18 +70,7 @@ function fetchPcTreasuresList(base, filterParams, client) {
  *   fetched treasures, pagination metadata, and the resolved game-level edit permission.
  */
 function fetchNpcTreasuresList(gameSlug, base, filterParams, client) {
-  return AccessStore.ensureGamePermissions(gameSlug)
-    .then((permissions) => Boolean(permissions.can_edit))
-    .catch(() => false)
-    .then((canEdit) => {
-      const path = canEdit ? `${base}/all.json` : `${base}.json`;
-
-      return client.fetchIndex(path, filterParams).then(({ data, pagination }) => ({
-        data: Array.isArray(data) ? data : [],
-        pagination,
-        canEdit,
-      }));
-    });
+  return fetchWithEditableEndpoint(gameSlug, base, filterParams, client);
 }
 
 /**
