@@ -7,6 +7,7 @@ import GameNpcNew from '../resources/character/pages/GameNpcNew.jsx';
 import GameNpcs from '../resources/character/pages/GameNpcs.jsx';
 import GamePcs from '../resources/character/pages/GamePcs.jsx';
 import GamePhotos from '../resources/game/pages/GamePhotos.jsx';
+import GamePlayer from '../resources/player/pages/GamePlayer.jsx';
 import GamePlayers from '../resources/player/pages/GamePlayers.jsx';
 import GamePoll from '../resources/game/pages/GamePoll.jsx';
 import GamePollNew from '../resources/game/pages/GamePollNew.jsx';
@@ -52,6 +53,7 @@ const PAGES = {
   gameNpcs: <GameNpcs />,
   gameNpcNew: <GameNpcNew />,
   gamePhotos: <GamePhotos />,
+  gamePlayer: <GamePlayer />,
   gamePlayers: <GamePlayers />,
   gamePolls: <GamePolls />,
   gamePollNew: <GamePollNew />,

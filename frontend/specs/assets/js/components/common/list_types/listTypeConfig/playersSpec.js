@@ -23,10 +23,10 @@ describe('listTypeConfig', function() {
     });
 
     describe('.buildItemHref', function() {
-      it('is always null (no standalone detail page)', function() {
+      it('links to the player detail page (issue #695)', function() {
         const item = new PlayerListItem({ id: 1, user: null, character: null });
 
-        expect(players.buildItemHref(item)).toBeNull();
+        expect(players.buildItemHref(item, { gameSlug: 'demo' })).toBe('#/games/demo/players/1');
       });
     });
 
