@@ -2,6 +2,8 @@
 
 import os
 
+from majora_project.env import env_int
+
 
 class Settings:
     """Reads configuration from environment variables with sensible defaults."""
@@ -9,26 +11,17 @@ class Settings:
     @staticmethod
     def pagination_size():
         """Return the default number of items per page."""
-        try:
-            return int(os.environ.get('MAJORA_PAGINATION_SIZE', 24))
-        except (ValueError, TypeError):
-            return 24
+        return env_int('MAJORA_PAGINATION_SIZE', 24)
 
     @staticmethod
     def password_reset_token_expiration_minutes():
         """Return the password recovery token expiration, in minutes."""
-        try:
-            return int(os.environ.get('MAJORA_PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES', 30))
-        except (ValueError, TypeError):
-            return 30
+        return env_int('MAJORA_PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES', 30)
 
     @staticmethod
     def upload_expiration_minutes():
         """Return the upload token expiration duration, in minutes."""
-        try:
-            return int(os.environ.get('MAJORA_UPLOAD_EXPIRATION_MINUTES', 60))
-        except (ValueError, TypeError):
-            return 60
+        return env_int('MAJORA_UPLOAD_EXPIRATION_MINUTES', 60)
 
     @staticmethod
     def emails_enabled():
@@ -38,18 +31,12 @@ class Settings:
     @staticmethod
     def cache_control_anonymous_max_age():
         """Return the Cache-Control max-age for unauthenticated requests, in seconds."""
-        try:
-            return int(os.environ.get('MAJORA_CACHE_CONTROL_ANONYMOUS_SECONDS', 3600))
-        except (ValueError, TypeError):
-            return 3600
+        return env_int('MAJORA_CACHE_CONTROL_ANONYMOUS_SECONDS', 3600)
 
     @staticmethod
     def cache_control_authenticated_max_age():
         """Return the Cache-Control max-age for authenticated requests, in seconds."""
-        try:
-            return int(os.environ.get('MAJORA_CACHE_CONTROL_AUTHENTICATED_SECONDS', 10))
-        except (ValueError, TypeError):
-            return 10
+        return env_int('MAJORA_CACHE_CONTROL_AUTHENTICATED_SECONDS', 10)
 
     @staticmethod
     def gravatar_base_url():
