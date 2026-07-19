@@ -41,3 +41,25 @@ shared response shape. Game's `is_owner` is always `false` (games have no owners
 ## Edit permission
 
 `GET /games/<slug>/permissions.json` — **AllowAny**; see [Edit permission endpoints](common-rules.md#edit-permission-endpoints-permissionsjson) above.
+
+## My Games list
+
+`GET /my-games.json` — Any authenticated user; 401 (`UNAUTHENTICATED_RESPONSE_DATA`) if
+unauthenticated, via the `require_authenticated` pattern (not DRF's `IsAuthenticated`) — same
+idiom as `GET /games.json`'s create branch. **Cache**: `X-Skip-Cache: true` is always set on the
+response (also registered as an exact path in the frontend's
+`skipCacheEndpoints.js`) — see [Common Rules](common-rules.md#cache-bypass-mechanism-for-access-endpoints),
+since this is per-viewer data.
+
+Returns an array with one item per `Player` row belonging to `request.user` (i.e. every game the
+requester belongs to, as player or DM) — never another user's rows:
+
+| Field | Type | Value |
+|-------|------|-------|
+| `game` | object | Same shape as `GET /games.json` (`name`, `game_slug`, `cover_photo_path`) |
+| `role` | `"dm"` \| `"player"` | From that `Player` row's `is_dm` |
+| `character` | object \| `null` | `PlayerCharacterSerializer` shape (`name`, `photo_url`) — see [Player](player.md) — or `null` when the role is `"dm"` or the player owns no PC yet in that game |
+| `conversations.count` | int | Number of `Conversation`s the requester follows (is a `ConversationParticipant` of) with at least one participant belonging to that game — see [Conversation](conversation.md) |
+| `conversations.unread_count` | int | Subset of the above with at least one unread (`not_seen=True`) `MessageVisualisation` for the requester |
+
+No pagination — bounded by how many games one user plays, unlike the public `/games.json` list.
