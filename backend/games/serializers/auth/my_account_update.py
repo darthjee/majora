@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from rest_framework import serializers
 
+from ...account_uniqueness import display_name_taken, email_taken, username_taken
 from ...models import UserProfile
 
 
@@ -34,21 +35,19 @@ class MyAccountUpdateSerializer(serializers.ModelSerializer):
 
     def validate_name(self, value):
         """Reject a name already used by a different user."""
-        if User.objects.exclude(pk=self.instance.pk).filter(username=value).exists():
+        if username_taken(value, exclude_pk=self.instance.pk):
             raise serializers.ValidationError('name already exists')
         return value
 
     def validate_display_name(self, value):
         """Reject a display_name already used by a different user's profile."""
-        if UserProfile.objects.exclude(user=self.instance).filter(
-            display_name=value
-        ).exists():
+        if display_name_taken(value, exclude_user=self.instance):
             raise serializers.ValidationError('display name already exists')
         return value
 
     def validate_email(self, value):
         """Reject an email already used by a different user."""
-        if User.objects.exclude(pk=self.instance.pk).filter(email=value).exists():
+        if email_taken(value, exclude_pk=self.instance.pk):
             raise serializers.ValidationError('email already exists')
         return value
 
