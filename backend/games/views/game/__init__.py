@@ -1,5 +1,6 @@
 """Views for game-scoped nested resources (PCs, NPCs)."""
 
+from .conversations import game_conversations
 from .npcs import (
     game_npc_access,
     game_npc_detail,
@@ -36,11 +37,13 @@ from .pcs import (
     game_pc_treasures,
     game_pcs,
 )
-from .players import game_players
+from .players import game_player_detail, game_players
 
 __all__ = [
     'game_pcs',
     'game_players',
+    'game_player_detail',
+    'game_conversations',
     'game_npcs',
     'game_npc_detail',
     'game_npcs_all',

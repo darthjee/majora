@@ -76,15 +76,15 @@ class TestGamePlayersView(TestCase):
         response = self._get(token=self.player_token)
         assert response.status_code == 200
 
-    def test_superuser_can_list(self):
-        """Test that a superuser can list players."""
+    def test_superuser_cannot_list(self):
+        """Test that a superuser with no game link gets 403 (no bypass, issue #695)."""
         response = self._get(token=self.superuser_token)
-        assert response.status_code == 200
+        assert response.status_code == 403
 
-    def test_staff_can_list(self):
-        """Test that a staff user can list players."""
+    def test_staff_cannot_list(self):
+        """Test that a staff user with no game link gets 403 (no bypass, issue #695)."""
         response = self._get(token=self.staff_token)
-        assert response.status_code == 200
+        assert response.status_code == 403
 
     def test_returns_404_for_unknown_game_slug(self):
         """Test that 404 is returned for a non-existent game slug."""
