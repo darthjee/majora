@@ -12,6 +12,7 @@ from .game_treasures import game_treasures
 from .game_treasures_all import game_treasures_all
 from .game_treasures_missing import game_treasures_missing
 from .games_list import games_list
+from .my_games_list import my_games_list
 
 __all__ = [
     'games_list',
@@ -26,4 +27,5 @@ __all__ = [
     'game_items',
     'game_items_all',
     'game_photos',
+    'my_games_list',
 ]

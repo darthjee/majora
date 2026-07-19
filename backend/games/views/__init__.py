@@ -60,6 +60,7 @@ from .games import (
     game_treasures_all,
     game_treasures_missing,
     games_list,
+    my_games_list,
 )
 from .health import health
 from .password_reset import recover, reset_password
@@ -89,6 +90,7 @@ __all__ = [
     'game_items',
     'game_items_all',
     'game_photos',
+    'my_games_list',
     'game_pcs',
     'game_players',
     'game_npcs',
