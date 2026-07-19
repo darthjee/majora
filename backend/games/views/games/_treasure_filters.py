@@ -1,32 +1,28 @@
 """Shared query-param filter helpers for game/character-scoped treasure list views."""
 
 
-def filter_by_min_value(request, queryset, field='game_value'):
-    """Filter `queryset` to `<field>__gte` an optional `min_value` query param."""
-    min_value = request.GET.get('min_value')
-    if min_value is None:
+def _filter_by_value(request, queryset, param, lookup, field):
+    """Filter `queryset` to `<field>__<lookup>` an optional integer query param `param`."""
+    value = request.GET.get(param)
+    if value is None:
         return queryset
 
     try:
-        min_value = int(min_value)
+        value = int(value)
     except ValueError:
         return queryset
 
-    return queryset.filter(**{f'{field}__gte': min_value})
+    return queryset.filter(**{f'{field}__{lookup}': value})
+
+
+def filter_by_min_value(request, queryset, field='game_value'):
+    """Filter `queryset` to `<field>__gte` an optional `min_value` query param."""
+    return _filter_by_value(request, queryset, 'min_value', 'gte', field)
 
 
 def filter_by_max_value(request, queryset, field='game_value'):
     """Filter `queryset` to `<field>__lte` an optional `max_value` query param."""
-    max_value = request.GET.get('max_value')
-    if max_value is None:
-        return queryset
-
-    try:
-        max_value = int(max_value)
-    except ValueError:
-        return queryset
-
-    return queryset.filter(**{f'{field}__lte': max_value})
+    return _filter_by_value(request, queryset, 'max_value', 'lte', field)
 
 
 def filter_by_name(request, queryset, field='name'):

@@ -2,16 +2,11 @@
 
 from rest_framework import serializers
 
+from games.serializers._request_context_mixin import RequestContextSerializerMixin
 
-class BaseAccessSerializer(serializers.Serializer):
+
+class BaseAccessSerializer(RequestContextSerializerMixin, serializers.Serializer):
     """Shared access-context serialization logic for access-check endpoints."""
-
-    @property
-    def data(self):
-        """Return serialized data, supporting None as a valid instance."""
-        if not hasattr(self, '_data'):
-            self._data = self.to_representation(self.instance)
-        return self._data
 
     def to_representation(self, obj):
         """Build the access response dict for the given object (may be None)."""
@@ -23,11 +18,6 @@ class BaseAccessSerializer(serializers.Serializer):
             'is_player': self._get_is_player(obj),
             'is_owner': self._get_is_owner(obj),
         }
-
-    def _user(self):
-        """Return the requesting user from context."""
-        request = self.context.get('request')
-        return request.user if request else None
 
     def _is_authenticated(self):
         """Return True if the requesting user is authenticated."""
