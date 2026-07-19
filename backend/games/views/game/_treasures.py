@@ -36,6 +36,23 @@ def character_treasures(
         if error_response:
             return error_response
 
+    treasures = _build_character_treasure_queryset(game, character, npc, allow_hidden)
+    treasures = _apply_treasure_filters(request, treasures)
+    context = game_treasures_context(game)
+    response = paginated_list_response(
+        request, treasures, serializer_class, context=context,
+    )
+    if check_hidden and character.hidden:
+        response['X-Skip-Cache'] = 'true'
+    return response
+
+
+def _build_character_treasure_queryset(game, character, npc, allow_hidden):
+    """Return `character`'s owned treasures, annotated with `game_value` and ordered by it.
+
+    Excludes hidden treasures for an NPC unless `allow_hidden` is True (the DM-only
+    `/treasures/all.json` variant).
+    """
     treasures = character.character_treasures.select_related('treasure').filter(quantity__gt=0)
     if npc and not allow_hidden:
         treasures = _exclude_hidden_treasures(game, treasures)
@@ -46,17 +63,14 @@ def character_treasures(
         output_field=IntegerField(),
     )
     treasures = treasures.annotate(game_value=Coalesce(game_value, 'treasure__value'))
-    treasures = treasures.order_by('game_value', 'treasure__id')
+    return treasures.order_by('game_value', 'treasure__id')
+
+
+def _apply_treasure_filters(request, treasures):
+    """Apply the min/max value and name query-param filters to `treasures`."""
     treasures = filter_by_min_value(request, treasures)
     treasures = filter_by_max_value(request, treasures)
-    treasures = filter_by_name(request, treasures, field='treasure__name')
-    context = game_treasures_context(game)
-    response = paginated_list_response(
-        request, treasures, serializer_class, context=context,
-    )
-    if check_hidden and character.hidden:
-        response['X-Skip-Cache'] = 'true'
-    return response
+    return filter_by_name(request, treasures, field='treasure__name')
 
 
 def _exclude_hidden_treasures(game, treasures):
