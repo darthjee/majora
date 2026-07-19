@@ -64,12 +64,15 @@ frontend/
           staff_user/
             pages/ ...
           account/
+            LoginModal.jsx     # not a routed page (opened from the header), so it sits
+            controllers/       # alongside pages/ instead of inside it
+            helpers/
             pages/ ...
         common/              # elements shared across more than one resource, grouped by theme
           base/                # shared base classes not tied to one component
             controllers/         # e.g. BasePageController, BaseEditController
           buttons/             # BackButton, EditButton, LoadMoreButton, NewButton, ...
-          modals/              # LoginModal, MoneyEditModal, PhotoUploadModal, ...
+          modals/              # MoneyEditModal, PhotoUploadModal, ...
           cards/               # CardAvatar, CardPhoto, CharacterPreviewCard, ...
           badges/              # Badge, InfoBadgeList, TooltipBadge
           forms/               # FieldErrors, FormField, TextareaField
@@ -97,7 +100,7 @@ used only by that resource (e.g. `resources/game/pages/Games.jsx`,
 `resources/game/pages/helpers/GamesHelper.jsx`, and — for elements used only by `game` pages —
 `resources/game/pages/elements/GameCard.jsx` with its own `controllers/`/`helpers/`
 sub-folders). The six resources are `game`, `game_session`, `character` (covers both NPC and PC
-pages), `treasure`, `staff_user`, and `account` (my-account, register, recover-password).
+pages), `treasure`, `staff_user`, and `account` (my-account, register, recover-password, login).
 
 Anything genuinely shared across more than one resource (or used by the app shell itself, like
 `Header.jsx`) lives under `components/common/`, grouped into themed subfolders (`buttons/`,

@@ -4,7 +4,7 @@ import NavDropdown from 'react-bootstrap/cjs/NavDropdown.js';
 import Container from 'react-bootstrap/cjs/Container.js';
 import LanguageSelector from '../../misc/LanguageSelector.jsx';
 import ResilienceIndicator from '../../misc/ResilienceIndicator.jsx';
-import LoginModal from '../../modals/LoginModal.jsx';
+import LoginModal from '../../../resources/account/LoginModal.jsx';
 import ViewAsModal from '../../modals/ViewAsModal.jsx';
 import Translator from '../../../../i18n/Translator.js';
 import Icons from '../../../../utils/ui/Icons.js';

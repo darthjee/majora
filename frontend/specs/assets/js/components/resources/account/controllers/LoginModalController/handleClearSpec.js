@@ -1,4 +1,4 @@
-import LoginModalController from '../../../../../../../../assets/js/components/common/modals/controllers/LoginModalController.js';
+import LoginModalController from '../../../../../../../../assets/js/components/resources/account/controllers/LoginModalController.js';
 
 describe('LoginModalController', function() {
   let setUsername;

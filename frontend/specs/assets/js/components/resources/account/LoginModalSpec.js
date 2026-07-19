@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import LoginModal from '../../../../../../assets/js/components/common/modals/LoginModal.jsx';
-import LoginModalHelper from '../../../../../../assets/js/components/common/modals/helpers/LoginModalHelper.jsx';
+import LoginModal from '../../../../../../assets/js/components/resources/account/LoginModal.jsx';
+import LoginModalHelper from '../../../../../../assets/js/components/resources/account/helpers/LoginModalHelper.jsx';
 
 describe('LoginModal', function() {
   describe('#render', function() {

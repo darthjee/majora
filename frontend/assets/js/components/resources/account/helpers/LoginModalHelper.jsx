@@ -1,5 +1,5 @@
 import Modal from 'react-bootstrap/cjs/Modal.js';
-import FormField from '../../forms/FormField.jsx';
+import FormField from '../../../common/forms/FormField.jsx';
 import Translator from '../../../../i18n/Translator.js';
 
 /**

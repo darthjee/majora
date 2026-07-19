@@ -1,4 +1,4 @@
-import LoginModalHelper from '../../../../../../../../assets/js/components/common/modals/helpers/LoginModalHelper.jsx';
+import LoginModalHelper from '../../../../../../../../assets/js/components/resources/account/helpers/LoginModalHelper.jsx';
 import FormField from '../../../../../../../../assets/js/components/common/forms/FormField.jsx';
 import { buildHandlers, buildState, findElement } from './support.js';
 

@@ -1,4 +1,4 @@
-import LoginModalController from '../../../../../../../../assets/js/components/common/modals/controllers/LoginModalController.js';
+import LoginModalController from '../../../../../../../../assets/js/components/resources/account/controllers/LoginModalController.js';
 import AuthEvents from '../../../../../../../../assets/js/utils/auth/AuthEvents.js';
 import AuthStorage from '../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 
