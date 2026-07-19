@@ -79,27 +79,40 @@ export default class CoinBreakdown {
    */
   #buildEntries(money) {
     const lastIndex = this.denominations.length - 1;
-    let remaining = money;
-    const entries = this.denominations.map((key, index) => {
-      if (!this.isDefaultDenominations && index === lastIndex) {
-        const quantity = remaining;
-        remaining = 0;
+    const { entries, remaining } = this.denominations.reduce((acc, key, index) => {
+      const step = this.#stepFor(index, lastIndex, acc.remaining);
 
-        return { key, quantity };
-      }
-
-      const step = CoinBreakdown.#cascadeStep(remaining, this.cascadeThreshold);
-
-      remaining = step.remaining;
-
-      return { key, quantity: step.quantity };
-    });
+      return {
+        entries: [...acc.entries, { key, quantity: step.quantity }],
+        remaining: step.remaining,
+      };
+    }, { entries: [], remaining: money });
 
     if (this.isDefaultDenominations && remaining > 0) {
       entries.push({ key: 'gems', quantity: remaining * GEMS_MULTIPLIER });
     }
 
     return entries;
+  }
+
+  /**
+   * Resolve the quantity/remaining pair for a single denomination step: the
+   * last denomination absorbs all remaining value verbatim (for a
+   * caller-restricted denomination list); every other denomination cascades
+   * via {@link CoinBreakdown.#cascadeStep}.
+   *
+   * @param {number} index - Index of this denomination within `this.denominations`.
+   * @param {number} lastIndex - Index of the last denomination in `this.denominations`.
+   * @param {number} remaining - Remaining value carried in from the previous step.
+   * @returns {{quantity: number, remaining: number}} The quantity to display
+   *   for this denomination, and the remaining value carried upward.
+   */
+  #stepFor(index, lastIndex, remaining) {
+    if (!this.isDefaultDenominations && index === lastIndex) {
+      return { quantity: remaining, remaining: 0 };
+    }
+
+    return CoinBreakdown.#cascadeStep(remaining, this.cascadeThreshold);
   }
 
   /**
