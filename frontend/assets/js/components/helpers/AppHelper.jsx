@@ -36,6 +36,7 @@ import PcCharacterPhotos from '../resources/character/pages/PcCharacterPhotos.js
 import PcCharacterTreasures from '../resources/character/pages/PcCharacterTreasures.jsx';
 import RecoverPassword from '../resources/account/pages/RecoverPassword.jsx';
 import Register from '../resources/account/pages/Register.jsx';
+import StaffDashboard from '../resources/staff_dashboard/pages/StaffDashboard.jsx';
 import StaffUser from '../resources/staff_user/pages/StaffUser.jsx';
 import StaffUserEdit from '../resources/staff_user/pages/StaffUserEdit.jsx';
 import StaffUsers from '../resources/staff_user/pages/StaffUsers.jsx';
@@ -81,6 +82,7 @@ const PAGES = {
   pcCharacterItems: <PcCharacterItems />,
   recoverPassword: <RecoverPassword />,
   register: <Register />,
+  staffDashboard: <StaffDashboard />,
   staffUsers: <StaffUsers />,
   staffUser: <StaffUser />,
   staffUserEdit: <StaffUserEdit />,

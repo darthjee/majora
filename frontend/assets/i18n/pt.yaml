@@ -256,6 +256,12 @@ staff_user_edit_page:
   email_label: E-mail
   submit: Salvar alterações
   error: Falha ao salvar usuário. Tente novamente.
+staff_dashboard:
+  title: Painel da Equipe
+  loading: Carregando painel...
+  clear_cache_tooltip: Limpar Cache
+  clear_cache_success: Cache limpo com sucesso.
+  clear_cache_error: Falha ao limpar o cache. Tente novamente.
 my_account_page:
   title: Minha Conta
   loading: Carregando conta...

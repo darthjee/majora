@@ -39,4 +39,5 @@ export default {
   box2HeartFill: 'bi-box2-heart-fill',
   bookHalf: 'bi-book-half',
   bookmarkStarFill: 'bi-bookmark-star-fill',
+  databaseFillDash: 'bi-database-fill-dash',
 };
