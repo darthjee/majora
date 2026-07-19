@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from simple_history.models import HistoricalRecords
 
+from games.caches import CharacterEditorCache
 from games.models.game.game import Game
 from games.models.game.player import Player
 
@@ -85,7 +86,7 @@ class Character(models.Model):
 
     def is_editor(self, user):
         """Return True if `user` has explicit edit rights (player or DM, not superuser)."""
-        return self.editors.filter(id=user.id).exists()
+        return CharacterEditorCache.is_editor(self, user)
 
     def can_be_edited_by(self, user):
         """Return True if `user` may edit this character (its player, a DM, or a superuser).

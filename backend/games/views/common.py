@@ -3,6 +3,7 @@
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from ..caches import AdminOrStaffCache
 from ..paginator import Paginator
 from ..serializers import HiddenFieldSerializer
 
@@ -21,7 +22,7 @@ def require_staff(request):
     error_response = require_authenticated(request)
     if error_response:
         return error_response
-    if not (request.user.is_staff or request.user.is_superuser):
+    if not AdminOrStaffCache.is_admin_or_staff(request.user):
         return Response({'errors': {'detail': ['not allowed']}}, status=403)
     return None
 

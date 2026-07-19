@@ -67,7 +67,12 @@ from .health import health
 from .photo_upload import photo_upload
 from .polls import game_poll_close, game_poll_detail, game_poll_votes, game_polls_list
 from .ready import ready
-from .staff import staff_user_detail, staff_user_recovery_link, staff_users_list
+from .staff import (
+    staff_cache_clear,
+    staff_user_detail,
+    staff_user_recovery_link,
+    staff_users_list,
+)
 from .treasures import (
     treasure_access,
     treasure_detail,
@@ -143,6 +148,7 @@ __all__ = [
     'staff_users_list',
     'staff_user_detail',
     'staff_user_recovery_link',
+    'staff_cache_clear',
     'treasure_access',
     'treasure_permissions',
     'treasure_detail',

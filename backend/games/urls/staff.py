@@ -12,4 +12,5 @@ urlpatterns = [
         views.staff_user_recovery_link,
         name='staff-user-recovery-link',
     ),
+    path('staff/cache.json', views.staff_cache_clear, name='staff-cache-clear'),
 ]

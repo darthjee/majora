@@ -256,6 +256,12 @@ staff_user_edit_page:
   email_label: Email
   submit: Save changes
   error: Failed to save user. Please try again.
+staff_dashboard:
+  title: Staff Dashboard
+  loading: Loading dashboard...
+  clear_cache_tooltip: Clear Cache
+  clear_cache_success: Cache cleared successfully.
+  clear_cache_error: Failed to clear cache. Please try again.
 my_account_page:
   title: My Account
   loading: Loading account...
