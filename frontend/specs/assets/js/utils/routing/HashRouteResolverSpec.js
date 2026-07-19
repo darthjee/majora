@@ -29,6 +29,7 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/recover-password?token=abc').getPage()).toBe('recoverPassword');
     expect(new HashRouteResolver(() => '#/users/register').getPage()).toBe('register');
     expect(new HashRouteResolver(() => '#/my_account').getPage()).toBe('myAccount');
+    expect(new HashRouteResolver(() => '#/my-games').getPage()).toBe('myGames');
     expect(new HashRouteResolver(() => '#/staff/users').getPage()).toBe('staffUsers');
     expect(new HashRouteResolver(() => '#/staff/users/7').getPage()).toBe('staffUser');
     expect(new HashRouteResolver(() => '#/staff/users/7/edit').getPage()).toBe('staffUserEdit');

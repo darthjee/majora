@@ -40,4 +40,12 @@ describe('Icons', function() {
   it('maps pencilFill to the filled pencil icon class', function() {
     expect(Icons.pencilFill).toBe('bi-pencil-fill');
   });
+
+  it('maps envelope to the outline envelope icon class', function() {
+    expect(Icons.envelope).toBe('bi-envelope');
+  });
+
+  it('maps envelopeFill to the filled envelope icon class', function() {
+    expect(Icons.envelopeFill).toBe('bi-envelope-fill');
+  });
 });
