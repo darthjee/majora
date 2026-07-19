@@ -10,6 +10,7 @@ import TreasureCardHelper from '../cards/helpers/TreasureCardHelper.jsx';
 import ItemCardHelper from './ItemCardHelper.jsx';
 import fetchPermissionGatedIndex from './fetchPermissionGatedIndex.js';
 import gamesListType from './configs/gamesListType.js';
+import myGamesListType from './configs/myGamesListType.js';
 import characterListTypes from './configs/characterListTypes.js';
 import characterTreasureListTypes from './configs/characterTreasureListTypes.js';
 import globalTreasureListType from './configs/globalTreasureListType.js';
@@ -166,12 +167,12 @@ function buildNullItemHref() {
 
 /**
  * Per-list-type configuration consumed by `ListPage`/`ListPageHelper`, keyed by list type
- * (`'treasures'`, `'items'`, `'pc-items'`, `'npc-items'`, `'games'`, `'players'`, `'pcs'`,
- * `'npcs'`, `'pc-treasures'`, `'npc-treasures'`, `'treasures-global'`), matching the existing
- * `PHOTO_COMPONENTS` precedent in `ActionsOverlay.jsx`. The `games`/`players`/`pcs`/`npcs`/
- * `pc-treasures`/`npc-treasures`/`treasures-global` entries live in `./configs/`, split out of
- * this file to keep it under the project's max-lines limit; they are merged into this object
- * below. Each entry holds:
+ * (`'treasures'`, `'items'`, `'pc-items'`, `'npc-items'`, `'games'`, `'my-games'`, `'players'`,
+ * `'pcs'`, `'npcs'`, `'pc-treasures'`, `'npc-treasures'`, `'treasures-global'`), matching the
+ * existing `PHOTO_COMPONENTS` precedent in `ActionsOverlay.jsx`. The `games`/`my-games`/
+ * `players`/`pcs`/`npcs`/`pc-treasures`/`npc-treasures`/`treasures-global` entries live in
+ * `./configs/`, split out of this file to keep it under the project's max-lines limit; they are
+ * merged into this object below. Each entry holds:
  * - `fetchList(gameSlug, hashResolver, client?)` — fetches one page of list data.
  * - `wrapperClass` — the `BaseListItem` subclass normalizing each raw entry.
  * - `filtersComponent` — filter bar rendered above the grid, or `null`.
@@ -234,6 +235,7 @@ const listTypeConfig = {
     itemsPerRow: 6,
   },
   games: gamesListType,
+  'my-games': myGamesListType,
   players: playersListType,
   ...characterListTypes,
   ...characterTreasureListTypes,

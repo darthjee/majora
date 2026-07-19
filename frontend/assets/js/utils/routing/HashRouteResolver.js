@@ -49,6 +49,7 @@ const ROUTES = [
   ['/recover-password', 'recoverPassword'],
   ['/users/register', 'register'],
   ['/my_account', 'myAccount'],
+  ['/my-games', 'myGames'],
   ['/', 'home'],
 ];
 

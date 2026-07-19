@@ -22,6 +22,7 @@ import GameTreasureNew from '../resources/treasure/pages/GameTreasureNew.jsx';
 import GameTreasures from '../resources/treasure/pages/GameTreasures.jsx';
 import Games from '../resources/game/pages/Games.jsx';
 import MyAccount from '../resources/account/pages/MyAccount.jsx';
+import MyGames from '../resources/game/pages/MyGames.jsx';
 import NpcCharacter from '../resources/character/pages/NpcCharacter.jsx';
 import NpcCharacterEdit from '../resources/character/pages/NpcCharacterEdit.jsx';
 import NpcCharacterItems from '../resources/character/pages/NpcCharacterItems.jsx';
@@ -65,6 +66,7 @@ const PAGES = {
   gameSessionEdit: <GameSessionEdit />,
   gameTasks: <GameTasks />,
   myAccount: <MyAccount />,
+  myGames: <MyGames />,
   npcCharacter: <NpcCharacter />,
   npcCharacterEdit: <NpcCharacterEdit />,
   npcCharacterPhotos: <NpcCharacterPhotos />,
