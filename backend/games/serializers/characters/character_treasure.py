@@ -7,6 +7,7 @@ from games.serializers.games.treasures.game_treasure_fields import (
     resolve_treasure_hidden,
     resolve_treasure_value,
 )
+from games.serializers.hidden_field_mixin import HiddenFieldMixin
 
 
 class CharacterTreasureSerializer(serializers.ModelSerializer):
@@ -28,7 +29,7 @@ class CharacterTreasureSerializer(serializers.ModelSerializer):
         fields = ['id', 'treasure_id', 'name', 'quantity', 'value', 'photo_path']
 
 
-class CharacterTreasureAllSerializer(CharacterTreasureSerializer):
+class CharacterTreasureAllSerializer(HiddenFieldMixin, CharacterTreasureSerializer):
     """Serializer for a character's treasure assignment, including hidden treasures (DM-only).
 
     Used only by `GET /games/:slug/npcs/:id/treasures/all.json` — adds `hidden` on top of
@@ -36,9 +37,7 @@ class CharacterTreasureAllSerializer(CharacterTreasureSerializer):
     treasures list keeps omitting it entirely.
     """
 
-    hidden = serializers.SerializerMethodField()
-
-    def get_hidden(self, character_treasure):
+    def resolve_hidden(self, character_treasure):
         """Return whether the held treasure is hidden in the context game."""
         return resolve_treasure_hidden(self.context, character_treasure.treasure)
 

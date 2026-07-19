@@ -7,8 +7,8 @@ from rest_framework.response import Response
 from ...authentication import CookieTokenAuthentication
 from ...models import GameTreasure, Treasure
 from ...permissions import TreasureEditPermission
-from ...serializers import HiddenFieldSerializer, TreasureDetailSerializer, TreasureUpdateSerializer
-from ..common import detail_or_update, validated_or_error
+from ...serializers import TreasureDetailSerializer, TreasureUpdateSerializer
+from ..common import detail_or_update, validate_with_hidden_field
 
 
 @api_view(['GET', 'PATCH'])
@@ -44,12 +44,7 @@ def _patch_treasure(request, treasure):
         return error_response
 
     serializer = TreasureUpdateSerializer(treasure, data=request.data, partial=True)
-    error_response = validated_or_error(serializer)
-    if error_response:
-        return error_response
-
-    hidden_serializer = HiddenFieldSerializer(data=request.data)
-    error_response = validated_or_error(hidden_serializer)
+    hidden_serializer, error_response = validate_with_hidden_field(serializer, request.data)
     if error_response:
         return error_response
 

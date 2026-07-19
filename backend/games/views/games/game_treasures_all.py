@@ -1,6 +1,6 @@
 """View for listing all treasures (including hidden) in a game — DM/superuser only."""
 
-from django.db.models import IntegerField, OuterRef, Q, Subquery
+from django.db.models import IntegerField, OuterRef, Subquery
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -27,7 +27,7 @@ def game_treasures_all(request, game_slug):
     error_response = GameEditPermission.check(request, game)
     if error_response:
         return error_response
-    treasures = Treasure.objects.filter(Q(linked_game=game) | Q(game=game)).distinct()
+    treasures = Treasure.objects.for_game(game)
     treasures = _annotate_game_value(game, treasures)
     treasures = filter_by_min_value(request, treasures)
     treasures = filter_by_max_value(request, treasures)

@@ -53,7 +53,14 @@ class Game(models.Model):
             return False
         if user.is_superuser:
             return True
-        return self.players.filter(user=user, is_dm=True).exists()
+        return self.has_player(user, is_dm=True)
+
+    def has_player(self, user, is_dm=None):
+        """Return whether `user` is a player of this game, optionally filtered by `is_dm`."""
+        filters = {'user': user}
+        if is_dm is not None:
+            filters['is_dm'] = is_dm
+        return self.players.filter(**filters).exists()
 
     def can_be_edited_by_roles(self, is_superuser, is_dm):
         """Return True if a role-simulated caller may edit this game.

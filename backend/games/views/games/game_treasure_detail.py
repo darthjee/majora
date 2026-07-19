@@ -1,6 +1,5 @@
 """View for retrieving or updating a treasure linked to (or exclusive to) a specific game."""
 
-from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny
@@ -11,11 +10,10 @@ from ...models import Game, GameTreasure, Treasure
 from ...permissions import GameEditPermission
 from ...serializers import (
     GameTreasureUpdateSerializer,
-    HiddenFieldSerializer,
     TreasureDetailSerializer,
     TreasureUpdateSerializer,
 )
-from ..common import validated_or_error
+from ..common import validate_with_hidden_field, validated_or_error
 
 
 @api_view(['GET', 'PATCH'])
@@ -46,7 +44,7 @@ def game_treasure_detail(request, game_slug, treasure_id):
 
 def _get_game_treasure_or_404(game, treasure_id):
     """Return the Treasure matching `treasure_id`, exclusive to or M2M-linked to `game`."""
-    treasures = Treasure.objects.filter(Q(game=game) | Q(linked_game=game)).distinct()
+    treasures = Treasure.objects.for_game(game)
     return get_object_or_404(treasures, id=treasure_id)
 
 
@@ -74,12 +72,7 @@ def _update_game_treasure(request, game, treasure):
 def _update_exclusive_treasure(request, game, treasure):
     """Update name/value on the exclusive treasure, mirroring value/hidden onto its GameTreasure."""
     serializer = TreasureUpdateSerializer(treasure, data=request.data, partial=True)
-    error_response = validated_or_error(serializer)
-    if error_response:
-        return error_response
-
-    hidden_serializer = HiddenFieldSerializer(data=request.data)
-    error_response = validated_or_error(hidden_serializer)
+    hidden_serializer, error_response = validate_with_hidden_field(serializer, request.data)
     if error_response:
         return error_response
 

@@ -4,6 +4,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from ..paginator import Paginator
+from ..serializers import HiddenFieldSerializer
 
 UNAUTHENTICATED_RESPONSE_DATA = {'errors': {'detail': ['authentication required']}}
 
@@ -30,6 +31,26 @@ def validated_or_error(serializer):
     if not serializer.is_valid():
         return Response({'errors': serializer.errors}, status=400)
     return None
+
+
+def validate_with_hidden_field(serializer, data):
+    """Validate `serializer` and a companion `HiddenFieldSerializer(data=data)` together.
+
+    Returns a `(hidden_serializer, error_response)` tuple: `error_response` is `None` only
+    when both `serializer` and the returned `hidden_serializer` are valid, in which case
+    `hidden_serializer.validated_data` holds the optional `hidden` field, alongside
+    `serializer.validated_data`.
+    """
+    error_response = validated_or_error(serializer)
+    if error_response:
+        return None, error_response
+
+    hidden_serializer = HiddenFieldSerializer(data=data)
+    error_response = validated_or_error(hidden_serializer)
+    if error_response:
+        return None, error_response
+
+    return hidden_serializer, None
 
 
 def save_or_error(serializer, **kwargs):

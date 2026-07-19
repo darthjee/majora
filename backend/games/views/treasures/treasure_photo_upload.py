@@ -5,13 +5,11 @@ import os
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 
 from ...authentication import CookieTokenAuthentication
-from ...models import Treasure, TreasurePhoto, Upload
+from ...models import Treasure, TreasurePhoto
 from ...permissions import GameEditPermission, TreasureEditPermission
-from ...serializers import PhotoUploadSerializer
-from ..common import validated_or_error
+from .._upload_init import UploadInitiator
 
 
 @api_view(['POST'])
@@ -25,16 +23,14 @@ def treasure_photo_upload(request, treasure_id):
     if error_response:
         return error_response
 
-    serializer = PhotoUploadSerializer(data=request.data)
-    error_response = validated_or_error(serializer)
-    if error_response:
-        return error_response
-
-    filename = serializer.validated_data['filename']
-    file_path = _build_file_path(treasure_id, filename)
-    treasure_photo = _reuse_or_create_photo(treasure, file_path)
-
-    return _create_upload(request.user, treasure, treasure_photo, file_path)
+    initiator = UploadInitiator(
+        request,
+        build_file_path=lambda filename: _build_file_path(treasure_id, filename),
+        create_photo=lambda file_path: _reuse_or_create_photo(treasure, file_path),
+        id_field='treasure_id',
+        id_value=treasure.id,
+    )
+    return initiator.run()
 
 
 def _check_photo_permission(request, treasure):
@@ -63,14 +59,3 @@ def _reuse_or_create_photo(treasure, file_path):
         treasure_photo.save()
         return treasure_photo
     return TreasurePhoto.objects.create(treasure=treasure, path=file_path, ready=False)
-
-
-def _create_upload(user, treasure, treasure_photo, file_path):
-    """Create the Upload record linked to `treasure_photo` and return the init response."""
-    upload = Upload.objects.create(user=user, file_path=file_path)
-    upload.content_object = treasure_photo
-    upload.save()
-
-    return Response(
-        {'upload_id': upload.id, 'token': upload.token, 'treasure_id': treasure.id}, status=201
-    )

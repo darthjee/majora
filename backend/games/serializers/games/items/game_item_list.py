@@ -3,6 +3,7 @@
 from rest_framework import serializers
 
 from games.models import GameItem
+from games.serializers.hidden_field_mixin import HiddenFieldMixin
 
 
 class GameItemListSerializer(serializers.ModelSerializer):
@@ -17,7 +18,7 @@ class GameItemListSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'photo_path']
 
 
-class GameItemAllListSerializer(GameItemListSerializer):
+class GameItemAllListSerializer(HiddenFieldMixin, GameItemListSerializer):
     """Serializer for game item list items when hidden items are included (DM-only).
 
     Used only by `GET /games/:slug/items/all.json` — adds `hidden` on top of everything
