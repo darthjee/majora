@@ -5,6 +5,8 @@ from django.db import models
 from django.utils.text import slugify
 from simple_history.models import HistoricalRecords
 
+from games.caches import GamePlayerCache
+
 
 class Game(models.Model):
     """Model representing an RPG game/campaign."""
@@ -57,10 +59,7 @@ class Game(models.Model):
 
     def has_player(self, user, is_dm=None):
         """Return whether `user` is a player of this game, optionally filtered by `is_dm`."""
-        filters = {'user': user}
-        if is_dm is not None:
-            filters['is_dm'] = is_dm
-        return self.players.filter(**filters).exists()
+        return GamePlayerCache.has_player(self, user, is_dm)
 
     def can_be_edited_by_roles(self, is_superuser, is_dm):
         """Return True if a role-simulated caller may edit this game.

@@ -2,6 +2,8 @@
 
 from rest_framework.response import Response
 
+from .caches import AdminOrStaffCache
+
 
 class _EditPermission:
     """Encapsulate the authentication/authorization checks for editing an object."""
@@ -38,7 +40,7 @@ class _EditPermission:
     @classmethod
     def _is_admin_or_player(cls, user, game):
         """Return whether `user` is a superuser, staff, or a player of `game`."""
-        return user.is_superuser or user.is_staff or game.has_player(user)
+        return AdminOrStaffCache.is_admin_or_staff(user) or game.has_player(user)
 
 
 class GameEditPermission(_EditPermission):
