@@ -1,3 +1,5 @@
+import buildFilterQuery from '../../../../../../utils/filters/buildFilterQuery.js';
+
 /**
  * Manages draft filter state and query building for the TreasureFilters element.
  */
@@ -68,26 +70,12 @@ export default class TreasureFiltersController {
    *   params to apply, with blank fields omitted.
    */
   buildQuery(gameType, minValue, maxValue, name) {
-    const query = {};
-    const trimmedName = name.trim();
-
-    if (gameType !== '') {
-      query.game_type = gameType;
-    }
-
-    if (minValue !== '') {
-      query.min_value = minValue;
-    }
-
-    if (maxValue !== '') {
-      query.max_value = maxValue;
-    }
-
-    if (trimmedName !== '') {
-      query.name = trimmedName;
-    }
-
-    return query;
+    return buildFilterQuery([
+      ['game_type', gameType],
+      ['min_value', minValue],
+      ['max_value', maxValue],
+      ['name', name.trim()],
+    ]);
   }
 
   /**

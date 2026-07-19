@@ -1,3 +1,5 @@
+import buildFilterQuery from '../../../../../../utils/filters/buildFilterQuery.js';
+
 /**
  * Manages draft filter state and query building for the PollFilters element.
  */
@@ -28,7 +30,7 @@ export default class PollFiltersController {
    * @returns {{status: string}} query params to apply, with a blank status omitted.
    */
   buildQuery(status) {
-    return status === '' ? {} : { status };
+    return buildFilterQuery([['status', status]]);
   }
 
   /**

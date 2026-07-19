@@ -1,3 +1,5 @@
+import buildFilterQuery from '../../../../../../utils/filters/buildFilterQuery.js';
+
 /**
  * Manages draft filter state and query building for the NpcFilters element.
  */
@@ -116,28 +118,12 @@ export default class NpcFiltersController {
    *   to apply, with blank fields omitted.
    */
   buildQuery(status, name, allegiance, hidden = '') {
-    const query = {};
-    const slain = NpcFiltersController.statusToSlain(status);
-    const trimmedName = name.trim();
-    const hiddenValue = NpcFiltersController.filterToHidden(hidden);
-
-    if (slain !== '') {
-      query.slain = slain;
-    }
-
-    if (trimmedName !== '') {
-      query.name = trimmedName;
-    }
-
-    if (allegiance !== '') {
-      query.allegiance = allegiance;
-    }
-
-    if (hiddenValue !== '') {
-      query.hidden = hiddenValue;
-    }
-
-    return query;
+    return buildFilterQuery([
+      ['slain', NpcFiltersController.statusToSlain(status)],
+      ['name', name.trim()],
+      ['allegiance', allegiance],
+      ['hidden', NpcFiltersController.filterToHidden(hidden)],
+    ]);
   }
 
   /**

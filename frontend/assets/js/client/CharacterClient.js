@@ -156,13 +156,7 @@ export default class CharacterClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the character treasures endpoint.
    */
   fetchTreasuresPage(characterKind, gameSlug, characterId, token, { page, perPage, search } = {}) {
-    const queryParams = new URLSearchParams();
-
-    if (page) queryParams.set('page', page);
-    if (perPage) queryParams.set('per_page', perPage);
-    if (search) queryParams.set('name', search);
-
-    const query = queryParams.toString();
+    const query = this.buildQuery([['page', page], ['per_page', perPage], ['name', search]]).toString();
     const base = `/games/${gameSlug}/${characterKind}/${characterId}/treasures.json`;
     const skipCache = characterKind === 'npcs' ? { 'X-Skip-Cache': 'true' } : {};
 
@@ -221,15 +215,9 @@ export default class CharacterClient extends BaseClient {
   fetchTreasuresAllPage(gameSlug, characterId, token, {
     page, perPage, name, min_value: minValue, max_value: maxValue,
   } = {}) {
-    const queryParams = new URLSearchParams();
-
-    if (page) queryParams.set('page', page);
-    if (perPage) queryParams.set('per_page', perPage);
-    if (name) queryParams.set('name', name);
-    if (minValue) queryParams.set('min_value', minValue);
-    if (maxValue) queryParams.set('max_value', maxValue);
-
-    const query = queryParams.toString();
+    const query = this.buildQuery([
+      ['page', page], ['per_page', perPage], ['name', name], ['min_value', minValue], ['max_value', maxValue],
+    ]).toString();
     const path = `/games/${gameSlug}/npcs/${characterId}/treasures/all.json`;
 
     return this.getJson(`${path}${query ? `?${query}` : ''}`, token, { 'X-Skip-Cache': 'true' });

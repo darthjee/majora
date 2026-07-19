@@ -142,6 +142,26 @@ export default class BaseClient {
   }
 
   /**
+   * Build a `URLSearchParams` from ordered `[key, value]` entries, including only entries
+   * whose value is defined (i.e. not `undefined`, `null`, or an empty string).
+   *
+   * @param {Array<[string, string|number]>} entries - Query entries as `[key, value]` pairs,
+   *   in the order they should appear in the resulting query string.
+   * @returns {URLSearchParams} Query params with blank/undefined/null entries omitted.
+   */
+  buildQuery(entries) {
+    const params = new URLSearchParams();
+
+    entries.forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.set(key, value);
+      }
+    });
+
+    return params;
+  }
+
+  /**
    * Perform a GET request with JSON `Accept`/`Authorization` headers.
    *
    * @param {string} path - Request path, optionally including a query string.
