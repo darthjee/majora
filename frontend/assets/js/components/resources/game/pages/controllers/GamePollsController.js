@@ -80,7 +80,7 @@ export default class GamePollsController extends BasePageController {
 
       AccessStore.ensureGameAccess(gameSlug)
         .then((access) => this.#handleAccess(access, gameSlug, safeSet))
-        .catch(() => this.#redirectToGame(gameSlug));
+        .catch(() => this.redirectTo(`/games/${gameSlug}`));
 
       return () => {
         mounted = false;
@@ -94,17 +94,11 @@ export default class GamePollsController extends BasePageController {
 
   #handleAccess(access, gameSlug, safeSet) {
     if (!GamePollsController.#isAllowed(access)) {
-      this.#redirectToGame(gameSlug);
+      this.redirectTo(`/games/${gameSlug}`);
       return;
     }
 
     this.#fetchPolls(gameSlug, safeSet);
-  }
-
-  #redirectToGame(gameSlug) {
-    if (typeof window !== 'undefined') {
-      window.location.hash = `/games/${gameSlug}`;
-    }
   }
 
   #fetchPolls(gameSlug, safeSet) {

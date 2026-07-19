@@ -4,6 +4,7 @@ import Noop from '../../../../utils/Noop.js';
 import GameNpcNewHelper from './helpers/GameNpcNewHelper.jsx';
 import LinksEditModal from './elements/LinksEditModal.jsx';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
+import useFormState from '../../../../utils/useFormState.js';
 
 /**
  * Game NPC creation page.
@@ -13,16 +14,18 @@ import getCurrentHash from '../../../../utils/routing/currentHash.js';
 export default function GameNpcNew() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [status, setStatus] = useState('idle');
-  const [name, setName] = useState('');
-  const [role, setRole] = useState('');
-  const [description, setDescription] = useState('');
-  const [privateDescription, setPrivateDescription] = useState('');
-  const [hidden, setHidden] = useState(false);
-  const [money, setMoney] = useState('0');
-  const [allegiance, setAllegiance] = useState('neutral');
-  const [publicAllegiance, setPublicAllegiance] = useState('neutral');
   const [links, setLinks] = useState([]);
   const [showLinksModal, setShowLinksModal] = useState(false);
+  const { state: fields, handleChange, handleCheckboxChange } = useFormState({
+    name: '',
+    role: '',
+    description: '',
+    privateDescription: '',
+    hidden: false,
+    money: '0',
+    allegiance: 'neutral',
+    publicAllegiance: 'neutral',
+  });
 
   const controller = useMemo(
     () => new GameNpcNewController(Noop.noop, setFieldErrors),
@@ -37,9 +40,7 @@ export default function GameNpcNew() {
   const handleSubmit = (event) => controller.submitForm(
     event,
     gameSlug,
-    {
-      name, role, description, privateDescription, hidden, money, allegiance, publicAllegiance, links,
-    },
+    { ...fields, links },
     { setStatus, setFieldErrors },
   );
 
@@ -47,20 +48,19 @@ export default function GameNpcNew() {
     <>
       {GameNpcNewHelper.render(
         {
-          name, role, description, privateDescription, hidden, money, allegiance, publicAllegiance, links,
-          status, fieldErrors,
+          ...fields, links, status, fieldErrors,
         },
         {
           onSubmit: handleSubmit,
-          onNameChange: (event) => setName(event.target.value),
-          onRoleChange: (event) => setRole(event.target.value),
-          onDescriptionChange: (event) => setDescription(event.target.value),
-          onPrivateDescriptionChange: (event) => setPrivateDescription(event.target.value),
+          onNameChange: handleChange('name'),
+          onRoleChange: handleChange('role'),
+          onDescriptionChange: handleChange('description'),
+          onPrivateDescriptionChange: handleChange('privateDescription'),
           onOpenLinksModal: () => setShowLinksModal(true),
-          onHiddenChange: (event) => setHidden(event.target.checked),
-          onMoneyChange: (event) => setMoney(event.target.value),
-          onAllegianceChange: (event) => setAllegiance(event.target.value),
-          onPublicAllegianceChange: (event) => setPublicAllegiance(event.target.value),
+          onHiddenChange: handleCheckboxChange('hidden'),
+          onMoneyChange: handleChange('money'),
+          onAllegianceChange: handleChange('allegiance'),
+          onPublicAllegianceChange: handleChange('publicAllegiance'),
         },
       )}
       <LinksEditModal

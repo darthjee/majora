@@ -81,7 +81,7 @@ describe('listTypeConfig', function() {
           const result = await config.fetchList('demo', hashResolver, client);
 
           expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith(characterKind, 'demo', '2');
-          expect(client.fetchIndex).toHaveBeenCalledWith(`/games/demo/${characterKind}/2/items.json`);
+          expect(client.fetchIndex).toHaveBeenCalledWith(`/games/demo/${characterKind}/2/items.json`, undefined);
           expect(result.data).toEqual([{ id: 1, game_item_id: 5, name: 'Cloak of Elvenkind' }]);
           expect(result.canEdit).toBe(false);
         });
@@ -97,7 +97,7 @@ describe('listTypeConfig', function() {
 
           const result = await config.fetchList('demo', hashResolver, client);
 
-          expect(client.fetchIndex).toHaveBeenCalledWith(`/games/demo/${characterKind}/2/items/all.json`);
+          expect(client.fetchIndex).toHaveBeenCalledWith(`/games/demo/${characterKind}/2/items/all.json`, undefined);
           expect(result.canEdit).toBe(true);
         });
 

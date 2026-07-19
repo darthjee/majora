@@ -12,4 +12,31 @@ describe('BasePageController', function() {
 
     expect(setter.calls.allArgs()).toEqual([['value']]);
   });
+
+  describe('#redirectTo', function() {
+    let originalWindow;
+
+    beforeEach(function() {
+      originalWindow = globalThis.window;
+    });
+
+    afterEach(function() {
+      globalThis.window = originalWindow;
+    });
+
+    it('sets window.location.hash when window is defined', function() {
+      const fakeWindow = { location: { hash: '' } };
+      globalThis.window = fakeWindow;
+
+      new BasePageController().redirectTo('/games/demo');
+
+      expect(fakeWindow.location.hash).toBe('/games/demo');
+    });
+
+    it('does nothing when window is undefined', function() {
+      globalThis.window = undefined;
+
+      expect(() => new BasePageController().redirectTo('/games/demo')).not.toThrow();
+    });
+  });
 });

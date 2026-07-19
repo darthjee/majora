@@ -3,30 +3,8 @@ import {
 } from 'react';
 import TreasureExchangeModalController from './controllers/TreasureExchangeModalController.js';
 import TreasureExchangeModalHelper from './helpers/TreasureExchangeModalHelper.jsx';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
-import Translator from '../../../../../i18n/Translator.js';
 
-const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
-
-/**
- * Builds the partial-fulfillment notice shown above the browse list when an
- * acquire request was capped by the treasure's availability.
- *
- * @param {string} activeTab - Currently active tab (`acquire` or `sell`).
- * @param {number} requestedQuantity - Quantity that was requested.
- * @param {number|undefined} acquired - Units actually acquired, per the server response.
- * @returns {string} Translated notice, or an empty string when not applicable.
- */
-export function buildPartialNotice(activeTab, requestedQuantity, acquired) {
-  if (activeTab !== 'acquire' || typeof acquired !== 'number' || acquired >= requestedQuantity) {
-    return '';
-  }
-
-  return Translator.t('treasure_exchange_modal.partially_fulfilled')
-    .replace('{{acquired}}', acquired)
-    .replace('{{requested}}', requestedQuantity);
-}
 
 /**
  * Build the map of owned quantities keyed by the underlying treasure id,
@@ -37,29 +15,6 @@ export function buildPartialNotice(activeTab, requestedQuantity, acquired) {
  */
 function buildOwnedByTreasureId(ownedTreasures) {
   return ownedTreasures.reduce((map, entry) => ({ ...map, [entry.treasure_id]: entry.quantity }), {});
-}
-
-/**
- * Builds the query params for a browse page request, forwarding the current
- * name filter to both tabs and capping/sorting the Acquire tab (by the
- * character's current money and always descending, per the modal's fixed
- * sort — there is no sort-direction UI toggle).
- *
- * @param {string} tab - Currently active tab (`acquire` or `sell`).
- * @param {number} page - Page number to request.
- * @param {number} perPage - Page size.
- * @param {object} character - Character context (`money`).
- * @param {string} searchTerm - Current name filter.
- * @returns {object} Query params for the matching controller fetch method.
- */
-export function buildBrowseParams(tab, page, perPage, character, searchTerm) {
-  if (tab === 'acquire') {
-    return {
-      page, perPage, maxValue: character.money, search: searchTerm, ordering: 'desc',
-    };
-  }
-
-  return { page, perPage, search: searchTerm };
 }
 
 /**
@@ -102,22 +57,9 @@ export default function TreasureExchangeModal({
   const ownedByTreasureId = useMemo(() => buildOwnedByTreasureId(ownedTreasures), [ownedTreasures]);
   const skipNextSearchEffect = useRef(true);
 
-  const loadPage = (tab, page, searchTerm = search) => {
-    setBrowse((prev) => ({ ...prev, loading: true, error: '' }));
-    const token = AuthStorage.getToken();
-    const params = buildBrowseParams(tab, page, PER_PAGE, character, searchTerm);
-    const request = tab === 'acquire'
-      ? controller.fetchAcquirePage(character.game_slug, token, params, character.canEdit)
-      : controller.fetchSellPage(character.game_slug, character.id, character.is_pc, token, params);
-
-    request
-      .then(({ data, pagination }) => setBrowse({
-        items: data, page: pagination.page, pages: pagination.pages, loading: false, error: '',
-      }))
-      .catch(() => setBrowse((prev) => ({
-        ...prev, loading: false, error: 'treasure_exchange_modal.load_error',
-      })));
-  };
+  const loadPage = (tab, page, searchTerm = search) => (
+    controller.loadPage(tab, page, character, searchTerm, setBrowse)
+  );
 
   useEffect(() => {
     if (!show) return;
@@ -170,38 +112,14 @@ export default function TreasureExchangeModal({
     setActionError('');
   };
 
-  const handleConfirm = () => {
-    const treasureId = activeTab === 'acquire' ? selected.id : selected.treasure_id;
-    const requestedQuantity = quantity;
-    const token = AuthStorage.getToken();
-    const submit = activeTab === 'acquire'
-      ? controller.acquire(
-        character.game_slug, character.id, character.is_pc, token, { treasureId, quantity }, character.canEdit,
-      )
-      : controller.sell(character.game_slug, character.id, character.is_pc, token, { treasureId, quantity });
-
-    setSubmitting(true);
-
-    submit.then((result) => {
-      setSubmitting(false);
-
-      if (!result.ok) {
-        setActionError(result.errorKey);
-        return;
-      }
-
-      setSelected(null);
-      setPartialNotice(buildPartialNotice(activeTab, requestedQuantity, result.acquired));
-      onSuccess({
-        treasureId,
-        treasureInfo: { name: selected.name, value: selected.value, photo_path: selected.photo_path },
-        quantity: result.quantity,
-        money: result.money,
-        acquired: result.acquired,
-      });
-      loadPage(activeTab, browse.page);
-    });
-  };
+  const handleConfirm = () => controller.confirmExchange(activeTab, selected, quantity, character, {
+    setSubmitting,
+    setSelected,
+    setPartialNotice,
+    setActionError,
+    onSuccess,
+    reload: () => loadPage(activeTab, browse.page),
+  });
 
   return TreasureExchangeModalHelper.render(
     show,

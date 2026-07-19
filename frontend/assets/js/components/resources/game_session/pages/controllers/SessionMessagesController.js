@@ -56,6 +56,45 @@ export default class SessionMessagesController extends BasePageController {
       .finally(() => this.setLoadingMore(false));
   }
 
+  /**
+   * Submit a new message, then, on success, clear the input and reload the first page of
+   * messages so the newly-posted entry shows up; on a validation failure, surface the returned
+   * field errors instead. Matches `GameSessionController#submitPoll`'s
+   * fetch-then-handle-response shape.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {number|string} sessionId - Session id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {string} content - Message content to post.
+   * @param {{setContent: Function, setFieldErrors: Function, setPosting: Function}} setters -
+   *   Page state setters.
+   * @returns {Promise<void>} Resolves once the outcome has been fully applied.
+   */
+  async postMessage(gameSlug, sessionId, token, content, setters) {
+    setters.setPosting(true);
+    setters.setFieldErrors({});
+
+    try {
+      const response = await this.client.createMessage(gameSlug, sessionId, token, content);
+
+      await this.#handlePostResponse(response, gameSlug, sessionId, setters);
+    } finally {
+      setters.setPosting(false);
+    }
+  }
+
+  async #handlePostResponse(response, gameSlug, sessionId, setters) {
+    if (!response.ok) {
+      const data = await response.json();
+
+      setters.setFieldErrors(data.errors ?? {});
+      return;
+    }
+
+    setters.setContent('');
+    await this.loadFirstPage(gameSlug, sessionId);
+  }
+
   async #applyPage(response, existingMessages, dedupeFirst = false) {
     if (!response.ok) return;
     const nextEntryId = response.headers.get('NEXT-ENTRY-ID') || null;

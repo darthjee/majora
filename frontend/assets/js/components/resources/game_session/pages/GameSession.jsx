@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import GameSessionController from './controllers/GameSessionController.js';
 import SessionMessagesController from './controllers/SessionMessagesController.js';
-import GameSessionClient from '../../../../client/GameSessionClient.js';
 import AuthStorage from '../../../../utils/auth/AuthStorage.js';
 import GameSessionHelper from './helpers/GameSessionHelper.jsx';
 import CreateSessionPollModal from './elements/CreateSessionPollModal.jsx';
@@ -37,8 +36,6 @@ export default function GameSession() {
     [],
   );
 
-  const client = useMemo(() => new GameSessionClient(), []);
-
   useEffect(() => controller.buildEffect()(), [controller]);
 
   useEffect(() => {
@@ -55,19 +52,12 @@ export default function GameSession() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    setPosting(true);
-    setFieldErrors({});
 
     const token = AuthStorage.getToken();
 
-    client.createMessage(session.game_slug, session.id, token, content)
-      .then((response) => {
-        if (!response.ok) return response.json().then((data) => setFieldErrors(data.errors ?? {}));
-
-        setContent('');
-        return messagesController.loadFirstPage(session.game_slug, session.id);
-      })
-      .finally(() => setPosting(false));
+    return messagesController.postMessage(
+      session.game_slug, session.id, token, content, { setContent, setFieldErrors, setPosting },
+    );
   };
 
   const handleCreatePoll = (dates, type) => controller.submitPoll(

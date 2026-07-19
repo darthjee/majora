@@ -1,6 +1,8 @@
 import GenericClient from '../../../../client/GenericClient.js';
+import AccessStore from '../../../../utils/access/store/AccessStore.js';
 import allegianceBorderClass from '../../../../utils/ui/AllegianceBorder.js';
-import fetchWithEditableEndpoint from './fetchWithEditableEndpoint.js';
+import fetchPermissionGatedIndex from '../fetchPermissionGatedIndex.js';
+import { buildReadOnlyActionBarProps } from '../listTypeConfig.js';
 import SlainSecondaryButtons from '../SlainSecondaryButtons.js';
 import InfoBarRules from '../../misc/helpers/InfoBarRules.js';
 import NpcFilters from '../../../resources/character/pages/elements/NpcFilters.jsx';
@@ -45,18 +47,9 @@ function fetchPcs(gameSlug, hashResolver, client = new GenericClient()) {
 function fetchNpcs(gameSlug, hashResolver, client = new GenericClient()) {
   const filterParams = Object.fromEntries(hashResolver.getFilterParams());
 
-  return fetchWithEditableEndpoint(gameSlug, `/games/${gameSlug}/npcs`, filterParams, client);
-}
-
-/**
- * Build a character's action-bar props: always non-manageable, since PCs have no upload/edit
- * affordance on this list page (matching `CharacterCardHelper`'s plain `CardAvatar` branch for
- * PCs).
- *
- * @returns {{canEdit: boolean, secondaryButtons: object[]}} Action-bar props for `ActionsOverlay`.
- */
-function buildReadOnlyActionBarProps() {
-  return { canEdit: false, secondaryButtons: [] };
+  return fetchPermissionGatedIndex(
+    AccessStore.ensureGamePermissions(gameSlug), `/games/${gameSlug}/npcs`, filterParams, client,
+  );
 }
 
 /**

@@ -21,6 +21,18 @@ export default class BasePageController {
   }
 
   /**
+   * Navigate to another hash route, guarding against non-browser environments.
+   *
+   * @param {string} hash - Destination hash (e.g. `/games/my-game`).
+   * @returns {void}
+   */
+  redirectTo(hash) {
+    if (typeof window !== 'undefined') {
+      window.location.hash = hash;
+    }
+  }
+
+  /**
    * Extract named params from a route pattern and hash, defaulting any
    * missing param to an empty string.
    *

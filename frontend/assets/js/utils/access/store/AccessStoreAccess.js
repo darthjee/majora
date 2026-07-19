@@ -1,6 +1,7 @@
 import AuthStorage from '../../auth/AuthStorage.js';
 import AccessStoreKeys from './AccessStoreKeys.js';
 import AccessStoreLogging from './AccessStoreLogging.js';
+import parseJsonOrReject from '../../http/parseJsonOrReject.js';
 
 const ACCESS_DEFAULT = {
   username: null,
@@ -136,10 +137,6 @@ export default class AccessStoreAccess {
   }
 
   static #parse(response) {
-    if (!response.ok) {
-      return Promise.reject(new Error('access request failed'));
-    }
-
-    return response.json();
+    return parseJsonOrReject(response, 'access request failed');
   }
 }

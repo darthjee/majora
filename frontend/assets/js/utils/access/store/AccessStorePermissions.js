@@ -2,6 +2,7 @@ import AuthStorage from '../../auth/AuthStorage.js';
 import AccessStoreKeys from './AccessStoreKeys.js';
 import AccessStoreFacade from './AccessStoreFacade.js';
 import AccessStoreLogging from './AccessStoreLogging.js';
+import parseJsonOrReject from '../../http/parseJsonOrReject.js';
 
 const PERMISSIONS_DEFAULT = { can_edit: false };
 
@@ -156,10 +157,6 @@ export default class AccessStorePermissions {
   }
 
   static #parse(response) {
-    if (!response.ok) {
-      return Promise.reject(new Error('access request failed'));
-    }
-
-    return response.json();
+    return parseJsonOrReject(response, 'access request failed');
   }
 }

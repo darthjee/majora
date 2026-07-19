@@ -4,6 +4,7 @@ import GameEditHelper from './helpers/GameEditHelper.jsx';
 import GameHelper from './helpers/GameHelper.jsx';
 import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
+import useFormState from '../../../../utils/useFormState.js';
 
 /**
  * Game edit page.
@@ -16,9 +17,8 @@ export default function GameEdit() {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [status, setStatus] = useState('idle');
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const { state: fields, setField, handleChange } = useFormState({ name: '', description: '' });
 
   const controller = useMemo(
     () => new GameEditController(setGame, setLoading, setError, setFieldErrors),
@@ -40,8 +40,8 @@ export default function GameEdit() {
       return;
     }
 
-    setName(game.name ?? '');
-    setDescription(game.description ?? '');
+    setField('name', game.name ?? '');
+    setField('description', game.description ?? '');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game]);
 
@@ -53,7 +53,7 @@ export default function GameEdit() {
   const handleSubmit = (event) => controller.submitForm(
     event,
     gameSlug,
-    { name, description },
+    fields,
     { setStatus, setFieldErrors },
   );
 
@@ -63,11 +63,11 @@ export default function GameEdit() {
   return (
     <>
       {GameEditHelper.render(
-        { name, description, cover_photo_path: game?.cover_photo_path, status, fieldErrors },
+        { ...fields, cover_photo_path: game?.cover_photo_path, status, fieldErrors },
         {
           onSubmit: handleSubmit,
-          onNameChange: (event) => setName(event.target.value),
-          onDescriptionChange: (event) => setDescription(event.target.value),
+          onNameChange: handleChange('name'),
+          onDescriptionChange: handleChange('description'),
           onOpenUploadModal: () => setShowUploadModal(true),
         },
       )}

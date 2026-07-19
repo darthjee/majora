@@ -1,6 +1,6 @@
 import PollClient from '../../../../../client/PollClient.js';
 import AuthClient from '../../../../../client/AuthClient.js';
-import BaseClient from '../../../../../client/BaseClient.js';
+import parseJsonOrReject from '../../../../../utils/http/parseJsonOrReject.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
@@ -108,7 +108,7 @@ export default class GamePollController extends BasePageController {
       } else {
         AccessStore.ensureGameAccess(gameSlug)
           .then((access) => this.#handleAccess(access, gameSlug, id, safeSet))
-          .catch(() => this.#redirectToGame(gameSlug));
+          .catch(() => this.redirectTo(`/games/${gameSlug}`));
       }
 
       return () => {
@@ -131,7 +131,7 @@ export default class GamePollController extends BasePageController {
 
   #handleAccess(access, gameSlug, id, safeSet) {
     if (!GamePollController.#isAllowed(access)) {
-      this.#redirectToGame(gameSlug);
+      this.redirectTo(`/games/${gameSlug}`);
       return;
     }
 
@@ -147,17 +147,11 @@ export default class GamePollController extends BasePageController {
     }
   }
 
-  #redirectToGame(gameSlug) {
-    if (typeof window !== 'undefined') {
-      window.location.hash = `/games/${gameSlug}`;
-    }
-  }
-
   #fetchPoll(gameSlug, id, safeSet) {
     const token = AuthStorage.getToken();
 
     this.pollClient.fetchPoll(gameSlug, id, token)
-      .then((response) => BaseClient.parseJsonOrReject(response, 'poll failed'))
+      .then((response) => parseJsonOrReject(response, 'poll failed'))
       .then((poll) => safeSet(this.setPoll, { ...poll, game_slug: gameSlug }))
       .catch(() => safeSet(this.setError, 'Unable to load poll.'))
       .finally(() => safeSet(this.setLoading, false));
@@ -178,7 +172,7 @@ export default class GamePollController extends BasePageController {
     const token = AuthStorage.getToken();
 
     this.pollClient.fetchPollVotes(gameSlug, id, token)
-      .then((response) => BaseClient.parseJsonOrReject(response, 'votes failed'))
+      .then((response) => parseJsonOrReject(response, 'votes failed'))
       .then((payload) => safeSet(this.setVotesPayload, payload))
       .catch(Noop.noop);
   }
@@ -198,11 +192,11 @@ export default class GamePollController extends BasePageController {
     const token = AuthStorage.getToken();
 
     this.authClient.status(token)
-      .then((response) => BaseClient.parseJsonOrReject(response, 'status failed'))
+      .then((response) => parseJsonOrReject(response, 'status failed'))
       .then((data) => this.pollClient.fetchPollVotes(
         gameSlug, id, token, new URLSearchParams({ user_id: String(data.user_id) })
       ))
-      .then((response) => BaseClient.parseJsonOrReject(response, 'votes failed'))
+      .then((response) => parseJsonOrReject(response, 'votes failed'))
       .then((payload) => safeSet(this.setSelectedOptionIds, payload.votes.map((vote) => vote.option)))
       .catch(Noop.noop);
   }
