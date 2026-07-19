@@ -8,6 +8,7 @@ import SubmitButton from '../../../../common/buttons/SubmitButton.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import PollOptionValue from '../elements/PollOptionValue.jsx';
 import PollOptionVoteInput from '../elements/PollOptionVoteInput.jsx';
+import groupBy from '../../../../../utils/groupBy.js';
 
 const DEFAULT_VOTE_STATE = { canVote: false, selectedOptionIds: [], voteStatus: 'idle' };
 const DEFAULT_CLOSE_STATE = { canClose: false };
@@ -134,18 +135,46 @@ export default class GamePollHelper {
    * @returns {{usersById: Map, countsByOption: Map, voterIdsByOption: Map}} Lookup maps.
    */
   static #buildVoteMaps(votesPayload) {
-    const usersById = new Map((votesPayload.users ?? []).map((user) => [user.id, user]));
-    const countsByOption = new Map((votesPayload.votes_count ?? []).map((entry) => [entry.option, entry.count]));
-    const voterIdsByOption = new Map();
+    return {
+      usersById: GamePollHelper.#buildUsersById(votesPayload.users ?? []),
+      countsByOption: GamePollHelper.#buildCountsByOption(votesPayload.votes_count ?? []),
+      voterIdsByOption: GamePollHelper.#buildVoterIdsByOption(votesPayload.votes ?? []),
+    };
+  }
 
-    (votesPayload.votes ?? []).forEach((vote) => {
-      const voterIds = voterIdsByOption.get(vote.option) ?? [];
+  /**
+   * Build a lookup of user id to user record.
+   *
+   * @param {{id: number, name: string, avatar_url: string|null}[]} users - Users who cast at
+   *   least one vote.
+   * @returns {Map} Map of user id to user record.
+   */
+  static #buildUsersById(users) {
+    return new Map(users.map((user) => [user.id, user]));
+  }
 
-      voterIds.push(vote.user_id);
-      voterIdsByOption.set(vote.option, voterIds);
-    });
+  /**
+   * Build a lookup of option id to its vote count.
+   *
+   * @param {{option: number, count: number}[]} votesCount - Vote count per option.
+   * @returns {Map} Map of option id to vote count.
+   */
+  static #buildCountsByOption(votesCount) {
+    return new Map(votesCount.map((entry) => [entry.option, entry.count]));
+  }
 
-    return { usersById, countsByOption, voterIdsByOption };
+  /**
+   * Build a lookup of option id to the list of user ids who voted for it.
+   *
+   * @param {{id: number, option: number, user_id: number}[]} votes - Individual vote rows.
+   * @returns {Map} Map of option id to voter user ids.
+   */
+  static #buildVoterIdsByOption(votes) {
+    const votesByOption = groupBy(votes, (vote) => vote.option);
+
+    return new Map(
+      [...votesByOption].map(([option, optionVotes]) => [option, optionVotes.map((vote) => vote.user_id)])
+    );
   }
 
   static #renderVoteCount(optionId, voteMaps) {
