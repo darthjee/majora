@@ -12,6 +12,7 @@ from ...serializers import (
     TreasureListSerializer,
 )
 from ..common import paginated_list_response, require_authenticated, validated_or_error
+from ..games._treasure_filters import filter_by_max_value, filter_by_min_value, filter_by_name
 
 
 @api_view(['GET', 'POST'])
@@ -26,9 +27,9 @@ def treasures_list(request):
 
     treasures = Treasure.objects.filter(game__isnull=True)
     treasures = _filter_by_game_type(request, treasures)
-    treasures = _filter_by_min_value(request, treasures)
-    treasures = _filter_by_max_value(request, treasures)
-    treasures = _filter_by_name(request, treasures)
+    treasures = filter_by_min_value(request, treasures, field='value')
+    treasures = filter_by_max_value(request, treasures, field='value')
+    treasures = filter_by_name(request, treasures)
     treasures = treasures.order_by('value', 'id')
     return paginated_list_response(request, treasures, TreasureListSerializer)
 
@@ -41,43 +42,6 @@ def _filter_by_game_type(request, treasures):
         return treasures
 
     return treasures.filter(game_type=game_type)
-
-
-def _filter_by_min_value(request, treasures):
-    """Filter `treasures` to `value__gte` an optional `min_value` query param."""
-    min_value = request.GET.get('min_value')
-    if min_value is None:
-        return treasures
-
-    try:
-        min_value = int(min_value)
-    except ValueError:
-        return treasures
-
-    return treasures.filter(value__gte=min_value)
-
-
-def _filter_by_max_value(request, treasures):
-    """Filter `treasures` to `value__lte` an optional `max_value` query param."""
-    max_value = request.GET.get('max_value')
-    if max_value is None:
-        return treasures
-
-    try:
-        max_value = int(max_value)
-    except ValueError:
-        return treasures
-
-    return treasures.filter(value__lte=max_value)
-
-
-def _filter_by_name(request, treasures):
-    """Filter `treasures` to a case-insensitive `name` substring match on `name`."""
-    name = request.GET.get('name')
-    if not name:
-        return treasures
-
-    return treasures.filter(name__icontains=name)
 
 
 def _create_treasure(request):
