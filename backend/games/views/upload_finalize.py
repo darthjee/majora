@@ -6,7 +6,8 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from ..authentication import CookieTokenAuthentication
+from accounts.authentication import CookieTokenAuthentication
+
 from ..models import CharacterPhoto, TreasurePhoto, Upload
 from ..permissions import (
     CharacterPhotoUploadPermission,

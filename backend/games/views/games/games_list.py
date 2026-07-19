@@ -4,7 +4,8 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from ...authentication import CookieTokenAuthentication
+from accounts.authentication import CookieTokenAuthentication
+
 from ...models import Game, Player
 from ...serializers import GameCreateSerializer, GameDetailSerializer, GameListSerializer
 from ..common import paginated_list_response, require_authenticated, validated_or_error

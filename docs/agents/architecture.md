@@ -68,6 +68,31 @@ The core Django app. Contains all domain models, REST views, and serializers for
 See root [`AGENTS.md`](../../AGENTS.md) for the current API endpoint list and domain model
 summary; `backend/games/urls.py` and `backend/games/models/` are the authoritative source.
 
+### `accounts/`
+
+Account/authentication Django app — every `/users/*.json` endpoint (login, logout, register,
+status, my-account get/update, language preference, test-email, password recovery/reset), kept
+separate from `games`' gameplay domain (games, characters, treasures, ...).
+
+- `models/` — `UserProfile` (favorite language, display name, Gravatar email hash) and
+  `PasswordResetToken` (single-use password recovery tokens). Both moved here from `games` as a
+  migration-*state*-only change: their MySQL tables remain `games_userprofile` and
+  `games_passwordresettoken` (set via an explicit `Meta.db_table` on each model), so no data
+  migration or table rename was needed.
+- `views/auth/` — login, logout, register, status, account (get/update), language, test-email.
+- `views/password_reset/` — recover (request a reset email), reset-password (consume a token).
+- `serializers/auth/` — `MyAccountDetailSerializer`, `MyAccountUpdateSerializer`.
+- `authentication.py` — `CookieTokenAuthentication`, the project's
+  `DEFAULT_AUTHENTICATION_CLASSES`; used directly by most `games` views too (a `games` →
+  `accounts` dependency, alongside `games.settings.Settings` and `games.gravatar
+  .GravatarUrlBuilder`, which `accounts` depends on the other way).
+- `account_uniqueness.py`, `url_builder.py` (`FrontendBaseUrl`) — helpers private to the
+  registration/account-update and password-reset-email flows, respectively.
+- `urls.py` — flat URL routing for every `/users/*.json` route (unlike `games/urls/`, `accounts`
+  has only one group of routes, so no multi-file concatenation is needed).
+- `templates/accounts/` — `welcome_email.txt`, `test_email.txt`, `password_reset_email.txt`.
+- `migrations/`, `tests/` — same shape as `games`.
+
 ### `versioning/`
 
 Cross-cutting change-history infrastructure, not game domain logic — the second top-level

@@ -3,7 +3,8 @@
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny
 
-from ...authentication import CookieTokenAuthentication
+from accounts.authentication import CookieTokenAuthentication
+
 from ...models import Treasure
 from ...serializers import TreasurePermissionsSerializer
 from ..common import parse_role_booleans, permissions_response

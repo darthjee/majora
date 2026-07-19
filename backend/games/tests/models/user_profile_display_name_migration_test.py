@@ -2,11 +2,11 @@
 
 import importlib
 
-from django.apps import apps
 from django.test import TestCase
 
-from games.models import UserProfile
+from accounts.models import UserProfile
 from games.tests.factories import UserFactory, UserProfileFactory
+from games.tests.migration_state import historical_apps
 
 _migration = importlib.import_module('games.migrations.0062_backfill_userprofile_display_name')
 
@@ -14,12 +14,18 @@ _migration = importlib.import_module('games.migrations.0062_backfill_userprofile
 class TestUserProfileDisplayNameBackfill(TestCase):
     """Tests for the display_name backfill performed by the 0062 data migration."""
 
+    @classmethod
+    def setUpClass(cls):
+        """Resolve the historical `apps` registry, as of this migration, once per class."""
+        super().setUpClass()
+        cls.apps = historical_apps('games', '0062_backfill_userprofile_display_name')
+
     def test_backfill_sets_display_name_to_username_for_user_without_profile(self):
         """Test that the backfill creates a profile with display_name=username when missing."""
         user = UserFactory(username='alice', password='secret-password')
         UserProfile.objects.filter(user=user).delete()
 
-        _migration._backfill_display_name(apps, None)
+        _migration._backfill_display_name(self.apps, None)
 
         profile = UserProfile.objects.get(user=user)
         assert profile.display_name == 'alice'
@@ -29,7 +35,7 @@ class TestUserProfileDisplayNameBackfill(TestCase):
         user = UserFactory(username='bob', password='secret-password')
         UserProfileFactory(user=user, display_name='custom-name')
 
-        _migration._backfill_display_name(apps, None)
+        _migration._backfill_display_name(self.apps, None)
 
         profile = UserProfile.objects.get(user=user)
         assert profile.display_name == 'custom-name'
@@ -39,7 +45,7 @@ class TestUserProfileDisplayNameBackfill(TestCase):
         user = UserFactory(username='carol', password='secret-password')
         profile = UserProfileFactory(user=user, display_name='carol')
 
-        _migration._noop_reverse(apps, None)
+        _migration._noop_reverse(self.apps, None)
 
         profile.refresh_from_db()
         assert profile.display_name == 'carol'

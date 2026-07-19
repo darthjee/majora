@@ -6,7 +6,7 @@ any given serializer is always predictable from its path alone.
 
 ## The convention
 
-1. A resource folder (`characters/`, `games/`, `treasures/`, `staff/`, `auth/`, ...) holds
+1. A resource folder (`characters/`, `games/`, `treasures/`, `staff/`, ...) holds
    the serializers for that resource: access/permissions checks, create/update payloads,
    list/detail representations.
 2. `Character` is a single model — the `npc` boolean field distinguishes PCs from NPCs, not
@@ -45,8 +45,11 @@ any given serializer is always predictable from its path alone.
 | `GameTreasureUpdateSerializer` | `backend/games/serializers/games/treasures/game_treasure_update.py` |
 | `TreasureDetailSerializer` (top-level, not game-scoped) | `backend/games/serializers/treasures/treasure_detail.py` |
 | `StaffUserDetailSerializer` | `backend/games/serializers/staff/staff_user_detail.py` |
-| `MyAccountDetailSerializer` | `backend/games/serializers/auth/my_account_detail.py` |
 | `BaseAccessSerializer`, `LinkSerializer`, `PhotoUploadSerializer` | stay at `backend/games/serializers/` (cross-cutting) |
+
+Account/authentication serializers (`MyAccountDetailSerializer`, `MyAccountUpdateSerializer`)
+live in the dedicated `backend/accounts/serializers/auth/` app instead — see
+[architecture.md](architecture.md)'s `accounts/` section.
 
 ## Stability of public re-exports
 

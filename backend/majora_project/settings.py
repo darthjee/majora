@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'simple_history',
     'games',
+    'accounts',
     'versioning',
     'statistics',
     'conversations',
@@ -124,6 +125,6 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'games.authentication.CookieTokenAuthentication',
+        'accounts.authentication.CookieTokenAuthentication',
     ],
 }
