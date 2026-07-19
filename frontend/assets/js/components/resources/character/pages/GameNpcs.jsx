@@ -25,12 +25,14 @@ const PATTERN = '/games/:game_slug/npcs';
  */
 function useSlainTogglePair(field, refresh) {
   const [target, setTarget] = useState(null);
+  const handleToggled = () => {
+    setTarget(null);
+    refresh();
+  };
 
   const slainController = useMemo(
-    () => new SlainConfirmController(() => {
-      setTarget(null);
-      refresh();
-    }, field),
+    () => new SlainConfirmController(handleToggled, field),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [refresh, field],
   );
 
@@ -48,12 +50,14 @@ function useSlainTogglePair(field, refresh) {
  */
 function usePlayerSlainTogglePair(refresh) {
   const [target, setTarget] = useState(null);
+  const handleToggled = () => {
+    setTarget(null);
+    refresh();
+  };
 
   const playerSlainController = useMemo(
-    () => new PlayerSlainConfirmController(() => {
-      setTarget(null);
-      refresh();
-    }),
+    () => new PlayerSlainConfirmController(handleToggled),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [refresh],
   );
 

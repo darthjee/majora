@@ -6,6 +6,7 @@ import HealthClient from '../../../../../../assets/js/client/HealthClient.js';
 import HeaderController from '../../../../../../assets/js/components/common/header/controllers/HeaderController.js';
 import HeaderHelper from '../../../../../../assets/js/components/common/header/helpers/HeaderHelper.jsx';
 import AccessStore from '../../../../../../assets/js/utils/access/store/AccessStore.js';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
 
 describe('Header', function() {
   beforeEach(function() {
@@ -89,9 +90,25 @@ describe('Header', function() {
       expect(capturedState.canViewAs).toBe(false);
       expect(capturedState.showViewAsModal).toBe(false);
       expect(() => {
-        capturedHandlers.onViewAsClick();
+        capturedHandlers.onViewAsClick({ preventDefault: Noop.noop });
         capturedHandlers.onViewAsModalClose();
       }).not.toThrow();
+    });
+
+    it('prevents the default link navigation when onViewAsClick is triggered', function() {
+      let capturedHandlers;
+
+      spyOn(HeaderHelper, 'render').and.callFake((_state, handlers) => {
+        capturedHandlers = handlers;
+        return React.createElement('div', null, 'header');
+      });
+
+      renderToStaticMarkup(React.createElement(Header));
+
+      const event = { preventDefault: jasmine.createSpy('preventDefault') };
+      capturedHandlers.onViewAsClick(event);
+
+      expect(event.preventDefault).toHaveBeenCalled();
     });
 
     it('shows the view-as icon for a DM even when not really staff/superuser', function() {
