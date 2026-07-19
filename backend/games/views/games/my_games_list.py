@@ -23,4 +23,10 @@ def my_games_list(request):
 
     items = MyGamesBuilder(request.user).build()
     serializer = MyGamesItemSerializer(items, many=True)
-    return Response(serializer.data)
+    return _skip_cache(Response(serializer.data))
+
+
+def _skip_cache(response):
+    """Set the X-Skip-Cache header on `response` and return it."""
+    response['X-Skip-Cache'] = 'true'
+    return response

@@ -43,6 +43,12 @@ class TestMyGamesListView(TokenAuthRequestMixin):
         assert response.status_code == 200
         assert json.loads(response.content) == []
 
+    def test_authenticated_returns_skip_cache_header(self, client):
+        """Test that the response includes the X-Skip-Cache: true header."""
+        response = self.get(client, MY_GAMES_URL, token=self.token)
+        assert response.status_code == 200
+        assert response['X-Skip-Cache'] == 'true'
+
     def test_dm_item_has_null_character(self, client):
         """Test that a DM's item reports role 'dm' and a null character."""
         game = GameFactory(name='Curse of Strahd', game_slug='curse-of-strahd')
