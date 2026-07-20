@@ -8,10 +8,11 @@ from rest_framework.response import Response
 
 from accounts.authentication import CookieTokenAuthentication
 
-from ..models import CharacterPhoto, TreasurePhoto, Upload
+from ..models import CharacterPhoto, GameItemPhoto, TreasurePhoto, Upload
 from ..permissions import (
     CharacterPhotoUploadPermission,
     GameEditPermission,
+    GameItemPhotoUploadPermission,
     TreasureEditPermission,
 )
 
@@ -77,6 +78,8 @@ def _check_permission(request, upload):
         return TreasureEditPermission.check(request, content_object.treasure)
     if isinstance(content_object, CharacterPhoto):
         return CharacterPhotoUploadPermission.check(request, content_object.character)
+    if isinstance(content_object, GameItemPhoto):
+        return GameItemPhotoUploadPermission.check(request, content_object.game_item.game)
     return GameEditPermission.check(request, content_object.game)
 
 
@@ -97,6 +100,8 @@ def _mark_content_object_ready(upload):
         _set_treasure_photo(content_object)
     elif isinstance(content_object, CharacterPhoto):
         _set_profile_photo_if_unset(content_object)
+    elif isinstance(content_object, GameItemPhoto):
+        _set_item_photo(content_object)
     else:
         _set_cover_photo_if_unset(content_object)
 
@@ -122,3 +127,10 @@ def _set_treasure_photo(treasure_photo):
     treasure = treasure_photo.treasure
     treasure.photo = treasure_photo
     treasure.save()
+
+
+def _set_item_photo(item_photo):
+    """Set the item's photo to `item_photo`, always replacing any existing one."""
+    item = item_photo.game_item
+    item.photo = item_photo
+    item.save()

@@ -28,9 +28,14 @@ export default class ItemDetailHelper {
    * @param {boolean} [item.hidden] - Whether the item is hidden from players (DM/admin-facing
    *   data only, present only in the `/all.json` variants).
    * @param {string} backHref - Hash path to the item's parent list page.
+   * @param {boolean} [canEdit] - Whether the current user may upload a new photo. Defaults to
+   *   `false` (today's behavior), used as-is by `CharacterItem`'s two callers which have no
+   *   upload feature (issue #749 scope decision).
+   * @param {Function} [onUploadClick] - Handler invoked when the upload button is clicked.
+   *   Defaults to a no-op, matching the `canEdit` default.
    * @returns {React.ReactElement} Item detail element.
    */
-  static render(item, backHref) {
+  static render(item, backHref, canEdit = false, onUploadClick = Noop.noop) {
     return (
       <div className="container mt-4">
         <PageActions backHref={backHref} />
@@ -40,8 +45,8 @@ export default class ItemDetailHelper {
               type="item"
               url={item.photo_path}
               alt={item.name}
-              canEdit={false}
-              onClick={Noop.noop}
+              canEdit={canEdit}
+              onClick={onUploadClick}
               infoBarItems={ItemCardHelper.buildInfoBarItems(item, Translator.t('item_page.hidden_label'))}
             />
             <h1>{item.name}</h1>

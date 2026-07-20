@@ -42,4 +42,20 @@ class CacheCleanupMapTest extends TestCase
             '/games/:game_slug/sessions/unscheduled.json',
         ], $map['/games/:game_slug/polls/:poll_id/close.json']);
     }
+
+    /**
+     * Uploading a GameItem's photo must clear every cached item list/detail
+     * response for the game.
+     */
+    public function testItemPhotoUploadClearsAllItemCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/items.json',
+            '/games/:game_slug/items/all.json',
+            '/games/:game_slug/items/:item_id.json',
+            '/games/:game_slug/items/:item_id/all.json',
+        ], $map['/games/:game_slug/items/:item_id/photo_upload.json']);
+    }
 }
