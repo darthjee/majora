@@ -15,10 +15,13 @@ with photo upload — left for follow-up issues), only Django admin for superuse
 
 | Endpoint | Method | Who can call | Response |
 |----------|--------|-------------|----------|
-| `/games/<slug>/pcs/<id>/items.json` | GET | **AllowAny** | Paginated list of `CharacterItemSerializer` objects (`id`, `game_item_id`, `name`, `description`, `photo_path`) for that PC's non-hidden `CharacterItem` rows |
-| `/games/<slug>/pcs/<id>/items/all.json` | GET | **CharacterEdit** (covers the PC's owning player, that game's GameMaster, or a superuser, via `Character.can_be_edited_by`) | Does not exclude hidden held items, and each item additionally carries a `hidden: boolean` field (via `CharacterItemAllSerializer`). Always sets `X-Skip-Cache: true` |
+| `/games/<slug>/pcs/<id>/items.json` | GET | **AllowAny** | Paginated list of `CharacterItemSerializer` objects (`id`, `game_item_id`, `name`, `photo_path` — no `description`) for that PC's non-hidden `CharacterItem` rows |
+| `/games/<slug>/pcs/<id>/items/all.json` | GET | **CharacterEdit** (covers the PC's owning player, that game's GameMaster, or a superuser, via `Character.can_be_edited_by`) | Same lean fields as the plain list, plus a `hidden: boolean` field (via `CharacterItemAllSerializer`), and does not exclude hidden held items. Always sets `X-Skip-Cache: true` |
 | `/games/<slug>/npcs/<id>/items.json` | GET | **AllowAny**, but see the [hidden-NPC gate](character-photo.md#photo-index-endpoints) above | Same shape as the PC list, additionally excluding the NPC's own hidden `CharacterItem` rows |
-| `/games/<slug>/npcs/<id>/items/all.json` | GET | **GameEdit** | Does not exclude hidden held items, and each item additionally carries `hidden` (same `CharacterItemAllSerializer` as the PC variant). Always sets `X-Skip-Cache: true` |
+| `/games/<slug>/npcs/<id>/items/all.json` | GET | **GameEdit** | Same lean fields as the plain list, plus `hidden` (same `CharacterItemAllSerializer` as the PC variant), and does not exclude hidden held items. Always sets `X-Skip-Cache: true` |
+
+`description` is intentionally omitted from all four index/index-all endpoints above — card/
+preview UI never renders it; see the detail endpoints below for where it is exposed.
 
 Unknown `game_slug` or `character_id` (or mismatched/wrong type) → 404. All four endpoints order
 by `id`.
@@ -27,21 +30,24 @@ by `id`.
 
 | Endpoint | Method | Who can call | Response |
 |----------|--------|-------------|----------|
-| `/games/<slug>/pcs/<id>/items/<item_id>.json` | GET | **AllowAny** | `CharacterItemSerializer` object (`id`, `game_item_id`, `name`, `description`, `photo_path`) for a single non-hidden `CharacterItem`; 404 if hidden or unknown |
-| `/games/<slug>/pcs/<id>/items/<item_id>/all.json` | GET | **CharacterEdit** (covers the PC's owning player, that game's GameMaster, or a superuser) | Returns the item even if hidden, and additionally carries `hidden` (via `CharacterItemAllSerializer`). Always sets `X-Skip-Cache: true` |
+| `/games/<slug>/pcs/<id>/items/<item_id>.json` | GET | **AllowAny** | `CharacterItemDetailSerializer` object (`id`, `game_item_id`, `name`, `photo_path`, `description`) for a single non-hidden `CharacterItem`; 404 if hidden or unknown |
+| `/games/<slug>/pcs/<id>/items/<item_id>/all.json` | GET | **CharacterEdit** (covers the PC's owning player, that game's GameMaster, or a superuser) | Returns the item even if hidden, and additionally carries `hidden` (via `CharacterItemDetailAllSerializer`). Always sets `X-Skip-Cache: true` |
 | `/games/<slug>/npcs/<id>/items/<item_id>.json` | GET | **AllowAny**, but see the [hidden-NPC gate](character-photo.md#photo-index-endpoints) above | Same shape as the PC detail variant; 404 if the `CharacterItem` is hidden, if the NPC itself is hidden from the requester, or if unknown |
-| `/games/<slug>/npcs/<id>/items/<item_id>/all.json` | GET | **GameEdit** (dm/admin only — NPCs have no owner) | Returns the item even if hidden, and additionally carries `hidden` (same `CharacterItemAllSerializer` as the PC variant). Always sets `X-Skip-Cache: true` |
+| `/games/<slug>/npcs/<id>/items/<item_id>/all.json` | GET | **GameEdit** (dm/admin only — NPCs have no owner) | Returns the item even if hidden, and additionally carries `hidden` (same `CharacterItemDetailAllSerializer` as the PC variant). Always sets `X-Skip-Cache: true` |
 
 Unknown `game_slug`/`character_id`/`item_id`, or an id belonging to the opposite PC/NPC role,
-→ 404. All four mirror the equivalent list endpoint above exactly, narrowed to a single row — no
-new serializer or permission class was introduced, and the hidden-character gate on the two
-plain (non-`/all.json`) variants behaves identically to the list endpoints'.
+→ 404. All four mirror the permission/visibility semantics of the equivalent list endpoint
+above exactly, narrowed to a single row, but use detail-only serializer subclasses
+(`CharacterItemDetailSerializer`/`CharacterItemDetailAllSerializer`, each extending the
+corresponding index serializer) that add `description` back on top of the lean index fields —
+no permission class changed, and the hidden-character gate on the two plain (non-`/all.json`)
+variants behaves identically to the list endpoints'.
 
 ## Item creation endpoints
 
 | Endpoint | Method | Who can call | Request | Response |
 |----------|--------|-------------|---------|----------|
-| `/games/<slug>/pcs/<id>/items.json` | POST | **CharacterItemCreatePermission** — dm, admin, staff, or the PC's owning player | `{ name: string, description?: string, hidden?: boolean }` (`name` required, non-blank, ≤200 chars; `description` defaults to `''`; `hidden` defaults to `false`) | `201` with `CharacterItemAllSerializer` shape (`id`, `game_item_id`, `name`, `description`, `photo_path`, `hidden`) |
+| `/games/<slug>/pcs/<id>/items.json` | POST | **CharacterItemCreatePermission** — dm, admin, staff, or the PC's owning player | `{ name: string, description?: string, hidden?: boolean }` (`name` required, non-blank, ≤200 chars; `description` defaults to `''`; `hidden` defaults to `false`) | `201` with `CharacterItemDetailAllSerializer` shape (`id`, `game_item_id`, `name`, `photo_path`, `description`, `hidden`) — the created item is returned in full (detail-shaped), unlike the lean list endpoints above |
 | `/games/<slug>/npcs/<id>/items.json` | POST | **CharacterItemCreatePermission** — dm, admin, or staff (NPCs have no owner) | Same as above | Same as above |
 
 Both share the same route as the `GET` list above (`build_items_view` now handles `GET` and
@@ -77,9 +83,11 @@ the PC's own owning player access in addition to a GameMaster/superuser, unlike 
 `GameEditPermission` (dm/admin only — an NPC has no "owning player" of its own).
 
 **Exposed fields** (read): `id` (the `CharacterItem` row id, not the `GameItem` id),
-`game_item_id`, `name`, `description`, `photo_path` — all already fallback-resolved server-side
-(see below), so the frontend never needs its own fallback logic. `hidden` is additionally exposed
-on both `/all.json` variants only.
+`game_item_id`, `name`, `photo_path` — all already fallback-resolved server-side (see below), so
+the frontend never needs its own fallback logic. `description` (also fallback-resolved) is
+exposed only on the detail/detail-all endpoints and the creation response above — intentionally
+omitted from all four index/index-all endpoints. `hidden` is exposed on both `/all.json`
+variants and the creation response only.
 
 ## Fallback resolution
 

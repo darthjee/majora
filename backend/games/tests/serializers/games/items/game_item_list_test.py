@@ -25,15 +25,15 @@ class TestGameItemListSerializer(TestCase):
         data = GameItemListSerializer(self.item).data
         assert data['name'] == 'Cloak of Elvenkind'
 
-    def test_serializes_description(self):
-        """Test that the description field is serialized."""
+    def test_does_not_include_description(self):
+        """Test that description is not exposed by the index serializer."""
         data = GameItemListSerializer(self.item).data
-        assert data['description'] == 'A shimmering cloak.'
+        assert 'description' not in data
 
     def test_only_exposes_expected_fields(self):
         """Test that only the documented fields are exposed."""
         data = GameItemListSerializer(self.item).data
-        assert set(data.keys()) == {'id', 'name', 'description', 'photo_path'}
+        assert set(data.keys()) == {'id', 'name', 'photo_path'}
 
     def test_photo_path_is_none_without_photo(self):
         """Test that photo_path is None when the game item has no photo."""
@@ -67,7 +67,7 @@ class TestGameItemAllListSerializer(TestCase):
     def test_includes_hidden_field_alongside_list_fields(self):
         """Test that the serializer exposes every GameItemListSerializer field plus hidden."""
         data = GameItemAllListSerializer(self.item).data
-        assert set(data.keys()) == {'id', 'name', 'description', 'photo_path', 'hidden'}
+        assert set(data.keys()) == {'id', 'name', 'photo_path', 'hidden'}
 
     def test_hidden_reflects_the_game_item_own_field(self):
         """Test that hidden reflects the game item's own hidden field."""

@@ -15,16 +15,11 @@ class CharacterItemSerializer(serializers.ModelSerializer):
 
     game_item_id = serializers.IntegerField(source='game_item.id', read_only=True)
     name = serializers.SerializerMethodField()
-    description = serializers.SerializerMethodField()
     photo_path = serializers.SerializerMethodField()
 
     def get_name(self, character_item):
         """Return the character item's name, falling back to its game item's name."""
         return resolve_character_item_field(character_item, 'name')
-
-    def get_description(self, character_item):
-        """Return the character item's description, falling back to its game item's."""
-        return resolve_character_item_field(character_item, 'description')
 
     def get_photo_path(self, character_item):
         """Return the character item's resolved photo path."""
@@ -34,7 +29,7 @@ class CharacterItemSerializer(serializers.ModelSerializer):
         """Metadata for the CharacterItemSerializer."""
 
         model = CharacterItem
-        fields = ['id', 'game_item_id', 'name', 'description', 'photo_path']
+        fields = ['id', 'game_item_id', 'name', 'photo_path']
 
 
 class CharacterItemAllSerializer(HiddenFieldMixin, CharacterItemSerializer):
@@ -49,3 +44,37 @@ class CharacterItemAllSerializer(HiddenFieldMixin, CharacterItemSerializer):
         """Metadata for the CharacterItemAllSerializer."""
 
         fields = CharacterItemSerializer.Meta.fields + ['hidden']
+
+
+class CharacterItemDetailSerializer(CharacterItemSerializer):
+    """Serializer for a character's single item assignment detail view.
+
+    Used only by the plain item-detail endpoints — adds `description` on top of
+    everything `CharacterItemSerializer` already exposes; the index/list view keeps
+    omitting it entirely.
+    """
+
+    description = serializers.SerializerMethodField()
+
+    def get_description(self, character_item):
+        """Return the character item's description, falling back to its game item's."""
+        return resolve_character_item_field(character_item, 'description')
+
+    class Meta(CharacterItemSerializer.Meta):
+        """Metadata for the CharacterItemDetailSerializer."""
+
+        fields = CharacterItemSerializer.Meta.fields + ['description']
+
+
+class CharacterItemDetailAllSerializer(HiddenFieldMixin, CharacterItemDetailSerializer):
+    """Serializer for a character's single item assignment detail view, including
+    hidden items (DM-only).
+
+    Used only by the item-detail-all endpoints — adds `hidden` on top of everything
+    `CharacterItemDetailSerializer` already exposes.
+    """
+
+    class Meta(CharacterItemDetailSerializer.Meta):
+        """Metadata for the CharacterItemDetailAllSerializer."""
+
+        fields = CharacterItemDetailSerializer.Meta.fields + ['hidden']

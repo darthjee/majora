@@ -4,6 +4,7 @@ import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
 import PageActions from '../../../../common/list_page/PageActions.jsx';
 import ActionsOverlay from '../../../../common/misc/ActionsOverlay.jsx';
 import ItemCardHelper from '../../../../common/list_types/ItemCardHelper.jsx';
+import DescriptionBox from '../../../../common/misc/DescriptionBox.jsx';
 import Noop from '../../../../../utils/Noop.js';
 import Translator from '../../../../../i18n/Translator.js';
 
@@ -12,7 +13,7 @@ import Translator from '../../../../../i18n/Translator.js';
  * `PcCharacterItem`, and `NpcCharacterItem`, since the layout and fields (`name`,
  * `description`, `photo_path`, optional `hidden`) are identical across all three response
  * shapes. Simpler than `CharacterHelper`: no role/DM notes/money/treasures, just a photo+name
- * column and a description column.
+ * column and a collapsible `DescriptionBox` column.
  */
 export default class ItemDetailHelper {
   /**
@@ -46,7 +47,7 @@ export default class ItemDetailHelper {
             <h1>{item.name}</h1>
           </div>
           <div className="col-md-8">
-            <p>{item.description}</p>
+            <DescriptionBox description={item.description} />
           </div>
         </div>
       </div>

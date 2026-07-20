@@ -13,14 +13,16 @@ and photo upload are explicitly out of scope, left for a follow-up issue).
 
 | Endpoint | Method | Who can call | Response |
 |----------|--------|-------------|----------|
-| `/games/<slug>/items.json` | GET | **AllowAny** | Paginated list of `GameItemListSerializer` objects (`id`, `name`, `description`, `photo_path`) for the game's non-hidden items |
+| `/games/<slug>/items.json` | GET | **AllowAny** | Paginated list of `GameItemListSerializer` objects (`id`, `name`, `photo_path`) for the game's non-hidden items |
 | `/games/<slug>/items/all.json` | GET | **GameEdit** | DM-only variant: does not exclude hidden items, and each item additionally carries a `hidden: boolean` field (via `GameItemAllListSerializer`, a `GameItemListSerializer` subclass used only by this endpoint). Always sets `X-Skip-Cache: true` |
 
 Unknown `game_slug` → 404. Both endpoints order by `id`.
 
-**Exposed fields** (read): `id`, `name`, `description`, `photo_path` — all non-sensitive.
-`GET /games/<slug>/items/all.json` additionally exposes `hidden` — see the `hidden` section
-below; no other read endpoint exposes it.
+**Exposed fields** (read, index): `id`, `name`, `photo_path` — all non-sensitive; `description`
+is intentionally omitted from both index endpoints (card/preview UI never renders it — see
+`GameItemDetailSerializer` below for where it is exposed). `GET /games/<slug>/items/all.json`
+additionally exposes `hidden` — see the `hidden` section below; no other read endpoint exposes
+it.
 
 `photo_path` — see [Photo path fields](common-rules.md#photo-path-fields) above; `null` when the
 item has no `photo` set.
@@ -44,10 +46,12 @@ flag that governs a PC's/NPC's own held-item list.
 
 | Endpoint | Method | Who can call | Response |
 |----------|--------|-------------|----------|
-| `/games/<slug>/items/<item_id>.json` | GET | **AllowAny** | `GameItemListSerializer` object (`id`, `name`, `description`, `photo_path`) for a single non-hidden item; 404 if the item is hidden or unknown |
-| `/games/<slug>/items/<item_id>/all.json` | GET | **GameEdit** | DM-only variant: returns the item even if hidden, and additionally carries `hidden` (via `GameItemAllListSerializer`). Always sets `X-Skip-Cache: true` |
+| `/games/<slug>/items/<item_id>.json` | GET | **AllowAny** | `GameItemDetailSerializer` object (`id`, `name`, `photo_path`, `description`) for a single non-hidden item; 404 if the item is hidden or unknown |
+| `/games/<slug>/items/<item_id>/all.json` | GET | **GameEdit** | DM-only variant: returns the item even if hidden, and additionally carries `hidden` (via `GameItemDetailAllSerializer`). Always sets `X-Skip-Cache: true` |
 
 Unknown `game_slug` or `item_id` (or an item belonging to a different game) → 404. These mirror
-the two index endpoints above exactly, narrowed to a single row — no new serializer or
-permission class was introduced. There is still no create/update/delete endpoint or photo upload
-for `GameItem` — both remain out of scope.
+the two index endpoints above in permission/visibility semantics, narrowed to a single row, but
+use detail-only serializer subclasses (`GameItemDetailSerializer`/`GameItemDetailAllSerializer`,
+each extending the corresponding index serializer) that add `description` back on top of the
+lean index fields — no permission class changed. There is still no create/update/delete endpoint
+or photo upload for `GameItem` — both remain out of scope.
