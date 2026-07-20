@@ -33,10 +33,11 @@ describe('listTypeConfig', function() {
       });
 
       describe('.buildItemHref', function() {
-        it('returns null, since items have no standalone detail page', function() {
+        it('links to the item detail page for this character (issue #724)', function() {
           const item = new CharacterItemListItem({ id: 1, game_item_id: 5, name: 'Cloak of Elvenkind' });
 
-          expect(config.buildItemHref(item)).toBeNull();
+          expect(config.buildItemHref(item, { gameSlug: 'demo', characterId: '2' }))
+            .toBe(`#/games/demo/${characterKind}/2/items/1`);
         });
       });
 
