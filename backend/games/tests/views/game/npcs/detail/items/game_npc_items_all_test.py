@@ -79,6 +79,12 @@ class TestGameNpcItemsAllView(TokenAuthRequestMixin):
         assert by_name['Visible Gem'] is False
         assert by_name['Hidden Gem'] is True
 
+    def test_does_not_include_description(self, client):
+        """Test that description is not exposed on the index-all endpoint."""
+        response = self.get(client, self._url(), token=self.dm_token)
+        data = json.loads(response.content)
+        assert all('description' not in item for item in data)
+
     def test_returns_404_for_unknown_character(self, client):
         """Test that 404 is returned for a non-existent character_id."""
         response = self.get(client, self._url(character_id=99999), token=self.dm_token)

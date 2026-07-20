@@ -16,7 +16,7 @@ from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game
 from ...permissions import CharacterEditPermission, GameEditPermission
-from ...serializers import CharacterItemSerializer, CharacterPermissionsSerializer
+from ...serializers import CharacterItemDetailSerializer, CharacterPermissionsSerializer
 from ..common import access_response, parse_role_booleans, permissions_response
 from ._full import character_full
 from ._item_create import character_item_create
@@ -180,7 +180,7 @@ def build_items_all_view(npc, serializer_class):
     return view
 
 
-def build_item_detail_view(npc, serializer_class=CharacterItemSerializer):
+def build_item_detail_view(npc, serializer_class=CharacterItemDetailSerializer):
     """Build the GET item-detail view for a PC (`npc=False`) or NPC (`npc=True`)."""
 
     @_build_api_view(['GET'], AllowAny)
