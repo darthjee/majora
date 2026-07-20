@@ -78,16 +78,15 @@ describe('CharacterHelper', function() {
       expect(renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'))).toContain('Items');
     });
 
-    it('feeds the item name and description to the tooltip content', function() {
+    it('feeds only the item name to the tooltip content', function() {
       const withItems = { ...character, items: [] };
       const item = {
         id: 1, game_item_id: 9, name: 'Cloak of Elvenkind', description: 'Grants stealth.',
       };
       const content = buildTooltipContent(withItems, '#/games/demo/pcs', item);
-      const html = renderToStaticMarkup(content);
 
-      expect(html).toContain('Cloak of Elvenkind');
-      expect(html).toContain('Grants stealth.');
+      expect(content).toBe('Cloak of Elvenkind');
+      expect(content).not.toContain('Grants stealth.');
     });
 
     it('renders a see all link to the pcs items page', function() {

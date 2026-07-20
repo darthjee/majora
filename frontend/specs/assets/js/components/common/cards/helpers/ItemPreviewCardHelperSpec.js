@@ -42,22 +42,12 @@ describe('ItemPreviewCardHelper', function() {
       expect(html).not.toContain('Grants stealth.');
     });
 
-    it('feeds the item name and description to the tooltip content', function() {
+    it('feeds only the item name to the tooltip content', function() {
       const rendered = ItemPreviewCardHelper.render(item);
       const tooltip = rendered.props.children;
-      const html = renderToStaticMarkup(tooltip.props.content);
 
-      expect(html).toContain('Cloak of Elvenkind');
-      expect(html).toContain('Grants stealth.');
-    });
-
-    it('omits the description line from the tooltip content when there is none', function() {
-      const withoutDescription = { ...item, description: '' };
-      const rendered = ItemPreviewCardHelper.render(withoutDescription);
-      const html = renderToStaticMarkup(rendered.props.children.props.content);
-
-      expect(html).toContain('Cloak of Elvenkind');
-      expect(html).not.toContain('<br');
+      expect(tooltip.props.content).toBe('Cloak of Elvenkind');
+      expect(tooltip.props.content).not.toContain('Grants stealth.');
     });
   });
 });
