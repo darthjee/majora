@@ -40,6 +40,7 @@ from games.serializers.games.items.game_item_list import (
     GameItemDetailSerializer,
     GameItemListSerializer,
 )
+from games.serializers.games.items.game_item_photo import GameItemPhotoSerializer
 from games.serializers.games.my_games.my_games_item import MyGamesItemSerializer
 from games.serializers.games.players.player_character import PlayerCharacterSerializer
 from games.serializers.games.players.player_list import PlayerListSerializer
@@ -117,6 +118,7 @@ __all__ = [
     'GameItemDetailAllSerializer',
     'GameItemDetailSerializer',
     'GameItemListSerializer',
+    'GameItemPhotoSerializer',
     'GameListSerializer',
     'GamePermissionsSerializer',
     'GamePhotoSerializer',
