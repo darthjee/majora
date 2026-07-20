@@ -1,4 +1,6 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
 import Translator from '../../../../i18n/Translator.js';
 
 /**
@@ -21,13 +23,13 @@ export default class DescriptionBoxHelper {
       <div className="mt-3">
         <div
           ref={handlers.boxRef}
-          className="p-3 border rounded bg-light text-pre-wrap"
+          className="p-3 border rounded bg-light"
           style={{
             overflow: 'hidden',
             maxHeight: state.expanded ? 'none' : state.maxCollapsedHeight,
           }}
         >
-          {description}
+          <ReactMarkdown remarkPlugins={[remarkBreaks]}>{description}</ReactMarkdown>
         </div>
         {DescriptionBoxHelper.#renderToggle(state, handlers)}
       </div>
