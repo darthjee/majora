@@ -7,6 +7,7 @@ from .detail.game_pc_permissions import game_pc_permissions
 from .detail.game_pc_photo_upload import game_pc_photo_upload
 from .detail.items.game_pc_item_detail import game_pc_item_detail
 from .detail.items.game_pc_item_detail_all import game_pc_item_detail_all
+from .detail.items.game_pc_item_photo_upload import game_pc_item_photo_upload
 from .detail.items.game_pc_items import game_pc_items
 from .detail.items.game_pc_items_all import game_pc_items_all
 from .detail.photos.game_pc_photo_set import game_pc_photo_set
@@ -32,6 +33,7 @@ __all__ = [
     'game_pc_items_all',
     'game_pc_item_detail',
     'game_pc_item_detail_all',
+    'game_pc_item_photo_upload',
     'game_pc_treasures',
     'game_pc_treasure_acquire',
     'game_pc_treasure_acquire_all',

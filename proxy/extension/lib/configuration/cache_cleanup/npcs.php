@@ -51,4 +51,16 @@ return [
             '/games/:game_slug/npcs/:character_id/treasures/sell.json',
         ],
     ],
+    // npcs items — an NPC's item photo-upload route.
+    [
+        'targets' => [
+            '/games/:game_slug/npcs/:character_id/items.json',
+            '/games/:game_slug/npcs/:character_id/items/all.json',
+            '/games/:game_slug/npcs/:character_id/items/:item_id.json',
+            '/games/:game_slug/npcs/:character_id/items/:item_id/all.json',
+        ],
+        'routes' => [
+            '/games/:game_slug/npcs/:character_id/items/:item_id/photo_upload.json',
+        ],
+    ],
 ];

@@ -209,6 +209,39 @@ class CharacterItemCreatePermission(_EditPermission):
         return is_owner if is_pc else False
 
 
+class CharacterItemPhotoUploadPermission(_EditPermission):
+    """Encapsulate checks for the PC/NPC item photo-upload endpoint (issue #750).
+
+    Deliberately mirrors CharacterItemCreatePermission's formula exactly (dm/admin/staff, plus
+    the owning player for PCs) rather than CharacterPhotoUploadPermission's broader "any player
+    of the game" grant used for a character's own photo — per the issue's explicit "admin,
+    owner, staff and dm" authorization ask. Kept as its own class (not a reuse of
+    CharacterItemCreatePermission) so the two actions' rules can diverge independently later.
+    """
+
+    @classmethod
+    def check(cls, request, character):
+        """Return an error Response if `request.user` may not upload a photo for the item."""
+        return cls._guarded_check(request, lambda: cls.is_allowed(request.user, character))
+
+    @classmethod
+    def is_allowed(cls, user, character):
+        """Return whether `user` may upload a photo for an item held by `character`."""
+        if not user or not user.is_authenticated:
+            return False
+        return user.is_staff or character.can_be_edited_by(user)
+
+    @classmethod
+    def is_allowed_for_roles(cls, is_superuser, is_dm, is_owner, is_staff, is_pc):
+        """Return whether a role-simulated caller may upload a photo for a character's item.
+
+        Mirrors `CharacterItemCreatePermission.is_allowed_for_roles` exactly.
+        """
+        if is_staff or is_superuser or is_dm:
+            return True
+        return is_owner if is_pc else False
+
+
 class TreasureEditPermission(_EditPermission):
     """Encapsulate the authentication/authorization checks for editing a treasure."""
 

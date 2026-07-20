@@ -58,4 +58,36 @@ class CacheCleanupMapTest extends TestCase
             '/games/:game_slug/items/:item_id/all.json',
         ], $map['/games/:game_slug/items/:item_id/photo_upload.json']);
     }
+
+    /**
+     * Uploading a PC's item's photo must clear every cached item list/detail
+     * response for that PC.
+     */
+    public function testPcItemPhotoUploadClearsAllPcItemCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/pcs/:character_id/items.json',
+            '/games/:game_slug/pcs/:character_id/items/all.json',
+            '/games/:game_slug/pcs/:character_id/items/:item_id.json',
+            '/games/:game_slug/pcs/:character_id/items/:item_id/all.json',
+        ], $map['/games/:game_slug/pcs/:character_id/items/:item_id/photo_upload.json']);
+    }
+
+    /**
+     * Uploading an NPC's item's photo must clear every cached item
+     * list/detail response for that NPC.
+     */
+    public function testNpcItemPhotoUploadClearsAllNpcItemCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/npcs/:character_id/items.json',
+            '/games/:game_slug/npcs/:character_id/items/all.json',
+            '/games/:game_slug/npcs/:character_id/items/:item_id.json',
+            '/games/:game_slug/npcs/:character_id/items/:item_id/all.json',
+        ], $map['/games/:game_slug/npcs/:character_id/items/:item_id/photo_upload.json']);
+    }
 }

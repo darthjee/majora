@@ -8,8 +8,9 @@ from rest_framework.response import Response
 
 from accounts.authentication import CookieTokenAuthentication
 
-from ..models import CharacterPhoto, GameItemPhoto, TreasurePhoto, Upload
+from ..models import CharacterItemPhoto, CharacterPhoto, GameItemPhoto, TreasurePhoto, Upload
 from ..permissions import (
+    CharacterItemPhotoUploadPermission,
     CharacterPhotoUploadPermission,
     GameEditPermission,
     GameItemPhotoUploadPermission,
@@ -80,6 +81,10 @@ def _check_permission(request, upload):
         return CharacterPhotoUploadPermission.check(request, content_object.character)
     if isinstance(content_object, GameItemPhoto):
         return GameItemPhotoUploadPermission.check(request, content_object.game_item.game)
+    if isinstance(content_object, CharacterItemPhoto):
+        return CharacterItemPhotoUploadPermission.check(
+            request, content_object.character_item.character,
+        )
     return GameEditPermission.check(request, content_object.game)
 
 
@@ -102,6 +107,8 @@ def _mark_content_object_ready(upload):
         _set_profile_photo_if_unset(content_object)
     elif isinstance(content_object, GameItemPhoto):
         _set_item_photo(content_object)
+    elif isinstance(content_object, CharacterItemPhoto):
+        _set_character_item_photo(content_object)
     else:
         _set_cover_photo_if_unset(content_object)
 
@@ -132,5 +139,12 @@ def _set_treasure_photo(treasure_photo):
 def _set_item_photo(item_photo):
     """Set the item's photo to `item_photo`, always replacing any existing one."""
     item = item_photo.game_item
+    item.photo = item_photo
+    item.save()
+
+
+def _set_character_item_photo(item_photo):
+    """Set the character item's photo to `item_photo`, always replacing any existing one."""
+    item = item_photo.character_item
     item.photo = item_photo
     item.save()
