@@ -2,6 +2,24 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterPhotosPreviewHelper
   from '../../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/CharacterPhotosPreviewHelper.jsx';
 
+const findElement = (node, matcher) => {
+  if (!node) return null;
+
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findElement(child, matcher);
+      if (match) return match;
+    }
+    return null;
+  }
+
+  if (typeof node !== 'object') return null;
+  if (matcher(node)) return node;
+  if (typeof node.type === 'function') return findElement(node.type(node.props), matcher);
+
+  return findElement(node.props?.children, matcher);
+};
+
 describe('CharacterPhotosPreviewHelper', function() {
   const title = 'Photos';
   const seeAllHref = '#/games/epic-quest/pcs/1/photos';
@@ -24,9 +42,29 @@ describe('CharacterPhotosPreviewHelper', function() {
       expect(html).toContain('/photos/3.jpg');
     });
 
-    it('does not wrap the photo cards in a clickable control', function() {
+    it('does not wrap the photo cards in a clickable control when onSelectPhoto is absent', function() {
       const html = renderToStaticMarkup(CharacterPhotosPreviewHelper.render(buildPhotos(1), title, seeAllHref));
       expect(html).not.toContain('<button');
+    });
+
+    it('wraps each photo card in a clickable control when onSelectPhoto is provided', function() {
+      const onSelectPhoto = jasmine.createSpy('onSelectPhoto');
+      const html = renderToStaticMarkup(
+        CharacterPhotosPreviewHelper.render(buildPhotos(2), title, seeAllHref, onSelectPhoto)
+      );
+      expect((html.match(/<button/g) || []).length).toBe(2);
+    });
+
+    it('invokes onSelectPhoto with the clicked photo', function() {
+      const onSelectPhoto = jasmine.createSpy('onSelectPhoto');
+      const photos = buildPhotos(2);
+      const tree = CharacterPhotosPreviewHelper.render(photos, title, seeAllHref, onSelectPhoto);
+      const button = findElement(tree, (node) => node.type === 'button' && typeof node.props?.onClick === 'function');
+
+      expect(button).not.toBeNull();
+      button.props.onClick();
+
+      expect(onSelectPhoto).toHaveBeenCalledWith(photos[0]);
     });
 
     it('slices the photos to the max preview count', function() {

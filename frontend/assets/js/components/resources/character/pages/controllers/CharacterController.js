@@ -84,6 +84,24 @@ export default class CharacterController extends CharacterListsController {
   }
 
   /**
+   * Marks a photo as the character's profile photo.
+   *
+   * @description Unlike {@link BaseCharacterPhotosController#setProfilePhoto}, this does not
+   *   refetch the character itself — `CharacterDetail.jsx` already refreshes via
+   *   `controller.buildEffect()()` after other mutations, so the caller is responsible for
+   *   triggering that refresh on success.
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|number} photoId - Id of the photo to mark as profile photo.
+   * @returns {Promise<Response>} Fetch response.
+   */
+  setProfilePhoto(gameSlug, characterId, photoId) {
+    return this.characterClient.setPhotoRoles(
+      this.characterKind, gameSlug, characterId, photoId, AuthStorage.getToken(), ['profile'],
+    );
+  }
+
+  /**
    * Handle the full character response, merging in the full (DM-only) character data when available.
    *
    * @param {Response} fullResponse - Response from fetchCharacterFull.
