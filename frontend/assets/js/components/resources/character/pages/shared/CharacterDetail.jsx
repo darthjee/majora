@@ -3,7 +3,11 @@ import CharacterHelper from '../helpers/CharacterHelper.jsx';
 import AuthEvents from '../../../../../utils/auth/AuthEvents.js';
 import FacadeRefresh from '../../../../../utils/access/useFacadeRefresh.js';
 import PhotoUploadModal from '../../../../common/modals/PhotoUploadModal.jsx';
+import PhotoViewModal from '../../../../common/modals/PhotoViewModal.jsx';
+import ProfilePhotoSetModal from '../../../../common/modals/ProfilePhotoSetModal.jsx';
 import MoneyEditModal from '../../../../common/modals/MoneyEditModal.jsx';
+import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
+import Translator from '../../../../../i18n/Translator.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 
@@ -41,6 +45,9 @@ export default function CharacterDetail({
   const [error, setError] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showMoneyModal, setShowMoneyModal] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [profilePhotoSet, setProfilePhotoSet] = useState(null);
+  const [actionError, setActionError] = useState('');
 
   const controller = useMemo(
     () => new ControllerClass(setCharacter, setLoading, setError),
@@ -77,14 +84,28 @@ export default function CharacterDetail({
     });
   };
 
+  const handleSetProfilePhoto = (photoId) => {
+    setActionError('');
+    const photo = (character.photos ?? []).find((p) => p.id === photoId) ?? selectedPhoto;
+
+    return controller.setProfilePhoto(gameSlug, character.id, photoId)
+      .then(() => {
+        setProfilePhotoSet(photo);
+        controller.buildEffect()();
+      })
+      .catch(() => setActionError(Translator.t('character_photos_page.set_profile_photo_error')));
+  };
+
   if (loading) return CharacterHelper.renderLoading();
   if (error) return CharacterHelper.renderError(error);
 
   return (
     <>
+      {actionError && <ErrorAlert error={actionError} />}
       {CharacterHelper.render(character, backHref, {
         onOpenUploadModal: () => setShowUploadModal(true),
         onOpenMoneyModal: () => setShowMoneyModal(true),
+        onSelectPhoto: setSelectedPhoto,
         ...extraHandlers,
       })}
       <PhotoUploadModal
@@ -100,6 +121,21 @@ export default function CharacterDetail({
         gameType={character.game_type}
         onClose={() => setShowMoneyModal(false)}
         onConfirm={handleMoneyConfirm}
+      />
+      <PhotoViewModal
+        show={selectedPhoto !== null}
+        photo={selectedPhoto}
+        alt={character.name}
+        onClose={() => setSelectedPhoto(null)}
+        canSetProfilePhoto={character.can_edit}
+        isProfilePhoto={selectedPhoto?.id === character.profile_photo_id}
+        onSetProfilePhoto={handleSetProfilePhoto}
+      />
+      <ProfilePhotoSetModal
+        show={profilePhotoSet !== null}
+        photo={profilePhotoSet}
+        alt={character.name}
+        onClose={() => setProfilePhotoSet(null)}
       />
       {extraModal}
     </>

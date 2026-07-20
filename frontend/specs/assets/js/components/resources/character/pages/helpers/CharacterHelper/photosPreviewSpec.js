@@ -1,5 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterHelper from '../../../../../../../../../assets/js/components/resources/character/pages/helpers/CharacterHelper.jsx';
+import CharacterPhotosPreviewHelper
+  from '../../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/CharacterPhotosPreviewHelper.jsx';
 import { character } from './support.js';
 
 describe('CharacterHelper', function() {
@@ -15,7 +17,37 @@ describe('CharacterHelper', function() {
       expect(renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'))).toContain('Photos');
     });
 
-    it('does not wrap the photo cards in a clickable control', function() {
+    it('wraps the photo cards in a clickable button when onSelectPhoto is provided', function() {
+      const withPhotos = {
+        ...character,
+        photos: [{ id: 1, path: '/photos/1.jpg' }],
+      };
+      const onSelectPhoto = jasmine.createSpy('onSelectPhoto');
+
+      const html = renderToStaticMarkup(
+        CharacterHelper.render(withPhotos, '#/games/demo/pcs', { onSelectPhoto }),
+      );
+      expect(html).toContain('<button');
+    });
+
+    it('passes handlers.onSelectPhoto through to CharacterPhotosPreviewHelper', function() {
+      const withPhotos = {
+        ...character,
+        photos: [{ id: 1, path: '/photos/1.jpg' }],
+      };
+      const onSelectPhoto = jasmine.createSpy('onSelectPhoto');
+      let capturedOnSelectPhoto;
+      spyOn(CharacterPhotosPreviewHelper, 'render').and.callFake((photos, title, seeAllHref, onSelect) => {
+        capturedOnSelectPhoto = onSelect;
+        return null;
+      });
+
+      renderToStaticMarkup(CharacterHelper.render(withPhotos, '#/games/demo/pcs', { onSelectPhoto }));
+
+      expect(capturedOnSelectPhoto).toBe(onSelectPhoto);
+    });
+
+    it('does not wrap the photo cards in a clickable control when onSelectPhoto is absent', function() {
       const withPhotos = {
         ...character,
         photos: [{ id: 1, path: '/photos/1.jpg' }],

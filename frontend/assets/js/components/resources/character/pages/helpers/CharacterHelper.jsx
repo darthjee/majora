@@ -68,7 +68,7 @@ export default class CharacterHelper {
    * @param {string} backHref - Hash path to the character's index page.
    * @param {{onOpenUploadModal: Function, onOpenSlainModal: Function,
    *   onOpenPublicSlainModal: Function, onOpenPlayerSlainModal: Function,
-   *   onOpenMoneyModal: Function}} [handlers] - Event handlers.
+   *   onOpenMoneyModal: Function, onSelectPhoto: Function}} [handlers] - Event handlers.
    * @returns {React.ReactElement} Character detail element.
    */
   static render(character, backHref, handlers = {}) {
@@ -134,6 +134,7 @@ export default class CharacterHelper {
           photos={character.photos ?? []}
           title={Translator.t('character_page.photos_title')}
           seeAllHref={`#/games/${character.game_slug}/${segment}/${character.id}/photos`}
+          onSelectPhoto={handlers.onSelectPhoto}
         />
       </div>
     );
