@@ -4,6 +4,7 @@ import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
 import PageActions from '../../../../common/list_page/PageActions.jsx';
 import ActionsOverlay from '../../../../common/misc/ActionsOverlay.jsx';
 import ItemCardHelper from '../../../../common/list_types/ItemCardHelper.jsx';
+import DescriptionBox from '../../../../common/misc/DescriptionBox.jsx';
 import Noop from '../../../../../utils/Noop.js';
 import Translator from '../../../../../i18n/Translator.js';
 
@@ -12,7 +13,7 @@ import Translator from '../../../../../i18n/Translator.js';
  * `PcCharacterItem`, and `NpcCharacterItem`, since the layout and fields (`name`,
  * `description`, `photo_path`, optional `hidden`) are identical across all three response
  * shapes. Simpler than `CharacterHelper`: no role/DM notes/money/treasures, just a photo+name
- * column and a description column.
+ * column and a collapsible `DescriptionBox` column.
  */
 export default class ItemDetailHelper {
   /**
@@ -27,9 +28,14 @@ export default class ItemDetailHelper {
    * @param {boolean} [item.hidden] - Whether the item is hidden from players (DM/admin-facing
    *   data only, present only in the `/all.json` variants).
    * @param {string} backHref - Hash path to the item's parent list page.
+   * @param {boolean} [canEdit] - Whether the current user may upload a new photo. Defaults to
+   *   `false` (today's behavior), used as-is by `CharacterItem`'s two callers which have no
+   *   upload feature (issue #749 scope decision).
+   * @param {Function} [onUploadClick] - Handler invoked when the upload button is clicked.
+   *   Defaults to a no-op, matching the `canEdit` default.
    * @returns {React.ReactElement} Item detail element.
    */
-  static render(item, backHref) {
+  static render(item, backHref, canEdit = false, onUploadClick = Noop.noop) {
     return (
       <div className="container mt-4">
         <PageActions backHref={backHref} />
@@ -39,14 +45,14 @@ export default class ItemDetailHelper {
               type="item"
               url={item.photo_path}
               alt={item.name}
-              canEdit={false}
-              onClick={Noop.noop}
+              canEdit={canEdit}
+              onClick={onUploadClick}
               infoBarItems={ItemCardHelper.buildInfoBarItems(item, Translator.t('item_page.hidden_label'))}
             />
             <h1>{item.name}</h1>
           </div>
           <div className="col-md-8">
-            <p>{item.description}</p>
+            <DescriptionBox description={item.description} />
           </div>
         </div>
       </div>

@@ -24,7 +24,7 @@ class TestCharacterItemAllSerializer(TestCase):
         """Test that the serializer exposes every CharacterItemSerializer field plus hidden."""
         data = CharacterItemAllSerializer(self.character_item).data
         assert set(data.keys()) == {
-            'id', 'game_item_id', 'name', 'description', 'photo_path', 'hidden',
+            'id', 'game_item_id', 'name', 'photo_path', 'hidden',
         }
 
     def test_hidden_reflects_the_character_item_own_field(self):

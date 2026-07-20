@@ -1,6 +1,35 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import ItemDetailHelper
   from '../../../../../../../../assets/js/components/resources/item/pages/helpers/ItemDetailHelper.jsx';
+import ActionsOverlay from '../../../../../../../../assets/js/components/common/misc/ActionsOverlay.jsx';
+
+const findElement = (node, matcher) => {
+  if (!node) {
+    return null;
+  }
+
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findElement(child, matcher);
+
+      if (match) {
+        return match;
+      }
+    }
+
+    return null;
+  }
+
+  if (typeof node !== 'object') {
+    return null;
+  }
+
+  if (matcher(node)) {
+    return node;
+  }
+
+  return findElement(node.props?.children, matcher);
+};
 
 describe('ItemDetailHelper', function() {
   describe('.render', function() {
@@ -16,6 +45,13 @@ describe('ItemDetailHelper', function() {
       const html = renderToStaticMarkup(ItemDetailHelper.render(item, '#/games/demo/items'));
 
       expect(html).toContain('A shimmering cloak.');
+    });
+
+    it('renders the description inside the collapsible description box', function() {
+      const item = { id: 5, name: 'Cloak of Elvenkind', description: 'A shimmering cloak.' };
+      const html = renderToStaticMarkup(ItemDetailHelper.render(item, '#/games/demo/items'));
+
+      expect(html).toContain('border rounded bg-light');
     });
 
     it('renders the item photo', function() {
@@ -48,6 +84,26 @@ describe('ItemDetailHelper', function() {
       const html = renderToStaticMarkup(ItemDetailHelper.render(item, '#/games/demo/items'));
 
       expect(html).not.toContain('bi-eye-slash-fill');
+    });
+
+    it('defaults canEdit to false and onClick to a no-op when omitted (CharacterItem callers)', function() {
+      const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
+      const element = ItemDetailHelper.render(item, '#/games/demo/items');
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
+
+      expect(overlay.props.canEdit).toBe(false);
+      expect(() => overlay.props.onClick()).not.toThrow();
+    });
+
+    it('honors an explicit canEdit and onUploadClick', function() {
+      const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
+      const onUploadClick = jasmine.createSpy('onUploadClick');
+      const element = ItemDetailHelper.render(item, '#/games/demo/items', true, onUploadClick);
+      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
+
+      expect(overlay.props.canEdit).toBe(true);
+      overlay.props.onClick();
+      expect(onUploadClick).toHaveBeenCalled();
     });
   });
 

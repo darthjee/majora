@@ -93,6 +93,20 @@ class CharacterPhotoUploadPermission(_EditPermission):
         return user.is_staff or is_player_of_game or character.can_be_edited_by(user)
 
 
+class GameItemPhotoUploadPermission(_EditPermission):
+    """Broadened item photo-upload action, mirroring CharacterPhotoUploadPermission (#619)."""
+
+    @classmethod
+    def check(cls, request, game):
+        """Return an error Response if `request.user` may not upload a photo for `game`'s item."""
+        return cls._guarded_check(request, lambda: cls._is_allowed(request.user, game))
+
+    @classmethod
+    def _is_allowed(cls, user, game):
+        """Return whether `user` is staff, a player of the game, or may edit it outright."""
+        return user.is_staff or game.has_player(user) or game.can_be_edited_by(user)
+
+
 class CharacterMoneyEditPermission(_EditPermission):
     """Encapsulate checks for the narrow, money-only character edit endpoint (issue #615).
 

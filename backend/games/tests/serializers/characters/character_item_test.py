@@ -44,17 +44,10 @@ class TestCharacterItemSerializer(TestCase):
         data = CharacterItemSerializer(self.character_item).data
         assert data['name'] == "Frodo's Cloak"
 
-    def test_description_falls_back_to_game_item_description(self):
-        """Test that description falls back to the game item's description when not overridden."""
+    def test_does_not_include_description(self):
+        """Test that description is not exposed by the index serializer."""
         data = CharacterItemSerializer(self.character_item).data
-        assert data['description'] == 'A shimmering cloak.'
-
-    def test_description_uses_own_override_when_set(self):
-        """Test that description uses the character item's own override when set."""
-        self.character_item.description = 'Slightly frayed.'
-        self.character_item.save()
-        data = CharacterItemSerializer(self.character_item).data
-        assert data['description'] == 'Slightly frayed.'
+        assert 'description' not in data
 
     def test_photo_path_is_none_without_any_photo(self):
         """Test that photo_path is None when neither item has a photo."""
@@ -84,7 +77,7 @@ class TestCharacterItemSerializer(TestCase):
     def test_only_exposes_expected_fields(self):
         """Test that only the documented fields are exposed."""
         data = CharacterItemSerializer(self.character_item).data
-        assert set(data.keys()) == {'id', 'game_item_id', 'name', 'description', 'photo_path'}
+        assert set(data.keys()) == {'id', 'game_item_id', 'name', 'photo_path'}
 
     def test_does_not_include_character(self):
         """Test that the character field is not exposed."""

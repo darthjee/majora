@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game
-from ...serializers import GameItemListSerializer
+from ...serializers import GameItemDetailSerializer
 
 
 @api_view(['GET'])
@@ -19,4 +19,4 @@ def game_item_detail(request, game_slug, item_id):
     """Return detail for a single non-hidden item belonging to a specific game."""
     game = get_object_or_404(Game, game_slug=game_slug)
     item = get_object_or_404(game.items.filter(hidden=False), id=item_id)
-    return Response(GameItemListSerializer(item).data)
+    return Response(GameItemDetailSerializer(item).data)
