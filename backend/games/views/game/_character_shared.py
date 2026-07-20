@@ -20,6 +20,7 @@ from ...serializers import CharacterItemDetailSerializer, CharacterPermissionsSe
 from ..common import access_response, parse_role_booleans, permissions_response
 from ._full import character_full
 from ._item_create import character_item_create
+from ._item_photo_upload import character_item_photo_upload
 from ._items import character_item_detail, character_items
 from ._money import character_money_update
 from ._photo_set import character_photo_set
@@ -211,6 +212,20 @@ def build_item_detail_all_view(npc, serializer_class):
         )
         response['X-Skip-Cache'] = 'true'
         return response
+
+    return view
+
+
+def build_item_photo_upload_view(npc):
+    """Build the POST item photo-upload-init view for a PC (npc=False) or NPC (npc=True)."""
+
+    @_build_api_view(['POST'], IsAuthenticated)
+    def view(request, game_slug, character_id, item_id):
+        """Initialise a PC/NPC item photo upload and return the upload id and token."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        return character_item_photo_upload(
+            request, game, game_slug, character_id, item_id, npc=npc,
+        )
 
     return view
 

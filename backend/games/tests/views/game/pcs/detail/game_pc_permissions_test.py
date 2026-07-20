@@ -45,7 +45,7 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
         response = client.get('/games/test-game/pcs/99999/permissions.json')
         assert response.status_code == 200
         data = json.loads(response.content)
-        assert data == {'can_edit': False, 'can_create_item': False}
+        assert data == {'can_edit': False, 'can_create_item': False, 'can_upload_item_photo': False}
 
     def test_response_includes_x_skip_cache_header_without_role(self, client):
         """Test that the response sets X-Skip-Cache: true when no role param is given."""
@@ -58,7 +58,7 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
         token = Token.objects.create(user=self.dm_user)
         response = self.get(client, self._url(), token=token)
         data = json.loads(response.content)
-        assert data == {'can_edit': True, 'can_create_item': True}
+        assert data == {'can_edit': True, 'can_create_item': True, 'can_upload_item_photo': True}
 
     def test_superuser_can_edit(self, client):
         """Test that a superuser gets can_edit True."""
@@ -66,32 +66,32 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
         token = Token.objects.create(user=superuser)
         response = self.get(client, self._url(), token=token)
         data = json.loads(response.content)
-        assert data == {'can_edit': True, 'can_create_item': True}
+        assert data == {'can_edit': True, 'can_create_item': True, 'can_upload_item_photo': True}
 
     def test_anonymous_cannot_edit(self, client):
         """Test that an unauthenticated request gets can_edit False."""
         response = self.get(client, self._url())
         data = json.loads(response.content)
-        assert data == {'can_edit': False, 'can_create_item': False}
+        assert data == {'can_edit': False, 'can_create_item': False, 'can_upload_item_photo': False}
 
     def test_role_dm_can_edit_regardless_of_real_identity(self, client):
         """Test that ?role=dm grants can_edit True even for an anonymous caller."""
         response = self.get(client, self._url(query='role=dm'))
         data = json.loads(response.content)
-        assert data == {'can_edit': True, 'can_create_item': True}
+        assert data == {'can_edit': True, 'can_create_item': True, 'can_upload_item_photo': True}
 
     def test_role_superuser_can_edit(self, client):
         """Test that ?role=superuser grants can_edit True."""
         response = self.get(client, self._url(query='role=superuser'))
         data = json.loads(response.content)
-        assert data == {'can_edit': True, 'can_create_item': True}
+        assert data == {'can_edit': True, 'can_create_item': True, 'can_upload_item_photo': True}
 
     def test_unrecognized_role_does_not_fall_back_to_real_identity(self, client):
         """Test that an unrecognized role still switches to the role-simulated path."""
         token = Token.objects.create(user=self.dm_user)
         response = self.get(client, self._url(query='role=bogus'), token=token)
         data = json.loads(response.content)
-        assert data == {'can_edit': False, 'can_create_item': False}
+        assert data == {'can_edit': False, 'can_create_item': False, 'can_upload_item_photo': False}
 
     def test_response_omits_x_skip_cache_and_sets_force_public_cache_with_role(self, client):
         """Test that a role-simulated response sets X-Force-Public-Cache instead of X-Skip-Cache."""
@@ -104,13 +104,13 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
         token = Token.objects.create(user=self.owner)
         response = self.get(client, self._url(), token=token)
         data = json.loads(response.content)
-        assert data == {'can_edit': True, 'can_create_item': True}
+        assert data == {'can_edit': True, 'can_create_item': True, 'can_upload_item_photo': True}
 
     def test_role_owner_can_edit_regardless_of_real_identity(self, client):
         """Test that ?role=owner grants can_edit True even for an anonymous caller."""
         response = self.get(client, self._url(query='role=owner'))
         data = json.loads(response.content)
-        assert data == {'can_edit': True, 'can_create_item': True}
+        assert data == {'can_edit': True, 'can_create_item': True, 'can_upload_item_photo': True}
 
     def test_staff_can_create_item_but_cannot_edit(self, client):
         """Test that a global Staff account gets can_create_item True but can_edit False."""
@@ -120,10 +120,10 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
         token = Token.objects.create(user=staff_user)
         response = self.get(client, self._url(), token=token)
         data = json.loads(response.content)
-        assert data == {'can_edit': False, 'can_create_item': True}
+        assert data == {'can_edit': False, 'can_create_item': True, 'can_upload_item_photo': True}
 
     def test_role_staff_can_create_item_but_cannot_edit(self, client):
         """Test that ?role=staff grants can_create_item True but leaves can_edit False."""
         response = self.get(client, self._url(query='role=staff'))
         data = json.loads(response.content)
-        assert data == {'can_edit': False, 'can_create_item': True}
+        assert data == {'can_edit': False, 'can_create_item': True, 'can_upload_item_photo': True}
