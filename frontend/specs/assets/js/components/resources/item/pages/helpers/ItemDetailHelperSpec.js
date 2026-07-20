@@ -1,0 +1,67 @@
+import { renderToStaticMarkup } from 'react-dom/server';
+import ItemDetailHelper
+  from '../../../../../../../../assets/js/components/resources/item/pages/helpers/ItemDetailHelper.jsx';
+
+describe('ItemDetailHelper', function() {
+  describe('.render', function() {
+    it('renders the item name', function() {
+      const item = { id: 5, name: 'Cloak of Elvenkind', description: 'A shimmering cloak.' };
+      const html = renderToStaticMarkup(ItemDetailHelper.render(item, '#/games/demo/items'));
+
+      expect(html).toContain('Cloak of Elvenkind');
+    });
+
+    it('renders the item description', function() {
+      const item = { id: 5, name: 'Cloak of Elvenkind', description: 'A shimmering cloak.' };
+      const html = renderToStaticMarkup(ItemDetailHelper.render(item, '#/games/demo/items'));
+
+      expect(html).toContain('A shimmering cloak.');
+    });
+
+    it('renders the item photo', function() {
+      const item = {
+        id: 5, name: 'Cloak of Elvenkind', description: 'A shimmering cloak.', photo_path: '/item.png',
+      };
+      const html = renderToStaticMarkup(ItemDetailHelper.render(item, '#/games/demo/items'));
+
+      expect(html).toContain('/item.png');
+    });
+
+    it('renders a back button to the given href', function() {
+      const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
+      const html = renderToStaticMarkup(ItemDetailHelper.render(item, '#/games/demo/items'));
+
+      expect(html).toContain('href="#/games/demo/items"');
+    });
+
+    it('renders the hidden badge when the item is hidden', function() {
+      const item = {
+        id: 5, name: 'Cloak of Elvenkind', description: '', hidden: true,
+      };
+      const html = renderToStaticMarkup(ItemDetailHelper.render(item, '#/games/demo/items'));
+
+      expect(html).toContain('bi-eye-slash-fill');
+    });
+
+    it('does not render the hidden badge when the item is not hidden', function() {
+      const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
+      const html = renderToStaticMarkup(ItemDetailHelper.render(item, '#/games/demo/items'));
+
+      expect(html).not.toContain('bi-eye-slash-fill');
+    });
+  });
+
+  describe('.renderLoading', function() {
+    it('renders the loading message', function() {
+      const html = renderToStaticMarkup(ItemDetailHelper.renderLoading());
+      expect(html).toContain('Loading item...');
+    });
+  });
+
+  describe('.renderError', function() {
+    it('renders the error message', function() {
+      const html = renderToStaticMarkup(ItemDetailHelper.renderError('boom'));
+      expect(html).toContain('boom');
+    });
+  });
+});

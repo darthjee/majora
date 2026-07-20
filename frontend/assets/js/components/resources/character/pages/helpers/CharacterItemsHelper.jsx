@@ -39,6 +39,7 @@ export default class CharacterItemsHelper {
           gameSlug={gameSlug}
           basePath={basePath}
           loadingMessage={Translator.t('character_items_page.loading')}
+          context={{ characterId }}
         />
       </>
     );

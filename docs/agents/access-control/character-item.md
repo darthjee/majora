@@ -23,6 +23,20 @@ with photo upload — left for follow-up issues), only Django admin for superuse
 Unknown `game_slug` or `character_id` (or mismatched/wrong type) → 404. All four endpoints order
 by `id`.
 
+## Item detail endpoints
+
+| Endpoint | Method | Who can call | Response |
+|----------|--------|-------------|----------|
+| `/games/<slug>/pcs/<id>/items/<item_id>.json` | GET | **AllowAny** | `CharacterItemSerializer` object (`id`, `game_item_id`, `name`, `description`, `photo_path`) for a single non-hidden `CharacterItem`; 404 if hidden or unknown |
+| `/games/<slug>/pcs/<id>/items/<item_id>/all.json` | GET | **CharacterEdit** (covers the PC's owning player, that game's GameMaster, or a superuser) | Returns the item even if hidden, and additionally carries `hidden` (via `CharacterItemAllSerializer`). Always sets `X-Skip-Cache: true` |
+| `/games/<slug>/npcs/<id>/items/<item_id>.json` | GET | **AllowAny**, but see the [hidden-NPC gate](character-photo.md#photo-index-endpoints) above | Same shape as the PC detail variant; 404 if the `CharacterItem` is hidden, if the NPC itself is hidden from the requester, or if unknown |
+| `/games/<slug>/npcs/<id>/items/<item_id>/all.json` | GET | **GameEdit** (dm/admin only — NPCs have no owner) | Returns the item even if hidden, and additionally carries `hidden` (same `CharacterItemAllSerializer` as the PC variant). Always sets `X-Skip-Cache: true` |
+
+Unknown `game_slug`/`character_id`/`item_id`, or an id belonging to the opposite PC/NPC role,
+→ 404. All four mirror the equivalent list endpoint above exactly, narrowed to a single row — no
+new serializer or permission class was introduced, and the hidden-character gate on the two
+plain (non-`/all.json`) variants behaves identically to the list endpoints'.
+
 ## Item creation endpoints
 
 | Endpoint | Method | Who can call | Request | Response |

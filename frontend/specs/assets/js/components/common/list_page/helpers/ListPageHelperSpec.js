@@ -114,20 +114,27 @@ describe('ListPageHelper', function() {
     });
   });
 
-  describe('items (a list type with no detail page)', function() {
+  describe('items (a list type linking to an item detail page, issue #724)', function() {
     const items = [
       { id: 1, name: 'Cloak of Elvenkind' },
       { id: 2, name: 'Bag of Holding', hidden: true },
     ];
     const itemContext = { gameSlug: 'demo', canEdit: false };
 
-    it('renders each item display text as plain, non-linked text', function() {
+    it('renders each item display text', function() {
       const html = renderToStaticMarkup(
         ListPageHelper.render('items', items, pagination, '#/games/demo/items', itemContext)
       );
       expect(html).toContain('Cloak of Elvenkind');
       expect(html).toContain('Bag of Holding');
-      expect(html).not.toContain('stretched-link');
+    });
+
+    it('links each item to its detail page', function() {
+      const html = renderToStaticMarkup(
+        ListPageHelper.render('items', items, pagination, '#/games/demo/items', itemContext)
+      );
+      expect(html).toContain('href="#/games/demo/items/1"');
+      expect(html).toContain('href="#/games/demo/items/2"');
     });
 
     it('never renders an upload button, since items are read-only', function() {

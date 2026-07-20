@@ -154,6 +154,15 @@ resources:
   paginated_game_items:
     - url: /games/{:slug}/items.json?page={:page}
       status: 200
+      actions:
+        - resource: game_item_detail
+          parameters:
+            slug: parameters.slug
+            id: parsedBody.id
+
+  game_item_detail:
+    - url: /games/{:slug}/items/{:id}.json
+      status: 200
 
   game_sessions:
     - url: /games/{:slug}/sessions/past.json
@@ -282,6 +291,16 @@ resources:
   paginated_pc_items:
     - url: /games/{:slug}/pcs/{:id}/items.json?page={:page}
       status: 200
+      actions:
+        - resource: pc_item_detail
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+            item_id: parsedBody.id
+
+  pc_item_detail:
+    - url: /games/{:slug}/pcs/{:id}/items/{:item_id}.json
+      status: 200
 
   short_pc_items:
     - url: /games/{:slug}/pcs/{:id}/items.json?per_page=5
@@ -356,6 +375,16 @@ resources:
 
   paginated_npc_items:
     - url: /games/{:slug}/npcs/{:id}/items.json?page={:page}
+      status: 200
+      actions:
+        - resource: npc_item_detail
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+            item_id: parsedBody.id
+
+  npc_item_detail:
+    - url: /games/{:slug}/npcs/{:id}/items/{:item_id}.json
       status: 200
 
   short_npc_items:

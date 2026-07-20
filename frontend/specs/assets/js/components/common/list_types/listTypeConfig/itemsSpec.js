@@ -29,10 +29,10 @@ describe('listTypeConfig', function() {
     });
 
     describe('.buildItemHref', function() {
-      it('returns null, since items have no standalone detail page', function() {
+      it('links to the item detail page (issue #724)', function() {
         const item = new GameItemListItem({ id: 5, name: 'Cloak of Elvenkind' });
 
-        expect(items.buildItemHref(item)).toBeNull();
+        expect(items.buildItemHref(item, { gameSlug: 'demo' })).toBe('#/games/demo/items/5');
       });
     });
 

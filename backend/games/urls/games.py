@@ -41,6 +41,16 @@ urlpatterns = [
         views.game_items_all,
         name='game-items-all',
     ),
+    path(
+        'games/<slug:game_slug>/items/<int:item_id>.json',
+        views.game_item_detail,
+        name='game-item-detail',
+    ),
+    path(
+        'games/<slug:game_slug>/items/<int:item_id>/all.json',
+        views.game_item_detail_all,
+        name='game-item-detail-all',
+    ),
     path('games/<slug:game_slug>/photos.json', views.game_photos, name='game-photos'),
     path(
         'games/<slug:game_slug>/sessions.json',

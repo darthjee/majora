@@ -36,6 +36,18 @@ already belongs to exactly one game) — a plain field, default `False`, never i
   (that game's GameMaster, or a superuser/staff) — the same permission class used by
   `GET /games/<slug>/treasures/all.json`.
 
-There is no detail endpoint, acquire/sell flow, or NPC/PC "held item hidden" filter tied to
-`GameItem.hidden` itself — see [CharacterItem](character-item.md) below for the separate,
-per-character `hidden` flag that governs a PC's/NPC's own held-item list.
+There is no acquire/sell flow, or NPC/PC "held item hidden" filter tied to `GameItem.hidden`
+itself — see [CharacterItem](character-item.md) below for the separate, per-character `hidden`
+flag that governs a PC's/NPC's own held-item list.
+
+## Item detail endpoints
+
+| Endpoint | Method | Who can call | Response |
+|----------|--------|-------------|----------|
+| `/games/<slug>/items/<item_id>.json` | GET | **AllowAny** | `GameItemListSerializer` object (`id`, `name`, `description`, `photo_path`) for a single non-hidden item; 404 if the item is hidden or unknown |
+| `/games/<slug>/items/<item_id>/all.json` | GET | **GameEdit** | DM-only variant: returns the item even if hidden, and additionally carries `hidden` (via `GameItemAllListSerializer`). Always sets `X-Skip-Cache: true` |
+
+Unknown `game_slug` or `item_id` (or an item belonging to a different game) → 404. These mirror
+the two index endpoints above exactly, narrowed to a single row — no new serializer or
+permission class was introduced. There is still no create/update/delete endpoint or photo upload
+for `GameItem` — both remain out of scope.

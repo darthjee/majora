@@ -345,6 +345,9 @@ game_items_page:
   loading: Carregando itens...
   title: Itens
   hidden_label: Oculto
+item_page:
+  loading: Carregando item...
+  hidden_label: Oculto
 add_game_treasure_modal:
   title: Adicionar Tesouro
   value_label: Valor
