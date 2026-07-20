@@ -81,6 +81,15 @@ class TestGameNpcTreasureAcquireAllView(TokenAuthRequestMixin):
         response = self._post(client, token=self.other_token)
         assert response.status_code == 403
 
+    def test_staff_returns_403(self, client):
+        """Test that a global Staff user who is not the DM/superuser still gets 403."""
+        staff_user = UserFactory(username='staff_user', password='secret-password')
+        staff_user.is_staff = True
+        staff_user.save()
+        staff_token = Token.objects.create(user=staff_user)
+        response = self._post(client, token=staff_token)
+        assert response.status_code == 403
+
     def test_unknown_game_slug_returns_404(self, client):
         """Test that a non-existent game slug returns 404."""
         response = self._post(client, token=self.dm_token, game_slug='no-such-game')

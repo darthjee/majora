@@ -10,6 +10,7 @@ restated in every section:
 | **NpcPlayerEdit** | `NpcPlayerEditPermission` | Everyone CharacterEdit grants, OR any player of that game (`is_player`, below) — NPC routes only |
 | **CharacterPhotoUpload** | `CharacterPhotoUploadPermission` | Everyone CharacterEdit grants, OR any player of that game, OR any global Staff account (`user.is_staff`) — PC photo-upload flow only: both the init route (issue #619) and the finalize route's PC branch (issue #668) |
 | **CharacterMoneyEdit** | `CharacterMoneyEditPermission` | Everyone CharacterEdit grants, OR any global Staff account (`user.is_staff`) — no "any player of the game" grant, unlike CharacterPhotoUpload; PC/NPC money-only routes (issue #615) |
+| **CharacterTreasureExchange** | `CharacterTreasureExchangePermission` | Everyone CharacterEdit grants, OR any global Staff account (`user.is_staff`) — no "any player of the game" grant (unlike CharacterMoneyEdit); PC/NPC treasure acquire/sell routes only, not the DM-only `/acquire/all.json` hidden-treasure variant, which stays gated by GameEdit alone (issue #712) |
 | **TreasureEdit** | `TreasureEditPermission` | Superuser or Staff (staff only for a global treasure; a game-scoped treasure still requires GameEdit) |
 | **GameSessionEdit** | `GameSessionEditPermission` | Delegates entirely to GameEdit against the session's game |
 | **TaskEdit** | `TaskEditPermission` | Delegates entirely to GameEdit against the task's game; unlike every other rule here, also gates reads, not just writes (see [Task](task.md)) |
