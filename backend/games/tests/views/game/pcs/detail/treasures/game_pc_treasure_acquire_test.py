@@ -191,6 +191,17 @@ class TestGamePcTreasureAcquireView(TokenAuthRequestMixin):
         )
         assert response.status_code == 200
 
+    def test_staff_can_acquire_treasure(self, client):
+        """Test that a global Staff user, neither owner nor DM, can acquire treasure for a PC."""
+        staff_user = UserFactory(username='staff_user', password='secret-password')
+        staff_user.is_staff = True
+        staff_user.save()
+        staff_token = Token.objects.create(user=staff_user)
+        response = self._post(
+            client, {'treasure_id': self.treasure.id, 'quantity': 1}, token=staff_token,
+        )
+        assert response.status_code == 200
+
     def test_unknown_treasure_id_returns_404(self, client):
         """Test that a non-existent treasure_id returns 404."""
         response = self._post(
