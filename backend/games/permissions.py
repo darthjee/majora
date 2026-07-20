@@ -54,8 +54,9 @@ class CharacterEditPermission(_EditPermission):
 class NpcPlayerEditPermission(_EditPermission):
     """Encapsulate the checks for a narrow, player-facing NPC edit (e.g. toggling slain).
 
-    Generic on purpose (not slain-specific): reused verbatim by the NPC photo-upload
-    endpoints (issue #429) for the same "is a player of this game OR an editor" check.
+    Generic on purpose (not slain-specific), though the only remaining consumer is the
+    "toggle slain" endpoint. Previously also reused by the NPC photo-upload endpoints
+    (issue #429), but issue #713 moved those to CharacterPhotoUploadPermission.
     """
 
     @classmethod
@@ -71,13 +72,13 @@ class NpcPlayerEditPermission(_EditPermission):
 
 
 class CharacterPhotoUploadPermission(_EditPermission):
-    """Encapsulate the checks for the broadened PC photo-upload action (issue #619).
+    """Encapsulate the checks for the broadened character photo-upload action (issue #619).
 
     Allows any player of the character's game, or any staff user (globally), in addition
-    to the standard can_be_edited_by chain (superuser, DM, owner). Deliberately narrower
-    in scope than NpcPlayerEditPermission's reuse: this class exists only for the PC
-    photo-upload init endpoint (issue #619) and the PC branch of upload_finalize's
-    _check_permission (issue #668), and must not be reused for general PC editing.
+    to the standard can_be_edited_by chain (superuser, DM, owner). Used unconditionally for
+    both PCs and NPCs, at both the photo-upload init endpoint and the upload_finalize
+    _check_permission branches (issues #619, #668, and #713 for the NPC side), and must not
+    be reused for general character editing.
     """
 
     @classmethod
@@ -126,6 +127,32 @@ class CharacterMoneyEditPermission(_EditPermission):
         if user.is_staff:
             return True
         if character.is_pc and character.game.has_player(user):
+            return True
+        return character.can_be_edited_by(user)
+
+
+class CharacterTreasureExchangePermission(_EditPermission):
+    """Encapsulate checks for the PC/NPC treasure acquire/sell endpoints (issue #712).
+
+    Grants the same access as CharacterEditPermission (superuser, the character's owning
+    player, or a GameMaster of the game) plus any Staff account (globally). Unlike
+    CharacterMoneyEditPermission, deliberately has no "any player of the game" leniency —
+    per the issue's clarified Staff principle (admin-like power, but no access to
+    secret/hidden content), and the acquire/all.json hidden-treasure variant stays gated by
+    GameEditPermission only, so Staff never gains access to hidden treasures through this.
+    """
+
+    @classmethod
+    def check(cls, request, character):
+        """Return an error Response if `request.user` may not exchange treasure for `character`."""
+        return cls._guarded_check(request, lambda: cls.is_allowed(request.user, character))
+
+    @classmethod
+    def is_allowed(cls, user, character):
+        """Return whether `user` may acquire/sell treasure on behalf of `character`."""
+        if not user or not user.is_authenticated:
+            return False
+        if user.is_staff:
             return True
         return character.can_be_edited_by(user)
 

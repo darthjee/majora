@@ -4,7 +4,7 @@ import PcCharacterTreasures from '../../../../../../../assets/js/components/reso
 import NpcCharacterTreasures from '../../../../../../../assets/js/components/resources/character/pages/NpcCharacterTreasures.jsx';
 import CharacterTreasuresHelper from '../../../../../../../assets/js/components/resources/character/pages/helpers/CharacterTreasuresHelper.jsx';
 import {
-  mergeOwnedTreasures, buildExchangeCharacter,
+  mergeOwnedTreasures, buildExchangeCharacter, resolveExchangeButtonCanEdit,
 } from '../../../../../../../assets/js/components/resources/character/pages/shared/CharacterTreasures.jsx';
 import CharacterContextController
   from '../../../../../../../assets/js/components/resources/character/pages/controllers/CharacterContextController.js';
@@ -127,5 +127,29 @@ describe('buildExchangeCharacter', function() {
     expect(buildExchangeCharacter('7', 'demo', true, null)).toEqual({
       id: '7', game_slug: 'demo', is_pc: true, money: 0, canEdit: undefined,
     });
+  });
+});
+
+describe('resolveExchangeButtonCanEdit', function() {
+  it('returns true when the loaded character can exchange treasure (e.g. staff, issue #712)', function() {
+    const character = { can_edit: false, can_exchange_treasure: true };
+
+    expect(resolveExchangeButtonCanEdit(character)).toBe(true);
+  });
+
+  it('returns false when the loaded character cannot exchange treasure, even if can_edit is true', function() {
+    const character = { can_edit: true, can_exchange_treasure: false };
+
+    expect(resolveExchangeButtonCanEdit(character)).toBe(false);
+  });
+
+  it('returns false when neither can_edit nor can_exchange_treasure is set', function() {
+    const character = { can_edit: false, can_exchange_treasure: false };
+
+    expect(resolveExchangeButtonCanEdit(character)).toBe(false);
+  });
+
+  it('returns undefined while the character has not loaded yet', function() {
+    expect(resolveExchangeButtonCanEdit(null)).toBeUndefined();
   });
 });

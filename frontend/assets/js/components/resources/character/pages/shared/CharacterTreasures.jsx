@@ -53,6 +53,22 @@ export function buildExchangeCharacter(characterId, gameSlug, isPc, character) {
 }
 
 /**
+ * Resolves whether the page's "Exchange Treasure" button should render, sourced from the
+ * permission-aware `can_exchange_treasure` field (mirroring `can_edit_money`) — `true` for a
+ * superuser, the game's DM, (for PCs) the character's own owning player, or any Staff account
+ * (issue #712) — rather than the unrelated character-level `can_edit` field, which also covers
+ * edits unrelated to treasure exchange. Exposed separately from the component, mirroring
+ * {@link buildExchangeCharacter}, so this gating can be exercised directly without mounting the
+ * whole page.
+ *
+ * @param {object|null} character - Currently loaded character context, or `null` while loading.
+ * @returns {boolean|undefined} Whether the "Exchange Treasure" button should render.
+ */
+export function resolveExchangeButtonCanEdit(character) {
+  return character?.can_exchange_treasure;
+}
+
+/**
  * Shared character treasures index page component.
  *
  * @description The treasures grid itself renders through the shared `ListPage`/`listTypeConfig`
@@ -113,7 +129,13 @@ export default function CharacterTreasures({ characterKind, listType, isPc }) {
     <>
       {CharacterTreasuresHelper.render(
         {
-          gameSlug, listType, basePath, backHref, canEdit: character?.can_edit, refreshToken, activeFilters,
+          gameSlug,
+          listType,
+          basePath,
+          backHref,
+          canEdit: resolveExchangeButtonCanEdit(character),
+          refreshToken,
+          activeFilters,
         },
         {
           onAddTreasure: () => setShowExchangeModal(true),

@@ -3,7 +3,7 @@
 from rest_framework import serializers
 
 from games.models import Character
-from games.permissions import CharacterMoneyEditPermission
+from games.permissions import CharacterMoneyEditPermission, CharacterTreasureExchangePermission
 from games.serializers.characters._treasure_value import resolve_treasure_value
 from games.serializers.characters.character_link import CharacterLinkSerializer
 
@@ -16,6 +16,7 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
     game_slug = serializers.ReadOnlyField(source='game.game_slug')
     can_edit = serializers.SerializerMethodField()
     can_edit_money = serializers.SerializerMethodField()
+    can_exchange_treasure = serializers.SerializerMethodField()
     profile_photo_path = serializers.CharField(
         source='profile_photo.path', default=None, read_only=True
     )
@@ -40,6 +41,7 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
             'game_slug',
             'can_edit',
             'can_edit_money',
+            'can_exchange_treasure',
             'profile_photo_path',
             'profile_photo_id',
             'money',
@@ -59,6 +61,12 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         user = request.user if request else None
         return CharacterMoneyEditPermission.is_allowed(user, obj)
+
+    def get_can_exchange_treasure(self, obj):
+        """Return whether the requesting user (from context) may exchange treasure for `obj`."""
+        request = self.context.get('request')
+        user = request.user if request else None
+        return CharacterTreasureExchangePermission.is_allowed(user, obj)
 
     def get_treasure_value(self, obj):
         """Return the character's total treasure value."""

@@ -27,9 +27,9 @@ sets that primary photo reference. Dispatches on the upload's `content_object` t
 - **`GamePhoto`**: if the photo's game does not already have a `cover_photo`, sets
   `Game.cover_photo` to that photo. Gated by **GameEdit**.
 - **`CharacterPhoto`**: if the photo's character does not already have a `profile_photo`, sets
-  `Character.profile_photo` to that photo. Gated by **CharacterPhotoUpload** for a PC, or
-  **NpcPlayerEdit** for an NPC (issue #668 aligned the PC finalize step with the same
-  **CharacterPhotoUpload** rule already used at PC upload init, below).
+  `Character.profile_photo` to that photo. Gated by **CharacterPhotoUpload** for both a PC and an
+  NPC (issue #668 aligned the PC finalize step with the same **CharacterPhotoUpload** rule already
+  used at PC upload init, below; issue #713 later aligned the NPC branch the same way).
 - **`TreasurePhoto`**: unconditionally sets `Treasure.photo` to that photo — unlike the
   `GamePhoto`/`CharacterPhoto` cases, there is no "if unset" guard, since a treasure has at most
   one photo and re-uploading always replaces it. Gated by **TreasureEdit** for a global
@@ -52,7 +52,7 @@ Unknown `game_slug` → 404. Missing or invalid `filename` body field → 400.
 | Endpoint | Method | Who can call | Response fields |
 |----------|--------|-------------|-----------------|
 | `/games/<slug>/pcs/<id>/photo_upload.json` | POST | **CharacterPhotoUpload** | `upload_id`, `token`, `character_id` |
-| `/games/<slug>/npcs/<id>/photo_upload.json` | POST | **NpcPlayerEdit** | `upload_id`, `token`, `character_id` |
+| `/games/<slug>/npcs/<id>/photo_upload.json` | POST | **CharacterPhotoUpload** | `upload_id`, `token`, `character_id` |
 
 Unknown `game_slug` or `character_id` (or a `character_id` that does not belong to `game_slug`,
 or is the wrong PC/NPC type for the endpoint) → 404. Missing or invalid `filename` body field →

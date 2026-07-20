@@ -4,7 +4,7 @@ import os
 import uuid
 
 from ...models import CharacterPhoto
-from ...permissions import CharacterPhotoUploadPermission, NpcPlayerEditPermission
+from ...permissions import CharacterPhotoUploadPermission
 from .._upload_init import UploadInitiator
 from ._shared import _get_character_or_404
 
@@ -13,8 +13,7 @@ def character_photo_upload(request, game, game_slug, character_id, npc):
     """Initialise a character photo upload and return the upload id and token."""
     character = _get_character_or_404(game, character_id, npc)
 
-    permission_class = NpcPlayerEditPermission if npc else CharacterPhotoUploadPermission
-    error_response = permission_class.check(request, character)
+    error_response = CharacterPhotoUploadPermission.check(request, character)
     if error_response:
         return error_response
 

@@ -185,6 +185,17 @@ class TestGameNpcTreasureSellView(TokenAuthRequestMixin):
         )
         assert response.status_code == 200
 
+    def test_staff_can_sell_treasure(self, client):
+        """Test that a global Staff user, not the DM, can sell treasure on behalf of an NPC."""
+        staff_user = UserFactory(username='staff_user', password='secret-password')
+        staff_user.is_staff = True
+        staff_user.save()
+        staff_token = Token.objects.create(user=staff_user)
+        response = self._post(
+            client, {'treasure_id': self.treasure.id, 'quantity': 1}, token=staff_token,
+        )
+        assert response.status_code == 200
+
 
 @pytest.mark.django_db
 class TestGameNpcTreasureSellHidden(TokenAuthRequestMixin):

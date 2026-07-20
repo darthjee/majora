@@ -2,10 +2,10 @@ engines:
   duplication:
     exclude_paths:
       - "frontend/specs/**"
-      - "backend/games/tests/**"
+      - "backend/**/tests/**"
   bandit:
     exclude_paths:
-      - "backend/games/tests/**"
+      - "backend/**/tests/**"
   phpmd:
     exclude_paths:
       - "proxy/extension/tests/**"
