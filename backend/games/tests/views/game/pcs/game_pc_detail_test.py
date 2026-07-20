@@ -90,6 +90,11 @@ class TestGamePcDetailView(TokenAuthRequestMixin):
         response = self.get(client, self._url(), token=token)
         assert_json_response(response, 200, can_edit=True)
 
+    def test_response_includes_x_skip_cache_header(self, client):
+        """Test that the response includes the X-Skip-Cache: true header."""
+        response = self.get(client, self._url())
+        assert response['X-Skip-Cache'] == 'true'
+
     def test_includes_treasure_value_summed_across_treasures(self, client):
         """Test that treasure_value sums total_value across the PC's treasure rows."""
         treasure_one = TreasureFactory(name='Potion', value=50)
