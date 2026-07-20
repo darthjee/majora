@@ -6,12 +6,14 @@ describe('CharacterItemDetailController', function() {
   let setItem;
   let setLoading;
   let setError;
+  let setCanUploadPhoto;
   let client;
 
   beforeEach(function() {
     setItem = jasmine.createSpy('setItem');
     setLoading = jasmine.createSpy('setLoading');
     setError = jasmine.createSpy('setError');
+    setCanUploadPhoto = jasmine.createSpy('setCanUploadPhoto');
     client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
   });
 
@@ -50,7 +52,7 @@ describe('CharacterItemDetailController', function() {
           client.fetch.and.returnValue(Promise.resolve({ id: 1, name: 'Cloak of Elvenkind' }));
 
           const cleanup = new CharacterItemDetailController(
-            characterKind, setItem, setLoading, setError, client,
+            characterKind, setItem, setLoading, setError, setCanUploadPhoto, client,
           ).buildEffect()();
           await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -67,7 +69,7 @@ describe('CharacterItemDetailController', function() {
           client.fetch.and.returnValue(Promise.resolve({ id: 1, name: 'Cloak of Elvenkind', hidden: true }));
 
           const cleanup = new CharacterItemDetailController(
-            characterKind, setItem, setLoading, setError, client,
+            characterKind, setItem, setLoading, setError, setCanUploadPhoto, client,
           ).buildEffect()();
           await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -81,7 +83,7 @@ describe('CharacterItemDetailController', function() {
           client.fetch.and.returnValue(Promise.resolve({ id: 1, name: 'Cloak of Elvenkind' }));
 
           const cleanup = new CharacterItemDetailController(
-            characterKind, setItem, setLoading, setError, client,
+            characterKind, setItem, setLoading, setError, setCanUploadPhoto, client,
           ).buildEffect()();
           await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -100,7 +102,7 @@ describe('CharacterItemDetailController', function() {
       spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.reject(new Error('nope')));
       client.fetch.and.returnValue(Promise.resolve({ id: 1, name: 'Cloak of Elvenkind' }));
 
-      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, client)
+      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, setCanUploadPhoto, client)
         .buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -114,7 +116,7 @@ describe('CharacterItemDetailController', function() {
       spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
       client.fetch.and.returnValue(Promise.reject(new Error('network error')));
 
-      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, client)
+      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, setCanUploadPhoto, client)
         .buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -127,7 +129,7 @@ describe('CharacterItemDetailController', function() {
     it('sets an error and skips fetching when route params are missing', function() {
       client.currentHash.and.returnValue('#/games/demo/pcs/7');
 
-      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, client)
+      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, setCanUploadPhoto, client)
         .buildEffect()();
 
       expect(setError).toHaveBeenCalledWith('Unable to load item.');
@@ -142,13 +144,55 @@ describe('CharacterItemDetailController', function() {
       spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
       client.fetch.and.returnValue(Promise.resolve({ id: 1, name: 'Cloak of Elvenkind' }));
 
-      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, client)
+      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, setCanUploadPhoto, client)
         .buildEffect()();
       cleanup();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(setItem).not.toHaveBeenCalled();
       expect(setLoading).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('canUploadPhoto', function() {
+    beforeEach(function() {
+      client.currentHash.and.returnValue('#/games/demo/pcs/7/items/5');
+      client.fetch.and.returnValue(Promise.resolve({ id: 1, name: 'Cloak of Elvenkind' }));
+    });
+
+    const runController = async () => {
+      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, setCanUploadPhoto, client)
+        .buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      cleanup();
+    };
+
+    it('is true when the permissions response grants can_upload_item_photo', async function() {
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(
+        Promise.resolve({ can_edit: false, can_upload_item_photo: true }),
+      );
+
+      await runController();
+
+      expect(setCanUploadPhoto).toHaveBeenCalledWith(true);
+    });
+
+    it('is false when the permissions response denies can_upload_item_photo', async function() {
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(
+        Promise.resolve({ can_edit: false, can_upload_item_photo: false }),
+      );
+
+      await runController();
+
+      expect(setCanUploadPhoto).toHaveBeenCalledWith(false);
+    });
+
+    it('fails closed to false when the permission check rejects', async function() {
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.reject(new Error('nope')));
+
+      await runController();
+
+      expect(setCanUploadPhoto).toHaveBeenCalledWith(false);
     });
   });
 });
