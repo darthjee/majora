@@ -3,13 +3,16 @@ import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 
 /**
- * Controller for the game item detail page (issue #724).
+ * Controller for the game item detail page (issue #724, photo upload gating added in #749).
  *
  * @description Mirrors `GameController`'s single-object `client.fetch(path)` usage, gated on
  *   the requester's game-level edit permission (the same source `fetchGameItems` in
  *   `listTypeConfig.js` uses) to pick between the full, hidden-inclusive `items/:id/all.json`
  *   and the player-facing `items/:id.json`, fail-closed on a rejected permissions check
- *   (matching `fetchPermissionGatedIndex`'s `.catch(() => false)`).
+ *   (matching `fetchPermissionGatedIndex`'s `.catch(() => false)`). Independently derives
+ *   `canUploadPhoto` from `AccessStore.ensureGameAccess` (a wider, "who can upload" gate that
+ *   also includes `is_player`, unlike the narrower `can_edit` used to pick the fetch endpoint),
+ *   run concurrently with the `can_edit` check rather than chained after it.
  */
 export default class GameItemController extends BasePageController {
   /**
@@ -30,13 +33,15 @@ export default class GameItemController extends BasePageController {
    * @param {Function} setItem - Item setter.
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
+   * @param {Function} setCanUploadPhoto - Setter for whether the requester may upload a photo.
    * @param {GenericClient} [client] - Client override, mainly for tests.
    */
-  constructor(setItem, setLoading, setError, client = new GenericClient()) {
+  constructor(setItem, setLoading, setError, setCanUploadPhoto, client = new GenericClient()) {
     super();
     this.setItem = setItem;
     this.setLoading = setLoading;
     this.setError = setError;
+    this.setCanUploadPhoto = setCanUploadPhoto;
     this.client = client;
   }
 
@@ -65,10 +70,24 @@ export default class GameItemController extends BasePageController {
   }
 
   #loadItem(params, safeSet) {
-    return AccessStore.ensureGamePermissions(params.game_slug)
+    const canEditPromise = AccessStore.ensureGamePermissions(params.game_slug)
       .then((permissions) => Boolean(permissions.can_edit))
+      .catch(() => false);
+
+    this.#loadCanUploadPhoto(params.game_slug, safeSet);
+
+    return canEditPromise.then((canEdit) => this.#fetchItem(params, canEdit, safeSet));
+  }
+
+  #loadCanUploadPhoto(gameSlug, safeSet) {
+    return AccessStore.ensureGameAccess(gameSlug)
+      .then((access) => GameItemController.#canUploadPhoto(access))
       .catch(() => false)
-      .then((canEdit) => this.#fetchItem(params, canEdit, safeSet));
+      .then((canUploadPhoto) => safeSet(this.setCanUploadPhoto, canUploadPhoto));
+  }
+
+  static #canUploadPhoto(access) {
+    return Boolean(access.is_superuser || access.is_staff || access.is_dm || access.is_player);
   }
 
   #fetchItem(params, canEdit, safeSet) {
