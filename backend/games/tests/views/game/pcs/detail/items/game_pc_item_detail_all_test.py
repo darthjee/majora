@@ -36,7 +36,9 @@ class TestGamePcItemDetailAllView(TokenAuthRequestMixin):
         self.owner_token = Token.objects.create(user=self.owner)
         self.other_user = UserFactory(username='other', password='secret-password')
         self.other_token = Token.objects.create(user=self.other_user)
-        game_item = GameItemFactory(game=self.game, name='Hidden Gem')
+        game_item = GameItemFactory(
+            game=self.game, name='Hidden Gem', description='A rare gem.',
+        )
         self.hidden_item = CharacterItem.objects.create(
             character=self.character, game_item=game_item, hidden=True,
         )
@@ -81,6 +83,12 @@ class TestGamePcItemDetailAllView(TokenAuthRequestMixin):
         response = self.get(client, self._url(), token=self.owner_token)
         data = json.loads(response.content)
         assert data['hidden'] is True
+
+    def test_response_includes_description_field(self, client):
+        """Test that the response carries the description field."""
+        response = self.get(client, self._url(), token=self.owner_token)
+        data = json.loads(response.content)
+        assert data['description'] == 'A rare gem.'
 
     def test_returns_404_for_unknown_item(self, client):
         """Test that 404 is returned for a non-existent item id."""

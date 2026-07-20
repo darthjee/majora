@@ -32,15 +32,21 @@ class TestGameItemsView(TestCase):
         assert len(data) == 1
         assert data[0]['name'] == 'Gold Ring'
 
-    def test_returns_id_name_description_photo_path_fields(self):
-        """Test that list items include id, name, description, and photo_path fields."""
+    def test_returns_id_name_photo_path_fields(self):
+        """Test that list items include id, name, and photo_path fields."""
         item = GameItemFactory(game=self.game, name='Enchanted Bow', description='A fine bow.')
         response = self.client.get('/games/test-game/items.json')
         data = json.loads(response.content)
         assert data[0]['id'] == item.id
         assert data[0]['name'] == 'Enchanted Bow'
-        assert data[0]['description'] == 'A fine bow.'
         assert data[0]['photo_path'] is None
+
+    def test_does_not_include_description(self):
+        """Test that description is not exposed on the index endpoint."""
+        GameItemFactory(game=self.game, name='Enchanted Bow', description='A fine bow.')
+        response = self.client.get('/games/test-game/items.json')
+        data = json.loads(response.content)
+        assert 'description' not in data[0]
 
     def test_excludes_hidden_items(self):
         """Test that a hidden game item is excluded from the response."""

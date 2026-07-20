@@ -9,7 +9,7 @@ from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game
 from ...permissions import GameEditPermission
-from ...serializers import GameItemAllListSerializer
+from ...serializers import GameItemDetailAllSerializer
 
 
 @api_view(['GET'])
@@ -25,6 +25,6 @@ def game_item_detail_all(request, game_slug, item_id):
     if error_response:
         return error_response
     item = get_object_or_404(game.items.all(), id=item_id)
-    response = Response(GameItemAllListSerializer(item).data)
+    response = Response(GameItemDetailAllSerializer(item).data)
     response['X-Skip-Cache'] = 'true'
     return response

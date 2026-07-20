@@ -38,7 +38,7 @@ class TestGameNpcItemsView(TokenAuthRequestMixin):
         assert response.status_code == 200
         assert json.loads(response.content) == []
 
-    def test_returns_id_game_item_id_name_description_photo_path_fields(self, client):
+    def test_returns_id_game_item_id_name_photo_path_fields(self, client):
         """Test that list items include the correct fields."""
         game_item = GameItemFactory(
             game=self.game, name='Prized Gem', description='Very shiny.',
@@ -52,8 +52,17 @@ class TestGameNpcItemsView(TokenAuthRequestMixin):
         assert data[0]['id'] == character_item.id
         assert data[0]['game_item_id'] == game_item.id
         assert data[0]['name'] == 'Prized Gem'
-        assert data[0]['description'] == 'Very shiny.'
         assert data[0]['photo_path'] is None
+
+    def test_does_not_include_description(self, client):
+        """Test that description is not exposed on the index endpoint."""
+        game_item = GameItemFactory(
+            game=self.game, name='Prized Gem', description='Very shiny.',
+        )
+        CharacterItem.objects.create(character=self.character, game_item=game_item)
+        response = client.get(self._url())
+        data = json.loads(response.content)
+        assert 'description' not in data[0]
 
     def test_excludes_hidden_items(self, client):
         """Test that a hidden character item is excluded from the response."""
