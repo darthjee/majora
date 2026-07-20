@@ -286,6 +286,14 @@ character_items_page:
   loading: Carregando itens...
   title: Itens
   hidden_label: Oculto
+  new_item: Criar Item
+character_item_new_page:
+  title: Criar Item
+  name_label: Nome
+  description_label: Descrição
+  hidden_label: Oculto
+  submit: Criar Item
+  error: Falha ao criar o item. Tente novamente.
 treasure_exchange_modal:
   title: Troca de Tesouro
   search_placeholder: Buscar tesouros...

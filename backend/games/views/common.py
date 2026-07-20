@@ -136,13 +136,14 @@ def parse_role_booleans(request):
     """Parse the `role` query param(s) into simulated-identity booleans, or None if absent.
 
     Reads `request.query_params.getlist('role')`, handling both `?role=dm` and repeated
-    `?role=dm&role=player`. Recognizes `dm`, `player`, `owner`, `superuser`, `staff`; only
-    `dm`, `owner`, and `superuser` actually influence any `can_be_edited_by_roles`
-    computation — `player`/`staff` are accepted but silently have no effect, same tolerant,
-    no-400-on-a-typo convention already used by `?allegiance=`/`?slain=` elsewhere in this
-    codebase. Returns `None` when no `role` param was sent at all, signaling "use the real
-    requester's identity instead" — a `role` param with only unrecognized values still
-    switches to the role-simulated path (with every boolean False), it just never falls
+    `?role=dm&role=player`. Recognizes `dm`, `player`, `owner`, `superuser`, `staff`; `dm`,
+    `owner`, `superuser`, and `staff` each influence some `can_be_edited_by_roles`-shaped
+    computation (`staff` first became meaningful via `CharacterItemCreatePermission`'s
+    `is_allowed_for_roles`, issue #714) — `player` is accepted but silently has no effect,
+    same tolerant, no-400-on-a-typo convention already used by `?allegiance=`/`?slain=`
+    elsewhere in this codebase. Returns `None` when no `role` param was sent at all, signaling
+    "use the real requester's identity instead" — a `role` param with only unrecognized values
+    still switches to the role-simulated path (with every boolean False), it just never falls
     back to the real identity.
     """
     roles = request.query_params.getlist('role')
@@ -152,6 +153,7 @@ def parse_role_booleans(request):
         'is_superuser': 'superuser' in roles,
         'is_dm': 'dm' in roles,
         'is_owner': 'owner' in roles,
+        'is_staff': 'staff' in roles,
     }
 
 

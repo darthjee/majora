@@ -286,6 +286,14 @@ character_items_page:
   loading: Loading items...
   title: Items
   hidden_label: Hidden
+  new_item: Create Item
+character_item_new_page:
+  title: Create Item
+  name_label: Name
+  description_label: Description
+  hidden_label: Hidden
+  submit: Create Item
+  error: Failed to create item. Please try again.
 treasure_exchange_modal:
   title: Treasure Exchange
   search_placeholder: Search treasures...

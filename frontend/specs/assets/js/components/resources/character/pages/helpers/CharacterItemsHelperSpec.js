@@ -66,5 +66,27 @@ describe('CharacterItemsHelper', function() {
       expect(listPage.props.gameSlug).toBe('demo');
       expect(listPage.props.basePath).toBe('#/games/demo/npcs/9/items');
     });
+
+    it('does not render a "Create Item" button by default', function() {
+      const html = renderToStaticMarkup(CharacterItemsHelper.render('pcs', 'pc-items', 'demo', '7'));
+      expect(html).not.toContain('Create Item');
+    });
+
+    it('does not render a "Create Item" button when canCreateItem is false', function() {
+      const html = renderToStaticMarkup(CharacterItemsHelper.render('pcs', 'pc-items', 'demo', '7', false));
+      expect(html).not.toContain('Create Item');
+    });
+
+    it('renders a "Create Item" button linking to the PC item new form when canCreateItem is true', function() {
+      const html = renderToStaticMarkup(CharacterItemsHelper.render('pcs', 'pc-items', 'demo', '7', true));
+      expect(html).toContain('Create Item');
+      expect(html).toContain('href="#/games/demo/pcs/7/items/new"');
+    });
+
+    it('renders a "Create Item" button linking to the NPC item new form when canCreateItem is true', function() {
+      const html = renderToStaticMarkup(CharacterItemsHelper.render('npcs', 'npc-items', 'demo', '9', true));
+      expect(html).toContain('Create Item');
+      expect(html).toContain('href="#/games/demo/npcs/9/items/new"');
+    });
   });
 });
