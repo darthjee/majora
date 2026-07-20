@@ -1,6 +1,16 @@
 import BaseClient from './BaseClient.js';
 
 /**
+ * Default page size for the PC/NPC treasures/items preview fetch (issue #720), matching
+ * `MAX_PREVIEW_ITEMS` (`components/common/cards/characterPreviewConstants.js`). Kept as a
+ * local constant instead of importing that constant, since nothing under `client/` imports
+ * from `components/`.
+ *
+ * @type {number}
+ */
+const PREVIEW_PAGE_SIZE = 5;
+
+/**
  * HTTP client for PC and NPC character requests (fetch and update).
  *
  * @description Public methods shared by PCs and NPCs are parameterized by a
@@ -68,30 +78,35 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
-   * Fetches a page of the character's treasures.
+   * Fetches a bounded page of the character's treasures, used to populate the treasure
+   * preview grid on the character show page. Defaults to `PREVIEW_PAGE_SIZE` items so the
+   * request itself is bounded (issue #720), instead of relying on client-side truncation.
    *
    * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {string|number} characterId - Character id.
    * @param {string|null} token - Authentication token, if any.
+   * @param {number} [perPage] - Maximum number of treasures to fetch.
    * @returns {Promise<Response>} fetch response from the character treasures endpoint.
    */
-  fetchCharacterTreasures(characterKind, gameSlug, characterId, token) {
-    return this.#fetchCharacter(characterKind, gameSlug, characterId, token, 'treasures');
+  fetchCharacterTreasures(characterKind, gameSlug, characterId, token, perPage = PREVIEW_PAGE_SIZE) {
+    return this.#fetchCharacter(characterKind, gameSlug, characterId, token, 'treasures', undefined, [], perPage);
   }
 
   /**
-   * Fetches a page of the character's items, used to populate the item preview grid on
-   * the character show page (issue #658).
+   * Fetches a bounded page of the character's items, used to populate the item preview grid on
+   * the character show page (issue #658). Defaults to `PREVIEW_PAGE_SIZE` items so the request
+   * itself is bounded (issue #720), instead of relying on client-side truncation.
    *
    * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {string|number} characterId - Character id.
    * @param {string|null} token - Authentication token, if any.
+   * @param {number} [perPage] - Maximum number of items to fetch.
    * @returns {Promise<Response>} fetch response from the character items endpoint.
    */
-  fetchCharacterItems(characterKind, gameSlug, characterId, token) {
-    return this.#fetchCharacter(characterKind, gameSlug, characterId, token, 'items');
+  fetchCharacterItems(characterKind, gameSlug, characterId, token, perPage = PREVIEW_PAGE_SIZE) {
+    return this.#fetchCharacter(characterKind, gameSlug, characterId, token, 'items', undefined, [], perPage);
   }
 
   /**
@@ -352,13 +367,33 @@ export default class CharacterClient extends BaseClient {
     return this.patchJson(`/games/${gameSlug}/npcs/${characterId}.json`, token, fields);
   }
 
-  #fetchCharacter(characterKind, gameSlug, characterId, token, suffix = null, signal, roles = []) {
+  #fetchCharacter(characterKind, gameSlug, characterId, token, suffix = null, signal, roles = [], perPage) {
     const base = `/games/${gameSlug}/${characterKind}/${characterId}`;
     const path = suffix ? `${base}/${suffix}.json` : `${base}.json`;
     const skipCache = characterKind === 'npcs' && (suffix === null || suffix === 'treasures' || suffix === 'items');
 
     return this.getJson(
-      `${path}${this.buildRoleQuery(roles)}`, token, skipCache ? { 'X-Skip-Cache': 'true' } : {}, signal,
+      `${path}${this.#buildCharacterQuery(roles, perPage)}`, token, skipCache ? { 'X-Skip-Cache': 'true' } : {}, signal,
     );
+  }
+
+  /**
+   * Builds the query string for a `#fetchCharacter` request, combining the role-simulation
+   * params (`buildRoleQuery`) with an optional `per_page` bound.
+   *
+   * @param {string[]} roles - Roles to serialize as repeated `role=` params.
+   * @param {number} [perPage] - Optional `per_page` value to append.
+   * @returns {string} Query string including the leading `?`, or `''` when there's nothing to add.
+   */
+  #buildCharacterQuery(roles, perPage) {
+    const roleQuery = this.buildRoleQuery(roles);
+
+    if (perPage === undefined || perPage === null) {
+      return roleQuery;
+    }
+
+    const separator = roleQuery ? '&' : '?';
+
+    return `${roleQuery}${separator}per_page=${perPage}`;
   }
 }
