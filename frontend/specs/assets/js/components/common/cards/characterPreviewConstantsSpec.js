@@ -8,8 +8,8 @@ describe('characterPreviewConstants', function() {
     expect(MAX_PREVIEW_ITEMS).toBe(5);
   });
 
-  it('caps preview photos at 6', function() {
-    expect(MAX_PREVIEW_PHOTOS).toBe(6);
+  it('caps preview photos at 11', function() {
+    expect(MAX_PREVIEW_PHOTOS).toBe(11);
   });
 
   describe('PREVIEW_LIST_TYPES.pc', function() {

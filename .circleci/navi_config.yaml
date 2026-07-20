@@ -229,6 +229,10 @@ resources:
           parameters:
             slug: parsedBody.game_slug
             id: parsedBody.id
+        - resource: short_pc_photos
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
         - resource: pc_treasures
           parameters:
             slug: parsedBody.game_slug
@@ -258,6 +262,10 @@ resources:
 
   paginated_pc_photos:
     - url: /games/{:slug}/pcs/{:id}/photos.json?page={:page}
+      status: 200
+
+  short_pc_photos:
+    - url: /games/{:slug}/pcs/{:id}/photos.json?per_page=11
       status: 200
 
   pc_treasures:
@@ -314,6 +322,10 @@ resources:
           parameters:
             slug: parsedBody.game_slug
             id: parsedBody.id
+        - resource: short_npc_photos
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
         - resource: npc_treasures
           parameters:
             slug: parsedBody.game_slug
@@ -343,6 +355,10 @@ resources:
 
   paginated_npc_photos:
     - url: /games/{:slug}/npcs/{:id}/photos.json?page={:page}
+      status: 200
+
+  short_npc_photos:
+    - url: /games/{:slug}/npcs/{:id}/photos.json?per_page=11
       status: 200
 
   npc_treasures:
