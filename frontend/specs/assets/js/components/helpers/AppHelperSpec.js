@@ -19,6 +19,8 @@ describe('AppHelper', function() {
     expect(renderToStaticMarkup(AppHelper.render('gameItems', '#/games/demo/items'))).toContain(Translator.t('game_items_page.loading'));
     expect(renderToStaticMarkup(AppHelper.render('pcCharacterItems', '#/games/demo/pcs/1/items'))).toContain(Translator.t('character_items_page.loading'));
     expect(renderToStaticMarkup(AppHelper.render('npcCharacterItems', '#/games/demo/npcs/1/items'))).toContain(Translator.t('character_items_page.loading'));
+    expect(renderToStaticMarkup(AppHelper.render('pcCharacterItemNew', '#/games/demo/pcs/1/items/new'))).toContain(Translator.t('character_item_new_page.title'));
+    expect(renderToStaticMarkup(AppHelper.render('npcCharacterItemNew', '#/games/demo/npcs/1/items/new'))).toContain(Translator.t('character_item_new_page.title'));
     expect(renderToStaticMarkup(AppHelper.render('recoverPassword', '#/recover-password'))).toContain('Reset password');
     expect(renderToStaticMarkup(AppHelper.render('register', '#/users/register'))).toContain('Register');
     expect(renderToStaticMarkup(AppHelper.render('staffUsers', '#/staff/users'))).toContain(Translator.t('staff_users_page.loading'));

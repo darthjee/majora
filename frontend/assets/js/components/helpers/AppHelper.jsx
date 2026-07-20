@@ -26,11 +26,13 @@ import MyAccount from '../resources/account/pages/MyAccount.jsx';
 import MyGames from '../resources/game/pages/MyGames.jsx';
 import NpcCharacter from '../resources/character/pages/NpcCharacter.jsx';
 import NpcCharacterEdit from '../resources/character/pages/NpcCharacterEdit.jsx';
+import NpcCharacterItemNew from '../resources/character/pages/NpcCharacterItemNew.jsx';
 import NpcCharacterItems from '../resources/character/pages/NpcCharacterItems.jsx';
 import NpcCharacterPhotos from '../resources/character/pages/NpcCharacterPhotos.jsx';
 import NpcCharacterTreasures from '../resources/character/pages/NpcCharacterTreasures.jsx';
 import PcCharacter from '../resources/character/pages/PcCharacter.jsx';
 import PcCharacterEdit from '../resources/character/pages/PcCharacterEdit.jsx';
+import PcCharacterItemNew from '../resources/character/pages/PcCharacterItemNew.jsx';
 import PcCharacterItems from '../resources/character/pages/PcCharacterItems.jsx';
 import PcCharacterPhotos from '../resources/character/pages/PcCharacterPhotos.jsx';
 import PcCharacterTreasures from '../resources/character/pages/PcCharacterTreasures.jsx';
@@ -75,11 +77,13 @@ const PAGES = {
   npcCharacterPhotos: <NpcCharacterPhotos />,
   npcCharacterTreasures: <NpcCharacterTreasures />,
   npcCharacterItems: <NpcCharacterItems />,
+  npcCharacterItemNew: <NpcCharacterItemNew />,
   pcCharacter: <PcCharacter />,
   pcCharacterEdit: <PcCharacterEdit />,
   pcCharacterPhotos: <PcCharacterPhotos />,
   pcCharacterTreasures: <PcCharacterTreasures />,
   pcCharacterItems: <PcCharacterItems />,
+  pcCharacterItemNew: <PcCharacterItemNew />,
   recoverPassword: <RecoverPassword />,
   register: <Register />,
   staffDashboard: <StaffDashboard />,
