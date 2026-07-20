@@ -8,7 +8,7 @@ from rest_framework import serializers
 from rest_framework.response import Response
 
 from ...models import Character, CharacterTreasure, GameTreasure, Treasure
-from ...permissions import CharacterEditPermission
+from ...permissions import CharacterTreasureExchangePermission
 from ...serializers.games.treasures.game_treasure_fields import resolve_treasure_value
 from ..common import validated_or_error
 
@@ -57,7 +57,7 @@ def _authorize_and_parse(request, character, resolve_treasure):
     Returns a `(error_response, treasure, quantity)` tuple; `error_response` is `None` on
     success, in which case `treasure` and `quantity` are populated.
     """
-    error_response = CharacterEditPermission.check(request, character)
+    error_response = CharacterTreasureExchangePermission.check(request, character)
     if error_response:
         return error_response, None, None
 

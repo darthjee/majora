@@ -43,12 +43,12 @@ the per-game override in normal use — not the character's held treasure's glob
 
 | Endpoint | Method | Who can call | Effect |
 |----------|--------|-------------|--------|
-| `/games/<slug>/pcs/<character_id>/treasures/acquire.json` | POST | **CharacterEdit** | Spends `quantity * value` from `character.money` to add `quantity` of `treasure_id`, where `value` is the game's `GameTreasure.value` when a `GameTreasure` row exists for `(game, treasure)`, else `treasure.value`. 404s when `treasure_id` resolves to a treasure whose `GameTreasure.hidden` is `True` for this game (see [GameTreasure](game-treasure.md) above) |
-| `/games/<slug>/pcs/<character_id>/treasures/sell.json` | POST | **CharacterEdit** | Removes `quantity` of `treasure_id`, refunding `quantity * value` into `character.money` (same `GameTreasure.value`-or-`treasure.value` resolution as acquire). Unaffected by `hidden` — scoped by ownership, not catalog visibility, so a hidden treasure a character already owns can always be sold |
-| `/games/<slug>/npcs/<character_id>/treasures/acquire.json` | POST | **CharacterEdit** (note: *not* NpcPlayerEdit, unlike NPC photo uploads) | Same as the PC acquire endpoint, for an NPC, including the same `hidden` 404 gate |
-| `/games/<slug>/npcs/<character_id>/treasures/sell.json` | POST | **CharacterEdit** | Same as the PC sell endpoint, for an NPC |
-| `/games/<slug>/pcs/<character_id>/treasures/acquire/all.json` | POST | **GameEdit**, in addition to **CharacterEdit** | DM-only variant of the PC acquire endpoint: same request/response shape, but does not 404 on a hidden treasure |
-| `/games/<slug>/npcs/<character_id>/treasures/acquire/all.json` | POST | **GameEdit**, in addition to **CharacterEdit** | DM-only variant of the NPC acquire endpoint: same request/response shape, but does not 404 on a hidden treasure |
+| `/games/<slug>/pcs/<character_id>/treasures/acquire.json` | POST | **CharacterTreasureExchange** | Spends `quantity * value` from `character.money` to add `quantity` of `treasure_id`, where `value` is the game's `GameTreasure.value` when a `GameTreasure` row exists for `(game, treasure)`, else `treasure.value`. 404s when `treasure_id` resolves to a treasure whose `GameTreasure.hidden` is `True` for this game (see [GameTreasure](game-treasure.md) above) |
+| `/games/<slug>/pcs/<character_id>/treasures/sell.json` | POST | **CharacterTreasureExchange** | Removes `quantity` of `treasure_id`, refunding `quantity * value` into `character.money` (same `GameTreasure.value`-or-`treasure.value` resolution as acquire). Unaffected by `hidden` — scoped by ownership, not catalog visibility, so a hidden treasure a character already owns can always be sold |
+| `/games/<slug>/npcs/<character_id>/treasures/acquire.json` | POST | **CharacterTreasureExchange** (note: *not* NpcPlayerEdit, unlike NPC photo uploads) | Same as the PC acquire endpoint, for an NPC, including the same `hidden` 404 gate |
+| `/games/<slug>/npcs/<character_id>/treasures/sell.json` | POST | **CharacterTreasureExchange** | Same as the PC sell endpoint, for an NPC |
+| `/games/<slug>/pcs/<character_id>/treasures/acquire/all.json` | POST | **GameEdit**, in addition to **CharacterTreasureExchange** | DM-only variant of the PC acquire endpoint: same request/response shape, but does not 404 on a hidden treasure. GameEdit has no Staff bypass, so a Staff account that isn't also a superuser/DM stays 403'd here even though it now passes the regular endpoint's CharacterTreasureExchange check |
+| `/games/<slug>/npcs/<character_id>/treasures/acquire/all.json` | POST | **GameEdit**, in addition to **CharacterTreasureExchange** | DM-only variant of the NPC acquire endpoint: same request/response shape, but does not 404 on a hidden treasure. Same Staff exclusion as the PC variant above |
 
 Request body: `{"treasure_id": <int>, "quantity": <int, >= 1>}`. Success (200) for sell:
 `{"quantity": <new owned quantity>, "money": <new character.money>}`. Success (200) for acquire
@@ -57,11 +57,13 @@ units actually acquired, which may be less than requested when the treasure has 
 fewer units are available (partial fulfillment — see [GameTreasure](game-treasure.md) below;
 never a 400, even when `acquired` is `0`).
 
-Failure: 401, 403 (not the owning player/GameMaster/superuser — or, for the two `/all.json`
-variants, not `GameEditPermission`-authorized, checked in addition to and independently of the
-regular `CharacterEditPermission` check inside the shared acquire implementation, so even the
-PC's own owning player gets 403 on the `/all.json` route unless they are also that game's
-GameMaster or a superuser/staff), 404 (`treasure_id` does not resolve to a treasure available in
+Failure: 401, 403 (not the owning player/GameMaster/superuser/Staff — or, for the two
+`/all.json` variants, not `GameEditPermission`-authorized, checked in addition to and
+independently of the `CharacterTreasureExchangePermission` check inside the shared acquire
+implementation, so even the PC's own owning player gets 403 on the `/all.json` route unless they
+are also that game's GameMaster or a superuser; a Staff account, unlike on the regular
+endpoints, gets no bypass here either, per the "no spoilers" carve-out described above), 404
+(`treasure_id` does not resolve to a treasure available in
 this game — scoped via the same `Q(linked_game=game) | Q(game=game)` filter used by the game
 treasure list, and (regular acquire only) hidden for this game — or, for sell, no owned
 `CharacterTreasure` row exists), 400 (`{"errors": {"quantity": ["insufficient funds"]}}` on
