@@ -18,6 +18,13 @@ describe('ItemDetailHelper', function() {
       expect(html).toContain('A shimmering cloak.');
     });
 
+    it('renders the description inside the collapsible description box', function() {
+      const item = { id: 5, name: 'Cloak of Elvenkind', description: 'A shimmering cloak.' };
+      const html = renderToStaticMarkup(ItemDetailHelper.render(item, '#/games/demo/items'));
+
+      expect(html).toContain('border rounded bg-light');
+    });
+
     it('renders the item photo', function() {
       const item = {
         id: 5, name: 'Cloak of Elvenkind', description: 'A shimmering cloak.', photo_path: '/item.png',
