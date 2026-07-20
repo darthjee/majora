@@ -294,6 +294,11 @@ class TestGameNpcsCreate(TokenAuthRequestMixin):
         assert data['can_edit'] is True
         assert 'id' in data
 
+    def test_response_includes_x_skip_cache_header(self, client):
+        """Test that the response includes the X-Skip-Cache: true header."""
+        response = self._post(client, {'name': 'Villain'}, token=self.dm_token)
+        assert response['X-Skip-Cache'] == 'true'
+
     def test_optional_fields_are_persisted_when_provided(self, client):
         """Test that optional fields are persisted when provided in the request."""
         self._post(
