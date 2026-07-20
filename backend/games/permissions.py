@@ -157,6 +157,44 @@ class CharacterTreasureExchangePermission(_EditPermission):
         return character.can_be_edited_by(user)
 
 
+class CharacterItemCreatePermission(_EditPermission):
+    """Encapsulate checks for the PC/NPC item-creation endpoint (issue #714).
+
+    Grants the same access as CharacterEditPermission (superuser, the character's owning
+    player, or a GameMaster of the game) plus any Staff account (globally) — mirroring
+    CharacterTreasureExchangePermission's shape. `can_be_edited_by` alone already yields
+    exactly dm/admin/staff for NPCs (no owner concept) and dm/admin/staff/owner for PCs once
+    the Staff bypass is added, so no per-kind branching is needed. Exposes public
+    `is_allowed`/`is_allowed_for_roles` classmethods so CharacterPermissionsSerializer's
+    `can_create_item` field can reuse the exact same rule for both the real-identity and
+    role-simulated (`?role=`) paths.
+    """
+
+    @classmethod
+    def check(cls, request, character):
+        """Return an error Response if `request.user` may not create an item for `character`."""
+        return cls._guarded_check(request, lambda: cls.is_allowed(request.user, character))
+
+    @classmethod
+    def is_allowed(cls, user, character):
+        """Return whether `user` may create a new item for `character`."""
+        if not user or not user.is_authenticated:
+            return False
+        return user.is_staff or character.can_be_edited_by(user)
+
+    @classmethod
+    def is_allowed_for_roles(cls, is_superuser, is_dm, is_owner, is_staff, is_pc):
+        """Return whether a role-simulated caller may create a new item for a character.
+
+        Mirrors `Character.can_be_edited_by_roles`, plus the same Staff bypass as `is_allowed`.
+        `is_pc` is passed explicitly (rather than a `Character` instance) since `is_owner` is
+        only ever meaningful for a PC — an NPC has no ownership concept.
+        """
+        if is_staff or is_superuser or is_dm:
+            return True
+        return is_owner if is_pc else False
+
+
 class TreasureEditPermission(_EditPermission):
     """Encapsulate the authentication/authorization checks for editing a treasure."""
 

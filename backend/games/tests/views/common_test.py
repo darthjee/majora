@@ -225,35 +225,42 @@ class TestParseRoleBooleans:
         """Test that a single recognized role sets only its own boolean."""
         request = _make_query_request('role=dm')
         assert parse_role_booleans(request) == {
-            'is_superuser': False, 'is_dm': True, 'is_owner': False,
+            'is_superuser': False, 'is_dm': True, 'is_owner': False, 'is_staff': False,
         }
 
     def test_repeated_roles_combine(self):
         """Test that repeated `role` params combine into simultaneous booleans."""
         request = _make_query_request('role=dm&role=owner')
         assert parse_role_booleans(request) == {
-            'is_superuser': False, 'is_dm': True, 'is_owner': True,
+            'is_superuser': False, 'is_dm': True, 'is_owner': True, 'is_staff': False,
         }
 
     def test_superuser_role(self):
         """Test that the superuser role sets is_superuser."""
         request = _make_query_request('role=superuser')
         assert parse_role_booleans(request) == {
-            'is_superuser': True, 'is_dm': False, 'is_owner': False,
+            'is_superuser': True, 'is_dm': False, 'is_owner': False, 'is_staff': False,
         }
 
-    def test_player_and_staff_roles_are_accepted_but_have_no_effect(self):
-        """Test that player/staff roles are recognized as present but set no booleans."""
-        request = _make_query_request('role=player&role=staff')
+    def test_staff_role_sets_is_staff(self):
+        """Test that the staff role sets is_staff."""
+        request = _make_query_request('role=staff')
         assert parse_role_booleans(request) == {
-            'is_superuser': False, 'is_dm': False, 'is_owner': False,
+            'is_superuser': False, 'is_dm': False, 'is_owner': False, 'is_staff': True,
+        }
+
+    def test_player_role_is_accepted_but_has_no_effect(self):
+        """Test that the player role is recognized as present but sets no booleans."""
+        request = _make_query_request('role=player')
+        assert parse_role_booleans(request) == {
+            'is_superuser': False, 'is_dm': False, 'is_owner': False, 'is_staff': False,
         }
 
     def test_unrecognized_role_does_not_fall_back_to_real_identity(self):
         """Test that an unrecognized role value still switches to the role-simulated path."""
         request = _make_query_request('role=bogus')
         assert parse_role_booleans(request) == {
-            'is_superuser': False, 'is_dm': False, 'is_owner': False,
+            'is_superuser': False, 'is_dm': False, 'is_owner': False, 'is_staff': False,
         }
 
 

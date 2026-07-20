@@ -6,7 +6,7 @@ import pytest
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from games.models import CharacterItem
+from games.models import CharacterItem, GameItem
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
@@ -160,3 +160,118 @@ class TestGameNpcItemsHidden(TokenAuthRequestMixin):
         """Test that a 404 response for a hidden NPC's items includes X-Skip-Cache: true."""
         response = self.get(client, self._url())
         assert response['X-Skip-Cache'] == 'true'
+
+
+@pytest.mark.django_db
+class TestGameNpcItemsCreate(TokenAuthRequestMixin):
+    """Tests for POST /games/<slug>/npcs/<id>/items.json."""
+
+    def setup_method(self):
+        """Set up a game, a DM, an NPC, a PC's owning player, and an unrelated user."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True)
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
+        self.player = PlayerFactory(name='Frodo')
+        self.pc_owner = UserFactory(username='pc_owner', password='secret-password')
+        self.player.user = self.pc_owner
+        self.player.save()
+        CharacterFactory(name='Frodo', game=self.game, player=self.player, npc=False)
+        self.other_user = UserFactory(username='other', password='secret-password')
+
+    def _url(self, character_id=None, game_slug='test-game'):
+        """Return the items list URL for the given character (defaults to the fixture)."""
+        character_id = character_id if character_id is not None else self.character.id
+        return f'/games/{game_slug}/npcs/{character_id}/items.json'
+
+    def _post(self, client, payload, token=None):
+        """Issue a POST request to create an item, optionally with a token."""
+        return self.post(client, self._url(), payload, token=token)
+
+    def test_dm_can_create_item(self, client):
+        """Test that the game's DM can create an item for an NPC."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._post(
+            client, {'name': 'Staff', 'description': 'A wizard staff.', 'hidden': True},
+            token=token,
+        )
+        assert response.status_code == 201
+        data = json.loads(response.content)
+        assert data['name'] == 'Staff'
+        assert data['description'] == 'A wizard staff.'
+        assert data['hidden'] is True
+
+    def test_create_persists_game_item_and_character_item(self, client):
+        """Test that the create endpoint persists both a GameItem and a CharacterItem."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._post(client, {'name': 'Staff'}, token=token)
+        data = json.loads(response.content)
+        character_item = CharacterItem.objects.get(id=data['id'])
+        assert character_item.character == self.character
+        game_item = GameItem.objects.get(id=data['game_item_id'])
+        assert game_item.game == self.game
+        assert game_item.name == 'Staff'
+
+    def test_superuser_can_create_item(self, client):
+        """Test that a superuser can create an item for an NPC."""
+        superuser = SuperUserFactory(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+        response = self._post(client, {'name': 'Staff'}, token=token)
+        assert response.status_code == 201
+
+    def test_staff_can_create_item(self, client):
+        """Test that a global Staff account can create an item for an NPC."""
+        staff_user = UserFactory(username='staff_user', password='secret-password')
+        staff_user.is_staff = True
+        staff_user.save()
+        token = Token.objects.create(user=staff_user)
+        response = self._post(client, {'name': 'Staff'}, token=token)
+        assert response.status_code == 201
+
+    def test_unauthenticated_returns_401(self, client):
+        """Test that a request without a token is rejected with 401."""
+        response = self._post(client, {'name': 'Staff'})
+        assert response.status_code == 401
+
+    def test_pc_owner_returns_403(self, client):
+        """Test that a PC's owning player (not a DM) is rejected with 403 for an NPC."""
+        token = Token.objects.create(user=self.pc_owner)
+        response = self._post(client, {'name': 'Staff'}, token=token)
+        assert response.status_code == 403
+
+    def test_unrelated_user_returns_403(self, client):
+        """Test that an authenticated user unrelated to the game is rejected with 403."""
+        token = Token.objects.create(user=self.other_user)
+        response = self._post(client, {'name': 'Staff'}, token=token)
+        assert response.status_code == 403
+
+    def test_missing_name_returns_400(self, client):
+        """Test that a missing name returns 400."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._post(client, {}, token=token)
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'name' in data['errors']
+
+    def test_unknown_character_id_returns_404(self, client):
+        """Test that a non-existent character_id returns 404."""
+        token = Token.objects.create(user=self.dm_user)
+        response = client.post(
+            self._url(character_id=99999),
+            data=json.dumps({'name': 'Staff'}),
+            content_type='application/json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response.status_code == 404
+
+    def test_returns_404_for_opposite_role_id(self, client):
+        """Test that an id belonging to the opposite role returns 404."""
+        other = CharacterFactory(name='Other', game=self.game, npc=False)
+        token = Token.objects.create(user=self.dm_user)
+        response = client.post(
+            self._url(character_id=other.id),
+            data=json.dumps({'name': 'Staff'}),
+            content_type='application/json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response.status_code == 404

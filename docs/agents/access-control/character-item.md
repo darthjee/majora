@@ -5,9 +5,11 @@
 own value when `null` — see "Fallback resolution" below) and its own `hidden` (`BooleanField`,
 default `False`, never inherited from `GameItem.hidden` — see [GameItem](game-item.md) above).
 `unique_together = ('character', 'game_item')` — a character can hold at most one row per
-`GameItem`. It is read-only through four dedicated index endpoints (one PC pair, one NPC pair);
-there is no create/update/delete endpoint for a `CharacterItem` row in this issue (out of scope,
-along with photo upload — left for a follow-up issue), only Django admin for superusers.
+`GameItem`. Four dedicated index endpoints (one PC pair, one NPC pair) expose read access, and a
+PC/NPC `POST .../items.json` pair (issue #714) creates a brand-new `GameItem`/`CharacterItem`
+pair together — there is still no update/delete endpoint for a `CharacterItem` row, and no way to
+link an already-existing `GameItem` instead of always creating a new one (both out of scope, along
+with photo upload — left for follow-up issues), only Django admin for superusers.
 
 ## Item index endpoints
 
@@ -20,6 +22,35 @@ along with photo upload — left for a follow-up issue), only Django admin for s
 
 Unknown `game_slug` or `character_id` (or mismatched/wrong type) → 404. All four endpoints order
 by `id`.
+
+## Item creation endpoints
+
+| Endpoint | Method | Who can call | Request | Response |
+|----------|--------|-------------|---------|----------|
+| `/games/<slug>/pcs/<id>/items.json` | POST | **CharacterItemCreatePermission** — dm, admin, staff, or the PC's owning player | `{ name: string, description?: string, hidden?: boolean }` (`name` required, non-blank, ≤200 chars; `description` defaults to `''`; `hidden` defaults to `false`) | `201` with `CharacterItemAllSerializer` shape (`id`, `game_item_id`, `name`, `description`, `photo_path`, `hidden`) |
+| `/games/<slug>/npcs/<id>/items.json` | POST | **CharacterItemCreatePermission** — dm, admin, or staff (NPCs have no owner) | Same as above | Same as above |
+
+Both share the same route as the `GET` list above (`build_items_view` now handles `GET` and
+`POST`). Each `POST` creates a brand-new `GameItem` (`game`-scoped) with the submitted
+`name`/`description`/`hidden`, then a `CharacterItem` linked to it via `game_item`, with the
+**same** `name`/`description`/`hidden` values explicitly duplicated onto the `CharacterItem` row
+(not left `null`) — there is no option to link an already-existing `GameItem` from the game's
+catalog. `unique_together = ('character', 'game_item')` can never be violated here, since each
+request always creates a fresh `GameItem` first.
+
+`CharacterItemCreatePermission` (`backend/games/permissions.py`) is `user.is_staff or
+character.can_be_edited_by(user)` — `can_be_edited_by` alone already resolves to exactly
+dm/admin for NPCs (no owner concept) and dm/admin/owner for PCs, so adding the Staff bypass on
+top yields exactly the roles in the table above, for both kinds, with one rule. Error responses:
+`401` `{"errors": {"detail": ["authentication required"]}}` if unauthenticated; `403`
+`{"errors": {"detail": ["not allowed"]}}` if authenticated but not permitted; `400`
+`{"errors": {"<field>": ["<message>", ...]}}` on validation failure.
+
+A `can_create_item` boolean (backed by the same `CharacterItemCreatePermission`, including its
+Staff bypass — unlike `can_edit`, which has none) is also exposed on the existing
+`.../permissions.json` response (`CharacterPermissionsSerializer`), for both the real-identity
+and role-simulated (`?role=`) paths, so the frontend can gate its "Create Item" button off an
+authoritative server-computed flag.
 
 Unlike [CharacterTreasure](character-treasure.md)'s NPC-only hidden-held-item filter (`hidden`
 there lives on the separate `GameTreasure` catalog row, and a PC keeps seeing every treasure it

@@ -19,6 +19,7 @@ from ...permissions import CharacterEditPermission, GameEditPermission
 from ...serializers import CharacterPermissionsSerializer
 from ..common import access_response, parse_role_booleans, permissions_response
 from ._full import character_full
+from ._item_create import character_item_create
 from ._items import character_items
 from ._money import character_money_update
 from ._photo_set import character_photo_set
@@ -133,12 +134,15 @@ def build_photos_view(npc):
 
 
 def build_items_view(npc):
-    """Build the GET items-list view for a PC (`npc=False`) or NPC (`npc=True`)."""
+    """Build the GET/POST items view for a PC (`npc=False`) or NPC (`npc=True`)."""
 
-    @_build_api_view(['GET'], AllowAny)
+    @_build_api_view(['GET', 'POST'], AllowAny)
     def view(request, game_slug, character_id):
-        """Return a paginated list of non-hidden items held by a specific PC/NPC."""
+        """Return a paginated list of non-hidden items, or create a new item, for a PC/NPC."""
         game = get_object_or_404(Game, game_slug=game_slug)
+        if request.method == 'POST':
+            character = _get_character_or_404(game, character_id, npc=npc)
+            return character_item_create(request, game, character)
         return character_items(request, game, character_id, npc=npc, check_hidden=npc)
 
     return view
