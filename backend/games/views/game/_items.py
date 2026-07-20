@@ -3,7 +3,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 
-from ...serializers import CharacterItemSerializer
+from ...serializers import CharacterItemDetailSerializer, CharacterItemSerializer
 from ..common import paginated_list_response
 from ._shared import _get_character_or_404, _hidden_gate_response
 
@@ -41,7 +41,7 @@ def character_items(
 
 def character_item_detail(
     request, game, character_id, item_id, npc, check_hidden, allow_hidden=False,
-    serializer_class=CharacterItemSerializer,
+    serializer_class=CharacterItemDetailSerializer,
 ):
     """Return detail for a single item held by a specific character in a game.
 

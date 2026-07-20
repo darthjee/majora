@@ -15,7 +15,7 @@ class GameItemListSerializer(serializers.ModelSerializer):
         """Metadata for the GameItemListSerializer."""
 
         model = GameItem
-        fields = ['id', 'name', 'description', 'photo_path']
+        fields = ['id', 'name', 'photo_path']
 
 
 class GameItemAllListSerializer(HiddenFieldMixin, GameItemListSerializer):
@@ -30,3 +30,30 @@ class GameItemAllListSerializer(HiddenFieldMixin, GameItemListSerializer):
         """Metadata for the GameItemAllListSerializer."""
 
         fields = GameItemListSerializer.Meta.fields + ['hidden']
+
+
+class GameItemDetailSerializer(GameItemListSerializer):
+    """Serializer for a single game item's detail view.
+
+    Used only by `GET /games/:slug/items/:id.json` — adds `description` on top of
+    everything `GameItemListSerializer` already exposes; the index/list view keeps
+    omitting it entirely.
+    """
+
+    class Meta(GameItemListSerializer.Meta):
+        """Metadata for the GameItemDetailSerializer."""
+
+        fields = GameItemListSerializer.Meta.fields + ['description']
+
+
+class GameItemDetailAllSerializer(HiddenFieldMixin, GameItemDetailSerializer):
+    """Serializer for a single game item's detail view, including hidden items (DM-only).
+
+    Used only by `GET /games/:slug/items/:id/all.json` — adds `hidden` on top of
+    everything `GameItemDetailSerializer` already exposes.
+    """
+
+    class Meta(GameItemDetailSerializer.Meta):
+        """Metadata for the GameItemDetailAllSerializer."""
+
+        fields = GameItemDetailSerializer.Meta.fields + ['hidden']
