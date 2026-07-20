@@ -63,6 +63,9 @@ resources:
         - resource: game_treasures
           parameters:
             slug: parsedBody.game_slug
+        - resource: game_items
+          parameters:
+            slug: parsedBody.game_slug
         - resource: game_sessions
           parameters:
             slug: parsedBody.game_slug
@@ -79,11 +82,11 @@ resources:
             slug: parsedBody.game_slug
 
   short_game_pcs:
-    - url: /games/{:slug}/pcs.json?per_page=6
+    - url: /games/{:slug}/pcs.json?per_page=5
       status: 200
 
   short_game_npcs:
-    - url: /games/{:slug}/npcs.json?per_page=6
+    - url: /games/{:slug}/npcs.json?per_page=5
       status: 200
 
   game_pcs:
@@ -136,6 +139,20 @@ resources:
 
   paginated_game_treasures:
     - url: /games/{:slug}/treasures.json?page={:page}
+      status: 200
+
+  game_items:
+    - url: /games/{:slug}/items.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_items
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_game_items:
+    - url: /games/{:slug}/items.json?page={:page}
       status: 200
 
   game_sessions:
@@ -203,6 +220,22 @@ resources:
           parameters:
             slug: parsedBody.game_slug
             id: parsedBody.id
+        - resource: pc_treasures
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
+        - resource: short_pc_treasures
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
+        - resource: pc_items
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
+        - resource: short_pc_items
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
 
   pc_photos:
     - url: /games/{:slug}/pcs/{:id}/photos.json
@@ -218,11 +251,63 @@ resources:
     - url: /games/{:slug}/pcs/{:id}/photos.json?page={:page}
       status: 200
 
+  pc_treasures:
+    - url: /games/{:slug}/pcs/{:id}/treasures.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_pc_treasures
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_pc_treasures:
+    - url: /games/{:slug}/pcs/{:id}/treasures.json?page={:page}
+      status: 200
+
+  short_pc_treasures:
+    - url: /games/{:slug}/pcs/{:id}/treasures.json?per_page=5
+      status: 200
+
+  pc_items:
+    - url: /games/{:slug}/pcs/{:id}/items.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_pc_items
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_pc_items:
+    - url: /games/{:slug}/pcs/{:id}/items.json?page={:page}
+      status: 200
+
+  short_pc_items:
+    - url: /games/{:slug}/pcs/{:id}/items.json?per_page=5
+      status: 200
+
   npc:
     - url: /games/{:slug}/npcs/{:id}.json
       status: 200
       actions:
         - resource: npc_photos
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
+        - resource: npc_treasures
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
+        - resource: short_npc_treasures
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
+        - resource: npc_items
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
+        - resource: short_npc_items
           parameters:
             slug: parsedBody.game_slug
             id: parsedBody.id
@@ -239,4 +324,40 @@ resources:
 
   paginated_npc_photos:
     - url: /games/{:slug}/npcs/{:id}/photos.json?page={:page}
+      status: 200
+
+  npc_treasures:
+    - url: /games/{:slug}/npcs/{:id}/treasures.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_npc_treasures
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_npc_treasures:
+    - url: /games/{:slug}/npcs/{:id}/treasures.json?page={:page}
+      status: 200
+
+  short_npc_treasures:
+    - url: /games/{:slug}/npcs/{:id}/treasures.json?per_page=5
+      status: 200
+
+  npc_items:
+    - url: /games/{:slug}/npcs/{:id}/items.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_npc_items
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_npc_items:
+    - url: /games/{:slug}/npcs/{:id}/items.json?page={:page}
+      status: 200
+
+  short_npc_items:
+    - url: /games/{:slug}/npcs/{:id}/items.json?per_page=5
       status: 200
