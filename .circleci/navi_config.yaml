@@ -66,6 +66,9 @@ resources:
         - resource: game_items
           parameters:
             slug: parsedBody.game_slug
+        - resource: game_documents
+          parameters:
+            slug: parsedBody.game_slug
         - resource: game_sessions
           parameters:
             slug: parsedBody.game_slug
@@ -164,6 +167,20 @@ resources:
     - url: /games/{:slug}/items/{:id}.json
       status: 200
 
+  game_documents:
+    - url: /games/{:slug}/documents.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_documents
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_game_documents:
+    - url: /games/{:slug}/documents.json?page={:page}
+      status: 200
+
   game_sessions:
     - url: /games/{:slug}/sessions/past.json
       status: 200
@@ -249,6 +266,14 @@ resources:
           parameters:
             slug: parsedBody.game_slug
             id: parsedBody.id
+        - resource: pc_documents
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
+        - resource: short_pc_documents
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
 
   pc_photos:
     - url: /games/{:slug}/pcs/{:id}/photos.json
@@ -314,6 +339,24 @@ resources:
     - url: /games/{:slug}/pcs/{:id}/items.json?per_page=5
       status: 200
 
+  pc_documents:
+    - url: /games/{:slug}/pcs/{:id}/documents.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_pc_documents
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_pc_documents:
+    - url: /games/{:slug}/pcs/{:id}/documents.json?page={:page}
+      status: 200
+
+  short_pc_documents:
+    - url: /games/{:slug}/pcs/{:id}/documents.json?per_page=5
+      status: 200
+
   npc:
     - url: /games/{:slug}/npcs/{:id}.json
       status: 200
@@ -339,6 +382,14 @@ resources:
             slug: parsedBody.game_slug
             id: parsedBody.id
         - resource: short_npc_items
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
+        - resource: npc_documents
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
+        - resource: short_npc_documents
           parameters:
             slug: parsedBody.game_slug
             id: parsedBody.id
@@ -405,4 +456,22 @@ resources:
 
   short_npc_items:
     - url: /games/{:slug}/npcs/{:id}/items.json?per_page=5
+      status: 200
+
+  npc_documents:
+    - url: /games/{:slug}/npcs/{:id}/documents.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_npc_documents
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_npc_documents:
+    - url: /games/{:slug}/npcs/{:id}/documents.json?page={:page}
+      status: 200
+
+  short_npc_documents:
+    - url: /games/{:slug}/npcs/{:id}/documents.json?per_page=5
       status: 200
