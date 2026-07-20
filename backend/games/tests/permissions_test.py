@@ -11,6 +11,7 @@ from games.permissions import (
     CharacterMoneyEditPermission,
     CharacterTreasureExchangePermission,
     GameEditPermission,
+    GameItemPhotoUploadPermission,
     NpcPlayerEditPermission,
     PlayerPermission,
     SessionMessagePermission,
@@ -606,6 +607,64 @@ class TestGameEditPermissionCheck(TestCase):
         superuser = SuperUserFactory(username='admin', password='secret-password')
         request = _make_request(superuser)
         assert GameEditPermission.check(request, self.game) is None
+
+
+class TestGameItemPhotoUploadPermissionCheck(TestCase):
+    """Tests for GameItemPhotoUploadPermission.check()."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up a game, a DM, and a player of the game."""
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
+        cls.player_user = UserFactory(username='player_user', password='secret-password')
+        cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
+
+    def test_returns_401_response_for_anonymous_user(self):
+        """Test that an anonymous user gets a 401 error response."""
+        request = _make_request(AnonymousUser())
+        response = GameItemPhotoUploadPermission.check(request, self.game)
+        assert response.status_code == 401
+        assert response.data == {'errors': {'detail': ['authentication required']}}
+
+    def test_returns_401_response_for_none_user(self):
+        """Test that a None user gets a 401 error response."""
+        request = _make_request(None)
+        response = GameItemPhotoUploadPermission.check(request, self.game)
+        assert response.status_code == 401
+
+    def test_returns_403_response_for_unrelated_authenticated_user(self):
+        """Test that an authenticated user unrelated to the game gets a 403 error response."""
+        other_user = UserFactory(username='other', password='secret-password')
+        request = _make_request(other_user)
+        response = GameItemPhotoUploadPermission.check(request, self.game)
+        assert response.status_code == 403
+        assert response.data == {'errors': {'detail': ['not allowed']}}
+
+    def test_returns_none_for_player_of_the_game(self):
+        """Test that a player of the game passes the check."""
+        request = _make_request(self.player_user)
+        assert GameItemPhotoUploadPermission.check(request, self.game) is None
+
+    def test_returns_none_for_dm(self):
+        """Test that a DM of the game passes the check."""
+        request = _make_request(self.dm_user)
+        assert GameItemPhotoUploadPermission.check(request, self.game) is None
+
+    def test_returns_none_for_superuser(self):
+        """Test that a superuser passes the check."""
+        superuser = SuperUserFactory(username='admin', password='secret-password')
+        request = _make_request(superuser)
+        assert GameItemPhotoUploadPermission.check(request, self.game) is None
+
+    def test_returns_none_for_staff(self):
+        """Test that a global Staff account passes the check, even unrelated to the game."""
+        staff_user = UserFactory(username='staff_user', password='secret-password')
+        staff_user.is_staff = True
+        staff_user.save()
+        request = _make_request(staff_user)
+        assert GameItemPhotoUploadPermission.check(request, self.game) is None
 
 
 class TestTaskEditPermissionCheck(TestCase):
