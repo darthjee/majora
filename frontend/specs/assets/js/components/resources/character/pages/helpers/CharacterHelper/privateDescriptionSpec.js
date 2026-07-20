@@ -16,11 +16,11 @@ describe('CharacterHelper', function() {
         .toContain('DM Notes');
     });
 
-    it('renders the private description with the text-pre-wrap class to preserve line breaks', function() {
+    it('preserves line breaks via remark-breaks', function() {
       const c = { ...character, private_description: 'Line one.\nLine two.' };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
-      expect(html).toContain('text-pre-wrap');
-      expect(html).toContain('Line one.\nLine two.');
+      expect(html).toContain('Line one.<br');
+      expect(html).toContain('Line two.');
     });
 
     it('does not render the DM Notes section when private_description is absent', function() {

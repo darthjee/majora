@@ -15,6 +15,7 @@ _CHARACTER_ROUTES = [
     ('/items/all.json', 'items_all'),
     ('/items/<int:item_id>.json', 'item_detail'),
     ('/items/<int:item_id>/all.json', 'item_detail_all'),
+    ('/items/<int:item_id>/photo_upload.json', 'item_photo_upload'),
     ('/treasures.json', 'treasures'),
     ('/treasures/acquire.json', 'treasure_acquire'),
     ('/treasures/acquire/all.json', 'treasure_acquire_all'),

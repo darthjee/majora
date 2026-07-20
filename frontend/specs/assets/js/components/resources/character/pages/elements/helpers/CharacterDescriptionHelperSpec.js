@@ -10,10 +10,10 @@ describe('CharacterDescriptionHelper', function() {
       expect(html).toContain('border');
     });
 
-    it('renders the description with the text-pre-wrap class to preserve line breaks', function() {
+    it('preserves line breaks via remark-breaks', function() {
       const html = renderToStaticMarkup(CharacterDescriptionHelper.render('Line one.\nLine two.'));
-      expect(html).toContain('text-pre-wrap');
-      expect(html).toContain('Line one.\nLine two.');
+      expect(html).toContain('Line one.<br');
+      expect(html).toContain('Line two.');
     });
 
     it('renders nothing when description is absent', function() {

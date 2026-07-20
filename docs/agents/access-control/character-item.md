@@ -7,9 +7,11 @@ default `False`, never inherited from `GameItem.hidden` — see [GameItem](game-
 `unique_together = ('character', 'game_item')` — a character can hold at most one row per
 `GameItem`. Four dedicated index endpoints (one PC pair, one NPC pair) expose read access, and a
 PC/NPC `POST .../items.json` pair (issue #714) creates a brand-new `GameItem`/`CharacterItem`
-pair together — there is still no update/delete endpoint for a `CharacterItem` row, and no way to
-link an already-existing `GameItem` instead of always creating a new one (both out of scope, along
-with photo upload — left for follow-up issues), only Django admin for superusers.
+pair together, and a PC/NPC `POST .../items/<item_id>/photo_upload.json` pair (issue #750)
+initiates a photo upload overriding a held item's photo — there is still no update/delete
+endpoint for a `CharacterItem` row, and no way to link an already-existing `GameItem` instead of
+always creating a new one (both out of scope, left for follow-up issues), only Django admin for
+superusers.
 
 ## Item index endpoints
 
@@ -71,6 +73,39 @@ Staff bypass — unlike `can_edit`, which has none) is also exposed on the exist
 `.../permissions.json` response (`CharacterPermissionsSerializer`), for both the real-identity
 and role-simulated (`?role=`) paths, so the frontend can gate its "Create Item" button off an
 authoritative server-computed flag.
+
+## Item photo upload
+
+| Endpoint | Method | Who can call | Request | Response |
+|----------|--------|-------------|---------|----------|
+| `/games/<slug>/pcs/<id>/items/<item_id>/photo_upload.json` | POST | **CharacterItemPhotoUploadPermission** — dm, admin, staff, or the PC's owning player | `{ filename: string }` | `201` with `{ upload_id, token, item_id }` |
+| `/games/<slug>/npcs/<id>/items/<item_id>/photo_upload.json` | POST | **CharacterItemPhotoUploadPermission** — dm, admin, or staff (NPCs have no owner) | Same as above | Same as above |
+
+Both are init-only endpoints (issue #750), following the same two-step upload flow as every
+other photo (`POST .../photo_upload.json` → proxy-handled multipart submit → `PATCH
+/uploads/<upload_id>.json` finalize). The storage path is fixed/deterministic, not
+hash-randomized (`photos/games/<slug>/<pcs|npcs>/<character_id>/items/<item_id>/photo.<ext>`) —
+a `CharacterItem.photo` is a single nullable override FK, not a gallery, so each upload reuses
+(or creates once) the same `CharacterItemPhoto` row, always replacing the previous file. The
+`upload_finalize` endpoint learns a matching `CharacterItemPhoto` branch, unconditionally setting
+`CharacterItem.photo` to the finalized photo (never "if unset", like `Treasure`/`GameItem`).
+
+`CharacterItemPhotoUploadPermission` (`backend/games/permissions.py`) is `user.is_staff or
+character.can_be_edited_by(user)` — identical to `CharacterItemCreatePermission`'s formula
+(dm/admin/staff for both kinds, plus the owning player for PCs), deliberately narrower than
+`CharacterPhotoUploadPermission`'s broader "any player of the game" grant used for a character's
+own photo. Kept as its own permission class (not a reuse of `CharacterItemCreatePermission`) so
+the two actions' rules can diverge independently later. Error responses: `401`
+`{"errors": {"detail": ["authentication required"]}}` if unauthenticated; `403`
+`{"errors": {"detail": ["not allowed"]}}` if authenticated but not permitted; `404` for an
+unknown `game_slug`/`character_id`/`item_id` (or an id belonging to the opposite PC/NPC role);
+`400` `{"errors": {"<field>": ["<message>", ...]}}` on validation failure.
+
+A `can_upload_item_photo` boolean (backed by the same `CharacterItemPhotoUploadPermission`) is
+also exposed on the existing `.../permissions.json` response (`CharacterPermissionsSerializer`),
+for both the real-identity and role-simulated (`?role=`) paths — a separate field from
+`can_create_item`, even though both resolve identically today, so the frontend can gate its
+photo-upload button off an authoritative server-computed flag independent of item creation.
 
 Unlike [CharacterTreasure](character-treasure.md)'s NPC-only hidden-held-item filter (`hidden`
 there lives on the separate `GameTreasure` catalog row, and a PC keeps seeing every treasure it
