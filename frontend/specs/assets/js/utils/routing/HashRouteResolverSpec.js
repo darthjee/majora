@@ -24,8 +24,11 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/treasures').getPage()).toBe('pcCharacterTreasures');
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/treasures').getPage()).toBe('npcCharacterTreasures');
     expect(new HashRouteResolver(() => '#/games/campaign/items').getPage()).toBe('gameItems');
+    expect(new HashRouteResolver(() => '#/games/campaign/items/5').getPage()).toBe('gameItem');
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/items').getPage()).toBe('pcCharacterItems');
+    expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/items/5').getPage()).toBe('pcCharacterItem');
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/items').getPage()).toBe('npcCharacterItems');
+    expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/items/5').getPage()).toBe('npcCharacterItem');
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/items/new').getPage()).toBe('pcCharacterItemNew');
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/items/new').getPage()).toBe('npcCharacterItemNew');
     expect(new HashRouteResolver(() => '#/recover-password?token=abc').getPage()).toBe('recoverPassword');
@@ -94,6 +97,33 @@ describe('HashRouteResolver', function() {
   it('resolves /games/:game_slug/items to gameItems, not game', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/items').getPage()).toBe('gameItems');
   });
+
+  it('resolves /games/:game_slug/items/:id to gameItem, not gameItems', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/items/5').getPage()).toBe('gameItem');
+  });
+
+  it('resolves /games/:game_slug/pcs/:character_id/items/:id to pcCharacterItem, not pcCharacterItems', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/items/5').getPage()).toBe('pcCharacterItem');
+  });
+
+  it(
+    'resolves /games/:game_slug/npcs/:character_id/items/:id to npcCharacterItem, not npcCharacterItems',
+    function() {
+      expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/items/5').getPage()).toBe('npcCharacterItem');
+    },
+  );
+
+  it('still resolves /games/:game_slug/pcs/:character_id/items/new to pcCharacterItemNew, not pcCharacterItem',
+    function() {
+      expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/items/new').getPage()).toBe('pcCharacterItemNew');
+    });
+
+  it(
+    'still resolves /games/:game_slug/npcs/:character_id/items/new to npcCharacterItemNew, not npcCharacterItem',
+    function() {
+      expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/items/new').getPage()).toBe('npcCharacterItemNew');
+    },
+  );
 
   it('resolves /games/:game_slug/photos to gamePhotos, not game', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/photos').getPage()).toBe('gamePhotos');

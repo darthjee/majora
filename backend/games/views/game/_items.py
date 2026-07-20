@@ -1,4 +1,7 @@
-"""Shared implementation for the character items-list endpoint."""
+"""Shared implementation for the character items-list and item-detail endpoints."""
+
+from django.shortcuts import get_object_or_404
+from rest_framework.response import Response
 
 from ...serializers import CharacterItemSerializer
 from ..common import paginated_list_response
@@ -31,6 +34,33 @@ def character_items(
     if not allow_hidden:
         items = items.exclude(hidden=True)
     response = paginated_list_response(request, items, serializer_class)
+    if check_hidden and character.hidden:
+        response['X-Skip-Cache'] = 'true'
+    return response
+
+
+def character_item_detail(
+    request, game, character_id, item_id, npc, check_hidden, allow_hidden=False,
+    serializer_class=CharacterItemSerializer,
+):
+    """Return detail for a single item held by a specific character in a game.
+
+    Mirrors `character_items` above, narrowed to a single row: the same hidden-character gate
+    (`check_hidden`) and hidden-item filtering (`allow_hidden`) apply, but the result is a
+    single `CharacterItem` (404 if not found) instead of a paginated list.
+    """
+    character = _get_character_or_404(game, character_id, npc)
+
+    if check_hidden:
+        error_response = _hidden_gate_response(character, request)
+        if error_response:
+            return error_response
+
+    items = character.character_items.select_related('game_item')
+    if not allow_hidden:
+        items = items.exclude(hidden=True)
+    item = get_object_or_404(items, id=item_id)
+    response = Response(serializer_class(item).data)
     if check_hidden and character.hidden:
         response['X-Skip-Cache'] = 'true'
     return response

@@ -156,13 +156,30 @@ function buildItemInfoBarItems(hiddenLabelKey) {
 }
 
 /**
- * Build an item's click-through href: always `null`, since items have no standalone detail
- * page in scope (issue #658) — `ListPageHelper` renders the caption as plain text in that case.
+ * Build a game item's click-through href, to its game-scoped detail page (issue #724).
  *
- * @returns {null} Always null.
+ * @param {import('./GameItemListItem.js').default} item - Wrapped game item list item.
+ * @param {{gameSlug: string}} context - Rendering context, supplying the game slug.
+ * @returns {string} Hash path to the item's detail page.
  */
-function buildNullItemHref() {
-  return null;
+function buildGameItemHref(item, context) {
+  return `#/games/${context.gameSlug}/items/${item.data.id}`;
+}
+
+/**
+ * Build a `buildItemHref(item, context)` function for a character-scoped items list (PC or
+ * NPC), linking to the item's own detail page (issue #724). Distinct from
+ * `characterListTypes.js`'s `buildCharacterItemHref`, which links to a *character's* page, not
+ * an *item's*. Needs `context.characterId`, threaded in by `CharacterItemsHelper` since
+ * `ListPage`'s default context only merges in `gameSlug`/`canEdit` automatically.
+ *
+ * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`), used as the URL segment.
+ * @returns {Function} A `buildItemHref(item, context)` function for this character kind.
+ */
+function buildCharacterItemItemHref(characterKind) {
+  return function buildHref(item, context) {
+    return `#/games/${context.gameSlug}/${characterKind}/${context.characterId}/items/${item.data.id}`;
+  };
 }
 
 /**
@@ -184,7 +201,7 @@ function buildNullItemHref() {
  * - `showCaption` — whether caption text (display text + optional formatted value + optional
  *   availability text) appears under the photo.
  * - `buildItemHref(item, context)` — click-through URL builder; `null` when the type has no
- *   detail page to link to (e.g. items).
+ *   detail page to link to.
  * - `itemsPerRow` — number of cards per row at the largest (`lg`) breakpoint, read by
  *   `ListPageHelper` to pick the outer card column class (`6` → `col-lg-2`, `4` → `col-lg-3`);
  *   defaults to `6` when omitted.
@@ -209,7 +226,7 @@ const listTypeConfig = {
     buildActionBarProps: buildReadOnlyActionBarProps,
     buildInfoBarItems: buildItemInfoBarItems('game_items_page.hidden_label'),
     showCaption: true,
-    buildItemHref: buildNullItemHref,
+    buildItemHref: buildGameItemHref,
     itemsPerRow: 6,
   },
   'pc-items': {
@@ -220,7 +237,7 @@ const listTypeConfig = {
     buildActionBarProps: buildReadOnlyActionBarProps,
     buildInfoBarItems: buildItemInfoBarItems('character_items_page.hidden_label'),
     showCaption: true,
-    buildItemHref: buildNullItemHref,
+    buildItemHref: buildCharacterItemItemHref('pcs'),
     itemsPerRow: 6,
   },
   'npc-items': {
@@ -231,7 +248,7 @@ const listTypeConfig = {
     buildActionBarProps: buildReadOnlyActionBarProps,
     buildInfoBarItems: buildItemInfoBarItems('character_items_page.hidden_label'),
     showCaption: true,
-    buildItemHref: buildNullItemHref,
+    buildItemHref: buildCharacterItemItemHref('npcs'),
     itemsPerRow: 6,
   },
   games: gamesListType,

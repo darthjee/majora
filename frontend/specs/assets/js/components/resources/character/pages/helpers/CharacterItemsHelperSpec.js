@@ -55,6 +55,7 @@ describe('CharacterItemsHelper', function() {
       expect(listPage.props.type).toBe('pc-items');
       expect(listPage.props.gameSlug).toBe('demo');
       expect(listPage.props.basePath).toBe('#/games/demo/pcs/7/items');
+      expect(listPage.props.context).toEqual({ characterId: '7' });
     });
 
     it('wires a ListPage of type npc-items with the expected props', function() {
@@ -65,6 +66,7 @@ describe('CharacterItemsHelper', function() {
       expect(listPage.props.type).toBe('npc-items');
       expect(listPage.props.gameSlug).toBe('demo');
       expect(listPage.props.basePath).toBe('#/games/demo/npcs/9/items');
+      expect(listPage.props.context).toEqual({ characterId: '9' });
     });
 
     it('does not render a "Create Item" button by default', function() {

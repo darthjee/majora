@@ -16,11 +16,11 @@ from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game
 from ...permissions import CharacterEditPermission, GameEditPermission
-from ...serializers import CharacterPermissionsSerializer
+from ...serializers import CharacterItemSerializer, CharacterPermissionsSerializer
 from ..common import access_response, parse_role_booleans, permissions_response
 from ._full import character_full
 from ._item_create import character_item_create
-from ._items import character_items
+from ._items import character_item_detail, character_items
 from ._money import character_money_update
 from ._photo_set import character_photo_set
 from ._photo_upload import character_photo_upload
@@ -172,6 +172,41 @@ def build_items_all_view(npc, serializer_class):
             return error_response
         response = character_items(
             request, game, character_id, npc=npc, check_hidden=npc, allow_hidden=True,
+            serializer_class=serializer_class,
+        )
+        response['X-Skip-Cache'] = 'true'
+        return response
+
+    return view
+
+
+def build_item_detail_view(npc, serializer_class=CharacterItemSerializer):
+    """Build the GET item-detail view for a PC (`npc=False`) or NPC (`npc=True`)."""
+
+    @_build_api_view(['GET'], AllowAny)
+    def view(request, game_slug, character_id, item_id):
+        """Return detail for a single non-hidden item held by a specific PC/NPC."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        return character_item_detail(
+            request, game, character_id, item_id, npc=npc, check_hidden=npc,
+            serializer_class=serializer_class,
+        )
+
+    return view
+
+
+def build_item_detail_all_view(npc, serializer_class):
+    """Build the DM/owner-only GET item-detail-all view for a PC (`npc=False`) or NPC (npc=True)."""
+
+    @_build_api_view(['GET'], AllowAny)
+    def view(request, game_slug, character_id, item_id):
+        """Return detail for any item (including hidden) held by a PC/NPC — dm/owner/admin only."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        error_response = _check_items_all_permission(request, game, character_id, npc)
+        if error_response:
+            return error_response
+        response = character_item_detail(
+            request, game, character_id, item_id, npc=npc, check_hidden=npc, allow_hidden=True,
             serializer_class=serializer_class,
         )
         response['X-Skip-Cache'] = 'true'

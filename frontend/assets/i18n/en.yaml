@@ -345,6 +345,9 @@ game_items_page:
   loading: Loading items...
   title: Items
   hidden_label: Hidden
+item_page:
+  loading: Loading item...
+  hidden_label: Hidden
 add_game_treasure_modal:
   title: Add Treasure
   value_label: Value

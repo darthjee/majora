@@ -5,6 +5,8 @@ from .detail.game_npc_full import game_npc_full
 from .detail.game_npc_money import game_npc_money
 from .detail.game_npc_permissions import game_npc_permissions
 from .detail.game_npc_photo_upload import game_npc_photo_upload
+from .detail.items.game_npc_item_detail import game_npc_item_detail
+from .detail.items.game_npc_item_detail_all import game_npc_item_detail_all
 from .detail.items.game_npc_items import game_npc_items
 from .detail.items.game_npc_items_all import game_npc_items_all
 from .detail.photos.game_npc_photo_set import game_npc_photo_set
@@ -31,6 +33,8 @@ __all__ = [
     'game_npc_photos',
     'game_npc_items',
     'game_npc_items_all',
+    'game_npc_item_detail',
+    'game_npc_item_detail_all',
     'game_npc_treasures',
     'game_npc_treasures_all',
     'game_npc_treasure_acquire',
