@@ -12,23 +12,23 @@ describe('CharacterClient', function() {
     describe('for a PC', function() {
       itSendsAuthHeader({
         call: (token) => new CharacterClient().fetchCharacterPhotos('pcs', 'demo', '2', token),
-        url: '/games/demo/pcs/2/photos.json?per_page=6',
+        url: '/games/demo/pcs/2/photos.json?per_page=11',
       });
     });
 
     describe('for an NPC', function() {
       itSendsAuthHeader({
         call: (token) => new CharacterClient().fetchCharacterPhotos('npcs', 'demo', '2', token),
-        url: '/games/demo/npcs/2/photos.json?per_page=6',
+        url: '/games/demo/npcs/2/photos.json?per_page=11',
       });
     });
 
-    it('defaults per_page to 6 when not provided', async function() {
+    it('defaults per_page to 11 when not provided', async function() {
       const client = new CharacterClient();
 
       await client.fetchCharacterPhotos('pcs', 'demo', '2', 'abc123');
 
-      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/photos.json?per_page=6', jasmine.objectContaining({
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/photos.json?per_page=11', jasmine.objectContaining({
         method: 'GET',
         headers: {
           Accept: 'application/json',

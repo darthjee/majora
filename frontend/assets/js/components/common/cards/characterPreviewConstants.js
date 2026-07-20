@@ -13,7 +13,7 @@ export const MAX_PREVIEW_ITEMS = 5;
  *
  * @type {number}
  */
-export const MAX_PREVIEW_PHOTOS = 6;
+export const MAX_PREVIEW_PHOTOS = 11;
 
 /**
  * Per-type configuration for `PreviewSection` call sites: an i18n title key,

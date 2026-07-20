@@ -30,10 +30,10 @@ describe('CharacterPhotosPreviewHelper', function() {
     });
 
     it('slices the photos to the max preview count', function() {
-      const html = renderToStaticMarkup(CharacterPhotosPreviewHelper.render(buildPhotos(8), title, seeAllHref));
-      expect(html).toContain('/photos/6.jpg');
-      expect(html).not.toContain('/photos/7.jpg');
-      expect(html).not.toContain('/photos/8.jpg');
+      const html = renderToStaticMarkup(CharacterPhotosPreviewHelper.render(buildPhotos(13), title, seeAllHref));
+      expect(html).toContain('/photos/11.jpg');
+      expect(html).not.toContain('/photos/12.jpg');
+      expect(html).not.toContain('/photos/13.jpg');
     });
 
     it('renders a see all card with the provided href', function() {

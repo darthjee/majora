@@ -120,7 +120,7 @@ export default class CharacterClient extends BaseClient {
    * @param {number} [perPage] - Maximum number of photos to fetch.
    * @returns {Promise<Response>} fetch response from the character photos endpoint.
    */
-  fetchCharacterPhotos(characterKind, gameSlug, characterId, token, perPage = 6) {
+  fetchCharacterPhotos(characterKind, gameSlug, characterId, token, perPage = 11) {
     const path = `/games/${gameSlug}/${characterKind}/${characterId}/photos.json?per_page=${perPage}`;
 
     return this.getJson(path, token);
