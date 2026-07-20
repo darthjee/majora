@@ -116,6 +116,18 @@ class TestUploadFinalizeView(TestCase):
         cls.pc_upload_by_staff.content_object = cls.pc_photo_by_staff
         cls.pc_upload_by_staff.save()
 
+        cls.npc_upload_by_staff = Upload.objects.create(
+            user=cls.staff_user,
+            file_path='photos/games/epic-quest/characters/2/npc_staff.jpg',
+        )
+        cls.npc_photo_by_staff = CharacterPhoto.objects.create(
+            character=cls.npc,
+            path='photos/games/epic-quest/characters/2/npc_staff.jpg',
+            ready=False,
+        )
+        cls.npc_upload_by_staff.content_object = cls.npc_photo_by_staff
+        cls.npc_upload_by_staff.save()
+
         cls.superuser = SuperUserFactory(
             username='admin', password='secret-password'
         )
@@ -444,6 +456,30 @@ class TestUploadFinalizeView(TestCase):
         assert response.status_code == 200
         self.pc_photo_by_staff.refresh_from_db()
         assert self.pc_photo_by_staff.ready is True
+
+    def test_uploading_status_returns_200_for_npc_upload_by_staff(self):
+        """Test that a staff user (not owner) finalizing an NPC 'uploading' step gets 200."""
+        response = self._patch(
+            self.client,
+            self.npc_upload_by_staff.id,
+            {'status': 'uploading'},
+            token=self.staff_token,
+            upload_token=self.npc_upload_by_staff.token,
+        )
+        assert response.status_code == 200
+
+    def test_uploaded_status_sets_npc_photo_ready_for_staff(self):
+        """Test that status=uploaded sets NPC CharacterPhoto.ready for a staff user (not owner)."""
+        response = self._patch(
+            self.client,
+            self.npc_upload_by_staff.id,
+            {'status': 'uploaded'},
+            token=self.staff_token,
+            upload_token=self.npc_upload_by_staff.token,
+        )
+        assert response.status_code == 200
+        self.npc_photo_by_staff.refresh_from_db()
+        assert self.npc_photo_by_staff.ready is True
 
     def test_unauthenticated_request_returns_401_for_treasure_upload(self):
         """Test that an unauthenticated request on a TreasurePhoto upload returns 401."""

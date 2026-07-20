@@ -46,8 +46,7 @@ export default function CharacterPhotos({ ControllerClass, getParamsFromHash, Ph
   const basePath = `#/games/${gameSlug}/${characterKind}/${characterId}/photos`;
   const backHref = `#/games/${gameSlug}/${characterKind}/${characterId}`;
   const alt = character.name || '';
-  const canUploadPhoto = character.can_edit || character.is_player
-    || (character.is_pc && character.is_staff);
+  const canUploadPhoto = character.can_edit || character.is_player || character.is_staff;
 
   const handleUploadSuccess = () => {
     setShowUploadModal(false);
