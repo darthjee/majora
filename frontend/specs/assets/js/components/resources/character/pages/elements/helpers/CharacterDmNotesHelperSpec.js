@@ -10,10 +10,10 @@ describe('CharacterDmNotesHelper', function() {
       expect(html).toContain('DM Notes');
     });
 
-    it('renders the description with the text-pre-wrap class to preserve line breaks', function() {
+    it('preserves line breaks via remark-breaks', function() {
       const html = renderToStaticMarkup(CharacterDmNotesHelper.render('Line one.\nLine two.'));
-      expect(html).toContain('text-pre-wrap');
-      expect(html).toContain('Line one.\nLine two.');
+      expect(html).toContain('Line one.<br');
+      expect(html).toContain('Line two.');
     });
 
     it('returns null when private_description is absent', function() {

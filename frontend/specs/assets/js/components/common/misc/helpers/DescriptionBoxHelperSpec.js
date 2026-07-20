@@ -35,13 +35,13 @@ describe('DescriptionBoxHelper', function() {
       expect(html).toContain('bg-light');
     });
 
-    it('preserves line breaks via the text-pre-wrap class', function() {
+    it('preserves line breaks via remark-breaks', function() {
       const html = renderToStaticMarkup(
         DescriptionBoxHelper.render('Line one.\nLine two.', buildState(), buildHandlers()),
       );
 
-      expect(html).toContain('text-pre-wrap');
-      expect(html).toContain('Line one.\nLine two.');
+      expect(html).toContain('Line one.<br');
+      expect(html).toContain('Line two.');
     });
 
     it('does not render a toggle button when the content does not overflow', function() {
