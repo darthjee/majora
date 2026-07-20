@@ -17,17 +17,17 @@ describe('GameHelper', function() {
       expect(html).toContain('border');
     });
 
-    it('renders the description with the text-pre-wrap class to preserve line breaks', function() {
+    it('preserves line breaks via remark-breaks', function() {
       const gameWithMultilineDesc = { ...game, description: 'Line one.\nLine two.' };
       const html = renderToStaticMarkup(GameHelper.render(gameWithMultilineDesc));
-      expect(html).toContain('text-pre-wrap');
-      expect(html).toContain('Line one.\nLine two.');
+      expect(html).toContain('Line one.<br');
+      expect(html).toContain('Line two.');
     });
 
     it('does not render the description box when description is empty', function() {
       const gameNoDesc = { ...game, description: '' };
       const html = renderToStaticMarkup(GameHelper.render(gameNoDesc));
-      expect(html).not.toContain('text-pre-wrap');
+      expect(html).not.toContain('p-3 border rounded bg-light');
     });
 
     it('renders a back button to the games page', function() {
