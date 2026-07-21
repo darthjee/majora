@@ -1,8 +1,8 @@
-"""Tests for the GameItemDetailSerializer/GameItemDetailAllSerializer."""
+"""Tests for the GameItemDetailSerializer/GameItemDetailFullSerializer."""
 
 from django.test import TestCase
 
-from games.serializers import GameItemDetailAllSerializer, GameItemDetailSerializer
+from games.serializers import GameItemDetailFullSerializer, GameItemDetailSerializer
 from games.tests.factories import GameItemFactory
 
 
@@ -25,8 +25,8 @@ class TestGameItemDetailSerializer(TestCase):
         assert set(data.keys()) == {'id', 'name', 'description', 'photo_path'}
 
 
-class TestGameItemDetailAllSerializer(TestCase):
-    """Tests for the GameItemDetailAllSerializer."""
+class TestGameItemDetailFullSerializer(TestCase):
+    """Tests for the GameItemDetailFullSerializer."""
 
     @classmethod
     def setUpTestData(cls):
@@ -35,12 +35,12 @@ class TestGameItemDetailAllSerializer(TestCase):
 
     def test_includes_hidden_field_alongside_detail_fields(self):
         """Test that the serializer exposes every GameItemDetailSerializer field plus hidden."""
-        data = GameItemDetailAllSerializer(self.item).data
+        data = GameItemDetailFullSerializer(self.item).data
         assert set(data.keys()) == {'id', 'name', 'description', 'photo_path', 'hidden'}
 
     def test_hidden_reflects_the_game_item_own_field(self):
         """Test that hidden reflects the game item's own hidden field."""
         self.item.hidden = True
         self.item.save()
-        data = GameItemDetailAllSerializer(self.item).data
+        data = GameItemDetailFullSerializer(self.item).data
         assert data['hidden'] is True

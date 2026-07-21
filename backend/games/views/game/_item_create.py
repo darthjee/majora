@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from ...models import CharacterItem, GameItem
 from ...permissions import CharacterItemCreatePermission
-from ...serializers import CharacterItemDetailAllSerializer
+from ...serializers import CharacterItemDetailFullSerializer
 from ..common import validated_or_error
 
 
@@ -39,7 +39,7 @@ def character_item_create(request, game, character):
         return error_response
 
     character_item = _create_item(game, character, serializer.validated_data)
-    return Response(CharacterItemDetailAllSerializer(character_item).data, status=201)
+    return Response(CharacterItemDetailFullSerializer(character_item).data, status=201)
 
 
 def _create_item(game, character, validated_data):

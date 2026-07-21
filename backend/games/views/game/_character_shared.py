@@ -235,8 +235,8 @@ def build_item_detail_view(npc, serializer_class=CharacterItemDetailSerializer):
     return view
 
 
-def build_item_detail_all_view(npc, serializer_class):
-    """Build the DM/owner-only GET item-detail-all view for a PC (`npc=False`) or NPC (npc=True)."""
+def build_item_detail_full_view(npc, serializer_class):
+    """Build the DM/owner-only GET item-detail-full view for a PC (npc=False) or NPC (npc=True)."""
 
     @_build_api_view(['GET'], AllowAny)
     def view(request, game_slug, character_id, item_id):

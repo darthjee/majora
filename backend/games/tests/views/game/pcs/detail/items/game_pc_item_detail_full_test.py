@@ -1,4 +1,4 @@
-"""Tests for the PC item detail/all.json view (dm, owner, or admin only; includes hidden)."""
+"""Tests for the PC item detail/full.json view (dm, owner, or admin only; includes hidden)."""
 
 import json
 
@@ -19,8 +19,8 @@ from games.tests.factories import (
 
 
 @pytest.mark.django_db
-class TestGamePcItemDetailAllView(TokenAuthRequestMixin):
-    """Tests for GET /games/<slug>/pcs/<id>/items/<item_id>/all.json."""
+class TestGamePcItemDetailFullView(TokenAuthRequestMixin):
+    """Tests for GET /games/<slug>/pcs/<id>/items/<item_id>/full.json."""
 
     def setup_method(self):
         """Set up a game, an owning player/user, a DM, an unrelated user, and a hidden item."""
@@ -44,10 +44,10 @@ class TestGamePcItemDetailAllView(TokenAuthRequestMixin):
         )
 
     def _url(self, item_id=None, character_id=None, game_slug='test-game'):
-        """Return the item detail/all URL for the given item (defaults to the fixture)."""
+        """Return the item detail/full URL for the given item (defaults to the fixture)."""
         item_id = item_id if item_id is not None else self.hidden_item.id
         character_id = character_id if character_id is not None else self.character.id
-        return f'/games/{game_slug}/pcs/{character_id}/items/{item_id}/all.json'
+        return f'/games/{game_slug}/pcs/{character_id}/items/{item_id}/full.json'
 
     def test_returns_401_for_unauthenticated(self, client):
         """Test that an unauthenticated request returns 401."""
@@ -108,7 +108,7 @@ class TestGamePcItemDetailAllView(TokenAuthRequestMixin):
     def test_url_by_name(self, client):
         """Test that the view is accessible by URL name."""
         url = reverse(
-            'game-pc-item-detail-all',
+            'game-pc-item-detail-full',
             kwargs={
                 'game_slug': 'test-game',
                 'character_id': self.character.id,

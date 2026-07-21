@@ -5,7 +5,7 @@ from .game_detail import game_detail
 from .game_documents import game_documents
 from .game_documents_all import game_documents_all
 from .game_item_detail import game_item_detail
-from .game_item_detail_all import game_item_detail_all
+from .game_item_detail_full import game_item_detail_full
 from .game_item_photo_upload import game_item_photo_upload
 from .game_items import game_items
 from .game_items_all import game_items_all
@@ -34,7 +34,7 @@ __all__ = [
     'game_items',
     'game_items_all',
     'game_item_detail',
-    'game_item_detail_all',
+    'game_item_detail_full',
     'game_item_photo_upload',
     'game_photos',
     'my_games_list',

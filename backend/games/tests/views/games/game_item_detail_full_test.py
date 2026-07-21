@@ -1,4 +1,4 @@
-"""Tests for the game item detail/all.json view (DM/superuser only, includes hidden)."""
+"""Tests for the game item detail/full.json view (DM/superuser only, includes hidden)."""
 
 import json
 
@@ -17,8 +17,8 @@ from games.tests.factories import (
 
 
 @pytest.mark.django_db
-class TestGameItemDetailAllView(TokenAuthRequestMixin):
-    """Tests for GET /games/<slug>/items/<item_id>/all.json."""
+class TestGameItemDetailFullView(TokenAuthRequestMixin):
+    """Tests for GET /games/<slug>/items/<item_id>/full.json."""
 
     def setup_method(self):
         """Set up a game, a DM, an unrelated user, and a hidden item."""
@@ -33,9 +33,9 @@ class TestGameItemDetailAllView(TokenAuthRequestMixin):
         )
 
     def _url(self, item_id=None, game_slug='test-game'):
-        """Return the item detail/all URL for the given item (defaults to the fixture)."""
+        """Return the item detail/full URL for the given item (defaults to the fixture)."""
         item_id = item_id if item_id is not None else self.hidden_item.id
-        return f'/games/{game_slug}/items/{item_id}/all.json'
+        return f'/games/{game_slug}/items/{item_id}/full.json'
 
     def test_returns_401_for_unauthenticated(self, client):
         """Test that an unauthenticated request returns 401."""
@@ -91,7 +91,7 @@ class TestGameItemDetailAllView(TokenAuthRequestMixin):
     def test_url_by_name(self, client):
         """Test that the view is accessible by URL name."""
         url = reverse(
-            'game-item-detail-all',
+            'game-item-detail-full',
             kwargs={'game_slug': 'test-game', 'item_id': self.hidden_item.id},
         )
         response = self.get(client, url, token=self.dm_token)
