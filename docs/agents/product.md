@@ -113,11 +113,25 @@ optional photo, `hidden`) — simpler than `Treasure`: there is no shared cross-
 `GameItem` itself is the top of the item hierarchy rather than a per-game link to a separately
 owned catalog row. A **CharacterItem** links a `GameItem` to a PC or NPC, with its own optional
 `name`/`description`/`photo` overrides that fall back to the linked `GameItem`'s values when
-`null`, and its own independent `hidden` flag. Both are read-only in the current issue (no
-create, update, or photo upload flow) — see
+`null`, and its own independent `hidden` flag. `GameItem` gained a photo upload endpoint (issue
+#749); `CharacterItem` gained both a create endpoint (issue #714) and a photo upload endpoint
+(issue #750) — there is still no update/delete endpoint for either — see
 [access-control/game-item.md](access-control/game-item.md) and
 [access-control/character-item.md](access-control/character-item.md) for the full endpoint and
 permission breakdown.
+
+### GameDocument / CharacterDocument
+
+A **GameDocument** is a special document belonging to exactly one game (`name`, `description`,
+optional photo, `hidden`) — field-for-field a mirror of `GameItem`. A **CharacterDocument**
+links a `GameDocument` to a PC or NPC, with its own optional `name`/`description`/`photo`
+overrides that fall back to the linked `GameDocument`'s values when `null`, and its own
+independent `hidden` flag — field-for-field a mirror of `CharacterItem`. Unlike `GameItem`/
+`CharacterItem`, both are entirely read-only in the current issue (no create, update, or photo
+upload flow yet — the `photo` FK and its backing photo models exist as schema only) — see
+[access-control/game-document.md](access-control/game-document.md) and
+[access-control/character-document.md](access-control/character-document.md) for the full
+endpoint and permission breakdown.
 
 ### Poll
 

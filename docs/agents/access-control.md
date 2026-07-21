@@ -36,6 +36,8 @@ regardless of any other rule listed below.
 - [GameTreasure](access-control/game-treasure.md)
 - [GameItem](access-control/game-item.md)
 - [CharacterItem](access-control/character-item.md)
+- [GameDocument](access-control/game-document.md)
+- [CharacterDocument](access-control/character-document.md)
 - [Link](access-control/link.md)
 - [CharacterLink](access-control/character-link.md)
 - [Treasure](access-control/treasure.md)
