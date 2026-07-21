@@ -4,6 +4,8 @@ from .conversations import game_conversations
 from .npcs import (
     game_npc_access,
     game_npc_detail,
+    game_npc_documents,
+    game_npc_documents_all,
     game_npc_full,
     game_npc_item_detail,
     game_npc_item_detail_all,
@@ -26,6 +28,8 @@ from .npcs import (
 from .pcs import (
     game_pc_access,
     game_pc_detail,
+    game_pc_documents,
+    game_pc_documents_all,
     game_pc_full,
     game_pc_item_detail,
     game_pc_item_detail_all,
@@ -68,6 +72,10 @@ __all__ = [
     'game_npc_photo_set',
     'game_pc_photos',
     'game_npc_photos',
+    'game_pc_documents',
+    'game_npc_documents',
+    'game_pc_documents_all',
+    'game_npc_documents_all',
     'game_pc_items',
     'game_npc_items',
     'game_npc_items_all',

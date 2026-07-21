@@ -1,5 +1,7 @@
 """Views for PC (Player Character) endpoints."""
 
+from .detail.documents.game_pc_documents import game_pc_documents
+from .detail.documents.game_pc_documents_all import game_pc_documents_all
 from .detail.game_pc_access import game_pc_access
 from .detail.game_pc_full import game_pc_full
 from .detail.game_pc_money import game_pc_money
@@ -29,6 +31,8 @@ __all__ = [
     'game_pc_photo_upload',
     'game_pc_photo_set',
     'game_pc_photos',
+    'game_pc_documents',
+    'game_pc_documents_all',
     'game_pc_items',
     'game_pc_items_all',
     'game_pc_item_detail',

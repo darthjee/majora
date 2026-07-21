@@ -4,11 +4,13 @@ from django.contrib import admin
 
 from .models import (
     Character,
+    CharacterDocument,
     CharacterItem,
     CharacterLink,
     CharacterPhoto,
     CharacterTreasure,
     Game,
+    GameDocument,
     GameItem,
     GamePhoto,
     GameSession,
@@ -49,6 +51,8 @@ admin.site.register(Link)
 admin.site.register(GamePhoto)
 admin.site.register(GameItem)
 admin.site.register(CharacterItem)
+admin.site.register(GameDocument)
+admin.site.register(CharacterDocument)
 admin.site.register(Treasure)
 admin.site.register(GameSession)
 admin.site.register(Task)

@@ -18,6 +18,7 @@ from ...models import Game
 from ...permissions import CharacterEditPermission, GameEditPermission
 from ...serializers import CharacterItemDetailSerializer, CharacterPermissionsSerializer
 from ..common import access_response, parse_role_booleans, permissions_response
+from ._documents import character_documents
 from ._full import character_full
 from ._item_create import character_item_create
 from ._item_photo_upload import character_item_photo_upload
@@ -149,11 +150,13 @@ def build_items_view(npc):
     return view
 
 
-def _check_items_all_permission(request, game, character_id, npc):
-    """Return an error Response if the requester may not view all items, else None.
+def _check_character_all_permission(request, game, character_id, npc):
+    """Return an error Response if the requester may not view all items/documents, else None.
 
-    An NPC's `/items/all.json` is DM/superuser-only (`GameEditPermission`); a PC's own
-    variant is additionally open to the PC's owning player (`CharacterEditPermission`).
+    An NPC's `/items/all.json` (or `/documents/all.json`) is DM/superuser-only
+    (`GameEditPermission`); a PC's own variant is additionally open to the PC's owning player
+    (`CharacterEditPermission`). Shared by both the items and documents `/all.json` view
+    factories below — the branching is identical, only the calling endpoint differs.
     """
     if npc:
         return GameEditPermission.check(request, game)
@@ -168,10 +171,46 @@ def build_items_all_view(npc, serializer_class):
     def view(request, game_slug, character_id):
         """Return all items (including hidden) held by a PC/NPC — dm/owner/superuser only."""
         game = get_object_or_404(Game, game_slug=game_slug)
-        error_response = _check_items_all_permission(request, game, character_id, npc)
+        error_response = _check_character_all_permission(request, game, character_id, npc)
         if error_response:
             return error_response
         response = character_items(
+            request, game, character_id, npc=npc, check_hidden=npc, allow_hidden=True,
+            serializer_class=serializer_class,
+        )
+        response['X-Skip-Cache'] = 'true'
+        return response
+
+    return view
+
+
+def build_documents_view(npc):
+    """Build the GET documents view for a PC (`npc=False`) or NPC (`npc=True`).
+
+    Mirrors `build_items_view` above, minus the `POST` branch — there is no create endpoint
+    for documents in this issue.
+    """
+
+    @_build_api_view(['GET'], AllowAny)
+    def view(request, game_slug, character_id):
+        """Return a paginated list of non-hidden documents held by a PC/NPC."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        return character_documents(request, game, character_id, npc=npc, check_hidden=npc)
+
+    return view
+
+
+def build_documents_all_view(npc, serializer_class):
+    """Build the DM/owner-only GET documents-all view for a PC (`npc=False`) or NPC (`npc=True`)."""
+
+    @_build_api_view(['GET'], AllowAny)
+    def view(request, game_slug, character_id):
+        """Return all documents (including hidden) held by a PC/NPC — dm/owner/superuser only."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        error_response = _check_character_all_permission(request, game, character_id, npc)
+        if error_response:
+            return error_response
+        response = character_documents(
             request, game, character_id, npc=npc, check_hidden=npc, allow_hidden=True,
             serializer_class=serializer_class,
         )
@@ -203,7 +242,7 @@ def build_item_detail_all_view(npc, serializer_class):
     def view(request, game_slug, character_id, item_id):
         """Return detail for any item (including hidden) held by a PC/NPC — dm/owner/admin only."""
         game = get_object_or_404(Game, game_slug=game_slug)
-        error_response = _check_items_all_permission(request, game, character_id, npc)
+        error_response = _check_character_all_permission(request, game, character_id, npc)
         if error_response:
             return error_response
         response = character_item_detail(
