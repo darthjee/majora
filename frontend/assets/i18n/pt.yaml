@@ -46,6 +46,7 @@ login_modal:
   register_link: Criar uma conta
 photo_upload_modal:
   cancel: Cancelar
+  confirm: Confirmar
   error: Falha ao enviar foto. Por favor, tente novamente.
   submit: Enviar
   title: Enviar Foto
@@ -512,6 +513,9 @@ game_npc_new_page:
   money_label: Dinheiro
   submit: Criar NPC
   error: Falha ao criar o personagem. Tente novamente.
+  photo_upload_failed: Falha ao enviar a foto. O NPC foi criado — você pode tentar novamente ou pular por enquanto.
+  retry_photo_upload: Tentar enviar a foto novamente
+  skip_photo_upload: Pular e continuar
 game_photos_page:
   title: Fotos
   loading: Carregando fotos...
