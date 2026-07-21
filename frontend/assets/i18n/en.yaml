@@ -46,6 +46,7 @@ login_modal:
   register_link: Create an account
 photo_upload_modal:
   cancel: Cancel
+  confirm: Confirm
   error: Failed to upload photo. Please try again.
   submit: Upload
   title: Upload Photo
@@ -512,6 +513,9 @@ game_npc_new_page:
   money_label: Money (copper pieces)
   submit: Create NPC
   error: Failed to create NPC. Please try again.
+  photo_upload_failed: Failed to upload the photo. The NPC was created — you can retry the upload or skip it for now.
+  retry_photo_upload: Retry photo upload
+  skip_photo_upload: Skip and continue
 game_photos_page:
   title: Photos
   loading: Loading photos...

@@ -42,6 +42,7 @@ describe('PhotoUploadModalHelper', function() {
   const buildState = (overrides = {}) => ({
     error: false,
     uploading: false,
+    deferred: false,
     ...overrides,
   });
 
@@ -147,6 +148,26 @@ describe('PhotoUploadModalHelper', function() {
 
       expect(handlers.onDragOver).toHaveBeenCalledWith(fakeEvent);
       expect(handlers.onDrop).toHaveBeenCalledWith(fakeEvent);
+    });
+
+    it('labels the submit button "Confirm" in deferred mode', function() {
+      const element = PhotoUploadModalHelper.render(true, buildState({ deferred: true }), buildHandlers());
+      const submitButton = findElement(
+        element,
+        (child) => child.type === 'button' && child.props.className === 'btn btn-primary'
+      );
+
+      expect(submitButton.props.children).toBe('Confirm');
+    });
+
+    it('labels the submit button "Upload" when not deferred', function() {
+      const element = PhotoUploadModalHelper.render(true, buildState(), buildHandlers());
+      const submitButton = findElement(
+        element,
+        (child) => child.type === 'button' && child.props.className === 'btn btn-primary'
+      );
+
+      expect(submitButton.props.children).toBe('Upload');
     });
 
     it('wires the file change handler on the input', function() {

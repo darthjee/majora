@@ -10,10 +10,13 @@ describe('GameNpcNewHelper', function() {
     onDescriptionChange: jasmine.createSpy('onDescriptionChange'),
     onPrivateDescriptionChange: jasmine.createSpy('onPrivateDescriptionChange'),
     onOpenLinksModal: jasmine.createSpy('onOpenLinksModal'),
+    onOpenUploadModal: jasmine.createSpy('onOpenUploadModal'),
     onHiddenChange: jasmine.createSpy('onHiddenChange'),
     onMoneyChange: jasmine.createSpy('onMoneyChange'),
     onAllegianceChange: jasmine.createSpy('onAllegianceChange'),
     onPublicAllegianceChange: jasmine.createSpy('onPublicAllegianceChange'),
+    onRetryPhotoUpload: jasmine.createSpy('onRetryPhotoUpload'),
+    onSkipPhotoUpload: jasmine.createSpy('onSkipPhotoUpload'),
   });
 
   const buildState = (overrides = {}) => ({
@@ -28,6 +31,7 @@ describe('GameNpcNewHelper', function() {
     publicAllegiance: 'neutral',
     status: 'idle',
     fieldErrors: {},
+    photoPreviewUrl: null,
     ...overrides,
   });
 
@@ -45,7 +49,7 @@ describe('GameNpcNewHelper', function() {
       expect(html).toContain('id="game-npc-new-public-allegiance"');
     });
 
-    it('renders a static avatar placeholder with no upload control in the left column', function() {
+    it('renders an editable avatar placeholder with an upload control in the left column', function() {
       const html = renderToStaticMarkup(GameNpcNewHelper.render(buildState(), buildHandlers()));
       const leftColStart = html.indexOf('class="col-md-4"');
       const rightColStart = html.indexOf('class="col-md-8"');
@@ -58,7 +62,15 @@ describe('GameNpcNewHelper', function() {
       expect(rightColStart).toBeGreaterThan(leftColStart);
       expect(avatarIndex).toBeGreaterThan(leftColStart);
       expect(avatarIndex).toBeLessThan(rightColStart);
-      expect(html).not.toContain('actions-overlay-button');
+      expect(html).toContain('actions-overlay-button');
+    });
+
+    it('renders the picked photo preview when photoPreviewUrl is set', function() {
+      const html = renderToStaticMarkup(
+        GameNpcNewHelper.render(buildState({ photoPreviewUrl: 'blob:fake-preview' }), buildHandlers()),
+      );
+
+      expect(html).toContain('blob:fake-preview');
     });
 
     it('renders the links field in the left column, wired to onOpenLinksModal', function() {
@@ -190,6 +202,46 @@ describe('GameNpcNewHelper', function() {
       const html = renderToStaticMarkup(GameNpcNewHelper.render(buildState(), buildHandlers()));
 
       expect(html).not.toContain('Failed to create NPC.');
+    });
+
+    it('renders the photo-upload-failed alert with retry and skip buttons', function() {
+      const html = renderToStaticMarkup(
+        GameNpcNewHelper.render(buildState({ status: 'photo-upload-failed' }), buildHandlers()),
+      );
+
+      expect(html).toContain('Failed to upload the photo');
+      expect(html).toContain('Retry photo upload');
+      expect(html).toContain('Skip and continue');
+    });
+
+    it('does not render the photo-upload-failed alert when status is idle', function() {
+      const html = renderToStaticMarkup(GameNpcNewHelper.render(buildState(), buildHandlers()));
+
+      expect(html).not.toContain('Retry photo upload');
+    });
+
+    it('wires the retry and skip handlers in the photo-upload-failed state', function() {
+      const handlers = buildHandlers();
+      const html = renderToStaticMarkup(
+        GameNpcNewHelper.render(buildState({ status: 'photo-upload-failed' }), handlers),
+      );
+
+      expect(html).toContain('btn-primary');
+      expect(html).toContain('btn-secondary');
+    });
+
+    it('hides the submit button when status is photo-upload-failed', function() {
+      const html = renderToStaticMarkup(
+        GameNpcNewHelper.render(buildState({ status: 'photo-upload-failed' }), buildHandlers()),
+      );
+
+      expect(html).not.toContain('type="submit"');
+    });
+
+    it('renders the submit button when status is idle', function() {
+      const html = renderToStaticMarkup(GameNpcNewHelper.render(buildState(), buildHandlers()));
+
+      expect(html).toContain('type="submit"');
     });
   });
 });

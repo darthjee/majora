@@ -2,10 +2,12 @@ import CharacterAvatarFieldHelper from './helpers/CharacterAvatarFieldHelper.jsx
 
 /**
  * Editable avatar field shared by the character edit page and the NPC
- * creation page. On the edit page it is always editable; on the creation
- * page it is rendered as a non-interactive static placeholder (`canEdit`
- * false, no `url`/`onClick`), since avatar upload requires an existing
- * character id.
+ * creation page. On the edit page it is always editable. On the creation
+ * page it is also editable: picking a photo there opens the upload modal
+ * in its deferred mode, which keeps the picked file in local state (shown
+ * here as a local preview `url`) until the NPC is created and the photo can
+ * actually be uploaded. Before a photo is picked, `url` stays null/undefined
+ * and this renders its default static placeholder image.
  *
  * @param {object} props - Component props.
  * @param {string|null} [props.url] - Profile photo path, or null/undefined for the placeholder.
