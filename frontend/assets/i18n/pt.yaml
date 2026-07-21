@@ -85,6 +85,7 @@ game_page:
   non_player_characters: NPCs
   treasures: Tesouros
   items: Itens
+  documents: Documentos
   sessions: Sessões
   players: Jogadores
   see_all_photos: Fotos
@@ -117,6 +118,7 @@ character_page:
   public_revive_button: Reviver Publicamente
   treasures_title: Tesouros
   items_title: Itens
+  documents_title: Documentos
   photos_title: Fotos
 character_full_page:
   loading: Carregando personagem...
@@ -142,6 +144,8 @@ character_treasures_preview:
   empty: Nenhum tesouro ainda.
 character_items_preview:
   empty: Nenhum item ainda.
+character_documents_preview:
+  empty: Nenhum documento ainda.
 character_photos_preview:
   empty: Nenhuma foto ainda.
 recover_password_page:
@@ -287,6 +291,10 @@ character_items_page:
   title: Itens
   hidden_label: Oculto
   new_item: Criar Item
+character_documents_page:
+  loading: Carregando documentos...
+  title: Documentos
+  hidden_label: Oculto
 character_item_new_page:
   title: Criar Item
   name_label: Nome
@@ -344,6 +352,10 @@ game_treasures_page:
 game_items_page:
   loading: Carregando itens...
   title: Itens
+  hidden_label: Oculto
+game_documents_page:
+  loading: Carregando documentos...
+  title: Documentos
   hidden_label: Oculto
 item_page:
   loading: Carregando item...

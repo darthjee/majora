@@ -40,4 +40,5 @@ export default {
   bookHalf: 'bi-book-half',
   bookmarkStarFill: 'bi-bookmark-star-fill',
   databaseFillDash: 'bi-database-fill-dash',
+  folder: 'bi-folder',
 };

@@ -15,6 +15,7 @@ import characterListTypes from './configs/characterListTypes.js';
 import characterTreasureListTypes from './configs/characterTreasureListTypes.js';
 import globalTreasureListType from './configs/globalTreasureListType.js';
 import playersListType from './configs/playersListType.js';
+import documentListTypes from './configs/documentListTypes.js';
 
 /**
  * Fetch a page of a game's treasures, resolving the requester's edit permission first to
@@ -149,7 +150,7 @@ export function buildReadOnlyActionBarProps() {
  *   list type (`game_items_page.hidden_label` / `character_items_page.hidden_label`).
  * @returns {Function} A `buildInfoBarItems(item)` function for this list type.
  */
-function buildItemInfoBarItems(hiddenLabelKey) {
+export function buildItemInfoBarItems(hiddenLabelKey) {
   return function buildInfoBarItemsForItem(item) {
     return ItemCardHelper.buildInfoBarItems(item.data, Translator.t(hiddenLabelKey));
   };
@@ -184,12 +185,13 @@ function buildCharacterItemItemHref(characterKind) {
 
 /**
  * Per-list-type configuration consumed by `ListPage`/`ListPageHelper`, keyed by list type
- * (`'treasures'`, `'items'`, `'pc-items'`, `'npc-items'`, `'games'`, `'my-games'`, `'players'`,
- * `'pcs'`, `'npcs'`, `'pc-treasures'`, `'npc-treasures'`, `'treasures-global'`), matching the
+ * (`'treasures'`, `'items'`, `'pc-items'`, `'npc-items'`, `'documents'`, `'pc-documents'`,
+ * `'npc-documents'`, `'games'`, `'my-games'`, `'players'`, `'pcs'`, `'npcs'`, `'pc-treasures'`,
+ * `'npc-treasures'`, `'treasures-global'`), matching the
  * existing `PHOTO_COMPONENTS` precedent in `ActionsOverlay.jsx`. The `games`/`my-games`/
- * `players`/`pcs`/`npcs`/`pc-treasures`/`npc-treasures`/`treasures-global` entries live in
- * `./configs/`, split out of this file to keep it under the project's max-lines limit; they are
- * merged into this object below. Each entry holds:
+ * `players`/`pcs`/`npcs`/`pc-treasures`/`npc-treasures`/`treasures-global`/`documents`/
+ * `pc-documents`/`npc-documents` entries live in `./configs/`, split out of this file to keep it
+ * under the project's max-lines limit; they are merged into this object below. Each entry holds:
  * - `fetchList(gameSlug, hashResolver, client?)` — fetches one page of list data.
  * - `wrapperClass` — the `BaseListItem` subclass normalizing each raw entry.
  * - `filtersComponent` — filter bar rendered above the grid, or `null`.
@@ -257,6 +259,7 @@ const listTypeConfig = {
   ...characterListTypes,
   ...characterTreasureListTypes,
   'treasures-global': globalTreasureListType,
+  ...documentListTypes,
 };
 
 export default listTypeConfig;

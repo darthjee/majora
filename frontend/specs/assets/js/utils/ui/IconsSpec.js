@@ -48,4 +48,8 @@ describe('Icons', function() {
   it('maps envelopeFill to the filled envelope icon class', function() {
     expect(Icons.envelopeFill).toBe('bi-envelope-fill');
   });
+
+  it('maps folder to the folder icon class', function() {
+    expect(Icons.folder).toBe('bi-folder');
+  });
 });

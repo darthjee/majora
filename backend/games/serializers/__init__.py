@@ -5,6 +5,10 @@ from games.serializers.base_permissions import BasePermissionsSerializer
 from games.serializers.characters.character_access import CharacterAccessSerializer
 from games.serializers.characters.character_create import CharacterCreateSerializer
 from games.serializers.characters.character_detail import CharacterDetailSerializer
+from games.serializers.characters.character_document import (
+    CharacterDocumentAllSerializer,
+    CharacterDocumentSerializer,
+)
 from games.serializers.characters.character_full import CharacterFullSerializer
 from games.serializers.characters.character_full_list import CharacterFullListSerializer
 from games.serializers.characters.character_item import (
@@ -27,6 +31,11 @@ from games.serializers.characters.character_update import CharacterUpdateSeriali
 from games.serializers.characters.npcs.npc_player_update import NpcPlayerUpdateSerializer
 from games.serializers.characters.pcs.pc_access import PcAccessSerializer
 from games.serializers.games.conversations.conversation_list import ConversationListSerializer
+from games.serializers.games.documents.game_document_list import (
+    GameDocumentAllListSerializer,
+    GameDocumentListSerializer,
+)
+from games.serializers.games.documents.game_document_photo import GameDocumentPhotoSerializer
 from games.serializers.games.game_access import GameAccessSerializer
 from games.serializers.games.game_create import GameCreateSerializer
 from games.serializers.games.game_detail import GameDetailSerializer
@@ -95,6 +104,8 @@ __all__ = [
     'CharacterAccessSerializer',
     'CharacterCreateSerializer',
     'CharacterDetailSerializer',
+    'CharacterDocumentAllSerializer',
+    'CharacterDocumentSerializer',
     'CharacterFullListSerializer',
     'CharacterFullSerializer',
     'CharacterItemAllSerializer',
@@ -114,6 +125,9 @@ __all__ = [
     'GameAccessSerializer',
     'GameCreateSerializer',
     'GameDetailSerializer',
+    'GameDocumentAllListSerializer',
+    'GameDocumentListSerializer',
+    'GameDocumentPhotoSerializer',
     'GameItemAllListSerializer',
     'GameItemDetailAllSerializer',
     'GameItemDetailSerializer',

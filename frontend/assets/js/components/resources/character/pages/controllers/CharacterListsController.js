@@ -3,7 +3,7 @@ import BasePageController from '../../../../common/base/controllers/BasePageCont
 import CharacterListMerger from './CharacterListMerger.js';
 
 /**
- * Base controller for a character's preview lists (treasures, items, photos), split out of
+ * Base controller for a character's preview lists (treasures, items, documents, photos), split out of
  * `CharacterController` (which extends this class) to keep both files under the project's
  * per-file line limit. Parameterized by `characterKind` (`'pcs'` or `'npcs'`) like its subclass,
  * delegating to {@link CharacterClient}'s parameterized methods.
@@ -46,6 +46,18 @@ export default class CharacterListsController extends BasePageController {
   }
 
   /**
+   * Fetch a first page of the character's documents from the API.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string} characterId - Character id.
+   * @param {string|null} token - Authentication token.
+   * @returns {Promise<Response>} Fetch response.
+   */
+  fetchCharacterDocuments(gameSlug, characterId, token) {
+    return this.characterClient.fetchCharacterDocuments(this.characterKind, gameSlug, characterId, token);
+  }
+
+  /**
    * Fetch a first page of the character's photos from the API.
    *
    * @param {string} gameSlug - Game slug.
@@ -84,6 +96,21 @@ export default class CharacterListsController extends BasePageController {
   fetchAndMergeItems(character, params, token) {
     return CharacterListMerger.merge(
       character, 'items', this.fetchCharacterItems(params.game_slug, params.character_id, token),
+    );
+  }
+
+  /**
+   * Fetch the character's documents and merge them onto the character as `character.documents`,
+   * degrading to an empty array on failure rather than failing the whole page load.
+   *
+   * @param {object} character - Base character data already loaded.
+   * @param {object} params - Route params with game_slug and character_id.
+   * @param {string|null} token - Authentication token.
+   * @returns {Promise<object>} Resolves to the character with documents applied.
+   */
+  fetchAndMergeDocuments(character, params, token) {
+    return CharacterListMerger.merge(
+      character, 'documents', this.fetchCharacterDocuments(params.game_slug, params.character_id, token),
     );
   }
 

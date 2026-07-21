@@ -26,7 +26,7 @@ describe('BaseCharacterEditController', function() {
       stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: true }, { can_edit: false });
       const fullCharacterClient = jasmine.createSpyObj('characterClient', [
         'fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterItems',
-        'fetchCharacterPhotos', 'updateCharacter',
+        'fetchCharacterDocuments', 'fetchCharacterPhotos', 'updateCharacter',
       ]);
 
       client.currentHash.and.returnValue('#/games/demo/npcs/1/edit');
@@ -37,6 +37,9 @@ describe('BaseCharacterEditController', function() {
         ok: true, json: () => Promise.resolve([]),
       }));
       fullCharacterClient.fetchCharacterItems.and.returnValue(Promise.resolve({
+        ok: true, json: () => Promise.resolve([]),
+      }));
+      fullCharacterClient.fetchCharacterDocuments.and.returnValue(Promise.resolve({
         ok: true, json: () => Promise.resolve([]),
       }));
       fullCharacterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({
@@ -57,6 +60,7 @@ describe('BaseCharacterEditController', function() {
         id: 1,
         treasures: [],
         items: [],
+        documents: [],
         photos: [],
         game_type: 'dnd',
         can_edit: true,

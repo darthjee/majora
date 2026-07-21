@@ -85,6 +85,7 @@ game_page:
   non_player_characters: Non-Player Characters
   treasures: Treasures
   items: Items
+  documents: Documents
   sessions: Sessions
   players: Players
   see_all_photos: Photos
@@ -117,6 +118,7 @@ character_page:
   public_revive_button: Publicly Revive
   treasures_title: Treasures
   items_title: Items
+  documents_title: Documents
   photos_title: Photos
 character_full_page:
   loading: Loading character...
@@ -142,6 +144,8 @@ character_treasures_preview:
   empty: No treasures yet.
 character_items_preview:
   empty: No items yet.
+character_documents_preview:
+  empty: No documents yet.
 character_photos_preview:
   empty: No photos yet.
 recover_password_page:
@@ -287,6 +291,10 @@ character_items_page:
   title: Items
   hidden_label: Hidden
   new_item: Create Item
+character_documents_page:
+  loading: Loading documents...
+  title: Documents
+  hidden_label: Hidden
 character_item_new_page:
   title: Create Item
   name_label: Name
@@ -344,6 +352,10 @@ game_treasures_page:
 game_items_page:
   loading: Loading items...
   title: Items
+  hidden_label: Hidden
+game_documents_page:
+  loading: Loading documents...
+  title: Documents
   hidden_label: Hidden
 item_page:
   loading: Loading item...

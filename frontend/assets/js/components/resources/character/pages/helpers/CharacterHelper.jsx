@@ -13,6 +13,7 @@ import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
 import PreviewSection from '../../../../common/cards/PreviewSection.jsx';
 import TreasurePreviewCard from '../../../../common/cards/TreasurePreviewCard.jsx';
 import ItemPreviewCard from '../../../../common/cards/ItemPreviewCard.jsx';
+import DocumentPreviewCard from '../../../../common/cards/DocumentPreviewCard.jsx';
 import { PREVIEW_LIST_TYPES } from '../../../../common/cards/characterPreviewConstants.js';
 import CharacterPhotosPreview from '../elements/CharacterPhotosPreview.jsx';
 import Translator from '../../../../../i18n/Translator.js';
@@ -63,6 +64,9 @@ export default class CharacterHelper {
    * @param {object[]} [character.items] - Preview list of the character's items
    *   (`id`, `game_item_id`, `name`, `description`, `photo_path`, already fallback-resolved
    *   server-side), rendered as a card grid with a link to the full list page.
+   * @param {object[]} [character.documents] - Preview list of the character's documents
+   *   (`id`, `game_document_id`, `name`, `photo_path`, already fallback-resolved server-side),
+   *   rendered as a card grid with a link to the full list page, beneath the items preview.
    * @param {object[]} [character.photos] - Preview list of the character's photos
    *   (`id`, `path`), rendered as a static card grid with a link to the full gallery page.
    * @param {string} backHref - Hash path to the character's index page.
@@ -127,6 +131,14 @@ export default class CharacterHelper {
               icon={PREVIEW_LIST_TYPES.item.icon}
               emptyText={Translator.t('character_items_preview.empty')}
               renderItem={(item) => <ItemPreviewCard key={item.id} item={item} />}
+            />
+            <PreviewSection
+              items={character.documents ?? []}
+              title={Translator.t(PREVIEW_LIST_TYPES.document.titleKey)}
+              seeAllHref={`#/games/${character.game_slug}/${segment}/${character.id}/documents`}
+              icon={PREVIEW_LIST_TYPES.document.icon}
+              emptyText={Translator.t('character_documents_preview.empty')}
+              renderItem={(document) => <DocumentPreviewCard key={document.id} document={document} />}
             />
           </div>
         </div>

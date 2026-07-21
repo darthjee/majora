@@ -19,8 +19,10 @@ from conversations.models import (
 )
 from games.models import (
     Character,
+    CharacterDocument,
     CharacterItem,
     Game,
+    GameDocument,
     GameItem,
     GameTreasure,
     Player,
@@ -157,6 +159,31 @@ class CharacterItemFactory(factory.django.DjangoModelFactory):
 
     character = factory.SubFactory(CharacterFactory)
     game_item = factory.SubFactory(GameItemFactory)
+
+
+class GameDocumentFactory(factory.django.DjangoModelFactory):
+    """Factory for GameDocument."""
+
+    class Meta:
+        """Factory configuration."""
+
+        model = GameDocument
+
+    game = factory.SubFactory(GameFactory)
+    name = 'Test Document'
+    description = 'A test document.'
+
+
+class CharacterDocumentFactory(factory.django.DjangoModelFactory):
+    """Factory for CharacterDocument."""
+
+    class Meta:
+        """Factory configuration."""
+
+        model = CharacterDocument
+
+    character = factory.SubFactory(CharacterFactory)
+    game_document = factory.SubFactory(GameDocumentFactory)
 
 
 class PollFactory(factory.django.DjangoModelFactory):

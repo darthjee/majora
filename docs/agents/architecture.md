@@ -99,7 +99,8 @@ Cross-cutting change-history infrastructure, not game domain logic — the secon
 Django app besides `games`. Wraps `django-simple-history` to keep full-state (not diff)
 snapshots of every save/delete on the tracked `games` models: `Game`, `Player`, `Character`,
 `Treasure`, `CharacterTreasure`, `GamePhoto`, `CharacterPhoto`, `Link`, `CharacterLink`,
-`TreasurePhoto`, `GameItem`, `GameItemPhoto`, `CharacterItem`, and `CharacterItemPhoto` — added
+`TreasurePhoto`, `GameItem`, `GameItemPhoto`, `CharacterItem`, `CharacterItemPhoto`,
+`GameDocument`, `GameDocumentPhoto`, `CharacterDocument`, and `CharacterDocumentPhoto` — added
 via a `history = HistoricalRecords(app='versioning')` field on each model in `games/models/`.
 `GameTreasure` is intentionally excluded from tracking.
 
