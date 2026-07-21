@@ -1,4 +1,5 @@
 import CharacterClient from '../../../../../client/CharacterClient.js';
+import UploadClient from '../../../../../client/UploadClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
@@ -25,12 +26,14 @@ export default class GameNpcNewController extends BasePageController {
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
    * @param {CharacterClient|null} [characterClient] - Character client override.
+   * @param {UploadClient|null} [uploadClient] - Upload client override.
    */
-  constructor(setError, setFieldErrors = Noop.noop, characterClient = null) {
+  constructor(setError, setFieldErrors = Noop.noop, characterClient = null, uploadClient = null) {
     super();
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;
     this.characterClient = characterClient ?? new CharacterClient();
+    this.uploadClient = uploadClient ?? new UploadClient();
   }
 
   /**
@@ -55,14 +58,16 @@ export default class GameNpcNewController extends BasePageController {
    * Submit the new NPC form.
    *
    * @description Prevents the default form submission, resets status and
-   *   field errors, sends a POST request, then redirects on success,
-   *   sets field errors on 400, or sets error status on other failures.
+   *   field errors, sends a POST request. On success, redirects immediately
+   *   when no photo was picked, or runs the photo upload saga step first when
+   *   `formValues.photoFile` is set. On a 400 response, sets field errors. On
+   *   any other failure, sets the general error status.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {{name: string, role: string, description: string, privateDescription: string,
    *   hidden: boolean, money: string, allegiance: string, publicAllegiance: string,
-   *   links: object[]}} formValues - Raw form field values.
-   * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
+   *   links: object[], photoFile: File|null}} formValues - Raw form field values.
+   * @param {{setStatus: Function, setFieldErrors: Function, setCharacterId: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
   async submitForm(event, gameSlug, formValues, setters) {
@@ -88,10 +93,26 @@ export default class GameNpcNewController extends BasePageController {
         links: formValues.links ?? [],
       });
 
-      await this.#handleResponse(response, gameSlug, setters);
+      await this.#handleResponse(response, gameSlug, formValues.photoFile, setters);
     } catch {
       setters.setStatus('error');
     }
+  }
+
+  /**
+   * Retry the photo upload saga step for an already-created NPC.
+   *
+   * @description Re-invokes the same upload-only path submitForm runs after
+   *   NPC creation, without creating a new NPC. Used by the "retry" action of
+   *   the photo-upload-failed UI state.
+   * @param {string} gameSlug - Game slug.
+   * @param {number|string} characterId - Already-created NPC id.
+   * @param {File} photoFile - Photo file to upload.
+   * @param {{setStatus: Function, setCharacterId: Function}} setters - Page state setters.
+   * @returns {Promise<void>} Resolves when the retry handling finishes.
+   */
+  retryPhotoUpload(gameSlug, characterId, photoFile, setters) {
+    return this.#uploadPhoto(gameSlug, characterId, photoFile, setters);
   }
 
   #redirectIfNotAllowed(permissions, gameSlug) {
@@ -106,13 +127,22 @@ export default class GameNpcNewController extends BasePageController {
     }
   }
 
-  async #handleResponse(response, gameSlug, setters) {
+  #redirectToNpc(gameSlug, characterId) {
+    if (typeof window !== 'undefined') {
+      window.location.hash = `/games/${gameSlug}/npcs/${characterId}`;
+    }
+  }
+
+  async #handleResponse(response, gameSlug, photoFile, setters) {
     if (response.status === 201) {
       const data = await response.json();
 
-      if (typeof window !== 'undefined') {
-        window.location.hash = `/games/${gameSlug}/npcs/${data.id}`;
+      if (photoFile) {
+        await this.#uploadPhoto(gameSlug, data.id, photoFile, setters);
+        return;
       }
+
+      this.#redirectToNpc(gameSlug, data.id);
       return;
     }
 
@@ -125,5 +155,36 @@ export default class GameNpcNewController extends BasePageController {
     }
 
     setters.setStatus('error');
+  }
+
+  async #uploadPhoto(gameSlug, characterId, photoFile, setters) {
+    const token = AuthStorage.getToken();
+    const uploadPath = `/games/${gameSlug}/npcs/${characterId}/photo_upload.json`;
+
+    try {
+      const initResponse = await this.uploadClient.initUpload(uploadPath, photoFile.name, token);
+
+      if (!initResponse.ok) {
+        this.#failPhotoUpload(characterId, setters);
+        return;
+      }
+
+      const { upload_id: uploadId, token: uploadToken } = await initResponse.json();
+      const submitResponse = await this.uploadClient.submitUpload(uploadId, uploadToken, photoFile);
+
+      if (!submitResponse.ok) {
+        this.#failPhotoUpload(characterId, setters);
+        return;
+      }
+
+      this.#redirectToNpc(gameSlug, characterId);
+    } catch {
+      this.#failPhotoUpload(characterId, setters);
+    }
+  }
+
+  #failPhotoUpload(characterId, setters) {
+    setters.setCharacterId(characterId);
+    setters.setStatus('photo-upload-failed');
   }
 }

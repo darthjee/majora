@@ -16,18 +16,23 @@ export default class GameNpcNewHelper {
   /**
    * Render the NPC creation form.
    *
-   * @description The NPC does not exist yet, so there is no id to scope an avatar
-   *   upload or a money/treasures/photos breakdown to: the avatar is a static
-   *   placeholder (no upload control) and money stays a raw number field below
-   *   the columns, matching this app's existing precedent of deferring photo
-   *   upload to after the entity exists.
+   * @description The NPC does not exist yet, so there is no id to scope a
+   *   money/treasures/photos breakdown to: money stays a raw number field
+   *   below the columns. The avatar, however, is editable: picking a photo
+   *   opens the upload modal in its deferred mode (see `PhotoUploadModal`),
+   *   which just keeps the picked file in the page's own state (rendered here
+   *   as `photoPreviewUrl`) until the NPC is created and the photo is
+   *   actually uploaded. Before a photo is picked, the avatar shows its
+   *   default static placeholder image.
    * @param {{name: string, role: string, description: string, privateDescription: string,
    *   links: object[], hidden: boolean, money: string, allegiance: string,
-   *   publicAllegiance: string, status: string, fieldErrors: object}} formState - Form state.
+   *   publicAllegiance: string, status: string, fieldErrors: object,
+   *   photoPreviewUrl: string|null}} formState - Form state.
    * @param {{onSubmit: Function, onNameChange: Function, onRoleChange: Function,
    *   onDescriptionChange: Function, onPrivateDescriptionChange: Function,
-   *   onOpenLinksModal: Function, onHiddenChange: Function, onMoneyChange: Function,
-   *   onAllegianceChange: Function, onPublicAllegianceChange: Function}} handlers - Event handlers.
+   *   onOpenLinksModal: Function, onOpenUploadModal: Function, onHiddenChange: Function,
+   *   onMoneyChange: Function, onAllegianceChange: Function, onPublicAllegianceChange: Function,
+   *   onRetryPhotoUpload: Function, onSkipPhotoUpload: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered new NPC page.
    */
   static render(formState, handlers) {
@@ -35,6 +40,7 @@ export default class GameNpcNewHelper {
       <div className="container mt-4">
         <h1>{Translator.t('game_npc_new_page.title')}</h1>
         {GameNpcNewHelper.#renderError(formState)}
+        {GameNpcNewHelper.#renderPhotoUploadFailed(formState, handlers)}
         <form onSubmit={handlers.onSubmit}>
           <FormField
             id="game-npc-new-name"
@@ -57,9 +63,7 @@ export default class GameNpcNewHelper {
             errors={formState.fieldErrors.money ?? []}
           />
           {GameNpcNewHelper.#renderAllegianceFields(formState, handlers)}
-          <SubmitButton disabled={formState.status === 'submitting'}>
-            {Translator.t('game_npc_new_page.submit')}
-          </SubmitButton>
+          {GameNpcNewHelper.#renderSubmitButton(formState)}
         </form>
       </div>
     );
@@ -73,10 +77,54 @@ export default class GameNpcNewHelper {
     return <ErrorAlert error={Translator.t('game_npc_new_page.error')} />;
   }
 
+  static #renderPhotoUploadFailed(formState, handlers) {
+    if (formState.status !== 'photo-upload-failed') {
+      return null;
+    }
+
+    return (
+      <div className="alert alert-warning">
+        <p>{Translator.t('game_npc_new_page.photo_upload_failed')}</p>
+        <button
+          type="button"
+          className="btn btn-primary me-2"
+          onClick={handlers.onRetryPhotoUpload}
+        >
+          {Translator.t('game_npc_new_page.retry_photo_upload')}
+        </button>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={handlers.onSkipPhotoUpload}
+        >
+          {Translator.t('game_npc_new_page.skip_photo_upload')}
+        </button>
+      </div>
+    );
+  }
+
+  static #renderSubmitButton(formState) {
+    if (formState.status === 'photo-upload-failed') {
+      return null;
+    }
+
+    return (
+      <SubmitButton disabled={formState.status === 'submitting'}>
+        {Translator.t('game_npc_new_page.submit')}
+      </SubmitButton>
+    );
+  }
+
   static #renderAvatarColumn(formState, handlers) {
     return (
       <div className="col-md-4">
-        <CharacterAvatarField canEdit={false} alt={formState.name} dimmed={formState.hidden} />
+        <CharacterAvatarField
+          canEdit
+          url={formState.photoPreviewUrl}
+          alt={formState.name}
+          dimmed={formState.hidden}
+          onClick={handlers.onOpenUploadModal}
+        />
         <div className="form-check form-switch mb-3">
           <input
             id="game-npc-new-hidden"
