@@ -23,7 +23,7 @@ export default class DescriptionBoxHelper {
       <div className="mt-3">
         <div
           ref={handlers.boxRef}
-          className="p-3 border rounded bg-light"
+          className="description-box-content p-3 border rounded bg-light"
           style={{
             overflow: 'hidden',
             maxHeight: state.expanded ? 'none' : state.maxCollapsedHeight,
