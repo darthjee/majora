@@ -173,6 +173,31 @@ describe('GameNpcNewController', function() {
       expect(setStatus).toHaveBeenCalledWith('error');
     });
 
+    it('does not call setCharacterId or the upload client when no photoFile is provided', async function() {
+      const setCharacterId = jasmine.createSpy('setCharacterId');
+      const uploadClient = jasmine.createSpyObj('uploadClient', ['initUpload', 'submitUpload']);
+      const controller = new GameNpcNewController(setError, setFieldErrors, characterClient, uploadClient);
+      const fakeWindow = { location: { hash: '' } };
+      globalThis.window = fakeWindow;
+
+      try {
+        await controller.submitForm(
+          undefined,
+          'demo',
+          {
+            name: 'Goblin King', role: '', description: '', privateDescription: '', hidden: false, money: '0',
+          },
+          { setStatus, setFieldErrors, setCharacterId },
+        );
+
+        expect(uploadClient.initUpload).not.toHaveBeenCalled();
+        expect(setCharacterId).not.toHaveBeenCalled();
+        expect(fakeWindow.location.hash).toBe('/games/demo/npcs/7');
+      } finally {
+        delete globalThis.window;
+      }
+    });
+
     it('does not throw when called without an event', async function() {
       const controller = new GameNpcNewController(setError, setFieldErrors, characterClient);
       const fakeWindow = { location: { hash: '' } };

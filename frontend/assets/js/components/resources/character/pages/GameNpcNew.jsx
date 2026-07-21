@@ -1,8 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import {
+  useEffect, useMemo, useState,
+} from 'react';
 import GameNpcNewController from './controllers/GameNpcNewController.js';
 import Noop from '../../../../utils/Noop.js';
 import GameNpcNewHelper from './helpers/GameNpcNewHelper.jsx';
 import LinksEditModal from './elements/LinksEditModal.jsx';
+import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
 import useFormState from '../../../../utils/useFormState.js';
 
@@ -16,6 +19,9 @@ export default function GameNpcNew() {
   const [status, setStatus] = useState('idle');
   const [links, setLinks] = useState([]);
   const [showLinksModal, setShowLinksModal] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [characterId, setCharacterId] = useState(null);
   const { state: fields, handleChange, handleCheckboxChange } = useFormState({
     name: '',
     role: '',
@@ -37,18 +43,42 @@ export default function GameNpcNew() {
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
+  const photoPreviewUrl = useMemo(
+    () => (photoFile ? URL.createObjectURL(photoFile) : null),
+    [photoFile],
+  );
+
+  useEffect(() => () => {
+    if (photoPreviewUrl) {
+      URL.revokeObjectURL(photoPreviewUrl);
+    }
+  }, [photoPreviewUrl]);
+
   const handleSubmit = (event) => controller.submitForm(
     event,
     gameSlug,
-    { ...fields, links },
-    { setStatus, setFieldErrors },
+    { ...fields, links, photoFile },
+    { setStatus, setFieldErrors, setCharacterId },
   );
+
+  const handleRetryPhotoUpload = () => controller.retryPhotoUpload(
+    gameSlug,
+    characterId,
+    photoFile,
+    { setStatus, setCharacterId },
+  );
+
+  const handleSkipPhotoUpload = () => {
+    if (typeof window !== 'undefined') {
+      window.location.hash = `/games/${gameSlug}/npcs/${characterId}`;
+    }
+  };
 
   return (
     <>
       {GameNpcNewHelper.render(
         {
-          ...fields, links, status, fieldErrors,
+          ...fields, links, status, fieldErrors, photoPreviewUrl,
         },
         {
           onSubmit: handleSubmit,
@@ -57,10 +87,13 @@ export default function GameNpcNew() {
           onDescriptionChange: handleChange('description'),
           onPrivateDescriptionChange: handleChange('privateDescription'),
           onOpenLinksModal: () => setShowLinksModal(true),
+          onOpenUploadModal: () => setShowUploadModal(true),
           onHiddenChange: handleCheckboxChange('hidden'),
           onMoneyChange: handleChange('money'),
           onAllegianceChange: handleChange('allegiance'),
           onPublicAllegianceChange: handleChange('publicAllegiance'),
+          onRetryPhotoUpload: handleRetryPhotoUpload,
+          onSkipPhotoUpload: handleSkipPhotoUpload,
         },
       )}
       <LinksEditModal
@@ -71,6 +104,15 @@ export default function GameNpcNew() {
           setLinks(newLinks);
           setShowLinksModal(false);
         }}
+      />
+      <PhotoUploadModal
+        show={showUploadModal}
+        deferred
+        onFileConfirmed={(file) => {
+          setPhotoFile(file);
+          setShowUploadModal(false);
+        }}
+        onClose={() => setShowUploadModal(false)}
       />
     </>
   );

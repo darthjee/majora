@@ -9,7 +9,7 @@ export default class PhotoUploadModalHelper {
    * Renders the photo upload modal.
    *
    * @param {boolean} show - Whether the modal is visible.
-   * @param {{error: boolean, uploading: boolean}} state - Modal state.
+   * @param {{error: boolean, uploading: boolean, deferred: boolean}} state - Modal state.
    * @param {{onClose: Function, onCancel: Function, onSubmit: Function,
    *   onFileChange: Function, onDragOver: Function, onDrop: Function}} handlers - Modal event handlers.
    * @returns {React.ReactElement} Rendered photo upload modal.
@@ -39,7 +39,7 @@ export default class PhotoUploadModalHelper {
             onClick={handlers.onSubmit}
             disabled={state.uploading}
           >
-            {Translator.t('photo_upload_modal.submit')}
+            {Translator.t(state.deferred ? 'photo_upload_modal.confirm' : 'photo_upload_modal.submit')}
           </button>
         </Modal.Footer>
       </Modal>
