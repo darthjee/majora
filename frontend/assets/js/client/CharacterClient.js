@@ -110,6 +110,22 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
+   * Fetches a bounded page of the character's documents, used to populate the document preview
+   * grid on the character show page (issue #725). Defaults to `PREVIEW_PAGE_SIZE` items so the
+   * request itself is bounded, mirroring `fetchCharacterItems`.
+   *
+   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {number} [perPage] - Maximum number of documents to fetch.
+   * @returns {Promise<Response>} fetch response from the character documents endpoint.
+   */
+  fetchCharacterDocuments(characterKind, gameSlug, characterId, token, perPage = PREVIEW_PAGE_SIZE) {
+    return this.#fetchCharacter(characterKind, gameSlug, characterId, token, 'documents', undefined, [], perPage);
+  }
+
+  /**
    * Fetches a page of a character's photos, used to populate the photo
    * preview grid on the character show/edit pages.
    *
@@ -370,7 +386,8 @@ export default class CharacterClient extends BaseClient {
   #fetchCharacter(characterKind, gameSlug, characterId, token, suffix = null, signal, roles = [], perPage) {
     const base = `/games/${gameSlug}/${characterKind}/${characterId}`;
     const path = suffix ? `${base}/${suffix}.json` : `${base}.json`;
-    const skipCache = characterKind === 'npcs' && (suffix === null || suffix === 'treasures' || suffix === 'items');
+    const skipCache = characterKind === 'npcs'
+      && (suffix === null || suffix === 'treasures' || suffix === 'items' || suffix === 'documents');
 
     return this.getJson(
       `${path}${this.#buildCharacterQuery(roles, perPage)}`, token, skipCache ? { 'X-Skip-Cache': 'true' } : {}, signal,

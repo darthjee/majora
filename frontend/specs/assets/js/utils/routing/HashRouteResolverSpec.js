@@ -31,6 +31,9 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/items/5').getPage()).toBe('npcCharacterItem');
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/items/new').getPage()).toBe('pcCharacterItemNew');
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/items/new').getPage()).toBe('npcCharacterItemNew');
+    expect(new HashRouteResolver(() => '#/games/campaign/documents').getPage()).toBe('gameDocuments');
+    expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/documents').getPage()).toBe('pcCharacterDocuments');
+    expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/documents').getPage()).toBe('npcCharacterDocuments');
     expect(new HashRouteResolver(() => '#/recover-password?token=abc').getPage()).toBe('recoverPassword');
     expect(new HashRouteResolver(() => '#/users/register').getPage()).toBe('register');
     expect(new HashRouteResolver(() => '#/my_account').getPage()).toBe('myAccount');
@@ -124,6 +127,18 @@ describe('HashRouteResolver', function() {
       expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/items/new').getPage()).toBe('npcCharacterItemNew');
     },
   );
+
+  it('resolves /games/:game_slug/pcs/:character_id/documents to pcCharacterDocuments, not pcCharacter', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/documents').getPage()).toBe('pcCharacterDocuments');
+  });
+
+  it('resolves /games/:game_slug/npcs/:character_id/documents to npcCharacterDocuments, not npcCharacter', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/documents').getPage()).toBe('npcCharacterDocuments');
+  });
+
+  it('resolves /games/:game_slug/documents to gameDocuments, not game', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/documents').getPage()).toBe('gameDocuments');
+  });
 
   it('resolves /games/:game_slug/photos to gamePhotos, not game', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/photos').getPage()).toBe('gamePhotos');

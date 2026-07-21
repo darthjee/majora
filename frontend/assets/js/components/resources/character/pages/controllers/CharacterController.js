@@ -11,8 +11,8 @@ import CharacterListsController from './CharacterListsController.js';
  *
  * @description Parameterized by `characterKind` (`'pcs'` or `'npcs'`) so a single
  *   implementation covers both, delegating to {@link CharacterClient}'s parameterized methods.
- *   Extends {@link CharacterListsController} (treasures/items/photos fetch+merge) to keep both
- *   files under the project's per-file line limit.
+ *   Extends {@link CharacterListsController} (treasures/items/documents/photos fetch+merge) to
+ *   keep both files under the project's per-file line limit.
  */
 export default class CharacterController extends CharacterListsController {
   /**
@@ -214,7 +214,8 @@ export default class CharacterController extends CharacterListsController {
   }
 
   /**
-   * Load the character, merge treasures/items/photos/game_type/access, and update loading state.
+   * Load the character, merge treasures/items/documents/photos/game_type/access, and update
+   * loading state.
    *
    * @param {object} params - Route params with game_slug and character_id.
    * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
@@ -227,6 +228,7 @@ export default class CharacterController extends CharacterListsController {
       .then((response) => this.handleCharacterResponse(response))
       .then((character) => this.fetchAndMergeTreasures(character, params, token))
       .then((character) => this.fetchAndMergeItems(character, params, token))
+      .then((character) => this.fetchAndMergeDocuments(character, params, token))
       .then((character) => this.fetchAndMergePhotos(character, params, token))
       .then((character) => this.fetchAndMergeGameType(character, params, token))
       .then((character) => this.fetchAndMergeAccess(character, params, token, safeSet))

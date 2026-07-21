@@ -64,4 +64,16 @@ describe('characterPreviewConstants', function() {
       expect(PREVIEW_LIST_TYPES.item.buildAuthEndpoint).toBeUndefined();
     });
   });
+
+  describe('PREVIEW_LIST_TYPES.document', function() {
+    it('provides the title key and icon', function() {
+      expect(PREVIEW_LIST_TYPES.document.titleKey).toBe('character_page.documents_title');
+      expect(PREVIEW_LIST_TYPES.document.icon).toBe(Icons.folder);
+    });
+
+    it('does not provide an endpoint builder', function() {
+      expect(PREVIEW_LIST_TYPES.document.buildEndpoint).toBeUndefined();
+      expect(PREVIEW_LIST_TYPES.document.buildAuthEndpoint).toBeUndefined();
+    });
+  });
 });

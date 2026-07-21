@@ -24,7 +24,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
           'characterClient',
           [
             'fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterItems',
-            'fetchCharacterPhotos', 'updateCharacter',
+            'fetchCharacterDocuments', 'fetchCharacterPhotos', 'updateCharacter',
           ],
         );
 
@@ -38,6 +38,10 @@ KINDS.forEach(({ label, Controller, kind }) => {
           json: () => Promise.resolve([]),
         }));
         characterClient.fetchCharacterItems.and.returnValue(Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([]),
+        }));
+        characterClient.fetchCharacterDocuments.and.returnValue(Promise.resolve({
           ok: true,
           json: () => Promise.resolve([]),
         }));
@@ -66,6 +70,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
           id: 2,
           treasures: [],
           items: [],
+          documents: [],
           photos: [],
           game_type: 'dnd',
           can_edit: true,

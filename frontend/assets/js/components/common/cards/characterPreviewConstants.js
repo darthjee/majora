@@ -49,4 +49,8 @@ export const PREVIEW_LIST_TYPES = {
     titleKey: 'character_page.items_title',
     icon: Icons.box2HeartFill,
   },
+  document: {
+    titleKey: 'character_page.documents_title',
+    icon: Icons.folder,
+  },
 };

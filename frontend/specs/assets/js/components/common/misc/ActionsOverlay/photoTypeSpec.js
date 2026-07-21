@@ -46,6 +46,20 @@ describe('ActionsOverlay', function() {
     expect(html).toContain('default_item.png');
   });
 
+  it('renders a CardDocumentImage when type is document', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(ActionsOverlay, {
+        type: 'document',
+        url: null,
+        alt: 'Ancient Tome',
+        canEdit: true,
+        onClick: Noop.noop,
+      })
+    );
+
+    expect(html).toContain('default_document.png');
+  });
+
   it('renders a CardAvatar when type is avatar', function() {
     const html = renderToStaticMarkup(
       React.createElement(ActionsOverlay, {
