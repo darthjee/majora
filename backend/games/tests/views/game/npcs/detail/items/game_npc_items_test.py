@@ -213,13 +213,18 @@ class TestGameNpcItemsCreate(TokenAuthRequestMixin):
     def test_create_persists_game_item_and_character_item(self, client):
         """Test that the create endpoint persists both a GameItem and a CharacterItem."""
         token = Token.objects.create(user=self.dm_user)
-        response = self._post(client, {'name': 'Staff'}, token=token)
+        response = self._post(
+            client, {'name': 'Staff', 'description': 'A wizard staff.'}, token=token,
+        )
         data = json.loads(response.content)
         character_item = CharacterItem.objects.get(id=data['id'])
         assert character_item.character == self.character
         game_item = GameItem.objects.get(id=data['game_item_id'])
         assert game_item.game == self.game
         assert game_item.name == 'Staff'
+        assert game_item.description == 'A wizard staff.'
+        assert character_item.name is None
+        assert character_item.description is None
 
     def test_superuser_can_create_item(self, client):
         """Test that a superuser can create an item for an NPC."""

@@ -7,7 +7,7 @@ import BasePageController from '../../../../common/base/controllers/BasePageCont
  *
  * @description Mirrors `GameController`'s single-object `client.fetch(path)` usage, gated on
  *   the requester's game-level edit permission (the same source `fetchGameItems` in
- *   `listTypeConfig.js` uses) to pick between the full, hidden-inclusive `items/:id/all.json`
+ *   `listTypeConfig.js` uses) to pick between the full, hidden-inclusive `items/:id/full.json`
  *   and the player-facing `items/:id.json`, fail-closed on a rejected permissions check
  *   (matching `fetchPermissionGatedIndex`'s `.catch(() => false)`). Independently derives
  *   `canUploadPhoto` from `AccessStore.ensureGameAccess` (a wider, "who can upload" gate that
@@ -92,7 +92,7 @@ export default class GameItemController extends BasePageController {
 
   #fetchItem(params, canEdit, safeSet) {
     const base = `/games/${params.game_slug}/items/${params.id}`;
-    const path = canEdit ? `${base}/all.json` : `${base}.json`;
+    const path = canEdit ? `${base}/full.json` : `${base}.json`;
 
     return this.client.fetch(path)
       .then((item) => safeSet(this.setItem, item))

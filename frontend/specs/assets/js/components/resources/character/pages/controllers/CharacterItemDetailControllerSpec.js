@@ -73,7 +73,7 @@ describe('CharacterItemDetailController', function() {
           ).buildEffect()();
           await new Promise((resolve) => setTimeout(resolve, 0));
 
-          expect(client.fetch).toHaveBeenCalledWith(`${base}/all.json`);
+          expect(client.fetch).toHaveBeenCalledWith(`${base}/full.json`);
 
           cleanup();
         });

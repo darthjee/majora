@@ -46,14 +46,14 @@ class GameItemDetailSerializer(GameItemListSerializer):
         fields = GameItemListSerializer.Meta.fields + ['description']
 
 
-class GameItemDetailAllSerializer(HiddenFieldMixin, GameItemDetailSerializer):
+class GameItemDetailFullSerializer(HiddenFieldMixin, GameItemDetailSerializer):
     """Serializer for a single game item's detail view, including hidden items (DM-only).
 
-    Used only by `GET /games/:slug/items/:id/all.json` — adds `hidden` on top of
+    Used only by `GET /games/:slug/items/:id/full.json` — adds `hidden` on top of
     everything `GameItemDetailSerializer` already exposes.
     """
 
     class Meta(GameItemDetailSerializer.Meta):
-        """Metadata for the GameItemDetailAllSerializer."""
+        """Metadata for the GameItemDetailFullSerializer."""
 
         fields = GameItemDetailSerializer.Meta.fields + ['hidden']

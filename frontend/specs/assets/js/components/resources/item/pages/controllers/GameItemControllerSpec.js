@@ -57,7 +57,7 @@ describe('GameItemController', function() {
       const cleanup = new GameItemController(setItem, setLoading, setError, setCanUploadPhoto, client).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(client.fetch).toHaveBeenCalledWith('/games/demo/items/5/all.json');
+      expect(client.fetch).toHaveBeenCalledWith('/games/demo/items/5/full.json');
       expect(setItem).toHaveBeenCalledWith({ id: 5, name: 'Cloak of Elvenkind', hidden: true });
 
       cleanup();
