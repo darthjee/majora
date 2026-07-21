@@ -42,6 +42,41 @@ body {
   white-space: pre-wrap;
 }
 
+.description-box-content {
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    font-size: 1.25rem;
+  }
+
+  h2 {
+    font-size: 1.15rem;
+  }
+
+  h3 {
+    font-size: 1.05rem;
+  }
+
+  h4 {
+    font-size: 0.95rem;
+  }
+
+  h5 {
+    font-size: 0.9rem;
+  }
+
+  h6 {
+    font-size: 0.85rem;
+  }
+
+  > :first-child {
+    margin-top: 0;
+  }
+}
+
 .actions-overlay {
   position: relative;
 
