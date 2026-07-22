@@ -59,6 +59,14 @@ describe('RequestPermissionResolvers', function() {
       expect(result).toEqual({});
     });
 
+    it('resolves character-level permissions for document, for either kind', function() {
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+      RequestPermissionResolvers.resolve('document', 'collection', { gameSlug: 'demo', kind: 'npcs', id: '3' });
+
+      expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('npcs', 'demo', '3');
+    });
+
     it('resolves no permissions for a resource/quantity-type with no restricted variant at all', async function() {
       const result = await RequestPermissionResolvers.resolve('game', 'collection', {});
 

@@ -24,7 +24,8 @@ export default class RequestStore {
    * creating the underlying `Request` instance on first use.
    *
    * @param {object} args - Arguments.
-   * @param {string} args.resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'treasure'`).
+   * @param {string} args.resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'treasure'`,
+   *   `'session'`, `'document'`).
    * @param {string} args.quantityType - `'collection'` or `'single'`.
    * @param {object} [args.params] - Concrete params (`gameSlug`, `id`, etc.).
    * @param {object} [args.query] - Query/filters.

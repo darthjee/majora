@@ -35,7 +35,7 @@ describe('RequestClient', function() {
       stubFetchJson({ id: 1 });
       const controller = new AbortController();
 
-      await new RequestClient().fetchResource('/games/demo/npcs.json', controller.signal);
+      await new RequestClient().fetchResource('/games/demo/npcs.json', {}, controller.signal);
 
       expect(globalThis.fetch).toHaveBeenCalledWith('/games/demo/npcs.json', jasmine.objectContaining({
         signal: controller.signal,
@@ -46,6 +46,32 @@ describe('RequestClient', function() {
       stubFetchJson({}, { ok: false });
 
       await expectAsync(new RequestClient().fetchResource('/games/demo/npcs.json')).toBeRejected();
+    });
+
+    it('does not append a query string when the query is empty', async function() {
+      stubFetchJson({ id: 1 });
+
+      await new RequestClient().fetchResource('/games/demo/npcs.json', {});
+
+      expect(globalThis.fetch).toHaveBeenCalledWith('/games/demo/npcs.json', jasmine.anything());
+    });
+
+    it('appends a correctly-encoded query string when the query is non-empty', async function() {
+      stubFetchJson({ id: 1 });
+
+      await new RequestClient().fetchResource('/games/demo/npcs.json', { page: 2, per_page: 10 });
+
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        '/games/demo/npcs.json?page=2&per_page=10', jasmine.anything()
+      );
+    });
+
+    it('omits blank/undefined/null query values from the query string', async function() {
+      stubFetchJson({ id: 1 });
+
+      await new RequestClient().fetchResource('/games/demo/npcs.json', { page: 2, name: '', kind: undefined });
+
+      expect(globalThis.fetch).toHaveBeenCalledWith('/games/demo/npcs.json?page=2', jasmine.anything());
     });
   });
 });

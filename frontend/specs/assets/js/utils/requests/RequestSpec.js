@@ -35,7 +35,7 @@ describe('Request', function() {
 
       const result = await request.ensure({ params: { gameSlug: 'demo' } });
 
-      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs.json', jasmine.anything());
+      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs.json', {}, jasmine.anything());
       expect(result).toEqual({ data: { id: 1 } });
     });
 
@@ -72,6 +72,14 @@ describe('Request', function() {
       expect(first).not.toBe(second);
     });
 
+    it('passes the query through to the client', async function() {
+      client.fetchResource.and.returnValue(Promise.resolve({ id: 1 }));
+
+      await request.ensure({ params: { gameSlug: 'demo' }, query: { page: 2 } });
+
+      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs.json', { page: 2 }, jasmine.anything());
+    });
+
     it('starts a fresh request when params change', async function() {
       client.fetchResource.and.returnValues(Promise.resolve({ id: 1 }), Promise.resolve({ id: 2 }));
 
@@ -79,8 +87,8 @@ describe('Request', function() {
       await request.ensure({ params: { gameSlug: 'other' } });
 
       expect(client.fetchResource).toHaveBeenCalledTimes(2);
-      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs.json', jasmine.anything());
-      expect(client.fetchResource).toHaveBeenCalledWith('/games/other/npcs.json', jasmine.anything());
+      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs.json', {}, jasmine.anything());
+      expect(client.fetchResource).toHaveBeenCalledWith('/games/other/npcs.json', {}, jasmine.anything());
     });
 
     it('picks the private variant when the configured permission is granted', async function() {
@@ -88,7 +96,7 @@ describe('Request', function() {
 
       await request.ensure({ params: { gameSlug: 'demo' }, permissions: { can_edit: true } });
 
-      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs/all.json', jasmine.anything());
+      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs/all.json', {}, jasmine.anything());
     });
 
     it('fails closed to the regular variant when the permission is unknown', async function() {
@@ -96,7 +104,7 @@ describe('Request', function() {
 
       await request.ensure({ params: { gameSlug: 'demo' } });
 
-      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs.json', jasmine.anything());
+      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs.json', {}, jasmine.anything());
     });
 
     it('aborts the narrower in-flight request when a broader-access request supersedes it, ' +

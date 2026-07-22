@@ -109,6 +109,31 @@ describe('resourceConfig', function() {
     });
   });
 
+  describe('session', function() {
+    it('has no separate private endpoint for single, and no collection entry', function() {
+      const single = resourceConfig.get('GET', 'session', 'single');
+
+      expect(single.regular).toBe(single.private);
+      expect(single.regular.path({ gameSlug: 'demo', id: '3' })).toBe('/games/demo/sessions/3.json');
+      expect(single.regular.permission).toBeNull();
+      expect(resourceConfig.get('GET', 'session', 'collection')).toBeNull();
+    });
+  });
+
+  describe('document', function() {
+    it('resolves collection regular/private paths and permissions for either kind, and has no single entry', function() {
+      const collection = resourceConfig.get('GET', 'document', 'collection');
+
+      expect(collection.regular.path({ gameSlug: 'demo', kind: 'pcs', id: '3' }))
+        .toBe('/games/demo/pcs/3/documents.json');
+      expect(collection.regular.permission).toBeNull();
+      expect(collection.private.path({ gameSlug: 'demo', kind: 'npcs', id: '3' }))
+        .toBe('/games/demo/npcs/3/documents/all.json');
+      expect(collection.private.permission).toBe('can_edit');
+      expect(resourceConfig.get('GET', 'document', 'single')).toBeNull();
+    });
+  });
+
   it('returns null for an unknown resource/method/quantity-type combination', function() {
     expect(resourceConfig.get('GET', 'unknown', 'collection')).toBeNull();
     expect(resourceConfig.get('POST', 'game', 'collection')).toBeNull();
