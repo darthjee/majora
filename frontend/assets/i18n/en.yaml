@@ -361,6 +361,13 @@ game_documents_page:
 item_page:
   loading: Loading item...
   hidden_label: Hidden
+item_edit_page:
+  title: Edit item
+  name_label: Name
+  description_label: Description
+  hidden_label: Hidden
+  submit: Save changes
+  error: Failed to save item. Please try again.
 add_game_treasure_modal:
   title: Add Treasure
   value_label: Value

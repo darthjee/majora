@@ -18,6 +18,7 @@ import GameSessionNew from '../resources/game_session/pages/GameSessionNew.jsx';
 import GameSessions from '../resources/game_session/pages/GameSessions.jsx';
 import GameTasks from '../resources/game/pages/GameTasks.jsx';
 import GameItem from '../resources/item/pages/GameItem.jsx';
+import GameItemEdit from '../resources/item/pages/GameItemEdit.jsx';
 import GameItems from '../resources/item/pages/GameItems.jsx';
 import GameDocuments from '../resources/document/pages/GameDocuments.jsx';
 import GameTreasureEdit from '../resources/treasure/pages/GameTreasureEdit.jsx';
@@ -29,6 +30,7 @@ import MyGames from '../resources/game/pages/MyGames.jsx';
 import NpcCharacter from '../resources/character/pages/NpcCharacter.jsx';
 import NpcCharacterEdit from '../resources/character/pages/NpcCharacterEdit.jsx';
 import NpcCharacterItem from '../resources/character/pages/NpcCharacterItem.jsx';
+import NpcCharacterItemEdit from '../resources/character/pages/NpcCharacterItemEdit.jsx';
 import NpcCharacterItemNew from '../resources/character/pages/NpcCharacterItemNew.jsx';
 import NpcCharacterItems from '../resources/character/pages/NpcCharacterItems.jsx';
 import NpcCharacterDocuments from '../resources/character/pages/NpcCharacterDocuments.jsx';
@@ -37,6 +39,7 @@ import NpcCharacterTreasures from '../resources/character/pages/NpcCharacterTrea
 import PcCharacter from '../resources/character/pages/PcCharacter.jsx';
 import PcCharacterEdit from '../resources/character/pages/PcCharacterEdit.jsx';
 import PcCharacterItem from '../resources/character/pages/PcCharacterItem.jsx';
+import PcCharacterItemEdit from '../resources/character/pages/PcCharacterItemEdit.jsx';
 import PcCharacterItemNew from '../resources/character/pages/PcCharacterItemNew.jsx';
 import PcCharacterItems from '../resources/character/pages/PcCharacterItems.jsx';
 import PcCharacterDocuments from '../resources/character/pages/PcCharacterDocuments.jsx';
@@ -71,6 +74,7 @@ const PAGES = {
   gameTreasureNew: <GameTreasureNew />,
   gameTreasureEdit: <GameTreasureEdit />,
   gameItem: <GameItem />,
+  gameItemEdit: <GameItemEdit />,
   gameItems: <GameItems />,
   gameDocuments: <GameDocuments />,
   gameSessions: <GameSessions />,
@@ -86,6 +90,7 @@ const PAGES = {
   npcCharacterTreasures: <NpcCharacterTreasures />,
   npcCharacterItems: <NpcCharacterItems />,
   npcCharacterItem: <NpcCharacterItem />,
+  npcCharacterItemEdit: <NpcCharacterItemEdit />,
   npcCharacterItemNew: <NpcCharacterItemNew />,
   npcCharacterDocuments: <NpcCharacterDocuments />,
   pcCharacter: <PcCharacter />,
@@ -94,6 +99,7 @@ const PAGES = {
   pcCharacterTreasures: <PcCharacterTreasures />,
   pcCharacterItems: <PcCharacterItems />,
   pcCharacterItem: <PcCharacterItem />,
+  pcCharacterItemEdit: <PcCharacterItemEdit />,
   pcCharacterItemNew: <PcCharacterItemNew />,
   pcCharacterDocuments: <PcCharacterDocuments />,
   recoverPassword: <RecoverPassword />,
