@@ -12,10 +12,14 @@
  * @param {object} [body] - The JSON body the mocked response resolves to.
  * @param {object} [options] - Response options.
  * @param {boolean} [options.ok] - Whether the response is "ok".
- * @returns {{ok: boolean, json: Function}} A fake Response object exposing `ok` and `json()`.
+ * @param {object} [options.headers] - Fake `Headers`-shaped object (only `.get(name)` is used
+ *   by any current caller); defaults to one whose `.get` always resolves to `null`, matching a
+ *   response with no pagination headers.
+ * @returns {{ok: boolean, json: Function, headers: object}} A fake Response object exposing
+ *   `ok`, `json()`, and `headers`.
  */
-export function mockFetchJson(body = {}, { ok = true } = {}) {
-  return { ok, json: () => Promise.resolve(body) };
+export function mockFetchJson(body = {}, { ok = true, headers = { get: () => null } } = {}) {
+  return { ok, json: () => Promise.resolve(body), headers };
 }
 
 /**

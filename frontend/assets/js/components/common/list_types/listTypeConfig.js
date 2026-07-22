@@ -1,4 +1,3 @@
-import GenericClient from '../../../client/GenericClient.js';
 import AccessStore from '../../../utils/access/store/AccessStore.js';
 import Translator from '../../../i18n/Translator.js';
 import Icons from '../../../utils/ui/Icons.js';
@@ -8,7 +7,7 @@ import CharacterItemListItem from './CharacterItemListItem.js';
 import TreasureFilters from '../../resources/treasure/pages/elements/TreasureFilters.jsx';
 import TreasureCardHelper from '../cards/helpers/TreasureCardHelper.jsx';
 import ItemCardHelper from './ItemCardHelper.jsx';
-import fetchPermissionGatedIndex from './fetchPermissionGatedIndex.js';
+import fetchRequestStoreList, { buildListQuery } from './fetchRequestStoreList.js';
 import gamesListType from './configs/gamesListType.js';
 import myGamesListType from './configs/myGamesListType.js';
 import characterListTypes from './configs/characterListTypes.js';
@@ -18,24 +17,26 @@ import playersListType from './configs/playersListType.js';
 import documentListTypes from './configs/documentListTypes.js';
 
 /**
- * Fetch a page of a game's treasures, resolving the requester's edit permission first to
- * pick between the full catalog (`treasures/all.json`, editors only) and the player-facing,
- * hidden-filtered `treasures.json` — the same strategy `GameTreasuresController` previously
- * implemented directly.
+ * Fetch a page of a game's treasures through `RequestStore` (`treasure.collection`, `kind:
+ * 'game'`), resolving the requester's edit permission first to pick between the full catalog
+ * (`treasures/all.json`, editors only) and the player-facing, hidden-filtered `treasures.json`
+ * — the same strategy `GameTreasuresController` previously implemented directly.
  *
  * @param {string} gameSlug - Game slug.
  * @param {import('../../../utils/routing/HashRouteResolver.js').default} hashResolver -
- *   Resolver used to read active filter query params from the current hash.
- * @param {GenericClient} [client] - HTTP client override, mainly for tests.
+ *   Resolver used to read pagination and active filter query params from the current hash.
  * @returns {Promise<{data: object[], pagination: object, canEdit: boolean}>} Resolves to the
  *   fetched treasures, pagination metadata, and the resolved edit permission.
  */
-function fetchTreasures(gameSlug, hashResolver, client = new GenericClient()) {
+function fetchTreasures(gameSlug, hashResolver) {
   const filterParams = Object.fromEntries(hashResolver.getFilterParams());
 
-  return fetchPermissionGatedIndex(
-    AccessStore.ensureGamePermissions(gameSlug), `/games/${gameSlug}/treasures`, filterParams, client,
-  );
+  return fetchRequestStoreList({
+    resource: 'treasure',
+    params: { gameSlug, kind: 'game' },
+    query: buildListQuery(hashResolver, filterParams),
+    canEdit: AccessStore.ensureGamePermissions(gameSlug),
+  });
 }
 
 /**
@@ -89,45 +90,51 @@ function buildItemHref(item) {
 }
 
 /**
- * Fetch a page of a game's items, resolving the requester's edit permission first to pick
- * between the full catalog (`items/all.json`, dm/admin only) and the player-facing,
- * hidden-filtered `items.json` — mirroring `fetchTreasures`'s game-level permission check.
- * Unlike treasures, items have no filters in scope, so no filter params are read/sent.
+ * Fetch a page of a game's items through `RequestStore` (`item.collection`, `kind: 'game'`),
+ * resolving the requester's edit permission first to pick between the full catalog
+ * (`items/all.json`, dm/admin only) and the player-facing, hidden-filtered `items.json` —
+ * mirroring `fetchTreasures`'s game-level permission check. Unlike treasures, items have no
+ * filters in scope, so no filter params are read/sent.
  *
  * @param {string} gameSlug - Game slug.
- * @param {import('../../../utils/routing/HashRouteResolver.js').default} hashResolver - Unused
- *   for this list type, kept for a uniform `fetchList` signature across list types.
- * @param {GenericClient} [client] - HTTP client override, mainly for tests.
+ * @param {import('../../../utils/routing/HashRouteResolver.js').default} hashResolver -
+ *   Resolver used to read pagination params from the current hash.
  * @returns {Promise<{data: object[], pagination: object, canEdit: boolean}>} Resolves to the
  *   fetched items, pagination metadata, and the resolved edit permission.
  */
-function fetchGameItems(gameSlug, hashResolver, client = new GenericClient()) {
-  return fetchPermissionGatedIndex(
-    AccessStore.ensureGamePermissions(gameSlug), `/games/${gameSlug}/items`, undefined, client,
-  );
+function fetchGameItems(gameSlug, hashResolver) {
+  return fetchRequestStoreList({
+    resource: 'item',
+    params: { gameSlug, kind: 'game' },
+    query: buildListQuery(hashResolver),
+    canEdit: AccessStore.ensureGamePermissions(gameSlug),
+  });
 }
 
 /**
- * Build a `fetchList` for a character-scoped items list (PC or NPC), resolving the requester's
- * character-level edit permission (`AccessStore.ensureCharacterPermissions` already resolves
- * dm/owner/admin for a PC, dm/admin for an NPC, per `characterKind`) to pick between the full,
- * hidden-inclusive `items/all.json` and the player-facing `items.json`. The character id is read
- * from the current hash rather than passed explicitly, since `ListPageController` only threads a
+ * Build a `fetchList` for a character-scoped items list (PC or NPC) through `RequestStore`
+ * (`item.collection`, `kind: 'pcs'|'npcs'`), resolving the requester's character-level edit
+ * permission (`AccessStore.ensureCharacterPermissions` already resolves dm/owner/admin for a
+ * PC, dm/admin for an NPC, per `characterKind`) to pick between the full, hidden-inclusive
+ * `items/all.json` and the player-facing `items.json`. The character id is read from the
+ * current hash rather than passed explicitly, since `ListPageController` only threads a
  * `gameSlug` through to `fetchList`.
  *
  * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`), used as the URL segment.
- * @returns {Function} A `fetchList(gameSlug, hashResolver, client?)` function for this kind.
+ * @returns {Function} A `fetchList(gameSlug, hashResolver)` function for this kind.
  */
 function buildFetchCharacterItems(characterKind) {
-  return function fetchCharacterItems(gameSlug, hashResolver, client = new GenericClient()) {
+  return function fetchCharacterItems(gameSlug, hashResolver) {
     const { character_id: characterId } = hashResolver.getParams(
       `/games/:game_slug/${characterKind}/:character_id/items`,
     );
-    const base = `/games/${gameSlug}/${characterKind}/${characterId}/items`;
 
-    return fetchPermissionGatedIndex(
-      AccessStore.ensureCharacterPermissions(characterKind, gameSlug, characterId), base, undefined, client,
-    );
+    return fetchRequestStoreList({
+      resource: 'item',
+      params: { gameSlug, kind: characterKind, id: characterId },
+      query: buildListQuery(hashResolver),
+      canEdit: AccessStore.ensureCharacterPermissions(characterKind, gameSlug, characterId),
+    });
   };
 }
 
@@ -192,7 +199,11 @@ function buildCharacterItemItemHref(characterKind) {
  * `players`/`pcs`/`npcs`/`pc-treasures`/`npc-treasures`/`treasures-global`/`documents`/
  * `pc-documents`/`npc-documents` entries live in `./configs/`, split out of this file to keep it
  * under the project's max-lines limit; they are merged into this object below. Each entry holds:
- * - `fetchList(gameSlug, hashResolver, client?)` — fetches one page of list data.
+ * - `fetchList(gameSlug, hashResolver, client?)` — fetches one page of list data. Every type
+ *   migrated onto `RequestStore` (issue #791, phase 3/N) ignores the `client` argument (kept
+ *   only where a later positional argument, e.g. `gameClient`, still needs it); the handful of
+ *   list types intentionally left on `fetchPermissionGatedIndex` (`documents`, `treasures-global`,
+ *   `my-games`, `players`) still use it.
  * - `wrapperClass` — the `BaseListItem` subclass normalizing each raw entry.
  * - `filtersComponent` — filter bar rendered above the grid, or `null`.
  * - `photoType` — `ActionsOverlay`'s `type` prop for this entity's photo/avatar.

@@ -21,21 +21,23 @@ found in `HashRouteResolver.js`/`AppHelper.jsx` during discussion of issue #791.
 
 | Route | Page component | `listTypeConfig` key | `resourceConfig` entry |
 |---|---|---|---|
-| `/#/`, `/#/games` | `Games.jsx` | `games` (`configs/gamesListType.js`) | `game.collection` |
-| `/#/games/:game_slug/treasures` | `GameTreasures.jsx` | `treasures` | `treasure.collection` |
-| `/#/games/:game_slug/items` | `GameItems.jsx` | `items` | needs a game-scoped item collection — confirm `itemConfig.js`'s `collection` entry covers game-owned (not just character-owned) items, or whether a separate config/entry is needed |
-| `/#/games/:game_slug/pcs` | `GamePcs.jsx` | `pcs` (`configs/characterListTypes.js`) | `pc.collection` |
-| `/#/games/:game_slug/npcs` | `GameNpcs.jsx` | `npcs` (`configs/characterListTypes.js`) | `npc.collection` |
-| `/#/games/:game_slug/pcs/:id/treasures` | `PcCharacterTreasures.jsx` (`listType="pc-treasures"`) | `pc-treasures` (`configs/characterTreasureListTypes.js`) | `treasure.collection` (`kind: 'pcs'`) |
-| `/#/games/:game_slug/npcs/:id/treasures` | `NpcCharacterTreasures.jsx` (`listType="npc-treasures"`) | `npc-treasures` | `treasure.collection` (`kind: 'npcs'`) |
-| `/#/games/:game_slug/pcs/:id/items` | `PcCharacterItems.jsx` | `pc-items` | `item.collection` (`kind: 'pcs'`) |
-| `/#/games/:game_slug/npcs/:character_id/items` | `NpcCharacterItems.jsx` | `npc-items` | `item.collection` (`kind: 'npcs'`) |
-| `/#/games/:game_slug/pcs/:id/documents` | `PcCharacterDocuments.jsx` (`listType="pc-documents"`) | `pc-documents` (`configs/documentListTypes.js`) | new `documentConfig.js` (`kind: 'pcs'`) |
-| `/#/games/:game_slug/npcs/:id/documents` | `NpcCharacterDocuments.jsx` (`listType="npc-documents"`) | `npc-documents` | new `documentConfig.js` (`kind: 'npcs'`) |
+| `/#/`, `/#/games` | `Games.jsx` | `games` (`configs/gamesListType.js`) | `game.collection` — done |
+| `/#/games/:game_slug/treasures` | `GameTreasures.jsx` | `treasures` | `treasure.collection` (`kind: 'game'`, new path family) — done |
+| `/#/games/:game_slug/items` | `GameItems.jsx` | `items` | `item.collection` (`kind: 'game'`, new path family, mirroring `single`'s existing game/character split) — done |
+| `/#/games/:game_slug/pcs` | `GamePcs.jsx` | `pcs` (`configs/characterListTypes.js`) | `pc.collection` — done |
+| `/#/games/:game_slug/npcs` | `GameNpcs.jsx` | `npcs` (`configs/characterListTypes.js`) | `npc.collection` — done |
+| `/#/games/:game_slug/pcs/:id/treasures` | `PcCharacterTreasures.jsx` (`listType="pc-treasures"`) | `pc-treasures` (`configs/characterTreasureListTypes.js`) | `treasure.collection` (`kind: 'pcs'`) — done |
+| `/#/games/:game_slug/npcs/:id/treasures` | `NpcCharacterTreasures.jsx` (`listType="npc-treasures"`) | `npc-treasures` | `treasure.collection` (`kind: 'npcs'`) — done |
+| `/#/games/:game_slug/pcs/:id/items` | `PcCharacterItems.jsx` | `pc-items` | `item.collection` (`kind: 'pcs'`) — done |
+| `/#/games/:game_slug/npcs/:character_id/items` | `NpcCharacterItems.jsx` | `npc-items` | `item.collection` (`kind: 'npcs'`) — done |
+| `/#/games/:game_slug/pcs/:id/documents` | `PcCharacterDocuments.jsx` (`listType="pc-documents"`) | `pc-documents` (`configs/documentListTypes.js`) | `documentConfig.js` (`kind: 'pcs'`) — done |
+| `/#/games/:game_slug/npcs/:id/documents` | `NpcCharacterDocuments.jsx` (`listType="npc-documents"`) | `npc-documents` | `documentConfig.js` (`kind: 'npcs'`) — done |
 
-Confirm exact page/component names for `GameItems`/`PcCharacterItems`/`NpcCharacterItems` and
-their list-type keys against `AppHelper.jsx`/`listTypeConfig.js` at implementation time — not all
-were directly re-verified during planning beyond `pc-items`/`npc-items`/`items`.
+Page/component names and list-type keys for `GameItems`/`PcCharacterItems`/`NpcCharacterItems`
+were confirmed against `AppHelper.jsx`/`listTypeConfig.js` at implementation time, matching this
+table. The game-scoped, non-per-character `documents` list type (distinct from the
+`pc-documents`/`npc-documents` rows above) was confirmed out of scope (not in the issue's
+affected-page list) and left on `fetchPermissionGatedIndex`.
 
 ## Edit pages — Step 4
 

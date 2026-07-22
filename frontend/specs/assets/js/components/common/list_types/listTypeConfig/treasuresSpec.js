@@ -3,6 +3,11 @@ import TreasureListItem from '../../../../../../../assets/js/components/common/l
 import TreasureFilters from '../../../../../../../assets/js/components/resources/treasure/pages/elements/TreasureFilters.jsx';
 import TreasureCardHelper from '../../../../../../../assets/js/components/common/cards/helpers/TreasureCardHelper.jsx';
 import AccessStore from '../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../../../assets/js/utils/requests/RequestStore.js';
+
+function fakeHashResolver(filterParams = new URLSearchParams()) {
+  return { getFilterParams: () => filterParams, getPaginationParams: () => new URLSearchParams() };
+}
 
 describe('listTypeConfig', function() {
   describe('treasures', function() {
@@ -111,83 +116,77 @@ describe('listTypeConfig', function() {
     });
 
     describe('.fetchList', function() {
-      it('fetches the player-facing endpoint when the requester cannot edit', async function() {
-        const client = jasmine.createSpyObj('client', ['fetchIndex']);
-        const hashResolver = { getFilterParams: () => new URLSearchParams() };
-
-        client.fetchIndex.and.returnValue(Promise.resolve({
-          data: [{ id: 1, name: 'Sword', value: 100 }],
-          pagination: { page: 1, pages: 1, perPage: 10 },
-        }));
-        spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
-
-        const result = await treasures.fetchList('demo', hashResolver, client);
-
-        expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/treasures.json', {});
-        expect(result.data).toEqual([{ id: 1, name: 'Sword', value: 100 }]);
-        expect(result.pagination).toEqual({ page: 1, pages: 1, perPage: 10 });
-        expect(result.canEdit).toBe(false);
+      afterEach(function() {
+        RequestStore.reset();
       });
 
-      it('fetches the admin endpoint when the requester can edit', async function() {
-        const client = jasmine.createSpyObj('client', ['fetchIndex']);
-        const hashResolver = { getFilterParams: () => new URLSearchParams() };
+      it('fetches through RequestStore with the game-owned treasure collection and resolves canEdit false',
+        async function() {
+          spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
+            data: [{ id: 1, name: 'Sword', value: 100 }],
+            pagination: { page: 1, pages: 1, perPage: 10 },
+          }));
+          spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
-        client.fetchIndex.and.returnValue(Promise.resolve({
-          data: [],
-          pagination: { page: 1, pages: 1, perPage: 10 },
+          const result = await treasures.fetchList('demo', fakeHashResolver());
+
+          expect(RequestStore.ensure).toHaveBeenCalledWith({
+            resource: 'treasure', quantityType: 'collection', params: { gameSlug: 'demo', kind: 'game' }, query: {},
+          });
+          expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+          expect(result.data).toEqual([{ id: 1, name: 'Sword', value: 100 }]);
+          expect(result.pagination).toEqual({ page: 1, pages: 1, perPage: 10 });
+          expect(result.canEdit).toBe(false);
+        });
+
+      it('resolves canEdit true when the requester can edit the game', async function() {
+        spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
+          data: [], pagination: { page: 1, pages: 1, perPage: 10 },
         }));
         spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
-        const result = await treasures.fetchList('demo', hashResolver, client);
+        const result = await treasures.fetchList('demo', fakeHashResolver());
 
-        expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/treasures/all.json', {});
         expect(result.canEdit).toBe(true);
       });
 
-      it('passes the filter params from the hash resolver', async function() {
-        const client = jasmine.createSpyObj('client', ['fetchIndex']);
-        const hashResolver = {
-          getFilterParams: () => new URLSearchParams({ min_value: '10', max_value: '100', name: 'sword' }),
-        };
-
-        client.fetchIndex.and.returnValue(Promise.resolve({
+      it('passes the filter params from the hash resolver as part of the query', async function() {
+        spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
           data: [], pagination: { page: 1, pages: 1, perPage: 10 },
         }));
         spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+        const hashResolver = fakeHashResolver(
+          new URLSearchParams({ min_value: '10', max_value: '100', name: 'sword' }),
+        );
 
-        await treasures.fetchList('demo', hashResolver, client);
+        await treasures.fetchList('demo', hashResolver);
 
-        expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/treasures.json', {
-          min_value: '10', max_value: '100', name: 'sword',
+        expect(RequestStore.ensure).toHaveBeenCalledWith({
+          resource: 'treasure',
+          quantityType: 'collection',
+          params: { gameSlug: 'demo', kind: 'game' },
+          query: { min_value: '10', max_value: '100', name: 'sword' },
         });
       });
 
-      it('defaults to the player-facing endpoint when the permission check fails', async function() {
-        const client = jasmine.createSpyObj('client', ['fetchIndex']);
-        const hashResolver = { getFilterParams: () => new URLSearchParams() };
-
-        client.fetchIndex.and.returnValue(Promise.resolve({
+      it('defaults to canEdit false when the permission check fails', async function() {
+        spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
           data: [], pagination: { page: 1, pages: 1, perPage: 10 },
         }));
         spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.reject(new Error('nope')));
 
-        const result = await treasures.fetchList('demo', hashResolver, client);
+        const result = await treasures.fetchList('demo', fakeHashResolver());
 
-        expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/treasures.json', {});
         expect(result.canEdit).toBe(false);
       });
 
       it('defaults to an empty array when the response data is not an array', async function() {
-        const client = jasmine.createSpyObj('client', ['fetchIndex']);
-        const hashResolver = { getFilterParams: () => new URLSearchParams() };
-
-        client.fetchIndex.and.returnValue(Promise.resolve({
+        spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
           data: null, pagination: { page: 1, pages: 1, perPage: 10 },
         }));
         spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
-        const result = await treasures.fetchList('demo', hashResolver, client);
+        const result = await treasures.fetchList('demo', fakeHashResolver());
 
         expect(result.data).toEqual([]);
       });

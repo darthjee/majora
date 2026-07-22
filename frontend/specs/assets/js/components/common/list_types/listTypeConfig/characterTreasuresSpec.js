@@ -4,6 +4,7 @@ import TreasureFilters from '../../../../../../../assets/js/components/resources
 import TreasureCardHelper from '../../../../../../../assets/js/components/common/cards/helpers/TreasureCardHelper.jsx';
 import HashRouteResolver from '../../../../../../../assets/js/utils/routing/HashRouteResolver.js';
 import AccessStore from '../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../../../assets/js/utils/requests/RequestStore.js';
 
 function buildGameClient(gameType = 'dnd') {
   const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame']);
@@ -73,17 +74,20 @@ describe('listTypeConfig', function() {
       });
 
       describe('.fetchList', function() {
+        afterEach(function() {
+          RequestStore.reset();
+        });
+
         it('merges the character\'s own game_type onto every fetched entry', async function() {
-          const client = jasmine.createSpyObj('client', ['fetchIndex']);
           const hashResolver = new HashRouteResolver(() => hash);
 
-          client.fetchIndex.and.returnValue(Promise.resolve({
+          spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
             data: [{ id: 1, treasure_id: 11, name: 'Golden Crown', quantity: 1, value: 500 }],
             pagination: { page: 1, pages: 1, perPage: 10 },
           }));
           spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
-          const result = await config.fetchList('demo', hashResolver, client, buildGameClient('deadlands'));
+          const result = await config.fetchList('demo', hashResolver, undefined, buildGameClient('deadlands'));
 
           expect(result.data).toEqual([{
             id: 1, treasure_id: 11, name: 'Golden Crown', quantity: 1, value: 500, game_type: 'deadlands',
@@ -91,96 +95,93 @@ describe('listTypeConfig', function() {
         });
 
         it('defaults to an empty array when the response data is not an array', async function() {
-          const client = jasmine.createSpyObj('client', ['fetchIndex']);
           const hashResolver = new HashRouteResolver(() => hash);
 
-          client.fetchIndex.and.returnValue(Promise.resolve({
+          spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
             data: null, pagination: { page: 1, pages: 1, perPage: 10 },
           }));
           spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
-          const result = await config.fetchList('demo', hashResolver, client, buildGameClient());
+          const result = await config.fetchList('demo', hashResolver, undefined, buildGameClient());
 
           expect(result.data).toEqual([]);
         });
 
         it('defaults the merged game_type to dnd when the game fetch fails', async function() {
-          const client = jasmine.createSpyObj('client', ['fetchIndex']);
           const hashResolver = new HashRouteResolver(() => hash);
           const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame']);
 
           gameClient.fetchGame.and.returnValue(Promise.resolve({ ok: false }));
-          client.fetchIndex.and.returnValue(Promise.resolve({
+          spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
             data: [{ id: 1, treasure_id: 11, name: 'Golden Crown', quantity: 1, value: 500 }],
             pagination: { page: 1, pages: 1, perPage: 10 },
           }));
           spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
-          const result = await config.fetchList('demo', hashResolver, client, gameClient);
+          const result = await config.fetchList('demo', hashResolver, undefined, gameClient);
 
           expect(result.data[0].game_type).toBe('dnd');
         });
 
-        it('passes the min_value/max_value/name filter params from the hash resolver', async function() {
-          const client = jasmine.createSpyObj('client', ['fetchIndex']);
-          const filterHash = `${hash}?min_value=10&max_value=100&name=sword`;
-          const hashResolver = new HashRouteResolver(() => filterHash);
+        it('passes the min_value/max_value/name filter params from the hash resolver as part of the query',
+          async function() {
+            const filterHash = `${hash}?min_value=10&max_value=100&name=sword`;
+            const hashResolver = new HashRouteResolver(() => filterHash);
 
-          client.fetchIndex.and.returnValue(Promise.resolve({
-            data: [], pagination: { page: 1, pages: 1, perPage: 10 },
-          }));
-          spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
-
-          await config.fetchList('demo', hashResolver, client, buildGameClient());
-
-          const expectedPath = `/games/demo/${characterKind}/2/treasures.json`;
-          expect(client.fetchIndex).toHaveBeenCalledWith(expectedPath, {
-            min_value: '10', max_value: '100', name: 'sword',
-          });
-        });
-
-        if (characterKind === 'pcs') {
-          it('always fetches the plain treasures.json endpoint, regardless of game-level canEdit', async function() {
-            const client = jasmine.createSpyObj('client', ['fetchIndex']);
-            const hashResolver = new HashRouteResolver(() => hash);
-
-            client.fetchIndex.and.returnValue(Promise.resolve({
+            spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
               data: [], pagination: { page: 1, pages: 1, perPage: 10 },
             }));
+            spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
-            const result = await config.fetchList('demo', hashResolver, client, buildGameClient());
+            await config.fetchList('demo', hashResolver, undefined, buildGameClient());
 
-            expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/pcs/2/treasures.json', {});
+            expect(RequestStore.ensure).toHaveBeenCalledWith({
+              resource: 'treasure',
+              quantityType: 'collection',
+              params: { gameSlug: 'demo', kind: characterKind, id: '2' },
+              query: { min_value: '10', max_value: '100', name: 'sword' },
+            });
+          });
+
+        if (characterKind === 'pcs') {
+          it('always resolves canEdit false, regardless of game-level permissions', async function() {
+            const hashResolver = new HashRouteResolver(() => hash);
+
+            spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
+              data: [], pagination: { page: 1, pages: 1, perPage: 10 },
+            }));
+            spyOn(AccessStore, 'ensureGamePermissions');
+
+            const result = await config.fetchList('demo', hashResolver, undefined, buildGameClient());
+
+            expect(AccessStore.ensureGamePermissions).not.toHaveBeenCalled();
             expect(result.canEdit).toBe(false);
           });
         } else {
-          it('fetches the hidden-inclusive treasures/all.json endpoint when game-level canEdit is true', async function() {
-            const client = jasmine.createSpyObj('client', ['fetchIndex']);
+          it('resolves canEdit true when game-level canEdit is true', async function() {
             const hashResolver = new HashRouteResolver(() => hash);
 
-            client.fetchIndex.and.returnValue(Promise.resolve({
+            spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
               data: [], pagination: { page: 1, pages: 1, perPage: 10 },
             }));
             spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
-            const result = await config.fetchList('demo', hashResolver, client, buildGameClient());
+            const result = await config.fetchList('demo', hashResolver, undefined, buildGameClient());
 
-            expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs/2/treasures/all.json', {});
+            expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
             expect(result.canEdit).toBe(true);
           });
 
-          it('falls back to treasures.json when the game-level permission check fails', async function() {
-            const client = jasmine.createSpyObj('client', ['fetchIndex']);
+          it('falls back to canEdit false when the game-level permission check fails', async function() {
             const hashResolver = new HashRouteResolver(() => hash);
 
-            client.fetchIndex.and.returnValue(Promise.resolve({
+            spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
               data: [], pagination: { page: 1, pages: 1, perPage: 10 },
             }));
             spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.reject(new Error('nope')));
 
-            const result = await config.fetchList('demo', hashResolver, client, buildGameClient());
+            const result = await config.fetchList('demo', hashResolver, undefined, buildGameClient());
 
-            expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs/2/treasures.json', {});
             expect(result.canEdit).toBe(false);
           });
         }

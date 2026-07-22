@@ -29,7 +29,8 @@ export default class RequestStore {
    * @param {string} args.quantityType - `'collection'` or `'single'`.
    * @param {object} [args.params] - Concrete params (`gameSlug`, `id`, etc.).
    * @param {object} [args.query] - Query/filters.
-   * @returns {Promise<{data: *}>} Resolves to the wrapped resource data.
+   * @returns {Promise<{data: *, pagination: {page: number, pages: number, perPage: number}}>}
+   *   Resolves to the wrapped resource data and its pagination metadata.
    */
   static ensure({ resource, quantityType, params = {}, query = {} }) {
     const entry = RequestStore.#entryFor(resource, quantityType, params);

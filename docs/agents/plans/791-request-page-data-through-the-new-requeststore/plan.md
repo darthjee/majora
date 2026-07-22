@@ -81,7 +81,40 @@ base character fetch to `RequestStore.ensure()` eliminates that whole chain, not
   is now unused anywhere in the app but was left in place — still a correctly-implemented,
   spec-covered mirror of a real backend endpoint, and out of scope for this issue's "Files to
   Change".
-- **Remaining** (Steps 3-5 — list pages, edit pages, embedded components): not started yet — each
+- **Done** (Step 3 — list pages): `games`/home (`game.collection`), `treasures` (game-scoped,
+  `treasure.collection` with a new `kind: 'game'` path family added to `treasureConfig.js` —
+  the game catalog's `GET /games/:slug/treasures.json`/`treasures/all.json` is a third,
+  genuinely distinct path family from the character-owned `kind: 'pcs'|'npcs'` one already
+  there, `GameEditPermission`-gated per `docs/agents/access-control/game-treasure.md`), `items`
+  (game-scoped, `item.collection` with a new `kind: 'game'` path family added to
+  `itemConfig.js`, mirroring `single`'s existing `kind`-based split — confirmed against
+  `docs/agents/access-control/game-item.md` that `/games/:slug/items/all.json` is
+  `GameEditPermission`-gated, i.e. game-level, not character-level), `pcs`/`npcs`
+  (`pc.collection`/`npc.collection`, already fully modeled by existing configs), `pc-treasures`/
+  `npc-treasures` (`treasure.collection`, `kind: 'pcs'|'npcs'`, already modeled), `pc-items`/
+  `npc-items` (`item.collection`, `kind: 'pcs'|'npcs'`, already modeled), and `pc-documents`/
+  `npc-documents` (`document.collection`, using Step 1's `documentConfig.js`, already modeled).
+  The game-scoped, non-per-character `documents` list type (`GameItems`'s document-list sibling)
+  is intentionally left on `fetchPermissionGatedIndex` — it was never in the issue's affected-page
+  list (only `pc-documents`/`npc-documents` were), and `documentConfig.js`'s `collection` shape
+  models only the per-character path family, not a `kind: 'game'` one.
+  **Pagination-metadata resolution**: confirmed `pagination` (`page`/`pages`/`per_page`) comes
+  from response *headers*, not the JSON body (`GenericClient#fetchIndex`) — `RequestClient`
+  and `Request` were extended so `RequestStore.ensure()`'s resolved value is now
+  `{data, pagination}` (previously just `{data}`), read from the same headers via a new
+  `RequestClient#fetchResource` pagination-header parser (shared `parsePositiveInt` defaults,
+  matching `GenericClient`'s). This is present on every response (including `single`-quantity-type
+  ones, which simply ignore it) rather than being conditional on quantity type, to avoid
+  `RequestClient` needing to know which quantity type it's serving.
+  **`canEdit` resolution**: `RequestStore.ensure()` doesn't expose which regular/private variant
+  it internally picked, so each migrated `fetchList` independently resolves `canEdit` from the
+  same `AccessStore.ensure*Permissions()` call `RequestPermissionResolvers` would use — deduped
+  by `AccessStore`'s own cache, the same precedent Step 2 established for
+  `CharacterItemDetailController`'s `can_upload_item_photo` read. A new shared helper,
+  `fetchRequestStoreList.js` (mirroring `fetchPermissionGatedIndex.js`'s shape, plus a
+  `buildListQuery` helper folding `hashResolver.getPaginationParams()` and optional filter
+  params into one `query` object), centralizes this pattern across every migrated `fetchList`.
+- **Remaining** (Steps 4-5 — edit pages, embedded components): not started yet — each
   is expected to land as its own follow-up PR against this same issue.
 
 ## Implementation Steps

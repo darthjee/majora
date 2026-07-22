@@ -20,6 +20,12 @@ function deferred() {
   return { promise, resolve };
 }
 
+const PAGINATION = { page: 1, pages: 1, perPage: 10 };
+
+function clientResult(data) {
+  return { data, pagination: PAGINATION };
+}
+
 describe('Request', function() {
   let client;
   let request;
@@ -30,13 +36,13 @@ describe('Request', function() {
   });
 
   describe('#ensure', function() {
-    it('starts a new fetch and resolves with the wrapped data', async function() {
-      client.fetchResource.and.returnValue(Promise.resolve({ id: 1 }));
+    it('starts a new fetch and resolves with the wrapped data and pagination', async function() {
+      client.fetchResource.and.returnValue(Promise.resolve(clientResult({ id: 1 })));
 
       const result = await request.ensure({ params: { gameSlug: 'demo' } });
 
       expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs.json', {}, jasmine.anything());
-      expect(result).toEqual({ data: { id: 1 } });
+      expect(result).toEqual({ data: { id: 1 }, pagination: PAGINATION });
     });
 
     it('dedupes concurrent calls with unchanged params/query/permissions into the same promise', function() {
@@ -51,29 +57,31 @@ describe('Request', function() {
     });
 
     it('resolves immediately with cached data and does not refetch when nothing changed', async function() {
-      client.fetchResource.and.returnValue(Promise.resolve({ id: 1 }));
+      client.fetchResource.and.returnValue(Promise.resolve(clientResult({ id: 1 })));
 
       await request.ensure({ params: { gameSlug: 'demo' } });
       const result = await request.ensure({ params: { gameSlug: 'demo' } });
 
-      expect(result).toEqual({ data: { id: 1 } });
+      expect(result).toEqual({ data: { id: 1 }, pagination: PAGINATION });
       expect(client.fetchResource).toHaveBeenCalledTimes(1);
     });
 
     it('starts a fresh request with a new wrapper object when the query changes', async function() {
-      client.fetchResource.and.returnValues(Promise.resolve({ id: 1 }), Promise.resolve({ id: 2 }));
+      client.fetchResource.and.returnValues(
+        Promise.resolve(clientResult({ id: 1 })), Promise.resolve(clientResult({ id: 2 })),
+      );
 
       const first = await request.ensure({ params: { gameSlug: 'demo' }, query: {} });
       const second = await request.ensure({ params: { gameSlug: 'demo' }, query: { search: 'x' } });
 
       expect(client.fetchResource).toHaveBeenCalledTimes(2);
-      expect(first).toEqual({ data: { id: 1 } });
-      expect(second).toEqual({ data: { id: 2 } });
+      expect(first).toEqual({ data: { id: 1 }, pagination: PAGINATION });
+      expect(second).toEqual({ data: { id: 2 }, pagination: PAGINATION });
       expect(first).not.toBe(second);
     });
 
     it('passes the query through to the client', async function() {
-      client.fetchResource.and.returnValue(Promise.resolve({ id: 1 }));
+      client.fetchResource.and.returnValue(Promise.resolve(clientResult({ id: 1 })));
 
       await request.ensure({ params: { gameSlug: 'demo' }, query: { page: 2 } });
 
@@ -81,7 +89,9 @@ describe('Request', function() {
     });
 
     it('starts a fresh request when params change', async function() {
-      client.fetchResource.and.returnValues(Promise.resolve({ id: 1 }), Promise.resolve({ id: 2 }));
+      client.fetchResource.and.returnValues(
+        Promise.resolve(clientResult({ id: 1 })), Promise.resolve(clientResult({ id: 2 })),
+      );
 
       await request.ensure({ params: { gameSlug: 'demo' } });
       await request.ensure({ params: { gameSlug: 'other' } });
@@ -92,7 +102,7 @@ describe('Request', function() {
     });
 
     it('picks the private variant when the configured permission is granted', async function() {
-      client.fetchResource.and.returnValue(Promise.resolve({ id: 1 }));
+      client.fetchResource.and.returnValue(Promise.resolve(clientResult({ id: 1 })));
 
       await request.ensure({ params: { gameSlug: 'demo' }, permissions: { can_edit: true } });
 
@@ -100,7 +110,7 @@ describe('Request', function() {
     });
 
     it('fails closed to the regular variant when the permission is unknown', async function() {
-      client.fetchResource.and.returnValue(Promise.resolve({ id: 1 }));
+      client.fetchResource.and.returnValue(Promise.resolve(clientResult({ id: 1 })));
 
       await request.ensure({ params: { gameSlug: 'demo' } });
 
@@ -125,28 +135,30 @@ describe('Request', function() {
       expect(client.fetchResource).toHaveBeenCalledTimes(2);
       expect(originalPromise).toBe(supersedingPromise);
 
-      privateFetch.resolve({ id: 'private' });
+      privateFetch.resolve(clientResult({ id: 'private' }));
       const result = await originalPromise;
 
-      expect(result).toEqual({ data: { id: 'private' } });
+      expect(result).toEqual({ data: { id: 'private' }, pagination: PAGINATION });
 
-      regular.resolve({ id: 'regular' });
+      regular.resolve(clientResult({ id: 'regular' }));
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(await originalPromise).toEqual({ data: { id: 'private' } });
+      expect(await originalPromise).toEqual({ data: { id: 'private' }, pagination: PAGINATION });
     });
   });
 
   describe('#abort', function() {
     it('clears cached/pending state so a later ensure() starts a fresh request', async function() {
-      client.fetchResource.and.returnValues(Promise.resolve({ id: 1 }), Promise.resolve({ id: 2 }));
+      client.fetchResource.and.returnValues(
+        Promise.resolve(clientResult({ id: 1 })), Promise.resolve(clientResult({ id: 2 })),
+      );
 
       await request.ensure({ params: { gameSlug: 'demo' } });
       request.abort();
       const result = await request.ensure({ params: { gameSlug: 'demo' } });
 
       expect(client.fetchResource).toHaveBeenCalledTimes(2);
-      expect(result).toEqual({ data: { id: 2 } });
+      expect(result).toEqual({ data: { id: 2 }, pagination: PAGINATION });
     });
   });
 });
