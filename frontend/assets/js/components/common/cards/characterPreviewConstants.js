@@ -16,12 +16,13 @@ export const MAX_PREVIEW_ITEMS = 5;
 export const MAX_PREVIEW_PHOTOS = 11;
 
 /**
- * Per-type configuration for `PreviewSection` call sites: an i18n title key,
- * a `Icons.js` icon used on the "see all" card, and (for `pc`/`npc`, whose
- * endpoint is a simple self-contained template string) an endpoint builder.
+ * Per-type configuration for `PreviewSection` call sites: an i18n title key and a `Icons.js` icon
+ * used on the "see all" card.
  *
- * @description `treasure`/`item`'s endpoints are deliberately not built here: they are
- *   already built by `CharacterClient#fetchCharacterTreasures`/`#fetchCharacterItems`
+ * @description No entry provides an endpoint builder: `pc`/`npc` are fetched by
+ *   `GameController#fetchPcsPreview`/`#fetchNpcsPreview` through `RequestStore.ensure()`
+ *   (`pc.collection`/`npc.collection`, issue #791 phase 5/N), and `treasure`/`item`'s endpoints
+ *   are built by `CharacterClient#fetchCharacterTreasures`/`#fetchCharacterItems`
  *   (`CharacterController#fetchCharacterTreasures`/`#fetchCharacterItems`), a generic
  *   per-character-suffix client shared with unrelated endpoints (`full`,
  *   `access`, `permissions`, `money`, `photos`), so routing it through a
@@ -33,13 +34,10 @@ export const PREVIEW_LIST_TYPES = {
   pc: {
     titleKey: 'game_page.player_characters',
     icon: Icons.filePerson,
-    buildEndpoint: ({ gameSlug }) => `/games/${gameSlug}/pcs.json`,
   },
   npc: {
     titleKey: 'game_page.non_player_characters',
     icon: Icons.filePersonFill,
-    buildEndpoint: ({ gameSlug }) => `/games/${gameSlug}/npcs.json`,
-    buildAuthEndpoint: ({ gameSlug }) => `/games/${gameSlug}/npcs/all.json`,
   },
   treasure: {
     titleKey: 'character_page.treasures_title',

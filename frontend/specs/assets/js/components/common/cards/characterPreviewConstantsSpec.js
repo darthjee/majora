@@ -18,9 +18,9 @@ describe('characterPreviewConstants', function() {
       expect(PREVIEW_LIST_TYPES.pc.icon).toBe(Icons.filePerson);
     });
 
-    it('builds the pcs endpoint from a game slug', function() {
-      expect(PREVIEW_LIST_TYPES.pc.buildEndpoint({ gameSlug: 'epic-quest' }))
-        .toBe('/games/epic-quest/pcs.json');
+    it('does not provide an endpoint builder', function() {
+      expect(PREVIEW_LIST_TYPES.pc.buildEndpoint).toBeUndefined();
+      expect(PREVIEW_LIST_TYPES.pc.buildAuthEndpoint).toBeUndefined();
     });
   });
 
@@ -30,14 +30,9 @@ describe('characterPreviewConstants', function() {
       expect(PREVIEW_LIST_TYPES.npc.icon).toBe(Icons.filePersonFill);
     });
 
-    it('builds the public npcs endpoint from a game slug', function() {
-      expect(PREVIEW_LIST_TYPES.npc.buildEndpoint({ gameSlug: 'epic-quest' }))
-        .toBe('/games/epic-quest/npcs.json');
-    });
-
-    it('builds the authenticated npcs endpoint from a game slug', function() {
-      expect(PREVIEW_LIST_TYPES.npc.buildAuthEndpoint({ gameSlug: 'epic-quest' }))
-        .toBe('/games/epic-quest/npcs/all.json');
+    it('does not provide an endpoint builder', function() {
+      expect(PREVIEW_LIST_TYPES.npc.buildEndpoint).toBeUndefined();
+      expect(PREVIEW_LIST_TYPES.npc.buildAuthEndpoint).toBeUndefined();
     });
   });
 

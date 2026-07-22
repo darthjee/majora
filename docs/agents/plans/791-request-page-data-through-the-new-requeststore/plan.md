@@ -135,8 +135,28 @@ base character fetch to `RequestStore.ensure()` eliminates that whole chain, not
   controllers previously always requested the elevated endpoint, relying on the backend route
   itself being edit-gated; now `RequestPermissionResolvers` picks the variant client-side, same as
   their show-page counterparts).
-- **Remaining** (Step 5 — page-embedded components): not started yet — expected to land as its
-  own follow-up PR against this same issue.
+- **Done** (Step 5 — page-embedded components, final phase): `GamePreviewSections`'s data source
+  (`GameController#fetchPcsPreview`/`#fetchNpcsPreview`) migrated onto `pc.collection`/
+  `npc.collection` with `query: {per_page: MAX_PREVIEW_ITEMS}` — for NPCs this also collapses the
+  old ad hoc token-presence-then-fallback-on-failure logic (`#applyNpcsPreviewResult`, now
+  removed) onto `npcConfig`'s existing private/`can_edit`-gated `all.json` variant, since
+  `RequestPermissionResolvers` already resolves the same game-level `can_edit`
+  (`AccessStore.ensureGamePermissions`) the old logic was trying to approximate via a raw
+  auth-then-check-response-ok race. `characterPreviewConstants.js`'s now-dead
+  `buildEndpoint`/`buildAuthEndpoint` builders (only ever used by these two methods) were removed
+  from the `pc`/`npc` entries. `TreasureExchangeModalController#fetchAcquirePage` (Acquire tab)
+  migrated onto `treasure.collection`, `kind: 'game'` — its `character.canEdit` prop (sourced from
+  `character.game_can_edit`, i.e. the same `AccessStore.ensureGamePermissions` call
+  `RequestPermissionResolvers` uses for this exact resource/kind) already picked the same
+  regular-vs-`all.json` variant `RequestStore` now resolves internally, so this is a like-for-like
+  swap with no behavior change; the method dropped its now-unused `token`/`canEdit` parameters
+  (`RequestClient` reads the token from `AuthStorage` itself) and the controller's now-unused
+  `TreasureClient` dependency was removed from its constructor.
+  **Explicitly evaluated and skipped** (see Notes for the general pattern this all shares):
+  `TreasureExchangeModalController#fetchSellPage` (Sell tab), `AddGameTreasureModalController`,
+  and `CharacterController`'s `fetchAndMergeTreasures`/`fetchAndMergeItems`/`fetchAndMergeDocuments`
+  preview-merge fetches (`fetchAndMergePhotos` was already out of scope per the Implementation
+  Steps below).
 
 ## Implementation Steps
 
@@ -283,3 +303,43 @@ Representative files — see [plan_pages.md](plan_pages.md) for the full per-pag
 - `BaseEditController#fetchWithAccess`/`#fetchSingle` assume a raw `Response`; resolving that
   mismatch (Step 4) affects every non-character edit controller, so do it once, centrally, rather
   than per-controller.
+- **Step 5 findings — the "always-regular, never-elevated" pattern.** Several Step 5 candidates
+  turned out to share one root mismatch with `RequestStore`'s permission-driven regular/private
+  selection: they intentionally *always* fetch the plain, hidden-filtered endpoint today,
+  regardless of the viewer's edit rights, unlike their sibling list-page `fetchList`s (already
+  migrated in Step 3) which correctly elevate to the `all.json` variant for an editor. Migrating
+  these onto the same `resourceConfig` entry their sibling list page uses would silently start
+  including hidden/elevated data for an editor — a real behavior change, which the CI Checks
+  section above explicitly rules out ("not a behavior change, so rendered output must stay
+  identical"). Confirmed via each fetch's existing spec (no `canEdit`/elevation branch present)
+  and cross-checked against the sibling list type's `fetchRequestStoreList`-based `fetchList`:
+  - `TreasureExchangeModalController#fetchSellPage` (Sell tab): always calls
+    `characterClient.fetchTreasuresPage` (never the `.../treasures/all.json` variant), unlike
+    `characterTreasureListTypes.js`'s `npc-treasures` `fetchList`, which elevates for an
+    NPC-editing DM via `treasure.collection`'s `kind: 'npcs'` private variant. Left on
+    `CharacterClient` (see `TreasureExchangeModalController`'s own class doc for detail); only
+    `fetchAcquirePage` (Acquire tab) migrated, since its existing `character.canEdit`-driven
+    branch already matches what `RequestStore` would resolve for `kind: 'game'` (same
+    `AccessStore.ensureGamePermissions` call on both sides).
+  - `CharacterController#fetchAndMergeTreasures`/`#fetchAndMergeItems`/`#fetchAndMergeDocuments`
+    (the character show page's own bounded preview merges, via `CharacterListsController`): same
+    pattern — `CharacterClient#fetchCharacterTreasures`/`#fetchCharacterItems`/
+    `#fetchCharacterDocuments` always hit the plain `.../treasures.json`/`.../items.json`/
+    `.../documents.json` suffix, with no elevation branch at all, unlike `pc-treasures`/
+    `pc-items`/`pc-documents` (and their `npc-*` siblings) list pages, which do elevate for an
+    editor (and, for `item`/`document`, even for a PC's *own owning player* — `item`/`document`
+    `collection`'s private variant is character-level `can_edit`, not game-level, so a PC's own
+    player already has it). Migrating any of the three would risk exposing hidden/elevated
+    treasures, items, or documents in the compact preview grid to viewers who currently never see
+    them there. Left unmigrated; `fetchAndMergePhotos` was already out of scope (Implementation
+    Steps, Step 5) since no `resourceConfig` entry exists for photos.
+  - `AddGameTreasureModalController#fetchMissingPage` fetches
+    `/games/:game_slug/treasures/missing.json` (via `TreasureClient#fetchMissingGameTreasuresPage`)
+    — an endpoint with no `treasureConfig.js` variant at all (not `treasures.json`,
+    `treasures/all.json`, nor a treasure detail route), so there is no existing shape to migrate
+    onto without inventing a new ad hoc one, which the Step 5 Implementation Steps above
+    explicitly rule out. Left entirely on `TreasureClient`.
+  - `TreasureClient#fetchGameTreasuresPage`/`#fetchGameTreasuresAllPage` are now unused anywhere
+    in the app (only `fetchAcquirePage` called them, before its migration) but were left in place,
+    same precedent as `CharacterClient.fetchCharacterFull` in Step 2's Progress note — still
+    correctly implemented, spec-covered mirrors of real backend endpoints.

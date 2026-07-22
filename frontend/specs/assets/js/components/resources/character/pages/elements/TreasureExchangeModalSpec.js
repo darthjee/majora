@@ -111,11 +111,9 @@ describe('TreasureExchangeModal', function() {
 
     handlers.onTabChange('acquire');
 
-    expect(TreasureExchangeModalController.prototype.fetchAcquirePage).toHaveBeenCalledWith(
-      'demo', null, {
-        page: 1, perPage: 10, maxValue: 500, search: '', ordering: 'desc',
-      }, character.canEdit,
-    );
+    expect(TreasureExchangeModalController.prototype.fetchAcquirePage).toHaveBeenCalledWith('demo', {
+      page: 1, perPage: 10, maxValue: 500, search: '', ordering: 'desc',
+    });
   });
 
   it('fetches the previous acquire page via the controller when onPrev is triggered', function() {
@@ -123,11 +121,9 @@ describe('TreasureExchangeModal', function() {
 
     handlers.onPrev();
 
-    expect(TreasureExchangeModalController.prototype.fetchAcquirePage).toHaveBeenCalledWith(
-      'demo', null, {
-        page: 0, perPage: 10, maxValue: 500, search: '', ordering: 'desc',
-      }, character.canEdit,
-    );
+    expect(TreasureExchangeModalController.prototype.fetchAcquirePage).toHaveBeenCalledWith('demo', {
+      page: 0, perPage: 10, maxValue: 500, search: '', ordering: 'desc',
+    });
   });
 
   it('fetches the next acquire page via the controller when onNext is triggered', function() {
@@ -135,23 +131,20 @@ describe('TreasureExchangeModal', function() {
 
     handlers.onNext();
 
-    expect(TreasureExchangeModalController.prototype.fetchAcquirePage).toHaveBeenCalledWith(
-      'demo', null, {
-        page: 2, perPage: 10, maxValue: 500, search: '', ordering: 'desc',
-      }, character.canEdit,
-    );
+    expect(TreasureExchangeModalController.prototype.fetchAcquirePage).toHaveBeenCalledWith('demo', {
+      page: 2, perPage: 10, maxValue: 500, search: '', ordering: 'desc',
+    });
   });
 
-  it('threads the character\'s canEdit flag through to the acquire page fetch', function() {
+  it('does not thread the character\'s canEdit flag through to the acquire page fetch (RequestStore resolves ' +
+    'it internally)', function() {
     const editorCharacter = { ...character, canEdit: true };
     const { handlers } = renderModal({ character: editorCharacter });
 
     handlers.onTabChange('acquire');
 
-    expect(TreasureExchangeModalController.prototype.fetchAcquirePage).toHaveBeenCalledWith(
-      'demo', null, {
-        page: 1, perPage: 10, maxValue: 500, search: '', ordering: 'desc',
-      }, true,
-    );
+    expect(TreasureExchangeModalController.prototype.fetchAcquirePage).toHaveBeenCalledWith('demo', {
+      page: 1, perPage: 10, maxValue: 500, search: '', ordering: 'desc',
+    });
   });
 });

@@ -22,10 +22,10 @@ describe('TreasureExchangeModalController', function() {
     });
 
     it('sets submitting true before the request settles', function() {
-      const { characterClient, treasureClient } = buildClients();
+      const { characterClient } = buildClients();
       // eslint-disable-next-line no-empty-function
       characterClient.acquireTreasure.and.returnValue(new Promise(() => {}));
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+      const controller = new TreasureExchangeModalController(characterClient);
       const setters = buildSetters();
 
       controller.confirmExchange('acquire', selected, 2, character, setters);
@@ -34,11 +34,11 @@ describe('TreasureExchangeModalController', function() {
     });
 
     it('acquires the selected treasure id on the acquire tab', async function() {
-      const { characterClient, treasureClient } = buildClients();
+      const { characterClient } = buildClients();
       characterClient.acquireTreasure.and.returnValue(
         Promise.resolve(buildResponse(200, { quantity: 2, money: 400, acquired: 2 }))
       );
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+      const controller = new TreasureExchangeModalController(characterClient);
       const setters = buildSetters();
 
       await controller.confirmExchange('acquire', selected, 2, character, setters);
@@ -49,11 +49,11 @@ describe('TreasureExchangeModalController', function() {
     });
 
     it('sells the selected owned treasure id on the sell tab', async function() {
-      const { characterClient, treasureClient } = buildClients();
+      const { characterClient } = buildClients();
       characterClient.sellTreasure.and.returnValue(
         Promise.resolve(buildResponse(200, { quantity: 1, money: 600 }))
       );
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+      const controller = new TreasureExchangeModalController(characterClient);
       const setters = buildSetters();
 
       await controller.confirmExchange('sell', selected, 1, character, setters);
@@ -64,11 +64,11 @@ describe('TreasureExchangeModalController', function() {
     });
 
     it('applies the success outcome: clears selection, notifies onSuccess, and reloads', async function() {
-      const { characterClient, treasureClient } = buildClients();
+      const { characterClient } = buildClients();
       characterClient.acquireTreasure.and.returnValue(
         Promise.resolve(buildResponse(200, { quantity: 3, money: 350, acquired: 2 }))
       );
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+      const controller = new TreasureExchangeModalController(characterClient);
       const setters = buildSetters();
 
       await controller.confirmExchange('acquire', selected, 3, character, setters);
@@ -89,11 +89,11 @@ describe('TreasureExchangeModalController', function() {
     });
 
     it('surfaces the error key and does not reload on a validation failure', async function() {
-      const { characterClient, treasureClient } = buildClients();
+      const { characterClient } = buildClients();
       characterClient.acquireTreasure.and.returnValue(
         Promise.resolve(buildResponse(400, { errors: { quantity: ['insufficient funds'] } }))
       );
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+      const controller = new TreasureExchangeModalController(characterClient);
       const setters = buildSetters();
 
       await controller.confirmExchange('acquire', selected, 100, character, setters);
@@ -106,11 +106,11 @@ describe('TreasureExchangeModalController', function() {
     });
 
     it('threads the character canEdit flag through to an acquire request', async function() {
-      const { characterClient, treasureClient } = buildClients();
+      const { characterClient } = buildClients();
       characterClient.acquireTreasureAll.and.returnValue(
         Promise.resolve(buildResponse(200, { quantity: 1, money: 400, acquired: 1 }))
       );
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+      const controller = new TreasureExchangeModalController(characterClient);
       const setters = buildSetters();
       const editorCharacter = { ...character, canEdit: true };
 

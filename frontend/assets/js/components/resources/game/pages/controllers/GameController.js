@@ -1,10 +1,8 @@
 import GenericClient from '../../../../../client/GenericClient.js';
-import CharacterClient from '../../../../../client/CharacterClient.js';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
-import { MAX_PREVIEW_ITEMS, PREVIEW_LIST_TYPES } from '../../../../common/cards/characterPreviewConstants.js';
+import { MAX_PREVIEW_ITEMS } from '../../../../common/cards/characterPreviewConstants.js';
 import Noop from '../../../../../utils/Noop.js';
 
 /**
@@ -30,7 +28,6 @@ export default class GameController extends BasePageController {
    * @param {Function} [setPcs] - PCs preview setter.
    * @param {Function} [setNpcs] - NPCs preview setter.
    * @param {GenericClient|null} client - Client override.
-   * @param {CharacterClient|null} [characterClient] - Character client override.
    */
   constructor(
     setGame,
@@ -39,7 +36,6 @@ export default class GameController extends BasePageController {
     setPcs = Noop.noop,
     setNpcs = Noop.noop,
     client = null,
-    characterClient = null,
   ) {
     super();
     this.setGame = setGame;
@@ -48,7 +44,6 @@ export default class GameController extends BasePageController {
     this.setPcs = setPcs;
     this.setNpcs = setNpcs;
     this.client = client ?? new GenericClient();
-    this.characterClient = characterClient ?? new CharacterClient();
   }
 
   /**
@@ -113,54 +108,36 @@ export default class GameController extends BasePageController {
   }
 
   /**
-   * Fetch the PCs preview list, resolving to an empty list on failure so
-   * the secondary fetch never blocks rendering of the game page.
+   * Fetch the PCs preview list through `RequestStore` (`pc.collection`), resolving to an empty
+   * list on failure so the secondary fetch never blocks rendering of the game page.
    *
    * @param {string} gameSlug - Game slug.
    * @param {Function} safeSet - Setter wrapper that only updates while mounted.
    * @returns {void}
    */
   #fetchPcsPreview(gameSlug, safeSet) {
-    const endpoint = PREVIEW_LIST_TYPES.pc.buildEndpoint({ gameSlug });
-
-    this.client.fetch(`${endpoint}?per_page=${MAX_PREVIEW_ITEMS}`)
-      .then((pcs) => safeSet(this.setPcs, Array.isArray(pcs) ? pcs : []))
+    RequestStore.ensure({
+      resource: 'pc', quantityType: 'collection', params: { gameSlug }, query: { per_page: MAX_PREVIEW_ITEMS },
+    })
+      .then(({ data }) => safeSet(this.setPcs, Array.isArray(data) ? data : []))
       .catch(() => safeSet(this.setPcs, []));
   }
 
   /**
-   * Fetch the NPCs preview list, preferring the authenticated all.json result
-   * when a token is available and the request succeeds, otherwise falling back
-   * to the public listing. Never blocks rendering of the game page.
+   * Fetch the NPCs preview list through `RequestStore` (`npc.collection`), which already picks
+   * between the restricted `all.json` variant (editors, via `RequestPermissionResolvers`) and the
+   * public, hidden-filtered listing the same way the NPCs list page does — replacing the previous
+   * ad hoc token-presence-then-fallback-on-failure logic. Never blocks rendering of the game page.
    *
    * @param {string} gameSlug - Game slug.
    * @param {Function} safeSet - Setter wrapper that only updates while mounted.
    * @returns {void}
    */
   #fetchNpcsPreview(gameSlug, safeSet) {
-    const token = AuthStorage.getToken();
-    const endpoint = PREVIEW_LIST_TYPES.npc.buildEndpoint({ gameSlug });
-    const publicFetch = this.client.fetch(`${endpoint}?per_page=${MAX_PREVIEW_ITEMS}`);
-    const allFetch = token
-      ? this.characterClient.fetchNpcsAll(gameSlug, token, { per_page: MAX_PREVIEW_ITEMS })
-      : Promise.resolve(null);
-
-    Promise.allSettled([publicFetch, allFetch])
-      .then(([publicResult, allResult]) =>
-        this.#applyNpcsPreviewResult(publicResult, allResult, safeSet))
+    RequestStore.ensure({
+      resource: 'npc', quantityType: 'collection', params: { gameSlug }, query: { per_page: MAX_PREVIEW_ITEMS },
+    })
+      .then(({ data }) => safeSet(this.setNpcs, Array.isArray(data) ? data : []))
       .catch(() => safeSet(this.setNpcs, []));
-  }
-
-  async #applyNpcsPreviewResult(publicResult, allResult, safeSet) {
-    if (allResult.status === 'fulfilled' && allResult.value?.ok) {
-      const data = await allResult.value.json().catch(() => null);
-      if (Array.isArray(data)) {
-        safeSet(this.setNpcs, data);
-        return;
-      }
-    }
-
-    const fallback = publicResult.status === 'fulfilled' ? publicResult.value : [];
-    safeSet(this.setNpcs, Array.isArray(fallback) ? fallback : []);
   }
 }

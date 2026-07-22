@@ -58,11 +58,12 @@ games/home domain the issue scopes to.
 
 ## Page-embedded components — Step 5
 
-| Component | Currently fetched by | Target |
-|---|---|---|
-| `GamePreviewSections.jsx` (pc/npc previews on Game show page) | `GameController#fetchPcsPreview`/`#fetchNpcsPreview` | `pc.collection`/`npc.collection` with `query: {per_page: MAX_PREVIEW_ITEMS}` |
-| `TreasureExchangeModal.jsx` (browse/sell lists on PC/NPC show pages) | `TreasureExchangeModalController.js` | Evaluate against `treasureConfig.js`; may not fit — see plan.md Notes |
-| `AddGameTreasureModal.jsx` (on `GameTreasures` list page) | `AddGameTreasureModalController.js` | Evaluate against `treasureConfig.js`; may not fit — see plan.md Notes |
-| `CharacterController`'s treasures/items preview merge | `fetchAndMergeTreasures`/`fetchAndMergeItems` | Optional — `treasureConfig.collection`/`itemConfig.collection` |
-| `CharacterController`'s documents preview merge | `fetchAndMergeDocuments` | Optional — new `documentConfig.collection` (Step 1) |
-| `CharacterController`'s photos preview merge | `fetchAndMergePhotos` | Out of scope — no resource config for photos |
+| Component | Currently fetched by | Target | Outcome |
+|---|---|---|---|
+| `GamePreviewSections.jsx` (pc/npc previews on Game show page) | `GameController#fetchPcsPreview`/`#fetchNpcsPreview` | `pc.collection`/`npc.collection` with `query: {per_page: MAX_PREVIEW_ITEMS}` | Done — for npcs also collapses the old token-presence-then-fallback logic onto `npcConfig`'s existing private/`can_edit` variant |
+| `TreasureExchangeModal.jsx` Acquire tab | `TreasureExchangeModalController#fetchAcquirePage` | `treasure.collection`, `kind: 'game'` | Done — its existing `character.canEdit` branch already matched `RequestStore`'s own resolution for `kind: 'game'` |
+| `TreasureExchangeModal.jsx` Sell tab | `TreasureExchangeModalController#fetchSellPage` | `treasure.collection`, `kind: 'pcs'\|'npcs'` | Skipped — always fetches the plain endpoint today, unlike the `npc-treasures` list page's own use of this same config, which elevates for an editor; migrating would change behavior. See plan.md Notes |
+| `AddGameTreasureModal.jsx` (on `GameTreasures` list page) | `AddGameTreasureModalController#fetchMissingPage` | n/a | Skipped — `/games/:game_slug/treasures/missing.json` has no `treasureConfig.js` variant at all. See plan.md Notes |
+| `CharacterController`'s treasures/items preview merge | `fetchAndMergeTreasures`/`fetchAndMergeItems` | `treasureConfig.collection`/`itemConfig.collection` | Skipped (optional) — same always-regular-never-elevated mismatch as the Sell tab. See plan.md Notes |
+| `CharacterController`'s documents preview merge | `fetchAndMergeDocuments` | `documentConfig.collection` (Step 1) | Skipped (optional) — same mismatch. See plan.md Notes |
+| `CharacterController`'s photos preview merge | `fetchAndMergePhotos` | Out of scope — no resource config for photos | Left as-is |

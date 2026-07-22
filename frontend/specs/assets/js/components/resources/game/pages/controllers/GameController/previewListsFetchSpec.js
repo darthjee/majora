@@ -1,67 +1,91 @@
 import GameController from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GameController.js';
-import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
-import { stubEnsureGameAccess, stubEnsureGamePermissions, stubEnsureGame } from './support.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
+import { MAX_PREVIEW_ITEMS } from '../../../../../../../../../assets/js/components/common/cards/characterPreviewConstants.js';
+import { stubEnsureGameAccess, stubEnsureGamePermissions } from './support.js';
+
+/**
+ * @description Stubs `RequestStore.ensure` to resolve per-resource, mirroring `#fetchGame`'s
+ *   `game.single` request alongside the `pc.collection`/`npc.collection` preview requests
+ *   `#fetchPcsPreview`/`#fetchNpcsPreview` issue against it (issue #791 phase 5/N).
+ * @param {object} [pcResult] - Value the `pc` resource resolves `{ data }` to.
+ * @param {object} [npcResult] - Value the `npc` resource resolves `{ data }` to, or a rejected
+ *   promise to simulate a failed fetch.
+ * @returns {jasmine.Spy} the installed `RequestStore.ensure` spy.
+ */
+function wrapResult(result) {
+  return result instanceof Promise ? result : Promise.resolve({ data: result });
+}
+
+function stubEnsureByResource(pcResult = [], npcResult = []) {
+  return spyOn(RequestStore, 'ensure').and.callFake(({ resource }) => {
+    if (resource === 'game') {
+      return Promise.resolve({ data: { game_slug: 'demo' } });
+    }
+    if (resource === 'pc') {
+      return wrapResult(pcResult);
+    }
+    if (resource === 'npc') {
+      return wrapResult(npcResult);
+    }
+    return Promise.resolve({ data: [] });
+  });
+}
 
 describe('GameController', function() {
   beforeEach(function() {
     stubEnsureGameAccess();
     stubEnsureGamePermissions();
-    stubEnsureGame();
   });
 
-  afterEach(function() {
-    AuthStorage.clearToken();
-  });
-
-  it('fetches the PCs preview list alongside the game', async function() {
+  it('fetches the PCs preview list alongside the game through RequestStore', async function() {
     const setGame = jasmine.createSpy('setGame');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const setPcs = jasmine.createSpy('setPcs');
     const setNpcs = jasmine.createSpy('setNpcs');
-    const client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
+    const client = jasmine.createSpyObj('client', ['currentHash']);
     const pcs = [{ id: 1, name: 'Aragorn' }];
 
     client.currentHash.and.returnValue('#/games/demo');
-    client.fetch.and.callFake((path) => {
-      if (path.startsWith('/games/demo/pcs.json')) {
-        return Promise.resolve(pcs);
-      }
-      return Promise.resolve([]);
-    });
+    const ensureSpy = stubEnsureByResource(pcs, []);
 
     const cleanup = new GameController(setGame, setLoading, setError, setPcs, setNpcs, client)
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(client.fetch).toHaveBeenCalledWith('/games/demo/pcs.json?per_page=5');
+    expect(ensureSpy).toHaveBeenCalledWith({
+      resource: 'pc',
+      quantityType: 'collection',
+      params: { gameSlug: 'demo' },
+      query: { per_page: MAX_PREVIEW_ITEMS },
+    });
     expect(setPcs).toHaveBeenCalledWith(pcs);
 
     cleanup();
   });
 
-  it('fetches the NPCs preview list alongside the game', async function() {
+  it('fetches the NPCs preview list alongside the game through RequestStore', async function() {
     const setGame = jasmine.createSpy('setGame');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const setPcs = jasmine.createSpy('setPcs');
     const setNpcs = jasmine.createSpy('setNpcs');
-    const client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
+    const client = jasmine.createSpyObj('client', ['currentHash']);
     const npcs = [{ id: 2, name: 'Gandalf' }];
 
     client.currentHash.and.returnValue('#/games/demo');
-    client.fetch.and.callFake((path) => {
-      if (path.startsWith('/games/demo/npcs.json')) {
-        return Promise.resolve(npcs);
-      }
-      return Promise.resolve([]);
-    });
+    const ensureSpy = stubEnsureByResource([], npcs);
 
     const cleanup = new GameController(setGame, setLoading, setError, setPcs, setNpcs, client)
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(client.fetch).toHaveBeenCalledWith('/games/demo/npcs.json?per_page=5');
+    expect(ensureSpy).toHaveBeenCalledWith({
+      resource: 'npc',
+      quantityType: 'collection',
+      params: { gameSlug: 'demo' },
+      query: { per_page: MAX_PREVIEW_ITEMS },
+    });
     expect(setNpcs).toHaveBeenCalledWith(npcs);
 
     cleanup();
@@ -73,15 +97,10 @@ describe('GameController', function() {
     const setError = jasmine.createSpy('setError');
     const setPcs = jasmine.createSpy('setPcs');
     const setNpcs = jasmine.createSpy('setNpcs');
-    const client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
+    const client = jasmine.createSpyObj('client', ['currentHash']);
 
     client.currentHash.and.returnValue('#/games/demo');
-    client.fetch.and.callFake((path) => {
-      if (path.startsWith('/games/demo/pcs.json')) {
-        return Promise.reject(new Error('boom'));
-      }
-      return Promise.resolve([]);
-    });
+    stubEnsureByResource(Promise.reject(new Error('boom')), []);
 
     const cleanup = new GameController(setGame, setLoading, setError, setPcs, setNpcs, client)
       .buildEffect()();
@@ -100,15 +119,10 @@ describe('GameController', function() {
     const setError = jasmine.createSpy('setError');
     const setPcs = jasmine.createSpy('setPcs');
     const setNpcs = jasmine.createSpy('setNpcs');
-    const client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
+    const client = jasmine.createSpyObj('client', ['currentHash']);
 
     client.currentHash.and.returnValue('#/games/demo');
-    client.fetch.and.callFake((path) => {
-      if (path.startsWith('/games/demo/npcs.json')) {
-        return Promise.reject(new Error('boom'));
-      }
-      return Promise.resolve([]);
-    });
+    stubEnsureByResource([], Promise.reject(new Error('boom')));
 
     const cleanup = new GameController(setGame, setLoading, setError, setPcs, setNpcs, client)
       .buildEffect()();

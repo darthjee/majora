@@ -5,11 +5,11 @@ import { buildClients, buildResponse } from './support.js';
 describe('TreasureExchangeModalController', function() {
   describe('#acquire', function() {
     it('returns ok with the new quantity and money on success', async function() {
-      const { characterClient, treasureClient } = buildClients();
+      const { characterClient } = buildClients();
       characterClient.acquireTreasure.and.returnValue(
         Promise.resolve(buildResponse(200, { quantity: 4, money: 100, acquired: 2 }))
       );
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+      const controller = new TreasureExchangeModalController(characterClient);
 
       const result = await controller.acquire('demo', 7, true, 'tok', { treasureId: 9, quantity: 2 });
 
@@ -22,11 +22,11 @@ describe('TreasureExchangeModalController', function() {
     });
 
     it('uses the npc client when isPc is false', async function() {
-      const { characterClient, treasureClient } = buildClients();
+      const { characterClient } = buildClients();
       characterClient.acquireTreasure.and.returnValue(
         Promise.resolve(buildResponse(200, { quantity: 1, money: 10 }))
       );
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+      const controller = new TreasureExchangeModalController(characterClient);
 
       await controller.acquire('demo', 7, false, 'tok', { treasureId: 9, quantity: 1 });
 
@@ -36,11 +36,11 @@ describe('TreasureExchangeModalController', function() {
     });
 
     it('maps the insufficient funds error message to its translation key', async function() {
-      const { characterClient, treasureClient } = buildClients();
+      const { characterClient } = buildClients();
       characterClient.acquireTreasure.and.returnValue(
         Promise.resolve(buildResponse(400, { errors: { quantity: ['insufficient funds'] } }))
       );
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+      const controller = new TreasureExchangeModalController(characterClient);
 
       const result = await controller.acquire('demo', 7, true, 'tok', { treasureId: 9, quantity: 100 });
 
@@ -48,11 +48,11 @@ describe('TreasureExchangeModalController', function() {
     });
 
     it('falls back to a generic error key for unrecognized error messages', async function() {
-      const { characterClient, treasureClient } = buildClients();
+      const { characterClient } = buildClients();
       characterClient.acquireTreasure.and.returnValue(
         Promise.resolve(buildResponse(400, { errors: { quantity: ['something else'] } }))
       );
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+      const controller = new TreasureExchangeModalController(characterClient);
 
       const result = await controller.acquire('demo', 7, true, 'tok', { treasureId: 9, quantity: 1 });
 
@@ -60,11 +60,11 @@ describe('TreasureExchangeModalController', function() {
     });
 
     it('uses the acquire/all endpoint for a PC when canEdit is true', async function() {
-      const { characterClient, treasureClient } = buildClients();
+      const { characterClient } = buildClients();
       characterClient.acquireTreasureAll.and.returnValue(
         Promise.resolve(buildResponse(200, { quantity: 3, money: 50, acquired: 3 }))
       );
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+      const controller = new TreasureExchangeModalController(characterClient);
 
       const result = await controller.acquire('demo', 7, true, 'tok', { treasureId: 9, quantity: 3 }, true);
 
@@ -76,11 +76,11 @@ describe('TreasureExchangeModalController', function() {
     });
 
     it('uses the acquire/all endpoint for an NPC when canEdit is true', async function() {
-      const { characterClient, treasureClient } = buildClients();
+      const { characterClient } = buildClients();
       characterClient.acquireTreasureAll.and.returnValue(
         Promise.resolve(buildResponse(200, { quantity: 1, money: 10, acquired: 1 }))
       );
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+      const controller = new TreasureExchangeModalController(characterClient);
 
       await controller.acquire('demo', 7, false, 'tok', { treasureId: 9, quantity: 1 }, true);
 
@@ -90,11 +90,11 @@ describe('TreasureExchangeModalController', function() {
     });
 
     it('uses the regular acquire endpoint when canEdit is omitted', async function() {
-      const { characterClient, treasureClient } = buildClients();
+      const { characterClient } = buildClients();
       characterClient.acquireTreasure.and.returnValue(
         Promise.resolve(buildResponse(200, { quantity: 1, money: 10, acquired: 1 }))
       );
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+      const controller = new TreasureExchangeModalController(characterClient);
 
       await controller.acquire('demo', 7, true, 'tok', { treasureId: 9, quantity: 1 });
 
