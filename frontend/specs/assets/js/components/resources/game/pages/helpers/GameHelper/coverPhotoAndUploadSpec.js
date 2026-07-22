@@ -1,35 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameHelper from '../../../../../../../../../assets/js/components/resources/game/pages/helpers/GameHelper.jsx';
-import ActionsOverlay from '../../../../../../../../../assets/js/components/common/misc/ActionsOverlay.jsx';
 import { game } from './support.js';
-
-const findElement = (node, matcher) => {
-  if (!node) {
-    return null;
-  }
-
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findElement(child, matcher);
-
-      if (match) {
-        return match;
-      }
-    }
-
-    return null;
-  }
-
-  if (typeof node !== 'object') {
-    return null;
-  }
-
-  if (matcher(node)) {
-    return node;
-  }
-
-  return findElement(node.props?.children, matcher);
-};
 
 describe('GameHelper', function() {
   describe('.render', function() {
@@ -59,15 +30,12 @@ describe('GameHelper', function() {
       expect(html).not.toContain('actions-overlay-button');
     });
 
-    it('invokes onOpenUploadModal when the overlay button is clicked', function() {
+    it('passes onOpenUploadModal through to the show page layout context', function() {
       const onOpenUploadModal = jasmine.createSpy('onOpenUploadModal');
       const editableGame = { ...game, can_edit: true };
       const element = GameHelper.render(editableGame, [], [], { onOpenUploadModal });
-      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
-      overlay.props.onClick();
-
-      expect(onOpenUploadModal).toHaveBeenCalled();
+      expect(element.props.context.handlers.onOpenUploadModal).toBe(onOpenUploadModal);
     });
 
     it('does not render the old inline photo gallery', function() {

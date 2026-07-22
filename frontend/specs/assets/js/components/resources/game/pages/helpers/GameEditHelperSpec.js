@@ -1,35 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameEditHelper from '../../../../../../../../assets/js/components/resources/game/pages/helpers/GameEditHelper.jsx';
-import ActionsOverlay from '../../../../../../../../assets/js/components/common/misc/ActionsOverlay.jsx';
-import TextareaField from '../../../../../../../../assets/js/components/common/forms/TextareaField.jsx';
-
-const findElement = (node, matcher) => {
-  if (!node) {
-    return null;
-  }
-
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findElement(child, matcher);
-
-      if (match) {
-        return match;
-      }
-    }
-
-    return null;
-  }
-
-  if (typeof node !== 'object') {
-    return null;
-  }
-
-  if (matcher(node)) {
-    return node;
-  }
-
-  return findElement(node.props?.children, matcher);
-};
 
 describe('GameEditHelper', function() {
   const buildHandlers = () => ({
@@ -53,14 +23,6 @@ describe('GameEditHelper', function() {
 
       expect(html).toContain('id="game-edit-name"');
       expect(html).toContain('id="game-edit-description"');
-    });
-
-    it('renders the description as a TextareaField rather than a single-line input', function() {
-      const element = GameEditHelper.render(buildState(), buildHandlers());
-      const textareaField = findElement(element, (child) => child.type === TextareaField
-        && child.props?.id === 'game-edit-description');
-
-      expect(textareaField).not.toBeNull();
     });
 
     it('renders the current field values', function() {
@@ -130,26 +92,20 @@ describe('GameEditHelper', function() {
       expect(html).toContain('Upload Photo');
     });
 
-    it('renders the photo overlay bound to the open upload modal handler and always editable', function() {
+    it('passes the upload handler through to the show page layout context', function() {
       const handlers = buildHandlers();
       const element = GameEditHelper.render(buildState(), handlers);
-      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
-      expect(overlay.props.canEdit).toBe(true);
-
-      overlay.props.onClick();
-
-      expect(handlers.onOpenUploadModal).toHaveBeenCalled();
+      expect(element.props.context.handlers.onOpenUploadModal).toBe(handlers.onOpenUploadModal);
     });
 
-    it('passes the cover_photo_path through to the photo overlay', function() {
+    it('passes the cover_photo_path through to the show page layout context', function() {
       const element = GameEditHelper.render(
         buildState({ cover_photo_path: 'http://example.com/cover.png' }),
         buildHandlers(),
       );
-      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
-      expect(overlay.props.url).toBe('http://example.com/cover.png');
+      expect(element.props.context.cover_photo_path).toBe('http://example.com/cover.png');
     });
   });
 

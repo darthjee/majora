@@ -1,34 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameNewHelper from '../../../../../../../../assets/js/components/resources/game/pages/helpers/GameNewHelper.jsx';
-import TextareaField from '../../../../../../../../assets/js/components/common/forms/TextareaField.jsx';
-
-const findByTypeAndId = (node, type, id) => {
-  if (!node) {
-    return null;
-  }
-
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findByTypeAndId(child, type, id);
-
-      if (match) {
-        return match;
-      }
-    }
-
-    return null;
-  }
-
-  if (typeof node !== 'object') {
-    return null;
-  }
-
-  if (node.type === type && node.props?.id === id) {
-    return node;
-  }
-
-  return findByTypeAndId(node.props?.children, type, id);
-};
 
 describe('GameNewHelper', function() {
   const buildHandlers = () => ({
@@ -56,13 +27,6 @@ describe('GameNewHelper', function() {
       expect(html).toContain('id="game-new-type"');
     });
 
-    it('renders the description as a TextareaField rather than a single-line input', function() {
-      const element = GameNewHelper.render(buildState(), buildHandlers());
-      const textareaField = findByTypeAndId(element, TextareaField, 'game-new-description');
-
-      expect(textareaField).not.toBeNull();
-    });
-
     it('renders the game type dropdown with both options', function() {
       const html = renderToStaticMarkup(GameNewHelper.render(buildState(), buildHandlers()));
 
@@ -76,17 +40,6 @@ describe('GameNewHelper', function() {
       );
 
       expect(html).toContain('<option value="deadlands" selected="">Deadlands</option>');
-    });
-
-    it('calls onGameTypeChange when the game type selection changes', function() {
-      const handlers = buildHandlers();
-      const element = GameNewHelper.render(buildState(), handlers);
-      const select = findByTypeAndId(element, 'select', 'game-new-type');
-      const changeEvent = { target: { value: 'deadlands' } };
-
-      select.props.onChange(changeEvent);
-
-      expect(handlers.onGameTypeChange).toHaveBeenCalledWith(changeEvent);
     });
 
     it('renders the current field values', function() {

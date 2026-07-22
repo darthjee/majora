@@ -1,9 +1,4 @@
-import FormField from '../../../../common/forms/FormField.jsx';
-import TextareaField from '../../../../common/forms/TextareaField.jsx';
-import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
-import SubmitButton from '../../../../common/buttons/SubmitButton.jsx';
-import ActionsOverlay from '../../../../common/misc/ActionsOverlay.jsx';
-import Translator from '../../../../../i18n/Translator.js';
+import ShowPageLayout from '../../../../common/show_page/ShowPageLayout.jsx';
 import GameHelper from './GameHelper.jsx';
 
 /**
@@ -22,42 +17,11 @@ export default class GameEditHelper {
    */
   static render(formState, handlers) {
     return (
-      <div className="container mt-4">
-        <h1>{Translator.t('game_edit_page.title')}</h1>
-        {GameEditHelper.#renderError(formState)}
-        <div className="row">
-          <div className="col-md-4">
-            <ActionsOverlay
-              url={formState.cover_photo_path}
-              alt={formState.name}
-              canEdit
-              onClick={handlers.onOpenUploadModal}
-            />
-          </div>
-          <div className="col-md-8">
-            <form onSubmit={handlers.onSubmit}>
-              <FormField
-                id="game-edit-name"
-                type="text"
-                label={Translator.t('game_edit_page.name_label')}
-                value={formState.name}
-                onChange={handlers.onNameChange}
-                errors={formState.fieldErrors.name ?? []}
-              />
-              <TextareaField
-                id="game-edit-description"
-                label={Translator.t('game_edit_page.description_label')}
-                value={formState.description}
-                onChange={handlers.onDescriptionChange}
-                errors={formState.fieldErrors.description ?? []}
-              />
-              <SubmitButton disabled={formState.status === 'submitting'}>
-                {Translator.t('game_edit_page.submit')}
-              </SubmitButton>
-            </form>
-          </div>
-        </div>
-      </div>
+      <ShowPageLayout
+        type="game"
+        mode="edit"
+        context={{ ...formState, handlers }}
+      />
     );
   }
 
@@ -68,13 +32,5 @@ export default class GameEditHelper {
    */
   static renderLoading() {
     return GameHelper.renderLoading();
-  }
-
-  static #renderError(formState) {
-    if (formState.status !== 'error') {
-      return null;
-    }
-
-    return <ErrorAlert error={Translator.t('game_edit_page.error')} />;
   }
 }
