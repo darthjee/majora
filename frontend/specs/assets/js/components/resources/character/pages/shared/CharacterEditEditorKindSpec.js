@@ -1,8 +1,8 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterEdit from '../../../../../../../../assets/js/components/resources/character/pages/shared/CharacterEdit.jsx';
-import BaseCharacterEditHelper
-  from '../../../../../../../../assets/js/components/resources/character/pages/helpers/BaseCharacterEditHelper.jsx';
+import NpcCharacterEditHelper
+  from '../../../../../../../../assets/js/components/resources/character/pages/helpers/NpcCharacterEditHelper.jsx';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
 // Sets character/loading state synchronously during render (in the useMemo
@@ -45,7 +45,7 @@ describe('CharacterEdit editor kind (player-only NPC editor vs. dm/admin)', func
       game_slug: 'demo',
       character_id: '1',
     });
-    EditHelper = new BaseCharacterEditHelper('test', 'npc_edit_page');
+    EditHelper = NpcCharacterEditHelper;
   });
 
   it('renders the edit form (not the loading state) when the character is a player-only editor', function() {

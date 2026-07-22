@@ -2,44 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterHelper from '../../../../../../../../../assets/js/components/resources/character/pages/helpers/CharacterHelper.jsx';
 import PreviewSection from '../../../../../../../../../assets/js/components/common/cards/PreviewSection.jsx';
 import DocumentPreviewCard from '../../../../../../../../../assets/js/components/common/cards/DocumentPreviewCard.jsx';
-import { character } from './support.js';
-
-/**
- * Depth-first search over a React element tree, matching against `props.children`
- * only (never invoking function components), mirroring the items preview spec's
- * helper of the same shape.
- *
- * @param {*} node - React node (element, array, or primitive) to search.
- * @param {Function} matcher - Predicate `(node) => boolean`.
- * @returns {*} The first matching node, or `null` when none matches.
- */
-function findElementShallow(node, matcher) {
-  if (!node) {
-    return null;
-  }
-
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findElementShallow(child, matcher);
-
-      if (match) {
-        return match;
-      }
-    }
-
-    return null;
-  }
-
-  if (typeof node !== 'object') {
-    return null;
-  }
-
-  if (matcher(node)) {
-    return node;
-  }
-
-  return findElementShallow(node.props?.children, matcher);
-}
+import { character, findElement } from './support.js';
 
 /**
  * Locates the documents `<PreviewSection>` element (distinguished from the sibling
@@ -54,7 +17,7 @@ function findElementShallow(node, matcher) {
  */
 function buildTooltipContent(characterWithDocuments, backHref, document) {
   const tree = CharacterHelper.render(characterWithDocuments, backHref);
-  const section = findElementShallow(
+  const section = findElement(
     tree, (node) => node.type === PreviewSection && node.props.emptyText === 'No documents yet.',
   );
   const cardElement = section.props.renderItem(document);

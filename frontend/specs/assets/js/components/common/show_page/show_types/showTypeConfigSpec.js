@@ -1,8 +1,18 @@
 import showTypeConfig from '../../../../../../../assets/js/components/common/show_page/show_types/showTypeConfig.js';
 import gameShowType from '../../../../../../../assets/js/components/common/show_page/show_types/configs/gameShowType.js';
+import pcShowType from '../../../../../../../assets/js/components/common/show_page/show_types/configs/pcShowType.js';
+import npcShowType from '../../../../../../../assets/js/components/common/show_page/show_types/configs/npcShowType.js';
 
 describe('showTypeConfig', function() {
   it('registers the game show type', function() {
     expect(showTypeConfig.game).toBe(gameShowType);
+  });
+
+  it('registers the pc show type', function() {
+    expect(showTypeConfig.pc).toBe(pcShowType);
+  });
+
+  it('registers the npc show type', function() {
+    expect(showTypeConfig.npc).toBe(npcShowType);
   });
 });

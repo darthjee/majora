@@ -2,45 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterHelper from '../../../../../../../../../assets/js/components/resources/character/pages/helpers/CharacterHelper.jsx';
 import PreviewSection from '../../../../../../../../../assets/js/components/common/cards/PreviewSection.jsx';
 import TreasurePreviewCard from '../../../../../../../../../assets/js/components/common/cards/TreasurePreviewCard.jsx';
-import { character } from './support.js';
-
-/**
- * Depth-first search over a React element tree, matching against `props.children`
- * only (never invoking function components), so it is safe to use on trees
- * containing hook-using components (e.g. the treasures preview section sits
- * alongside `DescriptionBox`-backed sibling elements).
- *
- * @param {*} node - React node (element, array, or primitive) to search.
- * @param {Function} matcher - Predicate `(node) => boolean`.
- * @returns {*} The first matching node, or `null` when none matches.
- */
-function findElementShallow(node, matcher) {
-  if (!node) {
-    return null;
-  }
-
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findElementShallow(child, matcher);
-
-      if (match) {
-        return match;
-      }
-    }
-
-    return null;
-  }
-
-  if (typeof node !== 'object') {
-    return null;
-  }
-
-  if (matcher(node)) {
-    return node;
-  }
-
-  return findElementShallow(node.props?.children, matcher);
-}
+import { character, findElement } from './support.js';
 
 /**
  * Locates the treasures `<PreviewSection>` element and invokes its `renderItem`
@@ -54,7 +16,7 @@ function findElementShallow(node, matcher) {
  */
 function buildTooltipContent(characterWithTreasures, backHref, treasure) {
   const tree = CharacterHelper.render(characterWithTreasures, backHref);
-  const section = findElementShallow(tree, (node) => node.type === PreviewSection);
+  const section = findElement(tree, (node) => node.type === PreviewSection);
   const cardElement = section.props.renderItem(treasure);
   const cardTree = TreasurePreviewCard(cardElement.props);
 

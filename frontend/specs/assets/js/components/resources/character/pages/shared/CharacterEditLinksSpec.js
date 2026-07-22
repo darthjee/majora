@@ -1,8 +1,8 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterEdit from '../../../../../../../../assets/js/components/resources/character/pages/shared/CharacterEdit.jsx';
-import BaseCharacterEditHelper
-  from '../../../../../../../../assets/js/components/resources/character/pages/helpers/BaseCharacterEditHelper.jsx';
+import NpcCharacterEditHelper
+  from '../../../../../../../../assets/js/components/resources/character/pages/helpers/NpcCharacterEditHelper.jsx';
 import LinksEditModalHelper
   from '../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/LinksEditModalHelper.jsx';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
@@ -36,7 +36,7 @@ describe('CharacterEdit links modal', function() {
       game_slug: 'demo',
       character_id: '1',
     });
-    EditHelper = new BaseCharacterEditHelper('test', 'npc_edit_page');
+    EditHelper = NpcCharacterEditHelper;
   });
 
   it('passes the same (unfiltered) links state into both EditHelper.render and LinksEditModal', function() {

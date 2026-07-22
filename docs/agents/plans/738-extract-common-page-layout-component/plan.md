@@ -118,10 +118,27 @@ actually shared today.
   (confirmed against `HashRouteResolver.js` — only `pcCharacterItemNew`/`npcCharacterItemNew`
   routes exist), so `ItemPhoto` has no `New` variant and the `New` title/name/description/hidden
   slots are only ever reached from the PC/NPC item creation route.
-- **Remaining** (Steps 4-6, not yet started): `pc`/`npc` (characters, incl. the hidden→`dimmed`
-  fix), `treasure`, then removing the now-superseded `CharacterDetail`/`CharacterHelper`/
-  `ItemDetailHelper`. Given the size, land each as its own follow-up PR against this same issue,
-  same as the `game`/`item` phases.
+- **Done** (Step 4): `pc`/`npc` (characters) migrated onto `pc`/`npc` entries in `showTypeConfig`.
+  `PcCharacter`/`NpcCharacter` (show), `PcCharacterEdit`/`NpcCharacterEdit` (edit), and
+  `GameNpcNew` (new) all render through `ShowPageLayout` now; `CharacterHelper.render` picks
+  `type="pc"` vs `type="npc"` from `character.is_pc` (the show-mode slots are shared verbatim
+  between both configs, since `CharacterHelper#render` was already identical for PCs and NPCs
+  before this migration). `BaseCharacterEditHelper` (the shared class `PcCharacterEditHelper`/
+  `NpcCharacterEditHelper` used to extend) is removed — its per-field rendering moved into
+  `character/pages/elements/show/*.jsx` slot components/factories, instantiated once per
+  resource kind in `pcShowType.js`/`npcShowType.js`. Fixed the dimming gap:
+  `CharacterAvatarHelper.render` now also passes `dimmed: !character.is_pc && Boolean(character.hidden)`
+  (previously only `grayscale` was wired on the show page). Implementation detail: `pc` has no
+  `new` mode (PCs are never created through this flow); the shared `CharacterAvatarSlot` object
+  still declares a `New` variant (reused as-is by `npc`), which is simply never reached from a PC
+  page. The NPC creation page's `name` field and the allegiance/public-slain fields moved from
+  their previous ad hoc positions (a standalone block above the row, and inline below the row,
+  respectively) into the left/right columns proper, for consistent placement across
+  show/new/edit — a minor, intentional layout normalization (no functional change), matching the
+  per-resource design breakdown in [plan_pages.md](plan_pages.md).
+- **Remaining** (Step 5-6, not yet started): `treasure`, then removing the now-superseded
+  `CharacterDetail`/`CharacterHelper`/`ItemDetailHelper`. Given the size, land each as its own
+  follow-up PR against this same issue, same as the `game`/`item`/`pc`+`npc` phases.
 
 ## Implementation Steps
 

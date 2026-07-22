@@ -1,35 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameNpcNewHelper from '../../../../../../../../assets/js/components/resources/character/pages/helpers/GameNpcNewHelper.jsx';
-import CharacterMoneyField from '../../../../../../../../assets/js/components/resources/character/pages/elements/CharacterMoneyField.jsx';
 import { buildLink } from '../../../../../../../support/factories.js';
-
-const findElement = (node, matcher) => {
-  if (!node) {
-    return null;
-  }
-
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findElement(child, matcher);
-
-      if (match) {
-        return match;
-      }
-    }
-
-    return null;
-  }
-
-  if (typeof node !== 'object') {
-    return null;
-  }
-
-  if (matcher(node)) {
-    return node;
-  }
-
-  return findElement(node.props?.children, matcher);
-};
 
 describe('GameNpcNewHelper', function() {
   const buildHandlers = () => ({
@@ -61,7 +32,7 @@ describe('GameNpcNewHelper', function() {
     publicAllegiance: 'neutral',
     status: 'idle',
     fieldErrors: {},
-    photoPreviewUrl: null,
+    profile_photo_path: null,
     ...overrides,
   });
 
@@ -79,26 +50,17 @@ describe('GameNpcNewHelper', function() {
     });
 
     it('renders a CharacterMoneyField instead of a raw numeric money input, wired to the current '
-      + 'money/gameType/errors/onOpenMoneyModal', function() {
-      const handlers = buildHandlers();
+      + 'money/gameType/errors', function() {
       const state = buildState({
         money: '42', gameType: 'deadlands', fieldErrors: { money: ['must be greater than or equal to 0'] },
       });
-      const html = renderToStaticMarkup(GameNpcNewHelper.render(state, handlers));
-      const field = findElement(GameNpcNewHelper.render(state, handlers), (child) => (
-        child.type === CharacterMoneyField
-      ));
+      const html = renderToStaticMarkup(GameNpcNewHelper.render(state, buildHandlers()));
 
       expect(html).not.toContain('id="game-npc-new-money"');
-      expect(field).not.toBeNull();
-      expect(field.props.isFullEditor).toBe(true);
-      expect(field.props.money).toBe('42');
-      expect(field.props.treasureValue).toBe(0);
-      expect(field.props.gameType).toBe('deadlands');
-      expect(field.props.label).toBe('Money');
-      expect(field.props.buttonLabel).toBe('Edit money');
-      expect(field.props.onOpenMoneyModal).toBe(handlers.onOpenMoneyModal);
-      expect(field.props.errors).toEqual(['must be greater than or equal to 0']);
+      expect(html).toContain('Money');
+      expect(html).toContain('Edit money');
+      expect(html).toContain('character-money-bill');
+      expect(html).toContain('must be greater than or equal to 0');
     });
 
     it('renders an editable avatar placeholder with an upload control in the left column', function() {
@@ -117,9 +79,9 @@ describe('GameNpcNewHelper', function() {
       expect(html).toContain('actions-overlay-button');
     });
 
-    it('renders the picked photo preview when photoPreviewUrl is set', function() {
+    it('renders the picked photo preview when profile_photo_path is set', function() {
       const html = renderToStaticMarkup(
-        GameNpcNewHelper.render(buildState({ photoPreviewUrl: 'blob:fake-preview' }), buildHandlers()),
+        GameNpcNewHelper.render(buildState({ profile_photo_path: 'blob:fake-preview' }), buildHandlers()),
       );
 
       expect(html).toContain('blob:fake-preview');

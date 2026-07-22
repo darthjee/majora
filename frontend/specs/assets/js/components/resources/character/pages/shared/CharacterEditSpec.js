@@ -2,8 +2,8 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterEdit from '../../../../../../../../assets/js/components/resources/character/pages/shared/CharacterEdit.jsx';
 import CharacterHelper from '../../../../../../../../assets/js/components/resources/character/pages/helpers/CharacterHelper.jsx';
-import BaseCharacterEditHelper
-  from '../../../../../../../../assets/js/components/resources/character/pages/helpers/BaseCharacterEditHelper.jsx';
+import NpcCharacterEditHelper
+  from '../../../../../../../../assets/js/components/resources/character/pages/helpers/NpcCharacterEditHelper.jsx';
 import PhotoUploadModalHelper
   from '../../../../../../../../assets/js/components/common/modals/helpers/PhotoUploadModalHelper.jsx';
 import PhotoUploadModalController
@@ -45,7 +45,7 @@ describe('CharacterEdit', function() {
       game_slug: 'demo',
       character_id: '1',
     });
-    EditHelper = new BaseCharacterEditHelper('test', 'npc_edit_page');
+    EditHelper = NpcCharacterEditHelper;
   });
 
   it('renders the loading state on initial render before the fetch resolves', function() {
@@ -96,7 +96,7 @@ describe('CharacterEdit', function() {
 
     const html = renderToStaticMarkup(EditHelper.render(state, handlers));
 
-    expect(html).toContain('id="test-edit-name"');
+    expect(html).toContain('id="npc-edit-name"');
     expect(html).toContain('value="Test Character"');
     expect(html).toContain('20');
     expect(html).toContain('29');
