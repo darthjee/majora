@@ -1,8 +1,8 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterEdit from '../../../../../../../../assets/js/components/resources/character/pages/shared/CharacterEdit.jsx';
-import BaseCharacterEditHelper
-  from '../../../../../../../../assets/js/components/resources/character/pages/helpers/BaseCharacterEditHelper.jsx';
+import NpcCharacterEditHelper
+  from '../../../../../../../../assets/js/components/resources/character/pages/helpers/NpcCharacterEditHelper.jsx';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
 class LoadedController {
@@ -40,7 +40,7 @@ describe('CharacterEdit treasure value', function() {
       game_slug: 'demo',
       character_id: '1',
     });
-    EditHelper = new BaseCharacterEditHelper('test', 'npc_edit_page');
+    EditHelper = NpcCharacterEditHelper;
   });
 
   it('passes character.treasure_value through to the edit helper state', function() {

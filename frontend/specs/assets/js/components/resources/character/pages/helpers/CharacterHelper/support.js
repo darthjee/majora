@@ -32,7 +32,19 @@ export const findElement = (node, matcher) => {
   }
 
   if (typeof node.type === 'function') {
-    return findElement(node.type(node.props), matcher);
+    // Some slot components (e.g. `DescriptionBox`) use hooks and cannot be safely invoked
+    // outside of a real React render pass; skip those branches instead of letting the
+    // "Invalid hook call" exception abort the whole search, so sibling (hook-free) branches
+    // (e.g. the preview sections) can still be found.
+    let rendered;
+
+    try {
+      rendered = node.type(node.props);
+    } catch {
+      return null;
+    }
+
+    return findElement(rendered, matcher);
   }
 
   return findElement(node.props?.children, matcher);

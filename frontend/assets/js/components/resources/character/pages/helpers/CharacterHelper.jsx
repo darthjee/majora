@@ -1,25 +1,14 @@
-import React from 'react';
 import EditButton from '../../../../common/buttons/EditButton.jsx';
-import PageActions from '../../../../common/list_page/PageActions.jsx';
 import ConditionalComponent from '../../../../common/misc/ConditionalComponent.jsx';
-import CharacterAvatar from '../elements/CharacterAvatar.jsx';
-import CharacterRole from '../elements/CharacterRole.jsx';
-import CharacterDescription from '../elements/CharacterDescription.jsx';
-import CharacterDmNotes from '../elements/CharacterDmNotes.jsx';
-import CharacterMoney from '../elements/CharacterMoney.jsx';
 import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
-import LinkList from '../../../../common/misc/LinkList.jsx';
 import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
-import PreviewSection from '../../../../common/cards/PreviewSection.jsx';
-import TreasurePreviewCard from '../../../../common/cards/TreasurePreviewCard.jsx';
-import ItemPreviewCard from '../../../../common/cards/ItemPreviewCard.jsx';
-import DocumentPreviewCard from '../../../../common/cards/DocumentPreviewCard.jsx';
-import { PREVIEW_LIST_TYPES } from '../../../../common/cards/characterPreviewConstants.js';
-import CharacterPhotosPreview from '../elements/CharacterPhotosPreview.jsx';
+import ShowPageLayout from '../../../../common/show_page/ShowPageLayout.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**
- * Rendering helper for the Character detail page.
+ * Rendering helper for the Character detail page, shared by PCs and NPCs (picking the
+ * `showTypeConfig` type from `character.is_pc`), matching the pre-migration behavior where a
+ * single `CharacterHelper` was already shared by both character kinds.
  */
 export default class CharacterHelper {
   /**
@@ -48,12 +37,14 @@ export default class CharacterHelper {
    *   slain/revive button, and (together with `!is_pc`) also gates the Edit button for
    *   NPCs, since any player may edit an NPC's player-writable fields.
    * @param {boolean} [character.is_pc] - Whether the character is a PC (vs. an NPC), used
-   *   to build the correct edit link segment and to gate the slain/revive button.
+   *   to pick the `showTypeConfig` type and to build the correct edit link segment.
    * @param {boolean} [character.slain] - Whether the character is (really) slain for a DM,
    *   or its public-facing slain alias for a non-editor; drives grayscale rendering and the
    *   real/player slain/revive button label.
    * @param {boolean} [character.public_slain] - Whether the character is publicly slain,
    *   drives the public slain/revive button label (DM-facing data only).
+   * @param {boolean} [character.hidden] - Whether the character is hidden (NPC-only concept;
+   *   only present when the current user may edit the character); drives dimmed photo rendering.
    * @param {string} [character.allegiance] - Allegiance value (`'ally'`, `'enemy'`,
    *   `'neutral'`, or missing), drives the picture border color for NPCs only.
    * @param {string} [character.game_slug] - Slug of the game the character belongs to.
@@ -79,76 +70,19 @@ export default class CharacterHelper {
     const segment = character.is_pc ? 'pcs' : 'npcs';
 
     return (
-      <div className="container mt-4">
-        <PageActions backHref={backHref}>
+      <ShowPageLayout
+        type={character.is_pc ? 'pc' : 'npc'}
+        mode="show"
+        backHref={backHref}
+        pageActions={(
           <ConditionalComponent render={character.can_edit || (character.is_player && !character.is_pc)}>
             <EditButton href={`#/games/${character.game_slug}/${segment}/${character.id}/edit`}>
               {Translator.t('character_page.edit')}
             </EditButton>
           </ConditionalComponent>
-        </PageActions>
-        <div className="row">
-          <div className="col-md-4">
-            <CharacterAvatar character={character} handlers={handlers} />
-            <h1>{character.name}</h1>
-            <LinkList links={character.links} />
-            <CharacterMoney
-              money={character.money}
-              treasureValue={character.treasure_value}
-              gameType={character.game_type}
-              canEditMoney={character.can_edit_money}
-              onEditMoney={handlers.onOpenMoneyModal}
-            />
-          </div>
-          <div className="col-md-8">
-            <CharacterRole role={character.role} />
-            <CharacterDescription description={character.public_description} />
-            <CharacterDmNotes privateDescription={character.private_description} />
-            <PreviewSection
-              items={character.treasures ?? []}
-              title={Translator.t(PREVIEW_LIST_TYPES.treasure.titleKey)}
-              seeAllHref={`#/games/${character.game_slug}/${segment}/${character.id}/treasures`}
-              icon={PREVIEW_LIST_TYPES.treasure.icon}
-              emptyText={Translator.t('character_treasures_preview.empty')}
-              renderItem={(treasure) => (
-                <TreasurePreviewCard
-                  key={treasure.id}
-                  treasure={{
-                    id: treasure.treasure_id,
-                    name: treasure.name,
-                    value: treasure.value,
-                    photo_path: treasure.photo_path,
-                    game_type: character.game_type,
-                  }}
-                  quantity={treasure.quantity}
-                />
-              )}
-            />
-            <PreviewSection
-              items={character.items ?? []}
-              title={Translator.t(PREVIEW_LIST_TYPES.item.titleKey)}
-              seeAllHref={`#/games/${character.game_slug}/${segment}/${character.id}/items`}
-              icon={PREVIEW_LIST_TYPES.item.icon}
-              emptyText={Translator.t('character_items_preview.empty')}
-              renderItem={(item) => <ItemPreviewCard key={item.id} item={item} />}
-            />
-            <PreviewSection
-              items={character.documents ?? []}
-              title={Translator.t(PREVIEW_LIST_TYPES.document.titleKey)}
-              seeAllHref={`#/games/${character.game_slug}/${segment}/${character.id}/documents`}
-              icon={PREVIEW_LIST_TYPES.document.icon}
-              emptyText={Translator.t('character_documents_preview.empty')}
-              renderItem={(document) => <DocumentPreviewCard key={document.id} document={document} />}
-            />
-          </div>
-        </div>
-        <CharacterPhotosPreview
-          photos={character.photos ?? []}
-          title={Translator.t('character_page.photos_title')}
-          seeAllHref={`#/games/${character.game_slug}/${segment}/${character.id}/photos`}
-          onSelectPhoto={handlers.onSelectPhoto}
-        />
-      </div>
+        )}
+        context={{ ...character, handlers }}
+      />
     );
   }
 

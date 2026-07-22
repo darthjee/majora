@@ -26,6 +26,10 @@ export default class CharacterAvatarHelper {
    * @param {boolean} [character.public_slain] - Whether the character is publicly slain.
    * @param {boolean} [character.is_pc] - Whether the character is a PC.
    * @param {string} [character.allegiance] - Allegiance value driving the border color.
+   * @param {boolean} [character.hidden] - Whether the character is hidden (NPC-only concept;
+   *   only present when the current user may edit the character). Drives the dimmed photo
+   *   treatment, matching the same rule already applied on the NPC list page
+   *   (`characterListTypes.js`'s `buildNpcActionBarProps`).
    * @param {{onOpenUploadModal: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Picture element, optionally wrapped in a border.
    */
@@ -38,6 +42,7 @@ export default class CharacterAvatarHelper {
         canEdit={character.can_edit || character.is_player || character.is_staff}
         onClick={handlers.onOpenUploadModal}
         grayscale={character.slain}
+        dimmed={!character.is_pc && Boolean(character.hidden)}
         secondaryButtons={CharacterAvatarHelper.#buildSecondaryButtons(character, handlers)}
         infoBarItems={InfoBarRules.build(character)}
       />

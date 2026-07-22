@@ -81,7 +81,7 @@ export default function GameNpcNew() {
     <>
       {GameNpcNewHelper.render(
         {
-          ...fields, links, gameType, status, fieldErrors, photoPreviewUrl,
+          ...fields, links, gameType, status, fieldErrors, profile_photo_path: photoPreviewUrl,
         },
         {
           onSubmit: handleSubmit,
