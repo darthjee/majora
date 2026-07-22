@@ -1,15 +1,8 @@
-import ActionsOverlay from '../../../../common/misc/ActionsOverlay.jsx';
-import DescriptionBox from '../../../../common/misc/DescriptionBox.jsx';
 import EditButton from '../../../../common/buttons/EditButton.jsx';
-import PageActions from '../../../../common/list_page/PageActions.jsx';
 import ConditionalComponent from '../../../../common/misc/ConditionalComponent.jsx';
-import PreviewSection from '../../../../common/cards/PreviewSection.jsx';
-import CharacterPreviewCard from '../../../../common/cards/CharacterPreviewCard.jsx';
-import { PREVIEW_LIST_TYPES } from '../../../../common/cards/characterPreviewConstants.js';
 import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
-import LinkList from '../../../../common/misc/LinkList.jsx';
 import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
-import OpenPollsWidget from '../elements/OpenPollsWidget.jsx';
+import ShowPageLayout from '../../../../common/show_page/ShowPageLayout.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**
@@ -43,88 +36,19 @@ export default class GameHelper {
    */
   static render(game, pcs = [], npcs = [], handlers = {}) {
     return (
-      <div className="container mt-4">
-        <PageActions backHref="#/games">
+      <ShowPageLayout
+        type="game"
+        mode="show"
+        backHref="#/games"
+        pageActions={(
           <ConditionalComponent render={game.can_edit}>
             <EditButton href={`#/games/${game.game_slug}/edit`}>
               {Translator.t('character_page.edit')}
             </EditButton>
           </ConditionalComponent>
-        </PageActions>
-        <div className="row">
-          <div className="col-md-4">
-            <ActionsOverlay
-              url={game.cover_photo_path}
-              alt={game.name}
-              canEdit={game.can_edit}
-              onClick={handlers.onOpenUploadModal}
-            />
-            {GameHelper.#renderNextSession(game)}
-            <OpenPollsWidget game={game} />
-          </div>
-          <div className="col-md-8">
-            <h1>
-              {game.name}
-            </h1>
-            <DescriptionBox description={game.description} />
-            <LinkList links={game.links} />
-            <PreviewSection
-              items={pcs}
-              title={Translator.t(PREVIEW_LIST_TYPES.pc.titleKey)}
-              seeAllHref={`#/games/${game.game_slug}/pcs`}
-              icon={PREVIEW_LIST_TYPES.pc.icon}
-              renderItem={(character) => (
-                <CharacterPreviewCard
-                  key={character.id}
-                  character={character}
-                  gameSlug={game.game_slug}
-                  characterType="pc"
-                />
-              )}
-            />
-            <PreviewSection
-              items={npcs}
-              title={Translator.t(PREVIEW_LIST_TYPES.npc.titleKey)}
-              seeAllHref={`#/games/${game.game_slug}/npcs`}
-              icon={PREVIEW_LIST_TYPES.npc.icon}
-              renderItem={(character) => (
-                <CharacterPreviewCard
-                  key={character.id}
-                  character={character}
-                  gameSlug={game.game_slug}
-                  characterType="npc"
-                />
-              )}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  static #renderNextSession(game) {
-    return (
-      <div className="mt-4">
-        <h2>{Translator.t('game_page.next_session_title')}</h2>
-        {GameHelper.#renderNextSessionSummary(game.next_session)}
-        <a href={`#/games/${game.game_slug}/sessions`} className="btn btn-secondary mb-3">
-          {Translator.t('game_page.sessions')}
-        </a>
-      </div>
-    );
-  }
-
-  static #renderNextSessionSummary(nextSession) {
-    if (!nextSession) {
-      return <p className="text-muted">{Translator.t('game_page.no_next_session')}</p>;
-    }
-
-    return (
-      <p>
-        {nextSession.title}
-        {' — '}
-        {nextSession.date ?? Translator.t('game_session_page.no_date')}
-      </p>
+        )}
+        context={{ ...game, pcs, npcs, handlers }}
+      />
     );
   }
 
