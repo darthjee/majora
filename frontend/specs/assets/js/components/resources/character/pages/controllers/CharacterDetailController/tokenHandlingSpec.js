@@ -1,5 +1,6 @@
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import { KINDS } from './support.js';
 
 KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
@@ -8,10 +9,11 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       AuthStorage.clearToken();
     });
 
-    it('passes the token when one exists', async function() {
+    it('passes the token to the preview-list fetches when one exists', async function() {
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
       spyOn(AccessStore, 'ensureCharacterAccess')
         .and.returnValue(Promise.resolve({ can_edit: false, is_player: false, is_staff: false }));
+      spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({ data: { id: 2 } }));
 
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
@@ -19,7 +21,7 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       const client = jasmine.createSpyObj('client', ['currentHash']);
       const characterClient = jasmine.createSpyObj(
         'characterClient',
-        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterItems', 'fetchCharacterDocuments', 'fetchCharacterPhotos'],
+        ['fetchCharacterTreasures', 'fetchCharacterItems', 'fetchCharacterDocuments', 'fetchCharacterPhotos'],
       );
       characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
       characterClient.fetchCharacterItems.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
@@ -27,17 +29,13 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       characterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
       client.currentHash.and.returnValue(`#/games/demo/${kind}/2`);
-      characterClient.fetchCharacter.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ id: 2, can_edit: false }),
-      }));
 
       const cleanup = new Controller(
         setCharacter, setLoading, setError, client, getParamsFromHash, characterClient,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(characterClient.fetchCharacter).toHaveBeenCalledWith(kind, 'demo', '2', 'tok-abc');
+      expect(characterClient.fetchCharacterTreasures).toHaveBeenCalledWith(kind, 'demo', '2', 'tok-abc');
       expect(AccessStore.ensureCharacterAccess).toHaveBeenCalledWith(kind, 'demo', '2');
       expect(setCharacter).toHaveBeenCalledWith({
         id: 2,
@@ -55,10 +53,11 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       cleanup();
     });
 
-    it('passes a null token when no token exists', async function() {
+    it('passes a null token to the preview-list fetches when no token exists', async function() {
       spyOn(AuthStorage, 'getToken').and.returnValue(null);
       spyOn(AccessStore, 'ensureCharacterAccess')
         .and.returnValue(Promise.resolve({ can_edit: false, is_player: false, is_staff: false }));
+      spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({ data: { id: 2 } }));
 
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
@@ -66,7 +65,7 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       const client = jasmine.createSpyObj('client', ['currentHash']);
       const characterClient = jasmine.createSpyObj(
         'characterClient',
-        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterItems', 'fetchCharacterDocuments', 'fetchCharacterPhotos'],
+        ['fetchCharacterTreasures', 'fetchCharacterItems', 'fetchCharacterDocuments', 'fetchCharacterPhotos'],
       );
       characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
       characterClient.fetchCharacterItems.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
@@ -74,17 +73,13 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       characterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
       client.currentHash.and.returnValue(`#/games/demo/${kind}/2`);
-      characterClient.fetchCharacter.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ id: 2 }),
-      }));
 
       const cleanup = new Controller(
         setCharacter, setLoading, setError, client, getParamsFromHash, characterClient,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(characterClient.fetchCharacter).toHaveBeenCalledWith(kind, 'demo', '2', null);
+      expect(characterClient.fetchCharacterTreasures).toHaveBeenCalledWith(kind, 'demo', '2', null);
       expect(AccessStore.ensureCharacterAccess).toHaveBeenCalledWith(kind, 'demo', '2');
 
       cleanup();
@@ -94,6 +89,7 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-xyz');
       spyOn(AccessStore, 'ensureCharacterAccess')
         .and.returnValue(Promise.resolve({ can_edit: false, is_player: false, is_staff: false }));
+      spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({ data: { id: 2 } }));
 
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
@@ -101,7 +97,7 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       const client = jasmine.createSpyObj('client', ['currentHash']);
       const characterClient = jasmine.createSpyObj(
         'characterClient',
-        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterItems', 'fetchCharacterDocuments', 'fetchCharacterPhotos'],
+        ['fetchCharacterTreasures', 'fetchCharacterItems', 'fetchCharacterDocuments', 'fetchCharacterPhotos'],
       );
       characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
       characterClient.fetchCharacterItems.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
@@ -109,10 +105,6 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       characterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
       client.currentHash.and.returnValue(`#/games/demo/${kind}/2`);
-      characterClient.fetchCharacter.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ id: 2, can_edit: false }),
-      }));
 
       const cleanup = new Controller(
         setCharacter, setLoading, setError, client, getParamsFromHash, characterClient,

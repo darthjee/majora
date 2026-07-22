@@ -1,7 +1,7 @@
 import GameController from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GameController.js';
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
-import { stubEnsureGameAccess, stubEnsureGamePermissions } from './support.js';
+import { stubEnsureGameAccess, stubEnsureGamePermissions, stubEnsureGame } from './support.js';
 
 describe('GameController', function() {
   afterEach(function() {
@@ -11,13 +11,14 @@ describe('GameController', function() {
   it('renders can_edit false first, then merges the real can_edit once AccessStore resolves', async function() {
     stubEnsureGameAccess();
     const ensureGamePermissions = stubEnsureGamePermissions({ can_edit: true }, { can_edit: false });
+    stubEnsureGame({ name: 'Demo', game_slug: 'demo' });
     const setGame = jasmine.createSpy('setGame');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
 
     client.currentHash.and.returnValue('#/games/demo');
-    client.fetch.and.returnValue(Promise.resolve({ name: 'Demo', game_slug: 'demo' }));
+    client.fetch.and.returnValue(Promise.resolve([]));
 
     const cleanup = new GameController(setGame, setLoading, setError, Noop.noop, Noop.noop, client)
       .buildEffect()();
@@ -38,13 +39,14 @@ describe('GameController', function() {
   it('sets can_edit to false when AccessStore resolves with the fail-closed default', async function() {
     stubEnsureGameAccess();
     stubEnsureGamePermissions({ can_edit: false }, { can_edit: false });
+    stubEnsureGame({ name: 'Demo', game_slug: 'demo' });
     const setGame = jasmine.createSpy('setGame');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
     const client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
 
     client.currentHash.and.returnValue('#/games/demo');
-    client.fetch.and.returnValue(Promise.resolve({ name: 'Demo', game_slug: 'demo' }));
+    client.fetch.and.returnValue(Promise.resolve([]));
 
     const cleanup = new GameController(setGame, setLoading, setError, Noop.noop, Noop.noop, client)
       .buildEffect()();

@@ -1,6 +1,7 @@
 import GameItemController
   from '../../../../../../../../assets/js/components/resources/item/pages/controllers/GameItemController.js';
 import AccessStore from '../../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../../../../assets/js/utils/requests/RequestStore.js';
 
 describe('GameItemController', function() {
   let setItem;
@@ -8,6 +9,7 @@ describe('GameItemController', function() {
   let setError;
   let setCanUploadPhoto;
   let client;
+  let ensureSpy;
 
   beforeEach(function() {
     setItem = jasmine.createSpy('setItem');
@@ -17,6 +19,9 @@ describe('GameItemController', function() {
     client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
     client.currentHash.and.returnValue('#/games/demo/items/5');
     spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
+    ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(
+      Promise.resolve({ data: { id: 5, name: 'Cloak of Elvenkind' } }),
+    );
   });
 
   describe('.getParamsFromHash', function() {
@@ -34,15 +39,13 @@ describe('GameItemController', function() {
   });
 
   describe('#buildEffect', function() {
-    it('fetches the player-facing endpoint when the requester cannot edit', async function() {
-      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
-      client.fetch.and.returnValue(Promise.resolve({ id: 5, name: 'Cloak of Elvenkind' }));
-
+    it('fetches the item through RequestStore with the game-owned kind', async function() {
       const cleanup = new GameItemController(setItem, setLoading, setError, setCanUploadPhoto, client).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
-      expect(client.fetch).toHaveBeenCalledWith('/games/demo/items/5.json');
+      expect(ensureSpy).toHaveBeenCalledWith({
+        resource: 'item', quantityType: 'single', params: { gameSlug: 'demo', kind: 'game', id: '5' },
+      });
       expect(setItem).toHaveBeenCalledWith({ id: 5, name: 'Cloak of Elvenkind' });
       expect(setLoading).toHaveBeenCalledWith(false);
       expect(setError).not.toHaveBeenCalled();
@@ -50,34 +53,8 @@ describe('GameItemController', function() {
       cleanup();
     });
 
-    it('fetches the elevated endpoint when the requester can edit', async function() {
-      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
-      client.fetch.and.returnValue(Promise.resolve({ id: 5, name: 'Cloak of Elvenkind', hidden: true }));
-
-      const cleanup = new GameItemController(setItem, setLoading, setError, setCanUploadPhoto, client).buildEffect()();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      expect(client.fetch).toHaveBeenCalledWith('/games/demo/items/5/full.json');
-      expect(setItem).toHaveBeenCalledWith({ id: 5, name: 'Cloak of Elvenkind', hidden: true });
-
-      cleanup();
-    });
-
-    it('fails closed to the player-facing endpoint when the permission check rejects', async function() {
-      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.reject(new Error('nope')));
-      client.fetch.and.returnValue(Promise.resolve({ id: 5, name: 'Cloak of Elvenkind' }));
-
-      const cleanup = new GameItemController(setItem, setLoading, setError, setCanUploadPhoto, client).buildEffect()();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      expect(client.fetch).toHaveBeenCalledWith('/games/demo/items/5.json');
-
-      cleanup();
-    });
-
     it('sets an error when the fetch rejects', async function() {
-      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
-      client.fetch.and.returnValue(Promise.reject(new Error('network error')));
+      ensureSpy.and.returnValue(Promise.reject(new Error('network error')));
 
       const cleanup = new GameItemController(setItem, setLoading, setError, setCanUploadPhoto, client).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -95,15 +72,12 @@ describe('GameItemController', function() {
 
       expect(setError).toHaveBeenCalledWith('Unable to load item.');
       expect(setLoading).toHaveBeenCalledWith(false);
-      expect(client.fetch).not.toHaveBeenCalled();
+      expect(ensureSpy).not.toHaveBeenCalled();
 
       cleanup();
     });
 
     it('does not update state after unmount', async function() {
-      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
-      client.fetch.and.returnValue(Promise.resolve({ id: 5, name: 'Cloak of Elvenkind' }));
-
       const cleanup = new GameItemController(setItem, setLoading, setError, setCanUploadPhoto, client).buildEffect()();
       cleanup();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -114,18 +88,13 @@ describe('GameItemController', function() {
   });
 
   describe('canUploadPhoto', function() {
-    beforeEach(function() {
-      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
-      client.fetch.and.returnValue(Promise.resolve({ id: 5, name: 'Cloak of Elvenkind' }));
-    });
-
     const runController = async () => {
       const cleanup = new GameItemController(setItem, setLoading, setError, setCanUploadPhoto, client).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
       cleanup();
     };
 
-    it('calls ensureGameAccess with the game slug independently of ensureGamePermissions', async function() {
+    it('calls ensureGameAccess with the game slug independently of the item fetch', async function() {
       await runController();
 
       expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');

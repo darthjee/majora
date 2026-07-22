@@ -12,14 +12,6 @@ export class StubCharacterController extends CharacterController {
     super(setCharacter, setLoading, setError, null, paramsFromHash, characterClient);
   }
 
-  fetchCharacter(gameSlug, characterId, token) { // eslint-disable-line no-unused-vars
-    return Promise.resolve({ ok: false });
-  }
-
-  fetchCharacterFull(gameSlug, characterId, token) { // eslint-disable-line no-unused-vars
-    return Promise.resolve({ ok: false });
-  }
-
   fetchCharacterTreasures(gameSlug, characterId, token) { // eslint-disable-line no-unused-vars
     return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
   }
@@ -58,12 +50,6 @@ export const buildController = (setCharacter, overrides = {}) => {
     null,
   );
 
-  if (overrides.fetchCharacter) {
-    spyOn(controller, 'fetchCharacter').and.callFake(overrides.fetchCharacter);
-  }
-  if (overrides.fetchCharacterFull) {
-    spyOn(controller, 'fetchCharacterFull').and.callFake(overrides.fetchCharacterFull);
-  }
   if (overrides.fetchCharacterTreasures) {
     spyOn(controller, 'fetchCharacterTreasures').and.callFake(overrides.fetchCharacterTreasures);
   }

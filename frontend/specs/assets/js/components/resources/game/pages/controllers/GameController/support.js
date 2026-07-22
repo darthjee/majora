@@ -1,3 +1,4 @@
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import { stubAccessPair } from '../../../../../../../../support/accessStoreStub.js';
 
 /**
@@ -9,6 +10,16 @@ import { stubAccessPair } from '../../../../../../../../support/accessStoreStub.
  */
 export function stubEnsureGameAccess(resolvedValue = {}, defaultValue = {}) {
   return stubAccessPair('ensureGameAccess', 'getGameAccess', resolvedValue, defaultValue).ensureSpy;
+}
+
+/**
+ * @description Stubs `RequestStore.ensure` with the game data `#fetchGame` resolves through,
+ *   shared by every GameController spec file exercising the base game fetch.
+ * @param {object} [gameData] - Value `RequestStore.ensure` resolves `{ data }` to.
+ * @returns {jasmine.Spy} the installed `RequestStore.ensure` spy.
+ */
+export function stubEnsureGame(gameData = { game_slug: 'demo' }) {
+  return spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({ data: gameData }));
 }
 
 /**

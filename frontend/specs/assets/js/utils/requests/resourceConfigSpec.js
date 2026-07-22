@@ -66,13 +66,24 @@ describe('resourceConfig', function() {
       expect(collection.private.permission).toBe('can_edit');
     });
 
-    it('resolves single regular/private paths and permissions', function() {
+    it('resolves single regular/private paths and permissions for a character-owned item', function() {
       const single = resourceConfig.get('GET', 'item', 'single');
 
       expect(single.regular.path({ gameSlug: 'demo', kind: 'pcs', id: '3', itemId: '9' }))
         .toBe('/games/demo/pcs/3/items/9.json');
       expect(single.private.path({ gameSlug: 'demo', kind: 'pcs', id: '3', itemId: '9' }))
         .toBe('/games/demo/pcs/3/items/9/full.json');
+      expect(single.private.permission).toBe('can_edit');
+    });
+
+    it('resolves single regular/private paths and permissions for a game-owned item', function() {
+      const single = resourceConfig.get('GET', 'item', 'single');
+
+      expect(single.regular.path({ gameSlug: 'demo', kind: 'game', id: '9' }))
+        .toBe('/games/demo/items/9.json');
+      expect(single.regular.permission).toBeNull();
+      expect(single.private.path({ gameSlug: 'demo', kind: 'game', id: '9' }))
+        .toBe('/games/demo/items/9/full.json');
       expect(single.private.permission).toBe('can_edit');
     });
   });
@@ -104,8 +115,12 @@ describe('resourceConfig', function() {
       expect(collection.private.permission({ gameSlug: 'demo', kind: 'pcs', id: '3' })).toBeNull();
     });
 
-    it('has no single configuration', function() {
-      expect(resourceConfig.get('GET', 'treasure', 'single')).toBeNull();
+    it('has no separate private endpoint for single', function() {
+      const single = resourceConfig.get('GET', 'treasure', 'single');
+
+      expect(single.regular).toBe(single.private);
+      expect(single.regular.path({ id: '42' })).toBe('/treasures/42.json');
+      expect(single.regular.permission).toBeNull();
     });
   });
 

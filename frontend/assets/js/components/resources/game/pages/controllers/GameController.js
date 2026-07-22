@@ -2,6 +2,7 @@ import GenericClient from '../../../../../client/GenericClient.js';
 import CharacterClient from '../../../../../client/CharacterClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import { MAX_PREVIEW_ITEMS, PREVIEW_LIST_TYPES } from '../../../../common/cards/characterPreviewConstants.js';
 import Noop from '../../../../../utils/Noop.js';
@@ -77,8 +78,8 @@ export default class GameController extends BasePageController {
   }
 
   #fetchGame(gameSlug, safeSet) {
-    this.client.fetch(`/games/${gameSlug}.json`)
-      .then((game) => this.#renderGame(gameSlug, game, safeSet))
+    RequestStore.ensure({ resource: 'game', quantityType: 'single', params: { gameSlug } })
+      .then(({ data }) => this.#renderGame(gameSlug, data, safeSet))
       .catch(() => safeSet(this.setError, 'Unable to load game.'))
       .finally(() => safeSet(this.setLoading, false));
   }

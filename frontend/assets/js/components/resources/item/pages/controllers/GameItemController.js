@@ -1,18 +1,20 @@
 import GenericClient from '../../../../../client/GenericClient.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 
 /**
  * Controller for the game item detail page (issue #724, photo upload gating added in #749).
  *
- * @description Mirrors `GameController`'s single-object `client.fetch(path)` usage, gated on
- *   the requester's game-level edit permission (the same source `fetchGameItems` in
- *   `listTypeConfig.js` uses) to pick between the full, hidden-inclusive `items/:id/full.json`
- *   and the player-facing `items/:id.json`, fail-closed on a rejected permissions check
- *   (matching `fetchPermissionGatedIndex`'s `.catch(() => false)`). Independently derives
+ * @description Fetches the `GameItem` through `RequestStore.ensure({resource: 'item',
+ *   quantityType: 'single', params: {gameSlug, kind: 'game', id}})`, which internally resolves
+ *   the requester's game-level edit permission (via `RequestPermissionResolvers`, the same
+ *   `AccessStore.ensureGamePermissions` source `fetchGameItems` in `listTypeConfig.js` uses) to
+ *   pick between the full, hidden-inclusive `items/:id/full.json` and the player-facing
+ *   `items/:id.json`, fail-closed on a rejected permissions check. Independently derives
  *   `canUploadPhoto` from `AccessStore.ensureGameAccess` (a wider, "who can upload" gate that
  *   also includes `is_player`, unlike the narrower `can_edit` used to pick the fetch endpoint),
- *   run concurrently with the `can_edit` check rather than chained after it.
+ *   run concurrently with the item fetch rather than chained after it.
  */
 export default class GameItemController extends BasePageController {
   /**
@@ -70,13 +72,9 @@ export default class GameItemController extends BasePageController {
   }
 
   #loadItem(params, safeSet) {
-    const canEditPromise = AccessStore.ensureGamePermissions(params.game_slug)
-      .then((permissions) => Boolean(permissions.can_edit))
-      .catch(() => false);
-
     this.#loadCanUploadPhoto(params.game_slug, safeSet);
 
-    return canEditPromise.then((canEdit) => this.#fetchItem(params, canEdit, safeSet));
+    return this.#fetchItem(params, safeSet);
   }
 
   #loadCanUploadPhoto(gameSlug, safeSet) {
@@ -90,12 +88,13 @@ export default class GameItemController extends BasePageController {
     return Boolean(access.is_superuser || access.is_staff || access.is_dm || access.is_player);
   }
 
-  #fetchItem(params, canEdit, safeSet) {
-    const base = `/games/${params.game_slug}/items/${params.id}`;
-    const path = canEdit ? `${base}/full.json` : `${base}.json`;
-
-    return this.client.fetch(path)
-      .then((item) => safeSet(this.setItem, item))
+  #fetchItem(params, safeSet) {
+    return RequestStore.ensure({
+      resource: 'item',
+      quantityType: 'single',
+      params: { gameSlug: params.game_slug, kind: 'game', id: params.id },
+    })
+      .then(({ data }) => safeSet(this.setItem, data))
       .catch(() => safeSet(this.setError, 'Unable to load item.'))
       .finally(() => safeSet(this.setLoading, false));
   }

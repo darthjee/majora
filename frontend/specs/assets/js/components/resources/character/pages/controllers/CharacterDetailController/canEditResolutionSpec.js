@@ -1,5 +1,6 @@
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import { KINDS } from './support.js';
 
 KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
@@ -11,13 +12,14 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
     it('sets can_edit to false when AccessStore resolves with the fail-closed default', async function() {
       spyOn(AccessStore, 'ensureCharacterAccess')
         .and.returnValue(Promise.resolve({ can_edit: false, is_player: false, is_staff: false }));
+      spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({ data: { id: 2, can_edit: false } }));
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
       const client = jasmine.createSpyObj('client', ['currentHash']);
       const characterClient = jasmine.createSpyObj(
         'characterClient',
-        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterItems', 'fetchCharacterDocuments', 'fetchCharacterPhotos'],
+        ['fetchCharacterTreasures', 'fetchCharacterItems', 'fetchCharacterDocuments', 'fetchCharacterPhotos'],
       );
       characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
       characterClient.fetchCharacterItems.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
@@ -25,10 +27,6 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       characterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
       client.currentHash.and.returnValue(`#/games/demo/${kind}/2`);
-      characterClient.fetchCharacter.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ id: 2, can_edit: false }),
-      }));
 
       const cleanup = new Controller(
         setCharacter, setLoading, setError, client, getParamsFromHash, characterClient,
@@ -47,7 +45,6 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
         is_staff: false,
         access_resolved: true,
       });
-      expect(characterClient.fetchCharacterFull).not.toHaveBeenCalled();
 
       cleanup();
     });

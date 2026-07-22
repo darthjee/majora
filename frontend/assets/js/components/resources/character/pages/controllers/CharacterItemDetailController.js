@@ -1,17 +1,22 @@
 import GenericClient from '../../../../../client/GenericClient.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 
 /**
  * Controller for the PC/NPC item detail page (issue #724, photo upload gating added in #750),
  * shared by `PcCharacterItem` and `NpcCharacterItem` via the `characterKind` constructor
- * argument, mirroring `GameItemController`'s single-object `client.fetch(path)` usage but gated
- * on the requester's character-level edit permission (the same source `buildFetchCharacterItems`
- * in `listTypeConfig.js` uses) instead of the game-level one, to pick between the full,
+ * argument. Fetches the `CharacterItem` through `RequestStore.ensure({resource: 'item',
+ * quantityType: 'single', params: {gameSlug, kind: characterKind, id: characterId, itemId}})`,
+ * mirroring `GameItemController`'s `RequestStore`-backed fetch but keyed on the requester's
+ * character-level edit permission (the same source `buildFetchCharacterItems` in
+ * `listTypeConfig.js` uses) instead of the game-level one, to pick between the full,
  * hidden-inclusive `items/:id/full.json` and the player-facing `items/:id.json`, fail-closed on
- * a rejected permissions check. Also reads `can_upload_item_photo` off that same
- * `AccessStore.ensureCharacterPermissions` resolution (no second network call needed), unlike
- * `GameItemController` which derives its upload gate from a separate `ensureGameAccess` check.
+ * a rejected permissions check. Independently reads `can_upload_item_photo` off its own
+ * `AccessStore.ensureCharacterPermissions` call — deduped against `RequestStore`'s own
+ * permission resolution by `AccessStore`'s cache, so this costs no extra network round trip —
+ * unlike `GameItemController` which derives its upload gate from a separate `ensureGameAccess`
+ * check.
  */
 export default class CharacterItemDetailController extends BasePageController {
   /**
@@ -76,25 +81,27 @@ export default class CharacterItemDetailController extends BasePageController {
   }
 
   #loadItem(params, safeSet) {
-    return AccessStore.ensureCharacterPermissions(this.characterKind, params.game_slug, params.character_id)
-      .then((permissions) => ({
-        canEdit: Boolean(permissions.can_edit),
-        canUploadPhoto: Boolean(permissions.can_upload_item_photo),
-      }))
-      .catch(() => ({ canEdit: false, canUploadPhoto: false }))
-      .then(({ canEdit, canUploadPhoto }) => {
-        safeSet(this.setCanUploadPhoto, canUploadPhoto);
+    this.#loadCanUploadPhoto(params, safeSet);
 
-        return this.#fetchItem(params, canEdit, safeSet);
-      });
+    return this.#fetchItem(params, safeSet);
   }
 
-  #fetchItem(params, canEdit, safeSet) {
-    const base = `/games/${params.game_slug}/${this.characterKind}/${params.character_id}/items/${params.id}`;
-    const path = canEdit ? `${base}/full.json` : `${base}.json`;
+  #loadCanUploadPhoto(params, safeSet) {
+    return AccessStore.ensureCharacterPermissions(this.characterKind, params.game_slug, params.character_id)
+      .then((permissions) => Boolean(permissions.can_upload_item_photo))
+      .catch(() => false)
+      .then((canUploadPhoto) => safeSet(this.setCanUploadPhoto, canUploadPhoto));
+  }
 
-    return this.client.fetch(path)
-      .then((item) => safeSet(this.setItem, item))
+  #fetchItem(params, safeSet) {
+    return RequestStore.ensure({
+      resource: 'item',
+      quantityType: 'single',
+      params: {
+        gameSlug: params.game_slug, kind: this.characterKind, id: params.character_id, itemId: params.id,
+      },
+    })
+      .then(({ data }) => safeSet(this.setItem, data))
       .catch(() => safeSet(this.setError, 'Unable to load item.'))
       .finally(() => safeSet(this.setLoading, false));
   }

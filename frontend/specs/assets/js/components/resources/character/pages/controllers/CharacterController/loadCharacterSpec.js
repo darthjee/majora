@@ -1,3 +1,4 @@
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 import { stubAccessPair } from '../../../../../../../../support/accessStoreStub.js';
 import { StubCharacterController, safeSet, buildController } from './support.js';
@@ -6,25 +7,22 @@ describe('CharacterController', function() {
   describe('#loadCharacter', function() {
     const params = { game_slug: 'demo', character_id: '2' };
 
-    it('fetches the character and merges access on success', async function() {
+    it('fetches the character through RequestStore and merges access on success', async function() {
       stubAccessPair(
         'ensureCharacterAccess', 'getCharacterAccess',
         { is_player: false, is_staff: false }, { is_player: false, is_staff: false },
       );
       stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: false }, { can_edit: false });
+      const ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({ data: { id: 2 } }));
       const setCharacter = jasmine.createSpy('setCharacter');
-      const controller = buildController(setCharacter, {
-        fetchCharacter: () => Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ id: 2 }),
-        }),
-        fetchCharacterFull: () => Promise.resolve({ ok: false }),
-      });
+      const controller = buildController(setCharacter);
 
       await controller.loadCharacter(params, safeSet);
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(controller.fetchCharacter).toHaveBeenCalledWith('demo', '2', null);
+      expect(ensureSpy).toHaveBeenCalledWith({
+        resource: 'pc', quantityType: 'single', params: { gameSlug: 'demo', id: '2' },
+      });
       expect(setCharacter).toHaveBeenCalledWith({
         id: 2,
         treasures: [],
@@ -39,25 +37,37 @@ describe('CharacterController', function() {
       });
     });
 
-    it('renders with the fail-closed default first, then merges slain/public_slain once the user is found to be able to edit', async function() {
+    it('resolves the npc resource for an npc controller', async function() {
+      stubAccessPair(
+        'ensureCharacterAccess', 'getCharacterAccess',
+        { is_player: false, is_staff: false }, { is_player: false, is_staff: false },
+      );
+      stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: false }, { can_edit: false });
+      const ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({ data: { id: 2 } }));
+      const setCharacter = jasmine.createSpy('setCharacter');
+      const controller = new StubCharacterController(
+        setCharacter, Noop.noop, Noop.noop, () => params, null,
+      );
+      controller.characterKind = 'npcs';
+
+      await controller.loadCharacter(params, safeSet);
+
+      expect(ensureSpy).toHaveBeenCalledWith({
+        resource: 'npc', quantityType: 'single', params: { gameSlug: 'demo', id: '2' },
+      });
+    });
+
+    it('renders with the character already merged with full (editor-only) fields when RequestStore resolves the private variant', async function() {
       stubAccessPair(
         'ensureCharacterAccess', 'getCharacterAccess',
         { is_player: false, is_staff: false }, { is_player: false, is_staff: false },
       );
       stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: true }, { can_edit: false });
+      spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
+        data: { id: 2, slain: true, public_slain: false },
+      }));
       const setCharacter = jasmine.createSpy('setCharacter');
-      const controller = buildController(setCharacter, {
-        // Mimics the public CharacterDetailSerializer: `slain` aliased to the real
-        // `public_slain` value, and `public_slain` itself absent.
-        fetchCharacter: () => Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ id: 2, slain: false }),
-        }),
-        fetchCharacterFull: () => Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ slain: true, public_slain: false }),
-        }),
-      });
+      const controller = buildController(setCharacter);
 
       await controller.loadCharacter(params, safeSet);
 
@@ -71,7 +81,8 @@ describe('CharacterController', function() {
         can_edit: false,
         is_player: false,
         is_staff: false,
-        slain: false,
+        slain: true,
+        public_slain: false,
         access_resolved: false,
       });
 
@@ -93,7 +104,8 @@ describe('CharacterController', function() {
       });
     });
 
-    it('calls setError when the character fetch response is not ok', async function() {
+    it('calls setError when RequestStore.ensure rejects', async function() {
+      spyOn(RequestStore, 'ensure').and.returnValue(Promise.reject(new Error('network error')));
       const setError = jasmine.createSpy('setError');
       const setCharacter = jasmine.createSpy('setCharacter');
       const controller = new StubCharacterController(
@@ -103,7 +115,6 @@ describe('CharacterController', function() {
         () => params,
         null,
       );
-      spyOn(controller, 'fetchCharacter').and.returnValue(Promise.resolve({ ok: false }));
 
       await controller.loadCharacter(params, safeSet);
 
@@ -111,6 +122,7 @@ describe('CharacterController', function() {
     });
 
     it('calls setLoading with false after the fetch chain completes', async function() {
+      spyOn(RequestStore, 'ensure').and.returnValue(Promise.reject(new Error('network error')));
       const setLoading = jasmine.createSpy('setLoading');
       const controller = new StubCharacterController(
         Noop.noop,
@@ -119,7 +131,6 @@ describe('CharacterController', function() {
         () => params,
         null,
       );
-      spyOn(controller, 'fetchCharacter').and.returnValue(Promise.resolve({ ok: false }));
 
       await controller.loadCharacter(params, safeSet);
 
