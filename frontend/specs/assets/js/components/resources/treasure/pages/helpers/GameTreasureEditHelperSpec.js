@@ -1,34 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameTreasureEditHelper from '../../../../../../../../assets/js/components/resources/treasure/pages/helpers/GameTreasureEditHelper.jsx';
-import TreasureValueField from '../../../../../../../../assets/js/components/resources/treasure/pages/elements/TreasureValueField.jsx';
-
-const findElement = (node, matcher) => {
-  if (!node) {
-    return null;
-  }
-
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findElement(child, matcher);
-
-      if (match) {
-        return match;
-      }
-    }
-
-    return null;
-  }
-
-  if (typeof node !== 'object') {
-    return null;
-  }
-
-  if (matcher(node)) {
-    return node;
-  }
-
-  return findElement(node.props?.children, matcher);
-};
 
 describe('GameTreasureEditHelper', function() {
   const buildHandlers = () => ({
@@ -76,13 +47,11 @@ describe('GameTreasureEditHelper', function() {
       expect(html).toContain('$ 3,50');
     });
 
-    it('renders a TreasureValueField wired to onOpenValueModal', function() {
+    it('passes the value modal handler through to the show page layout context', function() {
       const handlers = buildHandlers();
       const element = GameTreasureEditHelper.render(buildState(), handlers);
-      const field = findElement(element, (child) => child.type === TreasureValueField);
 
-      expect(field).not.toBeNull();
-      expect(field.props.onOpenModal).toBe(handlers.onOpenValueModal);
+      expect(element.props.context.handlers.onOpenValueModal).toBe(handlers.onOpenValueModal);
     });
 
     it('does not render the max_units field when the treasure is exclusive to the game', function() {

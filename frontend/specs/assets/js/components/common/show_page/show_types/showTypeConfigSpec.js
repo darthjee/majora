@@ -2,6 +2,7 @@ import showTypeConfig from '../../../../../../../assets/js/components/common/sho
 import gameShowType from '../../../../../../../assets/js/components/common/show_page/show_types/configs/gameShowType.js';
 import pcShowType from '../../../../../../../assets/js/components/common/show_page/show_types/configs/pcShowType.js';
 import npcShowType from '../../../../../../../assets/js/components/common/show_page/show_types/configs/npcShowType.js';
+import treasureShowType from '../../../../../../../assets/js/components/common/show_page/show_types/configs/treasureShowType.js';
 
 describe('showTypeConfig', function() {
   it('registers the game show type', function() {
@@ -14,5 +15,9 @@ describe('showTypeConfig', function() {
 
   it('registers the npc show type', function() {
     expect(showTypeConfig.npc).toBe(npcShowType);
+  });
+
+  it('registers the treasure show type', function() {
+    expect(showTypeConfig.treasure).toBe(treasureShowType);
   });
 });

@@ -1,16 +1,13 @@
 import React from 'react';
-import FormField from '../../../../common/forms/FormField.jsx';
-import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
-import SubmitButton from '../../../../common/buttons/SubmitButton.jsx';
-import Translator from '../../../../../i18n/Translator.js';
-import TreasureValueField from '../elements/TreasureValueField.jsx';
+import ShowPageLayout from '../../../../common/show_page/ShowPageLayout.jsx';
 
 /**
- * Rendering helper for the game treasure creation page.
+ * Rendering helper for the game treasure creation page, via the `treasure` `showTypeConfig`
+ * entry (issue #738).
  */
 export default class GameTreasureNewHelper {
   /**
-   * Render the game treasure creation form.
+   * Render the game treasure creation form through `ShowPageLayout`.
    *
    * @param {{name: string, value: string, gameType: string, status: string,
    *   fieldErrors: object}} formState - Form state. `gameType` is the containing game's
@@ -21,39 +18,11 @@ export default class GameTreasureNewHelper {
    */
   static render(formState, handlers) {
     return (
-      <div className="container mt-4">
-        <h1>{Translator.t('game_treasure_new_page.title')}</h1>
-        {GameTreasureNewHelper.#renderError(formState)}
-        <form onSubmit={handlers.onSubmit}>
-          <FormField
-            id="game-treasure-new-name"
-            type="text"
-            label={Translator.t('game_treasure_new_page.name_label')}
-            value={formState.name}
-            onChange={handlers.onNameChange}
-            errors={formState.fieldErrors.name ?? []}
-          />
-          <TreasureValueField
-            label={Translator.t('game_treasure_new_page.value_label')}
-            editLabel={Translator.t('game_treasures_page.edit')}
-            value={formState.value}
-            errors={formState.fieldErrors.value ?? []}
-            gameType={formState.gameType}
-            onOpenModal={handlers.onOpenValueModal}
-          />
-          <SubmitButton disabled={formState.status === 'submitting'}>
-            {Translator.t('game_treasure_new_page.submit')}
-          </SubmitButton>
-        </form>
-      </div>
+      <ShowPageLayout
+        type="treasure"
+        mode="new"
+        context={{ ...formState, handlers }}
+      />
     );
-  }
-
-  static #renderError(formState) {
-    if (formState.status !== 'error') {
-      return null;
-    }
-
-    return <ErrorAlert error={Translator.t('game_treasure_new_page.error')} />;
   }
 }

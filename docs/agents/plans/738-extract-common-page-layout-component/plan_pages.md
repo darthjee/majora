@@ -71,18 +71,29 @@ Routes:
 - `PcCharacterItem*`/`NpcCharacterItem*` pages are **not** part of this `pc`/`npc` config — they
   belong to the `pc-item`/`npc-item` configs above (item show/new/edit nested under a character).
 
-## `treasure` (Step 5 of plan.md)
+## `treasure` (Step 5 of plan.md — done)
 
-Routes: `/#/games/:game_slug/treasures/new`, `:id`, `:id/edit`
+Routes: `/#/games/:game_slug/treasures/new`, `:id/edit` (there is no game-scoped
+`/#/games/:game_slug/treasures/:id` *show* route — `HashRouteResolver.js` only registers
+`gameTreasureNew`/`gameTreasureEdit`/`gameTreasures`; a treasure's detail page is always the
+existing global `/#/treasures/:id` route, out of scope for this issue, same as `PlayerDetail` — the
+`/#/games/:game_slug/treasures/:id` entry in the issue's affected-pages list was aspirational and
+does not exist, the same situation Step 3 found for the `game-item` creation route)
 
-- **Left**: treasure photo (`ActionsOverlay` type `treasure`), name, hidden badge (reuse
-  `TreasureCardHelper.buildInfoBarItems`, already used by the list page's `treasures` type).
-- **Right**: description, value/quantity fields (new/edit), any other treasure-specific fields —
-  confirm exact field set against `TreasureNewHelper`/`TreasureEditHelper`/`GameTreasureEditHelper`
-  during implementation, since there are two edit variants (global `TreasureEdit` vs. game-scoped
-  `GameTreasureEdit`) that may need to collapse into one `treasure` config entry parameterized the
-  same way, or may genuinely need two entries if the game-scoped variant has distinct fields/URLs.
+- **Left**: none — game-scoped treasure creation/edit has always been a plain single-column form
+  with no photo slot of its own (photo upload for treasures happens from the treasures *list*
+  page's card overlay only, via the global `/treasures/:id/photo_upload.json` endpoint), mirroring
+  `gameShowType.js`'s `new` mode, which likewise has no left-side content.
+- **Right**: title + error alert (new/edit, shared component), name field (new/edit, shared),
+  value field (new/edit, shared — wraps the existing `TreasureValueField`/`MoneyEditModal`
+  mechanism as-is), `max_units` field (edit-only, gated on `!isExclusive`, matching
+  `GameTreasureEditHelper`'s existing gating), submit button (new/edit, shared).
 - **Bottom**: none.
+- Kept to a **single** `treasure` config entry (not two) backing only the game-scoped
+  `GameTreasureNew`/`GameTreasureEdit` — the global (non-game-scoped)
+  `Treasure`/`TreasureNew`/`TreasureEdit` pages are not on the issue's affected-pages list and were
+  left unmigrated, since their field sets genuinely differ (a `game_type` picker on creation, no
+  `max_units` cap on edit) and folding them in would need a second entry anyway.
 
 ## Route → phase cross-reference
 
@@ -92,7 +103,7 @@ Routes: `/#/games/:game_slug/treasures/new`, `:id`, `:id/edit`
 | `/#/games/:game_slug` | game |
 | `/#/games/:game_slug/edit` | game |
 | `/#/games/:game_slug/treasures/new` | treasure |
-| `/#/games/:game_slug/treasures/:id` | treasure |
+| `/#/games/:game_slug/treasures/:id` | *(does not exist — see `treasure` section above)* |
 | `/#/games/:game_slug/treasures/:id/edit` | treasure |
 | `/#/games/:game_slug/items/:id` | game-item |
 | `/#/games/:game_slug/items/:id/edit` | game-item |
