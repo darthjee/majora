@@ -17,6 +17,9 @@ const RESOLVERS = {
   treasure: {
     collection: ({ gameSlug, kind }) => (kind === 'npcs' ? AccessStore.ensureGamePermissions(gameSlug) : NO_PERMISSIONS()),
   },
+  document: {
+    collection: ({ gameSlug, kind, id }) => AccessStore.ensureCharacterPermissions(kind, gameSlug, id),
+  },
 };
 
 /**
@@ -40,7 +43,8 @@ export default class RequestPermissionResolvers {
   /**
    * Resolve the current permissions object for a resource/quantity-type/params combination.
    *
-   * @param {string} resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'treasure'`).
+   * @param {string} resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'treasure'`,
+   *   `'session'`, `'document'`).
    * @param {string} quantityType - `'collection'` or `'single'`.
    * @param {object} params - Concrete params (`gameSlug`, `kind`, `id`, etc.).
    * @returns {Promise<object>} Resolves to the permissions object (e.g. `{ can_edit: boolean }`),

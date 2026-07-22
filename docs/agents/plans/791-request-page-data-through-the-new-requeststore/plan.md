@@ -58,7 +58,10 @@ base character fetch to `RequestStore.ensure()` eliminates that whole chain, not
 
 ## Progress
 
-Not started — planning only.
+- Step 1 (query wiring + `sessionConfig.js`/`documentConfig.js`) — done, landed in its own PR
+  per the multi-PR note below. Steps 2-5 (show pages, list pages, edit pages, embedded
+  components) are not started yet — each is expected to land as its own follow-up PR against
+  this same issue.
 
 ## Implementation Steps
 

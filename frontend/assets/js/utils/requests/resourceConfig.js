@@ -3,6 +3,8 @@ import npcConfig from './config/npcConfig.js';
 import pcConfig from './config/pcConfig.js';
 import itemConfig from './config/itemConfig.js';
 import treasureConfig from './config/treasureConfig.js';
+import sessionConfig from './config/sessionConfig.js';
+import documentConfig from './config/documentConfig.js';
 
 const RESOURCES = {
   game: gameConfig,
@@ -10,6 +12,8 @@ const RESOURCES = {
   pc: pcConfig,
   item: itemConfig,
   treasure: treasureConfig,
+  session: sessionConfig,
+  document: documentConfig,
 };
 
 /**
@@ -33,7 +37,8 @@ export default {
    * Look up the resolved `{ regular, private }` config entry for a resource.
    *
    * @param {string} method - HTTP method (e.g. `'GET'`).
-   * @param {string} resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'treasure'`).
+   * @param {string} resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'treasure'`,
+   *   `'session'`, `'document'`).
    * @param {string} quantityType - `'collection'` or `'single'`.
    * @returns {{regular: object, private: object}|null} The config entry, or `null` when no
    *   configuration exists for the given method/resource/quantity-type combination.
