@@ -60,6 +60,22 @@ class CacheCleanupMapTest extends TestCase
     }
 
     /**
+     * Updating a GameItem must clear every cached item list/detail response
+     * for the game.
+     */
+    public function testItemUpdateClearsAllItemCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/items.json',
+            '/games/:game_slug/items/all.json',
+            '/games/:game_slug/items/:item_id.json',
+            '/games/:game_slug/items/:item_id/full.json',
+        ], $map['/games/:game_slug/items/:item_id.json']);
+    }
+
+    /**
      * Uploading a PC's item's photo must clear every cached item list/detail
      * response for that PC.
      */
@@ -76,6 +92,22 @@ class CacheCleanupMapTest extends TestCase
     }
 
     /**
+     * Updating a PC's item must clear every cached item list/detail response
+     * for that PC.
+     */
+    public function testPcItemUpdateClearsAllPcItemCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/pcs/:character_id/items.json',
+            '/games/:game_slug/pcs/:character_id/items/all.json',
+            '/games/:game_slug/pcs/:character_id/items/:item_id.json',
+            '/games/:game_slug/pcs/:character_id/items/:item_id/full.json',
+        ], $map['/games/:game_slug/pcs/:character_id/items/:item_id.json']);
+    }
+
+    /**
      * Uploading an NPC's item's photo must clear every cached item
      * list/detail response for that NPC.
      */
@@ -89,5 +121,21 @@ class CacheCleanupMapTest extends TestCase
             '/games/:game_slug/npcs/:character_id/items/:item_id.json',
             '/games/:game_slug/npcs/:character_id/items/:item_id/full.json',
         ], $map['/games/:game_slug/npcs/:character_id/items/:item_id/photo_upload.json']);
+    }
+
+    /**
+     * Updating an NPC's item must clear every cached item list/detail
+     * response for that NPC.
+     */
+    public function testNpcItemUpdateClearsAllNpcItemCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/npcs/:character_id/items.json',
+            '/games/:game_slug/npcs/:character_id/items/all.json',
+            '/games/:game_slug/npcs/:character_id/items/:item_id.json',
+            '/games/:game_slug/npcs/:character_id/items/:item_id/full.json',
+        ], $map['/games/:game_slug/npcs/:character_id/items/:item_id.json']);
     }
 }

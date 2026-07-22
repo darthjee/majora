@@ -21,6 +21,7 @@ return [
             '/games/:game_slug/items/:item_id/full.json',
         ],
         'routes' => [
+            '/games/:game_slug/items/:item_id.json',
             '/games/:game_slug/items/:item_id/photo_upload.json',
         ],
     ],
