@@ -1,5 +1,6 @@
 import GenericClient from '../../../../../client/GenericClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
 
@@ -8,11 +9,15 @@ import Noop from '../../../../../utils/Noop.js';
  * `PcCharacterItemEditController` and `NpcCharacterItemEditController` via the `characterKind`
  * constructor argument, mirroring `BaseCharacterEditController`'s fetch/submit/redirect shape.
  *
- * @description Loads the item through the elevated `.../items/:id/full.json` endpoint (mirroring
- *   `CharacterItemDetailController`'s use of that endpoint for editors), and submits partial
- *   updates (`name`/`description`/`hidden`) through `PATCH .../items/:id.json`, redirecting to the
- *   item's detail page on success, surfacing field errors on 400, or setting a generic error
- *   status otherwise.
+ * @description Loads the item through `RequestStore.ensure({resource: 'item', quantityType:
+ *   'single', params: {gameSlug, kind: characterKind, id: characterId, itemId}})`, mirroring
+ *   `CharacterItemDetailController`'s `RequestStore`-backed fetch for the show page — this now
+ *   resolves the requester's character-level edit permission (via `RequestPermissionResolvers`)
+ *   to pick between the elevated `.../items/:id/full.json` and the player-facing
+ *   `.../items/:id.json`, rather than unconditionally requesting `full.json` as before — and
+ *   submits partial updates (`name`/`description`/`hidden`) through `PATCH .../items/:id.json`,
+ *   redirecting to the item's detail page on success, surfacing field errors on 400, or setting a
+ *   generic error status otherwise.
  */
 export default class BaseCharacterItemEditController extends BasePageController {
   /**
@@ -133,10 +138,14 @@ export default class BaseCharacterItemEditController extends BasePageController 
   }
 
   #loadItem(params, safeSet) {
-    const path = `/games/${params.game_slug}/${this.characterKind}/${params.character_id}/items/${params.id}/full.json`;
-
-    return this.client.fetch(path)
-      .then((item) => safeSet(this.setItem, item))
+    return RequestStore.ensure({
+      resource: 'item',
+      quantityType: 'single',
+      params: {
+        gameSlug: params.game_slug, kind: this.characterKind, id: params.character_id, itemId: params.id,
+      },
+    })
+      .then(({ data }) => safeSet(this.setItem, data))
       .catch(() => safeSet(this.setError, 'Unable to load item.'))
       .finally(() => safeSet(this.setLoading, false));
   }

@@ -114,8 +114,29 @@ base character fetch to `RequestStore.ensure()` eliminates that whole chain, not
   `fetchRequestStoreList.js` (mirroring `fetchPermissionGatedIndex.js`'s shape, plus a
   `buildListQuery` helper folding `hashResolver.getPaginationParams()` and optional filter
   params into one `query` object), centralizes this pattern across every migrated `fetchList`.
-- **Remaining** (Steps 4-5 — edit pages, embedded components): not started yet — each
-  is expected to land as its own follow-up PR against this same issue.
+- **Done** (Step 4 — edit pages): `GameEditController`, `TreasureEditController`,
+  `GameTreasureEditController`, `GameItemEditController`, and `GameSessionEditController` all
+  migrated their resource fetch to `RequestStore.ensure()`. `BaseEditController` gained
+  `fetchDataWithAccess`/`fetchSingleData`, mirroring `fetchWithAccess`/`fetchSingle` but accepting
+  an already-parsed `Promise<{data}>` (e.g. from `RequestStore.ensure()`) instead of a raw
+  `Promise<Response>`, so no `parseJsonOrReject` step is needed. `treasureConfig.js`'s `single`
+  entry was extended to also resolve the game-scoped treasure detail endpoint (`GET
+  /games/:game_slug/treasures/:id.json`, used only by `GameTreasureEditController` — a distinct
+  path from the standalone `/treasures/:id.json` `TreasureEditController` uses, but the same
+  `AllowAny`-for-GET, no-separate-restricted-variant shape) via an optional `gameSlug` param,
+  falling back to the standalone path when omitted. `PcCharacterEditController`/
+  `NpcCharacterEditController` got Step 2's migration for free, confirmed via
+  `CharacterEditController/buildEffectSpec.js` (already `RequestStore`-backed). `Pc`/
+  `NpcCharacterItemEditController` (via `BaseCharacterItemEditController`) do **not** delegate to
+  `CharacterItemDetailController` — they hand-roll their own fetch — so they were migrated
+  directly onto `item.single`'s `kind: 'pcs'|'npcs'` shape, collapsing their own
+  unconditional-`full.json` hand-roll the same way `GameItemEditController` collapsed its
+  unconditional-`full.json` hand-roll onto `item.single`'s `kind: 'game'` shape (both edit
+  controllers previously always requested the elevated endpoint, relying on the backend route
+  itself being edit-gated; now `RequestPermissionResolvers` picks the variant client-side, same as
+  their show-page counterparts).
+- **Remaining** (Step 5 — page-embedded components): not started yet — expected to land as its
+  own follow-up PR against this same issue.
 
 ## Implementation Steps
 

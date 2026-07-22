@@ -1,30 +1,34 @@
 import GameSessionEditController
   from '../../../../../../../../../assets/js/components/resources/game_session/pages/controllers/GameSessionEditController.js';
 import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 
 describe('GameSessionEditController', function() {
+  let ensureSpy;
+
+  beforeEach(function() {
+    ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
+      data: {
+        id: 7, title: 'Session 1', date: '2024-01-01', game_slug: 'demo',
+      },
+    }));
+  });
+
   afterEach(function() {
     AuthStorage.clearToken();
   });
 
   describe('#buildEffect', function() {
-    it('fetches the session and merges AccessStore permissions, calling setSession with the result', async function() {
+    it('fetches the session through RequestStore and merges AccessStore permissions, calling setSession with the result', async function() {
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
       const setSession = jasmine.createSpy('setSession');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
-      const sessionClient = jasmine.createSpyObj('sessionClient', ['fetchSession']);
+      const sessionClient = jasmine.createSpyObj('sessionClient', ['updateSession']);
       const fakeWindow = { location: { hash: '#/games/demo/sessions/7/edit' } };
       globalThis.window = fakeWindow;
-
-      sessionClient.fetchSession.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({
-          id: 7, title: 'Session 1', date: '2024-01-01', game_slug: 'demo',
-        }),
-      }));
 
       try {
         const controller = new GameSessionEditController(
@@ -33,7 +37,9 @@ describe('GameSessionEditController', function() {
         const cleanup = controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(sessionClient.fetchSession).toHaveBeenCalledWith('demo', '7', null);
+        expect(ensureSpy).toHaveBeenCalledWith({
+          resource: 'session', quantityType: 'single', params: { gameSlug: 'demo', id: '7' },
+        });
         expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
         expect(setSession).toHaveBeenCalledWith({
           id: 7, title: 'Session 1', date: '2024-01-01', game_slug: 'demo', can_edit: true,
@@ -52,16 +58,9 @@ describe('GameSessionEditController', function() {
       const setSession = jasmine.createSpy('setSession');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
-      const sessionClient = jasmine.createSpyObj('sessionClient', ['fetchSession']);
+      const sessionClient = jasmine.createSpyObj('sessionClient', ['updateSession']);
       const fakeWindow = { location: { hash: '#/games/demo/sessions/7/edit' } };
       globalThis.window = fakeWindow;
-
-      sessionClient.fetchSession.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({
-          id: 7, title: 'Session 1', date: '2024-01-01', game_slug: 'demo',
-        }),
-      }));
 
       try {
         const controller = new GameSessionEditController(
@@ -83,14 +82,13 @@ describe('GameSessionEditController', function() {
 
     it('sets error when the session fetch fails', async function() {
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+      ensureSpy.and.returnValue(Promise.reject(new Error('network error')));
       const setSession = jasmine.createSpy('setSession');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
-      const sessionClient = jasmine.createSpyObj('sessionClient', ['fetchSession']);
+      const sessionClient = jasmine.createSpyObj('sessionClient', ['updateSession']);
       const fakeWindow = { location: { hash: '#/games/demo/sessions/7/edit' } };
       globalThis.window = fakeWindow;
-
-      sessionClient.fetchSession.and.returnValue(Promise.resolve({ ok: false }));
 
       try {
         const controller = new GameSessionEditController(
@@ -113,7 +111,7 @@ describe('GameSessionEditController', function() {
       const setSession = jasmine.createSpy('setSession');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
-      const sessionClient = jasmine.createSpyObj('sessionClient', ['fetchSession']);
+      const sessionClient = jasmine.createSpyObj('sessionClient', ['updateSession']);
       const fakeWindow = { location: { hash: '#/games/demo/sessions' } };
       globalThis.window = fakeWindow;
 
@@ -124,7 +122,7 @@ describe('GameSessionEditController', function() {
         const cleanup = controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(sessionClient.fetchSession).not.toHaveBeenCalled();
+        expect(ensureSpy).not.toHaveBeenCalled();
         expect(setError).toHaveBeenCalledWith('Unable to load session.');
         expect(setLoading).toHaveBeenCalledWith(false);
 

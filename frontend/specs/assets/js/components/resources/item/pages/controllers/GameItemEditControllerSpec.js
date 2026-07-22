@@ -1,6 +1,7 @@
 import GameItemEditController
   from '../../../../../../../../assets/js/components/resources/item/pages/controllers/GameItemEditController.js';
 import AuthStorage from '../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../../../../assets/js/utils/requests/RequestStore.js';
 
 describe('GameItemEditController', function() {
   let setItem;
@@ -8,6 +9,7 @@ describe('GameItemEditController', function() {
   let setError;
   let setFieldErrors;
   let client;
+  let ensureSpy;
 
   beforeEach(function() {
     setItem = jasmine.createSpy('setItem');
@@ -16,6 +18,9 @@ describe('GameItemEditController', function() {
     setFieldErrors = jasmine.createSpy('setFieldErrors');
     client = jasmine.createSpyObj('client', ['currentHash', 'fetch', 'patchJson']);
     client.currentHash.and.returnValue('#/games/demo/items/5/edit');
+    ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(
+      Promise.resolve({ data: { id: 5, name: 'Cloak of Elvenkind', hidden: false } }),
+    );
   });
 
   afterEach(function() {
@@ -37,14 +42,14 @@ describe('GameItemEditController', function() {
   });
 
   describe('#buildEffect', function() {
-    it('fetches the elevated endpoint and sets the loaded item', async function() {
-      client.fetch.and.returnValue(Promise.resolve({ id: 5, name: 'Cloak of Elvenkind', hidden: false }));
-
+    it('fetches the item through RequestStore with the game-owned kind and sets the loaded item', async function() {
       const cleanup = new GameItemEditController(setItem, setLoading, setError, setFieldErrors, client)
         .buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(client.fetch).toHaveBeenCalledWith('/games/demo/items/5/full.json');
+      expect(ensureSpy).toHaveBeenCalledWith({
+        resource: 'item', quantityType: 'single', params: { gameSlug: 'demo', kind: 'game', id: '5' },
+      });
       expect(setItem).toHaveBeenCalledWith({ id: 5, name: 'Cloak of Elvenkind', hidden: false });
       expect(setLoading).toHaveBeenCalledWith(false);
       expect(setError).not.toHaveBeenCalled();
@@ -53,7 +58,7 @@ describe('GameItemEditController', function() {
     });
 
     it('sets an error when the fetch rejects', async function() {
-      client.fetch.and.returnValue(Promise.reject(new Error('network error')));
+      ensureSpy.and.returnValue(Promise.reject(new Error('network error')));
 
       const cleanup = new GameItemEditController(setItem, setLoading, setError, setFieldErrors, client)
         .buildEffect()();
@@ -73,14 +78,12 @@ describe('GameItemEditController', function() {
 
       expect(setError).toHaveBeenCalledWith('Unable to load item.');
       expect(setLoading).toHaveBeenCalledWith(false);
-      expect(client.fetch).not.toHaveBeenCalled();
+      expect(ensureSpy).not.toHaveBeenCalled();
 
       cleanup();
     });
 
     it('does not update state after unmount', async function() {
-      client.fetch.and.returnValue(Promise.resolve({ id: 5, name: 'Cloak of Elvenkind' }));
-
       const cleanup = new GameItemEditController(setItem, setLoading, setError, setFieldErrors, client)
         .buildEffect()();
       cleanup();
