@@ -136,9 +136,28 @@ actually shared today.
   respectively) into the left/right columns proper, for consistent placement across
   show/new/edit — a minor, intentional layout normalization (no functional change), matching the
   per-resource design breakdown in [plan_pages.md](plan_pages.md).
-- **Remaining** (Step 5-6, not yet started): `treasure`, then removing the now-superseded
-  `CharacterDetail`/`CharacterHelper`/`ItemDetailHelper`. Given the size, land each as its own
-  follow-up PR against this same issue, same as the `game`/`item`/`pc`+`npc` phases.
+- **Done** (Step 5): `treasure` migrated onto a `treasure` entry in `showTypeConfig`, backing
+  `GameTreasureNew`/`GameTreasureEdit` only. Scope correction vs. the design sketch above and
+  `plan_pages.md`'s per-resource breakdown: the issue's affected-pages list only covers the
+  game-scoped `/#/games/:game_slug/treasures/{new,:id,:id/edit}` routes — but there is no
+  game-scoped treasure *show* route at all (confirmed against `HashRouteResolver.js`: only
+  `gameTreasureNew`/`gameTreasureEdit`/`gameTreasures` are registered; a treasure's detail page is
+  always the existing global `/#/treasures/:id` route, reused verbatim from the game-scoped
+  treasures list via `listTypeConfig`'s `buildItemHref`). The global (non-game-scoped)
+  `Treasure`/`TreasureNew`/`TreasureEdit` pages are therefore **out of scope** for this issue (not
+  on its affected-pages list, same as `PlayerDetail`) and were left untouched — their field sets
+  also genuinely differ from the game-scoped forms (a `game_type` picker on creation, no
+  `max_units` cap on edit), so they would need a separate config entry if ever migrated. There is
+  also no `TreasureCardHelper`-based photo slot on the game-scoped new/edit forms — photo upload
+  for treasures happens from the treasures *list* page's card overlay only (global
+  `/treasures/:id/photo_upload.json` endpoint), matching pre-migration behavior; `treasure.left`
+  is therefore empty (mirroring `gameShowType.js`'s `new` mode, which likewise has no left-side
+  content). `GameTreasureNewHelper`/`GameTreasureEditHelper` now just call `ShowPageLayout` with
+  `type="treasure"`, keeping the same `render`/`renderLoading`/`renderError` API their page
+  components already used, so `GameTreasureNew.jsx`/`GameTreasureEdit.jsx` needed no changes.
+- **Remaining** (Step 6, not yet started): removing the now-superseded
+  `CharacterDetail`/`CharacterHelper`/`ItemDetailHelper`. Given the size, land as its own
+  follow-up PR against this same issue, same as the `game`/`item`/`pc`+`npc`/`treasure` phases.
 
 ## Implementation Steps
 
