@@ -1,26 +1,26 @@
-import GenericClient from '../../../../client/GenericClient.js';
 import GameListItem from '../GameListItem.js';
+import fetchRequestStoreList, { buildListQuery } from '../fetchRequestStoreList.js';
 
 /**
- * Fetch a page of the top-level games list. Unlike every other list type, this one has no
- * game/character scope, no permission split (every viewer already sees the same list), and no
- * filters — matching today's `GamesController`.
+ * Fetch a page of the top-level games list through `RequestStore` (`game.collection`). Unlike
+ * every other list type, this one has no game/character scope, no permission split (every
+ * viewer already sees the same list), and no filters — matching today's `GamesController`.
  *
  * @param {string} gameSlug - Unused for this list type, kept for a uniform `fetchList` signature
  *   across list types.
  * @param {import('../../../../utils/routing/HashRouteResolver.js').default} hashResolver -
- *   Unused for this list type, kept for a uniform `fetchList` signature across list types.
- * @param {GenericClient} [client] - HTTP client override, mainly for tests.
+ *   Resolver used to read pagination params from the current hash.
  * @returns {Promise<{data: object[], pagination: object, canEdit: boolean}>} Resolves to the
  *   fetched games and pagination metadata; `canEdit` is always `false`, since this list has no
  *   per-item manage affordance.
  */
-function fetchGames(gameSlug, hashResolver, client = new GenericClient()) {
-  return client.fetchIndex('/games.json').then(({ data, pagination }) => ({
-    data: Array.isArray(data) ? data : [],
-    pagination,
+function fetchGames(gameSlug, hashResolver) {
+  return fetchRequestStoreList({
+    resource: 'game',
+    params: {},
+    query: buildListQuery(hashResolver),
     canEdit: false,
-  }));
+  });
 }
 
 /**

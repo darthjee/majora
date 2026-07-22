@@ -2,6 +2,7 @@ import listTypeConfig from '../../../../../../../assets/js/components/common/lis
 import NpcListItem from '../../../../../../../assets/js/components/common/list_types/NpcListItem.js';
 import NpcFilters from '../../../../../../../assets/js/components/resources/character/pages/elements/NpcFilters.jsx';
 import AccessStore from '../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../../../assets/js/utils/requests/RequestStore.js';
 import HashRouteResolver from '../../../../../../../assets/js/utils/routing/HashRouteResolver.js';
 
 describe('listTypeConfig', function() {
@@ -119,79 +120,84 @@ describe('listTypeConfig', function() {
     });
 
     describe('.fetchList', function() {
-      it('fetches the player-facing endpoint when the requester cannot edit', async function() {
-        const client = jasmine.createSpyObj('client', ['fetchIndex']);
-        const hashResolver = new HashRouteResolver(() => '#/games/demo/npcs');
-
-        client.fetchIndex.and.returnValue(Promise.resolve({
-          data: [{ id: 1, name: 'Goblin' }],
-          pagination: { page: 1, pages: 1, perPage: 10 },
-        }));
-        spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
-
-        const result = await npcs.fetchList('demo', hashResolver, client);
-
-        expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs.json', {});
-        expect(result.data).toEqual([{ id: 1, name: 'Goblin' }]);
-        expect(result.canEdit).toBe(false);
+      afterEach(function() {
+        RequestStore.reset();
       });
 
-      it('fetches the admin endpoint when the requester can edit', async function() {
-        const client = jasmine.createSpyObj('client', ['fetchIndex']);
+      it('fetches through RequestStore and resolves canEdit false when the requester cannot edit',
+        async function() {
+          const hashResolver = new HashRouteResolver(() => '#/games/demo/npcs');
+
+          spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
+            data: [{ id: 1, name: 'Goblin' }],
+            pagination: { page: 1, pages: 1, perPage: 10 },
+          }));
+          spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+
+          const result = await npcs.fetchList('demo', hashResolver);
+
+          expect(RequestStore.ensure).toHaveBeenCalledWith({
+            resource: 'npc', quantityType: 'collection', params: { gameSlug: 'demo' }, query: {},
+          });
+          expect(result.data).toEqual([{ id: 1, name: 'Goblin' }]);
+          expect(result.canEdit).toBe(false);
+        });
+
+      it('resolves canEdit true when the requester can edit the game', async function() {
         const hashResolver = new HashRouteResolver(() => '#/games/demo/npcs');
 
-        client.fetchIndex.and.returnValue(Promise.resolve({
+        spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
           data: [], pagination: { page: 1, pages: 1, perPage: 10 },
         }));
         spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
-        const result = await npcs.fetchList('demo', hashResolver, client);
+        const result = await npcs.fetchList('demo', hashResolver);
 
-        expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs/all.json', {});
         expect(result.canEdit).toBe(true);
       });
 
-      it('passes the filter params from the hash resolver', async function() {
-        const client = jasmine.createSpyObj('client', ['fetchIndex']);
-        const hashResolver = new HashRouteResolver(() => '#/games/demo/npcs?slain=true&name=gob&allegiance=enemy&hidden=false');
+      it('passes the filter params from the hash resolver as part of the query', async function() {
+        const hashResolver = new HashRouteResolver(
+          () => '#/games/demo/npcs?slain=true&name=gob&allegiance=enemy&hidden=false',
+        );
 
-        client.fetchIndex.and.returnValue(Promise.resolve({
+        spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
           data: [], pagination: { page: 1, pages: 1, perPage: 10 },
         }));
         spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
-        await npcs.fetchList('demo', hashResolver, client);
+        await npcs.fetchList('demo', hashResolver);
 
-        expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs.json', {
-          slain: 'true', name: 'gob', allegiance: 'enemy', hidden: 'false',
+        expect(RequestStore.ensure).toHaveBeenCalledWith({
+          resource: 'npc',
+          quantityType: 'collection',
+          params: { gameSlug: 'demo' },
+          query: { slain: 'true', name: 'gob', allegiance: 'enemy', hidden: 'false' },
         });
       });
 
-      it('defaults to the player-facing endpoint when the permission check fails', async function() {
-        const client = jasmine.createSpyObj('client', ['fetchIndex']);
+      it('defaults to canEdit false when the permission check fails', async function() {
         const hashResolver = new HashRouteResolver(() => '#/games/demo/npcs');
 
-        client.fetchIndex.and.returnValue(Promise.resolve({
+        spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
           data: [], pagination: { page: 1, pages: 1, perPage: 10 },
         }));
         spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.reject(new Error('nope')));
 
-        const result = await npcs.fetchList('demo', hashResolver, client);
+        const result = await npcs.fetchList('demo', hashResolver);
 
-        expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/npcs.json', {});
         expect(result.canEdit).toBe(false);
       });
 
       it('defaults to an empty array when the response data is not an array', async function() {
-        const client = jasmine.createSpyObj('client', ['fetchIndex']);
         const hashResolver = new HashRouteResolver(() => '#/games/demo/npcs');
 
-        client.fetchIndex.and.returnValue(Promise.resolve({
+        spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
           data: null, pagination: { page: 1, pages: 1, perPage: 10 },
         }));
         spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
-        const result = await npcs.fetchList('demo', hashResolver, client);
+        const result = await npcs.fetchList('demo', hashResolver);
 
         expect(result.data).toEqual([]);
       });

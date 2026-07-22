@@ -1,10 +1,9 @@
-import GenericClient from '../../../../client/GenericClient.js';
 import GameClient from '../../../../client/GameClient.js';
 import AccessStore from '../../../../utils/access/store/AccessStore.js';
 import TreasureFilters from '../../../resources/treasure/pages/elements/TreasureFilters.jsx';
 import TreasureCardHelper from '../../cards/helpers/TreasureCardHelper.jsx';
 import CharacterTreasureListItem from '../CharacterTreasureListItem.js';
-import fetchPermissionGatedIndex from '../fetchPermissionGatedIndex.js';
+import fetchRequestStoreList, { buildListQuery } from '../fetchRequestStoreList.js';
 import { buildReadOnlyActionBarProps } from '../listTypeConfig.js';
 
 /**
@@ -39,40 +38,29 @@ function mergeGameType(result, gameType) {
 }
 
 /**
- * Fetch a page of a PC's owned treasures. PCs always fetch the plain, character-scoped
- * `treasures.json` endpoint — unlike NPCs, they have no hidden-inclusive `all.json` variant —
- * matching `BaseCharacterTreasuresController#fetchTreasuresIndex`'s PC branch.
- *
- * @param {string} base - Base path (`/games/{gameSlug}/pcs/{characterId}/treasures`).
- * @param {object} filterParams - Filter query params read from the current hash.
- * @param {GenericClient} client - HTTP client.
- * @returns {Promise<{data: object[], pagination: object, canEdit: boolean}>} Resolves to the
- *   fetched treasures and pagination metadata; `canEdit` is always `false`, since PCs have no
- *   admin endpoint variant to gate.
- */
-function fetchPcTreasuresList(base, filterParams, client) {
-  return client.fetchIndex(`${base}.json`, filterParams).then(({ data, pagination }) => ({
-    data: Array.isArray(data) ? data : [],
-    pagination,
-    canEdit: false,
-  }));
-}
-
-/**
- * Fetch a page of an NPC's owned treasures, resolving the requester's game-level edit
- * permission first to pick between the full, hidden-inclusive `treasures/all.json` and the
- * regular, hidden-filtered `treasures.json` — matching
+ * Fetch a page of a character-scoped treasures list (PC or NPC) through `RequestStore`
+ * (`treasure.collection`, `kind: 'pcs'|'npcs'`), resolving the requester's game-level edit
+ * permission for NPCs only — PCs always fetch the plain, character-scoped `treasures.json`
+ * endpoint with `canEdit` fixed to `false`, since they have no hidden-inclusive `all.json`
+ * variant, matching `BaseCharacterTreasuresController#fetchTreasuresIndex`'s PC branch, while
+ * NPCs pick between the full, hidden-inclusive `treasures/all.json` and the regular,
+ * hidden-filtered `treasures.json` — matching
  * `BaseCharacterTreasuresController#fetchNpcTreasures`'s asymmetry with PCs.
  *
+ * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
  * @param {string} gameSlug - Game slug.
- * @param {string} base - Base path (`/games/{gameSlug}/npcs/{characterId}/treasures`).
- * @param {object} filterParams - Filter query params read from the current hash.
- * @param {GenericClient} client - HTTP client.
+ * @param {string|number} characterId - Character id.
+ * @param {object} query - Query object (pagination and active filters).
  * @returns {Promise<{data: object[], pagination: object, canEdit: boolean}>} Resolves to the
- *   fetched treasures, pagination metadata, and the resolved game-level edit permission.
+ *   fetched treasures, pagination metadata, and the resolved edit permission.
  */
-function fetchNpcTreasuresList(gameSlug, base, filterParams, client) {
-  return fetchPermissionGatedIndex(AccessStore.ensureGamePermissions(gameSlug), base, filterParams, client);
+function fetchCharacterTreasuresList(characterKind, gameSlug, characterId, query) {
+  return fetchRequestStoreList({
+    resource: 'treasure',
+    params: { gameSlug, kind: characterKind, id: characterId },
+    query,
+    canEdit: characterKind === 'npcs' ? AccessStore.ensureGamePermissions(gameSlug) : false,
+  });
 }
 
 /**
@@ -80,26 +68,23 @@ function fetchNpcTreasuresList(gameSlug, base, filterParams, client) {
  * `buildFetchCharacterItems` (used by `pc-items`/`npc-items`) but additionally merging the
  * character's own game currency type onto every entry (see `mergeGameType`) and preserving the
  * PC/NPC endpoint asymmetry `BaseCharacterTreasuresController` implements today (see
- * `fetchPcTreasuresList`/`fetchNpcTreasuresList`). The character id is read from the current
- * hash rather than passed explicitly, since `ListPageController` only threads a `gameSlug`
- * through to `fetchList`.
+ * `fetchCharacterTreasuresList`). The character id is read from the current hash rather than
+ * passed explicitly, since `ListPageController` only threads a `gameSlug` through to
+ * `fetchList`.
  *
  * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`), used as the URL segment.
  * @returns {Function} A `fetchList(gameSlug, hashResolver, client?, gameClient?)` function for
- *   this character kind.
+ *   this character kind; `client` is unused now that fetching goes through `RequestStore`, kept
+ *   only so `gameClient` (used for `resolveGameType`) stays in its existing positional slot.
  */
 function buildFetchCharacterTreasures(characterKind) {
-  return function fetchCharacterTreasures(
-    gameSlug, hashResolver, client = new GenericClient(), gameClient = new GameClient(),
-  ) {
+  return function fetchCharacterTreasures(gameSlug, hashResolver, client, gameClient = new GameClient()) {
     const { character_id: characterId } = hashResolver.getParams(
       `/games/:game_slug/${characterKind}/:character_id/treasures`,
     );
     const filterParams = Object.fromEntries(hashResolver.getFilterParams());
-    const base = `/games/${gameSlug}/${characterKind}/${characterId}/treasures`;
-    const listPromise = characterKind === 'npcs'
-      ? fetchNpcTreasuresList(gameSlug, base, filterParams, client)
-      : fetchPcTreasuresList(base, filterParams, client);
+    const query = buildListQuery(hashResolver, filterParams);
+    const listPromise = fetchCharacterTreasuresList(characterKind, gameSlug, characterId, query);
 
     return Promise.all([listPromise, resolveGameType(gameSlug, gameClient)])
       .then(([result, gameType]) => mergeGameType(result, gameType));

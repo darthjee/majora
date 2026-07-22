@@ -1,6 +1,6 @@
 import RequestClient from '../../../../../assets/js/utils/requests/RequestClient.js';
 import AuthStorage from '../../../../../assets/js/utils/auth/AuthStorage.js';
-import { stubFetchJson } from '../../../../support/fetchMock.js';
+import { stubFetchJson, mockFetchJson } from '../../../../support/fetchMock.js';
 
 describe('RequestClient', function() {
   afterEach(function() {
@@ -8,16 +8,29 @@ describe('RequestClient', function() {
   });
 
   describe('#fetchResource', function() {
-    it('fetches and parses the given path as JSON', async function() {
-      stubFetchJson({ id: 1 });
+    it('fetches and parses the given path as JSON, alongside default pagination metadata',
+      async function() {
+        stubFetchJson({ id: 1 });
+
+        const result = await new RequestClient().fetchResource('/games/demo/npcs.json');
+
+        expect(globalThis.fetch).toHaveBeenCalledWith('/games/demo/npcs.json', jasmine.objectContaining({
+          method: 'GET',
+          headers: { Accept: 'application/json' },
+        }));
+        expect(result).toEqual({ data: { id: 1 }, pagination: { page: 1, pages: 1, perPage: 10 } });
+      });
+
+    it('builds pagination metadata from the response headers when present', async function() {
+      const headers = new Map([['page', '2'], ['pages', '5'], ['per_page', '20']]);
+      const fetchSpy = spyOn(globalThis, 'fetch');
+      fetchSpy.and.returnValue(Promise.resolve(mockFetchJson({ id: 1 }, {
+        headers: { get: (name) => headers.get(name) ?? null },
+      })));
 
       const result = await new RequestClient().fetchResource('/games/demo/npcs.json');
 
-      expect(globalThis.fetch).toHaveBeenCalledWith('/games/demo/npcs.json', jasmine.objectContaining({
-        method: 'GET',
-        headers: { Accept: 'application/json' },
-      }));
-      expect(result).toEqual({ id: 1 });
+      expect(result.pagination).toEqual({ page: 2, pages: 5, perPage: 20 });
     });
 
     it('sends the auth token when present', async function() {

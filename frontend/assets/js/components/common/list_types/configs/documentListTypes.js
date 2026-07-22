@@ -1,6 +1,7 @@
 import GenericClient from '../../../../client/GenericClient.js';
 import AccessStore from '../../../../utils/access/store/AccessStore.js';
 import fetchPermissionGatedIndex from '../fetchPermissionGatedIndex.js';
+import fetchRequestStoreList, { buildListQuery } from '../fetchRequestStoreList.js';
 import { buildReadOnlyActionBarProps, buildItemInfoBarItems } from '../listTypeConfig.js';
 import GameDocumentListItem from '../GameDocumentListItem.js';
 import CharacterDocumentListItem from '../CharacterDocumentListItem.js';
@@ -25,26 +26,28 @@ function fetchGameDocuments(gameSlug, hashResolver, client = new GenericClient()
 }
 
 /**
- * Build a `fetchList` for a character-scoped documents list (PC or NPC), resolving the
- * requester's character-level edit permission to pick between the full, hidden-inclusive
- * `documents/all.json` and the player-facing `documents.json`, mirroring
- * `buildFetchCharacterItems`. The character id is read from the current hash rather than
- * passed explicitly, since `ListPageController` only threads a `gameSlug` through to
- * `fetchList`.
+ * Build a `fetchList` for a character-scoped documents list (PC or NPC) through `RequestStore`
+ * (`document.collection`), resolving the requester's character-level edit permission to pick
+ * between the full, hidden-inclusive `documents/all.json` and the player-facing
+ * `documents.json`, mirroring `buildFetchCharacterItems`. The character id is read from the
+ * current hash rather than passed explicitly, since `ListPageController` only threads a
+ * `gameSlug` through to `fetchList`.
  *
  * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`), used as the URL segment.
- * @returns {Function} A `fetchList(gameSlug, hashResolver, client?)` function for this kind.
+ * @returns {Function} A `fetchList(gameSlug, hashResolver)` function for this kind.
  */
 function buildFetchCharacterDocuments(characterKind) {
-  return function fetchCharacterDocuments(gameSlug, hashResolver, client = new GenericClient()) {
+  return function fetchCharacterDocuments(gameSlug, hashResolver) {
     const { character_id: characterId } = hashResolver.getParams(
       `/games/:game_slug/${characterKind}/:character_id/documents`,
     );
-    const base = `/games/${gameSlug}/${characterKind}/${characterId}/documents`;
 
-    return fetchPermissionGatedIndex(
-      AccessStore.ensureCharacterPermissions(characterKind, gameSlug, characterId), base, undefined, client,
-    );
+    return fetchRequestStoreList({
+      resource: 'document',
+      params: { gameSlug, kind: characterKind, id: characterId },
+      query: buildListQuery(hashResolver),
+      canEdit: AccessStore.ensureCharacterPermissions(characterKind, gameSlug, characterId),
+    });
   };
 }
 

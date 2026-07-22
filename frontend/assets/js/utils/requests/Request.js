@@ -18,11 +18,14 @@ const defaultClient = new RequestClient();
  *   cached `AccessCache` entry is aborted (`AccessCache#reset`, scoped to
  *   this `Request`'s own private instance) before the new one starts.
  *
- *   Every settled result is wrapped as `{ data }` — a fresh object each time,
+ *   Every settled result is wrapped as `{ data, pagination }` — a fresh object each time,
  *   never a mutation of a previously-handed-out one — and any promise
  *   already handed out to earlier callers is *not* discarded when superseded:
  *   it stays pending and resolves once the *replacement* request settles, so
  *   no attached consumer is ever left hanging on an aborted request.
+ *   `pagination` mirrors `RequestClient#fetchResource`'s own contract: present on every
+ *   response, ignored by callers that only care about `data` (every `single`-quantity-type
+ *   consumer today).
  */
 export default class Request {
   #resource;
@@ -61,7 +64,8 @@ export default class Request {
    *   `path` builders need.
    * @param {object} [args.query] - Query/filters, folded into the cache key so a query change
    *   is treated the same as a params/permission change.
-   * @returns {Promise<{data: *}>} Resolves to the wrapped resource data.
+   * @returns {Promise<{data: *, pagination: {page: number, pages: number, perPage: number}}>}
+   *   Resolves to the wrapped resource data and its pagination metadata.
    */
   ensure({ permissions = {}, params = {}, query = {} } = {}) {
     const variant = this.#resolveVariant(permissions, params);
@@ -84,7 +88,7 @@ export default class Request {
 
     this.#cache
       .ensure(key, (signal) => this.#client.fetchResource(variant.path(params), query, signal), undefined)
-      .then((data) => this.#settle(key, data));
+      .then((result) => this.#settle(key, result));
 
     return exposedPromise;
   }
@@ -105,12 +109,12 @@ export default class Request {
     this.#current = undefined;
   }
 
-  #settle(key, data) {
+  #settle(key, result) {
     if (this.#activeKey !== key) {
       return;
     }
 
-    this.#current = { data };
+    this.#current = { data: result.data, pagination: result.pagination };
     this.#resolve?.(this.#current);
     this.#promise = null;
     this.#resolve = null;

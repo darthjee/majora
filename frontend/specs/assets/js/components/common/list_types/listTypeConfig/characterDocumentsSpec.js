@@ -3,6 +3,7 @@ import CharacterDocumentListItem
   from '../../../../../../../assets/js/components/common/list_types/CharacterDocumentListItem.js';
 import HashRouteResolver from '../../../../../../../assets/js/utils/routing/HashRouteResolver.js';
 import AccessStore from '../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../../../assets/js/utils/requests/RequestStore.js';
 import Translator from '../../../../../../../assets/js/i18n/Translator.js';
 
 describe('listTypeConfig', function() {
@@ -69,64 +70,68 @@ describe('listTypeConfig', function() {
       });
 
       describe('.fetchList', function() {
-        it('fetches the player-facing endpoint when the requester cannot edit', async function() {
-          const client = jasmine.createSpyObj('client', ['fetchIndex']);
+        afterEach(function() {
+          RequestStore.reset();
+        });
+
+        it('fetches through RequestStore with the character-owned document collection and resolves ' +
+          'canEdit false', async function() {
           const hashResolver = new HashRouteResolver(() => hash);
 
-          client.fetchIndex.and.returnValue(Promise.resolve({
+          spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
             data: [{ id: 1, game_document_id: 5, name: 'Ancient Tome' }],
             pagination: { page: 1, pages: 1, perPage: 10 },
           }));
           spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
-          const result = await config.fetchList('demo', hashResolver, client);
+          const result = await config.fetchList('demo', hashResolver);
 
           expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith(characterKind, 'demo', '2');
-          expect(client.fetchIndex).toHaveBeenCalledWith(`/games/demo/${characterKind}/2/documents.json`, undefined);
+          expect(RequestStore.ensure).toHaveBeenCalledWith({
+            resource: 'document',
+            quantityType: 'collection',
+            params: { gameSlug: 'demo', kind: characterKind, id: '2' },
+            query: {},
+          });
           expect(result.data).toEqual([{ id: 1, game_document_id: 5, name: 'Ancient Tome' }]);
           expect(result.canEdit).toBe(false);
         });
 
-        it('fetches the admin endpoint when the requester can edit', async function() {
-          const client = jasmine.createSpyObj('client', ['fetchIndex']);
+        it('resolves canEdit true when the requester can edit the character', async function() {
           const hashResolver = new HashRouteResolver(() => hash);
 
-          client.fetchIndex.and.returnValue(Promise.resolve({
+          spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
             data: [], pagination: { page: 1, pages: 1, perPage: 10 },
           }));
           spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
-          const result = await config.fetchList('demo', hashResolver, client);
+          const result = await config.fetchList('demo', hashResolver);
 
-          expect(client.fetchIndex)
-            .toHaveBeenCalledWith(`/games/demo/${characterKind}/2/documents/all.json`, undefined);
           expect(result.canEdit).toBe(true);
         });
 
-        it('defaults to the player-facing endpoint when the permission check fails', async function() {
-          const client = jasmine.createSpyObj('client', ['fetchIndex']);
+        it('defaults to canEdit false when the permission check fails', async function() {
           const hashResolver = new HashRouteResolver(() => hash);
 
-          client.fetchIndex.and.returnValue(Promise.resolve({
+          spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
             data: [], pagination: { page: 1, pages: 1, perPage: 10 },
           }));
           spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.reject(new Error('nope')));
 
-          const result = await config.fetchList('demo', hashResolver, client);
+          const result = await config.fetchList('demo', hashResolver);
 
           expect(result.canEdit).toBe(false);
         });
 
         it('defaults to an empty array when the response data is not an array', async function() {
-          const client = jasmine.createSpyObj('client', ['fetchIndex']);
           const hashResolver = new HashRouteResolver(() => hash);
 
-          client.fetchIndex.and.returnValue(Promise.resolve({
+          spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
             data: null, pagination: { page: 1, pages: 1, perPage: 10 },
           }));
           spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
-          const result = await config.fetchList('demo', hashResolver, client);
+          const result = await config.fetchList('demo', hashResolver);
 
           expect(result.data).toEqual([]);
         });

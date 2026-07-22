@@ -1,5 +1,10 @@
 import listTypeConfig from '../../../../../../../assets/js/components/common/list_types/listTypeConfig.js';
 import PcListItem from '../../../../../../../assets/js/components/common/list_types/PcListItem.js';
+import RequestStore from '../../../../../../../assets/js/utils/requests/RequestStore.js';
+
+function fakeHashResolver() {
+  return { getPaginationParams: () => new URLSearchParams() };
+}
 
 describe('listTypeConfig', function() {
   describe('pcs', function() {
@@ -52,29 +57,31 @@ describe('listTypeConfig', function() {
     });
 
     describe('.fetchList', function() {
-      it('fetches the game pcs endpoint with no permission check', async function() {
-        const client = jasmine.createSpyObj('client', ['fetchIndex']);
+      afterEach(function() {
+        RequestStore.reset();
+      });
 
-        client.fetchIndex.and.returnValue(Promise.resolve({
+      it('fetches through RequestStore with no permission check', async function() {
+        spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
           data: [{ id: 1, name: 'Aragorn' }],
           pagination: { page: 1, pages: 1, perPage: 10 },
         }));
 
-        const result = await pcs.fetchList('demo', undefined, client);
+        const result = await pcs.fetchList('demo', fakeHashResolver());
 
-        expect(client.fetchIndex).toHaveBeenCalledWith('/games/demo/pcs.json');
+        expect(RequestStore.ensure).toHaveBeenCalledWith({
+          resource: 'pc', quantityType: 'collection', params: { gameSlug: 'demo' }, query: {},
+        });
         expect(result.data).toEqual([{ id: 1, name: 'Aragorn' }]);
         expect(result.canEdit).toBe(false);
       });
 
       it('defaults to an empty array when the response data is not an array', async function() {
-        const client = jasmine.createSpyObj('client', ['fetchIndex']);
-
-        client.fetchIndex.and.returnValue(Promise.resolve({
+        spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
           data: null, pagination: { page: 1, pages: 1, perPage: 10 },
         }));
 
-        const result = await pcs.fetchList('demo', undefined, client);
+        const result = await pcs.fetchList('demo', fakeHashResolver());
 
         expect(result.data).toEqual([]);
       });

@@ -1,7 +1,6 @@
-import GenericClient from '../../../../client/GenericClient.js';
 import AccessStore from '../../../../utils/access/store/AccessStore.js';
 import allegianceBorderClass from '../../../../utils/ui/AllegianceBorder.js';
-import fetchPermissionGatedIndex from '../fetchPermissionGatedIndex.js';
+import fetchRequestStoreList, { buildListQuery } from '../fetchRequestStoreList.js';
 import { buildReadOnlyActionBarProps } from '../listTypeConfig.js';
 import SlainSecondaryButtons from '../SlainSecondaryButtons.js';
 import InfoBarRules from '../../misc/helpers/InfoBarRules.js';
@@ -10,46 +9,49 @@ import PcListItem from '../PcListItem.js';
 import NpcListItem from '../NpcListItem.js';
 
 /**
- * Fetch a page of a game's PCs. PCs have no `all.json` variant (no hidden concept, no
- * permission split) — matching today's `GamePcsController`.
+ * Fetch a page of a game's PCs through `RequestStore` (`pc.collection`). PCs have no `all.json`
+ * variant (no hidden concept, no permission split) — matching today's `GamePcsController`.
  *
  * @param {string} gameSlug - Game slug.
  * @param {import('../../../../utils/routing/HashRouteResolver.js').default} hashResolver -
- *   Unused for this list type, kept for a uniform `fetchList` signature across list types.
- * @param {GenericClient} [client] - HTTP client override, mainly for tests.
+ *   Resolver used to read pagination params from the current hash.
  * @returns {Promise<{data: object[], pagination: object, canEdit: boolean}>} Resolves to the
  *   fetched PCs and pagination metadata; `canEdit` is always `false`, since PCs have no
  *   per-item manage affordance on this list page.
  */
-function fetchPcs(gameSlug, hashResolver, client = new GenericClient()) {
-  return client.fetchIndex(`/games/${gameSlug}/pcs.json`).then(({ data, pagination }) => ({
-    data: Array.isArray(data) ? data : [],
-    pagination,
+function fetchPcs(gameSlug, hashResolver) {
+  return fetchRequestStoreList({
+    resource: 'pc',
+    params: { gameSlug },
+    query: buildListQuery(hashResolver),
     canEdit: false,
-  }));
+  });
 }
 
 /**
- * Fetch a page of a game's NPCs, resolving the requester's edit permission first to pick
- * between the full catalog (`npcs/all.json`, editors only) and the player-facing,
- * hidden-filtered `npcs.json` — the same strategy `GameNpcsController#loadNpcs` previously
- * implemented directly. The requester's `is_player` status (also resolved by
- * `GameNpcsController#loadNpcs`) is unrelated to which endpoint is fetched, so it is resolved
- * separately, page-level, and threaded through `ListPage`'s `context` prop instead.
+ * Fetch a page of a game's NPCs through `RequestStore` (`npc.collection`), resolving the
+ * requester's edit permission first to pick between the full catalog (`npcs/all.json`, editors
+ * only) and the player-facing, hidden-filtered `npcs.json` — the same strategy
+ * `GameNpcsController#loadNpcs` previously implemented directly. The requester's `is_player`
+ * status (also resolved by `GameNpcsController#loadNpcs`) is unrelated to which endpoint is
+ * fetched, so it is resolved separately, page-level, and threaded through `ListPage`'s
+ * `context` prop instead.
  *
  * @param {string} gameSlug - Game slug.
  * @param {import('../../../../utils/routing/HashRouteResolver.js').default} hashResolver -
- *   Resolver used to read active filter query params from the current hash.
- * @param {GenericClient} [client] - HTTP client override, mainly for tests.
+ *   Resolver used to read pagination and active filter query params from the current hash.
  * @returns {Promise<{data: object[], pagination: object, canEdit: boolean}>} Resolves to the
  *   fetched NPCs, pagination metadata, and the resolved edit permission.
  */
-function fetchNpcs(gameSlug, hashResolver, client = new GenericClient()) {
+function fetchNpcs(gameSlug, hashResolver) {
   const filterParams = Object.fromEntries(hashResolver.getFilterParams());
 
-  return fetchPermissionGatedIndex(
-    AccessStore.ensureGamePermissions(gameSlug), `/games/${gameSlug}/npcs`, filterParams, client,
-  );
+  return fetchRequestStoreList({
+    resource: 'npc',
+    params: { gameSlug },
+    query: buildListQuery(hashResolver, filterParams),
+    canEdit: AccessStore.ensureGamePermissions(gameSlug),
+  });
 }
 
 /**

@@ -1,5 +1,10 @@
 import listTypeConfig from '../../../../../../../assets/js/components/common/list_types/listTypeConfig.js';
 import GameListItem from '../../../../../../../assets/js/components/common/list_types/GameListItem.js';
+import RequestStore from '../../../../../../../assets/js/utils/requests/RequestStore.js';
+
+function fakeHashResolver() {
+  return { getPaginationParams: () => new URLSearchParams() };
+}
 
 describe('listTypeConfig', function() {
   describe('games', function() {
@@ -50,30 +55,32 @@ describe('listTypeConfig', function() {
     });
 
     describe('.fetchList', function() {
-      it('fetches the games index with no permission check', async function() {
-        const client = jasmine.createSpyObj('client', ['fetchIndex']);
+      afterEach(function() {
+        RequestStore.reset();
+      });
 
-        client.fetchIndex.and.returnValue(Promise.resolve({
+      it('fetches through RequestStore with no permission check', async function() {
+        spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
           data: [{ name: 'Test Game', game_slug: 'test-game' }],
           pagination: { page: 1, pages: 1, perPage: 10 },
         }));
 
-        const result = await games.fetchList(undefined, undefined, client);
+        const result = await games.fetchList(undefined, fakeHashResolver());
 
-        expect(client.fetchIndex).toHaveBeenCalledWith('/games.json');
+        expect(RequestStore.ensure).toHaveBeenCalledWith({
+          resource: 'game', quantityType: 'collection', params: {}, query: {},
+        });
         expect(result.data).toEqual([{ name: 'Test Game', game_slug: 'test-game' }]);
         expect(result.pagination).toEqual({ page: 1, pages: 1, perPage: 10 });
         expect(result.canEdit).toBe(false);
       });
 
       it('defaults to an empty array when the response data is not an array', async function() {
-        const client = jasmine.createSpyObj('client', ['fetchIndex']);
-
-        client.fetchIndex.and.returnValue(Promise.resolve({
+        spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
           data: null, pagination: { page: 1, pages: 1, perPage: 10 },
         }));
 
-        const result = await games.fetchList(undefined, undefined, client);
+        const result = await games.fetchList(undefined, fakeHashResolver());
 
         expect(result.data).toEqual([]);
       });

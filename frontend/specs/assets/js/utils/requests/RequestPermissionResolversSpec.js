@@ -51,10 +51,26 @@ describe('RequestPermissionResolvers', function() {
       expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
     });
 
+    it('resolves game-level permissions for item collection with the game kind (GameItem)', function() {
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+      RequestPermissionResolvers.resolve('item', 'collection', { gameSlug: 'demo', kind: 'game' });
+
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+    });
+
     it('resolves game-level permissions for the npc-kind treasure collection', function() {
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
       RequestPermissionResolvers.resolve('treasure', 'collection', { gameSlug: 'demo', kind: 'npcs', id: '3' });
+
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+    });
+
+    it('resolves game-level permissions for the game-kind treasure collection', function() {
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+      RequestPermissionResolvers.resolve('treasure', 'collection', { gameSlug: 'demo', kind: 'game' });
 
       expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
     });

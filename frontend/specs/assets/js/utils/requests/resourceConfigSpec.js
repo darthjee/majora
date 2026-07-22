@@ -55,7 +55,7 @@ describe('resourceConfig', function() {
   });
 
   describe('item', function() {
-    it('resolves collection regular/private paths and permissions for either kind', function() {
+    it('resolves collection regular/private paths and permissions for either character-owned kind', function() {
       const collection = resourceConfig.get('GET', 'item', 'collection');
 
       expect(collection.regular.path({ gameSlug: 'demo', kind: 'pcs', id: '3' }))
@@ -63,6 +63,15 @@ describe('resourceConfig', function() {
       expect(collection.regular.permission).toBeNull();
       expect(collection.private.path({ gameSlug: 'demo', kind: 'npcs', id: '3' }))
         .toBe('/games/demo/npcs/3/items/all.json');
+      expect(collection.private.permission).toBe('can_edit');
+    });
+
+    it('resolves collection regular/private paths and permissions for the game-owned kind', function() {
+      const collection = resourceConfig.get('GET', 'item', 'collection');
+
+      expect(collection.regular.path({ gameSlug: 'demo', kind: 'game' })).toBe('/games/demo/items.json');
+      expect(collection.regular.permission).toBeNull();
+      expect(collection.private.path({ gameSlug: 'demo', kind: 'game' })).toBe('/games/demo/items/all.json');
       expect(collection.private.permission).toBe('can_edit');
     });
 
@@ -113,6 +122,15 @@ describe('resourceConfig', function() {
       expect(collection.private.path({ gameSlug: 'demo', kind: 'pcs', id: '3' }))
         .toBe('/games/demo/pcs/3/treasures.json');
       expect(collection.private.permission({ gameSlug: 'demo', kind: 'pcs', id: '3' })).toBeNull();
+    });
+
+    it('resolves collection regular/private paths and permissions for the game-catalog kind', function() {
+      const collection = resourceConfig.get('GET', 'treasure', 'collection');
+
+      expect(collection.regular.path({ gameSlug: 'demo', kind: 'game' })).toBe('/games/demo/treasures.json');
+      expect(collection.regular.permission).toBeNull();
+      expect(collection.private.path({ gameSlug: 'demo', kind: 'game' })).toBe('/games/demo/treasures/all.json');
+      expect(collection.private.permission({ gameSlug: 'demo', kind: 'game' })).toBe('can_edit');
     });
 
     it('has no separate private endpoint for single', function() {
