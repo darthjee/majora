@@ -3,7 +3,7 @@
 from django.test import TestCase
 
 from games.serializers import GameItemUpdateSerializer
-from games.tests.factories import GameItemFactory
+from games.tests.factories import GameFactory, GameItemFactory
 
 
 class TestGameItemUpdateSerializer(TestCase):
@@ -59,3 +59,18 @@ class TestGameItemUpdateSerializer(TestCase):
         serializer = GameItemUpdateSerializer(self.item, data={'name': 'x' * 201}, partial=True)
         assert not serializer.is_valid()
         assert 'name' in serializer.errors
+
+    def test_game_and_id_are_not_included(self):
+        """Test that game and id are not fields in the serializer."""
+        other_game = GameFactory()
+        original_game_id = self.item.game_id
+        serializer = GameItemUpdateSerializer(
+            self.item,
+            data={'name': 'New Name', 'game': other_game.id, 'id': 999},
+            partial=True,
+        )
+        assert serializer.is_valid()
+        item = serializer.save()
+        assert item.name == 'New Name'
+        assert item.game_id == original_game_id
+        assert item.id != 999
