@@ -18,18 +18,9 @@ describe('GameController', function() {
     const setError = jasmine.createSpy('setError');
     const setPcs = jasmine.createSpy('setPcs');
     const setNpcs = jasmine.createSpy('setNpcs');
-    const client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
+    const client = jasmine.createSpyObj('client', ['currentHash']);
 
     client.currentHash.and.returnValue('#/games/demo');
-    client.fetch.and.callFake((path) => {
-      if (path.startsWith('/games/demo/pcs.json')) {
-        return Promise.resolve([{ id: 1, name: 'Aragorn' }]);
-      }
-      if (path.startsWith('/games/demo/npcs.json')) {
-        return Promise.resolve([{ id: 2, name: 'Gandalf' }]);
-      }
-      return Promise.resolve([]);
-    });
 
     const cleanup = new GameController(setGame, setLoading, setError, setPcs, setNpcs, client)
       .buildEffect()();
@@ -52,10 +43,9 @@ describe('GameController', function() {
     const setGame = jasmine.createSpy('setGame');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
-    const client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
+    const client = jasmine.createSpyObj('client', ['currentHash']);
 
     client.currentHash.and.returnValue('#/games/demo');
-    client.fetch.and.returnValue(Promise.resolve([]));
 
     const cleanup = new GameController(setGame, setLoading, setError, Noop.noop, Noop.noop, client)
       .buildEffect()();
@@ -75,10 +65,9 @@ describe('GameController', function() {
     const setGame = jasmine.createSpy('setGame');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
-    const client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
+    const client = jasmine.createSpyObj('client', ['currentHash']);
 
     client.currentHash.and.returnValue('#/games/demo');
-    client.fetch.and.returnValue(Promise.resolve([]));
 
     const cleanup = new GameController(setGame, setLoading, setError, Noop.noop, Noop.noop, client)
       .buildEffect()();

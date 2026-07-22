@@ -1,66 +1,50 @@
 import TreasureExchangeModalController
   from '../../../../../../../../../../assets/js/components/resources/character/pages/elements/controllers/TreasureExchangeModalController.js';
-import { buildClients, buildResponse } from './support.js';
+import RequestStore from '../../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 
 describe('TreasureExchangeModalController', function() {
   describe('#fetchAcquirePage', function() {
-    it('resolves data and pagination from the treasure client response', async function() {
-      const { characterClient, treasureClient } = buildClients();
-      treasureClient.fetchGameTreasuresPage.and.returnValue(Promise.resolve(
-        buildResponse(200, [{ id: 1, name: 'Sword', value: 100 }], { page: '2', pages: '3', per_page: '5' })
-      ));
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+    it('resolves data and pagination through RequestStore (treasure.collection, kind: game)', async function() {
+      const pagination = { page: 2, pages: 3, perPage: 5 };
+      const ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
+        data: [{ id: 1, name: 'Sword', value: 100 }], pagination,
+      }));
+      const controller = new TreasureExchangeModalController();
 
-      const result = await controller.fetchAcquirePage('demo', 'tok', { page: 2, perPage: 5, maxValue: 500 });
+      const result = await controller.fetchAcquirePage('demo', {
+        page: 2, perPage: 5, maxValue: 500, search: 'sword', ordering: 'desc',
+      });
 
-      expect(treasureClient.fetchGameTreasuresPage).toHaveBeenCalledWith(
-        'demo', 'tok', { page: 2, perPage: 5, maxValue: 500 }
-      );
+      expect(ensureSpy).toHaveBeenCalledWith({
+        resource: 'treasure',
+        quantityType: 'collection',
+        params: { gameSlug: 'demo', kind: 'game' },
+        query: {
+          page: 2, per_page: 5, max_value: 500, name: 'sword', ordering: 'desc',
+        },
+      });
       expect(result).toEqual({
         data: [{ id: 1, name: 'Sword', value: 100 }],
-        pagination: { page: 2, pages: 3, perPage: 5 },
+        pagination,
       });
     });
 
-    it('rejects when the response is not ok', async function() {
-      const { characterClient, treasureClient } = buildClients();
-      treasureClient.fetchGameTreasuresPage.and.returnValue(Promise.resolve(buildResponse(500, {})));
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+    it('rejects when RequestStore.ensure rejects', async function() {
+      spyOn(RequestStore, 'ensure').and.returnValue(Promise.reject(new Error('boom')));
+      const controller = new TreasureExchangeModalController();
 
-      await expectAsync(controller.fetchAcquirePage('demo', 'tok', {})).toBeRejected();
+      await expectAsync(controller.fetchAcquirePage('demo', {})).toBeRejected();
     });
 
-    it('uses the treasures/all endpoint when canEdit is true', async function() {
-      const { characterClient, treasureClient } = buildClients();
-      treasureClient.fetchGameTreasuresAllPage.and.returnValue(Promise.resolve(
-        buildResponse(200, [{ id: 1, name: 'Hidden Sword', value: 100, hidden: true }],
-          { page: '1', pages: '1', per_page: '10' })
-      ));
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+    it('defaults data to an empty array when RequestStore resolves a non-array', async function() {
+      spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
+        data: null, pagination: { page: 1, pages: 1, perPage: 10 },
+      }));
+      const controller = new TreasureExchangeModalController();
 
-      const result = await controller.fetchAcquirePage('demo', 'tok', { page: 1, perPage: 10 }, true);
+      const result = await controller.fetchAcquirePage('demo', {});
 
-      expect(treasureClient.fetchGameTreasuresAllPage).toHaveBeenCalledWith(
-        'demo', 'tok', { page: 1, perPage: 10 }
-      );
-      expect(treasureClient.fetchGameTreasuresPage).not.toHaveBeenCalled();
-      expect(result).toEqual({
-        data: [{ id: 1, name: 'Hidden Sword', value: 100, hidden: true }],
-        pagination: { page: 1, pages: 1, perPage: 10 },
-      });
-    });
-
-    it('uses the regular endpoint when canEdit is omitted', async function() {
-      const { characterClient, treasureClient } = buildClients();
-      treasureClient.fetchGameTreasuresPage.and.returnValue(Promise.resolve(
-        buildResponse(200, [], { page: '1', pages: '1', per_page: '10' })
-      ));
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
-
-      await controller.fetchAcquirePage('demo', 'tok', {});
-
-      expect(treasureClient.fetchGameTreasuresPage).toHaveBeenCalledWith('demo', 'tok', {});
-      expect(treasureClient.fetchGameTreasuresAllPage).not.toHaveBeenCalled();
+      expect(result.data).toEqual([]);
     });
   });
 });

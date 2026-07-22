@@ -1,6 +1,6 @@
 import CharacterClient from '../../../../../../client/CharacterClient.js';
-import TreasureClient from '../../../../../../client/TreasureClient.js';
 import AuthStorage from '../../../../../../utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../../utils/requests/RequestStore.js';
 import parsePositiveInt from '../../../../../../utils/parsePositiveInt.js';
 import Translator from '../../../../../../i18n/Translator.js';
 
@@ -62,40 +62,47 @@ export function buildPartialNotice(activeTab, requestedQuantity, acquired) {
  * Manages browsing (Acquire/Sell tab) and acquire/sell action requests for
  * the treasure exchange modal, keeping pagination and submission state
  * driven by local component state rather than the URL.
+ *
+ * @description `fetchAcquirePage` goes through `RequestStore` (`treasure.collection`, `kind:
+ *   'game'`), which resolves the same game-level `can_edit` this method used to require as an
+ *   explicit `canEdit` flag (issue #791 phase 5/N). `fetchSellPage` stays unmigrated: it always
+ *   hits the plain `.../treasures.json` regardless of `canEdit`, unlike `treasure.collection`
+ *   `kind: 'pcs'|'npcs'` (which elevates to `all.json` for an editor) — migrating it would
+ *   silently start including hidden treasures, a real behavior change; see `plan.md`'s Notes.
  */
 export default class TreasureExchangeModalController {
   /**
    * Create a treasure exchange modal controller.
    *
    * @param {CharacterClient|null} [characterClient] - Character client override.
-   * @param {TreasureClient|null} [treasureClient] - Treasure client override.
    */
-  constructor(characterClient = null, treasureClient = null) {
+  constructor(characterClient = null) {
     this.characterClient = characterClient ?? new CharacterClient();
-    this.treasureClient = treasureClient ?? new TreasureClient();
   }
 
   /**
-   * Fetch a page of game treasures affordable within the character's current
-   * money, for the Acquire tab.
+   * Fetch a page of game treasures affordable within the character's current money, for the
+   * Acquire tab, through `RequestStore` (`treasure.collection`, `kind: 'game'`) — see this
+   * class's own description.
    *
    * @param {string} gameSlug - Game slug.
-   * @param {string|null} token - Authentication token, if any.
    * @param {{page: number, perPage: number, maxValue: number, search: string,
    *   ordering: string}} params - Browse params. `search` is an optional name filter;
    *   `ordering` (`'asc'`/`'desc'`) is forwarded as-is, always `'desc'` in this modal.
-   * @param {boolean} [canEdit] - Whether the requester can edit the game (DM/admin). When
-   *   true, browses the full catalog (including hidden treasures) through the `treasures/all.json`
-   *   endpoint instead of the player-facing, hidden-filtered one.
    * @returns {Promise<{data: object[], pagination: object}>} Page of treasures with
    *   pagination metadata.
    */
-  fetchAcquirePage(gameSlug, token, params, canEdit = false) {
-    const request = canEdit
-      ? this.treasureClient.fetchGameTreasuresAllPage(gameSlug, token, params)
-      : this.treasureClient.fetchGameTreasuresPage(gameSlug, token, params);
-
-    return request.then((response) => this.#parseIndexResponse(response));
+  fetchAcquirePage(gameSlug, {
+    page, perPage, maxValue, search, ordering,
+  }) {
+    return RequestStore.ensure({
+      resource: 'treasure',
+      quantityType: 'collection',
+      params: { gameSlug, kind: 'game' },
+      query: {
+        page, per_page: perPage, max_value: maxValue, name: search, ordering,
+      },
+    }).then(({ data, pagination }) => ({ data: Array.isArray(data) ? data : [], pagination }));
   }
 
   /**
@@ -124,6 +131,8 @@ export default class TreasureExchangeModalController {
    * @param {string} tab - Tab to load (`'acquire'` or `'sell'`).
    * @param {number} page - Page number to request.
    * @param {object} character - Character context (`id`, `game_slug`, `is_pc`, `money`, `canEdit`).
+   *   `canEdit` no longer drives the Acquire tab's fetch directly (`RequestStore` resolves it),
+   *   but is still forwarded to {@link TreasureExchangeModalController#acquire} for the submit side.
    * @param {string} searchTerm - Current name filter.
    * @param {Function} setBrowse - React state setter for the browse state
    *   (`{items, page, pages, loading, error}`).
@@ -132,11 +141,10 @@ export default class TreasureExchangeModalController {
   loadPage(tab, page, character, searchTerm, setBrowse) {
     setBrowse((prev) => ({ ...prev, loading: true, error: '' }));
 
-    const token = AuthStorage.getToken();
     const params = buildBrowseParams(tab, page, PER_PAGE, character, searchTerm);
     const request = tab === 'acquire'
-      ? this.fetchAcquirePage(character.game_slug, token, params, character.canEdit)
-      : this.fetchSellPage(character.game_slug, character.id, character.is_pc, token, params);
+      ? this.fetchAcquirePage(character.game_slug, params)
+      : this.fetchSellPage(character.game_slug, character.id, character.is_pc, AuthStorage.getToken(), params);
 
     return request
       .then(({ data, pagination }) => setBrowse({

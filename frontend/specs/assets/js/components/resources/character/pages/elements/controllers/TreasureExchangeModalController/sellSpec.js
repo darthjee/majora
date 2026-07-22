@@ -5,11 +5,11 @@ import { buildClients, buildResponse } from './support.js';
 describe('TreasureExchangeModalController', function() {
   describe('#sell', function() {
     it('returns ok with the new quantity and money on success', async function() {
-      const { characterClient, treasureClient } = buildClients();
+      const { characterClient } = buildClients();
       characterClient.sellTreasure.and.returnValue(
         Promise.resolve(buildResponse(200, { quantity: 0, money: 600 }))
       );
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+      const controller = new TreasureExchangeModalController(characterClient);
 
       const result = await controller.sell('demo', 7, true, 'tok', { treasureId: 9, quantity: 1 });
 
@@ -22,11 +22,11 @@ describe('TreasureExchangeModalController', function() {
     });
 
     it('uses the npc client when isPc is false', async function() {
-      const { characterClient, treasureClient } = buildClients();
+      const { characterClient } = buildClients();
       characterClient.sellTreasure.and.returnValue(
         Promise.resolve(buildResponse(200, { quantity: 0, money: 10 }))
       );
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+      const controller = new TreasureExchangeModalController(characterClient);
 
       await controller.sell('demo', 7, false, 'tok', { treasureId: 9, quantity: 1 });
 
@@ -36,11 +36,11 @@ describe('TreasureExchangeModalController', function() {
     });
 
     it('maps the not enough owned error message to its translation key', async function() {
-      const { characterClient, treasureClient } = buildClients();
+      const { characterClient } = buildClients();
       characterClient.sellTreasure.and.returnValue(
         Promise.resolve(buildResponse(400, { errors: { quantity: ['not enough owned'] } }))
       );
-      const controller = new TreasureExchangeModalController(characterClient, treasureClient);
+      const controller = new TreasureExchangeModalController(characterClient);
 
       const result = await controller.sell('demo', 7, true, 'tok', { treasureId: 9, quantity: 100 });
 

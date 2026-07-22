@@ -2,7 +2,6 @@ export const buildClients = () => ({
   characterClient: jasmine.createSpyObj('characterClient', [
     'fetchTreasuresPage', 'acquireTreasure', 'acquireTreasureAll', 'sellTreasure',
   ]),
-  treasureClient: jasmine.createSpyObj('treasureClient', ['fetchGameTreasuresPage', 'fetchGameTreasuresAllPage']),
 });
 
 export const buildResponse = (status, body, headers = {}) => ({

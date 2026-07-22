@@ -15,10 +15,9 @@ describe('GameController', function() {
     const setGame = jasmine.createSpy('setGame');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
-    const client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
+    const client = jasmine.createSpyObj('client', ['currentHash']);
 
     client.currentHash.and.returnValue('#/games/demo');
-    client.fetch.and.returnValue(Promise.resolve([]));
 
     const cleanup = new GameController(setGame, setLoading, setError, Noop.noop, Noop.noop, client)
       .buildEffect()();
@@ -43,10 +42,9 @@ describe('GameController', function() {
     const setGame = jasmine.createSpy('setGame');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
-    const client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
+    const client = jasmine.createSpyObj('client', ['currentHash']);
 
     client.currentHash.and.returnValue('#/games/demo');
-    client.fetch.and.returnValue(Promise.resolve([]));
 
     const cleanup = new GameController(setGame, setLoading, setError, Noop.noop, Noop.noop, client)
       .buildEffect()();
