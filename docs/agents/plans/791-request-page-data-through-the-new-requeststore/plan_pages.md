@@ -43,15 +43,15 @@ affected-page list) and left on `fetchPermissionGatedIndex`.
 
 | Route | Page component | Controller | Delegates to (free ride?) |
 |---|---|---|---|
-| `/games/:game_slug/edit` | `GameEdit.jsx` | `GameEditController.js` | No — direct `gameClient.fetchGame` + `fetchWithAccess`, migrate directly |
-| `/treasures/:id/edit` | `TreasureEdit.jsx` | `TreasureEditController.js` | No — migrate directly |
-| `/games/:game_slug/treasures/:treasure_id/edit` | `GameTreasureEdit.jsx` | `GameTreasureEditController.js` | No — migrate directly |
-| `/games/:game_slug/items/:id/edit` | `GameItemEdit.jsx` | `GameItemEditController.js` | No — extends `BasePageController`, not `BaseEditController`; mirrors `GameItemController`'s pattern, migrate the same way as its show-page counterpart |
-| `/games/:game_slug/sessions/:id/edit` | `GameSessionEdit.jsx` | `GameSessionEditController.js` | No — migrate directly once `sessionConfig.js` exists (Step 1) |
-| `/games/:game_slug/pcs/:character_id/edit` | `PcCharacterEdit.jsx` | `PcCharacterEditController.js` → `BaseCharacterEditController` | Yes — reuses `PcCharacterController` for loading, verify free ride |
-| `/games/:game_slug/npcs/:character_id/edit` | `NpcCharacterEdit.jsx` | `NpcCharacterEditController.js` → `BaseCharacterEditController` | Yes — reuses `NpcCharacterController`, verify free ride |
-| `/games/:game_slug/pcs/:character_id/items/:id/edit` | `PcCharacterItemEdit.jsx` | `PcCharacterItemEditController.js` → `BaseCharacterItemEditController` | Check whether this delegates to `CharacterItemDetailController`; migrate directly if not |
-| `/games/:game_slug/npcs/:character_id/items/:id/edit` | `NpcCharacterItemEdit.jsx` | `NpcCharacterItemEditController.js` → `BaseCharacterItemEditController` | Same check as above |
+| `/games/:game_slug/edit` | `GameEdit.jsx` | `GameEditController.js` | No — direct `gameClient.fetchGame` + `fetchWithAccess`, migrate directly — done |
+| `/treasures/:id/edit` | `TreasureEdit.jsx` | `TreasureEditController.js` | No — migrate directly — done |
+| `/games/:game_slug/treasures/:treasure_id/edit` | `GameTreasureEdit.jsx` | `GameTreasureEditController.js` | No — migrate directly — done, using a new game-scoped path (`gameSlug` param) on `treasureConfig.js`'s existing `single` entry, since `GET /games/:game_slug/treasures/:id.json` is a distinct endpoint from the standalone `/treasures/:id.json` |
+| `/games/:game_slug/items/:id/edit` | `GameItemEdit.jsx` | `GameItemEditController.js` | No — extends `BasePageController`, not `BaseEditController`; mirrors `GameItemController`'s pattern, migrate the same way as its show-page counterpart — done |
+| `/games/:game_slug/sessions/:id/edit` | `GameSessionEdit.jsx` | `GameSessionEditController.js` | No — migrate directly once `sessionConfig.js` exists (Step 1) — done |
+| `/games/:game_slug/pcs/:character_id/edit` | `PcCharacterEdit.jsx` | `PcCharacterEditController.js` → `BaseCharacterEditController` | Yes — reuses `PcCharacterController` for loading — confirmed free ride via Step 2, `CharacterEditController/buildEffectSpec.js` already `RequestStore`-backed, no code change needed — done |
+| `/games/:game_slug/npcs/:character_id/edit` | `NpcCharacterEdit.jsx` | `NpcCharacterEditController.js` → `BaseCharacterEditController` | Yes — reuses `NpcCharacterController` — confirmed free ride, same as above — done |
+| `/games/:game_slug/pcs/:character_id/items/:id/edit` | `PcCharacterItemEdit.jsx` | `PcCharacterItemEditController.js` → `BaseCharacterItemEditController` | No — checked: does *not* delegate to `CharacterItemDetailController`, hand-rolls its own unconditional `full.json` fetch instead — migrated directly onto `item.single`'s `kind: 'pcs'` shape — done |
+| `/games/:game_slug/npcs/:character_id/items/:id/edit` | `NpcCharacterItemEdit.jsx` | `NpcCharacterItemEditController.js` → `BaseCharacterItemEditController` | No — same as above, `kind: 'npcs'` — done |
 
 `/staff/users/:id/edit` (`StaffUserEdit.jsx`) is intentionally excluded — not part of the
 games/home domain the issue scopes to.

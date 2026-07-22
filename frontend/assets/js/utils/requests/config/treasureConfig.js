@@ -6,8 +6,8 @@
  * `docs/agents/access-control/character-treasure.md`) — genuinely different backing shapes, but
  * the same regular-vs-`all.json`-on-`can_edit` pattern, so `collection` picks the right path
  * family from `kind` the same way `itemConfig.js`'s `single`/`collection` already do — plus a
- * `single` entry for the standalone (non-game-scoped) treasure detail endpoint (mirrors
- * `docs/agents/access-control/treasure.md`).
+ * `single` entry for both the standalone (non-game-scoped) treasure detail endpoint and the
+ * game-scoped one (mirrors `docs/agents/access-control/treasure.md`/`game-treasure.md`).
  *
  * @description `collection` params: `gameSlug` and, for the character-owned kinds only, `id`
  *   (character id); `kind` is `'game'`, `'pcs'`, or `'npcs'`. For `kind: 'game'`, the DM-only
@@ -18,12 +18,15 @@
  *   game-level way — PCs have no restricted collection endpoint at all, so for `kind === 'pcs'`,
  *   both `path` and `permission` resolve to the exact same value as `regular`.
  *
- *   `single` params: `id` (treasure id). `GET /treasures/:id.json` is
- *   `AllowAny` with no separate restricted/full variant — a treasure's edit
+ *   `single` params: `id` (treasure id) and, optionally, `gameSlug`. `GET /treasures/:id.json`
+ *   (no `gameSlug`) is `AllowAny` with no separate restricted/full variant — a treasure's edit
  *   rights are resolved separately via `/treasures/:id/permissions.json`
- *   (`AccessStore.ensureTreasurePermissions`), not embedded in this
- *   response — so `private` points at the exact same `path`/`permission`
- *   object as `regular`, mirroring `sessionConfig.js`'s `single` shape.
+ *   (`AccessStore.ensureTreasurePermissions`), not embedded in this response. `GET
+ *   /games/:game_slug/treasures/:id.json` (`gameSlug` given, used by the per-game treasure edit
+ *   page) is likewise `AllowAny` for `GET` — edit rights for that route are enforced inline on
+ *   `PATCH`, not via a separate restricted read variant — so for both shapes, `private` points at
+ *   the exact same `path`/`permission` object as `regular`, mirroring `sessionConfig.js`'s
+ *   `single` shape.
  */
 /**
  * Build the regular (everyone-readable) game-catalog treasure collection path.
@@ -55,7 +58,20 @@ const gameFullPath = ({ gameSlug }) => `/games/${gameSlug}/treasures/all.json`;
  */
 const characterPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/treasures.json`;
 
-const single = { path: ({ id }) => `/treasures/${id}.json`, permission: null };
+/**
+ * Build the standalone or game-scoped single-treasure path, depending on whether `gameSlug` is
+ * given.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} [params.gameSlug] - Game slug, when fetching the game-scoped detail endpoint.
+ * @param {string|number} params.id - Treasure id.
+ * @returns {string} The endpoint path.
+ */
+const singlePath = ({ gameSlug, id }) => (
+  gameSlug ? `/games/${gameSlug}/treasures/${id}.json` : `/treasures/${id}.json`
+);
+
+const single = { path: singlePath, permission: null };
 
 export default {
   GET: {

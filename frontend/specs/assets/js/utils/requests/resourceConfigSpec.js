@@ -140,6 +140,13 @@ describe('resourceConfig', function() {
       expect(single.regular.path({ id: '42' })).toBe('/treasures/42.json');
       expect(single.regular.permission).toBeNull();
     });
+
+    it('resolves the game-scoped single path when gameSlug is given', function() {
+      const single = resourceConfig.get('GET', 'treasure', 'single');
+
+      expect(single.regular.path({ gameSlug: 'demo', id: '42' })).toBe('/games/demo/treasures/42.json');
+      expect(single.private.path({ gameSlug: 'demo', id: '42' })).toBe('/games/demo/treasures/42.json');
+    });
   });
 
   describe('session', function() {

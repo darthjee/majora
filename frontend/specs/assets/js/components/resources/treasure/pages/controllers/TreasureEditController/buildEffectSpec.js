@@ -3,8 +3,17 @@ import TreasureEditController
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 
 describe('TreasureEditController', function() {
+  let ensureSpy;
+
+  beforeEach(function() {
+    ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(
+      Promise.resolve({ data: { id: 1, name: 'Sword', value: 100 } }),
+    );
+  });
+
   afterEach(function() {
     AuthStorage.clearToken();
   });
@@ -20,15 +29,11 @@ describe('TreasureEditController', function() {
       setTreasure = jasmine.createSpy('setTreasure');
       setLoading = jasmine.createSpy('setLoading');
       setError = jasmine.createSpy('setError');
-      treasureClient = jasmine.createSpyObj('treasureClient', ['fetchTreasure']);
+      treasureClient = jasmine.createSpyObj('treasureClient', ['updateTreasure']);
       spyOn(AccessStore, 'ensureStaffOrSuperUser').and.returnValue(Promise.resolve(true));
       spyOn(AccessStore, 'ensureTreasurePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
       fakeWindow = { location: { hash: '#/treasures/1/edit' } };
       globalThis.window = fakeWindow;
-      treasureClient.fetchTreasure.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ id: 1, name: 'Sword', value: 100 }),
-      }));
     });
 
     afterEach(function() {
@@ -39,11 +44,13 @@ describe('TreasureEditController', function() {
       setTreasure, setLoading, setError, Noop.noop, treasureClient,
     );
 
-    it('fetches treasure and access in parallel and calls setTreasure with merged result', async function() {
+    it('fetches treasure through RequestStore and access in parallel and calls setTreasure with merged result', async function() {
       const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(treasureClient.fetchTreasure).toHaveBeenCalledWith('1', null);
+      expect(ensureSpy).toHaveBeenCalledWith({
+        resource: 'treasure', quantityType: 'single', params: { id: '1' },
+      });
       expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('1');
       expect(setTreasure).toHaveBeenCalledWith(
         { id: 1, name: 'Sword', value: 100, can_edit: true },
@@ -69,7 +76,7 @@ describe('TreasureEditController', function() {
     });
 
     it('sets error when the treasure fetch fails', async function() {
-      treasureClient.fetchTreasure.and.returnValue(Promise.resolve({ ok: false }));
+      ensureSpy.and.returnValue(Promise.reject(new Error('network error')));
 
       const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -81,18 +88,6 @@ describe('TreasureEditController', function() {
       cleanup();
     });
 
-    it('sends the token when the user is authenticated', async function() {
-      AuthStorage.setToken('tok-abc');
-
-      const cleanup = buildController().buildEffect()();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      expect(treasureClient.fetchTreasure).toHaveBeenCalledWith('1', 'tok-abc');
-      expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('1');
-
-      cleanup();
-    });
-
     it('redirects to home and does not fetch when the user is neither staff nor a superuser', async function() {
       AccessStore.ensureStaffOrSuperUser.and.returnValue(Promise.resolve(false));
 
@@ -100,7 +95,7 @@ describe('TreasureEditController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(fakeWindow.location.hash).toBe('/');
-      expect(treasureClient.fetchTreasure).not.toHaveBeenCalled();
+      expect(ensureSpy).not.toHaveBeenCalled();
       expect(AccessStore.ensureTreasurePermissions).not.toHaveBeenCalled();
 
       cleanup();

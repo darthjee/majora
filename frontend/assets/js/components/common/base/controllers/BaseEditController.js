@@ -121,6 +121,47 @@ export default class BaseEditController extends BasePageController {
   }
 
   /**
+   * Fetch the resource and merge its edit permissions onto it, updating loading/error state.
+   * Mirrors {@link BaseEditController#fetchWithAccess}, but for callers whose resource promise
+   * already resolves to parsed `{data}` (e.g. `RequestStore.ensure({...})`) instead of a raw
+   * `Response`, so no `parseJsonOrReject` step is needed.
+   *
+   * @param {Promise<{data: object}>} resourcePromise - Resource promise already resolved to
+   *   `{data}`, e.g. `RequestStore.ensure({...})`.
+   * @param {Promise<{can_edit: boolean}>} permissionsPromise - Permissions payload promise,
+   *   already resolved to `{ can_edit }` (e.g. from `AccessStore#ensureXPermissions`, which
+   *   never rejects).
+   * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
+   * @param {string} errorMessage - Error message set when the resource fetch fails.
+   * @returns {void}
+   */
+  fetchDataWithAccess(resourcePromise, permissionsPromise, safeSet, errorMessage) {
+    Promise.all([resourcePromise, permissionsPromise])
+      .then(([{ data }, permissions]) => safeSet(this.setResource, { ...data, ...permissions }))
+      .catch(() => safeSet(this.setError, errorMessage))
+      .finally(() => safeSet(this.setLoading, false));
+  }
+
+  /**
+   * Fetch the resource alone (no access merge), updating loading/error state. Mirrors
+   * {@link BaseEditController#fetchSingle}, but for callers whose resource promise already
+   * resolves to parsed `{data}` (e.g. `RequestStore.ensure({...})`) instead of a raw `Response`.
+   *
+   * @param {Promise<{data: object}>} resourcePromise - Resource promise already resolved to
+   *   `{data}`, e.g. `RequestStore.ensure({...})`.
+   * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
+   * @param {*} errorValue - Error value set when the fetch fails (string message
+   *   or a boolean flag, depending on the subclass's error state shape).
+   * @returns {void}
+   */
+  fetchSingleData(resourcePromise, safeSet, errorValue) {
+    resourcePromise
+      .then(({ data }) => safeSet(this.setResource, data))
+      .catch(() => safeSet(this.setError, errorValue))
+      .finally(() => safeSet(this.setLoading, false));
+  }
+
+  /**
    * Shared submit flow: prevents the default form submission, resets status
    * and field errors, invokes the given update call, then handles the
    * response (redirect on success, field errors on 400, error status otherwise).

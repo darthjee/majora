@@ -1,17 +1,21 @@
 import GenericClient from '../../../../../client/GenericClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
 
 /**
  * Controller for the game item edit page (issue #766).
  *
- * @description Loads the item through the DM/admin-only `.../items/:id/full.json` endpoint
- *   (mirroring `GameItemController`'s `client.fetch(path)` usage for the show page — the backend
- *   itself gates this route to dm/admin, so no separate client-side permission check is needed),
- *   and submits partial updates (`name`/`description`/`hidden`) through
- *   `PATCH .../items/:id.json`, following the same redirect-on-success/field-errors-on-400/
- *   generic-error-otherwise response handling as `BaseCharacterEditController#handleSubmit`.
+ * @description Loads the item through `RequestStore.ensure({resource: 'item', quantityType:
+ *   'single', params: {gameSlug, kind: 'game', id}})`, mirroring `GameItemController`'s
+ *   `RequestStore`-backed fetch for the show page — this now resolves the requester's game-level
+ *   edit permission (via `RequestPermissionResolvers`) to pick between the elevated,
+ *   hidden-inclusive `.../items/:id/full.json` and the player-facing `.../items/:id.json`, rather
+ *   than unconditionally requesting `full.json` as before — and submits partial updates
+ *   (`name`/`description`/`hidden`) through `PATCH .../items/:id.json`, following the same
+ *   redirect-on-success/field-errors-on-400/generic-error-otherwise response handling as
+ *   `BaseCharacterEditController#handleSubmit`.
  */
 export default class GameItemEditController extends BasePageController {
   /**
@@ -124,10 +128,12 @@ export default class GameItemEditController extends BasePageController {
   }
 
   #loadItem(params, safeSet) {
-    const path = `/games/${params.game_slug}/items/${params.id}/full.json`;
-
-    return this.client.fetch(path)
-      .then((item) => safeSet(this.setItem, item))
+    return RequestStore.ensure({
+      resource: 'item',
+      quantityType: 'single',
+      params: { gameSlug: params.game_slug, kind: 'game', id: params.id },
+    })
+      .then(({ data }) => safeSet(this.setItem, data))
       .catch(() => safeSet(this.setError, 'Unable to load item.'))
       .finally(() => safeSet(this.setLoading, false));
   }

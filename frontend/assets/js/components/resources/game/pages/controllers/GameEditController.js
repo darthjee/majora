@@ -1,6 +1,7 @@
 import GameClient from '../../../../../client/GameClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BaseEditController from '../../../../common/base/controllers/BaseEditController.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
@@ -50,10 +51,8 @@ export default class GameEditController extends BaseEditController {
       return;
     }
 
-    const token = AuthStorage.getToken();
-
-    this.fetchWithAccess(
-      this.gameClient.fetchGame(gameSlug, token),
+    this.fetchDataWithAccess(
+      RequestStore.ensure({ resource: 'game', quantityType: 'single', params: { gameSlug } }),
       AccessStore.ensureGamePermissions(gameSlug),
       safeSet,
       'Unable to load game.',

@@ -1,6 +1,7 @@
 import TreasureClient from '../../../../../client/TreasureClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BaseEditController from '../../../../common/base/controllers/BaseEditController.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
@@ -126,10 +127,8 @@ export default class GameTreasureEditController extends BaseEditController {
       return;
     }
 
-    const token = AuthStorage.getToken();
-
-    this.fetchSingle(
-      this.treasureClient.fetchGameTreasure(gameSlug, treasureId, token),
+    this.fetchSingleData(
+      RequestStore.ensure({ resource: 'treasure', quantityType: 'single', params: { gameSlug, id: treasureId } }),
       safeSet,
       'Unable to load treasure.',
     );
