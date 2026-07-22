@@ -2,6 +2,7 @@ import GenericClient from '../../../../../client/GenericClient.js';
 import GameClient from '../../../../../client/GameClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import CharacterGameTypeResolver from './CharacterGameTypeResolver.js';
 import CharacterAccessResolver from './CharacterAccessResolver.js';
 import CharacterListsController from './CharacterListsController.js';
@@ -13,6 +14,16 @@ import CharacterListsController from './CharacterListsController.js';
  *   implementation covers both, delegating to {@link CharacterClient}'s parameterized methods.
  *   Extends {@link CharacterListsController} (treasures/items/documents/photos fetch+merge) to
  *   keep both files under the project's per-file line limit.
+ *
+ *   The base character fetch goes through `RequestStore.ensure({resource: 'pc'|'npc',
+ *   quantityType: 'single', params: {gameSlug, id: characterId}})`, which resolves the
+ *   requester's character-level edit permission (via `RequestPermissionResolvers`) *before*
+ *   fetching, then picks the right variant (`.../full.json` on `can_edit`, the player-facing
+ *   endpoint otherwise) in one call — collapsing what used to be a separate
+ *   `fetchCharacterFull`/`handleFullResponse`/`mergeFullCharacter`/`loadFullCharacter` chain of
+ *   its own. `fetchAndMergeAccess` still independently resolves and merges `is_player`/`is_staff`/
+ *   `can_edit` onto the character in two passes (fail-closed, then real) for rendering purposes —
+ *   unrelated to which endpoint variant `RequestStore` already picked to fetch the character body.
  */
 export default class CharacterController extends CharacterListsController {
   /**
@@ -47,30 +58,6 @@ export default class CharacterController extends CharacterListsController {
   }
 
   /**
-   * Fetch the base character data from the API.
-   *
-   * @param {string} gameSlug - Game slug.
-   * @param {string} characterId - Character id.
-   * @param {string|null} token - Authentication token.
-   * @returns {Promise<Response>} Fetch response.
-   */
-  fetchCharacter(gameSlug, characterId, token) {
-    return this.characterClient.fetchCharacter(this.characterKind, gameSlug, characterId, token);
-  }
-
-  /**
-   * Fetch the full (editor-only) character data from the API.
-   *
-   * @param {string} gameSlug - Game slug.
-   * @param {string} characterId - Character id.
-   * @param {string|null} token - Authentication token.
-   * @returns {Promise<Response>} Fetch response.
-   */
-  fetchCharacterFull(gameSlug, characterId, token) {
-    return this.characterClient.fetchCharacterFull(this.characterKind, gameSlug, characterId, token);
-  }
-
-  /**
    * Update a character's money through the narrow, money-only endpoint (issue #615).
    *
    * @param {string} gameSlug - Game slug.
@@ -102,92 +89,34 @@ export default class CharacterController extends CharacterListsController {
   }
 
   /**
-   * Handle the full character response, merging in the full (DM-only) character data when available.
-   *
-   * @param {Response} fullResponse - Response from fetchCharacterFull.
-   * @param {object} character - Base character data already loaded.
-   * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
-   * @returns {Promise<void>} Resolves once the character state is updated.
-   */
-  handleFullResponse(fullResponse, character, safeSet) {
-    if (fullResponse.ok) {
-      return this.mergeFullCharacter(fullResponse, character, safeSet);
-    }
-    safeSet(this.setCharacter, character);
-  }
-
-  /**
-   * Merge every field from the full (DM-only) character response onto the base character
-   * (e.g. `slain`, `public_slain`, `allegiance`, `private_description`), overriding
-   * whatever the public serializer provided, and update the character state.
-   *
-   * @param {Response} fullResponse - Response from fetchCharacterFull.
-   * @param {object} character - Base character data already loaded.
-   * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
-   * @returns {Promise<void>} Resolves once the character state is updated.
-   */
-  mergeFullCharacter(fullResponse, character, safeSet) {
-    return fullResponse.json().then((full) => {
-      safeSet(this.setCharacter, { ...character, ...full });
-    });
-  }
-
-  /**
-   * Resolve access via {@link AccessStore}'s fail-closed readers, merge it into the character, and
-   * load full detail if editing is permitted; re-runs the same pass once the real access/permissions
-   * fetches resolve, marking `access_resolved` `true` (vs. a not-yet-known fail-closed pass).
+   * Resolve access via {@link AccessStore}'s fail-closed readers and merge it into the character;
+   * re-runs the same merge once the real access/permissions fetches resolve, marking
+   * `access_resolved` `true` (vs. a not-yet-known fail-closed pass). Unrelated to which endpoint
+   * variant `loadCharacter`'s `RequestStore.ensure` call already picked to fetch the character
+   * body itself (see this class's own description).
    *
    * @param {object} character - Base character data already loaded.
    * @param {object} params - Route params with game_slug and character_id.
    * @param {string|null} token - Authentication token.
    * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
-   * @returns {Promise<void>|undefined} Resolves once the character state is updated.
+   * @returns {object} The character merged with the fail-closed access/permission pass.
    */
   fetchAndMergeAccess(character, params, token, safeSet) {
-    const firstPass = this.#loadCharacterAccess(character, params, token, safeSet, false);
+    const firstPass = this.#loadCharacterAccess(character, params, safeSet, false);
 
     Promise.all([
       AccessStore.ensureCharacterAccess(this.characterKind, params.game_slug, params.character_id),
       AccessStore.ensureCharacterPermissions(this.characterKind, params.game_slug, params.character_id),
-    ]).then(() => this.#loadCharacterAccess(character, params, token, safeSet, true));
+    ]).then(() => this.#loadCharacterAccess(character, params, safeSet, true));
 
     return firstPass;
   }
 
-  #loadCharacterAccess(character, params, token, safeSet, resolved) {
+  #loadCharacterAccess(character, params, safeSet, resolved) {
     const characterWithAccess = CharacterAccessResolver.merge(this.characterKind, character, params, resolved);
 
-    return this.loadFullCharacter(characterWithAccess, params, token, safeSet);
-  }
-
-  /**
-   * Load the full character detail when the current user can edit it.
-   *
-   * @param {object} character - Base character data already loaded.
-   * @param {object} params - Route params with game_slug and character_id.
-   * @param {string|null} token - Authentication token.
-   * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
-   * @returns {Promise<void>|undefined} Resolves once the character state is updated.
-   */
-  loadFullCharacter(character, params, token, safeSet) {
-    if (!character.can_edit) {
-      safeSet(this.setCharacter, character);
-      return undefined;
-    }
-    return this.fetchCharacterFull(params.game_slug, params.character_id, token)
-      .then((fullResponse) => this.handleFullResponse(fullResponse, character, safeSet))
-      .catch(() => safeSet(this.setCharacter, character));
-  }
-
-  /**
-   * Parse the character fetch response, throwing on non-ok status.
-   *
-   * @param {Response} response - Fetch response from fetchCharacter.
-   * @returns {Promise<object>} Parsed character JSON.
-   */
-  handleCharacterResponse(response) {
-    if (!response.ok) throw new Error('Unable to load character.');
-    return response.json();
+    safeSet(this.setCharacter, characterWithAccess);
+    return characterWithAccess;
   }
 
   /**
@@ -214,6 +143,16 @@ export default class CharacterController extends CharacterListsController {
   }
 
   /**
+   * Resource name (`'pc'`/`'npc'`) `RequestStore`/`resourceConfig` key this controller's
+   * `characterKind` (`'pcs'`/`'npcs'`) maps to.
+   *
+   * @returns {string} `'pc'` or `'npc'`.
+   */
+  #resourceName() {
+    return this.characterKind === 'npcs' ? 'npc' : 'pc';
+  }
+
+  /**
    * Load the character, merge treasures/items/documents/photos/game_type/access, and update
    * loading state.
    *
@@ -224,8 +163,12 @@ export default class CharacterController extends CharacterListsController {
   loadCharacter(params, safeSet) {
     const token = AuthStorage.getToken();
 
-    return this.fetchCharacter(params.game_slug, params.character_id, token)
-      .then((response) => this.handleCharacterResponse(response))
+    return RequestStore.ensure({
+      resource: this.#resourceName(),
+      quantityType: 'single',
+      params: { gameSlug: params.game_slug, id: params.character_id },
+    })
+      .then(({ data }) => data)
       .then((character) => this.fetchAndMergeTreasures(character, params, token))
       .then((character) => this.fetchAndMergeItems(character, params, token))
       .then((character) => this.fetchAndMergeDocuments(character, params, token))

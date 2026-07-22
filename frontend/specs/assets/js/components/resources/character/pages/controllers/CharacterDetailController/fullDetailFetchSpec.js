@@ -1,26 +1,30 @@
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import { stubAccessPair } from '../../../../../../../../support/accessStoreStub.js';
 import { KINDS } from './support.js';
 
-KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash }) => {
+KINDS.forEach(({ label, Controller, kind, resource, privateDescription, getParamsFromHash }) => {
   describe(label, function() {
     afterEach(function() {
       AuthStorage.clearToken();
     });
 
-    it('fetches full detail and merges private_description once the resolved can_edit is true', async function() {
+    it('renders private_description straight through once RequestStore resolves the full (editor-only) variant', async function() {
       stubAccessPair(
         'ensureCharacterAccess', 'getCharacterAccess',
         { is_player: false, is_staff: false }, { is_player: false, is_staff: false },
       );
       stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: true }, { can_edit: false });
+      const ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
+        data: { id: 2, can_edit: true, private_description: privateDescription },
+      }));
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
       const client = jasmine.createSpyObj('client', ['currentHash']);
       const characterClient = jasmine.createSpyObj(
         'characterClient',
-        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterItems', 'fetchCharacterDocuments', 'fetchCharacterPhotos'],
+        ['fetchCharacterTreasures', 'fetchCharacterItems', 'fetchCharacterDocuments', 'fetchCharacterPhotos'],
       );
       characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
       characterClient.fetchCharacterItems.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
@@ -28,21 +32,15 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
       characterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
       client.currentHash.and.returnValue(`#/games/demo/${kind}/2`);
-      characterClient.fetchCharacter.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ id: 2, can_edit: false }),
-      }));
-      characterClient.fetchCharacterFull.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ id: 2, can_edit: true, private_description: privateDescription }),
-      }));
 
       const cleanup = new Controller(
         setCharacter, setLoading, setError, client, getParamsFromHash, characterClient,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(characterClient.fetchCharacterFull).toHaveBeenCalledWith(kind, 'demo', '2', null);
+      expect(ensureSpy).toHaveBeenCalledWith({
+        resource, quantityType: 'single', params: { gameSlug: 'demo', id: '2' },
+      });
       expect(setCharacter).toHaveBeenCalledWith({
         id: 2,
         treasures: [],
@@ -60,19 +58,20 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
       cleanup();
     });
 
-    it('does not fetch full detail when can_edit is false', async function() {
+    it('renders without private_description when RequestStore resolves the player-facing variant', async function() {
       stubAccessPair(
         'ensureCharacterAccess', 'getCharacterAccess',
         { is_player: false, is_staff: false }, { is_player: false, is_staff: false },
       );
       stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: false }, { can_edit: false });
+      spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({ data: { id: 2 } }));
       const setCharacter = jasmine.createSpy('setCharacter');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
       const client = jasmine.createSpyObj('client', ['currentHash']);
       const characterClient = jasmine.createSpyObj(
         'characterClient',
-        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterItems', 'fetchCharacterDocuments', 'fetchCharacterPhotos'],
+        ['fetchCharacterTreasures', 'fetchCharacterItems', 'fetchCharacterDocuments', 'fetchCharacterPhotos'],
       );
       characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
       characterClient.fetchCharacterItems.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
@@ -80,17 +79,12 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
       characterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
       client.currentHash.and.returnValue(`#/games/demo/${kind}/2`);
-      characterClient.fetchCharacter.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ id: 2, can_edit: true }),
-      }));
 
       const cleanup = new Controller(
         setCharacter, setLoading, setError, client, getParamsFromHash, characterClient,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(characterClient.fetchCharacterFull).not.toHaveBeenCalled();
       expect(setCharacter).toHaveBeenCalledWith({
         id: 2,
         treasures: [],
@@ -103,54 +97,6 @@ KINDS.forEach(({ label, Controller, kind, privateDescription, getParamsFromHash 
         is_staff: false,
         access_resolved: true,
       });
-
-      cleanup();
-    });
-
-    it('falls back to character without private_description when full fetch fails', async function() {
-      stubAccessPair(
-        'ensureCharacterAccess', 'getCharacterAccess',
-        { is_player: false, is_staff: false }, { is_player: false, is_staff: false },
-      );
-      stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: true }, { can_edit: false });
-      const setCharacter = jasmine.createSpy('setCharacter');
-      const setLoading = jasmine.createSpy('setLoading');
-      const setError = jasmine.createSpy('setError');
-      const client = jasmine.createSpyObj('client', ['currentHash']);
-      const characterClient = jasmine.createSpyObj(
-        'characterClient',
-        ['fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterItems', 'fetchCharacterDocuments', 'fetchCharacterPhotos'],
-      );
-      characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
-      characterClient.fetchCharacterItems.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
-      characterClient.fetchCharacterDocuments.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
-      characterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
-
-      client.currentHash.and.returnValue(`#/games/demo/${kind}/2`);
-      characterClient.fetchCharacter.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ id: 2, can_edit: false }),
-      }));
-      characterClient.fetchCharacterFull.and.returnValue(Promise.resolve({ ok: false, status: 403 }));
-
-      const cleanup = new Controller(
-        setCharacter, setLoading, setError, client, getParamsFromHash, characterClient,
-      ).buildEffect()();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      expect(setCharacter).toHaveBeenCalledWith({
-        id: 2,
-        treasures: [],
-        items: [],
-        documents: [],
-        photos: [],
-        game_type: 'dnd',
-        can_edit: true,
-        is_player: false,
-        is_staff: false,
-        access_resolved: true,
-      });
-      expect(setError).not.toHaveBeenCalled();
 
       cleanup();
     });

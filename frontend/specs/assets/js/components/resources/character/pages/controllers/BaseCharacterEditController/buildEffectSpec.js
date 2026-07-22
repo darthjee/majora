@@ -1,5 +1,6 @@
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import { stubAccessPair } from '../../../../../../../../support/accessStoreStub.js';
 import { TestCharacterEditController, buildContext } from './support.js';
 
@@ -24,15 +25,15 @@ describe('BaseCharacterEditController', function() {
         { is_player: false, is_staff: false }, { is_player: false, is_staff: false },
       );
       stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: true }, { can_edit: false });
+      const ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
+        data: { id: 1, can_edit: true, private_description: 'Notes.' },
+      }));
       const fullCharacterClient = jasmine.createSpyObj('characterClient', [
-        'fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterItems',
+        'fetchCharacterTreasures', 'fetchCharacterItems',
         'fetchCharacterDocuments', 'fetchCharacterPhotos', 'updateCharacter',
       ]);
 
       client.currentHash.and.returnValue('#/games/demo/npcs/1/edit');
-      fullCharacterClient.fetchCharacter.and.returnValue(Promise.resolve({
-        ok: true, json: () => Promise.resolve({ id: 1, can_edit: false }),
-      }));
       fullCharacterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({
         ok: true, json: () => Promise.resolve([]),
       }));
@@ -45,9 +46,6 @@ describe('BaseCharacterEditController', function() {
       fullCharacterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({
         ok: true, json: () => Promise.resolve([]),
       }));
-      fullCharacterClient.fetchCharacterFull.and.returnValue(Promise.resolve({
-        ok: true, json: () => Promise.resolve({ id: 1, can_edit: true, private_description: 'Notes.' }),
-      }));
 
       const controller = new TestCharacterEditController(
         setCharacter, setLoading, setError, Noop.noop, client, fullCharacterClient,
@@ -55,7 +53,9 @@ describe('BaseCharacterEditController', function() {
       const cleanup = controller.buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(fullCharacterClient.fetchCharacter).toHaveBeenCalledWith('npcs', 'demo', '1', null);
+      expect(ensureSpy).toHaveBeenCalledWith({
+        resource: 'npc', quantityType: 'single', params: { gameSlug: 'demo', id: '1' },
+      });
       expect(setCharacter).toHaveBeenCalledWith({
         id: 1,
         treasures: [],

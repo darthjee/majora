@@ -1,6 +1,7 @@
 import CharacterItemDetailController
   from '../../../../../../../../assets/js/components/resources/character/pages/controllers/CharacterItemDetailController.js';
 import AccessStore from '../../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../../../../assets/js/utils/requests/RequestStore.js';
 
 describe('CharacterItemDetailController', function() {
   let setItem;
@@ -8,6 +9,7 @@ describe('CharacterItemDetailController', function() {
   let setError;
   let setCanUploadPhoto;
   let client;
+  let ensureSpy;
 
   beforeEach(function() {
     setItem = jasmine.createSpy('setItem');
@@ -15,6 +17,10 @@ describe('CharacterItemDetailController', function() {
     setError = jasmine.createSpy('setError');
     setCanUploadPhoto = jasmine.createSpy('setCanUploadPhoto');
     client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
+    ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(
+      Promise.resolve({ data: { id: 1, name: 'Cloak of Elvenkind' } }),
+    );
+    spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
   });
 
   describe('.getParamsFromHash', function() {
@@ -39,24 +45,23 @@ describe('CharacterItemDetailController', function() {
 
   describe('#buildEffect', function() {
     [
-      ['pcs', '#/games/demo/pcs/7/items/5', '/games/demo/pcs/7/items/5'],
-      ['npcs', '#/games/demo/npcs/9/items/3', '/games/demo/npcs/9/items/3'],
-    ].forEach(([characterKind, hash, base]) => {
+      ['pcs', '#/games/demo/pcs/7/items/5', { gameSlug: 'demo', kind: 'pcs', id: '7', itemId: '5' }],
+      ['npcs', '#/games/demo/npcs/9/items/3', { gameSlug: 'demo', kind: 'npcs', id: '9', itemId: '3' }],
+    ].forEach(([characterKind, hash, expectedParams]) => {
       describe(`for ${characterKind}`, function() {
         beforeEach(function() {
           client.currentHash.and.returnValue(hash);
         });
 
-        it('fetches the player-facing endpoint when the requester cannot edit', async function() {
-          spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
-          client.fetch.and.returnValue(Promise.resolve({ id: 1, name: 'Cloak of Elvenkind' }));
-
+        it('fetches the item through RequestStore with the character-owned kind', async function() {
           const cleanup = new CharacterItemDetailController(
             characterKind, setItem, setLoading, setError, setCanUploadPhoto, client,
           ).buildEffect()();
           await new Promise((resolve) => setTimeout(resolve, 0));
 
-          expect(client.fetch).toHaveBeenCalledWith(`${base}.json`);
+          expect(ensureSpy).toHaveBeenCalledWith({
+            resource: 'item', quantityType: 'single', params: expectedParams,
+          });
           expect(setItem).toHaveBeenCalledWith({ id: 1, name: 'Cloak of Elvenkind' });
           expect(setLoading).toHaveBeenCalledWith(false);
           expect(setError).not.toHaveBeenCalled();
@@ -64,32 +69,14 @@ describe('CharacterItemDetailController', function() {
           cleanup();
         });
 
-        it('fetches the elevated endpoint when the requester can edit', async function() {
-          spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
-          client.fetch.and.returnValue(Promise.resolve({ id: 1, name: 'Cloak of Elvenkind', hidden: true }));
-
-          const cleanup = new CharacterItemDetailController(
-            characterKind, setItem, setLoading, setError, setCanUploadPhoto, client,
-          ).buildEffect()();
-          await new Promise((resolve) => setTimeout(resolve, 0));
-
-          expect(client.fetch).toHaveBeenCalledWith(`${base}/full.json`);
-
-          cleanup();
-        });
-
         it('resolves the character-level permission for this character kind', async function() {
-          spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
-          client.fetch.and.returnValue(Promise.resolve({ id: 1, name: 'Cloak of Elvenkind' }));
-
           const cleanup = new CharacterItemDetailController(
             characterKind, setItem, setLoading, setError, setCanUploadPhoto, client,
           ).buildEffect()();
           await new Promise((resolve) => setTimeout(resolve, 0));
 
-          const expectedCharacterId = base.split('/')[4];
           expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith(
-            characterKind, 'demo', expectedCharacterId,
+            characterKind, expectedParams.gameSlug, expectedParams.id,
           );
 
           cleanup();
@@ -97,24 +84,9 @@ describe('CharacterItemDetailController', function() {
       });
     });
 
-    it('fails closed to the player-facing endpoint when the permission check rejects', async function() {
-      client.currentHash.and.returnValue('#/games/demo/pcs/7/items/5');
-      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.reject(new Error('nope')));
-      client.fetch.and.returnValue(Promise.resolve({ id: 1, name: 'Cloak of Elvenkind' }));
-
-      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, setCanUploadPhoto, client)
-        .buildEffect()();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      expect(client.fetch).toHaveBeenCalledWith('/games/demo/pcs/7/items/5.json');
-
-      cleanup();
-    });
-
     it('sets an error when the fetch rejects', async function() {
       client.currentHash.and.returnValue('#/games/demo/pcs/7/items/5');
-      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
-      client.fetch.and.returnValue(Promise.reject(new Error('network error')));
+      ensureSpy.and.returnValue(Promise.reject(new Error('network error')));
 
       const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, setCanUploadPhoto, client)
         .buildEffect()();
@@ -134,15 +106,13 @@ describe('CharacterItemDetailController', function() {
 
       expect(setError).toHaveBeenCalledWith('Unable to load item.');
       expect(setLoading).toHaveBeenCalledWith(false);
-      expect(client.fetch).not.toHaveBeenCalled();
+      expect(ensureSpy).not.toHaveBeenCalled();
 
       cleanup();
     });
 
     it('does not update state after unmount', async function() {
       client.currentHash.and.returnValue('#/games/demo/pcs/7/items/5');
-      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
-      client.fetch.and.returnValue(Promise.resolve({ id: 1, name: 'Cloak of Elvenkind' }));
 
       const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, setCanUploadPhoto, client)
         .buildEffect()();
@@ -157,7 +127,6 @@ describe('CharacterItemDetailController', function() {
   describe('canUploadPhoto', function() {
     beforeEach(function() {
       client.currentHash.and.returnValue('#/games/demo/pcs/7/items/5');
-      client.fetch.and.returnValue(Promise.resolve({ id: 1, name: 'Cloak of Elvenkind' }));
     });
 
     const runController = async () => {
@@ -168,7 +137,7 @@ describe('CharacterItemDetailController', function() {
     };
 
     it('is true when the permissions response grants can_upload_item_photo', async function() {
-      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(
+      AccessStore.ensureCharacterPermissions.and.returnValue(
         Promise.resolve({ can_edit: false, can_upload_item_photo: true }),
       );
 
@@ -178,7 +147,7 @@ describe('CharacterItemDetailController', function() {
     });
 
     it('is false when the permissions response denies can_upload_item_photo', async function() {
-      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(
+      AccessStore.ensureCharacterPermissions.and.returnValue(
         Promise.resolve({ can_edit: false, can_upload_item_photo: false }),
       );
 
@@ -188,7 +157,7 @@ describe('CharacterItemDetailController', function() {
     });
 
     it('fails closed to false when the permission check rejects', async function() {
-      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.reject(new Error('nope')));
+      AccessStore.ensureCharacterPermissions.and.returnValue(Promise.reject(new Error('nope')));
 
       await runController();
 

@@ -1,5 +1,6 @@
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import { stubAccessPair } from '../../../../../../../../support/accessStoreStub.js';
 import { KINDS } from './support.js';
 
@@ -16,6 +17,9 @@ KINDS.forEach(({ label, Controller, kind }) => {
           { is_player: false, is_staff: false }, { is_player: false, is_staff: false },
         );
         stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: true }, { can_edit: false });
+        const ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
+          data: { id: 2, can_edit: true, private_description: 'Secret.' },
+        }));
         const setCharacter = jasmine.createSpy('setCharacter');
         const setLoading = jasmine.createSpy('setLoading');
         const setError = jasmine.createSpy('setError');
@@ -23,16 +27,12 @@ KINDS.forEach(({ label, Controller, kind }) => {
         const characterClient = jasmine.createSpyObj(
           'characterClient',
           [
-            'fetchCharacter', 'fetchCharacterFull', 'fetchCharacterTreasures', 'fetchCharacterItems',
+            'fetchCharacterTreasures', 'fetchCharacterItems',
             'fetchCharacterDocuments', 'fetchCharacterPhotos', 'updateCharacter',
           ],
         );
 
         client.currentHash.and.returnValue(`#/games/demo/${kind}/2/edit`);
-        characterClient.fetchCharacter.and.returnValue(Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ id: 2, can_edit: false }),
-        }));
         characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({
           ok: true,
           json: () => Promise.resolve([]),
@@ -49,10 +49,6 @@ KINDS.forEach(({ label, Controller, kind }) => {
           ok: true,
           json: () => Promise.resolve([]),
         }));
-        characterClient.fetchCharacterFull.and.returnValue(Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ id: 2, can_edit: true, private_description: 'Secret.' }),
-        }));
 
         const controller = new Controller(
           setCharacter,
@@ -65,7 +61,9 @@ KINDS.forEach(({ label, Controller, kind }) => {
         const cleanup = controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(characterClient.fetchCharacter).toHaveBeenCalledWith(kind, 'demo', '2', null);
+        expect(ensureSpy).toHaveBeenCalledWith({
+          resource: kind === 'npcs' ? 'npc' : 'pc', quantityType: 'single', params: { gameSlug: 'demo', id: '2' },
+        });
         expect(setCharacter).toHaveBeenCalledWith({
           id: 2,
           treasures: [],

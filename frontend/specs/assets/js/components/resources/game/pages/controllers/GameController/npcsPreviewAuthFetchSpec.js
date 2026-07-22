@@ -1,12 +1,13 @@
 import GameController from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GameController.js';
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
-import { stubEnsureGameAccess, stubEnsureGamePermissions } from './support.js';
+import { stubEnsureGameAccess, stubEnsureGamePermissions, stubEnsureGame } from './support.js';
 
 describe('GameController', function() {
   beforeEach(function() {
     stubEnsureGameAccess();
     stubEnsureGamePermissions();
+    stubEnsureGame();
   });
 
   afterEach(function() {
@@ -28,7 +29,7 @@ describe('GameController', function() {
         if (path.startsWith('/games/demo/npcs.json')) {
           return Promise.resolve(publicNpcs);
         }
-        return Promise.resolve({ game_slug: 'demo' });
+        return Promise.resolve([]);
       });
     });
 

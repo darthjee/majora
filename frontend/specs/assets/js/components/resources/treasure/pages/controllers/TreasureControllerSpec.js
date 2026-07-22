@@ -1,29 +1,23 @@
 import TreasureController
   from '../../../../../../../../assets/js/components/resources/treasure/pages/controllers/TreasureController.js';
-import AuthStorage from '../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import AccessStore from '../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 import { stubAccessPair } from '../../../../../../../support/accessStoreStub.js';
 
 describe('TreasureController', function() {
-  let treasureClient;
+  let ensureSpy;
 
   beforeEach(function() {
-    treasureClient = jasmine.createSpyObj('treasureClient', ['fetchTreasure']);
-    treasureClient.fetchTreasure.and.returnValue(Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ id: 1, name: 'Sword', value: 100 }),
+    ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
+      data: { id: 1, name: 'Sword', value: 100 },
     }));
-  });
-
-  afterEach(function() {
-    AuthStorage.clearToken();
   });
 
   it('extracts treasure id from hash', function() {
     expect(TreasureController.getTreasureIdFromHash('#/treasures/42')).toBe('42');
   });
 
-  it('fetches treasure detail and access in parallel', async function() {
+  it('fetches treasure detail through RequestStore and access in parallel', async function() {
     stubAccessPair('ensureTreasurePermissions', 'getTreasurePermissions', { can_edit: false }, { can_edit: false });
     const setTreasure = jasmine.createSpy('setTreasure');
     const setLoading = jasmine.createSpy('setLoading');
@@ -32,11 +26,13 @@ describe('TreasureController', function() {
     globalThis.window = fakeWindow;
 
     try {
-      const cleanup = new TreasureController(setTreasure, setLoading, setError, treasureClient)
+      const cleanup = new TreasureController(setTreasure, setLoading, setError)
         .buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(treasureClient.fetchTreasure).toHaveBeenCalledWith('1', null);
+      expect(ensureSpy).toHaveBeenCalledWith({
+        resource: 'treasure', quantityType: 'single', params: { id: '1' },
+      });
       expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('1');
       expect(setTreasure).toHaveBeenCalledWith(
         jasmine.objectContaining({ id: 1, name: 'Sword', value: 100, can_edit: false }),
@@ -59,7 +55,7 @@ describe('TreasureController', function() {
     globalThis.window = fakeWindow;
 
     try {
-      const cleanup = new TreasureController(setTreasure, setLoading, setError, treasureClient)
+      const cleanup = new TreasureController(setTreasure, setLoading, setError)
         .buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -85,10 +81,10 @@ describe('TreasureController', function() {
     const fakeWindow = { location: { hash: '#/treasures/1' } };
     globalThis.window = fakeWindow;
 
-    treasureClient.fetchTreasure.and.returnValue(Promise.resolve({ ok: false }));
+    ensureSpy.and.returnValue(Promise.reject(new Error('network error')));
 
     try {
-      const cleanup = new TreasureController(setTreasure, setLoading, setError, treasureClient)
+      const cleanup = new TreasureController(setTreasure, setLoading, setError)
         .buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -102,23 +98,20 @@ describe('TreasureController', function() {
     }
   });
 
-  it('sends the token when the user is authenticated', async function() {
-    stubAccessPair('ensureTreasurePermissions', 'getTreasurePermissions', { can_edit: false }, { can_edit: false });
+  it('sets an error and skips fetching when the hash has no treasure id', async function() {
     const setTreasure = jasmine.createSpy('setTreasure');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
-    const fakeWindow = { location: { hash: '#/treasures/1' } };
+    const fakeWindow = { location: { hash: '#/treasures' } };
     globalThis.window = fakeWindow;
 
-    AuthStorage.setToken('tok-abc');
-
     try {
-      const cleanup = new TreasureController(setTreasure, setLoading, setError, treasureClient)
+      const cleanup = new TreasureController(setTreasure, setLoading, setError)
         .buildEffect()();
-      await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(treasureClient.fetchTreasure).toHaveBeenCalledWith('1', 'tok-abc');
-      expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('1');
+      expect(setError).toHaveBeenCalledWith('Unable to load treasure.');
+      expect(setLoading).toHaveBeenCalledWith(false);
+      expect(ensureSpy).not.toHaveBeenCalled();
 
       cleanup();
     } finally {

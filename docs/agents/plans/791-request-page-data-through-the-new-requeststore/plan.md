@@ -59,9 +59,30 @@ base character fetch to `RequestStore.ensure()` eliminates that whole chain, not
 ## Progress
 
 - Step 1 (query wiring + `sessionConfig.js`/`documentConfig.js`) — done, landed in its own PR
-  per the multi-PR note below. Steps 2-5 (show pages, list pages, edit pages, embedded
-  components) are not started yet — each is expected to land as its own follow-up PR against
-  this same issue.
+  per the multi-PR note below.
+- **Done** (Step 2 — show pages): `game` (`GameController#fetchGame`), `treasure` (`TreasureController`,
+  after adding the `single` entry `treasureConfig.js` was missing — mirrors `sessionConfig.js`'s
+  no-separate-restricted-variant shape, since a treasure's edit rights are resolved separately via
+  `/treasures/:id/permissions.json`, not embedded in the detail response), `item` game-scoped
+  (`GameItemController`, after extending `itemConfig.js`'s `single` entry to also cover
+  `GameItem`s via a new `kind: 'game'` path family — genuinely different backing model from
+  `CharacterItem`, resolved at the *game* level via a new branch in
+  `RequestPermissionResolvers.item.single`, not the character level), `item` character-scoped
+  (`CharacterItemDetailController`, `kind: 'pcs'|'npcs'`, collapsing its own hand-rolled
+  `full.json`-on-`can_edit` branch; its independent `can_upload_item_photo` read off
+  `AccessStore.ensureCharacterPermissions` stays, deduped against `RequestStore`'s own permission
+  resolution by `AccessStore`'s own cache), and `pc`/`npc` (`CharacterController#loadCharacter`,
+  collapsing the `fetchCharacterFull`/`handleFullResponse`/`mergeFullCharacter`/`loadFullCharacter`
+  chain entirely — `RequestStore.ensure()` now resolves permissions and picks the right variant in
+  one call, so the character body is fetched exactly once instead of an initial public fetch
+  optionally followed by a full-detail upgrade; `fetchAndMergeAccess`'s own two-pass
+  fail-closed-then-real `is_player`/`is_staff`/`can_edit` merge is unrelated to which endpoint
+  variant `RequestStore` already picked, and stays unchanged). `CharacterClient.fetchCharacterFull`
+  is now unused anywhere in the app but was left in place — still a correctly-implemented,
+  spec-covered mirror of a real backend endpoint, and out of scope for this issue's "Files to
+  Change".
+- **Remaining** (Steps 3-5 — list pages, edit pages, embedded components): not started yet — each
+  is expected to land as its own follow-up PR against this same issue.
 
 ## Implementation Steps
 

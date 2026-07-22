@@ -1,11 +1,12 @@
 import GameController from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GameController.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
-import { stubEnsureGameAccess, stubEnsureGamePermissions } from './support.js';
+import { stubEnsureGameAccess, stubEnsureGamePermissions, stubEnsureGame } from './support.js';
 
 describe('GameController', function() {
   beforeEach(function() {
     stubEnsureGameAccess();
     stubEnsureGamePermissions();
+    stubEnsureGame();
   });
 
   afterEach(function() {
@@ -26,7 +27,7 @@ describe('GameController', function() {
       if (path.startsWith('/games/demo/pcs.json')) {
         return Promise.resolve(pcs);
       }
-      return Promise.resolve({ game_slug: 'demo' });
+      return Promise.resolve([]);
     });
 
     const cleanup = new GameController(setGame, setLoading, setError, setPcs, setNpcs, client)
@@ -53,7 +54,7 @@ describe('GameController', function() {
       if (path.startsWith('/games/demo/npcs.json')) {
         return Promise.resolve(npcs);
       }
-      return Promise.resolve({ game_slug: 'demo' });
+      return Promise.resolve([]);
     });
 
     const cleanup = new GameController(setGame, setLoading, setError, setPcs, setNpcs, client)
@@ -79,7 +80,7 @@ describe('GameController', function() {
       if (path.startsWith('/games/demo/pcs.json')) {
         return Promise.reject(new Error('boom'));
       }
-      return Promise.resolve({ game_slug: 'demo' });
+      return Promise.resolve([]);
     });
 
     const cleanup = new GameController(setGame, setLoading, setError, setPcs, setNpcs, client)
@@ -106,7 +107,7 @@ describe('GameController', function() {
       if (path.startsWith('/games/demo/npcs.json')) {
         return Promise.reject(new Error('boom'));
       }
-      return Promise.resolve({ game_slug: 'demo' });
+      return Promise.resolve([]);
     });
 
     const cleanup = new GameController(setGame, setLoading, setError, setPcs, setNpcs, client)

@@ -9,13 +9,13 @@ found in `HashRouteResolver.js`/`AppHelper.jsx` during discussion of issue #791.
 
 | Route | Page component | Controller | `resourceConfig` entry | Notes |
 |---|---|---|---|---|
-| `/#/games/:game_slug` | `Game.jsx` | `GameController.js` | `game.single` | Simplest case, matches the issue's own example |
-| `/#/games/:game_slug/treasures/:id` | `Treasure.jsx` | `TreasureController.js` | `treasure` has no `single` entry today — check whether a per-treasure detail endpoint exists and needs adding to `treasureConfig.js`, or whether this page fetches differently than assumed |
-| `/#/games/:game_slug/items/:id` | `GameItem.jsx` | `GameItemController.js` | `item.single` (game-scoped: `kind`/`id` unused, confirm exact params `itemConfig.js` expects for a game-owned item vs. character-owned) |
-| `/#/games/:game_slug/pcs/:id` | `PcCharacter.jsx` | `PcCharacterController.js` → `CharacterController.js` | `pc.single` | Collapses `fetchCharacterFull` chain, see plan.md Context |
-| `/#/games/:game_slug/npcs/:id` | `NpcCharacter.jsx` | `NpcCharacterController.js` → `CharacterController.js` | `npc.single` | Same collapse; `npcConfig`'s private permission is character-level `can_edit`, resolved via `ensureCharacterPermissions` |
-| `/#/games/:game_slug/pcs/:id/items/:id` | `PcCharacterItem.jsx` | `CharacterItemDetailController.js` | `item.single` (`kind: 'pcs'`) | Collapses its own hand-rolled `full.json`-on-`can_edit` branch |
-| `/#/games/:game_slug/npcs/:character_id/items/:id` | `NpcCharacterItem.jsx` | `CharacterItemDetailController.js` | `item.single` (`kind: 'npcs'`) | Same as above |
+| `/#/games/:game_slug` | `Game.jsx` | `GameController.js` | `game.single` | Simplest case, matches the issue's own example — done |
+| `/#/games/:game_slug/treasures/:id` | `Treasure.jsx` | `TreasureController.js` | `treasure.single` (new) | Resolved: `GET /treasures/:id.json` is `AllowAny` with no separate restricted/full variant (edit rights resolved separately via `/treasures/:id/permissions.json`) — added mirroring `sessionConfig.js`'s shape — done |
+| `/#/games/:game_slug/items/:id` | `GameItem.jsx` | `GameItemController.js` | `item.single` (`kind: 'game'`, new path family) | Resolved: `GameItem` is a distinct backing model from `CharacterItem` — `itemConfig.js`'s `single` entry now branches on `kind` (`'game'` → `/games/:slug/items/:id[/full].json`, game-level `can_edit` via `ensureGamePermissions`; `'pcs'\|'npcs'` → unchanged character-owned shape) — done |
+| `/#/games/:game_slug/pcs/:id` | `PcCharacter.jsx` | `PcCharacterController.js` → `CharacterController.js` | `pc.single` | Collapses `fetchCharacterFull` chain, see plan.md Context — done |
+| `/#/games/:game_slug/npcs/:id` | `NpcCharacter.jsx` | `NpcCharacterController.js` → `CharacterController.js` | `npc.single` | Same collapse; `npcConfig`'s private permission is character-level `can_edit`, resolved via `ensureCharacterPermissions` — done |
+| `/#/games/:game_slug/pcs/:id/items/:id` | `PcCharacterItem.jsx` | `CharacterItemDetailController.js` | `item.single` (`kind: 'pcs'`) | Collapses its own hand-rolled `full.json`-on-`can_edit` branch — done |
+| `/#/games/:game_slug/npcs/:character_id/items/:id` | `NpcCharacterItem.jsx` | `CharacterItemDetailController.js` | `item.single` (`kind: 'npcs'`) | Same as above — done |
 
 ## List pages (`collection` quantity type) — Step 3
 

@@ -1,7 +1,5 @@
-import TreasureClient from '../../../../../client/TreasureClient.js';
-import parseJsonOrReject from '../../../../../utils/http/parseJsonOrReject.js';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 
@@ -25,14 +23,12 @@ export default class TreasureController extends BasePageController {
    * @param {Function} setTreasure - Treasure setter.
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
-   * @param {TreasureClient|null} [treasureClient] - Client override.
    */
-  constructor(setTreasure, setLoading, setError, treasureClient = null) {
+  constructor(setTreasure, setLoading, setError) {
     super();
     this.setTreasure = setTreasure;
     this.setLoading = setLoading;
     this.setError = setError;
-    this.treasureClient = treasureClient ?? new TreasureClient();
   }
 
   /**
@@ -61,11 +57,8 @@ export default class TreasureController extends BasePageController {
   }
 
   #fetchTreasureWithAccess(id, safeSet) {
-    const token = AuthStorage.getToken();
-
-    this.treasureClient.fetchTreasure(id, token)
-      .then((response) => parseJsonOrReject(response, 'treasure failed'))
-      .then((treasure) => this.#renderTreasure(id, treasure, safeSet))
+    RequestStore.ensure({ resource: 'treasure', quantityType: 'single', params: { id } })
+      .then(({ data }) => this.#renderTreasure(id, data, safeSet))
       .catch(() => safeSet(this.setError, 'Unable to load treasure.'))
       .finally(() => safeSet(this.setLoading, false));
   }
