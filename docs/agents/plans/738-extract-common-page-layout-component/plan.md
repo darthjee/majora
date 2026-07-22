@@ -109,10 +109,19 @@ actually shared today.
   next-session block and open-polls widget are show-only and must render nothing on the edit
   page, which a "fallback to Show" default would have gotten wrong). Update this note if a later
   phase reintroduces a fallback.
-- **Remaining** (Steps 3-6, not yet started): `item` (game/pc/npc-scoped), `pc`/`npc`
-  (characters, incl. the hidden→`dimmed` fix), `treasure`, then removing the now-superseded
-  `CharacterDetail`/`CharacterHelper`/`ItemDetailHelper`. Given the size, land each as its own
-  follow-up PR against this same issue, same as the `game` phase.
+- **Done** (Step 3): `item` (game/pc/npc-scoped) migrated onto a single shared `item` entry in
+  `showTypeConfig` — `game-item`, `pc-item`, and `npc-item` collapsed into one config, since their
+  layout and fields are identical (confirming the "confirm during implementation" note in
+  `plan_pages.md`). Replaces `ItemDetailHelper`'s/`ItemEditHelper`'s/`CharacterItemNewHelper`'s
+  hand-rolled markup with `ShowPageLayout` + `elements/show/*.jsx` slot components, with specs for
+  every new slot component and the `item` config itself. There is no `game-item` creation flow
+  (confirmed against `HashRouteResolver.js` — only `pcCharacterItemNew`/`npcCharacterItemNew`
+  routes exist), so `ItemPhoto` has no `New` variant and the `New` title/name/description/hidden
+  slots are only ever reached from the PC/NPC item creation route.
+- **Remaining** (Steps 4-6, not yet started): `pc`/`npc` (characters, incl. the hidden→`dimmed`
+  fix), `treasure`, then removing the now-superseded `CharacterDetail`/`CharacterHelper`/
+  `ItemDetailHelper`. Given the size, land each as its own follow-up PR against this same issue,
+  same as the `game`/`item` phases.
 
 ## Implementation Steps
 

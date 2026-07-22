@@ -18,22 +18,29 @@ Routes: `/#/games/new`, `/#/games/:game_slug`, `/#/games/:game_slug/edit`
 - **Bottom**: none.
 - No `dimmed`/`grayscale` concept for games.
 
-## `game-item` / `pc-item` / `npc-item` (Step 3 of plan.md)
+## `game-item` / `pc-item` / `npc-item` (Step 3 of plan.md — done)
 
 Routes:
-- `/#/games/:game_slug/items/new`, `:id`, `:id/edit`
+- `/#/games/:game_slug/items/:id`, `:id/edit` (no `game-item` creation route exists —
+  `HashRouteResolver.js` only registers `pcCharacterItemNew`/`npcCharacterItemNew`; the
+  `/#/games/:game_slug/items/new` route listed below was aspirational and does not exist)
 - `/#/games/:game_slug/pcs/:character_id/items/new`, `:id`, `:id/edit`
 - `/#/games/:game_slug/npcs/:character_id/items/new`, `:id`, `:id/edit`
 
-- **Left**: item photo (`ActionsOverlay` type `item`, show/new/edit all have an upload
-  affordance per `ItemDetailHelper`'s existing `canEdit`/`onUploadClick` params), name.
-- **Right**: description (`DescriptionBox` / `TextareaField`).
+- **Left**: item photo (`ActionsOverlay` type `item`, show/edit have an upload affordance per
+  `ItemDetailHelper`'s existing `canUploadPhoto`/`onUploadClick` params; creation has no photo
+  slot, matching `CharacterItemNewHelper`'s existing single-column form), name (show-only heading,
+  next to the photo — unlike `game`/`pc`/`npc`, whose heading lives in the right column), hidden
+  switch (edit-only, under the photo).
+- **Right**: title + error alert (new/edit-only), name field (new/edit-only), description
+  (`DescriptionBox` show-only / plain `TextareaField` new/edit), hidden switch (new-only, inline
+  with the other fields since creation has no left column), submit button (new/edit-only).
 - **Bottom**: none.
 - Info bar: hidden badge via `ItemCardHelper.buildInfoBarItems`, already shared with the list page.
-- Confirm during implementation whether the three item kinds (game/pc/npc) can collapse into one
-  `showTypeConfig` entry parameterized by URL segment (mirroring `buildFetchCharacterItems`'s
-  `characterKind` parameterization in `listTypeConfig.js`), rather than three near-identical
-  entries.
+- Collapsed the three item kinds (game/pc/npc) into one `item` `showTypeConfig` entry (not three
+  near-identical entries) — the layout and fields are identical across all three response shapes,
+  and each resource's own page component still owns its own controller/fetch/submit logic exactly
+  as before.
 
 ## `pc` / `npc` (Step 4 of plan.md — most complex)
 
@@ -87,7 +94,6 @@ Routes: `/#/games/:game_slug/treasures/new`, `:id`, `:id/edit`
 | `/#/games/:game_slug/treasures/new` | treasure |
 | `/#/games/:game_slug/treasures/:id` | treasure |
 | `/#/games/:game_slug/treasures/:id/edit` | treasure |
-| `/#/games/:game_slug/items/new` | game-item |
 | `/#/games/:game_slug/items/:id` | game-item |
 | `/#/games/:game_slug/items/:id/edit` | game-item |
 | `/#/games/:game_slug/pcs/:id` | pc |

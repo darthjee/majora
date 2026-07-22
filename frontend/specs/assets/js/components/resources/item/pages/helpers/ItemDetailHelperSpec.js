@@ -1,35 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import ItemDetailHelper
   from '../../../../../../../../assets/js/components/resources/item/pages/helpers/ItemDetailHelper.jsx';
-import ActionsOverlay from '../../../../../../../../assets/js/components/common/misc/ActionsOverlay.jsx';
-
-const findElement = (node, matcher) => {
-  if (!node) {
-    return null;
-  }
-
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findElement(child, matcher);
-
-      if (match) {
-        return match;
-      }
-    }
-
-    return null;
-  }
-
-  if (typeof node !== 'object') {
-    return null;
-  }
-
-  if (matcher(node)) {
-    return node;
-  }
-
-  return findElement(node.props?.children, matcher);
-};
 
 describe('ItemDetailHelper', function() {
   describe('.render', function() {
@@ -86,24 +57,27 @@ describe('ItemDetailHelper', function() {
       expect(html).not.toContain('bi-eye-slash-fill');
     });
 
-    it('defaults canEdit to false and onClick to a no-op when omitted (CharacterItem callers)', function() {
+    it('does not render the upload button when canUploadPhoto is omitted (CharacterItem callers)', function() {
       const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
-      const element = ItemDetailHelper.render(item, '#/games/demo/items');
-      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
+      const html = renderToStaticMarkup(ItemDetailHelper.render(item, '#/games/demo/items'));
 
-      expect(overlay.props.canEdit).toBe(false);
-      expect(() => overlay.props.onClick()).not.toThrow();
+      expect(html).not.toContain('actions-overlay-button');
     });
 
-    it('honors an explicit canEdit and onUploadClick', function() {
+    it('renders the upload button when canUploadPhoto is true', function() {
+      const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
+      const html = renderToStaticMarkup(ItemDetailHelper.render(item, '#/games/demo/items', true));
+
+      expect(html).toContain('actions-overlay-button');
+    });
+
+    it('passes canUploadPhoto and onUploadClick through to the show page layout context', function() {
       const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
       const onUploadClick = jasmine.createSpy('onUploadClick');
       const element = ItemDetailHelper.render(item, '#/games/demo/items', true, onUploadClick);
-      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
-      expect(overlay.props.canEdit).toBe(true);
-      overlay.props.onClick();
-      expect(onUploadClick).toHaveBeenCalled();
+      expect(element.props.context.canUploadPhoto).toBe(true);
+      expect(element.props.context.handlers.onOpenUploadModal).toBe(onUploadClick);
     });
   });
 
