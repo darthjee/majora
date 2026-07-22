@@ -1,6 +1,35 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameNpcNewHelper from '../../../../../../../../assets/js/components/resources/character/pages/helpers/GameNpcNewHelper.jsx';
+import CharacterMoneyField from '../../../../../../../../assets/js/components/resources/character/pages/elements/CharacterMoneyField.jsx';
 import { buildLink } from '../../../../../../../support/factories.js';
+
+const findElement = (node, matcher) => {
+  if (!node) {
+    return null;
+  }
+
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findElement(child, matcher);
+
+      if (match) {
+        return match;
+      }
+    }
+
+    return null;
+  }
+
+  if (typeof node !== 'object') {
+    return null;
+  }
+
+  if (matcher(node)) {
+    return node;
+  }
+
+  return findElement(node.props?.children, matcher);
+};
 
 describe('GameNpcNewHelper', function() {
   const buildHandlers = () => ({
@@ -11,8 +40,8 @@ describe('GameNpcNewHelper', function() {
     onPrivateDescriptionChange: jasmine.createSpy('onPrivateDescriptionChange'),
     onOpenLinksModal: jasmine.createSpy('onOpenLinksModal'),
     onOpenUploadModal: jasmine.createSpy('onOpenUploadModal'),
+    onOpenMoneyModal: jasmine.createSpy('onOpenMoneyModal'),
     onHiddenChange: jasmine.createSpy('onHiddenChange'),
-    onMoneyChange: jasmine.createSpy('onMoneyChange'),
     onAllegianceChange: jasmine.createSpy('onAllegianceChange'),
     onPublicAllegianceChange: jasmine.createSpy('onPublicAllegianceChange'),
     onRetryPhotoUpload: jasmine.createSpy('onRetryPhotoUpload'),
@@ -27,6 +56,7 @@ describe('GameNpcNewHelper', function() {
     links: [],
     hidden: false,
     money: '42',
+    gameType: 'dnd',
     allegiance: 'neutral',
     publicAllegiance: 'neutral',
     status: 'idle',
@@ -43,10 +73,32 @@ describe('GameNpcNewHelper', function() {
       expect(html).toContain('id="game-npc-new-role"');
       expect(html).toContain('id="game-npc-new-description"');
       expect(html).toContain('id="game-npc-new-private-description"');
-      expect(html).toContain('id="game-npc-new-money"');
       expect(html).toContain('id="game-npc-new-hidden"');
       expect(html).toContain('id="game-npc-new-allegiance"');
       expect(html).toContain('id="game-npc-new-public-allegiance"');
+    });
+
+    it('renders a CharacterMoneyField instead of a raw numeric money input, wired to the current '
+      + 'money/gameType/errors/onOpenMoneyModal', function() {
+      const handlers = buildHandlers();
+      const state = buildState({
+        money: '42', gameType: 'deadlands', fieldErrors: { money: ['must be greater than or equal to 0'] },
+      });
+      const html = renderToStaticMarkup(GameNpcNewHelper.render(state, handlers));
+      const field = findElement(GameNpcNewHelper.render(state, handlers), (child) => (
+        child.type === CharacterMoneyField
+      ));
+
+      expect(html).not.toContain('id="game-npc-new-money"');
+      expect(field).not.toBeNull();
+      expect(field.props.isFullEditor).toBe(true);
+      expect(field.props.money).toBe('42');
+      expect(field.props.treasureValue).toBe(0);
+      expect(field.props.gameType).toBe('deadlands');
+      expect(field.props.label).toBe('Money');
+      expect(field.props.buttonLabel).toBe('Edit money');
+      expect(field.props.onOpenMoneyModal).toBe(handlers.onOpenMoneyModal);
+      expect(field.props.errors).toEqual(['must be greater than or equal to 0']);
     });
 
     it('renders an editable avatar placeholder with an upload control in the left column', function() {
@@ -116,7 +168,6 @@ describe('GameNpcNewHelper', function() {
 
       expect(html).toContain('value="Goblin King"');
       expect(html).toContain('value="Villain"');
-      expect(html).toContain('value="42"');
     });
 
     it('renders the hidden checkbox as checked when hidden is true', function() {

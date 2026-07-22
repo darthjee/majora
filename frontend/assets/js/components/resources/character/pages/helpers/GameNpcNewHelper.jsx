@@ -4,6 +4,7 @@ import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
 import SubmitButton from '../../../../common/buttons/SubmitButton.jsx';
 import CharacterAvatarField from '../elements/CharacterAvatarField.jsx';
 import CharacterLinksField from '../elements/CharacterLinksField.jsx';
+import CharacterMoneyField from '../elements/CharacterMoneyField.jsx';
 import CharacterRoleField from '../elements/CharacterRoleField.jsx';
 import CharacterDescriptionField from '../elements/CharacterDescriptionField.jsx';
 import CharacterDmNotesField from '../elements/CharacterDmNotesField.jsx';
@@ -17,21 +18,20 @@ export default class GameNpcNewHelper {
    * Render the NPC creation form.
    *
    * @description The NPC does not exist yet, so there is no id to scope a
-   *   money/treasures/photos breakdown to: money stays a raw number field
-   *   below the columns. The avatar, however, is editable: picking a photo
-   *   opens the upload modal in its deferred mode (see `PhotoUploadModal`),
-   *   which just keeps the picked file in the page's own state (rendered here
-   *   as `photoPreviewUrl`) until the NPC is created and the photo is
-   *   actually uploaded. Before a photo is picked, the avatar shows its
-   *   default static placeholder image.
+   *   treasures/photos breakdown to: the avatar is editable but picking a
+   *   photo opens the upload modal in its deferred mode (see
+   *   `PhotoUploadModal`), which just keeps the picked file in the page's own
+   *   state (rendered here as `photoPreviewUrl`) until the NPC is created and
+   *   the photo is actually uploaded. Before a photo is picked, the avatar
+   *   shows its default static placeholder image.
    * @param {{name: string, role: string, description: string, privateDescription: string,
-   *   links: object[], hidden: boolean, money: string, allegiance: string,
+   *   links: object[], hidden: boolean, money: string, gameType: string, allegiance: string,
    *   publicAllegiance: string, status: string, fieldErrors: object,
    *   photoPreviewUrl: string|null}} formState - Form state.
    * @param {{onSubmit: Function, onNameChange: Function, onRoleChange: Function,
    *   onDescriptionChange: Function, onPrivateDescriptionChange: Function,
-   *   onOpenLinksModal: Function, onOpenUploadModal: Function, onHiddenChange: Function,
-   *   onMoneyChange: Function, onAllegianceChange: Function, onPublicAllegianceChange: Function,
+   *   onOpenLinksModal: Function, onOpenUploadModal: Function, onOpenMoneyModal: Function,
+   *   onHiddenChange: Function, onAllegianceChange: Function, onPublicAllegianceChange: Function,
    *   onRetryPhotoUpload: Function, onSkipPhotoUpload: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered new NPC page.
    */
@@ -54,14 +54,6 @@ export default class GameNpcNewHelper {
             {GameNpcNewHelper.#renderAvatarColumn(formState, handlers)}
             {GameNpcNewHelper.#renderDetailsColumn(formState, handlers)}
           </div>
-          <FormField
-            id="game-npc-new-money"
-            type="number"
-            label={Translator.t('game_npc_new_page.money_label')}
-            value={formState.money}
-            onChange={handlers.onMoneyChange}
-            errors={formState.fieldErrors.money ?? []}
-          />
           {GameNpcNewHelper.#renderAllegianceFields(formState, handlers)}
           {GameNpcNewHelper.#renderSubmitButton(formState)}
         </form>
@@ -142,6 +134,16 @@ export default class GameNpcNewHelper {
           links={formState.links}
           buttonLabel={Translator.t('npc_edit_page.edit_links_button')}
           onOpenLinksModal={handlers.onOpenLinksModal}
+        />
+        <CharacterMoneyField
+          isFullEditor
+          label={Translator.t('game_npc_new_page.money_label')}
+          money={formState.money}
+          treasureValue={0}
+          gameType={formState.gameType}
+          buttonLabel={Translator.t('game_npc_new_page.edit_money_button')}
+          onOpenMoneyModal={handlers.onOpenMoneyModal}
+          errors={formState.fieldErrors.money ?? []}
         />
       </div>
     );

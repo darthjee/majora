@@ -1,4 +1,4 @@
-import defaultDocumentPhoto from '../../../images/placeholders/default_document.png';
+import defaultDocumentPhoto from '../../../../images/placeholders/default_document.png';
 
 /**
  * Bootstrap card image for a (game or character) document that falls back to the

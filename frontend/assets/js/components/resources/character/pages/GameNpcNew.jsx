@@ -6,6 +6,7 @@ import Noop from '../../../../utils/Noop.js';
 import GameNpcNewHelper from './helpers/GameNpcNewHelper.jsx';
 import LinksEditModal from './elements/LinksEditModal.jsx';
 import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
+import MoneyEditModal from '../../../common/modals/MoneyEditModal.jsx';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
 import useFormState from '../../../../utils/useFormState.js';
 
@@ -20,9 +21,11 @@ export default function GameNpcNew() {
   const [links, setLinks] = useState([]);
   const [showLinksModal, setShowLinksModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showMoneyModal, setShowMoneyModal] = useState(false);
   const [photoFile, setPhotoFile] = useState(null);
   const [characterId, setCharacterId] = useState(null);
-  const { state: fields, handleChange, handleCheckboxChange } = useFormState({
+  const [gameType, setGameType] = useState('dnd');
+  const { state: fields, setField, handleChange, handleCheckboxChange } = useFormState({
     name: '',
     role: '',
     description: '',
@@ -34,7 +37,7 @@ export default function GameNpcNew() {
   });
 
   const controller = useMemo(
-    () => new GameNpcNewController(Noop.noop, setFieldErrors),
+    () => new GameNpcNewController(Noop.noop, setFieldErrors, null, null, setGameType),
     [],
   );
 
@@ -78,7 +81,7 @@ export default function GameNpcNew() {
     <>
       {GameNpcNewHelper.render(
         {
-          ...fields, links, status, fieldErrors, photoPreviewUrl,
+          ...fields, links, gameType, status, fieldErrors, photoPreviewUrl,
         },
         {
           onSubmit: handleSubmit,
@@ -88,8 +91,8 @@ export default function GameNpcNew() {
           onPrivateDescriptionChange: handleChange('privateDescription'),
           onOpenLinksModal: () => setShowLinksModal(true),
           onOpenUploadModal: () => setShowUploadModal(true),
+          onOpenMoneyModal: () => setShowMoneyModal(true),
           onHiddenChange: handleCheckboxChange('hidden'),
-          onMoneyChange: handleChange('money'),
           onAllegianceChange: handleChange('allegiance'),
           onPublicAllegianceChange: handleChange('publicAllegiance'),
           onRetryPhotoUpload: handleRetryPhotoUpload,
@@ -113,6 +116,17 @@ export default function GameNpcNew() {
           setShowUploadModal(false);
         }}
         onClose={() => setShowUploadModal(false)}
+      />
+      <MoneyEditModal
+        show={showMoneyModal}
+        money={fields.money}
+        context="character"
+        gameType={gameType}
+        onClose={() => setShowMoneyModal(false)}
+        onConfirm={(newTotal) => {
+          setField('money', String(newTotal));
+          setShowMoneyModal(false);
+        }}
       />
     </>
   );

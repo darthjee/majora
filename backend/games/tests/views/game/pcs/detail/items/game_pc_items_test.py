@@ -177,14 +177,18 @@ class TestGamePcItemsCreate(TokenAuthRequestMixin):
     def test_create_persists_game_item_and_character_item(self, client):
         """Test that the create endpoint persists both a GameItem and a CharacterItem."""
         token = Token.objects.create(user=self.owner)
-        response = self._post(client, {'name': 'Sting'}, token=token)
+        response = self._post(
+            client, {'name': 'Sting', 'description': 'A glowing blade.'}, token=token,
+        )
         data = json.loads(response.content)
         character_item = CharacterItem.objects.get(id=data['id'])
         assert character_item.character == self.character
         game_item = GameItem.objects.get(id=data['game_item_id'])
         assert game_item.game == self.game
         assert game_item.name == 'Sting'
-        assert character_item.name == 'Sting'
+        assert game_item.description == 'A glowing blade.'
+        assert character_item.name is None
+        assert character_item.description is None
 
     def test_create_defaults_description_and_hidden(self, client):
         """Test that description defaults to '' and hidden defaults to False."""

@@ -511,6 +511,7 @@ game_npc_new_page:
   allegiance_enemy: Inimigo
   allegiance_neutral: Neutro
   money_label: Dinheiro
+  edit_money_button: Editar dinheiro
   submit: Criar NPC
   error: Falha ao criar o personagem. Tente novamente.
   photo_upload_failed: Falha ao enviar a foto. O NPC foi criado — você pode tentar novamente ou pular por enquanto.

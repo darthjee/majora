@@ -66,15 +66,15 @@ class CharacterItemDetailSerializer(CharacterItemSerializer):
         fields = CharacterItemSerializer.Meta.fields + ['description']
 
 
-class CharacterItemDetailAllSerializer(HiddenFieldMixin, CharacterItemDetailSerializer):
+class CharacterItemDetailFullSerializer(HiddenFieldMixin, CharacterItemDetailSerializer):
     """Serializer for a character's single item assignment detail view, including
     hidden items (DM-only).
 
-    Used only by the item-detail-all endpoints — adds `hidden` on top of everything
+    Used only by the item-detail-full endpoints — adds `hidden` on top of everything
     `CharacterItemDetailSerializer` already exposes.
     """
 
     class Meta(CharacterItemDetailSerializer.Meta):
-        """Metadata for the CharacterItemDetailAllSerializer."""
+        """Metadata for the CharacterItemDetailFullSerializer."""
 
         fields = CharacterItemDetailSerializer.Meta.fields + ['hidden']
