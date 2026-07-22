@@ -99,6 +99,21 @@ simply render through `ShowPageLayout` instead of their own bespoke markup. Forc
 submit flow into a generic fetch-controller would be over-engineering a data flow that isn't
 actually shared today.
 
+## Progress
+
+- **Done** (PR landing Steps 1-2): `ShowPageLayout` + `showTypeConfig` registry built, and the
+  `game` resource (`Game`/`GameNew`/`GameEdit`) migrated onto it, with specs. Implementation
+  detail that superseded the design sketch below: slot entries use **exact mode matching, no
+  implicit fallback-to-`Show`** — an object entry (`{Show, New, Edit}`) renders nothing for a
+  mode it doesn't declare a key for. This avoided a real bug in the `game` migration (e.g. the
+  next-session block and open-polls widget are show-only and must render nothing on the edit
+  page, which a "fallback to Show" default would have gotten wrong). Update this note if a later
+  phase reintroduces a fallback.
+- **Remaining** (Steps 3-6, not yet started): `item` (game/pc/npc-scoped), `pc`/`npc`
+  (characters, incl. the hidden→`dimmed` fix), `treasure`, then removing the now-superseded
+  `CharacterDetail`/`CharacterHelper`/`ItemDetailHelper`. Given the size, land each as its own
+  follow-up PR against this same issue, same as the `game` phase.
+
 ## Implementation Steps
 
 ### Step 1 — Build the shared layout + empty registry
