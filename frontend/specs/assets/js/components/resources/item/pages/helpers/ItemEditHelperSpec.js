@@ -1,35 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import ItemEditHelper
   from '../../../../../../../../assets/js/components/resources/item/pages/helpers/ItemEditHelper.jsx';
-import ActionsOverlay from '../../../../../../../../assets/js/components/common/misc/ActionsOverlay.jsx';
-
-const findElement = (node, matcher) => {
-  if (!node) {
-    return null;
-  }
-
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findElement(child, matcher);
-
-      if (match) {
-        return match;
-      }
-    }
-
-    return null;
-  }
-
-  if (typeof node !== 'object') {
-    return null;
-  }
-
-  if (matcher(node)) {
-    return node;
-  }
-
-  return findElement(node.props?.children, matcher);
-};
 
 const buildState = (overrides = {}) => ({
   name: 'Cloak of Elvenkind',
@@ -96,25 +67,27 @@ describe('ItemEditHelper', function() {
       expect(html).toContain('disabled=""');
     });
 
-    it('wires the ActionsOverlay to type=item, dimmed when hidden, and the upload handler', function() {
-      const handlers = buildHandlers();
-      const element = ItemEditHelper.render(buildState({ hidden: true, photo_path: '/item.png' }), handlers);
-      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
+    it('renders the photo dimmed when hidden is true', function() {
+      const html = renderToStaticMarkup(
+        ItemEditHelper.render(buildState({ hidden: true, photo_path: '/item.png' }), buildHandlers()),
+      );
 
-      expect(overlay.props.type).toBe('item');
-      expect(overlay.props.url).toBe('/item.png');
-      expect(overlay.props.dimmed).toBe(true);
-      expect(overlay.props.canEdit).toBe(true);
-
-      overlay.props.onClick();
-      expect(handlers.onOpenUploadModal).toHaveBeenCalled();
+      expect(html).toContain('/item.png');
+      expect(html).toContain('photo-hidden');
+      expect(html).toContain('actions-overlay-button');
     });
 
     it('does not dim the photo when not hidden', function() {
-      const element = ItemEditHelper.render(buildState({ hidden: false }), buildHandlers());
-      const overlay = findElement(element, (child) => child.type === ActionsOverlay);
+      const html = renderToStaticMarkup(ItemEditHelper.render(buildState({ hidden: false }), buildHandlers()));
 
-      expect(overlay.props.dimmed).toBe(false);
+      expect(html).not.toContain('photo-hidden');
+    });
+
+    it('passes the upload handler through to the show page layout context', function() {
+      const handlers = buildHandlers();
+      const element = ItemEditHelper.render(buildState(), handlers);
+
+      expect(element.props.context.handlers.onOpenUploadModal).toBe(handlers.onOpenUploadModal);
     });
 
     it('renders the hidden switch checked according to state', function() {
