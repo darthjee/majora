@@ -5,6 +5,8 @@ import GameNpcNewController from '../../../../../../../assets/js/components/reso
 import GameNpcNewHelper from '../../../../../../../assets/js/components/resources/character/pages/helpers/GameNpcNewHelper.jsx';
 import PhotoUploadModalHelper
   from '../../../../../../../assets/js/components/common/modals/helpers/PhotoUploadModalHelper.jsx';
+import MoneyEditModalHelper
+  from '../../../../../../../assets/js/components/common/modals/helpers/MoneyEditModalHelper.jsx';
 import { stubBuildEffect } from '../../../../../../support/controllerStubs.js';
 
 describe('GameNpcNew', function() {
@@ -27,10 +29,15 @@ describe('GameNpcNew', function() {
     expect(html).toContain('id="game-npc-new-role"');
     expect(html).toContain('id="game-npc-new-description"');
     expect(html).toContain('id="game-npc-new-private-description"');
-    expect(html).toContain('id="game-npc-new-money"');
     expect(html).toContain('id="game-npc-new-hidden"');
     expect(html).toContain('id="game-npc-new-allegiance"');
     expect(html).toContain('id="game-npc-new-public-allegiance"');
+  });
+
+  it('does not render a raw numeric money input', function() {
+    const html = renderToStaticMarkup(React.createElement(GameNpcNew));
+
+    expect(html).not.toContain('id="game-npc-new-money"');
   });
 
   it('renders the submit button', function() {
@@ -87,5 +94,71 @@ describe('GameNpcNew', function() {
     capturedHandlers.onSkipPhotoUpload();
 
     expect(globalThis.window.location.hash).toBe('/games/demo/npcs/null');
+  });
+
+  describe('money modal', function() {
+    it('renders the money modal initially closed', function() {
+      let capturedShow;
+      spyOn(MoneyEditModalHelper, 'render').and.callFake((show) => {
+        capturedShow = show;
+        return null;
+      });
+
+      renderToStaticMarkup(React.createElement(GameNpcNew));
+
+      expect(capturedShow).toBe(false);
+    });
+
+    it('renders the money modal with the character context', function() {
+      let capturedContext;
+      spyOn(MoneyEditModalHelper, 'render').and.callFake((show, state, handlers, context) => {
+        capturedContext = context;
+        return null;
+      });
+
+      renderToStaticMarkup(React.createElement(GameNpcNew));
+
+      expect(capturedContext).toBe('character');
+    });
+
+    it('defaults the money modal gameType to dnd before the game fetch resolves', function() {
+      let capturedGameType;
+      spyOn(MoneyEditModalHelper, 'render').and.callFake((show, state, handlers, context, gameType) => {
+        capturedGameType = gameType;
+        return null;
+      });
+
+      renderToStaticMarkup(React.createElement(GameNpcNew));
+
+      expect(capturedGameType).toBe('dnd');
+    });
+
+    it('opens the money modal via onOpenMoneyModal without throwing', function() {
+      let capturedHandlers;
+      spyOn(GameNpcNewHelper, 'render').and.callFake((state, handlers) => {
+        capturedHandlers = handlers;
+        return null;
+      });
+      spyOn(MoneyEditModalHelper, 'render').and.returnValue(null);
+
+      renderToStaticMarkup(React.createElement(GameNpcNew));
+
+      expect(() => capturedHandlers.onOpenMoneyModal()).not.toThrow();
+    });
+
+    it('updates the form state money field and closes the modal on confirm, without throwing on close', function() {
+      let capturedMoneyModalHandlers;
+      spyOn(MoneyEditModalHelper, 'render').and.callFake((show, state, handlers) => {
+        capturedMoneyModalHandlers = handlers;
+        return null;
+      });
+
+      renderToStaticMarkup(React.createElement(GameNpcNew));
+
+      expect(() => {
+        capturedMoneyModalHandlers.onClose();
+        capturedMoneyModalHandlers.onConfirm(500);
+      }).not.toThrow();
+    });
   });
 });

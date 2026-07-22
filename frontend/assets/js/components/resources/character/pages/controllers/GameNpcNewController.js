@@ -1,5 +1,6 @@
 import CharacterClient from '../../../../../client/CharacterClient.js';
 import UploadClient from '../../../../../client/UploadClient.js';
+import GameClient from '../../../../../client/GameClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
@@ -27,20 +28,30 @@ export default class GameNpcNewController extends BasePageController {
    * @param {Function} [setFieldErrors] - Per-field error setter.
    * @param {CharacterClient|null} [characterClient] - Character client override.
    * @param {UploadClient|null} [uploadClient] - Upload client override.
+   * @param {Function} [setGameType] - Setter for the containing game's currency type,
+   *   used so the money-editing modal renders the right denominations. Optional — a
+   *   caller that does not need this display concern may omit it.
+   * @param {GameClient|null} [gameClient] - Game client override.
    */
-  constructor(setError, setFieldErrors = Noop.noop, characterClient = null, uploadClient = null) {
+  constructor(
+    setError, setFieldErrors = Noop.noop, characterClient = null, uploadClient = null,
+    setGameType = Noop.noop, gameClient = null,
+  ) {
     super();
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;
     this.characterClient = characterClient ?? new CharacterClient();
     this.uploadClient = uploadClient ?? new UploadClient();
+    this.setGameType = setGameType;
+    this.gameClient = gameClient ?? new GameClient();
   }
 
   /**
    * Build the page mount effect.
    *
    * @description Returns a callback that checks whether the current user may
-   *   edit the game and redirects to the NPCs index when they cannot.
+   *   edit the game and redirects to the NPCs index when they cannot, and
+   *   fetches the containing game's currency type for the money-editing modal.
    * @returns {Function} Effect callback.
    */
   buildEffect() {
@@ -51,7 +62,25 @@ export default class GameNpcNewController extends BasePageController {
       AccessStore.ensureGamePermissions(gameSlug)
         .then((permissions) => this.#redirectIfNotAllowed(permissions, gameSlug))
         .catch(() => this.#redirectToNpcs(gameSlug));
+
+      this.fetchGameType(gameSlug, AuthStorage.getToken()).then((gameType) => this.setGameType(gameType));
     };
+  }
+
+  /**
+   * Fetch the containing game's currency type. Degrades to `'dnd'` when the
+   * game fetch fails or the response is not ok, rather than blocking the
+   * form.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string|null} token - Authentication token, if any.
+   * @returns {Promise<string>} Resolves to the game's `game_type`.
+   */
+  fetchGameType(gameSlug, token) {
+    return this.gameClient.fetchGame(gameSlug, token)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((game) => game?.game_type ?? 'dnd')
+      .catch(() => 'dnd');
   }
 
   /**
