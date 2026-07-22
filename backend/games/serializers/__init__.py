@@ -17,6 +17,7 @@ from games.serializers.characters.character_item import (
     CharacterItemDetailSerializer,
     CharacterItemSerializer,
 )
+from games.serializers.characters.character_item_update import CharacterItemUpdateSerializer
 from games.serializers.characters.character_link import CharacterLinkSerializer
 from games.serializers.characters.character_link_write import CharacterLinkWriteSerializer
 from games.serializers.characters.character_list import CharacterListSerializer
@@ -50,6 +51,7 @@ from games.serializers.games.items.game_item_list import (
     GameItemListSerializer,
 )
 from games.serializers.games.items.game_item_photo import GameItemPhotoSerializer
+from games.serializers.games.items.game_item_update import GameItemUpdateSerializer
 from games.serializers.games.my_games.my_games_item import MyGamesItemSerializer
 from games.serializers.games.players.player_character import PlayerCharacterSerializer
 from games.serializers.games.players.player_list import PlayerListSerializer
@@ -112,6 +114,7 @@ __all__ = [
     'CharacterItemDetailFullSerializer',
     'CharacterItemDetailSerializer',
     'CharacterItemSerializer',
+    'CharacterItemUpdateSerializer',
     'CharacterLinkSerializer',
     'CharacterLinkWriteSerializer',
     'CharacterListSerializer',
@@ -133,6 +136,7 @@ __all__ = [
     'GameItemDetailSerializer',
     'GameItemListSerializer',
     'GameItemPhotoSerializer',
+    'GameItemUpdateSerializer',
     'GameListSerializer',
     'GamePermissionsSerializer',
     'GamePhotoSerializer',

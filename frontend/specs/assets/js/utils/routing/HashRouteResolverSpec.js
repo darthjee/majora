@@ -25,10 +25,13 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/treasures').getPage()).toBe('npcCharacterTreasures');
     expect(new HashRouteResolver(() => '#/games/campaign/items').getPage()).toBe('gameItems');
     expect(new HashRouteResolver(() => '#/games/campaign/items/5').getPage()).toBe('gameItem');
+    expect(new HashRouteResolver(() => '#/games/campaign/items/5/edit').getPage()).toBe('gameItemEdit');
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/items').getPage()).toBe('pcCharacterItems');
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/items/5').getPage()).toBe('pcCharacterItem');
+    expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/items/5/edit').getPage()).toBe('pcCharacterItemEdit');
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/items').getPage()).toBe('npcCharacterItems');
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/items/5').getPage()).toBe('npcCharacterItem');
+    expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/items/5/edit').getPage()).toBe('npcCharacterItemEdit');
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/items/new').getPage()).toBe('pcCharacterItemNew');
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/items/new').getPage()).toBe('npcCharacterItemNew');
     expect(new HashRouteResolver(() => '#/games/campaign/documents').getPage()).toBe('gameDocuments');
@@ -113,6 +116,23 @@ describe('HashRouteResolver', function() {
     'resolves /games/:game_slug/npcs/:character_id/items/:id to npcCharacterItem, not npcCharacterItems',
     function() {
       expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/items/5').getPage()).toBe('npcCharacterItem');
+    },
+  );
+
+  it('resolves /games/:game_slug/items/:id/edit to gameItemEdit, not gameItem', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/items/5/edit').getPage()).toBe('gameItemEdit');
+  });
+
+  it('resolves /games/:game_slug/pcs/:character_id/items/:id/edit to pcCharacterItemEdit, not pcCharacterItem',
+    function() {
+      expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/items/5/edit').getPage()).toBe('pcCharacterItemEdit');
+    });
+
+  it(
+    'resolves /games/:game_slug/npcs/:character_id/items/:id/edit to npcCharacterItemEdit, not npcCharacterItem',
+    function() {
+      expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/items/5/edit').getPage())
+        .toBe('npcCharacterItemEdit');
     },
   );
 

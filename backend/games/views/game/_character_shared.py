@@ -22,6 +22,7 @@ from ._documents import character_documents
 from ._full import character_full
 from ._item_create import character_item_create
 from ._item_photo_upload import character_item_photo_upload
+from ._item_update import character_item_update
 from ._items import character_item_detail, character_items
 from ._money import character_money_update
 from ._photo_set import character_photo_set
@@ -221,12 +222,15 @@ def build_documents_all_view(npc, serializer_class):
 
 
 def build_item_detail_view(npc, serializer_class=CharacterItemDetailSerializer):
-    """Build the GET item-detail view for a PC (`npc=False`) or NPC (`npc=True`)."""
+    """Build the GET/PATCH item-detail view for a PC (`npc=False`) or NPC (`npc=True`)."""
 
-    @_build_api_view(['GET'], AllowAny)
+    @_build_api_view(['GET', 'PATCH'], AllowAny)
     def view(request, game_slug, character_id, item_id):
-        """Return detail for a single non-hidden item held by a specific PC/NPC."""
+        """Return, or update, a single item held by a specific PC/NPC."""
         game = get_object_or_404(Game, game_slug=game_slug)
+        if request.method == 'PATCH':
+            character = _get_character_or_404(game, character_id, npc=npc)
+            return character_item_update(request, character, item_id, npc=npc)
         return character_item_detail(
             request, game, character_id, item_id, npc=npc, check_hidden=npc,
             serializer_class=serializer_class,

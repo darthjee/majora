@@ -361,6 +361,13 @@ game_documents_page:
 item_page:
   loading: Carregando item...
   hidden_label: Oculto
+item_edit_page:
+  title: Editar item
+  name_label: Nome
+  description_label: Descrição
+  hidden_label: Oculto
+  submit: Salvar alterações
+  error: Falha ao salvar o item. Tente novamente.
 add_game_treasure_modal:
   title: Adicionar Tesouro
   value_label: Valor

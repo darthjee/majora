@@ -1,4 +1,4 @@
-"""View for retrieving a single non-hidden item held by an NPC."""
+"""View for retrieving, or updating, a single item held by an NPC."""
 
 from ...._character_shared import build_item_detail_view
 
