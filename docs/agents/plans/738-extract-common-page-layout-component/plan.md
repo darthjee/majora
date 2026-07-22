@@ -155,9 +155,31 @@ actually shared today.
   content). `GameTreasureNewHelper`/`GameTreasureEditHelper` now just call `ShowPageLayout` with
   `type="treasure"`, keeping the same `render`/`renderLoading`/`renderError` API their page
   components already used, so `GameTreasureNew.jsx`/`GameTreasureEdit.jsx` needed no changes.
-- **Remaining** (Step 6, not yet started): removing the now-superseded
-  `CharacterDetail`/`CharacterHelper`/`ItemDetailHelper`. Given the size, land as its own
-  follow-up PR against this same issue, same as the `game`/`item`/`pc`+`npc`/`treasure` phases.
+- **Done** (Step 6): dead-code audit and removal, closing out the issue. Contrary to the original
+  design sketch above (a generic `ShowPage.jsx` replacing `CharacterDetail`/ad hoc show pages
+  entirely), the actual Step 3-5 implementations kept `CharacterDetail.jsx`/`CharacterHelper.jsx`/
+  `ItemDetailHelper.jsx`/`GameHelper.jsx`/`GameEditHelper.jsx`/`GameNewHelper.jsx`/
+  `GameTreasureNewHelper.jsx`/`GameTreasureEditHelper.jsx` in place as thin adapters whose
+  `render`/`renderLoading`/`renderError` methods now just call `ShowPageLayout` — this preserved
+  each page component's existing call-site API (no changes needed to `PcCharacter.jsx`,
+  `NpcCharacter.jsx`, `GameItem.jsx`, `CharacterItem.jsx`, `Game.jsx`, etc.) while still
+  centralizing the actual layout/slot logic in `ShowPageLayout` + `showTypeConfig`. These files are
+  therefore **not** dead code — they're still the sole entry point their page components call
+  through, confirmed by grepping every usage of each name before touching anything. Verified this
+  by an exhaustive orphan-file sweep (every `.js`/`.jsx` under `common/show_page/`,
+  `resources/{character,item,game,treasure}/` checked for at least one real `import ... from`
+  reference elsewhere in `assets/js`) — the **only** genuine leftover was
+  `character/pages/elements/CharacterAvatar.jsx`, a standalone show-mode avatar component
+  superseded by `CharacterAvatarSlot.jsx`'s inline `CharacterAvatarShow` function (added in Step 4
+  but never wired to replace this older component). Deleted `CharacterAvatar.jsx` and its
+  now-orphaned spec, `specs/.../character/pages/elements/CharacterAvatarSpec.js`. `PlayerDetail.jsx`
+  remains untouched (confirmed genuinely out of scope, unrelated to this migration).
+  `common/cards/TreasureCard.jsx` was also flagged by the orphan sweep as unreferenced, but it
+  predates this issue (last touched by #670, unrelated to `ShowPageLayout`) and is left alone as
+  out-of-scope pre-existing dead code, not this issue's responsibility to clean up.
+  All 19 routes from the issue's affected-pages list are now migrated onto `ShowPageLayout` +
+  `showTypeConfig` (see [plan_pages.md](plan_pages.md)'s route cross-reference table), completing
+  the issue.
 
 ## Implementation Steps
 
@@ -220,11 +242,15 @@ type config already does.
 
 ### Step 6 — Remove dead code
 
-Once every affected page (see [plan_pages.md](plan_pages.md)) has been migrated, delete the
-now-unused `CharacterDetail.jsx`, `CharacterHelper.jsx`, `ItemDetailHelper.jsx`, and any
-`*Helper.jsx` render methods fully superseded by `showTypeConfig` entries. Leave `PlayerDetail.jsx`
-alone — the player show page is not in the issue's affected-pages list and has no new/edit
-counterpart, so migrating it is out of scope for this issue.
+Once every affected page (see [plan_pages.md](plan_pages.md)) has been migrated, audit for and
+delete any component/helper genuinely superseded by the `ShowPageLayout`/`showTypeConfig`
+migration. As it turned out, `CharacterDetail.jsx`/`CharacterHelper.jsx`/`ItemDetailHelper.jsx`
+were **not** dead — Steps 3-5 kept them as thin adapters (their `render`/`renderLoading`/
+`renderError` methods now just call `ShowPageLayout`) so each page component's existing call
+sites needed no changes; verify with a real usage grep before deleting anything, rather than
+assuming the original design sketch's replacement plan held exactly as drafted. Leave
+`PlayerDetail.jsx` alone — the player show page is not in the issue's affected-pages list and has
+no new/edit counterpart, so migrating it is out of scope for this issue.
 
 ## Files to Change
 
@@ -239,10 +265,13 @@ Representative files (see [plan_pages.md](plan_pages.md) for the full per-resour
   `helpers/*Helper.jsx` — migrated to `ShowPageLayout`
 - `frontend/assets/js/components/resources/item/pages/{GameItem,GameItemEdit}.jsx`,
   `resources/character/pages/{PcCharacterItem,PcCharacterItemEdit,NpcCharacterItem,NpcCharacterItemEdit}.jsx`,
-  `item/pages/helpers/ItemDetailHelper.jsx` (removed) — migrated
+  `item/pages/helpers/ItemDetailHelper.jsx` (kept as a thin `ShowPageLayout` adapter) — migrated
 - `frontend/assets/js/components/resources/character/pages/{PcCharacter,NpcCharacter,PcCharacterEdit,NpcCharacterEdit,GameNpcNew}.jsx`,
-  `character/pages/shared/CharacterDetail.jsx` (removed), `character/pages/helpers/{CharacterHelper,GameNpcNewHelper,PcCharacterEditHelper,NpcCharacterEditHelper}.jsx`,
-  `character/pages/elements/helpers/CharacterAvatarHelper.jsx` (dimming fix) — migrated
+  `character/pages/shared/CharacterDetail.jsx` (kept as a thin `ShowPageLayout` adapter),
+  `character/pages/helpers/{CharacterHelper,GameNpcNewHelper,PcCharacterEditHelper,NpcCharacterEditHelper}.jsx`,
+  `character/pages/elements/helpers/CharacterAvatarHelper.jsx` (dimming fix),
+  `character/pages/elements/CharacterAvatar.jsx` (deleted, superseded by
+  `character/pages/elements/show/CharacterAvatarSlot.jsx`) — migrated
 - `frontend/assets/js/components/resources/treasure/pages/{Treasure,TreasureNew,TreasureEdit,GameTreasureEdit}.jsx`
   and their helpers — migrated
 - `frontend/specs/**` — new specs for `ShowPageLayout`/`showTypeConfig`, updated specs for every
