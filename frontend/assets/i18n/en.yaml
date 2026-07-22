@@ -510,7 +510,8 @@ game_npc_new_page:
   allegiance_ally: Ally
   allegiance_enemy: Enemy
   allegiance_neutral: Neutral
-  money_label: Money (copper pieces)
+  money_label: Money
+  edit_money_button: Edit money
   submit: Create NPC
   error: Failed to create NPC. Please try again.
   photo_upload_failed: Failed to upload the photo. The NPC was created — you can retry the upload or skip it for now.
