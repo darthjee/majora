@@ -46,7 +46,10 @@ describe('NpcCharacterItemEditController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(ensureSpy).toHaveBeenCalledWith({
-        resource: 'item', quantityType: 'single', params: { gameSlug: 'demo', kind: 'npcs', id: '9', itemId: '3' },
+        componentName: 'BaseCharacterItemEditController',
+        resource: 'item',
+        quantityType: 'single',
+        params: { gameSlug: 'demo', kind: 'npcs', id: '9', itemId: '3' },
       });
       expect(setItem).toHaveBeenCalledWith({ id: 3, name: 'Cloak of Elvenkind' });
 

@@ -3,6 +3,7 @@ import AccessEvents from '../access/AccessEvents.js';
 import resourceConfig from './resourceConfig.js';
 import RequestPermissionResolvers from './RequestPermissionResolvers.js';
 import Request from './Request.js';
+import RequestStoreLogging from './RequestStoreLogging.js';
 
 const requests = new Map();
 
@@ -24,6 +25,9 @@ export default class RequestStore {
    * creating the underlying `Request` instance on first use.
    *
    * @param {object} args - Arguments.
+   * @param {string} args.componentName - Name of the component/controller triggering the
+   *   request (e.g. `'CharacterController'`, `'GameController'`), attached to the request's
+   *   debug log (see {@link RequestStoreLogging}).
    * @param {string} args.resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'treasure'`,
    *   `'session'`, `'document'`).
    * @param {string} args.quantityType - `'collection'` or `'single'`.
@@ -32,13 +36,17 @@ export default class RequestStore {
    * @returns {Promise<{data: *, pagination: {page: number, pages: number, perPage: number}}>}
    *   Resolves to the wrapped resource data and its pagination metadata.
    */
-  static ensure({ resource, quantityType, params = {}, query = {} }) {
+  static ensure({
+    componentName, resource, quantityType, params = {}, query = {},
+  }) {
     const entry = RequestStore.#entryFor(resource, quantityType, params);
 
     entry.query = query;
 
-    return RequestPermissionResolvers.resolve(resource, quantityType, params)
+    const requestPromise = RequestPermissionResolvers.resolve(resource, quantityType, params)
       .then((permissions) => entry.request.ensure({ permissions, params, query }));
+
+    return RequestStoreLogging.wrap(componentName, resource, quantityType, params, query, requestPromise);
   }
 
   /**

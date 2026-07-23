@@ -131,7 +131,11 @@ describe('listTypeConfig', function() {
           const result = await treasures.fetchList('demo', fakeHashResolver());
 
           expect(RequestStore.ensure).toHaveBeenCalledWith({
-            resource: 'treasure', quantityType: 'collection', params: { gameSlug: 'demo', kind: 'game' }, query: {},
+            componentName: 'ListPageController',
+            resource: 'treasure',
+            quantityType: 'collection',
+            params: { gameSlug: 'demo', kind: 'game' },
+            query: {},
           });
           expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
           expect(result.data).toEqual([{ id: 1, name: 'Sword', value: 100 }]);
@@ -162,6 +166,7 @@ describe('listTypeConfig', function() {
         await treasures.fetchList('demo', hashResolver);
 
         expect(RequestStore.ensure).toHaveBeenCalledWith({
+          componentName: 'ListPageController',
           resource: 'treasure',
           quantityType: 'collection',
           params: { gameSlug: 'demo', kind: 'game' },

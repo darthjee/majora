@@ -52,7 +52,9 @@ export default class GameEditController extends BaseEditController {
     }
 
     this.fetchDataWithAccess(
-      RequestStore.ensure({ resource: 'game', quantityType: 'single', params: { gameSlug } }),
+      RequestStore.ensure({
+        componentName: 'GameEditController', resource: 'game', quantityType: 'single', params: { gameSlug },
+      }),
       AccessStore.ensureGamePermissions(gameSlug),
       safeSet,
       'Unable to load game.',

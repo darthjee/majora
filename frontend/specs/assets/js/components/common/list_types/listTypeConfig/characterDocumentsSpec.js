@@ -88,6 +88,7 @@ describe('listTypeConfig', function() {
 
           expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith(characterKind, 'demo', '2');
           expect(RequestStore.ensure).toHaveBeenCalledWith({
+            componentName: 'ListPageController',
             resource: 'document',
             quantityType: 'collection',
             params: { gameSlug: 'demo', kind: characterKind, id: '2' },

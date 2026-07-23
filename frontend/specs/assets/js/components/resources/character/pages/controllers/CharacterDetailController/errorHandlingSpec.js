@@ -24,7 +24,7 @@ KINDS.forEach(({ label, Controller, kind, resource, getParamsFromHash }) => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(ensureSpy).toHaveBeenCalledWith({
-        resource, quantityType: 'single', params: { gameSlug: 'demo', id: '2' },
+        componentName: 'CharacterController', resource, quantityType: 'single', params: { gameSlug: 'demo', id: '2' },
       });
       expect(setError).toHaveBeenCalledWith('Unable to load character.');
       expect(setCharacter).not.toHaveBeenCalled();

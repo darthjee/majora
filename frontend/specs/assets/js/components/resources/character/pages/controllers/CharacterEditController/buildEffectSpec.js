@@ -62,7 +62,10 @@ KINDS.forEach(({ label, Controller, kind }) => {
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(ensureSpy).toHaveBeenCalledWith({
-          resource: kind === 'npcs' ? 'npc' : 'pc', quantityType: 'single', params: { gameSlug: 'demo', id: '2' },
+          componentName: 'CharacterController',
+          resource: kind === 'npcs' ? 'npc' : 'pc',
+          quantityType: 'single',
+          params: { gameSlug: 'demo', id: '2' },
         });
         expect(setCharacter).toHaveBeenCalledWith({
           id: 2,

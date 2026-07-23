@@ -128,7 +128,12 @@ export default class GameTreasureEditController extends BaseEditController {
     }
 
     this.fetchSingleData(
-      RequestStore.ensure({ resource: 'treasure', quantityType: 'single', params: { gameSlug, id: treasureId } }),
+      RequestStore.ensure({
+        componentName: 'GameTreasureEditController',
+        resource: 'treasure',
+        quantityType: 'single',
+        params: { gameSlug, id: treasureId },
+      }),
       safeSet,
       'Unable to load treasure.',
     );

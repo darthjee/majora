@@ -16,6 +16,7 @@ import fetchRequestStoreList, { buildListQuery } from '../fetchRequestStoreList.
  */
 function fetchGames(gameSlug, hashResolver) {
   return fetchRequestStoreList({
+    componentName: 'ListPageController',
     resource: 'game',
     params: {},
     query: buildListQuery(hashResolver),

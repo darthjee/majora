@@ -56,6 +56,7 @@ function mergeGameType(result, gameType) {
  */
 function fetchCharacterTreasuresList(characterKind, gameSlug, characterId, query) {
   return fetchRequestStoreList({
+    componentName: 'ListPageController',
     resource: 'treasure',
     params: { gameSlug, kind: characterKind, id: characterId },
     query,

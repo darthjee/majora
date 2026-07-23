@@ -62,7 +62,7 @@ describe('CharacterItemDetailController', function() {
           await new Promise((resolve) => setTimeout(resolve, 0));
 
           expect(ensureSpy).toHaveBeenCalledWith({
-            resource: 'item', quantityType: 'single', params: expectedParams,
+            componentName: 'CharacterItemDetailController', resource: 'item', quantityType: 'single', params: expectedParams,
           });
           expect(setItem).toHaveBeenCalledWith({ id: 1, name: 'Cloak of Elvenkind' });
           expect(setLoading).toHaveBeenCalledWith(false);

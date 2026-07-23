@@ -37,6 +37,7 @@ describe('TreasureExchangeModalController', function() {
         await controller.loadPage('acquire', 2, character, 'sword', setBrowse);
 
         expect(ensureSpy).toHaveBeenCalledWith({
+          componentName: 'TreasureExchangeModalController',
           resource: 'treasure',
           quantityType: 'collection',
           params: { gameSlug: 'demo', kind: 'game' },

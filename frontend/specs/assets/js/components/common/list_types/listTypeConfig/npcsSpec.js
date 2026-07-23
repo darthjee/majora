@@ -137,7 +137,11 @@ describe('listTypeConfig', function() {
           const result = await npcs.fetchList('demo', hashResolver);
 
           expect(RequestStore.ensure).toHaveBeenCalledWith({
-            resource: 'npc', quantityType: 'collection', params: { gameSlug: 'demo' }, query: {},
+            componentName: 'ListPageController',
+            resource: 'npc',
+            quantityType: 'collection',
+            params: { gameSlug: 'demo' },
+            query: {},
           });
           expect(result.data).toEqual([{ id: 1, name: 'Goblin' }]);
           expect(result.canEdit).toBe(false);
@@ -169,6 +173,7 @@ describe('listTypeConfig', function() {
         await npcs.fetchList('demo', hashResolver);
 
         expect(RequestStore.ensure).toHaveBeenCalledWith({
+          componentName: 'ListPageController',
           resource: 'npc',
           quantityType: 'collection',
           params: { gameSlug: 'demo' },

@@ -54,6 +54,7 @@ describe('GameController', function() {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(ensureSpy).toHaveBeenCalledWith({
+      componentName: 'GameController',
       resource: 'pc',
       quantityType: 'collection',
       params: { gameSlug: 'demo' },
@@ -81,6 +82,7 @@ describe('GameController', function() {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(ensureSpy).toHaveBeenCalledWith({
+      componentName: 'GameController',
       resource: 'npc',
       quantityType: 'collection',
       params: { gameSlug: 'demo' },

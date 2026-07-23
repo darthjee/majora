@@ -15,7 +15,11 @@ describe('RequestStore', function() {
       const ensureSpy = spyOn(Request.prototype, 'ensure').and.returnValue(Promise.resolve({ data: { id: 1 } }));
 
       const result = await RequestStore.ensure({
-        resource: 'npc', quantityType: 'collection', params: { gameSlug: 'demo' }, query: { search: 'x' },
+        componentName: 'NpcListPageController',
+        resource: 'npc',
+        quantityType: 'collection',
+        params: { gameSlug: 'demo' },
+        query: { search: 'x' },
       });
 
       expect(RequestPermissionResolvers.resolve).toHaveBeenCalledWith('npc', 'collection', { gameSlug: 'demo' });
@@ -29,8 +33,12 @@ describe('RequestStore', function() {
       spyOn(RequestPermissionResolvers, 'resolve').and.returnValue(Promise.resolve({}));
       const ensureSpy = spyOn(Request.prototype, 'ensure').and.returnValue(Promise.resolve({ data: {} }));
 
-      await RequestStore.ensure({ resource: 'npc', quantityType: 'collection', params: { gameSlug: 'demo' } });
-      await RequestStore.ensure({ resource: 'npc', quantityType: 'collection', params: { gameSlug: 'demo' } });
+      await RequestStore.ensure({
+        componentName: 'NpcListPageController', resource: 'npc', quantityType: 'collection', params: { gameSlug: 'demo' },
+      });
+      await RequestStore.ensure({
+        componentName: 'NpcListPageController', resource: 'npc', quantityType: 'collection', params: { gameSlug: 'demo' },
+      });
 
       expect(ensureSpy.calls.count()).toBe(2);
       expect(ensureSpy.calls.all().every((call) => call.object === ensureSpy.calls.first().object)).toBe(true);
@@ -40,8 +48,12 @@ describe('RequestStore', function() {
       spyOn(RequestPermissionResolvers, 'resolve').and.returnValue(Promise.resolve({}));
       const ensureSpy = spyOn(Request.prototype, 'ensure').and.returnValue(Promise.resolve({ data: {} }));
 
-      await RequestStore.ensure({ resource: 'npc', quantityType: 'collection', params: { gameSlug: 'demo' } });
-      await RequestStore.ensure({ resource: 'npc', quantityType: 'collection', params: { gameSlug: 'other' } });
+      await RequestStore.ensure({
+        componentName: 'NpcListPageController', resource: 'npc', quantityType: 'collection', params: { gameSlug: 'demo' },
+      });
+      await RequestStore.ensure({
+        componentName: 'NpcListPageController', resource: 'npc', quantityType: 'collection', params: { gameSlug: 'other' },
+      });
 
       const objects = ensureSpy.calls.all().map((call) => call.object);
       expect(objects[0]).not.toBe(objects[1]);
@@ -53,7 +65,9 @@ describe('RequestStore', function() {
       spyOn(RequestPermissionResolvers, 'resolve').and.returnValue(Promise.resolve({ can_edit: false }));
       const ensureSpy = spyOn(Request.prototype, 'ensure').and.returnValue(Promise.resolve({ data: {} }));
 
-      await RequestStore.ensure({ resource: 'npc', quantityType: 'collection', params: { gameSlug: 'demo' } });
+      await RequestStore.ensure({
+        componentName: 'NpcListPageController', resource: 'npc', quantityType: 'collection', params: { gameSlug: 'demo' },
+      });
       ensureSpy.calls.reset();
       RequestPermissionResolvers.resolve.and.returnValue(Promise.resolve({ can_edit: true }));
 
@@ -76,13 +90,17 @@ describe('RequestStore', function() {
       const ensureSpy = spyOn(Request.prototype, 'ensure').and.returnValue(Promise.resolve({ data: {} }));
       const abortSpy = spyOn(Request.prototype, 'abort');
 
-      await RequestStore.ensure({ resource: 'npc', quantityType: 'collection', params: { gameSlug: 'demo' } });
+      await RequestStore.ensure({
+        componentName: 'NpcListPageController', resource: 'npc', quantityType: 'collection', params: { gameSlug: 'demo' },
+      });
 
       RequestStore.reset();
 
       expect(abortSpy).toHaveBeenCalled();
 
-      await RequestStore.ensure({ resource: 'npc', quantityType: 'collection', params: { gameSlug: 'demo' } });
+      await RequestStore.ensure({
+        componentName: 'NpcListPageController', resource: 'npc', quantityType: 'collection', params: { gameSlug: 'demo' },
+      });
 
       const objects = ensureSpy.calls.all().map((call) => call.object);
       expect(objects[0]).not.toBe(objects[1]);

@@ -66,7 +66,9 @@ export default class TreasureEditController extends BaseEditController {
       }
 
       this.fetchDataWithAccess(
-        RequestStore.ensure({ resource: 'treasure', quantityType: 'single', params: { id } }),
+        RequestStore.ensure({
+          componentName: 'TreasureEditController', resource: 'treasure', quantityType: 'single', params: { id },
+        }),
         AccessStore.ensureTreasurePermissions(id),
         safeSet,
         'Unable to load treasure.',

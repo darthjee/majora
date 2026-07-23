@@ -54,7 +54,12 @@ export default class GameSessionEditController extends BaseEditController {
     }
 
     this.fetchDataWithAccess(
-      RequestStore.ensure({ resource: 'session', quantityType: 'single', params: { gameSlug, id } }),
+      RequestStore.ensure({
+        componentName: 'GameSessionEditController',
+        resource: 'session',
+        quantityType: 'single',
+        params: { gameSlug, id },
+      }),
       AccessStore.ensureGamePermissions(gameSlug),
       safeSet,
       'Unable to load session.',

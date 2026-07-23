@@ -86,7 +86,11 @@ describe('listTypeConfig', function() {
           const result = await items.fetchList('demo', hashResolver);
 
           expect(RequestStore.ensure).toHaveBeenCalledWith({
-            resource: 'item', quantityType: 'collection', params: { gameSlug: 'demo', kind: 'game' }, query: {},
+            componentName: 'ListPageController',
+            resource: 'item',
+            quantityType: 'collection',
+            params: { gameSlug: 'demo', kind: 'game' },
+            query: {},
           });
           expect(result.data).toEqual([{ id: 5, name: 'Cloak of Elvenkind' }]);
           expect(result.canEdit).toBe(false);
