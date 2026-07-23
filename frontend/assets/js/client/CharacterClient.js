@@ -1,16 +1,6 @@
 import BaseClient from './BaseClient.js';
 
 /**
- * Default page size for the PC/NPC treasures/items preview fetch (issue #720), matching
- * `MAX_PREVIEW_ITEMS` (`components/common/cards/characterPreviewConstants.js`). Kept as a
- * local constant instead of importing that constant, since nothing under `client/` imports
- * from `components/`.
- *
- * @type {number}
- */
-const PREVIEW_PAGE_SIZE = 5;
-
-/**
  * HTTP client for PC and NPC character requests (fetch and update).
  *
  * @description Public methods shared by PCs and NPCs are parameterized by a
@@ -75,54 +65,6 @@ export default class CharacterClient extends BaseClient {
    */
   fetchCharacterPermissions(characterKind, gameSlug, characterId, token, signal, roles = []) {
     return this.#fetchCharacter(characterKind, gameSlug, characterId, token, 'permissions', signal, roles);
-  }
-
-  /**
-   * Fetches a bounded page of the character's treasures, used to populate the treasure
-   * preview grid on the character show page. Defaults to `PREVIEW_PAGE_SIZE` items so the
-   * request itself is bounded (issue #720), instead of relying on client-side truncation.
-   *
-   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
-   * @param {string} gameSlug - Game slug the character belongs to.
-   * @param {string|number} characterId - Character id.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {number} [perPage] - Maximum number of treasures to fetch.
-   * @returns {Promise<Response>} fetch response from the character treasures endpoint.
-   */
-  fetchCharacterTreasures(characterKind, gameSlug, characterId, token, perPage = PREVIEW_PAGE_SIZE) {
-    return this.#fetchCharacter(characterKind, gameSlug, characterId, token, 'treasures', undefined, [], perPage);
-  }
-
-  /**
-   * Fetches a bounded page of the character's items, used to populate the item preview grid on
-   * the character show page (issue #658). Defaults to `PREVIEW_PAGE_SIZE` items so the request
-   * itself is bounded (issue #720), instead of relying on client-side truncation.
-   *
-   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
-   * @param {string} gameSlug - Game slug the character belongs to.
-   * @param {string|number} characterId - Character id.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {number} [perPage] - Maximum number of items to fetch.
-   * @returns {Promise<Response>} fetch response from the character items endpoint.
-   */
-  fetchCharacterItems(characterKind, gameSlug, characterId, token, perPage = PREVIEW_PAGE_SIZE) {
-    return this.#fetchCharacter(characterKind, gameSlug, characterId, token, 'items', undefined, [], perPage);
-  }
-
-  /**
-   * Fetches a bounded page of the character's documents, used to populate the document preview
-   * grid on the character show page (issue #725). Defaults to `PREVIEW_PAGE_SIZE` items so the
-   * request itself is bounded, mirroring `fetchCharacterItems`.
-   *
-   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
-   * @param {string} gameSlug - Game slug the character belongs to.
-   * @param {string|number} characterId - Character id.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {number} [perPage] - Maximum number of documents to fetch.
-   * @returns {Promise<Response>} fetch response from the character documents endpoint.
-   */
-  fetchCharacterDocuments(characterKind, gameSlug, characterId, token, perPage = PREVIEW_PAGE_SIZE) {
-    return this.#fetchCharacter(characterKind, gameSlug, characterId, token, 'documents', undefined, [], perPage);
   }
 
   /**

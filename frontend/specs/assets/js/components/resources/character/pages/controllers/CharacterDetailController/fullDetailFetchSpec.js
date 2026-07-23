@@ -22,13 +22,7 @@ KINDS.forEach(({ label, Controller, kind, resource, privateDescription, getParam
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
       const client = jasmine.createSpyObj('client', ['currentHash']);
-      const characterClient = jasmine.createSpyObj(
-        'characterClient',
-        ['fetchCharacterTreasures', 'fetchCharacterItems', 'fetchCharacterDocuments', 'fetchCharacterPhotos'],
-      );
-      characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
-      characterClient.fetchCharacterItems.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
-      characterClient.fetchCharacterDocuments.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
+      const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacterPhotos']);
       characterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
       client.currentHash.and.returnValue(`#/games/demo/${kind}/2`);
@@ -69,13 +63,7 @@ KINDS.forEach(({ label, Controller, kind, resource, privateDescription, getParam
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
       const client = jasmine.createSpyObj('client', ['currentHash']);
-      const characterClient = jasmine.createSpyObj(
-        'characterClient',
-        ['fetchCharacterTreasures', 'fetchCharacterItems', 'fetchCharacterDocuments', 'fetchCharacterPhotos'],
-      );
-      characterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
-      characterClient.fetchCharacterItems.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
-      characterClient.fetchCharacterDocuments.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
+      const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacterPhotos']);
       characterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 
       client.currentHash.and.returnValue(`#/games/demo/${kind}/2`);

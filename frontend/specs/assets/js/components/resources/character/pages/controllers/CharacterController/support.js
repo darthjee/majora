@@ -12,18 +12,6 @@ export class StubCharacterController extends CharacterController {
     super(setCharacter, setLoading, setError, null, paramsFromHash, characterClient);
   }
 
-  fetchCharacterTreasures(gameSlug, characterId, token) { // eslint-disable-line no-unused-vars
-    return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
-  }
-
-  fetchCharacterItems(gameSlug, characterId, token) { // eslint-disable-line no-unused-vars
-    return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
-  }
-
-  fetchCharacterDocuments(gameSlug, characterId, token) { // eslint-disable-line no-unused-vars
-    return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
-  }
-
   fetchCharacterPhotos(gameSlug, characterId, token) { // eslint-disable-line no-unused-vars
     return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
   }
@@ -36,7 +24,10 @@ export class StubCharacterController extends CharacterController {
 export const safeSet = (setter, value) => setter(value);
 
 /**
- * @description Builds a StubCharacterController wired with the given overrides.
+ * @description Builds a StubCharacterController wired with the given overrides. Treasures/
+ *   items/documents fetches go through `RequestStore.ensure` directly (not an overridable
+ *   hook on the controller itself) — stub that in the spec file via `spyOn(RequestStore,
+ *   'ensure')` instead of through `overrides`.
  * @param {Function} setCharacter - setter for the loaded character.
  * @param {object} overrides - fake implementations for the fetch hooks.
  * @returns {StubCharacterController} the built controller.
@@ -50,15 +41,6 @@ export const buildController = (setCharacter, overrides = {}) => {
     null,
   );
 
-  if (overrides.fetchCharacterTreasures) {
-    spyOn(controller, 'fetchCharacterTreasures').and.callFake(overrides.fetchCharacterTreasures);
-  }
-  if (overrides.fetchCharacterItems) {
-    spyOn(controller, 'fetchCharacterItems').and.callFake(overrides.fetchCharacterItems);
-  }
-  if (overrides.fetchCharacterDocuments) {
-    spyOn(controller, 'fetchCharacterDocuments').and.callFake(overrides.fetchCharacterDocuments);
-  }
   if (overrides.fetchCharacterPhotos) {
     spyOn(controller, 'fetchCharacterPhotos').and.callFake(overrides.fetchCharacterPhotos);
   }

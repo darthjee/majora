@@ -14,7 +14,7 @@ KINDS.forEach(({ label, Controller, kind, resource, getParamsFromHash }) => {
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
       const client = jasmine.createSpyObj('client', ['currentHash']);
-      const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacterTreasures']);
+      const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacterPhotos']);
 
       client.currentHash.and.returnValue(`#/games/demo/${kind}/2`);
 
@@ -38,7 +38,7 @@ KINDS.forEach(({ label, Controller, kind, resource, getParamsFromHash }) => {
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
       const client = jasmine.createSpyObj('client', ['currentHash']);
-      const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacterTreasures']);
+      const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacterPhotos']);
 
       client.currentHash.and.returnValue('#/other');
 
