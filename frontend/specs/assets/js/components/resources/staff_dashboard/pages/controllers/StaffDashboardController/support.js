@@ -2,14 +2,12 @@ import AccessStore from '../../../../../../../../../assets/js/utils/access/store
 
 /**
  * @description Builds fresh spies shared by every StaffDashboardController spec file.
- * @returns {object} the setters and client spies used to construct the controller.
+ * @returns {object} the setters used to construct the controller.
  */
 export function buildContext() {
   return {
     setLoading: jasmine.createSpy('setLoading'),
     setError: jasmine.createSpy('setError'),
-    setStatus: jasmine.createSpy('setStatus'),
-    client: jasmine.createSpyObj('client', ['clearCache']),
   };
 }
 

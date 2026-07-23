@@ -5,17 +5,16 @@ import { buildContext, stubAccessStore } from './support.js';
 describe('StaffDashboardController', function() {
   let setLoading;
   let setError;
-  let client;
 
   beforeEach(function() {
-    ({ setLoading, setError, client } = buildContext());
+    ({ setLoading, setError } = buildContext());
   });
 
   describe('#buildEffect', function() {
     it('clears loading when the user is staff or superuser', async function() {
       stubAccessStore(true);
 
-      const cleanup = new StaffDashboardController(setLoading, setError, client).buildEffect()();
+      const cleanup = new StaffDashboardController(setLoading, setError).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(setLoading).toHaveBeenCalledWith(false);
@@ -30,7 +29,7 @@ describe('StaffDashboardController', function() {
       globalThis.window = fakeWindow;
 
       try {
-        const cleanup = new StaffDashboardController(setLoading, setError, client).buildEffect()();
+        const cleanup = new StaffDashboardController(setLoading, setError).buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(fakeWindow.location.hash).toBe('/');
@@ -45,7 +44,7 @@ describe('StaffDashboardController', function() {
     it('sets error when the access check fails', async function() {
       spyOn(AccessStore, 'ensureStaffOrSuperUser').and.returnValue(Promise.reject(new Error('network error')));
 
-      const cleanup = new StaffDashboardController(setLoading, setError, client).buildEffect()();
+      const cleanup = new StaffDashboardController(setLoading, setError).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(setError).toHaveBeenCalledWith('Unable to load dashboard.');

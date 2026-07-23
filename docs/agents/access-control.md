@@ -30,7 +30,7 @@ regardless of any other rule listed below.
 - [Character (PC and NPC)](access-control/character.md)
 - [Player](access-control/player.md) — includes the DM/GameMaster role (`Player.is_dm`)
 - [User (Staff Management)](access-control/user.md)
-- [Staff Cache](access-control/staff-cache.md) — the staff-only memory-cache-clear endpoint
+- [Staff Cache](access-control/staff-cache.md) — the staff-only memory-cache management endpoints
 - [CharacterPhoto](access-control/character-photo.md)
 - [CharacterTreasure](access-control/character-treasure.md)
 - [GameTreasure](access-control/game-treasure.md)

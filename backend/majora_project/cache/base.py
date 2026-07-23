@@ -38,6 +38,10 @@ class MemoryCache:
         self._store = {}
         self._total_size_bytes = 0
 
+    def summary(self):
+        """Return the current size and configured limit, in bytes, as a plain dict."""
+        return {'size': self._total_size_bytes, 'limit': Settings.max_size_bytes()}
+
     def _replace_entry(self, entry_type, key, entry):
         """Insert `entry`, discounting any previous entry stored under the same type/key."""
         bucket = self._store.setdefault(entry_type, {})

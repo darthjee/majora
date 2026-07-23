@@ -22,6 +22,7 @@ export default class HeaderNavHelper {
       <NavDropdown title={Translator.t('header.nav_admin')} id="header-admin-nav-dropdown" renderMenuOnMount>
         <NavDropdown.Item href="#/treasures">{Translator.t('header.nav_treasures')}</NavDropdown.Item>
         <NavDropdown.Item href="#/staff/users">{Translator.t('header.nav_staff_users')}</NavDropdown.Item>
+        <NavDropdown.Item href="#/staff/dashboard">{Translator.t('header.nav_staff_dashboard')}</NavDropdown.Item>
       </NavDropdown>
     );
   }
