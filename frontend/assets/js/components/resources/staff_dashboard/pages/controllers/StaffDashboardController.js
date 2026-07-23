@@ -1,5 +1,3 @@
-import StaffCacheClient from '../../../../../client/StaffCacheClient.js';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 
@@ -12,13 +10,11 @@ export default class StaffDashboardController extends BasePageController {
    *
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - General error setter.
-   * @param {StaffCacheClient|null} [client] - Client override.
    */
-  constructor(setLoading, setError, client = null) {
+  constructor(setLoading, setError) {
     super();
     this.setLoading = setLoading;
     this.setError = setError;
-    this.client = client ?? new StaffCacheClient();
   }
 
   /**
@@ -52,25 +48,5 @@ export default class StaffDashboardController extends BasePageController {
         mounted = false;
       };
     };
-  }
-
-  /**
-   * Clears the server-side cache, tracking the button's transient status.
-   *
-   * @param {Function} setStatus - Status setter (`idle`, `loading`, `success`, or `error`).
-   * @returns {Promise<void>} Resolves when the request handling finishes.
-   */
-  async clearCache(setStatus) {
-    setStatus('loading');
-
-    const token = AuthStorage.getToken();
-
-    try {
-      const response = await this.client.clearCache(token);
-
-      setStatus(response.ok ? 'success' : 'error');
-    } catch {
-      setStatus('error');
-    }
   }
 }
