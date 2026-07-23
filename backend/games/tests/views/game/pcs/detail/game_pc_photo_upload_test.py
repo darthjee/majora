@@ -104,6 +104,19 @@ class TestGamePcPhotoUploadView(TokenAuthRequestMixin):
         assert data['token']
         assert data['character_id'] == self.character.id
 
+    def test_filename_with_unsafe_characters_is_sanitised(self, client):
+        """Test that spaces and invalid characters in the filename stem are normalized."""
+        response = self._post(
+            client, {'filename': 'héro (final) [v2].png'}, token=self._editor_token()
+        )
+        assert response.status_code == 201
+        data = json.loads(response.content)
+        upload = Upload.objects.get(pk=data['upload_id'])
+        assert 'hero_final_v2_' in upload.file_path
+        for char in ('é', ' ', '(', ')', '[', ']'):
+            assert char not in upload.file_path
+        assert upload.file_path.endswith('.png')
+
     def test_happy_path_creates_upload_record(self, client):
         """Test that a valid request creates an Upload record with pending status."""
         response = self._post(client, {'filename': 'hero.png'}, token=self._editor_token())

@@ -109,6 +109,16 @@ class TestGameItemPhotoUploadView(TokenAuthRequestMixin):
         assert upload.status == Upload.STATUS_PENDING
         assert upload.file_path == f'photos/games/epic-quest/items/{self.item.id}/photo.png'
 
+    def test_filename_stem_with_unsafe_characters_does_not_affect_fixed_path(self, client):
+        """Test that the fixed 'photo' stem is unaffected by unsafe characters in the filename."""
+        response = self._post(
+            client, {'filename': 'héro (final) [v2].png'}, token=self.dm_token
+        )
+        assert response.status_code == 201
+        data = json.loads(response.content)
+        upload = Upload.objects.get(pk=data['upload_id'])
+        assert upload.file_path == f'photos/games/epic-quest/items/{self.item.id}/photo.png'
+
     def test_happy_path_creates_game_item_photo_record(self, client):
         """Test that the first upload creates a GameItemPhoto record with ready=False."""
         response = self._post(client, {'filename': 'sword.png'}, token=self.dm_token)

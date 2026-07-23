@@ -1,10 +1,8 @@
 """Shared implementation for the character photo upload-init endpoints."""
 
-import os
-import uuid
-
 from ...models import CharacterPhoto
 from ...permissions import CharacterPhotoUploadPermission
+from ...photo_path import PhotoPathBuilder
 from .._upload_init import UploadInitiator
 from ._shared import _get_character_or_404
 
@@ -35,6 +33,5 @@ def _build_file_path(game_slug, character_id, filename):
     `filename` is expected to be a sanitised basename (no directory components),
     as produced by PhotoUploadSerializer.validate_filename.
     """
-    stem, ext = os.path.splitext(filename)
-    random_uuid = uuid.uuid4()
-    return f'photos/games/{game_slug}/characters/{character_id}/{stem}_{random_uuid}{ext}'
+    segments = ['games', game_slug, 'characters', character_id]
+    return PhotoPathBuilder(segments, filename, use_uuid=True).build()

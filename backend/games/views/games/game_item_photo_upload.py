@@ -10,6 +10,7 @@ from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game, GameItem, GameItemPhoto
 from ...permissions import GameItemPhotoUploadPermission
+from ...photo_path import PhotoPathBuilder
 from .._upload_init import UploadInitiator
 
 
@@ -38,7 +39,8 @@ def game_item_photo_upload(request, game_slug, item_id):
 def _build_file_path(game_slug, item_id, filename):
     """Fixed, deterministic path — a GameItem has at most one photo, always replaced."""
     _, ext = os.path.splitext(filename)
-    return f'photos/games/{game_slug}/items/{item_id}/photo{ext}'
+    segments = ['games', game_slug, 'items', item_id]
+    return PhotoPathBuilder(segments, f'photo{ext}', use_uuid=False).build()
 
 
 def _reuse_or_create_photo(item, file_path):

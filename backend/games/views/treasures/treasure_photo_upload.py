@@ -10,6 +10,7 @@ from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Treasure, TreasurePhoto
 from ...permissions import GameEditPermission, TreasureEditPermission
+from ...photo_path import PhotoPathBuilder
 from .._upload_init import UploadInitiator
 
 
@@ -48,7 +49,7 @@ def _build_file_path(treasure_id, filename):
     stem) because a treasure has at most one photo, which is always replaced.
     """
     _, ext = os.path.splitext(filename)
-    return f'photos/treasures/{treasure_id}/photo{ext}'
+    return PhotoPathBuilder(['treasures', treasure_id], f'photo{ext}', use_uuid=False).build()
 
 
 def _reuse_or_create_photo(treasure, file_path):
