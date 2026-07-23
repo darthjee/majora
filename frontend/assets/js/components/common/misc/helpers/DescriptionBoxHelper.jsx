@@ -1,7 +1,10 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
+import OverlayTrigger from 'react-bootstrap/cjs/OverlayTrigger.js';
+import Tooltip from 'react-bootstrap/cjs/Tooltip.js';
 import Translator from '../../../../i18n/Translator.js';
+import Icons from '../../../../utils/ui/Icons.js';
 
 /**
  * Rendering helper for the DescriptionBox element.
@@ -40,15 +43,29 @@ export default class DescriptionBoxHelper {
     if (!state.isOverflowing) return null;
 
     const labelKey = state.expanded ? 'description_box.show_less' : 'description_box.show_more';
+    const label = Translator.t(labelKey);
+    const icon = state.expanded ? Icons.arrowsCollapse : Icons.arrowsExpand;
 
     return (
-      <button
-        type="button"
-        className="btn btn-link btn-sm p-0 mt-1"
-        onClick={handlers.onToggle}
+      <OverlayTrigger
+        placement="bottom"
+        overlay={(
+          <Tooltip>
+            {label}
+          </Tooltip>
+        )}
       >
-        {Translator.t(labelKey)}
-      </button>
+        <span className="d-inline-block">
+          <button
+            type="button"
+            className="btn btn-link btn-sm p-0 mt-1"
+            aria-label={label}
+            onClick={handlers.onToggle}
+          >
+            <i className={`bi ${icon}`} aria-hidden="true"></i>
+          </button>
+        </span>
+      </OverlayTrigger>
     );
   }
 }

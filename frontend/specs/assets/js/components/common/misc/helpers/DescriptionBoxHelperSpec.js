@@ -52,7 +52,7 @@ describe('DescriptionBoxHelper', function() {
       expect(html).not.toContain('<button');
     });
 
-    it('renders a "Show more" toggle button when the content overflows and is collapsed', function() {
+    it('renders an expand icon toggle button when the content overflows and is collapsed', function() {
       const html = renderToStaticMarkup(
         DescriptionBoxHelper.render(
           'Long text.',
@@ -62,10 +62,10 @@ describe('DescriptionBoxHelper', function() {
       );
 
       expect(html).toContain('<button');
-      expect(html).toContain('Show more');
+      expect(html).toContain('bi-arrows-expand');
     });
 
-    it('renders a "Show less" toggle button when the content overflows and is expanded', function() {
+    it('renders a collapse icon toggle button when the content overflows and is expanded', function() {
       const html = renderToStaticMarkup(
         DescriptionBoxHelper.render(
           'Long text.',
@@ -74,7 +74,45 @@ describe('DescriptionBoxHelper', function() {
         ),
       );
 
-      expect(html).toContain('Show less');
+      expect(html).toContain('bi-arrows-collapse');
+    });
+
+    it('renders the icon, not the translated label, as the button text content', function() {
+      const html = renderToStaticMarkup(
+        DescriptionBoxHelper.render(
+          'Long text.',
+          buildState({ isOverflowing: true, expanded: false }),
+          buildHandlers(),
+        ),
+      );
+      const buttonMarkup = html.match(/<button[^>]*>(.*?)<\/button>/)[1];
+
+      expect(buttonMarkup).not.toContain('Show more');
+      expect(buttonMarkup).toContain('bi-arrows-expand');
+    });
+
+    it('feeds the translated label to the tooltip overlay', function() {
+      const element = DescriptionBoxHelper.render(
+        'Long text.',
+        buildState({ isOverflowing: true, expanded: false }),
+        buildHandlers(),
+      );
+      const overlayTrigger = element.props.children[1];
+      const tooltip = overlayTrigger.props.overlay;
+
+      expect(tooltip.props.children).toBe('Show more');
+    });
+
+    it('sets the translated label as the button aria-label', function() {
+      const element = DescriptionBoxHelper.render(
+        'Long text.',
+        buildState({ isOverflowing: true, expanded: false }),
+        buildHandlers(),
+      );
+      const overlayTrigger = element.props.children[1];
+      const button = overlayTrigger.props.children.props.children;
+
+      expect(button.props['aria-label']).toBe('Show more');
     });
 
     it('invokes onToggle when the toggle button is clicked', function() {
@@ -84,7 +122,8 @@ describe('DescriptionBoxHelper', function() {
         buildState({ isOverflowing: true }),
         handlers,
       );
-      const button = element.props.children[1];
+      const overlayTrigger = element.props.children[1];
+      const button = overlayTrigger.props.children.props.children;
 
       button.props.onClick();
 
