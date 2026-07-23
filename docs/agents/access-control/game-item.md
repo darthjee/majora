@@ -40,7 +40,7 @@ already belongs to exactly one game) — a plain field, default `False`, never i
   (that game's GameMaster, or a superuser/staff) — the same permission class used by
   `GET /games/<slug>/treasures/all.json`.
 
-There is no acquire/sell flow, or NPC/PC "held item hidden" filter tied to `GameItem.hidden`
+There is no buy/sell flow, or NPC/PC "held item hidden" filter tied to `GameItem.hidden`
 itself — see [CharacterItem](character-item.md) below for the separate, per-character `hidden`
 flag that governs a PC's/NPC's own held-item list.
 

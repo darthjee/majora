@@ -29,7 +29,7 @@ from ._photo_set import character_photo_set
 from ._photo_upload import character_photo_upload
 from ._photos import character_photos
 from ._shared import _find_character, _get_character_or_404
-from ._treasure_exchange import character_treasure_acquire, character_treasure_sell
+from ._treasure_exchange import character_treasure_buy, character_treasure_sell
 from ._treasures import character_treasures
 
 
@@ -285,31 +285,31 @@ def build_treasures_view(npc):
     return view
 
 
-def build_treasure_acquire_view(npc):
-    """Build the POST treasure-acquire view for a PC (`npc=False`) or NPC (`npc=True`)."""
+def build_treasure_buy_view(npc):
+    """Build the POST treasure-buy view for a PC (`npc=False`) or NPC (`npc=True`)."""
 
     @_build_api_view(['POST'], AllowAny)
     def view(request, game_slug, character_id):
-        """Spend a PC's/NPC's money to acquire a quantity of a treasure available in a game."""
+        """Spend a PC's/NPC's money to buy a quantity of a treasure available in a game."""
         game = get_object_or_404(Game, game_slug=game_slug)
         character = _get_character_or_404(game, character_id, npc=npc)
-        return character_treasure_acquire(request, game, character)
+        return character_treasure_buy(request, game, character)
 
     return view
 
 
-def build_treasure_acquire_all_view(npc):
-    """Build the DM-only POST treasure-acquire-all view for a PC or NPC."""
+def build_treasure_buy_all_view(npc):
+    """Build the DM-only POST treasure-buy-all view for a PC or NPC."""
 
     @_build_api_view(['POST'], AllowAny)
     def view(request, game_slug, character_id):
-        """Spend a PC's/NPC's money to acquire a treasure, including hidden ones — DM only."""
+        """Spend a PC's/NPC's money to buy a treasure, including hidden ones — DM only."""
         game = get_object_or_404(Game, game_slug=game_slug)
         error_response = GameEditPermission.check(request, game)
         if error_response:
             return error_response
         character = _get_character_or_404(game, character_id, npc=npc)
-        return character_treasure_acquire(request, game, character, allow_hidden=True)
+        return character_treasure_buy(request, game, character, allow_hidden=True)
 
     return view
 

@@ -37,6 +37,6 @@ inherited by a `CharacterDocument` that links to it (see
   `GameEditPermission` (that game's GameMaster, or a superuser/staff) — the same permission
   class used by `GET /games/<slug>/items/all.json`.
 
-There is no acquire/sell flow, or NPC/PC "held document hidden" filter tied to
+There is no buy/sell flow, or NPC/PC "held document hidden" filter tied to
 `GameDocument.hidden` itself — see [CharacterDocument](character-document.md) below for the
 separate, per-character `hidden` flag that governs a PC's/NPC's own held-document list.

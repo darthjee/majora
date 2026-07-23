@@ -18,7 +18,7 @@ export default class CharacterTreasuresHelper {
    *   (`'pc-treasures'`/`'npc-treasures'`).
    * @param {string} state.basePath - Base hash path for the treasures list.
    * @param {string} state.backHref - Hash path to the parent character page.
-   * @param {boolean} [state.canEdit] - Whether the current user may acquire/sell treasures.
+   * @param {boolean} [state.canEdit] - Whether the current user may buy/sell treasures.
    * @param {number} state.refreshToken - Opaque value bumped to re-trigger the list fetch.
    * @param {object} state.activeFilters - Active filter query params preserved on pagination links.
    * @param {object} handlers - Page event handlers.

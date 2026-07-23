@@ -49,4 +49,5 @@ export default {
   link45deg: 'bi-link-45deg',
   arrowsExpand: 'bi-arrows-expand',
   arrowsCollapse: 'bi-arrows-collapse',
+  questionCircleFill: 'bi-question-circle-fill',
 };
