@@ -12,7 +12,8 @@ import getCurrentHash from '../../../../../utils/routing/currentHash.js';
  * {@link ItemDetailHelper} — the same helper `GameItem` uses, since the layout is identical for
  * game/PC/NPC items. Mirrors `PlayerDetail`'s loading/error/effect plumbing. Also wires up the
  * photo upload modal (issue #750), gated on the controller's independently-derived
- * `canUploadPhoto` flag, mirroring `GameItem`'s upload modal wiring.
+ * `canUploadPhoto` flag, mirroring `GameItem`'s upload modal wiring. Also renders an Edit button,
+ * gated on the controller's independently-derived `canEdit` flag (issue #782).
  *
  * @param {object} props - Component props.
  * @param {string} props.characterKind - Character kind URL segment (`'pcs'` or `'npcs'`).
@@ -24,11 +25,12 @@ export default function CharacterItem({ characterKind, ControllerClass = Charact
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [canEdit, setCanEdit] = useState(false);
   const [canUploadPhoto, setCanUploadPhoto] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
 
   const controller = useMemo(
-    () => new ControllerClass(characterKind, setItem, setLoading, setError, setCanUploadPhoto),
+    () => new ControllerClass(characterKind, setItem, setLoading, setError, setCanEdit, setCanUploadPhoto),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [characterKind],
   );
@@ -49,9 +51,11 @@ export default function CharacterItem({ characterKind, ControllerClass = Charact
   if (loading) return ItemDetailHelper.renderLoading();
   if (error) return ItemDetailHelper.renderError(error);
 
+  const editHref = `#/games/${gameSlug}/${characterKind}/${characterId}/items/${item.id}/edit`;
+
   return (
     <>
-      {ItemDetailHelper.render(item, backHref, canUploadPhoto, () => setShowUploadModal(true))}
+      {ItemDetailHelper.render(item, backHref, editHref, canEdit, canUploadPhoto, () => setShowUploadModal(true))}
       <PhotoUploadModal
         show={showUploadModal}
         uploadPath={`/games/${gameSlug}/${characterKind}/${characterId}/items/${item.id}/photo_upload.json`}

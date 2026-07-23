@@ -59,14 +59,16 @@ describe('ItemDetailHelper', function() {
 
     it('does not render the upload button when canUploadPhoto is omitted (CharacterItem callers)', function() {
       const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
-      const html = renderToStaticMarkup(ItemDetailHelper.render(item, '#/games/demo/items'));
+      const html = renderToStaticMarkup(ItemDetailHelper.render(item, '#/games/demo/items', '#/games/demo/items/5/edit'));
 
       expect(html).not.toContain('actions-overlay-button');
     });
 
     it('renders the upload button when canUploadPhoto is true', function() {
       const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
-      const html = renderToStaticMarkup(ItemDetailHelper.render(item, '#/games/demo/items', true));
+      const html = renderToStaticMarkup(
+        ItemDetailHelper.render(item, '#/games/demo/items', '#/games/demo/items/5/edit', false, true),
+      );
 
       expect(html).toContain('actions-overlay-button');
     });
@@ -74,10 +76,37 @@ describe('ItemDetailHelper', function() {
     it('passes canUploadPhoto and onUploadClick through to the show page layout context', function() {
       const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
       const onUploadClick = jasmine.createSpy('onUploadClick');
-      const element = ItemDetailHelper.render(item, '#/games/demo/items', true, onUploadClick);
+      const element = ItemDetailHelper.render(
+        item, '#/games/demo/items', '#/games/demo/items/5/edit', false, true, onUploadClick,
+      );
 
       expect(element.props.context.canUploadPhoto).toBe(true);
       expect(element.props.context.handlers.onOpenUploadModal).toBe(onUploadClick);
+    });
+
+    it('does not render the edit button when canEdit is omitted', function() {
+      const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
+      const html = renderToStaticMarkup(ItemDetailHelper.render(item, '#/games/demo/items', '#/games/demo/items/5/edit'));
+
+      expect(html).not.toContain('href="#/games/demo/items/5/edit"');
+    });
+
+    it('does not render the edit button when canEdit is false', function() {
+      const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
+      const html = renderToStaticMarkup(
+        ItemDetailHelper.render(item, '#/games/demo/items', '#/games/demo/items/5/edit', false),
+      );
+
+      expect(html).not.toContain('href="#/games/demo/items/5/edit"');
+    });
+
+    it('renders the edit button linking to editHref when canEdit is true', function() {
+      const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
+      const html = renderToStaticMarkup(
+        ItemDetailHelper.render(item, '#/games/demo/items', '#/games/demo/items/5/edit', true),
+      );
+
+      expect(html).toContain('href="#/games/demo/items/5/edit"');
     });
   });
 

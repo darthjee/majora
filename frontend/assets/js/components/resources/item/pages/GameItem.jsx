@@ -10,7 +10,8 @@ import getCurrentHash from '../../../../utils/routing/currentHash.js';
  * which picks between the public and elevated `all.json` endpoint based on the requester's
  * game-level edit permission) and delegates rendering to {@link ItemDetailHelper}. Also wires up
  * the photo upload modal (issue #749), gated on the controller's independently-derived
- * `canUploadPhoto` flag, mirroring `CharacterDetail`'s upload modal wiring.
+ * `canUploadPhoto` flag, mirroring `CharacterDetail`'s upload modal wiring. Also renders an Edit
+ * button, gated on the controller's independently-derived `canEdit` flag (issue #782).
  *
  * @param {object} [props] - Component props.
  * @param {Function} [props.ControllerClass] - Item controller class to instantiate, mainly for
@@ -21,11 +22,12 @@ export default function GameItem({ ControllerClass = GameItemController }) {
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [canEdit, setCanEdit] = useState(false);
   const [canUploadPhoto, setCanUploadPhoto] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
 
   const controller = useMemo(
-    () => new ControllerClass(setItem, setLoading, setError, setCanUploadPhoto),
+    () => new ControllerClass(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
@@ -45,9 +47,11 @@ export default function GameItem({ ControllerClass = GameItemController }) {
   if (loading) return ItemDetailHelper.renderLoading();
   if (error) return ItemDetailHelper.renderError(error);
 
+  const editHref = `#/games/${gameSlug}/items/${item?.id}/edit`;
+
   return (
     <>
-      {ItemDetailHelper.render(item, backHref, canUploadPhoto, () => setShowUploadModal(true))}
+      {ItemDetailHelper.render(item, backHref, editHref, canEdit, canUploadPhoto, () => setShowUploadModal(true))}
       <PhotoUploadModal
         show={showUploadModal}
         uploadPath={`/games/${gameSlug}/items/${item.id}/photo_upload.json`}
