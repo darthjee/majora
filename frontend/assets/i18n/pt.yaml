@@ -325,6 +325,10 @@ treasure_exchange_modal:
   buy_tab_tooltip: Compra tesouro usando o dinheiro do personagem
   sell_tab: Vender
   sell_tab_tooltip: Vende tesouro recuperando o dinheiro do personagem
+  acquire_tab: Adquirir
+  acquire_tab_tooltip: Adquire tesouro sem alterar o dinheiro do personagem
+  remove_tab: Remover
+  remove_tab_tooltip: Remove tesouro sem alterar o dinheiro do personagem
   quantity_label: Quantidade
   already_owned: 'Já possui: {{quantity}}'
   confirm: Confirmar

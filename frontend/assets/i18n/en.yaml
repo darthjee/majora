@@ -325,6 +325,10 @@ treasure_exchange_modal:
   buy_tab_tooltip: Buys treasure using the character's money
   sell_tab: Sell
   sell_tab_tooltip: Sells treasure recovering the character's money
+  acquire_tab: Acquire
+  acquire_tab_tooltip: Acquires treasure without changing character's money
+  remove_tab: Remove
+  remove_tab_tooltip: Removes treasure without changing character's money
   quantity_label: Quantity
   already_owned: 'Already owned: {{quantity}}'
   confirm: Confirm
