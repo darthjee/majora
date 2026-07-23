@@ -321,17 +321,19 @@ treasure_exchange_modal:
   title: Troca de Tesouro
   search_placeholder: Buscar tesouros...
   your_money: 'Seu dinheiro:'
-  acquire_tab: Adquirir
+  buy_tab: Comprar
+  buy_tab_tooltip: Compra tesouro usando o dinheiro do personagem
   sell_tab: Vender
+  sell_tab_tooltip: Vende tesouro recuperando o dinheiro do personagem
   quantity_label: Quantidade
   already_owned: 'Já possui: {{quantity}}'
   confirm: Confirmar
   cancel: Cancelar
-  back: Voltar
+  cancel_selection: Cancelar
   loading: Carregando tesouros...
   empty: Nenhum tesouro disponível.
   load_error: Falha ao carregar tesouros. Por favor, tente novamente.
-  insufficient_funds: Dinheiro insuficiente para adquirir essa quantidade.
+  insufficient_funds: Dinheiro insuficiente para comprar essa quantidade.
   not_enough_owned: Você não possui essa quantidade para vender.
   generic_error: Não foi possível concluir esta ação. Por favor, tente novamente.
   available_units_badge: '{{available}} restantes'

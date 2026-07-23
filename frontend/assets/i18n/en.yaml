@@ -321,17 +321,19 @@ treasure_exchange_modal:
   title: Treasure Exchange
   search_placeholder: Search treasures...
   your_money: 'Your money:'
-  acquire_tab: Acquire
+  buy_tab: Buy
+  buy_tab_tooltip: Buys treasure using the character's money
   sell_tab: Sell
+  sell_tab_tooltip: Sells treasure recovering the character's money
   quantity_label: Quantity
   already_owned: 'Already owned: {{quantity}}'
   confirm: Confirm
   cancel: Cancel
-  back: Back
+  cancel_selection: Cancel
   loading: Loading treasures...
   empty: No treasures available.
   load_error: Unable to load treasures. Please try again.
-  insufficient_funds: Not enough money to acquire this quantity.
+  insufficient_funds: Not enough money to buy this quantity.
   not_enough_owned: You do not own that many to sell.
   generic_error: Unable to complete this action. Please try again.
   available_units_badge: '{{available}} left'
