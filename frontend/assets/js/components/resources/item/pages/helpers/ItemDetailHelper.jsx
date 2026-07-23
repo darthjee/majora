@@ -1,4 +1,6 @@
 import React from 'react';
+import EditButton from '../../../../common/buttons/EditButton.jsx';
+import ConditionalComponent from '../../../../common/misc/ConditionalComponent.jsx';
 import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
 import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
 import ShowPageLayout from '../../../../common/show_page/ShowPageLayout.jsx';
@@ -24,6 +26,10 @@ export default class ItemDetailHelper {
    * @param {boolean} [item.hidden] - Whether the item is hidden from players (DM/admin-facing
    *   data only, present only in the `/all.json` variants).
    * @param {string} backHref - Hash path to the item's parent list page.
+   * @param {string} editHref - Hash path to the item's edit page, built by the caller (route
+   *   shape differs between the game, PC, and NPC item pages).
+   * @param {boolean} [canEdit] - Whether the current user may edit this item, gating the Edit
+   *   button rendered alongside the back button (issue #782). Defaults to `false`.
    * @param {boolean} [canUploadPhoto] - Whether the current user may upload a new photo.
    *   Defaults to `false` (today's behavior), used as-is by `CharacterItem`'s two callers which
    *   have no upload feature (issue #749 scope decision).
@@ -31,12 +37,19 @@ export default class ItemDetailHelper {
    *   Defaults to a no-op, matching the `canUploadPhoto` default.
    * @returns {React.ReactElement} Item detail element.
    */
-  static render(item, backHref, canUploadPhoto = false, onUploadClick = Noop.noop) {
+  static render(item, backHref, editHref, canEdit = false, canUploadPhoto = false, onUploadClick = Noop.noop) {
     return (
       <ShowPageLayout
         type="item"
         mode="show"
         backHref={backHref}
+        pageActions={(
+          <ConditionalComponent render={canEdit}>
+            <EditButton href={editHref}>
+              {Translator.t('character_page.edit')}
+            </EditButton>
+          </ConditionalComponent>
+        )}
         context={{ ...item, canUploadPhoto, handlers: { onOpenUploadModal: onUploadClick } }}
       />
     );

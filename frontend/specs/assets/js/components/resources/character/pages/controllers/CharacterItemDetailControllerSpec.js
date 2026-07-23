@@ -7,6 +7,7 @@ describe('CharacterItemDetailController', function() {
   let setItem;
   let setLoading;
   let setError;
+  let setCanEdit;
   let setCanUploadPhoto;
   let client;
   let ensureSpy;
@@ -15,6 +16,7 @@ describe('CharacterItemDetailController', function() {
     setItem = jasmine.createSpy('setItem');
     setLoading = jasmine.createSpy('setLoading');
     setError = jasmine.createSpy('setError');
+    setCanEdit = jasmine.createSpy('setCanEdit');
     setCanUploadPhoto = jasmine.createSpy('setCanUploadPhoto');
     client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
     ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(
@@ -55,7 +57,7 @@ describe('CharacterItemDetailController', function() {
 
         it('fetches the item through RequestStore with the character-owned kind', async function() {
           const cleanup = new CharacterItemDetailController(
-            characterKind, setItem, setLoading, setError, setCanUploadPhoto, client,
+            characterKind, setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client,
           ).buildEffect()();
           await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -71,7 +73,7 @@ describe('CharacterItemDetailController', function() {
 
         it('resolves the character-level permission for this character kind', async function() {
           const cleanup = new CharacterItemDetailController(
-            characterKind, setItem, setLoading, setError, setCanUploadPhoto, client,
+            characterKind, setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client,
           ).buildEffect()();
           await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -88,7 +90,7 @@ describe('CharacterItemDetailController', function() {
       client.currentHash.and.returnValue('#/games/demo/pcs/7/items/5');
       ensureSpy.and.returnValue(Promise.reject(new Error('network error')));
 
-      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, setCanUploadPhoto, client)
+      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client)
         .buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -101,7 +103,7 @@ describe('CharacterItemDetailController', function() {
     it('sets an error and skips fetching when route params are missing', function() {
       client.currentHash.and.returnValue('#/games/demo/pcs/7');
 
-      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, setCanUploadPhoto, client)
+      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client)
         .buildEffect()();
 
       expect(setError).toHaveBeenCalledWith('Unable to load item.');
@@ -114,7 +116,7 @@ describe('CharacterItemDetailController', function() {
     it('does not update state after unmount', async function() {
       client.currentHash.and.returnValue('#/games/demo/pcs/7/items/5');
 
-      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, setCanUploadPhoto, client)
+      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client)
         .buildEffect()();
       cleanup();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -130,7 +132,7 @@ describe('CharacterItemDetailController', function() {
     });
 
     const runController = async () => {
-      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, setCanUploadPhoto, client)
+      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client)
         .buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
       cleanup();
@@ -162,6 +164,43 @@ describe('CharacterItemDetailController', function() {
       await runController();
 
       expect(setCanUploadPhoto).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('canEdit', function() {
+    beforeEach(function() {
+      client.currentHash.and.returnValue('#/games/demo/pcs/7/items/5');
+    });
+
+    const runController = async () => {
+      const cleanup = new CharacterItemDetailController('pcs', setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client)
+        .buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      cleanup();
+    };
+
+    it('is true when the permissions response grants can_edit', async function() {
+      AccessStore.ensureCharacterPermissions.and.returnValue(Promise.resolve({ can_edit: true }));
+
+      await runController();
+
+      expect(setCanEdit).toHaveBeenCalledWith(true);
+    });
+
+    it('is false when the permissions response denies can_edit', async function() {
+      AccessStore.ensureCharacterPermissions.and.returnValue(Promise.resolve({ can_edit: false }));
+
+      await runController();
+
+      expect(setCanEdit).toHaveBeenCalledWith(false);
+    });
+
+    it('fails closed to false when the permission check rejects', async function() {
+      AccessStore.ensureCharacterPermissions.and.returnValue(Promise.reject(new Error('nope')));
+
+      await runController();
+
+      expect(setCanEdit).toHaveBeenCalledWith(false);
     });
   });
 });

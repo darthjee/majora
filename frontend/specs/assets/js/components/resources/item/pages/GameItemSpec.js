@@ -13,8 +13,9 @@ const loadedItem = { id: 5, name: 'Cloak of Elvenkind', description: 'A shimmeri
 
 /** Stub controller that synchronously loads an item (with upload permission) during construction. */
 class LoadedController {
-  constructor(setItem, setLoading, setError, setCanUploadPhoto) {
+  constructor(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto) {
     setItem(loadedItem);
+    setCanEdit(true);
     setCanUploadPhoto(true);
     setLoading(false);
   }
@@ -22,10 +23,11 @@ class LoadedController {
   buildEffect() { return () => Noop.noop; }
 }
 
-/** Stub controller that synchronously loads an item without upload permission. */
+/** Stub controller that synchronously loads an item without upload or edit permission. */
 class LoadedWithoutUploadController {
-  constructor(setItem, setLoading, setError, setCanUploadPhoto) {
+  constructor(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto) {
     setItem(loadedItem);
+    setCanEdit(false);
     setCanUploadPhoto(false);
     setLoading(false);
   }
@@ -76,14 +78,18 @@ describe('GameItem', function() {
     expect(html).toContain('Unable to load item.');
   });
 
-  it('delegates to ItemDetailHelper.render with the item, back href and upload gating', function() {
+  it('delegates to ItemDetailHelper.render with the item, back href, edit href and gating', function() {
     let capturedItem;
     let capturedBackHref;
+    let capturedEditHref;
+    let capturedCanEdit;
     let capturedCanUploadPhoto;
     let capturedOnUploadClick;
-    spyOn(ItemDetailHelper, 'render').and.callFake((item, backHref, canUploadPhoto, onUploadClick) => {
+    spyOn(ItemDetailHelper, 'render').and.callFake((item, backHref, editHref, canEdit, canUploadPhoto, onUploadClick) => {
       capturedItem = item;
       capturedBackHref = backHref;
+      capturedEditHref = editHref;
+      capturedCanEdit = canEdit;
       capturedCanUploadPhoto = canUploadPhoto;
       capturedOnUploadClick = onUploadClick;
       return null;
@@ -93,13 +99,17 @@ describe('GameItem', function() {
 
     expect(capturedItem).toEqual(loadedItem);
     expect(capturedBackHref).toBe('#/games/demo/items');
+    expect(capturedEditHref).toBe('#/games/demo/items/5/edit');
+    expect(capturedCanEdit).toBe(true);
     expect(capturedCanUploadPhoto).toBe(true);
     expect(typeof capturedOnUploadClick).toBe('function');
   });
 
-  it('passes canUploadPhoto=false through when the controller denies it', function() {
+  it('passes canEdit=false and canUploadPhoto=false through when the controller denies them', function() {
+    let capturedCanEdit;
     let capturedCanUploadPhoto;
-    spyOn(ItemDetailHelper, 'render').and.callFake((item, backHref, canUploadPhoto) => {
+    spyOn(ItemDetailHelper, 'render').and.callFake((item, backHref, editHref, canEdit, canUploadPhoto) => {
+      capturedCanEdit = canEdit;
       capturedCanUploadPhoto = canUploadPhoto;
       return null;
     });
@@ -108,12 +118,13 @@ describe('GameItem', function() {
       React.createElement(GameItem, { ControllerClass: LoadedWithoutUploadController }),
     );
 
+    expect(capturedCanEdit).toBe(false);
     expect(capturedCanUploadPhoto).toBe(false);
   });
 
   it('opens the upload modal via the onUploadClick handler passed to ItemDetailHelper', function() {
     let capturedOnUploadClick;
-    spyOn(ItemDetailHelper, 'render').and.callFake((item, backHref, canUploadPhoto, onUploadClick) => {
+    spyOn(ItemDetailHelper, 'render').and.callFake((item, backHref, editHref, canEdit, canUploadPhoto, onUploadClick) => {
       capturedOnUploadClick = onUploadClick;
       return null;
     });

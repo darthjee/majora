@@ -7,6 +7,7 @@ describe('GameItemController', function() {
   let setItem;
   let setLoading;
   let setError;
+  let setCanEdit;
   let setCanUploadPhoto;
   let client;
   let ensureSpy;
@@ -15,10 +16,12 @@ describe('GameItemController', function() {
     setItem = jasmine.createSpy('setItem');
     setLoading = jasmine.createSpy('setLoading');
     setError = jasmine.createSpy('setError');
+    setCanEdit = jasmine.createSpy('setCanEdit');
     setCanUploadPhoto = jasmine.createSpy('setCanUploadPhoto');
     client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
     client.currentHash.and.returnValue('#/games/demo/items/5');
     spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
+    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
     ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(
       Promise.resolve({ data: { id: 5, name: 'Cloak of Elvenkind' } }),
     );
@@ -40,7 +43,7 @@ describe('GameItemController', function() {
 
   describe('#buildEffect', function() {
     it('fetches the item through RequestStore with the game-owned kind', async function() {
-      const cleanup = new GameItemController(setItem, setLoading, setError, setCanUploadPhoto, client).buildEffect()();
+      const cleanup = new GameItemController(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(ensureSpy).toHaveBeenCalledWith({
@@ -56,7 +59,7 @@ describe('GameItemController', function() {
     it('sets an error when the fetch rejects', async function() {
       ensureSpy.and.returnValue(Promise.reject(new Error('network error')));
 
-      const cleanup = new GameItemController(setItem, setLoading, setError, setCanUploadPhoto, client).buildEffect()();
+      const cleanup = new GameItemController(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(setError).toHaveBeenCalledWith('Unable to load item.');
@@ -68,7 +71,7 @@ describe('GameItemController', function() {
     it('sets an error and skips fetching when route params are missing', function() {
       client.currentHash.and.returnValue('#/games/demo');
 
-      const cleanup = new GameItemController(setItem, setLoading, setError, setCanUploadPhoto, client).buildEffect()();
+      const cleanup = new GameItemController(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client).buildEffect()();
 
       expect(setError).toHaveBeenCalledWith('Unable to load item.');
       expect(setLoading).toHaveBeenCalledWith(false);
@@ -78,7 +81,7 @@ describe('GameItemController', function() {
     });
 
     it('does not update state after unmount', async function() {
-      const cleanup = new GameItemController(setItem, setLoading, setError, setCanUploadPhoto, client).buildEffect()();
+      const cleanup = new GameItemController(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client).buildEffect()();
       cleanup();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -89,7 +92,7 @@ describe('GameItemController', function() {
 
   describe('canUploadPhoto', function() {
     const runController = async () => {
-      const cleanup = new GameItemController(setItem, setLoading, setError, setCanUploadPhoto, client).buildEffect()();
+      const cleanup = new GameItemController(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
       cleanup();
     };
@@ -148,6 +151,44 @@ describe('GameItemController', function() {
       await runController();
 
       expect(setCanUploadPhoto).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('canEdit', function() {
+    const runController = async () => {
+      const cleanup = new GameItemController(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      cleanup();
+    };
+
+    it('calls ensureGamePermissions with the game slug independently of the item fetch', async function() {
+      await runController();
+
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+    });
+
+    it('is true when the requester can edit the game', async function() {
+      AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: true }));
+
+      await runController();
+
+      expect(setCanEdit).toHaveBeenCalledWith(true);
+    });
+
+    it('is false when the requester cannot edit the game', async function() {
+      AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: false }));
+
+      await runController();
+
+      expect(setCanEdit).toHaveBeenCalledWith(false);
+    });
+
+    it('fails closed to false when the permissions check rejects', async function() {
+      AccessStore.ensureGamePermissions.and.returnValue(Promise.reject(new Error('nope')));
+
+      await runController();
+
+      expect(setCanEdit).toHaveBeenCalledWith(false);
     });
   });
 });
