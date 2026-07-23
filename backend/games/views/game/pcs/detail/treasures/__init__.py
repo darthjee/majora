@@ -1,1 +1,1 @@
-"""Views for a single PC's nested treasures (list, acquire, sell)."""
+"""Views for a single PC's nested treasures (list, buy, sell)."""

@@ -1,4 +1,4 @@
-"""Tests for the PC treasure acquire endpoint."""
+"""Tests for the PC treasure buy endpoint."""
 
 import json
 
@@ -19,8 +19,8 @@ from games.tests.factories import (
 
 
 @pytest.mark.django_db
-class TestGamePcTreasureAcquireView(TokenAuthRequestMixin):
-    """Tests for POST /games/<slug>/pcs/<id>/treasures/acquire.json."""
+class TestGamePcTreasureBuyView(TokenAuthRequestMixin):
+    """Tests for POST /games/<slug>/pcs/<id>/treasures/buy.json."""
 
     def setup_method(self):
         """Set up a game, a PC with money, a DM, an unrelated user, and a treasure."""
@@ -44,27 +44,27 @@ class TestGamePcTreasureAcquireView(TokenAuthRequestMixin):
         return Token.objects.create(user=self.owner)
 
     def _url(self, character_id=None, game_slug=None):
-        """Return the acquire endpoint URL for the given character/game (defaults to fixtures)."""
+        """Return the buy endpoint URL for the given character/game (defaults to fixtures)."""
         character_id = character_id if character_id is not None else self.character.id
         game_slug = game_slug if game_slug is not None else self.game.game_slug
-        return f'/games/{game_slug}/pcs/{character_id}/treasures/acquire.json'
+        return f'/games/{game_slug}/pcs/{character_id}/treasures/buy.json'
 
     def _post(self, client, payload, token=None, character_id=None, game_slug=None):
-        """Issue a POST request to the acquire endpoint, optionally with a token."""
+        """Issue a POST request to the buy endpoint, optionally with a token."""
         return self.post(client, self._url(character_id, game_slug), payload, token=token)
 
-    def test_editor_can_acquire_treasure(self, client):
-        """Test that an authorized editor can acquire treasure on behalf of the character."""
+    def test_editor_can_buy_treasure(self, client):
+        """Test that an authorized editor can buy treasure on behalf of the character."""
         response = self._post(
             client, {'treasure_id': self.treasure.id, 'quantity': 3}, token=self._editor_token(),
         )
         assert response.status_code == 200
         assert response.json() == {'quantity': 3, 'money': 700, 'acquired': 3}
 
-    def test_acquire_cost_uses_game_treasure_value_when_it_differs_from_treasure_value(
+    def test_buy_cost_uses_game_treasure_value_when_it_differs_from_treasure_value(
         self, client,
     ):
-        """Test that acquire cost is computed from GameTreasure.value, not Treasure.value."""
+        """Test that buy cost is computed from GameTreasure.value, not Treasure.value."""
         GameTreasure.objects.create(game=self.game, treasure=self.treasure, value=10)
         response = self._post(
             client, {'treasure_id': self.treasure.id, 'quantity': 3}, token=self._editor_token(),
@@ -72,8 +72,8 @@ class TestGamePcTreasureAcquireView(TokenAuthRequestMixin):
         assert response.status_code == 200
         assert response.json() == {'quantity': 3, 'money': 970, 'acquired': 3}
 
-    def test_acquire_creates_character_treasure_row(self, client):
-        """Test that a CharacterTreasure row is created on the first acquire."""
+    def test_buy_creates_character_treasure_row(self, client):
+        """Test that a CharacterTreasure row is created on the first buy."""
         self._post(
             client, {'treasure_id': self.treasure.id, 'quantity': 1}, token=self._editor_token(),
         )
@@ -82,7 +82,7 @@ class TestGamePcTreasureAcquireView(TokenAuthRequestMixin):
         )
         assert character_treasure.quantity == 1
 
-    def test_acquire_sets_character_treasure_total_value(self, client):
+    def test_buy_sets_character_treasure_total_value(self, client):
         """Test that acquiring sets total_value to quantity * Treasure.value."""
         self._post(
             client, {'treasure_id': self.treasure.id, 'quantity': 3}, token=self._editor_token(),
@@ -92,7 +92,7 @@ class TestGamePcTreasureAcquireView(TokenAuthRequestMixin):
         )
         assert character_treasure.total_value == 300
 
-    def test_acquire_sets_total_value_using_game_treasure_value_when_it_differs(self, client):
+    def test_buy_sets_total_value_using_game_treasure_value_when_it_differs(self, client):
         """Test that total_value is computed from GameTreasure.value, not Treasure.value."""
         GameTreasure.objects.create(game=self.game, treasure=self.treasure, value=10)
         self._post(
@@ -163,7 +163,7 @@ class TestGamePcTreasureAcquireView(TokenAuthRequestMixin):
     def test_url_by_name(self, client):
         """Test that the view is accessible by URL name."""
         url = reverse(
-            'game-pc-treasure-acquire',
+            'game-pc-treasure-buy',
             kwargs={'game_slug': self.game.game_slug, 'character_id': self.character.id},
         )
         response = client.post(
@@ -174,7 +174,7 @@ class TestGamePcTreasureAcquireView(TokenAuthRequestMixin):
         )
         assert response.status_code == 200
 
-    def test_acquire_adds_to_existing_quantity(self, client):
+    def test_buy_adds_to_existing_quantity(self, client):
         """Test that acquiring again adds to the existing owned quantity."""
         CharacterTreasure.objects.create(
             character=self.character, treasure=self.treasure, quantity=1,
@@ -184,15 +184,15 @@ class TestGamePcTreasureAcquireView(TokenAuthRequestMixin):
         )
         assert response.json() == {'quantity': 3, 'money': 800, 'acquired': 2}
 
-    def test_dm_can_acquire_treasure(self, client):
-        """Test that a DM of the game can acquire treasure on behalf of a PC."""
+    def test_dm_can_buy_treasure(self, client):
+        """Test that a DM of the game can buy treasure on behalf of a PC."""
         response = self._post(
             client, {'treasure_id': self.treasure.id, 'quantity': 1}, token=self.dm_token,
         )
         assert response.status_code == 200
 
-    def test_staff_can_acquire_treasure(self, client):
-        """Test that a global Staff user, neither owner nor DM, can acquire treasure for a PC."""
+    def test_staff_can_buy_treasure(self, client):
+        """Test that a global Staff user, neither owner nor DM, can buy treasure for a PC."""
         staff_user = UserFactory(username='staff_user', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
@@ -230,7 +230,7 @@ class TestGamePcTreasureAcquireView(TokenAuthRequestMixin):
 
 
 @pytest.mark.django_db
-class TestGamePcTreasureAcquireHiddenTreasure(TokenAuthRequestMixin):
+class TestGamePcTreasureBuyHiddenTreasure(TokenAuthRequestMixin):
     """Tests for acquiring a treasure that is hidden (GameTreasure.hidden) for the game."""
 
     def setup_method(self):
@@ -246,10 +246,10 @@ class TestGamePcTreasureAcquireHiddenTreasure(TokenAuthRequestMixin):
         )
 
     def _post(self, client, token=None):
-        """Issue a POST request to acquire the hidden treasure."""
+        """Issue a POST request to buy the hidden treasure."""
         return self.post(
             client,
-            f'/games/test-game/pcs/{self.character.id}/treasures/acquire.json',
+            f'/games/test-game/pcs/{self.character.id}/treasures/buy.json',
             {'treasure_id': self.treasure.id, 'quantity': 1},
             token=token,
         )

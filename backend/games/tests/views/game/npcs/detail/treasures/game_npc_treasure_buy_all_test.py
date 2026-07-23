@@ -1,4 +1,4 @@
-"""Tests for the DM-only NPC treasure acquire-all endpoint (accepts hidden treasures)."""
+"""Tests for the DM-only NPC treasure buy-all endpoint (accepts hidden treasures)."""
 
 import json
 
@@ -20,8 +20,8 @@ from games.tests.factories import (
 
 
 @pytest.mark.django_db
-class TestGameNpcTreasureAcquireAllView(TokenAuthRequestMixin):
-    """Tests for POST /games/<slug>/npcs/<id>/treasures/acquire/all.json."""
+class TestGameNpcTreasureBuyAllView(TokenAuthRequestMixin):
+    """Tests for POST /games/<slug>/npcs/<id>/treasures/buy/all.json."""
 
     def setup_method(self):
         """Set up a game, a DM, an unrelated user, an NPC with money, and a hidden treasure."""
@@ -38,32 +38,32 @@ class TestGameNpcTreasureAcquireAllView(TokenAuthRequestMixin):
         )
 
     def _url(self, character_id=None, game_slug=None):
-        """Return the acquire-all endpoint URL for the given character/game."""
+        """Return the buy-all endpoint URL for the given character/game."""
         character_id = character_id if character_id is not None else self.character.id
         game_slug = game_slug if game_slug is not None else self.game.game_slug
-        return f'/games/{game_slug}/npcs/{character_id}/treasures/acquire/all.json'
+        return f'/games/{game_slug}/npcs/{character_id}/treasures/buy/all.json'
 
     def _post(self, client, token=None, character_id=None, game_slug=None):
-        """Issue a POST request to the acquire-all endpoint, optionally with a token."""
+        """Issue a POST request to the buy-all endpoint, optionally with a token."""
         return self.post(
             client, self._url(character_id, game_slug),
             {'treasure_id': self.treasure.id, 'quantity': 2}, token=token,
         )
 
-    def test_dm_can_acquire_a_hidden_treasure(self, client):
-        """Test that a DM can acquire a treasure hidden from players via the all-variant."""
+    def test_dm_can_buy_a_hidden_treasure(self, client):
+        """Test that a DM can buy a treasure hidden from players via the all-variant."""
         response = self._post(client, token=self.dm_token)
         assert response.status_code == 200
         assert response.json() == {'quantity': 2, 'money': 800, 'acquired': 2}
 
-    def test_superuser_can_acquire_a_hidden_treasure(self, client):
-        """Test that a superuser can acquire a hidden treasure via the all-variant."""
+    def test_superuser_can_buy_a_hidden_treasure(self, client):
+        """Test that a superuser can buy a hidden treasure via the all-variant."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
         response = self._post(client, token=token)
         assert response.status_code == 200
 
-    def test_acquire_creates_character_treasure_row(self, client):
+    def test_buy_creates_character_treasure_row(self, client):
         """Test that acquiring a hidden treasure still creates the CharacterTreasure row."""
         self._post(client, token=self.dm_token)
         character_treasure = CharacterTreasure.objects.get(
@@ -109,7 +109,7 @@ class TestGameNpcTreasureAcquireAllView(TokenAuthRequestMixin):
     def test_url_by_name(self, client):
         """Test that the view is accessible by URL name."""
         url = reverse(
-            'game-npc-treasure-acquire-all',
+            'game-npc-treasure-buy-all',
             kwargs={'game_slug': self.game.game_slug, 'character_id': self.character.id},
         )
         response = client.post(

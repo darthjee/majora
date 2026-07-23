@@ -1,4 +1,4 @@
-"""Tests for the NPC treasure acquire endpoint."""
+"""Tests for the NPC treasure buy endpoint."""
 
 import json
 
@@ -20,8 +20,8 @@ from games.tests.factories import (
 
 
 @pytest.mark.django_db
-class TestGameNpcTreasureAcquireView(TokenAuthRequestMixin):
-    """Tests for POST /games/<slug>/npcs/<id>/treasures/acquire.json."""
+class TestGameNpcTreasureBuyView(TokenAuthRequestMixin):
+    """Tests for POST /games/<slug>/npcs/<id>/treasures/buy.json."""
 
     def setup_method(self):
         """Set up a game, an NPC with money, a DM, an unrelated user, and a treasure."""
@@ -39,27 +39,27 @@ class TestGameNpcTreasureAcquireView(TokenAuthRequestMixin):
         return self.dm_token
 
     def _url(self, character_id=None, game_slug=None):
-        """Return the acquire endpoint URL for the given character/game (defaults to fixtures)."""
+        """Return the buy endpoint URL for the given character/game (defaults to fixtures)."""
         character_id = character_id if character_id is not None else self.character.id
         game_slug = game_slug if game_slug is not None else self.game.game_slug
-        return f'/games/{game_slug}/npcs/{character_id}/treasures/acquire.json'
+        return f'/games/{game_slug}/npcs/{character_id}/treasures/buy.json'
 
     def _post(self, client, payload, token=None, character_id=None, game_slug=None):
-        """Issue a POST request to the acquire endpoint, optionally with a token."""
+        """Issue a POST request to the buy endpoint, optionally with a token."""
         return self.post(client, self._url(character_id, game_slug), payload, token=token)
 
-    def test_editor_can_acquire_treasure(self, client):
-        """Test that an authorized editor can acquire treasure on behalf of the character."""
+    def test_editor_can_buy_treasure(self, client):
+        """Test that an authorized editor can buy treasure on behalf of the character."""
         response = self._post(
             client, {'treasure_id': self.treasure.id, 'quantity': 2}, token=self._editor_token(),
         )
         assert response.status_code == 200
         assert response.json() == {'quantity': 2, 'money': 600, 'acquired': 2}
 
-    def test_acquire_cost_uses_game_treasure_value_when_it_differs_from_treasure_value(
+    def test_buy_cost_uses_game_treasure_value_when_it_differs_from_treasure_value(
         self, client,
     ):
-        """Test that acquire cost is computed from GameTreasure.value, not Treasure.value."""
+        """Test that buy cost is computed from GameTreasure.value, not Treasure.value."""
         GameTreasure.objects.create(game=self.game, treasure=self.treasure, value=20)
         response = self._post(
             client, {'treasure_id': self.treasure.id, 'quantity': 2}, token=self._editor_token(),
@@ -67,8 +67,8 @@ class TestGameNpcTreasureAcquireView(TokenAuthRequestMixin):
         assert response.status_code == 200
         assert response.json() == {'quantity': 2, 'money': 960, 'acquired': 2}
 
-    def test_acquire_creates_character_treasure_row(self, client):
-        """Test that a CharacterTreasure row is created on the first acquire."""
+    def test_buy_creates_character_treasure_row(self, client):
+        """Test that a CharacterTreasure row is created on the first buy."""
         self._post(
             client, {'treasure_id': self.treasure.id, 'quantity': 1}, token=self._editor_token(),
         )
@@ -77,7 +77,7 @@ class TestGameNpcTreasureAcquireView(TokenAuthRequestMixin):
         )
         assert character_treasure.quantity == 1
 
-    def test_acquire_sets_character_treasure_total_value(self, client):
+    def test_buy_sets_character_treasure_total_value(self, client):
         """Test that acquiring sets total_value to quantity * Treasure.value."""
         self._post(
             client, {'treasure_id': self.treasure.id, 'quantity': 2}, token=self._editor_token(),
@@ -87,7 +87,7 @@ class TestGameNpcTreasureAcquireView(TokenAuthRequestMixin):
         )
         assert character_treasure.total_value == 400
 
-    def test_acquire_sets_total_value_using_game_treasure_value_when_it_differs(self, client):
+    def test_buy_sets_total_value_using_game_treasure_value_when_it_differs(self, client):
         """Test that total_value is computed from GameTreasure.value, not Treasure.value."""
         GameTreasure.objects.create(game=self.game, treasure=self.treasure, value=20)
         self._post(
@@ -156,7 +156,7 @@ class TestGameNpcTreasureAcquireView(TokenAuthRequestMixin):
     def test_url_by_name(self, client):
         """Test that the view is accessible by URL name."""
         url = reverse(
-            'game-npc-treasure-acquire',
+            'game-npc-treasure-buy',
             kwargs={'game_slug': self.game.game_slug, 'character_id': self.character.id},
         )
         response = client.post(
@@ -167,8 +167,8 @@ class TestGameNpcTreasureAcquireView(TokenAuthRequestMixin):
         )
         assert response.status_code == 200
 
-    def test_superuser_can_acquire_treasure(self, client):
-        """Test that a superuser can acquire treasure on behalf of an NPC."""
+    def test_superuser_can_buy_treasure(self, client):
+        """Test that a superuser can buy treasure on behalf of an NPC."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
         response = self._post(
@@ -176,8 +176,8 @@ class TestGameNpcTreasureAcquireView(TokenAuthRequestMixin):
         )
         assert response.status_code == 200
 
-    def test_staff_can_acquire_treasure(self, client):
-        """Test that a global Staff user, not the DM, can acquire treasure on behalf of an NPC."""
+    def test_staff_can_buy_treasure(self, client):
+        """Test that a global Staff user, not the DM, can buy treasure on behalf of an NPC."""
         staff_user = UserFactory(username='staff_user', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
@@ -189,7 +189,7 @@ class TestGameNpcTreasureAcquireView(TokenAuthRequestMixin):
 
 
 @pytest.mark.django_db
-class TestGameNpcTreasureAcquireHidden(TokenAuthRequestMixin):
+class TestGameNpcTreasureBuyHidden(TokenAuthRequestMixin):
     """Tests for acquiring treasure on behalf of a hidden NPC."""
 
     def setup_method(self):
@@ -204,16 +204,16 @@ class TestGameNpcTreasureAcquireHidden(TokenAuthRequestMixin):
         self.treasure = TreasureFactory(name='Hidden Gem', value=100, game=self.game)
 
     def _post(self, client, token=None):
-        """Issue a POST request to acquire a treasure for the hidden NPC."""
+        """Issue a POST request to buy a treasure for the hidden NPC."""
         return self.post(
             client,
-            f'/games/test-game/npcs/{self.hidden_npc.id}/treasures/acquire.json',
+            f'/games/test-game/npcs/{self.hidden_npc.id}/treasures/buy.json',
             {'treasure_id': self.treasure.id, 'quantity': 1},
             token=token,
         )
 
-    def test_dm_can_acquire_for_hidden_npc(self, client):
-        """Test that a DM can acquire treasure for a hidden NPC."""
+    def test_dm_can_buy_for_hidden_npc(self, client):
+        """Test that a DM can buy treasure for a hidden NPC."""
         response = self._post(client, token=self.dm_token)
         assert response.status_code == 200
 
@@ -231,7 +231,7 @@ class TestGameNpcTreasureAcquireHidden(TokenAuthRequestMixin):
 
 
 @pytest.mark.django_db
-class TestGameNpcTreasureAcquireHiddenTreasure(TokenAuthRequestMixin):
+class TestGameNpcTreasureBuyHiddenTreasure(TokenAuthRequestMixin):
     """Tests for acquiring a treasure that is hidden (GameTreasure.hidden) for the game."""
 
     def setup_method(self):
@@ -247,10 +247,10 @@ class TestGameNpcTreasureAcquireHiddenTreasure(TokenAuthRequestMixin):
         )
 
     def _post(self, client, token=None):
-        """Issue a POST request to acquire the hidden treasure."""
+        """Issue a POST request to buy the hidden treasure."""
         return self.post(
             client,
-            f'/games/test-game/npcs/{self.character.id}/treasures/acquire.json',
+            f'/games/test-game/npcs/{self.character.id}/treasures/buy.json',
             {'treasure_id': self.treasure.id, 'quantity': 1},
             token=token,
         )
@@ -264,8 +264,8 @@ class TestGameNpcTreasureAcquireHiddenTreasure(TokenAuthRequestMixin):
 
 
 @pytest.mark.django_db
-class TestCharacterTreasureAcquireStockCap(TokenAuthRequestMixin):
-    """Tests for the acquire endpoint's stock-cap behavior on M2M-linked treasures."""
+class TestCharacterTreasureBuyStockCap(TokenAuthRequestMixin):
+    """Tests for the buy endpoint's stock-cap behavior on M2M-linked treasures."""
 
     def setup_method(self):
         """Set up a game, a DM, an NPC with money, and a treasure linked via the M2M."""
@@ -277,11 +277,11 @@ class TestCharacterTreasureAcquireStockCap(TokenAuthRequestMixin):
         self.treasure = TreasureFactory(name='Limited Gem', value=10)
         self.game.treasures.add(self.treasure, through_defaults={'value': self.treasure.value})
 
-    def _acquire(self, client, quantity):
+    def _buy(self, client, quantity):
         """Issue a POST request acquiring `quantity` of the limited treasure for the NPC."""
         return self.post(
             client,
-            f'/games/test-game/npcs/{self.character.id}/treasures/acquire.json',
+            f'/games/test-game/npcs/{self.character.id}/treasures/buy.json',
             {'treasure_id': self.treasure.id, 'quantity': quantity},
             token=self.dm_token,
         )
@@ -292,38 +292,38 @@ class TestCharacterTreasureAcquireStockCap(TokenAuthRequestMixin):
             max_units=max_units, acquired_units=acquired_units,
         )
 
-    def test_acquire_partially_fulfills_when_over_requesting(self, client):
+    def test_buy_partially_fulfills_when_over_requesting(self, client):
         """Test that requesting more than available caps the acquired amount, not rejects it."""
         self._set_cap(max_units=3)
-        response = self._acquire(client, 10)
+        response = self._buy(client, 10)
         assert response.status_code == 200
         assert response.json() == {'quantity': 3, 'money': 970, 'acquired': 3}
 
-    def test_acquire_records_acquired_units_on_game_treasure(self, client):
+    def test_buy_records_acquired_units_on_game_treasure(self, client):
         """Test that acquiring increments the through-row's acquired_units."""
         self._set_cap(max_units=5)
-        self._acquire(client, 2)
+        self._buy(client, 2)
         game_treasure = GameTreasure.objects.get(game=self.game, treasure=self.treasure)
         assert game_treasure.acquired_units == 2
 
-    def test_acquire_when_fully_depleted_returns_zero_acquired(self, client):
+    def test_buy_when_fully_depleted_returns_zero_acquired(self, client):
         """Test that acquiring an already fully-depleted treasure succeeds with acquired: 0."""
         self._set_cap(max_units=2, acquired_units=2)
-        response = self._acquire(client, 1)
+        response = self._buy(client, 1)
         assert response.status_code == 200
         assert response.json() == {'quantity': 0, 'money': 1000, 'acquired': 0}
 
-    def test_acquire_charges_only_for_acquired_units(self, client):
+    def test_buy_charges_only_for_acquired_units(self, client):
         """Test that money is only spent for units actually acquired, not the amount requested."""
         self._set_cap(max_units=1)
-        response = self._acquire(client, 5)
+        response = self._buy(client, 5)
         data = response.json()
         assert data['acquired'] == 1
         assert data['money'] == 990
 
-    def test_acquire_unlimited_treasure_is_never_capped(self, client):
-        """Test that a treasure without a max_units cap acquires the full requested quantity."""
-        response = self._acquire(client, 50)
+    def test_buy_unlimited_treasure_is_never_capped(self, client):
+        """Test that a treasure without a max_units cap buys the full requested quantity."""
+        response = self._buy(client, 50)
         assert response.json()['acquired'] == 50
 
     def test_insufficient_funds_checked_against_capped_quantity(self, client):
@@ -337,7 +337,7 @@ class TestCharacterTreasureAcquireStockCap(TokenAuthRequestMixin):
         )
         response = self.post(
             client,
-            f'/games/test-game/npcs/{self.character.id}/treasures/acquire.json',
+            f'/games/test-game/npcs/{self.character.id}/treasures/buy.json',
             {'treasure_id': expensive_treasure.id, 'quantity': 5},
             token=self.dm_token,
         )

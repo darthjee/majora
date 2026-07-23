@@ -21,7 +21,7 @@ read/written indirectly, through the `Treasure`/`CharacterTreasure` endpoints be
 | Write `max_units` | **GameEdit**, via `PATCH /games/<slug>/treasures/<int:treasure_id>.json` when the treasure is M2M-linked to the game |
 | Write `value` | Not directly editable per game — only indirectly, by a DM `PATCH`-ing an exclusive treasure's own `value` (which the endpoint mirrors onto this row); out of scope for this issue to add a DM-facing endpoint to edit `GameTreasure.value` for an M2M-linked treasure |
 | Write `hidden` | **GameEdit** (or Superuser/Staff on the global `PATCH /treasures/<id>.json`, for a treasure exclusive to their own game), via `POST /games/<slug>/treasures.json` (create) and `PATCH /games/<slug>/treasures/<int:treasure_id>.json` / `PATCH /treasures/<id>.json` (update) — exclusive treasures only, same scope as `value`; the M2M-linked case has no write path (Django-admin-only), mirroring `max_units`'s own current scope before this issue |
-| Write `acquired_units` | Never directly by any client — only ever incremented/decremented as a side effect of the acquire/sell endpoints above |
+| Write `acquired_units` | Never directly by any client — only ever incremented/decremented as a side effect of the buy/sell endpoints above |
 | Create/Delete the `(game, treasure)` link itself | Create: **GameEdit**, via `POST /games/<slug>/treasures/link.json` — links an existing catalog `Treasure` (matching `game_type`, not already linked) to the game by creating its `GameTreasure` row (`value`/`hidden`/`max_units` from the request body); superuser retains an independent path via Django admin's `GameTreasureInline` on the `Game` admin page. Delete: Superuser only, via Django admin (unchanged, out of scope) |
 
 **Exposed fields** (read, as `available_units`/`max_units`/`value` on `TreasureListSerializer`/
@@ -52,7 +52,7 @@ M2M-linked treasures get one created by the `Game.treasures.add(...)` call itsel
 [CharacterTreasure](character-treasure.md) doc above:
 - `GET /games/<slug>/treasures.json` (catalog list) — excludes hidden treasures.
 - `GET /games/<slug>/treasures/<int:treasure_id>.json` (catalog detail) — 404s for a non-editor.
-- `POST /games/<slug>/pcs|npcs/<id>/treasures/acquire.json` — 404s when `treasure_id` resolves to
+- `POST /games/<slug>/pcs|npcs/<id>/treasures/buy.json` — 404s when `treasure_id` resolves to
   a treasure hidden for this game (new in this issue; previously these endpoints did not check
   `hidden` at all).
 - `GET /games/<slug>/npcs/<id>/treasures.json` (an NPC's own held-treasures list) — excludes any
@@ -69,18 +69,18 @@ check already used by `GET /games/<slug>/treasures/all.json`):
 - `GET /games/<slug>/npcs/<id>/treasures/all.json` — mirrors `GET
   /games/<slug>/npcs/<id>/treasures.json` but does not filter out hidden held treasures, and each
   item's `hidden` is exposed via `CharacterTreasureAllSerializer`.
-- `POST /games/<slug>/pcs/<id>/treasures/acquire/all.json` and `POST
-  /games/<slug>/npcs/<id>/treasures/acquire/all.json` — mirror the regular acquire endpoints
+- `POST /games/<slug>/pcs/<id>/treasures/buy/all.json` and `POST
+  /games/<slug>/npcs/<id>/treasures/buy/all.json` — mirror the regular buy endpoints
   (same request/response shape) but do not 404 on a hidden treasure. `GameEditPermission` is
   checked in addition to (not instead of) the `CharacterEditPermission` check already inside the
-  shared acquire implementation, so a DM may act on behalf of any PC/NPC in their game even when
+  shared buy implementation, so a DM may act on behalf of any PC/NPC in their game even when
   that specific character's own edit rule would otherwise be narrower. The `allow_hidden` bypass
-  is threaded through as an explicit function parameter (`character_treasure_acquire(...,
+  is threaded through as an explicit function parameter (`character_treasure_buy(...,
   allow_hidden=True)` / `character_treasures(..., allow_hidden=True)`) rather than inferred from
   `GameEditPermission` inside the shared helpers, so the regular player-facing endpoints can never
   accidentally start bypassing the gate just because the caller happens to be an editor.
 
-**Stock-cap enforcement on acquire/sell**: when a character acquires `quantity` of a treasure
+**Stock-cap enforcement on buy/sell**: when a character buys `quantity` of a treasure
 that is M2M-linked to the game with a `GameTreasure` row, the acquired amount is capped at
 `available_units` instead of rejecting an over-sized request — the response's `acquired` field
 reports how many units were actually granted, and `acquired_units` is incremented by that
@@ -88,11 +88,11 @@ amount. Selling decrements `acquired_units` by the sold quantity (floored at `0`
 operations lock the `GameTreasure` row (`select_for_update()`) inside the same transaction as
 the character/`CharacterTreasure` locks, in a consistent lock order, to prevent concurrent
 requests from over-selling the available stock. A treasure with `available_units == 0` is not
-hidden from any list — it simply cannot be acquired further (an acquire request against it
+hidden from any list — it simply cannot be bought further (a buy request against it
 succeeds with `acquired: 0`).
 
-**Cost/refund calculation on acquire/sell**: the same locked `GameTreasure` row is also the
-source of the per-unit `value` used to compute cost (acquire) and refund (sell) — see
+**Cost/refund calculation on buy/sell**: the same locked `GameTreasure` row is also the
+source of the per-unit `value` used to compute cost (buy) and refund (sell) — see
 [CharacterTreasure](character-treasure.md) above. When no `GameTreasure` row exists (a treasure
 that is exclusive to the game with no matching row, or one a character still owns after it was
 fully delisted from the game — the edge case `_find_treasure_by_id`'s docstring describes), the
