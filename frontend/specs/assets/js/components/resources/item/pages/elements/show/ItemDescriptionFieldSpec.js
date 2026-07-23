@@ -1,6 +1,6 @@
 import ItemDescriptionField
   from '../../../../../../../../../assets/js/components/resources/item/pages/elements/show/ItemDescriptionField.jsx';
-import TextareaField from '../../../../../../../../../assets/js/components/common/forms/TextareaField.jsx';
+import MarkdownEditor from '../../../../../../../../../assets/js/components/common/forms/MarkdownEditor.jsx';
 
 describe('ItemDescriptionField', function() {
   const buildProps = (overrides = {}) => ({
@@ -11,10 +11,10 @@ describe('ItemDescriptionField', function() {
     ...overrides,
   });
 
-  it('renders a TextareaField with a mode-scoped id in new mode', function() {
+  it('renders a MarkdownEditor with a mode-scoped id in new mode', function() {
     const element = ItemDescriptionField(buildProps());
 
-    expect(element.type).toBe(TextareaField);
+    expect(element.type).toBe(MarkdownEditor);
     expect(element.props.id).toBe('character-item-new-description');
     expect(element.props.value).toBe('A cloak that grants stealth.');
   });

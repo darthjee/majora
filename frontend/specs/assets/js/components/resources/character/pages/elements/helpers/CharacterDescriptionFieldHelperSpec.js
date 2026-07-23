@@ -5,7 +5,7 @@ import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 
 describe('CharacterDescriptionFieldHelper', function() {
   describe('.render', function() {
-    it('renders the description textarea with the given id, label and value', function() {
+    it('renders the description markdown editor with the given id, label and value', function() {
       const html = renderToStaticMarkup(
         CharacterDescriptionFieldHelper.render(
           'npc-edit-description', 'Description', 'A brave warrior.', Noop.noop, []

@@ -1,5 +1,5 @@
 import React from 'react';
-import TextareaField from '../../../../../common/forms/TextareaField.jsx';
+import MarkdownEditor from '../../../../../common/forms/MarkdownEditor.jsx';
 
 /**
  * Rendering helper for the CharacterDescriptionField element.
@@ -17,7 +17,7 @@ export default class CharacterDescriptionFieldHelper {
    */
   static render(id, label, value, onChange, errors) {
     return (
-      <TextareaField
+      <MarkdownEditor
         id={id}
         label={label}
         value={value}

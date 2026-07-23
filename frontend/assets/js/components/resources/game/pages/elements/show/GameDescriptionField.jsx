@@ -1,5 +1,5 @@
 import React from 'react';
-import TextareaField from '../../../../../common/forms/TextareaField.jsx';
+import MarkdownEditor from '../../../../../common/forms/MarkdownEditor.jsx';
 import Translator from '../../../../../../i18n/Translator.js';
 
 const LABEL_KEYS = { new: 'game_new_page.description_label', edit: 'game_edit_page.description_label' };
@@ -17,7 +17,7 @@ const LABEL_KEYS = { new: 'game_new_page.description_label', edit: 'game_edit_pa
  */
 export default function GameDescriptionField({ mode, description, fieldErrors = {}, handlers }) {
   return (
-    <TextareaField
+    <MarkdownEditor
       id={`game-${mode}-description`}
       label={Translator.t(LABEL_KEYS[mode])}
       value={description}

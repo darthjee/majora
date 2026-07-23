@@ -76,6 +76,16 @@ pagination:
 description_box:
   show_more: Show more
   show_less: Show less
+markdown_editor:
+  write_tab: Write
+  preview_tab: Preview
+  bold: Bold
+  italic: Italic
+  heading: Heading
+  bulleted_list: Bulleted list
+  numbered_list: Numbered list
+  link: Link
+  preview_empty: Nothing to preview yet
 games_page:
   loading: Loading games...
   back_href_label: Back

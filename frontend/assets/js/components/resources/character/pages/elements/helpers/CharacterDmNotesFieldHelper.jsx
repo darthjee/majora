@@ -1,5 +1,5 @@
 import React from 'react';
-import TextareaField from '../../../../../common/forms/TextareaField.jsx';
+import MarkdownEditor from '../../../../../common/forms/MarkdownEditor.jsx';
 
 /**
  * Rendering helper for the CharacterDmNotesField element.
@@ -20,7 +20,7 @@ export default class CharacterDmNotesFieldHelper {
     if (!isFullEditor) return null;
 
     return (
-      <TextareaField
+      <MarkdownEditor
         id={id}
         label={label}
         value={value}
