@@ -1,6 +1,8 @@
 import TreasureExchangeModalHelper
   from '../../../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/TreasureExchangeModalHelper.jsx';
 import Modal from 'react-bootstrap/cjs/Modal.js';
+import TreasureMoney
+  from '../../../../../../../../../../assets/js/components/common/misc/TreasureMoney.jsx';
 import { buildHandlers, buildState, findElement } from './support.js';
 
 describe('TreasureExchangeModalHelper', function() {
@@ -20,6 +22,22 @@ describe('TreasureExchangeModalHelper', function() {
       modal.props.onHide();
 
       expect(handlers.onClose).toHaveBeenCalled();
+    });
+
+    it('renders the money display with the character money and gameType', function() {
+      const element = TreasureExchangeModalHelper.render(
+        true, buildState({ character: { money: 750 }, gameType: 'deadlands' }), buildHandlers()
+      );
+      const moneyElement = findElement(element, (child) => child.type === TreasureMoney);
+
+      expect(moneyElement.props.value).toBe(750);
+      expect(moneyElement.props.gameType).toBe('deadlands');
+    });
+
+    it('does not render the money display when no character is given', function() {
+      const element = TreasureExchangeModalHelper.render(true, buildState({ character: null }), buildHandlers());
+
+      expect(JSON.stringify(element)).not.toContain('your_money');
     });
   });
 });

@@ -1,25 +1,28 @@
 export const buildHandlers = () => ({
   onClose: jasmine.createSpy('onClose'),
   onTabChange: jasmine.createSpy('onTabChange'),
-  onSelect: jasmine.createSpy('onSelect'),
-  onBack: jasmine.createSpy('onBack'),
-  onPrev: jasmine.createSpy('onPrev'),
-  onNext: jasmine.createSpy('onNext'),
-  onQuantityChange: jasmine.createSpy('onQuantityChange'),
-  onConfirm: jasmine.createSpy('onConfirm'),
-  onSearchChange: jasmine.createSpy('onSearchChange'),
+});
+
+const FakeBuyComponent = function FakeBuyComponent() {
+  return null;
+};
+
+const FakeSellComponent = function FakeSellComponent() {
+  return null;
+};
+
+export const buildTabs = () => ({
+  buy: { labelKey: 'treasure_exchange_modal.buy_tab', tooltipKey: 'treasure_exchange_modal.buy_tab_tooltip', Component: FakeBuyComponent },
+  sell: { labelKey: 'treasure_exchange_modal.sell_tab', tooltipKey: 'treasure_exchange_modal.sell_tab_tooltip', Component: FakeSellComponent },
 });
 
 export const buildState = (overrides = {}) => ({
-  activeTab: 'acquire',
-  browse: { items: [], page: 1, pages: 1, loading: false, error: '' },
-  selected: null,
-  quantity: 1,
-  submitting: false,
-  actionError: '',
-  partialNotice: '',
-  ownedByTreasureId: {},
-  search: '',
+  activeTab: 'buy',
+  tabs: buildTabs(),
+  character: null,
+  ownedTreasures: [],
+  gameType: 'dnd',
+  onSuccess: jasmine.createSpy('onSuccess'),
   ...overrides,
 });
 

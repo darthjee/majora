@@ -1,4 +1,4 @@
-"""Shared implementation for the character treasure acquire/sell endpoints."""
+"""Shared implementation for the character treasure buy/sell endpoints."""
 
 from functools import partial
 
@@ -14,17 +14,17 @@ from ..common import validated_or_error
 
 
 class _TreasureExchangeSerializer(serializers.Serializer):
-    """Validate the treasure_id/quantity payload shared by acquire and sell requests."""
+    """Validate the treasure_id/quantity payload shared by buy and sell requests."""
 
     treasure_id = serializers.IntegerField()
     quantity = serializers.IntegerField(min_value=1)
 
 
-def character_treasure_acquire(request, game, character, allow_hidden=False):
-    """Spend `character`'s money to acquire a quantity of a treasure available in `game`.
+def character_treasure_buy(request, game, character, allow_hidden=False):
+    """Spend `character`'s money to buy a quantity of a treasure available in `game`.
 
     `allow_hidden` bypasses the hidden-treasure 404 gate — reserved for the DM-only
-    `/acquire/all.json` endpoints; the regular player-facing acquire endpoints must always
+    `/buy/all.json` endpoints; the regular player-facing buy endpoints must always
     call this with the default `False` so a hidden treasure stays inaccessible to players.
     """
     resolve_treasure = partial(_find_game_treasure, game, allow_hidden=allow_hidden)
@@ -34,7 +34,7 @@ def character_treasure_acquire(request, game, character, allow_hidden=False):
     if error_response:
         return error_response
 
-    return _acquire(character, treasure, quantity, game)
+    return _buy(character, treasure, quantity, game)
 
 
 def character_treasure_sell(request, game, character):
@@ -52,7 +52,7 @@ def _authorize_and_parse(request, character, resolve_treasure):
     """Check edit permission and validate/resolve the treasure_id/quantity payload.
 
     `resolve_treasure` is called with `treasure_id` to resolve the treasure, allowing callers
-    to scope the lookup differently (e.g. acquire is scoped to the game's catalog, sell is not).
+    to scope the lookup differently (e.g. buy is scoped to the game's catalog, sell is not).
 
     Returns a `(error_response, treasure, quantity)` tuple; `error_response` is `None` on
     success, in which case `treasure` and `quantity` are populated.
@@ -74,7 +74,7 @@ def _find_game_treasure(game, treasure_id, allow_hidden=False):
     """Return the Treasure matching `treasure_id` scoped to `game`, or raise Http404.
 
     Also 404s when the treasure's `GameTreasure` row for `game` is hidden, unless
-    `allow_hidden` is `True` (the DM-only `/acquire/all.json` variant).
+    `allow_hidden` is `True` (the DM-only `/buy/all.json` variant).
     """
     treasure = Treasure.objects.for_game(game).filter(id=treasure_id).first()
     if treasure is None:
@@ -114,10 +114,10 @@ def _find_treasure_by_id(treasure_id):
     return treasure
 
 
-def _acquire(character, treasure, quantity, game):
+def _buy(character, treasure, quantity, game):
     """Atomically add up to `quantity` of `treasure` to `character`, charging their money.
 
-    When `treasure` is linked to `game` with a stock cap, the acquired amount is capped at
+    When `treasure` is linked to `game` with a stock cap, the bought amount is capped at
     the currently available units instead of rejecting an over-sized request.
     """
     with transaction.atomic():

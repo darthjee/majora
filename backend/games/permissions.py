@@ -146,13 +146,13 @@ class CharacterMoneyEditPermission(_EditPermission):
 
 
 class CharacterTreasureExchangePermission(_EditPermission):
-    """Encapsulate checks for the PC/NPC treasure acquire/sell endpoints (issue #712).
+    """Encapsulate checks for the PC/NPC treasure buy/sell endpoints (issue #712).
 
     Grants the same access as CharacterEditPermission (superuser, the character's owning
     player, or a GameMaster of the game) plus any Staff account (globally). Unlike
     CharacterMoneyEditPermission, deliberately has no "any player of the game" leniency —
     per the issue's clarified Staff principle (admin-like power, but no access to
-    secret/hidden content), and the acquire/all.json hidden-treasure variant stays gated by
+    secret/hidden content), and the buy/all.json hidden-treasure variant stays gated by
     GameEditPermission only, so Staff never gains access to hidden treasures through this.
     """
 
@@ -163,7 +163,7 @@ class CharacterTreasureExchangePermission(_EditPermission):
 
     @classmethod
     def is_allowed(cls, user, character):
-        """Return whether `user` may acquire/sell treasure on behalf of `character`."""
+        """Return whether `user` may buy/sell treasure on behalf of `character`."""
         if not user or not user.is_authenticated:
             return False
         if user.is_staff:

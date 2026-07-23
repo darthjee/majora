@@ -62,7 +62,7 @@ export default class CharacterContextController extends BasePageController {
 
   /**
    * Re-fetch and re-set the character context, without touching the treasures grid (owned by
-   * `ListPage`). Meant to be called after a successful acquire/sell so the character's money
+   * `ListPage`). Meant to be called after a successful buy/sell so the character's money
    * (and any other field) reflects a fresh server read, independent of the effect built by
    * {@link buildEffect}.
    *

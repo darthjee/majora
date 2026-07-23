@@ -54,7 +54,7 @@ the game, the character's own owning player (PC only — an NPC has no owner), o
 account (`user.is_staff`), else `false`, including for an anonymous requester. Unlike
 `can_edit_money`, there is deliberately no "any player of the game" leniency for PCs. Returned on
 this detail endpoint and inherited onto the full-detail endpoint below. Gates the treasure
-acquire/sell actions on the frontend show page.
+buy/sell actions on the frontend show page.
 
 `slain` is a `BooleanField` (default `False`) shared by `Character` for both PCs and NPCs,
 returned read-only on the list and detail endpoints to anyone — there it is sourced from the

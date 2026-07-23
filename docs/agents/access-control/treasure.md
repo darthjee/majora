@@ -40,7 +40,7 @@ the shared M2M relationship).
 treasure)`, `value` is that row's `value`; otherwise it falls back to `Treasure.value` directly.
 This applies on the same three game-scoped endpoints listed above (all sharing
 `GameTreasureFieldsMixin`), as well as `CharacterTreasureSerializer` (see
-[CharacterTreasure](character-treasure.md) above) and the acquire/sell cost calculation (see
+[CharacterTreasure](character-treasure.md) above) and the buy/sell cost calculation (see
 [GameTreasure](game-treasure.md) above). On the global, non-game-scoped endpoints (`GET
 /treasures.json`, `GET /treasures/<id>.json`) there is no `game` in context, so `value` always
 falls back to `Treasure.value` — unchanged from prior behavior. Every treasure a game can see
@@ -85,9 +85,9 @@ entirely, both to avoid leaking it to players and because `TreasureListSerialize
 `GET /games/<slug>/treasures.json` excludes any treasure whose `GameTreasure.hidden` is `True`,
 `GET /games/<slug>/treasures/<int:treasure_id>.json` 404s for a hidden treasure unless the
 requester can edit the game, `GET /games/<slug>/treasures/all.json` deliberately reveals hidden
-treasures (with their `hidden` value) to an authorized DM/superuser, and the acquire/NPC-list
+treasures (with their `hidden` value) to an authorized DM/superuser, and the buy/NPC-list
 endpoints documented under [CharacterTreasure](character-treasure.md) above now also gate on it
-(see that doc for the acquire 404 and NPC held-treasures filter, plus the three new DM-only
+(see that doc for the buy 404 and NPC held-treasures filter, plus the three new DM-only
 "accept hidden" endpoints). A PC's own treasure listing is unaffected by `hidden` — a PC keeps
 seeing treasure it already owns even if that treasure is later hidden from the catalog; the same
 applies to a *sell* of a treasure a character already owns, even a hidden one.
