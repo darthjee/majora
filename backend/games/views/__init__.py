@@ -84,6 +84,7 @@ from .polls import game_poll_close, game_poll_detail, game_poll_votes, game_poll
 from .ready import ready
 from .staff import (
     staff_cache_clear,
+    staff_cache_summary,
     staff_user_detail,
     staff_user_recovery_link,
     staff_users_list,
@@ -179,6 +180,7 @@ __all__ = [
     'staff_user_detail',
     'staff_user_recovery_link',
     'staff_cache_clear',
+    'staff_cache_summary',
     'treasure_access',
     'treasure_permissions',
     'treasure_detail',
