@@ -28,8 +28,8 @@ return [
             '/games/:game_slug/pcs/:character_id/photo_upload.json',
         ],
     ],
-    // pcs treasures buy/sell — pcs entity targets plus the PC's own
-    // treasures list.
+    // pcs treasures buy/sell/acquire/remove — pcs entity targets plus the
+    // PC's own treasures list.
     [
         'targets' => array_merge($pcsEntityTargets, [
             '/games/:game_slug/pcs/:character_id/treasures.json',
@@ -37,6 +37,9 @@ return [
         'routes' => [
             '/games/:game_slug/pcs/:character_id/treasures/buy.json',
             '/games/:game_slug/pcs/:character_id/treasures/sell.json',
+            '/games/:game_slug/pcs/:character_id/treasures/acquire.json',
+            '/games/:game_slug/pcs/:character_id/treasures/acquire/all.json',
+            '/games/:game_slug/pcs/:character_id/treasures/remove.json',
         ],
     ],
     // pcs items — a PC's item photo-upload route.
