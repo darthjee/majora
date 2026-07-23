@@ -70,7 +70,11 @@ describe('listTypeConfig', function() {
         const result = await pcs.fetchList('demo', fakeHashResolver());
 
         expect(RequestStore.ensure).toHaveBeenCalledWith({
-          resource: 'pc', quantityType: 'collection', params: { gameSlug: 'demo' }, query: {},
+          componentName: 'ListPageController',
+          resource: 'pc',
+          quantityType: 'collection',
+          params: { gameSlug: 'demo' },
+          query: {},
         });
         expect(result.data).toEqual([{ id: 1, name: 'Aragorn' }]);
         expect(result.canEdit).toBe(false);

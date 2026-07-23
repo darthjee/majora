@@ -32,6 +32,7 @@ function fetchTreasures(gameSlug, hashResolver) {
   const filterParams = Object.fromEntries(hashResolver.getFilterParams());
 
   return fetchRequestStoreList({
+    componentName: 'ListPageController',
     resource: 'treasure',
     params: { gameSlug, kind: 'game' },
     query: buildListQuery(hashResolver, filterParams),
@@ -104,6 +105,7 @@ function buildItemHref(item) {
  */
 function fetchGameItems(gameSlug, hashResolver) {
   return fetchRequestStoreList({
+    componentName: 'ListPageController',
     resource: 'item',
     params: { gameSlug, kind: 'game' },
     query: buildListQuery(hashResolver),
@@ -130,6 +132,7 @@ function buildFetchCharacterItems(characterKind) {
     );
 
     return fetchRequestStoreList({
+      componentName: 'ListPageController',
       resource: 'item',
       params: { gameSlug, kind: characterKind, id: characterId },
       query: buildListQuery(hashResolver),

@@ -33,7 +33,7 @@ describe('GameEditController', function() {
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(ensureSpy).toHaveBeenCalledWith({
-          resource: 'game', quantityType: 'single', params: { gameSlug: 'demo' },
+          componentName: 'GameEditController', resource: 'game', quantityType: 'single', params: { gameSlug: 'demo' },
         });
         expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
         expect(setGame).toHaveBeenCalledWith({ name: 'Demo', game_slug: 'demo', can_edit: true });

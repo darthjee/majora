@@ -49,7 +49,7 @@ describe('TreasureEditController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(ensureSpy).toHaveBeenCalledWith({
-        resource: 'treasure', quantityType: 'single', params: { id: '1' },
+        componentName: 'TreasureEditController', resource: 'treasure', quantityType: 'single', params: { id: '1' },
       });
       expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('1');
       expect(setTreasure).toHaveBeenCalledWith(

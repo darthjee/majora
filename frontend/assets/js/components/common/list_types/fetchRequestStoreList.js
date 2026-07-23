@@ -14,6 +14,11 @@ import RequestStore from '../../../utils/requests/RequestStore.js';
  *   `CharacterItemDetailController`'s `can_upload_item_photo` read already established in Step
  *   2 of this issue's plan).
  * @param {object} args - Arguments.
+ * @param {string} args.componentName - Name of the component/controller triggering the request,
+ *   forwarded to `RequestStore.ensure()` (see {@link RequestStoreLogging}) — every list type
+ *   fetched through this helper is driven by the shared `ListPageController`, so callers pass
+ *   `'ListPageController'`; `resource` (already threaded through) is what actually distinguishes
+ *   one list type from another in the log.
  * @param {string} args.resource - Resource name, a `resourceConfig`/`RequestStore` key.
  * @param {object} args.params - Concrete params (`gameSlug`, `kind`, `id`, etc.).
  * @param {object} [args.query] - Query/filters (pagination, active filters).
@@ -24,13 +29,17 @@ import RequestStore from '../../../utils/requests/RequestStore.js';
  * @returns {Promise<{data: object[], pagination: object, canEdit: boolean}>} Resolves to the
  *   fetched entries, pagination metadata, and the resolved edit permission.
  */
-export default function fetchRequestStoreList({ resource, params, query = {}, canEdit = false }) {
+export default function fetchRequestStoreList({
+  componentName, resource, params, query = {}, canEdit = false,
+}) {
   const canEditPromise = typeof canEdit === 'boolean'
     ? Promise.resolve(canEdit)
     : canEdit.then((permissions) => Boolean(permissions.can_edit)).catch(() => false);
 
   return Promise.all([
-    RequestStore.ensure({ resource, quantityType: 'collection', params, query }),
+    RequestStore.ensure({
+      componentName, resource, quantityType: 'collection', params, query,
+    }),
     canEditPromise,
   ]).then(([{ data, pagination }, resolvedCanEdit]) => ({
     data: Array.isArray(data) ? data : [],

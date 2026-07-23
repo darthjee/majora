@@ -43,6 +43,7 @@ function buildFetchCharacterDocuments(characterKind) {
     );
 
     return fetchRequestStoreList({
+      componentName: 'ListPageController',
       resource: 'document',
       params: { gameSlug, kind: characterKind, id: characterId },
       query: buildListQuery(hashResolver),

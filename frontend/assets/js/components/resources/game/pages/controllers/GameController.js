@@ -73,7 +73,9 @@ export default class GameController extends BasePageController {
   }
 
   #fetchGame(gameSlug, safeSet) {
-    RequestStore.ensure({ resource: 'game', quantityType: 'single', params: { gameSlug } })
+    RequestStore.ensure({
+      componentName: 'GameController', resource: 'game', quantityType: 'single', params: { gameSlug },
+    })
       .then(({ data }) => this.#renderGame(gameSlug, data, safeSet))
       .catch(() => safeSet(this.setError, 'Unable to load game.'))
       .finally(() => safeSet(this.setLoading, false));
@@ -117,7 +119,11 @@ export default class GameController extends BasePageController {
    */
   #fetchPcsPreview(gameSlug, safeSet) {
     RequestStore.ensure({
-      resource: 'pc', quantityType: 'collection', params: { gameSlug }, query: { per_page: MAX_PREVIEW_ITEMS },
+      componentName: 'GameController',
+      resource: 'pc',
+      quantityType: 'collection',
+      params: { gameSlug },
+      query: { per_page: MAX_PREVIEW_ITEMS },
     })
       .then(({ data }) => safeSet(this.setPcs, Array.isArray(data) ? data : []))
       .catch(() => safeSet(this.setPcs, []));
@@ -135,7 +141,11 @@ export default class GameController extends BasePageController {
    */
   #fetchNpcsPreview(gameSlug, safeSet) {
     RequestStore.ensure({
-      resource: 'npc', quantityType: 'collection', params: { gameSlug }, query: { per_page: MAX_PREVIEW_ITEMS },
+      componentName: 'GameController',
+      resource: 'npc',
+      quantityType: 'collection',
+      params: { gameSlug },
+      query: { per_page: MAX_PREVIEW_ITEMS },
     })
       .then(({ data }) => safeSet(this.setNpcs, Array.isArray(data) ? data : []))
       .catch(() => safeSet(this.setNpcs, []));

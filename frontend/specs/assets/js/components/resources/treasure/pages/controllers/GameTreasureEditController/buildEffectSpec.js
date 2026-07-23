@@ -50,7 +50,10 @@ describe('GameTreasureEditController', function() {
 
       expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
       expect(ensureSpy).toHaveBeenCalledWith({
-        resource: 'treasure', quantityType: 'single', params: { gameSlug: 'demo', id: '42' },
+        componentName: 'GameTreasureEditController',
+        resource: 'treasure',
+        quantityType: 'single',
+        params: { gameSlug: 'demo', id: '42' },
       });
       expect(setTreasure).toHaveBeenCalledWith(
         { id: 42, name: 'Sword', value: 100, game_slug: 'demo' },

@@ -68,7 +68,7 @@ describe('listTypeConfig', function() {
         const result = await games.fetchList(undefined, fakeHashResolver());
 
         expect(RequestStore.ensure).toHaveBeenCalledWith({
-          resource: 'game', quantityType: 'collection', params: {}, query: {},
+          componentName: 'ListPageController', resource: 'game', quantityType: 'collection', params: {}, query: {},
         });
         expect(result.data).toEqual([{ name: 'Test Game', game_slug: 'test-game' }]);
         expect(result.pagination).toEqual({ page: 1, pages: 1, perPage: 10 });

@@ -164,6 +164,7 @@ export default class CharacterController extends CharacterListsController {
     const token = AuthStorage.getToken();
 
     return RequestStore.ensure({
+      componentName: 'CharacterController',
       resource: this.#resourceName(),
       quantityType: 'single',
       params: { gameSlug: params.game_slug, id: params.character_id },

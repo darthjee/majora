@@ -21,6 +21,7 @@ import NpcListItem from '../NpcListItem.js';
  */
 function fetchPcs(gameSlug, hashResolver) {
   return fetchRequestStoreList({
+    componentName: 'ListPageController',
     resource: 'pc',
     params: { gameSlug },
     query: buildListQuery(hashResolver),
@@ -47,6 +48,7 @@ function fetchNpcs(gameSlug, hashResolver) {
   const filterParams = Object.fromEntries(hashResolver.getFilterParams());
 
   return fetchRequestStoreList({
+    componentName: 'ListPageController',
     resource: 'npc',
     params: { gameSlug },
     query: buildListQuery(hashResolver, filterParams),

@@ -106,6 +106,7 @@ export default class CharacterItemDetailController extends BasePageController {
 
   #fetchItem(params, safeSet) {
     return RequestStore.ensure({
+      componentName: 'CharacterItemDetailController',
       resource: 'item',
       quantityType: 'single',
       params: {

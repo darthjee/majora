@@ -48,7 +48,10 @@ describe('GameItemEditController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(ensureSpy).toHaveBeenCalledWith({
-        resource: 'item', quantityType: 'single', params: { gameSlug: 'demo', kind: 'game', id: '5' },
+        componentName: 'GameItemEditController',
+        resource: 'item',
+        quantityType: 'single',
+        params: { gameSlug: 'demo', kind: 'game', id: '5' },
       });
       expect(setItem).toHaveBeenCalledWith({ id: 5, name: 'Cloak of Elvenkind', hidden: false });
       expect(setLoading).toHaveBeenCalledWith(false);

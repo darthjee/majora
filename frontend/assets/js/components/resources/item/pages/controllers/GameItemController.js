@@ -104,6 +104,7 @@ export default class GameItemController extends BasePageController {
 
   #fetchItem(params, safeSet) {
     return RequestStore.ensure({
+      componentName: 'GameItemController',
       resource: 'item',
       quantityType: 'single',
       params: { gameSlug: params.game_slug, kind: 'game', id: params.id },

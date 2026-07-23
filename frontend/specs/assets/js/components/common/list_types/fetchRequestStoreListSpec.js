@@ -14,11 +14,19 @@ describe('fetchRequestStoreList', function() {
     }));
 
     const result = await fetchRequestStoreList({
-      resource: 'npc', params: { gameSlug: 'demo' }, query: { page: 2 }, canEdit: false,
+      componentName: 'ListPageController',
+      resource: 'npc',
+      params: { gameSlug: 'demo' },
+      query: { page: 2 },
+      canEdit: false,
     });
 
     expect(RequestStore.ensure).toHaveBeenCalledWith({
-      resource: 'npc', quantityType: 'collection', params: { gameSlug: 'demo' }, query: { page: 2 },
+      componentName: 'ListPageController',
+      resource: 'npc',
+      quantityType: 'collection',
+      params: { gameSlug: 'demo' },
+      query: { page: 2 },
     });
     expect(result).toEqual({
       data: [{ id: 1, name: 'Goblin' }],
@@ -32,7 +40,9 @@ describe('fetchRequestStoreList', function() {
       data: null, pagination: { page: 1, pages: 1, perPage: 10 },
     }));
 
-    const result = await fetchRequestStoreList({ resource: 'npc', params: { gameSlug: 'demo' } });
+    const result = await fetchRequestStoreList({
+      componentName: 'ListPageController', resource: 'npc', params: { gameSlug: 'demo' },
+    });
 
     expect(result.data).toEqual([]);
   });
@@ -42,10 +52,14 @@ describe('fetchRequestStoreList', function() {
       data: [], pagination: { page: 1, pages: 1, perPage: 10 },
     }));
 
-    await fetchRequestStoreList({ resource: 'npc', params: { gameSlug: 'demo' } });
+    await fetchRequestStoreList({ componentName: 'ListPageController', resource: 'npc', params: { gameSlug: 'demo' } });
 
     expect(RequestStore.ensure).toHaveBeenCalledWith({
-      resource: 'npc', quantityType: 'collection', params: { gameSlug: 'demo' }, query: {},
+      componentName: 'ListPageController',
+      resource: 'npc',
+      quantityType: 'collection',
+      params: { gameSlug: 'demo' },
+      query: {},
     });
   });
 
@@ -55,7 +69,10 @@ describe('fetchRequestStoreList', function() {
     }));
 
     const result = await fetchRequestStoreList({
-      resource: 'npc', params: { gameSlug: 'demo' }, canEdit: Promise.resolve({ can_edit: true }),
+      componentName: 'ListPageController',
+      resource: 'npc',
+      params: { gameSlug: 'demo' },
+      canEdit: Promise.resolve({ can_edit: true }),
     });
 
     expect(result.canEdit).toBe(true);
@@ -67,7 +84,10 @@ describe('fetchRequestStoreList', function() {
     }));
 
     const result = await fetchRequestStoreList({
-      resource: 'npc', params: { gameSlug: 'demo' }, canEdit: Promise.resolve({ can_edit: false }),
+      componentName: 'ListPageController',
+      resource: 'npc',
+      params: { gameSlug: 'demo' },
+      canEdit: Promise.resolve({ can_edit: false }),
     });
 
     expect(result.canEdit).toBe(false);
@@ -79,7 +99,10 @@ describe('fetchRequestStoreList', function() {
     }));
 
     const result = await fetchRequestStoreList({
-      resource: 'npc', params: { gameSlug: 'demo' }, canEdit: Promise.reject(new Error('nope')),
+      componentName: 'ListPageController',
+      resource: 'npc',
+      params: { gameSlug: 'demo' },
+      canEdit: Promise.reject(new Error('nope')),
     });
 
     expect(result.canEdit).toBe(false);

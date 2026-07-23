@@ -27,7 +27,7 @@ describe('GameController', function() {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(ensureSpy).toHaveBeenCalledWith({
-      resource: 'game', quantityType: 'single', params: { gameSlug: 'demo' },
+      componentName: 'GameController', resource: 'game', quantityType: 'single', params: { gameSlug: 'demo' },
     });
     expect(setGame).toHaveBeenCalled();
     expect(setLoading).toHaveBeenCalledWith(false);

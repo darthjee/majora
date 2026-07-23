@@ -16,6 +16,7 @@ describe('TreasureExchangeModalController', function() {
       });
 
       expect(ensureSpy).toHaveBeenCalledWith({
+        componentName: 'TreasureExchangeModalController',
         resource: 'treasure',
         quantityType: 'collection',
         params: { gameSlug: 'demo', kind: 'game' },

@@ -37,7 +37,9 @@ describe('BaseCharacterItemEditController', function() {
           ).buildEffect()();
           await new Promise((resolve) => setTimeout(resolve, 0));
 
-          expect(ensureSpy).toHaveBeenCalledWith({ resource: 'item', quantityType: 'single', params });
+          expect(ensureSpy).toHaveBeenCalledWith({
+            componentName: 'BaseCharacterItemEditController', resource: 'item', quantityType: 'single', params,
+          });
           expect(setItem).toHaveBeenCalledWith({ id: 1, name: 'Cloak of Elvenkind', hidden: false });
           expect(setLoading).toHaveBeenCalledWith(false);
           expect(setError).not.toHaveBeenCalled();

@@ -54,7 +54,7 @@ describe('BaseCharacterEditController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(ensureSpy).toHaveBeenCalledWith({
-        resource: 'npc', quantityType: 'single', params: { gameSlug: 'demo', id: '1' },
+        componentName: 'CharacterController', resource: 'npc', quantityType: 'single', params: { gameSlug: 'demo', id: '1' },
       });
       expect(setCharacter).toHaveBeenCalledWith({
         id: 1,

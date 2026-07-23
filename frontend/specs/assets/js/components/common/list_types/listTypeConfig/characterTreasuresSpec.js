@@ -136,6 +136,7 @@ describe('listTypeConfig', function() {
             await config.fetchList('demo', hashResolver, undefined, buildGameClient());
 
             expect(RequestStore.ensure).toHaveBeenCalledWith({
+              componentName: 'ListPageController',
               resource: 'treasure',
               quantityType: 'collection',
               params: { gameSlug: 'demo', kind: characterKind, id: '2' },

@@ -57,7 +57,9 @@ export default class TreasureController extends BasePageController {
   }
 
   #fetchTreasureWithAccess(id, safeSet) {
-    RequestStore.ensure({ resource: 'treasure', quantityType: 'single', params: { id } })
+    RequestStore.ensure({
+      componentName: 'TreasureController', resource: 'treasure', quantityType: 'single', params: { id },
+    })
       .then(({ data }) => this.#renderTreasure(id, data, safeSet))
       .catch(() => safeSet(this.setError, 'Unable to load treasure.'))
       .finally(() => safeSet(this.setLoading, false));

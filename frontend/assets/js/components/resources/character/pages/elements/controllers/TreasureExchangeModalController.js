@@ -96,6 +96,7 @@ export default class TreasureExchangeModalController {
     page, perPage, maxValue, search, ordering,
   }) {
     return RequestStore.ensure({
+      componentName: 'TreasureExchangeModalController',
       resource: 'treasure',
       quantityType: 'collection',
       params: { gameSlug, kind: 'game' },

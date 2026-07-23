@@ -21,7 +21,7 @@ describe('CharacterController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(ensureSpy).toHaveBeenCalledWith({
-        resource: 'pc', quantityType: 'single', params: { gameSlug: 'demo', id: '2' },
+        componentName: 'CharacterController', resource: 'pc', quantityType: 'single', params: { gameSlug: 'demo', id: '2' },
       });
       expect(setCharacter).toHaveBeenCalledWith({
         id: 2,
@@ -53,7 +53,7 @@ describe('CharacterController', function() {
       await controller.loadCharacter(params, safeSet);
 
       expect(ensureSpy).toHaveBeenCalledWith({
-        resource: 'npc', quantityType: 'single', params: { gameSlug: 'demo', id: '2' },
+        componentName: 'CharacterController', resource: 'npc', quantityType: 'single', params: { gameSlug: 'demo', id: '2' },
       });
     });
 

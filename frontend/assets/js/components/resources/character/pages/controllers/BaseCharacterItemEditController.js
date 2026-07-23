@@ -139,6 +139,7 @@ export default class BaseCharacterItemEditController extends BasePageController 
 
   #loadItem(params, safeSet) {
     return RequestStore.ensure({
+      componentName: 'BaseCharacterItemEditController',
       resource: 'item',
       quantityType: 'single',
       params: {
