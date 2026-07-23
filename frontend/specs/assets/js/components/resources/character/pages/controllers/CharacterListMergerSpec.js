@@ -30,4 +30,27 @@ describe('CharacterListMerger', function() {
       });
     });
   });
+
+  describe('.mergeResource', function() {
+    it('merges the resolved data onto the character under the given key on success', async function() {
+      const requestPromise = Promise.resolve({ data: [{ id: 1, name: 'Cloak of Elvenkind' }] });
+
+      const result = await CharacterListMerger.mergeResource({ id: 2 }, 'items', requestPromise);
+
+      expect(result).toEqual({ id: 2, items: [{ id: 1, name: 'Cloak of Elvenkind' }] });
+    });
+
+    const degradedCases = [
+      ['the request rejects', () => Promise.reject(new Error('Network error'))],
+      ['the resolved data is not an array', () => Promise.resolve({ data: { unexpected: 'shape' } })],
+    ];
+
+    degradedCases.forEach(([description, buildRequestPromise]) => {
+      it(`degrades to an empty array when ${description}`, async function() {
+        const result = await CharacterListMerger.mergeResource({ id: 2 }, 'items', buildRequestPromise());
+
+        expect(result).toEqual({ id: 2, items: [] });
+      });
+    });
+  });
 });

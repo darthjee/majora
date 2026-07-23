@@ -29,20 +29,10 @@ describe('BaseCharacterEditController', function() {
         data: { id: 1, can_edit: true, private_description: 'Notes.' },
       }));
       const fullCharacterClient = jasmine.createSpyObj('characterClient', [
-        'fetchCharacterTreasures', 'fetchCharacterItems',
-        'fetchCharacterDocuments', 'fetchCharacterPhotos', 'updateCharacter',
+        'fetchCharacterPhotos', 'updateCharacter',
       ]);
 
       client.currentHash.and.returnValue('#/games/demo/npcs/1/edit');
-      fullCharacterClient.fetchCharacterTreasures.and.returnValue(Promise.resolve({
-        ok: true, json: () => Promise.resolve([]),
-      }));
-      fullCharacterClient.fetchCharacterItems.and.returnValue(Promise.resolve({
-        ok: true, json: () => Promise.resolve([]),
-      }));
-      fullCharacterClient.fetchCharacterDocuments.and.returnValue(Promise.resolve({
-        ok: true, json: () => Promise.resolve([]),
-      }));
       fullCharacterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({
         ok: true, json: () => Promise.resolve([]),
       }));

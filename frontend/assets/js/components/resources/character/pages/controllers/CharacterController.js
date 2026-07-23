@@ -170,9 +170,9 @@ export default class CharacterController extends CharacterListsController {
       params: { gameSlug: params.game_slug, id: params.character_id },
     })
       .then(({ data }) => data)
-      .then((character) => this.fetchAndMergeTreasures(character, params, token))
-      .then((character) => this.fetchAndMergeItems(character, params, token))
-      .then((character) => this.fetchAndMergeDocuments(character, params, token))
+      .then((character) => this.fetchAndMergeTreasures(character, params))
+      .then((character) => this.fetchAndMergeItems(character, params))
+      .then((character) => this.fetchAndMergeDocuments(character, params))
       .then((character) => this.fetchAndMergePhotos(character, params, token))
       .then((character) => this.fetchAndMergeGameType(character, params, token))
       .then((character) => this.fetchAndMergeAccess(character, params, token, safeSet))
