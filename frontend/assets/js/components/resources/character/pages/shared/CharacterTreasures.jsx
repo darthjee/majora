@@ -28,8 +28,8 @@ export function mergeOwnedTreasures(prev, payload) {
 /**
  * Builds the character context object passed to the treasure exchange modal, threading through
  * the game-scoped ids and the DM/admin `canEdit` flag (issue #632, fixed to source from
- * game-level permissions by issue #641) so the modal's Acquire tab routes through the
- * `all.json` endpoints — letting a DM browse and acquire hidden treasures on behalf of the
+ * game-level permissions by issue #641) so the modal's Buy tab routes through the
+ * `all.json` endpoints — letting a DM browse and buy hidden treasures on behalf of the
  * character — instead of always hitting the player-facing, hidden-filtered ones. Sourced from
  * `character.game_can_edit` (game-level, DM/superuser only, via
  * `AccessStore.ensureGamePermissions`) rather than `character.can_edit` (character-level, also

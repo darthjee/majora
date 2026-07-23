@@ -329,6 +329,7 @@ treasure_exchange_modal:
   already_owned: 'Already owned: {{quantity}}'
   confirm: Confirm
   cancel: Cancel
+  back: Back
   cancel_selection: Cancel
   loading: Loading treasures...
   empty: No treasures available.

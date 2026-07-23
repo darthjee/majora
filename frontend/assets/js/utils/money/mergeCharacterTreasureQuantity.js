@@ -1,6 +1,6 @@
 /**
  * Merges an updated owned-treasure quantity into a character's treasure
- * list, used after a successful acquire/sell action to reflect the change
+ * list, used after a successful buy/sell action to reflect the change
  * without a full page refetch.
  *
  * @param {object[]} treasures - Current list of owned treasure entries (`id`, `treasure_id`,
@@ -8,7 +8,7 @@
  * @param {number|string} treasureId - The underlying treasure's id.
  * @param {object|null} treasureInfo - Treasure display data (`name`, `value`, `photo_path`),
  *   used to build a brand-new entry when the treasure was not previously owned.
- * @param {number} quantity - The new owned quantity, as returned by the acquire/sell endpoint.
+ * @param {number} quantity - The new owned quantity, as returned by the buy/sell endpoint.
  * @returns {object[]} The updated treasures list, with zero-quantity entries removed.
  */
 export default function mergeCharacterTreasureQuantity(treasures, treasureId, treasureInfo, quantity) {

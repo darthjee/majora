@@ -1,15 +1,15 @@
-import TreasureExchangeModalController
-  from '../../../../../../../../../../assets/js/components/resources/character/pages/elements/controllers/TreasureExchangeModalController.js';
+import BuyTreasureTabController
+  from '../../../../../../../../../../../assets/js/components/resources/character/pages/elements/tabs/controllers/BuyTreasureTabController.js';
 import { buildClients, buildResponse } from './support.js';
-import { buildCharacter } from '../../../../../../../../../support/factories.js';
+import { buildCharacter } from '../../../../../../../../../../support/factories.js';
 
-describe('TreasureExchangeModalController', function() {
-  describe('#confirmExchange', function() {
+describe('BuyTreasureTabController', function() {
+  describe('#confirmBuy', function() {
     const character = buildCharacter({
       id: 7, game_slug: 'demo', is_pc: true, money: 500,
     });
     const selected = {
-      id: 9, treasure_id: 11, name: 'Ring', value: 50, photo_path: '/ring.png',
+      id: 9, name: 'Ring', value: 50, photo_path: '/ring.png',
     };
 
     const buildSetters = () => ({
@@ -24,60 +24,43 @@ describe('TreasureExchangeModalController', function() {
     it('sets submitting true before the request settles', function() {
       const { characterClient } = buildClients();
       // eslint-disable-next-line no-empty-function
-      characterClient.acquireTreasure.and.returnValue(new Promise(() => {}));
-      const controller = new TreasureExchangeModalController(characterClient);
+      characterClient.buyTreasure.and.returnValue(new Promise(() => {}));
+      const controller = new BuyTreasureTabController(characterClient);
       const setters = buildSetters();
 
-      controller.confirmExchange('acquire', selected, 2, character, setters);
+      controller.confirmBuy(selected, 2, character, setters);
 
       expect(setters.setSubmitting).toHaveBeenCalledWith(true);
     });
 
-    it('acquires the selected treasure id on the acquire tab', async function() {
+    it('buys the selected treasure id', async function() {
       const { characterClient } = buildClients();
-      characterClient.acquireTreasure.and.returnValue(
+      characterClient.buyTreasure.and.returnValue(
         Promise.resolve(buildResponse(200, { quantity: 2, money: 400, acquired: 2 }))
       );
-      const controller = new TreasureExchangeModalController(characterClient);
+      const controller = new BuyTreasureTabController(characterClient);
       const setters = buildSetters();
 
-      await controller.confirmExchange('acquire', selected, 2, character, setters);
+      await controller.confirmBuy(selected, 2, character, setters);
 
-      expect(characterClient.acquireTreasure).toHaveBeenCalledWith(
+      expect(characterClient.buyTreasure).toHaveBeenCalledWith(
         'pcs', 'demo', 7, null, { treasure_id: 9, quantity: 2 },
-      );
-    });
-
-    it('sells the selected owned treasure id on the sell tab', async function() {
-      const { characterClient } = buildClients();
-      characterClient.sellTreasure.and.returnValue(
-        Promise.resolve(buildResponse(200, { quantity: 1, money: 600 }))
-      );
-      const controller = new TreasureExchangeModalController(characterClient);
-      const setters = buildSetters();
-
-      await controller.confirmExchange('sell', selected, 1, character, setters);
-
-      expect(characterClient.sellTreasure).toHaveBeenCalledWith(
-        'pcs', 'demo', 7, null, { treasure_id: 11, quantity: 1 },
       );
     });
 
     it('applies the success outcome: clears selection, notifies onSuccess, and reloads', async function() {
       const { characterClient } = buildClients();
-      characterClient.acquireTreasure.and.returnValue(
+      characterClient.buyTreasure.and.returnValue(
         Promise.resolve(buildResponse(200, { quantity: 3, money: 350, acquired: 2 }))
       );
-      const controller = new TreasureExchangeModalController(characterClient);
+      const controller = new BuyTreasureTabController(characterClient);
       const setters = buildSetters();
 
-      await controller.confirmExchange('acquire', selected, 3, character, setters);
+      await controller.confirmBuy(selected, 3, character, setters);
 
       expect(setters.setSubmitting).toHaveBeenCalledWith(false);
       expect(setters.setSelected).toHaveBeenCalledWith(null);
-      expect(setters.setPartialNotice).toHaveBeenCalledWith(
-        'Only 2 of 3 were available and were acquired.',
-      );
+      expect(setters.setPartialNotice).toHaveBeenCalledWith('Only 2 of 3 were available and were acquired.');
       expect(setters.onSuccess).toHaveBeenCalledWith({
         treasureId: 9,
         treasureInfo: { name: 'Ring', value: 50, photo_path: '/ring.png' },
@@ -90,13 +73,13 @@ describe('TreasureExchangeModalController', function() {
 
     it('surfaces the error key and does not reload on a validation failure', async function() {
       const { characterClient } = buildClients();
-      characterClient.acquireTreasure.and.returnValue(
+      characterClient.buyTreasure.and.returnValue(
         Promise.resolve(buildResponse(400, { errors: { quantity: ['insufficient funds'] } }))
       );
-      const controller = new TreasureExchangeModalController(characterClient);
+      const controller = new BuyTreasureTabController(characterClient);
       const setters = buildSetters();
 
-      await controller.confirmExchange('acquire', selected, 100, character, setters);
+      await controller.confirmBuy(selected, 100, character, setters);
 
       expect(setters.setSubmitting).toHaveBeenCalledWith(false);
       expect(setters.setActionError).toHaveBeenCalledWith('treasure_exchange_modal.insufficient_funds');
@@ -105,18 +88,18 @@ describe('TreasureExchangeModalController', function() {
       expect(setters.reload).not.toHaveBeenCalled();
     });
 
-    it('threads the character canEdit flag through to an acquire request', async function() {
+    it('threads the character canEdit flag through to the buy request', async function() {
       const { characterClient } = buildClients();
-      characterClient.acquireTreasureAll.and.returnValue(
+      characterClient.buyTreasureAll.and.returnValue(
         Promise.resolve(buildResponse(200, { quantity: 1, money: 400, acquired: 1 }))
       );
-      const controller = new TreasureExchangeModalController(characterClient);
+      const controller = new BuyTreasureTabController(characterClient);
       const setters = buildSetters();
       const editorCharacter = { ...character, canEdit: true };
 
-      await controller.confirmExchange('acquire', selected, 1, editorCharacter, setters);
+      await controller.confirmBuy(selected, 1, editorCharacter, setters);
 
-      expect(characterClient.acquireTreasureAll).toHaveBeenCalledWith(
+      expect(characterClient.buyTreasureAll).toHaveBeenCalledWith(
         'pcs', 'demo', 7, null, { treasure_id: 9, quantity: 1 },
       );
     });

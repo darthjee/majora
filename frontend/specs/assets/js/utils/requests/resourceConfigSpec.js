@@ -147,6 +147,18 @@ describe('resourceConfig', function() {
       expect(single.regular.path({ gameSlug: 'demo', id: '42' })).toBe('/games/demo/treasures/42.json');
       expect(single.private.path({ gameSlug: 'demo', id: '42' })).toBe('/games/demo/treasures/42.json');
     });
+
+    it('never elevates ownedCollection to the hidden-inclusive all.json path, for either kind', function() {
+      const ownedCollection = resourceConfig.get('GET', 'treasure', 'ownedCollection');
+
+      expect(ownedCollection.regular).toBe(ownedCollection.private);
+      expect(ownedCollection.regular.path({ gameSlug: 'demo', kind: 'pcs', id: '3' }))
+        .toBe('/games/demo/pcs/3/treasures.json');
+      expect(ownedCollection.regular.path({ gameSlug: 'demo', kind: 'npcs', id: '3' }))
+        .toBe('/games/demo/npcs/3/treasures.json');
+      expect(ownedCollection.regular.permission).toBeNull();
+      expect(ownedCollection.private.permission).toBeNull();
+    });
   });
 
   describe('session', function() {

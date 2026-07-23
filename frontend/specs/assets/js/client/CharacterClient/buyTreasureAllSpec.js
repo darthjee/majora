@@ -8,14 +8,14 @@ describe('CharacterClient', function() {
     fetchSpy = stubFetchJson();
   });
 
-  describe('#acquireTreasureAll', function() {
-    it('sends a POST request to the acquire/all endpoint with the fields and auth token for a PC', async function() {
+  describe('#buyTreasureAll', function() {
+    it('sends a POST request to the buy/all endpoint with the fields and auth token for a PC', async function() {
       const client = new CharacterClient();
 
-      await client.acquireTreasureAll('pcs', 'demo', '2', 'abc123', { treasure_id: 9, quantity: 3 });
+      await client.buyTreasureAll('pcs', 'demo', '2', 'abc123', { treasure_id: 9, quantity: 3 });
 
       expect(fetchSpy).toHaveBeenCalledWith(
-        '/games/demo/pcs/2/treasures/acquire/all.json',
+        '/games/demo/pcs/2/treasures/buy/all.json',
         jasmine.objectContaining({
           method: 'POST',
           headers: {
@@ -29,13 +29,13 @@ describe('CharacterClient', function() {
       );
     });
 
-    it('sends a POST request to the acquire/all endpoint with the fields and auth token for an NPC', async function() {
+    it('sends a POST request to the buy/all endpoint with the fields and auth token for an NPC', async function() {
       const client = new CharacterClient();
 
-      await client.acquireTreasureAll('npcs', 'demo', '2', 'abc123', { treasure_id: 9, quantity: 3 });
+      await client.buyTreasureAll('npcs', 'demo', '2', 'abc123', { treasure_id: 9, quantity: 3 });
 
       expect(fetchSpy).toHaveBeenCalledWith(
-        '/games/demo/npcs/2/treasures/acquire/all.json',
+        '/games/demo/npcs/2/treasures/buy/all.json',
         jasmine.objectContaining({
           method: 'POST',
           headers: {

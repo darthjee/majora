@@ -27,6 +27,14 @@
  *   `PATCH`, not via a separate restricted read variant — so for both shapes, `private` points at
  *   the exact same `path`/`permission` object as `regular`, mirroring `sessionConfig.js`'s
  *   `single` shape.
+ *
+ *   `ownedCollection` params: `gameSlug`, `kind` (`'pcs'`/`'npcs'`), and `id` (character id) —
+ *   always the plain `.../treasures.json` path for both kinds, with `private` pointing at the
+ *   exact same `path`/`permission` object as `regular` (never elevating to `all.json`), unlike
+ *   `collection`'s own `kind: 'npcs'` branch above. Added by issue #811 so the treasure exchange
+ *   modal's Sell tab (a character's *owned* treasures, not the game's catalog) can go through
+ *   `RequestStore` too, without silently starting to include hidden treasures for a DM viewing an
+ *   NPC's sell list the way `collection`'s elevation would.
  */
 /**
  * Build the regular (everyone-readable) game-catalog treasure collection path.
@@ -72,6 +80,7 @@ const singlePath = ({ gameSlug, id }) => (
 );
 
 const single = { path: singlePath, permission: null };
+const ownedCollection = { path: characterPath, permission: null };
 
 export default {
   GET: {
@@ -94,5 +103,6 @@ export default {
       },
     },
     single: { regular: single, private: single },
+    ownedCollection: { regular: ownedCollection, private: ownedCollection },
   },
 };

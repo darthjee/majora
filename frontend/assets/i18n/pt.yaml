@@ -329,6 +329,7 @@ treasure_exchange_modal:
   already_owned: 'Já possui: {{quantity}}'
   confirm: Confirmar
   cancel: Cancelar
+  back: Voltar
   cancel_selection: Cancelar
   loading: Carregando tesouros...
   empty: Nenhum tesouro disponível.

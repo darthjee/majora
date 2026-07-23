@@ -83,7 +83,7 @@ export default class TreasureClient extends BaseClient {
   /**
    * Fetches an explicit page of a game's treasures, optionally capped to a maximum
    * value, filtered by name, and sorted by value. Used by the treasure exchange
-   * modal's Acquire tab (local pagination, independent of the URL).
+   * modal's Buy tab (local pagination, independent of the URL).
    *
    * @param {string} gameSlug - Game slug.
    * @param {string|null} token - Authentication token, if any.
@@ -105,8 +105,8 @@ export default class TreasureClient extends BaseClient {
    * Fetches an explicit page of a game's full treasure catalog, including hidden
    * treasures (DM/admin-only endpoint). Mirrors {@link fetchGameTreasuresPage}'s
    * params/pagination handling; each returned item additionally carries a
-   * `hidden` boolean field. Used by the treasure exchange modal's Acquire tab
-   * when the requester can edit the game, so a DM can browse (and later acquire)
+   * `hidden` boolean field. Used by the treasure exchange modal's Buy tab
+   * when the requester can edit the game, so a DM can browse (and later buy)
    * hidden treasures without a 404.
    *
    * @param {string} gameSlug - Game slug.
