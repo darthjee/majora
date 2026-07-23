@@ -32,4 +32,26 @@ describe('ItemTitle', function() {
 
     expect(html).not.toContain('alert');
   });
+
+  it('renders the photo-upload-failed alert with retry/skip actions in new mode', function() {
+    const handlers = {
+      onRetryPhotoUpload: jasmine.createSpy('onRetryPhotoUpload'),
+      onSkipPhotoUpload: jasmine.createSpy('onSkipPhotoUpload'),
+    };
+    const html = renderToStaticMarkup(ItemTitle({ mode: 'new', status: 'photo-upload-failed', handlers }));
+
+    expect(html).toContain('Failed to upload the photo. The item was created');
+    expect(html).toContain('Retry photo upload');
+    expect(html).toContain('Skip and continue');
+  });
+
+  it('does not render the photo-upload-failed alert in edit mode', function() {
+    const handlers = {
+      onRetryPhotoUpload: jasmine.createSpy('onRetryPhotoUpload'),
+      onSkipPhotoUpload: jasmine.createSpy('onSkipPhotoUpload'),
+    };
+    const html = renderToStaticMarkup(ItemTitle({ mode: 'edit', status: 'photo-upload-failed', handlers }));
+
+    expect(html).not.toContain('Failed to upload the photo');
+  });
 });

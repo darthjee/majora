@@ -317,6 +317,9 @@ character_item_new_page:
   hidden_label: Hidden
   submit: Create Item
   error: Failed to create item. Please try again.
+  photo_upload_failed: Failed to upload the photo. The item was created — you can retry the upload or skip it for now.
+  retry_photo_upload: Retry photo upload
+  skip_photo_upload: Skip and continue
 treasure_exchange_modal:
   title: Treasure Exchange
   search_placeholder: Search treasures...

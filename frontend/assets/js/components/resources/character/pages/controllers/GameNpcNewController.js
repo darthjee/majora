@@ -4,6 +4,7 @@ import GameClient from '../../../../../client/GameClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
+import PhotoUploadSaga from '../../../../common/base/controllers/PhotoUploadSaga.js';
 import Noop from '../../../../../utils/Noop.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 
@@ -42,6 +43,7 @@ export default class GameNpcNewController extends BasePageController {
     this.setFieldErrors = setFieldErrors;
     this.characterClient = characterClient ?? new CharacterClient();
     this.uploadClient = uploadClient ?? new UploadClient();
+    this.photoUploadSaga = new PhotoUploadSaga(this.uploadClient);
     this.setGameType = setGameType;
     this.gameClient = gameClient ?? new GameClient();
   }
@@ -189,27 +191,14 @@ export default class GameNpcNewController extends BasePageController {
   async #uploadPhoto(gameSlug, characterId, photoFile, setters) {
     const token = AuthStorage.getToken();
     const uploadPath = `/games/${gameSlug}/npcs/${characterId}/photo_upload.json`;
+    const ok = await this.photoUploadSaga.upload(uploadPath, photoFile, token);
 
-    try {
-      const initResponse = await this.uploadClient.initUpload(uploadPath, photoFile.name, token);
-
-      if (!initResponse.ok) {
-        this.#failPhotoUpload(characterId, setters);
-        return;
-      }
-
-      const { upload_id: uploadId, token: uploadToken } = await initResponse.json();
-      const submitResponse = await this.uploadClient.submitUpload(uploadId, uploadToken, photoFile);
-
-      if (!submitResponse.ok) {
-        this.#failPhotoUpload(characterId, setters);
-        return;
-      }
-
+    if (ok) {
       this.#redirectToNpc(gameSlug, characterId);
-    } catch {
-      this.#failPhotoUpload(characterId, setters);
+      return;
     }
+
+    this.#failPhotoUpload(characterId, setters);
   }
 
   #failPhotoUpload(characterId, setters) {

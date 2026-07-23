@@ -14,12 +14,12 @@ import ItemSubmitButton
   from '../../../../../../../../assets/js/components/resources/item/pages/elements/show/ItemSubmitButton.jsx';
 
 describe('itemShowType', function() {
-  it('only offers the photo in the left column for show and edit, not new', function() {
+  it('offers the photo in the left column for show, edit, and new', function() {
     const photoEntry = itemShowType.left.find((entry) => entry === ItemPhoto);
 
     expect(photoEntry.Show).toBeDefined();
     expect(photoEntry.Edit).toBeDefined();
-    expect(photoEntry.New).toBeUndefined();
+    expect(photoEntry.New).toBeDefined();
   });
 
   it('shows the name heading only in show mode', function() {

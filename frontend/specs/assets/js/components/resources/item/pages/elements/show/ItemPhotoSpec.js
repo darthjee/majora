@@ -77,4 +77,33 @@ describe('ItemPhoto', function() {
       expect(handlers.onOpenUploadModal).toHaveBeenCalled();
     });
   });
+
+  describe('.New', function() {
+    it('renders an ActionsOverlay with the picked photo preview url and alt text, always editable', function() {
+      const element = ItemPhoto.New(buildProps());
+
+      expect(element.type).toBe(ActionsOverlay);
+      expect(element.props.type).toBe('item');
+      expect(element.props.url).toBe('http://example.com/item.png');
+      expect(element.props.alt).toBe('Cloak of Elvenkind');
+      expect(element.props.canEdit).toBe(true);
+    });
+
+    it('dims the photo when hidden is true', function() {
+      expect(ItemPhoto.New(buildProps({ hidden: true })).props.dimmed).toBe(true);
+    });
+
+    it('does not dim the photo when hidden is false', function() {
+      expect(ItemPhoto.New(buildProps({ hidden: false })).props.dimmed).toBe(false);
+    });
+
+    it('wires the upload click handler to handlers.onOpenUploadModal', function() {
+      const handlers = { onOpenUploadModal: jasmine.createSpy('onOpenUploadModal') };
+      const element = ItemPhoto.New(buildProps({ handlers }));
+
+      element.props.onClick();
+
+      expect(handlers.onOpenUploadModal).toHaveBeenCalled();
+    });
+  });
 });
