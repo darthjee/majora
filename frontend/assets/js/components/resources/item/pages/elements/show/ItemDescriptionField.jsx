@@ -1,5 +1,5 @@
 import React from 'react';
-import TextareaField from '../../../../../common/forms/TextareaField.jsx';
+import MarkdownEditor from '../../../../../common/forms/MarkdownEditor.jsx';
 import Translator from '../../../../../../i18n/Translator.js';
 
 const ID_KEYS = { new: 'character-item-new-description', edit: 'item-edit-description' };
@@ -23,7 +23,7 @@ const LABEL_KEYS = {
  */
 export default function ItemDescriptionField({ mode, description, fieldErrors = {}, handlers }) {
   return (
-    <TextareaField
+    <MarkdownEditor
       id={ID_KEYS[mode]}
       label={Translator.t(LABEL_KEYS[mode])}
       value={description}

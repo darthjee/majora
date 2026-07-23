@@ -76,6 +76,16 @@ pagination:
 description_box:
   show_more: Mostrar mais
   show_less: Mostrar menos
+markdown_editor:
+  write_tab: Escrever
+  preview_tab: Pré-visualizar
+  bold: Negrito
+  italic: Itálico
+  heading: Título
+  bulleted_list: Lista com marcadores
+  numbered_list: Lista numerada
+  link: Link
+  preview_empty: Nada para pré-visualizar ainda
 games_page:
   loading: Carregando jogos...
   back_href_label: Voltar
