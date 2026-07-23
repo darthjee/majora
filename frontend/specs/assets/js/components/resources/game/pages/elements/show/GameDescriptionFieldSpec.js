@@ -1,6 +1,6 @@
 import GameDescriptionField
   from '../../../../../../../../../assets/js/components/resources/game/pages/elements/show/GameDescriptionField.jsx';
-import TextareaField from '../../../../../../../../../assets/js/components/common/forms/TextareaField.jsx';
+import MarkdownEditor from '../../../../../../../../../assets/js/components/common/forms/MarkdownEditor.jsx';
 
 describe('GameDescriptionField', function() {
   const buildProps = (overrides = {}) => ({
@@ -11,10 +11,10 @@ describe('GameDescriptionField', function() {
     ...overrides,
   });
 
-  it('renders a TextareaField with a mode-scoped id', function() {
+  it('renders a MarkdownEditor with a mode-scoped id', function() {
     const element = GameDescriptionField(buildProps());
 
-    expect(element.type).toBe(TextareaField);
+    expect(element.type).toBe(MarkdownEditor);
     expect(element.props.id).toBe('game-new-description');
     expect(element.props.value).toBe('An adventure.');
   });

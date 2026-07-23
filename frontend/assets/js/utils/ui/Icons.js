@@ -41,4 +41,10 @@ export default {
   bookmarkStarFill: 'bi-bookmark-star-fill',
   databaseFillDash: 'bi-database-fill-dash',
   folder: 'bi-folder',
+  typeBold: 'bi-type-bold',
+  typeItalic: 'bi-type-italic',
+  typeH1: 'bi-type-h1',
+  listUl: 'bi-list-ul',
+  listOl: 'bi-list-ol',
+  link45deg: 'bi-link-45deg',
 };

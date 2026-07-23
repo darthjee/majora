@@ -11,7 +11,7 @@ describe('CharacterDmNotesFieldHelper', function() {
       ).toBeNull();
     });
 
-    it('renders the DM notes textarea with the given id, label and value', function() {
+    it('renders the DM notes markdown editor with the given id, label and value', function() {
       const html = renderToStaticMarkup(
         CharacterDmNotesFieldHelper.render(
           true, 'npc-edit-private-description', 'DM Notes', 'Secret DM notes.', Noop.noop, []
