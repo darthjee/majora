@@ -317,6 +317,9 @@ character_item_new_page:
   hidden_label: Oculto
   submit: Criar Item
   error: Falha ao criar o item. Tente novamente.
+  photo_upload_failed: Falha ao enviar a foto. O item foi criado — você pode tentar novamente ou pular por enquanto.
+  retry_photo_upload: Tentar enviar a foto novamente
+  skip_photo_upload: Pular e continuar
 treasure_exchange_modal:
   title: Troca de Tesouro
   search_placeholder: Buscar tesouros...
