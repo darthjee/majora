@@ -47,4 +47,6 @@ export default {
   listUl: 'bi-list-ul',
   listOl: 'bi-list-ol',
   link45deg: 'bi-link-45deg',
+  arrowsExpand: 'bi-arrows-expand',
+  arrowsCollapse: 'bi-arrows-collapse',
 };
