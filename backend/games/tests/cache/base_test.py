@@ -132,3 +132,26 @@ class TestMemoryCacheDoubleLimitFullClear:
 
         assert self.cache.get('type-a', 'a') is None
         assert self.cache.get('type-a', 'b') == 'value-b'
+
+
+class TestMemoryCacheSummary:
+    """Tests for MemoryCache.summary()."""
+
+    def setup_method(self):
+        """Set up a fresh MemoryCache instance."""
+        self.cache = MemoryCache()
+
+    def test_summary_on_empty_cache(self, monkeypatch):
+        """Test that summary() reports zero size and the configured limit on an empty cache."""
+        monkeypatch.setenv('MAJORA_MEMORY_CACHE_MAX_SIZE_BYTES', '100')
+
+        assert self.cache.summary() == {'size': 0, 'limit': 100}
+
+    def test_summary_after_setting_entries(self, monkeypatch):
+        """Test that summary() reports the running total size after entries are set."""
+        monkeypatch.setenv('MAJORA_MEMORY_CACHE_MAX_SIZE_BYTES', '1000')
+
+        self.cache.set('type-a', 'a', 'value-a', size_bytes=40)
+        self.cache.set('type-a', 'b', 'value-b', size_bytes=25)
+
+        assert self.cache.summary() == {'size': 65, 'limit': 1000}

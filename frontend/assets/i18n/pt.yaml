@@ -9,6 +9,7 @@ header:
   nav_npc: NPC
   nav_treasures: Tesouros
   nav_staff_users: Usuários
+  nav_staff_dashboard: Dashboard
   nav_my_games: Meus Jogos
   login: Login
   logoff: Logoff
@@ -277,6 +278,9 @@ staff_dashboard:
   clear_cache_tooltip: Limpar Cache
   clear_cache_success: Cache limpo com sucesso.
   clear_cache_error: Falha ao limpar o cache. Tente novamente.
+  memory_cache_title: Cache de Memória
+  refresh_tooltip: Atualizar
+  summary_load_error: Não foi possível carregar o resumo do cache.
 my_account_page:
   title: Minha Conta
   loading: Carregando conta...
