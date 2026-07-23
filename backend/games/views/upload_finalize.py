@@ -75,17 +75,8 @@ def _is_expired(upload):
 def _check_permission(request, upload):
     """Return a permission error Response if the user may not edit the upload target, else None."""
     content_object = upload.content_object
-    if isinstance(content_object, TreasurePhoto):
-        return TreasureEditPermission.check(request, content_object.treasure)
-    if isinstance(content_object, CharacterPhoto):
-        return CharacterPhotoUploadPermission.check(request, content_object.character)
-    if isinstance(content_object, GameItemPhoto):
-        return GameItemPhotoUploadPermission.check(request, content_object.game_item.game)
-    if isinstance(content_object, CharacterItemPhoto):
-        return CharacterItemPhotoUploadPermission.check(
-            request, content_object.character_item.character,
-        )
-    return GameEditPermission.check(request, content_object.game)
+    permission_check, _ = _handlers_for(content_object)
+    return permission_check(request, content_object)
 
 
 def _build_response(upload, new_status):
@@ -101,16 +92,8 @@ def _mark_content_object_ready(upload):
     content_object = upload.content_object
     content_object.ready = True
     content_object.save()
-    if isinstance(content_object, TreasurePhoto):
-        _set_treasure_photo(content_object)
-    elif isinstance(content_object, CharacterPhoto):
-        _set_profile_photo_if_unset(content_object)
-    elif isinstance(content_object, GameItemPhoto):
-        _set_item_photo(content_object)
-    elif isinstance(content_object, CharacterItemPhoto):
-        _set_character_item_photo(content_object)
-    else:
-        _set_cover_photo_if_unset(content_object)
+    _, mark_ready = _handlers_for(content_object)
+    mark_ready(content_object)
 
 
 def _set_cover_photo_if_unset(game_photo):
@@ -148,3 +131,47 @@ def _set_character_item_photo(item_photo):
     item = item_photo.character_item
     item.photo = item_photo
     item.save()
+
+
+def _treasure_photo_permission(request, content_object):
+    """Return a permission error Response for a TreasurePhoto content object, else None."""
+    return TreasureEditPermission.check(request, content_object.treasure)
+
+
+def _character_photo_permission(request, content_object):
+    """Return a permission error Response for a CharacterPhoto content object, else None."""
+    return CharacterPhotoUploadPermission.check(request, content_object.character)
+
+
+def _game_item_photo_permission(request, content_object):
+    """Return a permission error Response for a GameItemPhoto content object, else None."""
+    return GameItemPhotoUploadPermission.check(request, content_object.game_item.game)
+
+
+def _character_item_photo_permission(request, content_object):
+    """Return a permission error Response for a CharacterItemPhoto content object, else None."""
+    return CharacterItemPhotoUploadPermission.check(
+        request, content_object.character_item.character,
+    )
+
+
+def _game_photo_permission(request, content_object):
+    """Return a permission error Response for a GamePhoto (default) content object, else None."""
+    return GameEditPermission.check(request, content_object.game)
+
+
+# Registry mapping each photo content-object type to its (permission_check, mark_ready) pair,
+# replacing the previous per-entity isinstance dispatch chains. GamePhoto (and any other/default
+# content object type) falls through to `_DEFAULT_HANDLERS`, matching prior behavior.
+_PHOTO_HANDLERS = {
+    TreasurePhoto: (_treasure_photo_permission, _set_treasure_photo),
+    CharacterPhoto: (_character_photo_permission, _set_profile_photo_if_unset),
+    GameItemPhoto: (_game_item_photo_permission, _set_item_photo),
+    CharacterItemPhoto: (_character_item_photo_permission, _set_character_item_photo),
+}
+_DEFAULT_HANDLERS = (_game_photo_permission, _set_cover_photo_if_unset)
+
+
+def _handlers_for(content_object):
+    """Return the (permission_check, mark_ready) pair registered for `content_object`'s type."""
+    return _PHOTO_HANDLERS.get(type(content_object), _DEFAULT_HANDLERS)

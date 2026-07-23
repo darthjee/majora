@@ -92,6 +92,19 @@ class TestPhotoUploadView(TestCase):
         assert 'evil_' in upload.file_path
         assert '..' not in upload.file_path
 
+    def test_filename_with_unsafe_characters_is_sanitised(self):
+        """Test that spaces and invalid characters in the filename stem are normalized."""
+        response = self._post(
+            self.client, {'filename': 'héro (final) [v2].png'}, token=self.dm_token
+        )
+        assert response.status_code == 201
+        data = json.loads(response.content)
+        upload = Upload.objects.get(pk=data['upload_id'])
+        assert 'hero_final_v2_' in upload.file_path
+        for char in ('é', ' ', '(', ')', '[', ']'):
+            assert char not in upload.file_path
+        assert upload.file_path.endswith('.png')
+
     def test_happy_path_returns_201_with_upload_id_token_and_game_id(self):
         """Test that a valid request returns 201 with upload_id, token, and game_id."""
         response = self._post(self.client, {'filename': 'hero.png'}, token=self.dm_token)

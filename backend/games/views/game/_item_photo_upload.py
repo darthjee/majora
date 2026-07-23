@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 
 from ...models import CharacterItemPhoto
 from ...permissions import CharacterItemPhotoUploadPermission
+from ...photo_path import PhotoPathBuilder
 from .._upload_init import UploadInitiator
 from ._shared import _get_character_or_404
 
@@ -35,7 +36,8 @@ def character_item_photo_upload(request, game, game_slug, character_id, item_id,
 def _build_file_path(game_slug, kind, character_id, item_id, filename):
     """Fixed, deterministic path — a CharacterItem has at most one photo override, always set."""
     _, ext = os.path.splitext(filename)
-    return f'photos/games/{game_slug}/{kind}/{character_id}/items/{item_id}/photo{ext}'
+    segments = ['games', game_slug, kind, character_id, 'items', item_id]
+    return PhotoPathBuilder(segments, f'photo{ext}', use_uuid=False).build()
 
 
 def _reuse_or_create_photo(item, file_path):

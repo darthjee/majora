@@ -1,8 +1,5 @@
 """View for the photo upload init endpoint."""
 
-import os
-import uuid
-
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -11,6 +8,7 @@ from accounts.authentication import CookieTokenAuthentication
 
 from ..models import Game, GamePhoto
 from ..permissions import GameEditPermission
+from ..photo_path import PhotoPathBuilder
 from ._upload_init import UploadInitiator
 
 
@@ -43,6 +41,4 @@ def _build_file_path(game_slug, filename):
     `filename` is expected to be a sanitised basename (no directory components),
     as produced by PhotoUploadSerializer.validate_filename.
     """
-    stem, ext = os.path.splitext(filename)
-    random_uuid = uuid.uuid4()
-    return f'photos/games/{game_slug}/{stem}_{random_uuid}{ext}'
+    return PhotoPathBuilder(['games', game_slug], filename, use_uuid=True).build()
