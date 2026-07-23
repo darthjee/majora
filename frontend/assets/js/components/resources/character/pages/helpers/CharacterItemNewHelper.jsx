@@ -9,13 +9,15 @@ import ShowPageLayout from '../../../../common/show_page/ShowPageLayout.jsx';
 export default class CharacterItemNewHelper {
   /**
    * Render the item creation form through `ShowPageLayout`: `name` (plain text field),
-   * `description` (a plain textarea), and `hidden` (a switch) — no avatar/links/money fields,
-   * since this form is just the three fields from the issue.
+   * `description` (a plain textarea), `hidden` (a switch), and a deferred photo picker
+   * (`ItemPhoto`'s `New` variant) in the left column — no links/money fields, since this form is
+   * just the item fields from the issue.
    *
    * @param {{name: string, description: string, hidden: boolean, status: string,
-   *   fieldErrors: object}} formState - Form state.
+   *   fieldErrors: object, photo_path: string|null}} formState - Form state.
    * @param {{onSubmit: Function, onNameChange: Function, onDescriptionChange: Function,
-   *   onHiddenChange: Function}} handlers - Event handlers.
+   *   onHiddenChange: Function, onOpenUploadModal: Function, onRetryPhotoUpload: Function,
+   *   onSkipPhotoUpload: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered new item page.
    */
   static render(formState, handlers) {

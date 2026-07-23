@@ -2,6 +2,7 @@ import CharacterClient from '../../../../../client/CharacterClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
+import PhotoUploadSaga from '../../../../common/base/controllers/PhotoUploadSaga.js';
 import Noop from '../../../../../utils/Noop.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 
@@ -31,13 +32,15 @@ export default class CharacterItemNewController extends BasePageController {
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
    * @param {CharacterClient|null} [characterClient] - Character client override.
+   * @param {UploadClient|null} [uploadClient] - Upload client override.
    */
-  constructor(characterKind, setError, setFieldErrors = Noop.noop, characterClient = null) {
+  constructor(characterKind, setError, setFieldErrors = Noop.noop, characterClient = null, uploadClient = null) {
     super();
     this.characterKind = characterKind;
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;
     this.characterClient = characterClient ?? new CharacterClient();
+    this.photoUploadSaga = new PhotoUploadSaga(uploadClient);
   }
 
   /**
@@ -64,13 +67,17 @@ export default class CharacterItemNewController extends BasePageController {
    * Submit the new item form.
    *
    * @description Prevents the default form submission, resets status and field errors, sends a
-   *   POST request, then redirects to the items list on success (there is no per-item detail
-   *   page to redirect to), sets field errors on 400, or sets error status on other failures.
+   *   POST request. On success, redirects immediately to the items list when no photo was picked
+   *   (there is no per-item detail page to redirect to), or runs the photo upload saga step first,
+   *   against the created item's underlying `game_item_id`, when `formValues.photoFile` is set.
+   *   On a 400 response, sets field errors. On any other failure, sets the general error status.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
-   * @param {{name: string, description: string, hidden: boolean}} formValues - Raw form field values.
-   * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
+   * @param {{name: string, description: string, hidden: boolean, photoFile: File|null}} formValues -
+   *   Raw form field values.
+   * @param {{setStatus: Function, setFieldErrors: Function, setGameItemId: Function}} setters - Page
+   *   state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
   async submitForm(event, gameSlug, characterId, formValues, setters) {
@@ -90,10 +97,27 @@ export default class CharacterItemNewController extends BasePageController {
         hidden: formValues.hidden,
       });
 
-      await this.#handleResponse(response, gameSlug, characterId, setters);
+      await this.#handleResponse(response, gameSlug, characterId, formValues.photoFile, setters);
     } catch {
       setters.setStatus('error');
     }
+  }
+
+  /**
+   * Retry the photo upload saga step for an already-created item.
+   *
+   * @description Re-invokes the same upload-only path submitForm runs after item creation,
+   *   without creating a new item. Used by the "retry" action of the photo-upload-failed UI
+   *   state.
+   * @param {string} gameSlug - Game slug.
+   * @param {string|number} characterId - Character id.
+   * @param {number|string} gameItemId - Already-created item's underlying `GameItem` id.
+   * @param {File} photoFile - Photo file to upload.
+   * @param {{setStatus: Function, setGameItemId: Function}} setters - Page state setters.
+   * @returns {Promise<void>} Resolves when the retry handling finishes.
+   */
+  retryPhotoUpload(gameSlug, characterId, gameItemId, photoFile, setters) {
+    return this.#uploadPhoto(gameSlug, characterId, gameItemId, photoFile, setters);
   }
 
   #redirectIfNotAllowed(permissions, gameSlug, characterId) {
@@ -106,8 +130,15 @@ export default class CharacterItemNewController extends BasePageController {
     this.redirectTo(`/games/${gameSlug}/${this.characterKind}/${characterId}/items`);
   }
 
-  async #handleResponse(response, gameSlug, characterId, setters) {
+  async #handleResponse(response, gameSlug, characterId, photoFile, setters) {
     if (response.status === 201) {
+      const data = await response.json();
+
+      if (photoFile) {
+        await this.#uploadPhoto(gameSlug, characterId, data.game_item_id, photoFile, setters);
+        return;
+      }
+
       this.#redirectToItems(gameSlug, characterId);
       return;
     }
@@ -121,5 +152,19 @@ export default class CharacterItemNewController extends BasePageController {
     }
 
     setters.setStatus('error');
+  }
+
+  async #uploadPhoto(gameSlug, characterId, gameItemId, photoFile, setters) {
+    const token = AuthStorage.getToken();
+    const uploadPath = `/games/${gameSlug}/items/${gameItemId}/photo_upload.json`;
+    const ok = await this.photoUploadSaga.upload(uploadPath, photoFile, token);
+
+    if (ok) {
+      this.#redirectToItems(gameSlug, characterId);
+      return;
+    }
+
+    setters.setGameItemId(gameItemId);
+    setters.setStatus('photo-upload-failed');
   }
 }

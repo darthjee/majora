@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import CharacterItemNewController from '../controllers/CharacterItemNewController.js';
 import CharacterItemNewHelper from '../helpers/CharacterItemNewHelper.jsx';
+import PhotoUploadModal from '../../../../common/modals/PhotoUploadModal.jsx';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
@@ -17,6 +18,9 @@ import useFormState from '../../../../../utils/useFormState.js';
 export default function CharacterItemNew({ characterKind }) {
   const [fieldErrors, setFieldErrors] = useState({});
   const [status, setStatus] = useState('idle');
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [gameItemId, setGameItemId] = useState(null);
   const { state: fields, handleChange, handleCheckboxChange } = useFormState({
     name: '', description: '', hidden: false,
   });
@@ -33,21 +37,66 @@ export default function CharacterItemNew({ characterKind }) {
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
+  const photoPreviewUrl = useMemo(
+    () => (photoFile ? URL.createObjectURL(photoFile) : null),
+    [photoFile],
+  );
+
+  useEffect(() => () => {
+    if (photoPreviewUrl) {
+      URL.revokeObjectURL(photoPreviewUrl);
+    }
+  }, [photoPreviewUrl]);
+
   const handleSubmit = (event) => controller.submitForm(
     event,
     gameSlug,
     characterId,
-    fields,
-    { setStatus, setFieldErrors },
+    { ...fields, photoFile },
+    {
+      setStatus, setFieldErrors, setGameItemId,
+    },
   );
 
-  return CharacterItemNewHelper.render(
-    { ...fields, status, fieldErrors },
-    {
-      onSubmit: handleSubmit,
-      onNameChange: handleChange('name'),
-      onDescriptionChange: handleChange('description'),
-      onHiddenChange: handleCheckboxChange('hidden'),
-    },
+  const handleRetryPhotoUpload = () => controller.retryPhotoUpload(
+    gameSlug,
+    characterId,
+    gameItemId,
+    photoFile,
+    { setStatus, setGameItemId },
+  );
+
+  const handleSkipPhotoUpload = () => {
+    if (typeof window !== 'undefined') {
+      window.location.hash = `/games/${gameSlug}/${characterKind}/${characterId}/items`;
+    }
+  };
+
+  return (
+    <>
+      {CharacterItemNewHelper.render(
+        {
+          ...fields, status, fieldErrors, photo_path: photoPreviewUrl,
+        },
+        {
+          onSubmit: handleSubmit,
+          onNameChange: handleChange('name'),
+          onDescriptionChange: handleChange('description'),
+          onHiddenChange: handleCheckboxChange('hidden'),
+          onOpenUploadModal: () => setShowUploadModal(true),
+          onRetryPhotoUpload: handleRetryPhotoUpload,
+          onSkipPhotoUpload: handleSkipPhotoUpload,
+        },
+      )}
+      <PhotoUploadModal
+        show={showUploadModal}
+        deferred
+        onFileConfirmed={(file) => {
+          setPhotoFile(file);
+          setShowUploadModal(false);
+        }}
+        onClose={() => setShowUploadModal(false)}
+      />
+    </>
   );
 }

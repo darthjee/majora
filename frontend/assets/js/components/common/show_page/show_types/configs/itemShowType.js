@@ -18,8 +18,9 @@ import ItemSubmitButton from '../../../../resources/item/pages/elements/show/Ite
  * The show/edit layout keeps the item's name next to its photo in the left column (unlike
  * `game`/`pc`/`npc`, whose name heading lives in the right column), matching `ItemDetailHelper`'s
  * existing layout. The edit form keeps the `hidden` switch under the photo in the left column
- * (matching `ItemEditHelper`), while the creation form — which has no photo/left column at all —
- * keeps it inline with the other fields in the right column (matching `CharacterItemNewHelper`).
+ * (matching `ItemEditHelper`), while the creation form now shows a deferred photo picker
+ * (`ItemPhoto`'s `New` variant) in the left column too, but still keeps the `hidden` switch inline
+ * with the other fields in the right column (matching `CharacterItemNewHelper`).
  */
 const itemShowType = {
   left: [
