@@ -40,8 +40,8 @@ return [
             '/games/:game_slug/npcs/:character_id/slain.json',
         ],
     ],
-    // npcs treasures buy/sell — npcs entity targets plus the NPC's own
-    // treasures list.
+    // npcs treasures buy/sell/acquire/remove — npcs entity targets plus the
+    // NPC's own treasures list.
     [
         'targets' => array_merge($npcsEntityTargets, [
             '/games/:game_slug/npcs/:character_id/treasures.json',
@@ -49,6 +49,9 @@ return [
         'routes' => [
             '/games/:game_slug/npcs/:character_id/treasures/buy.json',
             '/games/:game_slug/npcs/:character_id/treasures/sell.json',
+            '/games/:game_slug/npcs/:character_id/treasures/acquire.json',
+            '/games/:game_slug/npcs/:character_id/treasures/acquire/all.json',
+            '/games/:game_slug/npcs/:character_id/treasures/remove.json',
         ],
     ],
     // npcs items — an NPC's item photo-upload route.

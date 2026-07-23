@@ -48,6 +48,34 @@ def character_treasure_sell(request, game, character):
     return _sell(character, treasure, quantity, game)
 
 
+def character_treasure_acquire(request, game, character, allow_hidden=False):
+    """Add a quantity of a treasure available in `game` to `character`, without touching money.
+
+    `allow_hidden` bypasses the hidden-treasure 404 gate — reserved for the DM-only
+    `/acquire/all.json` endpoints; the regular player-facing acquire endpoints must always
+    call this with the default `False` so a hidden treasure stays inaccessible to players.
+    """
+    resolve_treasure = partial(_find_game_treasure, game, allow_hidden=allow_hidden)
+    error_response, treasure, quantity = _authorize_and_parse(
+        request, character, resolve_treasure,
+    )
+    if error_response:
+        return error_response
+
+    return _acquire(character, treasure, quantity, game)
+
+
+def character_treasure_remove(request, game, character):
+    """Remove a quantity of a treasure `character` owns, without touching money."""
+    error_response, treasure, quantity = _authorize_and_parse(
+        request, character, _find_treasure_by_id,
+    )
+    if error_response:
+        return error_response
+
+    return _remove(character, treasure, quantity, game)
+
+
 def _authorize_and_parse(request, character, resolve_treasure):
     """Check edit permission and validate/resolve the treasure_id/quantity payload.
 
@@ -157,6 +185,53 @@ def _record_acquired_units(game_treasure, acquired):
         return
     game_treasure.acquired_units += acquired
     game_treasure.save()
+
+
+def _acquire(character, treasure, quantity, game):
+    """Atomically add up to `quantity` of `treasure` to `character`, without touching money.
+
+    When `treasure` is linked to `game` with a stock cap, the acquired amount is capped at
+    the currently available units instead of rejecting an over-sized request.
+    """
+    with transaction.atomic():
+        character = _lock_character(character)
+        game_treasure = _lock_game_treasure(game, treasure)
+        acquired = _capped_quantity(quantity, game_treasure)
+        value = _resolve_value(game, treasure, game_treasure)
+
+        character_treasure = _lock_or_create_character_treasure(character, treasure)
+        character_treasure.quantity += acquired
+        character_treasure.total_value = character_treasure.quantity * value
+        character_treasure.save()
+
+        _record_acquired_units(game_treasure, acquired)
+
+    return Response({
+        'quantity': character_treasure.quantity, 'money': character.money, 'acquired': acquired,
+    })
+
+
+def _remove(character, treasure, quantity, game):
+    """Atomically remove `quantity` of `treasure` from `character`, without touching money."""
+    with transaction.atomic():
+        character = _lock_character(character)
+        character_treasure = _lock_character_treasure(character, treasure)
+        if character_treasure is None:
+            raise Http404
+
+        if quantity > character_treasure.quantity:
+            return Response({'errors': {'quantity': ['not enough owned']}}, status=400)
+
+        game_treasure = _lock_game_treasure(game, treasure)
+        value = _resolve_value(game, treasure, game_treasure)
+
+        character_treasure.quantity -= quantity
+        character_treasure.total_value = character_treasure.quantity * value
+        character_treasure.save()
+
+        _release_acquired_units(game_treasure, quantity)
+
+    return Response({'quantity': character_treasure.quantity, 'money': character.money})
 
 
 def _sell(character, treasure, quantity, game):

@@ -1,4 +1,6 @@
+import AcquireTreasureTab from './tabs/AcquireTreasureTab.jsx';
 import BuyTreasureTab from './tabs/BuyTreasureTab.jsx';
+import RemoveTreasureTab from './tabs/RemoveTreasureTab.jsx';
 import SellTreasureTab from './tabs/SellTreasureTab.jsx';
 
 /**
@@ -23,5 +25,15 @@ export default {
     labelKey: 'treasure_exchange_modal.sell_tab',
     tooltipKey: 'treasure_exchange_modal.sell_tab_tooltip',
     Component: SellTreasureTab,
+  },
+  acquire: {
+    labelKey: 'treasure_exchange_modal.acquire_tab',
+    tooltipKey: 'treasure_exchange_modal.acquire_tab_tooltip',
+    Component: AcquireTreasureTab,
+  },
+  remove: {
+    labelKey: 'treasure_exchange_modal.remove_tab',
+    tooltipKey: 'treasure_exchange_modal.remove_tab_tooltip',
+    Component: RemoveTreasureTab,
   },
 };

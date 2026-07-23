@@ -22,6 +22,9 @@ _CHARACTER_ROUTES = [
     ('/treasures/buy.json', 'treasure_buy'),
     ('/treasures/buy/all.json', 'treasure_buy_all'),
     ('/treasures/sell.json', 'treasure_sell'),
+    ('/treasures/acquire.json', 'treasure_acquire'),
+    ('/treasures/acquire/all.json', 'treasure_acquire_all'),
+    ('/treasures/remove.json', 'treasure_remove'),
 ]
 
 

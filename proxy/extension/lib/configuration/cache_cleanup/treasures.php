@@ -45,6 +45,9 @@ return [
             '/games/:game_slug/treasures/:treasure_id.json',
             '/games/:game_slug/npcs/:character_id/treasures/buy.json',
             '/games/:game_slug/npcs/:character_id/treasures/sell.json',
+            '/games/:game_slug/npcs/:character_id/treasures/acquire.json',
+            '/games/:game_slug/npcs/:character_id/treasures/acquire/all.json',
+            '/games/:game_slug/npcs/:character_id/treasures/remove.json',
         ],
     ],
 ];

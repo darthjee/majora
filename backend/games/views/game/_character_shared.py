@@ -29,7 +29,12 @@ from ._photo_set import character_photo_set
 from ._photo_upload import character_photo_upload
 from ._photos import character_photos
 from ._shared import _find_character, _get_character_or_404
-from ._treasure_exchange import character_treasure_buy, character_treasure_sell
+from ._treasure_exchange import (
+    character_treasure_acquire,
+    character_treasure_buy,
+    character_treasure_remove,
+    character_treasure_sell,
+)
 from ._treasures import character_treasures
 
 
@@ -323,5 +328,47 @@ def build_treasure_sell_view(npc):
         game = get_object_or_404(Game, game_slug=game_slug)
         character = _get_character_or_404(game, character_id, npc=npc)
         return character_treasure_sell(request, game, character)
+
+    return view
+
+
+def build_treasure_acquire_view(npc):
+    """Build the POST treasure-acquire view for a PC (`npc=False`) or NPC (`npc=True`)."""
+
+    @_build_api_view(['POST'], AllowAny)
+    def view(request, game_slug, character_id):
+        """Add a quantity of a treasure available in a game to a PC/NPC, without touching money."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        character = _get_character_or_404(game, character_id, npc=npc)
+        return character_treasure_acquire(request, game, character)
+
+    return view
+
+
+def build_treasure_acquire_all_view(npc):
+    """Build the DM-only POST treasure-acquire-all view for a PC or NPC."""
+
+    @_build_api_view(['POST'], AllowAny)
+    def view(request, game_slug, character_id):
+        """Add a treasure, including hidden ones, to a PC/NPC without touching money — DM only."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        error_response = GameEditPermission.check(request, game)
+        if error_response:
+            return error_response
+        character = _get_character_or_404(game, character_id, npc=npc)
+        return character_treasure_acquire(request, game, character, allow_hidden=True)
+
+    return view
+
+
+def build_treasure_remove_view(npc):
+    """Build the POST treasure-remove view for a PC (`npc=False`) or NPC (`npc=True`)."""
+
+    @_build_api_view(['POST'], AllowAny)
+    def view(request, game_slug, character_id):
+        """Remove a quantity of a treasure owned by a PC/NPC, without touching money."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        character = _get_character_or_404(game, character_id, npc=npc)
+        return character_treasure_remove(request, game, character)
 
     return view
