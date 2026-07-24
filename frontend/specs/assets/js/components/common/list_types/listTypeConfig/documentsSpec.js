@@ -29,10 +29,10 @@ describe('listTypeConfig', function() {
     });
 
     describe('.buildItemHref', function() {
-      it('returns null, since documents have no standalone detail page (issue #725)', function() {
+      it('links to the game document detail page (issue #758)', function() {
         const item = new GameDocumentListItem({ id: 5, name: 'Ancient Tome' });
 
-        expect(documents.buildItemHref(item, { gameSlug: 'demo' })).toBeNull();
+        expect(documents.buildItemHref(item, { gameSlug: 'demo' })).toBe('#/games/demo/documents/5');
       });
     });
 

@@ -1,3 +1,4 @@
+import documentShowType from './configs/documentShowType.js';
 import gameShowType from './configs/gameShowType.js';
 import itemShowType from './configs/itemShowType.js';
 import pcShowType from './configs/pcShowType.js';
@@ -5,9 +6,9 @@ import npcShowType from './configs/npcShowType.js';
 import treasureShowType from './configs/treasureShowType.js';
 
 /**
- * Per-show-type configuration consumed by `ShowPageLayout`, keyed by show type (`'game'`,
- * `'item'`, `'pc'`, `'npc'`, `'treasure'`, and further resource types as they're migrated onto
- * the shared show/new/edit layout). Each entry holds:
+ * Per-show-type configuration consumed by `ShowPageLayout`, keyed by show type (`'document'`,
+ * `'game'`, `'item'`, `'pc'`, `'npc'`, `'treasure'`, and further resource types as they're
+ * migrated onto the shared show/new/edit layout). Each entry holds:
  * - `left`, `right`, `bottom` — arrays of slot entries. A plain entry (a component) renders the
  *   same in every mode; a mode-variant entry (`{Show, New, Edit}`) picks the component matching
  *   the current mode, rendering nothing for a mode it doesn't declare. Every rendered component
@@ -27,6 +28,7 @@ import treasureShowType from './configs/treasureShowType.js';
  * detail/new/edit pages aren't included here).
  */
 const showTypeConfig = {
+  document: documentShowType,
   game: gameShowType,
   item: itemShowType,
   pc: pcShowType,

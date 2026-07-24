@@ -35,6 +35,8 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/items/new').getPage()).toBe('pcCharacterItemNew');
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/items/new').getPage()).toBe('npcCharacterItemNew');
     expect(new HashRouteResolver(() => '#/games/campaign/documents').getPage()).toBe('gameDocuments');
+    expect(new HashRouteResolver(() => '#/games/campaign/documents/5').getPage()).toBe('gameDocument');
+    expect(new HashRouteResolver(() => '#/games/campaign/documents/new').getPage()).toBe('gameDocumentNew');
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/documents').getPage()).toBe('pcCharacterDocuments');
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/documents').getPage()).toBe('npcCharacterDocuments');
     expect(new HashRouteResolver(() => '#/recover-password?token=abc').getPage()).toBe('recoverPassword');
@@ -162,6 +164,14 @@ describe('HashRouteResolver', function() {
 
   it('resolves /games/:game_slug/documents to gameDocuments, not game', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/documents').getPage()).toBe('gameDocuments');
+  });
+
+  it('resolves /games/:game_slug/documents/:id to gameDocument, not gameDocuments', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/documents/5').getPage()).toBe('gameDocument');
+  });
+
+  it('resolves /games/:game_slug/documents/new to gameDocumentNew, not gameDocument', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/documents/new').getPage()).toBe('gameDocumentNew');
   });
 
   it('resolves /games/:game_slug/photos to gamePhotos, not game', function() {
