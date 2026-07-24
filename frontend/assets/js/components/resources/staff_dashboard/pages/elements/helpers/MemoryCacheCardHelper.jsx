@@ -2,7 +2,7 @@ import React from 'react';
 import DashboardCard from '../DashboardCard.jsx';
 import CardTop from '../CardTop.jsx';
 import CardActions from '../CardActions.jsx';
-import PercentageDisplay from '../PercentageDisplay.jsx';
+import MetricDisplay from '../MetricDisplay.jsx';
 import Icons from '../../../../../../utils/ui/Icons.js';
 import Translator from '../../../../../../i18n/Translator.js';
 
@@ -68,7 +68,14 @@ export default class MemoryCacheCardHelper {
       return <span className="text-danger">{Translator.t('staff_dashboard.summary_load_error')}</span>;
     }
 
-    return <PercentageDisplay value={state.summary.size} limit={state.summary.limit} thresholds={undefined} />;
+    return (
+      <MetricDisplay
+        value={state.summary.size}
+        limit={state.summary.limit}
+        valueType="bytes"
+        thresholds={undefined}
+      />
+    );
   }
 
   static #renderFeedback(state) {

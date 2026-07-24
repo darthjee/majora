@@ -1,5 +1,5 @@
 /**
- * Normalizes a raw `thresholds` array (as received by `PercentageDisplay`) into a
+ * Normalizes a raw `thresholds` array (as received by `MetricDisplay`) into a
  * fixed 3-element `[warnMax, dangerMax, overlimitMax]` array, and resolves a
  * percentage's color level against it.
  */

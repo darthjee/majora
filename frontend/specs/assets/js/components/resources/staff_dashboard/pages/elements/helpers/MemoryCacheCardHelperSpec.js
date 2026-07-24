@@ -23,6 +23,7 @@ describe('MemoryCacheCardHelper', function() {
 
       expect(html).toContain('30%');
       expect(html).toContain('text-success');
+      expect(html).toContain('30 B / 100 B');
     });
 
     it('renders a load error message when the summary failed to load', function() {
