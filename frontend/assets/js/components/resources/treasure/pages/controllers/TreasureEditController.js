@@ -1,5 +1,3 @@
-import TreasureClient from '../../../../../client/TreasureClient.js';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BaseEditController from '../../../../common/base/controllers/BaseEditController.js';
@@ -28,13 +26,9 @@ export default class TreasureEditController extends BaseEditController {
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
-   * @param {TreasureClient|null} [treasureClient] - Treasure client override.
    */
-  constructor(
-    setTreasure, setLoading, setError, setFieldErrors = Noop.noop, treasureClient = null,
-  ) {
+  constructor(setTreasure, setLoading, setError, setFieldErrors = Noop.noop) {
     super(setTreasure, setLoading, setError, setFieldErrors);
-    this.treasureClient = treasureClient ?? new TreasureClient();
   }
 
   /**
@@ -79,9 +73,10 @@ export default class TreasureEditController extends BaseEditController {
   /**
    * Submit a partial update for the treasure.
    *
-   * @description Prevents the default form submission, resets status and
-   *   field errors, sends a PATCH request, then redirects on success,
-   *   sets field errors on 400, or sets error status on other failures.
+   * @description Prevents the default form submission, resets status and field errors, sends a
+   *   PATCH request through {@link RequestStore.mutate} (issue #841, so the treasure's cached
+   *   `GET` data is purged on success), then redirects on success, sets field errors on 400, or
+   *   sets error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string|number} id - Treasure id.
    * @param {{name: string, value: string}} formValues - Raw form field values.
@@ -89,14 +84,19 @@ export default class TreasureEditController extends BaseEditController {
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
   submitForm(event, id, formValues, setters) {
-    const token = AuthStorage.getToken();
-
     return this.performSubmit(
       event,
       setters,
-      () => this.treasureClient.updateTreasure(id, token, {
-        name: formValues.name,
-        value: parseInt(formValues.value, 10),
+      () => RequestStore.mutate({
+        componentName: 'TreasureEditController',
+        resource: 'treasure',
+        method: 'PATCH',
+        quantityType: 'single',
+        params: { id },
+        body: {
+          name: formValues.name,
+          value: parseInt(formValues.value, 10),
+        },
       }),
       `/treasures/${id}`,
     );

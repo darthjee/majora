@@ -1,6 +1,5 @@
-import GameClient from '../../../../../client/GameClient.js';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
@@ -28,13 +27,11 @@ export default class GameDocumentNewController extends BasePageController {
    *
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
-   * @param {GameClient|null} [gameClient] - Game client override.
    */
-  constructor(setError, setFieldErrors = Noop.noop, gameClient = null) {
+  constructor(setError, setFieldErrors = Noop.noop) {
     super();
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;
-    this.gameClient = gameClient ?? new GameClient();
   }
 
   /**
@@ -61,8 +58,10 @@ export default class GameDocumentNewController extends BasePageController {
    * Submit the new document form.
    *
    * @description Prevents the default form submission, resets status and field errors, sends a
-   *   POST request. On success (`201`), redirects immediately to the documents list. On a `400`
-   *   response, sets field errors. On any other failure, sets the general error status.
+   *   POST request through {@link RequestStore.mutate} (issue #841, so the document collection's
+   *   cached `GET` data is purged on success). On success (`201`), redirects immediately to the
+   *   documents list. On a `400` response, sets field errors. On any other failure, sets the
+   *   general error status.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {{name: string, description: string, hidden: boolean}} formValues - Raw form field
@@ -78,13 +77,18 @@ export default class GameDocumentNewController extends BasePageController {
     setters.setStatus('submitting');
     setters.setFieldErrors({});
 
-    const token = AuthStorage.getToken();
-
     try {
-      const response = await this.gameClient.createDocument(gameSlug, token, {
-        name: formValues.name,
-        description: formValues.description,
-        hidden: formValues.hidden,
+      const response = await RequestStore.mutate({
+        componentName: 'GameDocumentNewController',
+        resource: 'document',
+        method: 'POST',
+        quantityType: 'gameCollection',
+        params: { gameSlug },
+        body: {
+          name: formValues.name,
+          description: formValues.description,
+          hidden: formValues.hidden,
+        },
       });
 
       await this.#handleResponse(response, gameSlug, setters);

@@ -36,6 +36,34 @@
  *   **game-level**-gated (`GameEditPermission`, dm/admin only, no owner) even though the path is
  *   character-scoped — see `RequestPermissionResolvers.js`'s `item.availableCollection` resolver
  *   for why this deliberately does not mirror `collection`'s per-kind branching.
+ *
+ *   `PATCH.single` (update) reuses `single`'s own `gameSinglePath`/`characterSinglePath`
+ *   builders — confirmed against `game_item_detail.py`/the `character-item.md`/`game-item.md`
+ *   access-control docs that both families' `PATCH` shares the exact same route as their `GET`
+ *   (no separate `/full.json` counterpart exists for `PATCH`, unlike PC/NPC's own `PATCH.single`
+ *   split), gated inline by `GameEditPermission`/`CharacterItemCreatePermission` respectively —
+ *   so `regular`/`private` point at the exact same object.
+ *
+ *   `POST.collection` (create) reuses `collection`'s own `gameCollectionPath`/
+ *   `characterCollectionPath` builders, gated by `GameItemCreatePermission`/
+ *   `CharacterItemCreatePermission` (both a strict superset of `GameEditPermission`/
+ *   `CharacterEditPermission` — staff always included) — no restricted/full variant exists for
+ *   creation itself, so `regular`/`private` point at the exact same object.
+ *
+ *   `POST.single` (photo-upload init) has its own dual-family path split, mirroring `single`'s
+ *   own `kind`-based branching, but hits a *different* underlying id depending on the family: the
+ *   `'game'` kind uploads directly onto the `GameItem`'s own photo
+ *   (`/games/:game_slug/items/:id/photo_upload.json`, `id` the `GameItem`'s id — used both by
+ *   `GameItemNewController`/`GameItemEditController`'s own item and, deliberately, by
+ *   `CharacterItemNewController`'s post-creation upload, which targets the newly-created
+ *   `GameItem` directly rather than the character-owned override below); the character-owned
+ *   kinds override the *character's own* held copy instead
+ *   (`/games/:game_slug/:kind/:id/items/:item_id/photo_upload.json`, `id` the character id,
+ *   `item_id` the `CharacterItem`'s own id — confirmed against
+ *   `backend/games/views/game/_item_photo_upload.py`, which looks the item up via
+ *   `character.character_items`, i.e. by `CharacterItem` pk, not `GameItem` pk). Gated by
+ *   `GameItemPhotoUploadPermission`/`CharacterItemPhotoUploadPermission` respectively — no
+ *   restricted/full variant, so `regular`/`private` point at the exact same object.
  */
 /**
  * Build the player-facing single-`CharacterItem` path.
@@ -144,6 +172,43 @@ const availablePath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${
  */
 const availableAllPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/items/available/all.json`;
 
+/**
+ * Build the game-owned item's own photo-upload-init path.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string|number} params.id - `GameItem` id.
+ * @returns {string} The endpoint path.
+ */
+const gamePhotoUploadPath = ({ gameSlug, id }) => `/games/${gameSlug}/items/${id}/photo_upload.json`;
+
+/**
+ * Build the character-owned item's own photo-upload-init path (overrides the character's held
+ * copy, not the underlying `GameItem`'s own photo — see `itemId`).
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string} params.kind - Character kind (`'pcs'` or `'npcs'`).
+ * @param {string|number} params.id - Character id.
+ * @param {string|number} params.itemId - `CharacterItem` id.
+ * @returns {string} The endpoint path.
+ */
+const characterPhotoUploadPath = ({ gameSlug, kind, id, itemId }) =>
+  `/games/${gameSlug}/${kind}/${id}/items/${itemId}/photo_upload.json`;
+
+const patchSingle = {
+  path: (params) => (params.kind === 'game' ? gameSinglePath(params) : characterSinglePath(params)),
+  permission: 'can_edit',
+};
+const createCollection = {
+  path: (params) => (params.kind === 'game' ? gameCollectionPath(params) : characterCollectionPath(params)),
+  permission: 'can_edit',
+};
+const photoUploadInit = {
+  path: (params) => (params.kind === 'game' ? gamePhotoUploadPath(params) : characterPhotoUploadPath(params)),
+  permission: null,
+};
+
 export default {
   GET: {
     collection: {
@@ -172,5 +237,12 @@ export default {
       regular: { path: availablePath, permission: null },
       private: { path: availableAllPath, permission: 'can_edit' },
     },
+  },
+  PATCH: {
+    single: { regular: patchSingle, private: patchSingle },
+  },
+  POST: {
+    collection: { regular: createCollection, private: createCollection },
+    single: { regular: photoUploadInit, private: photoUploadInit },
   },
 };

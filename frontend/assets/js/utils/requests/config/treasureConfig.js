@@ -35,6 +35,30 @@
  *   modal's Sell tab (a character's *owned* treasures, not the game's catalog) can go through
  *   `RequestStore` too, without silently starting to include hidden treasures for a DM viewing an
  *   NPC's sell list the way `collection`'s elevation would.
+ *
+ *   `POST.collection` (create) params: `gameSlug` (game-catalog create, when given) or none at
+ *   all (standalone create) — branches on the *presence* of `gameSlug`, not a `kind` param (there
+ *   is no character-owned treasure creation route, unlike `item`/`document`), mirroring
+ *   `singlePath`'s own `gameSlug ? ... : ...` idiom. Game-catalog create
+ *   (`POST /games/:game_slug/treasures.json`) is `GameEditPermission`-gated (game-level
+ *   `can_edit`); standalone create (`POST /treasures.json`) is superuser-or-staff-gated with no
+ *   `can_edit` concept at all — since neither branch has a separate restricted/full variant,
+ *   `regular`/`private` point at the exact same object regardless (the page-level
+ *   `AccessStore.ensureStaffOrSuperUser()`/`ensureGamePermissions()` redirect gates already do the
+ *   real, page-level gating; this config only resolves the URL).
+ *
+ *   `PATCH.single` (update) reuses `singlePath` unchanged — confirmed by
+ *   `TreasureClient#updateTreasure`/`#updateGameTreasure` both hitting the exact same plain path
+ *   today, with permission enforced entirely server-side (superuser/staff, or that game's
+ *   GameMaster for an exclusive treasure, on the global route; `GameEditPermission` on the
+ *   game-scoped route) — no restricted/full variant exists for either, so `regular`/`private`
+ *   point at the exact same object.
+ *
+ *   `POST.single` (photo-upload init, `/treasures/:id/photo_upload.json`) is standalone-only —
+ *   confirmed against `backend/games/urls/treasures.py`, there is no game-scoped treasure
+ *   photo-upload route. `regular`/`private` point at the exact same object; permission (superuser/
+ *   staff, or the owning game's GameMaster when `treasure.game_id` is set) is enforced
+ *   server-side.
  */
 /**
  * Build the regular (everyone-readable) game-catalog treasure collection path.
@@ -82,6 +106,20 @@ const singlePath = ({ gameSlug, id }) => (
 const single = { path: singlePath, permission: null };
 const ownedCollection = { path: characterPath, permission: null };
 
+/**
+ * Build the game-catalog or standalone treasure-creation path, depending on whether `gameSlug` is
+ * given.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} [params.gameSlug] - Game slug, when creating a game-exclusive treasure.
+ * @returns {string} The endpoint path.
+ */
+const createPath = ({ gameSlug } = {}) => (gameSlug ? `/games/${gameSlug}/treasures.json` : '/treasures.json');
+
+const create = { path: createPath, permission: 'can_edit' };
+const patch = { path: singlePath, permission: null };
+const photoUploadInit = { path: ({ id }) => `/treasures/${id}/photo_upload.json`, permission: null };
+
 export default {
   GET: {
     collection: {
@@ -104,5 +142,12 @@ export default {
     },
     single: { regular: single, private: single },
     ownedCollection: { regular: ownedCollection, private: ownedCollection },
+  },
+  PATCH: {
+    single: { regular: patch, private: patch },
+  },
+  POST: {
+    collection: { regular: create, private: create },
+    single: { regular: photoUploadInit, private: photoUploadInit },
   },
 };

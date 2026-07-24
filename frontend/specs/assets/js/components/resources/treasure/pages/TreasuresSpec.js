@@ -53,6 +53,7 @@ describe('Treasures', function() {
       delete globalThis.window;
     }
   });
+
 });
 
 describe('buildFilterQueryHash', function() {

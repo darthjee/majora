@@ -18,7 +18,19 @@
  *   (`/games/:game_slug/documents/:id/full.json`) is `GameEditPermission`-gated (game-level
  *   `can_edit`), resolved via `AccessStore.ensureGamePermissions(gameSlug)` — see
  *   `RequestPermissionResolvers.js`.
+ *
+ *   `POST.gameCollection` (create, `/games/:game_slug/documents.json`) creates a bare
+ *   `GameDocument` — deliberately its own quantity-type key, not `POST.collection`, since
+ *   `GET.collection` above already means something different (a *character's* held
+ *   `CharacterDocument`s, resolved at the character level): reusing `collection` for this
+ *   game-level create would make `RequestPermissionResolvers`'s existing `document.collection`
+ *   resolver (which expects `kind`/`id`) resolve permissions for the wrong scope. Gated by
+ *   `GameDocumentCreatePermission` (a strict superset of `GameEditPermission` — staff always
+ *   included); no restricted/full variant exists for creation itself, so `regular`/`private`
+ *   point at the exact same object.
  */
+const gameDocumentCreate = { path: ({ gameSlug }) => `/games/${gameSlug}/documents.json`, permission: 'can_edit' };
+
 export default {
   GET: {
     collection: {
@@ -41,5 +53,8 @@ export default {
         permission: 'can_edit',
       },
     },
+  },
+  POST: {
+    gameCollection: { regular: gameDocumentCreate, private: gameDocumentCreate },
   },
 };

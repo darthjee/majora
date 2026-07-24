@@ -2,6 +2,9 @@ import BaseClient from './BaseClient.js';
 
 /**
  * HTTP client for game requests (fetch, access check, and update).
+ *
+ * @description Game-level item/document creation moved to `RequestStore.mutate()` (issue #841) —
+ *   this client no longer holds `createItem`/`createDocument`.
  */
 export default class GameClient extends BaseClient {
   /**
@@ -64,27 +67,4 @@ export default class GameClient extends BaseClient {
     return this.patchJson(`/games/${gameSlug}.json`, token, fields);
   }
 
-  /**
-   * Creates a new, bare GameItem for a game (issue #784) — no owning CharacterItem.
-   *
-   * @param {string} gameSlug - Game slug.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {object} fields - Fields for the new item (`name`, `description`, `hidden`).
-   * @returns {Promise<Response>} fetch response from the game items endpoint.
-   */
-  createItem(gameSlug, token, fields) {
-    return this.postJson(`/games/${gameSlug}/items.json`, token, fields);
-  }
-
-  /**
-   * Creates a new, bare GameDocument for a game (issue #758) — no owning CharacterDocument.
-   *
-   * @param {string} gameSlug - Game slug.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {object} fields - Fields for the new document (`name`, `description`, `hidden`).
-   * @returns {Promise<Response>} fetch response from the game documents endpoint.
-   */
-  createDocument(gameSlug, token, fields) {
-    return this.postJson(`/games/${gameSlug}/documents.json`, token, fields);
-  }
 }

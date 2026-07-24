@@ -1,5 +1,3 @@
-import TreasureClient from '../../../../../client/TreasureClient.js';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BaseEditController from '../../../../common/base/controllers/BaseEditController.js';
@@ -46,13 +44,9 @@ export default class GameTreasureEditController extends BaseEditController {
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
-   * @param {TreasureClient|null} [treasureClient] - Treasure client override.
    */
-  constructor(
-    setTreasure, setLoading, setError, setFieldErrors = Noop.noop, treasureClient = null,
-  ) {
+  constructor(setTreasure, setLoading, setError, setFieldErrors = Noop.noop) {
     super(setTreasure, setLoading, setError, setFieldErrors);
-    this.treasureClient = treasureClient ?? new TreasureClient();
   }
 
   /**
@@ -75,9 +69,10 @@ export default class GameTreasureEditController extends BaseEditController {
   /**
    * Submit a partial update for the treasure.
    *
-   * @description Prevents the default form submission, resets status and
-   *   field errors, sends a PATCH request, then redirects on success,
-   *   sets field errors on 400, or sets error status on other failures.
+   * @description Prevents the default form submission, resets status and field errors, sends a
+   *   PATCH request through {@link RequestStore.mutate} (issue #841, so the treasure's cached
+   *   `GET` data is purged on success), then redirects on success, sets field errors on 400, or
+   *   sets error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {string|number} id - Treasure id.
@@ -90,14 +85,17 @@ export default class GameTreasureEditController extends BaseEditController {
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
   submitForm(event, gameSlug, id, formValues, setters) {
-    const token = AuthStorage.getToken();
-
     return this.performSubmit(
       event,
       setters,
-      () => this.treasureClient.updateGameTreasure(
-        gameSlug, id, token, GameTreasureEditController.#buildPayload(formValues),
-      ),
+      () => RequestStore.mutate({
+        componentName: 'GameTreasureEditController',
+        resource: 'treasure',
+        method: 'PATCH',
+        quantityType: 'single',
+        params: { gameSlug, id },
+        body: GameTreasureEditController.#buildPayload(formValues),
+      }),
       `/games/${gameSlug}/treasures/${id}`,
     );
   }

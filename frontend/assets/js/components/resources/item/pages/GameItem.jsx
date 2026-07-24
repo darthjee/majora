@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import ItemDetailHelper from './helpers/ItemDetailHelper.jsx';
 import GameItemController from './controllers/GameItemController.js';
 import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
+import RequestStore from '../../../../utils/requests/RequestStore.js';
+import resourceConfig from '../../../../utils/requests/resourceConfig.js';
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
 
@@ -41,6 +43,10 @@ export default function GameItem({ ControllerClass = GameItemController }) {
 
   const handleUploadSuccess = () => {
     setShowUploadModal(false);
+    // Purge before refetching: the photo upload saga doesn't go through `RequestStore.mutate`
+    // (it's a two-step, non-JSON-body saga), so the cache purge must happen explicitly here,
+    // mirroring `CharacterEdit.jsx`'s own `handleUploadSuccess` (issue #841).
+    RequestStore.purge({ resource: 'item' });
     controller.buildEffect()();
   };
 
@@ -48,13 +54,14 @@ export default function GameItem({ ControllerClass = GameItemController }) {
   if (error) return ItemDetailHelper.renderError(error);
 
   const editHref = `#/games/${gameSlug}/items/${item?.id}/edit`;
+  const uploadPath = resourceConfig.get('POST', 'item', 'single').regular.path({ gameSlug, kind: 'game', id: item?.id });
 
   return (
     <>
       {ItemDetailHelper.render(item, backHref, editHref, canEdit, canUploadPhoto, () => setShowUploadModal(true))}
       <PhotoUploadModal
         show={showUploadModal}
-        uploadPath={`/games/${gameSlug}/items/${item.id}/photo_upload.json`}
+        uploadPath={uploadPath}
         onClose={() => setShowUploadModal(false)}
         onSuccess={handleUploadSuccess}
       />

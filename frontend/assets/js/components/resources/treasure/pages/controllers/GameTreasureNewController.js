@@ -1,7 +1,7 @@
-import TreasureClient from '../../../../../client/TreasureClient.js';
 import GameClient from '../../../../../client/GameClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
@@ -25,19 +25,15 @@ export default class GameTreasureNewController extends BasePageController {
    *
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
-   * @param {TreasureClient|null} [treasureClient] - Treasure client override.
    * @param {Function} [setGameType] - Setter for the containing game's currency type,
    *   used so the value-editing modal renders the right denominations. Optional — a
    *   caller that does not need this display concern may omit it.
    * @param {GameClient|null} [gameClient] - Game client override.
    */
-  constructor(
-    setError, setFieldErrors = Noop.noop, treasureClient = null, setGameType = Noop.noop, gameClient = null,
-  ) {
+  constructor(setError, setFieldErrors = Noop.noop, setGameType = Noop.noop, gameClient = null) {
     super();
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;
-    this.treasureClient = treasureClient ?? new TreasureClient();
     this.setGameType = setGameType;
     this.gameClient = gameClient ?? new GameClient();
   }
@@ -82,9 +78,10 @@ export default class GameTreasureNewController extends BasePageController {
   /**
    * Submit the new treasure form.
    *
-   * @description Prevents the default form submission, resets status and
-   *   field errors, sends a POST request, then redirects on success,
-   *   sets field errors on 400, or sets error status on other failures.
+   * @description Prevents the default form submission, resets status and field errors, sends a
+   *   POST request through {@link RequestStore.mutate} (issue #841, so the treasure collection's
+   *   cached `GET` data is purged on success), then redirects on success, sets field errors on
+   *   400, or sets error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {{name: string, value: string}} formValues - Raw form field values.
@@ -99,12 +96,17 @@ export default class GameTreasureNewController extends BasePageController {
     setters.setStatus('submitting');
     setters.setFieldErrors({});
 
-    const token = AuthStorage.getToken();
-
     try {
-      const response = await this.treasureClient.createGameTreasure(gameSlug, token, {
-        name: formValues.name,
-        value: parseInt(formValues.value, 10),
+      const response = await RequestStore.mutate({
+        componentName: 'GameTreasureNewController',
+        resource: 'treasure',
+        method: 'POST',
+        quantityType: 'collection',
+        params: { gameSlug },
+        body: {
+          name: formValues.name,
+          value: parseInt(formValues.value, 10),
+        },
       });
 
       await this.#handleResponse(response, gameSlug, setters);

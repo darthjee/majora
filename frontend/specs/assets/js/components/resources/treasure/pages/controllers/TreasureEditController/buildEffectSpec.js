@@ -22,14 +22,12 @@ describe('TreasureEditController', function() {
     let setTreasure;
     let setLoading;
     let setError;
-    let treasureClient;
     let fakeWindow;
 
     beforeEach(function() {
       setTreasure = jasmine.createSpy('setTreasure');
       setLoading = jasmine.createSpy('setLoading');
       setError = jasmine.createSpy('setError');
-      treasureClient = jasmine.createSpyObj('treasureClient', ['updateTreasure']);
       spyOn(AccessStore, 'ensureStaffOrSuperUser').and.returnValue(Promise.resolve(true));
       spyOn(AccessStore, 'ensureTreasurePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
       fakeWindow = { location: { hash: '#/treasures/1/edit' } };
@@ -40,9 +38,7 @@ describe('TreasureEditController', function() {
       delete globalThis.window;
     });
 
-    const buildController = () => new TreasureEditController(
-      setTreasure, setLoading, setError, Noop.noop, treasureClient,
-    );
+    const buildController = () => new TreasureEditController(setTreasure, setLoading, setError, Noop.noop);
 
     it('fetches treasure through RequestStore and access in parallel and calls setTreasure with merged result', async function() {
       const cleanup = buildController().buildEffect()();

@@ -19,7 +19,7 @@ export default function GameTreasureNew() {
   const [showValueModal, setShowValueModal] = useState(false);
 
   const controller = useMemo(
-    () => new GameTreasureNewController(Noop.noop, setFieldErrors, null, setGameType),
+    () => new GameTreasureNewController(Noop.noop, setFieldErrors, setGameType),
     [],
   );
 

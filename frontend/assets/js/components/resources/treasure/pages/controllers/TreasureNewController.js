@@ -1,6 +1,5 @@
-import TreasureClient from '../../../../../client/TreasureClient.js';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
 
@@ -13,13 +12,11 @@ export default class TreasureNewController extends BasePageController {
    *
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
-   * @param {TreasureClient|null} [treasureClient] - Treasure client override.
    */
-  constructor(setError, setFieldErrors = Noop.noop, treasureClient = null) {
+  constructor(setError, setFieldErrors = Noop.noop) {
     super();
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;
-    this.treasureClient = treasureClient ?? new TreasureClient();
   }
 
   /**
@@ -44,9 +41,10 @@ export default class TreasureNewController extends BasePageController {
   /**
    * Submit the new treasure form.
    *
-   * @description Prevents the default form submission, resets status and
-   *   field errors, sends a POST request, then redirects on success,
-   *   sets field errors on 400, or sets error status on other failures.
+   * @description Prevents the default form submission, resets status and field errors, sends a
+   *   POST request through {@link RequestStore.mutate} (issue #841, so the treasure collection's
+   *   cached `GET` data is purged on success), then redirects on success, sets field errors on
+   *   400, or sets error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {{name: string, value: string, gameType: string}} formValues - Raw form field
    *   values. `gameType` is the selected currency model name (`dnd` or `deadlands`).
@@ -70,20 +68,25 @@ export default class TreasureNewController extends BasePageController {
       return;
     }
 
-    const token = AuthStorage.getToken();
-
     try {
-      await this.#performCreate(token, formValues, setters);
+      await this.#performCreate(formValues, setters);
     } catch {
       this.#handleNetworkError(setters);
     }
   }
 
-  async #performCreate(token, formValues, setters) {
-    const response = await this.treasureClient.createTreasure(token, {
-      name: formValues.name,
-      value: parseInt(formValues.value, 10),
-      game_type: formValues.gameType,
+  async #performCreate(formValues, setters) {
+    const response = await RequestStore.mutate({
+      componentName: 'TreasureNewController',
+      resource: 'treasure',
+      method: 'POST',
+      quantityType: 'collection',
+      params: {},
+      body: {
+        name: formValues.name,
+        value: parseInt(formValues.value, 10),
+        game_type: formValues.gameType,
+      },
     });
 
     await this.#handleResponse(response, setters);
