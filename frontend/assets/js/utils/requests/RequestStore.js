@@ -52,7 +52,7 @@ export default class RequestStore {
     const requestPromise = RequestPermissionResolvers.resolve(resource, quantityType, params)
       .then((permissions) => entry.request.ensure({ permissions, params, query }));
 
-    return RequestStoreLogging.wrap(componentName, resource, quantityType, params, query, requestPromise);
+    return RequestStoreLogging.wrap(componentName, 'GET', resource, quantityType, params, query, requestPromise);
   }
 
   /**
@@ -97,7 +97,7 @@ export default class RequestStore {
       .then((variant) => mutationClient.mutate(method, variant.path(params), body, AuthStorage.getToken())
         .then((response) => RequestStore.#purgeAfterMutation(response, resource, variant)));
 
-    return RequestStoreLogging.wrap(componentName, resource, quantityType, params, query, requestPromise);
+    return RequestStoreLogging.wrap(componentName, method, resource, quantityType, params, query, requestPromise);
   }
 
   /**

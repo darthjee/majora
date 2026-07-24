@@ -13,40 +13,43 @@ describe('RequestStoreLogging', function() {
       const requestPromise = Promise.resolve({ data: { id: 1 } });
 
       const result = await RequestStoreLogging.wrap(
-        'CharacterController', 'npc', 'single', { gameSlug: 'demo' }, {}, requestPromise,
+        'CharacterController', 'GET', 'npc', 'single', { gameSlug: 'demo' }, {}, requestPromise,
       );
 
       expect(result).toEqual({ data: { id: 1 } });
     });
 
-    it('logs the componentName, resource, quantityType, params, and query at debug level when the call starts',
-      function() {
-        // eslint-disable-next-line no-empty-function
-        const requestPromise = new Promise(() => {});
+    it('logs the componentName, method, resource, quantityType, params, and query at debug level ' +
+      'when the call starts',
+    function() {
+      // eslint-disable-next-line no-empty-function
+      const requestPromise = new Promise(() => {});
 
-        RequestStoreLogging.wrap(
-          'CharacterController', 'npc', 'single', { gameSlug: 'demo' }, { search: 'x' }, requestPromise,
-        );
+      RequestStoreLogging.wrap(
+        'CharacterController', 'GET', 'npc', 'single', { gameSlug: 'demo' }, { search: 'x' }, requestPromise,
+      );
 
-        expect(debugSpy).toHaveBeenCalledWith({
-          componentName: 'CharacterController',
-          resource: 'npc',
-          quantityType: 'single',
-          params: { gameSlug: 'demo' },
-          query: { search: 'x' },
-          event: 'start',
-        });
+      expect(debugSpy).toHaveBeenCalledWith({
+        componentName: 'CharacterController',
+        method: 'GET',
+        resource: 'npc',
+        quantityType: 'single',
+        params: { gameSlug: 'demo' },
+        query: { search: 'x' },
+        event: 'start',
       });
+    });
 
     it('logs the settled result at debug level on success', async function() {
       const requestPromise = Promise.resolve({ data: { id: 1 } });
 
       await RequestStoreLogging.wrap(
-        'CharacterController', 'npc', 'single', { gameSlug: 'demo' }, {}, requestPromise,
+        'CharacterController', 'GET', 'npc', 'single', { gameSlug: 'demo' }, {}, requestPromise,
       );
 
       expect(debugSpy).toHaveBeenCalledWith({
         componentName: 'CharacterController',
+        method: 'GET',
         resource: 'npc',
         quantityType: 'single',
         params: { gameSlug: 'demo' },
@@ -61,7 +64,9 @@ describe('RequestStoreLogging', function() {
       const requestPromise = Promise.reject(error);
 
       await expectAsync(
-        RequestStoreLogging.wrap('CharacterController', 'npc', 'single', { gameSlug: 'demo' }, {}, requestPromise),
+        RequestStoreLogging.wrap(
+          'CharacterController', 'GET', 'npc', 'single', { gameSlug: 'demo' }, {}, requestPromise,
+        ),
       ).toBeRejectedWith(error);
     });
 
@@ -70,11 +75,14 @@ describe('RequestStoreLogging', function() {
       const requestPromise = Promise.reject(error);
 
       await expectAsync(
-        RequestStoreLogging.wrap('CharacterController', 'npc', 'single', { gameSlug: 'demo' }, {}, requestPromise),
+        RequestStoreLogging.wrap(
+          'CharacterController', 'GET', 'npc', 'single', { gameSlug: 'demo' }, {}, requestPromise,
+        ),
       ).toBeRejectedWith(error);
 
       expect(debugSpy).toHaveBeenCalledWith({
         componentName: 'CharacterController',
+        method: 'GET',
         resource: 'npc',
         quantityType: 'single',
         params: { gameSlug: 'demo' },
