@@ -22,14 +22,12 @@ describe('GameTreasureEditController', function() {
     let setTreasure;
     let setLoading;
     let setError;
-    let treasureClient;
     let fakeWindow;
 
     beforeEach(function() {
       setTreasure = jasmine.createSpy('setTreasure');
       setLoading = jasmine.createSpy('setLoading');
       setError = jasmine.createSpy('setError');
-      treasureClient = jasmine.createSpyObj('treasureClient', ['updateGameTreasure']);
       fakeWindow = { location: { hash: '#/games/demo/treasures/42/edit' } };
       globalThis.window = fakeWindow;
 
@@ -40,9 +38,7 @@ describe('GameTreasureEditController', function() {
       delete globalThis.window;
     });
 
-    const buildController = () => new GameTreasureEditController(
-      setTreasure, setLoading, setError, Noop.noop, treasureClient,
-    );
+    const buildController = () => new GameTreasureEditController(setTreasure, setLoading, setError, Noop.noop);
 
     it('fetches the game-scoped treasure through RequestStore and calls setTreasure when the user can edit', async function() {
       const cleanup = buildController().buildEffect()();

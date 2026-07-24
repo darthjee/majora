@@ -1,19 +1,14 @@
 import GameTreasureEditController
   from '../../../../../../../../../assets/js/components/resources/treasure/pages/controllers/GameTreasureEditController.js';
-import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 
 describe('GameTreasureEditController', function() {
-  afterEach(function() {
-    AuthStorage.clearToken();
-  });
-
   describe('#submitForm', function() {
     let setTreasure;
     let setLoading;
     let setError;
     let setFieldErrors;
     let setStatus;
-    let treasureClient;
 
     beforeEach(function() {
       setTreasure = jasmine.createSpy('setTreasure');
@@ -21,9 +16,7 @@ describe('GameTreasureEditController', function() {
       setError = jasmine.createSpy('setError');
       setFieldErrors = jasmine.createSpy('setFieldErrors');
       setStatus = jasmine.createSpy('setStatus');
-      treasureClient = jasmine.createSpyObj('treasureClient', ['updateGameTreasure']);
-      spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
-      treasureClient.updateGameTreasure.and.returnValue(Promise.resolve({
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         ok: true,
         status: 200,
         json: () => Promise.resolve({ id: 42, name: 'Sword', value: 100 }),
@@ -31,9 +24,7 @@ describe('GameTreasureEditController', function() {
     });
 
     it('prevents default, resets status/errors, and submits the fields payload', async function() {
-      const controller = new GameTreasureEditController(
-        setTreasure, setLoading, setError, setFieldErrors, treasureClient,
-      );
+      const controller = new GameTreasureEditController(setTreasure, setLoading, setError, setFieldErrors);
       const event = jasmine.createSpyObj('event', ['preventDefault']);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
@@ -50,18 +41,21 @@ describe('GameTreasureEditController', function() {
         expect(event.preventDefault).toHaveBeenCalled();
         expect(setStatus).toHaveBeenCalledWith('submitting');
         expect(setFieldErrors).toHaveBeenCalledWith({});
-        expect(treasureClient.updateGameTreasure).toHaveBeenCalledWith(
-          'demo', '42', 'tok-abc', { name: 'Sword', value: 100, max_units: 10 },
-        );
+        expect(RequestStore.mutate).toHaveBeenCalledWith({
+          componentName: 'GameTreasureEditController',
+          resource: 'treasure',
+          method: 'PATCH',
+          quantityType: 'single',
+          params: { gameSlug: 'demo', id: '42' },
+          body: { name: 'Sword', value: 100, max_units: 10 },
+        });
       } finally {
         delete globalThis.window;
       }
     });
 
     it('sends max_units as null when maxUnits is an empty string', async function() {
-      const controller = new GameTreasureEditController(
-        setTreasure, setLoading, setError, setFieldErrors, treasureClient,
-      );
+      const controller = new GameTreasureEditController(setTreasure, setLoading, setError, setFieldErrors);
 
       await controller.submitForm(
         undefined,
@@ -71,15 +65,13 @@ describe('GameTreasureEditController', function() {
         { setStatus, setFieldErrors },
       );
 
-      expect(treasureClient.updateGameTreasure).toHaveBeenCalledWith(
-        'demo', '42', 'tok-abc', { name: 'Sword', value: 100, max_units: null },
-      );
+      expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
+        body: { name: 'Sword', value: 100, max_units: null },
+      }));
     });
 
     it('omits max_units from the payload when the treasure is exclusive to the game', async function() {
-      const controller = new GameTreasureEditController(
-        setTreasure, setLoading, setError, setFieldErrors, treasureClient,
-      );
+      const controller = new GameTreasureEditController(setTreasure, setLoading, setError, setFieldErrors);
 
       await controller.submitForm(
         undefined,
@@ -91,15 +83,13 @@ describe('GameTreasureEditController', function() {
         { setStatus, setFieldErrors },
       );
 
-      expect(treasureClient.updateGameTreasure).toHaveBeenCalledWith(
-        'demo', '42', 'tok-abc', { name: 'Sword', value: 100 },
-      );
+      expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
+        body: { name: 'Sword', value: 100 },
+      }));
     });
 
     it('includes max_units in the payload when the treasure is linked (not exclusive)', async function() {
-      const controller = new GameTreasureEditController(
-        setTreasure, setLoading, setError, setFieldErrors, treasureClient,
-      );
+      const controller = new GameTreasureEditController(setTreasure, setLoading, setError, setFieldErrors);
 
       await controller.submitForm(
         undefined,
@@ -111,15 +101,13 @@ describe('GameTreasureEditController', function() {
         { setStatus, setFieldErrors },
       );
 
-      expect(treasureClient.updateGameTreasure).toHaveBeenCalledWith(
-        'demo', '42', 'tok-abc', { name: 'Sword', value: 100, max_units: 10 },
-      );
+      expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
+        body: { name: 'Sword', value: 100, max_units: 10 },
+      }));
     });
 
     it('redirects to the game treasure detail page on success', async function() {
-      const controller = new GameTreasureEditController(
-        setTreasure, setLoading, setError, setFieldErrors, treasureClient,
-      );
+      const controller = new GameTreasureEditController(setTreasure, setLoading, setError, setFieldErrors);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 
@@ -139,15 +127,13 @@ describe('GameTreasureEditController', function() {
     });
 
     it('sets field errors on a 400 response', async function() {
-      treasureClient.updateGameTreasure.and.returnValue(Promise.resolve({
+      RequestStore.mutate.and.returnValue(Promise.resolve({
         ok: false,
         status: 400,
         json: () => Promise.resolve({ errors: { name: ['is too short'] } }),
       }));
 
-      const controller = new GameTreasureEditController(
-        setTreasure, setLoading, setError, setFieldErrors, treasureClient,
-      );
+      const controller = new GameTreasureEditController(setTreasure, setLoading, setError, setFieldErrors);
 
       await controller.submitForm(
         undefined,
@@ -161,15 +147,13 @@ describe('GameTreasureEditController', function() {
     });
 
     it('sets status to error on a non-400 failure', async function() {
-      treasureClient.updateGameTreasure.and.returnValue(Promise.resolve({
+      RequestStore.mutate.and.returnValue(Promise.resolve({
         ok: false,
         status: 500,
         json: () => Promise.resolve({}),
       }));
 
-      const controller = new GameTreasureEditController(
-        setTreasure, setLoading, setError, setFieldErrors, treasureClient,
-      );
+      const controller = new GameTreasureEditController(setTreasure, setLoading, setError, setFieldErrors);
 
       await controller.submitForm(
         undefined,
@@ -183,11 +167,9 @@ describe('GameTreasureEditController', function() {
     });
 
     it('sets status to error when the network request throws', async function() {
-      treasureClient.updateGameTreasure.and.returnValue(Promise.reject(new Error('network error')));
+      RequestStore.mutate.and.returnValue(Promise.reject(new Error('network error')));
 
-      const controller = new GameTreasureEditController(
-        setTreasure, setLoading, setError, setFieldErrors, treasureClient,
-      );
+      const controller = new GameTreasureEditController(setTreasure, setLoading, setError, setFieldErrors);
 
       await controller.submitForm(
         undefined,

@@ -1,6 +1,6 @@
 import BaseCharacterItemEditController
   from '../../../../../../../../../assets/js/components/resources/character/pages/controllers/BaseCharacterItemEditController.js';
-import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 
 describe('BaseCharacterItemEditController', function() {
   let setItem;
@@ -10,10 +10,6 @@ describe('BaseCharacterItemEditController', function() {
   let setStatus;
   let client;
 
-  afterEach(function() {
-    AuthStorage.clearToken();
-  });
-
   beforeEach(function() {
     setItem = jasmine.createSpy('setItem');
     setLoading = jasmine.createSpy('setLoading');
@@ -21,8 +17,7 @@ describe('BaseCharacterItemEditController', function() {
     setFieldErrors = jasmine.createSpy('setFieldErrors');
     setStatus = jasmine.createSpy('setStatus');
     client = jasmine.createSpyObj('client', ['currentHash', 'fetch', 'patchJson']);
-    spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
-    client.patchJson.and.returnValue(Promise.resolve({
+    spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
       ok: true,
       status: 200,
       json: () => Promise.resolve({ id: 5, name: 'New Name' }),
@@ -43,14 +38,19 @@ describe('BaseCharacterItemEditController', function() {
       expect(event.preventDefault).toHaveBeenCalled();
       expect(setStatus).toHaveBeenCalledWith('submitting');
       expect(setFieldErrors).toHaveBeenCalledWith({});
-      expect(client.patchJson).toHaveBeenCalledWith(
-        '/games/demo/pcs/7/items/5.json',
-        'tok-abc',
-        { name: 'New Name', description: 'Shiny', hidden: true },
-      );
+      expect(RequestStore.mutate).toHaveBeenCalledWith({
+        componentName: 'BaseCharacterItemEditController',
+        resource: 'item',
+        method: 'PATCH',
+        quantityType: 'single',
+        params: {
+          gameSlug: 'demo', kind: 'pcs', id: '7', itemId: '5',
+        },
+        body: { name: 'New Name', description: 'Shiny', hidden: true },
+      });
     });
 
-    it('PATCHes the npcs-scoped path for an NPC', async function() {
+    it('PATCHes with the npcs kind for an NPC', async function() {
       const controller = new BaseCharacterItemEditController(
         'npcs', setItem, setLoading, setError, setFieldErrors, client,
       );
@@ -59,11 +59,11 @@ describe('BaseCharacterItemEditController', function() {
         undefined, 'demo', '9', '3', { name: 'New Name', description: '', hidden: false }, { setStatus, setFieldErrors },
       );
 
-      expect(client.patchJson).toHaveBeenCalledWith(
-        '/games/demo/npcs/9/items/3.json',
-        'tok-abc',
-        { name: 'New Name', description: '', hidden: false },
-      );
+      expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
+        params: {
+          gameSlug: 'demo', kind: 'npcs', id: '9', itemId: '3',
+        },
+      }));
     });
 
     it('redirects to the item detail page on success', async function() {
@@ -85,7 +85,7 @@ describe('BaseCharacterItemEditController', function() {
     });
 
     it('sets field errors on a 400 response', async function() {
-      client.patchJson.and.returnValue(Promise.resolve({
+      RequestStore.mutate.and.returnValue(Promise.resolve({
         ok: false,
         status: 400,
         json: () => Promise.resolve({ errors: { name: ['is too short'] } }),
@@ -103,7 +103,9 @@ describe('BaseCharacterItemEditController', function() {
     });
 
     it('sets status to error on a non-400 failure', async function() {
-      client.patchJson.and.returnValue(Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve({}) }));
+      RequestStore.mutate.and.returnValue(
+        Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve({}) }),
+      );
 
       const controller = new BaseCharacterItemEditController(
         'pcs', setItem, setLoading, setError, setFieldErrors, client,
@@ -117,7 +119,7 @@ describe('BaseCharacterItemEditController', function() {
     });
 
     it('sets status to error when the network request throws', async function() {
-      client.patchJson.and.returnValue(Promise.reject(new Error('network error')));
+      RequestStore.mutate.and.returnValue(Promise.reject(new Error('network error')));
 
       const controller = new BaseCharacterItemEditController(
         'pcs', setItem, setLoading, setError, setFieldErrors, client,

@@ -1,24 +1,17 @@
 import GameItemNewController
   from '../../../../../../../../../assets/js/components/resources/item/pages/controllers/GameItemNewController.js';
-import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 
 describe('GameItemNewController', function() {
-  afterEach(function() {
-    AuthStorage.clearToken();
-  });
-
   describe('#submitForm', function() {
     let setFieldErrors;
     let setStatus;
-    let gameClient;
 
     beforeEach(function() {
       setFieldErrors = jasmine.createSpy('setFieldErrors');
       setStatus = jasmine.createSpy('setStatus');
-      gameClient = jasmine.createSpyObj('gameClient', ['createItem']);
-      spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
-      gameClient.createItem.and.returnValue(Promise.resolve({
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         status: 201,
         json: () => Promise.resolve({
           id: 5, name: 'Sword', description: '', photo_path: null, hidden: false,
@@ -27,7 +20,7 @@ describe('GameItemNewController', function() {
     });
 
     it('prevents default, resets status/errors, and submits the fields payload', async function() {
-      const controller = new GameItemNewController(Noop.noop, setFieldErrors, gameClient);
+      const controller = new GameItemNewController(Noop.noop, setFieldErrors);
       const event = jasmine.createSpyObj('event', ['preventDefault']);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
@@ -43,18 +36,21 @@ describe('GameItemNewController', function() {
         expect(event.preventDefault).toHaveBeenCalled();
         expect(setStatus).toHaveBeenCalledWith('submitting');
         expect(setFieldErrors).toHaveBeenCalledWith({});
-        expect(gameClient.createItem).toHaveBeenCalledWith(
-          'demo',
-          'tok-abc',
-          { name: 'Sword', description: 'A sharp blade.', hidden: true },
-        );
+        expect(RequestStore.mutate).toHaveBeenCalledWith({
+          componentName: 'GameItemNewController',
+          resource: 'item',
+          method: 'POST',
+          quantityType: 'collection',
+          params: { gameSlug: 'demo', kind: 'game' },
+          body: { name: 'Sword', description: 'A sharp blade.', hidden: true },
+        });
       } finally {
         delete globalThis.window;
       }
     });
 
     it('redirects to the items list on success (no per-item detail page)', async function() {
-      const controller = new GameItemNewController(Noop.noop, setFieldErrors, gameClient);
+      const controller = new GameItemNewController(Noop.noop, setFieldErrors);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 
@@ -73,12 +69,12 @@ describe('GameItemNewController', function() {
     });
 
     it('sets field errors on a 400 response', async function() {
-      gameClient.createItem.and.returnValue(Promise.resolve({
+      RequestStore.mutate.and.returnValue(Promise.resolve({
         status: 400,
         json: () => Promise.resolve({ errors: { name: ['is required'] } }),
       }));
 
-      const controller = new GameItemNewController(Noop.noop, setFieldErrors, gameClient);
+      const controller = new GameItemNewController(Noop.noop, setFieldErrors);
 
       await controller.submitForm(
         undefined,
@@ -91,12 +87,12 @@ describe('GameItemNewController', function() {
     });
 
     it('sets status to error on a non-201/400 failure', async function() {
-      gameClient.createItem.and.returnValue(Promise.resolve({
+      RequestStore.mutate.and.returnValue(Promise.resolve({
         status: 500,
         json: () => Promise.resolve({}),
       }));
 
-      const controller = new GameItemNewController(Noop.noop, setFieldErrors, gameClient);
+      const controller = new GameItemNewController(Noop.noop, setFieldErrors);
 
       await controller.submitForm(
         undefined,
@@ -109,9 +105,9 @@ describe('GameItemNewController', function() {
     });
 
     it('sets status to error when the network request throws', async function() {
-      gameClient.createItem.and.returnValue(Promise.reject(new Error('network error')));
+      RequestStore.mutate.and.returnValue(Promise.reject(new Error('network error')));
 
-      const controller = new GameItemNewController(Noop.noop, setFieldErrors, gameClient);
+      const controller = new GameItemNewController(Noop.noop, setFieldErrors);
 
       await controller.submitForm(
         undefined,
@@ -124,7 +120,7 @@ describe('GameItemNewController', function() {
     });
 
     it('does not throw when called without an event', async function() {
-      const controller = new GameItemNewController(Noop.noop, setFieldErrors, gameClient);
+      const controller = new GameItemNewController(Noop.noop, setFieldErrors);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 

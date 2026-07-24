@@ -6,10 +6,9 @@ import { buildContext, stubAccessStore } from './support.js';
 describe('TreasureNewController', function() {
   let setError;
   let setFieldErrors;
-  let treasureClient;
 
   beforeEach(function() {
-    ({ setError, setFieldErrors, treasureClient } = buildContext());
+    ({ setError, setFieldErrors } = buildContext());
   });
 
   afterEach(function() {
@@ -22,7 +21,7 @@ describe('TreasureNewController', function() {
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 
-      const controller = new TreasureNewController(setError, setFieldErrors, treasureClient);
+      const controller = new TreasureNewController(setError, setFieldErrors);
 
       try {
         controller.buildEffect()();
@@ -39,7 +38,7 @@ describe('TreasureNewController', function() {
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 
-      const controller = new TreasureNewController(setError, setFieldErrors, treasureClient);
+      const controller = new TreasureNewController(setError, setFieldErrors);
 
       try {
         controller.buildEffect()();

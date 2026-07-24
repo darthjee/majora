@@ -9,7 +9,7 @@ describe('GameTreasureNewController', function() {
         ok: true,
         json: () => Promise.resolve({ game_slug: 'demo', game_type: 'deadlands' }),
       }));
-      const controller = new GameTreasureNewController(null, null, null, null, gameClient);
+      const controller = new GameTreasureNewController(null, null, null, gameClient);
 
       const gameType = await controller.fetchGameType('demo', 'tok');
 
@@ -29,7 +29,7 @@ describe('GameTreasureNewController', function() {
       it(`degrades to 'dnd' when the ${description}`, async function() {
         const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame']);
         gameClient.fetchGame.and.callFake(fetchGame);
-        const controller = new GameTreasureNewController(null, null, null, null, gameClient);
+        const controller = new GameTreasureNewController(null, null, null, gameClient);
 
         const gameType = await controller.fetchGameType('demo', 'tok');
 

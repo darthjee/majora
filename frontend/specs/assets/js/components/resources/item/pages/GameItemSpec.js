@@ -6,6 +6,7 @@ import PhotoUploadModalHelper
   from '../../../../../../../assets/js/components/common/modals/helpers/PhotoUploadModalHelper.jsx';
 import PhotoUploadModalController
   from '../../../../../../../assets/js/components/common/modals/controllers/PhotoUploadModalController.js';
+import RequestStore from '../../../../../../../assets/js/utils/requests/RequestStore.js';
 import AuthStorage from '../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
 
@@ -178,6 +179,28 @@ describe('GameItem', function() {
       capturedHandlers.onSubmit();
 
       expect(buildEffectSpy.calls.count()).toBe(callsBefore + 1);
+    });
+
+    it('purges the item cache before refetching when the upload succeeds', function() {
+      spyOn(ItemDetailHelper, 'render').and.returnValue(null);
+      spyOn(AuthStorage, 'getToken').and.returnValue('auth-tok');
+      spyOn(RequestStore, 'purge');
+      spyOn(PhotoUploadModalController.prototype, 'handleSubmit').and.callFake(function() {
+        this.onSuccess();
+        return Promise.resolve();
+      });
+      spyOn(LoadedController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
+      let capturedHandlers;
+      spyOn(PhotoUploadModalHelper, 'render').and.callFake((show, state, handlers) => {
+        capturedHandlers = handlers;
+        return null;
+      });
+
+      renderToStaticMarkup(React.createElement(GameItem, { ControllerClass: LoadedController }));
+
+      capturedHandlers.onSubmit();
+
+      expect(RequestStore.purge).toHaveBeenCalledWith({ resource: 'item' });
     });
 
     it('closes without refetching when the modal is dismissed', function() {

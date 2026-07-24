@@ -143,8 +143,7 @@ describe('GameItemEditController', function() {
 
     beforeEach(function() {
       setStatus = jasmine.createSpy('setStatus');
-      spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
-      client.patchJson.and.returnValue(Promise.resolve({
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         ok: true,
         status: 200,
         json: () => Promise.resolve({ id: 5, name: 'New Name' }),
@@ -162,11 +161,14 @@ describe('GameItemEditController', function() {
       expect(event.preventDefault).toHaveBeenCalled();
       expect(setStatus).toHaveBeenCalledWith('submitting');
       expect(setFieldErrors).toHaveBeenCalledWith({});
-      expect(client.patchJson).toHaveBeenCalledWith(
-        '/games/demo/items/5.json',
-        'tok-abc',
-        { name: 'New Name', description: 'Shiny', hidden: true },
-      );
+      expect(RequestStore.mutate).toHaveBeenCalledWith({
+        componentName: 'GameItemEditController',
+        resource: 'item',
+        method: 'PATCH',
+        quantityType: 'single',
+        params: { gameSlug: 'demo', kind: 'game', id: '5' },
+        body: { name: 'New Name', description: 'Shiny', hidden: true },
+      });
     });
 
     it('redirects to the item detail page on success', async function() {
@@ -186,7 +188,7 @@ describe('GameItemEditController', function() {
     });
 
     it('sets field errors on a 400 response', async function() {
-      client.patchJson.and.returnValue(Promise.resolve({
+      RequestStore.mutate.and.returnValue(Promise.resolve({
         ok: false,
         status: 400,
         json: () => Promise.resolve({ errors: { name: ['is too short'] } }),
@@ -202,7 +204,9 @@ describe('GameItemEditController', function() {
     });
 
     it('sets status to error on a non-400 failure', async function() {
-      client.patchJson.and.returnValue(Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve({}) }));
+      RequestStore.mutate.and.returnValue(
+        Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve({}) }),
+      );
 
       const controller = new GameItemEditController(setItem, setLoading, setError, setFieldErrors, client);
 
@@ -214,7 +218,7 @@ describe('GameItemEditController', function() {
     });
 
     it('sets status to error when the network request throws', async function() {
-      client.patchJson.and.returnValue(Promise.reject(new Error('network error')));
+      RequestStore.mutate.and.returnValue(Promise.reject(new Error('network error')));
 
       const controller = new GameItemEditController(setItem, setLoading, setError, setFieldErrors, client);
 
