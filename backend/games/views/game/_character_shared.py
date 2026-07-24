@@ -167,12 +167,13 @@ def build_items_view(npc):
 
 
 def _check_character_all_permission(request, game, character_id, npc):
-    """Return an error Response if the requester may not view all items/documents, else None.
+    """Return an error Response if the requester may not view/edit all items/documents, else None.
 
-    An NPC's `/items/all.json` (or `/documents/all.json`) is DM/superuser-only
-    (`GameEditPermission`); a PC's own variant is additionally open to the PC's owning player
-    (`CharacterEditPermission`). Shared by both the items and documents `/all.json` view
-    factories below — the branching is identical, only the calling endpoint differs.
+    An NPC's `/items/all.json` (or `/documents/all.json`, or `/items/remove/all.json`) is
+    DM/superuser-only (`GameEditPermission`); a PC's own variant is additionally open to the
+    PC's owning player (`CharacterEditPermission`). Shared by the items, documents, and (issue
+    #773) item-remove `/all.json` view factories below — the branching is identical, only the
+    calling endpoint differs.
     """
     if npc:
         return GameEditPermission.check(request, game)
