@@ -8,6 +8,11 @@
  * clear those targets. Groups sharing a resource family's base target list
  * extend it rather than repeating it, per docs/agents/issues/438-reactor-proxy-rules.md.
  *
+ * The character-scoped treasures and items cache-cleanup groups for NPCs
+ * live in treasures.php and items.php respectively, colocated with the rest
+ * of each connected entity's cache-cleanup logic — this file only keeps the
+ * groups for routes unique to the NPC entity itself.
+ *
  * @return array List of npcs-family cache-cleanup groups.
  */
 
@@ -38,33 +43,6 @@ return [
             '/games/:game_slug/npcs/:character_id/full.json',
             '/games/:game_slug/npcs/:character_id/photo_upload.json',
             '/games/:game_slug/npcs/:character_id/slain.json',
-        ],
-    ],
-    // npcs treasures buy/sell/acquire/remove — npcs entity targets plus the
-    // NPC's own treasures list.
-    [
-        'targets' => array_merge($npcsEntityTargets, [
-            '/games/:game_slug/npcs/:character_id/treasures.json',
-        ]),
-        'routes' => [
-            '/games/:game_slug/npcs/:character_id/treasures/buy.json',
-            '/games/:game_slug/npcs/:character_id/treasures/sell.json',
-            '/games/:game_slug/npcs/:character_id/treasures/acquire.json',
-            '/games/:game_slug/npcs/:character_id/treasures/acquire/all.json',
-            '/games/:game_slug/npcs/:character_id/treasures/remove.json',
-        ],
-    ],
-    // npcs items — an NPC's item photo-upload route.
-    [
-        'targets' => [
-            '/games/:game_slug/npcs/:character_id/items.json',
-            '/games/:game_slug/npcs/:character_id/items/all.json',
-            '/games/:game_slug/npcs/:character_id/items/:item_id.json',
-            '/games/:game_slug/npcs/:character_id/items/:item_id/full.json',
-        ],
-        'routes' => [
-            '/games/:game_slug/npcs/:character_id/items/:item_id.json',
-            '/games/:game_slug/npcs/:character_id/items/:item_id/photo_upload.json',
         ],
     ],
 ];
