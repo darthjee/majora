@@ -4,6 +4,7 @@ import GamePhotosHelper from './helpers/GamePhotosHelper.jsx';
 import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
 import PhotoViewModal from '../../../common/modals/PhotoViewModal.jsx';
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
+import resourceConfig from '../../../../utils/requests/resourceConfig.js';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
 
 /**
@@ -50,7 +51,7 @@ export default function GamePhotos() {
       })}
       <PhotoUploadModal
         show={showUploadModal}
-        uploadPath={`/games/${gameSlug}/photo_upload.json`}
+        uploadPath={resourceConfig.get('POST', 'game', 'single').regular.path({ gameSlug })}
         onClose={() => setShowUploadModal(false)}
         onSuccess={handleUploadSuccess}
       />

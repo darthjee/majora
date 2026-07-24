@@ -1,5 +1,3 @@
-import GameClient from '../../../../../client/GameClient.js';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BaseEditController from '../../../../common/base/controllers/BaseEditController.js';
@@ -28,11 +26,9 @@ export default class GameEditController extends BaseEditController {
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
-   * @param {GameClient|null} [gameClient] - Game client override.
    */
-  constructor(setGame, setLoading, setError, setFieldErrors = Noop.noop, gameClient = null) {
+  constructor(setGame, setLoading, setError, setFieldErrors = Noop.noop) {
     super(setGame, setLoading, setError, setFieldErrors);
-    this.gameClient = gameClient ?? new GameClient();
   }
 
   /**
@@ -64,9 +60,10 @@ export default class GameEditController extends BaseEditController {
   /**
    * Submit a partial update for the game.
    *
-   * @description Prevents the default form submission, resets status and
-   *   field errors, sends a PATCH request, then redirects on success,
-   *   sets field errors on 400, or sets error status on other failures.
+   * @description Prevents the default form submission, resets status and field errors, sends a
+   *   PATCH request through {@link RequestStore.mutate} (issue #844, so the game's cached `GET`
+   *   data is purged on success), then redirects on success, sets field errors on 400, or sets
+   *   error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {{name: string, description: string}} formValues - Raw form field values.
@@ -74,14 +71,19 @@ export default class GameEditController extends BaseEditController {
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
   submitForm(event, gameSlug, formValues, setters) {
-    const token = AuthStorage.getToken();
-
     return this.performSubmit(
       event,
       setters,
-      () => this.gameClient.updateGame(gameSlug, token, {
-        name: formValues.name,
-        description: formValues.description,
+      () => RequestStore.mutate({
+        componentName: 'GameEditController',
+        resource: 'game',
+        method: 'PATCH',
+        quantityType: 'single',
+        params: { gameSlug },
+        body: {
+          name: formValues.name,
+          description: formValues.description,
+        },
       }),
       `/games/${gameSlug}`,
     );

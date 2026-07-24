@@ -5,6 +5,7 @@ import ProfilePhotoSetModal from '../../../../common/modals/ProfilePhotoSetModal
 import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import FacadeRefresh from '../../../../../utils/access/useFacadeRefresh.js';
+import resourceConfig from '../../../../../utils/requests/resourceConfig.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 
 /**
@@ -78,7 +79,9 @@ export default function CharacterPhotos({ ControllerClass, getParamsFromHash, Ph
       )}
       <PhotoUploadModal
         show={showUploadModal}
-        uploadPath={`/games/${gameSlug}/${characterKind}/${characterId}/photo_upload.json`}
+        uploadPath={resourceConfig.get('POST', characterKind === 'pcs' ? 'pc' : 'npc', 'single').regular.path(
+          { gameSlug, id: characterId },
+        )}
         onClose={() => setShowUploadModal(false)}
         onSuccess={handleUploadSuccess}
       />

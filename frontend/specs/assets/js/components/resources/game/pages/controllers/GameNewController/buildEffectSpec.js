@@ -6,10 +6,9 @@ import { buildContext } from './support.js';
 describe('GameNewController', function() {
   let setError;
   let setFieldErrors;
-  let gameClient;
 
   beforeEach(function() {
-    ({ setError, setFieldErrors, gameClient } = buildContext());
+    ({ setError, setFieldErrors } = buildContext());
   });
 
   afterEach(function() {
@@ -21,7 +20,7 @@ describe('GameNewController', function() {
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 
-      const controller = new GameNewController(setError, setFieldErrors, gameClient);
+      const controller = new GameNewController(setError, setFieldErrors);
 
       try {
         controller.buildEffect()();
@@ -37,7 +36,7 @@ describe('GameNewController', function() {
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
 
-      const controller = new GameNewController(setError, setFieldErrors, gameClient);
+      const controller = new GameNewController(setError, setFieldErrors);
 
       try {
         controller.buildEffect()();

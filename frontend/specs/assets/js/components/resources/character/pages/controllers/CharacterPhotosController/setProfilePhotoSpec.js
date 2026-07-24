@@ -1,5 +1,6 @@
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import { KINDS, buildCharacterClient } from './support.js';
 
 KINDS.forEach(({ label, Controller, kind }) => {
@@ -10,6 +11,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
       AuthStorage.clearToken();
       characterClient = buildCharacterClient();
       spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve({ can_edit: false }));
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({ ok: true }));
     });
 
     describe('#setProfilePhoto', function() {
@@ -27,7 +29,14 @@ KINDS.forEach(({ label, Controller, kind }) => {
 
         await controller.setProfilePhoto('demo', '7', '9');
 
-        expect(characterClient.setPhotoRoles).toHaveBeenCalledWith(kind, 'demo', '7', '9', null, ['profile']);
+        expect(RequestStore.mutate).toHaveBeenCalledWith({
+          componentName: 'BaseCharacterPhotosController',
+          resource: kind === 'pcs' ? 'pc' : 'npc',
+          method: 'PATCH',
+          quantityType: 'photo',
+          params: { gameSlug: 'demo', id: '7', photoId: '9' },
+          body: { roles: ['profile'] },
+        });
         expect(characterClient.fetchCharacter).toHaveBeenCalledWith(kind, 'demo', '7', null);
         expect(setCharacter).toHaveBeenCalledWith(
           jasmine.objectContaining({ name: 'Aragorn', can_edit: false }),
@@ -42,7 +51,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
         const setError = jasmine.createSpy('setError');
         const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
 
-        characterClient.setPhotoRoles.and.returnValue(Promise.reject(new Error('network error')));
+        RequestStore.mutate.and.returnValue(Promise.reject(new Error('network error')));
 
         const controller = new Controller(
           setPhotos, setPagination, setCharacter, setLoading, setError, client, characterClient,
