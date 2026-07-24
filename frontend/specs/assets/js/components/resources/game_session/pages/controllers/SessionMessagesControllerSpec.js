@@ -1,6 +1,7 @@
 import SessionMessagesController
   from '../../../../../../../../assets/js/components/resources/game_session/pages/controllers/SessionMessagesController.js';
 import AuthStorage from '../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../../../../assets/js/utils/requests/RequestStore.js';
 
 describe('SessionMessagesController', function() {
   afterEach(function() {
@@ -139,15 +140,14 @@ describe('SessionMessagesController', function() {
       const setMessages = jasmine.createSpy('setMessages');
       const setNextEntryId = jasmine.createSpy('setNextEntryId');
       const setLoadingMore = jasmine.createSpy('setLoadingMore');
-      const client = jasmine.createSpyObj('client', ['createMessage']);
 
       // eslint-disable-next-line no-empty-function
-      client.createMessage.and.returnValue(new Promise(() => {}));
+      spyOn(RequestStore, 'mutate').and.returnValue(new Promise(() => {}));
 
-      const controller = new SessionMessagesController(setMessages, setNextEntryId, setLoadingMore, client);
+      const controller = new SessionMessagesController(setMessages, setNextEntryId, setLoadingMore);
       const setters = buildSetters();
 
-      controller.postMessage('demo', 7, null, 'hello', setters);
+      controller.postMessage('demo', 7, 'hello', setters);
 
       expect(setters.setPosting).toHaveBeenCalledWith(true);
       expect(setters.setFieldErrors).toHaveBeenCalledWith({});
@@ -157,18 +157,25 @@ describe('SessionMessagesController', function() {
       const setMessages = jasmine.createSpy('setMessages');
       const setNextEntryId = jasmine.createSpy('setNextEntryId');
       const setLoadingMore = jasmine.createSpy('setLoadingMore');
-      const client = jasmine.createSpyObj('client', ['createMessage', 'fetchMessages']);
+      const client = jasmine.createSpyObj('client', ['fetchMessages']);
       const newMessage = { id: 3, content: 'hello' };
 
-      client.createMessage.and.returnValue(Promise.resolve(buildResponse({}, { ok: true })));
+      const mutateSpy = spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve(buildResponse({}, { ok: true })));
       client.fetchMessages.and.returnValue(Promise.resolve(buildResponse([newMessage])));
 
       const controller = new SessionMessagesController(setMessages, setNextEntryId, setLoadingMore, client);
       const setters = buildSetters();
 
-      await controller.postMessage('demo', 7, null, 'hello', setters);
+      await controller.postMessage('demo', 7, 'hello', setters);
 
-      expect(client.createMessage).toHaveBeenCalledWith('demo', 7, null, 'hello');
+      expect(mutateSpy).toHaveBeenCalledWith({
+        componentName: 'SessionMessagesController',
+        resource: 'session',
+        method: 'POST',
+        quantityType: 'message',
+        params: { gameSlug: 'demo', id: 7 },
+        body: { content: 'hello' },
+      });
       expect(setters.setContent).toHaveBeenCalledWith('');
       expect(setMessages).toHaveBeenCalledWith([newMessage]);
       expect(setters.setPosting).toHaveBeenCalledWith(false);
@@ -178,17 +185,16 @@ describe('SessionMessagesController', function() {
       const setMessages = jasmine.createSpy('setMessages');
       const setNextEntryId = jasmine.createSpy('setNextEntryId');
       const setLoadingMore = jasmine.createSpy('setLoadingMore');
-      const client = jasmine.createSpyObj('client', ['createMessage']);
 
-      client.createMessage.and.returnValue(Promise.resolve({
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         ok: false,
         json: () => Promise.resolve({ errors: { content: ['is required'] } }),
       }));
 
-      const controller = new SessionMessagesController(setMessages, setNextEntryId, setLoadingMore, client);
+      const controller = new SessionMessagesController(setMessages, setNextEntryId, setLoadingMore);
       const setters = buildSetters();
 
-      await controller.postMessage('demo', 7, null, '', setters);
+      await controller.postMessage('demo', 7, '', setters);
 
       expect(setters.setFieldErrors).toHaveBeenCalledWith({ content: ['is required'] });
       expect(setters.setContent).not.toHaveBeenCalledWith('');
@@ -199,14 +205,13 @@ describe('SessionMessagesController', function() {
       const setMessages = jasmine.createSpy('setMessages');
       const setNextEntryId = jasmine.createSpy('setNextEntryId');
       const setLoadingMore = jasmine.createSpy('setLoadingMore');
-      const client = jasmine.createSpyObj('client', ['createMessage']);
 
-      client.createMessage.and.returnValue(Promise.reject(new Error('network error')));
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.reject(new Error('network error')));
 
-      const controller = new SessionMessagesController(setMessages, setNextEntryId, setLoadingMore, client);
+      const controller = new SessionMessagesController(setMessages, setNextEntryId, setLoadingMore);
       const setters = buildSetters();
 
-      await expectAsync(controller.postMessage('demo', 7, null, 'hello', setters)).toBeRejected();
+      await expectAsync(controller.postMessage('demo', 7, 'hello', setters)).toBeRejected();
 
       expect(setters.setPosting).toHaveBeenCalledWith(false);
     });

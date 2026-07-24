@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import GameSessionController from './controllers/GameSessionController.js';
 import SessionMessagesController from './controllers/SessionMessagesController.js';
-import AuthStorage from '../../../../utils/auth/AuthStorage.js';
 import GameSessionHelper from './helpers/GameSessionHelper.jsx';
 import CreateSessionPollModal from './elements/CreateSessionPollModal.jsx';
 import Translator from '../../../../i18n/Translator.js';
@@ -53,10 +52,8 @@ export default function GameSession() {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    const token = AuthStorage.getToken();
-
     return messagesController.postMessage(
-      session.game_slug, session.id, token, content, { setContent, setFieldErrors, setPosting },
+      session.game_slug, session.id, content, { setContent, setFieldErrors, setPosting },
     );
   };
 

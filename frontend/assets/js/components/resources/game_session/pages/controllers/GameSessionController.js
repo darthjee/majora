@@ -2,6 +2,7 @@ import GameSessionClient from '../../../../../client/GameSessionClient.js';
 import parseJsonOrReject from '../../../../../utils/http/parseJsonOrReject.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 
@@ -95,10 +96,10 @@ export default class GameSessionController extends BasePageController {
   /**
    * Submit a new date poll for the session.
    *
-   * @description Marks the poll submission as in progress, sends a POST
-   *   request, then redirects to the new poll's detail page on success
-   *   (201), or marks the poll submission as failed otherwise (including
-   *   network failures).
+   * @description Marks the poll submission as in progress, sends a POST request through
+   *   {@link RequestStore.mutate} (issue #842, so the session's cached `GET` data is purged on
+   *   success), then redirects to the new poll's detail page on success (201), or marks the poll
+   *   submission as failed otherwise (including network failures).
    * @param {string} gameSlug - Game slug.
    * @param {number|string} sessionId - Session id.
    * @param {string[]} dates - Candidate dates (YYYY-MM-DD), in submission order.
@@ -109,10 +110,15 @@ export default class GameSessionController extends BasePageController {
   async submitPoll(gameSlug, sessionId, dates, type, setters) {
     setters.setPollStatus('submitting');
 
-    const token = AuthStorage.getToken();
-
     try {
-      const response = await this.sessionClient.createSessionPoll(gameSlug, sessionId, token, dates, type);
+      const response = await RequestStore.mutate({
+        componentName: 'GameSessionController',
+        resource: 'session',
+        method: 'POST',
+        quantityType: 'pollProposal',
+        params: { gameSlug, id: sessionId },
+        body: { dates, type },
+      });
 
       await this.#handlePollResponse(response, gameSlug, setters);
     } catch {

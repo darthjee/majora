@@ -26,13 +26,12 @@ describe('GameSessionEditController', function() {
       const setSession = jasmine.createSpy('setSession');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
-      const sessionClient = jasmine.createSpyObj('sessionClient', ['updateSession']);
       const fakeWindow = { location: { hash: '#/games/demo/sessions/7/edit' } };
       globalThis.window = fakeWindow;
 
       try {
         const controller = new GameSessionEditController(
-          setSession, setLoading, setError, Noop.noop, sessionClient,
+          setSession, setLoading, setError, Noop.noop,
         );
         const cleanup = controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -61,13 +60,12 @@ describe('GameSessionEditController', function() {
       const setSession = jasmine.createSpy('setSession');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
-      const sessionClient = jasmine.createSpyObj('sessionClient', ['updateSession']);
       const fakeWindow = { location: { hash: '#/games/demo/sessions/7/edit' } };
       globalThis.window = fakeWindow;
 
       try {
         const controller = new GameSessionEditController(
-          setSession, setLoading, setError, Noop.noop, sessionClient,
+          setSession, setLoading, setError, Noop.noop,
         );
         const cleanup = controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -89,13 +87,12 @@ describe('GameSessionEditController', function() {
       const setSession = jasmine.createSpy('setSession');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
-      const sessionClient = jasmine.createSpyObj('sessionClient', ['updateSession']);
       const fakeWindow = { location: { hash: '#/games/demo/sessions/7/edit' } };
       globalThis.window = fakeWindow;
 
       try {
         const controller = new GameSessionEditController(
-          setSession, setLoading, setError, Noop.noop, sessionClient,
+          setSession, setLoading, setError, Noop.noop,
         );
         const cleanup = controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -114,13 +111,12 @@ describe('GameSessionEditController', function() {
       const setSession = jasmine.createSpy('setSession');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
-      const sessionClient = jasmine.createSpyObj('sessionClient', ['updateSession']);
       const fakeWindow = { location: { hash: '#/games/demo/sessions' } };
       globalThis.window = fakeWindow;
 
       try {
         const controller = new GameSessionEditController(
-          setSession, setLoading, setError, Noop.noop, sessionClient,
+          setSession, setLoading, setError, Noop.noop,
         );
         const cleanup = controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
