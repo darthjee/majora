@@ -383,6 +383,17 @@ game_documents_page:
   loading: Carregando documentos...
   title: Documentos
   hidden_label: Oculto
+  create_document: Criar Documento
+document_new_page:
+  title: Criar Documento
+  name_label: Nome
+  description_label: Descrição
+  hidden_label: Oculto
+  submit: Criar Documento
+  error: Falha ao criar o documento. Tente novamente.
+document_page:
+  loading: Carregando documento...
+  hidden_label: Oculto
 item_page:
   loading: Carregando item...
   hidden_label: Oculto
