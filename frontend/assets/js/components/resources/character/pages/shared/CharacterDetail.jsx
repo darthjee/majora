@@ -9,7 +9,20 @@ import MoneyEditModal from '../../../../common/modals/MoneyEditModal.jsx';
 import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
+import resourceConfig from '../../../../../utils/requests/resourceConfig.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
+
+/**
+ * Resource name (`'pc'`/`'npc'`) `RequestStore`/`resourceConfig` key for a character kind
+ * (`'pcs'`/`'npcs'`).
+ *
+ * @param {string} characterKind - Character kind URL segment (`'pcs'` or `'npcs'`).
+ * @returns {string} `'pc'` or `'npc'`.
+ */
+function resourceName(characterKind) {
+  return characterKind === 'npcs' ? 'npc' : 'pc';
+}
 
 /**
  * Default extension hook, used when a character kind has no extra
@@ -72,6 +85,10 @@ export default function CharacterDetail({
 
   const handleUploadSuccess = () => {
     setShowUploadModal(false);
+    // Purge before refetching: the photo upload saga doesn't go through `RequestStore.mutate`
+    // (it's a two-step, non-JSON-body saga), so the cache purge must happen explicitly here,
+    // before `buildEffect()()`'s refetch, or that refetch would re-serve the pre-upload cache.
+    RequestStore.purge({ resource: resourceName(characterKind) });
     controller.buildEffect()();
   };
 
@@ -110,7 +127,9 @@ export default function CharacterDetail({
       })}
       <PhotoUploadModal
         show={showUploadModal}
-        uploadPath={`/games/${gameSlug}/${characterKind}/${character.id}/photo_upload.json`}
+        uploadPath={resourceConfig.get('POST', resourceName(characterKind), 'single').regular.path(
+          { gameSlug, id: character.id },
+        )}
         onClose={() => setShowUploadModal(false)}
         onSuccess={handleUploadSuccess}
       />

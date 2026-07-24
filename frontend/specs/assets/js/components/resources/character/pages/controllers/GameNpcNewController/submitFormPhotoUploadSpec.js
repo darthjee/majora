@@ -1,6 +1,7 @@
 import GameNpcNewController
   from '../../../../../../../../../assets/js/components/resources/character/pages/controllers/GameNpcNewController.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 
 describe('GameNpcNewController', function() {
   afterEach(function() {
@@ -24,10 +25,14 @@ describe('GameNpcNewController', function() {
       characterClient = jasmine.createSpyObj('characterClient', ['createNpc']);
       uploadClient = jasmine.createSpyObj('uploadClient', ['initUpload', 'submitUpload']);
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
-      characterClient.createNpc.and.returnValue(Promise.resolve({
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         status: 201,
         json: () => Promise.resolve({ id: 7, name: 'Goblin King', game_slug: 'demo' }),
       }));
+      spyOn(RequestStore, 'resolvePath').and.returnValue(
+        Promise.resolve('/games/demo/npcs/7/photo_upload.json'),
+      );
+      spyOn(RequestStore, 'purge');
     });
 
     const buildFormValues = () => ({
@@ -53,10 +58,14 @@ describe('GameNpcNewController', function() {
           { setStatus, setFieldErrors, setCharacterId },
         );
 
+        expect(RequestStore.resolvePath).toHaveBeenCalledWith({
+          resource: 'npc', method: 'POST', quantityType: 'single', params: { gameSlug: 'demo', id: 7 },
+        });
         expect(uploadClient.initUpload).toHaveBeenCalledWith(
           '/games/demo/npcs/7/photo_upload.json', 'photo.jpg', 'tok-abc',
         );
         expect(uploadClient.submitUpload).toHaveBeenCalledWith(1, 'up-token', photoFile);
+        expect(RequestStore.purge).toHaveBeenCalledWith({ resource: 'npc' });
         expect(fakeWindow.location.hash).toBe('/games/demo/npcs/7');
         expect(setStatus).not.toHaveBeenCalledWith('photo-upload-failed');
       } finally {
@@ -82,6 +91,7 @@ describe('GameNpcNewController', function() {
         expect(setStatus).toHaveBeenCalledWith('photo-upload-failed');
         expect(setCharacterId).toHaveBeenCalledWith(7);
         expect(uploadClient.submitUpload).not.toHaveBeenCalled();
+        expect(RequestStore.purge).not.toHaveBeenCalled();
         expect(fakeWindow.location.hash).toBe('');
       } finally {
         delete globalThis.window;

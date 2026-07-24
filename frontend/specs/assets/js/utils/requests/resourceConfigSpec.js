@@ -33,6 +33,46 @@ describe('resourceConfig', function() {
       expect(single.private.path({ gameSlug: 'demo', id: '3' })).toBe('/games/demo/npcs/3/full.json');
       expect(single.private.permission).toBe('can_edit');
     });
+
+    it('resolves PATCH.single regular (player-writable)/private (full editor) paths and permissions (issue #830)', function() {
+      const single = resourceConfig.get('PATCH', 'npc', 'single');
+
+      expect(single.regular.path({ gameSlug: 'demo', id: '3' })).toBe('/games/demo/npcs/3.json');
+      expect(single.regular.permission).toBeNull();
+      expect(single.private.path({ gameSlug: 'demo', id: '3' })).toBe('/games/demo/npcs/3/full.json');
+      expect(single.private.permission).toBe('can_edit');
+    });
+
+    it('resolves PATCH.photo (photo set-roles) as a single un-branched variant (issue #830)', function() {
+      const photo = resourceConfig.get('PATCH', 'npc', 'photo');
+
+      expect(photo.regular).toBe(photo.private);
+      expect(photo.regular.path({ gameSlug: 'demo', id: '3', photoId: '9' }))
+        .toBe('/games/demo/npcs/3/photos/9/set.json');
+      expect(photo.regular.permission).toBe('can_edit');
+    });
+
+    it('resolves PUT.single (money) as a single un-branched variant (issue #830)', function() {
+      const single = resourceConfig.get('PUT', 'npc', 'single');
+
+      expect(single.regular).toBe(single.private);
+      expect(single.regular.path({ gameSlug: 'demo', id: '3' })).toBe('/games/demo/npcs/3/money.json');
+    });
+
+    it('resolves POST.single (photo upload init) as a single un-branched variant (issue #830)', function() {
+      const single = resourceConfig.get('POST', 'npc', 'single');
+
+      expect(single.regular).toBe(single.private);
+      expect(single.regular.path({ gameSlug: 'demo', id: '3' })).toBe('/games/demo/npcs/3/photo_upload.json');
+    });
+
+    it('resolves POST.collection (creation) as a single un-branched, can_edit-gated variant (issue #830)', function() {
+      const collection = resourceConfig.get('POST', 'npc', 'collection');
+
+      expect(collection.regular).toBe(collection.private);
+      expect(collection.regular.path({ gameSlug: 'demo' })).toBe('/games/demo/npcs.json');
+      expect(collection.regular.permission).toBe('can_edit');
+    });
   });
 
   describe('pc', function() {
@@ -51,6 +91,38 @@ describe('resourceConfig', function() {
       expect(single.regular.permission).toBeNull();
       expect(single.private.path({ gameSlug: 'demo', id: '3' })).toBe('/games/demo/pcs/3/full.json');
       expect(single.private.permission).toBe('can_edit');
+    });
+
+    it('resolves PATCH.single regular (reserved, no backend support yet)/private (full editor) (issue #830)', function() {
+      const single = resourceConfig.get('PATCH', 'pc', 'single');
+
+      expect(single.regular.path({ gameSlug: 'demo', id: '3' })).toBe('/games/demo/pcs/3.json');
+      expect(single.regular.permission).toBeNull();
+      expect(single.private.path({ gameSlug: 'demo', id: '3' })).toBe('/games/demo/pcs/3/full.json');
+      expect(single.private.permission).toBe('can_edit');
+    });
+
+    it('resolves PATCH.photo (photo set-roles) as a single un-branched variant (issue #830)', function() {
+      const photo = resourceConfig.get('PATCH', 'pc', 'photo');
+
+      expect(photo.regular).toBe(photo.private);
+      expect(photo.regular.path({ gameSlug: 'demo', id: '3', photoId: '9' }))
+        .toBe('/games/demo/pcs/3/photos/9/set.json');
+      expect(photo.regular.permission).toBe('can_edit');
+    });
+
+    it('resolves PUT.single (money) as a single un-branched variant (issue #830)', function() {
+      const single = resourceConfig.get('PUT', 'pc', 'single');
+
+      expect(single.regular).toBe(single.private);
+      expect(single.regular.path({ gameSlug: 'demo', id: '3' })).toBe('/games/demo/pcs/3/money.json');
+    });
+
+    it('resolves POST.single (photo upload init) as a single un-branched variant (issue #830)', function() {
+      const single = resourceConfig.get('POST', 'pc', 'single');
+
+      expect(single.regular).toBe(single.private);
+      expect(single.regular.path({ gameSlug: 'demo', id: '3' })).toBe('/games/demo/pcs/3/photo_upload.json');
     });
   });
 

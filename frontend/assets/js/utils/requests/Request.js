@@ -1,5 +1,6 @@
 import AccessCache from '../access/AccessCache.js';
 import RequestClient from './RequestClient.js';
+import resolveVariant from './resolveVariant.js';
 
 const defaultClient = new RequestClient();
 
@@ -68,7 +69,7 @@ export default class Request {
    *   Resolves to the wrapped resource data and its pagination metadata.
    */
   ensure({ permissions = {}, params = {}, query = {} } = {}) {
-    const variant = this.#resolveVariant(permissions, params);
+    const variant = resolveVariant(this.#config, permissions, params);
     const key = Request.#buildKey(this.#resource, this.#quantityType, variant.name, params, query);
 
     if (key === this.#activeKey) {
@@ -109,6 +110,33 @@ export default class Request {
     this.#current = undefined;
   }
 
+  /**
+   * Whether this `Request` currently has a fetch in flight (i.e. is not settled).
+   *
+   * @returns {boolean} `true` while a fetch is pending, `false` once settled/idle.
+   */
+  isOngoing() {
+    return this.#promise !== null;
+  }
+
+  /**
+   * Force this `Request` to restart its fetch on the *next* `ensure()` call, without
+   * discarding any promise already handed out to a waiting caller.
+   *
+   * @description Used by {@link RequestStore.purge} for a `Request` that is currently
+   *   in flight when a mutation for its resource lands: unlike {@link Request#abort} (which
+   *   also clears `#promise`/`#resolve`, appropriate for `RequestStore.reset()`), this keeps
+   *   them intact so a caller already waiting on this `Request` still resolves — once the
+   *   *replacement* fetch (started by the next `ensure()` call) settles — instead of hanging
+   *   forever or resolving with data that predates the mutation. Mirrors the existing
+   *   permission-change abort-and-restart mechanic described in this class's own doc.
+   * @returns {void}
+   */
+  restart() {
+    this.#cache.reset();
+    this.#activeKey = null;
+  }
+
   #settle(key, result) {
     if (this.#activeKey !== key) {
       return;
@@ -118,16 +146,6 @@ export default class Request {
     this.#resolve?.(this.#current);
     this.#promise = null;
     this.#resolve = null;
-  }
-
-  #resolveVariant(permissions, params) {
-    const { regular, private: privateEntry } = this.#config;
-    const permissionKey = typeof privateEntry.permission === 'function'
-      ? privateEntry.permission(params)
-      : privateEntry.permission;
-    const granted = permissionKey !== null && permissionKey !== undefined && permissions?.[permissionKey] === true;
-
-    return granted ? { ...privateEntry, name: 'private' } : { ...regular, name: 'regular' };
   }
 
   static #buildKey(resource, quantityType, variantName, params, query) {

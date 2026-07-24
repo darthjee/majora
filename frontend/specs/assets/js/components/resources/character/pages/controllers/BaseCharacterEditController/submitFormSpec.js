@@ -1,4 +1,4 @@
-import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import { TestCharacterEditController, buildContext } from './support.js';
 
 describe('BaseCharacterEditController', function() {
@@ -9,10 +9,6 @@ describe('BaseCharacterEditController', function() {
   let client;
   let characterClient;
 
-  afterEach(function() {
-    AuthStorage.clearToken();
-  });
-
   beforeEach(function() {
     ({ setCharacter, setLoading, setError, setFieldErrors, client, characterClient } = buildContext());
   });
@@ -22,8 +18,7 @@ describe('BaseCharacterEditController', function() {
 
     beforeEach(function() {
       setStatus = jasmine.createSpy('setStatus');
-      spyOn(AuthStorage, 'getToken').and.returnValue('tok-test');
-      characterClient.updateCharacter.and.returnValue(Promise.resolve({
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         ok: true, status: 200, json: () => Promise.resolve({ id: 1, can_edit: true }),
       }));
     });
@@ -60,9 +55,14 @@ describe('BaseCharacterEditController', function() {
         expect(event.preventDefault).toHaveBeenCalled();
         expect(setStatus).toHaveBeenCalledWith('submitting');
         expect(setFieldErrors).toHaveBeenCalledWith({});
-        expect(characterClient.updateCharacter).toHaveBeenCalledWith(
-          'npcs', 'demo', '1', 'tok-test',
-          {
+        expect(RequestStore.mutate).toHaveBeenCalledWith({
+          componentName: 'BaseCharacterEditController',
+          resource: 'npc',
+          method: 'PATCH',
+          quantityType: 'single',
+          params: { gameSlug: 'demo', id: '1' },
+          variantName: 'private',
+          body: {
             name: 'Test Hero',
             role: 'Fighter',
             public_description: 'A brave hero', private_description: 'DM notes',
@@ -81,14 +81,14 @@ describe('BaseCharacterEditController', function() {
               },
             ],
           },
-        );
+        });
       } finally {
         delete globalThis.window;
       }
     });
 
     it('sets per-field errors on a 400 response without redirecting', async function() {
-      characterClient.updateCharacter.and.returnValue(Promise.resolve({
+      RequestStore.mutate.and.returnValue(Promise.resolve({
         ok: false, status: 400,
         json: () => Promise.resolve({ errors: { role: ['is invalid'] } }),
       }));
@@ -115,7 +115,7 @@ describe('BaseCharacterEditController', function() {
     });
 
     it('sets status to error on a non-400 failure response without redirecting', async function() {
-      characterClient.updateCharacter.and.returnValue(Promise.resolve({
+      RequestStore.mutate.and.returnValue(Promise.resolve({
         ok: false, status: 500,
         json: () => Promise.resolve({ errors: {} }),
       }));
@@ -142,7 +142,7 @@ describe('BaseCharacterEditController', function() {
     });
 
     it('sets status to error when the request throws', async function() {
-      characterClient.updateCharacter.and.returnValue(Promise.reject(new Error('network')));
+      RequestStore.mutate.and.returnValue(Promise.reject(new Error('network')));
 
       const controller = new TestCharacterEditController(
         setCharacter, setLoading, setError, setFieldErrors, client, characterClient,
@@ -159,13 +159,7 @@ describe('BaseCharacterEditController', function() {
     });
 
     describe('when isFullEditor is false (player-only NPC editor)', function() {
-      beforeEach(function() {
-        characterClient.updateNpcAsPlayer.and.returnValue(Promise.resolve({
-          ok: true, status: 200, json: () => Promise.resolve({ id: 1, can_edit: false, is_player: true }),
-        }));
-      });
-
-      it('PATCHes the reduced fields payload via updateNpcAsPlayer instead of updateCharacter', async function() {
+      it('PATCHes the reduced fields payload with the regular (player-writable) variant', async function() {
         const controller = new TestCharacterEditController(
           setCharacter, setLoading, setError, setFieldErrors, client, characterClient,
         );
@@ -192,9 +186,14 @@ describe('BaseCharacterEditController', function() {
             false,
           );
 
-          expect(characterClient.updateNpcAsPlayer).toHaveBeenCalledWith(
-            'demo', '1', 'tok-test',
-            {
+          expect(RequestStore.mutate).toHaveBeenCalledWith({
+            componentName: 'BaseCharacterEditController',
+            resource: 'npc',
+            method: 'PATCH',
+            quantityType: 'single',
+            params: { gameSlug: 'demo', id: '1' },
+            variantName: 'regular',
+            body: {
               name: 'Grumbleknuckle',
               role: 'Shopkeeper',
               public_description: 'A brave hero',
@@ -206,8 +205,7 @@ describe('BaseCharacterEditController', function() {
               ],
               slain: true,
             },
-          );
-          expect(characterClient.updateCharacter).not.toHaveBeenCalled();
+          });
         } finally {
           delete globalThis.window;
         }

@@ -1,9 +1,11 @@
-import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import { KINDS } from './support.js';
 
 KINDS.forEach(({
   label, Controller, kind, name, role, description, allegiance, publicAllegiance, publicSlain, hidden,
 }) => {
+  const resource = kind === 'npcs' ? 'npc' : 'pc';
+
   describe(`${label}#submitForm`, function() {
     let setCharacter;
     let setLoading;
@@ -12,10 +14,6 @@ KINDS.forEach(({
     let setStatus;
     let client;
     let characterClient;
-
-    afterEach(function() {
-      AuthStorage.clearToken();
-    });
 
     beforeEach(function() {
       setCharacter = jasmine.createSpy('setCharacter');
@@ -27,8 +25,7 @@ KINDS.forEach(({
       characterClient = jasmine.createSpyObj(
         'characterClient', ['fetchCharacter', 'updateCharacter', 'updateNpcAsPlayer'],
       );
-      spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
-      characterClient.updateCharacter.and.returnValue(Promise.resolve({
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         ok: true,
         status: 200,
         json: () => Promise.resolve({ id: 2, can_edit: true }),
@@ -92,13 +89,15 @@ KINDS.forEach(({
           expectedFields.hidden = hidden;
         }
 
-        expect(characterClient.updateCharacter).toHaveBeenCalledWith(
-          kind,
-          'demo',
-          '2',
-          'tok-abc',
-          expectedFields,
-        );
+        expect(RequestStore.mutate).toHaveBeenCalledWith({
+          componentName: 'BaseCharacterEditController',
+          resource,
+          method: 'PATCH',
+          quantityType: 'single',
+          params: { gameSlug: 'demo', id: '2' },
+          body: expectedFields,
+          variantName: 'private',
+        });
       } finally {
         delete globalThis.window;
       }

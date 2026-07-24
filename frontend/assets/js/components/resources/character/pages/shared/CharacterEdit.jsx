@@ -3,8 +3,21 @@ import CharacterHelper from '../helpers/CharacterHelper.jsx';
 import PhotoUploadModal from '../../../../common/modals/PhotoUploadModal.jsx';
 import LinksEditModal from '../elements/LinksEditModal.jsx';
 import MoneyEditModal from '../../../../common/modals/MoneyEditModal.jsx';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
+import resourceConfig from '../../../../../utils/requests/resourceConfig.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 import useFormState from '../../../../../utils/useFormState.js';
+
+/**
+ * Resource name (`'pc'`/`'npc'`) `RequestStore`/`resourceConfig` key for a character kind
+ * (`'pcs'`/`'npcs'`).
+ *
+ * @param {string} characterKind - Character kind URL segment (`'pcs'` or `'npcs'`).
+ * @returns {string} `'pc'` or `'npc'`.
+ */
+function resourceName(characterKind) {
+  return characterKind === 'npcs' ? 'npc' : 'pc';
+}
 
 /**
  * Shared character edit page component.
@@ -81,11 +94,17 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
   if (error) return CharacterHelper.renderError(error);
   if (!character || (!character.can_edit && !character.is_player)) return EditHelper.renderLoading();
 
-  const uploadPath = `/games/${gameSlug}/${characterKind}/${characterId}/photo_upload.json`;
+  const uploadPath = resourceConfig.get('POST', resourceName(characterKind), 'single').regular.path(
+    { gameSlug, id: characterId },
+  );
   const gameType = character.game_type ?? 'dnd';
 
   const handleUploadSuccess = () => {
     setShowUploadModal(false);
+    // Purge before refetching: the photo upload saga doesn't go through `RequestStore.mutate`
+    // (it's a two-step, non-JSON-body saga), so the cache purge must happen explicitly here,
+    // before `buildEffect()()`'s refetch, or that refetch would re-serve the pre-upload cache.
+    RequestStore.purge({ resource: resourceName(characterKind) });
     controller.buildEffect()();
   };
 

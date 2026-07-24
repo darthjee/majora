@@ -58,34 +58,51 @@ export default class CharacterController extends CharacterListsController {
   }
 
   /**
-   * Update a character's money through the narrow, money-only endpoint (issue #615).
+   * Update a character's money through the narrow, money-only endpoint (issue #615), through
+   * {@link RequestStore.mutate} (issue #830) so the character's cached `GET` data is purged on
+   * success instead of going stale.
    *
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
-   * @param {string|null} token - Authentication token.
+   * @param {string|null} token - Authentication token, unused — kept for call-site compatibility;
+   *   `RequestStore.mutate` resolves its own token.
    * @param {number} money - New total money value.
    * @returns {Promise<Response>} Fetch response.
    */
   updateCharacterMoney(gameSlug, characterId, token, money) {
-    return this.characterClient.updateCharacterMoney(this.characterKind, gameSlug, characterId, token, money);
+    return RequestStore.mutate({
+      componentName: 'CharacterController',
+      resource: this.#resourceName(),
+      method: 'PUT',
+      quantityType: 'single',
+      params: { gameSlug, id: characterId },
+      body: { money },
+    });
   }
 
   /**
-   * Marks a photo as the character's profile photo.
+   * Marks a photo as the character's profile photo, through {@link RequestStore.mutate}
+   * (issue #830) so the character's cached `GET` data is purged on success instead of going
+   * stale.
    *
    * @description Unlike {@link BaseCharacterPhotosController#setProfilePhoto}, this does not
    *   refetch the character itself — `CharacterDetail.jsx` already refreshes via
    *   `controller.buildEffect()()` after other mutations, so the caller is responsible for
-   *   triggering that refresh on success.
+   *   triggering that refresh on success (after this mutation's own cache purge has completed).
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {string|number} characterId - Character id.
    * @param {string|number} photoId - Id of the photo to mark as profile photo.
    * @returns {Promise<Response>} Fetch response.
    */
   setProfilePhoto(gameSlug, characterId, photoId) {
-    return this.characterClient.setPhotoRoles(
-      this.characterKind, gameSlug, characterId, photoId, AuthStorage.getToken(), ['profile'],
-    );
+    return RequestStore.mutate({
+      componentName: 'CharacterController',
+      resource: this.#resourceName(),
+      method: 'PATCH',
+      quantityType: 'photo',
+      params: { gameSlug, id: characterId, photoId },
+      body: { roles: ['profile'] },
+    });
   }
 
   /**
