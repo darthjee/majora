@@ -69,6 +69,13 @@
  *   treatment above. Callers pass `variantName` explicitly (from an already-loaded
  *   `canEdit`/`gameCanEdit`) rather than relying on live permission resolution, so `permission`
  *   here is documentation-only.
+ *
+ *   `POST.link` (issue #842) backs the Add Treasure modal's link-existing-catalog-treasure
+ *   submit (`POST /games/:game_slug/treasures/link.json`), distinct from `POST.collection`'s
+ *   game-catalog *create*. Params: `gameSlug`. `GameEditPermission`-gated (DM-only) on the
+ *   backend with no non-DM variant at all, so `regular`/`private` point at the exact same object,
+ *   mirroring `collection`'s own `create` shape — `permission: 'can_edit'` here is
+ *   documentation-only, the same way it is on `create`.
  */
 /**
  * Build the regular (everyone-readable) game-catalog treasure collection path.
@@ -198,6 +205,7 @@ const sellPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/t
 
 const removeExchange = { path: removeExchangePath, permission: null };
 const sell = { path: sellPath, permission: null };
+const link = { path: ({ gameSlug }) => `/games/${gameSlug}/treasures/link.json`, permission: 'can_edit' };
 
 export default {
   GET: {
@@ -238,5 +246,6 @@ export default {
     },
     remove: { regular: removeExchange, private: removeExchange },
     sell: { regular: sell, private: sell },
+    link: { regular: link, private: link },
   },
 };

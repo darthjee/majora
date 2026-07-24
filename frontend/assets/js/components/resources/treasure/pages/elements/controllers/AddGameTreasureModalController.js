@@ -1,4 +1,5 @@
 import TreasureClient from '../../../../../../client/TreasureClient.js';
+import RequestStore from '../../../../../../utils/requests/RequestStore.js';
 import parsePositiveInt from '../../../../../../utils/parsePositiveInt.js';
 
 const GENERIC_ERROR_KEY = 'add_game_treasure_modal.save_error';
@@ -32,18 +33,24 @@ export default class AddGameTreasureModalController {
   }
 
   /**
-   * Submit a request linking the selected treasure to the game.
+   * Submit a request linking the selected treasure to the game, through {@link RequestStore.mutate}
+   * (issue #842, so the game's treasure cache is purged on success).
    *
    * @param {string} gameSlug - Game slug.
-   * @param {string|null} token - Authentication token, if any.
    * @param {{treasure_id: number, value: number, hidden: boolean, max_units: number|null}}
    *   fields - Link request fields.
    * @returns {Promise<object>} Resolves to `{ok: true, treasure}` on success (`treasure` being
    *   the created `GameTreasure` detail), or `{ok: false, errorKey}` on a non-2xx response.
    */
-  link(gameSlug, token, fields) {
-    return this.treasureClient.linkGameTreasure(gameSlug, token, fields)
-      .then((response) => this.#parseLinkResponse(response));
+  link(gameSlug, fields) {
+    return RequestStore.mutate({
+      componentName: 'AddGameTreasureModalController',
+      resource: 'treasure',
+      method: 'POST',
+      quantityType: 'link',
+      params: { gameSlug },
+      body: fields,
+    }).then((response) => this.#parseLinkResponse(response));
   }
 
   async #parseIndexResponse(response) {
