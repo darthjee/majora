@@ -100,3 +100,101 @@ describe('resourceConfig mutations (issue #841)', function() {
     });
   });
 });
+
+/**
+ * Covers the `POST`/`PATCH` mutation entries `gameConfig.js`/`itemConfig.js`/`treasureConfig.js`
+ * gained in issue #844 (exchange-modal tabs, game create/edit, game photo upload).
+ */
+describe('resourceConfig mutations (issue #844)', function() {
+  describe('game', function() {
+    it('resolves POST.collection (game creation) as a single un-branched variant', function() {
+      const collection = resourceConfig.get('POST', 'game', 'collection');
+
+      expect(collection.regular).toBe(collection.private);
+      expect(collection.regular.path()).toBe('/games.json');
+      expect(collection.regular.permission).toBeNull();
+    });
+
+    it('resolves POST.single (photo upload init) as a single un-branched variant', function() {
+      const single = resourceConfig.get('POST', 'game', 'single');
+
+      expect(single.regular).toBe(single.private);
+      expect(single.regular.path({ gameSlug: 'demo' })).toBe('/games/demo/photo_upload.json');
+      expect(single.regular.permission).toBeNull();
+    });
+
+    it('resolves PATCH.single (game update) as a single un-branched variant', function() {
+      const single = resourceConfig.get('PATCH', 'game', 'single');
+
+      expect(single.regular).toBe(single.private);
+      expect(single.regular.path({ gameSlug: 'demo' })).toBe('/games/demo.json');
+      expect(single.regular.permission).toBeNull();
+    });
+  });
+
+  describe('item', function() {
+    it('resolves POST.acquire regular/private paths and permissions', function() {
+      const acquire = resourceConfig.get('POST', 'item', 'acquire');
+
+      expect(acquire.regular.path({ gameSlug: 'demo', kind: 'pcs', id: '3' }))
+        .toBe('/games/demo/pcs/3/items/acquire.json');
+      expect(acquire.regular.permission).toBeNull();
+      expect(acquire.private.path({ gameSlug: 'demo', kind: 'npcs', id: '3' }))
+        .toBe('/games/demo/npcs/3/items/acquire/all.json');
+      expect(acquire.private.permission).toBe('can_edit');
+    });
+
+    it('resolves POST.remove regular/private paths and permissions', function() {
+      const remove = resourceConfig.get('POST', 'item', 'remove');
+
+      expect(remove.regular.path({ gameSlug: 'demo', kind: 'pcs', id: '3' }))
+        .toBe('/games/demo/pcs/3/items/remove.json');
+      expect(remove.regular.permission).toBeNull();
+      expect(remove.private.path({ gameSlug: 'demo', kind: 'npcs', id: '3' }))
+        .toBe('/games/demo/npcs/3/items/remove/all.json');
+      expect(remove.private.permission).toBe('can_edit');
+    });
+  });
+
+  describe('treasure', function() {
+    it('resolves POST.acquire regular/private paths and permissions', function() {
+      const acquire = resourceConfig.get('POST', 'treasure', 'acquire');
+
+      expect(acquire.regular.path({ gameSlug: 'demo', kind: 'pcs', id: '3' }))
+        .toBe('/games/demo/pcs/3/treasures/acquire.json');
+      expect(acquire.regular.permission).toBeNull();
+      expect(acquire.private.path({ gameSlug: 'demo', kind: 'npcs', id: '3' }))
+        .toBe('/games/demo/npcs/3/treasures/acquire/all.json');
+      expect(acquire.private.permission).toBe('can_edit');
+    });
+
+    it('resolves POST.buy regular/private paths and permissions', function() {
+      const buy = resourceConfig.get('POST', 'treasure', 'buy');
+
+      expect(buy.regular.path({ gameSlug: 'demo', kind: 'pcs', id: '3' }))
+        .toBe('/games/demo/pcs/3/treasures/buy.json');
+      expect(buy.regular.permission).toBeNull();
+      expect(buy.private.path({ gameSlug: 'demo', kind: 'npcs', id: '3' }))
+        .toBe('/games/demo/npcs/3/treasures/buy/all.json');
+      expect(buy.private.permission).toBe('can_edit');
+    });
+
+    it('resolves POST.remove as a single un-branched variant, with no DM/admin-only endpoint', function() {
+      const remove = resourceConfig.get('POST', 'treasure', 'remove');
+
+      expect(remove.regular).toBe(remove.private);
+      expect(remove.regular.path({ gameSlug: 'demo', kind: 'pcs', id: '3' }))
+        .toBe('/games/demo/pcs/3/treasures/remove.json');
+      expect(remove.regular.permission).toBeNull();
+    });
+
+    it('resolves POST.sell as a single un-branched variant, with no DM/admin-only endpoint', function() {
+      const sell = resourceConfig.get('POST', 'treasure', 'sell');
+
+      expect(sell.regular).toBe(sell.private);
+      expect(sell.regular.path({ gameSlug: 'demo', kind: 'pcs', id: '3' }))
+        .toBe('/games/demo/pcs/3/treasures/sell.json');
+      expect(sell.regular.permission).toBeNull();
+    });
+  });
+});

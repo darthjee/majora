@@ -64,6 +64,11 @@
  *   `character.character_items`, i.e. by `CharacterItem` pk, not `GameItem` pk). Gated by
  *   `GameItemPhotoUploadPermission`/`CharacterItemPhotoUploadPermission` respectively — no
  *   restricted/full variant, so `regular`/`private` point at the exact same object.
+ *
+ *   `POST.acquire`/`POST.remove` (issue #844) back the item exchange modal's Acquire/Remove tabs,
+ *   character-owned kinds only (`kind: 'pcs'|'npcs'`). Params: `gameSlug`, `kind`, `id`. `private`
+ *   is the DM/admin-only endpoint accepting a hidden `GameItem`/`CharacterItem`; callers pass
+ *   `variantName` explicitly, so `permission` here is documentation-only.
  */
 /**
  * Build the player-facing single-`CharacterItem` path.
@@ -196,6 +201,32 @@ const gamePhotoUploadPath = ({ gameSlug, id }) => `/games/${gameSlug}/items/${id
 const characterPhotoUploadPath = ({ gameSlug, kind, id, itemId }) =>
   `/games/${gameSlug}/${kind}/${id}/items/${itemId}/photo_upload.json`;
 
+/**
+ * Build the player-facing and DM/admin-only item-acquire paths (the latter also accepts a
+ * hidden `GameItem`) — issue #844's item exchange modal.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string} params.kind - Character kind (`'pcs'` or `'npcs'`).
+ * @param {string|number} params.id - Character id.
+ * @returns {string} The endpoint path.
+ */
+const acquirePath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/items/acquire.json`;
+const acquireAllPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/items/acquire/all.json`;
+
+/**
+ * Build the player-facing and DM/admin-only item-remove paths (the latter also accepts a
+ * hidden `CharacterItem`) — issue #844's item exchange modal.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string} params.kind - Character kind (`'pcs'` or `'npcs'`).
+ * @param {string|number} params.id - Character id.
+ * @returns {string} The endpoint path.
+ */
+const removePath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/items/remove.json`;
+const removeAllPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/items/remove/all.json`;
+
 const patchSingle = {
   path: (params) => (params.kind === 'game' ? gameSinglePath(params) : characterSinglePath(params)),
   permission: 'can_edit',
@@ -244,5 +275,13 @@ export default {
   POST: {
     collection: { regular: createCollection, private: createCollection },
     single: { regular: photoUploadInit, private: photoUploadInit },
+    acquire: {
+      regular: { path: acquirePath, permission: null },
+      private: { path: acquireAllPath, permission: 'can_edit' },
+    },
+    remove: {
+      regular: { path: removePath, permission: null },
+      private: { path: removeAllPath, permission: 'can_edit' },
+    },
   },
 };
