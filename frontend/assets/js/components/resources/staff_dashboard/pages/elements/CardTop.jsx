@@ -6,7 +6,7 @@ import React from 'react';
  *
  * @param {object} props - Component props.
  * @param {string} props.title - Card title.
- * @param {React.ReactNode} props.data - Data content (e.g. a `PercentageDisplay`).
+ * @param {React.ReactNode} props.data - Data content (e.g. a `MetricDisplay`).
  * @param {Function} props.onDataClick - Called when the data slot is clicked.
  * @returns {React.ReactElement} The rendered top slot.
  */
