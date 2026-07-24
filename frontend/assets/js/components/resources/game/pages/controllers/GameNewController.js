@@ -1,5 +1,5 @@
-import GameClient from '../../../../../client/GameClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
 
@@ -12,13 +12,11 @@ export default class GameNewController extends BasePageController {
    *
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
-   * @param {GameClient|null} [gameClient] - Game client override.
    */
-  constructor(setError, setFieldErrors = Noop.noop, gameClient = null) {
+  constructor(setError, setFieldErrors = Noop.noop) {
     super();
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;
-    this.gameClient = gameClient ?? new GameClient();
   }
 
   /**
@@ -43,9 +41,10 @@ export default class GameNewController extends BasePageController {
   /**
    * Submit the new game form.
    *
-   * @description Prevents the default form submission, resets status and
-   *   field errors, sends a POST request, then redirects on success,
-   *   sets field errors on 400, or sets error status on other failures.
+   * @description Prevents the default form submission, resets status and field errors, sends a
+   *   POST request through {@link RequestStore.mutate} (issue #844, so the game collection's
+   *   cached `GET` data is purged on success), then redirects on success, sets field errors on
+   *   400, or sets error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {{name: string, description: string,
    *   game_type: string}} formValues - Raw form field values.
@@ -60,9 +59,7 @@ export default class GameNewController extends BasePageController {
     setters.setStatus('submitting');
     setters.setFieldErrors({});
 
-    const token = AuthStorage.getToken();
-
-    if (!token) {
+    if (!AuthStorage.getToken()) {
       if (typeof window !== 'undefined') {
         window.location.hash = '/users/register';
       }
@@ -70,17 +67,24 @@ export default class GameNewController extends BasePageController {
     }
 
     try {
-      await this.#performCreate(token, formValues, setters);
+      await this.#performCreate(formValues, setters);
     } catch {
       this.#handleNetworkError(setters);
     }
   }
 
-  async #performCreate(token, formValues, setters) {
-    const response = await this.gameClient.createGame(token, {
-      name: formValues.name,
-      description: formValues.description,
-      game_type: formValues.game_type,
+  async #performCreate(formValues, setters) {
+    const response = await RequestStore.mutate({
+      componentName: 'GameNewController',
+      resource: 'game',
+      method: 'POST',
+      quantityType: 'collection',
+      params: {},
+      body: {
+        name: formValues.name,
+        description: formValues.description,
+        game_type: formValues.game_type,
+      },
     });
 
     await this.#handleResponse(response, setters);

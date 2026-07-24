@@ -59,6 +59,16 @@
  *   photo-upload route. `regular`/`private` point at the exact same object; permission (superuser/
  *   staff, or the owning game's GameMaster when `treasure.game_id` is set) is enforced
  *   server-side.
+ *
+ *   `POST.acquire`/`POST.buy`/`POST.remove`/`POST.sell` (issue #844) back the treasure exchange
+ *   modal's Acquire/Buy/Remove/Sell tabs. Params: `gameSlug`, `kind` (`'pcs'`/`'npcs'`), `id`
+ *   (character id). `acquire`/`buy` each have a DM/admin-only `private` endpoint that also accepts
+ *   a hidden `Treasure`, so a DM acting on a PC's or NPC's behalf doesn't 404; `remove`/`sell` have
+ *   no such counterpart today (confirmed in `CharacterClient.js`), so their `regular`/`private`
+ *   point at the exact same object, mirroring `single`/`ownedCollection`'s own un-branched
+ *   treatment above. Callers pass `variantName` explicitly (from an already-loaded
+ *   `canEdit`/`gameCanEdit`) rather than relying on live permission resolution, so `permission`
+ *   here is documentation-only.
  */
 /**
  * Build the regular (everyone-readable) game-catalog treasure collection path.
@@ -120,6 +130,75 @@ const create = { path: createPath, permission: 'can_edit' };
 const patch = { path: singlePath, permission: null };
 const photoUploadInit = { path: ({ id }) => `/treasures/${id}/photo_upload.json`, permission: null };
 
+/**
+ * Build the player-facing treasure-acquire path.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string} params.kind - Character kind (`'pcs'` or `'npcs'`).
+ * @param {string|number} params.id - Character id.
+ * @returns {string} The endpoint path.
+ */
+const acquirePath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/treasures/acquire.json`;
+
+/**
+ * Build the DM/admin-only treasure-acquire path (also accepts a hidden `Treasure`).
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string} params.kind - Character kind (`'pcs'` or `'npcs'`).
+ * @param {string|number} params.id - Character id.
+ * @returns {string} The endpoint path.
+ */
+const acquireAllPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/treasures/acquire/all.json`;
+
+/**
+ * Build the player-facing treasure-buy path.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string} params.kind - Character kind (`'pcs'` or `'npcs'`).
+ * @param {string|number} params.id - Character id.
+ * @returns {string} The endpoint path.
+ */
+const buyPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/treasures/buy.json`;
+
+/**
+ * Build the DM/admin-only treasure-buy path (also accepts a hidden `Treasure`).
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string} params.kind - Character kind (`'pcs'` or `'npcs'`).
+ * @param {string|number} params.id - Character id.
+ * @returns {string} The endpoint path.
+ */
+const buyAllPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/treasures/buy/all.json`;
+
+/**
+ * Build the (sole, player-facing) treasure-remove path — no DM/admin-only counterpart exists.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string} params.kind - Character kind (`'pcs'` or `'npcs'`).
+ * @param {string|number} params.id - Character id.
+ * @returns {string} The endpoint path.
+ */
+const removeExchangePath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/treasures/remove.json`;
+
+/**
+ * Build the (sole, player-facing) treasure-sell path — no DM/admin-only counterpart exists.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string} params.kind - Character kind (`'pcs'` or `'npcs'`).
+ * @param {string|number} params.id - Character id.
+ * @returns {string} The endpoint path.
+ */
+const sellPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/treasures/sell.json`;
+
+const removeExchange = { path: removeExchangePath, permission: null };
+const sell = { path: sellPath, permission: null };
+
 export default {
   GET: {
     collection: {
@@ -149,5 +228,15 @@ export default {
   POST: {
     collection: { regular: create, private: create },
     single: { regular: photoUploadInit, private: photoUploadInit },
+    acquire: {
+      regular: { path: acquirePath, permission: null },
+      private: { path: acquireAllPath, permission: 'can_edit' },
+    },
+    buy: {
+      regular: { path: buyPath, permission: null },
+      private: { path: buyAllPath, permission: 'can_edit' },
+    },
+    remove: { regular: removeExchange, private: removeExchange },
+    sell: { regular: sell, private: sell },
   },
 };

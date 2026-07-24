@@ -137,41 +137,6 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
-   * Buys a quantity of a treasure for a character, spending its money.
-   *
-   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
-   * @param {string} gameSlug - Game slug the character belongs to.
-   * @param {string|number} characterId - Character id.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {{treasure_id: number, quantity: number}} fields - Buy request fields.
-   * @returns {Promise<Response>} fetch response from the buy endpoint.
-   */
-  buyTreasure(characterKind, gameSlug, characterId, token, fields) {
-    return this.postJson(
-      `/games/${gameSlug}/${characterKind}/${characterId}/treasures/buy.json`, token, fields,
-    );
-  }
-
-  /**
-   * Buys a quantity of a treasure for a character, spending its money, through
-   * the DM/admin-only endpoint that also accepts hidden treasures (issue #632). Used
-   * by the treasure exchange modal when the requester can edit the game, so a DM
-   * granting a hidden treasure to a PC or NPC doesn't get a 404.
-   *
-   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
-   * @param {string} gameSlug - Game slug the character belongs to.
-   * @param {string|number} characterId - Character id.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {{treasure_id: number, quantity: number}} fields - Buy request fields.
-   * @returns {Promise<Response>} fetch response from the buy/all endpoint.
-   */
-  buyTreasureAll(characterKind, gameSlug, characterId, token, fields) {
-    return this.postJson(
-      `/games/${gameSlug}/${characterKind}/${characterId}/treasures/buy/all.json`, token, fields,
-    );
-  }
-
-  /**
    * Fetches an explicit page of an NPC's owned treasures, including hidden ones
    * (DM/admin-only endpoint; no PC counterpart exists). Mirrors {@link fetchTreasuresPage}'s
    * params/pagination handling. Used for a DM viewing an NPC's full treasure set,
@@ -197,90 +162,6 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
-   * Acquires a quantity of a treasure for a character, without changing its money.
-   *
-   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
-   * @param {string} gameSlug - Game slug the character belongs to.
-   * @param {string|number} characterId - Character id.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {{treasure_id: number, quantity: number}} fields - Acquire request fields.
-   * @returns {Promise<Response>} fetch response from the acquire endpoint.
-   */
-  acquireTreasure(characterKind, gameSlug, characterId, token, fields) {
-    return this.postJson(
-      `/games/${gameSlug}/${characterKind}/${characterId}/treasures/acquire.json`, token, fields,
-    );
-  }
-
-  /**
-   * Acquires a quantity of a treasure for a character, without changing its money, through
-   * the DM/admin-only endpoint that also accepts hidden treasures. Used by the treasure
-   * exchange modal when the requester can edit the game, so a DM granting a hidden treasure
-   * to a PC or NPC doesn't get a 404.
-   *
-   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
-   * @param {string} gameSlug - Game slug the character belongs to.
-   * @param {string|number} characterId - Character id.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {{treasure_id: number, quantity: number}} fields - Acquire request fields.
-   * @returns {Promise<Response>} fetch response from the acquire/all endpoint.
-   */
-  acquireTreasureAll(characterKind, gameSlug, characterId, token, fields) {
-    return this.postJson(
-      `/games/${gameSlug}/${characterKind}/${characterId}/treasures/acquire/all.json`, token, fields,
-    );
-  }
-
-  /**
-   * Removes a quantity of an owned treasure from a character, without changing its money.
-   *
-   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
-   * @param {string} gameSlug - Game slug the character belongs to.
-   * @param {string|number} characterId - Character id.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {{treasure_id: number, quantity: number}} fields - Remove request fields.
-   * @returns {Promise<Response>} fetch response from the remove endpoint.
-   */
-  removeTreasure(characterKind, gameSlug, characterId, token, fields) {
-    return this.postJson(
-      `/games/${gameSlug}/${characterKind}/${characterId}/treasures/remove.json`, token, fields,
-    );
-  }
-
-  /**
-   * Sells a quantity of an owned treasure for a character, gaining money.
-   *
-   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
-   * @param {string} gameSlug - Game slug the character belongs to.
-   * @param {string|number} characterId - Character id.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {{treasure_id: number, quantity: number}} fields - Sell request fields.
-   * @returns {Promise<Response>} fetch response from the sell endpoint.
-   */
-  sellTreasure(characterKind, gameSlug, characterId, token, fields) {
-    return this.postJson(
-      `/games/${gameSlug}/${characterKind}/${characterId}/treasures/sell.json`, token, fields,
-    );
-  }
-
-  /**
-   * Sets the roles of a character photo (e.g. marking it as the profile photo).
-   *
-   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
-   * @param {string} gameSlug - Game slug the character belongs to.
-   * @param {string|number} characterId - Character id.
-   * @param {string|number} photoId - Photo id to update.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {string[]} roles - Roles to assign to the photo (e.g. `['profile']`).
-   * @returns {Promise<Response>} fetch response from the photo set endpoint.
-   */
-  setPhotoRoles(characterKind, gameSlug, characterId, photoId, token, roles) {
-    return this.patchJson(
-      `/games/${gameSlug}/${characterKind}/${characterId}/photos/${photoId}/set.json`, token, { roles },
-    );
-  }
-
-  /**
    * Creates a new NPC character for a game.
    *
    * @param {string} gameSlug - Game slug the NPC will belong to.
@@ -291,74 +172,6 @@ export default class CharacterClient extends BaseClient {
    */
   createNpc(gameSlug, token, fields) {
     return this.postJson(`/games/${gameSlug}/npcs.json`, token, fields);
-  }
-
-  /**
-   * Acquires a `GameItem` for a character, creating a `CharacterItem` linking them (issue #773).
-   *
-   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
-   * @param {string} gameSlug - Game slug the character belongs to.
-   * @param {string|number} characterId - Character id.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {{game_item_id: number, hidden: boolean}} fields - Acquire request fields.
-   * @returns {Promise<Response>} fetch response from the item acquire endpoint.
-   */
-  acquireItem(characterKind, gameSlug, characterId, token, fields) {
-    return this.postJson(
-      `/games/${gameSlug}/${characterKind}/${characterId}/items/acquire.json`, token, fields,
-    );
-  }
-
-  /**
-   * Acquires a `GameItem` for a character, through the DM/admin-only endpoint that also accepts
-   * hidden game items (issue #773). Used by the item exchange modal when the requester can edit
-   * the game, so a DM granting a hidden item to a PC or NPC doesn't get a 404.
-   *
-   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
-   * @param {string} gameSlug - Game slug the character belongs to.
-   * @param {string|number} characterId - Character id.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {{game_item_id: number, hidden: boolean}} fields - Acquire request fields.
-   * @returns {Promise<Response>} fetch response from the item acquire/all endpoint.
-   */
-  acquireItemAll(characterKind, gameSlug, characterId, token, fields) {
-    return this.postJson(
-      `/games/${gameSlug}/${characterKind}/${characterId}/items/acquire/all.json`, token, fields,
-    );
-  }
-
-  /**
-   * Removes an owned `CharacterItem` from a character (issue #773).
-   *
-   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
-   * @param {string} gameSlug - Game slug the character belongs to.
-   * @param {string|number} characterId - Character id.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {{game_item_id: number}} fields - Remove request fields.
-   * @returns {Promise<Response>} fetch response from the item remove endpoint.
-   */
-  removeItem(characterKind, gameSlug, characterId, token, fields) {
-    return this.postJson(
-      `/games/${gameSlug}/${characterKind}/${characterId}/items/remove.json`, token, fields,
-    );
-  }
-
-  /**
-   * Removes an owned `CharacterItem` from a character, through the restricted endpoint that also
-   * accepts a hidden `CharacterItem` (issue #773). Used by the item exchange modal when the
-   * requester can edit the character, so removing a hidden item doesn't get a 404.
-   *
-   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
-   * @param {string} gameSlug - Game slug the character belongs to.
-   * @param {string|number} characterId - Character id.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {{game_item_id: number}} fields - Remove request fields.
-   * @returns {Promise<Response>} fetch response from the item remove/all endpoint.
-   */
-  removeItemAll(characterKind, gameSlug, characterId, token, fields) {
-    return this.postJson(
-      `/games/${gameSlug}/${characterKind}/${characterId}/items/remove/all.json`, token, fields,
-    );
   }
 
   /**

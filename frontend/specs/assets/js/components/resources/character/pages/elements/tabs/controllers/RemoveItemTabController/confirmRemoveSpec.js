@@ -1,6 +1,8 @@
 import RemoveItemTabController
   from '../../../../../../../../../../../assets/js/components/resources/character/pages/elements/tabs/controllers/RemoveItemTabController.js';
-import { buildClients, buildResponse } from './support.js';
+import RequestStore
+  from '../../../../../../../../../../../assets/js/utils/requests/RequestStore.js';
+import { buildResponse } from './support.js';
 import { buildCharacter } from '../../../../../../../../../../support/factories.js';
 
 describe('RemoveItemTabController', function() {
@@ -17,10 +19,9 @@ describe('RemoveItemTabController', function() {
     });
 
     it('sets submitting true before the request settles', function() {
-      const { characterClient } = buildClients();
       // eslint-disable-next-line no-empty-function
-      characterClient.removeItem.and.returnValue(new Promise(() => {}));
-      const controller = new RemoveItemTabController(characterClient);
+      spyOn(RequestStore, 'mutate').and.returnValue(new Promise(() => {}));
+      const controller = new RemoveItemTabController();
       const setters = buildSetters();
 
       controller.confirmRemove(selected, character, setters);
@@ -29,55 +30,58 @@ describe('RemoveItemTabController', function() {
     });
 
     it('removes the selected owned item\'s game_item_id', async function() {
-      const { characterClient } = buildClients();
-      characterClient.removeItem.and.returnValue(Promise.resolve(buildResponse(204)));
-      const controller = new RemoveItemTabController(characterClient);
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve(buildResponse(204)));
+      const controller = new RemoveItemTabController();
       const setters = buildSetters();
 
       await controller.confirmRemove(selected, character, setters);
 
-      expect(characterClient.removeItem).toHaveBeenCalledWith('pcs', 'demo', 7, null, { game_item_id: 11 });
+      expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
+        body: { game_item_id: 11 },
+      }));
     });
 
-    it('applies the success outcome: clears selection, notifies onSuccess, and reloads', async function() {
-      const { characterClient } = buildClients();
-      characterClient.removeItem.and.returnValue(Promise.resolve(buildResponse(204)));
-      const controller = new RemoveItemTabController(characterClient);
-      const setters = buildSetters();
+    it('applies the success outcome: purges the item cache, clears selection, notifies onSuccess, and reloads',
+      async function() {
+        spyOn(RequestStore, 'purge');
+        spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve(buildResponse(204)));
+        const controller = new RemoveItemTabController();
+        const setters = buildSetters();
 
-      await controller.confirmRemove(selected, character, setters);
+        await controller.confirmRemove(selected, character, setters);
 
-      expect(setters.setSubmitting).toHaveBeenCalledWith(false);
-      expect(setters.setSelected).toHaveBeenCalledWith(null);
-      expect(setters.onSuccess).toHaveBeenCalledWith({ gameItemId: 11 });
-      expect(setters.reload).toHaveBeenCalled();
-    });
+        expect(setters.setSubmitting).toHaveBeenCalledWith(false);
+        expect(RequestStore.purge).toHaveBeenCalledWith({ resource: 'item' });
+        expect(setters.setSelected).toHaveBeenCalledWith(null);
+        expect(setters.onSuccess).toHaveBeenCalledWith({ gameItemId: 11 });
+        expect(setters.reload).toHaveBeenCalled();
+      });
 
-    it('surfaces the error key and does not reload on a failure', async function() {
-      const { characterClient } = buildClients();
-      characterClient.removeItem.and.returnValue(Promise.resolve(buildResponse(404)));
-      const controller = new RemoveItemTabController(characterClient);
+    it('surfaces the error key, does not purge, and does not reload on a failure', async function() {
+      spyOn(RequestStore, 'purge');
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve(buildResponse(404)));
+      const controller = new RemoveItemTabController();
       const setters = buildSetters();
 
       await controller.confirmRemove(selected, character, setters);
 
       expect(setters.setSubmitting).toHaveBeenCalledWith(false);
       expect(setters.setActionError).toHaveBeenCalledWith('item_exchange_modal.generic_error');
+      expect(RequestStore.purge).not.toHaveBeenCalled();
       expect(setters.setSelected).not.toHaveBeenCalled();
       expect(setters.onSuccess).not.toHaveBeenCalled();
       expect(setters.reload).not.toHaveBeenCalled();
     });
 
     it('threads the character canEdit flag through to the remove request', async function() {
-      const { characterClient } = buildClients();
-      characterClient.removeItemAll.and.returnValue(Promise.resolve(buildResponse(204)));
-      const controller = new RemoveItemTabController(characterClient);
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve(buildResponse(204)));
+      const controller = new RemoveItemTabController();
       const setters = buildSetters();
       const editorCharacter = { ...character, canEdit: true };
 
       await controller.confirmRemove(selected, editorCharacter, setters);
 
-      expect(characterClient.removeItemAll).toHaveBeenCalledWith('pcs', 'demo', 7, null, { game_item_id: 11 });
+      expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({ variantName: 'private' }));
     });
   });
 });

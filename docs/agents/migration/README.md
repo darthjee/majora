@@ -93,13 +93,18 @@ the checklist below as part of its own PR.
 - [x] `/#/games/:game_slug/npcs/:character_id/items/new` (#841)
 - [x] `/#/games/:game_slug/npcs/:character_id/items/:id/edit` (#841)
 - [x] `/#/games/:game_slug/npcs/:character_id/items/:id` photo upload (#841)
+- [x] `/#/games/new` (#844)
+- [x] `/#/games/:game_slug/edit` (#844)
+- [x] `/#/games/:game_slug/photos` (upload) (#844)
+- [x] `/#/games/:game_slug/pcs/:character_id/items` and `/#/games/:game_slug/npcs/:character_id/items`
+  (exchange modal — acquire/remove item) (#844)
+- [x] `/#/games/:game_slug/pcs/:character_id/treasures` and `/#/games/:game_slug/npcs/:character_id/treasures`
+  (exchange modal — acquire/remove/buy/sell treasure) (#844)
+- [x] `/#/games/:game_slug/pcs/:character_id/photos` and `/#/games/:game_slug/npcs/:character_id/photos`
+  (set profile photo + upload) (#844)
+- [x] `/#/games/:game_slug/treasures` photo upload (#844)
 
 ### Not yet migrated
-
-**Game**
-- [ ] `/#/games/new` — `GameNewController.js` → `GameClient.createGame`
-- [ ] `/#/games/:game_slug/edit` — `GameEditController.js` → `GameClient.updateGame`
-- [ ] `/#/games/:game_slug/photos` (upload) — `GamePhotos.jsx` (static path, not `RequestStore.resolvePath()`)
 
 **Game Session**
 - [ ] `/#/games/:game_slug/sessions/new` — `GameSessionNewController.js` → `GameSessionClient.createSession`
@@ -115,9 +120,6 @@ the checklist below as part of its own PR.
 **Game Task**
 - [ ] `/#/games/:game_slug/tasks` (create/update/toggle-complete) — `GameTasksController.js` → `GameTaskClient.createTask`/`updateTask`
 
-**Character photos**
-- [ ] `/#/games/:game_slug/pcs/:character_id/photos` and `/#/games/:game_slug/npcs/:character_id/photos` (set profile photo + upload) — `BaseCharacterPhotosController.js` → `CharacterClient.setPhotoRoles`; upload path built raw in `shared/CharacterPhotos.jsx`
-
 **Character slain toggle**
 - [ ] `/#/games/:game_slug/npcs/:character_id` and `/#/games/:game_slug/npcs` — `SlainConfirmController.js`/`PlayerSlainConfirmController.js` → `CharacterClient.setNpcSlain`/`setNpcPublicSlainAsPlayer`
 
@@ -127,14 +129,6 @@ the checklist below as part of its own PR.
 **Staff User**
 - [ ] `/#/staff/users/:id/edit` — `StaffUserEditController.js` → `StaffUserClient.updateUser`
 - [ ] `/#/staff/users/:id` (generate recovery link) — `StaffUsersController.js`/`StaffUserController.js` → `StaffUserClient.fetchRecoveryLink`
-
-**Exchange modal tabs** (explicitly out of scope for #841; candidate follow-up issue)
-- [ ] `AcquireItemTabController.js` → `CharacterClient.acquireItem`/`acquireItemAll`
-- [ ] `RemoveItemTabController.js` → `CharacterClient.removeItem`/`removeItemAll`
-- [ ] `AcquireTreasureTabController.js` → `CharacterClient.acquireTreasure`/`acquireTreasureAll`
-- [ ] `RemoveTreasureTabController.js` → `CharacterClient.removeTreasure`
-- [ ] `BuyTreasureTabController.js` → `CharacterClient.buyTreasure`/`buyTreasureAll`
-- [ ] `SellTreasureTabController.js` → `CharacterClient.sellTreasure`
 
 **Confirmed no create/update UI (nothing to migrate)**
 - Player — no create/edit route exists.

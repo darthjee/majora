@@ -279,7 +279,7 @@ describe('resourceConfig', function() {
 
   it('returns null for an unknown resource/method/quantity-type combination', function() {
     expect(resourceConfig.get('GET', 'unknown', 'collection')).toBeNull();
-    expect(resourceConfig.get('POST', 'game', 'collection')).toBeNull();
+    expect(resourceConfig.get('PUT', 'game', 'collection')).toBeNull();
     expect(resourceConfig.get('GET', 'game', 'unknown')).toBeNull();
   });
 });

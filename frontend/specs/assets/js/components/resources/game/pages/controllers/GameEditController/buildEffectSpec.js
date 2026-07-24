@@ -23,12 +23,11 @@ describe('GameEditController', function() {
       const setGame = jasmine.createSpy('setGame');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
-      const gameClient = jasmine.createSpyObj('gameClient', ['updateGame']);
       const fakeWindow = { location: { hash: '#/games/demo/edit' } };
       globalThis.window = fakeWindow;
 
       try {
-        const controller = new GameEditController(setGame, setLoading, setError, Noop.noop, gameClient);
+        const controller = new GameEditController(setGame, setLoading, setError, Noop.noop);
         const cleanup = controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -51,12 +50,11 @@ describe('GameEditController', function() {
       const setGame = jasmine.createSpy('setGame');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
-      const gameClient = jasmine.createSpyObj('gameClient', ['updateGame']);
       const fakeWindow = { location: { hash: '#/games/demo/edit' } };
       globalThis.window = fakeWindow;
 
       try {
-        const controller = new GameEditController(setGame, setLoading, setError, Noop.noop, gameClient);
+        const controller = new GameEditController(setGame, setLoading, setError, Noop.noop);
         const cleanup = controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -77,12 +75,11 @@ describe('GameEditController', function() {
       const setGame = jasmine.createSpy('setGame');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
-      const gameClient = jasmine.createSpyObj('gameClient', ['updateGame']);
       const fakeWindow = { location: { hash: '#/games/demo/edit' } };
       globalThis.window = fakeWindow;
 
       try {
-        const controller = new GameEditController(setGame, setLoading, setError, Noop.noop, gameClient);
+        const controller = new GameEditController(setGame, setLoading, setError, Noop.noop);
         const cleanup = controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 

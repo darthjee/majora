@@ -1,5 +1,3 @@
-import CharacterClient from '../../../../../../../client/CharacterClient.js';
-import AuthStorage from '../../../../../../../utils/auth/AuthStorage.js';
 import RequestStore from '../../../../../../../utils/requests/RequestStore.js';
 
 const ERROR_KEY_BY_MESSAGE = {
@@ -22,15 +20,6 @@ export const PER_PAGE = 10;
  *   client-side "already owned" cross-reference is needed here, unlike the treasure Acquire tab.
  */
 export default class AcquireItemTabController {
-  /**
-   * Create an Acquire tab controller.
-   *
-   * @param {CharacterClient|null} [characterClient] - Character client override.
-   */
-  constructor(characterClient = null) {
-    this.characterClient = characterClient ?? new CharacterClient();
-  }
-
   /**
    * Fetch a page of the character's Acquire catalog (the game's `GameItem`s minus already-owned
    * ones), through `RequestStore` (`item.availableCollection`, `kind: 'pcs'|'npcs'`).
@@ -84,12 +73,12 @@ export default class AcquireItemTabController {
   }
 
   /**
-   * Submit an acquire request for the given game item.
+   * Submit an acquire request for the given game item, through `RequestStore.mutate`
+   * (`item.acquire`, issue #844) so the character's cached item data is purged on success.
    *
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
    * @param {boolean} isPc - Whether the character is a PC (vs. an NPC).
-   * @param {string|null} token - Authentication token, if any.
    * @param {{gameItemId: number, hidden: boolean}} fields - Acquire request fields.
    * @param {boolean} [gameCanEdit] - Whether the requester can edit the game (DM/admin). When
    *   true, submits through the `items/acquire/all.json` endpoint instead of the player-facing
@@ -97,20 +86,26 @@ export default class AcquireItemTabController {
    * @returns {Promise<object>} Resolves to `{ok: true, characterItem}` on success (the acquired
    *   `CharacterItem`'s detail fields), or `{ok: false, errorKey}` on a 400 validation failure.
    */
-  acquire(gameSlug, characterId, isPc, token, fields, gameCanEdit = false) {
+  acquire(gameSlug, characterId, isPc, fields, gameCanEdit = false) {
     const body = AcquireItemTabController.#toBody(fields);
-    const characterKind = AcquireItemTabController.#characterKind(isPc);
-    const request = gameCanEdit
-      ? this.characterClient.acquireItemAll(characterKind, gameSlug, characterId, token, body)
-      : this.characterClient.acquireItem(characterKind, gameSlug, characterId, token, body);
+    const kind = AcquireItemTabController.#characterKind(isPc);
 
-    return request.then((response) => this.#parseActionResponse(response));
+    return RequestStore.mutate({
+      componentName: 'AcquireItemTabController',
+      resource: 'item',
+      method: 'POST',
+      quantityType: 'acquire',
+      params: { gameSlug, kind, id: characterId },
+      body,
+      variantName: gameCanEdit ? 'private' : 'regular',
+    }).then((response) => this.#parseActionResponse(response));
   }
 
   /**
    * Submits the acquire request for the currently selected game item, then applies the outcome:
-   * clearing the selection and reloading the browse page on success (invoking `onSuccess` with
-   * the acquired `CharacterItem` first), or surfacing the error key otherwise.
+   * purging the item cache, clearing the selection, and reloading the browse page on success
+   * (invoking `onSuccess` with the acquired `CharacterItem` first), or surfacing the error key
+   * otherwise.
    *
    * @param {object} selected - Currently selected browse item (a `GameItem` catalog entry).
    * @param {boolean} hidden - Whether the acquired `CharacterItem` should be marked hidden.
@@ -122,12 +117,11 @@ export default class AcquireItemTabController {
    */
   confirmAcquire(selected, hidden, character, setters) {
     const gameItemId = selected.id;
-    const token = AuthStorage.getToken();
 
     setters.setSubmitting(true);
 
     return this.acquire(
-      character.game_slug, character.id, character.is_pc, token, { gameItemId, hidden }, character.gameCanEdit,
+      character.game_slug, character.id, character.is_pc, { gameItemId, hidden }, character.gameCanEdit,
     ).then((result) => {
       setters.setSubmitting(false);
 
@@ -136,6 +130,7 @@ export default class AcquireItemTabController {
         return;
       }
 
+      RequestStore.purge({ resource: 'item' });
       setters.setSelected(null);
       setters.onSuccess({ gameItemId, characterItem: result.characterItem });
       setters.reload();

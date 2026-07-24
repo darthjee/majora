@@ -1,5 +1,3 @@
-import CharacterClient from '../../../../../../../client/CharacterClient.js';
-import AuthStorage from '../../../../../../../utils/auth/AuthStorage.js';
 import RequestStore from '../../../../../../../utils/requests/RequestStore.js';
 
 const GENERIC_ERROR_KEY = 'item_exchange_modal.generic_error';
@@ -19,15 +17,6 @@ export const PER_PAGE = 10;
  *   avoid elevation) — items want elevation for Remove, so no such split is needed here.
  */
 export default class RemoveItemTabController {
-  /**
-   * Create a Remove tab controller.
-   *
-   * @param {CharacterClient|null} [characterClient] - Character client override.
-   */
-  constructor(characterClient = null) {
-    this.characterClient = characterClient ?? new CharacterClient();
-  }
-
   /**
    * Fetch a page of the character's owned items, through `RequestStore` (`item.collection`,
    * `kind: 'pcs'|'npcs'`) — see this class's own description.
@@ -80,12 +69,12 @@ export default class RemoveItemTabController {
   }
 
   /**
-   * Submit a remove request for the given owned item.
+   * Submit a remove request for the given owned item, through `RequestStore.mutate`
+   * (`item.remove`, issue #844) so the character's cached item data is purged on success.
    *
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
    * @param {boolean} isPc - Whether the character is a PC (vs. an NPC).
-   * @param {string|null} token - Authentication token, if any.
    * @param {{gameItemId: number}} fields - Remove request fields.
    * @param {boolean} [canEdit] - Whether the requester can edit the character. When true, submits
    *   through the `items/remove/all.json` endpoint instead of the player-facing one, so removing
@@ -93,20 +82,25 @@ export default class RemoveItemTabController {
    * @returns {Promise<object>} Resolves to `{ok: true}` on success, or `{ok: false, errorKey}`
    *   on failure.
    */
-  remove(gameSlug, characterId, isPc, token, fields, canEdit = false) {
+  remove(gameSlug, characterId, isPc, fields, canEdit = false) {
     const body = RemoveItemTabController.#toBody(fields);
-    const characterKind = RemoveItemTabController.#characterKind(isPc);
-    const request = canEdit
-      ? this.characterClient.removeItemAll(characterKind, gameSlug, characterId, token, body)
-      : this.characterClient.removeItem(characterKind, gameSlug, characterId, token, body);
+    const kind = RemoveItemTabController.#characterKind(isPc);
 
-    return request.then((response) => this.#parseActionResponse(response));
+    return RequestStore.mutate({
+      componentName: 'RemoveItemTabController',
+      resource: 'item',
+      method: 'POST',
+      quantityType: 'remove',
+      params: { gameSlug, kind, id: characterId },
+      body,
+      variantName: canEdit ? 'private' : 'regular',
+    }).then((response) => this.#parseActionResponse(response));
   }
 
   /**
    * Submits the remove request for the currently selected owned item, then applies the outcome:
-   * clearing the selection and reloading the browse page on success (invoking `onSuccess` first),
-   * or surfacing the error key otherwise.
+   * purging the item cache, clearing the selection, and reloading the browse page on success
+   * (invoking `onSuccess` first), or surfacing the error key otherwise.
    *
    * @param {object} selected - Currently selected browse item (owned `CharacterItem` entry).
    * @param {object} character - Character context (`id`, `game_slug`, `is_pc`, `canEdit`).
@@ -117,12 +111,11 @@ export default class RemoveItemTabController {
    */
   confirmRemove(selected, character, setters) {
     const gameItemId = selected.game_item_id;
-    const token = AuthStorage.getToken();
 
     setters.setSubmitting(true);
 
     return this.remove(
-      character.game_slug, character.id, character.is_pc, token, { gameItemId }, character.canEdit,
+      character.game_slug, character.id, character.is_pc, { gameItemId }, character.canEdit,
     ).then((result) => {
       setters.setSubmitting(false);
 
@@ -131,6 +124,7 @@ export default class RemoveItemTabController {
         return;
       }
 
+      RequestStore.purge({ resource: 'item' });
       setters.setSelected(null);
       setters.onSuccess({ gameItemId });
       setters.reload();

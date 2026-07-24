@@ -1,5 +1,3 @@
-import CharacterClient from '../../../../../../../client/CharacterClient.js';
-import AuthStorage from '../../../../../../../utils/auth/AuthStorage.js';
 import RequestStore from '../../../../../../../utils/requests/RequestStore.js';
 
 const ERROR_KEY_BY_MESSAGE = {
@@ -24,15 +22,6 @@ export const PER_PAGE = 10;
  *   viewing an NPC's sell list — a real behavior change this class deliberately avoids.
  */
 export default class SellTreasureTabController {
-  /**
-   * Create a Sell tab controller.
-   *
-   * @param {CharacterClient|null} [characterClient] - Character client override.
-   */
-  constructor(characterClient = null) {
-    this.characterClient = characterClient ?? new CharacterClient();
-  }
-
   /**
    * Fetch a page of the character's owned treasures, through `RequestStore`
    * (`treasure.ownedCollection`, `kind: 'pcs'|'npcs'`) — see this class's own description.
@@ -83,28 +72,37 @@ export default class SellTreasureTabController {
   }
 
   /**
-   * Submit a sell request for the given treasure and quantity.
+   * Submit a sell request for the given treasure and quantity, through `RequestStore.mutate`
+   * (`treasure.sell`, issue #844) so the character's cached treasure data is purged on success.
+   * There is no DM/admin-only counterpart for this endpoint (unlike acquire/buy), so no
+   * `variantName` branching is needed.
    *
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
    * @param {boolean} isPc - Whether the character is a PC (vs. an NPC).
-   * @param {string|null} token - Authentication token, if any.
    * @param {{treasureId: number, quantity: number}} fields - Sell request fields.
    * @returns {Promise<object>} Resolves to `{ok: true, quantity, money}` on success, or
    *   `{ok: false, errorKey}` on a 400 validation failure.
    */
-  sell(gameSlug, characterId, isPc, token, fields) {
+  sell(gameSlug, characterId, isPc, fields) {
     const body = SellTreasureTabController.#toBody(fields);
+    const kind = SellTreasureTabController.#characterKind(isPc);
 
-    return this.characterClient.sellTreasure(
-      SellTreasureTabController.#characterKind(isPc), gameSlug, characterId, token, body,
-    ).then((response) => this.#parseActionResponse(response));
+    return RequestStore.mutate({
+      componentName: 'SellTreasureTabController',
+      resource: 'treasure',
+      method: 'POST',
+      quantityType: 'sell',
+      params: { gameSlug, kind, id: characterId },
+      body,
+    }).then((response) => this.#parseActionResponse(response));
   }
 
   /**
    * Submits the sell request for the currently selected owned treasure, then applies the
-   * outcome: clearing the selection and reloading the browse page on success (invoking
-   * `onSuccess` with the exchange result first), or surfacing the error key otherwise.
+   * outcome: purging the treasure cache, clearing the selection, and reloading the browse page on
+   * success (invoking `onSuccess` with the exchange result first), or surfacing the error key
+   * otherwise.
    *
    * @param {object} selected - Currently selected browse item (owned treasure entry).
    * @param {number} quantity - Quantity to sell for the selected item.
@@ -116,12 +114,11 @@ export default class SellTreasureTabController {
    */
   confirmSell(selected, quantity, character, setters) {
     const treasureId = selected.treasure_id;
-    const token = AuthStorage.getToken();
 
     setters.setSubmitting(true);
 
     return this.sell(
-      character.game_slug, character.id, character.is_pc, token, { treasureId, quantity },
+      character.game_slug, character.id, character.is_pc, { treasureId, quantity },
     ).then((result) => {
       setters.setSubmitting(false);
 
@@ -130,6 +127,7 @@ export default class SellTreasureTabController {
         return;
       }
 
+      RequestStore.purge({ resource: 'treasure' });
       setters.setSelected(null);
       setters.onSuccess({
         treasureId,

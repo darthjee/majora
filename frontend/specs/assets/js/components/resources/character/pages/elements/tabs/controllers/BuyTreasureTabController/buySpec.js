@@ -1,103 +1,85 @@
 import BuyTreasureTabController
   from '../../../../../../../../../../../assets/js/components/resources/character/pages/elements/tabs/controllers/BuyTreasureTabController.js';
-import { buildClients, buildResponse } from './support.js';
+import RequestStore
+  from '../../../../../../../../../../../assets/js/utils/requests/RequestStore.js';
+import { buildResponse } from './support.js';
 
 describe('BuyTreasureTabController', function() {
   describe('#buy', function() {
     it('returns ok with the new quantity, money, and acquired on success', async function() {
-      const { characterClient } = buildClients();
-      characterClient.buyTreasure.and.returnValue(
-        Promise.resolve(buildResponse(200, { quantity: 4, money: 100, acquired: 2 }))
+      spyOn(RequestStore, 'mutate').and.returnValue(
+        Promise.resolve(buildResponse(200, { quantity: 4, money: 100, acquired: 2 })),
       );
-      const controller = new BuyTreasureTabController(characterClient);
+      const controller = new BuyTreasureTabController();
 
-      const result = await controller.buy('demo', 7, true, 'tok', { treasureId: 9, quantity: 2 });
+      const result = await controller.buy('demo', 7, true, { treasureId: 9, quantity: 2 });
 
-      expect(characterClient.buyTreasure).toHaveBeenCalledWith(
-        'pcs', 'demo', 7, 'tok', { treasure_id: 9, quantity: 2 }
-      );
+      expect(RequestStore.mutate).toHaveBeenCalledWith({
+        componentName: 'BuyTreasureTabController',
+        resource: 'treasure',
+        method: 'POST',
+        quantityType: 'buy',
+        params: { gameSlug: 'demo', kind: 'pcs', id: 7 },
+        body: { treasure_id: 9, quantity: 2 },
+        variantName: 'regular',
+      });
       expect(result).toEqual({ ok: true, quantity: 4, money: 100, acquired: 2 });
     });
 
-    it('uses the npc client when isPc is false', async function() {
-      const { characterClient } = buildClients();
-      characterClient.buyTreasure.and.returnValue(Promise.resolve(buildResponse(200, { quantity: 1, money: 10 })));
-      const controller = new BuyTreasureTabController(characterClient);
+    it('resolves the npc kind when isPc is false', async function() {
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve(buildResponse(200, { quantity: 1, money: 10 })));
+      const controller = new BuyTreasureTabController();
 
-      await controller.buy('demo', 7, false, 'tok', { treasureId: 9, quantity: 1 });
+      await controller.buy('demo', 7, false, { treasureId: 9, quantity: 1 });
 
-      expect(characterClient.buyTreasure).toHaveBeenCalledWith(
-        'npcs', 'demo', 7, 'tok', { treasure_id: 9, quantity: 1 }
-      );
+      expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
+        params: { gameSlug: 'demo', kind: 'npcs', id: 7 },
+      }));
     });
 
     it('maps the insufficient funds error message to its translation key', async function() {
-      const { characterClient } = buildClients();
-      characterClient.buyTreasure.and.returnValue(
-        Promise.resolve(buildResponse(400, { errors: { quantity: ['insufficient funds'] } }))
+      spyOn(RequestStore, 'mutate').and.returnValue(
+        Promise.resolve(buildResponse(400, { errors: { quantity: ['insufficient funds'] } })),
       );
-      const controller = new BuyTreasureTabController(characterClient);
+      const controller = new BuyTreasureTabController();
 
-      const result = await controller.buy('demo', 7, true, 'tok', { treasureId: 9, quantity: 100 });
+      const result = await controller.buy('demo', 7, true, { treasureId: 9, quantity: 100 });
 
       expect(result).toEqual({ ok: false, errorKey: 'treasure_exchange_modal.insufficient_funds' });
     });
 
     it('falls back to a generic error key for unrecognized error messages', async function() {
-      const { characterClient } = buildClients();
-      characterClient.buyTreasure.and.returnValue(
-        Promise.resolve(buildResponse(400, { errors: { quantity: ['something else'] } }))
+      spyOn(RequestStore, 'mutate').and.returnValue(
+        Promise.resolve(buildResponse(400, { errors: { quantity: ['something else'] } })),
       );
-      const controller = new BuyTreasureTabController(characterClient);
+      const controller = new BuyTreasureTabController();
 
-      const result = await controller.buy('demo', 7, true, 'tok', { treasureId: 9, quantity: 1 });
+      const result = await controller.buy('demo', 7, true, { treasureId: 9, quantity: 1 });
 
       expect(result).toEqual({ ok: false, errorKey: 'treasure_exchange_modal.generic_error' });
     });
 
-    it('uses the buy/all endpoint for a PC when canEdit is true', async function() {
-      const { characterClient } = buildClients();
-      characterClient.buyTreasureAll.and.returnValue(
-        Promise.resolve(buildResponse(200, { quantity: 3, money: 50, acquired: 3 }))
+    it('passes the private variant when canEdit is true', async function() {
+      spyOn(RequestStore, 'mutate').and.returnValue(
+        Promise.resolve(buildResponse(200, { quantity: 3, money: 50, acquired: 3 })),
       );
-      const controller = new BuyTreasureTabController(characterClient);
+      const controller = new BuyTreasureTabController();
 
-      const result = await controller.buy('demo', 7, true, 'tok', { treasureId: 9, quantity: 3 }, true);
+      const result = await controller.buy('demo', 7, true, { treasureId: 9, quantity: 3 }, true);
 
-      expect(characterClient.buyTreasureAll).toHaveBeenCalledWith(
-        'pcs', 'demo', 7, 'tok', { treasure_id: 9, quantity: 3 }
-      );
-      expect(characterClient.buyTreasure).not.toHaveBeenCalled();
+      expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({ variantName: 'private' }));
       expect(result).toEqual({ ok: true, quantity: 3, money: 50, acquired: 3 });
     });
 
-    it('uses the buy/all endpoint for an NPC when canEdit is true', async function() {
-      const { characterClient } = buildClients();
-      characterClient.buyTreasureAll.and.returnValue(
-        Promise.resolve(buildResponse(200, { quantity: 1, money: 10, acquired: 1 }))
+    it('passes the regular variant when canEdit is omitted', async function() {
+      spyOn(RequestStore, 'mutate').and.returnValue(
+        Promise.resolve(buildResponse(200, { quantity: 1, money: 10, acquired: 1 })),
       );
-      const controller = new BuyTreasureTabController(characterClient);
+      const controller = new BuyTreasureTabController();
 
-      await controller.buy('demo', 7, false, 'tok', { treasureId: 9, quantity: 1 }, true);
+      await controller.buy('demo', 7, true, { treasureId: 9, quantity: 1 });
 
-      expect(characterClient.buyTreasureAll).toHaveBeenCalledWith(
-        'npcs', 'demo', 7, 'tok', { treasure_id: 9, quantity: 1 }
-      );
-    });
-
-    it('uses the regular buy endpoint when canEdit is omitted', async function() {
-      const { characterClient } = buildClients();
-      characterClient.buyTreasure.and.returnValue(
-        Promise.resolve(buildResponse(200, { quantity: 1, money: 10, acquired: 1 }))
-      );
-      const controller = new BuyTreasureTabController(characterClient);
-
-      await controller.buy('demo', 7, true, 'tok', { treasureId: 9, quantity: 1 });
-
-      expect(characterClient.buyTreasure).toHaveBeenCalledWith(
-        'pcs', 'demo', 7, 'tok', { treasure_id: 9, quantity: 1 }
-      );
-      expect(characterClient.buyTreasureAll).not.toHaveBeenCalled();
+      expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({ variantName: 'regular' }));
     });
   });
 });

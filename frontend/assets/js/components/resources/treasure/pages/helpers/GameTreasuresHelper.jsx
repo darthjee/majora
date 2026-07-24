@@ -4,6 +4,7 @@ import NewButton from '../../../../common/buttons/NewButton.jsx';
 import ListPage from '../../../../common/list_page/ListPage.jsx';
 import PhotoUploadModal from '../../../../common/modals/PhotoUploadModal.jsx';
 import AddGameTreasureModal from '../elements/AddGameTreasureModal.jsx';
+import resourceConfig from '../../../../../utils/requests/resourceConfig.js';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**
@@ -62,7 +63,7 @@ export default class GameTreasuresHelper {
         />
         <PhotoUploadModal
           show={state.showUploadModal}
-          uploadPath={`/treasures/${state.selectedTreasure?.id}/photo_upload.json`}
+          uploadPath={resourceConfig.get('POST', 'treasure', 'single').regular.path({ id: state.selectedTreasure?.id })}
           onClose={handlers.onUploadClose}
           onSuccess={handlers.onUploadSuccess}
         />

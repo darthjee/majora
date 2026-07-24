@@ -2,6 +2,7 @@ import GenericClient from '../../../../../client/GenericClient.js';
 import CharacterClient from '../../../../../client/CharacterClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 
 /**
@@ -75,8 +76,10 @@ export default class BaseCharacterPhotosController extends BasePageController {
   }
 
   /**
-   * Marks a photo as the character's profile photo, then refreshes the character state
-   * so `can_edit` and `profile_photo_id` reflect the change.
+   * Marks a photo as the character's profile photo, through {@link RequestStore.mutate}
+   * (`pc`/`npc` `PATCH.photo`, issue #844, mirroring {@link CharacterController#setProfilePhoto}
+   * exactly), then refreshes the character state so `can_edit` and `profile_photo_id` reflect the
+   * change.
    *
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {string|number} characterId - Character id.
@@ -85,11 +88,16 @@ export default class BaseCharacterPhotosController extends BasePageController {
    *   rejects when the update request itself fails.
    */
   setProfilePhoto(gameSlug, characterId, photoId) {
-    const token = AuthStorage.getToken();
     const safeSet = (setter, value) => setter(value);
 
-    return this.characterClient.setPhotoRoles(this.characterKind, gameSlug, characterId, photoId, token, ['profile'])
-      .then(() => this.#fetchCharacter(gameSlug, characterId, safeSet));
+    return RequestStore.mutate({
+      componentName: 'BaseCharacterPhotosController',
+      resource: this.characterKind === 'pcs' ? 'pc' : 'npc',
+      method: 'PATCH',
+      quantityType: 'photo',
+      params: { gameSlug, id: characterId, photoId },
+      body: { roles: ['profile'] },
+    }).then(() => this.#fetchCharacter(gameSlug, characterId, safeSet));
   }
 
   #fetchPhotos(gameSlug, characterId, safeSet) {
