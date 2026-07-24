@@ -7,11 +7,17 @@ from .detail.game_pc_full import game_pc_full
 from .detail.game_pc_money import game_pc_money
 from .detail.game_pc_permissions import game_pc_permissions
 from .detail.game_pc_photo_upload import game_pc_photo_upload
+from .detail.items.game_pc_item_acquire import game_pc_item_acquire
+from .detail.items.game_pc_item_acquire_all import game_pc_item_acquire_all
 from .detail.items.game_pc_item_detail import game_pc_item_detail
 from .detail.items.game_pc_item_detail_full import game_pc_item_detail_full
 from .detail.items.game_pc_item_photo_upload import game_pc_item_photo_upload
+from .detail.items.game_pc_item_remove import game_pc_item_remove
+from .detail.items.game_pc_item_remove_all import game_pc_item_remove_all
 from .detail.items.game_pc_items import game_pc_items
 from .detail.items.game_pc_items_all import game_pc_items_all
+from .detail.items.game_pc_items_available import game_pc_items_available
+from .detail.items.game_pc_items_available_all import game_pc_items_available_all
 from .detail.photos.game_pc_photo_set import game_pc_photo_set
 from .detail.photos.game_pc_photos import game_pc_photos
 from .detail.treasures.game_pc_treasure_acquire import game_pc_treasure_acquire
@@ -41,6 +47,12 @@ __all__ = [
     'game_pc_item_detail',
     'game_pc_item_detail_full',
     'game_pc_item_photo_upload',
+    'game_pc_items_available',
+    'game_pc_items_available_all',
+    'game_pc_item_acquire',
+    'game_pc_item_acquire_all',
+    'game_pc_item_remove',
+    'game_pc_item_remove_all',
     'game_pc_treasures',
     'game_pc_treasure_buy',
     'game_pc_treasure_buy_all',

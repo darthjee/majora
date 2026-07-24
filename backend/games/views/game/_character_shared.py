@@ -16,11 +16,21 @@ from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game
 from ...permissions import CharacterEditPermission, GameEditPermission
-from ...serializers import CharacterItemDetailSerializer, CharacterPermissionsSerializer
+from ...serializers import (
+    CharacterItemDetailSerializer,
+    CharacterPermissionsSerializer,
+    GameItemAllListSerializer,
+    GameItemListSerializer,
+)
 from ..common import access_response, parse_role_booleans, permissions_response
 from ._documents import character_documents
 from ._full import character_full
 from ._item_create import character_item_create
+from ._item_exchange import (
+    character_item_acquire,
+    character_item_remove,
+    character_items_available,
+)
 from ._item_photo_upload import character_item_photo_upload
 from ._item_update import character_item_update
 from ._items import character_item_detail, character_items
@@ -274,6 +284,104 @@ def build_item_photo_upload_view(npc):
         return character_item_photo_upload(
             request, game, game_slug, character_id, item_id, npc=npc,
         )
+
+    return view
+
+
+def build_items_available_view(npc):
+    """Build the GET items/available.json view for a PC (npc=False) or NPC (npc=True)."""
+
+    @_build_api_view(['GET'], AllowAny)
+    def view(request, game_slug, character_id):
+        """Return the game's item catalog minus items already owned by the PC/NPC."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        return character_items_available(
+            request, game, character_id, npc=npc, check_hidden=npc,
+            serializer_class=GameItemListSerializer,
+        )
+
+    return view
+
+
+def build_items_available_all_view(npc):
+    """Build the DM-only GET items/available/all.json view for a PC or NPC."""
+
+    @_build_api_view(['GET'], AllowAny)
+    def view(request, game_slug, character_id):
+        """Return the catalog (incl. hidden), minus already-owned items — DM/admin only."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        error_response = GameEditPermission.check(request, game)
+        if error_response:
+            return error_response
+        response = character_items_available(
+            request, game, character_id, npc=npc, check_hidden=npc, allow_hidden=True,
+            serializer_class=GameItemAllListSerializer,
+        )
+        response['X-Skip-Cache'] = 'true'
+        return response
+
+    return view
+
+
+def build_item_acquire_view(npc):
+    """Build the POST items/acquire.json view for a PC (npc=False) or NPC (npc=True)."""
+
+    @_build_api_view(['POST'], AllowAny)
+    def view(request, game_slug, character_id):
+        """Create a CharacterItem for the PC/NPC from a submitted GameItem."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        character = _get_character_or_404(game, character_id, npc=npc)
+        return character_item_acquire(request, game, character)
+
+    return view
+
+
+def build_item_acquire_all_view(npc):
+    """Build the DM-only POST items/acquire/all.json view for a PC or NPC."""
+
+    @_build_api_view(['POST'], AllowAny)
+    def view(request, game_slug, character_id):
+        """Create a CharacterItem, including from a hidden GameItem — DM/admin only."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        error_response = GameEditPermission.check(request, game)
+        if error_response:
+            return error_response
+        character = _get_character_or_404(game, character_id, npc=npc)
+        return character_item_acquire(request, game, character, allow_hidden=True)
+
+    return view
+
+
+def build_item_remove_view(npc):
+    """Build the POST items/remove.json view for a PC (npc=False) or NPC (npc=True)."""
+
+    @_build_api_view(['POST'], AllowAny)
+    def view(request, game_slug, character_id):
+        """Remove a CharacterItem owned by the PC/NPC."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        character = _get_character_or_404(game, character_id, npc=npc)
+        return character_item_remove(request, game, character)
+
+    return view
+
+
+def build_item_remove_all_view(npc):
+    """Build the restricted POST items/remove/all.json view for a PC or NPC.
+
+    PC: dm/admin/owner (CharacterEditPermission). NPC: dm/admin (GameEditPermission, no
+    owner concept) — same asymmetric split `_check_character_all_permission` already applies
+    to `items/all.json`/`documents/all.json`.
+    """
+
+    @_build_api_view(['POST'], AllowAny)
+    def view(request, game_slug, character_id):
+        """Remove a CharacterItem, including a hidden one — dm/admin(/owner for PCs) only."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        error_response = _check_character_all_permission(request, game, character_id, npc)
+        if error_response:
+            return error_response
+        character = _get_character_or_404(game, character_id, npc=npc)
+        return character_item_remove(request, game, character, allow_hidden=True)
 
     return view
 

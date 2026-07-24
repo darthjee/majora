@@ -208,6 +208,10 @@ class CharacterItemCreatePermission(_EditPermission):
     `is_allowed`/`is_allowed_for_roles` classmethods so CharacterPermissionsSerializer's
     `can_create_item` field can reuse the exact same rule for both the real-identity and
     role-simulated (`?role=`) paths.
+
+    Also reused, unchanged, by the public (non-`/all`) item acquire/remove endpoints (issue
+    #773) — creating/removing a `CharacterItem` from an existing catalog `GameItem` is
+    authorized by the exact same rule as creating one from scratch.
     """
 
     @classmethod
