@@ -2,6 +2,8 @@
 
 from .game_access import game_access
 from .game_detail import game_detail
+from .game_document_detail import game_document_detail
+from .game_document_detail_full import game_document_detail_full
 from .game_documents import game_documents
 from .game_documents_all import game_documents_all
 from .game_item_detail import game_item_detail
@@ -31,6 +33,8 @@ __all__ = [
     'game_treasure_detail',
     'game_documents',
     'game_documents_all',
+    'game_document_detail',
+    'game_document_detail_full',
     'game_items',
     'game_items_all',
     'game_item_detail',

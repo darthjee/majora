@@ -401,6 +401,17 @@ game_documents_page:
   loading: Loading documents...
   title: Documents
   hidden_label: Hidden
+  create_document: Create Document
+document_new_page:
+  title: Create Document
+  name_label: Name
+  description_label: Description
+  hidden_label: Hidden
+  submit: Create Document
+  error: Failed to create document. Please try again.
+document_page:
+  loading: Loading document...
+  hidden_label: Hidden
 item_page:
   loading: Loading item...
   hidden_label: Hidden

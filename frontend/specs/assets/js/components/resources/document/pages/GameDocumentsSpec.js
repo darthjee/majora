@@ -3,6 +3,9 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import GameDocuments from '../../../../../../../assets/js/components/resources/document/pages/GameDocuments.jsx';
 import GameDocumentsHelper
   from '../../../../../../../assets/js/components/resources/document/pages/helpers/GameDocumentsHelper.jsx';
+import GameDocumentsController
+  from '../../../../../../../assets/js/components/resources/document/pages/controllers/GameDocumentsController.js';
+import { stubBuildEffect } from '../../../../../../support/controllerStubs.js';
 
 describe('GameDocuments', function() {
   let originalWindow;
@@ -10,6 +13,7 @@ describe('GameDocuments', function() {
   beforeEach(function() {
     originalWindow = globalThis.window;
     globalThis.window = { location: { hash: '#/games/demo/documents' } };
+    stubBuildEffect(GameDocumentsController);
   });
 
   afterEach(function() {
@@ -29,5 +33,7 @@ describe('GameDocuments', function() {
     expect(capturedState.gameSlug).toBe('demo');
     expect(capturedState.basePath).toBe('#/games/demo/documents');
     expect(capturedState.backHref).toBe('#/games/demo');
+    expect(capturedState.newHref).toBe('#/games/demo/documents/new');
+    expect(capturedState.canCreateDocument).toBe(false);
   });
 });

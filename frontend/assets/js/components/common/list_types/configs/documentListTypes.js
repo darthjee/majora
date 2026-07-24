@@ -53,13 +53,26 @@ function buildFetchCharacterDocuments(characterKind) {
 }
 
 /**
- * Build a document's click-through href. Documents have no standalone detail page in this
- * issue (#725), so this always returns `null` — `ListPageHelper` renders a plain (non-link)
+ * Build a game document's click-through href, to its game-scoped detail page (issue #758) —
+ * mirrors `listTypeConfig.js`'s `buildGameItemHref`.
+ *
+ * @param {import('../GameDocumentListItem.js').default} item - Wrapped game document list item.
+ * @param {{gameSlug: string}} context - Rendering context, supplying the game slug.
+ * @returns {string} Hash path to the document's detail page.
+ */
+function buildGameDocumentHref(item, context) {
+  return `#/games/${context.gameSlug}/documents/${item.data.id}`;
+}
+
+/**
+ * Build a character-scoped document's click-through href. Character-owned documents (PC/NPC)
+ * have no standalone detail page yet (only the game-scoped `GameDocument` show page landed in
+ * issue #758), so this always returns `null` — `ListPageHelper` renders a plain (non-link)
  * caption when `buildItemHref` returns a falsy value.
  *
  * @returns {null} Always `null`.
  */
-function buildDocumentHref() {
+function buildCharacterDocumentHref() {
   return null;
 }
 
@@ -78,7 +91,7 @@ const documentListTypes = {
     buildActionBarProps: buildReadOnlyActionBarProps,
     buildInfoBarItems: buildItemInfoBarItems('game_documents_page.hidden_label'),
     showCaption: true,
-    buildItemHref: buildDocumentHref,
+    buildItemHref: buildGameDocumentHref,
     itemsPerRow: 6,
   },
   'pc-documents': {
@@ -89,7 +102,7 @@ const documentListTypes = {
     buildActionBarProps: buildReadOnlyActionBarProps,
     buildInfoBarItems: buildItemInfoBarItems('character_documents_page.hidden_label'),
     showCaption: true,
-    buildItemHref: buildDocumentHref,
+    buildItemHref: buildCharacterDocumentHref,
     itemsPerRow: 6,
   },
   'npc-documents': {
@@ -100,7 +113,7 @@ const documentListTypes = {
     buildActionBarProps: buildReadOnlyActionBarProps,
     buildInfoBarItems: buildItemInfoBarItems('character_documents_page.hidden_label'),
     showCaption: true,
-    buildItemHref: buildDocumentHref,
+    buildItemHref: buildCharacterDocumentHref,
     itemsPerRow: 6,
   },
 };

@@ -9,14 +9,18 @@ from accounts.authentication import CookieTokenAuthentication
 from ...models import Game
 from ...serializers import GameDocumentListSerializer
 from ..common import paginated_list_response
+from ._document_create import game_document_create
 
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @authentication_classes([CookieTokenAuthentication])
-# AllowAny: GET is intentionally public; hidden documents are excluded below.
+# AllowAny: GET is intentionally public; POST authorization is enforced inline via
+# GameDocumentCreatePermission.check().
 @permission_classes([AllowAny])
 def game_documents(request, game_slug):
-    """Return a paginated list of non-hidden documents for a specific game."""
+    """Return a paginated list of non-hidden documents for a game, or create a new one."""
     game = get_object_or_404(Game, game_slug=game_slug)
+    if request.method == 'POST':
+        return game_document_create(request, game)
     documents = game.documents.filter(hidden=False)
     return paginated_list_response(request, documents, GameDocumentListSerializer)

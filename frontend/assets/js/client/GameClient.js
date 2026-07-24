@@ -75,4 +75,16 @@ export default class GameClient extends BaseClient {
   createItem(gameSlug, token, fields) {
     return this.postJson(`/games/${gameSlug}/items.json`, token, fields);
   }
+
+  /**
+   * Creates a new, bare GameDocument for a game (issue #758) — no owning CharacterDocument.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {object} fields - Fields for the new document (`name`, `description`, `hidden`).
+   * @returns {Promise<Response>} fetch response from the game documents endpoint.
+   */
+  createDocument(gameSlug, token, fields) {
+    return this.postJson(`/games/${gameSlug}/documents.json`, token, fields);
+  }
 }

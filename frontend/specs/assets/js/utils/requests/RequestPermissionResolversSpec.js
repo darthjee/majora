@@ -99,6 +99,14 @@ describe('RequestPermissionResolvers', function() {
       expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('npcs', 'demo', '3');
     });
 
+    it('resolves game-level permissions for document single (GameDocument, issue #758)', function() {
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+      RequestPermissionResolvers.resolve('document', 'single', { gameSlug: 'demo', id: '9' });
+
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+    });
+
     it('resolves no permissions for a resource/quantity-type with no restricted variant at all', async function() {
       const result = await RequestPermissionResolvers.resolve('game', 'collection', {});
 

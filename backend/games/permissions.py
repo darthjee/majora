@@ -133,6 +133,32 @@ class GameItemCreatePermission(_EditPermission):
         return is_staff or is_superuser or is_dm
 
 
+class GameDocumentCreatePermission(_EditPermission):
+    """Encapsulate checks for the game-level document-creation endpoint (issue #758).
+
+    Grants the same access as GameEditPermission (superuser or a GameMaster of the game) plus
+    any Staff account (globally) — mirroring GameItemCreatePermission's shape, since a bare
+    GameDocument has no owning character.
+    """
+
+    @classmethod
+    def check(cls, request, game):
+        """Return an error Response if `request.user` may not create a document for `game`."""
+        return cls._guarded_check(request, lambda: cls.is_allowed(request.user, game))
+
+    @classmethod
+    def is_allowed(cls, user, game):
+        """Return whether `user` may create a new document for `game`."""
+        if not user or not user.is_authenticated:
+            return False
+        return user.is_staff or game.can_be_edited_by(user)
+
+    @classmethod
+    def is_allowed_for_roles(cls, is_superuser, is_dm, is_staff):
+        """Return whether a role-simulated caller may create a new document for a game."""
+        return is_staff or is_superuser or is_dm
+
+
 class CharacterMoneyEditPermission(_EditPermission):
     """Encapsulate checks for the narrow, money-only character edit endpoint (issue #615).
 

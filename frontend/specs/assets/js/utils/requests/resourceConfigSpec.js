@@ -184,7 +184,7 @@ describe('resourceConfig', function() {
   });
 
   describe('document', function() {
-    it('resolves collection regular/private paths and permissions for either kind, and has no single entry', function() {
+    it('resolves collection regular/private paths and permissions for either kind', function() {
       const collection = resourceConfig.get('GET', 'document', 'collection');
 
       expect(collection.regular.path({ gameSlug: 'demo', kind: 'pcs', id: '3' }))
@@ -193,7 +193,15 @@ describe('resourceConfig', function() {
       expect(collection.private.path({ gameSlug: 'demo', kind: 'npcs', id: '3' }))
         .toBe('/games/demo/npcs/3/documents/all.json');
       expect(collection.private.permission).toBe('can_edit');
-      expect(resourceConfig.get('GET', 'document', 'single')).toBeNull();
+    });
+
+    it('resolves single regular/private paths and permissions for a game document (issue #758)', function() {
+      const single = resourceConfig.get('GET', 'document', 'single');
+
+      expect(single.regular.path({ gameSlug: 'demo', id: '9' })).toBe('/games/demo/documents/9.json');
+      expect(single.regular.permission).toBeNull();
+      expect(single.private.path({ gameSlug: 'demo', id: '9' })).toBe('/games/demo/documents/9/full.json');
+      expect(single.private.permission).toBe('can_edit');
     });
   });
 

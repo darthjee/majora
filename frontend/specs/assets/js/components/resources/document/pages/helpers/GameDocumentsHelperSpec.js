@@ -36,6 +36,8 @@ describe('GameDocumentsHelper', function() {
     gameSlug: 'demo',
     basePath: '#/games/demo/documents',
     backHref: '#/games/demo',
+    newHref: '#/games/demo/documents/new',
+    canCreateDocument: false,
     ...overrides,
   });
 
@@ -48,6 +50,19 @@ describe('GameDocumentsHelper', function() {
     it('renders the documents heading', function() {
       const html = renderToStaticMarkup(GameDocumentsHelper.render(buildState()));
       expect(html).toContain('Documents');
+    });
+
+    it('does not render the create document button when canCreateDocument is false', function() {
+      const html = renderToStaticMarkup(GameDocumentsHelper.render(buildState()));
+      expect(html).not.toContain('Create Document');
+    });
+
+    it('renders the create document button when canCreateDocument is true', function() {
+      const html = renderToStaticMarkup(
+        GameDocumentsHelper.render(buildState({ canCreateDocument: true })),
+      );
+      expect(html).toContain('Create Document');
+      expect(html).toContain('href="#/games/demo/documents/new"');
     });
 
     it('wires a ListPage of type documents with the expected props', function() {

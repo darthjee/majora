@@ -79,6 +79,8 @@ from .game_tasks import game_task_detail, game_tasks_list
 from .games import (
     game_access,
     game_detail,
+    game_document_detail,
+    game_document_detail_full,
     game_documents,
     game_documents_all,
     game_item_detail,
@@ -128,6 +130,8 @@ __all__ = [
     'game_treasure_detail',
     'game_documents',
     'game_documents_all',
+    'game_document_detail',
+    'game_document_detail_full',
     'game_items',
     'game_items_all',
     'game_item_detail',

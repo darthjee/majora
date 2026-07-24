@@ -43,6 +43,16 @@ urlpatterns = [
         views.game_documents_all,
         name='game-documents-all',
     ),
+    path(
+        'games/<slug:game_slug>/documents/<int:document_id>.json',
+        views.game_document_detail,
+        name='game-document-detail',
+    ),
+    path(
+        'games/<slug:game_slug>/documents/<int:document_id>/full.json',
+        views.game_document_detail_full,
+        name='game-document-detail-full',
+    ),
     path('games/<slug:game_slug>/items.json', views.game_items, name='game-items'),
     path(
         'games/<slug:game_slug>/items/all.json',
