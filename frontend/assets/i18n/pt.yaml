@@ -306,6 +306,7 @@ character_items_page:
   title: Itens
   hidden_label: Oculto
   new_item: Criar Item
+  exchange_items: Trocar Itens
 character_documents_page:
   loading: Carregando documentos...
   title: Documentos
@@ -346,6 +347,23 @@ treasure_exchange_modal:
   generic_error: Não foi possível concluir esta ação. Por favor, tente novamente.
   available_units_badge: '{{available}} restantes'
   partially_fulfilled: 'Apenas {{acquired}} de {{requested}} estavam disponíveis e foram adquiridos.'
+item_exchange_modal:
+  title: Troca de Item
+  search_placeholder: Buscar itens...
+  acquire_tab: Adquirir
+  acquire_tab_tooltip: Adquire uma cópia do item
+  remove_tab: Remover
+  remove_tab_tooltip: Remove um item
+  hidden_label: Oculto
+  confirm: Confirmar
+  cancel: Cancelar
+  back: Voltar
+  cancel_selection: Cancelar
+  loading: Carregando itens...
+  empty: Nenhum item disponível.
+  load_error: Falha ao carregar itens. Por favor, tente novamente.
+  already_owned_error: Este item já foi adquirido.
+  generic_error: Não foi possível concluir esta ação. Por favor, tente novamente.
 links_edit_modal:
   title: Editar links
   text_label: Texto
