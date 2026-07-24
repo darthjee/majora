@@ -28,9 +28,7 @@ describe('BaseCharacterEditController', function() {
       const ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
         data: { id: 1, can_edit: true, private_description: 'Notes.' },
       }));
-      const fullCharacterClient = jasmine.createSpyObj('characterClient', [
-        'fetchCharacterPhotos', 'updateCharacter',
-      ]);
+      const fullCharacterClient = jasmine.createSpyObj('characterClient', ['fetchCharacterPhotos']);
 
       client.currentHash.and.returnValue('#/games/demo/npcs/1/edit');
       fullCharacterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({

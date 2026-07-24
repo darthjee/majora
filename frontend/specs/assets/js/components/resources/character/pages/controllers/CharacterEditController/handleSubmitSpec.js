@@ -22,7 +22,7 @@ KINDS.forEach(({ label, Controller, kind, name }) => {
       setStatus = jasmine.createSpy('setStatus');
       setters = { setStatus, setFieldErrors };
       client = jasmine.createSpyObj('client', ['currentHash']);
-      characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacter', 'updateCharacter']);
+      characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacter']);
     });
 
     it('navigates to the show page on success', async function() {

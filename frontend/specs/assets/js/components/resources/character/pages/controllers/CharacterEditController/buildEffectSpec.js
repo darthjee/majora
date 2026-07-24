@@ -24,10 +24,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
         const setLoading = jasmine.createSpy('setLoading');
         const setError = jasmine.createSpy('setError');
         const client = jasmine.createSpyObj('client', ['currentHash']);
-        const characterClient = jasmine.createSpyObj(
-          'characterClient',
-          ['fetchCharacterPhotos', 'updateCharacter'],
-        );
+        const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacterPhotos']);
 
         client.currentHash.and.returnValue(`#/games/demo/${kind}/2/edit`);
         characterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({

@@ -43,7 +43,9 @@ export default class BaseCharacterEditController extends BasePageController {
    *   (NpcCharacterController or PcCharacterController).
    * @param {Function} getParamsFromHash - Hash param extractor for the load controller.
    * @param {string} routeSegment - URL segment for this character type ('npcs' or 'pcs'),
-   *   also used as the `characterKind` passed to {@link CharacterClient#updateCharacter}.
+   *   used to build the post-submit redirect hash, to gate the player-writable NPC
+   *   endpoint in {@link submitForm}, and to derive the `RequestStore` resource name
+   *   ('npc' or 'pc') used by {@link handleSubmit}.
    * @param {GenericClient|null} [client] - Client override, used for hash resolution.
    * @param {CharacterClient|null} [characterClient] - Character client override.
    * @param {GameClient|null} [gameClient] - Game client override.

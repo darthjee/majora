@@ -1,4 +1,4 @@
-import CharacterClient from '../../../../../../client/CharacterClient.js';
+import RequestStore from '../../../../../../utils/requests/RequestStore.js';
 
 /**
  * Manages the player-facing request to toggle an NPC's public_slain state,
@@ -11,26 +11,44 @@ export default class PlayerSlainConfirmController {
    * Creates a new PlayerSlainConfirmController instance.
    *
    * @param {Function} onSuccess - Callback invoked after the slain state is toggled successfully.
-   * @param {CharacterClient} [client] - HTTP client used for the slain request.
    */
-  constructor(onSuccess, client = new CharacterClient()) {
+  constructor(onSuccess) {
     this.onSuccess = onSuccess;
-    this.client = client;
   }
 
   /**
    * Toggles the given character's public_slain state (aliased onto `slain` for
    * non-editors) as a player of the game, and invokes onSuccess once done.
    *
+   * @description PATCHes the plain NPC endpoint (`npc`'s `regular` variant) through
+   *   {@link RequestStore.mutate} (issue #847), forcing `variantName: 'regular'` since this
+   *   controller is only ever wired to the player-facing toggle. Purges the NPC resource's
+   *   cached `GET` data on success before invoking `onSuccess`, so the list's `refresh()`
+   *   callback doesn't just re-serve a stale cached response.
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {object} character - Character data object.
    * @param {number|string} character.id - Character id.
    * @param {boolean} character.slain - Current public-facing slain value.
-   * @param {string|null} token - Authentication token, if any.
+   * @param {string|null} _token - Authentication token, unused — kept for call-site
+   *   compatibility; `RequestStore.mutate` resolves its own token.
    * @returns {Promise<void>} Resolves once the request finishes and onSuccess has been invoked.
    */
-  handleConfirm(gameSlug, character, token) {
-    return this.client.setNpcPublicSlainAsPlayer(gameSlug, character.id, token, !character.slain)
-      .then(() => this.onSuccess());
+  handleConfirm(gameSlug, character, _token) {
+    return RequestStore.mutate({
+      componentName: 'PlayerSlainConfirmController',
+      resource: 'npc',
+      method: 'PATCH',
+      quantityType: 'single',
+      params: { gameSlug, id: character.id },
+      body: { slain: !character.slain },
+      variantName: 'regular',
+    }).then((response) => {
+      if (!response.ok) {
+        return;
+      }
+
+      RequestStore.purge({ resource: 'npc' });
+      this.onSuccess();
+    });
   }
 }

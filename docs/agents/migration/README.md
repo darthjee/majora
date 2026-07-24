@@ -103,6 +103,9 @@ the checklist below as part of its own PR.
 - [x] `/#/games/:game_slug/pcs/:character_id/photos` and `/#/games/:game_slug/npcs/:character_id/photos`
   (set profile photo + upload) (#844)
 - [x] `/#/games/:game_slug/treasures` photo upload (#844)
+- [x] `/#/games/:game_slug` photo upload (#847)
+- [x] `/#/games/:game_slug/npcs` photo upload (#847)
+- [x] `/#/games/:game_slug/npcs/:character_id` and `/#/games/:game_slug/npcs` (slain toggle) (#847)
 
 ### Not yet migrated
 
@@ -119,9 +122,6 @@ the checklist below as part of its own PR.
 
 **Game Task**
 - [ ] `/#/games/:game_slug/tasks` (create/update/toggle-complete) — `GameTasksController.js` → `GameTaskClient.createTask`/`updateTask`
-
-**Character slain toggle**
-- [ ] `/#/games/:game_slug/npcs/:character_id` and `/#/games/:game_slug/npcs` — `SlainConfirmController.js`/`PlayerSlainConfirmController.js` → `CharacterClient.setNpcSlain`/`setNpcPublicSlainAsPlayer`
 
 **Treasure (link existing)**
 - [ ] `/#/games/:game_slug/treasures` (Add Treasure modal) — `AddGameTreasureModalController.js` → `TreasureClient.linkGameTreasure`

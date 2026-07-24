@@ -3,6 +3,7 @@ import GameController from './controllers/GameController.js';
 import GameHelper from './helpers/GameHelper.jsx';
 import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
+import resourceConfig from '../../../../utils/requests/resourceConfig.js';
 
 /**
  * Game detail page.
@@ -38,7 +39,7 @@ export default function Game() {
       {GameHelper.render(game, pcs, npcs, { onOpenUploadModal: () => setShowUploadModal(true) })}
       <PhotoUploadModal
         show={showUploadModal}
-        uploadPath={`/games/${game.game_slug}/photo_upload.json`}
+        uploadPath={resourceConfig.get('POST', 'game', 'single').regular.path({ gameSlug: game.game_slug })}
         onClose={() => setShowUploadModal(false)}
         onSuccess={handleUploadSuccess}
       />
