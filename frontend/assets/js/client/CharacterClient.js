@@ -294,22 +294,6 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
-   * Creates a new `GameItem`/`CharacterItem` pair owned by a PC or NPC (issue #714).
-   *
-   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
-   * @param {string} gameSlug - Game slug the character belongs to.
-   * @param {string|number} characterId - Character id.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {{name: string, description: string, hidden: boolean}} fields - Item fields.
-   * @returns {Promise<Response>} fetch response from the character items endpoint.
-   */
-  createItem(characterKind, gameSlug, characterId, token, fields) {
-    return this.postJson(
-      `/games/${gameSlug}/${characterKind}/${characterId}/items.json`, token, fields,
-    );
-  }
-
-  /**
    * Acquires a `GameItem` for a character, creating a `CharacterItem` linking them (issue #773).
    *
    * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).

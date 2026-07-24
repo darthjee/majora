@@ -4,6 +4,7 @@ import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
 import NewButton from '../../../../common/buttons/NewButton.jsx';
 import PageActions from '../../../../common/list_page/PageActions.jsx';
 import PhotoUploadModal from '../../../../common/modals/PhotoUploadModal.jsx';
+import resourceConfig from '../../../../../utils/requests/resourceConfig.js';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**
@@ -50,7 +51,7 @@ export default class TreasuresHelper {
         />
         <PhotoUploadModal
           show={state.showUploadModal}
-          uploadPath={`/treasures/${state.selectedTreasure?.id}/photo_upload.json`}
+          uploadPath={resourceConfig.get('POST', 'treasure', 'single').regular.path({ id: state.selectedTreasure?.id })}
           onClose={handlers.onUploadClose}
           onSuccess={handlers.onUploadSuccess}
         />

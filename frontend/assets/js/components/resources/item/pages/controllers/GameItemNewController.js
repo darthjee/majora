@@ -1,6 +1,6 @@
-import GameClient from '../../../../../client/GameClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import PhotoUploadSaga from '../../../../common/base/controllers/PhotoUploadSaga.js';
 import Noop from '../../../../../utils/Noop.js';
@@ -26,14 +26,12 @@ export default class GameItemNewController extends BasePageController {
    *
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
-   * @param {GameClient|null} [gameClient] - Game client override.
    * @param {UploadClient|null} [uploadClient] - Upload client override.
    */
-  constructor(setError, setFieldErrors = Noop.noop, gameClient = null, uploadClient = null) {
+  constructor(setError, setFieldErrors = Noop.noop, uploadClient = null) {
     super();
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;
-    this.gameClient = gameClient ?? new GameClient();
     this.photoUploadSaga = new PhotoUploadSaga(uploadClient);
   }
 
@@ -61,10 +59,11 @@ export default class GameItemNewController extends BasePageController {
    * Submit the new item form.
    *
    * @description Prevents the default form submission, resets status and field errors, sends a
-   *   POST request. On success, redirects immediately to the items list when no photo was picked,
-   *   or runs the photo upload saga step first, against the created item's `id`, when
-   *   `formValues.photoFile` is set. On a 400 response, sets field errors. On any other failure,
-   *   sets the general error status.
+   *   POST request through {@link RequestStore.mutate} (issue #841, so the item collection's
+   *   cached `GET` data is purged on success). On success, redirects immediately to the items list
+   *   when no photo was picked, or runs the photo upload saga step first, against the created
+   *   item's `id`, when `formValues.photoFile` is set. On a 400 response, sets field errors. On
+   *   any other failure, sets the general error status.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {{name: string, description: string, hidden: boolean, photoFile: File|null}} formValues -
@@ -81,13 +80,18 @@ export default class GameItemNewController extends BasePageController {
     setters.setStatus('submitting');
     setters.setFieldErrors({});
 
-    const token = AuthStorage.getToken();
-
     try {
-      const response = await this.gameClient.createItem(gameSlug, token, {
-        name: formValues.name,
-        description: formValues.description,
-        hidden: formValues.hidden,
+      const response = await RequestStore.mutate({
+        componentName: 'GameItemNewController',
+        resource: 'item',
+        method: 'POST',
+        quantityType: 'collection',
+        params: { gameSlug, kind: 'game' },
+        body: {
+          name: formValues.name,
+          description: formValues.description,
+          hidden: formValues.hidden,
+        },
       });
 
       await this.#handleResponse(response, gameSlug, formValues.photoFile, setters);
@@ -148,10 +152,15 @@ export default class GameItemNewController extends BasePageController {
 
   async #uploadPhoto(gameSlug, gameItemId, photoFile, setters) {
     const token = AuthStorage.getToken();
-    const uploadPath = `/games/${gameSlug}/items/${gameItemId}/photo_upload.json`;
+    const uploadPath = await RequestStore.resolvePath({
+      resource: 'item', method: 'POST', quantityType: 'single', params: { gameSlug, kind: 'game', id: gameItemId },
+    });
     const ok = await this.photoUploadSaga.upload(uploadPath, photoFile, token);
 
     if (ok) {
+      // Purge before redirecting, so the items list's own `RequestStore.ensure` GET (triggered by
+      // the redirect) doesn't re-serve the pre-upload cached collection.
+      RequestStore.purge({ resource: 'item' });
       this.#redirectToItems(gameSlug);
       return;
     }

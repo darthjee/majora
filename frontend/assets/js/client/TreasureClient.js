@@ -1,7 +1,11 @@
 import BaseClient from './BaseClient.js';
 
 /**
- * HTTP client for treasure requests (fetch, access check, create, and update).
+ * HTTP client for treasure requests (fetch, access check, and catalog-linking).
+ *
+ * @description Create/update mutations moved to `RequestStore.mutate()` (issue #841) — this
+ *   client now only holds read/access-check methods, plus `linkGameTreasure` (out of scope for
+ *   that migration).
  */
 export default class TreasureClient extends BaseClient {
   /**
@@ -39,45 +43,6 @@ export default class TreasureClient extends BaseClient {
    */
   fetchTreasurePermissions(id, token, signal, roles = []) {
     return this.getJson(`/treasures/${id}/permissions.json${this.buildRoleQuery(roles)}`, token, {}, signal);
-  }
-
-  /**
-   * Creates a new treasure.
-   *
-   * @param {string|null} token - Authentication token, if any.
-   * @param {object} fields - Fields for the new treasure.
-   * @param {string} fields.name - Treasure name.
-   * @param {number} fields.value - Treasure value.
-   * @returns {Promise<Response>} fetch response from the treasures endpoint.
-   */
-  createTreasure(token, fields) {
-    return this.postJson('/treasures.json', token, fields);
-  }
-
-  /**
-   * Submits a partial update for a treasure.
-   *
-   * @param {number|string} id - Treasure id.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {object} fields - Fields to update.
-   * @returns {Promise<Response>} fetch response from the treasure endpoint.
-   */
-  updateTreasure(id, token, fields) {
-    return this.patchJson(`/treasures/${id}.json`, token, fields);
-  }
-
-  /**
-   * Creates a new treasure exclusive to a game.
-   *
-   * @param {string} gameSlug - Game slug.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {object} fields - Fields for the new treasure.
-   * @param {string} fields.name - Treasure name.
-   * @param {number} fields.value - Treasure value.
-   * @returns {Promise<Response>} fetch response from the game treasures endpoint.
-   */
-  createGameTreasure(gameSlug, token, fields) {
-    return this.postJson(`/games/${gameSlug}/treasures.json`, token, fields);
   }
 
   /**
@@ -170,20 +135,5 @@ export default class TreasureClient extends BaseClient {
    */
   linkGameTreasure(gameSlug, token, fields) {
     return this.postJson(`/games/${gameSlug}/treasures/link.json`, token, fields);
-  }
-
-  /**
-   * Submits a partial update for a game-scoped treasure.
-   *
-   * @param {string} gameSlug - Game slug.
-   * @param {number|string} id - Treasure id.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {object} fields - Fields to update.
-   * @param {number|null} [fields.max_units] - Maximum obtainable units within the game, for
-   *   M2M-linked treasures (`null` for unlimited). Ignored for exclusive treasures.
-   * @returns {Promise<Response>} fetch response from the game treasure endpoint.
-   */
-  updateGameTreasure(gameSlug, id, token, fields) {
-    return this.patchJson(`/games/${gameSlug}/treasures/${id}.json`, token, fields);
   }
 }

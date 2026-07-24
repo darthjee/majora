@@ -1,5 +1,4 @@
 import GenericClient from '../../../../../client/GenericClient.js';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
@@ -103,8 +102,9 @@ export default class BaseCharacterItemEditController extends BasePageController 
    * Submit a partial update for the item.
    *
    * @description Prevents the default form submission, resets status and field errors, sends a
-   *   PATCH request, then redirects to the item's detail page on success, sets field errors on
-   *   400, or sets error status on other failures.
+   *   PATCH request through {@link RequestStore.mutate} (issue #841, so the item's cached `GET`
+   *   data is purged on success), then redirects to the item's detail page on success, sets field
+   *   errors on 400, or sets error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
@@ -121,14 +121,20 @@ export default class BaseCharacterItemEditController extends BasePageController 
     setters.setStatus('submitting');
     setters.setFieldErrors({});
 
-    const token = AuthStorage.getToken();
-    const path = `/games/${gameSlug}/${this.characterKind}/${characterId}/items/${itemId}.json`;
-
     try {
-      const response = await this.client.patchJson(path, token, {
-        name: formValues.name,
-        description: formValues.description,
-        hidden: formValues.hidden,
+      const response = await RequestStore.mutate({
+        componentName: 'BaseCharacterItemEditController',
+        resource: 'item',
+        method: 'PATCH',
+        quantityType: 'single',
+        params: {
+          gameSlug, kind: this.characterKind, id: characterId, itemId,
+        },
+        body: {
+          name: formValues.name,
+          description: formValues.description,
+          hidden: formValues.hidden,
+        },
       });
 
       await this.#handleResponse(response, gameSlug, characterId, itemId, setters);

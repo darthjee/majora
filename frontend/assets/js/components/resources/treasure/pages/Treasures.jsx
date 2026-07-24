@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import TreasuresHelper from './helpers/TreasuresHelper.jsx';
 import TreasuresAccessController from './controllers/TreasuresAccessController.js';
+import RequestStore from '../../../../utils/requests/RequestStore.js';
 import HashRouteResolver from '../../../../utils/routing/HashRouteResolver.js';
 import buildFilteredHref from '../../../../utils/routing/buildFilteredHref.js';
 
@@ -43,6 +44,10 @@ export default function Treasures() {
 
   const handleUploadSuccess = () => {
     setShowUploadModal(false);
+    // Purge before refetching: the photo upload saga doesn't go through `RequestStore.mutate`
+    // (it's a two-step, non-JSON-body saga), so the cache purge must happen explicitly here,
+    // mirroring `CharacterEdit.jsx`'s own `handleUploadSuccess` (issue #841).
+    RequestStore.purge({ resource: 'treasure' });
     refresh();
   };
 

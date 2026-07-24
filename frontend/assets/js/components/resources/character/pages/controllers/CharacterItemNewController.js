@@ -1,6 +1,6 @@
-import CharacterClient from '../../../../../client/CharacterClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import PhotoUploadSaga from '../../../../common/base/controllers/PhotoUploadSaga.js';
 import Noop from '../../../../../utils/Noop.js';
@@ -31,15 +31,13 @@ export default class CharacterItemNewController extends BasePageController {
    * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
-   * @param {CharacterClient|null} [characterClient] - Character client override.
    * @param {UploadClient|null} [uploadClient] - Upload client override.
    */
-  constructor(characterKind, setError, setFieldErrors = Noop.noop, characterClient = null, uploadClient = null) {
+  constructor(characterKind, setError, setFieldErrors = Noop.noop, uploadClient = null) {
     super();
     this.characterKind = characterKind;
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;
-    this.characterClient = characterClient ?? new CharacterClient();
     this.photoUploadSaga = new PhotoUploadSaga(uploadClient);
   }
 
@@ -67,10 +65,12 @@ export default class CharacterItemNewController extends BasePageController {
    * Submit the new item form.
    *
    * @description Prevents the default form submission, resets status and field errors, sends a
-   *   POST request. On success, redirects immediately to the items list when no photo was picked
-   *   (there is no per-item detail page to redirect to), or runs the photo upload saga step first,
-   *   against the created item's underlying `game_item_id`, when `formValues.photoFile` is set.
-   *   On a 400 response, sets field errors. On any other failure, sets the general error status.
+   *   POST request through {@link RequestStore.mutate} (issue #841, so the item collection's
+   *   cached `GET` data is purged on success). On success, redirects immediately to the items list
+   *   when no photo was picked (there is no per-item detail page to redirect to), or runs the
+   *   photo upload saga step first, against the created item's underlying `game_item_id`, when
+   *   `formValues.photoFile` is set. On a 400 response, sets field errors. On any other failure,
+   *   sets the general error status.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
@@ -88,13 +88,18 @@ export default class CharacterItemNewController extends BasePageController {
     setters.setStatus('submitting');
     setters.setFieldErrors({});
 
-    const token = AuthStorage.getToken();
-
     try {
-      const response = await this.characterClient.createItem(this.characterKind, gameSlug, characterId, token, {
-        name: formValues.name,
-        description: formValues.description,
-        hidden: formValues.hidden,
+      const response = await RequestStore.mutate({
+        componentName: 'CharacterItemNewController',
+        resource: 'item',
+        method: 'POST',
+        quantityType: 'collection',
+        params: { gameSlug, kind: this.characterKind, id: characterId },
+        body: {
+          name: formValues.name,
+          description: formValues.description,
+          hidden: formValues.hidden,
+        },
       });
 
       await this.#handleResponse(response, gameSlug, characterId, formValues.photoFile, setters);
@@ -156,10 +161,17 @@ export default class CharacterItemNewController extends BasePageController {
 
   async #uploadPhoto(gameSlug, characterId, gameItemId, photoFile, setters) {
     const token = AuthStorage.getToken();
-    const uploadPath = `/games/${gameSlug}/items/${gameItemId}/photo_upload.json`;
+    // Targets the newly-created `GameItem` directly (kind: 'game'), not the character-owned
+    // override path — mirrors the pre-migration hand-built path exactly (issue #841).
+    const uploadPath = await RequestStore.resolvePath({
+      resource: 'item', method: 'POST', quantityType: 'single', params: { gameSlug, kind: 'game', id: gameItemId },
+    });
     const ok = await this.photoUploadSaga.upload(uploadPath, photoFile, token);
 
     if (ok) {
+      // Purge before redirecting, so the items list's own `RequestStore.ensure` GET (triggered by
+      // the redirect) doesn't re-serve the pre-upload cached collection.
+      RequestStore.purge({ resource: 'item' });
       this.#redirectToItems(gameSlug, characterId);
       return;
     }
