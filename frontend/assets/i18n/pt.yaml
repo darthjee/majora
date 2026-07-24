@@ -196,8 +196,8 @@ npc_edit_page:
   description_label: Descrição
   private_description_label: Notas do Mestre
   hidden_label: Personagem Oculto
-  allegiance_label: Facção
-  public_allegiance_label: Facção Pública
+  allegiance_label: Aliança
+  public_allegiance_label: Aliança Pública
   allegiance_ally: Aliado
   allegiance_enemy: Inimigo
   allegiance_neutral: Neutro
@@ -551,7 +551,7 @@ game_npcs_page:
   filter_hidden_label: Oculto
   filter_hidden_shown: Visível
   filter_hidden_only: Oculto
-  filter_allegiance_label: Facção
+  filter_allegiance_label: Aliança
   filter_allegiance_ally: Aliado
   filter_allegiance_enemy: Inimigo
   filter_allegiance_neutral: Neutro
@@ -566,8 +566,8 @@ game_npc_new_page:
   description_label: Descrição
   private_description_label: Notas do Mestre
   hidden_label: Personagem Oculto
-  allegiance_label: Facção
-  public_allegiance_label: Facção Pública
+  allegiance_label: Aliança
+  public_allegiance_label: Aliança Pública
   allegiance_ally: Aliado
   allegiance_enemy: Inimigo
   allegiance_neutral: Neutro
