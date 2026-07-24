@@ -306,6 +306,7 @@ character_items_page:
   title: Items
   hidden_label: Hidden
   new_item: Create Item
+  exchange_items: Exchange Items
 character_documents_page:
   loading: Loading documents...
   title: Documents
@@ -346,6 +347,23 @@ treasure_exchange_modal:
   generic_error: Unable to complete this action. Please try again.
   available_units_badge: '{{available}} left'
   partially_fulfilled: 'Only {{acquired}} of {{requested}} were available and were acquired.'
+item_exchange_modal:
+  title: Item Exchange
+  search_placeholder: Search items...
+  acquire_tab: Acquire
+  acquire_tab_tooltip: Acquire a copy of the item
+  remove_tab: Remove
+  remove_tab_tooltip: Removes an item
+  hidden_label: Hidden
+  confirm: Confirm
+  cancel: Cancel
+  back: Back
+  cancel_selection: Cancel
+  loading: Loading items...
+  empty: No items available.
+  load_error: Unable to load items. Please try again.
+  already_owned_error: This item is already owned.
+  generic_error: Unable to complete this action. Please try again.
 links_edit_modal:
   title: Edit links
   text_label: Text

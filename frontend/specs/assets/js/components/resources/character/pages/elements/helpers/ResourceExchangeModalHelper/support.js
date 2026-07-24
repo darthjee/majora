@@ -16,6 +16,19 @@ export const buildTabs = () => ({
   sell: { labelKey: 'treasure_exchange_modal.sell_tab', tooltipKey: 'treasure_exchange_modal.sell_tab_tooltip', Component: FakeSellComponent },
 });
 
+const FakeAcquireItemComponent = function FakeAcquireItemComponent() {
+  return null;
+};
+
+const FakeRemoveItemComponent = function FakeRemoveItemComponent() {
+  return null;
+};
+
+export const buildItemTabs = () => ({
+  acquire: { labelKey: 'item_exchange_modal.acquire_tab', tooltipKey: 'item_exchange_modal.acquire_tab_tooltip', Component: FakeAcquireItemComponent },
+  remove: { labelKey: 'item_exchange_modal.remove_tab', tooltipKey: 'item_exchange_modal.remove_tab_tooltip', Component: FakeRemoveItemComponent },
+});
+
 export const buildState = (overrides = {}) => ({
   activeTab: 'buy',
   tabs: buildTabs(),

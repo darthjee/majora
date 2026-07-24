@@ -90,5 +90,41 @@ describe('CharacterItemsHelper', function() {
       expect(html).toContain('Create Item');
       expect(html).toContain('href="#/games/demo/npcs/9/items/new"');
     });
+
+    it('does not render an "Exchange Items" button when canCreateItem is false', function() {
+      const html = renderToStaticMarkup(
+        CharacterItemsHelper.render('pcs', 'pc-items', 'demo', '7', false, 0, jasmine.createSpy('onExchangeItems'))
+      );
+      expect(html).not.toContain('Exchange Items');
+    });
+
+    it('does not render an "Exchange Items" button when no onExchangeItems handler is given', function() {
+      const html = renderToStaticMarkup(CharacterItemsHelper.render('pcs', 'pc-items', 'demo', '7', true));
+      expect(html).not.toContain('Exchange Items');
+    });
+
+    it('renders an "Exchange Items" button when canCreateItem is true and a handler is given', function() {
+      const html = renderToStaticMarkup(
+        CharacterItemsHelper.render('pcs', 'pc-items', 'demo', '7', true, 0, jasmine.createSpy('onExchangeItems'))
+      );
+      expect(html).toContain('Exchange Items');
+    });
+
+    it('wires the "Exchange Items" button click to the given handler', function() {
+      const onExchangeItems = jasmine.createSpy('onExchangeItems');
+      const element = CharacterItemsHelper.render('pcs', 'pc-items', 'demo', '7', true, 0, onExchangeItems);
+      const button = findElement(element, (child) => typeof child.props?.onClick === 'function');
+
+      button.props.onClick();
+
+      expect(onExchangeItems).toHaveBeenCalled();
+    });
+
+    it('passes refreshToken through to ListPage', function() {
+      const element = CharacterItemsHelper.render('pcs', 'pc-items', 'demo', '7', false, 3);
+      const listPage = findElement(element, (child) => child.type === ListPage);
+
+      expect(listPage.props.refreshToken).toBe(3);
+    });
   });
 });

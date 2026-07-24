@@ -310,6 +310,74 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
+   * Acquires a `GameItem` for a character, creating a `CharacterItem` linking them (issue #773).
+   *
+   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {{game_item_id: number, hidden: boolean}} fields - Acquire request fields.
+   * @returns {Promise<Response>} fetch response from the item acquire endpoint.
+   */
+  acquireItem(characterKind, gameSlug, characterId, token, fields) {
+    return this.postJson(
+      `/games/${gameSlug}/${characterKind}/${characterId}/items/acquire.json`, token, fields,
+    );
+  }
+
+  /**
+   * Acquires a `GameItem` for a character, through the DM/admin-only endpoint that also accepts
+   * hidden game items (issue #773). Used by the item exchange modal when the requester can edit
+   * the game, so a DM granting a hidden item to a PC or NPC doesn't get a 404.
+   *
+   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {{game_item_id: number, hidden: boolean}} fields - Acquire request fields.
+   * @returns {Promise<Response>} fetch response from the item acquire/all endpoint.
+   */
+  acquireItemAll(characterKind, gameSlug, characterId, token, fields) {
+    return this.postJson(
+      `/games/${gameSlug}/${characterKind}/${characterId}/items/acquire/all.json`, token, fields,
+    );
+  }
+
+  /**
+   * Removes an owned `CharacterItem` from a character (issue #773).
+   *
+   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {{game_item_id: number}} fields - Remove request fields.
+   * @returns {Promise<Response>} fetch response from the item remove endpoint.
+   */
+  removeItem(characterKind, gameSlug, characterId, token, fields) {
+    return this.postJson(
+      `/games/${gameSlug}/${characterKind}/${characterId}/items/remove.json`, token, fields,
+    );
+  }
+
+  /**
+   * Removes an owned `CharacterItem` from a character, through the restricted endpoint that also
+   * accepts a hidden `CharacterItem` (issue #773). Used by the item exchange modal when the
+   * requester can edit the character, so removing a hidden item doesn't get a 404.
+   *
+   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {{game_item_id: number}} fields - Remove request fields.
+   * @returns {Promise<Response>} fetch response from the item remove/all endpoint.
+   */
+  removeItemAll(characterKind, gameSlug, characterId, token, fields) {
+    return this.postJson(
+      `/games/${gameSlug}/${characterKind}/${characterId}/items/remove/all.json`, token, fields,
+    );
+  }
+
+  /**
    * Fetches all NPCs (including hidden) for a game (DM-only endpoint).
    * Returns a raw Response so callers can inspect the status code
    * and fall back gracefully on 401 or 403.

@@ -1,14 +1,16 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import TreasureExchangeModal
-  from '../../../../../../../../assets/js/components/resources/character/pages/elements/TreasureExchangeModal.jsx';
-import TreasureExchangeModalHelper
-  from '../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/TreasureExchangeModalHelper.jsx';
+import ResourceExchangeModal
+  from '../../../../../../../../assets/js/components/resources/character/pages/elements/ResourceExchangeModal.jsx';
+import ResourceExchangeModalHelper
+  from '../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/ResourceExchangeModalHelper.jsx';
 import treasureExchangeTabs
   from '../../../../../../../../assets/js/components/resources/character/pages/elements/treasureExchangeTabs.js';
+import itemExchangeTabs
+  from '../../../../../../../../assets/js/components/resources/character/pages/elements/itemExchangeTabs.js';
 import { buildCharacter } from '../../../../../../../support/factories.js';
 
-describe('TreasureExchangeModal', function() {
+describe('ResourceExchangeModal', function() {
   const character = buildCharacter({
     id: 7, game_slug: 'demo', is_pc: true, money: 500,
   });
@@ -18,7 +20,7 @@ describe('TreasureExchangeModal', function() {
     let capturedState;
     let capturedHandlers;
 
-    spyOn(TreasureExchangeModalHelper, 'render').and.callFake((show, state, handlers) => {
+    spyOn(ResourceExchangeModalHelper, 'render').and.callFake((show, state, handlers) => {
       capturedShow = show;
       capturedState = state;
       capturedHandlers = handlers;
@@ -26,9 +28,11 @@ describe('TreasureExchangeModal', function() {
     });
 
     renderToStaticMarkup(
-      React.createElement(TreasureExchangeModal, {
+      React.createElement(ResourceExchangeModal, {
         show: true,
         character,
+        tabs: treasureExchangeTabs,
+        defaultTab: 'buy',
         ownedTreasures: [],
         onClose: jasmine.createSpy('onClose'),
         onSuccess: jasmine.createSpy('onSuccess'),
@@ -39,10 +43,16 @@ describe('TreasureExchangeModal', function() {
     return { show: capturedShow, state: capturedState, handlers: capturedHandlers };
   };
 
-  it('defaults activeTab to buy', function() {
+  it('defaults activeTab to the given defaultTab prop', function() {
     const { state } = renderModal();
 
     expect(state.activeTab).toBe('buy');
+  });
+
+  it('honors a different defaultTab prop, e.g. for the item exchange modal', function() {
+    const { state } = renderModal({ tabs: itemExchangeTabs, defaultTab: 'acquire' });
+
+    expect(state.activeTab).toBe('acquire');
   });
 
   it('forwards the tabs config map as-is', function() {

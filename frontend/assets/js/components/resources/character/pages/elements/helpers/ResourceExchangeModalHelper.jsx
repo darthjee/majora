@@ -6,20 +6,23 @@ import Icons from '../../../../../../utils/ui/Icons.js';
 import Translator from '../../../../../../i18n/Translator.js';
 
 /**
- * Rendering helper for the treasure exchange modal shell: the modal chrome (title, money
+ * Rendering helper for the resource exchange modal shell: the modal chrome (title, optional money
  * display, footer close button) and the config-driven tab nav (label plus a help-tooltip badge
  * per tab), delegating the body to whichever tab component (`state.tabs[state.activeTab]`) is
- * currently active.
+ * currently active. The i18n namespace for the shell's own copy (title, money label, cancel
+ * button) is derived from the tabs config itself — every entry's `labelKey`/`tooltipKey` shares
+ * the same `<namespace>.xxx` prefix (e.g. `treasure_exchange_modal.*`/`item_exchange_modal.*`),
+ * so the shell never needs a namespace prop of its own.
  */
-export default class TreasureExchangeModalHelper {
+export default class ResourceExchangeModalHelper {
   /**
-   * Renders the treasure exchange modal.
+   * Renders the resource exchange modal.
    *
    * @param {boolean} show - Whether the modal is visible.
    * @param {object} state - Modal state.
-   * @param {string} state.activeTab - Currently active tab key (e.g. `'buy'`/`'sell'`).
-   * @param {object} state.tabs - Tab config map (`treasureExchangeTabs.js`-shaped): each entry
-   *   declares `labelKey`, `tooltipKey`, and `Component`.
+   * @param {string} state.activeTab - Currently active tab key (e.g. `'buy'`/`'sell'`/`'acquire'`).
+   * @param {object} state.tabs - Tab config map (e.g. `treasureExchangeTabs.js`/
+   *   `itemExchangeTabs.js`-shaped): each entry declares `labelKey`, `tooltipKey`, and `Component`.
    * @param {object} [state.character] - Character context, forwarded to the active tab.
    * @param {object[]} [state.ownedTreasures] - Currently loaded owned-treasure entries, forwarded
    *   to the active tab.
@@ -28,19 +31,20 @@ export default class TreasureExchangeModalHelper {
    * @param {object} handlers - Modal event handlers.
    * @param {Function} handlers.onClose - Called when the modal is dismissed.
    * @param {Function} handlers.onTabChange - Called with the new tab key when a tab is clicked.
-   * @returns {React.ReactElement} Rendered treasure exchange modal.
+   * @returns {React.ReactElement} Rendered resource exchange modal.
    */
   static render(show, state, handlers) {
     const { Component: ActiveTabComponent } = state.tabs[state.activeTab];
+    const namespace = ResourceExchangeModalHelper.#namespace(state.tabs);
 
     return (
       <Modal show={show} onHide={handlers.onClose}>
         <Modal.Header closeButton>
-          <Modal.Title>{Translator.t('treasure_exchange_modal.title')}</Modal.Title>
+          <Modal.Title>{Translator.t(`${namespace}.title`)}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {TreasureExchangeModalHelper.#renderMoney(state.character, state.gameType)}
-          {TreasureExchangeModalHelper.#renderTabs(state, handlers)}
+          {ResourceExchangeModalHelper.#renderMoney(namespace, state.character, state.gameType)}
+          {ResourceExchangeModalHelper.#renderTabs(state, handlers)}
           <ActiveTabComponent
             show={show}
             character={state.character}
@@ -51,21 +55,26 @@ export default class TreasureExchangeModalHelper {
         </Modal.Body>
         <Modal.Footer>
           <button type="button" className="btn btn-secondary" onClick={handlers.onClose}>
-            {Translator.t('treasure_exchange_modal.cancel')}
+            {Translator.t(`${namespace}.cancel`)}
           </button>
         </Modal.Footer>
       </Modal>
     );
   }
 
-  static #renderMoney(character, gameType) {
-    if (!character) {
+  static #namespace(tabs) {
+    const [firstTab] = Object.values(tabs);
+    return firstTab.labelKey.split('.')[0];
+  }
+
+  static #renderMoney(namespace, character, gameType) {
+    if (!character || namespace !== 'treasure_exchange_modal') {
       return null;
     }
 
     return (
       <p className="mb-3">
-        <strong>{Translator.t('treasure_exchange_modal.your_money')}</strong>
+        <strong>{Translator.t(`${namespace}.your_money`)}</strong>
         {' '}
         <TreasureMoney value={character.money} gameType={gameType} />
       </p>

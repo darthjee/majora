@@ -1,11 +1,11 @@
-import TreasureExchangeModalHelper
-  from '../../../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/TreasureExchangeModalHelper.jsx';
+import ResourceExchangeModalHelper
+  from '../../../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/ResourceExchangeModalHelper.jsx';
 import { buildHandlers, buildState, findElement } from './support.js';
 
-describe('TreasureExchangeModalHelper', function() {
+describe('ResourceExchangeModalHelper', function() {
   describe('.render', function() {
     it('marks the buy tab active when activeTab is buy', function() {
-      const element = TreasureExchangeModalHelper.render(true, buildState({ activeTab: 'buy' }), buildHandlers());
+      const element = ResourceExchangeModalHelper.render(true, buildState({ activeTab: 'buy' }), buildHandlers());
       const buyTab = findElement(
         element, (child) => child.type === 'button' && child.props.children?.[0] === 'Buy'
       );
@@ -14,7 +14,7 @@ describe('TreasureExchangeModalHelper', function() {
     });
 
     it('marks the sell tab active when activeTab is sell', function() {
-      const element = TreasureExchangeModalHelper.render(true, buildState({ activeTab: 'sell' }), buildHandlers());
+      const element = ResourceExchangeModalHelper.render(true, buildState({ activeTab: 'sell' }), buildHandlers());
       const sellTab = findElement(
         element, (child) => child.type === 'button' && child.props.children?.[0] === 'Sell'
       );
@@ -24,7 +24,7 @@ describe('TreasureExchangeModalHelper', function() {
 
     it('invokes onTabChange with "sell" when the sell tab is clicked', function() {
       const handlers = buildHandlers();
-      const element = TreasureExchangeModalHelper.render(true, buildState(), handlers);
+      const element = ResourceExchangeModalHelper.render(true, buildState(), handlers);
       const sellTab = findElement(
         element, (child) => child.type === 'button' && child.props.children?.[0] === 'Sell'
       );
@@ -35,7 +35,7 @@ describe('TreasureExchangeModalHelper', function() {
     });
 
     it('renders a help-tooltip icon badge for each tab', function() {
-      const element = TreasureExchangeModalHelper.render(true, buildState(), buildHandlers());
+      const element = ResourceExchangeModalHelper.render(true, buildState(), buildHandlers());
 
       expect(JSON.stringify(element).split('bi-question-circle-fill').length - 1).toBe(2);
     });

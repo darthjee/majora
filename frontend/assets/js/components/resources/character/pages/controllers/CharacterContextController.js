@@ -8,11 +8,12 @@ import CharacterGameTypeResolver from './CharacterGameTypeResolver.js';
 
 /**
  * Controller resolving a PC or NPC's character context (base fields, own-game currency type,
- * and both character-level and game-level edit permissions) for the character treasures index
- * page — the "Add treasure" button and the treasure exchange modal both need this context, kept
- * page-level and independent of the treasures grid itself, which now fetches through the shared
- * `ListPage`/`listTypeConfig` abstraction (`pc-treasures`/`npc-treasures`) instead. Extracted
- * from the former `BaseCharacterTreasuresController`, keeping only its character-context half.
+ * and both character-level and game-level edit permissions) for a character resource-exchange
+ * index page — e.g. the treasures page's "Add treasure" button and treasure exchange modal, or
+ * the items page's "Exchange Items" button and item exchange modal — both need this context,
+ * kept page-level and independent of the resource's own grid, which fetches through the shared
+ * `ListPage`/`listTypeConfig` abstraction instead. Extracted from the former
+ * `BaseCharacterTreasuresController`, keeping only its character-context half.
  */
 export default class CharacterContextController extends BasePageController {
   #mounted = false;
@@ -25,9 +26,13 @@ export default class CharacterContextController extends BasePageController {
    * @param {GenericClient|null} [client] - Client override, mainly for tests.
    * @param {CharacterClient|null} [characterClient] - Character client override, mainly for tests.
    * @param {GameClient|null} [gameClient] - Game client override, mainly for tests.
+   * @param {string} [pagePath] - Last hash path segment identifying the page this controller
+   *   backs (e.g. `'treasures'`, `'items'`), used to extract `game_slug`/`character_id` from the
+   *   current hash. Defaults to `'treasures'`, preserving this controller's original behavior.
    */
   constructor(
     characterKind, setCharacter, client = null, characterClient = null, gameClient = null,
+    pagePath = 'treasures',
   ) {
     super();
     this.characterKind = characterKind;
@@ -35,6 +40,7 @@ export default class CharacterContextController extends BasePageController {
     this.client = client ?? new GenericClient();
     this.characterClient = characterClient ?? new CharacterClient();
     this.gameClient = gameClient ?? new GameClient();
+    this.pagePath = pagePath;
     this.#mounted = true;
   }
 
@@ -80,7 +86,7 @@ export default class CharacterContextController extends BasePageController {
 
   #getParams() {
     return BasePageController.extractParams(
-      `/games/:game_slug/${this.characterKind}/:character_id/treasures`,
+      `/games/:game_slug/${this.characterKind}/:character_id/${this.pagePath}`,
       this.client.currentHash(),
       ['game_slug', 'character_id'],
     );

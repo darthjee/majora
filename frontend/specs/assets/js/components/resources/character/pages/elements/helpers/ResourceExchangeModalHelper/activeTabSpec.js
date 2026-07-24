@@ -1,13 +1,13 @@
-import TreasureExchangeModalHelper
-  from '../../../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/TreasureExchangeModalHelper.jsx';
+import ResourceExchangeModalHelper
+  from '../../../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/ResourceExchangeModalHelper.jsx';
 import { buildHandlers, buildState, buildTabs, findElement } from './support.js';
 
-describe('TreasureExchangeModalHelper', function() {
+describe('ResourceExchangeModalHelper', function() {
   describe('.render', function() {
     it('renders the Component configured for the active tab', function() {
       const tabs = buildTabs();
       const state = buildState({ activeTab: 'sell', tabs });
-      const element = TreasureExchangeModalHelper.render(true, state, buildHandlers());
+      const element = ResourceExchangeModalHelper.render(true, state, buildHandlers());
       const activeComponent = findElement(element, (child) => child.type === tabs.sell.Component);
 
       expect(activeComponent).not.toBeNull();
@@ -21,7 +21,7 @@ describe('TreasureExchangeModalHelper', function() {
       const state = buildState({
         tabs, character, ownedTreasures, gameType: 'deadlands', onSuccess,
       });
-      const element = TreasureExchangeModalHelper.render(true, state, buildHandlers());
+      const element = ResourceExchangeModalHelper.render(true, state, buildHandlers());
       const activeComponent = findElement(element, (child) => child.type === tabs.buy.Component);
 
       expect(activeComponent.props.show).toBe(true);
@@ -33,7 +33,7 @@ describe('TreasureExchangeModalHelper', function() {
 
     it('forwards show as false when the modal is hidden', function() {
       const tabs = buildTabs();
-      const element = TreasureExchangeModalHelper.render(false, buildState({ tabs }), buildHandlers());
+      const element = ResourceExchangeModalHelper.render(false, buildState({ tabs }), buildHandlers());
       const activeComponent = findElement(element, (child) => child.type === tabs.buy.Component);
 
       expect(activeComponent.props.show).toBe(false);

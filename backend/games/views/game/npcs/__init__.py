@@ -7,11 +7,17 @@ from .detail.game_npc_full import game_npc_full
 from .detail.game_npc_money import game_npc_money
 from .detail.game_npc_permissions import game_npc_permissions
 from .detail.game_npc_photo_upload import game_npc_photo_upload
+from .detail.items.game_npc_item_acquire import game_npc_item_acquire
+from .detail.items.game_npc_item_acquire_all import game_npc_item_acquire_all
 from .detail.items.game_npc_item_detail import game_npc_item_detail
 from .detail.items.game_npc_item_detail_full import game_npc_item_detail_full
 from .detail.items.game_npc_item_photo_upload import game_npc_item_photo_upload
+from .detail.items.game_npc_item_remove import game_npc_item_remove
+from .detail.items.game_npc_item_remove_all import game_npc_item_remove_all
 from .detail.items.game_npc_items import game_npc_items
 from .detail.items.game_npc_items_all import game_npc_items_all
+from .detail.items.game_npc_items_available import game_npc_items_available
+from .detail.items.game_npc_items_available_all import game_npc_items_available_all
 from .detail.photos.game_npc_photo_set import game_npc_photo_set
 from .detail.photos.game_npc_photos import game_npc_photos
 from .detail.treasures.game_npc_treasure_acquire import game_npc_treasure_acquire
@@ -44,6 +50,12 @@ __all__ = [
     'game_npc_item_detail',
     'game_npc_item_detail_full',
     'game_npc_item_photo_upload',
+    'game_npc_items_available',
+    'game_npc_items_available_all',
+    'game_npc_item_acquire',
+    'game_npc_item_acquire_all',
+    'game_npc_item_remove',
+    'game_npc_item_remove_all',
     'game_npc_treasures',
     'game_npc_treasures_all',
     'game_npc_treasure_buy',

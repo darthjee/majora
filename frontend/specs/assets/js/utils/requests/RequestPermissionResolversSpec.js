@@ -59,6 +59,14 @@ describe('RequestPermissionResolvers', function() {
       expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
     });
 
+    it('resolves game-level permissions for item.availableCollection regardless of kind (issue #773)', function() {
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+      RequestPermissionResolvers.resolve('item', 'availableCollection', { gameSlug: 'demo', kind: 'pcs', id: '3' });
+
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+    });
+
     it('resolves game-level permissions for the npc-kind treasure collection', function() {
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
