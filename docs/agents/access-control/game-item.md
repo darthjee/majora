@@ -5,10 +5,13 @@ unlike `Treasure`, there is no shared cross-game registry: `GameItem` is the top
 hierarchy, holding its own `name`, `description`, and optional `photo` directly (parallel to how
 `GameTreasure` merely links a game to a separately-owned `Treasure`, `GameItem` needs no such
 through model). It also carries a `hidden` (`BooleanField`, default `False`) flag scoping its
-visibility within that game's catalog. There is no dedicated create/delete endpoint for
-`GameItem` (creation and photo upload are out of scope, left for follow-up issues), but issue
-#766 added a dm/admin-only `PATCH` endpoint that can update `name`/`description`/`hidden` — see
-"Item detail endpoints" below.
+visibility within that game's catalog. There is still no dedicated delete endpoint (out of
+scope, left for follow-up issues; deletion remains Django-admin-only for superusers), but issue
+#766 added a dm/admin-only `PATCH` endpoint that can update `name`/`description`/`hidden` (see
+"Item detail endpoints" below), and issue #784 added a dm/admin/staff `POST` endpoint that
+creates a bare `GameItem` with no owning `CharacterItem` (see "Item creation endpoint" below) —
+unlike [CharacterItem](character-item.md)'s `POST .../items.json` pair, which always creates a
+`GameItem`/`CharacterItem` pair together.
 
 ## Item index endpoints
 
@@ -62,3 +65,27 @@ lean index fields — no permission class changed. `PATCH` (issue #766) shares t
 responses: `401` `{"errors": {"detail": ["authentication required"]}}` if unauthenticated; `403`
 `{"errors": {"detail": ["not allowed"]}}` if authenticated but not permitted; `400`
 `{"errors": {"<field>": ["<message>", ...]}}` on validation failure (e.g. blank `name`).
+
+## Item creation endpoint
+
+| Endpoint | Method | Who can call | Request | Response |
+|----------|--------|-------------|---------|----------|
+| `/games/<slug>/items.json` | POST | **GameItemCreatePermission** — dm, admin, or staff (no owner concept — a bare `GameItem` has no owning character) | `{ name: string, description?: string, hidden?: boolean }` (`name` required, ≤200 chars; `description` defaults to `''`; `hidden` defaults to `false`) | `201` with `GameItemDetailFullSerializer` shape (`id`, `name`, `photo_path`, `description`, `hidden`) |
+
+Shares the same route as the `GET` index endpoint above (`game_items` now handles both `GET` and
+`POST`; `AllowAny` stays at the decorator level so `GET` remains public, with `POST` authorized
+inline via `GameItemCreatePermission.check`). Creates only a `GameItem` — no `CharacterItem` is
+created, unlike [CharacterItem](character-item.md)'s PC/NPC `POST .../items.json` pair, which
+always creates a `GameItem`/`CharacterItem` pair together. Error responses: `401`
+`{"errors": {"detail": ["authentication required"]}}` if unauthenticated; `403`
+`{"errors": {"detail": ["not allowed"]}}` if authenticated but not permitted; `404` for an unknown
+`game_slug`; `400` `{"errors": {"<field>": ["<message>", ...]}}` on validation failure.
+
+`GameItemCreatePermission` (`backend/games/permissions.py`) is `user.is_staff or
+game.can_be_edited_by(user)` — mirrors `CharacterItemCreatePermission`'s shape minus the PC-owner
+allowance, since a bare `GameItem` has no owning character. A `can_create_item` boolean (backed
+by the same permission, including its Staff bypass) is also exposed on the existing
+`GET /games/<slug>/permissions.json` response (`GamePermissionsSerializer`), for both the
+real-identity and role-simulated (`?role=`) paths, so the frontend can gate its "Create Item"
+button off an authoritative server-computed flag — see [Game](game.md)'s "Edit permission"
+section above.

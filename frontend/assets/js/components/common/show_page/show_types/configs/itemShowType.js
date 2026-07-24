@@ -11,9 +11,9 @@ import ItemSubmitButton from '../../../../resources/item/pages/elements/show/Ite
  * `showTypeConfig` entry for the `item` show/new/edit pages, shared by `game-item`, `pc-item`,
  * and `npc-item` alike (the layout and fields — `name`, `description`, `photo_path`, optional
  * `hidden` — are identical across all three response shapes, mirroring `ItemDetailHelper`'s and
- * `ItemEditHelper`'s existing sharing). There is no `game-item` creation flow today (items are
- * only ever created character-scoped, via `CharacterItemNew`), so the `New` variants below are
- * only ever reached from the PC/NPC item creation route.
+ * `ItemEditHelper`'s existing sharing). The `New` variants below are reached both from the PC/NPC
+ * item creation route (`CharacterItemNew`) and, since issue #784, from the game-level item
+ * creation route (`GameItemNew`), which creates a bare `GameItem` with no owning `CharacterItem`.
  *
  * The show/edit layout keeps the item's name next to its photo in the left column (unlike
  * `game`/`pc`/`npc`, whose name heading lives in the right column), matching `ItemDetailHelper`'s

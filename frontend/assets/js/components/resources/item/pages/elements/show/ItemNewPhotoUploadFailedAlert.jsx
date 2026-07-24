@@ -16,20 +16,20 @@ import Translator from '../../../../../../i18n/Translator.js';
 export default function ItemNewPhotoUploadFailedAlert({ handlers }) {
   return (
     <div className="alert alert-warning">
-      <p>{Translator.t('character_item_new_page.photo_upload_failed')}</p>
+      <p>{Translator.t('item_new_page.photo_upload_failed')}</p>
       <button
         type="button"
         className="btn btn-primary me-2"
         onClick={handlers.onRetryPhotoUpload}
       >
-        {Translator.t('character_item_new_page.retry_photo_upload')}
+        {Translator.t('item_new_page.retry_photo_upload')}
       </button>
       <button
         type="button"
         className="btn btn-secondary"
         onClick={handlers.onSkipPhotoUpload}
       >
-        {Translator.t('character_item_new_page.skip_photo_upload')}
+        {Translator.t('item_new_page.skip_photo_upload')}
       </button>
     </div>
   );

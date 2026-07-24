@@ -15,7 +15,7 @@ describe('ItemNameField', function() {
     const element = ItemNameField(buildProps());
 
     expect(element.type).toBe(FormField);
-    expect(element.props.id).toBe('character-item-new-name');
+    expect(element.props.id).toBe('item-new-name');
     expect(element.props.value).toBe('Cloak of Elvenkind');
   });
 

@@ -34,9 +34,9 @@ KINDS.forEach(({
     it('renders the item creation form', function() {
       const html = renderToStaticMarkup(React.createElement(Component));
 
-      expect(html).toContain('id="character-item-new-name"');
-      expect(html).toContain('id="character-item-new-description"');
-      expect(html).toContain('id="character-item-new-hidden"');
+      expect(html).toContain('id="item-new-name"');
+      expect(html).toContain('id="item-new-description"');
+      expect(html).toContain('id="item-new-hidden"');
     });
 
     it('renders the submit button', function() {
