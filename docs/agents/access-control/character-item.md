@@ -9,10 +9,13 @@ default `False`, never inherited from `GameItem.hidden` — see [GameItem](game-
 PC/NPC `POST .../items.json` pair (issue #714) creates a brand-new `GameItem`/`CharacterItem`
 pair together, a PC/NPC `POST .../items/<item_id>/photo_upload.json` pair (issue #750) initiates
 a photo upload overriding a held item's photo, and a PC/NPC `PATCH .../items/<item_id>.json` pair
-(issue #766) updates `name`/`description`/`hidden` on an existing `CharacterItem` row — there is
-still no delete endpoint, and no way to link an already-existing `GameItem` instead of always
-creating a new one on `POST` (both out of scope, left for follow-up issues; deletion remains
-Django-admin-only for superusers).
+(issue #766) updates `name`/`description`/`hidden` on an existing `CharacterItem` row. A separate
+`POST .../items/acquire.json`/`.../items/remove.json` pair (plus DM-only `/all.json` variants,
+issue #773) now covers linking an already-existing `GameItem` from the game's catalog (Acquire)
+and deleting a `CharacterItem` row outright (Remove) — see "Item available (Acquire catalog)
+endpoints" and "Item acquire/remove endpoints" below; the original `POST .../items.json` creation
+flow is unchanged and still always creates a brand-new `GameItem` from scratch. Deletion outside
+of the new Remove endpoints remains Django-admin-only for superusers.
 
 ## Item index endpoints
 
@@ -145,6 +148,57 @@ the frontend never needs its own fallback logic. `description` (also fallback-re
 exposed only on the detail/detail-all endpoints and the creation response above — intentionally
 omitted from all four index/index-all endpoints. `hidden` is exposed on both `/all.json`
 variants and the creation response only.
+
+## Item available (Acquire catalog) endpoints
+
+| Endpoint | Method | Who can call | Response |
+|----------|--------|-------------|----------|
+| `/games/<slug>/pcs/<id>/items/available.json` | GET | **AllowAny** | Paginated `GameItemListSerializer` list (`id`, `name`, `photo_path`) of the game's `GameItem` catalog, excluding hidden `GameItem`s and any `GameItem` the PC already owns (via a `CharacterItem` row) |
+| `/games/<slug>/pcs/<id>/items/available/all.json` | GET | **GameEdit** (dm/admin only — **no owner leniency**, unlike the item-index `/all.json` endpoints above) | Same catalog minus already-owned items, but includes hidden `GameItem`s too (via `GameItemAllListSerializer`, adding `hidden`). Always sets `X-Skip-Cache: true` |
+| `/games/<slug>/npcs/<id>/items/available.json` | GET | **AllowAny**, but see the [hidden-NPC gate](character-photo.md#photo-index-endpoints) above | Same as the PC variant, for an NPC |
+| `/games/<slug>/npcs/<id>/items/available/all.json` | GET | **GameEdit** | Same as the PC `/all.json` variant, for an NPC |
+
+Added by issue #773 to back the item exchange modal's Acquire tab: since `CharacterItem` has no
+`quantity` (`unique_together = ('character', 'game_item')`), the Acquire catalog must exclude
+already-owned `GameItem`s rather than showing a duplicate-acquire affordance the way
+[CharacterTreasure](character-treasure.md)'s Buy/Acquire tabs do. The `/all.json` variant here is
+deliberately **game-level**-gated (`GameEditPermission`, no owner) even though the path is
+character-scoped — a PC's owning player must not get hidden-catalog visibility just by owning the
+character; this is a different, narrower gate than `items/all.json`'s own `CharacterEditPermission`
+(which does include the PC's owning player). Unknown `game_slug`/`character_id`, or an id
+belonging to the opposite PC/NPC role, → 404.
+
+## Item acquire/remove endpoints
+
+| Endpoint | Method | Who can call | Effect |
+|----------|--------|-------------|--------|
+| `/games/<slug>/pcs/<id>/items/acquire.json` | POST | **CharacterItemCreatePermission** — dm, admin, staff, or the PC's owning player | Body `{ game_item_id: number, hidden?: boolean }`. Creates a `CharacterItem` linking the PC to the submitted `GameItem` (empty `name`/`description`/`photo`, so it falls back to the `GameItem`'s own info), honoring the submitted `hidden` value or defaulting to the `GameItem`'s own `hidden`. 404 if the `GameItem` is hidden (this endpoint never bypasses that gate) or doesn't exist; 400 `{"errors": {"game_item_id": ["already owned"]}}` if the character already has a `CharacterItem` for that `GameItem` |
+| `/games/<slug>/pcs/<id>/items/remove.json` | POST | **CharacterItemCreatePermission** | Body `{ game_item_id: number }`. Deletes the character's `CharacterItem` row for the submitted `GameItem`. 404 if not owned, or owned but hidden (this endpoint never bypasses that gate) |
+| `/games/<slug>/npcs/<id>/items/acquire.json` | POST | **CharacterItemCreatePermission** — dm, admin, or staff (NPCs have no owner) | Same as the PC acquire endpoint, for an NPC |
+| `/games/<slug>/npcs/<id>/items/remove.json` | POST | **CharacterItemCreatePermission** | Same as the PC remove endpoint, for an NPC |
+| `/games/<slug>/pcs/<id>/items/acquire/all.json` | POST | **GameEdit** (dm/admin only — no owner, no staff leniency beyond what `GameEdit` itself grants) | DM-only variant of the PC acquire endpoint: same request/response shape, but does not 404 on a hidden `GameItem` |
+| `/games/<slug>/npcs/<id>/items/acquire/all.json` | POST | **GameEdit** | DM-only variant of the NPC acquire endpoint: same request/response shape, but does not 404 on a hidden `GameItem` |
+| `/games/<slug>/pcs/<id>/items/remove/all.json` | POST | **CharacterEdit** (dm, admin, or the PC's owning player — **not** staff) | Restricted variant of the PC remove endpoint: same request/response shape, but does not 404 on a hidden owned `CharacterItem` |
+| `/games/<slug>/npcs/<id>/items/remove/all.json` | POST | **GameEdit** (dm/admin only — NPCs have no owner) | Restricted variant of the NPC remove endpoint: same request/response shape, but does not 404 on a hidden owned `CharacterItem` |
+
+Added by issue #773, reusing `CharacterItemCreatePermission` unchanged for the public acquire/
+remove pair (the same rule that already governs item creation) and `_check_character_all_permission`
+unchanged for `remove/all.json` (the same PC-owner-inclusive/NPC-owner-exclusive split already
+used by `items/all.json`/`documents/all.json`). Two **distinct** permission scopes are
+load-bearing here and must not be conflated: **catalog visibility** (`available/all`,
+`acquire/all`) is game-level, dm/admin only, no owner — mirrors
+[CharacterTreasure](character-treasure.md)'s `acquire/all.json` precedent exactly; **owned-item
+visibility** (`remove/all`) is character-level, using the same asymmetric PC/NPC split
+`items/all.json` already uses. Unlike `CharacterTreasure`, there is no `quantity` anywhere in
+this flow — acquire always creates exactly one `CharacterItem` row (rejecting a duplicate with
+400 rather than incrementing a quantity), and remove always deletes the row outright (no partial
+removal). Success: `201` with `CharacterItemDetailFullSerializer` shape (`id`, `game_item_id`,
+`name`, `photo_path`, `description`, `hidden`) for acquire; `204 No Content` for remove. Failure:
+`401` `{"errors": {"detail": ["authentication required"]}}` if unauthenticated; `403`
+`{"errors": {"detail": ["not allowed"]}}` if authenticated but not permitted; `404` for an unknown
+`game_slug`/`character_id`, an id belonging to the opposite PC/NPC role, an unknown `game_item_id`,
+or the hidden-gate cases noted per-endpoint above; `400` `{"errors": {"game_item_id": [...]}}` on
+the already-owned validation failure (acquire only — remove has no equivalent validation failure).
 
 ## Fallback resolution
 
