@@ -9,14 +9,18 @@ from accounts.authentication import CookieTokenAuthentication
 from ...models import Game
 from ...serializers import GameItemListSerializer
 from ..common import paginated_list_response
+from ._item_create import game_item_create
 
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @authentication_classes([CookieTokenAuthentication])
-# AllowAny: GET is intentionally public; hidden items are excluded below.
+# AllowAny: GET is intentionally public; POST authorization is enforced inline via
+# GameItemCreatePermission.check().
 @permission_classes([AllowAny])
 def game_items(request, game_slug):
-    """Return a paginated list of non-hidden items for a specific game."""
+    """Return a paginated list of non-hidden items for a game, or create a new one."""
     game = get_object_or_404(Game, game_slug=game_slug)
+    if request.method == 'POST':
+        return game_item_create(request, game)
     items = game.items.filter(hidden=False)
     return paginated_list_response(request, items, GameItemListSerializer)
