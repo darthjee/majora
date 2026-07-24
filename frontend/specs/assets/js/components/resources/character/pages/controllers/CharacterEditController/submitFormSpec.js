@@ -22,9 +22,7 @@ KINDS.forEach(({
       setFieldErrors = jasmine.createSpy('setFieldErrors');
       setStatus = jasmine.createSpy('setStatus');
       client = jasmine.createSpyObj('client', ['currentHash']);
-      characterClient = jasmine.createSpyObj(
-        'characterClient', ['fetchCharacter', 'updateCharacter', 'updateNpcAsPlayer'],
-      );
+      characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacter']);
       spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         ok: true,
         status: 200,

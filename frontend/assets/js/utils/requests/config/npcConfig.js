@@ -12,8 +12,8 @@
  *   `PATCH.single` mirrors `GET.single`'s `regular`/`private` shape: `private` → `.../full.json`
  *   (`can_edit`, the DM/admin full editor); `regular` → the plain `.../:id.json` path, which
  *   already accepts a narrower player-writable `PATCH` on the backend (`npc_player_update`,
- *   `NpcPlayerEditPermission` — any player of the game, in addition to `can_edit`), wired today
- *   as `CharacterClient#updateNpcAsPlayer`.
+ *   `NpcPlayerEditPermission` — any player of the game, in addition to `can_edit`), wired through
+ *   `RequestStore.mutate` (issue #847).
  *
  *   `PUT.single` (money, `.../money.json`) and `POST.single` (photo upload init,
  *   `.../photo_upload.json`) are both single, un-branched variants (`CharacterMoneyEdit`/
