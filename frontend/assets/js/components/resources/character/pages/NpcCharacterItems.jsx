@@ -6,5 +6,5 @@ import CharacterItems from './shared/CharacterItems.jsx';
  * @returns {React.ReactElement} NPC items page element.
  */
 export default function NpcCharacterItems() {
-  return <CharacterItems characterKind="npcs" listType="npc-items" />;
+  return <CharacterItems characterKind="npcs" listType="npc-items" isPc={false} />;
 }

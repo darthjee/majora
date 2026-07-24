@@ -95,6 +95,17 @@ describe('resourceConfig', function() {
         .toBe('/games/demo/items/9/full.json');
       expect(single.private.permission).toBe('can_edit');
     });
+
+    it('resolves availableCollection regular/private paths and permissions (issue #773)', function() {
+      const availableCollection = resourceConfig.get('GET', 'item', 'availableCollection');
+
+      expect(availableCollection.regular.path({ gameSlug: 'demo', kind: 'pcs', id: '3' }))
+        .toBe('/games/demo/pcs/3/items/available.json');
+      expect(availableCollection.regular.permission).toBeNull();
+      expect(availableCollection.private.path({ gameSlug: 'demo', kind: 'npcs', id: '3' }))
+        .toBe('/games/demo/npcs/3/items/available/all.json');
+      expect(availableCollection.private.permission).toBe('can_edit');
+    });
   });
 
   describe('treasure', function() {

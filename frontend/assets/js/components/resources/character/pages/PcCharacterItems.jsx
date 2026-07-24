@@ -6,5 +6,5 @@ import CharacterItems from './shared/CharacterItems.jsx';
  * @returns {React.ReactElement} PC items page element.
  */
 export default function PcCharacterItems() {
-  return <CharacterItems characterKind="pcs" listType="pc-items" />;
+  return <CharacterItems characterKind="pcs" listType="pc-items" isPc />;
 }

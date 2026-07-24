@@ -28,6 +28,14 @@
  *   `'pcs'|'npcs'`, game-level (`AccessStore.ensureGamePermissions`,
  *   `GameEditPermission` on the backend) for `'game'` — see
  *   `RequestPermissionResolvers.js`.
+ *
+ *   `availableCollection` params: `gameSlug`, `kind` (`'pcs'` or `'npcs'` only — there is no
+ *   `'game'` variant), and `id` (character id). Backs the item exchange modal's Acquire tab
+ *   (issue #773): the game's `GameItem` catalog minus the `GameItem`s the character already
+ *   owns. Unlike `collection`/`single` above, `private` (`/items/available/all.json`) is
+ *   **game-level**-gated (`GameEditPermission`, dm/admin only, no owner) even though the path is
+ *   character-scoped — see `RequestPermissionResolvers.js`'s `item.availableCollection` resolver
+ *   for why this deliberately does not mirror `collection`'s per-kind branching.
  */
 /**
  * Build the player-facing single-`CharacterItem` path.
@@ -114,6 +122,28 @@ const characterCollectionPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/
  */
 const characterCollectionFullPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/items/all.json`;
 
+/**
+ * Build the player-facing available-items (Acquire catalog) path.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string} params.kind - Character kind (`'pcs'` or `'npcs'`).
+ * @param {string|number} params.id - Character id.
+ * @returns {string} The endpoint path.
+ */
+const availablePath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/items/available.json`;
+
+/**
+ * Build the DM/admin-only available-items (Acquire catalog, including hidden) path.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string} params.kind - Character kind (`'pcs'` or `'npcs'`).
+ * @param {string|number} params.id - Character id.
+ * @returns {string} The endpoint path.
+ */
+const availableAllPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/items/available/all.json`;
+
 export default {
   GET: {
     collection: {
@@ -137,6 +167,10 @@ export default {
         path: (params) => (params.kind === 'game' ? gameSingleFullPath(params) : characterSingleFullPath(params)),
         permission: 'can_edit',
       },
+    },
+    availableCollection: {
+      regular: { path: availablePath, permission: null },
+      private: { path: availableAllPath, permission: 'can_edit' },
     },
   },
 };

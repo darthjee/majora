@@ -237,5 +237,51 @@ KINDS.forEach(({ label, kind, isPc, money }) => {
         expect(setCharacter).not.toHaveBeenCalled();
       });
     });
+
+    describe('pagePath param', function() {
+      // Defaulting to "treasures" (preserving the original hash-extraction behavior) is already
+      // exercised by every #buildEffect/#refreshCharacter test above, which all construct the
+      // controller without passing pagePath.
+
+      it('extracts params from a hash matching a custom pagePath (e.g. "items")', async function() {
+        const setCharacter = jasmine.createSpy('setCharacter');
+        const characterClient = buildCharacterClient({
+          fetchCharacter: jasmine.createSpy('fetchCharacter').and.returnValue(Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
+          })),
+        });
+        spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+        spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+        const client = jasmine.createSpyObj('client', ['currentHash']);
+        client.currentHash.and.returnValue(`#/games/demo/${kind}/2/items`);
+
+        const cleanup = new CharacterContextController(
+          kind, setCharacter, client, characterClient, buildGameClient(), 'items',
+        ).buildEffect()();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(characterClient.fetchCharacter).toHaveBeenCalledWith(kind, 'demo', '2', null);
+
+        cleanup();
+      });
+
+      it('does not match a hash for a different page path than the one configured', async function() {
+        const setCharacter = jasmine.createSpy('setCharacter');
+        const characterClient = buildCharacterClient();
+        const client = jasmine.createSpyObj('client', ['currentHash']);
+        client.currentHash.and.returnValue(`#/games/demo/${kind}/2/treasures`);
+
+        const cleanup = new CharacterContextController(
+          kind, setCharacter, client, characterClient, buildGameClient(), 'items',
+        ).buildEffect()();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(characterClient.fetchCharacter).not.toHaveBeenCalled();
+        expect(setCharacter).not.toHaveBeenCalled();
+
+        cleanup();
+      });
+    });
   });
 });

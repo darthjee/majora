@@ -17,6 +17,14 @@ const RESOLVERS = {
     single: ({ gameSlug, kind, id }) => (kind === 'game'
       ? AccessStore.ensureGamePermissions(gameSlug)
       : AccessStore.ensureCharacterPermissions(kind, gameSlug, id)),
+    // Unconditionally game-level, unlike `collection`/`single` above: `availableCollection`
+    // (issue #773) always backs a character-scoped path (`kind` is always `'pcs'|'npcs'`, never
+    // `'game'`), but its `private` variant (`items/available/all.json`) is authorized by the
+    // DM-only `GameEditPermission` on the backend, not `CharacterEditPermission` — a PC's owning
+    // player must not get hidden-catalog visibility just by owning the character. Do not "fix"
+    // this into branching on `kind` like `collection`/`single` do; that would incorrectly grant
+    // an owning player elevated catalog access.
+    availableCollection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
   },
   treasure: {
     collection: ({ gameSlug, kind }) => (
@@ -46,7 +54,10 @@ const RESOLVERS = {
  *   in practice (no owning player, so `Character.can_be_edited_by` reduces to the same
  *   dm/admin/superuser check as `Game.can_be_edited_by`), but each resource here is still resolved
  *   through whichever call actually matches its own backend permission class, not by relying on
- *   that coincidence.
+ *   that coincidence. `item.availableCollection` (issue #773) is the one exception to the
+ *   "character-scoped path resolves at the character level" pattern: it is always
+ *   game-level-gated regardless of `kind`, matching `items/available/all.json`'s own DM-only
+ *   `GameEditPermission` on the backend — see the resolver's own inline comment below.
  */
 export default class RequestPermissionResolvers {
   /**

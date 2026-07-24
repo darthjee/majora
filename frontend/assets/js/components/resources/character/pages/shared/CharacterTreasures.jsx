@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import CharacterTreasuresHelper from '../helpers/CharacterTreasuresHelper.jsx';
-import TreasureExchangeModal from '../elements/TreasureExchangeModal.jsx';
+import ResourceExchangeModal from '../elements/ResourceExchangeModal.jsx';
+import treasureExchangeTabs from '../elements/treasureExchangeTabs.js';
 import CharacterContextController from '../controllers/CharacterContextController.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import mergeCharacterTreasureQuantity from '../../../../../utils/money/mergeCharacterTreasureQuantity.js';
@@ -144,9 +145,11 @@ export default function CharacterTreasures({ characterKind, listType, isPc }) {
           onItemsChange: setOwnedTreasures,
         },
       )}
-      <TreasureExchangeModal
+      <ResourceExchangeModal
         show={showExchangeModal}
         character={buildExchangeCharacter(characterId, gameSlug, isPc, character)}
+        tabs={treasureExchangeTabs}
+        defaultTab="buy"
         gameType={gameType}
         ownedTreasures={ownedTreasures}
         onClose={() => setShowExchangeModal(false)}
