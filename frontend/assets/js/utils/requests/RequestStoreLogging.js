@@ -16,6 +16,7 @@ export default class RequestStoreLogging {
    *
    * @param {string} componentName - Name of the component/controller that triggered the request
    *   (e.g. `'CharacterController'`, `'GameController'`).
+   * @param {string} method - HTTP method (`'GET'`, `'POST'`, `'PATCH'`, or `'PUT'`).
    * @param {string} resource - Resource type (`'game'`, `'npc'`, `'pc'`, `'item'`, `'treasure'`,
    *   `'session'`, `'document'`).
    * @param {string} quantityType - `'collection'` or `'single'`.
@@ -24,9 +25,9 @@ export default class RequestStoreLogging {
    * @param {Promise<*>} requestPromise - The request's raw promise.
    * @returns {Promise<*>} `requestPromise`, unchanged.
    */
-  static wrap(componentName, resource, quantityType, params, query, requestPromise) {
+  static wrap(componentName, method, resource, quantityType, params, query, requestPromise) {
     const meta = {
-      componentName, resource, quantityType, params, query,
+      componentName, method, resource, quantityType, params, query,
     };
 
     MajoraLogger.debug({ ...meta, event: 'start' });
