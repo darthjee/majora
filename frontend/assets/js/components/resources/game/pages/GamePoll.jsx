@@ -27,7 +27,7 @@ export default function GamePoll() {
 
   const controller = useMemo(
     () => new GamePollController(
-      setPoll, setLoading, setError, null, setCanVote, setCanClose, setSelectedOptionIds, setVotesPayload
+      setPoll, setLoading, setError, setCanVote, setCanClose, setSelectedOptionIds, setVotesPayload
     ),
     [],
   );

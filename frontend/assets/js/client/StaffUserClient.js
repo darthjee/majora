@@ -1,24 +1,14 @@
 import BaseClient from './BaseClient.js';
 
 /**
- * HTTP client for staff-only user management requests (list, detail,
- * update, and recovery-link generation).
+ * HTTP client for staff-only user management requests.
+ *
+ * @description The list index, update, and recovery-link mutations moved to
+ *   `RequestStore.ensure()`/`RequestStore.mutate()` (issue #842) — this client now only holds
+ *   `fetchUser`, still used directly by `StaffUserController.js`'s user detail page (out of
+ *   scope for that issue).
  */
 export default class StaffUserClient extends BaseClient {
-  /**
-   * Fetches the paginated list of users.
-   *
-   * @param {string|null} token - Authentication token, if any.
-   * @param {URLSearchParams} [params] - Pagination query params.
-   * @returns {Promise<Response>} fetch response from the staff users index endpoint.
-   */
-  fetchUsers(token, params = new URLSearchParams()) {
-    const query = params.toString();
-    const path = query ? `/staff/users.json?${query}` : '/staff/users.json';
-
-    return this.getJson(path, token);
-  }
-
   /**
    * Fetches the details of a single user.
    *
@@ -28,32 +18,5 @@ export default class StaffUserClient extends BaseClient {
    */
   fetchUser(id, token) {
     return this.getJson(`/staff/users/${id}.json`, token);
-  }
-
-  /**
-   * Submits a partial update for a user's name and/or email.
-   *
-   * @param {number|string} id - User id.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {object} fields - Fields to update.
-   * @returns {Promise<Response>} fetch response from the staff user endpoint.
-   */
-  updateUser(id, token, fields) {
-    return this.patchJson(`/staff/users/${id}.json`, token, fields);
-  }
-
-  /**
-   * Requests a password-recovery link for a user, reusing a valid unexpired
-   * and unused token or creating a new one. Never sends an email.
-   *
-   * @param {number|string} id - User id.
-   * @param {string|null} token - Authentication token, if any.
-   * @returns {Promise<Response>} fetch response from the recovery-link endpoint.
-   */
-  fetchRecoveryLink(id, token) {
-    return this.request(`/staff/users/${id}/recovery-link.json`, {
-      method: 'POST',
-      headers: this.buildHeaders(token),
-    });
   }
 }

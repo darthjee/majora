@@ -1,9 +1,7 @@
-import GameTaskClient from '../../../../../client/GameTaskClient.js';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
-import parsePositiveInt from '../../../../../utils/parsePositiveInt.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 
 /**
@@ -31,21 +29,18 @@ export default class GameTasksController extends BasePageController {
    * @param {Function} setPagination - Pagination setter.
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
-   * @param {GameTaskClient|null} [taskClient] - Task client override.
    */
   constructor(
     setTasks,
     setPagination,
     setLoading,
     setError,
-    taskClient = null,
   ) {
     super();
     this.setTasks = setTasks;
     this.setPagination = setPagination;
     this.setLoading = setLoading;
     this.setError = setError;
-    this.taskClient = taskClient ?? new GameTaskClient();
   }
 
   /**
@@ -84,13 +79,19 @@ export default class GameTasksController extends BasePageController {
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
   async handleToggleCompleted(gameSlug, task, tasks, setTasks) {
-    const token = AuthStorage.getToken();
     const nextCompleted = !task.completed;
 
     setTasks(GameTasksController.#replaceTask(tasks, task.id, { ...task, completed: nextCompleted }));
 
     try {
-      const response = await this.taskClient.updateTask(gameSlug, task.id, token, { completed: nextCompleted });
+      const response = await RequestStore.mutate({
+        componentName: 'GameTasksController',
+        resource: 'task',
+        method: 'PATCH',
+        quantityType: 'single',
+        params: { gameSlug, id: task.id },
+        body: { completed: nextCompleted },
+      });
 
       if (!response.ok) {
         setTasks(tasks);
@@ -123,12 +124,17 @@ export default class GameTasksController extends BasePageController {
     setters.setFieldErrors({});
     setters.setError('');
 
-    const token = AuthStorage.getToken();
-
     try {
-      const response = await this.taskClient.createTask(gameSlug, token, {
-        short_description: formValues.shortDescription,
-        long_description: formValues.longDescription,
+      const response = await RequestStore.mutate({
+        componentName: 'GameTasksController',
+        resource: 'task',
+        method: 'POST',
+        quantityType: 'collection',
+        params: { gameSlug },
+        body: {
+          short_description: formValues.shortDescription,
+          long_description: formValues.longDescription,
+        },
       });
 
       await this.#handleCreateResponse(response, tasks, setters);
@@ -148,12 +154,17 @@ export default class GameTasksController extends BasePageController {
    * @returns {Promise<object|null>} The updated task on success, or null on failure.
    */
   async handleSaveEdit(gameSlug, task, formValues, tasks, setTasks) {
-    const token = AuthStorage.getToken();
-
     try {
-      const response = await this.taskClient.updateTask(gameSlug, task.id, token, {
-        short_description: formValues.shortDescription,
-        long_description: formValues.longDescription,
+      const response = await RequestStore.mutate({
+        componentName: 'GameTasksController',
+        resource: 'task',
+        method: 'PATCH',
+        quantityType: 'single',
+        params: { gameSlug, id: task.id },
+        body: {
+          short_description: formValues.shortDescription,
+          long_description: formValues.longDescription,
+        },
       });
 
       if (!response.ok) {
@@ -182,24 +193,18 @@ export default class GameTasksController extends BasePageController {
   }
 
   #fetchTasks(gameSlug, safeSet) {
-    const token = AuthStorage.getToken();
     const params = new HashRouteResolver().getPaginationParams();
 
-    this.taskClient.fetchTasks(gameSlug, token, params)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Request failed');
-        }
-
-        return response.json().then((data) => ({ data, headers: response.headers }));
-      })
-      .then(({ data, headers }) => {
+    RequestStore.ensure({
+      componentName: 'GameTasksController',
+      resource: 'task',
+      quantityType: 'collection',
+      params: { gameSlug },
+      query: Object.fromEntries(params),
+    })
+      .then(({ data, pagination }) => {
         safeSet(this.setTasks, Array.isArray(data) ? data : []);
-        safeSet(this.setPagination, {
-          page: parsePositiveInt(headers.get('page'), 1),
-          pages: parsePositiveInt(headers.get('pages'), 1),
-          perPage: parsePositiveInt(headers.get('per_page'), 10),
-        });
+        safeSet(this.setPagination, pagination);
       })
       .catch(() => safeSet(this.setError, 'Unable to load tasks.'))
       .finally(() => safeSet(this.setLoading, false));

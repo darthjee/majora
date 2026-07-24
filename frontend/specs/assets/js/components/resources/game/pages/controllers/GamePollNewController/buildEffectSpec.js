@@ -12,14 +12,13 @@ describe('GamePollNewController', function() {
   describe('#buildEffect', function() {
     it('does not redirect when the user is a DM, player, superuser, or staff', async function() {
       const setError = jasmine.createSpy('setError');
-      const pollClient = jasmine.createSpyObj('pollClient', ['createPoll']);
       const fakeWindow = { location: { hash: '#/games/demo/polls/new' } };
       globalThis.window = fakeWindow;
 
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ is_player: true }));
 
       try {
-        const controller = new GamePollNewController(setError, Noop.noop, pollClient);
+        const controller = new GamePollNewController(setError, Noop.noop);
         controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -32,7 +31,6 @@ describe('GamePollNewController', function() {
 
     it('redirects to the polls list when the user is not allowed', async function() {
       const setError = jasmine.createSpy('setError');
-      const pollClient = jasmine.createSpyObj('pollClient', ['createPoll']);
       const fakeWindow = { location: { hash: '#/games/demo/polls/new' } };
       globalThis.window = fakeWindow;
 
@@ -41,7 +39,7 @@ describe('GamePollNewController', function() {
       }));
 
       try {
-        const controller = new GamePollNewController(setError, Noop.noop, pollClient);
+        const controller = new GamePollNewController(setError, Noop.noop);
         controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -53,14 +51,13 @@ describe('GamePollNewController', function() {
 
     it('redirects to the polls list when the access request throws', async function() {
       const setError = jasmine.createSpy('setError');
-      const pollClient = jasmine.createSpyObj('pollClient', ['createPoll']);
       const fakeWindow = { location: { hash: '#/games/demo/polls/new' } };
       globalThis.window = fakeWindow;
 
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.reject(new Error('network error')));
 
       try {
-        const controller = new GamePollNewController(setError, Noop.noop, pollClient);
+        const controller = new GamePollNewController(setError, Noop.noop);
         controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 

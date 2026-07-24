@@ -18,11 +18,15 @@ describe('RequestClient', function() {
           method: 'GET',
           headers: { Accept: 'application/json' },
         }));
-        expect(result).toEqual({ data: { id: 1 }, pagination: { page: 1, pages: 1, perPage: 10 } });
+        expect(result).toEqual({
+          data: { id: 1 }, pagination: {
+            page: 1, pages: 1, perPage: 10, total: 0,
+          },
+        });
       });
 
     it('builds pagination metadata from the response headers when present', async function() {
-      const headers = new Map([['page', '2'], ['pages', '5'], ['per_page', '20']]);
+      const headers = new Map([['page', '2'], ['pages', '5'], ['per_page', '20'], ['total', '87']]);
       const fetchSpy = spyOn(globalThis, 'fetch');
       fetchSpy.and.returnValue(Promise.resolve(mockFetchJson({ id: 1 }, {
         headers: { get: (name) => headers.get(name) ?? null },
@@ -30,7 +34,9 @@ describe('RequestClient', function() {
 
       const result = await new RequestClient().fetchResource('/games/demo/npcs.json');
 
-      expect(result.pagination).toEqual({ page: 2, pages: 5, perPage: 20 });
+      expect(result.pagination).toEqual({
+        page: 2, pages: 5, perPage: 20, total: 87,
+      });
     });
 
     it('sends the auth token when present', async function() {
@@ -85,6 +91,26 @@ describe('RequestClient', function() {
       await new RequestClient().fetchResource('/games/demo/npcs.json', { page: 2, name: '', kind: undefined });
 
       expect(globalThis.fetch).toHaveBeenCalledWith('/games/demo/npcs.json?page=2', jasmine.anything());
+    });
+
+    it('does not send X-Skip-Cache when skipCache is not given', async function() {
+      stubFetchJson({ id: 1 });
+
+      await new RequestClient().fetchResource('/games/demo/polls/7.json');
+
+      expect(globalThis.fetch).toHaveBeenCalledWith('/games/demo/polls/7.json', jasmine.objectContaining({
+        headers: { Accept: 'application/json' },
+      }));
+    });
+
+    it('sends X-Skip-Cache: true when skipCache is true (issue #842)', async function() {
+      stubFetchJson({ id: 1 });
+
+      await new RequestClient().fetchResource('/games/demo/polls/7.json', {}, undefined, true);
+
+      expect(globalThis.fetch).toHaveBeenCalledWith('/games/demo/polls/7.json', jasmine.objectContaining({
+        headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
+      }));
     });
   });
 });

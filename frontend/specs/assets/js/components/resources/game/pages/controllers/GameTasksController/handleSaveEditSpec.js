@@ -1,18 +1,19 @@
 import GameTasksController
   from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GameTasksController.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 
 describe('GameTasksController', function() {
-  let taskClient;
   let setTasks;
   let tasks;
+  let mutateSpy;
 
   beforeEach(function() {
-    taskClient = jasmine.createSpyObj('taskClient', ['fetchTasks', 'createTask', 'updateTask']);
     setTasks = jasmine.createSpy('setTasks');
     tasks = [{
       id: 1, short_description: 'Old', long_description: 'Old details', completed: false, session: null,
     }];
+    mutateSpy = spyOn(RequestStore, 'mutate');
   });
 
   afterEach(function() {
@@ -24,28 +25,35 @@ describe('GameTasksController', function() {
       const updated = {
         id: 1, short_description: 'New', long_description: 'New details', completed: false, session: null,
       };
-      taskClient.updateTask.and.returnValue(Promise.resolve({
+      mutateSpy.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve(updated),
       }));
 
-      const controller = new GameTasksController(null, null, null, null, taskClient);
+      const controller = new GameTasksController(null, null, null, null);
       const result = await controller.handleSaveEdit(
         'demo', tasks[0], { shortDescription: 'New', longDescription: 'New details' }, tasks, setTasks,
       );
 
-      expect(taskClient.updateTask).toHaveBeenCalledWith('demo', 1, null, {
-        short_description: 'New',
-        long_description: 'New details',
+      expect(mutateSpy).toHaveBeenCalledWith({
+        componentName: 'GameTasksController',
+        resource: 'task',
+        method: 'PATCH',
+        quantityType: 'single',
+        params: { gameSlug: 'demo', id: 1 },
+        body: {
+          short_description: 'New',
+          long_description: 'New details',
+        },
       });
       expect(setTasks).toHaveBeenCalledWith([updated]);
       expect(result).toEqual(updated);
     });
 
     it('does not update local state and returns null when the response is not ok', async function() {
-      taskClient.updateTask.and.returnValue(Promise.resolve({ ok: false }));
+      mutateSpy.and.returnValue(Promise.resolve({ ok: false }));
 
-      const controller = new GameTasksController(null, null, null, null, taskClient);
+      const controller = new GameTasksController(null, null, null, null);
       const result = await controller.handleSaveEdit(
         'demo', tasks[0], { shortDescription: 'New', longDescription: 'New details' }, tasks, setTasks,
       );
@@ -55,9 +63,9 @@ describe('GameTasksController', function() {
     });
 
     it('returns null when the request throws', async function() {
-      taskClient.updateTask.and.returnValue(Promise.reject(new Error('network error')));
+      mutateSpy.and.returnValue(Promise.reject(new Error('network error')));
 
-      const controller = new GameTasksController(null, null, null, null, taskClient);
+      const controller = new GameTasksController(null, null, null, null);
       const result = await controller.handleSaveEdit(
         'demo', tasks[0], { shortDescription: 'New', longDescription: 'New details' }, tasks, setTasks,
       );

@@ -1,6 +1,7 @@
 import PollCloseModalController
   from '../../../../../../../../../assets/js/components/resources/game/pages/elements/controllers/PollCloseModalController.js';
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 
 describe('PollCloseModalController', function() {
   describe('.tallyVotes', function() {
@@ -56,80 +57,109 @@ describe('PollCloseModalController', function() {
   });
 
   describe('#fetchTallies', function() {
-    let pollClient;
     let controller;
+    let ensureSpy;
 
     beforeEach(function() {
-      pollClient = jasmine.createSpyObj('pollClient', ['fetchPollVotes']);
-      controller = new PollCloseModalController(pollClient);
+      controller = new PollCloseModalController();
+      ensureSpy = spyOn(RequestStore, 'ensure');
     });
 
     it('resolves with the tallied votes on success', async function() {
-      pollClient.fetchPollVotes.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve([{ option: 10 }, { option: 10 }, { option: 11 }]),
+      ensureSpy.and.returnValue(Promise.resolve({
+        data: [{ option: 10 }, { option: 10 }, { option: 11 }],
       }));
 
-      const tallies = await controller.fetchTallies('demo', 7, 'tok');
+      const tallies = await controller.fetchTallies('demo', 7);
 
-      expect(pollClient.fetchPollVotes).toHaveBeenCalledWith('demo', 7, 'tok');
+      expect(ensureSpy).toHaveBeenCalledWith({
+        componentName: 'PollCloseModalController',
+        resource: 'poll',
+        quantityType: 'votes',
+        params: { gameSlug: 'demo', id: 7 },
+      });
       expect(tallies).toEqual({ 10: 2, 11: 1 });
     });
 
-    it('rejects when the response is not ok', async function() {
-      pollClient.fetchPollVotes.and.returnValue(Promise.resolve({ ok: false }));
+    it('rejects when the request rejects', async function() {
+      ensureSpy.and.returnValue(Promise.reject(new Error('votes failed')));
 
-      await expectAsync(controller.fetchTallies('demo', 7, 'tok')).toBeRejected();
+      await expectAsync(controller.fetchTallies('demo', 7)).toBeRejected();
     });
   });
 
   describe('#closePoll', function() {
-    let pollClient;
     let controller;
+    let mutateSpy;
     let setStatus;
     let onClosed;
 
     beforeEach(function() {
-      pollClient = jasmine.createSpyObj('pollClient', ['closePoll']);
-      controller = new PollCloseModalController(pollClient);
+      controller = new PollCloseModalController();
+      mutateSpy = spyOn(RequestStore, 'mutate');
       setStatus = jasmine.createSpy('setStatus');
       onClosed = jasmine.createSpy('onClosed');
     });
 
     it('sets the submitting status before sending the request', function() {
-      pollClient.closePoll.and.returnValue(new Promise(Noop.noop));
+      mutateSpy.and.returnValue(new Promise(Noop.noop));
 
-      controller.closePoll('demo', 7, 'tok', null, { setStatus, onClosed });
+      controller.closePoll('demo', 7, null, { setStatus, onClosed });
 
       expect(setStatus).toHaveBeenCalledWith('submitting');
     });
 
     it('invokes onClosed with the response payload on success', async function() {
-      pollClient.closePoll.and.returnValue(Promise.resolve({
+      mutateSpy.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ id: 7, status: 'closed' }),
       }));
 
-      await controller.closePoll('demo', 7, 'tok', 11, { setStatus, onClosed });
+      await controller.closePoll('demo', 7, 11, { setStatus, onClosed });
 
-      expect(pollClient.closePoll).toHaveBeenCalledWith('demo', 7, 'tok', 11);
+      expect(mutateSpy).toHaveBeenCalledWith({
+        componentName: 'PollCloseModalController',
+        resource: 'poll',
+        method: 'PATCH',
+        quantityType: 'close',
+        params: { gameSlug: 'demo', id: 7 },
+        body: { option_id: 11 },
+      });
       expect(setStatus).toHaveBeenCalledWith('idle');
       expect(onClosed).toHaveBeenCalledWith({ id: 7, status: 'closed' });
     });
 
-    it('sets the error status when the response is not ok', async function() {
-      pollClient.closePoll.and.returnValue(Promise.resolve({ ok: false }));
+    it('sends an empty body when no option id override is given', async function() {
+      mutateSpy.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ id: 7, status: 'closed' }),
+      }));
 
-      await controller.closePoll('demo', 7, 'tok', null, { setStatus, onClosed });
+      await controller.closePoll('demo', 7, null, { setStatus, onClosed });
+
+      expect(mutateSpy).toHaveBeenCalledWith({
+        componentName: 'PollCloseModalController',
+        resource: 'poll',
+        method: 'PATCH',
+        quantityType: 'close',
+        params: { gameSlug: 'demo', id: 7 },
+        body: {},
+      });
+    });
+
+    it('sets the error status when the response is not ok', async function() {
+      mutateSpy.and.returnValue(Promise.resolve({ ok: false }));
+
+      await controller.closePoll('demo', 7, null, { setStatus, onClosed });
 
       expect(setStatus).toHaveBeenCalledWith('error');
       expect(onClosed).not.toHaveBeenCalled();
     });
 
     it('sets the error status when the request throws', async function() {
-      pollClient.closePoll.and.returnValue(Promise.reject(new Error('network error')));
+      mutateSpy.and.returnValue(Promise.reject(new Error('network error')));
 
-      await controller.closePoll('demo', 7, 'tok', null, { setStatus, onClosed });
+      await controller.closePoll('demo', 7, null, { setStatus, onClosed });
 
       expect(setStatus).toHaveBeenCalledWith('error');
     });

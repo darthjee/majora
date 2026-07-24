@@ -1,6 +1,5 @@
-import PollClient from '../../../../../client/PollClient.js';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
@@ -63,13 +62,11 @@ export default class GamePollNewController extends BasePageController {
    *
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
-   * @param {PollClient|null} [pollClient] - Poll client override.
    */
-  constructor(setError, setFieldErrors = Noop.noop, pollClient = null) {
+  constructor(setError, setFieldErrors = Noop.noop) {
     super();
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;
-    this.pollClient = pollClient ?? new PollClient();
   }
 
   /**
@@ -94,10 +91,10 @@ export default class GamePollNewController extends BasePageController {
   /**
    * Submit the new poll form.
    *
-   * @description Prevents the default form submission, resets field errors,
-   *   filters out blank options, sends a POST request, then redirects to
-   *   the new poll's detail page on success, sets field errors on 400, or
-   *   sets error status on other failures.
+   * @description Prevents the default form submission, resets field errors, filters out blank
+   *   options, sends a POST request through {@link RequestStore.mutate} (issue #842, so the poll
+   *   collection's cached `GET` data is purged on success), then redirects to the new poll's
+   *   detail page on success, sets field errors on 400, or sets error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {{title: string, description: string, type: string, option_type: string,
@@ -113,17 +110,22 @@ export default class GamePollNewController extends BasePageController {
     setters.setStatus('submitting');
     setters.setFieldErrors({});
 
-    const token = AuthStorage.getToken();
-
     try {
-      const response = await this.pollClient.createPoll(gameSlug, token, {
-        title: formValues.title,
-        description: formValues.description,
-        type: formValues.type,
-        option_type: formValues.option_type,
-        options: formValues.options
-          .filter((option) => option.trim() !== '')
-          .map((option) => ({ option })),
+      const response = await RequestStore.mutate({
+        componentName: 'GamePollNewController',
+        resource: 'poll',
+        method: 'POST',
+        quantityType: 'collection',
+        params: { gameSlug },
+        body: {
+          title: formValues.title,
+          description: formValues.description,
+          type: formValues.type,
+          option_type: formValues.option_type,
+          options: formValues.options
+            .filter((option) => option.trim() !== '')
+            .map((option) => ({ option })),
+        },
       });
 
       await this.#handleResponse(response, gameSlug, setters);

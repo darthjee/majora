@@ -1,6 +1,4 @@
-import PollClient from '../../../../../../client/PollClient.js';
-import AuthStorage from '../../../../../../utils/auth/AuthStorage.js';
-import parsePositiveInt from '../../../../../../utils/parsePositiveInt.js';
+import RequestStore from '../../../../../../utils/requests/RequestStore.js';
 
 /**
  * Manages the open-polls count fetch for the OpenPollsWidget element.
@@ -11,17 +9,17 @@ export default class OpenPollsWidgetController {
    *
    * @param {Function} setCount - state setter for the open polls count.
    * @param {Function} setLoading - state setter for the loading flag.
-   * @param {PollClient|null} [pollClient] - Poll client override.
    */
-  constructor(setCount, setLoading, pollClient = null) {
+  constructor(setCount, setLoading) {
     this.setCount = setCount;
     this.setLoading = setLoading;
-    this.pollClient = pollClient ?? new PollClient();
   }
 
   /**
    * Build the widget mount effect, fetching the open polls count for the
-   * game and reading it off the `total` response header (not the body).
+   * game through {@link RequestStore.ensure} (issue #842), reading it off
+   * the resolved pagination's `total` field (the same value the previous
+   * `total` response header carried directly).
    *
    * @param {string} gameSlug - Game slug.
    * @returns {Function} Effect callback.
@@ -29,11 +27,15 @@ export default class OpenPollsWidgetController {
   buildEffect(gameSlug) {
     return () => {
       let mounted = true;
-      const token = AuthStorage.getToken();
-      const params = new URLSearchParams({ per_page: '1', status: 'open' });
 
-      this.pollClient.fetchPolls(gameSlug, token, params)
-        .then((response) => this.#handleResponse(response, mounted))
+      RequestStore.ensure({
+        componentName: 'OpenPollsWidgetController',
+        resource: 'poll',
+        quantityType: 'collection',
+        params: { gameSlug },
+        query: { per_page: '1', status: 'open' },
+      })
+        .then(({ pagination }) => this.#handleResponse(pagination, mounted))
         .catch(() => {
           if (mounted) {
             this.setCount(0);
@@ -51,16 +53,11 @@ export default class OpenPollsWidgetController {
     };
   }
 
-  #handleResponse(response, mounted) {
+  #handleResponse(pagination, mounted) {
     if (!mounted) {
       return;
     }
 
-    if (!response.ok) {
-      this.setCount(0);
-      return;
-    }
-
-    this.setCount(parsePositiveInt(response.headers.get('total'), 0));
+    this.setCount(pagination.total);
   }
 }

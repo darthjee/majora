@@ -65,13 +65,20 @@ const RESOLVERS = {
  *   "character-scoped path resolves at the character level" pattern: it is always
  *   game-level-gated regardless of `kind`, matching `items/available/all.json`'s own DM-only
  *   `GameEditPermission` on the backend — see the resolver's own inline comment below.
+ *
+ *   `poll`, `task`, and `staffUser` (issue #842) intentionally have no entry here at all: every
+ *   variant in their `resourceConfig` files has `permission: null` and an identical
+ *   `regular`/`private` object (no restricted/full split to resolve), so the default
+ *   `NO_PERMISSIONS()` fallback below is already correct for them — the page controllers'
+ *   own `AccessStore.ensureGameAccess`/`ensureGamePermissions`/`ensureStaffOrSuperUser` gates
+ *   handle the real access control before ever calling through.
  */
 export default class RequestPermissionResolvers {
   /**
    * Resolve the current permissions object for a resource/quantity-type/params combination.
    *
    * @param {string} resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'treasure'`,
-   *   `'session'`, `'document'`).
+   *   `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`).
    * @param {string} quantityType - `'collection'` or `'single'`.
    * @param {object} params - Concrete params (`gameSlug`, `kind`, `id`, etc.).
    * @returns {Promise<object>} Resolves to the permissions object (e.g. `{ can_edit: boolean }`),

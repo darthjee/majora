@@ -26,4 +26,9 @@ export default new Set([
   // docs/agents/access-control/player.md), so a cached response must never
   // be served to another client.
   '/players.json',
+  // Poll votes are identity-gated data (a poll's votes/permissions reflect
+  // the requester's own vote(s)), so a cached response must never be served
+  // to another client. Covers both the `GET` (fetch votes) and `PUT` (cast
+  // votes) verbs, since both endpoints end in this same literal suffix.
+  '/votes.json',
 ]);

@@ -1,9 +1,7 @@
-import PollClient from '../../../../../client/PollClient.js';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
-import parsePositiveInt from '../../../../../utils/parsePositiveInt.js';
 import buildFilteredHref from '../../../../../utils/routing/buildFilteredHref.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 
@@ -46,21 +44,18 @@ export default class GamePollsController extends BasePageController {
    * @param {Function} setPagination - Pagination setter.
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
-   * @param {PollClient|null} [pollClient] - Poll client override.
    */
   constructor(
     setPolls,
     setPagination,
     setLoading,
     setError,
-    pollClient = null,
   ) {
     super();
     this.setPolls = setPolls;
     this.setPagination = setPagination;
     this.setLoading = setLoading;
     this.setError = setError;
-    this.pollClient = pollClient ?? new PollClient();
   }
 
   /**
@@ -102,28 +97,21 @@ export default class GamePollsController extends BasePageController {
   }
 
   #fetchPolls(gameSlug, safeSet) {
-    const token = AuthStorage.getToken();
     const hashResolver = new HashRouteResolver();
-    const params = new URLSearchParams([
-      ...hashResolver.getPaginationParams(),
-      ...hashResolver.getFilterParams(),
-    ]);
 
-    this.pollClient.fetchPolls(gameSlug, token, params)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Request failed');
-        }
-
-        return response.json().then((data) => ({ data, headers: response.headers }));
-      })
-      .then(({ data, headers }) => {
+    RequestStore.ensure({
+      componentName: 'GamePollsController',
+      resource: 'poll',
+      quantityType: 'collection',
+      params: { gameSlug },
+      query: {
+        ...Object.fromEntries(hashResolver.getPaginationParams()),
+        ...Object.fromEntries(hashResolver.getFilterParams()),
+      },
+    })
+      .then(({ data, pagination }) => {
         safeSet(this.setPolls, Array.isArray(data) ? data : []);
-        safeSet(this.setPagination, {
-          page: parsePositiveInt(headers.get('page'), 1),
-          pages: parsePositiveInt(headers.get('pages'), 1),
-          perPage: parsePositiveInt(headers.get('per_page'), 10),
-        });
+        safeSet(this.setPagination, pagination);
       })
       .catch(() => safeSet(this.setError, 'Unable to load polls.'))
       .finally(() => safeSet(this.setLoading, false));

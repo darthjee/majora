@@ -2,6 +2,7 @@ import GamePollController
   from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GamePollController.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 
 describe('GamePollController', function() {
   let setPoll;
@@ -11,12 +12,12 @@ describe('GamePollController', function() {
   let setCanClose;
   let setSelectedOptionIds;
   let setVotesPayload;
-  let pollClient;
   let authClient;
+  let ensureSpy;
   let fakeWindow;
 
   const buildController = () => new GamePollController(
-    setPoll, setLoading, setError, pollClient, setCanVote, setCanClose, setSelectedOptionIds,
+    setPoll, setLoading, setError, setCanVote, setCanClose, setSelectedOptionIds,
     setVotesPayload, authClient
   );
 
@@ -28,12 +29,9 @@ describe('GamePollController', function() {
     setCanClose = jasmine.createSpy('setCanClose');
     setSelectedOptionIds = jasmine.createSpy('setSelectedOptionIds');
     setVotesPayload = jasmine.createSpy('setVotesPayload');
-    pollClient = jasmine.createSpyObj('pollClient', ['fetchPoll', 'fetchPollVotes']);
-    pollClient.fetchPollVotes.and.returnValue(Promise.resolve({
-      ok: true, json: () => Promise.resolve({ votes_count: [], users: [], votes: [] }),
-    }));
     authClient = jasmine.createSpyObj('authClient', ['status']);
     authClient.status.and.returnValue(Promise.resolve({ ok: false }));
+    ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({ data: { id: 7 } }));
     fakeWindow = { location: { hash: '#/games/demo/polls/7' } };
     globalThis.window = fakeWindow;
   });
@@ -46,22 +44,24 @@ describe('GamePollController', function() {
   describe('#buildEffect', function() {
     it('fetches the full, unfiltered votes payload for a voting viewer', async function() {
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ is_player: true }));
-      pollClient.fetchPoll.and.returnValue(Promise.resolve({
-        ok: true, json: () => Promise.resolve({ id: 7 }),
-      }));
       const payload = {
         votes_count: [{ option: 10, count: 1 }, { option: 11, count: 0 }],
         users: [{ id: 42, name: 'alice', avatar_url: null }],
         votes: [{ id: 1, option: 10, user_id: 42 }],
       };
-      pollClient.fetchPollVotes.and.returnValue(Promise.resolve({
-        ok: true, json: () => Promise.resolve(payload),
-      }));
+      ensureSpy.and.callFake(({ quantityType }) => (
+        quantityType === 'single' ? Promise.resolve({ data: { id: 7 } }) : Promise.resolve({ data: payload })
+      ));
 
       const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(pollClient.fetchPollVotes).toHaveBeenCalledWith('demo', '7', null);
+      expect(ensureSpy).toHaveBeenCalledWith({
+        componentName: 'GamePollController',
+        resource: 'poll',
+        quantityType: 'votes',
+        params: { gameSlug: 'demo', id: '7' },
+      });
       expect(setVotesPayload).toHaveBeenCalledWith(payload);
 
       cleanup();
@@ -71,18 +71,20 @@ describe('GamePollController', function() {
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({
         is_dm: false, is_player: false, is_superuser: true, is_staff: false,
       }));
-      pollClient.fetchPoll.and.returnValue(Promise.resolve({
-        ok: true, json: () => Promise.resolve({ id: 7 }),
-      }));
       const payload = { votes_count: [{ option: 10, count: 0 }], users: [], votes: [] };
-      pollClient.fetchPollVotes.and.returnValue(Promise.resolve({
-        ok: true, json: () => Promise.resolve(payload),
-      }));
+      ensureSpy.and.callFake(({ quantityType }) => (
+        quantityType === 'single' ? Promise.resolve({ data: { id: 7 } }) : Promise.resolve({ data: payload })
+      ));
 
       const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(pollClient.fetchPollVotes).toHaveBeenCalledWith('demo', '7', null);
+      expect(ensureSpy).toHaveBeenCalledWith({
+        componentName: 'GamePollController',
+        resource: 'poll',
+        quantityType: 'votes',
+        params: { gameSlug: 'demo', id: '7' },
+      });
       expect(setVotesPayload).toHaveBeenCalledWith(payload);
 
       cleanup();
@@ -90,10 +92,9 @@ describe('GamePollController', function() {
 
     it('leaves the votes payload unset when the unfiltered votes fetch fails', async function() {
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ is_player: true }));
-      pollClient.fetchPoll.and.returnValue(Promise.resolve({
-        ok: true, json: () => Promise.resolve({ id: 7 }),
-      }));
-      pollClient.fetchPollVotes.and.returnValue(Promise.reject(new Error('network error')));
+      ensureSpy.and.callFake(({ quantityType }) => (
+        quantityType === 'single' ? Promise.resolve({ data: { id: 7 } }) : Promise.reject(new Error('network error'))
+      ));
 
       const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
