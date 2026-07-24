@@ -1,10 +1,11 @@
 import BaseClient from './BaseClient.js';
 
 /**
- * HTTP client for game requests (fetch, access check, and update).
+ * HTTP client for game requests (fetch and access check).
  *
  * @description Game-level item/document creation moved to `RequestStore.mutate()` (issue #841) —
- *   this client no longer holds `createItem`/`createDocument`.
+ *   this client no longer holds `createItem`/`createDocument`. Game creation/update also moved to
+ *   `RequestStore.mutate()` (issue #844) — this client no longer holds `createGame`/`updateGame`.
  */
 export default class GameClient extends BaseClient {
   /**
@@ -42,29 +43,6 @@ export default class GameClient extends BaseClient {
    */
   fetchGamePermissions(gameSlug, token, signal, roles = []) {
     return this.getJson(`/games/${gameSlug}/permissions.json${this.buildRoleQuery(roles)}`, token, {}, signal);
-  }
-
-  /**
-   * Creates a new game.
-   *
-   * @param {string|null} token - Authentication token, if any.
-   * @param {object} fields - Fields for the new game.
-   * @returns {Promise<Response>} fetch response from the games endpoint.
-   */
-  createGame(token, fields) {
-    return this.postJson('/games.json', token, fields);
-  }
-
-  /**
-   * Submits a partial update for a game.
-   *
-   * @param {string} gameSlug - Game slug.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {object} fields - Fields to update.
-   * @returns {Promise<Response>} fetch response from the game endpoint.
-   */
-  updateGame(gameSlug, token, fields) {
-    return this.patchJson(`/games/${gameSlug}.json`, token, fields);
   }
 
 }
