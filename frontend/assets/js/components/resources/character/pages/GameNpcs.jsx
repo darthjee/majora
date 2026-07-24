@@ -9,6 +9,7 @@ import SlainConfirmModal from './elements/SlainConfirmModal.jsx';
 import SlainConfirmController from './elements/controllers/SlainConfirmController.js';
 import PlayerSlainConfirmController from './elements/controllers/PlayerSlainConfirmController.js';
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
+import resourceConfig from '../../../../utils/requests/resourceConfig.js';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
 import buildFilterQueryHash from '../../../../utils/routing/buildFilteredHref.js';
 
@@ -129,7 +130,7 @@ export default function GameNpcs() {
       )}
       <PhotoUploadModal
         show={uploadTarget !== null}
-        uploadPath={`/games/${gameSlug}/npcs/${uploadTarget?.id}/photo_upload.json`}
+        uploadPath={resourceConfig.get('POST', 'npc', 'single').regular.path({ gameSlug, id: uploadTarget?.id })}
         onClose={() => setUploadTarget(null)}
         onSuccess={handleUploadSuccess}
       />

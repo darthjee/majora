@@ -4,6 +4,7 @@ import GameNpcs from '../../../../../../../assets/js/components/resources/charac
 import GameCharactersHelper from '../../../../../../../assets/js/components/resources/character/pages/helpers/GameCharactersHelper.jsx';
 import GameNpcsAccessController from '../../../../../../../assets/js/components/resources/character/pages/controllers/GameNpcsAccessController.js';
 import FacadeRefresh from '../../../../../../../assets/js/utils/access/useFacadeRefresh.js';
+import resourceConfig from '../../../../../../../assets/js/utils/requests/resourceConfig.js';
 import { stubBuildEffect } from '../../../../../../support/controllerStubs.js';
 
 describe('GameNpcs', function() {
@@ -46,5 +47,14 @@ describe('GameNpcs', function() {
     const html = renderToStaticMarkup(React.createElement(GameNpcs));
 
     expect(html).not.toContain('modal show');
+  });
+
+  it('resolves the upload modal path through resourceConfig instead of a hand-built string', function() {
+    stubBuildEffect(GameNpcsAccessController);
+    spyOn(resourceConfig, 'get').and.callThrough();
+
+    renderToStaticMarkup(React.createElement(GameNpcs));
+
+    expect(resourceConfig.get).toHaveBeenCalledWith('POST', 'npc', 'single');
   });
 });
