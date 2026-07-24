@@ -1,7 +1,7 @@
 import CharacterClient from '../../../../../client/CharacterClient.js';
 import GenericClient from '../../../../../client/GenericClient.js';
 import GameClient from '../../../../../client/GameClient.js';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
 import CharacterEditFieldsBuilder from './CharacterEditFieldsBuilder.js';
@@ -90,10 +90,10 @@ export default class BaseCharacterEditController extends BasePageController {
   }
 
   /**
-   * Submit a partial update for the character, either through the
-   * (dm/admin-only) full endpoint (`isFullEditor` true, the default) or,
-   * for a player-only NPC editor, through the narrower player-writable NPC
-   * endpoint (`isFullEditor` false).
+   * Submit a partial update for the character, through {@link RequestStore.mutate} (issue #830)
+   * — either the (dm/admin-only) full endpoint (`isFullEditor` true, the default) or, for a
+   * player-only NPC editor, the narrower player-writable NPC endpoint (`isFullEditor` false) —
+   * so the character's cached `GET` data is purged on success instead of going stale.
    *
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
@@ -102,16 +102,23 @@ export default class BaseCharacterEditController extends BasePageController {
    *   `allegiance`/`public_allegiance`/`public_slain`/`hidden`) for a full editor, or the reduced
    *   set (`public_description`, `allegiance`, `links`, `slain`) for a player-only editor.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
-   * @param {boolean} [isFullEditor] - Whether to PATCH the full (dm/admin) endpoint via
-   *   {@link CharacterClient#updateCharacter} (`true`, the default) or the narrower
-   *   player-writable NPC endpoint via {@link CharacterClient#updateNpcAsPlayer} (`false`).
+   * @param {boolean} [isFullEditor] - Whether to PATCH the full (dm/admin) `private` variant
+   *   (`true`, the default) or the narrower player-writable `regular` variant (`false`) — forced
+   *   explicitly via `RequestStore.mutate`'s `variantName`, since the caller (`submitForm`)
+   *   already decided which fields shape to send and a live-permission re-check could otherwise
+   *   pick a different variant than the payload was built for.
    * @returns {Promise<void>} resolves when the request handling finishes.
    */
   async handleSubmit(gameSlug, characterId, fields, setters, isFullEditor = true) {
-    const token = AuthStorage.getToken();
-    const request = isFullEditor
-      ? this.characterClient.updateCharacter(this.routeSegment, gameSlug, characterId, token, fields)
-      : this.characterClient.updateNpcAsPlayer(gameSlug, characterId, token, fields);
+    const request = RequestStore.mutate({
+      componentName: 'BaseCharacterEditController',
+      resource: this.#resourceName(),
+      method: 'PATCH',
+      quantityType: 'single',
+      params: { gameSlug, id: characterId },
+      body: fields,
+      variantName: isFullEditor ? 'private' : 'regular',
+    });
 
     try {
       const response = await request;
@@ -221,5 +228,15 @@ export default class BaseCharacterEditController extends BasePageController {
     }
 
     window.location.hash = `/games/${gameSlug}/${this.routeSegment}/${characterId}`;
+  }
+
+  /**
+   * Resource name (`'pc'`/`'npc'`) `RequestStore`/`resourceConfig` key this controller's
+   * `routeSegment` (`'pcs'`/`'npcs'`) maps to.
+   *
+   * @returns {string} `'pc'` or `'npc'`.
+   */
+  #resourceName() {
+    return this.routeSegment === 'npcs' ? 'npc' : 'pc';
   }
 }

@@ -1,7 +1,9 @@
-import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import { KINDS } from './support.js';
 
 KINDS.forEach(({ label, Controller, kind, name }) => {
+  const resource = kind === 'npcs' ? 'npc' : 'pc';
+
   describe(`${label}#handleSubmit`, function() {
     let setCharacter;
     let setLoading;
@@ -12,10 +14,6 @@ KINDS.forEach(({ label, Controller, kind, name }) => {
     let client;
     let characterClient;
 
-    afterEach(function() {
-      AuthStorage.clearToken();
-    });
-
     beforeEach(function() {
       setCharacter = jasmine.createSpy('setCharacter');
       setLoading = jasmine.createSpy('setLoading');
@@ -25,11 +23,10 @@ KINDS.forEach(({ label, Controller, kind, name }) => {
       setters = { setStatus, setFieldErrors };
       client = jasmine.createSpyObj('client', ['currentHash']);
       characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacter', 'updateCharacter']);
-      spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
     });
 
     it('navigates to the show page on success', async function() {
-      characterClient.updateCharacter.and.returnValue(Promise.resolve({
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         ok: true,
         status: 200,
         json: () => Promise.resolve({ id: 2, name, can_edit: true }),
@@ -49,9 +46,15 @@ KINDS.forEach(({ label, Controller, kind, name }) => {
       try {
         await controller.handleSubmit('demo', '2', { name }, setters);
 
-        expect(characterClient.updateCharacter).toHaveBeenCalledWith(
-          kind, 'demo', '2', 'tok-abc', { name },
-        );
+        expect(RequestStore.mutate).toHaveBeenCalledWith({
+          componentName: 'BaseCharacterEditController',
+          resource,
+          method: 'PATCH',
+          quantityType: 'single',
+          params: { gameSlug: 'demo', id: '2' },
+          body: { name },
+          variantName: 'private',
+        });
         expect(fakeWindow.location.hash).toBe(`/games/demo/${kind}/2`);
         expect(setFieldErrors).not.toHaveBeenCalled();
         expect(setError).not.toHaveBeenCalled();
@@ -61,7 +64,7 @@ KINDS.forEach(({ label, Controller, kind, name }) => {
     });
 
     it('sets per-field errors on a 400 response without navigating', async function() {
-      characterClient.updateCharacter.and.returnValue(Promise.resolve({
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         ok: false,
         status: 400,
         json: () => Promise.resolve({ errors: { level: ['must be a positive integer'] } }),
@@ -90,7 +93,7 @@ KINDS.forEach(({ label, Controller, kind, name }) => {
     });
 
     it('sets status to error on a 401 response', async function() {
-      characterClient.updateCharacter.and.returnValue(Promise.resolve({
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         ok: false,
         status: 401,
         json: () => Promise.resolve({ errors: { detail: ['authentication required'] } }),
@@ -113,7 +116,7 @@ KINDS.forEach(({ label, Controller, kind, name }) => {
     });
 
     it('sets status to error on a 403 response', async function() {
-      characterClient.updateCharacter.and.returnValue(Promise.resolve({
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         ok: false,
         status: 403,
         json: () => Promise.resolve({ errors: { detail: ['not allowed to edit this character'] } }),
@@ -136,7 +139,7 @@ KINDS.forEach(({ label, Controller, kind, name }) => {
     });
 
     it('sets status to error when the request rejects', async function() {
-      characterClient.updateCharacter.and.returnValue(Promise.reject(new Error('network')));
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.reject(new Error('network')));
 
       const controller = new Controller(
         setCharacter,

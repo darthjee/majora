@@ -1,12 +1,9 @@
 import GameNpcNewController
   from '../../../../../../../../../assets/js/components/resources/character/pages/controllers/GameNpcNewController.js';
-import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import RequestStore
+  from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 
 describe('GameNpcNewController', function() {
-  afterEach(function() {
-    AuthStorage.clearToken();
-  });
-
   describe('#submitForm', function() {
     let setError;
     let setFieldErrors;
@@ -18,8 +15,7 @@ describe('GameNpcNewController', function() {
       setFieldErrors = jasmine.createSpy('setFieldErrors');
       setStatus = jasmine.createSpy('setStatus');
       characterClient = jasmine.createSpyObj('characterClient', ['createNpc']);
-      spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
-      characterClient.createNpc.and.returnValue(Promise.resolve({
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         status: 201,
         json: () => Promise.resolve({ id: 7, name: 'Goblin King', game_slug: 'demo' }),
       }));
@@ -52,10 +48,13 @@ describe('GameNpcNewController', function() {
         expect(event.preventDefault).toHaveBeenCalled();
         expect(setStatus).toHaveBeenCalledWith('submitting');
         expect(setFieldErrors).toHaveBeenCalledWith({});
-        expect(characterClient.createNpc).toHaveBeenCalledWith(
-          'demo',
-          'tok-abc',
-          {
+        expect(RequestStore.mutate).toHaveBeenCalledWith({
+          componentName: 'GameNpcNewController',
+          resource: 'npc',
+          method: 'POST',
+          quantityType: 'collection',
+          params: { gameSlug: 'demo' },
+          body: {
             name: 'Goblin King',
             role: 'Villain',
             public_description: 'A menacing goblin.',
@@ -66,7 +65,7 @@ describe('GameNpcNewController', function() {
             public_allegiance: 'enemy',
             links: [{ text: 'Wiki', url: 'https://example.com/wiki' }],
           },
-        );
+        });
       } finally {
         delete globalThis.window;
       }
@@ -87,10 +86,8 @@ describe('GameNpcNewController', function() {
           { setStatus, setFieldErrors },
         );
 
-        expect(characterClient.createNpc).toHaveBeenCalledWith(
-          'demo',
-          'tok-abc',
-          jasmine.objectContaining({ links: [] }),
+        expect(RequestStore.mutate).toHaveBeenCalledWith(
+          jasmine.objectContaining({ body: jasmine.objectContaining({ links: [] }) }),
         );
       } finally {
         delete globalThis.window;
@@ -119,7 +116,7 @@ describe('GameNpcNewController', function() {
     });
 
     it('sets field errors on a 400 response', async function() {
-      characterClient.createNpc.and.returnValue(Promise.resolve({
+      RequestStore.mutate.and.returnValue(Promise.resolve({
         status: 400,
         json: () => Promise.resolve({ errors: { name: ['is required'] } }),
       }));
@@ -137,7 +134,7 @@ describe('GameNpcNewController', function() {
     });
 
     it('sets status to error on a non-201/400 failure', async function() {
-      characterClient.createNpc.and.returnValue(Promise.resolve({
+      RequestStore.mutate.and.returnValue(Promise.resolve({
         status: 500,
         json: () => Promise.resolve({}),
       }));
@@ -157,7 +154,7 @@ describe('GameNpcNewController', function() {
     });
 
     it('sets status to error when the network request throws', async function() {
-      characterClient.createNpc.and.returnValue(Promise.reject(new Error('network error')));
+      RequestStore.mutate.and.returnValue(Promise.reject(new Error('network error')));
 
       const controller = new GameNpcNewController(setError, setFieldErrors, characterClient);
 

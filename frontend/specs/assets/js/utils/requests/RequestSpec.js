@@ -161,4 +161,62 @@ describe('Request', function() {
       expect(result).toEqual({ data: { id: 2 }, pagination: PAGINATION });
     });
   });
+
+  describe('#isOngoing', function() {
+    it('returns false before any ensure() call', function() {
+      expect(request.isOngoing()).toBe(false);
+    });
+
+    it('returns true while a fetch is in flight', function() {
+      const pending = deferred();
+      client.fetchResource.and.returnValue(pending.promise);
+
+      request.ensure({ params: { gameSlug: 'demo' } });
+
+      expect(request.isOngoing()).toBe(true);
+    });
+
+    it('returns false once the fetch has settled', async function() {
+      client.fetchResource.and.returnValue(Promise.resolve(clientResult({ id: 1 })));
+
+      await request.ensure({ params: { gameSlug: 'demo' } });
+
+      expect(request.isOngoing()).toBe(false);
+    });
+  });
+
+  describe('#restart', function() {
+    it('aborts the in-flight fetch and resolves the already-handed-out promise with the ' +
+      'replacement fetch, once a later ensure() call starts it', async function() {
+      const first = deferred();
+      client.fetchResource.and.returnValue(first.promise);
+
+      const originalPromise = request.ensure({ params: { gameSlug: 'demo' } });
+
+      expect(request.isOngoing()).toBe(true);
+
+      request.restart();
+      client.fetchResource.and.returnValue(Promise.resolve(clientResult({ id: 'fresh' })));
+
+      const secondPromise = request.ensure({ params: { gameSlug: 'demo' } });
+
+      expect(secondPromise).toBe(originalPromise);
+      expect(await originalPromise).toEqual({ data: { id: 'fresh' }, pagination: PAGINATION });
+    });
+
+    it('does not discard the promise already handed out to a waiting caller', function() {
+      const first = deferred();
+      client.fetchResource.and.returnValue(first.promise);
+
+      const originalPromise = request.ensure({ params: { gameSlug: 'demo' } });
+
+      request.restart();
+
+      expect(request.isOngoing()).toBe(true);
+
+      const secondPromise = request.ensure({ params: { gameSlug: 'demo' } });
+
+      expect(secondPromise).toBe(originalPromise);
+    });
+  });
 });

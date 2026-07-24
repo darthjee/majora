@@ -3,6 +3,7 @@ import UploadClient from '../../../../../client/UploadClient.js';
 import GameClient from '../../../../../client/GameClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import PhotoUploadSaga from '../../../../common/base/controllers/PhotoUploadSaga.js';
 import Noop from '../../../../../utils/Noop.js';
@@ -89,8 +90,9 @@ export default class GameNpcNewController extends BasePageController {
    * Submit the new NPC form.
    *
    * @description Prevents the default form submission, resets status and
-   *   field errors, sends a POST request. On success, redirects immediately
-   *   when no photo was picked, or runs the photo upload saga step first when
+   *   field errors, sends a POST request through {@link RequestStore.mutate} (issue #830, so
+   *   the NPC collection's cached `GET` data is purged on success). On success, redirects
+   *   immediately when no photo was picked, or runs the photo upload saga step first when
    *   `formValues.photoFile` is set. On a 400 response, sets field errors. On
    *   any other failure, sets the general error status.
    * @param {Event|undefined} event - Form submit event, if any.
@@ -109,19 +111,24 @@ export default class GameNpcNewController extends BasePageController {
     setters.setStatus('submitting');
     setters.setFieldErrors({});
 
-    const token = AuthStorage.getToken();
-
     try {
-      const response = await this.characterClient.createNpc(gameSlug, token, {
-        name: formValues.name,
-        role: formValues.role,
-        public_description: formValues.description,
-        private_description: formValues.privateDescription,
-        hidden: formValues.hidden,
-        money: parseInt(formValues.money, 10),
-        allegiance: formValues.allegiance,
-        public_allegiance: formValues.publicAllegiance,
-        links: formValues.links ?? [],
+      const response = await RequestStore.mutate({
+        componentName: 'GameNpcNewController',
+        resource: 'npc',
+        method: 'POST',
+        quantityType: 'collection',
+        params: { gameSlug },
+        body: {
+          name: formValues.name,
+          role: formValues.role,
+          public_description: formValues.description,
+          private_description: formValues.privateDescription,
+          hidden: formValues.hidden,
+          money: parseInt(formValues.money, 10),
+          allegiance: formValues.allegiance,
+          public_allegiance: formValues.publicAllegiance,
+          links: formValues.links ?? [],
+        },
       });
 
       await this.#handleResponse(response, gameSlug, formValues.photoFile, setters);
@@ -190,10 +197,15 @@ export default class GameNpcNewController extends BasePageController {
 
   async #uploadPhoto(gameSlug, characterId, photoFile, setters) {
     const token = AuthStorage.getToken();
-    const uploadPath = `/games/${gameSlug}/npcs/${characterId}/photo_upload.json`;
+    const uploadPath = await RequestStore.resolvePath({
+      resource: 'npc', method: 'POST', quantityType: 'single', params: { gameSlug, id: characterId },
+    });
     const ok = await this.photoUploadSaga.upload(uploadPath, photoFile, token);
 
     if (ok) {
+      // Purge before redirecting, so the NPC show page's own `RequestStore.ensure` GET
+      // (triggered by the redirect) doesn't re-serve the pre-upload cached character.
+      RequestStore.purge({ resource: 'npc' });
       this.#redirectToNpc(gameSlug, characterId);
       return;
     }
