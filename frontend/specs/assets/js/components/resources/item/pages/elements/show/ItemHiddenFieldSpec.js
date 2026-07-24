@@ -13,7 +13,7 @@ describe('ItemHiddenField', function() {
   it('renders a mode-scoped id in new mode', function() {
     const html = renderToStaticMarkup(ItemHiddenField(buildProps()));
 
-    expect(html).toContain('id="character-item-new-hidden"');
+    expect(html).toContain('id="item-new-hidden"');
   });
 
   it('scopes the id to edit mode', function() {

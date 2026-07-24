@@ -35,6 +35,8 @@ describe('GameItemsHelper', function() {
     gameSlug: 'demo',
     basePath: '#/games/demo/items',
     backHref: '#/games/demo',
+    newHref: '#/games/demo/items/new',
+    canCreateItem: false,
     ...overrides,
   });
 
@@ -47,6 +49,19 @@ describe('GameItemsHelper', function() {
     it('renders the items heading', function() {
       const html = renderToStaticMarkup(GameItemsHelper.render(buildState()));
       expect(html).toContain('Items');
+    });
+
+    it('does not render the create item button when canCreateItem is false', function() {
+      const html = renderToStaticMarkup(GameItemsHelper.render(buildState()));
+      expect(html).not.toContain('Create Item');
+    });
+
+    it('renders the create item button when canCreateItem is true', function() {
+      const html = renderToStaticMarkup(
+        GameItemsHelper.render(buildState({ canCreateItem: true })),
+      );
+      expect(html).toContain('Create Item');
+      expect(html).toContain('href="#/games/demo/items/new"');
     });
 
     it('wires a ListPage of type items with the expected props', function() {

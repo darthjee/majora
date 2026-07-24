@@ -108,6 +108,10 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/items/5').getPage()).toBe('gameItem');
   });
 
+  it('resolves /games/:game_slug/items/new to gameItemNew, not gameItem', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/items/new').getPage()).toBe('gameItemNew');
+  });
+
   it('resolves /games/:game_slug/pcs/:character_id/items/:id to pcCharacterItem, not pcCharacterItems', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/items/5').getPage()).toBe('pcCharacterItem');
   });

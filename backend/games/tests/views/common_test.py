@@ -286,7 +286,9 @@ class TestPermissionsResponse(TestCase):
     def test_role_simulated_path_sets_force_public_cache_header(self):
         """Test that role_booleans (role-simulated path) sets X-Force-Public-Cache: true."""
         request = _make_request(user=self.dm_user)
-        role_booleans = {'is_superuser': False, 'is_dm': True, 'is_owner': False}
+        role_booleans = {
+            'is_superuser': False, 'is_dm': True, 'is_owner': False, 'is_staff': False,
+        }
         response = permissions_response(
             GamePermissionsSerializer, self.game, request, role_booleans
         )

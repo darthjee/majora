@@ -310,7 +310,7 @@ character_documents_page:
   loading: Loading documents...
   title: Documents
   hidden_label: Hidden
-character_item_new_page:
+item_new_page:
   title: Create Item
   name_label: Name
   description_label: Description
@@ -378,6 +378,7 @@ game_items_page:
   loading: Loading items...
   title: Items
   hidden_label: Hidden
+  create_item: Create Item
 game_documents_page:
   loading: Loading documents...
   title: Documents

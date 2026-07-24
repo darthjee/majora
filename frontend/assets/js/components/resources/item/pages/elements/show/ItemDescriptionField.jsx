@@ -2,9 +2,9 @@ import React from 'react';
 import MarkdownEditor from '../../../../../common/forms/MarkdownEditor.jsx';
 import Translator from '../../../../../../i18n/Translator.js';
 
-const ID_KEYS = { new: 'character-item-new-description', edit: 'item-edit-description' };
+const ID_KEYS = { new: 'item-new-description', edit: 'item-edit-description' };
 const LABEL_KEYS = {
-  new: 'character_item_new_page.description_label',
+  new: 'item_new_page.description_label',
   edit: 'item_edit_page.description_label',
 };
 

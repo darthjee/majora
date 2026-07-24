@@ -41,6 +41,12 @@ shared response shape. Game's `is_owner` is always `false` (games have no owners
 ## Edit permission
 
 `GET /games/<slug>/permissions.json` — **AllowAny**; see [Edit permission endpoints](common-rules.md#edit-permission-endpoints-permissionsjson) above.
+Response shape is `{can_edit, can_create_item}` (`GamePermissionsSerializer`): `can_edit` follows
+the shared `GameEdit` rule (dm/admin only); `can_create_item` (issue #784) is backed by
+`GameItemCreatePermission` — dm, admin, **or staff** (broader than `can_edit`, mirroring
+`CharacterPermissionsSerializer`'s `can_create_item` field — see [CharacterItem](character-item.md))
+— for both the real-identity and role-simulated (`?role=`) paths. See
+[GameItem](game-item.md#item-creation-endpoint) for the endpoint it gates.
 
 ## My Games list
 

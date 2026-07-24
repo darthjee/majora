@@ -23,9 +23,9 @@ describe('CharacterItemNewHelper', function() {
     it('renders all expected form fields', function() {
       const html = renderToStaticMarkup(CharacterItemNewHelper.render(buildState(), buildHandlers()));
 
-      expect(html).toContain('id="character-item-new-name"');
-      expect(html).toContain('id="character-item-new-description"');
-      expect(html).toContain('id="character-item-new-hidden"');
+      expect(html).toContain('id="item-new-name"');
+      expect(html).toContain('id="item-new-description"');
+      expect(html).toContain('id="item-new-hidden"');
     });
 
     it('renders the current field values', function() {
@@ -45,7 +45,7 @@ describe('CharacterItemNewHelper', function() {
 
     it('renders the hidden switch as a bootstrap switch', function() {
       const html = renderToStaticMarkup(CharacterItemNewHelper.render(buildState(), buildHandlers()));
-      const hiddenIndex = html.indexOf('id="character-item-new-hidden"');
+      const hiddenIndex = html.indexOf('id="item-new-hidden"');
 
       expect(hiddenIndex).toBeGreaterThan(-1);
       expect(html).toContain('form-switch');
