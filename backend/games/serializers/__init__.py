@@ -34,6 +34,8 @@ from games.serializers.characters.pcs.pc_access import PcAccessSerializer
 from games.serializers.games.conversations.conversation_list import ConversationListSerializer
 from games.serializers.games.documents.game_document_list import (
     GameDocumentAllListSerializer,
+    GameDocumentDetailFullSerializer,
+    GameDocumentDetailSerializer,
     GameDocumentListSerializer,
 )
 from games.serializers.games.documents.game_document_photo import GameDocumentPhotoSerializer
@@ -129,6 +131,8 @@ __all__ = [
     'GameCreateSerializer',
     'GameDetailSerializer',
     'GameDocumentAllListSerializer',
+    'GameDocumentDetailFullSerializer',
+    'GameDocumentDetailSerializer',
     'GameDocumentListSerializer',
     'GameDocumentPhotoSerializer',
     'GameItemAllListSerializer',

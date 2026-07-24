@@ -30,3 +30,30 @@ class GameDocumentAllListSerializer(HiddenFieldMixin, GameDocumentListSerializer
         """Metadata for the GameDocumentAllListSerializer."""
 
         fields = GameDocumentListSerializer.Meta.fields + ['hidden']
+
+
+class GameDocumentDetailSerializer(GameDocumentListSerializer):
+    """Serializer for a single game document's detail view.
+
+    Used only by `GET /games/:slug/documents/:id.json` — adds `description` on top of
+    everything `GameDocumentListSerializer` already exposes; the index/list view keeps
+    omitting it entirely.
+    """
+
+    class Meta(GameDocumentListSerializer.Meta):
+        """Metadata for the GameDocumentDetailSerializer."""
+
+        fields = GameDocumentListSerializer.Meta.fields + ['description']
+
+
+class GameDocumentDetailFullSerializer(HiddenFieldMixin, GameDocumentDetailSerializer):
+    """Serializer for a single game document's detail view, including hidden documents (DM-only).
+
+    Used only by `GET /games/:slug/documents/:id/full.json` — adds `hidden` on top of
+    everything `GameDocumentDetailSerializer` already exposes.
+    """
+
+    class Meta(GameDocumentDetailSerializer.Meta):
+        """Metadata for the GameDocumentDetailFullSerializer."""
+
+        fields = GameDocumentDetailSerializer.Meta.fields + ['hidden']
