@@ -8,6 +8,11 @@
  * clear those targets. Groups sharing a resource family's base target list
  * extend it rather than repeating it, per docs/agents/issues/438-reactor-proxy-rules.md.
  *
+ * The character-scoped treasures and items cache-cleanup groups for PCs live
+ * in treasures.php and items.php respectively, colocated with the rest of
+ * each connected entity's cache-cleanup logic — this file only keeps the
+ * groups for routes unique to the PC entity itself.
+ *
  * @return array List of pcs-family cache-cleanup groups.
  */
 
@@ -26,33 +31,6 @@ return [
             '/games/:game_slug/pcs/:character_id.json',
             '/games/:game_slug/pcs/:character_id/full.json',
             '/games/:game_slug/pcs/:character_id/photo_upload.json',
-        ],
-    ],
-    // pcs treasures buy/sell/acquire/remove — pcs entity targets plus the
-    // PC's own treasures list.
-    [
-        'targets' => array_merge($pcsEntityTargets, [
-            '/games/:game_slug/pcs/:character_id/treasures.json',
-        ]),
-        'routes' => [
-            '/games/:game_slug/pcs/:character_id/treasures/buy.json',
-            '/games/:game_slug/pcs/:character_id/treasures/sell.json',
-            '/games/:game_slug/pcs/:character_id/treasures/acquire.json',
-            '/games/:game_slug/pcs/:character_id/treasures/acquire/all.json',
-            '/games/:game_slug/pcs/:character_id/treasures/remove.json',
-        ],
-    ],
-    // pcs items — a PC's item photo-upload route.
-    [
-        'targets' => [
-            '/games/:game_slug/pcs/:character_id/items.json',
-            '/games/:game_slug/pcs/:character_id/items/all.json',
-            '/games/:game_slug/pcs/:character_id/items/:item_id.json',
-            '/games/:game_slug/pcs/:character_id/items/:item_id/full.json',
-        ],
-        'routes' => [
-            '/games/:game_slug/pcs/:character_id/items/:item_id.json',
-            '/games/:game_slug/pcs/:character_id/items/:item_id/photo_upload.json',
         ],
     ],
 ];

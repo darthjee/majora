@@ -138,4 +138,289 @@ class CacheCleanupMapTest extends TestCase
             '/games/:game_slug/npcs/:character_id/items/:item_id/full.json',
         ], $map['/games/:game_slug/npcs/:character_id/items/:item_id.json']);
     }
+
+    /**
+     * Buying a treasure for a PC must clear the PC's own entity/treasures
+     * caches (the character-scoped treasures group now lives in
+     * treasures.php instead of pcs.php).
+     */
+    public function testPcTreasureBuyClearsAllPcTreasureCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/pcs.json',
+            '/games/:game_slug/pcs/:character_id.json',
+            '/games/:game_slug/pcs/:character_id/full.json',
+            '/games/:game_slug/pcs/:character_id/photos.json',
+            '/games/:game_slug/pcs/:character_id/treasures.json',
+        ], $map['/games/:game_slug/pcs/:character_id/treasures/buy.json']);
+    }
+
+    /**
+     * Selling a PC's treasure must clear the same PC-scoped treasures
+     * targets as buying.
+     */
+    public function testPcTreasureSellClearsAllPcTreasureCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/pcs.json',
+            '/games/:game_slug/pcs/:character_id.json',
+            '/games/:game_slug/pcs/:character_id/full.json',
+            '/games/:game_slug/pcs/:character_id/photos.json',
+            '/games/:game_slug/pcs/:character_id/treasures.json',
+        ], $map['/games/:game_slug/pcs/:character_id/treasures/sell.json']);
+    }
+
+    /**
+     * Acquiring a treasure for a PC must clear the same PC-scoped treasures
+     * targets as buying.
+     */
+    public function testPcTreasureAcquireClearsAllPcTreasureCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/pcs.json',
+            '/games/:game_slug/pcs/:character_id.json',
+            '/games/:game_slug/pcs/:character_id/full.json',
+            '/games/:game_slug/pcs/:character_id/photos.json',
+            '/games/:game_slug/pcs/:character_id/treasures.json',
+        ], $map['/games/:game_slug/pcs/:character_id/treasures/acquire.json']);
+    }
+
+    /**
+     * Bulk-acquiring treasures for a PC must clear the same PC-scoped
+     * treasures targets as a single acquire.
+     */
+    public function testPcTreasureAcquireAllClearsAllPcTreasureCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/pcs.json',
+            '/games/:game_slug/pcs/:character_id.json',
+            '/games/:game_slug/pcs/:character_id/full.json',
+            '/games/:game_slug/pcs/:character_id/photos.json',
+            '/games/:game_slug/pcs/:character_id/treasures.json',
+        ], $map['/games/:game_slug/pcs/:character_id/treasures/acquire/all.json']);
+    }
+
+    /**
+     * Removing a PC's treasure must clear the same PC-scoped treasures
+     * targets as acquiring.
+     */
+    public function testPcTreasureRemoveClearsAllPcTreasureCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/pcs.json',
+            '/games/:game_slug/pcs/:character_id.json',
+            '/games/:game_slug/pcs/:character_id/full.json',
+            '/games/:game_slug/pcs/:character_id/photos.json',
+            '/games/:game_slug/pcs/:character_id/treasures.json',
+        ], $map['/games/:game_slug/pcs/:character_id/treasures/remove.json']);
+    }
+
+    /**
+     * Buying a treasure for an NPC must clear the NPC's own
+     * entity/treasures caches. This route is also listed in the legacy
+     * global-catalog group above, but the character-scoped group defined
+     * later in treasures.php wins, so the NPC's own treasures list is
+     * cleared too (bringing NPC behavior to parity with PCs).
+     */
+    public function testNpcTreasureBuyClearsAllNpcTreasureCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/npcs.json',
+            '/games/:game_slug/npcs/all.json',
+            '/games/:game_slug/npcs/:character_id.json',
+            '/games/:game_slug/npcs/:character_id/full.json',
+            '/games/:game_slug/npcs/:character_id/photos.json',
+            '/games/:game_slug/npcs/:character_id/treasures.json',
+        ], $map['/games/:game_slug/npcs/:character_id/treasures/buy.json']);
+    }
+
+    /**
+     * Selling an NPC's treasure must clear the same NPC-scoped treasures
+     * targets as buying.
+     */
+    public function testNpcTreasureSellClearsAllNpcTreasureCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/npcs.json',
+            '/games/:game_slug/npcs/all.json',
+            '/games/:game_slug/npcs/:character_id.json',
+            '/games/:game_slug/npcs/:character_id/full.json',
+            '/games/:game_slug/npcs/:character_id/photos.json',
+            '/games/:game_slug/npcs/:character_id/treasures.json',
+        ], $map['/games/:game_slug/npcs/:character_id/treasures/sell.json']);
+    }
+
+    /**
+     * Acquiring a treasure for an NPC must clear the same NPC-scoped
+     * treasures targets as buying.
+     */
+    public function testNpcTreasureAcquireClearsAllNpcTreasureCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/npcs.json',
+            '/games/:game_slug/npcs/all.json',
+            '/games/:game_slug/npcs/:character_id.json',
+            '/games/:game_slug/npcs/:character_id/full.json',
+            '/games/:game_slug/npcs/:character_id/photos.json',
+            '/games/:game_slug/npcs/:character_id/treasures.json',
+        ], $map['/games/:game_slug/npcs/:character_id/treasures/acquire.json']);
+    }
+
+    /**
+     * Bulk-acquiring treasures for an NPC must clear the same NPC-scoped
+     * treasures targets as a single acquire.
+     */
+    public function testNpcTreasureAcquireAllClearsAllNpcTreasureCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/npcs.json',
+            '/games/:game_slug/npcs/all.json',
+            '/games/:game_slug/npcs/:character_id.json',
+            '/games/:game_slug/npcs/:character_id/full.json',
+            '/games/:game_slug/npcs/:character_id/photos.json',
+            '/games/:game_slug/npcs/:character_id/treasures.json',
+        ], $map['/games/:game_slug/npcs/:character_id/treasures/acquire/all.json']);
+    }
+
+    /**
+     * Removing an NPC's treasure must clear the same NPC-scoped treasures
+     * targets as acquiring.
+     */
+    public function testNpcTreasureRemoveClearsAllNpcTreasureCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/npcs.json',
+            '/games/:game_slug/npcs/all.json',
+            '/games/:game_slug/npcs/:character_id.json',
+            '/games/:game_slug/npcs/:character_id/full.json',
+            '/games/:game_slug/npcs/:character_id/photos.json',
+            '/games/:game_slug/npcs/:character_id/treasures.json',
+        ], $map['/games/:game_slug/npcs/:character_id/treasures/remove.json']);
+    }
+
+    /**
+     * Acquiring an item for a PC must clear that PC's items list caches.
+     */
+    public function testPcItemAcquireClearsPcItemsListCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/pcs/:character_id/items.json',
+            '/games/:game_slug/pcs/:character_id/items/all.json',
+        ], $map['/games/:game_slug/pcs/:character_id/items/acquire.json']);
+    }
+
+    /**
+     * Bulk-acquiring items for a PC must clear that PC's items list caches.
+     */
+    public function testPcItemAcquireAllClearsPcItemsListCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/pcs/:character_id/items.json',
+            '/games/:game_slug/pcs/:character_id/items/all.json',
+        ], $map['/games/:game_slug/pcs/:character_id/items/acquire/all.json']);
+    }
+
+    /**
+     * Removing an item from a PC must clear that PC's items list caches.
+     */
+    public function testPcItemRemoveClearsPcItemsListCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/pcs/:character_id/items.json',
+            '/games/:game_slug/pcs/:character_id/items/all.json',
+        ], $map['/games/:game_slug/pcs/:character_id/items/remove.json']);
+    }
+
+    /**
+     * Bulk-removing items from a PC must clear that PC's items list caches.
+     */
+    public function testPcItemRemoveAllClearsPcItemsListCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/pcs/:character_id/items.json',
+            '/games/:game_slug/pcs/:character_id/items/all.json',
+        ], $map['/games/:game_slug/pcs/:character_id/items/remove/all.json']);
+    }
+
+    /**
+     * Acquiring an item for an NPC must clear that NPC's items list caches.
+     */
+    public function testNpcItemAcquireClearsNpcItemsListCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/npcs/:character_id/items.json',
+            '/games/:game_slug/npcs/:character_id/items/all.json',
+        ], $map['/games/:game_slug/npcs/:character_id/items/acquire.json']);
+    }
+
+    /**
+     * Bulk-acquiring items for an NPC must clear that NPC's items list
+     * caches.
+     */
+    public function testNpcItemAcquireAllClearsNpcItemsListCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/npcs/:character_id/items.json',
+            '/games/:game_slug/npcs/:character_id/items/all.json',
+        ], $map['/games/:game_slug/npcs/:character_id/items/acquire/all.json']);
+    }
+
+    /**
+     * Removing an item from an NPC must clear that NPC's items list caches.
+     */
+    public function testNpcItemRemoveClearsNpcItemsListCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/npcs/:character_id/items.json',
+            '/games/:game_slug/npcs/:character_id/items/all.json',
+        ], $map['/games/:game_slug/npcs/:character_id/items/remove.json']);
+    }
+
+    /**
+     * Bulk-removing items from an NPC must clear that NPC's items list
+     * caches.
+     */
+    public function testNpcItemRemoveAllClearsNpcItemsListCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/npcs/:character_id/items.json',
+            '/games/:game_slug/npcs/:character_id/items/all.json',
+        ], $map['/games/:game_slug/npcs/:character_id/items/remove/all.json']);
+    }
 }
