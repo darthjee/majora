@@ -1,8 +1,8 @@
 import React from 'react';
 import Translator from '../../../../../../i18n/Translator.js';
 
-const ID_KEYS = { new: 'character-item-new-hidden', edit: 'item-edit-hidden' };
-const LABEL_KEYS = { new: 'character_item_new_page.hidden_label', edit: 'item_edit_page.hidden_label' };
+const ID_KEYS = { new: 'item-new-hidden', edit: 'item-edit-hidden' };
+const LABEL_KEYS = { new: 'item_new_page.hidden_label', edit: 'item_edit_page.hidden_label' };
 
 /**
  * New/edit-mode slot: the `hidden` switch. Placed under the photo in the left column on the

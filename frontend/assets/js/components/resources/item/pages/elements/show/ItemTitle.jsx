@@ -3,12 +3,12 @@ import ErrorAlert from '../../../../../common/misc/ErrorAlert.jsx';
 import ItemNewPhotoUploadFailedAlert from './ItemNewPhotoUploadFailedAlert.jsx';
 import Translator from '../../../../../../i18n/Translator.js';
 
-// Item creation is character-scoped only (there's no `game-item` creation flow), and reuses the
-// `character_item_new_page` translations `CharacterItemNewHelper` already used; item editing is
+// Item creation is shared by game/PC/NPC items (issue #784) and uses the `item_new_page`
+// translations shared by `GameItemNewHelper`/`CharacterItemNewHelper`; item editing is
 // shared by game/PC/NPC items and reuses the `item_edit_page` translations `ItemEditHelper`
 // already used.
-const TITLE_KEYS = { new: 'character_item_new_page.title', edit: 'item_edit_page.title' };
-const ERROR_KEYS = { new: 'character_item_new_page.error', edit: 'item_edit_page.error' };
+const TITLE_KEYS = { new: 'item_new_page.title', edit: 'item_edit_page.title' };
+const ERROR_KEYS = { new: 'item_new_page.error', edit: 'item_edit_page.error' };
 
 /**
  * New/edit-mode right-column slot: the form's page title, plus a submission error alert when the

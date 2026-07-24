@@ -2,8 +2,8 @@ import React from 'react';
 import FormField from '../../../../../common/forms/FormField.jsx';
 import Translator from '../../../../../../i18n/Translator.js';
 
-const ID_KEYS = { new: 'character-item-new-name', edit: 'item-edit-name' };
-const LABEL_KEYS = { new: 'character_item_new_page.name_label', edit: 'item_edit_page.name_label' };
+const ID_KEYS = { new: 'item-new-name', edit: 'item-edit-name' };
+const LABEL_KEYS = { new: 'item_new_page.name_label', edit: 'item_edit_page.name_label' };
 
 /**
  * New/edit-mode right-column slot: the item's name field.

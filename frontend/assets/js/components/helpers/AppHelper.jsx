@@ -19,6 +19,7 @@ import GameSessions from '../resources/game_session/pages/GameSessions.jsx';
 import GameTasks from '../resources/game/pages/GameTasks.jsx';
 import GameItem from '../resources/item/pages/GameItem.jsx';
 import GameItemEdit from '../resources/item/pages/GameItemEdit.jsx';
+import GameItemNew from '../resources/item/pages/GameItemNew.jsx';
 import GameItems from '../resources/item/pages/GameItems.jsx';
 import GameDocuments from '../resources/document/pages/GameDocuments.jsx';
 import GameTreasureEdit from '../resources/treasure/pages/GameTreasureEdit.jsx';
@@ -75,6 +76,7 @@ const PAGES = {
   gameTreasureEdit: <GameTreasureEdit />,
   gameItem: <GameItem />,
   gameItemEdit: <GameItemEdit />,
+  gameItemNew: <GameItemNew />,
   gameItems: <GameItems />,
   gameDocuments: <GameDocuments />,
   gameSessions: <GameSessions />,

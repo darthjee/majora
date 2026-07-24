@@ -63,4 +63,16 @@ export default class GameClient extends BaseClient {
   updateGame(gameSlug, token, fields) {
     return this.patchJson(`/games/${gameSlug}.json`, token, fields);
   }
+
+  /**
+   * Creates a new, bare GameItem for a game (issue #784) — no owning CharacterItem.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {object} fields - Fields for the new item (`name`, `description`, `hidden`).
+   * @returns {Promise<Response>} fetch response from the game items endpoint.
+   */
+  createItem(gameSlug, token, fields) {
+    return this.postJson(`/games/${gameSlug}/items.json`, token, fields);
+  }
 }

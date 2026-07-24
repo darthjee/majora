@@ -2,7 +2,7 @@ import React from 'react';
 import SubmitButton from '../../../../../common/buttons/SubmitButton.jsx';
 import Translator from '../../../../../../i18n/Translator.js';
 
-const SUBMIT_KEYS = { new: 'character_item_new_page.submit', edit: 'item_edit_page.submit' };
+const SUBMIT_KEYS = { new: 'item_new_page.submit', edit: 'item_edit_page.submit' };
 
 /**
  * New/edit-mode right-column slot: the form's submit button, disabled while a submission is in

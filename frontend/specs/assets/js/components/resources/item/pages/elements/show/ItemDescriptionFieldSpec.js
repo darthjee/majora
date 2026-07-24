@@ -15,7 +15,7 @@ describe('ItemDescriptionField', function() {
     const element = ItemDescriptionField(buildProps());
 
     expect(element.type).toBe(MarkdownEditor);
-    expect(element.props.id).toBe('character-item-new-description');
+    expect(element.props.id).toBe('item-new-description');
     expect(element.props.value).toBe('A cloak that grants stealth.');
   });
 
