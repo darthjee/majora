@@ -1,5 +1,3 @@
-import CharacterClient from '../../../../../../../client/CharacterClient.js';
-import AuthStorage from '../../../../../../../utils/auth/AuthStorage.js';
 import RequestStore from '../../../../../../../utils/requests/RequestStore.js';
 import Translator from '../../../../../../../i18n/Translator.js';
 
@@ -58,15 +56,6 @@ export function buildPartialNotice(requestedQuantity, acquired) {
  */
 export default class BuyTreasureTabController {
   /**
-   * Create a Buy tab controller.
-   *
-   * @param {CharacterClient|null} [characterClient] - Character client override.
-   */
-  constructor(characterClient = null) {
-    this.characterClient = characterClient ?? new CharacterClient();
-  }
-
-  /**
    * Fetch a page of game treasures affordable within the character's current money, through
    * `RequestStore` (`treasure.collection`, `kind: 'game'`) — see this class's own description.
    *
@@ -118,12 +107,12 @@ export default class BuyTreasureTabController {
   }
 
   /**
-   * Submit a buy request for the given treasure and quantity.
+   * Submit a buy request for the given treasure and quantity, through `RequestStore.mutate`
+   * (`treasure.buy`, issue #844) so the character's cached treasure data is purged on success.
    *
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
    * @param {boolean} isPc - Whether the character is a PC (vs. an NPC).
-   * @param {string|null} token - Authentication token, if any.
    * @param {{treasureId: number, quantity: number}} fields - Buy request fields.
    * @param {boolean} [canEdit] - Whether the requester can edit the game (DM/admin). When true,
    *   submits through the `treasures/buy/all.json` endpoint instead of the player-facing one, so
@@ -133,21 +122,27 @@ export default class BuyTreasureTabController {
    *   the requested `quantity` when the treasure was capped), or `{ok: false, errorKey}` on a 400
    *   validation failure.
    */
-  buy(gameSlug, characterId, isPc, token, fields, canEdit = false) {
+  buy(gameSlug, characterId, isPc, fields, canEdit = false) {
     const body = BuyTreasureTabController.#toBody(fields);
-    const characterKind = BuyTreasureTabController.#characterKind(isPc);
-    const request = canEdit
-      ? this.characterClient.buyTreasureAll(characterKind, gameSlug, characterId, token, body)
-      : this.characterClient.buyTreasure(characterKind, gameSlug, characterId, token, body);
+    const kind = BuyTreasureTabController.#characterKind(isPc);
 
-    return request.then((response) => this.#parseActionResponse(response));
+    return RequestStore.mutate({
+      componentName: 'BuyTreasureTabController',
+      resource: 'treasure',
+      method: 'POST',
+      quantityType: 'buy',
+      params: { gameSlug, kind, id: characterId },
+      body,
+      variantName: canEdit ? 'private' : 'regular',
+    }).then((response) => this.#parseActionResponse(response));
   }
 
   /**
    * Submits the buy request for the currently selected treasure, then applies the outcome:
-   * clearing the selection and reloading the browse page on success (invoking `onSuccess` with
-   * the exchange result first), or surfacing the error key otherwise. Owns the whole confirm flow
-   * so the component only wires its `useState` setters and `onSuccess` prop through.
+   * purging the treasure cache, clearing the selection, and reloading the browse page on success
+   * (invoking `onSuccess` with the exchange result first), or surfacing the error key otherwise.
+   * Owns the whole confirm flow so the component only wires its `useState` setters and
+   * `onSuccess` prop through.
    *
    * @param {object} selected - Currently selected browse item.
    * @param {number} quantity - Quantity to buy for the selected item.
@@ -160,12 +155,11 @@ export default class BuyTreasureTabController {
   confirmBuy(selected, quantity, character, setters) {
     const treasureId = selected.id;
     const requestedQuantity = quantity;
-    const token = AuthStorage.getToken();
 
     setters.setSubmitting(true);
 
     return this.buy(
-      character.game_slug, character.id, character.is_pc, token, { treasureId, quantity }, character.canEdit,
+      character.game_slug, character.id, character.is_pc, { treasureId, quantity }, character.canEdit,
     ).then((result) => {
       setters.setSubmitting(false);
 
@@ -174,6 +168,7 @@ export default class BuyTreasureTabController {
         return;
       }
 
+      RequestStore.purge({ resource: 'treasure' });
       setters.setSelected(null);
       setters.setPartialNotice(buildPartialNotice(requestedQuantity, result.acquired));
       setters.onSuccess({
