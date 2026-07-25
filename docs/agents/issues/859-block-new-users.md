@@ -42,11 +42,13 @@ Introduce a user approval workflow. Users have a status: `approved`, `denied`, o
   - a single query parameter that ORs across name, display name, and email
 
 #### New: `POST /staff/users/approve.json`
+- Restricted to admin/staff, like the other `/staff/*` endpoints (401 if unauthenticated, 403 otherwise)
 - Returns 422 if the user is not currently `pending`
 - Marks the user as `approved`
 - No notification is sent to the user
 
 #### New: `POST /staff/users/deny.json`
+- Restricted to admin/staff, like the other `/staff/*` endpoints (401 if unauthenticated, 403 otherwise)
 - Marks the user as `denied`, regardless of current status (also usable to ban existing users)
 - Destroys the user's tokens, invalidating any existing token/cookie access
 - No notification is sent to the user
