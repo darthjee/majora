@@ -1,5 +1,3 @@
-import GameSessionClient from '../../../../../client/GameSessionClient.js';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BaseEditController from '../../../../common/base/controllers/BaseEditController.js';
@@ -30,11 +28,9 @@ export default class GameSessionEditController extends BaseEditController {
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
-   * @param {GameSessionClient|null} [sessionClient] - Session client override.
    */
-  constructor(setSession, setLoading, setError, setFieldErrors = Noop.noop, sessionClient = null) {
+  constructor(setSession, setLoading, setError, setFieldErrors = Noop.noop) {
     super(setSession, setLoading, setError, setFieldErrors);
-    this.sessionClient = sessionClient ?? new GameSessionClient();
   }
 
   /**
@@ -69,9 +65,10 @@ export default class GameSessionEditController extends BaseEditController {
   /**
    * Submit a partial update for the session.
    *
-   * @description Prevents the default form submission, resets status and
-   *   field errors, sends a PATCH request, then redirects on success,
-   *   sets field errors on 400, or sets error status on other failures.
+   * @description Prevents the default form submission, resets status and field errors, sends a
+   *   PATCH request through {@link RequestStore.mutate} (issue #842, so the session's cached
+   *   `GET` data is purged on success), then redirects on success, sets field errors on 400, or
+   *   sets error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {string|number} id - Session id.
@@ -80,15 +77,20 @@ export default class GameSessionEditController extends BaseEditController {
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
   submitForm(event, gameSlug, id, formValues, setters) {
-    const token = AuthStorage.getToken();
-
     return this.performSubmit(
       event,
       setters,
-      () => this.sessionClient.updateSession(gameSlug, id, token, {
-        title: formValues.title,
-        date: formValues.date || null,
-        description: formValues.description || null,
+      () => RequestStore.mutate({
+        componentName: 'GameSessionEditController',
+        resource: 'session',
+        method: 'PATCH',
+        quantityType: 'single',
+        params: { gameSlug, id },
+        body: {
+          title: formValues.title,
+          date: formValues.date || null,
+          description: formValues.description || null,
+        },
       }),
       `/games/${gameSlug}/sessions/${id}`,
     );

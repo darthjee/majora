@@ -1,8 +1,8 @@
-import PollClient from '../../../../../client/PollClient.js';
 import AuthClient from '../../../../../client/AuthClient.js';
 import parseJsonOrReject from '../../../../../utils/http/parseJsonOrReject.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
@@ -17,7 +17,8 @@ import getCurrentHash from '../../../../../utils/routing/currentHash.js';
  *   player, not a pure admin) and, when they can, pre-fetches their current
  *   vote(s) for the poll to pre-populate the selection. Also resolves
  *   whether the viewer can close the poll (DM or superuser only, narrower
- *   than the voting rule).
+ *   than the voting rule). `fetchPoll`/`fetchPollVotes`/`castPollVotes` all
+ *   go through `RequestStore` (issue #842) instead of `PollClient`.
  */
 export default class GamePollController extends BasePageController {
   /**
@@ -57,7 +58,6 @@ export default class GamePollController extends BasePageController {
    * @param {Function} setPoll - Poll setter.
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
-   * @param {PollClient|null} [pollClient] - Poll client override.
    * @param {Function} [setCanVote] - Setter for whether the viewer can vote (DM or player).
    * @param {Function} [setCanClose] - Setter for whether the viewer can close the poll
    *   (DM or superuser only, narrower than `setCanVote`).
@@ -71,7 +71,6 @@ export default class GamePollController extends BasePageController {
     setPoll,
     setLoading,
     setError,
-    pollClient = null,
     setCanVote = Noop.noop,
     setCanClose = Noop.noop,
     setSelectedOptionIds = Noop.noop,
@@ -82,7 +81,6 @@ export default class GamePollController extends BasePageController {
     this.setPoll = setPoll;
     this.setLoading = setLoading;
     this.setError = setError;
-    this.pollClient = pollClient ?? new PollClient();
     this.setCanVote = setCanVote;
     this.setCanClose = setCanClose;
     this.setSelectedOptionIds = setSelectedOptionIds;
@@ -148,11 +146,13 @@ export default class GamePollController extends BasePageController {
   }
 
   #fetchPoll(gameSlug, id, safeSet) {
-    const token = AuthStorage.getToken();
-
-    this.pollClient.fetchPoll(gameSlug, id, token)
-      .then((response) => parseJsonOrReject(response, 'poll failed'))
-      .then((poll) => safeSet(this.setPoll, { ...poll, game_slug: gameSlug }))
+    RequestStore.ensure({
+      componentName: 'GamePollController',
+      resource: 'poll',
+      quantityType: 'single',
+      params: { gameSlug, id },
+    })
+      .then(({ data }) => safeSet(this.setPoll, { ...data, game_slug: gameSlug }))
       .catch(() => safeSet(this.setError, 'Unable to load poll.'))
       .finally(() => safeSet(this.setLoading, false));
   }
@@ -169,11 +169,13 @@ export default class GamePollController extends BasePageController {
    * @returns {void}
    */
   #fetchVotesPayload(gameSlug, id, safeSet) {
-    const token = AuthStorage.getToken();
-
-    this.pollClient.fetchPollVotes(gameSlug, id, token)
-      .then((response) => parseJsonOrReject(response, 'votes failed'))
-      .then((payload) => safeSet(this.setVotesPayload, payload))
+    RequestStore.ensure({
+      componentName: 'GamePollController',
+      resource: 'poll',
+      quantityType: 'votes',
+      params: { gameSlug, id },
+    })
+      .then(({ data }) => safeSet(this.setVotesPayload, data))
       .catch(Noop.noop);
   }
 
@@ -193,17 +195,21 @@ export default class GamePollController extends BasePageController {
 
     this.authClient.status(token)
       .then((response) => parseJsonOrReject(response, 'status failed'))
-      .then((data) => this.pollClient.fetchPollVotes(
-        gameSlug, id, token, new URLSearchParams({ user_id: String(data.user_id) })
-      ))
-      .then((response) => parseJsonOrReject(response, 'votes failed'))
-      .then((payload) => safeSet(this.setSelectedOptionIds, payload.votes.map((vote) => vote.option)))
+      .then((statusData) => RequestStore.ensure({
+        componentName: 'GamePollController',
+        resource: 'poll',
+        quantityType: 'votes',
+        params: { gameSlug, id },
+        query: { user_id: String(statusData.user_id) },
+      }))
+      .then(({ data }) => safeSet(this.setSelectedOptionIds, data.votes.map((vote) => vote.option)))
       .catch(Noop.noop);
   }
 
   /**
-   * Casts the current user's vote(s) for the poll, then refreshes the
-   * selection from the response on success.
+   * Casts the current user's vote(s) for the poll, through {@link RequestStore.mutate} (issue
+   * #842, so the poll's cached `GET` data is purged on success), then refreshes the selection
+   * from the response on success.
    *
    * @param {string} gameSlug - Game slug.
    * @param {number|string} id - Poll id.
@@ -214,10 +220,15 @@ export default class GamePollController extends BasePageController {
   async castVotes(gameSlug, id, optionIds, setters) {
     setters.setVoteStatus('submitting');
 
-    const token = AuthStorage.getToken();
-
     try {
-      const response = await this.pollClient.castPollVotes(gameSlug, id, token, optionIds);
+      const response = await RequestStore.mutate({
+        componentName: 'GamePollController',
+        resource: 'poll',
+        method: 'PUT',
+        quantityType: 'votes',
+        params: { gameSlug, id },
+        body: { option_ids: optionIds },
+      });
 
       if (!response.ok) {
         setters.setVoteStatus('error');

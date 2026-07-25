@@ -1,8 +1,6 @@
-import StaffUserClient from '../../../../../client/StaffUserClient.js';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js';
-import parsePositiveInt from '../../../../../utils/parsePositiveInt.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 
 /**
@@ -16,21 +14,18 @@ export default class StaffUsersController extends BasePageController {
    * @param {Function} setPagination - Pagination setter.
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
-   * @param {StaffUserClient|null} [client] - Client override.
    */
   constructor(
     setUsers,
     setPagination,
     setLoading,
     setError,
-    client = null,
   ) {
     super();
     this.setUsers = setUsers;
     this.setPagination = setPagination;
     this.setLoading = setLoading;
     this.setError = setError;
-    this.client = client ?? new StaffUserClient();
   }
 
   /**
@@ -67,8 +62,8 @@ export default class StaffUsersController extends BasePageController {
   }
 
   /**
-   * Generates or reuses a recovery link for a user, storing the result in
-   * the per-row recovery links map.
+   * Generates or reuses a recovery link for a user through {@link RequestStore.mutate} (issue
+   * #842), storing the result in the per-row recovery links map.
    *
    * @param {number|string} userId - User id.
    * @param {object} recoveryLinks - Current recovery links map, keyed by user id.
@@ -78,10 +73,14 @@ export default class StaffUsersController extends BasePageController {
   async handleGenerateRecoveryLink(userId, recoveryLinks, setRecoveryLinks) {
     setRecoveryLinks({ ...recoveryLinks, [userId]: { status: 'loading', url: null } });
 
-    const token = AuthStorage.getToken();
-
     try {
-      const response = await this.client.fetchRecoveryLink(userId, token);
+      const response = await RequestStore.mutate({
+        componentName: 'StaffUsersController',
+        resource: 'staffUser',
+        method: 'POST',
+        quantityType: 'recoveryLink',
+        params: { id: userId },
+      });
 
       if (!response.ok) {
         setRecoveryLinks({ ...recoveryLinks, [userId]: { status: 'error', url: null } });
@@ -114,24 +113,17 @@ export default class StaffUsersController extends BasePageController {
   }
 
   #fetchUsers(safeSet) {
-    const token = AuthStorage.getToken();
     const params = new HashRouteResolver().getPaginationParams();
 
-    this.client.fetchUsers(token, params)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Request failed');
-        }
-
-        return response.json().then((data) => ({ data, headers: response.headers }));
-      })
-      .then(({ data, headers }) => {
+    RequestStore.ensure({
+      componentName: 'StaffUsersController',
+      resource: 'staffUser',
+      quantityType: 'collection',
+      query: Object.fromEntries(params),
+    })
+      .then(({ data, pagination }) => {
         safeSet(this.setUsers, Array.isArray(data) ? data : []);
-        safeSet(this.setPagination, {
-          page: parsePositiveInt(headers.get('page'), 1),
-          pages: parsePositiveInt(headers.get('pages'), 1),
-          perPage: parsePositiveInt(headers.get('per_page'), 10),
-        });
+        safeSet(this.setPagination, pagination);
       })
       .catch(() => safeSet(this.setError, 'Unable to load users.'))
       .finally(() => safeSet(this.setLoading, false));

@@ -88,7 +88,11 @@ export default class Request {
     const exposedPromise = this.#promise;
 
     this.#cache
-      .ensure(key, (signal) => this.#client.fetchResource(variant.path(params), query, signal), undefined)
+      .ensure(
+        key,
+        (signal) => this.#client.fetchResource(variant.path(params), query, signal, variant.skipCache),
+        undefined,
+      )
       .then((result) => this.#settle(key, result));
 
     return exposedPromise;

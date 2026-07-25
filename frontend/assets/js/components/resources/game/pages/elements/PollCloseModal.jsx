@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import PollCloseModalController from './controllers/PollCloseModalController.js';
 import PollCloseModalHelper from './helpers/PollCloseModalHelper.jsx';
 
@@ -42,7 +41,7 @@ export default function PollCloseModal({
     setSelectedOptionId(null);
     setStatus('idle');
 
-    controller.fetchTallies(poll.game_slug, poll.id, AuthStorage.getToken())
+    controller.fetchTallies(poll.game_slug, poll.id)
       .then((result) => active && setTallies(result))
       .catch(() => active && setTallies({}));
 
@@ -60,7 +59,7 @@ export default function PollCloseModal({
   const effectiveWinnerId = PollCloseModalController.resolveEffectiveWinnerId(maxVoteOptionIds);
 
   const handleSubmit = () => {
-    controller.closePoll(poll.game_slug, poll.id, AuthStorage.getToken(), override ? selectedOptionId : null, {
+    controller.closePoll(poll.game_slug, poll.id, override ? selectedOptionId : null, {
       setStatus,
       onClosed,
     });

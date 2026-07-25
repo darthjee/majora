@@ -1,11 +1,11 @@
 import BaseClient from './BaseClient.js';
 
 /**
- * HTTP client for treasure requests (fetch, access check, and catalog-linking).
+ * HTTP client for treasure requests (fetch and access checks).
  *
- * @description Create/update mutations moved to `RequestStore.mutate()` (issue #841) — this
- *   client now only holds read/access-check methods, plus `linkGameTreasure` (out of scope for
- *   that migration).
+ * @description Create/update mutations moved to `RequestStore.mutate()` (issue #841), and
+ *   `linkGameTreasure` did too (issue #842) — this client now only holds read/access-check
+ *   methods.
  */
 export default class TreasureClient extends BaseClient {
   /**
@@ -117,23 +117,5 @@ export default class TreasureClient extends BaseClient {
     const query = this.buildQuery([['page', page], ['per_page', perPage]]).toString();
 
     return this.getJson(`/games/${gameSlug}/treasures/missing.json${query ? `?${query}` : ''}`, token);
-  }
-
-  /**
-   * Links an existing catalog treasure to a game, creating the corresponding `GameTreasure`
-   * row.
-   *
-   * @param {string} gameSlug - Game slug.
-   * @param {string|null} token - Authentication token, if any.
-   * @param {object} fields - Fields for the new link.
-   * @param {number} fields.treasure_id - Id of the catalog treasure to link.
-   * @param {number} fields.value - Game-specific value for the linked treasure.
-   * @param {boolean} [fields.hidden] - Whether the linked treasure starts hidden.
-   * @param {number|null} [fields.max_units] - Maximum obtainable units within the game, or
-   *   `null` for unlimited.
-   * @returns {Promise<Response>} fetch response from the game treasures/link endpoint.
-   */
-  linkGameTreasure(gameSlug, token, fields) {
-    return this.postJson(`/games/${gameSlug}/treasures/link.json`, token, fields);
   }
 }

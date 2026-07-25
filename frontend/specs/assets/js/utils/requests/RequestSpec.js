@@ -41,7 +41,7 @@ describe('Request', function() {
 
       const result = await request.ensure({ params: { gameSlug: 'demo' } });
 
-      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs.json', {}, jasmine.anything());
+      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs.json', {}, jasmine.anything(), undefined);
       expect(result).toEqual({ data: { id: 1 }, pagination: PAGINATION });
     });
 
@@ -85,7 +85,7 @@ describe('Request', function() {
 
       await request.ensure({ params: { gameSlug: 'demo' }, query: { page: 2 } });
 
-      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs.json', { page: 2 }, jasmine.anything());
+      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs.json', { page: 2 }, jasmine.anything(), undefined);
     });
 
     it('starts a fresh request when params change', async function() {
@@ -97,8 +97,8 @@ describe('Request', function() {
       await request.ensure({ params: { gameSlug: 'other' } });
 
       expect(client.fetchResource).toHaveBeenCalledTimes(2);
-      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs.json', {}, jasmine.anything());
-      expect(client.fetchResource).toHaveBeenCalledWith('/games/other/npcs.json', {}, jasmine.anything());
+      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs.json', {}, jasmine.anything(), undefined);
+      expect(client.fetchResource).toHaveBeenCalledWith('/games/other/npcs.json', {}, jasmine.anything(), undefined);
     });
 
     it('picks the private variant when the configured permission is granted', async function() {
@@ -106,7 +106,7 @@ describe('Request', function() {
 
       await request.ensure({ params: { gameSlug: 'demo' }, permissions: { can_edit: true } });
 
-      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs/all.json', {}, jasmine.anything());
+      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs/all.json', {}, jasmine.anything(), undefined);
     });
 
     it('fails closed to the regular variant when the permission is unknown', async function() {
@@ -114,7 +114,21 @@ describe('Request', function() {
 
       await request.ensure({ params: { gameSlug: 'demo' } });
 
-      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs.json', {}, jasmine.anything());
+      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs.json', {}, jasmine.anything(), undefined);
+    });
+
+    it('forwards the configured variant\'s skipCache flag to the client (issue #842)', async function() {
+      const skipCacheConfig = {
+        regular: { path: ({ gameSlug }) => `/games/${gameSlug}/npcs.json`, permission: null, skipCache: true },
+        private: { path: ({ gameSlug }) => `/games/${gameSlug}/npcs/all.json`, permission: 'can_edit' },
+      };
+      const skipCacheRequest = new Request('npc', 'collection', skipCacheConfig, client);
+
+      client.fetchResource.and.returnValue(Promise.resolve(clientResult({ id: 1 })));
+
+      await skipCacheRequest.ensure({ params: { gameSlug: 'demo' } });
+
+      expect(client.fetchResource).toHaveBeenCalledWith('/games/demo/npcs.json', {}, jasmine.anything(), true);
     });
 
     it('aborts the narrower in-flight request when a broader-access request supersedes it, ' +

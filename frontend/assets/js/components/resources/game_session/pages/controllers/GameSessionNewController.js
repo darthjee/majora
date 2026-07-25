@@ -1,6 +1,5 @@
-import GameSessionClient from '../../../../../client/GameSessionClient.js';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
@@ -24,13 +23,11 @@ export default class GameSessionNewController extends BasePageController {
    *
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
-   * @param {GameSessionClient|null} [sessionClient] - Session client override.
    */
-  constructor(setError, setFieldErrors = Noop.noop, sessionClient = null) {
+  constructor(setError, setFieldErrors = Noop.noop) {
     super();
     this.setError = setError;
     this.setFieldErrors = setFieldErrors;
-    this.sessionClient = sessionClient ?? new GameSessionClient();
   }
 
   /**
@@ -54,9 +51,10 @@ export default class GameSessionNewController extends BasePageController {
   /**
    * Submit the new session form.
    *
-   * @description Prevents the default form submission, resets status and
-   *   field errors, sends a POST request, then redirects on success,
-   *   sets field errors on 400, or sets error status on other failures.
+   * @description Prevents the default form submission, resets status and field errors, sends a
+   *   POST request through {@link RequestStore.mutate} (issue #842, so the session collection's
+   *   cached `GET` data is purged on success), then redirects on success, sets field errors on
+   *   400, or sets error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {{title: string, date: string, description: string}} formValues - Raw form field values.
@@ -71,13 +69,18 @@ export default class GameSessionNewController extends BasePageController {
     setters.setStatus('submitting');
     setters.setFieldErrors({});
 
-    const token = AuthStorage.getToken();
-
     try {
-      const response = await this.sessionClient.createSession(gameSlug, token, {
-        title: formValues.title,
-        date: formValues.date || null,
-        description: formValues.description || null,
+      const response = await RequestStore.mutate({
+        componentName: 'GameSessionNewController',
+        resource: 'session',
+        method: 'POST',
+        quantityType: 'collection',
+        params: { gameSlug },
+        body: {
+          title: formValues.title,
+          date: formValues.date || null,
+          description: formValues.description || null,
+        },
       });
 
       await this.#handleResponse(response, gameSlug, setters);

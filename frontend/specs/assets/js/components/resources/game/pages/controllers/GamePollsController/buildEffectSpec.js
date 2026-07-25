@@ -2,13 +2,14 @@ import GamePollsController
   from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GamePollsController.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 
 describe('GamePollsController', function() {
   let setPolls;
   let setPagination;
   let setLoading;
   let setError;
-  let pollClient;
+  let ensureSpy;
   let fakeWindow;
 
   beforeEach(function() {
@@ -16,7 +17,12 @@ describe('GamePollsController', function() {
     setPagination = jasmine.createSpy('setPagination');
     setLoading = jasmine.createSpy('setLoading');
     setError = jasmine.createSpy('setError');
-    pollClient = jasmine.createSpyObj('pollClient', ['fetchPolls']);
+    ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
+      data: [],
+      pagination: {
+        page: 1, pages: 1, perPage: 10, total: 0,
+      },
+    }));
     fakeWindow = { location: { hash: '#/games/demo/polls' } };
     globalThis.window = fakeWindow;
   });
@@ -31,22 +37,30 @@ describe('GamePollsController', function() {
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({
         is_dm: true, is_player: false, is_superuser: false, is_staff: false,
       }));
-      const headers = new Map([['page', '1'], ['pages', '2'], ['per_page', '10']]);
-      pollClient.fetchPolls.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve([{ id: 1, title: 'Which tavern?', type: 'single', status: 'open' }]),
-        headers: { get: (key) => headers.get(key) },
+      ensureSpy.and.returnValue(Promise.resolve({
+        data: [{ id: 1, title: 'Which tavern?', type: 'single', status: 'open' }],
+        pagination: {
+          page: 1, pages: 2, perPage: 10, total: 11,
+        },
       }));
 
       const cleanup = new GamePollsController(
-        setPolls, setPagination, setLoading, setError, pollClient,
+        setPolls, setPagination, setLoading, setError,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');
-      expect(pollClient.fetchPolls).toHaveBeenCalledWith('demo', null, jasmine.any(URLSearchParams));
+      expect(ensureSpy).toHaveBeenCalledWith({
+        componentName: 'GamePollsController',
+        resource: 'poll',
+        quantityType: 'collection',
+        params: { gameSlug: 'demo' },
+        query: {},
+      });
       expect(setPolls).toHaveBeenCalledWith([{ id: 1, title: 'Which tavern?', type: 'single', status: 'open' }]);
-      expect(setPagination).toHaveBeenCalledWith({ page: 1, pages: 2, perPage: 10 });
+      expect(setPagination).toHaveBeenCalledWith({
+        page: 1, pages: 2, perPage: 10, total: 11,
+      });
       expect(setLoading).toHaveBeenCalledWith(false);
       expect(setError).not.toHaveBeenCalled();
 
@@ -57,16 +71,13 @@ describe('GamePollsController', function() {
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({
         is_dm: false, is_player: true, is_superuser: false, is_staff: false,
       }));
-      pollClient.fetchPolls.and.returnValue(Promise.resolve({
-        ok: true, json: () => Promise.resolve([]), headers: { get: () => null },
-      }));
 
       const cleanup = new GamePollsController(
-        setPolls, setPagination, setLoading, setError, pollClient,
+        setPolls, setPagination, setLoading, setError,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(pollClient.fetchPolls).toHaveBeenCalled();
+      expect(ensureSpy).toHaveBeenCalled();
 
       cleanup();
     });
@@ -77,12 +88,12 @@ describe('GamePollsController', function() {
       }));
 
       const cleanup = new GamePollsController(
-        setPolls, setPagination, setLoading, setError, pollClient,
+        setPolls, setPagination, setLoading, setError,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(fakeWindow.location.hash).toBe('/games/demo');
-      expect(pollClient.fetchPolls).not.toHaveBeenCalled();
+      expect(ensureSpy).not.toHaveBeenCalled();
 
       cleanup();
     });
@@ -91,22 +102,22 @@ describe('GamePollsController', function() {
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.reject(new Error('network error')));
 
       const cleanup = new GamePollsController(
-        setPolls, setPagination, setLoading, setError, pollClient,
+        setPolls, setPagination, setLoading, setError,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(fakeWindow.location.hash).toBe('/games/demo');
-      expect(pollClient.fetchPolls).not.toHaveBeenCalled();
+      expect(ensureSpy).not.toHaveBeenCalled();
 
       cleanup();
     });
 
     it('sets an error when the polls fetch fails', async function() {
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ is_dm: true }));
-      pollClient.fetchPolls.and.returnValue(Promise.reject(new Error('network error')));
+      ensureSpy.and.returnValue(Promise.reject(new Error('network error')));
 
       const cleanup = new GamePollsController(
-        setPolls, setPagination, setLoading, setError, pollClient,
+        setPolls, setPagination, setLoading, setError,
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -116,28 +127,11 @@ describe('GamePollsController', function() {
       cleanup();
     });
 
-    it('sets an error when the response is not ok', async function() {
-      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ is_dm: true }));
-      pollClient.fetchPolls.and.returnValue(Promise.resolve({ ok: false }));
-
-      const cleanup = new GamePollsController(
-        setPolls, setPagination, setLoading, setError, pollClient,
-      ).buildEffect()();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      expect(setError).toHaveBeenCalledWith('Unable to load polls.');
-
-      cleanup();
-    });
-
     it('does not update state after unmount', async function() {
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ is_dm: true }));
-      pollClient.fetchPolls.and.returnValue(Promise.resolve({
-        ok: true, json: () => Promise.resolve([]), headers: { get: () => null },
-      }));
 
       const cleanup = new GamePollsController(
-        setPolls, setPagination, setLoading, setError, pollClient,
+        setPolls, setPagination, setLoading, setError,
       ).buildEffect()();
       cleanup();
       await new Promise((resolve) => setTimeout(resolve, 0));

@@ -1,5 +1,6 @@
 import GameSessionClient from '../../../../../client/GameSessionClient.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
 
@@ -57,25 +58,32 @@ export default class SessionMessagesController extends BasePageController {
   }
 
   /**
-   * Submit a new message, then, on success, clear the input and reload the first page of
-   * messages so the newly-posted entry shows up; on a validation failure, surface the returned
-   * field errors instead. Matches `GameSessionController#submitPoll`'s
+   * Submit a new message through {@link RequestStore.mutate} (issue #842, so the session's
+   * cached `GET` data is purged on success), then, on success, clear the input and reload the
+   * first page of messages so the newly-posted entry shows up; on a validation failure, surface
+   * the returned field errors instead. Matches `GameSessionController#submitPoll`'s
    * fetch-then-handle-response shape.
    *
    * @param {string} gameSlug - Game slug.
    * @param {number|string} sessionId - Session id.
-   * @param {string|null} token - Authentication token, if any.
    * @param {string} content - Message content to post.
    * @param {{setContent: Function, setFieldErrors: Function, setPosting: Function}} setters -
    *   Page state setters.
    * @returns {Promise<void>} Resolves once the outcome has been fully applied.
    */
-  async postMessage(gameSlug, sessionId, token, content, setters) {
+  async postMessage(gameSlug, sessionId, content, setters) {
     setters.setPosting(true);
     setters.setFieldErrors({});
 
     try {
-      const response = await this.client.createMessage(gameSlug, sessionId, token, content);
+      const response = await RequestStore.mutate({
+        componentName: 'SessionMessagesController',
+        resource: 'session',
+        method: 'POST',
+        quantityType: 'message',
+        params: { gameSlug, id: sessionId },
+        body: { content },
+      });
 
       await this.#handlePostResponse(response, gameSlug, sessionId, setters);
     } finally {

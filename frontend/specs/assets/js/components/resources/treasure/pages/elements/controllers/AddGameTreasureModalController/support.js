@@ -1,5 +1,5 @@
 export const buildTreasureClient = () => jasmine.createSpyObj('treasureClient', [
-  'fetchMissingGameTreasuresPage', 'linkGameTreasure',
+  'fetchMissingGameTreasuresPage',
 ]);
 
 export const buildResponse = (status, body, headers = {}) => ({

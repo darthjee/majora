@@ -6,10 +6,9 @@ describe('StaffUsersController', function() {
   let setPagination;
   let setLoading;
   let setError;
-  let client;
 
   beforeEach(function() {
-    ({ setUsers, setPagination, setLoading, setError, client } = buildContext());
+    ({ setUsers, setPagination, setLoading, setError } = buildContext());
   });
 
   describe('#handleCopyRecoveryLink', function() {
@@ -37,7 +36,7 @@ describe('StaffUsersController', function() {
       stubClipboard(writeText);
       const setRecoveryLinks = jasmine.createSpy('setRecoveryLinks');
 
-      const controller = new StaffUsersController(setUsers, setPagination, setLoading, setError, client);
+      const controller = new StaffUsersController(setUsers, setPagination, setLoading, setError);
       await controller.handleCopyRecoveryLink(1, 'http://example.com/recover', {}, setRecoveryLinks);
 
       expect(writeText).toHaveBeenCalledWith('http://example.com/recover');
@@ -51,7 +50,7 @@ describe('StaffUsersController', function() {
       stubClipboard(writeText);
       const setRecoveryLinks = jasmine.createSpy('setRecoveryLinks');
 
-      const controller = new StaffUsersController(setUsers, setPagination, setLoading, setError, client);
+      const controller = new StaffUsersController(setUsers, setPagination, setLoading, setError);
 
       await expectAsync(
         controller.handleCopyRecoveryLink(1, 'http://example.com/recover', {}, setRecoveryLinks),

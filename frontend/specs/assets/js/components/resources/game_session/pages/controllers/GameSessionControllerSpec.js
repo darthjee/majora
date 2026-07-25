@@ -1,6 +1,7 @@
 import GameSessionController
   from '../../../../../../../../assets/js/components/resources/game_session/pages/controllers/GameSessionController.js';
 import AuthStorage from '../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import RequestStore from '../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import { stubEnsureGamePermissions } from '../../../game/pages/controllers/GameController/support.js';
 
 describe('GameSessionController', function() {
@@ -200,22 +201,19 @@ describe('GameSessionController', function() {
 
   describe('#submitPoll', function() {
     let setPollStatus;
-    let sessionClient;
 
     beforeEach(function() {
       setPollStatus = jasmine.createSpy('setPollStatus');
-      sessionClient = jasmine.createSpyObj('sessionClient', ['createSessionPoll']);
-      spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
     });
 
     it('marks the poll submission as submitting and sends the dates payload', async function() {
-      sessionClient.createSessionPoll.and.returnValue(Promise.resolve({
+      const mutateSpy = spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         status: 201,
         json: () => Promise.resolve({ id: 9 }),
       }));
 
       const controller = new GameSessionController(
-        jasmine.createSpy('setSession'), jasmine.createSpy('setLoading'), jasmine.createSpy('setError'), sessionClient,
+        jasmine.createSpy('setSession'), jasmine.createSpy('setLoading'), jasmine.createSpy('setError'),
       );
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
@@ -224,22 +222,27 @@ describe('GameSessionController', function() {
         await controller.submitPoll('demo', 7, ['2024-01-01', '2024-01-02'], 'single', { setPollStatus });
 
         expect(setPollStatus).toHaveBeenCalledWith('submitting');
-        expect(sessionClient.createSessionPoll).toHaveBeenCalledWith(
-          'demo', 7, 'tok-abc', ['2024-01-01', '2024-01-02'], 'single',
-        );
+        expect(mutateSpy).toHaveBeenCalledWith({
+          componentName: 'GameSessionController',
+          resource: 'session',
+          method: 'POST',
+          quantityType: 'pollProposal',
+          params: { gameSlug: 'demo', id: 7 },
+          body: { dates: ['2024-01-01', '2024-01-02'], type: 'single' },
+        });
       } finally {
         delete globalThis.window;
       }
     });
 
     it('redirects to the new poll detail page on a 201 response', async function() {
-      sessionClient.createSessionPoll.and.returnValue(Promise.resolve({
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         status: 201,
         json: () => Promise.resolve({ id: 9 }),
       }));
 
       const controller = new GameSessionController(
-        jasmine.createSpy('setSession'), jasmine.createSpy('setLoading'), jasmine.createSpy('setError'), sessionClient,
+        jasmine.createSpy('setSession'), jasmine.createSpy('setLoading'), jasmine.createSpy('setError'),
       );
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
@@ -254,13 +257,13 @@ describe('GameSessionController', function() {
     });
 
     it('marks the poll submission as failed on a non-201 response', async function() {
-      sessionClient.createSessionPoll.and.returnValue(Promise.resolve({
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         status: 403,
         json: () => Promise.resolve({}),
       }));
 
       const controller = new GameSessionController(
-        jasmine.createSpy('setSession'), jasmine.createSpy('setLoading'), jasmine.createSpy('setError'), sessionClient,
+        jasmine.createSpy('setSession'), jasmine.createSpy('setLoading'), jasmine.createSpy('setError'),
       );
 
       await controller.submitPoll('demo', 7, ['2024-01-01'], 'multiple', { setPollStatus });
@@ -269,10 +272,10 @@ describe('GameSessionController', function() {
     });
 
     it('marks the poll submission as failed when the request throws', async function() {
-      sessionClient.createSessionPoll.and.returnValue(Promise.reject(new Error('network error')));
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.reject(new Error('network error')));
 
       const controller = new GameSessionController(
-        jasmine.createSpy('setSession'), jasmine.createSpy('setLoading'), jasmine.createSpy('setError'), sessionClient,
+        jasmine.createSpy('setSession'), jasmine.createSpy('setLoading'), jasmine.createSpy('setError'),
       );
 
       await controller.submitPoll('demo', 7, ['2024-01-01'], 'multiple', { setPollStatus });

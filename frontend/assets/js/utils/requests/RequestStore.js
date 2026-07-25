@@ -35,7 +35,7 @@ export default class RequestStore {
    *   request (e.g. `'CharacterController'`, `'GameController'`), attached to the request's
    *   debug log (see {@link RequestStoreLogging}).
    * @param {string} args.resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'treasure'`,
-   *   `'session'`, `'document'`).
+   *   `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`).
    * @param {string} args.quantityType - `'collection'` or `'single'`.
    * @param {object} [args.params] - Concrete params (`gameSlug`, `id`, etc.).
    * @param {object} [args.query] - Query/filters.

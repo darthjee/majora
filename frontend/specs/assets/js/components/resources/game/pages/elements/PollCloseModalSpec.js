@@ -87,7 +87,7 @@ describe('PollCloseModal', function() {
     captured.handlers.onSubmit();
 
     expect(PollCloseModalController.prototype.closePoll).toHaveBeenCalledWith(
-      'demo', 7, null, null, jasmine.objectContaining({ onClosed: jasmine.any(Function) })
+      'demo', 7, null, jasmine.objectContaining({ onClosed: jasmine.any(Function) })
     );
   });
 });

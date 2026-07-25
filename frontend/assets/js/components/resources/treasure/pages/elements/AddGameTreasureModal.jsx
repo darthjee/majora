@@ -106,12 +106,11 @@ export default function AddGameTreasureModal({
   };
 
   const handleSubmit = () => {
-    const token = AuthStorage.getToken();
     const payload = buildLinkPayload(selected, formState);
 
     setSubmitting(true);
 
-    controller.link(gameSlug, token, payload).then((result) => {
+    controller.link(gameSlug, payload).then((result) => {
       setSubmitting(false);
 
       if (!result.ok) {

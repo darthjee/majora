@@ -1,6 +1,5 @@
-import StaffUserClient from '../../../../../client/StaffUserClient.js';
-import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BaseEditController from '../../../../common/base/controllers/BaseEditController.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../../utils/Noop.js';
@@ -27,18 +26,16 @@ export default class StaffUserEditController extends BaseEditController {
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - General error setter.
    * @param {Function} [setFieldErrors] - Per-field error setter.
-   * @param {StaffUserClient|null} [client] - Client override.
    */
   constructor(
-    setUser, setLoading, setError, setFieldErrors = Noop.noop, client = null,
+    setUser, setLoading, setError, setFieldErrors = Noop.noop,
   ) {
     super(setUser, setLoading, setError, setFieldErrors);
-    this.client = client ?? new StaffUserClient();
   }
 
   /**
-   * Load the staff user to edit, gated on the current user being staff or a
-   * superuser (redirects home otherwise).
+   * Load the staff user to edit, through {@link RequestStore.ensure} (issue #842), gated on the
+   * current user being staff or a superuser (redirects home otherwise).
    *
    * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
    * @param {Function} isMounted - Returns whether the page is still mounted.
@@ -64,18 +61,23 @@ export default class StaffUserEditController extends BaseEditController {
         return;
       }
 
-      const token = AuthStorage.getToken();
-
-      this.fetchSingle(this.client.fetchUser(id, token), safeSet, true);
+      this.fetchSingleData(
+        RequestStore.ensure({
+          componentName: 'StaffUserEditController', resource: 'staffUser', quantityType: 'single', params: { id },
+        }),
+        safeSet,
+        true,
+      );
     });
   }
 
   /**
    * Submit a partial update for the user's name and/or email.
    *
-   * @description Prevents the default form submission, resets status and
-   *   field errors, sends a PATCH request, then redirects on success,
-   *   sets field errors on 400, or sets error status on other failures.
+   * @description Prevents the default form submission, resets status and field errors, sends a
+   *   PATCH request through {@link RequestStore.mutate} (issue #842, so the user's cached `GET`
+   *   data is purged on success), then redirects on success, sets field errors on 400, or sets
+   *   error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string|number} id - User id.
    * @param {{name: string, email: string}} formValues - Raw form field values.
@@ -83,14 +85,19 @@ export default class StaffUserEditController extends BaseEditController {
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
   submitForm(event, id, formValues, setters) {
-    const token = AuthStorage.getToken();
-
     return this.performSubmit(
       event,
       setters,
-      () => this.client.updateUser(id, token, {
-        name: formValues.name,
-        email: formValues.email,
+      () => RequestStore.mutate({
+        componentName: 'StaffUserEditController',
+        resource: 'staffUser',
+        method: 'PATCH',
+        quantityType: 'single',
+        params: { id },
+        body: {
+          name: formValues.name,
+          email: formValues.email,
+        },
       }),
       `/staff/users/${id}`,
     );

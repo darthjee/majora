@@ -4,6 +4,7 @@ import GameSession from '../../../../../../../assets/js/components/resources/gam
 import GameSessionController from '../../../../../../../assets/js/components/resources/game_session/pages/controllers/GameSessionController.js';
 import SessionMessagesController from '../../../../../../../assets/js/components/resources/game_session/pages/controllers/SessionMessagesController.js';
 import GameSessionHelper from '../../../../../../../assets/js/components/resources/game_session/pages/helpers/GameSessionHelper.jsx';
+import RequestStore from '../../../../../../../assets/js/utils/requests/RequestStore.js';
 import { stubBuildEffect, stubRenderLoading, captureConstructorFields } from '../../../../../../support/controllerStubs.js';
 
 describe('GameSession', function() {
@@ -51,9 +52,9 @@ describe('GameSession', function() {
     // `loading` stays true). As with the SessionMessagesController wiring
     // test above, we instead capture the real, fully-wired GameSessionController
     // instance GameSession constructs and exercise `submitPoll` on it
-    // directly, proving GameSession wires a working controller (real
-    // sessionClient included) for the poll submit handler to call.
-    const fields = ['setSession', 'setLoading', 'setError', 'sessionClient'];
+    // directly, proving GameSession wires a working controller for the poll
+    // submit handler to call, which dispatches through RequestStore (issue #842).
+    const fields = ['setSession', 'setLoading', 'setError'];
     let capture;
 
     afterEach(function() {
@@ -63,14 +64,14 @@ describe('GameSession', function() {
     it('redirects to the new poll on a successful submission', async function() {
       stubBuildEffect(GameSessionController);
       capture = captureConstructorFields(GameSessionController, fields);
+      const mutateSpy = spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
+        status: 201,
+        json: () => Promise.resolve({ id: 9 }),
+      }));
 
       renderToStaticMarkup(React.createElement(GameSession));
 
       const instance = capture.getInstance();
-      spyOn(instance.sessionClient, 'createSessionPoll').and.returnValue(Promise.resolve({
-        status: 201,
-        json: () => Promise.resolve({ id: 9 }),
-      }));
       const setPollStatus = jasmine.createSpy('setPollStatus');
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
@@ -78,9 +79,14 @@ describe('GameSession', function() {
       try {
         await instance.submitPoll('demo', 7, ['2024-01-01'], 'multiple', { setPollStatus });
 
-        expect(instance.sessionClient.createSessionPoll).toHaveBeenCalledWith(
-          'demo', 7, null, ['2024-01-01'], 'multiple',
-        );
+        expect(mutateSpy).toHaveBeenCalledWith({
+          componentName: 'GameSessionController',
+          resource: 'session',
+          method: 'POST',
+          quantityType: 'pollProposal',
+          params: { gameSlug: 'demo', id: 7 },
+          body: { dates: ['2024-01-01'], type: 'multiple' },
+        });
         expect(fakeWindow.location.hash).toBe('/games/demo/polls/9');
       } finally {
         delete globalThis.window;
@@ -90,14 +96,14 @@ describe('GameSession', function() {
     it('marks the poll submission as failed on a non-201 response', async function() {
       stubBuildEffect(GameSessionController);
       capture = captureConstructorFields(GameSessionController, fields);
+      spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
+        status: 403,
+        json: () => Promise.resolve({}),
+      }));
 
       renderToStaticMarkup(React.createElement(GameSession));
 
       const instance = capture.getInstance();
-      spyOn(instance.sessionClient, 'createSessionPoll').and.returnValue(Promise.resolve({
-        status: 403,
-        json: () => Promise.resolve({}),
-      }));
       const setPollStatus = jasmine.createSpy('setPollStatus');
 
       await instance.submitPoll('demo', 7, ['2024-01-01'], 'multiple', { setPollStatus });
