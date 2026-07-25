@@ -82,6 +82,13 @@ class TestStaffUserApproveView(TokenAuthRequestMixin, TestCase):
         response = self._post(self.client, 999999, token=self.superuser_token)
         assert response.status_code == 404
 
+    def test_non_integer_user_id_returns_400(self):
+        """Test that a non-integer user_id returns a clean 400 instead of a 500."""
+        response = self._post(self.client, 'abc', token=self.superuser_token)
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'errors' in data
+
     def test_already_approved_user_returns_422(self):
         """Test that approving an already-approved user returns 422."""
         approved_user = UserFactory(username='already', password='secret-password')

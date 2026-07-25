@@ -25,7 +25,11 @@ def staff_user_deny(request):
     if error_response:
         return error_response
 
-    user = get_object_or_404(User, pk=request.data.get('user_id'))
+    user_id, error_response = _parse_user_id(request)
+    if error_response:
+        return error_response
+
+    user = get_object_or_404(User, pk=user_id)
     profile, _ = UserProfile.objects.get_or_create(user=user)
 
     profile.status = UserProfile.STATUS_DENIED
@@ -33,6 +37,15 @@ def staff_user_deny(request):
     Token.objects.filter(user=user).delete()
 
     return _skip_cache(Response(StaffUserListSerializer(user).data))
+
+
+def _parse_user_id(request):
+    """Return a `(user_id, None)` tuple, or `(None, Response)` if it's not an integer."""
+    try:
+        return int(request.data.get('user_id')), None
+    except (TypeError, ValueError):
+        errors = {'user_id': ['must be an integer']}
+        return None, _skip_cache(Response({'errors': errors}, status=400))
 
 
 def _skip_cache(response):
