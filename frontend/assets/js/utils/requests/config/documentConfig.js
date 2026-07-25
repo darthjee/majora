@@ -28,8 +28,22 @@
  *   `GameDocumentCreatePermission` (a strict superset of `GameEditPermission` — staff always
  *   included); no restricted/full variant exists for creation itself, so `regular`/`private`
  *   point at the exact same object.
+ *
+ *   `POST.single` (photo-upload init, issue #727) mirrors `itemConfig.js`'s own game-owned
+ *   `photoUploadInit` shape, but unbranched — there is no character-owned `CharacterDocument`
+ *   photo-upload path to split against (out of scope for issue #727), so `regular`/`private`
+ *   point at the exact same object. Params: `gameSlug`, `id` (the `GameDocument`'s own id).
+ *   Gated by `GameDocumentPhotoUploadPermission` on the backend (staff, any player of the game,
+ *   or the game's dm/editor) — `permission` is `null` here, matching `itemConfig.js`'s own
+ *   `photoUploadInit`, since the upload init endpoint itself carries no `can_edit`-style flag to
+ *   resolve against.
  */
 const gameDocumentCreate = { path: ({ gameSlug }) => `/games/${gameSlug}/documents.json`, permission: 'can_edit' };
+
+const documentPhotoUploadInit = {
+  path: ({ gameSlug, id }) => `/games/${gameSlug}/documents/${id}/photo_upload.json`,
+  permission: null,
+};
 
 export default {
   GET: {
@@ -56,5 +70,6 @@ export default {
   },
   POST: {
     gameCollection: { regular: gameDocumentCreate, private: gameDocumentCreate },
+    single: { regular: documentPhotoUploadInit, private: documentPhotoUploadInit },
   },
 };

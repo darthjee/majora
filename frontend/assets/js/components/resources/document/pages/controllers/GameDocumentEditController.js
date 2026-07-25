@@ -4,34 +4,34 @@ import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 
 /**
- * Controller for the game document detail page (issue #758, photo upload gating added in #727).
+ * Controller for the game document edit page (issue #727) — photo-upload-only, since no
+ * `PATCH .../documents/:id.json` endpoint exists yet (issue #758 scope decision, unchanged by
+ * this issue).
  *
  * @description Fetches the `GameDocument` through `RequestStore.ensure({resource: 'document',
- *   quantityType: 'single', params: {gameSlug, kind: 'game', id}})`, which internally resolves
- *   the requester's game-level edit permission (via `RequestPermissionResolvers`) to pick
- *   between the full, hidden-inclusive `documents/:id/full.json` and the player-facing
- *   `documents/:id.json`, fail-closed on a rejected permissions check. Independently derives
- *   `canUploadPhoto` from `AccessStore.ensureGameAccess`, run concurrently with the document
- *   fetch rather than chained after it, mirroring `GameItemController`'s own
- *   `#loadCanUploadPhoto`. Unlike `GameItemController`, this page has no separate `canEdit`
- *   derivation — its Edit button (issue #727) reuses the same `canUploadPhoto` flag, since there
- *   is no separate general "edit" permission for documents.
+ *   quantityType: 'single', params: {gameSlug, kind: 'game', id}})`, the same single-document
+ *   fetch `GameDocumentController` uses for the show page — there is nothing DM-only to reveal
+ *   here beyond what the show page already fetches, so no separate `full.json` need.
+ *   Independently derives `canUploadPhoto` from `AccessStore.ensureGameAccess`, run concurrently
+ *   with the document fetch, mirroring `GameDocumentController`'s own `#loadCanUploadPhoto` — the
+ *   edit route being reachable by direct URL, not only via the show page's already-gated Edit
+ *   button, still needs its own gate for the upload affordance.
  */
-export default class GameDocumentController extends BasePageController {
+export default class GameDocumentEditController extends BasePageController {
   /**
-   * Extract the game slug and document id from a game document detail hash.
+   * Extract the game slug and document id from a game document edit hash.
    *
    * @param {string} hash - Current hash.
-   * @returns {object} Route params (`game_slug`, `id`).
+   * @returns {{game_slug: string, id: string}} Route params.
    */
   static getParamsFromHash(hash = '') {
     return BasePageController.extractParams(
-      '/games/:game_slug/documents/:id', hash, ['game_slug', 'id'],
+      '/games/:game_slug/documents/:id/edit', hash, ['game_slug', 'id'],
     );
   }
 
   /**
-   * Create a game document controller.
+   * Create a game document edit controller.
    *
    * @param {Function} setDocument - Document setter.
    * @param {Function} setLoading - Loading setter.
@@ -57,7 +57,7 @@ export default class GameDocumentController extends BasePageController {
     return () => {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
-      const params = GameDocumentController.getParamsFromHash(this.client.currentHash());
+      const params = GameDocumentEditController.getParamsFromHash(this.client.currentHash());
 
       if (!params.game_slug || !params.id) {
         safeSet(this.setError, 'Unable to load document.');
@@ -76,7 +76,7 @@ export default class GameDocumentController extends BasePageController {
     this.#loadCanUploadPhoto(params.game_slug, safeSet);
 
     return RequestStore.ensure({
-      componentName: 'GameDocumentController',
+      componentName: 'GameDocumentEditController',
       resource: 'document',
       quantityType: 'single',
       params: { gameSlug: params.game_slug, kind: 'game', id: params.id },
@@ -88,7 +88,7 @@ export default class GameDocumentController extends BasePageController {
 
   #loadCanUploadPhoto(gameSlug, safeSet) {
     return AccessStore.ensureGameAccess(gameSlug)
-      .then((access) => GameDocumentController.#canUploadPhoto(access))
+      .then((access) => GameDocumentEditController.#canUploadPhoto(access))
       .catch(() => false)
       .then((canUploadPhoto) => safeSet(this.setCanUploadPhoto, canUploadPhoto));
   }

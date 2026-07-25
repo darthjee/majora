@@ -17,19 +17,19 @@ import DocumentSubmitButton
 import DescriptionBox from '../../../../../../../../assets/js/components/common/misc/DescriptionBox.jsx';
 
 describe('documentShowType', function() {
-  it('offers the photo in the left column, only for show (no new/edit photo variant)', function() {
+  it('offers the photo in the left column for show, edit, and new', function() {
     const photoEntry = documentShowType.left.find((entry) => entry === DocumentPhoto);
 
     expect(photoEntry.Show).toBeDefined();
-    expect(photoEntry.New).toBeUndefined();
-    expect(photoEntry.Edit).toBeUndefined();
+    expect(photoEntry.Edit).toBeDefined();
+    expect(photoEntry.New).toBeDefined();
   });
 
-  it('shows the name heading only in show mode', function() {
+  it('shows the name heading in show and edit mode, but not new', function() {
     const nameEntry = documentShowType.left.find((entry) => entry.Show === DocumentNameHeading);
 
+    expect(nameEntry.Edit).toBe(DocumentNameHeading);
     expect(nameEntry.New).toBeUndefined();
-    expect(nameEntry.Edit).toBeUndefined();
   });
 
   it('renders the title only in new mode', function() {
@@ -46,13 +46,13 @@ describe('documentShowType', function() {
     expect(nameEntry.Edit).toBeUndefined();
   });
 
-  it('shows the description via DescriptionBox and edits it via DocumentDescriptionField in new mode', function() {
+  it('shows the description via DescriptionBox in show and edit mode, and edits it via DocumentDescriptionField in new mode', function() {
     const descriptionEntry = documentShowType.right.find(
       (entry) => entry.Show === DescriptionBox,
     );
 
+    expect(descriptionEntry.Edit).toBe(DescriptionBox);
     expect(descriptionEntry.New).toBe(DocumentDescriptionField);
-    expect(descriptionEntry.Edit).toBeUndefined();
   });
 
   it('renders the hidden switch only in new mode, inline with the other fields', function() {

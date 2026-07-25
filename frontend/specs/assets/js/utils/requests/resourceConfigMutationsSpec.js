@@ -98,6 +98,14 @@ describe('resourceConfig mutations (issue #841)', function() {
       expect(gameCollection.regular.path({ gameSlug: 'demo' })).toBe('/games/demo/documents.json');
       expect(gameCollection.regular.permission).toBe('can_edit');
     });
+
+    it('resolves POST.single (photo upload init) as a single un-branched variant (issue #727)', function() {
+      const single = resourceConfig.get('POST', 'document', 'single');
+
+      expect(single.regular).toBe(single.private);
+      expect(single.regular.path({ gameSlug: 'demo', id: '9' })).toBe('/games/demo/documents/9/photo_upload.json');
+      expect(single.regular.permission).toBeNull();
+    });
   });
 });
 

@@ -409,6 +409,9 @@ document_new_page:
   hidden_label: Hidden
   submit: Create Document
   error: Failed to create document. Please try again.
+  photo_upload_failed: Failed to upload the photo. The document was created — you can retry the upload or skip it for now.
+  retry_photo_upload: Retry photo upload
+  skip_photo_upload: Skip and continue
 document_page:
   loading: Loading document...
   hidden_label: Hidden

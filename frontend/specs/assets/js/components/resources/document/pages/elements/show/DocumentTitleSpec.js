@@ -20,4 +20,16 @@ describe('DocumentTitle', function() {
 
     expect(html).not.toContain('alert');
   });
+
+  it('renders the photo-upload-failed alert with retry/skip actions', function() {
+    const handlers = {
+      onRetryPhotoUpload: jasmine.createSpy('onRetryPhotoUpload'),
+      onSkipPhotoUpload: jasmine.createSpy('onSkipPhotoUpload'),
+    };
+    const html = renderToStaticMarkup(DocumentTitle({ status: 'photo-upload-failed', handlers }));
+
+    expect(html).toContain('Failed to upload the photo. The document was created');
+    expect(html).toContain('Retry photo upload');
+    expect(html).toContain('Skip and continue');
+  });
 });
