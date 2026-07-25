@@ -10,7 +10,7 @@ import { buildCharacterHiddenField } from '../../../../resources/character/pages
 import { buildCharacterAllegianceFields } from '../../../../resources/character/pages/elements/show/CharacterAllegianceFieldsSlot.jsx';
 import CharacterPublicSlainFieldSlot from '../../../../resources/character/pages/elements/show/CharacterPublicSlainFieldSlot.jsx';
 import { buildCharacterSubmitButton } from '../../../../resources/character/pages/elements/show/CharacterSubmitSlot.jsx';
-import CharacterPreviewSectionsSlot from '../../../../resources/character/pages/elements/show/CharacterPreviewSectionsSlot.jsx';
+import buildShortListSlot from '../../../cards/buildShortListSlot.js';
 import CharacterPhotosPreviewSlot from '../../../../resources/character/pages/elements/show/CharacterPhotosPreviewSlot.jsx';
 import NpcNewPhotoUploadFailedAlert from '../../../../resources/character/pages/elements/show/NpcNewPhotoUploadFailedAlert.jsx';
 
@@ -88,7 +88,9 @@ const npcShowType = {
     { Show: CharacterDmNotesShow, New: npcDmNotesField, Edit: npcDmNotesField },
     { New: npcAllegianceFields, Edit: npcAllegianceFields },
     { Edit: CharacterPublicSlainFieldSlot },
-    { Show: CharacterPreviewSectionsSlot },
+    { Show: buildShortListSlot('treasure') },
+    { Show: buildShortListSlot('item') },
+    { Show: buildShortListSlot('document') },
     { New: npcSubmitButton, Edit: npcSubmitButton },
   ],
   bottom: [

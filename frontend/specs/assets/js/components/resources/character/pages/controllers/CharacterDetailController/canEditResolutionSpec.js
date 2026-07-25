@@ -29,9 +29,6 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
 
       expect(setCharacter).toHaveBeenCalledWith({
         id: 2,
-        treasures: [],
-        items: [],
-        documents: [],
         photos: [],
         game_type: 'dnd',
         can_edit: false,

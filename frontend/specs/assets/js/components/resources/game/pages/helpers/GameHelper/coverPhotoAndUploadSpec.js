@@ -33,7 +33,7 @@ describe('GameHelper', function() {
     it('passes onOpenUploadModal through to the show page layout context', function() {
       const onOpenUploadModal = jasmine.createSpy('onOpenUploadModal');
       const editableGame = { ...game, can_edit: true };
-      const element = GameHelper.render(editableGame, [], [], { onOpenUploadModal });
+      const element = GameHelper.render(editableGame, { onOpenUploadModal });
 
       expect(element.props.context.handlers.onOpenUploadModal).toBe(onOpenUploadModal);
     });

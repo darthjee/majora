@@ -10,6 +10,20 @@ import GameTypeSelect
   from '../../../../../../../../assets/js/components/resources/game/pages/elements/show/GameTypeSelect.jsx';
 
 describe('gameShowType', function() {
+  it('shows the pc/npc shortlists only on the show page', function() {
+    const shortListEntries = gameShowType.right.filter(
+      (entry) => entry.Show && entry.Show.name === 'ShortListSlot',
+    );
+    const resources = shortListEntries.map((entry) => entry.Show({}).props.resource);
+
+    expect(resources).toEqual(['pc', 'npc']);
+    shortListEntries.forEach((entry) => {
+      expect(entry.New).toBeUndefined();
+      expect(entry.Edit).toBeUndefined();
+    });
+  });
+
+
   it('only offers a left column for show and edit, not new', function() {
     const coverPhotoEntry = gameShowType.left.find((entry) => entry.Show === GameCoverPhoto);
 

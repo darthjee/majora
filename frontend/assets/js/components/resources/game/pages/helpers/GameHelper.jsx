@@ -29,12 +29,10 @@ export default class GameHelper {
    *   open-polls widget.
    * @param {boolean} [game.is_staff] - Whether the current user is staff, gating the open-polls
    *   widget.
-   * @param {object[]} [pcs] - PCs preview list.
-   * @param {object[]} [npcs] - NPCs preview list.
    * @param {{onOpenUploadModal: Function}} [handlers] - Event handlers.
    * @returns {React.ReactElement} Game detail element.
    */
-  static render(game, pcs = [], npcs = [], handlers = {}) {
+  static render(game, handlers = {}) {
     return (
       <ShowPageLayout
         type="game"
@@ -47,7 +45,7 @@ export default class GameHelper {
             </EditButton>
           </ConditionalComponent>
         )}
-        context={{ ...game, pcs, npcs, handlers }}
+        context={{ ...game, handlers }}
       />
     );
   }
