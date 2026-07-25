@@ -24,10 +24,10 @@ export class StubCharacterController extends CharacterController {
 export const safeSet = (setter, value) => setter(value);
 
 /**
- * @description Builds a StubCharacterController wired with the given overrides. Treasures/
- *   items/documents fetches go through `RequestStore.ensure` directly (not an overridable
- *   hook on the controller itself) — stub that in the spec file via `spyOn(RequestStore,
- *   'ensure')` instead of through `overrides`.
+ * @description Builds a StubCharacterController wired with the given overrides. The base
+ *   character fetch goes through `RequestStore.ensure` directly (not an overridable hook on
+ *   the controller itself) — stub that in the spec file via `spyOn(RequestStore, 'ensure')`
+ *   instead of through `overrides`.
  * @param {Function} setCharacter - setter for the loaded character.
  * @param {object} overrides - fake implementations for the fetch hooks.
  * @returns {StubCharacterController} the built controller.

@@ -12,8 +12,8 @@ import CharacterListsController from './CharacterListsController.js';
  *
  * @description Parameterized by `characterKind` (`'pcs'` or `'npcs'`) so a single
  *   implementation covers both, delegating to {@link CharacterClient}'s parameterized methods.
- *   Extends {@link CharacterListsController} (treasures/items/documents/photos fetch+merge) to
- *   keep both files under the project's per-file line limit.
+ *   Extends {@link CharacterListsController} (photos fetch+merge) to keep both files under the
+ *   project's per-file line limit.
  *
  *   The base character fetch goes through `RequestStore.ensure({resource: 'pc'|'npc',
  *   quantityType: 'single', params: {gameSlug, id: characterId}})`, which resolves the
@@ -170,9 +170,11 @@ export default class CharacterController extends CharacterListsController {
   }
 
   /**
-   * Load the character, merge treasures/items/documents/photos/game_type/access, and update
-   * loading state.
+   * Load the character, merge photos/game_type/access, and update loading state.
    *
+   * @description Treasures/items/documents preview lists are no longer fetched/merged here —
+   *   the `ShortList` element fetches them itself, through `RequestStore`, driven by
+   *   `shortListResourceConfig` (issue #856).
    * @param {object} params - Route params with game_slug and character_id.
    * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
    * @returns {Promise<void>} Resolves once the character state is updated.
@@ -187,9 +189,6 @@ export default class CharacterController extends CharacterListsController {
       params: { gameSlug: params.game_slug, id: params.character_id },
     })
       .then(({ data }) => data)
-      .then((character) => this.fetchAndMergeTreasures(character, params))
-      .then((character) => this.fetchAndMergeItems(character, params))
-      .then((character) => this.fetchAndMergeDocuments(character, params))
       .then((character) => this.fetchAndMergePhotos(character, params, token))
       .then((character) => this.fetchAndMergeGameType(character, params, token))
       .then((character) => this.fetchAndMergeAccess(character, params, token, safeSet))

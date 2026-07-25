@@ -2,9 +2,11 @@
  * Resolves one of a character's preview list fields onto a loaded character, degrading to an
  * empty array on failure rather than failing the whole character page load. `merge` handles the
  * `Response`-based path, currently only used by `CharacterController#fetchAndMergePhotos`;
- * `mergeResource` handles the `RequestStore.ensure()`-based path used by
- * `CharacterListsController#fetchAndMergeTreasures`/`#fetchAndMergeItems`/
- * `#fetchAndMergeDocuments`.
+ * `mergeResource` handles the generic `RequestStore.ensure()`-based path, kept as a shared
+ * utility even though the treasures/items/documents preview lists it used to back
+ * (`CharacterListsController#fetchAndMergeTreasures`/`#fetchAndMergeItems`/
+ * `#fetchAndMergeDocuments`) are now fetched independently by the `ShortList` element itself
+ * (issue #856).
  */
 export default class CharacterListMerger {
   /**

@@ -4,10 +4,20 @@ import CharacterAvatarSlot
   from '../../../../../../../../assets/js/components/resources/character/pages/elements/show/CharacterAvatarSlot.jsx';
 import CharacterPublicSlainFieldSlot
   from '../../../../../../../../assets/js/components/resources/character/pages/elements/show/CharacterPublicSlainFieldSlot.jsx';
-import CharacterPreviewSectionsSlot
-  from '../../../../../../../../assets/js/components/resources/character/pages/elements/show/CharacterPreviewSectionsSlot.jsx';
 import CharacterPhotosPreviewSlot
   from '../../../../../../../../assets/js/components/resources/character/pages/elements/show/CharacterPhotosPreviewSlot.jsx';
+
+/**
+ * Extract `npcShowType`'s `buildShortListSlot(...)`-built entries (the treasure/item/document
+ * shortlists), identifying them by their shared factory-assigned function name (a fresh closure
+ * is built per call, so they cannot be compared via `toBe` against an import).
+ *
+ * @param {Array<Function|object>} entries - A show type's `right` slot entries.
+ * @returns {object[]} The matching `{ Show }` entries, in declaration order.
+ */
+function findShortListEntries(entries) {
+  return entries.filter((entry) => entry.Show && entry.Show.name === 'ShortListSlot');
+}
 
 describe('npcShowType', function() {
   it('shares the avatar slot verbatim with pcShowType', function() {
@@ -57,11 +67,15 @@ describe('npcShowType', function() {
     expect(slainEntry.New).toBeUndefined();
   });
 
-  it('shows the treasures/items/documents previews only on the show page', function() {
-    const previewEntry = npcShowType.right.find((entry) => entry.Show === CharacterPreviewSectionsSlot);
+  it('shows the treasures/items/documents shortlists only on the show page', function() {
+    const shortListEntries = findShortListEntries(npcShowType.right);
+    const resources = shortListEntries.map((entry) => entry.Show({}).props.resource);
 
-    expect(previewEntry.New).toBeUndefined();
-    expect(previewEntry.Edit).toBeUndefined();
+    expect(resources).toEqual(['treasure', 'item', 'document']);
+    shortListEntries.forEach((entry) => {
+      expect(entry.New).toBeUndefined();
+      expect(entry.Edit).toBeUndefined();
+    });
   });
 
   it('shows the photos gallery preview only in the bottom slot on the show page', function() {

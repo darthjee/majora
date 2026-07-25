@@ -1,5 +1,4 @@
 import GameController from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GameController.js';
-import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import { stubEnsureGameAccess, stubEnsureGamePermissions, stubEnsureGame } from './support.js';
 
@@ -19,7 +18,7 @@ describe('GameController', function() {
 
     client.currentHash.and.returnValue('#/games/demo');
 
-    const cleanup = new GameController(setGame, setLoading, setError, Noop.noop, Noop.noop, client)
+    const cleanup = new GameController(setGame, setLoading, setError, client)
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -46,7 +45,7 @@ describe('GameController', function() {
 
     client.currentHash.and.returnValue('#/games/demo');
 
-    const cleanup = new GameController(setGame, setLoading, setError, Noop.noop, Noop.noop, client)
+    const cleanup = new GameController(setGame, setLoading, setError, client)
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 

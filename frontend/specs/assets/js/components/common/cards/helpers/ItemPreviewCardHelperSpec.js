@@ -49,5 +49,15 @@ describe('ItemPreviewCardHelper', function() {
       expect(tooltip.props.content).toBe('Cloak of Elvenkind');
       expect(tooltip.props.content).not.toContain('Grants stealth.');
     });
+
+    it('does not link the card when href is not given', function() {
+      const html = renderToStaticMarkup(ItemPreviewCardHelper.render(item));
+      expect(html).not.toContain('<a ');
+    });
+
+    it('links the whole card to href when given', function() {
+      const html = renderToStaticMarkup(ItemPreviewCardHelper.render(item, '#/games/demo/pcs/7/items/1'));
+      expect(html).toContain('href="#/games/demo/pcs/7/items/1"');
+    });
   });
 });

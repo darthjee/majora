@@ -1,7 +1,6 @@
 import GameController from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GameController.js';
 import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
-import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 import { stubEnsureGameAccess, stubEnsureGamePermissions, stubEnsureGame } from './support.js';
 
 describe('GameController', function() {
@@ -16,13 +15,11 @@ describe('GameController', function() {
     const setGame = jasmine.createSpy('setGame');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
-    const setPcs = jasmine.createSpy('setPcs');
-    const setNpcs = jasmine.createSpy('setNpcs');
     const client = jasmine.createSpyObj('client', ['currentHash']);
 
     client.currentHash.and.returnValue('#/games/demo');
 
-    const cleanup = new GameController(setGame, setLoading, setError, setPcs, setNpcs, client)
+    const cleanup = new GameController(setGame, setLoading, setError, client)
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -47,7 +44,7 @@ describe('GameController', function() {
 
     client.currentHash.and.returnValue('#/games/demo');
 
-    const cleanup = new GameController(setGame, setLoading, setError, Noop.noop, Noop.noop, client)
+    const cleanup = new GameController(setGame, setLoading, setError, client)
       .buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -69,7 +66,7 @@ describe('GameController', function() {
 
     client.currentHash.and.returnValue('#/games/demo');
 
-    const cleanup = new GameController(setGame, setLoading, setError, Noop.noop, Noop.noop, client)
+    const cleanup = new GameController(setGame, setLoading, setError, client)
       .buildEffect()();
 
     expect(setGame).not.toHaveBeenCalled();

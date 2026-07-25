@@ -4,10 +4,20 @@ import npcShowType
   from '../../../../../../../../assets/js/components/common/show_page/show_types/configs/npcShowType.js';
 import CharacterAvatarSlot
   from '../../../../../../../../assets/js/components/resources/character/pages/elements/show/CharacterAvatarSlot.jsx';
-import CharacterPreviewSectionsSlot
-  from '../../../../../../../../assets/js/components/resources/character/pages/elements/show/CharacterPreviewSectionsSlot.jsx';
 import CharacterPhotosPreviewSlot
   from '../../../../../../../../assets/js/components/resources/character/pages/elements/show/CharacterPhotosPreviewSlot.jsx';
+
+/**
+ * Extract `pcShowType`/`npcShowType`'s `buildShortListSlot(...)`-built entries (the treasure/
+ * item/document shortlists), identifying them by their shared factory-assigned function name
+ * (a fresh closure is built per call, so they cannot be compared via `toBe` against an import).
+ *
+ * @param {Array<Function|object>} entries - A show type's `right` slot entries.
+ * @returns {object[]} The matching `{ Show }` entries, in declaration order.
+ */
+function findShortListEntries(entries) {
+  return entries.filter((entry) => entry.Show && entry.Show.name === 'ShortListSlot');
+}
 
 describe('pcShowType', function() {
   it('shares the avatar slot verbatim with npcShowType', function() {
@@ -33,10 +43,12 @@ describe('pcShowType', function() {
     expect(titleEntry.Edit).toBeDefined();
   });
 
-  it('shows the treasures/items/documents previews only on the show page', function() {
-    const previewEntry = pcShowType.right.find((entry) => entry.Show === CharacterPreviewSectionsSlot);
+  it('shows the treasures/items/documents shortlists only on the show page', function() {
+    const shortListEntries = findShortListEntries(pcShowType.right);
+    const resources = shortListEntries.map((entry) => entry.Show({}).props.resource);
 
-    expect(previewEntry.Edit).toBeUndefined();
+    expect(resources).toEqual(['treasure', 'item', 'document']);
+    shortListEntries.forEach((entry) => expect(entry.Edit).toBeUndefined());
   });
 
   it('shows the photos gallery preview only in the bottom slot on the show page', function() {

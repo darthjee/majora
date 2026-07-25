@@ -46,9 +46,6 @@ describe('BaseCharacterEditController', function() {
       });
       expect(setCharacter).toHaveBeenCalledWith({
         id: 1,
-        treasures: [],
-        items: [],
-        documents: [],
         photos: [],
         game_type: 'dnd',
         can_edit: true,

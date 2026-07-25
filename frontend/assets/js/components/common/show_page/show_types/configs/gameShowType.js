@@ -4,7 +4,7 @@ import GameCoverPhoto from '../../../../resources/game/pages/elements/show/GameC
 import GameNextSessionBlock from '../../../../resources/game/pages/elements/show/GameNextSessionBlock.jsx';
 import GameOpenPollsWidgetSlot from '../../../../resources/game/pages/elements/show/GameOpenPollsWidgetSlot.jsx';
 import GameHeading from '../../../../resources/game/pages/elements/show/GameHeading.jsx';
-import GamePreviewSections from '../../../../resources/game/pages/elements/show/GamePreviewSections.jsx';
+import buildShortListSlot from '../../../cards/buildShortListSlot.js';
 import GameNameField from '../../../../resources/game/pages/elements/show/GameNameField.jsx';
 import GameDescriptionField from '../../../../resources/game/pages/elements/show/GameDescriptionField.jsx';
 import GameTypeSelect from '../../../../resources/game/pages/elements/show/GameTypeSelect.jsx';
@@ -25,7 +25,8 @@ const gameShowType = {
     GameHeading,
     { Show: DescriptionBox },
     { Show: LinkList },
-    { Show: GamePreviewSections },
+    { Show: buildShortListSlot('pc') },
+    { Show: buildShortListSlot('npc') },
     { New: GameNameField, Edit: GameNameField },
     { New: GameDescriptionField, Edit: GameDescriptionField },
     { New: GameTypeSelect },
