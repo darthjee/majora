@@ -260,6 +260,13 @@ describe('HashRouteResolver', function() {
     expect(params.toString()).toBe('name=sword&game_type=dnd&min_value=10&max_value=100');
   });
 
+  it('extracts the staff users status and search filter params', function() {
+    const params = new HashRouteResolver(
+      () => '#/staff/users?status=pending&search=jane&page=2',
+    ).getFilterParams();
+    expect(params.toString()).toBe('status=pending&search=jane');
+  });
+
   it('extracts the poll status filter param', function() {
     const params = new HashRouteResolver(() => '#/games/campaign/polls?status=open&page=2').getFilterParams();
     expect(params.toString()).toBe('status=open');

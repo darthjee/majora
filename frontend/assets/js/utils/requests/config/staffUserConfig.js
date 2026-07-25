@@ -18,10 +18,16 @@
  *   quantity-type key rather than being forced into `single` — despite its `fetch`-prefixed name
  *   it is a real mutation (creates/reuses a `PasswordResetToken` server-side), mirroring
  *   `treasureConfig.js`'s `acquire`/`buy`/`remove`/`sell`/`link`-style sub-resource keys.
+ *
+ *   `POST.approve`/`POST.deny` (issue #859, `/staff/users/approve.json`/`/staff/users/deny.json`)
+ *   have no dynamic path segment — the target user id travels in the request body (`{user_id}`)
+ *   instead, unlike every other quantity type here.
  */
 const collection = { path: () => '/staff/users.json', permission: null };
 const single = { path: ({ id }) => `/staff/users/${id}.json`, permission: null };
 const recoveryLink = { path: ({ id }) => `/staff/users/${id}/recovery-link.json`, permission: null };
+const approve = { path: () => '/staff/users/approve.json', permission: null };
+const deny = { path: () => '/staff/users/deny.json', permission: null };
 
 export default {
   GET: {
@@ -33,5 +39,7 @@ export default {
   },
   POST: {
     recoveryLink: { regular: recoveryLink, private: recoveryLink },
+    approve: { regular: approve, private: approve },
+    deny: { regular: deny, private: deny },
   },
 };

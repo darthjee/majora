@@ -112,14 +112,65 @@ export default class StaffUsersController extends BasePageController {
     }
   }
 
+  /**
+   * Approves a `pending` user through {@link RequestStore.mutate} (issue #859), patching the
+   * returned updated user into the `users` list on success.
+   *
+   * @param {number|string} userId - User id to approve.
+   * @param {object[]} users - Current users list.
+   * @param {Function} setUsers - Users list setter.
+   * @returns {Promise<void>} Resolves when the request finishes.
+   */
+  async handleApprove(userId, users, setUsers) {
+    await this.#mutateStatus(userId, users, setUsers, 'approve');
+  }
+
+  /**
+   * Denies a user (any current status) through {@link RequestStore.mutate} (issue #859), patching
+   * the returned updated user into the `users` list on success. This is also how an already-
+   * approved user is banned.
+   *
+   * @param {number|string} userId - User id to deny.
+   * @param {object[]} users - Current users list.
+   * @param {Function} setUsers - Users list setter.
+   * @returns {Promise<void>} Resolves when the request finishes.
+   */
+  async handleDeny(userId, users, setUsers) {
+    await this.#mutateStatus(userId, users, setUsers, 'deny');
+  }
+
+  async #mutateStatus(userId, users, setUsers, quantityType) {
+    try {
+      const response = await RequestStore.mutate({
+        componentName: 'StaffUsersController',
+        resource: 'staffUser',
+        method: 'POST',
+        quantityType,
+        body: { user_id: userId },
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const updatedUser = await response.json();
+      setUsers(users.map((user) => (user.id === updatedUser.id ? updatedUser : user)));
+    } catch {
+      // Ignore approve/deny failures; the row keeps its previous status.
+    }
+  }
+
   #fetchUsers(safeSet) {
-    const params = new HashRouteResolver().getPaginationParams();
+    const hashResolver = new HashRouteResolver();
 
     RequestStore.ensure({
       componentName: 'StaffUsersController',
       resource: 'staffUser',
       quantityType: 'collection',
-      query: Object.fromEntries(params),
+      query: {
+        ...Object.fromEntries(hashResolver.getPaginationParams()),
+        ...Object.fromEntries(hashResolver.getFilterParams()),
+      },
     })
       .then(({ data, pagination }) => {
         safeSet(this.setUsers, Array.isArray(data) ? data : []);

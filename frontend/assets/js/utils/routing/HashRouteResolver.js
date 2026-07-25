@@ -76,7 +76,9 @@ const ROUTES = [
  *
  * @type {Array<string>}
  */
-const FILTER_KEYS = ['slain', 'name', 'allegiance', 'status', 'hidden', 'game_type', 'min_value', 'max_value'];
+const FILTER_KEYS = [
+  'slain', 'name', 'allegiance', 'status', 'hidden', 'game_type', 'min_value', 'max_value', 'search',
+];
 
 /**
  * Resolver for hash-based application routes.
@@ -154,7 +156,7 @@ export default class HashRouteResolver {
    * Return NPC/poll/treasure filter query params from hash.
    *
    * @returns {URLSearchParams} Filter params (`slain`/`name`/`allegiance`/`status`/`hidden`/
-   *   `game_type`/`min_value`/`max_value`), only set when present in hash.
+   *   `game_type`/`min_value`/`max_value`/`search`), only set when present in hash.
    */
   getFilterParams() {
     const query = HashQueryParams.parse(this.currentHash());
