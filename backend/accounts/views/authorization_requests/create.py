@@ -31,7 +31,9 @@ def create(request):
     """
     username = request.data.get('username', '')
     user = User.objects.filter(username=username).first()
-    browser = request.META.get('HTTP_USER_AGENT', '')
+    # Truncated to fit AuthorizationRequest.browser's CharField(max_length=255): an oversized
+    # User-Agent header must not be able to trigger a DB-level error here.
+    browser = request.META.get('HTTP_USER_AGENT', '')[:255]
 
     authorization_request, raw_token = AuthorizationRequest.create_with_token(
         user=user, ip=client_ip(request), browser=browser,

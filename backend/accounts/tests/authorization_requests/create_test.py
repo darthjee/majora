@@ -93,3 +93,18 @@ class TestAuthorizationRequestCreateView:
         UserFactory(username='alice', password=TEST_PASSWORD)
         response = self._post(client, 'alice')
         assert response['X-Skip-Cache'] == 'true'
+
+    def test_truncates_an_oversized_user_agent(self, client):
+        """Test that an oversized User-Agent is truncated to 255 chars, not rejected."""
+        UserFactory(username='alice', password=TEST_PASSWORD)
+        oversized_agent = 'x' * 500
+        response = client.post(
+            CREATE_URL,
+            data=json.dumps({'username': 'alice'}),
+            content_type='application/json',
+            HTTP_USER_AGENT=oversized_agent,
+        )
+        assert response.status_code == 201
+        data = json.loads(response.content)
+        authorization_request = AuthorizationRequest.objects.get(uuid=data['uuid'])
+        assert authorization_request.browser == oversized_agent[:255]

@@ -1,8 +1,10 @@
 """Tests for the authorization-request list endpoint."""
 
 import json
+from datetime import timedelta
 
 import pytest
+from django.utils import timezone
 from django.utils.crypto import get_random_string
 from rest_framework.authtoken.models import Token
 
@@ -65,3 +67,34 @@ class TestAuthorizationRequestListView(TokenAuthRequestMixin):
         """Test that the response includes the X-Skip-Cache: true header."""
         response = self.get(client, LIST_URL, token=self.token)
         assert response['X-Skip-Cache'] == 'true'
+
+    def test_reports_lazily_expired_open_row_as_expired(self, client):
+        """Test that a lazily-expired open row is reported and persisted as expired."""
+        authorization_request, _ = AuthorizationRequest.create_with_token(
+            user=self.user, ip='1.2.3.4', browser='mine',
+        )
+        authorization_request.expires_at = timezone.now() - timedelta(seconds=1)
+        authorization_request.save(update_fields=['expires_at'])
+
+        response = self.get(client, LIST_URL, token=self.token)
+        data = json.loads(response.content)
+        assert data[0]['status'] == AuthorizationRequest.STATUS_EXPIRED
+
+        authorization_request.refresh_from_db()
+        assert authorization_request.status == AuthorizationRequest.STATUS_EXPIRED
+
+    def test_reports_lazily_expired_approved_row_as_expired(self, client):
+        """Test that a lazily-expired approved row is reported and persisted as expired."""
+        authorization_request, _ = AuthorizationRequest.create_with_token(
+            user=self.user, ip='1.2.3.4', browser='mine',
+        )
+        authorization_request.status = AuthorizationRequest.STATUS_APPROVED
+        authorization_request.expires_at = timezone.now() - timedelta(seconds=1)
+        authorization_request.save(update_fields=['status', 'expires_at'])
+
+        response = self.get(client, LIST_URL, token=self.token)
+        data = json.loads(response.content)
+        assert data[0]['status'] == AuthorizationRequest.STATUS_EXPIRED
+
+        authorization_request.refresh_from_db()
+        assert authorization_request.status == AuthorizationRequest.STATUS_EXPIRED
