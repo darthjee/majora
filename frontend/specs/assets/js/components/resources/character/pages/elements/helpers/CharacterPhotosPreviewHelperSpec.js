@@ -42,11 +42,6 @@ describe('CharacterPhotosPreviewHelper', function() {
       expect(html).toContain('/photos/3.jpg');
     });
 
-    it('does not wrap the photo cards in a clickable control when onSelectPhoto is absent', function() {
-      const html = renderToStaticMarkup(CharacterPhotosPreviewHelper.render(buildPhotos(1), title, seeAllHref));
-      expect(html).not.toContain('<button');
-    });
-
     it('wraps each photo card in a clickable control when onSelectPhoto is provided', function() {
       const onSelectPhoto = jasmine.createSpy('onSelectPhoto');
       const html = renderToStaticMarkup(
@@ -88,6 +83,54 @@ describe('CharacterPhotosPreviewHelper', function() {
       const html = renderToStaticMarkup(CharacterPhotosPreviewHelper.render([], title, seeAllHref));
       expect(html).toContain('Photos');
       expect(html).toContain(`href="${seeAllHref}"`);
+    });
+
+    it(
+      'renders the mark-as-profile action bar button when canSetProfilePhoto is true and the ' +
+        'photo is not already the profile photo',
+      function() {
+        const photos = buildPhotos(1);
+        const html = renderToStaticMarkup(
+          CharacterPhotosPreviewHelper.render(photos, title, seeAllHref, undefined, true, 999)
+        );
+
+        expect(html).toContain('bi-postage-fill');
+      }
+    );
+
+    it('hides the mark-as-profile action bar button when canSetProfilePhoto is false', function() {
+      const photos = buildPhotos(1);
+      const html = renderToStaticMarkup(
+        CharacterPhotosPreviewHelper.render(photos, title, seeAllHref, undefined, false, 999)
+      );
+
+      expect(html).not.toContain('bi-postage-fill');
+    });
+
+    it('hides the mark-as-profile action bar button when the photo is already the profile photo', function() {
+      const photos = buildPhotos(1);
+      const html = renderToStaticMarkup(
+        CharacterPhotosPreviewHelper.render(photos, title, seeAllHref, undefined, true, photos[0].id)
+      );
+
+      expect(html).not.toContain('bi-postage-fill');
+    });
+
+    it('invokes onSetProfilePhoto with the photo id when the action bar button is clicked', function() {
+      const onSetProfilePhoto = jasmine.createSpy('onSetProfilePhoto');
+      const photos = buildPhotos(1);
+      const tree = CharacterPhotosPreviewHelper.render(
+        photos, title, seeAllHref, undefined, true, 999, onSetProfilePhoto,
+      );
+      const button = findElement(
+        tree,
+        (node) => node.type === 'button' && node.props?.['aria-label'] && typeof node.props?.onClick === 'function',
+      );
+
+      expect(button).not.toBeNull();
+      button.props.onClick();
+
+      expect(onSetProfilePhoto).toHaveBeenCalledWith(photos[0].id);
     });
   });
 });

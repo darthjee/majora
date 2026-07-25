@@ -123,6 +123,7 @@ export default function CharacterDetail({
         onOpenUploadModal: () => setShowUploadModal(true),
         onOpenMoneyModal: () => setShowMoneyModal(true),
         onSelectPhoto: setSelectedPhoto,
+        onSetProfilePhoto: handleSetProfilePhoto,
         ...extraHandlers,
       })}
       <PhotoUploadModal
@@ -146,7 +147,7 @@ export default function CharacterDetail({
         photo={selectedPhoto}
         alt={character.name}
         onClose={() => setSelectedPhoto(null)}
-        canSetProfilePhoto={character.can_edit}
+        canSetProfilePhoto={character.can_set_profile_photo}
         isProfilePhoto={selectedPhoto?.id === character.profile_photo_id}
         onSetProfilePhoto={handleSetProfilePhoto}
       />

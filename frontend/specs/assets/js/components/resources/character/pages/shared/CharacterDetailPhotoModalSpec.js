@@ -12,8 +12,8 @@ const photo1 = { id: 1, path: '/photos/1.jpg' };
 const photo2 = { id: 2, path: '/photos/2.jpg' };
 
 const loadedCharacter = {
-  id: 5, name: 'Aragorn', can_edit: true, is_pc: true, game_slug: 'demo', profile_photo_id: photo1.id,
-  photos: [photo1, photo2],
+  id: 5, name: 'Aragorn', can_edit: false, can_set_profile_photo: true, is_pc: true, game_slug: 'demo',
+  profile_photo_id: photo1.id, photos: [photo1, photo2],
 };
 
 // Sets character/loading state synchronously during render (in the useMemo
@@ -74,7 +74,28 @@ describe('CharacterDetail photo modal', function() {
     expect(() => capturedHandlers.onSelectPhoto(photo2)).not.toThrow();
   });
 
-  it('passes canSetProfilePhoto from character.can_edit and isProfilePhoto as false before any selection', function() {
+  it('passes onSetProfilePhoto through CharacterHelper.render, wiring the preview grid action button', async function() {
+    spyOn(LoadedController.prototype, 'setProfilePhoto').and.returnValue(Promise.resolve({ ok: true }));
+    const buildEffectSpy = spyOn(LoadedController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
+    let capturedHandlers;
+    spyOn(CharacterHelper, 'render').and.callFake((character, backHref, handlers) => {
+      capturedHandlers = handlers;
+      return null;
+    });
+    spyOn(PhotoViewModalHelper, 'render').and.returnValue(null);
+    spyOn(ProfilePhotoSetModalHelper, 'render').and.returnValue(null);
+
+    renderDetail();
+
+    const callsBefore = buildEffectSpy.calls.count();
+
+    await capturedHandlers.onSetProfilePhoto(photo2.id);
+
+    expect(LoadedController.prototype.setProfilePhoto).toHaveBeenCalledWith('demo', 5, photo2.id);
+    expect(buildEffectSpy.calls.count()).toBe(callsBefore + 1);
+  });
+
+  it('passes canSetProfilePhoto from character.can_set_profile_photo (not can_edit) and isProfilePhoto as false before any selection', function() {
     spyOn(CharacterHelper, 'render').and.returnValue(null);
     let capturedCanSet;
     let capturedIsProfile;
