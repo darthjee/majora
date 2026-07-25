@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from statistics.session_attachment import attach_user
+from ._shared import attach_statistics_session
 
 
 @api_view(['POST'])
@@ -22,25 +22,5 @@ def login(request):
 
     token, _ = Token.objects.get_or_create(user=user)
     request.session['auth_token'] = token.key
-    _attach_statistics_session(request, user)
+    attach_statistics_session(request, user)
     return Response({'token': token.key})
-
-
-def _attach_statistics_session(request, user):
-    """Tie the request's statistics session to `user`, rotating it if already tied to one."""
-    session = request.statistics_session
-    new_session = attach_user(session, user)
-    if new_session is not session:
-        _set_statistics_session(request, new_session)
-
-
-def _set_statistics_session(request, session):
-    """Rebind the request's statistics session, on both the DRF and Django request objects.
-
-    DRF's `Request` proxies attribute *reads* it doesn't have to `request._request` (the
-    underlying `HttpRequest`), but a plain attribute *write* only ever lands on whichever
-    object it targets. `StatisticsSessionMiddleware` reads `request.statistics_session` off
-    the raw `HttpRequest` after this view returns, so the write must reach it directly.
-    """
-    request.statistics_session = session
-    request._request.statistics_session = session
