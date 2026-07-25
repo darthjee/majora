@@ -17,9 +17,7 @@ def recover(request):
     email = request.data.get('email', '')
     user = User.objects.filter(email=email).first()
 
-    if user is not None:
-        if _is_denied(user):
-            return Response(status=403)
+    if user is not None and not _is_denied(user):
         _create_and_send_reset_token(user)
 
     return Response({'sent': True})

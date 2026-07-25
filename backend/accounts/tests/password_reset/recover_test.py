@@ -58,8 +58,8 @@ class TestRecoverView(TestCase):
         assert PasswordResetToken.objects.filter(user=user).exists()
         assert mail.outbox == []
 
-    def test_returns_forbidden_for_denied_user(self):
-        """Test that a denied user's matching email returns 403 instead of {'sent': True}."""
+    def test_returns_sent_true_for_denied_user_without_side_effects(self):
+        """Test that a denied user's matching email still returns {'sent': True}."""
         user = UserFactory(
             username='alice', password=TEST_PASSWORD, email='alice@example.com'
         )
@@ -71,7 +71,8 @@ class TestRecoverView(TestCase):
             content_type='application/json',
         )
 
-        assert response.status_code == 403
+        assert response.status_code == 200
+        assert json.loads(response.content) == {'sent': True}
         assert not PasswordResetToken.objects.filter(user=user).exists()
         assert mail.outbox == []
 
