@@ -210,6 +210,48 @@ describe('BaseClient', function() {
     }));
   });
 
+  it('adds X-Skip-Cache to an endpoint matching a configured prefix', async function() {
+    await client.request('/users/authorization_requests/some-uuid.json', {
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/users/authorization_requests/some-uuid.json', jasmine.objectContaining({
+      method: 'GET',
+      headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
+      body: undefined,
+    }));
+  });
+
+  it('adds X-Skip-Cache to a prefix-matched endpoint that also has a query string', async function() {
+    await client.request('/users/authorization_requests/some-uuid.json?foo=bar', {
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      '/users/authorization_requests/some-uuid.json?foo=bar',
+      jasmine.objectContaining({
+        method: 'GET',
+        headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
+        body: undefined,
+      }),
+    );
+  });
+
+  it('does not add X-Skip-Cache to a path that merely resembles a configured prefix', async function() {
+    await client.request('/some/other/users/authorization_requests/some-uuid.json', {
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      '/some/other/users/authorization_requests/some-uuid.json',
+      jasmine.objectContaining({
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        body: undefined,
+      }),
+    );
+  });
+
   it('does not add X-Skip-Cache to a permissions.json request with several role params', async function() {
     await client.request('/games/demo/permissions.json?role=dm&role=player', {
       headers: { Accept: 'application/json' },

@@ -14,4 +14,5 @@ export default new Set([
   '/users/register.json',
   '/users/account.json',
   '/my-games.json',
+  '/account/authorization_requests.json',
 ]);

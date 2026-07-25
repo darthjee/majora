@@ -1,9 +1,12 @@
 import AuthClient from '../../../../client/AuthClient.js';
 import AuthEvents from '../../../../utils/auth/AuthEvents.js';
 import AuthStorage from '../../../../utils/auth/AuthStorage.js';
+import AuthorizationRequestPoller from '../../../../utils/polling/AuthorizationRequestPoller.js';
 
 /**
- * Manages login modal state and login requests.
+ * Manages login modal state and login requests, for both the password
+ * `'login'` mode and the passwordless `'authorize'` (device-authorization)
+ * mode.
  */
 export default class LoginModalController {
   /**
@@ -14,8 +17,13 @@ export default class LoginModalController {
    * @param {Function} setIncorrect - state setter for invalid credential errors.
    * @param {Function} setError - state setter for unexpected errors.
    * @param {Function|null} [onSuccess] - callback invoked after a successful login.
-   * @param {AuthClient} [client] - HTTP client used for login requests.
+   * @param {AuthClient} [client] - HTTP client used for login/authorization requests.
    * @param {Function|null} [setRecoverySent] - state setter for the recovery-sent confirmation flag.
+   * @param {Function|null} [setAuthorizeStatus] - state setter for the `'authorize'` mode's status
+   *   (`null` while the username-only form is shown, otherwise `'waiting'`, `'retrying'`,
+   *   `'approved'`, `'denied'`, `'expired'`, or `'error'`).
+   * @param {AuthorizationRequestPoller} [poller] - poller used to track a pending
+   *   device-authorization request until a terminal outcome is reached.
    */
   constructor(
     setUsername,
@@ -24,7 +32,9 @@ export default class LoginModalController {
     setError,
     onSuccess = null,
     client = new AuthClient(),
-    setRecoverySent = null
+    setRecoverySent = null,
+    setAuthorizeStatus = null,
+    poller = new AuthorizationRequestPoller()
   ) {
     this.setUsername = setUsername;
     this.setPassword = setPassword;
@@ -33,6 +43,8 @@ export default class LoginModalController {
     this.onSuccess = onSuccess;
     this.client = client;
     this.setRecoverySent = setRecoverySent;
+    this.setAuthorizeStatus = setAuthorizeStatus;
+    this.poller = poller;
   }
 
   /**
@@ -78,6 +90,45 @@ export default class LoginModalController {
   }
 
   /**
+   * Creates a device-authorization login request for the given username and
+   * starts polling it, switching the `'authorize'` mode's status to
+   * `'waiting'` while pending.
+   *
+   * @param {string} username - username to request a device-authorized login for.
+   * @returns {Promise<void>} resolves when the create request handling finishes (the
+   *   subsequent poll continues independently in the background).
+   */
+  async handleAuthorizeSubmit(username) {
+    this.#setAuthorizeStatus('waiting');
+
+    try {
+      const response = await this.client.createAuthorizationRequest(username);
+
+      if (!response.ok) {
+        this.#setAuthorizeStatus('error');
+        return;
+      }
+
+      const request = await response.json();
+
+      this.poller.start(request, (event) => this.#handleAuthorizeEvent(event));
+    } catch {
+      this.#setAuthorizeStatus('error');
+    }
+  }
+
+  /**
+   * Stops any in-progress poll and resets the `'authorize'` mode back to its
+   * username-only form, e.g. after a terminal outcome so the user can retry.
+   *
+   * @returns {void}
+   */
+  handleAuthorizeReset() {
+    this.poller.stop();
+    this.#setAuthorizeStatus(null);
+  }
+
+  /**
    * Clears the login modal form state.
    *
    * @returns {void}
@@ -91,11 +142,15 @@ export default class LoginModalController {
     if (typeof this.setRecoverySent === 'function') {
       this.setRecoverySent(false);
     }
+
+    this.handleAuthorizeReset();
   }
 
   async #handleResponse(response) {
     if (response.ok) {
-      await this.#handleSuccess(response);
+      const data = await response.json();
+
+      this.#applySuccessLogin(data.token);
       return;
     }
 
@@ -109,15 +164,43 @@ export default class LoginModalController {
     this.setError(true);
   }
 
-  async #handleSuccess(response) {
-    const data = await response.json();
-
-    AuthStorage.setToken(data.token);
+  /**
+   * Applies a successful login outcome, shared by both the password `'login'`
+   * mode (see `#handleResponse`) and the `'authorize'` mode once the poller
+   * observes an `'approved'` outcome (see `#handleAuthorizeEvent`): stores the
+   * token exactly like any other login token, clears the form, emits the
+   * auth-changed event, and invokes `onSuccess`.
+   *
+   * @param {string} token - Login token to store.
+   * @returns {void}
+   */
+  #applySuccessLogin(token) {
+    AuthStorage.setToken(token);
     this.handleClear();
     AuthEvents.emit(true);
 
     if (typeof this.onSuccess === 'function') {
       this.onSuccess();
+    }
+  }
+
+  #handleAuthorizeEvent(event) {
+    if (event.status === 'approved') {
+      this.#setAuthorizeStatus('approved');
+      this.#applySuccessLogin(event.token);
+      return;
+    }
+
+    if (event.status === 'open') {
+      return;
+    }
+
+    this.#setAuthorizeStatus(event.status);
+  }
+
+  #setAuthorizeStatus(status) {
+    if (typeof this.setAuthorizeStatus === 'function') {
+      this.setAuthorizeStatus(status);
     }
   }
 

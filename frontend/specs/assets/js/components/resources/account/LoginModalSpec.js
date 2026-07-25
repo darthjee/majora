@@ -2,6 +2,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import LoginModal from '../../../../../../assets/js/components/resources/account/LoginModal.jsx';
 import LoginModalHelper from '../../../../../../assets/js/components/resources/account/helpers/LoginModalHelper.jsx';
+import LoginModalController from '../../../../../../assets/js/components/resources/account/controllers/LoginModalController.js';
 
 describe('LoginModal', function() {
   describe('#render', function() {
@@ -27,6 +28,7 @@ describe('LoginModal', function() {
           mode: 'login',
           email: '',
           recoverySent: false,
+          authorizeStatus: null,
         },
         jasmine.objectContaining({
           onClose: jasmine.any(Function),
@@ -39,6 +41,9 @@ describe('LoginModal', function() {
           onBackToLoginClick: jasmine.any(Function),
           onEmailChange: jasmine.any(Function),
           onRecoverSubmit: jasmine.any(Function),
+          onModeChange: jasmine.any(Function),
+          onAuthorizeSubmit: jasmine.any(Function),
+          onAuthorizeReset: jasmine.any(Function),
         })
       );
     });
@@ -71,6 +76,53 @@ describe('LoginModal', function() {
       } finally {
         delete globalThis.window;
       }
+    });
+
+    it('resets the authorize state when the mode changes', function() {
+      let capturedHandlers;
+
+      spyOn(LoginModalController.prototype, 'handleAuthorizeReset');
+      spyOn(LoginModalHelper, 'render').and.callFake((show, state, handlers) => {
+        capturedHandlers = handlers;
+        return React.createElement('div', null, 'modal');
+      });
+
+      renderToStaticMarkup(
+        React.createElement(LoginModal, {
+          show: true,
+          onClose: jasmine.createSpy('onClose'),
+          onSuccess: jasmine.createSpy('onSuccess'),
+        })
+      );
+
+      capturedHandlers.onModeChange('authorize');
+
+      expect(LoginModalController.prototype.handleAuthorizeReset).toHaveBeenCalled();
+    });
+
+    it('submits the authorize request with the current username', function() {
+      let capturedHandlers;
+
+      spyOn(LoginModalController.prototype, 'handleAuthorizeSubmit');
+      spyOn(LoginModalHelper, 'render').and.callFake((show, state, handlers) => {
+        capturedHandlers = handlers;
+        return React.createElement('div', null, 'modal');
+      });
+
+      renderToStaticMarkup(
+        React.createElement(LoginModal, {
+          show: true,
+          onClose: jasmine.createSpy('onClose'),
+          onSuccess: jasmine.createSpy('onSuccess'),
+        })
+      );
+
+      const submitEvent = { preventDefault: jasmine.createSpy('preventDefault') };
+
+      capturedHandlers.onAuthorizeSubmit(submitEvent);
+
+      expect(submitEvent.preventDefault).toHaveBeenCalled();
+      expect(LoginModalController.prototype.handleAuthorizeSubmit).toHaveBeenCalledWith('');
     });
   });
 });

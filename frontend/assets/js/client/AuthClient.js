@@ -136,4 +136,75 @@ export default class AuthClient extends BaseClient {
       password_confirmation: passwordConfirmation,
     });
   }
+
+  /**
+   * Creates a passwordless device-authorization login request for the given
+   * username, pre-login (no auth token involved). Per the shared contract,
+   * the response shape/status is identical whether or not the username
+   * matches a real user (enumeration-safe).
+   *
+   * @param {string} username - Username to request a device-authorized login for.
+   * @returns {Promise<Response>} fetch response carrying `{uuid, expiration, token}`.
+   */
+  createAuthorizationRequest(username) {
+    return this.postJson('/users/authorization_requests.json', null, { username });
+  }
+
+  /**
+   * Polls the status of a pending device-authorization request, pre-login,
+   * authenticating the poll itself with the request's own bearer token
+   * (rather than a login token) via the `X-Authorize-Token` header.
+   *
+   * @param {string} uuid - Authorization request uuid, from {@link createAuthorizationRequest}.
+   * @param {string} token - Opaque bearer token for this request, from {@link createAuthorizationRequest}.
+   * @param {AbortSignal} [signal] - Optional abort signal for the request.
+   * @returns {Promise<Response>} fetch response from the authorization-request polling endpoint;
+   *   a `202` response carries a real login `token`, to be stored exactly like a normal login.
+   */
+  pollAuthorizationRequest(uuid, token, signal) {
+    return this.getJson(
+      `/users/authorization_requests/${uuid}.json`,
+      null,
+      { 'X-Authorize-Token': token },
+      signal
+    );
+  }
+
+  /**
+   * Fetches the authenticated user's own paginated authorization requests, newest first.
+   *
+   * @param {string} token - Authentication token for the requesting user.
+   * @param {{page: (string|number|undefined), perPage: (string|number|undefined)}} [params] -
+   *   Pagination params, forwarded as `page`/`per_page` query params when present.
+   * @returns {Promise<Response>} fetch response from the account authorization-requests endpoint.
+   */
+  listAuthorizationRequests(token, { page, perPage } = {}) {
+    const query = this.buildQuery([['page', page], ['per_page', perPage]]).toString();
+
+    return this.getJson(`/account/authorization_requests.json${query ? `?${query}` : ''}`, token);
+  }
+
+  /**
+   * Denies a pending authorization request belonging to the authenticated user.
+   *
+   * @param {string} token - Authentication token for the requesting user.
+   * @param {string} uuid - Authorization request uuid to deny.
+   * @returns {Promise<Response>} fetch response from the deny endpoint.
+   */
+  denyAuthorizationRequest(token, uuid) {
+    return this.patchJson(`/account/authorization_requests/${uuid}/deny.json`, token, {});
+  }
+
+  /**
+   * Authorizes a pending authorization request belonging to the authenticated user,
+   * re-authenticating with the approving user's own current password.
+   *
+   * @param {string} token - Authentication token for the requesting user.
+   * @param {string} uuid - Authorization request uuid to authorize.
+   * @param {string} password - Approving user's own current password.
+   * @returns {Promise<Response>} fetch response from the authorize endpoint.
+   */
+  authorizeAuthorizationRequest(token, uuid, password) {
+    return this.patchJson(`/account/authorization_requests/${uuid}/authorize.json`, token, { password });
+  }
 }

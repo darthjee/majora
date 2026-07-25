@@ -59,6 +59,25 @@ describe('HeaderHelper', function() {
       expect(html).toContain('>My Games</a>');
     });
 
+    it('does not render the authorization-requests link when logged out', function() {
+      const html = render();
+
+      expect(html).not.toContain('data-testid="authorization-requests-link"');
+    });
+
+    it('renders the authorization-requests link when logged in', function() {
+      const html = render({ loggedIn: true });
+
+      expect(html).toContain('data-testid="authorization-requests-link"');
+      expect(html).toContain('href="#/account/authorization_requests"');
+    });
+
+    it('renders the "Authorizations" text inside the dropdown item', function() {
+      const html = render({ loggedIn: true });
+
+      expect(html).toContain('>Authorizations</a>');
+    });
+
     it('renders the language selector', function() {
       const html = render();
 
