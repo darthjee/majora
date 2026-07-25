@@ -79,16 +79,27 @@ class CharacterPhotoUploadPermission(_EditPermission):
     both PCs and NPCs, at both the photo-upload init endpoint and the upload_finalize
     _check_permission branches (issues #619, #668, and #713 for the NPC side), and must not
     be reused for general character editing.
+
+    Also the permission rule for the "set as profile photo" action (issue #852): both the
+    PC and NPC photo-set endpoints share it with the photo-upload endpoints, since setting a
+    profile photo is itself a photo action rather than a general character edit.
+
+    Exposes `is_allowed` as a public classmethod (unlike the previous private `_is_allowed`)
+    because `CharacterDetailSerializer.get_can_set_profile_photo` needs the exact same rule,
+    computed from a `request.user` that may be anonymous — mirroring the precedent already
+    set by `CharacterMoneyEditPermission`'s docstring for the same reason.
     """
 
     @classmethod
     def check(cls, request, character):
         """Return an error Response if `request.user` may not upload a photo for `character`."""
-        return cls._guarded_check(request, lambda: cls._is_allowed(request.user, character))
+        return cls._guarded_check(request, lambda: cls.is_allowed(request.user, character))
 
     @classmethod
-    def _is_allowed(cls, user, character):
+    def is_allowed(cls, user, character):
         """Return whether `user` is staff, a player of the game, or may edit outright."""
+        if not user or not user.is_authenticated:
+            return False
         is_player_of_game = character.game.has_player(user)
         return user.is_staff or is_player_of_game or character.can_be_edited_by(user)
 
@@ -170,9 +181,9 @@ class CharacterMoneyEditPermission(_EditPermission):
     no owner concept, so that leniency is deliberately PC-only: NPC money editing stays
     admin/dm/staff-only.
 
-    Exposes `is_allowed` as a public classmethod (unlike CharacterPhotoUploadPermission's
-    private `_is_allowed`) because CharacterDetailSerializer's `can_edit_money` field needs
-    the exact same rule, computed from a `request.user` that may be anonymous.
+    Exposes `is_allowed` as a public classmethod because CharacterDetailSerializer's
+    `can_edit_money` field needs the exact same rule, computed from a `request.user` that
+    may be anonymous — the same reason `CharacterPhotoUploadPermission.is_allowed` is public.
     """
 
     @classmethod

@@ -26,14 +26,15 @@ annotated queryset (e.g. serializer unit tests, or any other read path added in 
 
 | Endpoint | Who can read | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs/<id>.json` | **AllowAny** | `id`, `name`, `role`, `public_description`, `is_pc`, `links`, `game_slug`, `can_edit`, `can_edit_money`, `can_exchange_treasure`, `profile_photo_path`, `profile_photo_id`, `money`, `treasure_value`, `slain`, `allegiance` |
+| `GET /games/<slug>/pcs/<id>.json` | **AllowAny** | `id`, `name`, `role`, `public_description`, `is_pc`, `links`, `game_slug`, `can_edit`, `can_edit_money`, `can_exchange_treasure`, `can_set_profile_photo`, `profile_photo_path`, `profile_photo_id`, `money`, `treasure_value`, `slain`, `allegiance` |
 | `GET /games/<slug>/npcs/<id>.json` | **AllowAny** | Same as above |
 
 Always sets `X-Skip-Cache: true` on the successful response, regardless of `check_hidden`
 (issue #730): `CharacterDetailSerializer` embeds requester-identity-tied fields (`can_edit`,
-`can_edit_money`, `can_exchange_treasure`, all computed from `self.context['request']`), which
-must never be cached/shared across different requesters by the Tent reverse proxy — the same
-reason "Full detail" and "Money-only update" below already set it unconditionally.
+`can_edit_money`, `can_exchange_treasure`, `can_set_profile_photo`, all computed from
+`self.context['request']`), which must never be cached/shared across different requesters by the
+Tent reverse proxy — the same reason "Full detail" and "Money-only update" below already set it
+unconditionally.
 
 `profile_photo_path` — see [Photo path fields](common-rules.md#photo-path-fields) above; returned on the list, detail, and
 full-detail endpoints, to anyone.
@@ -46,6 +47,16 @@ anonymous requester. Returned on this detail endpoint and inherited onto the ful
 below. Gates the money "Edit" link on the frontend show page, and is deliberately distinct from
 `can_edit`, since a pure Staff account may edit money without qualifying as a full editor (see
 "Money-only update" below).
+
+`can_set_profile_photo` — a `bool`, computed the same way as `can_edit`/`can_edit_money` (from
+the requester's own identity via `self.context['request']`) but against
+**CharacterPhotoUpload** (issue #852): `true` for a superuser, any GameMaster of the game, the
+PC's own owning player, any player of the game, or any global Staff account (`user.is_staff`),
+else `false`, including for an anonymous requester — the same rule already used by the photo
+upload endpoints (see [CharacterPhoto](character-photo.md)). Returned on this detail endpoint and
+inherited onto the full-detail endpoint below. Gates the "set as profile photo" action on the
+frontend show page and photos sub-page, and is deliberately distinct from `can_edit`, since a
+player or Staff account may set a profile photo without qualifying as a full editor.
 
 `can_exchange_treasure` — a `bool`, computed the same way as `can_edit`/`can_edit_money` (from
 the requester's own identity via `self.context['request']`) but against

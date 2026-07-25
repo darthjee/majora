@@ -145,6 +145,25 @@ class TestGameNpcPhotoSetView(TokenAuthRequestMixin):
         )
         assert response.status_code == 200
 
+    def test_player_of_game_returns_200(self, client):
+        """Test that a player of the game (via Player.game) can set the NPC's profile photo."""
+        player_user = UserFactory(username='player_user', password='secret-password')
+        PlayerFactory(name='Alice', user=player_user, game=self.game)
+        token = Token.objects.create(user=player_user)
+
+        response = self._patch(client, {'roles': ['profile']}, token=token)
+
+        assert response.status_code == 200
+
+    def test_staff_user_returns_200(self, client):
+        """Test that an is_staff=True user unrelated to the game can set the NPC's profile photo."""
+        staff_user = UserFactory(username='staff_user', password='secret-password', is_staff=True)
+        token = Token.objects.create(user=staff_user)
+
+        response = self._patch(client, {'roles': ['profile']}, token=token)
+
+        assert response.status_code == 200
+
     def test_owning_player_of_unrelated_pc_returns_403(self, client):
         """Test that owning a Player never grants edit access to an NPC's photo set."""
         player = PlayerFactory(name='Bob')
