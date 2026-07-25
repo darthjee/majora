@@ -1,7 +1,8 @@
 # Upload
 
 The `Upload` model tracks the lifecycle of a photo upload (pending → uploading → uploaded),
-generically for a `GamePhoto`, `CharacterPhoto`, or `TreasurePhoto`, via a `GenericForeignKey`
+generically for a `GamePhoto`, `CharacterPhoto`, `GameItemPhoto`, `CharacterItemPhoto`,
+`GameDocumentPhoto`, or `TreasurePhoto`, via a `GenericForeignKey`
 (`content_type`/`object_id`/`content_object`).
 
 | Action | Who can |
@@ -9,6 +10,7 @@ generically for a `GamePhoto`, `CharacterPhoto`, or `TreasurePhoto`, via a `Gene
 | Create (`POST /games/<slug>/photo_upload.json`) | **GameEdit** |
 | Create (`POST /games/<slug>/pcs/<id>/photo_upload.json`) | **CharacterPhotoUpload** |
 | Create (`POST /games/<slug>/npcs/<id>/photo_upload.json`) | **NpcPlayerEdit** |
+| Create (`POST /games/<slug>/documents/<id>/photo_upload.json`) | **GameDocumentPhotoUploadPermission** (staff, any player of the game, or the game's dm/editor — see [Document photo upload init endpoint](#document-photo-upload-init-endpoint) below) |
 | Create (`POST /treasures/<id>/photo_upload.json`) | Superuser, or that treasure's owning game's GameMaster when `treasure.game_id` is set (see [Treasure photo upload init endpoint](#treasure-photo-upload-init-endpoint) below) |
 | Read | Only the user who initiated the upload (indirectly, via the 201 response at creation time) |
 | Update / Delete | No public endpoint; status transitions are handled internally |
@@ -34,8 +36,13 @@ sets that primary photo reference. Dispatches on the upload's `content_object` t
   `GamePhoto`/`CharacterPhoto` cases, there is no "if unset" guard, since a treasure has at most
   one photo and re-uploading always replaces it. Gated by **TreasureEdit** for a global
   treasure, or **GameEdit** when the treasure is exclusive to a game.
+- **`GameDocumentPhoto`** (issue #727): if the document does not already have a `photo`, sets
+  `GameDocument.photo` to that photo — the same "if unset" guard as `GamePhoto`/`CharacterPhoto`,
+  since a document keeps every uploaded photo (`related_name='photos'`) and only its first
+  upload becomes the display photo. Gated by **`GameDocumentPhotoUploadPermission`** (staff, any
+  player of the game, or the game's dm/editor).
 
-All three cases reuse the checks already enforced at upload creation (token match, requesting
+All cases reuse the checks already enforced at upload creation (token match, requesting
 user must be the upload's owner) — only the object-level permission class differs, chosen by the
 `content_object`'s type.
 
@@ -58,6 +65,20 @@ Unknown `game_slug` or `character_id` (or a `character_id` that does not belong 
 or is the wrong PC/NPC type for the endpoint) → 404. Missing or invalid `filename` body field →
 400. Creates a `CharacterPhoto` row with `ready=False`; not visible in the character detail's
 `photos` list, and cannot become `profile_photo`, until the upload is finalised.
+
+## Document photo upload init endpoint
+
+| Endpoint | Method | Who can call | Response fields |
+|----------|--------|-------------|-----------------|
+| `/games/<slug>/documents/<id>/photo_upload.json` | POST | **`GameDocumentPhotoUploadPermission`** | `upload_id`, `token`, `document_id` |
+
+Unknown `game_slug` or `document_id` (or a `document_id` that does not belong to `game_slug`) →
+404. Missing or invalid `filename` body field → 400. Always creates a new `GameDocumentPhoto` row
+with `ready=False` — unlike `GameItem`'s single-always-replace photo, a document keeps every
+previously uploaded photo, so re-uploading never reuses or discards an existing row. Not visible
+via `GET /games/<slug>/documents/<document_id>/photos.json`, and cannot become the document's
+display photo, until the upload is finalised. See [GameDocument's "Document photo
+endpoints"](game-document.md#document-photo-endpoints) for the sibling list/set endpoints.
 
 ## Treasure photo upload init endpoint
 

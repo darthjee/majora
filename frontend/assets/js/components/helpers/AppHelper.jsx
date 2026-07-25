@@ -22,6 +22,7 @@ import GameItemEdit from '../resources/item/pages/GameItemEdit.jsx';
 import GameItemNew from '../resources/item/pages/GameItemNew.jsx';
 import GameItems from '../resources/item/pages/GameItems.jsx';
 import GameDocument from '../resources/document/pages/GameDocument.jsx';
+import GameDocumentEdit from '../resources/document/pages/GameDocumentEdit.jsx';
 import GameDocumentNew from '../resources/document/pages/GameDocumentNew.jsx';
 import GameDocuments from '../resources/document/pages/GameDocuments.jsx';
 import GameTreasureEdit from '../resources/treasure/pages/GameTreasureEdit.jsx';
@@ -81,6 +82,7 @@ const PAGES = {
   gameItemNew: <GameItemNew />,
   gameItems: <GameItems />,
   gameDocument: <GameDocument />,
+  gameDocumentEdit: <GameDocumentEdit />,
   gameDocumentNew: <GameDocumentNew />,
   gameDocuments: <GameDocuments />,
   gameSessions: <GameSessions />,

@@ -8,10 +8,18 @@ from rest_framework.response import Response
 
 from accounts.authentication import CookieTokenAuthentication
 
-from ..models import CharacterItemPhoto, CharacterPhoto, GameItemPhoto, TreasurePhoto, Upload
+from ..models import (
+    CharacterItemPhoto,
+    CharacterPhoto,
+    GameDocumentPhoto,
+    GameItemPhoto,
+    TreasurePhoto,
+    Upload,
+)
 from ..permissions import (
     CharacterItemPhotoUploadPermission,
     CharacterPhotoUploadPermission,
+    GameDocumentPhotoUploadPermission,
     GameEditPermission,
     GameItemPhotoUploadPermission,
     TreasureEditPermission,
@@ -112,6 +120,14 @@ def _set_profile_photo_if_unset(character_photo):
         character.save()
 
 
+def _set_document_photo_if_unset(document_photo):
+    """Set the document's photo to `document_photo` if it does not already have one."""
+    document = document_photo.game_document
+    if document.photo_id is None:
+        document.photo = document_photo
+        document.save()
+
+
 def _set_treasure_photo(treasure_photo):
     """Set the treasure's photo to `treasure_photo`, always replacing any existing one."""
     treasure = treasure_photo.treasure
@@ -155,6 +171,11 @@ def _character_item_photo_permission(request, content_object):
     )
 
 
+def _document_photo_permission(request, content_object):
+    """Return a permission error Response for a GameDocumentPhoto content object, else None."""
+    return GameDocumentPhotoUploadPermission.check(request, content_object.game_document.game)
+
+
 def _game_photo_permission(request, content_object):
     """Return a permission error Response for a GamePhoto (default) content object, else None."""
     return GameEditPermission.check(request, content_object.game)
@@ -168,6 +189,7 @@ _PHOTO_HANDLERS = {
     CharacterPhoto: (_character_photo_permission, _set_profile_photo_if_unset),
     GameItemPhoto: (_game_item_photo_permission, _set_item_photo),
     CharacterItemPhoto: (_character_item_photo_permission, _set_character_item_photo),
+    GameDocumentPhoto: (_document_photo_permission, _set_document_photo_if_unset),
 }
 _DEFAULT_HANDLERS = (_game_photo_permission, _set_cover_photo_if_unset)
 

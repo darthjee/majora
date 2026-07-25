@@ -3,12 +3,15 @@
 A `GameDocument` is a special document belonging to exactly one game (`game` FK, `CASCADE`) —
 field-for-field a mirror of [GameItem](game-item.md): it holds its own `name`, `description`,
 and optional `photo` directly, plus a `hidden` (`BooleanField`, default `False`) flag scoping its
-visibility within that game's catalog. There is still no dedicated update/delete endpoint, or
-photo upload endpoint, for `GameDocument` (out of scope, left for follow-up issues; the `photo`
-FK and its backing `GameDocumentPhoto` model exist as schema only, so `photo_path` is always
-`null` for now) — but issue #758 added a dm/admin/staff `POST` endpoint that creates a bare
-`GameDocument` with no owning `CharacterDocument` (see "Document creation endpoint" below), plus
-public/dm-only show endpoints (see "Document detail endpoints" below).
+visibility within that game's catalog. There is still no dedicated update/delete endpoint for
+`GameDocument` (out of scope, left for follow-up issues) — but issue #758 added a dm/admin/staff
+`POST` endpoint that creates a bare `GameDocument` with no owning `CharacterDocument` (see
+"Document creation endpoint" below), plus public/dm-only show endpoints (see "Document detail
+endpoints" below), and issue #727 wired up multi-photo storage/upload/display for
+`GameDocument.photo` (see "Document photo endpoints" below) — unlike `GameItem`'s single-
+always-replace photo model, a document can have multiple stored `GameDocumentPhoto` rows, one of
+which is designated the display photo, mirroring the PC/NPC [CharacterPhoto](character-photo.md)
+pattern.
 
 ## Document index endpoints
 
@@ -24,8 +27,9 @@ is intentionally omitted from both index endpoints (card/preview UI never render
 `GameDocumentDetailSerializer` below for where it is exposed). `GET /games/<slug>/documents/all.json`
 additionally exposes `hidden` — see the `hidden` section below; no other read endpoint exposes it.
 
-`photo_path` — see [Photo path fields](common-rules.md#photo-path-fields) above; always `null`
-for now, since no upload endpoint exists yet for `GameDocument.photo`.
+`photo_path` — see [Photo path fields](common-rules.md#photo-path-fields) above; `null` until a
+photo is uploaded for the document (see "Document photo endpoints" below) — the first photo ever
+uploaded for a document automatically becomes its display photo.
 
 ## `hidden`
 
@@ -82,3 +86,38 @@ permission, including its Staff bypass) is also exposed on the existing
 real-identity and role-simulated (`?role=`) paths, so the frontend can gate its "Create Document"
 button off an authoritative server-computed flag — see [Game](game.md)'s "Edit permission"
 section above.
+
+## Document photo endpoints
+
+A `GameDocument` can have multiple stored `GameDocumentPhoto` rows (`related_name='photos'`),
+one of which is its display photo (`GameDocument.photo`) — the multi-photo PC/NPC
+[CharacterPhoto](character-photo.md) pattern, not `GameItem`'s single-always-replace model.
+The first photo ever uploaded for a document automatically becomes its display photo (mirroring
+`_set_profile_photo_if_unset`); there is no dedicated document-photos browsing page, so a
+document's other stored photos beyond its current display photo are not browsable anywhere.
+
+| Endpoint | Method | Who can call | Request | Response |
+|----------|--------|-------------|---------|----------|
+| `/games/<slug>/documents/<document_id>/photos.json` | GET | **AllowAny**, non-hidden documents only | — | Paginated `GameDocumentPhotoSerializer` list (`id`, `path`) of `ready=True` photos |
+| `/games/<slug>/documents/<document_id>/photo_upload.json` | POST | **IsAuthenticated** + `GameDocumentPhotoUploadPermission` | `{ filename: string }` (see [Upload](upload.md)) | `201` `{upload_id, token, document_id}` |
+| `/games/<slug>/documents/<document_id>/photos/<photo_id>/set.json` | PATCH | **IsAuthenticated** + `GameDocumentPhotoUploadPermission` | `{"roles": ["display"]}` | `200`, empty body |
+
+The photos-list endpoint scopes its document lookup to `game.documents.filter(hidden=False)`,
+mirroring the "Document detail endpoints" pattern above — a hidden document's photos 404 for any
+caller, with no `GameEdit`-gated override (unlike the detail/full split), since this issue adds
+no dedicated way to browse a hidden document's photos either. The upload-init and set endpoints,
+by contrast, look up the document without a `hidden` filter — any user permitted by
+`GameDocumentPhotoUploadPermission` may upload or set a photo on a hidden document, since photo
+management is an editing action, not a read, and hidden documents are still fully editable by
+their game's players/DM/staff.
+
+`GameDocumentPhotoUploadPermission` (`backend/games/permissions.py`) is `user.is_staff or
+game.has_player(user) or game.can_be_edited_by(user)` — mirrors `GameItemPhotoUploadPermission`
+exactly (staff, any player of the game, or the game's dm/editor), flat across all three
+endpoints (no per-action tiering). `photo_id` lookups are scoped to `document.photos` (i.e.
+`document.photos.filter(id=photo_id)`), so a `photo_id` belonging to a different document or
+game 404s rather than leaking cross-document/cross-game state.
+
+Unknown `game_slug` or `document_id` (or a `document_id` that does not belong to `game_slug`) →
+404 for all three endpoints. See [Upload](upload.md#document-photo-upload-init-endpoint) for the
+upload-init endpoint's request/response shape and finalisation side effect.

@@ -57,11 +57,60 @@ describe('DocumentDetailHelper', function() {
       expect(html).not.toContain('bi-eye-slash-fill');
     });
 
-    it('does not render an upload button', function() {
+    it('does not render the upload button when canUploadPhoto is omitted', function() {
       const document = { id: 5, name: 'Ancient Scroll', description: '' };
-      const html = renderToStaticMarkup(DocumentDetailHelper.render(document, '#/games/demo/documents'));
+      const html = renderToStaticMarkup(
+        DocumentDetailHelper.render(document, '#/games/demo/documents', '#/games/demo/documents/5/edit'),
+      );
 
       expect(html).not.toContain('actions-overlay-button');
+    });
+
+    it('renders the upload button when canUploadPhoto is true', function() {
+      const document = { id: 5, name: 'Ancient Scroll', description: '' };
+      const html = renderToStaticMarkup(
+        DocumentDetailHelper.render(document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true),
+      );
+
+      expect(html).toContain('actions-overlay-button');
+    });
+
+    it('passes canUploadPhoto and onUploadClick through to the show page layout context', function() {
+      const document = { id: 5, name: 'Ancient Scroll', description: '' };
+      const onUploadClick = jasmine.createSpy('onUploadClick');
+      const element = DocumentDetailHelper.render(
+        document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true, onUploadClick,
+      );
+
+      expect(element.props.context.canUploadPhoto).toBe(true);
+      expect(element.props.context.handlers.onOpenUploadModal).toBe(onUploadClick);
+    });
+
+    it('does not render the edit button when canUploadPhoto is omitted', function() {
+      const document = { id: 5, name: 'Ancient Scroll', description: '' };
+      const html = renderToStaticMarkup(
+        DocumentDetailHelper.render(document, '#/games/demo/documents', '#/games/demo/documents/5/edit'),
+      );
+
+      expect(html).not.toContain('href="#/games/demo/documents/5/edit"');
+    });
+
+    it('does not render the edit button when canUploadPhoto is false', function() {
+      const document = { id: 5, name: 'Ancient Scroll', description: '' };
+      const html = renderToStaticMarkup(
+        DocumentDetailHelper.render(document, '#/games/demo/documents', '#/games/demo/documents/5/edit', false),
+      );
+
+      expect(html).not.toContain('href="#/games/demo/documents/5/edit"');
+    });
+
+    it('renders the edit button linking to editHref when canUploadPhoto is true', function() {
+      const document = { id: 5, name: 'Ancient Scroll', description: '' };
+      const html = renderToStaticMarkup(
+        DocumentDetailHelper.render(document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true),
+      );
+
+      expect(html).toContain('href="#/games/demo/documents/5/edit"');
     });
   });
 

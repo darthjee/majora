@@ -1,8 +1,8 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import GameDocument from '../../../../../../../assets/js/components/resources/document/pages/GameDocument.jsx';
-import DocumentDetailHelper
-  from '../../../../../../../assets/js/components/resources/document/pages/helpers/DocumentDetailHelper.jsx';
+import GameDocumentEdit from '../../../../../../../assets/js/components/resources/document/pages/GameDocumentEdit.jsx';
+import GameDocumentEditHelper
+  from '../../../../../../../assets/js/components/resources/document/pages/helpers/GameDocumentEditHelper.jsx';
 import PhotoUploadModalHelper
   from '../../../../../../../assets/js/components/common/modals/helpers/PhotoUploadModalHelper.jsx';
 import PhotoUploadModalController
@@ -11,24 +11,13 @@ import RequestStore from '../../../../../../../assets/js/utils/requests/RequestS
 import AuthStorage from '../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
 
-const loadedDocument = { id: 5, name: 'Ancient Scroll', description: 'A crumbling scroll.' };
+const loadedDocument = { id: 5, name: 'Ancient Scroll', description: 'A crumbling scroll.', photo_path: '/document.png' };
 
 /** Stub controller that synchronously loads a document (with upload permission) during construction. */
 class LoadedController {
   constructor(setDocument, setLoading, setError, setCanUploadPhoto) {
     setDocument(loadedDocument);
     setCanUploadPhoto(true);
-    setLoading(false);
-  }
-
-  buildEffect() { return () => Noop.noop; }
-}
-
-/** Stub controller that synchronously loads a document without upload permission. */
-class LoadedWithoutUploadController {
-  constructor(setDocument, setLoading, setError, setCanUploadPhoto) {
-    setDocument(loadedDocument);
-    setCanUploadPhoto(false);
     setLoading(false);
   }
 
@@ -50,12 +39,12 @@ class ErroredController {
   buildEffect() { return () => Noop.noop; }
 }
 
-describe('GameDocument', function() {
+describe('GameDocumentEdit', function() {
   let originalWindow;
 
   beforeEach(function() {
     originalWindow = globalThis.window;
-    globalThis.window = { location: { hash: '#/games/demo/documents/5' } };
+    globalThis.window = { location: { hash: '#/games/demo/documents/5/edit' } };
   });
 
   afterEach(function() {
@@ -64,7 +53,7 @@ describe('GameDocument', function() {
 
   it('renders the loading state while the document is loading', function() {
     const html = renderToStaticMarkup(
-      React.createElement(GameDocument, { ControllerClass: LoadingController }),
+      React.createElement(GameDocumentEdit, { ControllerClass: LoadingController }),
     );
 
     expect(html).toContain('Loading document...');
@@ -72,65 +61,36 @@ describe('GameDocument', function() {
 
   it('renders the error state when the document fails to load', function() {
     const html = renderToStaticMarkup(
-      React.createElement(GameDocument, { ControllerClass: ErroredController }),
+      React.createElement(GameDocumentEdit, { ControllerClass: ErroredController }),
     );
 
     expect(html).toContain('Unable to load document.');
   });
 
-  it('delegates to DocumentDetailHelper.render with the document, back href, edit href and gating', function() {
+  it('delegates to GameDocumentEditHelper.render with the document, back href to the show page and gating', function() {
     let capturedDocument;
     let capturedBackHref;
-    let capturedEditHref;
     let capturedCanUploadPhoto;
     let capturedOnUploadClick;
-    spyOn(DocumentDetailHelper, 'render').and.callFake((document, backHref, editHref, canUploadPhoto, onUploadClick) => {
+    spyOn(GameDocumentEditHelper, 'render').and.callFake((document, backHref, canUploadPhoto, onUploadClick) => {
       capturedDocument = document;
       capturedBackHref = backHref;
-      capturedEditHref = editHref;
       capturedCanUploadPhoto = canUploadPhoto;
       capturedOnUploadClick = onUploadClick;
       return null;
     });
 
-    renderToStaticMarkup(React.createElement(GameDocument, { ControllerClass: LoadedController }));
+    renderToStaticMarkup(React.createElement(GameDocumentEdit, { ControllerClass: LoadedController }));
 
     expect(capturedDocument).toEqual(loadedDocument);
-    expect(capturedBackHref).toBe('#/games/demo/documents');
-    expect(capturedEditHref).toBe('#/games/demo/documents/5/edit');
+    expect(capturedBackHref).toBe('#/games/demo/documents/5');
     expect(capturedCanUploadPhoto).toBe(true);
     expect(typeof capturedOnUploadClick).toBe('function');
   });
 
-  it('passes canUploadPhoto=false through when the controller denies it', function() {
-    let capturedCanUploadPhoto;
-    spyOn(DocumentDetailHelper, 'render').and.callFake((document, backHref, editHref, canUploadPhoto) => {
-      capturedCanUploadPhoto = canUploadPhoto;
-      return null;
-    });
-
-    renderToStaticMarkup(
-      React.createElement(GameDocument, { ControllerClass: LoadedWithoutUploadController }),
-    );
-
-    expect(capturedCanUploadPhoto).toBe(false);
-  });
-
-  it('opens the upload modal via the onUploadClick handler passed to DocumentDetailHelper', function() {
-    let capturedOnUploadClick;
-    spyOn(DocumentDetailHelper, 'render').and.callFake((document, backHref, editHref, canUploadPhoto, onUploadClick) => {
-      capturedOnUploadClick = onUploadClick;
-      return null;
-    });
-
-    renderToStaticMarkup(React.createElement(GameDocument, { ControllerClass: LoadedController }));
-
-    expect(() => capturedOnUploadClick()).not.toThrow();
-  });
-
   describe('upload modal', function() {
     it('wires the modal to the uploadPath built from the game slug and document id', function() {
-      spyOn(DocumentDetailHelper, 'render').and.returnValue(null);
+      spyOn(GameDocumentEditHelper, 'render').and.returnValue(null);
       spyOn(AuthStorage, 'getToken').and.returnValue('auth-tok');
       spyOn(PhotoUploadModalController.prototype, 'handleSubmit').and.returnValue(Promise.resolve());
       let capturedHandlers;
@@ -139,7 +99,7 @@ describe('GameDocument', function() {
         return null;
       });
 
-      renderToStaticMarkup(React.createElement(GameDocument, { ControllerClass: LoadedController }));
+      renderToStaticMarkup(React.createElement(GameDocumentEdit, { ControllerClass: LoadedController }));
 
       capturedHandlers.onSubmit();
 
@@ -151,7 +111,7 @@ describe('GameDocument', function() {
     });
 
     it('refetches the document via buildEffect when the upload succeeds', function() {
-      spyOn(DocumentDetailHelper, 'render').and.returnValue(null);
+      spyOn(GameDocumentEditHelper, 'render').and.returnValue(null);
       spyOn(AuthStorage, 'getToken').and.returnValue('auth-tok');
       spyOn(PhotoUploadModalController.prototype, 'handleSubmit').and.callFake(function() {
         this.onSuccess();
@@ -165,7 +125,7 @@ describe('GameDocument', function() {
         return null;
       });
 
-      renderToStaticMarkup(React.createElement(GameDocument, { ControllerClass: LoadedController }));
+      renderToStaticMarkup(React.createElement(GameDocumentEdit, { ControllerClass: LoadedController }));
 
       const callsBefore = buildEffectSpy.calls.count();
 
@@ -175,7 +135,7 @@ describe('GameDocument', function() {
     });
 
     it('purges the document cache before refetching when the upload succeeds', function() {
-      spyOn(DocumentDetailHelper, 'render').and.returnValue(null);
+      spyOn(GameDocumentEditHelper, 'render').and.returnValue(null);
       spyOn(AuthStorage, 'getToken').and.returnValue('auth-tok');
       spyOn(RequestStore, 'purge');
       spyOn(PhotoUploadModalController.prototype, 'handleSubmit').and.callFake(function() {
@@ -189,7 +149,7 @@ describe('GameDocument', function() {
         return null;
       });
 
-      renderToStaticMarkup(React.createElement(GameDocument, { ControllerClass: LoadedController }));
+      renderToStaticMarkup(React.createElement(GameDocumentEdit, { ControllerClass: LoadedController }));
 
       capturedHandlers.onSubmit();
 
@@ -197,7 +157,7 @@ describe('GameDocument', function() {
     });
 
     it('closes without refetching when the modal is dismissed', function() {
-      spyOn(DocumentDetailHelper, 'render').and.returnValue(null);
+      spyOn(GameDocumentEditHelper, 'render').and.returnValue(null);
       const buildEffectSpy = spyOn(LoadedController.prototype, 'buildEffect')
         .and.returnValue(() => Noop.noop);
       let capturedHandlers;
@@ -206,7 +166,7 @@ describe('GameDocument', function() {
         return null;
       });
 
-      renderToStaticMarkup(React.createElement(GameDocument, { ControllerClass: LoadedController }));
+      renderToStaticMarkup(React.createElement(GameDocumentEdit, { ControllerClass: LoadedController }));
 
       const callsBefore = buildEffectSpy.calls.count();
 

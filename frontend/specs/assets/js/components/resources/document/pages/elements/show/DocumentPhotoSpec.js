@@ -7,6 +7,8 @@ describe('DocumentPhoto', function() {
     photo_path: 'http://example.com/document.png',
     name: 'Ancient Scroll',
     hidden: false,
+    canUploadPhoto: false,
+    handlers: { onOpenUploadModal: jasmine.createSpy('onOpenUploadModal') },
     ...overrides,
   });
 
@@ -20,8 +22,18 @@ describe('DocumentPhoto', function() {
       expect(element.props.alt).toBe('Ancient Scroll');
     });
 
-    it('is never editable (no upload affordance in this issue)', function() {
-      expect(DocumentPhoto.Show(buildProps()).props.canEdit).toBe(false);
+    it('gates editing by canUploadPhoto', function() {
+      expect(DocumentPhoto.Show(buildProps({ canUploadPhoto: true })).props.canEdit).toBe(true);
+      expect(DocumentPhoto.Show(buildProps({ canUploadPhoto: false })).props.canEdit).toBe(false);
+    });
+
+    it('wires the upload click handler to handlers.onOpenUploadModal', function() {
+      const handlers = { onOpenUploadModal: jasmine.createSpy('onOpenUploadModal') };
+      const element = DocumentPhoto.Show(buildProps({ handlers }));
+
+      element.props.onClick();
+
+      expect(handlers.onOpenUploadModal).toHaveBeenCalled();
     });
 
     it('includes a Hidden info-bar item when hidden is true', function() {
@@ -37,8 +49,61 @@ describe('DocumentPhoto', function() {
     });
   });
 
-  it('has no New or Edit variant (no photo picker, no edit mode in this issue)', function() {
-    expect(DocumentPhoto.New).toBeUndefined();
-    expect(DocumentPhoto.Edit).toBeUndefined();
+  describe('.Edit', function() {
+    it('renders an ActionsOverlay with the document photo url and alt text, always editable', function() {
+      const element = DocumentPhoto.Edit(buildProps());
+
+      expect(element.type).toBe(ActionsOverlay);
+      expect(element.props.type).toBe('document');
+      expect(element.props.url).toBe('http://example.com/document.png');
+      expect(element.props.alt).toBe('Ancient Scroll');
+      expect(element.props.canEdit).toBe(true);
+    });
+
+    it('dims the photo when hidden is true', function() {
+      expect(DocumentPhoto.Edit(buildProps({ hidden: true })).props.dimmed).toBe(true);
+    });
+
+    it('does not dim the photo when hidden is false', function() {
+      expect(DocumentPhoto.Edit(buildProps({ hidden: false })).props.dimmed).toBe(false);
+    });
+
+    it('wires the upload click handler to handlers.onOpenUploadModal', function() {
+      const handlers = { onOpenUploadModal: jasmine.createSpy('onOpenUploadModal') };
+      const element = DocumentPhoto.Edit(buildProps({ handlers }));
+
+      element.props.onClick();
+
+      expect(handlers.onOpenUploadModal).toHaveBeenCalled();
+    });
+  });
+
+  describe('.New', function() {
+    it('renders an ActionsOverlay with the picked photo preview url and alt text, always editable', function() {
+      const element = DocumentPhoto.New(buildProps());
+
+      expect(element.type).toBe(ActionsOverlay);
+      expect(element.props.type).toBe('document');
+      expect(element.props.url).toBe('http://example.com/document.png');
+      expect(element.props.alt).toBe('Ancient Scroll');
+      expect(element.props.canEdit).toBe(true);
+    });
+
+    it('dims the photo when hidden is true', function() {
+      expect(DocumentPhoto.New(buildProps({ hidden: true })).props.dimmed).toBe(true);
+    });
+
+    it('does not dim the photo when hidden is false', function() {
+      expect(DocumentPhoto.New(buildProps({ hidden: false })).props.dimmed).toBe(false);
+    });
+
+    it('wires the upload click handler to handlers.onOpenUploadModal', function() {
+      const handlers = { onOpenUploadModal: jasmine.createSpy('onOpenUploadModal') };
+      const element = DocumentPhoto.New(buildProps({ handlers }));
+
+      element.props.onClick();
+
+      expect(handlers.onOpenUploadModal).toHaveBeenCalled();
+    });
   });
 });

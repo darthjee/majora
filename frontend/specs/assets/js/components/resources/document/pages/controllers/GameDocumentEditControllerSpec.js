@@ -1,9 +1,9 @@
-import GameDocumentController
-  from '../../../../../../../../assets/js/components/resources/document/pages/controllers/GameDocumentController.js';
+import GameDocumentEditController
+  from '../../../../../../../../assets/js/components/resources/document/pages/controllers/GameDocumentEditController.js';
 import AccessStore from '../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 import RequestStore from '../../../../../../../../assets/js/utils/requests/RequestStore.js';
 
-describe('GameDocumentController', function() {
+describe('GameDocumentEditController', function() {
   let setDocument;
   let setLoading;
   let setError;
@@ -17,7 +17,7 @@ describe('GameDocumentController', function() {
     setError = jasmine.createSpy('setError');
     setCanUploadPhoto = jasmine.createSpy('setCanUploadPhoto');
     client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
-    client.currentHash.and.returnValue('#/games/demo/documents/5');
+    client.currentHash.and.returnValue('#/games/demo/documents/5/edit');
     spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
     ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(
       Promise.resolve({ data: { id: 5, name: 'Ancient Scroll' } }),
@@ -26,13 +26,13 @@ describe('GameDocumentController', function() {
 
   describe('.getParamsFromHash', function() {
     it('extracts the game slug and document id', function() {
-      expect(GameDocumentController.getParamsFromHash('#/games/demo/documents/5')).toEqual({
+      expect(GameDocumentEditController.getParamsFromHash('#/games/demo/documents/5/edit')).toEqual({
         game_slug: 'demo', id: '5',
       });
     });
 
     it('defaults to empty strings for a non-matching hash', function() {
-      expect(GameDocumentController.getParamsFromHash('#/games/demo')).toEqual({
+      expect(GameDocumentEditController.getParamsFromHash('#/games/demo')).toEqual({
         game_slug: '', id: '',
       });
     });
@@ -40,12 +40,12 @@ describe('GameDocumentController', function() {
 
   describe('#buildEffect', function() {
     it('fetches the document through RequestStore with the game-owned kind', async function() {
-      const cleanup = new GameDocumentController(setDocument, setLoading, setError, setCanUploadPhoto, client)
+      const cleanup = new GameDocumentEditController(setDocument, setLoading, setError, setCanUploadPhoto, client)
         .buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(ensureSpy).toHaveBeenCalledWith({
-        componentName: 'GameDocumentController',
+        componentName: 'GameDocumentEditController',
         resource: 'document',
         quantityType: 'single',
         params: { gameSlug: 'demo', kind: 'game', id: '5' },
@@ -60,7 +60,7 @@ describe('GameDocumentController', function() {
     it('sets an error when the fetch rejects', async function() {
       ensureSpy.and.returnValue(Promise.reject(new Error('network error')));
 
-      const cleanup = new GameDocumentController(setDocument, setLoading, setError, setCanUploadPhoto, client)
+      const cleanup = new GameDocumentEditController(setDocument, setLoading, setError, setCanUploadPhoto, client)
         .buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -73,7 +73,7 @@ describe('GameDocumentController', function() {
     it('sets an error and skips fetching when route params are missing', function() {
       client.currentHash.and.returnValue('#/games/demo');
 
-      const cleanup = new GameDocumentController(setDocument, setLoading, setError, setCanUploadPhoto, client)
+      const cleanup = new GameDocumentEditController(setDocument, setLoading, setError, setCanUploadPhoto, client)
         .buildEffect()();
 
       expect(setError).toHaveBeenCalledWith('Unable to load document.');
@@ -84,7 +84,7 @@ describe('GameDocumentController', function() {
     });
 
     it('does not update state after unmount', async function() {
-      const cleanup = new GameDocumentController(setDocument, setLoading, setError, setCanUploadPhoto, client)
+      const cleanup = new GameDocumentEditController(setDocument, setLoading, setError, setCanUploadPhoto, client)
         .buildEffect()();
       cleanup();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -96,7 +96,7 @@ describe('GameDocumentController', function() {
 
   describe('canUploadPhoto', function() {
     const runController = async () => {
-      const cleanup = new GameDocumentController(setDocument, setLoading, setError, setCanUploadPhoto, client)
+      const cleanup = new GameDocumentEditController(setDocument, setLoading, setError, setCanUploadPhoto, client)
         .buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
       cleanup();
