@@ -53,8 +53,9 @@ regardless of any other rule listed below.
 
 ### Standalone endpoints
 
-- [Standalone endpoints](access-control/endpoints.md) — access-route config, health check, and
-  authentication endpoints.
+- [Standalone endpoints](access-control/endpoints.md) — access-route config, health check,
+  authentication endpoints, and the `AuthorizationRequest` device-authorize login endpoints
+  (issue #701).
 
 ### Versioning
 
