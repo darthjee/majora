@@ -60,6 +60,12 @@ class TestGameDocumentPhotosView(TokenAuthRequestMixin):
         assert data[0]['id'] == photo.id
         assert data[0]['path'] == photo.path
 
+    def test_returns_404_for_hidden_document(self, client):
+        """Test that 404 is returned for a hidden document's photos."""
+        hidden_document = GameDocumentFactory(game=self.game, name='Secret Scroll', hidden=True)
+        response = client.get(self._url(document_id=hidden_document.id))
+        assert response.status_code == 404
+
     def test_returns_404_for_unknown_document(self, client):
         """Test that 404 is returned for a non-existent document_id."""
         response = client.get(self._url(document_id=99999))
