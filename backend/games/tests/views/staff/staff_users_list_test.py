@@ -159,3 +159,10 @@ class TestStaffUsersListViewFilters(TokenAuthRequestMixin, TestCase):
         """Test that ?status= and ?search= combine as an AND."""
         response = self._get('status=approved&search=annie')
         assert self._ids(response) == {self.approved_user.id}
+
+    def test_invalid_status_filter_returns_400(self):
+        """Test that ?status= with an unrecognized value returns a clean 400."""
+        response = self._get('status=bogus')
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'status' in data['errors']
