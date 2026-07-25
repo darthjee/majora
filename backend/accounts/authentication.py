@@ -4,6 +4,8 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import AuthenticationFailed
 
+from accounts.models import UserProfile
+
 
 class CookieTokenAuthentication(TokenAuthentication):
     """Authenticate via Authorization: Token header, falling back to session.
@@ -13,18 +15,30 @@ class CookieTokenAuthentication(TokenAuthentication):
     normally raise AuthenticationFailed), reads ``auth_token`` from the Django
     session (written there by the login/register views) and authenticates via
     that token.
+
+    A resolved user whose profile status isn't `approved` is treated as
+    unauthenticated (returns `None`), so `pending`/`denied` users look logged
+    out to every view built on top of this authentication class.
     """
 
     def authenticate(self, request):
-        """Return (user, token) if authenticated, else None."""
+        """Return (user, token) if authenticated and approved, else None."""
+        result = self._authenticate_via_header(request) or self._authenticate_via_session(request)
+
+        if result is None or not self._is_approved(result[0]):
+            return None
+
+        return result
+
+    def _authenticate_via_header(self, request):
+        """Return (user, token) via the Authorization header, or None."""
         try:
-            result = super().authenticate(request)
+            return super().authenticate(request)
         except AuthenticationFailed:
-            result = None  # stale header token — fall through to session
+            return None  # stale header token — fall through to session
 
-        if result is not None:
-            return result
-
+    def _authenticate_via_session(self, request):
+        """Return (user, token) via the session-stored token, or None."""
         token_key = request.session.get('auth_token')
         if not token_key:
             return None
@@ -35,3 +49,8 @@ class CookieTokenAuthentication(TokenAuthentication):
             return None
 
         return (token_obj.user, token_obj)
+
+    def _is_approved(self, user):
+        """Return whether `user`'s profile status is `approved`."""
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        return profile.status == UserProfile.STATUS_APPROVED

@@ -58,7 +58,7 @@ class TestUserProfileEmailHashBackfill(TestCase):
     def test_reverse_migration_is_a_noop(self):
         """Test that the reverse migration does not change any data."""
         user = UserFactory(username='dave', password='secret-password', email='dave@example.com')
-        profile = UserProfile.objects.create(user=user)
+        profile = user.profile
         original_hash = profile.email_hash
 
         _migration._noop_reverse(self.apps, None)

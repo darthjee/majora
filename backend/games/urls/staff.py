@@ -6,6 +6,8 @@ from .. import views
 
 urlpatterns = [
     path('staff/users.json', views.staff_users_list, name='staff-users-list'),
+    path('staff/users/approve.json', views.staff_user_approve, name='staff-user-approve'),
+    path('staff/users/deny.json', views.staff_user_deny, name='staff-user-deny'),
     path('staff/users/<int:user_id>.json', views.staff_user_detail, name='staff-user-detail'),
     path(
         'staff/users/<int:user_id>/recovery-link.json',

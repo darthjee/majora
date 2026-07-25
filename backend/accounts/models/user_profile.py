@@ -9,10 +9,27 @@ from django.db import models
 class UserProfile(models.Model):
     """Model representing a user's account-level preferences."""
 
+    STATUS_PENDING = 'pending'
+    STATUS_APPROVED = 'approved'
+    STATUS_DENIED = 'denied'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_APPROVED, 'Approved'),
+        (STATUS_DENIED, 'Denied'),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     favorite_language = models.CharField(max_length=10, default='en')
     email_hash = models.CharField(max_length=64, null=True, blank=True)
     display_name = models.CharField(max_length=150, unique=True, null=True)
+    # db_default (not just default) is required here: unlike the other fields on this model,
+    # `status` is NOT NULL with no `null=True` escape hatch, and some tests build a `UserProfile`
+    # row through a historical, frozen migration-era model (see `games/tests/migration_state.py`)
+    # that predates this field and so never sets it explicitly — without a real database-level
+    # default, MySQL rejects that INSERT outright.
+    status = models.CharField(
+        max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING, db_default=STATUS_PENDING,
+    )
 
     class Meta:
         """Metadata for the UserProfile model."""

@@ -6,7 +6,8 @@ import pytest
 from django.utils.crypto import get_random_string
 from rest_framework.authtoken.models import Token
 
-from games.tests.factories import UserFactory
+from accounts.models import UserProfile
+from games.tests.factories import UserFactory, UserProfileFactory
 
 TEST_PASSWORD = get_random_string(20)
 
@@ -143,6 +144,34 @@ class TestStatusView:
         token.delete()
 
         response = client.get('/users/status.json')
+
+        assert response.status_code == 200
+        assert json.loads(response.content) == {'logged_in': False}
+
+    def test_returns_pending_status_for_pending_user(self, client):
+        """Test that a pending user's valid token reports the dedicated pending payload."""
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
+        UserProfileFactory(user=user, status=UserProfile.STATUS_PENDING)
+        token = Token.objects.create(user=user)
+
+        response = client.get(
+            '/users/status.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        assert response.status_code == 200
+        assert json.loads(response.content) == {'logged_in': False, 'status': 'pending'}
+
+    def test_returns_plain_logged_out_for_denied_user(self, client):
+        """Test that a denied user's valid token reports a plain logged_in false (no status)."""
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
+        UserProfileFactory(user=user, status=UserProfile.STATUS_DENIED)
+        token = Token.objects.create(user=user)
+
+        response = client.get(
+            '/users/status.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
 
         assert response.status_code == 200
         assert json.loads(response.content) == {'logged_in': False}

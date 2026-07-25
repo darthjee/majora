@@ -14,15 +14,15 @@ from ._shared import _authenticate_from_session
 @authentication_classes([])
 @permission_classes([AllowAny])
 def status(request):
-    """Report whether the requesting token (if any) is logged in."""
+    """Report whether the requesting token (if any) is logged in and approved."""
     result, session_auth = _resolve_authentication(request)
 
     if result is None:
         return _skip_cache(Response({'logged_in': False}))
 
     user, token_obj = result
-    payload = _build_payload(user, token_obj, session_auth)
-    return _skip_cache(Response(payload))
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    return _skip_cache(Response(_build_payload(user, profile, token_obj, session_auth)))
 
 
 def _resolve_authentication(request):
@@ -39,9 +39,25 @@ def _resolve_authentication(request):
     return _authenticate_from_session(request)
 
 
-def _build_payload(user, token_obj, session_auth):
-    """Build the logged-in status payload for `user`."""
-    profile, _ = UserProfile.objects.get_or_create(user=user)
+def _build_payload(user, profile, token_obj, session_auth):
+    """Build the status payload for `user`, honoring their profile's approval status.
+
+    A `pending` user still resolves a valid token/session, but gets a dedicated
+    `{'logged_in': False, 'status': 'pending'}` payload instead of the full logged-in one,
+    so the frontend can show an "awaiting approval" screen. `denied` users fall back to a
+    plain `{'logged_in': False}`.
+    """
+    if profile.status == UserProfile.STATUS_PENDING:
+        return {'logged_in': False, 'status': 'pending'}
+
+    if profile.status != UserProfile.STATUS_APPROVED:
+        return {'logged_in': False}
+
+    return _build_logged_in_payload(user, profile, token_obj, session_auth)
+
+
+def _build_logged_in_payload(user, profile, token_obj, session_auth):
+    """Build the full logged-in payload for an `approved` `user`."""
     payload = {
         'logged_in': True,
         'username': user.username,
