@@ -118,6 +118,12 @@ export default class HeaderHelper {
             <NavDropdown.Item href="#/my-games" data-testid="my-games-link">
               {Translator.t('header.nav_my_games')}
             </NavDropdown.Item>
+            <NavDropdown.Item
+              href="#/account/authorization_requests"
+              data-testid="authorization-requests-link"
+            >
+              {Translator.t('header.nav_authorization_requests')}
+            </NavDropdown.Item>
           </NavDropdown>
           {HeaderHelper.#renderViewAsLink(state, handlers)}
         </>

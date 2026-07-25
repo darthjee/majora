@@ -29,6 +29,7 @@ import GameTreasureEdit from '../resources/treasure/pages/GameTreasureEdit.jsx';
 import GameTreasureNew from '../resources/treasure/pages/GameTreasureNew.jsx';
 import GameTreasures from '../resources/treasure/pages/GameTreasures.jsx';
 import Games from '../resources/game/pages/Games.jsx';
+import AuthorizationRequests from '../resources/account/pages/AuthorizationRequests.jsx';
 import MyAccount from '../resources/account/pages/MyAccount.jsx';
 import MyGames from '../resources/game/pages/MyGames.jsx';
 import NpcCharacter from '../resources/character/pages/NpcCharacter.jsx';
@@ -62,6 +63,7 @@ import Treasures from '../resources/treasure/pages/Treasures.jsx';
 
 const PAGES = {
   games: <Games />,
+  accountAuthorizationRequests: <AuthorizationRequests />,
   game: <Game />,
   gameEdit: <GameEdit />,
   gameNew: <GameNew />,

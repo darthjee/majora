@@ -65,6 +65,7 @@ const ROUTES = [
   ['/games', 'games'],
   ['/recover-password', 'recoverPassword'],
   ['/users/register', 'register'],
+  ['/account/authorization_requests', 'accountAuthorizationRequests'],
   ['/my_account', 'myAccount'],
   ['/my-games', 'myGames'],
   ['/', 'home'],

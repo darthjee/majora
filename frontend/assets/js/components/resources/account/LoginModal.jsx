@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import LoginModalController from './controllers/LoginModalController.js';
 import LoginModalHelper from './helpers/LoginModalHelper.jsx';
+import AuthorizationRequestPoller from '../../../utils/polling/AuthorizationRequestPoller.js';
 
 /**
  * Stateful login modal component.
@@ -16,6 +17,12 @@ export default function LoginModal({ show, onClose, onSuccess }) {
   const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [recoverySent, setRecoverySent] = useState(false);
+  const [authorizeStatus, setAuthorizeStatus] = useState(null);
+
+  // Memoized so the same poller instance (and its running interval) survives
+  // across re-renders, instead of being replaced every time this component
+  // re-renders (as `controller` below intentionally is).
+  const poller = useMemo(() => new AuthorizationRequestPoller(), []);
 
   const controller = new LoginModalController(
     setUsername,
@@ -24,7 +31,9 @@ export default function LoginModal({ show, onClose, onSuccess }) {
     setError,
     onSuccess,
     undefined,
-    setRecoverySent
+    setRecoverySent,
+    setAuthorizeStatus,
+    poller
   );
 
   const handleClear = () => {
@@ -65,6 +74,22 @@ export default function LoginModal({ show, onClose, onSuccess }) {
     }
   };
 
+  const handleAuthorizeSubmit = (event) => {
+    if (event && typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+
+    return controller.handleAuthorizeSubmit(username);
+  };
+
+  const handleModeChange = (newMode) => {
+    controller.handleAuthorizeReset();
+    setPassword('');
+    setIncorrect(false);
+    setError(false);
+    setMode(newMode);
+  };
+
   return LoginModalHelper.render(
     show,
     {
@@ -75,6 +100,7 @@ export default function LoginModal({ show, onClose, onSuccess }) {
       mode,
       email,
       recoverySent,
+      authorizeStatus,
     },
     {
       onClose: handleClose,
@@ -87,6 +113,9 @@ export default function LoginModal({ show, onClose, onSuccess }) {
       onBackToLoginClick: () => setMode('login'),
       onEmailChange: (event) => setEmail(event.target.value),
       onRecoverSubmit: handleRecoverSubmit,
+      onModeChange: handleModeChange,
+      onAuthorizeSubmit: handleAuthorizeSubmit,
+      onAuthorizeReset: () => controller.handleAuthorizeReset(),
     }
   );
 }

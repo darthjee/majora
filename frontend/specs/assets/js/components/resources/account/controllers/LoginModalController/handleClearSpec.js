@@ -56,5 +56,26 @@ describe('LoginModalController', function() {
 
       expect(setRecoverySent).toHaveBeenCalledWith(false);
     });
+
+    it('stops the poller and resets the authorize status', function() {
+      const setAuthorizeStatus = jasmine.createSpy('setAuthorizeStatus');
+      const poller = { start: jasmine.createSpy('start'), stop: jasmine.createSpy('stop') };
+      const controller = new LoginModalController(
+        setUsername,
+        setPassword,
+        setIncorrect,
+        setError,
+        onSuccess,
+        client,
+        setRecoverySent,
+        setAuthorizeStatus,
+        poller
+      );
+
+      controller.handleClear();
+
+      expect(poller.stop).toHaveBeenCalled();
+      expect(setAuthorizeStatus).toHaveBeenCalledWith(null);
+    });
   });
 });

@@ -18,6 +18,7 @@ header:
   test_email_error: Falha ao enviar e-mail de teste
   register: Registrar
   my_account_alt: Minha conta
+  nav_authorization_requests: Autorizações
   view_as_alt: Ver como
   resilience_idle_alt: Inativo
   resilience_requesting_alt: Solicitando
@@ -45,6 +46,17 @@ login_modal:
   back_to_login: Voltar ao login
   recovery_sent: Caso o e-mail esteja registrado, o link de recuperaçao será enviado.
   register_link: Criar uma conta
+  mode_password_label: Senha
+  mode_authorize_label: Autorizar com dispositivo conectado
+  authorize_username_label: Usuario
+  authorize_submit: Solicitar autorização
+  authorize_waiting_title: Aguardando aprovação
+  authorize_waiting_body: Verifique seu outro dispositivo e aprove esta solicitação de login.
+  authorize_retry: Conexão perdida. Tentando novamente...
+  authorize_error: Um erro inesperado ocorreu, tente novamente mais tarde.
+  authorize_expired: Esta solicitação expirou. Por favor, tente novamente.
+  authorize_denied: Esta solicitação foi negada.
+  authorize_approved: Aprovado! Efetuando login...
 photo_upload_modal:
   cancel: Cancelar
   confirm: Confirmar
@@ -294,6 +306,29 @@ my_account_page:
   password_confirmation_label: Confirmar senha
   submit: Salvar alterações
   error: Falha ao salvar conta. Tente novamente.
+authorization_requests_page:
+  title: Solicitações de autorização
+  loading: Carregando solicitações de autorização...
+  column_uuid: UUID
+  column_created_at: Data da solicitação
+  column_status: Status
+  status_open: Aberta
+  status_approved: Aprovada
+  status_denied: Negada
+  status_expired: Expirada
+  status_logged: Utilizada
+  dismiss: Negar
+  authorize: Autorizar
+  confirm: Confirmar
+  cancel: Cancelar
+  dismiss_modal_title: Negar solicitação de autorização
+  dismiss_modal_body: Tem certeza de que deseja negar esta solicitação de autorização?
+  authorize_modal_title: Autorizar solicitação de login
+  authorize_modal_body: Tem certeza de que deseja autorizar esta solicitação de login? Confira se o dispositivo e a localização abaixo são realmente seus.
+  ip_label: Endereço IP
+  browser_label: Navegador
+  password_label: Senha
+  error: Falha ao atualizar a solicitação de autorização. Tente novamente.
 character_treasures_page:
   loading: Carregando tesouros...
   title: Tesouros

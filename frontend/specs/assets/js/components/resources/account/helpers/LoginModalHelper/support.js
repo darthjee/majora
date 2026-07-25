@@ -9,6 +9,9 @@ export const buildHandlers = () => ({
   onBackToLoginClick: jasmine.createSpy('onBackToLoginClick'),
   onEmailChange: jasmine.createSpy('onEmailChange'),
   onRecoverSubmit: jasmine.createSpy('onRecoverSubmit'),
+  onModeChange: jasmine.createSpy('onModeChange'),
+  onAuthorizeSubmit: jasmine.createSpy('onAuthorizeSubmit'),
+  onAuthorizeReset: jasmine.createSpy('onAuthorizeReset'),
 });
 
 export const buildState = (overrides = {}) => ({
@@ -19,6 +22,7 @@ export const buildState = (overrides = {}) => ({
   mode: 'login',
   email: '',
   recoverySent: false,
+  authorizeStatus: null,
   ...overrides,
 });
 

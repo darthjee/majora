@@ -42,6 +42,8 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/documents').getPage()).toBe('npcCharacterDocuments');
     expect(new HashRouteResolver(() => '#/recover-password?token=abc').getPage()).toBe('recoverPassword');
     expect(new HashRouteResolver(() => '#/users/register').getPage()).toBe('register');
+    expect(new HashRouteResolver(() => '#/account/authorization_requests').getPage())
+      .toBe('accountAuthorizationRequests');
     expect(new HashRouteResolver(() => '#/my_account').getPage()).toBe('myAccount');
     expect(new HashRouteResolver(() => '#/my-games').getPage()).toBe('myGames');
     expect(new HashRouteResolver(() => '#/staff/users').getPage()).toBe('staffUsers');

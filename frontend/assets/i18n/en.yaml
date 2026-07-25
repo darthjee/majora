@@ -18,6 +18,7 @@ header:
   test_email_error: Failed to send test email
   register: Register
   my_account_alt: My account
+  nav_authorization_requests: Authorizations
   view_as_alt: View as
   resilience_idle_alt: Idle
   resilience_requesting_alt: Requesting
@@ -45,6 +46,17 @@ login_modal:
   back_to_login: Back to login
   recovery_sent: If that email is registered, a recovery link has been sent.
   register_link: Create an account
+  mode_password_label: Password
+  mode_authorize_label: Authorize with logged device
+  authorize_username_label: Username
+  authorize_submit: Request authorization
+  authorize_waiting_title: Waiting for approval
+  authorize_waiting_body: Check your other device and approve this login request.
+  authorize_retry: Connection lost. Retrying...
+  authorize_error: An unexpected error occurred, please try again later.
+  authorize_expired: This request has expired. Please try again.
+  authorize_denied: This request was denied.
+  authorize_approved: Approved! Logging you in...
 photo_upload_modal:
   cancel: Cancel
   confirm: Confirm
@@ -294,6 +306,29 @@ my_account_page:
   password_confirmation_label: Confirm password
   submit: Save changes
   error: Failed to save account. Please try again.
+authorization_requests_page:
+  title: Authorization requests
+  loading: Loading authorization requests...
+  column_uuid: UUID
+  column_created_at: Request date
+  column_status: Status
+  status_open: Open
+  status_approved: Approved
+  status_denied: Denied
+  status_expired: Expired
+  status_logged: Logged
+  dismiss: Dismiss
+  authorize: Authorize
+  confirm: Confirm
+  cancel: Cancel
+  dismiss_modal_title: Deny authorization request
+  dismiss_modal_body: Are you sure you want to deny this authorization request?
+  authorize_modal_title: Authorize login request
+  authorize_modal_body: Are you sure you want to authorize this login request? Make sure the device and location below are your own.
+  ip_label: IP address
+  browser_label: Browser
+  password_label: Password
+  error: Failed to update the authorization request. Please try again.
 character_treasures_page:
   loading: Loading treasures...
   title: Treasures

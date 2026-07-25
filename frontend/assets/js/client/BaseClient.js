@@ -1,5 +1,6 @@
 import SKIP_CACHE_ENDPOINTS from './config/skipCacheEndpoints.js';
 import SKIP_CACHE_SUFFIXES from './config/skipCacheSuffixes.js';
+import SKIP_CACHE_PREFIXES from './config/skipCachePrefixes.js';
 import ActivityTracker from '../utils/logging/ActivityTracker.js';
 import ACTIVITY_ENDPOINT_PREFIXES from '../utils/config/activityEndpoints.js';
 import ResilientRequest from './ResilientRequest.js';
@@ -65,8 +66,10 @@ export default class BaseClient {
    * true only when no `role` query param is present (a role-simulated
    * permissions request is cacheable and must not skip cache). For every
    * other GET request, returns true when the pathname matches a configured
-   * skip-cache endpoint or ends with a configured skip-cache suffix
-   * (`/access.json` unconditionally, among others).
+   * skip-cache endpoint, ends with a configured skip-cache suffix
+   * (`/access.json` unconditionally, among others), or starts with a
+   * configured skip-cache prefix (for dynamic path segments that can't be
+   * expressed as an exact match or fixed suffix).
    *
    * @param {string} method - The HTTP method (GET, POST, PATCH, DELETE, etc.).
    * @param {string} pathname - The request pathname without query string.
@@ -83,7 +86,10 @@ export default class BaseClient {
     const matchesSuffix = [...SKIP_CACHE_SUFFIXES].some(
       (suffix) => pathname.endsWith(suffix)
     );
-    return SKIP_CACHE_ENDPOINTS.has(pathname) || matchesSuffix;
+    const matchesPrefix = [...SKIP_CACHE_PREFIXES].some(
+      (prefix) => pathname.startsWith(prefix)
+    );
+    return SKIP_CACHE_ENDPOINTS.has(pathname) || matchesSuffix || matchesPrefix;
   }
 
   /**

@@ -11,6 +11,7 @@ from rest_framework.authtoken.models import Token
 from accounts.account_uniqueness import display_name_taken, email_taken, username_taken
 from accounts.models import UserProfile
 from games.settings import Settings
+from statistics.session_attachment import attach_user
 
 REGISTER_REQUIRED_FIELDS = {'name', 'display_name', 'email', 'password', 'password_confirmation'}
 
@@ -133,3 +134,28 @@ def _authenticate_from_session(request):
     except Token.DoesNotExist:
         request.session.flush()
         return None, False
+
+
+def attach_statistics_session(request, user):
+    """Tie the request's statistics session to `user`, rotating it if already tied to one.
+
+    Shared by `accounts.views.auth.login` and `accounts.views.authorization_requests.poll`
+    (the latter issuing real login credentials once an authorization request is approved),
+    so both credential-issuing paths behave identically afterwards.
+    """
+    session = request.statistics_session
+    new_session = attach_user(session, user)
+    if new_session is not session:
+        _set_statistics_session(request, new_session)
+
+
+def _set_statistics_session(request, session):
+    """Rebind the request's statistics session, on both the DRF and Django request objects.
+
+    DRF's `Request` proxies attribute *reads* it doesn't have to `request._request` (the
+    underlying `HttpRequest`), but a plain attribute *write* only ever lands on whichever
+    object it targets. `StatisticsSessionMiddleware` reads `request.statistics_session` off
+    the raw `HttpRequest` after this view returns, so the write must reach it directly.
+    """
+    request.statistics_session = session
+    request._request.statistics_session = session

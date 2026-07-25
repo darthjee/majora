@@ -198,6 +198,14 @@ body {
   border-radius: 4px;
 }
 
+// Bootstrap has no built-in "darker blue" badge variant; used by
+// AuthorizationRequestStatusBadges to distinguish a `logged` authorization
+// request from an `approved` one (which uses the stock `bg-primary` blue).
+.bg-authorization-logged {
+  background-color: #1c3d63;
+  color: #f0f4f8;
+}
+
 .coin-icon::before {
   content: "";
   display: inline-block;

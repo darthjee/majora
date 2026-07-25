@@ -127,4 +127,11 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'accounts.authentication.CookieTokenAuthentication',
     ],
+    # Scoped rates for the two pre-login `AllowAny` authorization-request endpoints only
+    # (no project-wide throttling story exists yet); see
+    # `accounts/views/authorization_requests/{create,poll}.py`.
+    'DEFAULT_THROTTLE_RATES': {
+        'authorization_request_create': '20/min',
+        'authorization_request_poll': '120/min',
+    },
 }
