@@ -2,7 +2,7 @@
 
 import secrets
 
-from accounts.models import PasswordResetToken
+from accounts.models import PasswordResetToken, UserProfile
 from accounts.url_builder import FrontendBaseUrl
 from accounts.views.auth._shared import _send_email
 from games.settings import Settings
@@ -29,6 +29,12 @@ def _create_and_send_reset_token(user):
     token = secrets.token_urlsafe(32)
     PasswordResetToken.objects.create(user=user, token=token)
     send_password_reset_email(user, token)
+
+
+def _is_denied(user):
+    """Return whether `user`'s profile status is `denied`."""
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    return profile.status == UserProfile.STATUS_DENIED
 
 
 def get_or_create_recovery_token(user):

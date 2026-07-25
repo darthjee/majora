@@ -58,8 +58,14 @@ class TestRecoverView(TestCase):
         assert PasswordResetToken.objects.filter(user=user).exists()
         assert mail.outbox == []
 
-    def test_returns_sent_true_for_denied_user_without_side_effects(self):
-        """Test that a denied user's matching email still returns {'sent': True}."""
+    def test_creates_token_and_sends_email_for_denied_user(self):
+        """Test that a denied user's matching email creates a token and sends an email too.
+
+        Denied users must not be distinguishable from pending/approved ones via side
+        effects (token creation, email dispatch): they're rejected later, at token
+        consumption time, instead (see `reset_password_test.py`).
+        """
+        self.monkeypatch.setenv('EMAILS_ENABLED', 'true')
         user = UserFactory(
             username='alice', password=TEST_PASSWORD, email='alice@example.com'
         )
@@ -73,8 +79,9 @@ class TestRecoverView(TestCase):
 
         assert response.status_code == 200
         assert json.loads(response.content) == {'sent': True}
-        assert not PasswordResetToken.objects.filter(user=user).exists()
-        assert mail.outbox == []
+        assert PasswordResetToken.objects.filter(user=user).exists()
+        assert len(mail.outbox) == 1
+        assert mail.outbox[0].to == ['alice@example.com']
 
     def test_returns_sent_true_for_pending_user(self):
         """Test that a pending user's matching email still succeeds like an approved one."""
