@@ -43,6 +43,10 @@ export default class HeaderController {
    * @param {Function} [setRoute] - state setter for the current route info.
    * @param {HashRouteResolver} [routeResolver] - resolver used to derive the current route.
    * @param {EventTarget} [eventTarget] - target used to listen for hash changes.
+   * @param {Function} [setPendingApproval] - state setter for the "awaiting approval" flag
+   *   (issue #859), from `GET /users/status.json`'s `status: 'pending'` case. Left undefined
+   *   by default (unlike every other setter above) to keep this constructor's complexity at the
+   *   project's limit; `#checkStatus` calls it defensively via optional chaining instead.
    */
   constructor(
     setLoggedIn,
@@ -55,7 +59,8 @@ export default class HeaderController {
     setIsStaff = Noop.noop,
     setRoute = Noop.noop,
     routeResolver = new HashRouteResolver(),
-    eventTarget = HeaderController.#defaultEventTarget()
+    eventTarget = HeaderController.#defaultEventTarget(),
+    setPendingApproval
   ) {
     this.setLoggedIn = setLoggedIn;
     this.setShowModal = setShowModal;
@@ -68,6 +73,7 @@ export default class HeaderController {
     this.setRoute = setRoute;
     this.routeResolver = routeResolver;
     this.eventTarget = eventTarget;
+    this.setPendingApproval = setPendingApproval;
     this.healthIntervalId = null;
   }
 
@@ -174,6 +180,7 @@ export default class HeaderController {
       this.setLoggedIn(Boolean(data.logged_in));
       this.setIsSuperUser(Boolean(data.is_superuser));
       this.setIsStaff(Boolean(data.is_staff));
+      this.setPendingApproval?.(Boolean(data.status === 'pending'));
       AuthEvents.emit(Boolean(data.logged_in));
       this.#applyLanguagePreference(data);
     } catch {

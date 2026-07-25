@@ -189,6 +189,9 @@ register_page:
   password_confirmation_label: Confirm password
   submit: Register
   error: An unexpected error occurred, please try again later.
+pending_approval_page:
+  title: Awaiting approval
+  body: Your account is awaiting approval. You will be able to access the site once an administrator approves it.
 pc_edit_page:
   title: Edit character
   name_label: Name
@@ -266,11 +269,24 @@ staff_users_page:
   title: Users
   name_column: Name
   email_column: Email
+  display_name_column: Display Name
+  status_column: Status
+  status_pending: Pending
+  status_approved: Approved
+  status_denied: Denied
   edit: Edit
+  approve: Approve
+  deny: Deny
   generate_link: Generate recovery link
   copy_link: Copy link
   copied: Copied!
   link_error: Failed to generate recovery link. Please try again.
+  filter_status_label: Status
+  filter_status_all: All
+  filter_search_label: Search
+  filter_search_placeholder: Search by name, display name or email...
+  filter_query: Query
+  filter_clear: Clear
 staff_user_page:
   loading: Loading user...
   title: User

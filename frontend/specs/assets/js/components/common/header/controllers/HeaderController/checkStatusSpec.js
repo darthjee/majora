@@ -141,6 +141,32 @@ describe('HeaderController', function() {
 
       expect(setIsStaff).toHaveBeenCalledWith(false);
     });
+
+    it('calls setPendingApproval with true when status is pending', async function() {
+      const setPendingApproval = jasmine.createSpy('setPendingApproval');
+      spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
+      client.status.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ logged_in: false, status: 'pending' }),
+      }));
+
+      await buildController({ setPendingApproval }).checkStatus();
+
+      expect(setPendingApproval).toHaveBeenCalledWith(true);
+    });
+
+    it('calls setPendingApproval with false when status is absent', async function() {
+      const setPendingApproval = jasmine.createSpy('setPendingApproval');
+      spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
+      client.status.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ logged_in: true }),
+      }));
+
+      await buildController({ setPendingApproval }).checkStatus();
+
+      expect(setPendingApproval).toHaveBeenCalledWith(false);
+    });
   });
 
 });

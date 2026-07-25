@@ -6,7 +6,8 @@ import pytest
 from django.utils.crypto import get_random_string
 from rest_framework.authtoken.models import Token
 
-from games.tests.factories import UserFactory
+from accounts.models import UserProfile
+from games.tests.factories import UserFactory, UserProfileFactory
 from statistics import cookies
 from statistics.models import Session
 
@@ -39,6 +40,37 @@ class TestLoginView:
             content_type='application/json',
         )
         assert response.status_code == 401
+
+    def test_returns_forbidden_for_denied_user(self, client):
+        """Test that a denied user is rejected with 403, even with correct credentials."""
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
+        UserProfileFactory(user=user, status=UserProfile.STATUS_DENIED)
+
+        response = client.post(
+            '/users/login.json',
+            data=json.dumps({'username': 'alice', 'password': TEST_PASSWORD}),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 403
+        assert json.loads(response.content) == {'error': 'denied'}
+        assert not Token.objects.filter(user=user).exists()
+
+    def test_returns_token_for_pending_user(self, client):
+        """Test that a pending user still receives a token, unlike a denied user."""
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
+        UserProfileFactory(user=user, status=UserProfile.STATUS_PENDING)
+
+        response = client.post(
+            '/users/login.json',
+            data=json.dumps({'username': 'alice', 'password': TEST_PASSWORD}),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert 'token' in data
+        assert Token.objects.filter(key=data['token'], user=user).exists()
 
     def test_stores_token_in_session_on_success(self, client):
         """Test that a successful login stores the auth token in the session."""

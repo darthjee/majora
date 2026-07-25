@@ -108,6 +108,8 @@ from .ready import ready
 from .staff import (
     staff_cache_clear,
     staff_cache_summary,
+    staff_user_approve,
+    staff_user_deny,
     staff_user_detail,
     staff_user_recovery_link,
     staff_users_list,
@@ -223,6 +225,8 @@ __all__ = [
     'game_poll_detail',
     'game_poll_votes',
     'staff_users_list',
+    'staff_user_approve',
+    'staff_user_deny',
     'staff_user_detail',
     'staff_user_recovery_link',
     'staff_cache_clear',

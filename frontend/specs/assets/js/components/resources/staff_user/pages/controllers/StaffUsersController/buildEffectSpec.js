@@ -8,10 +8,16 @@ describe('StaffUsersController', function() {
   let setLoading;
   let setError;
   let ensureSpy;
+  let originalWindow;
 
   beforeEach(function() {
     ({ setUsers, setPagination, setLoading, setError } = buildContext());
     ensureSpy = spyOn(RequestStore, 'ensure');
+    originalWindow = globalThis.window;
+  });
+
+  afterEach(function() {
+    globalThis.window = originalWindow;
   });
 
   describe('#buildEffect', function() {
@@ -56,6 +62,31 @@ describe('StaffUsersController', function() {
 
       expect(setError).toHaveBeenCalledWith('Unable to load users.');
       expect(setLoading).toHaveBeenCalledWith(false);
+
+      cleanup();
+    });
+
+    it('merges the status/search filter params and pagination params into the query', async function() {
+      stubAccessStore(true);
+      globalThis.window = { location: { hash: '#/staff/users?status=pending&search=jane&page=2' } };
+      ensureSpy.and.returnValue(Promise.resolve({
+        data: [],
+        pagination: {
+          page: 2, pages: 2, perPage: 10, total: 11,
+        },
+      }));
+
+      const cleanup = new StaffUsersController(
+        setUsers, setPagination, setLoading, setError,
+      ).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(ensureSpy).toHaveBeenCalledWith({
+        componentName: 'StaffUsersController',
+        resource: 'staffUser',
+        quantityType: 'collection',
+        query: { page: '2', status: 'pending', search: 'jane' },
+      });
 
       cleanup();
     });

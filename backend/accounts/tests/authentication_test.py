@@ -5,7 +5,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APIRequestFactory
 
 from accounts.authentication import CookieTokenAuthentication
-from games.tests.factories import UserFactory
+from accounts.models import UserProfile
+from games.tests.factories import UserFactory, UserProfileFactory
 
 
 class TestCookieTokenAuthentication(TestCase):
@@ -74,6 +75,34 @@ class TestCookieTokenAuthentication(TestCase):
         request = self._request_with_session()
         result = self.auth.authenticate(request)
         assert result is None
+
+    def test_returns_none_for_pending_user_via_header(self):
+        """A pending user's otherwise-valid header token resolves as unauthenticated."""
+        UserProfileFactory(user=self.user, status=UserProfile.STATUS_PENDING)
+        request = self._request_with_header()
+        result = self.auth.authenticate(request)
+        assert result is None
+
+    def test_returns_none_for_denied_user_via_header(self):
+        """A denied user's otherwise-valid header token resolves as unauthenticated."""
+        UserProfileFactory(user=self.user, status=UserProfile.STATUS_DENIED)
+        request = self._request_with_header()
+        result = self.auth.authenticate(request)
+        assert result is None
+
+    def test_returns_none_for_pending_user_via_session(self):
+        """A pending user's otherwise-valid session token resolves as unauthenticated."""
+        UserProfileFactory(user=self.user, status=UserProfile.STATUS_PENDING)
+        request = self._request_with_session()
+        result = self.auth.authenticate(request)
+        assert result is None
+
+    def test_authenticates_approved_user(self):
+        """An explicitly approved user still authenticates normally."""
+        UserProfileFactory(user=self.user, status=UserProfile.STATUS_APPROVED)
+        request = self._request_with_header()
+        result = self.auth.authenticate(request)
+        assert result is not None
 
     def test_falls_through_to_session_when_header_token_is_stale(self):
         """Stale Authorization header falls through to a valid session token."""

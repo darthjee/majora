@@ -1,10 +1,13 @@
 """View for listing all users, restricted to staff/superuser accounts."""
 
 from django.contrib.auth.models import User
+from django.db.models import Q
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
 from accounts.authentication import CookieTokenAuthentication
+from accounts.models import UserProfile
 
 from ...serializers import StaffUserListSerializer
 from ..common import paginated_list_response, require_staff
@@ -21,8 +24,49 @@ def staff_users_list(request):
     if error_response:
         return error_response
 
-    response = paginated_list_response(
-        request, User.objects.all().order_by('id'), StaffUserListSerializer
-    )
+    queryset, error_response = _filtered_queryset(request)
+    if error_response:
+        return error_response
+
+    response = paginated_list_response(request, queryset, StaffUserListSerializer)
     response['X-Skip-Cache'] = 'true'
     return response
+
+
+def _filtered_queryset(request):
+    """Return a `(queryset, None)` tuple, or `(None, Response)` if `status` is invalid."""
+    queryset = User.objects.select_related('profile').all().order_by('id')
+    queryset, error_response = _filter_by_status(request, queryset)
+    if error_response:
+        return None, error_response
+    return _filter_by_search(request, queryset), None
+
+
+def _filter_by_status(request, queryset):
+    """Narrow `queryset` to the exact `status` query param, validating it against choices."""
+    status = request.query_params.get('status')
+    if not status:
+        return queryset, None
+    if status not in dict(UserProfile.STATUS_CHOICES):
+        valid_choices = ', '.join(dict(UserProfile.STATUS_CHOICES))
+        errors = {'status': [f'must be one of: {valid_choices}']}
+        return None, _skip_cache(Response({'errors': errors}, status=400))
+    return queryset.filter(profile__status=status), None
+
+
+def _skip_cache(response):
+    """Set the X-Skip-Cache header on `response` and return it."""
+    response['X-Skip-Cache'] = 'true'
+    return response
+
+
+def _filter_by_search(request, queryset):
+    """Narrow `queryset` by a case-insensitive substring match on name/display_name/email."""
+    search = request.query_params.get('search')
+    if not search:
+        return queryset
+    return queryset.filter(
+        Q(username__icontains=search)
+        | Q(profile__display_name__icontains=search)
+        | Q(email__icontains=search)
+    )

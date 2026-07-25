@@ -26,6 +26,15 @@ Full derivations:
 Unless noted otherwise, an unauthenticated request to a non-AllowAny endpoint gets 401, and an
 authenticated request that fails the permission check gets 403.
 
+**`UserProfile.status` gate (issue #859):** every rule above assumes the requesting user's
+`UserProfile.status` is `approved`. `CookieTokenAuthentication` — the project-wide default
+authentication class — resolves a `pending` or `denied` user as fully unauthenticated, so every
+rule in this document set that depends on "Authenticated" (or any role built on top of it) simply
+never applies to them; they look anonymous everywhere except the handful of endpoints that
+resolve status directly (login, status, recover, authorization-requests poll) — see
+[Standalone endpoints](endpoints.md#userprofilestatus-authentication-gate-issue-859) for the full
+list and behavior.
+
 ## Role-simulated permission checks
 
 `Game`, `Character`, and `Treasure` each also expose a `can_be_edited_by_roles(is_superuser,

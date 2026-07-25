@@ -7,6 +7,7 @@ import HeaderController from '../../../../../../assets/js/components/common/head
 import HeaderHelper from '../../../../../../assets/js/components/common/header/helpers/HeaderHelper.jsx';
 import AccessStore from '../../../../../../assets/js/utils/access/store/AccessStore.js';
 import Noop from '../../../../../../assets/js/utils/Noop.js';
+import { captureConstructorFields } from '../../../../../support/controllerStubs.js';
 
 describe('Header', function() {
   beforeEach(function() {
@@ -72,6 +73,35 @@ describe('Header', function() {
   it('does not render the view-as link by default', function() {
     const html = renderToStaticMarkup(React.createElement(Header));
     expect(html).not.toContain('data-testid="view-as-link"');
+  });
+
+  describe('pending approval gating', function() {
+    it('renders children by default (account not pending approval)', function() {
+      const html = renderToStaticMarkup(
+        React.createElement(Header, null, React.createElement('div', { 'data-testid': 'page-content' }, 'content'))
+      );
+
+      expect(html).toContain('data-testid="page-content"');
+    });
+
+    it('does not render the pending-approval screen by default', function() {
+      const html = renderToStaticMarkup(React.createElement(Header));
+
+      expect(html).not.toContain('Awaiting approval');
+    });
+
+    it('wires a real (non-default) setPendingApproval setter into the controller', function() {
+      const { spies, restore } = captureConstructorFields(HeaderController, ['setPendingApproval']);
+
+      try {
+        renderToStaticMarkup(React.createElement(Header));
+
+        expect(spies.setPendingApproval).toEqual(jasmine.any(Function));
+        expect(spies.setPendingApproval).not.toBe(Noop.noop);
+      } finally {
+        restore();
+      }
+    });
   });
 
   describe('view-as wiring', function() {

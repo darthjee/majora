@@ -25,6 +25,8 @@ describe('StaffUsers', function() {
       StaffUsersHelper.render(users, pagination, {}, {
         onGenerateRecoveryLink: Noop.noop,
         onCopyRecoveryLink: Noop.noop,
+        onApprove: Noop.noop,
+        onDeny: Noop.noop,
       })
     );
 

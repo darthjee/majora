@@ -8,9 +8,11 @@ class StaffUserListSerializer(serializers.ModelSerializer):
     """Serializer for staff-facing user list items."""
 
     name = serializers.CharField(source='username', max_length=150)
+    status = serializers.CharField(source='profile.status')
+    display_name = serializers.CharField(source='profile.display_name')
 
     class Meta:
         """Metadata for the StaffUserListSerializer."""
 
         model = User
-        fields = ['id', 'name', 'email']
+        fields = ['id', 'name', 'email', 'status', 'display_name']

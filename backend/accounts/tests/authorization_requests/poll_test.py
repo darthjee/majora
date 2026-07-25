@@ -11,8 +11,8 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from rest_framework.authtoken.models import Token
 
-from accounts.models import AuthorizationRequest
-from games.tests.factories import UserFactory
+from accounts.models import AuthorizationRequest, UserProfile
+from games.tests.factories import UserFactory, UserProfileFactory
 
 TEST_PASSWORD = get_random_string(20)
 
@@ -110,6 +110,21 @@ class TestAuthorizationRequestPollView:
         response = _poll(client, authorization_request, raw_token)
         assert response.status_code == 422
         assert json.loads(response.content) == {'status': 'expired'}
+
+    def test_returns_403_for_denied_user_even_when_approved(self, client):
+        """Test that an approved request for a denied user gets 403 not_found, no token."""
+        UserProfileFactory(user=self.user, status=UserProfile.STATUS_DENIED)
+        authorization_request, raw_token = AuthorizationRequest.create_with_token(
+            user=self.user, ip='1.2.3.4', browser='test-agent',
+        )
+        authorization_request.status = AuthorizationRequest.STATUS_APPROVED
+        authorization_request.save(update_fields=['status'])
+
+        response = _poll(client, authorization_request, raw_token)
+
+        assert response.status_code == 403
+        assert json.loads(response.content) == {'error': 'not_found'}
+        assert not Token.objects.filter(user=self.user).exists()
 
     def test_returns_202_with_login_token_when_approved(self, client):
         """Test that an approved request returns 202 with a real login token."""

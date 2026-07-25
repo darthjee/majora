@@ -7,8 +7,8 @@ from django.test import TestCase
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
-from accounts.models import PasswordResetToken
-from games.tests.factories import UserFactory
+from accounts.models import PasswordResetToken, UserProfile
+from games.tests.factories import UserFactory, UserProfileFactory
 
 TEST_PASSWORD = get_random_string(20)
 NEW_PASSWORD = get_random_string(20)
@@ -70,6 +70,20 @@ class TestResetPasswordView(TestCase):
         response = self.client.post(
             '/users/reset-password.json',
             data=json.dumps({'token': 'expired-token', 'password': NEW_PASSWORD}),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 400
+        assert json.loads(response.content) == INVALID_TOKEN_RESPONSE
+
+    def test_rejects_valid_token_for_denied_user(self):
+        """Test that a valid token is rejected, like an invalid one, for a denied user."""
+        UserProfileFactory(user=self.user, status=UserProfile.STATUS_DENIED)
+        PasswordResetToken.objects.create(user=self.user, token='valid-token')
+
+        response = self.client.post(
+            '/users/reset-password.json',
+            data=json.dumps({'token': 'valid-token', 'password': NEW_PASSWORD}),
             content_type='application/json',
         )
 

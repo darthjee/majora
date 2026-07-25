@@ -140,10 +140,11 @@ export default class AppHelper {
   static render(page, hash = '', lang = '') {
     return (
       <div className="app">
-        <Header />
-        <React.Fragment key={`${hash}:${lang}`}>
-          {PAGES[page] ?? PAGES.home}
-        </React.Fragment>
+        <Header>
+          <React.Fragment key={`${hash}:${lang}`}>
+            {PAGES[page] ?? PAGES.home}
+          </React.Fragment>
+        </Header>
       </div>
     );
   }

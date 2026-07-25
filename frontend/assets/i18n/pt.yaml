@@ -189,6 +189,9 @@ register_page:
   password_confirmation_label: Confirmar senha
   submit: Registrar
   error: Um erro inesperado ocorreu, tente novamente mais tarde.
+pending_approval_page:
+  title: Aguardando aprovação
+  body: Sua conta está aguardando aprovação. Você poderá acessar o site assim que um administrador aprová-la.
 pc_edit_page:
   title: Editar personagem
   name_label: Nome
@@ -266,11 +269,24 @@ staff_users_page:
   title: Usuários
   name_column: Nome
   email_column: E-mail
+  display_name_column: Nome de exibição
+  status_column: Status
+  status_pending: Pendente
+  status_approved: Aprovado
+  status_denied: Negado
   edit: Editar
+  approve: Aprovar
+  deny: Negar
   generate_link: Gerar link de recuperação
   copy_link: Copiar link
   copied: Copiado!
   link_error: Falha ao gerar link de recuperação. Tente novamente.
+  filter_status_label: Status
+  filter_status_all: Todos
+  filter_search_label: Buscar
+  filter_search_placeholder: Buscar por nome, nome de exibição ou e-mail...
+  filter_query: Filtrar
+  filter_clear: Limpar
 staff_user_page:
   loading: Carregando usuário...
   title: Usuário
