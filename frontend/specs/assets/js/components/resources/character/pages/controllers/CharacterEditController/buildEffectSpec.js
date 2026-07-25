@@ -51,9 +51,6 @@ KINDS.forEach(({ label, Controller, kind }) => {
         });
         expect(setCharacter).toHaveBeenCalledWith({
           id: 2,
-          treasures: [],
-          items: [],
-          documents: [],
           photos: [],
           game_type: 'dnd',
           can_edit: true,

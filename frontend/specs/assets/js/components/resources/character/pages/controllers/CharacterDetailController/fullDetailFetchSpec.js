@@ -37,9 +37,6 @@ KINDS.forEach(({ label, Controller, kind, resource, privateDescription, getParam
       });
       expect(setCharacter).toHaveBeenCalledWith({
         id: 2,
-        treasures: [],
-        items: [],
-        documents: [],
         photos: [],
         game_type: 'dnd',
         can_edit: true,
@@ -75,9 +72,6 @@ KINDS.forEach(({ label, Controller, kind, resource, privateDescription, getParam
 
       expect(setCharacter).toHaveBeenCalledWith({
         id: 2,
-        treasures: [],
-        items: [],
-        documents: [],
         photos: [],
         game_type: 'dnd',
         can_edit: false,

@@ -14,6 +14,10 @@ export default class CharacterHelper {
   /**
    * Render the character detail view.
    *
+   * @description The treasures/items/documents preview sections are no longer threaded through
+   *   as `character` fields — `pcShowType.js`/`npcShowType.js`'s `right` slot now declares
+   *   `buildShortListSlot('treasure'|'item'|'document')` (issue #856), each rendering a
+   *   self-fetching `ShortList` element.
    * @param {object} character - Character data object.
    * @param {string} character.name - Character name.
    * @param {string|null} [character.profile_photo_path] - Optional profile photo path.
@@ -49,15 +53,6 @@ export default class CharacterHelper {
    *   `'neutral'`, or missing), drives the picture border color for NPCs only.
    * @param {string} [character.game_slug] - Slug of the game the character belongs to.
    * @param {number|string} [character.id] - Character id.
-   * @param {object[]} [character.treasures] - Preview list of the character's treasures
-   *   (`id`, `treasure_id`, `name`, `quantity`, `value`, `photo_path`), rendered as a card
-   *   grid with a link to the full list page.
-   * @param {object[]} [character.items] - Preview list of the character's items
-   *   (`id`, `game_item_id`, `name`, `description`, `photo_path`, already fallback-resolved
-   *   server-side), rendered as a card grid with a link to the full list page.
-   * @param {object[]} [character.documents] - Preview list of the character's documents
-   *   (`id`, `game_document_id`, `name`, `photo_path`, already fallback-resolved server-side),
-   *   rendered as a card grid with a link to the full list page, beneath the items preview.
    * @param {object[]} [character.photos] - Preview list of the character's photos
    *   (`id`, `path`), rendered as a static card grid with a link to the full gallery page.
    * @param {string} backHref - Hash path to the character's index page.

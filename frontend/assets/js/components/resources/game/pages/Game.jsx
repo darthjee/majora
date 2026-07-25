@@ -14,12 +14,10 @@ export default function Game() {
   const [game, setGame] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [pcs, setPcs] = useState([]);
-  const [npcs, setNpcs] = useState([]);
   const [showUploadModal, setShowUploadModal] = useState(false);
 
   const controller = useMemo(
-    () => new GameController(setGame, setLoading, setError, setPcs, setNpcs),
+    () => new GameController(setGame, setLoading, setError),
     [],
   );
 
@@ -36,7 +34,7 @@ export default function Game() {
 
   return (
     <>
-      {GameHelper.render(game, pcs, npcs, { onOpenUploadModal: () => setShowUploadModal(true) })}
+      {GameHelper.render(game, { onOpenUploadModal: () => setShowUploadModal(true) })}
       <PhotoUploadModal
         show={showUploadModal}
         uploadPath={resourceConfig.get('POST', 'game', 'single').regular.path({ gameSlug: game.game_slug })}

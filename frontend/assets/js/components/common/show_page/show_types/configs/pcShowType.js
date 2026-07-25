@@ -7,7 +7,7 @@ import CharacterRoleShow, { buildCharacterRoleField } from '../../../../resource
 import CharacterDescriptionShow, { buildCharacterDescriptionField } from '../../../../resources/character/pages/elements/show/CharacterDescriptionSlot.jsx';
 import CharacterDmNotesShow, { buildCharacterDmNotesField } from '../../../../resources/character/pages/elements/show/CharacterDmNotesSlot.jsx';
 import { buildCharacterSubmitButton } from '../../../../resources/character/pages/elements/show/CharacterSubmitSlot.jsx';
-import CharacterPreviewSectionsSlot from '../../../../resources/character/pages/elements/show/CharacterPreviewSectionsSlot.jsx';
+import buildShortListSlot from '../../../cards/buildShortListSlot.js';
 import CharacterPhotosPreviewSlot from '../../../../resources/character/pages/elements/show/CharacterPhotosPreviewSlot.jsx';
 
 const pcNameField = buildCharacterNameField(
@@ -51,7 +51,9 @@ const pcShowType = {
     { Show: CharacterRoleShow, Edit: pcRoleField },
     { Show: CharacterDescriptionShow, Edit: pcDescriptionField },
     { Show: CharacterDmNotesShow, Edit: pcDmNotesField },
-    { Show: CharacterPreviewSectionsSlot },
+    { Show: buildShortListSlot('treasure') },
+    { Show: buildShortListSlot('item') },
+    { Show: buildShortListSlot('document') },
     { Edit: pcSubmitButton },
   ],
   bottom: [
