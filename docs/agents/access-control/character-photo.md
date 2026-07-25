@@ -18,6 +18,13 @@ apply simultaneously.
 - `POST /games/<slug>/pcs/<id>/photo_upload.json`, `POST /games/<slug>/npcs/<id>/photo_upload.json`
   — see [Character photo upload init endpoints](upload.md#character-photo-upload-init-endpoints) above. Creates a `CharacterPhoto` row with
   `ready=False`.
+- `PATCH /games/<slug>/pcs/<id>/photos/<photo_id>/set.json`, `PATCH /games/<slug>/npcs/<id>/photos/<photo_id>/set.json`
+  ("set as profile photo") — gated by **CharacterPhotoUpload** (issue #852): a superuser, any
+  GameMaster of the game, the PC's own owning player, any player of the game, or any global Staff
+  account. Widened from the previous **CharacterEdit**-only gate so it matches the photo-upload
+  endpoints above — any user who may upload a character photo may also set one as the profile
+  photo. Accepts `{"roles": ["profile"]}`; when `"profile"` is present, sets
+  `Character.profile_photo` to that photo.
 - All other write operations: superuser only (via Django admin, out of scope).
 
 ## Photo index endpoints

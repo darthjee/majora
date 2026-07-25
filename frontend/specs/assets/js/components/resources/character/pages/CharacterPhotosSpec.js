@@ -2,10 +2,12 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import PcCharacterPhotos from '../../../../../../../assets/js/components/resources/character/pages/PcCharacterPhotos.jsx';
 import NpcCharacterPhotos from '../../../../../../../assets/js/components/resources/character/pages/NpcCharacterPhotos.jsx';
+import CharacterPhotos from '../../../../../../../assets/js/components/resources/character/pages/shared/CharacterPhotos.jsx';
 import PcCharacterPhotosHelper from '../../../../../../../assets/js/components/resources/character/pages/helpers/PcCharacterPhotosHelper.jsx';
 import NpcCharacterPhotosHelper from '../../../../../../../assets/js/components/resources/character/pages/helpers/NpcCharacterPhotosHelper.jsx';
 import PcCharacterPhotosController from '../../../../../../../assets/js/components/resources/character/pages/controllers/PcCharacterPhotosController.js';
 import NpcCharacterPhotosController from '../../../../../../../assets/js/components/resources/character/pages/controllers/NpcCharacterPhotosController.js';
+import PhotoViewModalHelper from '../../../../../../../assets/js/components/common/modals/helpers/PhotoViewModalHelper.jsx';
 import FacadeRefresh from '../../../../../../../assets/js/utils/access/useFacadeRefresh.js';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
 import { stubBuildEffect, stubRenderLoading } from '../../../../../../support/controllerStubs.js';
@@ -77,5 +79,48 @@ KINDS.forEach(({ label, Component, Controller, Helper, characterKind }) => {
 
       expect(html).toContain('bi-postage-fill');
     });
+
+    it(
+      'derives canSetProfilePhoto for PhotosHelper.render and PhotoViewModal from ' +
+        'character.can_set_profile_photo, not can_edit',
+      function() {
+        // Sets photos/character/loading state synchronously during render (in the useMemo
+        // factory), so the "loaded" branch of CharacterPhotos is reachable via
+        // renderToStaticMarkup even though useEffect never runs during SSR.
+        class LoadedController {
+          constructor(setPhotos, setPagination, setCharacter, setLoading) {
+            setPhotos([]);
+            setPagination({ page: 1, pages: 1, perPage: 10 });
+            setCharacter({ id: 7, name: 'Aragorn', can_edit: false, can_set_profile_photo: true });
+            setLoading(false);
+          }
+
+          buildEffect() { return () => Noop.noop; }
+        }
+
+        let capturedCanSetProfilePhoto;
+        spyOn(Helper, 'render').and.callFake((photos, pagination, basePath, backHref, canUploadPhoto, canSetProfilePhoto) => {
+          capturedCanSetProfilePhoto = canSetProfilePhoto;
+          return null;
+        });
+        let capturedModalCanSetProfilePhoto;
+        spyOn(PhotoViewModalHelper, 'render').and.callFake((show, photo, alt, onClose, canSetProfilePhoto) => {
+          capturedModalCanSetProfilePhoto = canSetProfilePhoto;
+          return null;
+        });
+
+        renderToStaticMarkup(
+          React.createElement(CharacterPhotos, {
+            ControllerClass: LoadedController,
+            getParamsFromHash: () => ({ game_slug: 'demo', character_id: '7' }),
+            PhotosHelper: Helper,
+            characterKind,
+          })
+        );
+
+        expect(capturedCanSetProfilePhoto).toBe(true);
+        expect(capturedModalCanSetProfilePhoto).toBe(true);
+      }
+    );
   });
 });

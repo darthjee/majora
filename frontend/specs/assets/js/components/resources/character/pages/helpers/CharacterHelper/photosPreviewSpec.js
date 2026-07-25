@@ -47,13 +47,27 @@ describe('CharacterHelper', function() {
       expect(capturedOnSelectPhoto).toBe(onSelectPhoto);
     });
 
-    it('does not wrap the photo cards in a clickable control when onSelectPhoto is absent', function() {
+    it('passes handlers.onSetProfilePhoto and character.can_set_profile_photo/profile_photo_id through ' +
+      'to CharacterPhotosPreviewHelper', function() {
       const withPhotos = {
         ...character,
+        can_set_profile_photo: true,
+        profile_photo_id: 999,
         photos: [{ id: 1, path: '/photos/1.jpg' }],
       };
-      const html = renderToStaticMarkup(CharacterHelper.render(withPhotos, '#/games/demo/pcs'));
-      expect(html).not.toContain('<button');
+      const onSetProfilePhoto = jasmine.createSpy('onSetProfilePhoto');
+      let capturedArgs;
+      spyOn(CharacterPhotosPreviewHelper, 'render').and.callFake((...args) => {
+        capturedArgs = args;
+        return null;
+      });
+
+      renderToStaticMarkup(CharacterHelper.render(withPhotos, '#/games/demo/pcs', { onSetProfilePhoto }));
+
+      const [, , , , canSetProfilePhoto, profilePhotoId, setProfilePhotoHandler] = capturedArgs;
+      expect(canSetProfilePhoto).toBe(true);
+      expect(profilePhotoId).toBe(999);
+      expect(setProfilePhotoHandler).toBe(onSetProfilePhoto);
     });
 
     it('renders a see all link to the pcs photos page', function() {

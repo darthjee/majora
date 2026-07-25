@@ -35,4 +35,22 @@ describe('CharacterPhotosPreview', function() {
     );
     expect(html).toContain('<button');
   });
+
+  it(
+    'forwards canSetProfilePhoto/profilePhotoId/onSetProfilePhoto to CharacterPhotosPreviewHelper, ' +
+      'rendering the mark-as-profile action bar button',
+    function() {
+      const html = renderToStaticMarkup(
+        React.createElement(CharacterPhotosPreview, {
+          photos,
+          title: 'Photos',
+          seeAllHref: '#/games/epic-quest/pcs/1/photos',
+          canSetProfilePhoto: true,
+          profilePhotoId: 999,
+          onSetProfilePhoto: Noop.noop,
+        })
+      );
+      expect(html).toContain('bi-postage-fill');
+    }
+  );
 });
