@@ -99,6 +99,7 @@ services:
       - ./proxy/dev_configuration:/var/www/html/configuration/
       - ./docker_volumes/proxy_cache:/var/www/html/cache/
       - ./docker_volumes/photos:/var/www/html/photos
+      - ./docker_volumes/files:/var/www/html/files
       - ./proxy/extension:/var/www/html/extension
     links:
       - majora_app:backend
