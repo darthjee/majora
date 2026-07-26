@@ -90,7 +90,7 @@ from games.serializers.games.tasks.game_task_update import GameTaskUpdateSeriali
 from games.serializers.games.treasures.game_treasure_link import GameTreasureLinkSerializer
 from games.serializers.games.treasures.game_treasure_update import GameTreasureUpdateSerializer
 from games.serializers.link import LinkSerializer
-from games.serializers.photo_upload import PhotoUploadSerializer
+from games.serializers.photo_upload import FileUploadSerializer, PhotoUploadSerializer
 from games.serializers.staff.staff_user_detail import StaffUserDetailSerializer
 from games.serializers.staff.staff_user_list import StaffUserListSerializer
 from games.serializers.staff.staff_user_update import StaffUserUpdateSerializer
@@ -131,6 +131,7 @@ __all__ = [
     'CharacterTreasureSerializer',
     'CharacterUpdateSerializer',
     'ConversationListSerializer',
+    'FileUploadSerializer',
     'GameAccessSerializer',
     'GameCreateSerializer',
     'GameDetailSerializer',

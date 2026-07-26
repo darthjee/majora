@@ -9,6 +9,7 @@ from rest_framework.authtoken.models import Token
 from games.models import (
     CharacterItemPhoto,
     CharacterPhoto,
+    GameDocumentFile,
     GameDocumentPhoto,
     GameItemPhoto,
     GamePhoto,
@@ -29,7 +30,7 @@ from games.tests.factories import (
 
 
 class TestUploadFinalizeView(TestCase):
-    """Tests for PATCH /uploads/<upload_id>.json."""
+    """Tests for PATCH /uploads/<upload_type>/<upload_id>.json."""
 
     @classmethod
     def setUpTestData(cls):
@@ -286,7 +287,22 @@ class TestUploadFinalizeView(TestCase):
         cls.document_upload_by_staff.content_object = cls.document_photo_by_staff
         cls.document_upload_by_staff.save()
 
-    def _patch(self, client, upload_id, payload, token=None, upload_token=None):
+        cls.document_file_upload = Upload.objects.create(
+            user=cls.dm_user,
+            file_path=f'files/games/epic-quest/documents/{cls.game_document.id}/file.pdf',
+            upload_type=Upload.UPLOAD_TYPE_FILE,
+        )
+        cls.document_file = GameDocumentFile.objects.create(
+            game_document=cls.game_document,
+            path=f'files/games/epic-quest/documents/{cls.game_document.id}/file.pdf',
+            ready=False,
+        )
+        cls.document_file_upload.content_object = cls.document_file
+        cls.document_file_upload.save()
+
+    def _patch(
+        self, client, upload_id, payload, token=None, upload_token=None, upload_type='image',
+    ):
         """Issue a PATCH request to the upload finalize endpoint."""
         extra = {}
         if token is not None:
@@ -294,7 +310,7 @@ class TestUploadFinalizeView(TestCase):
         if upload_token is not None:
             extra['HTTP_X_UPLOAD_TOKEN'] = upload_token
         return client.patch(
-            f'/uploads/{upload_id}.json',
+            f'/uploads/{upload_type}/{upload_id}.json',
             data=json.dumps(payload),
             content_type='application/json',
             **extra,
@@ -1042,3 +1058,80 @@ class TestUploadFinalizeView(TestCase):
         assert response.status_code == 200
         self.document_photo_by_staff.refresh_from_db()
         assert self.document_photo_by_staff.ready is True
+
+    def test_mismatched_upload_type_returns_404(self):
+        """Test that a URL `upload_type` not matching the Upload row's type returns 404."""
+        response = self._patch(
+            self.client,
+            self.upload.id,
+            {'status': 'uploading'},
+            token=self.dm_token,
+            upload_token=self.upload.token,
+            upload_type='file',
+        )
+        assert response.status_code == 404
+
+    def _valid_document_file_patch(self, client, payload=None):
+        """Issue a valid PATCH request for the document file upload, owned by the DM."""
+        if payload is None:
+            payload = {'status': 'uploading'}
+        return self._patch(
+            client,
+            self.document_file_upload.id,
+            payload,
+            token=self.dm_token,
+            upload_token=self.document_file_upload.token,
+            upload_type='file',
+        )
+
+    def test_unauthenticated_request_returns_401_for_document_file_upload(self):
+        """Test that an unauthenticated request on a GameDocumentFile upload returns 401."""
+        response = self._patch(
+            self.client,
+            self.document_file_upload.id,
+            {'status': 'uploading'},
+            upload_token=self.document_file_upload.token,
+            upload_type='file',
+        )
+        assert response.status_code == 401
+
+    def test_unrelated_user_returns_403_for_document_file_upload(self):
+        """Test that a user unrelated to the game is rejected on a GameDocumentFile upload."""
+        other_user = UserFactory(username='other_document_file', password='secret-password')
+        other_token = Token.objects.create(user=other_user)
+        self.document_file_upload.user = other_user
+        Upload.objects.filter(pk=self.document_file_upload.pk).update(user=other_user)
+        response = self._patch(
+            self.client,
+            self.document_file_upload.id,
+            {'status': 'uploading'},
+            token=other_token,
+            upload_token=self.document_file_upload.token,
+            upload_type='file',
+        )
+        assert response.status_code == 403
+
+    def test_uploading_status_returns_200_for_document_file_upload(self):
+        """Test that status=uploading returns 200 for a GameDocumentFile-backed upload."""
+        response = self._valid_document_file_patch(self.client, {'status': 'uploading'})
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['file_path'] == self.document_file_upload.file_path
+
+    def test_uploaded_status_sets_document_file_ready(self):
+        """Test that status=uploaded sets GameDocumentFile.ready to True."""
+        self._valid_document_file_patch(self.client, {'status': 'uploaded'})
+        self.document_file.refresh_from_db()
+        assert self.document_file.ready is True
+
+    def test_wrong_upload_type_for_document_file_upload_returns_404(self):
+        """Test that finalizing a GameDocumentFile upload with `upload_type=image` returns 404."""
+        response = self._patch(
+            self.client,
+            self.document_file_upload.id,
+            {'status': 'uploading'},
+            token=self.dm_token,
+            upload_token=self.document_file_upload.token,
+            upload_type='image',
+        )
+        assert response.status_code == 404

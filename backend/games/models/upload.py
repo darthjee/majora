@@ -25,12 +25,23 @@ class Upload(models.Model):
         (STATUS_UPLOADED, 'Uploaded'),
     ]
 
+    UPLOAD_TYPE_IMAGE = 'image'
+    UPLOAD_TYPE_FILE = 'file'
+
+    UPLOAD_TYPE_CHOICES = [
+        (UPLOAD_TYPE_IMAGE, 'image'),
+        (UPLOAD_TYPE_FILE, 'file'),
+    ]
+
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='uploads'
     )
     token = models.CharField(max_length=64, unique=True)
     status = models.CharField(
         max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING
+    )
+    upload_type = models.CharField(
+        max_length=10, choices=UPLOAD_TYPE_CHOICES, default=UPLOAD_TYPE_IMAGE
     )
     file_path = models.CharField(max_length=512)
     expiration_time = models.DateTimeField()
