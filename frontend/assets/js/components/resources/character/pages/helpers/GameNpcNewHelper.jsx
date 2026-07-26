@@ -19,13 +19,14 @@ export default class GameNpcNewHelper {
    *   always `0`, since creation is always performed by a full editor of a
    *   not-yet-existing character.
    * @param {{name: string, role: string, description: string, privateDescription: string,
-   *   links: object[], hidden: boolean, money: string, gameType: string, allegiance: string,
+   *   links: object[], hidden: boolean, money: string, gameType: string, privateAllegiance: string,
    *   publicAllegiance: string, status: string, fieldErrors: object,
    *   profile_photo_path: string|null}} formState - Form state.
    * @param {{onSubmit: Function, onNameChange: Function, onRoleChange: Function,
    *   onDescriptionChange: Function, onPrivateDescriptionChange: Function,
    *   onOpenLinksModal: Function, onOpenUploadModal: Function, onOpenMoneyModal: Function,
-   *   onHiddenChange: Function, onAllegianceChange: Function, onPublicAllegianceChange: Function,
+   *   onHiddenChange: Function, onPrivateAllegianceChange: Function,
+   *   onPublicAllegianceChange: Function,
    *   onRetryPhotoUpload: Function, onSkipPhotoUpload: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered new NPC page.
    */

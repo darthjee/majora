@@ -2,6 +2,7 @@ import React from 'react';
 import CardAvatar from '../CardAvatar.jsx';
 import CardHoverTooltip from '../CardHoverTooltip.jsx';
 import allegianceBorderClass from '../../../../utils/ui/AllegianceBorder.js';
+import { resolveCharacterSlain, resolveCharacterAllegiance } from '../../../../utils/character/resolveCharacterVisibility.js';
 
 /**
  * Rendering helper for the CharacterPreviewCard element.
@@ -16,18 +17,26 @@ export default class CharacterPreviewCardHelper {
    * @param {number} character.id - Character ID.
    * @param {string} character.name - Character name.
    * @param {string|null} [character.profile_photo_path] - Optional profile photo path.
-   * @param {boolean} [character.slain] - Whether the character is slain (NPC only).
-   * @param {string} [character.allegiance] - Allegiance value (`'ally'`, `'enemy'`,
-   *   `'neutral'`, or missing), drives the card border color for NPCs only.
+   * @param {boolean} [character.private_slain] - Whether the character is (really) slain
+   *   (NPC only, DM-facing data only).
+   * @param {boolean} [character.public_slain] - Whether the character is publicly slain (NPC
+   *   only); together with `private_slain`, drives the grayscale photo treatment (private takes
+   *   priority, falling back to public).
+   * @param {string} [character.private_allegiance] - The character's real allegiance, NPC only,
+   *   DM-facing data only.
+   * @param {string} [character.public_allegiance] - The character's publicly known allegiance
+   *   (`'ally'`, `'enemy'`, `'neutral'`, or missing), NPC only; together with
+   *   `private_allegiance`, drives the card border color (private takes priority, falling back
+   *   to public).
    * @param {string} gameSlug - Game slug used to build the detail link.
    * @param {string} characterType - Character type, either 'pc' or 'npc'.
    * @returns {React.ReactElement} Character preview card element.
    */
   static render(character, gameSlug, characterType) {
     const cardClass = characterType === 'npc'
-      ? `card h-100 ${allegianceBorderClass(character.allegiance)}`
+      ? `card h-100 ${allegianceBorderClass(resolveCharacterAllegiance(character))}`
       : 'card h-100';
-    const photoClass = character.slain ? 'photo-grayscale' : '';
+    const photoClass = resolveCharacterSlain(character) ? 'photo-grayscale' : '';
 
     return (
       <div className="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">

@@ -84,20 +84,20 @@ class TestCharacter(TestCase):
         character.refresh_from_db()
         assert character.role is None
 
-    def test_allegiance_defaults_to_neutral(self):
-        """Test that allegiance defaults to 'neutral' on new characters."""
+    def test_private_allegiance_defaults_to_neutral(self):
+        """Test that private_allegiance defaults to 'neutral' on new characters."""
         character = CharacterFactory(name='Gimli', game=self.game)
-        assert character.allegiance == Character.ALLEGIANCE_NEUTRAL
+        assert character.private_allegiance == Character.ALLEGIANCE_NEUTRAL
 
     def test_public_allegiance_defaults_to_neutral(self):
         """Test that public_allegiance defaults to 'neutral' on new characters."""
         character = CharacterFactory(name='Gimli', game=self.game)
         assert character.public_allegiance == Character.ALLEGIANCE_NEUTRAL
 
-    def test_slain_defaults_to_false(self):
-        """Test that slain defaults to False on new characters."""
+    def test_private_slain_defaults_to_false(self):
+        """Test that private_slain defaults to False on new characters."""
         character = CharacterFactory(name='Gimli', game=self.game)
-        assert character.slain is False
+        assert character.private_slain is False
 
     def test_public_slain_defaults_to_false(self):
         """Test that public_slain defaults to False on new characters."""

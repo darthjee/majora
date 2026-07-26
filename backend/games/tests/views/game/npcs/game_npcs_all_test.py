@@ -137,26 +137,26 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         """Return the list of character names from a JSON response."""
         return [item['name'] for item in json.loads(response.content)]
 
-    def test_slain_true_returns_only_slain_npcs(self):
-        """Test that slain=true returns only slain NPCs."""
-        self.visible_npc.slain = True
+    def test_private_slain_true_returns_only_slain_npcs(self):
+        """Test that private_slain=true returns only slain NPCs."""
+        self.visible_npc.private_slain = True
         self.visible_npc.save()
         token = Token.objects.create(user=self.dm_user)
-        response = self._get_with_query(self.client, '?slain=true', token=token)
+        response = self._get_with_query(self.client, '?private_slain=true', token=token)
         assert self._names(response) == ['Visible NPC']
 
-    def test_slain_false_returns_only_alive_npcs(self):
-        """Test that slain=false returns only alive NPCs."""
-        self.visible_npc.slain = True
+    def test_private_slain_false_returns_only_alive_npcs(self):
+        """Test that private_slain=false returns only alive NPCs."""
+        self.visible_npc.private_slain = True
         self.visible_npc.save()
         token = Token.objects.create(user=self.dm_user)
-        response = self._get_with_query(self.client, '?slain=false', token=token)
+        response = self._get_with_query(self.client, '?private_slain=false', token=token)
         assert self._names(response) == ['Hidden NPC']
 
-    def test_invalid_slain_value_is_ignored(self):
-        """Test that an unrecognized slain value applies no filter and does not 400."""
+    def test_invalid_private_slain_value_is_ignored(self):
+        """Test that an unrecognized private_slain value applies no filter and does not 400."""
         token = Token.objects.create(user=self.dm_user)
-        response = self._get_with_query(self.client, '?slain=unknown', token=token)
+        response = self._get_with_query(self.client, '?private_slain=unknown', token=token)
         assert response.status_code == 200
         assert sorted(self._names(response)) == ['Hidden NPC', 'Visible NPC']
 
@@ -166,21 +166,21 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         response = self._get_with_query(self.client, '?name=hidden', token=token)
         assert self._names(response) == ['Hidden NPC']
 
-    def test_name_and_slain_filters_combine(self):
-        """Test that name and slain filters apply together (AND)."""
-        self.hidden_npc.slain = True
+    def test_name_and_private_slain_filters_combine(self):
+        """Test that name and private_slain filters apply together (AND)."""
+        self.hidden_npc.private_slain = True
         self.hidden_npc.save()
         token = Token.objects.create(user=self.dm_user)
-        response = self._get_with_query(self.client, '?name=NPC&slain=true', token=token)
+        response = self._get_with_query(self.client, '?name=NPC&private_slain=true', token=token)
         assert self._names(response) == ['Hidden NPC']
 
     def test_filters_combine_with_pagination(self):
         """Test that filtered results affect the pages header."""
-        self.hidden_npc.slain = True
+        self.hidden_npc.private_slain = True
         self.hidden_npc.save()
-        CharacterFactory(name='Another Slain NPC', game=self.game, npc=True, slain=True)
+        CharacterFactory(name='Another Slain NPC', game=self.game, npc=True, private_slain=True)
         token = Token.objects.create(user=self.dm_user)
-        response = self._get_with_query(self.client, '?slain=true&per_page=1', token=token)
+        response = self._get_with_query(self.client, '?private_slain=true&per_page=1', token=token)
         assert response['pages'] == '2'
         assert response['total'] == '2'
 
@@ -190,34 +190,86 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         response = self._get_with_query(self.client, '', token=token)
         assert sorted(self._names(response)) == ['Hidden NPC', 'Visible NPC']
 
-    def test_allegiance_filter_matches_real_allegiance(self):
-        """Test that ?allegiance= filters npcs/all.json on the real allegiance field."""
-        self.visible_npc.allegiance = 'ally'
+    def test_private_allegiance_filter_matches_private_allegiance(self):
+        """Test that ?private_allegiance= filters npcs/all.json on the private_allegiance field."""
+        self.visible_npc.private_allegiance = 'ally'
         self.visible_npc.public_allegiance = 'enemy'
         self.visible_npc.save()
-        self.hidden_npc.allegiance = 'enemy'
+        self.hidden_npc.private_allegiance = 'enemy'
         self.hidden_npc.public_allegiance = 'ally'
         self.hidden_npc.save()
         token = Token.objects.create(user=self.dm_user)
-        response = self._get_with_query(self.client, '?allegiance=ally', token=token)
+        response = self._get_with_query(self.client, '?private_allegiance=ally', token=token)
         assert self._names(response) == ['Visible NPC']
 
-    def test_slain_filter_matches_real_slain(self):
-        """Test that ?slain= filters npcs/all.json on the real slain field, not public_slain."""
-        self.visible_npc.slain = True
+    def test_private_slain_filter_matches_private_slain_not_public(self):
+        """Test that ?private_slain= filters on private_slain, not public_slain."""
+        self.visible_npc.private_slain = True
         self.visible_npc.public_slain = False
         self.visible_npc.save()
-        self.hidden_npc.slain = False
+        self.hidden_npc.private_slain = False
         self.hidden_npc.public_slain = True
         self.hidden_npc.save()
         token = Token.objects.create(user=self.dm_user)
-        response = self._get_with_query(self.client, '?slain=true', token=token)
+        response = self._get_with_query(self.client, '?private_slain=true', token=token)
         assert self._names(response) == ['Visible NPC']
 
-    def test_invalid_allegiance_value_is_ignored(self):
-        """Test that an unrecognized allegiance value applies no filter and does not 400."""
+    def test_public_slain_filter_matches_public_slain_not_private(self):
+        """Test that ?public_slain= filters on public_slain, not private_slain."""
+        self.visible_npc.private_slain = False
+        self.visible_npc.public_slain = True
+        self.visible_npc.save()
+        self.hidden_npc.private_slain = True
+        self.hidden_npc.public_slain = False
+        self.hidden_npc.save()
         token = Token.objects.create(user=self.dm_user)
-        response = self._get_with_query(self.client, '?allegiance=unknown', token=token)
+        response = self._get_with_query(self.client, '?public_slain=true', token=token)
+        assert self._names(response) == ['Visible NPC']
+
+    def test_public_and_private_slain_filters_combine_as_and(self):
+        """Test that ?public_slain= and ?private_slain= combine as an AND filter."""
+        self.visible_npc.private_slain = True
+        self.visible_npc.public_slain = True
+        self.visible_npc.save()
+        self.hidden_npc.private_slain = True
+        self.hidden_npc.public_slain = False
+        self.hidden_npc.save()
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get_with_query(
+            self.client, '?public_slain=true&private_slain=true', token=token,
+        )
+        assert self._names(response) == ['Visible NPC']
+
+    def test_public_allegiance_filter_matches_public_allegiance_not_private(self):
+        """Test that ?public_allegiance= filters on public_allegiance, not private_allegiance."""
+        self.visible_npc.private_allegiance = 'enemy'
+        self.visible_npc.public_allegiance = 'ally'
+        self.visible_npc.save()
+        self.hidden_npc.private_allegiance = 'ally'
+        self.hidden_npc.public_allegiance = 'enemy'
+        self.hidden_npc.save()
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get_with_query(self.client, '?public_allegiance=ally', token=token)
+        assert self._names(response) == ['Visible NPC']
+
+    def test_public_and_private_allegiance_filters_combine_as_and(self):
+        """Test that ?public_allegiance= and ?private_allegiance= combine as an AND filter."""
+        self.visible_npc.private_allegiance = 'ally'
+        self.visible_npc.public_allegiance = 'ally'
+        self.visible_npc.save()
+        self.hidden_npc.private_allegiance = 'ally'
+        self.hidden_npc.public_allegiance = 'enemy'
+        self.hidden_npc.save()
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get_with_query(
+            self.client, '?public_allegiance=ally&private_allegiance=ally', token=token,
+        )
+        assert self._names(response) == ['Visible NPC']
+
+    def test_invalid_private_allegiance_value_is_ignored(self):
+        """Test that an unrecognized private_allegiance value applies no filter and does not 400."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get_with_query(self.client, '?private_allegiance=unknown', token=token)
         assert response.status_code == 200
         assert sorted(self._names(response)) == ['Hidden NPC', 'Visible NPC']
 
@@ -244,5 +296,5 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         """Test that GameEditPermission is still enforced when filter params are present."""
         other_user = UserFactory(username='other', password='secret-password')
         token = Token.objects.create(user=other_user)
-        response = self._get_with_query(self.client, '?slain=true&name=NPC', token=token)
+        response = self._get_with_query(self.client, '?private_slain=true&name=NPC', token=token)
         assert response.status_code == 403

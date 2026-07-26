@@ -28,8 +28,6 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
     profile_photo_id = serializers.IntegerField(
         source='profile_photo.id', default=None, read_only=True
     )
-    slain = serializers.BooleanField(source='public_slain', read_only=True)
-    allegiance = serializers.CharField(source='public_allegiance', read_only=True)
     treasure_value = serializers.SerializerMethodField()
 
     class Meta:
@@ -52,8 +50,8 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
             'profile_photo_id',
             'money',
             'treasure_value',
-            'slain',
-            'allegiance',
+            'public_slain',
+            'public_allegiance',
         ]
 
     def get_can_edit(self, obj):

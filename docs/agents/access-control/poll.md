@@ -25,7 +25,7 @@ superuser/staff bypass that its view check allows) or view being open to everyon
 `SessionMessagePaginator`. List accepts an optional `?status=` filter (`open`/`inactive`/
 `closed`), applied via a plain equality filter with no validation against `Poll.STATUS_CHOICES` —
 an unrecognized value yields an empty page rather than a 400, matching the tolerant convention
-already used by `?allegiance=`/`?slain=` elsewhere.
+already used by `?public_allegiance=`/`?public_slain=` elsewhere.
 
 **Cache**: `X-Skip-Cache: true` is always set on all responses (List/Show/Create/Vote List/Vote
 Cast) — see [Common Rules](common-rules.md) for the cache-bypass mechanism. On the frontend,

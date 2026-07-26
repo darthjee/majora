@@ -241,16 +241,16 @@ Any other authenticated or unauthenticated user may not edit the character.
 This logic is implemented in `Character.can_be_edited_by(user)` and
 `Character.is_editor(user)` in `backend/games/models/character.py`.
 
-Separately, and narrower in scope (issue #416, widened by issue #445): a user who is a
+Separately, and narrower in scope (issue #416, widened by issue #445; wire keys renamed from
+`allegiance`/`slain` to `public_allegiance`/`public_slain` by issue #861): a user who is a
 **player of the game** — the same `is_player` computation exposed on `.../access.json`
 endpoints, i.e. a `Player` record linked to `character.game` via `Player.games` whose `user`
-matches the requester — may update an NPC's `public_description`, `links`, `allegiance`
-(its player-facing "allegiance", writing `public_allegiance`), and `slain` (its player-facing
-"slain" state, writing `public_slain`) through `PATCH /games/:game_slug/npcs/:id.json`, even
-without satisfying any of the three rules above. This is not a general editing right: it
-grants no access to `name`, `role`, `money`, `private_description`, or the real `slain`/
-`allegiance` fields, and does not apply to PCs. It exists alongside (not instead of) the rules
-above, so a GameMaster/superuser can still use the same endpoint.
+matches the requester — may update an NPC's `public_description`, `links`, `public_allegiance`,
+and `public_slain` through `PATCH /games/:game_slug/npcs/:id.json`, even without satisfying any
+of the three rules above. This is not a general editing right: it grants no access to `name`,
+`role`, `money`, `private_description`, `private_allegiance`, or `private_slain`, and does not
+apply to PCs. It exists alongside (not instead of) the rules above, so a GameMaster/superuser can
+still use the same endpoint.
 
 Issue #429 extends this same "player of the game" authorization to a second capability: NPC
 photo upload. A player of the game may initiate an NPC photo upload

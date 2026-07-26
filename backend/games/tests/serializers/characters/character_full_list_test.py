@@ -19,37 +19,37 @@ class TestCharacterFullListSerializer(TestCase):
     def test_inherits_list_fields(self):
         """Test that all CharacterListSerializer fields are still present."""
         data = CharacterFullListSerializer(self.character).data
-        expected_fields = ['id', 'name', 'game_slug', 'profile_photo_path', 'slain']
+        expected_fields = ['id', 'name', 'game_slug', 'profile_photo_path', 'public_slain']
         for field in expected_fields:
             assert field in data
 
-    def test_serializes_allegiance_from_real_field(self):
-        """Test that allegiance is sourced from the real allegiance field, not public."""
-        self.character.allegiance = 'enemy'
+    def test_serializes_private_allegiance(self):
+        """Test that private_allegiance is exposed from the real private_allegiance field."""
+        self.character.private_allegiance = 'enemy'
         self.character.public_allegiance = 'ally'
         self.character.save()
         data = CharacterFullListSerializer(self.character).data
-        assert data['allegiance'] == 'enemy'
+        assert data['private_allegiance'] == 'enemy'
 
     def test_serializes_public_allegiance(self):
         """Test that public_allegiance is also exposed separately."""
-        self.character.allegiance = 'enemy'
+        self.character.private_allegiance = 'enemy'
         self.character.public_allegiance = 'ally'
         self.character.save()
         data = CharacterFullListSerializer(self.character).data
         assert data['public_allegiance'] == 'ally'
 
-    def test_serializes_slain_from_real_field(self):
-        """Test that slain is sourced from the real slain field, not public."""
-        self.character.slain = True
+    def test_serializes_private_slain(self):
+        """Test that private_slain is exposed from the real private_slain field."""
+        self.character.private_slain = True
         self.character.public_slain = False
         self.character.save()
         data = CharacterFullListSerializer(self.character).data
-        assert data['slain'] is True
+        assert data['private_slain'] is True
 
     def test_serializes_public_slain(self):
         """Test that public_slain is also exposed separately."""
-        self.character.slain = True
+        self.character.private_slain = True
         self.character.public_slain = False
         self.character.save()
         data = CharacterFullListSerializer(self.character).data

@@ -1,5 +1,8 @@
 import CharacterStatusBadges from '../../../../../../assets/js/components/common/list_types/CharacterStatusBadges.js';
+import Translator from '../../../../../../assets/js/i18n/Translator.js';
 import { buildCharacter } from '../../../../../support/factories.js';
+
+const t = (key) => Translator.t(`character_status_badges.${key}`);
 
 describe('CharacterStatusBadges', function() {
   describe('.build', function() {
@@ -9,29 +12,29 @@ describe('CharacterStatusBadges', function() {
       expect(CharacterStatusBadges.build(character)).toEqual([]);
     });
 
-    it('builds the Slain item when slain is true', function() {
-      const character = buildCharacter({ is_pc: true, slain: true });
+    it('builds the Slain item when private_slain is true', function() {
+      const character = buildCharacter({ is_pc: true, private_slain: true });
 
       expect(CharacterStatusBadges.build(character)).toEqual([
-        { icon: 'bi-skull-fill', text: 'Slain', variant: 'danger' },
+        { icon: 'bi-skull-fill', text: t('private_slain'), variant: 'danger' },
       ]);
     });
 
-    it('builds the Alive item when slain is false', function() {
-      const character = buildCharacter({ is_pc: true, slain: false });
+    it('builds the Alive item when private_slain is false', function() {
+      const character = buildCharacter({ is_pc: true, private_slain: false });
 
       expect(CharacterStatusBadges.build(character)).toEqual([
-        { icon: 'bi-heart-fill', text: 'Alive', variant: 'success' },
+        { icon: 'bi-heart-fill', text: t('private_alive'), variant: 'success' },
       ]);
     });
 
-    it('omits the Slain/Alive item when slain is null', function() {
-      const character = buildCharacter({ is_pc: true, slain: null });
+    it('omits the Slain/Alive item when private_slain is null', function() {
+      const character = buildCharacter({ is_pc: true, private_slain: null });
 
       expect(CharacterStatusBadges.build(character)).toEqual([]);
     });
 
-    it('omits the Slain/Alive item when slain is missing', function() {
+    it('omits the Slain/Alive item when private_slain is missing', function() {
       const character = buildCharacter({ is_pc: true });
 
       expect(CharacterStatusBadges.build(character)).toEqual([]);
@@ -41,7 +44,7 @@ describe('CharacterStatusBadges', function() {
       const character = buildCharacter({ is_pc: true, public_slain: true });
 
       expect(CharacterStatusBadges.build(character)).toEqual([
-        { icon: 'bi-skull', text: 'Known as Slain', variant: 'danger' },
+        { icon: 'bi-skull', text: t('public_slain'), variant: 'danger' },
       ]);
     });
 
@@ -49,7 +52,7 @@ describe('CharacterStatusBadges', function() {
       const character = buildCharacter({ is_pc: true, public_slain: false });
 
       expect(CharacterStatusBadges.build(character)).toEqual([
-        { icon: 'bi-heart', text: 'Known as Alive', variant: 'success' },
+        { icon: 'bi-heart', text: t('public_alive'), variant: 'success' },
       ]);
     });
 
@@ -66,52 +69,52 @@ describe('CharacterStatusBadges', function() {
     });
 
     it('builds both Slain and Public Slain items in order', function() {
-      const character = buildCharacter({ is_pc: true, slain: true, public_slain: false });
+      const character = buildCharacter({ is_pc: true, private_slain: true, public_slain: false });
 
       expect(CharacterStatusBadges.build(character)).toEqual([
-        { icon: 'bi-skull-fill', text: 'Slain', variant: 'danger' },
-        { icon: 'bi-heart', text: 'Known as Alive', variant: 'success' },
+        { icon: 'bi-skull-fill', text: t('private_slain'), variant: 'danger' },
+        { icon: 'bi-heart', text: t('public_alive'), variant: 'success' },
       ]);
     });
 
     it('builds the Enemy allegiance item for an NPC', function() {
-      const character = buildCharacter({ is_pc: false, allegiance: 'enemy' });
+      const character = buildCharacter({ is_pc: false, private_allegiance: 'enemy' });
 
       expect(CharacterStatusBadges.build(character)).toEqual([
-        { icon: 'bi-emoji-angry-fill', text: 'Enemy', variant: 'danger' },
+        { icon: 'bi-emoji-angry-fill', text: t('private_enemy'), variant: 'danger' },
       ]);
     });
 
     it('builds the Ally allegiance item for an NPC', function() {
-      const character = buildCharacter({ is_pc: false, allegiance: 'ally' });
+      const character = buildCharacter({ is_pc: false, private_allegiance: 'ally' });
 
       expect(CharacterStatusBadges.build(character)).toEqual([
-        { icon: 'bi-emoji-smile-fill', text: 'Ally', variant: 'success' },
+        { icon: 'bi-emoji-smile-fill', text: t('private_ally'), variant: 'success' },
       ]);
     });
 
     it('builds the Neutral allegiance item with no color for an NPC', function() {
-      const character = buildCharacter({ is_pc: false, allegiance: 'neutral' });
+      const character = buildCharacter({ is_pc: false, private_allegiance: 'neutral' });
 
       expect(CharacterStatusBadges.build(character)).toEqual([
-        { icon: 'bi-emoji-expressionless-fill', text: 'Neutral', variant: null },
+        { icon: 'bi-emoji-expressionless-fill', text: t('private_neutral'), variant: null },
       ]);
     });
 
-    it('omits the allegiance item when allegiance is null', function() {
-      const character = buildCharacter({ is_pc: false, allegiance: null });
+    it('omits the allegiance item when private_allegiance is null', function() {
+      const character = buildCharacter({ is_pc: false, private_allegiance: null });
 
       expect(CharacterStatusBadges.build(character)).toEqual([]);
     });
 
-    it('omits the allegiance item when allegiance is missing', function() {
+    it('omits the allegiance item when private_allegiance is missing', function() {
       const character = buildCharacter({ is_pc: false });
 
       expect(CharacterStatusBadges.build(character)).toEqual([]);
     });
 
-    it('omits the allegiance item for a PC even when allegiance is set', function() {
-      const character = buildCharacter({ is_pc: true, allegiance: 'enemy' });
+    it('omits the allegiance item for a PC even when private_allegiance is set', function() {
+      const character = buildCharacter({ is_pc: true, private_allegiance: 'enemy' });
 
       expect(CharacterStatusBadges.build(character)).toEqual([]);
     });
@@ -120,7 +123,7 @@ describe('CharacterStatusBadges', function() {
       const character = buildCharacter({ is_pc: false, public_allegiance: 'enemy' });
 
       expect(CharacterStatusBadges.build(character)).toEqual([
-        { icon: 'bi-emoji-angry', text: 'Known as Enemy', variant: 'danger' },
+        { icon: 'bi-emoji-angry', text: t('public_enemy'), variant: 'danger' },
       ]);
     });
 
@@ -128,7 +131,7 @@ describe('CharacterStatusBadges', function() {
       const character = buildCharacter({ is_pc: false, public_allegiance: 'ally' });
 
       expect(CharacterStatusBadges.build(character)).toEqual([
-        { icon: 'bi-emoji-smile', text: 'Known as Ally', variant: 'success' },
+        { icon: 'bi-emoji-smile', text: t('public_ally'), variant: 'success' },
       ]);
     });
 
@@ -136,7 +139,7 @@ describe('CharacterStatusBadges', function() {
       const character = buildCharacter({ is_pc: false, public_allegiance: 'neutral' });
 
       expect(CharacterStatusBadges.build(character)).toEqual([
-        { icon: 'bi-emoji-expressionless', text: 'Known as Neutral', variant: null },
+        { icon: 'bi-emoji-expressionless', text: t('public_neutral'), variant: null },
       ]);
     });
 
@@ -161,17 +164,17 @@ describe('CharacterStatusBadges', function() {
     it('builds all four items in order for an NPC with every field set', function() {
       const character = buildCharacter({
         is_pc: false,
-        slain: true,
+        private_slain: true,
         public_slain: false,
-        allegiance: 'enemy',
+        private_allegiance: 'enemy',
         public_allegiance: 'ally',
       });
 
       expect(CharacterStatusBadges.build(character)).toEqual([
-        { icon: 'bi-skull-fill', text: 'Slain', variant: 'danger' },
-        { icon: 'bi-heart', text: 'Known as Alive', variant: 'success' },
-        { icon: 'bi-emoji-angry-fill', text: 'Enemy', variant: 'danger' },
-        { icon: 'bi-emoji-smile', text: 'Known as Ally', variant: 'success' },
+        { icon: 'bi-skull-fill', text: t('private_slain'), variant: 'danger' },
+        { icon: 'bi-heart', text: t('public_alive'), variant: 'success' },
+        { icon: 'bi-emoji-angry-fill', text: t('private_enemy'), variant: 'danger' },
+        { icon: 'bi-emoji-smile', text: t('public_ally'), variant: 'success' },
       ]);
     });
 
@@ -179,7 +182,7 @@ describe('CharacterStatusBadges', function() {
       const character = buildCharacter({ is_pc: false, hidden: true });
 
       expect(CharacterStatusBadges.build(character)).toEqual([
-        { icon: 'bi-eye-slash-fill', text: 'Hidden', variant: null },
+        { icon: 'bi-eye-slash-fill', text: t('hidden'), variant: null },
       ]);
     });
 
@@ -207,7 +210,7 @@ describe('CharacterStatusBadges', function() {
       const character = buildCharacter({ is_pc: false, hidden: true });
 
       expect(CharacterStatusBadges.buildHidden(character)).toEqual(
-        { icon: 'bi-eye-slash-fill', text: 'Hidden', variant: null },
+        { icon: 'bi-eye-slash-fill', text: t('hidden'), variant: null },
       );
     });
 

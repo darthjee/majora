@@ -7,14 +7,17 @@ import Translator from '../../../../../../i18n/Translator.js';
  */
 export default class NpcFiltersHelper {
   /**
-   * Renders the Status dropdown, Name text input, Query button and Clear button, plus the
-   * Hidden dropdown (dm/admin only, gated on `state.canEdit`).
+   * Renders the public Status dropdown, public Allegiance dropdown, Name text input, Query
+   * button and Clear button, plus the Hidden dropdown and the private Status/Allegiance
+   * dropdowns (dm/admin only, gated on `state.canEdit`).
    *
    * @param {{status: string, name: string, allegiance: string, hidden: string,
-   *   canEdit: boolean}} state - filters draft state. `canEdit` gates the Hidden dropdown.
+   *   privateStatus: string, privateAllegiance: string, canEdit: boolean}} state - filters draft
+   *   state. `canEdit` gates the Hidden dropdown and the private Status/Allegiance dropdowns.
    * @param {{onStatusChange: Function, onNameChange: Function, onAllegianceChange: Function,
-   *   onHiddenChange: Function, onQuery: Function, onClear: Function}} handlers - filters
-   *   event handlers.
+   *   onHiddenChange: Function, onPrivateStatusChange: Function,
+   *   onPrivateAllegianceChange: Function, onQuery: Function, onClear: Function}} handlers -
+   *   filters event handlers.
    * @returns {React.ReactElement} rendered filters bar.
    */
   static render(state, handlers) {
@@ -22,26 +25,27 @@ export default class NpcFiltersHelper {
       <div className="row g-2 align-items-end mb-4" data-testid="npc-filters">
         <FilterSelect
           id="npc-filter-status"
-          label={Translator.t('game_npcs_page.filter_status_label')}
+          label={Translator.t('game_npcs_page.filter_public_status_label')}
           value={state.status}
           onChange={handlers.onStatusChange}
           options={[
-            { value: 'alive', label: Translator.t('game_npcs_page.filter_status_alive') },
-            { value: 'slain', label: Translator.t('game_npcs_page.filter_status_slain') },
+            { value: 'alive', label: Translator.t('game_npcs_page.filter_public_status_alive') },
+            { value: 'slain', label: Translator.t('game_npcs_page.filter_public_status_slain') },
           ]}
         />
         <FilterSelect
           id="npc-filter-allegiance"
-          label={Translator.t('game_npcs_page.filter_allegiance_label')}
+          label={Translator.t('game_npcs_page.filter_public_allegiance_label')}
           value={state.allegiance}
           onChange={handlers.onAllegianceChange}
           options={[
-            { value: 'ally', label: Translator.t('game_npcs_page.filter_allegiance_ally') },
-            { value: 'enemy', label: Translator.t('game_npcs_page.filter_allegiance_enemy') },
-            { value: 'neutral', label: Translator.t('game_npcs_page.filter_allegiance_neutral') },
+            { value: 'ally', label: Translator.t('game_npcs_page.filter_public_allegiance_ally') },
+            { value: 'enemy', label: Translator.t('game_npcs_page.filter_public_allegiance_enemy') },
+            { value: 'neutral', label: Translator.t('game_npcs_page.filter_public_allegiance_neutral') },
           ]}
         />
         {NpcFiltersHelper.#renderHiddenFilter(state, handlers)}
+        {NpcFiltersHelper.#renderPrivateFilters(state, handlers)}
         <div className="col-auto">
           <label htmlFor="npc-filter-name" className="form-label">
             {Translator.t('game_npcs_page.filter_name_label')}
@@ -103,6 +107,48 @@ export default class NpcFiltersHelper {
           { value: 'hidden', label: Translator.t('game_npcs_page.filter_hidden_only') },
         ]}
       />
+    );
+  }
+
+  /**
+   * Renders the private Status and private Allegiance dropdowns, dm/admin only (gated on
+   * `state.canEdit`).
+   *
+   * @param {{privateStatus: string, privateAllegiance: string, canEdit: boolean}} state - filters
+   *   draft state.
+   * @param {{onPrivateStatusChange: Function, onPrivateAllegianceChange: Function}} handlers -
+   *   filters event handlers.
+   * @returns {React.ReactElement|null} rendered private filters, or null when not an editor.
+   */
+  static #renderPrivateFilters(state, handlers) {
+    if (!state.canEdit) {
+      return null;
+    }
+
+    return (
+      <>
+        <FilterSelect
+          id="npc-filter-private-status"
+          label={Translator.t('game_npcs_page.filter_private_status_label')}
+          value={state.privateStatus}
+          onChange={handlers.onPrivateStatusChange}
+          options={[
+            { value: 'alive', label: Translator.t('game_npcs_page.filter_private_status_alive') },
+            { value: 'slain', label: Translator.t('game_npcs_page.filter_private_status_slain') },
+          ]}
+        />
+        <FilterSelect
+          id="npc-filter-private-allegiance"
+          label={Translator.t('game_npcs_page.filter_private_allegiance_label')}
+          value={state.privateAllegiance}
+          onChange={handlers.onPrivateAllegianceChange}
+          options={[
+            { value: 'ally', label: Translator.t('game_npcs_page.filter_private_allegiance_ally') },
+            { value: 'enemy', label: Translator.t('game_npcs_page.filter_private_allegiance_enemy') },
+            { value: 'neutral', label: Translator.t('game_npcs_page.filter_private_allegiance_neutral') },
+          ]}
+        />
+      </>
     );
   }
 }

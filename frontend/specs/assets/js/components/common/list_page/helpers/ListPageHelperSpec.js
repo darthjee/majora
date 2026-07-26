@@ -154,8 +154,8 @@ describe('ListPageHelper', function() {
 
   describe('npcs (a list type with a per-item buildCardClassName hook)', function() {
     const npcs = [
-      { id: 1, name: 'Goblin', allegiance: 'enemy' },
-      { id: 2, name: 'Villager', allegiance: 'ally' },
+      { id: 1, name: 'Goblin', private_allegiance: 'enemy' },
+      { id: 2, name: 'Villager', private_allegiance: 'ally' },
     ];
     const npcContext = { gameSlug: 'demo', canEdit: false };
 

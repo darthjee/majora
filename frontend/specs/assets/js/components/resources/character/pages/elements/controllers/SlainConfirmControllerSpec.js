@@ -9,12 +9,12 @@ describe('SlainConfirmController', function() {
   });
 
   describe('#handleConfirm', function() {
-    it('defaults to toggling the slain field when no field is given', async function() {
+    it('defaults to toggling the private_slain field when no field is given', async function() {
       spyOn(RequestStore, 'mutate').and.returnValue(
         Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({}) }),
       );
       const controller = new SlainConfirmController(onSuccess);
-      const character = { id: 7, slain: false };
+      const character = { id: 7, private_slain: false };
 
       await controller.handleConfirm('demo', character, 'auth-token');
 
@@ -24,7 +24,7 @@ describe('SlainConfirmController', function() {
         method: 'PATCH',
         quantityType: 'single',
         params: { gameSlug: 'demo', id: 7 },
-        body: { slain: true },
+        body: { private_slain: true },
         variantName: 'private',
       });
     });
@@ -33,13 +33,13 @@ describe('SlainConfirmController', function() {
       spyOn(RequestStore, 'mutate').and.returnValue(
         Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({}) }),
       );
-      const controller = new SlainConfirmController(onSuccess, 'slain');
-      const character = { id: 7, slain: false };
+      const controller = new SlainConfirmController(onSuccess, 'private_slain');
+      const character = { id: 7, private_slain: false };
 
       await controller.handleConfirm('demo', character, 'auth-token');
 
       expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
-        body: { slain: true },
+        body: { private_slain: true },
       }));
     });
 
@@ -47,13 +47,13 @@ describe('SlainConfirmController', function() {
       spyOn(RequestStore, 'mutate').and.returnValue(
         Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({}) }),
       );
-      const controller = new SlainConfirmController(onSuccess, 'slain');
-      const character = { id: 7, slain: true };
+      const controller = new SlainConfirmController(onSuccess, 'private_slain');
+      const character = { id: 7, private_slain: true };
 
       await controller.handleConfirm('demo', character, 'auth-token');
 
       expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
-        body: { slain: false },
+        body: { private_slain: false },
       }));
     });
 
@@ -62,7 +62,7 @@ describe('SlainConfirmController', function() {
         Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({}) }),
       );
       const controller = new SlainConfirmController(onSuccess, 'public_slain');
-      const character = { id: 7, slain: false, public_slain: false };
+      const character = { id: 7, private_slain: false, public_slain: false };
 
       await controller.handleConfirm('demo', character, 'auth-token');
 
@@ -71,17 +71,17 @@ describe('SlainConfirmController', function() {
       }));
     });
 
-    it('does not touch the real slain value when toggling the public field', async function() {
+    it('does not touch the private_slain value when toggling the public field', async function() {
       spyOn(RequestStore, 'mutate').and.returnValue(
         Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({}) }),
       );
       const controller = new SlainConfirmController(onSuccess, 'public_slain');
-      const character = { id: 7, slain: true, public_slain: false };
+      const character = { id: 7, private_slain: true, public_slain: false };
 
       await controller.handleConfirm('demo', character, 'auth-token');
 
       const [{ body }] = RequestStore.mutate.calls.mostRecent().args;
-      expect(body.slain).toBeUndefined();
+      expect(body.private_slain).toBeUndefined();
     });
 
     it('purges the npc cache and invokes onSuccess once the request resolves successfully', async function() {
@@ -89,9 +89,9 @@ describe('SlainConfirmController', function() {
       spyOn(RequestStore, 'mutate').and.returnValue(
         Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({}) }),
       );
-      const controller = new SlainConfirmController(onSuccess, 'slain');
+      const controller = new SlainConfirmController(onSuccess, 'private_slain');
 
-      await controller.handleConfirm('demo', { id: 7, slain: false }, 'auth-token');
+      await controller.handleConfirm('demo', { id: 7, private_slain: false }, 'auth-token');
 
       expect(RequestStore.purge).toHaveBeenCalledWith({ resource: 'npc' });
       expect(onSuccess).toHaveBeenCalled();
@@ -102,9 +102,9 @@ describe('SlainConfirmController', function() {
       spyOn(RequestStore, 'mutate').and.returnValue(
         Promise.resolve({ ok: false, status: 403, json: () => Promise.resolve({}) }),
       );
-      const controller = new SlainConfirmController(onSuccess, 'slain');
+      const controller = new SlainConfirmController(onSuccess, 'private_slain');
 
-      await controller.handleConfirm('demo', { id: 7, slain: false }, 'auth-token');
+      await controller.handleConfirm('demo', { id: 7, private_slain: false }, 'auth-token');
 
       expect(RequestStore.purge).not.toHaveBeenCalled();
       expect(onSuccess).not.toHaveBeenCalled();

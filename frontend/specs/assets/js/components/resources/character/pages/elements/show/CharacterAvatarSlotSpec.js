@@ -9,7 +9,7 @@ describe('CharacterAvatarSlot', function() {
       const handlers = { onOpenUploadModal: jasmine.createSpy('onOpenUploadModal') };
       const html = renderToStaticMarkup(
         React.createElement(CharacterAvatarSlot.Show, {
-          name: 'Aragorn', is_pc: true, slain: false, can_edit: true, handlers,
+          name: 'Aragorn', is_pc: true, private_slain: false, public_slain: false, can_edit: true, handlers,
         }),
       );
 

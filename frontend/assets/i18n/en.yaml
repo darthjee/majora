@@ -150,14 +150,14 @@ character_full_page:
 character_info:
   role_label: 'Role:'
 character_status_badges:
-  slain: Slain
-  alive: Alive
+  private_slain: Slain
+  private_alive: Alive
   public_slain: Known as Slain
   public_alive: Known as Alive
   hidden: Hidden
-  enemy: Enemy
-  ally: Ally
-  neutral: Neutral
+  private_enemy: Enemy
+  private_ally: Ally
+  private_neutral: Neutral
   public_enemy: Known as Enemy
   public_ally: Known as Ally
   public_neutral: Known as Neutral
@@ -211,7 +211,7 @@ npc_edit_page:
   description_label: Description
   private_description_label: DM Notes
   hidden_label: Hidden Character
-  allegiance_label: Allegiance
+  private_allegiance_label: Allegiance
   public_allegiance_label: Public Allegiance
   allegiance_ally: Ally
   allegiance_enemy: Enemy
@@ -599,16 +599,23 @@ game_npcs_page:
   loading: Loading...
   title: Non-Player Characters
   new_npc: New NPC
-  filter_status_label: Status
-  filter_status_alive: Alive
-  filter_status_slain: Slain
+  filter_public_status_label: Status
+  filter_public_status_alive: Alive
+  filter_public_status_slain: Slain
   filter_hidden_label: Hidden
   filter_hidden_shown: Shown
   filter_hidden_only: Hidden
-  filter_allegiance_label: Allegiance
-  filter_allegiance_ally: Ally
-  filter_allegiance_enemy: Enemy
-  filter_allegiance_neutral: Neutral
+  filter_public_allegiance_label: Allegiance
+  filter_public_allegiance_ally: Ally
+  filter_public_allegiance_enemy: Enemy
+  filter_public_allegiance_neutral: Neutral
+  filter_private_status_label: Real Status
+  filter_private_status_alive: Alive
+  filter_private_status_slain: Slain
+  filter_private_allegiance_label: Real Allegiance
+  filter_private_allegiance_ally: Ally
+  filter_private_allegiance_enemy: Enemy
+  filter_private_allegiance_neutral: Neutral
   filter_name_label: Name
   filter_name_placeholder: Search by name...
   filter_query: Query
@@ -620,7 +627,7 @@ game_npc_new_page:
   description_label: Description
   private_description_label: DM Notes
   hidden_label: Hidden Character
-  allegiance_label: Allegiance
+  private_allegiance_label: Allegiance
   public_allegiance_label: Public Allegiance
   allegiance_ally: Ally
   allegiance_enemy: Enemy

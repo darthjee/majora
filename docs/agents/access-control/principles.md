@@ -49,8 +49,8 @@ carries **two fields**: `x` (the real value) and `public_x` (the public value).
   exposes under the shared key, so a query param never lets an unauthorized caller filter on data
   it cannot otherwise read.
 
-See `allegiance`/`public_allegiance` and `slain`/`public_slain` on [Character](character.md) for
-a concrete example.
+See `private_allegiance`/`public_allegiance` and `private_slain`/`public_slain` on
+[Character](character.md) for a concrete example.
 
 ## Public/regular is distinct from hidden attributes
 

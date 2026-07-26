@@ -26,9 +26,9 @@ class CharacterUpdateSerializer(serializers.ModelSerializer):
             'private_description',
             'hidden',
             'money',
-            'allegiance',
+            'private_allegiance',
             'public_allegiance',
-            'slain',
+            'private_slain',
             'public_slain',
             'links',
         ]

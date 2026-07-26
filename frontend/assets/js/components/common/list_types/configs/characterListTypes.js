@@ -80,7 +80,7 @@ function buildNpcSecondaryButtons(character, context) {
 
   if (context.isPlayer) {
     return [SlainSecondaryButtons.buildSlainButton(
-      character.slain, () => context.onPlayerSlainClick(character),
+      character.public_slain, () => context.onPlayerSlainClick(character),
     )];
   }
 
@@ -105,7 +105,7 @@ function buildNpcActionBarProps(item, context) {
   return {
     canEdit: Boolean(context.canEdit) || Boolean(context.isPlayer),
     onClick: () => context.onUploadClick(character),
-    grayscale: Boolean(character.slain),
+    grayscale: Boolean(item.slain),
     dimmed: Boolean(character.hidden),
     secondaryButtons: buildNpcSecondaryButtons(character, context),
   };
@@ -119,7 +119,7 @@ function buildNpcActionBarProps(item, context) {
  * @returns {string} Bootstrap border classes for the NPC's allegiance.
  */
 function buildNpcCardClassName(item) {
-  return allegianceBorderClass(item.data.allegiance);
+  return allegianceBorderClass(item.allegiance);
 }
 
 /**

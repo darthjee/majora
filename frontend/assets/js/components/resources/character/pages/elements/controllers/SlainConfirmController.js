@@ -9,9 +9,9 @@ export default class SlainConfirmController {
    * Creates a new SlainConfirmController instance.
    *
    * @param {Function} onSuccess - Callback invoked after the slain state is toggled successfully.
-   * @param {'slain'|'public_slain'} [field] - Character field this controller toggles.
+   * @param {'private_slain'|'public_slain'} [field] - Character field this controller toggles.
    */
-  constructor(onSuccess, field = 'slain') {
+  constructor(onSuccess, field = 'private_slain') {
     this.onSuccess = onSuccess;
     this.field = field;
   }

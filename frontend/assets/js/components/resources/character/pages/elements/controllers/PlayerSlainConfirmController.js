@@ -17,8 +17,8 @@ export default class PlayerSlainConfirmController {
   }
 
   /**
-   * Toggles the given character's public_slain state (aliased onto `slain` for
-   * non-editors) as a player of the game, and invokes onSuccess once done.
+   * Toggles the given character's public_slain state as a player of the game, and invokes
+   * onSuccess once done.
    *
    * @description PATCHes the plain NPC endpoint (`npc`'s `regular` variant) through
    *   {@link RequestStore.mutate} (issue #847), forcing `variantName: 'regular'` since this
@@ -28,7 +28,7 @@ export default class PlayerSlainConfirmController {
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {object} character - Character data object.
    * @param {number|string} character.id - Character id.
-   * @param {boolean} character.slain - Current public-facing slain value.
+   * @param {boolean} character.public_slain - Current public-facing slain value.
    * @param {string|null} _token - Authentication token, unused — kept for call-site
    *   compatibility; `RequestStore.mutate` resolves its own token.
    * @returns {Promise<void>} Resolves once the request finishes and onSuccess has been invoked.
@@ -40,7 +40,7 @@ export default class PlayerSlainConfirmController {
       method: 'PATCH',
       quantityType: 'single',
       params: { gameSlug, id: character.id },
-      body: { slain: !character.slain },
+      body: { public_slain: !character.public_slain },
       variantName: 'regular',
     }).then((response) => {
       if (!response.ok) {

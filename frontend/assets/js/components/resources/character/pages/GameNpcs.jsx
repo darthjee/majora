@@ -19,7 +19,7 @@ const PATTERN = '/games/:game_slug/npcs';
  * Builds a slain-toggle controller/state pair for the given field, refreshing the NPC list and
  * clearing the target once the request succeeds.
  *
- * @param {'slain'|'public_slain'} field - Character field this pair toggles.
+ * @param {'private_slain'|'public_slain'} field - Character field this pair toggles.
  * @param {Function} refresh - Called to re-trigger the NPC list fetch after toggling.
  * @returns {{target: object|null, setTarget: Function, slainController: SlainConfirmController}} Slain
  *   toggle state and controller pair.
@@ -93,7 +93,7 @@ export default function GameNpcs() {
   useEffect(() => accessController.buildEffect()(), [accessController]);
   FacadeRefresh.useFacadeRefresh(accessController);
 
-  const slain = useSlainTogglePair('slain', refresh);
+  const slain = useSlainTogglePair('private_slain', refresh);
   const publicSlain = useSlainTogglePair('public_slain', refresh);
   const playerSlain = usePlayerSlainTogglePair(refresh);
 
@@ -136,7 +136,7 @@ export default function GameNpcs() {
       />
       <SlainConfirmModal
         show={slain.target !== null}
-        slain={slain.target?.slain}
+        slain={slain.target?.private_slain}
         onCancel={() => slain.setTarget(null)}
         onConfirm={() => slain.slainController.handleConfirm(gameSlug, slain.target, AuthStorage.getToken())}
       />
@@ -151,7 +151,7 @@ export default function GameNpcs() {
       />
       <SlainConfirmModal
         show={playerSlain.target !== null}
-        slain={playerSlain.target?.slain}
+        slain={playerSlain.target?.public_slain}
         onCancel={() => playerSlain.setTarget(null)}
         onConfirm={() => playerSlain.playerSlainController.handleConfirm(
           gameSlug, playerSlain.target, AuthStorage.getToken(),

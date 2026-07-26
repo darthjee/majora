@@ -6,9 +6,9 @@ Characters are scoped to a game. Access is symmetric for PCs and NPCs unless not
 
 | Endpoint | Who can read | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs.json` | **AllowAny** | `id`, `name`, `game_slug`, `profile_photo_path`, `slain`, `allegiance`, `treasure_value` |
+| `GET /games/<slug>/pcs.json` | **AllowAny** | `id`, `name`, `game_slug`, `profile_photo_path`, `public_slain`, `public_allegiance`, `treasure_value` |
 | `GET /games/<slug>/npcs.json` | **AllowAny** | Same as above |
-| `GET /games/<slug>/npcs/all.json` | **GameEdit** | Same as `npcs.json` (via `CharacterFullListSerializer`), plus `public_allegiance`, `public_slain`, and `hidden` — see "Allegiance fields", "Slain fields", and "Hidden field" below. Includes hidden NPCs, unlike `npcs.json`. Accepts an optional `?hidden=true\|false` filter (same tolerant convention as `?slain=`/`?allegiance=`). Always sets `X-Skip-Cache: true` |
+| `GET /games/<slug>/npcs/all.json` | **GameEdit** | Same as `npcs.json` (via `CharacterFullListSerializer`), plus `private_allegiance`, `private_slain`, and `hidden` — see "Allegiance fields", "Slain fields", and "Hidden field" below. Includes hidden NPCs, unlike `npcs.json`. Accepts optional `?hidden=true\|false`, `?public_slain=`, `?private_slain=`, `?public_allegiance=`, `?private_allegiance=` filters (same tolerant convention as `npcs.json`'s filters below). Always sets `X-Skip-Cache: true` |
 
 `treasure_value` — an `IntegerField` computed as the sum of `total_value` across the
 character's `CharacterTreasure` rows (see [CharacterTreasure](character-treasure.md)), exposed
@@ -26,7 +26,7 @@ annotated queryset (e.g. serializer unit tests, or any other read path added in 
 
 | Endpoint | Who can read | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs/<id>.json` | **AllowAny** | `id`, `name`, `role`, `public_description`, `is_pc`, `links`, `game_slug`, `can_edit`, `can_edit_money`, `can_exchange_treasure`, `can_set_profile_photo`, `profile_photo_path`, `profile_photo_id`, `money`, `treasure_value`, `slain`, `allegiance` |
+| `GET /games/<slug>/pcs/<id>.json` | **AllowAny** | `id`, `name`, `role`, `public_description`, `is_pc`, `links`, `game_slug`, `can_edit`, `can_edit_money`, `can_exchange_treasure`, `can_set_profile_photo`, `profile_photo_path`, `profile_photo_id`, `money`, `treasure_value`, `public_slain`, `public_allegiance` |
 | `GET /games/<slug>/npcs/<id>.json` | **AllowAny** | Same as above |
 
 Always sets `X-Skip-Cache: true` on the successful response, regardless of `check_hidden`
@@ -67,10 +67,11 @@ account (`user.is_staff`), else `false`, including for an anonymous requester. U
 this detail endpoint and inherited onto the full-detail endpoint below. Gates the treasure
 buy/sell actions on the frontend show page.
 
-`slain` is a `BooleanField` (default `False`) shared by `Character` for both PCs and NPCs,
-returned read-only on the list and detail endpoints to anyone — there it is sourced from the
-`public_slain` model field (see "Slain fields" below). Like `hidden`/`money`, it is writable
-through `CharacterUpdateSerializer` — see "Slain fields" for write-access rules.
+`public_slain` is a `BooleanField` (default `False`) shared by `Character` for both PCs and NPCs,
+returned read-only on the list and detail endpoints to anyone under its own key — no key
+transformation happens on these public endpoints (see "Slain fields" below). Like `hidden`/
+`money`, it is writable through `CharacterUpdateSerializer` — see "Slain fields" for write-access
+rules.
 
 ## Full detail (includes `private_description`)
 
@@ -80,7 +81,7 @@ the plain detail endpoints above.
 
 | Endpoint | Who can read/write | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs/<id>/full.json` | **CharacterEdit** | All detail fields + `private_description` + `public_allegiance` + `public_slain` + `hidden` |
+| `GET /games/<slug>/pcs/<id>/full.json` | **CharacterEdit** | All detail fields + `private_description` + `private_allegiance` + `private_slain` + `hidden` |
 | `GET /games/<slug>/npcs/<id>/full.json` | **CharacterEdit** | Same as above |
 | `PATCH /games/<slug>/pcs/<id>/full.json` | **CharacterEdit** | Same response shape as the `GET` above |
 | `PATCH /games/<slug>/npcs/<id>/full.json` | **CharacterEdit** | Same as above |
@@ -95,75 +96,84 @@ both `GET` and `PATCH`.
 with allowed values `'ally'`, `'enemy'`, `'neutral'`, following the [public vs regular attribute
 pattern](principles.md#public-vs-regular-attribute-pattern):
 
-- `allegiance` — the character's real disposition, visible only to a DM/superuser.
+- `private_allegiance` — the character's real disposition, visible only to a DM/superuser.
 - `public_allegiance` — the disposition shown to regular players.
+
+Prior to issue #861 this pair was named `allegiance`/`public_allegiance`, with the public
+endpoints aliasing `public_allegiance` onto a bare `allegiance` JSON key. That transformation has
+been removed: every endpoint now exposes/accepts each field under its own real name, with no
+key remapping anywhere.
 
 **Read exposure**:
 
 - On the public list/detail endpoints (`pcs.json`, `npcs.json`, `pcs/<id>.json`,
-  `npcs/<id>.json`), the `allegiance` key is sourced from `public_allegiance`.
+  `npcs/<id>.json`), only `public_allegiance` is exposed — `private_allegiance` never appears.
 - On the DM/admin endpoints (`npcs/all.json`, `pcs/<id>/full.json`, `npcs/<id>/full.json`),
-  `allegiance` is the real field, with `public_allegiance` additionally exposed under its own
-  key.
+  both `private_allegiance` and `public_allegiance` are exposed under their own keys.
 
 Applies uniformly to both PCs and NPCs (shared model/serializers), though the fields are only
-meaningfully written for NPCs in practice — a PC's `allegiance`/`public_allegiance` stay at the
-`'neutral'` default since no PC write path ever sets them.
+meaningfully written for NPCs in practice — a PC's `private_allegiance`/`public_allegiance` stay
+at the `'neutral'` default since no PC write path ever sets them.
 
 **Write access**: both fields are on the shared `CharacterUpdateSerializer`
 (**CharacterEdit**-gated), writable through either `PATCH /games/<slug>/pcs/<id>/full.json` or
 `PATCH /games/<slug>/npcs/<id>/full.json`. Since NPCs have no player owner by product definition
 (see [`docs/agents/product.md`](../product.md)), this is DM/superuser-only in practice for NPCs; a PC's own
-player can technically set their own PC's `allegiance`/`public_allegiance` too (same as
+player can technically set their own PC's `private_allegiance`/`public_allegiance` too (same as
 `hidden`/`money`), though nothing in the product currently reads or displays a PC's allegiance.
 Both fields are also writable at create time via `CharacterCreateSerializer`
 (`POST /games/<slug>/npcs.json`, **GameEdit**-gated); both remain optional and default to
 `'neutral'` when omitted.
 
-**Filtering**: `npcs.json` and `npcs/all.json` accept an optional `?allegiance=` query parameter
+**Filtering**: `npcs.json` accepts an optional `?public_allegiance=` query parameter
 (`ally`/`enemy`/`neutral`; any other value is silently ignored, same tolerant convention as
-`?slain=`). `npcs.json` filters on `public_allegiance`; `npcs/all.json` filters on the real
-`allegiance` field — each endpoint filters on the same field it exposes under the `allegiance`
-key, so the param never lets an unauthorized caller filter on data it cannot otherwise read.
+`?public_slain=`) and ignores any `?private_allegiance=` param sent, even by a DM. `npcs/all.json`
+accepts both `?public_allegiance=` and `?private_allegiance=` independently (combined as an AND
+when both are given) — each filters on the identically-named model field, so the param never lets
+an unauthorized caller filter on data it cannot otherwise read.
 
 ## Slain fields
 
 `Character` has two independent `BooleanField`s (both defaulting to `False`), following the same
 [public vs regular attribute pattern](principles.md#public-vs-regular-attribute-pattern) as
-`allegiance`/`public_allegiance` above:
+`private_allegiance`/`public_allegiance` above:
 
-- `slain` — the character's real death state, visible only to a DM/superuser.
+- `private_slain` — the character's real death state, visible only to a DM/superuser.
 - `public_slain` — the death state shown to regular players.
 
-(`public_slain` was backfilled from each existing row's `slain` value when introduced, so
-pre-existing NPCs' public and real death state started out identical.)
+Prior to issue #861 this pair was named `slain`/`public_slain`, with the public endpoints
+aliasing `public_slain` onto a bare `slain` JSON key; that transformation has been removed, the
+same as `allegiance`/`public_allegiance` above. (`public_slain` was backfilled from each existing
+row's pre-rename `slain` value when it was introduced, so pre-existing NPCs' public and real
+death state started out identical.)
 
-**Read exposure** — same pattern as `allegiance`: public list/detail endpoints source the
-`slain` JSON key from `public_slain`; DM/admin endpoints (`npcs/all.json`,
-`pcs/<id>/full.json`, `npcs/<id>/full.json`) use the real `slain` field and additionally expose
-`public_slain` under its own key.
+**Read exposure** — same pattern as `private_allegiance`/`public_allegiance`: public list/detail
+endpoints expose only `public_slain`, under its own key; DM/admin endpoints (`npcs/all.json`,
+`pcs/<id>/full.json`, `npcs/<id>/full.json`) expose both `private_slain` and `public_slain` under
+their own keys.
 
-**Write access**: like `allegiance`/`public_allegiance`, both fields are on the shared
+**Write access**: like `private_allegiance`/`public_allegiance`, both fields are on the shared
 `CharacterUpdateSerializer` (**CharacterEdit**-gated), writable through either
 `PATCH /games/<slug>/pcs/<id>/full.json` or `PATCH /games/<slug>/npcs/<id>/full.json` —
 DM/superuser-only in practice for NPCs, but a PC's own player can PATCH their own PC's
-`slain`/`public_slain` too.
+`private_slain`/`public_slain` too.
 
 Additionally, `public_slain` (alongside `public_description`, `public_allegiance`, and `links` —
-never the real `slain`) is writable for NPCs through a second, narrower path:
+never `private_slain`) is writable for NPCs through a second, narrower path:
 `PATCH /games/<slug>/npcs/<id>.json` (the plain NPC detail endpoint), gated by
 **NpcPlayerEdit** instead of **CharacterEdit** — open to any player of the game, not just
 editors. See "Narrow player-facing NPC PATCH" under "Update (PATCH)" below. Does not apply to
 PCs.
 
-**Filtering**: `npcs.json` filters `?slain=` on `public_slain`; `npcs/all.json` filters
-`?slain=` on the real `slain` field — same tolerant/unauthorized-safe convention as the
-`?allegiance=` filter above.
+**Filtering**: `npcs.json` accepts `?public_slain=` and ignores any `?private_slain=` param sent;
+`npcs/all.json` accepts both `?public_slain=` and `?private_slain=` independently (combined as an
+AND when both are given) — same tolerant/unauthorized-safe convention as the allegiance filters
+above.
 
 ## Hidden field
 
 `Character.hidden` is a single `BooleanField` (default `False`), shared by both PCs and NPCs,
-with no public/regular split (unlike `allegiance`/`slain` above) — there is only ever one real
+with no public/regular split (unlike `private_allegiance`/`private_slain` above) — there is only ever one real
 value, and it is never exposed on the public-facing endpoints at all (issue #545).
 
 **Read exposure**: not returned on the public list/detail endpoints (`pcs.json`, `npcs.json`,
@@ -181,10 +191,10 @@ is visible in a list at all.
 `hidden` state.
 
 **Filtering**: `npcs/all.json` accepts an optional `?hidden=true|false` query parameter
-(any other value silently ignored, same tolerant convention as `?slain=`/`?allegiance=`); no
-other endpoint filters on it. The hidden-NPC gate on the plain detail endpoints (see "Detail"
-above) is a separate, pre-existing mechanism (a 404 response, not a filter param) and is
-unaffected by this query parameter.
+(any other value silently ignored, same tolerant convention as `?public_slain=`/
+`?public_allegiance=`); no other endpoint filters on it. The hidden-NPC gate on the plain detail
+endpoints (see "Detail" above) is a separate, pre-existing mechanism (a 404 response, not a
+filter param) and is unaffected by this query parameter.
 
 ## Edit access status
 
@@ -215,24 +225,28 @@ only `GET` remains on that route.
 
 **Write fields** (via `CharacterUpdateSerializer`): in addition to the scalar fields listed
 under "Create" below (`name`, `role`, `public_description`, `private_description`, `hidden`,
-`money`, `allegiance`, `public_allegiance`, all optional here too), a nested `links` array is
-accepted — see [CharacterLink](character-link.md) below for write semantics.
+`money`, `private_allegiance`, `public_allegiance`, `private_slain`, `public_slain`, all optional
+here too), a nested `links` array is accepted — see [CharacterLink](character-link.md) below for
+write semantics.
 
 ### Narrow player-facing NPC PATCH
 
 `PATCH /games/<slug>/npcs/<id>.json` (the plain NPC detail endpoint) accepts `PATCH` again, but
 only for a small, curated, player-safe field set (originally just the `slain` toggle, issue
-#416; widened to the full set below by issue #445).
+#416; widened to the full set below by issue #445; wire keys renamed from `allegiance`/`slain` to
+`public_allegiance`/`public_slain` — direct passthrough, no transformation — by issue #861).
 
 | Endpoint | Who can write | Body | Effect |
 |----------|--------------|------|--------|
-| `PATCH /games/<slug>/npcs/<id>.json` | **NpcPlayerEdit** | `{"public_description": "...", "allegiance": "ally"\|"enemy"\|"neutral", "slain": true\|false, "links": [...]}`, all keys optional — any other key is silently ignored | Writes `Character.public_description`, `Character.public_allegiance`, `Character.public_slain`, and syncs `links` (same shape/semantics as [CharacterLink](character-link.md)); `name`, `role`, `money`, `private_description`, and the real `slain`/`allegiance` fields are untouched and stay `full.json`-only |
+| `PATCH /games/<slug>/npcs/<id>.json` | **NpcPlayerEdit** | `{"public_description": "...", "public_allegiance": "ally"\|"enemy"\|"neutral", "public_slain": true\|false, "links": [...]}`, all keys optional — any other key is silently ignored | Writes `Character.public_description`, `Character.public_allegiance`, `Character.public_slain`, and syncs `links` (same shape/semantics as [CharacterLink](character-link.md)); `name`, `role`, `money`, `private_description`, `private_allegiance`, and `private_slain` are untouched and stay `full.json`-only |
 
 Validated by `NpcPlayerUpdateSerializer`
-(`backend/games/serializers/characters/npcs/npc_player_update.py`), a `ModelSerializer` with
-`public_description` (direct passthrough), `allegiance = ChoiceField(source='public_allegiance')`,
-`slain = BooleanField(source='public_slain')`, and a nested, writable `links` field — the same
-`CharacterLinkWriteSerializer`/`CharacterLinksSync` pattern `CharacterUpdateSerializer` uses.
+(`backend/games/serializers/characters/npcs/npc_player_update.py`), a `ModelSerializer` whose
+`Meta.fields` is exactly `['name', 'role', 'public_description', 'public_allegiance',
+'public_slain', 'links']` — a direct field-name passthrough with no `source=` remapping, plus a
+nested, writable `links` field using the same `CharacterLinkWriteSerializer`/`CharacterLinksSync`
+pattern `CharacterUpdateSerializer` uses. `private_allegiance`/`private_slain` are not declared on
+this serializer at all, so a player payload can never write them regardless of what keys it sends.
 
 The hidden-NPC gate (see "Detail" above) still applies: a hidden NPC returns 404 to a caller who
 is not an editor, same as `GET`. Success response: `200` with the same `CharacterDetailSerializer`
@@ -278,7 +292,7 @@ fields are never exposed to a Staff caller who edits money without being a full 
 There is no equivalent PC creation endpoint.
 
 **Write fields**: `name` (required), `role`, `public_description`, `private_description`,
-`hidden`, `money`, `allegiance`, `public_allegiance` (all optional except `name` — see
+`hidden`, `money`, `private_allegiance`, `public_allegiance` (all optional except `name` — see
 "Allegiance fields" above), and `links` (optional array — see [CharacterLink](character-link.md) below). `game` and
 `npc` are never accepted from the request payload — `game` is always assigned server-side from
 the `<slug>` URL segment, and `npc` is always forced to `True`. `player` is not accepted at all

@@ -61,7 +61,7 @@ describe('CharacterController', function() {
       );
       stubAccessPair('ensureCharacterPermissions', 'getCharacterPermissions', { can_edit: true }, { can_edit: false });
       spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
-        data: { id: 2, slain: true, public_slain: false },
+        data: { id: 2, private_slain: true, public_slain: false },
       }));
       const setCharacter = jasmine.createSpy('setCharacter');
       const controller = buildController(setCharacter);
@@ -75,7 +75,7 @@ describe('CharacterController', function() {
         can_edit: false,
         is_player: false,
         is_staff: false,
-        slain: true,
+        private_slain: true,
         public_slain: false,
         access_resolved: false,
       });
@@ -89,7 +89,7 @@ describe('CharacterController', function() {
         can_edit: true,
         is_player: false,
         is_staff: false,
-        slain: true,
+        private_slain: true,
         public_slain: false,
         access_resolved: true,
       });
