@@ -30,11 +30,17 @@ branching a shared serializer or filter by the requester's role:
 | Action | Partial route | Full route |
 |--------|---------------|------------|
 | Show | `GET .../:id.json` | `GET .../:id/full.json` |
-| Update | — (not accepted) | `PATCH .../:id/full.json` |
+| Update | — (not accepted), *or* a narrower, curated, player-writable field set gated by its own broader-audience permission (see below) | `PATCH .../:id/full.json` |
 | Index | `GET ....json` | `GET .../all.json` |
 
 A requester lacking full access simply gets no access to the full-access route (401/403) — there
 is no partial fallback response on that route.
+
+For Character specifically, the partial route's `PATCH` is not a generic fallback — it accepts
+only a small, curated field set (never the full-route's private-only fields), gated by its own
+permission that is broader than the full route's but still requires at least "any player of the
+game" (never `AllowAny`). See [Character](character.md)'s "Narrow player-facing NPC PATCH" and
+"Narrow player-facing PC PATCH" sections for the concrete field sets and permissions.
 
 ## Public vs regular attribute pattern
 
