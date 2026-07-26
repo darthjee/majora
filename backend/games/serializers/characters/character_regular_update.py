@@ -1,4 +1,4 @@
-"""Character update serializer for the games app."""
+"""Character regular (player-writable) update serializer for the games app."""
 
 from rest_framework import serializers
 
@@ -10,32 +10,16 @@ from games.serializers.characters.character_link_write import (
 )
 
 
-class CharacterUpdateSerializer(serializers.ModelSerializer):
-    """Serializer for the full field set a full editor (dm/admin/owner) may edit on a PC.
-
-    Backs the `full.json` endpoint. See `CharacterRegularUpdateSerializer` for the narrower,
-    player-writable field set exposed to a wider audience via the plain PC detail endpoint.
-    """
+class CharacterRegularUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for the narrow, player-writable PC update endpoint (issue #865)."""
 
     links = CharacterLinkWriteSerializer(many=True, required=False)
 
     class Meta:
-        """Metadata for the CharacterUpdateSerializer."""
+        """Metadata for the CharacterRegularUpdateSerializer."""
 
         model = Character
-        fields = [
-            'name',
-            'role',
-            'public_description',
-            'private_description',
-            'hidden',
-            'money',
-            'private_allegiance',
-            'public_allegiance',
-            'private_slain',
-            'public_slain',
-            'links',
-        ]
+        fields = ['name', 'role', 'public_description', 'money', 'links']
         extra_kwargs = {
             field: {'required': False} for field in fields if field != 'links'
         }
