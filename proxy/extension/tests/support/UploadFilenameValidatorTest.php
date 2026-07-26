@@ -10,12 +10,14 @@ use Tent\RequestHandlers\UploadFilenameValidator;
  */
 class UploadFilenameValidatorTest extends TestCase
 {
+    private const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
     /**
      * @dataProvider allowedFilenamesProvider
      */
     public function testAllowsSingleAllowListedExtension(string $filename): void
     {
-        $validator = new UploadFilenameValidator();
+        $validator = new UploadFilenameValidator(self::IMAGE_EXTENSIONS);
 
         $this->assertTrue($validator->isAllowed($filename));
     }
@@ -39,7 +41,7 @@ class UploadFilenameValidatorTest extends TestCase
      */
     public function testRejectsDoubleExtensionEvenWhenLastSegmentIsAllowed(string $filename): void
     {
-        $validator = new UploadFilenameValidator();
+        $validator = new UploadFilenameValidator(self::IMAGE_EXTENSIONS);
 
         $this->assertFalse($validator->isAllowed($filename));
     }
@@ -58,7 +60,7 @@ class UploadFilenameValidatorTest extends TestCase
      */
     public function testRejectsDisallowedSingleExtension(): void
     {
-        $validator = new UploadFilenameValidator();
+        $validator = new UploadFilenameValidator(self::IMAGE_EXTENSIONS);
 
         $this->assertFalse($validator->isAllowed('photo.txt'));
     }
@@ -68,8 +70,32 @@ class UploadFilenameValidatorTest extends TestCase
      */
     public function testRejectsFilenameWithNoExtension(): void
     {
-        $validator = new UploadFilenameValidator();
+        $validator = new UploadFilenameValidator(self::IMAGE_EXTENSIONS);
 
         $this->assertFalse($validator->isAllowed('photo'));
+    }
+
+    /**
+     * The allow-list is caller-supplied: a different list (e.g. 'file'
+     * uploads' pdf-only allow-list) accepts/rejects accordingly.
+     */
+    public function testUsesCallerSuppliedAllowList(): void
+    {
+        $validator = new UploadFilenameValidator(['pdf']);
+
+        $this->assertTrue($validator->isAllowed('document.pdf'));
+        $this->assertFalse($validator->isAllowed('photo.jpg'));
+    }
+
+    /**
+     * The allow-list is matched case-insensitively regardless of the casing
+     * it was supplied in.
+     */
+    public function testAllowListMatchingIsCaseInsensitiveRegardlessOfSuppliedCasing(): void
+    {
+        $validator = new UploadFilenameValidator(['PDF']);
+
+        $this->assertTrue($validator->isAllowed('document.pdf'));
+        $this->assertTrue($validator->isAllowed('document.PDF'));
     }
 }

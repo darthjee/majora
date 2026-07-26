@@ -3,23 +3,31 @@
 namespace Tent\RequestHandlers;
 
 /**
- * Validates uploaded image filenames.
+ * Validates uploaded filenames against a caller-supplied extension allow-list.
  *
  * Rejects any filename carrying more than one extension segment (e.g.
  * `image.php.jpg`, `image.jpg.png`), since inspecting only the last segment
  * (as pathinfo(..., PATHINFO_EXTENSION) does) would let a dangerous
  * secondary extension slip through. Otherwise checks the single extension,
- * case-insensitively, against an allow-list.
+ * case-insensitively, against the allow-list.
  */
 class UploadFilenameValidator
 {
     /**
-     * Allow-list of extensions accepted for photo uploads, matched
+     * Allow-list of extensions accepted for uploads, matched
      * case-insensitively.
      *
      * @var string[]
      */
-    private const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    private array $allowedExtensions;
+
+    /**
+     * @param string[] $allowedExtensions Allow-list of extensions (case-insensitive).
+     */
+    public function __construct(array $allowedExtensions)
+    {
+        $this->allowedExtensions = array_map('strtolower', $allowedExtensions);
+    }
 
     /**
      * Determines whether $filename is an acceptable upload name.
@@ -42,6 +50,6 @@ class UploadFilenameValidator
 
         [, $extension] = $parts;
 
-        return in_array(strtolower($extension), self::ALLOWED_EXTENSIONS, true);
+        return in_array(strtolower($extension), $this->allowedExtensions, true);
     }
 }

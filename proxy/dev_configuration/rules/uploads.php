@@ -4,9 +4,10 @@ use Tent\Configuration;
 
 Configuration::buildRule([
     'handler' => [
-        'class'       => 'Tent\RequestHandlers\PhotoUploadHandler',
+        'class'       => 'Tent\RequestHandlers\UploadHandler',
         'host'        => 'http://backend:8080',
         'photos_path' => '/var/www/html',
+        'files_path'  => '/var/www/html',
     ],
     'matchers' => [
         ['method' => 'POST', 'uri' => '/uploads/', 'type' => 'begins_with'],

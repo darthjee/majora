@@ -5,7 +5,7 @@ namespace Tent\RequestHandlers;
 use InvalidArgumentException;
 
 /**
- * Raised when an uploaded file fails image validation in PhotoUploadHandler.
+ * Raised when an uploaded file fails validation in UploadHandler.
  *
  * Carries the rejected file alongside the rejection reason (used as the
  * exception message), so the catch site has everything it needs to build the
