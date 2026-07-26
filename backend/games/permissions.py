@@ -136,8 +136,9 @@ class GameItemCreatePermission(_EditPermission):
     """Encapsulate checks for the game-level item-creation endpoint (issue #784).
 
     Grants the same access as GameEditPermission (superuser or a GameMaster of the game) plus
-    any Staff account (globally) — mirroring CharacterItemCreatePermission's shape, minus the
-    PC-owner allowance since a bare GameItem has no owning character.
+    any Staff account (globally) plus any player of the game (issue #864) — mirroring
+    CharacterItemPlayerCreatePermission's shape, minus the PC-owner allowance since a bare
+    GameItem has no owning character.
     """
 
     @classmethod
@@ -150,20 +151,20 @@ class GameItemCreatePermission(_EditPermission):
         """Return whether `user` may create a new item for `game`."""
         if not user or not user.is_authenticated:
             return False
-        return user.is_staff or game.can_be_edited_by(user)
+        return user.is_staff or game.has_player(user) or game.can_be_edited_by(user)
 
     @classmethod
-    def is_allowed_for_roles(cls, is_superuser, is_dm, is_staff):
+    def is_allowed_for_roles(cls, is_superuser, is_dm, is_staff, is_player):
         """Return whether a role-simulated caller may create a new item for a game."""
-        return is_staff or is_superuser or is_dm
+        return is_staff or is_superuser or is_dm or is_player
 
 
 class GameDocumentCreatePermission(_EditPermission):
     """Encapsulate checks for the game-level document-creation endpoint (issue #758).
 
     Grants the same access as GameEditPermission (superuser or a GameMaster of the game) plus
-    any Staff account (globally) — mirroring GameItemCreatePermission's shape, since a bare
-    GameDocument has no owning character.
+    any Staff account (globally) plus any player of the game (issue #864) — mirroring
+    GameItemCreatePermission's shape, since a bare GameDocument has no owning character.
     """
 
     @classmethod
@@ -176,12 +177,12 @@ class GameDocumentCreatePermission(_EditPermission):
         """Return whether `user` may create a new document for `game`."""
         if not user or not user.is_authenticated:
             return False
-        return user.is_staff or game.can_be_edited_by(user)
+        return user.is_staff or game.has_player(user) or game.can_be_edited_by(user)
 
     @classmethod
-    def is_allowed_for_roles(cls, is_superuser, is_dm, is_staff):
+    def is_allowed_for_roles(cls, is_superuser, is_dm, is_staff, is_player):
         """Return whether a role-simulated caller may create a new document for a game."""
-        return is_staff or is_superuser or is_dm
+        return is_staff or is_superuser or is_dm or is_player
 
 
 class CharacterMoneyEditPermission(_EditPermission):
@@ -319,14 +320,45 @@ class CharacterItemCreatePermission(_EditPermission):
         return is_owner if is_pc else False
 
 
+class CharacterItemPlayerCreatePermission(_EditPermission):
+    """Broadened PC/NPC item create+update permission (issue #864): any player of the game,
+    in addition to CharacterItemCreatePermission's existing dm/admin/staff/owner-of-PC grant.
+
+    A new class rather than a change to CharacterItemCreatePermission, since that class is also
+    reused unchanged by the item acquire/remove endpoints (issue #773), out of scope here.
+    """
+
+    @classmethod
+    def check(cls, request, character):
+        """Return an error Response if `request.user` may not create/update an item."""
+        return cls._guarded_check(request, lambda: cls.is_allowed(request.user, character))
+
+    @classmethod
+    def is_allowed(cls, user, character):
+        """Return whether `user` may create/update an item for `character`."""
+        if not user or not user.is_authenticated:
+            return False
+        if user.is_staff or character.game.has_player(user):
+            return True
+        return character.can_be_edited_by(user)
+
+    @classmethod
+    def is_allowed_for_roles(cls, is_superuser, is_dm, is_owner, is_staff, is_player, is_pc):
+        """Return whether a role-simulated caller may create/update an item for a character."""
+        if is_staff or is_superuser or is_dm or is_player:
+            return True
+        return is_owner if is_pc else False
+
+
 class CharacterItemPhotoUploadPermission(_EditPermission):
     """Encapsulate checks for the PC/NPC item photo-upload endpoint (issue #750).
 
-    Deliberately mirrors CharacterItemCreatePermission's formula exactly (dm/admin/staff, plus
-    the owning player for PCs) rather than CharacterPhotoUploadPermission's broader "any player
-    of the game" grant used for a character's own photo — per the issue's explicit "admin,
-    owner, staff and dm" authorization ask. Kept as its own class (not a reuse of
-    CharacterItemCreatePermission) so the two actions' rules can diverge independently later.
+    Broadened per issue #864: the PC side now grants any player of the game (mirroring
+    CharacterPhotoUploadPermission's "any player of the game" grant for a character's own
+    photo), while the NPC side is narrowed to drop the Staff bypass — an NPC has no owner
+    concept, so NPC item photo uploads stay superuser/DM (i.e. `can_be_edited_by`) only. Kept
+    as its own class (not a reuse of CharacterItemCreatePermission/
+    CharacterItemPlayerCreatePermission) so this action's rules can diverge independently.
     """
 
     @classmethod
@@ -336,20 +368,27 @@ class CharacterItemPhotoUploadPermission(_EditPermission):
 
     @classmethod
     def is_allowed(cls, user, character):
-        """Return whether `user` may upload a photo for an item held by `character`."""
+        """Return whether `user` may upload a photo for an item held by `character`.
+
+        PCs: staff, any player of the game, or `can_be_edited_by` (dm/admin/owner). NPCs: no
+        Staff bypass (narrowed per issue #864) — `can_be_edited_by` (dm/admin) only.
+        """
         if not user or not user.is_authenticated:
             return False
-        return user.is_staff or character.can_be_edited_by(user)
+        if character.is_pc:
+            if user.is_staff or character.game.has_player(user):
+                return True
+            return character.can_be_edited_by(user)
+        return character.can_be_edited_by(user)
 
     @classmethod
-    def is_allowed_for_roles(cls, is_superuser, is_dm, is_owner, is_staff, is_pc):
-        """Return whether a role-simulated caller may upload a photo for a character's item.
-
-        Mirrors `CharacterItemCreatePermission.is_allowed_for_roles` exactly.
-        """
-        if is_staff or is_superuser or is_dm:
-            return True
-        return is_owner if is_pc else False
+    def is_allowed_for_roles(cls, is_superuser, is_dm, is_owner, is_staff, is_player, is_pc):
+        """Return whether a role-simulated caller may upload a photo for a character's item."""
+        if is_pc:
+            if is_staff or is_player or is_superuser or is_dm:
+                return True
+            return is_owner
+        return is_superuser or is_dm
 
 
 class TreasureEditPermission(_EditPermission):
@@ -357,7 +396,36 @@ class TreasureEditPermission(_EditPermission):
 
 
 class GameSessionEditPermission(_EditPermission):
-    """Encapsulate the authentication/authorization checks for editing a game session."""
+    """Encapsulate the authentication/authorization checks for editing a game session.
+
+    Broadened (issue #864) beyond plain GameEditPermission: any Staff account (globally), or
+    any player of the game, in addition to dm/superuser. `check`/`is_allowed` accept either a
+    `Game` (the create endpoint) or a `GameSession` (the update endpoint) as `obj`, resolving
+    to the underlying `Game` either way, since a session has no independent player/edit rule.
+    """
+
+    @classmethod
+    def check(cls, request, obj):
+        """Return an error Response if `request.user` may not create/edit a session."""
+        return cls._guarded_check(request, lambda: cls.is_allowed(request.user, obj))
+
+    @classmethod
+    def is_allowed(cls, user, obj):
+        """Return whether `user` may create/edit a session for `obj`'s game."""
+        if not user or not user.is_authenticated:
+            return False
+        game = cls._game_for(obj)
+        return user.is_staff or game.has_player(user) or game.can_be_edited_by(user)
+
+    @classmethod
+    def _game_for(cls, obj):
+        """Return the `Game` for `obj`, which may be a `Game` itself or a `GameSession`."""
+        return getattr(obj, 'game', obj)
+
+    @classmethod
+    def is_allowed_for_roles(cls, is_superuser, is_dm, is_staff, is_player):
+        """Return whether a role-simulated caller may create/edit a session for a game."""
+        return is_staff or is_superuser or is_dm or is_player
 
 
 class TaskEditPermission(_EditPermission):
@@ -412,12 +480,12 @@ class PollPermission(_EditPermission):
 class PlayerPermission(_EditPermission):
     """Encapsulate the authentication/authorization checks for a game's players/conversations.
 
-    Deliberately narrower than most permission checks in this module: no superuser/staff
-    bypass. Staff/superuser have no legitimate reason to browse a game's roster or a
-    player's conversations (issue #695), so this class intentionally breaks the
-    project-wide "superusers always have full access" default documented in
-    `docs/agents/access-control.md` — see `docs/agents/access-control/player.md` and
-    `docs/agents/access-control/conversation.md`.
+    Previously deliberately narrower than most permission checks in this module (no
+    superuser/staff bypass, issue #695/#589). Issue #864 intentionally reverses that
+    exclusion as part of the broader player-empowerment policy: Staff/Superuser now also
+    pass, mirroring `_is_admin_or_player` (already used by `PollPermission`/
+    `SessionMessagePermission`'s/`PollVotePermission`'s view-only checks) — see
+    `docs/agents/access-control/player.md` and `docs/agents/access-control/conversation.md`.
     """
 
     @classmethod
@@ -427,8 +495,8 @@ class PlayerPermission(_EditPermission):
 
     @classmethod
     def _is_allowed(cls, user, game):
-        """Return whether `user` is a player or the DM of `game`."""
-        return game.has_player(user)
+        """Return whether `user` is a player or the DM of `game`, or Staff/Superuser."""
+        return cls._is_admin_or_player(user, game)
 
 
 class PollClosePermission(_EditPermission):

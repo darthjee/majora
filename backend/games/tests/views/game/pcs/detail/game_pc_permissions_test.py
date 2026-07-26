@@ -127,3 +127,18 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
         response = self.get(client, self._url(query='role=staff'))
         data = json.loads(response.content)
         assert data == {'can_edit': False, 'can_create_item': True, 'can_upload_item_photo': True}
+
+    def test_regular_player_can_create_item_and_upload_photo_but_cannot_edit(self, client):
+        """Test that any other player of the game gets can_create_item/photo True (#864)."""
+        player_user = UserFactory(username='player_user', password='secret-password')
+        PlayerFactory(name='Alice', user=player_user, game=self.game)
+        token = Token.objects.create(user=player_user)
+        response = self.get(client, self._url(), token=token)
+        data = json.loads(response.content)
+        assert data == {'can_edit': False, 'can_create_item': True, 'can_upload_item_photo': True}
+
+    def test_role_player_can_create_item_and_upload_photo_but_cannot_edit(self, client):
+        """Test that ?role=player grants can_create_item/photo True but leaves can_edit False."""
+        response = self.get(client, self._url(query='role=player'))
+        data = json.loads(response.content)
+        assert data == {'can_edit': False, 'can_create_item': True, 'can_upload_item_photo': True}

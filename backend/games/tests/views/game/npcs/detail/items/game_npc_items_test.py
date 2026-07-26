@@ -181,7 +181,7 @@ class TestGameNpcItemsCreate(TokenAuthRequestMixin):
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True)
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.player = PlayerFactory(name='Frodo')
+        self.player = PlayerFactory(name='Frodo', game=self.game)
         self.pc_owner = UserFactory(username='pc_owner', password='secret-password')
         self.player.user = self.pc_owner
         self.player.save()
@@ -247,11 +247,11 @@ class TestGameNpcItemsCreate(TokenAuthRequestMixin):
         response = self._post(client, {'name': 'Staff'})
         assert response.status_code == 401
 
-    def test_pc_owner_returns_403(self, client):
-        """Test that a PC's owning player (not a DM) is rejected with 403 for an NPC."""
+    def test_pc_owner_can_create_item(self, client):
+        """Test that a PC's owning player (any player of the game) can create an NPC item."""
         token = Token.objects.create(user=self.pc_owner)
         response = self._post(client, {'name': 'Staff'}, token=token)
-        assert response.status_code == 403
+        assert response.status_code == 201
 
     def test_unrelated_user_returns_403(self, client):
         """Test that an authenticated user unrelated to the game is rejected with 403."""
