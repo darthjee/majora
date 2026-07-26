@@ -31,7 +31,7 @@ export default function GameSessionEdit() {
   useEffect(() => {
     if (!session) return;
 
-    if (!session.can_edit) {
+    if (!session.can_edit_session) {
       if (typeof window !== 'undefined') {
         window.location.hash = `/games/${gameSlug}/sessions/${id}`;
       }

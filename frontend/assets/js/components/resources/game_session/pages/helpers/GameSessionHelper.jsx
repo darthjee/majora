@@ -18,22 +18,23 @@ export default class GameSessionHelper {
    * @param {string} session.title - Session title.
    * @param {string|null} [session.date] - Session date (YYYY-MM-DD), if any.
    * @param {string} session.game_slug - Game slug the session belongs to.
-   * @param {boolean} [session.can_edit] - Whether the current user can edit this session.
+   * @param {boolean} [session.can_edit_session] - Whether the current user can edit this session
+   *   (or create a date poll for it).
    * @param {string} [session.description] - Session description text.
    * @param {{messages: Array, nextEntryId: (number|string|null), loadingMore: boolean,
    *   content: string, posting: boolean, fieldErrors: object}} [messagesState] - Session
    *   messages section state.
    * @param {{onLoadMore: Function, onContentChange: Function, onSubmit: Function}} [messagesHandlers] -
    *   Session messages section event handlers.
-   * @param {Function} [onOpenPollModal] - Handler invoked to open the create-poll modal, used by
-   *   the DM-only "Create Pool" button shown when the session has no date yet.
+   * @param {Function} [onOpenPollModal] - Handler invoked to open the create-poll modal, shown to
+   *   anyone allowed to edit this session (`session.can_edit_session`) when it has no date yet.
    * @returns {React.ReactElement} Session detail element.
    */
   static render(session, messagesState, messagesHandlers, onOpenPollModal) {
     return (
       <div className="container mt-4">
         <PageActions backHref={`#/games/${session.game_slug}/sessions`}>
-          {session.can_edit && (
+          {session.can_edit_session && (
             <EditButton href={`#/games/${session.game_slug}/sessions/${session.id}/edit`}>
               {Translator.t('game_session_page.edit')}
             </EditButton>
@@ -53,7 +54,7 @@ export default class GameSessionHelper {
   }
 
   static #renderCreatePollButton(session, onOpenPollModal) {
-    if (!session.can_edit || session.date) {
+    if (!session.can_edit_session || session.date) {
       return null;
     }
 

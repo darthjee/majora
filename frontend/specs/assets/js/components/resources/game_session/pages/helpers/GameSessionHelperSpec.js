@@ -74,21 +74,21 @@ describe('GameSessionHelper', function() {
       expect(html).toContain('href="#/games/demo/sessions"');
     });
 
-    it('renders an edit link when can_edit is true', function() {
+    it('renders an edit link when can_edit_session is true', function() {
       const html = renderToStaticMarkup(
-        GameSessionHelper.render({ ...session, can_edit: true }, messagesState, messagesHandlers),
+        GameSessionHelper.render({ ...session, can_edit_session: true }, messagesState, messagesHandlers),
       );
       expect(html).toContain('href="#/games/demo/sessions/7/edit"');
     });
 
-    it('does not render an edit link when can_edit is false', function() {
+    it('does not render an edit link when can_edit_session is false', function() {
       const html = renderToStaticMarkup(
-        GameSessionHelper.render({ ...session, can_edit: false }, messagesState, messagesHandlers),
+        GameSessionHelper.render({ ...session, can_edit_session: false }, messagesState, messagesHandlers),
       );
       expect(html).not.toContain('/edit');
     });
 
-    it('does not render an edit link when can_edit is absent', function() {
+    it('does not render an edit link when can_edit_session is absent', function() {
       const html = renderToStaticMarkup(GameSessionHelper.render(session, messagesState, messagesHandlers));
       expect(html).not.toContain('/edit');
     });
@@ -111,29 +111,29 @@ describe('GameSessionHelper', function() {
       expect(html).toContain('Messages');
     });
 
-    it('renders a Create Pool button when can_edit is true and there is no date', function() {
+    it('renders a Create Pool button when can_edit_session is true and there is no date', function() {
       const html = renderToStaticMarkup(
-        GameSessionHelper.render({ ...session, can_edit: true, date: null }, messagesState, messagesHandlers),
+        GameSessionHelper.render({ ...session, can_edit_session: true, date: null }, messagesState, messagesHandlers),
       );
       expect(html).toContain('Create Pool');
       expect(html).toContain('data-testid="create-poll-button"');
     });
 
-    it('does not render a Create Pool button when can_edit is true but a date is set', function() {
+    it('does not render a Create Pool button when can_edit_session is true but a date is set', function() {
       const html = renderToStaticMarkup(
-        GameSessionHelper.render({ ...session, can_edit: true, date: '2024-01-01' }, messagesState, messagesHandlers),
+        GameSessionHelper.render({ ...session, can_edit_session: true, date: '2024-01-01' }, messagesState, messagesHandlers),
       );
       expect(html).not.toContain('data-testid="create-poll-button"');
     });
 
-    it('does not render a Create Pool button when can_edit is false, even without a date', function() {
+    it('does not render a Create Pool button when can_edit_session is false, even without a date', function() {
       const html = renderToStaticMarkup(
-        GameSessionHelper.render({ ...session, can_edit: false, date: null }, messagesState, messagesHandlers),
+        GameSessionHelper.render({ ...session, can_edit_session: false, date: null }, messagesState, messagesHandlers),
       );
       expect(html).not.toContain('data-testid="create-poll-button"');
     });
 
-    it('does not render a Create Pool button when can_edit is absent', function() {
+    it('does not render a Create Pool button when can_edit_session is absent', function() {
       const html = renderToStaticMarkup(
         GameSessionHelper.render({ ...session, date: null }, messagesState, messagesHandlers),
       );
@@ -143,7 +143,7 @@ describe('GameSessionHelper', function() {
     it('wires the Create Pool button click to the onOpenPollModal handler', function() {
       const onOpenPollModal = jasmine.createSpy('onOpenPollModal');
       const element = GameSessionHelper.render(
-        { ...session, can_edit: true, date: null }, messagesState, messagesHandlers, onOpenPollModal,
+        { ...session, can_edit_session: true, date: null }, messagesState, messagesHandlers, onOpenPollModal,
       );
       const button = findElement(element, (child) => child.props?.['data-testid'] === 'create-poll-button');
 

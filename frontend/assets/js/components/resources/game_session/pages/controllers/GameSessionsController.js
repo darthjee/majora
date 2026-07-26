@@ -31,7 +31,7 @@ export default class GameSessionsController extends BasePageController {
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
    * @param {GenericClient|null} client - Client override.
-   * @param {Function} [setCanEdit] - Can-edit flag setter, gates the "New session" button.
+   * @param {Function} [setCanEdit] - Can-edit-session flag setter, gates the "New session" button.
    */
   constructor(
     setColumns,
@@ -103,7 +103,7 @@ export default class GameSessionsController extends BasePageController {
 
   #fetchAccess(gameSlug, safeSet) {
     AccessStore.ensureGamePermissions(gameSlug)
-      .then((permissions) => safeSet(this.setCanEdit, Boolean(permissions.can_edit)))
+      .then((permissions) => safeSet(this.setCanEdit, Boolean(permissions.can_edit_session)))
       .catch(() => safeSet(this.setCanEdit, false));
   }
 }

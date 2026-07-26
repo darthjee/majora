@@ -10,18 +10,17 @@ below), exposing a `Conversation`'s `id`/`title` (nothing else). `Message`/
 issue referenced by #695. The pre-existing aggregate-only exposure through [Game](game.md)'s
 `GET /my-games.json` is unchanged.
 
-> **Access-control exception (issue #695):** contrary to `access-control.md`'s top-level
-> default ("Superusers always have full access to everything, regardless of any other rule
-> listed below"), **Superuser and Staff (`is_staff`) are explicitly excluded** from
-> `conversations.json`. This mirrors the same deliberate exception made for
-> [Player](player.md)'s `players.json`/`players/:id.json` — staff/superuser have no
-> legitimate reason to browse a player's conversations. Both endpoints share the same
-> `PlayerPermission.check` (`game.has_player(user)` only, no bypass). Do not "fix" this back
-> to the default in a future change.
+> **Access-control exception reversed (issue #864):** issue #695 previously excluded
+> Superuser and Staff (`is_staff`) from `conversations.json`, breaking `access-control.md`'s
+> top-level default ("Superusers always have full access to everything, regardless of any
+> other rule listed below"). Issue #864 intentionally reverses that exclusion, mirroring the
+> same reversal made for [Player](player.md)'s `players.json`/`players/:id.json` — both
+> endpoints share the same `PlayerPermission.check`, which now also grants Staff/Superuser via
+> `_is_admin_or_player`.
 
 | Action | Who can |
 |--------|---------|
-| List conversations shared between two players (`GET /games/<game_slug>/conversations.json?player_id=<id>`) | Player of the game, or that game's GameMaster — **PlayerPermission.check** (no Superuser/Staff bypass, see above); 401 if unauthenticated, 403 if authenticated but neither of the above; 400 if `player_id` is missing or not a valid integer; 404 if the game slug is unknown, or `player_id` doesn't belong to `game_slug` |
+| List conversations shared between two players (`GET /games/<game_slug>/conversations.json?player_id=<id>`) | Player of the game, that game's GameMaster, or any Superuser/Staff — **PlayerPermission.check** (see above); 401 if unauthenticated, 403 if authenticated but none of the above; 400 if `player_id` is missing or not a valid integer; 404 if the game slug is unknown, or `player_id` doesn't belong to `game_slug` |
 | Show/Create/Update/Delete a `Conversation`, `Message`, or participant roster | Not exposed by any endpoint (Django admin only, out of scope) |
 | Read aggregate counts, via `GET /my-games.json` | Any authenticated user, for their own `ConversationParticipant` rows only — see below |
 

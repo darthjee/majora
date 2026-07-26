@@ -5,7 +5,7 @@ from rest_framework import serializers
 from rest_framework.response import Response
 
 from ...models import CharacterItem, GameItem
-from ...permissions import CharacterItemCreatePermission
+from ...permissions import CharacterItemPlayerCreatePermission
 from ...serializers import CharacterItemDetailFullSerializer
 from ..common import validated_or_error
 
@@ -28,8 +28,11 @@ def character_item_create(request, game, character):
     The submitted `name`/`description` are written onto the new `GameItem` only; the new
     `CharacterItem` is left with `name`/`description` unset so it falls back to the linked
     `GameItem`'s values — there is no option to link an already-existing `GameItem`.
+
+    Uses `CharacterItemPlayerCreatePermission` (issue #864): any player of the game, in
+    addition to dm/admin/staff/owner-of-PC.
     """
-    error_response = CharacterItemCreatePermission.check(request, character)
+    error_response = CharacterItemPlayerCreatePermission.check(request, character)
     if error_response:
         return error_response
 

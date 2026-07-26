@@ -9,6 +9,7 @@ from games.permissions import (
     CharacterEditPermission,
     CharacterItemCreatePermission,
     CharacterItemPhotoUploadPermission,
+    CharacterItemPlayerCreatePermission,
     CharacterMoneyEditPermission,
     CharacterRegularEditPermission,
     CharacterTreasureExchangePermission,
@@ -17,6 +18,7 @@ from games.permissions import (
     GameEditPermission,
     GameItemCreatePermission,
     GameItemPhotoUploadPermission,
+    GameSessionEditPermission,
     NpcPlayerEditPermission,
     PlayerPermission,
     SessionMessagePermission,
@@ -641,6 +643,181 @@ class TestCharacterItemCreatePermissionCheck(TestCase):
         ) is False
 
 
+class TestCharacterItemPlayerCreatePermissionCheck(TestCase):
+    """Tests for CharacterItemPlayerCreatePermission's check/is_allowed/is_allowed_for_roles."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up a game, a DM, an owning player/PC, an NPC, and a regular player."""
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
+        cls.player = PlayerFactory(name='Bob', game=cls.game)
+        cls.owner = UserFactory(username='owner', password='secret-password')
+        cls.player.user = cls.owner
+        cls.player.save()
+        cls.character = CharacterFactory(
+            name='Aragorn', game=cls.game, player=cls.player, npc=False
+        )
+        cls.npc = CharacterFactory(name='Gandalf', game=cls.game, npc=True)
+        cls.regular_player_user = UserFactory(
+            username='regular_player', password='secret-password',
+        )
+        cls.regular_player = PlayerFactory(
+            name='Alice', user=cls.regular_player_user, game=cls.game
+        )
+
+    def test_returns_401_response_for_anonymous_user(self):
+        """Test that an anonymous user gets a 401 error response."""
+        request = _make_request(AnonymousUser())
+        response = CharacterItemPlayerCreatePermission.check(request, self.character)
+        assert response.status_code == 401
+        assert response.data == {'errors': {'detail': ['authentication required']}}
+
+    def test_returns_401_response_for_none_user(self):
+        """Test that a None user gets a 401 error response."""
+        request = _make_request(None)
+        response = CharacterItemPlayerCreatePermission.check(request, self.character)
+        assert response.status_code == 401
+
+    def test_returns_none_for_superuser(self):
+        """Test that a superuser passes the check."""
+        superuser = SuperUserFactory(username='admin', password='secret-password')
+        request = _make_request(superuser)
+        assert CharacterItemPlayerCreatePermission.check(request, self.character) is None
+
+    def test_returns_none_for_dm(self):
+        """Test that a DM of the game passes the check."""
+        request = _make_request(self.dm_user)
+        assert CharacterItemPlayerCreatePermission.check(request, self.character) is None
+
+    def test_returns_none_for_staff_on_pc(self):
+        """Test that a global Staff account passes the check on a PC, even without ownership."""
+        staff_user = UserFactory(username='staff_user', password='secret-password')
+        staff_user.is_staff = True
+        staff_user.save()
+        request = _make_request(staff_user)
+        assert CharacterItemPlayerCreatePermission.check(request, self.character) is None
+
+    def test_returns_none_for_staff_on_npc(self):
+        """Test that a global Staff account passes the check on an NPC."""
+        staff_user = UserFactory(username='staff_user', password='secret-password')
+        staff_user.is_staff = True
+        staff_user.save()
+        request = _make_request(staff_user)
+        assert CharacterItemPlayerCreatePermission.check(request, self.npc) is None
+
+    def test_returns_none_for_pcs_owning_player(self):
+        """Test that the PC's owning player passes the check."""
+        request = _make_request(self.owner)
+        assert CharacterItemPlayerCreatePermission.check(request, self.character) is None
+
+    def test_returns_none_for_regular_player_on_pc_they_do_not_own(self):
+        """Test that any other player of the game passes the check on a PC (issue #864)."""
+        request = _make_request(self.regular_player_user)
+        assert CharacterItemPlayerCreatePermission.check(request, self.character) is None
+
+    def test_returns_none_for_regular_player_on_npc(self):
+        """Test that a regular player of the game passes the check on an NPC (issue #864)."""
+        request = _make_request(self.regular_player_user)
+        assert CharacterItemPlayerCreatePermission.check(request, self.npc) is None
+
+    def test_returns_403_for_unrelated_authenticated_user(self):
+        """Test that an authenticated user unrelated to the game gets a 403 error response."""
+        other_user = UserFactory(username='other', password='secret-password')
+        request = _make_request(other_user)
+        response = CharacterItemPlayerCreatePermission.check(request, self.character)
+        assert response.status_code == 403
+        assert response.data == {'errors': {'detail': ['not allowed']}}
+
+    def test_is_allowed_returns_true_for_owning_player(self):
+        """Test that is_allowed returns True for the PC's owning player."""
+        assert CharacterItemPlayerCreatePermission.is_allowed(self.owner, self.character) is True
+
+    def test_is_allowed_returns_true_for_staff_on_pc(self):
+        """Test that is_allowed returns True for staff on a PC they do not own."""
+        staff_user = UserFactory(username='staff_user2', password='secret-password')
+        staff_user.is_staff = True
+        staff_user.save()
+        assert (
+            CharacterItemPlayerCreatePermission.is_allowed(staff_user, self.character) is True
+        )
+
+    def test_is_allowed_returns_true_for_any_player_of_game_on_pc(self):
+        """Test that is_allowed returns True for a non-owning player of the game on a PC."""
+        assert (
+            CharacterItemPlayerCreatePermission.is_allowed(
+                self.regular_player_user, self.character,
+            )
+            is True
+        )
+
+    def test_is_allowed_returns_true_for_any_player_of_game_on_npc(self):
+        """Test that is_allowed returns True for a regular player of the game on an NPC."""
+        assert (
+            CharacterItemPlayerCreatePermission.is_allowed(self.regular_player_user, self.npc)
+            is True
+        )
+
+    def test_is_allowed_returns_false_for_unrelated_user(self):
+        """Test that is_allowed returns False for an unrelated authenticated user."""
+        other_user = UserFactory(username='other2', password='secret-password')
+        assert CharacterItemPlayerCreatePermission.is_allowed(other_user, self.character) is False
+
+    def test_is_allowed_returns_false_for_none_user(self):
+        """Test that is_allowed returns False for a None user."""
+        assert CharacterItemPlayerCreatePermission.is_allowed(None, self.character) is False
+
+    def test_is_allowed_returns_false_for_anonymous_user(self):
+        """Test that is_allowed returns False for an AnonymousUser."""
+        assert (
+            CharacterItemPlayerCreatePermission.is_allowed(AnonymousUser(), self.character)
+            is False
+        )
+
+    def test_is_allowed_for_roles_returns_true_for_dm(self):
+        """Test that is_allowed_for_roles returns True when is_dm is True."""
+        assert CharacterItemPlayerCreatePermission.is_allowed_for_roles(
+            False, True, False, False, False, True
+        ) is True
+
+    def test_is_allowed_for_roles_returns_true_for_superuser(self):
+        """Test that is_allowed_for_roles returns True when is_superuser is True."""
+        assert CharacterItemPlayerCreatePermission.is_allowed_for_roles(
+            True, False, False, False, False, True
+        ) is True
+
+    def test_is_allowed_for_roles_returns_true_for_staff_regardless_of_pc(self):
+        """Test that is_allowed_for_roles returns True for staff, even for an NPC (is_pc=False)."""
+        assert CharacterItemPlayerCreatePermission.is_allowed_for_roles(
+            False, False, False, True, False, False
+        ) is True
+
+    def test_is_allowed_for_roles_returns_true_for_player_regardless_of_pc(self):
+        """Test that is_allowed_for_roles returns True for player, even for an NPC (is_pc=False)."""
+        assert CharacterItemPlayerCreatePermission.is_allowed_for_roles(
+            False, False, False, False, True, False
+        ) is True
+
+    def test_is_allowed_for_roles_returns_true_for_owner_on_pc(self):
+        """Test that is_allowed_for_roles returns True for an owner role on a PC."""
+        assert CharacterItemPlayerCreatePermission.is_allowed_for_roles(
+            False, False, True, False, False, True
+        ) is True
+
+    def test_is_allowed_for_roles_returns_false_for_owner_on_npc(self):
+        """Test that is_allowed_for_roles returns False for an owner role on an NPC."""
+        assert CharacterItemPlayerCreatePermission.is_allowed_for_roles(
+            False, False, True, False, False, False
+        ) is False
+
+    def test_is_allowed_for_roles_returns_false_when_no_role_matches(self):
+        """Test that is_allowed_for_roles returns False when no role grants access."""
+        assert CharacterItemPlayerCreatePermission.is_allowed_for_roles(
+            False, False, False, False, False, True
+        ) is False
+
+
 class TestCharacterItemPhotoUploadPermissionCheck(TestCase):
     """Tests for CharacterItemPhotoUploadPermission's check/is_allowed/is_allowed_for_roles."""
 
@@ -697,28 +874,28 @@ class TestCharacterItemPhotoUploadPermissionCheck(TestCase):
         request = _make_request(staff_user)
         assert CharacterItemPhotoUploadPermission.check(request, self.character) is None
 
-    def test_returns_none_for_staff_on_npc(self):
-        """Test that a global Staff account passes the check on an NPC."""
+    def test_returns_403_for_staff_on_npc(self):
+        """Test that a global Staff account gets 403 on an NPC (bypass narrowed, issue #864)."""
         staff_user = UserFactory(username='staff_user', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
         request = _make_request(staff_user)
-        assert CharacterItemPhotoUploadPermission.check(request, self.npc) is None
+        response = CharacterItemPhotoUploadPermission.check(request, self.npc)
+        assert response.status_code == 403
+        assert response.data == {'errors': {'detail': ['not allowed']}}
 
     def test_returns_none_for_pcs_owning_player(self):
         """Test that the PC's owning player passes the check."""
         request = _make_request(self.owner)
         assert CharacterItemPhotoUploadPermission.check(request, self.character) is None
 
-    def test_returns_403_for_regular_player_on_pc_they_do_not_own(self):
-        """Test that a non-owning, non-DM player of the game gets 403 on a PC."""
+    def test_returns_none_for_regular_player_on_pc_they_do_not_own(self):
+        """Test that any other player of the game passes the check on a PC (issue #864)."""
         request = _make_request(self.regular_player_user)
-        response = CharacterItemPhotoUploadPermission.check(request, self.character)
-        assert response.status_code == 403
-        assert response.data == {'errors': {'detail': ['not allowed']}}
+        assert CharacterItemPhotoUploadPermission.check(request, self.character) is None
 
     def test_returns_403_for_regular_player_on_npc(self):
-        """Test that a regular player of the game gets 403 on an NPC."""
+        """Test that a regular player of the game gets 403 on an NPC (no player grant)."""
         request = _make_request(self.regular_player_user)
         response = CharacterItemPhotoUploadPermission.check(request, self.npc)
         assert response.status_code == 403
@@ -743,19 +920,26 @@ class TestCharacterItemPhotoUploadPermissionCheck(TestCase):
         staff_user.save()
         assert CharacterItemPhotoUploadPermission.is_allowed(staff_user, self.character) is True
 
-    def test_is_allowed_returns_true_for_staff_on_npc(self):
-        """Test that is_allowed returns True for staff on an NPC."""
+    def test_is_allowed_returns_false_for_staff_on_npc(self):
+        """Test that is_allowed returns False for staff on an NPC (bypass narrowed, #864)."""
         staff_user = UserFactory(username='staff_user3', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
-        assert CharacterItemPhotoUploadPermission.is_allowed(staff_user, self.npc) is True
+        assert CharacterItemPhotoUploadPermission.is_allowed(staff_user, self.npc) is False
 
-    def test_is_allowed_returns_false_for_any_player_of_game_on_pc(self):
-        """Test that is_allowed returns False for a non-owning player of the game on a PC."""
+    def test_is_allowed_returns_true_for_any_player_of_game_on_pc(self):
+        """Test that is_allowed returns True for a non-owning player of the game on a PC."""
         assert (
             CharacterItemPhotoUploadPermission.is_allowed(
                 self.regular_player_user, self.character
             )
+            is True
+        )
+
+    def test_is_allowed_returns_false_for_any_player_of_game_on_npc(self):
+        """Test that is_allowed returns False for a regular player of the game on an NPC."""
+        assert (
+            CharacterItemPhotoUploadPermission.is_allowed(self.regular_player_user, self.npc)
             is False
         )
 
@@ -775,40 +959,64 @@ class TestCharacterItemPhotoUploadPermissionCheck(TestCase):
             is False
         )
 
-    def test_is_allowed_for_roles_returns_true_for_dm(self):
-        """Test that is_allowed_for_roles returns True when is_dm is True."""
+    def test_is_allowed_for_roles_returns_true_for_dm_on_pc(self):
+        """Test that is_allowed_for_roles returns True when is_dm is True on a PC."""
         assert CharacterItemPhotoUploadPermission.is_allowed_for_roles(
-            False, True, False, False, True
+            False, True, False, False, False, True
         ) is True
 
-    def test_is_allowed_for_roles_returns_true_for_superuser(self):
-        """Test that is_allowed_for_roles returns True when is_superuser is True."""
+    def test_is_allowed_for_roles_returns_true_for_dm_on_npc(self):
+        """Test that is_allowed_for_roles returns True when is_dm is True on an NPC."""
         assert CharacterItemPhotoUploadPermission.is_allowed_for_roles(
-            True, False, False, False, True
+            False, True, False, False, False, False
         ) is True
 
-    def test_is_allowed_for_roles_returns_true_for_staff_regardless_of_pc(self):
-        """Test that is_allowed_for_roles returns True for staff, even for an NPC (is_pc=False)."""
+    def test_is_allowed_for_roles_returns_true_for_superuser_on_npc(self):
+        """Test that is_allowed_for_roles returns True when is_superuser is True on an NPC."""
         assert CharacterItemPhotoUploadPermission.is_allowed_for_roles(
-            False, False, False, True, False
+            True, False, False, False, False, False
         ) is True
+
+    def test_is_allowed_for_roles_returns_true_for_staff_on_pc(self):
+        """Test that is_allowed_for_roles returns True for staff on a PC."""
+        assert CharacterItemPhotoUploadPermission.is_allowed_for_roles(
+            False, False, False, True, False, True
+        ) is True
+
+    def test_is_allowed_for_roles_returns_false_for_staff_on_npc(self):
+        """Test that is_allowed_for_roles returns False for staff on an NPC (narrowed, #864)."""
+        assert CharacterItemPhotoUploadPermission.is_allowed_for_roles(
+            False, False, False, True, False, False
+        ) is False
+
+    def test_is_allowed_for_roles_returns_true_for_player_on_pc(self):
+        """Test that is_allowed_for_roles returns True for a player role on a PC (#864)."""
+        assert CharacterItemPhotoUploadPermission.is_allowed_for_roles(
+            False, False, False, False, True, True
+        ) is True
+
+    def test_is_allowed_for_roles_returns_false_for_player_on_npc(self):
+        """Test that is_allowed_for_roles returns False for a player role on an NPC."""
+        assert CharacterItemPhotoUploadPermission.is_allowed_for_roles(
+            False, False, False, False, True, False
+        ) is False
 
     def test_is_allowed_for_roles_returns_true_for_owner_on_pc(self):
         """Test that is_allowed_for_roles returns True for an owner role on a PC."""
         assert CharacterItemPhotoUploadPermission.is_allowed_for_roles(
-            False, False, True, False, True
+            False, False, True, False, False, True
         ) is True
 
-    def test_is_allowed_for_roles_returns_false_for_owner_on_npc(self):
-        """Test that is_allowed_for_roles returns False for an owner role on an NPC."""
+    def test_is_allowed_for_roles_returns_false_when_no_role_matches_on_pc(self):
+        """Test that is_allowed_for_roles returns False when no role grants access on a PC."""
         assert CharacterItemPhotoUploadPermission.is_allowed_for_roles(
-            False, False, True, False, False
+            False, False, False, False, False, True
         ) is False
 
-    def test_is_allowed_for_roles_returns_false_when_no_role_matches(self):
-        """Test that is_allowed_for_roles returns False when no role grants access."""
+    def test_is_allowed_for_roles_returns_false_when_no_role_matches_on_npc(self):
+        """Test that is_allowed_for_roles returns False when no role grants access on an NPC."""
         assert CharacterItemPhotoUploadPermission.is_allowed_for_roles(
-            False, False, False, False, True
+            False, False, False, False, False, False
         ) is False
 
 
@@ -1047,12 +1255,10 @@ class TestGameItemCreatePermissionCheck(TestCase):
         response = GameItemCreatePermission.check(request, self.game)
         assert response.status_code == 401
 
-    def test_returns_403_response_for_regular_player(self):
-        """Test that a regular player of the game (not dm/admin/staff) gets a 403."""
+    def test_returns_none_for_regular_player(self):
+        """Test that a regular player of the game passes the check (issue #864)."""
         request = _make_request(self.player_user)
-        response = GameItemCreatePermission.check(request, self.game)
-        assert response.status_code == 403
-        assert response.data == {'errors': {'detail': ['not allowed']}}
+        assert GameItemCreatePermission.check(request, self.game) is None
 
     def test_returns_403_response_for_unrelated_authenticated_user(self):
         """Test that an authenticated user unrelated to the game gets a 403 error response."""
@@ -1081,9 +1287,9 @@ class TestGameItemCreatePermissionCheck(TestCase):
         request = _make_request(staff_user)
         assert GameItemCreatePermission.check(request, self.game) is None
 
-    def test_is_allowed_returns_false_for_regular_player(self):
-        """Test that is_allowed returns False for a regular player of the game."""
-        assert GameItemCreatePermission.is_allowed(self.player_user, self.game) is False
+    def test_is_allowed_returns_true_for_regular_player(self):
+        """Test that is_allowed returns True for a regular player of the game (issue #864)."""
+        assert GameItemCreatePermission.is_allowed(self.player_user, self.game) is True
 
     def test_is_allowed_returns_true_for_dm(self):
         """Test that is_allowed returns True for the game's DM."""
@@ -1106,19 +1312,23 @@ class TestGameItemCreatePermissionCheck(TestCase):
 
     def test_is_allowed_for_roles_returns_true_for_dm(self):
         """Test that is_allowed_for_roles returns True when is_dm is True."""
-        assert GameItemCreatePermission.is_allowed_for_roles(False, True, False) is True
+        assert GameItemCreatePermission.is_allowed_for_roles(False, True, False, False) is True
 
     def test_is_allowed_for_roles_returns_true_for_superuser(self):
         """Test that is_allowed_for_roles returns True when is_superuser is True."""
-        assert GameItemCreatePermission.is_allowed_for_roles(True, False, False) is True
+        assert GameItemCreatePermission.is_allowed_for_roles(True, False, False, False) is True
 
     def test_is_allowed_for_roles_returns_true_for_staff(self):
         """Test that is_allowed_for_roles returns True when is_staff is True."""
-        assert GameItemCreatePermission.is_allowed_for_roles(False, False, True) is True
+        assert GameItemCreatePermission.is_allowed_for_roles(False, False, True, False) is True
+
+    def test_is_allowed_for_roles_returns_true_for_player(self):
+        """Test that is_allowed_for_roles returns True when is_player is True (issue #864)."""
+        assert GameItemCreatePermission.is_allowed_for_roles(False, False, False, True) is True
 
     def test_is_allowed_for_roles_returns_false_when_no_role_matches(self):
         """Test that is_allowed_for_roles returns False when no relevant role is set."""
-        assert GameItemCreatePermission.is_allowed_for_roles(False, False, False) is False
+        assert GameItemCreatePermission.is_allowed_for_roles(False, False, False, False) is False
 
 
 class TestGameDocumentCreatePermissionCheck(TestCase):
@@ -1146,12 +1356,10 @@ class TestGameDocumentCreatePermissionCheck(TestCase):
         response = GameDocumentCreatePermission.check(request, self.game)
         assert response.status_code == 401
 
-    def test_returns_403_response_for_regular_player(self):
-        """Test that a regular player of the game (not dm/admin/staff) gets a 403."""
+    def test_returns_none_for_regular_player(self):
+        """Test that a regular player of the game passes the check (issue #864)."""
         request = _make_request(self.player_user)
-        response = GameDocumentCreatePermission.check(request, self.game)
-        assert response.status_code == 403
-        assert response.data == {'errors': {'detail': ['not allowed']}}
+        assert GameDocumentCreatePermission.check(request, self.game) is None
 
     def test_returns_403_response_for_unrelated_authenticated_user(self):
         """Test that an authenticated user unrelated to the game gets a 403 error response."""
@@ -1180,9 +1388,9 @@ class TestGameDocumentCreatePermissionCheck(TestCase):
         request = _make_request(staff_user)
         assert GameDocumentCreatePermission.check(request, self.game) is None
 
-    def test_is_allowed_returns_false_for_regular_player(self):
-        """Test that is_allowed returns False for a regular player of the game."""
-        assert GameDocumentCreatePermission.is_allowed(self.player_user, self.game) is False
+    def test_is_allowed_returns_true_for_regular_player(self):
+        """Test that is_allowed returns True for a regular player of the game (issue #864)."""
+        assert GameDocumentCreatePermission.is_allowed(self.player_user, self.game) is True
 
     def test_is_allowed_returns_true_for_dm(self):
         """Test that is_allowed returns True for the game's DM."""
@@ -1205,19 +1413,137 @@ class TestGameDocumentCreatePermissionCheck(TestCase):
 
     def test_is_allowed_for_roles_returns_true_for_dm(self):
         """Test that is_allowed_for_roles returns True when is_dm is True."""
-        assert GameDocumentCreatePermission.is_allowed_for_roles(False, True, False) is True
+        assert GameDocumentCreatePermission.is_allowed_for_roles(False, True, False, False) is True
 
     def test_is_allowed_for_roles_returns_true_for_superuser(self):
         """Test that is_allowed_for_roles returns True when is_superuser is True."""
-        assert GameDocumentCreatePermission.is_allowed_for_roles(True, False, False) is True
+        assert GameDocumentCreatePermission.is_allowed_for_roles(True, False, False, False) is True
 
     def test_is_allowed_for_roles_returns_true_for_staff(self):
         """Test that is_allowed_for_roles returns True when is_staff is True."""
-        assert GameDocumentCreatePermission.is_allowed_for_roles(False, False, True) is True
+        assert GameDocumentCreatePermission.is_allowed_for_roles(False, False, True, False) is True
+
+    def test_is_allowed_for_roles_returns_true_for_player(self):
+        """Test that is_allowed_for_roles returns True when is_player is True (issue #864)."""
+        assert GameDocumentCreatePermission.is_allowed_for_roles(False, False, False, True) is True
 
     def test_is_allowed_for_roles_returns_false_when_no_role_matches(self):
         """Test that is_allowed_for_roles returns False when no relevant role is set."""
-        assert GameDocumentCreatePermission.is_allowed_for_roles(False, False, False) is False
+        assert (
+            GameDocumentCreatePermission.is_allowed_for_roles(False, False, False, False) is False
+        )
+
+
+class TestGameSessionEditPermissionCheck(TestCase):
+    """Tests for GameSessionEditPermission.check(), .is_allowed(), .is_allowed_for_roles()."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up a game, a session, a DM, a player of the game, and an unrelated user."""
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.session = GameSession.objects.create(game=cls.game, title='Session One')
+        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
+        cls.player_user = UserFactory(username='player_user', password='secret-password')
+        cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
+
+    def test_returns_401_response_for_anonymous_user(self):
+        """Test that an anonymous user gets a 401 error response."""
+        request = _make_request(AnonymousUser())
+        response = GameSessionEditPermission.check(request, self.game)
+        assert response.status_code == 401
+        assert response.data == {'errors': {'detail': ['authentication required']}}
+
+    def test_returns_401_response_for_none_user(self):
+        """Test that a None user gets a 401 error response."""
+        request = _make_request(None)
+        response = GameSessionEditPermission.check(request, self.game)
+        assert response.status_code == 401
+
+    def test_returns_none_for_dm_on_game(self):
+        """Test that a DM of the game passes the check, given a Game object."""
+        request = _make_request(self.dm_user)
+        assert GameSessionEditPermission.check(request, self.game) is None
+
+    def test_returns_none_for_dm_on_session(self):
+        """Test that a DM of the game passes the check, given a GameSession object."""
+        request = _make_request(self.dm_user)
+        assert GameSessionEditPermission.check(request, self.session) is None
+
+    def test_returns_none_for_superuser(self):
+        """Test that a superuser passes the check."""
+        superuser = SuperUserFactory(username='admin', password='secret-password')
+        request = _make_request(superuser)
+        assert GameSessionEditPermission.check(request, self.game) is None
+
+    def test_returns_none_for_staff(self):
+        """Test that a global Staff account passes the check, even unrelated to the game."""
+        staff_user = UserFactory(username='staff_user', password='secret-password')
+        staff_user.is_staff = True
+        staff_user.save()
+        request = _make_request(staff_user)
+        assert GameSessionEditPermission.check(request, self.game) is None
+
+    def test_returns_none_for_regular_player_on_game(self):
+        """Test that a regular player of the game passes the check, given a Game object."""
+        request = _make_request(self.player_user)
+        assert GameSessionEditPermission.check(request, self.game) is None
+
+    def test_returns_none_for_regular_player_on_session(self):
+        """Test that a regular player of the game passes the check, given a GameSession."""
+        request = _make_request(self.player_user)
+        assert GameSessionEditPermission.check(request, self.session) is None
+
+    def test_returns_403_response_for_unrelated_authenticated_user(self):
+        """Test that an authenticated user unrelated to the game gets a 403 error response."""
+        other_user = UserFactory(username='other', password='secret-password')
+        request = _make_request(other_user)
+        response = GameSessionEditPermission.check(request, self.game)
+        assert response.status_code == 403
+        assert response.data == {'errors': {'detail': ['not allowed']}}
+
+    def test_is_allowed_returns_true_for_regular_player(self):
+        """Test that is_allowed returns True for a regular player of the game."""
+        assert GameSessionEditPermission.is_allowed(self.player_user, self.game) is True
+
+    def test_is_allowed_returns_true_for_dm(self):
+        """Test that is_allowed returns True for the game's DM."""
+        assert GameSessionEditPermission.is_allowed(self.dm_user, self.game) is True
+
+    def test_is_allowed_returns_true_for_staff(self):
+        """Test that is_allowed returns True for staff unrelated to the game."""
+        staff_user = UserFactory(username='staff_user2', password='secret-password')
+        staff_user.is_staff = True
+        staff_user.save()
+        assert GameSessionEditPermission.is_allowed(staff_user, self.game) is True
+
+    def test_is_allowed_returns_false_for_none_user(self):
+        """Test that is_allowed returns False for a None user."""
+        assert GameSessionEditPermission.is_allowed(None, self.game) is False
+
+    def test_is_allowed_returns_false_for_anonymous_user(self):
+        """Test that is_allowed returns False for an AnonymousUser."""
+        assert GameSessionEditPermission.is_allowed(AnonymousUser(), self.game) is False
+
+    def test_is_allowed_for_roles_returns_true_for_dm(self):
+        """Test that is_allowed_for_roles returns True when is_dm is True."""
+        assert GameSessionEditPermission.is_allowed_for_roles(False, True, False, False) is True
+
+    def test_is_allowed_for_roles_returns_true_for_superuser(self):
+        """Test that is_allowed_for_roles returns True when is_superuser is True."""
+        assert GameSessionEditPermission.is_allowed_for_roles(True, False, False, False) is True
+
+    def test_is_allowed_for_roles_returns_true_for_staff(self):
+        """Test that is_allowed_for_roles returns True when is_staff is True."""
+        assert GameSessionEditPermission.is_allowed_for_roles(False, False, True, False) is True
+
+    def test_is_allowed_for_roles_returns_true_for_player(self):
+        """Test that is_allowed_for_roles returns True when is_player is True."""
+        assert GameSessionEditPermission.is_allowed_for_roles(False, False, False, True) is True
+
+    def test_is_allowed_for_roles_returns_false_when_no_role_matches(self):
+        """Test that is_allowed_for_roles returns False when no relevant role is set."""
+        assert GameSessionEditPermission.is_allowed_for_roles(False, False, False, False) is False
 
 
 class TestTaskEditPermissionCheck(TestCase):
@@ -1429,20 +1755,16 @@ class TestPlayerPermissionCheck(TestCase):
         request = _make_request(self.dm_user)
         assert PlayerPermission.check(request, self.game) is None
 
-    def test_returns_403_for_superuser_who_is_not_a_player_or_dm(self):
-        """Test that a superuser with no game link gets 403 (no bypass, issue #695)."""
+    def test_returns_none_for_superuser_with_no_game_link(self):
+        """Test that a superuser with no game link passes the check (bypass, issue #864)."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
         request = _make_request(superuser)
-        response = PlayerPermission.check(request, self.game)
-        assert response.status_code == 403
-        assert response.data == {'errors': {'detail': ['not allowed']}}
+        assert PlayerPermission.check(request, self.game) is None
 
-    def test_returns_403_for_staff_who_is_not_a_player_or_dm(self):
-        """Test that a staff user with no game link gets 403 (no bypass, issue #695)."""
+    def test_returns_none_for_staff_with_no_game_link(self):
+        """Test that a staff user with no game link passes the check (bypass, issue #864)."""
         staff_user = UserFactory(username='staff_user', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
         request = _make_request(staff_user)
-        response = PlayerPermission.check(request, self.game)
-        assert response.status_code == 403
-        assert response.data == {'errors': {'detail': ['not allowed']}}
+        assert PlayerPermission.check(request, self.game) is None

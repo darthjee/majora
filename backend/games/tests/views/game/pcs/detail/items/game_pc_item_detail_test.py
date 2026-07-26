@@ -179,15 +179,15 @@ class TestGamePcItemDetailPatchView(TokenAuthRequestMixin):
         response = self.patch(client, self._url(), {'name': 'Staff Edit'}, token=token)
         assert response.status_code == 200
 
-    def test_other_player_returns_403(self, client):
-        """Test that another player in the game (not the owner) is rejected with 403."""
+    def test_other_player_can_patch(self, client):
+        """Test that another player in the game (not the owner) can update the item (#864)."""
         other_player = PlayerFactory(game=self.game, name='Not Owner')
         other_owner = UserFactory(username='other_owner', password='secret-password')
         other_player.user = other_owner
         other_player.save()
         token = Token.objects.create(user=other_owner)
         response = self.patch(client, self._url(), {'name': 'New Name'}, token=token)
-        assert response.status_code == 403
+        assert response.status_code == 200
 
     def test_patch_response_uses_detail_full_serializer(self, client):
         """Test that the PATCH response includes the hidden field (detail-full serializer)."""

@@ -38,7 +38,7 @@ from ._money import character_money_update
 from ._photo_set import character_photo_set
 from ._photo_upload import character_photo_upload
 from ._photos import character_photos
-from ._shared import _find_character, _get_character_or_404
+from ._shared import _find_character, _get_character_or_404, _hidden_gate_response
 from ._treasure_exchange import (
     character_treasure_acquire,
     character_treasure_buy,
@@ -152,7 +152,13 @@ def build_photos_view(npc):
 
 
 def build_items_view(npc):
-    """Build the GET/POST items view for a PC (`npc=False`) or NPC (`npc=True`)."""
+    """Build the GET/POST items view for a PC (`npc=False`) or NPC (`npc=True`).
+
+    The `POST` branch applies the same `_hidden_gate_response` pre-check as
+    `character_item_update` (issue #864 follow-up): without it,
+    `CharacterItemPlayerCreatePermission` would let any player of the game create an item on a
+    hidden NPC, confirming that NPC's existence via the response.
+    """
 
     @_build_api_view(['GET', 'POST'], AllowAny)
     def view(request, game_slug, character_id):
@@ -160,6 +166,10 @@ def build_items_view(npc):
         game = get_object_or_404(Game, game_slug=game_slug)
         if request.method == 'POST':
             character = _get_character_or_404(game, character_id, npc=npc)
+            if npc:
+                error_response = _hidden_gate_response(character, request)
+                if error_response:
+                    return error_response
             return character_item_create(request, game, character)
         return character_items(request, game, character_id, npc=npc, check_hidden=npc)
 

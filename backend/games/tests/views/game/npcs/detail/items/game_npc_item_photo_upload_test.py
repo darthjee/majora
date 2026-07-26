@@ -157,12 +157,12 @@ class TestGameNpcItemPhotoUploadView(TokenAuthRequestMixin):
         response = self._post(client, {'filename': 'sword.jpg'}, token=token)
         assert response.status_code == 201
 
-    def test_staff_user_returns_201(self, client):
-        """Test that an is_staff=True user unrelated to the game can upload the item's photo."""
+    def test_staff_user_returns_403(self, client):
+        """Test that a Staff account cannot upload an NPC item's photo (bypass narrowed, #864)."""
         staff_user = UserFactory(username='staff_user', password='secret-password', is_staff=True)
         token = Token.objects.create(user=staff_user)
         response = self._post(client, {'filename': 'photo.jpg'}, token=token)
-        assert response.status_code == 201
+        assert response.status_code == 403
 
     def test_regular_player_of_game_returns_403(self, client):
         """Test that a regular player of the game (no owner-equivalent on NPCs) gets 403."""
