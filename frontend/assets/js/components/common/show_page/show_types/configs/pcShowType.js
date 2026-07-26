@@ -12,7 +12,7 @@ import CharacterPhotosPreviewSlot from '../../../../resources/character/pages/el
 
 const pcNameField = buildCharacterNameField(
   { edit: { id: 'pc-edit-name', labelKey: 'pc_edit_page.name_label' } },
-  false,
+  true,
 );
 const pcLinksField = buildCharacterLinksField({ edit: 'pc_edit_page.edit_links_button' });
 const pcMoneyField = buildCharacterMoneyField({
@@ -23,7 +23,7 @@ const pcTitleField = buildCharacterTitleField({
 });
 const pcRoleField = buildCharacterRoleField(
   { edit: { id: 'pc-edit-role', label: 'pc_edit_page.role_label' } },
-  false,
+  true,
 );
 const pcDescriptionField = buildCharacterDescriptionField({
   edit: { id: 'pc-edit-description', label: 'pc_edit_page.description_label' },

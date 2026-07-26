@@ -20,6 +20,24 @@ function resourceName(characterKind) {
 }
 
 /**
+ * Whether the current user may reach the edit page for a character (full editor, any player of
+ * the game, or — for a PC only — any Staff account).
+ *
+ * @param {object} character - Loaded character data object.
+ * @param {boolean} [character.can_edit] - Whether the current user is a full (dm/admin/owner)
+ *   editor of the character.
+ * @param {boolean} [character.is_player] - Whether the current user is a player of the game.
+ * @param {boolean} [character.is_pc] - Whether the character is a PC (vs. an NPC).
+ * @param {boolean} [character.is_staff] - Whether the current user is a Staff account.
+ * @returns {boolean} Whether the edit page is reachable for this character/user pair.
+ */
+function canReachEditPage(character) {
+  return Boolean(
+    character.can_edit || character.is_player || (character.is_pc && character.is_staff),
+  );
+}
+
+/**
  * Shared character edit page component.
  *
  * @description Accepts type-specific controller class, hash param extractor, and
@@ -92,7 +110,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
 
   if (loading) return CharacterHelper.renderLoading();
   if (error) return CharacterHelper.renderError(error);
-  if (!character || (!character.can_edit && !character.is_player)) return EditHelper.renderLoading();
+  if (!character || !canReachEditPage(character)) return EditHelper.renderLoading();
 
   const uploadPath = resourceConfig.get('POST', resourceName(characterKind), 'single').regular.path(
     { gameSlug, id: characterId },
@@ -113,6 +131,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
       {EditHelper.render(
         {
           isFullEditor: character.can_edit,
+          canEditMoney: character.can_edit_money,
           ...fields,
           profile_photo_path: character.profile_photo_path,
           links,

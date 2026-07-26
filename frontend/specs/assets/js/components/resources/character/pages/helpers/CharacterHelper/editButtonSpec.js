@@ -38,9 +38,27 @@ describe('CharacterHelper', function() {
       expect(html).toContain('Edit');
     });
 
-    it('does not render an edit button for a player on a pc even when is_player is true', function() {
+    it('renders a pcs edit button for a player when can_edit is false', function() {
       const c = {
         ...character, can_edit: false, is_player: true, is_pc: true, game_slug: 'demo', id: 7,
+      };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).toContain('href="#/games/demo/pcs/7/edit"');
+      expect(html).toContain('Edit');
+    });
+
+    it('renders a pcs edit button for a staff account even when is_player is false', function() {
+      const c = {
+        ...character, can_edit: false, is_player: false, is_pc: true, is_staff: true, game_slug: 'demo', id: 7,
+      };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).toContain('href="#/games/demo/pcs/7/edit"');
+      expect(html).toContain('Edit');
+    });
+
+    it('does not render a pcs edit button for neither a player nor a staff account', function() {
+      const c = {
+        ...character, can_edit: false, is_player: false, is_pc: true, is_staff: false, game_slug: 'demo', id: 7,
       };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
       expect(html).not.toContain('/edit"');

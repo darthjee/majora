@@ -17,15 +17,16 @@ function CharacterRoleShow({ role }) {
 /**
  * Build the new/edit-mode role field slot for a character kind.
  *
- * @description NPCs always show the role field (any NPC editor may edit an NPC's role, and
- *   creation is always performed by a full editor); PCs gate it on `isFullEditor` (a PC's role
- *   is a dm/admin-only concern), matching `BaseCharacterEditHelper#render`'s
- *   `isFullEditor={state.isFullEditor || this.idPrefix === 'npc'}` rule.
+ * @description Both NPCs and PCs always show the role field regardless of `isFullEditor` (any
+ *   editor reaching the edit page — full editor, player, or Staff on a PC — may edit the
+ *   character's role, and NPC creation is always performed by a full editor), matching
+ *   `BaseCharacterEditHelper#render`'s `isFullEditor={state.isFullEditor || this.idPrefix === 'npc'}`
+ *   rule.
  * @param {{edit: {id: string, label: string}, new: {id: string, label: string}}} variants -
  *   Per-mode `id`/label i18n key pair, keyed by `'edit'` and/or `'new'` (PCs only ever provide
  *   `'edit'`).
  * @param {boolean} alwaysShow - Whether the field is visible regardless of `isFullEditor`
- *   (`true` for NPCs, `false` for PCs).
+ *   (`true` for both NPCs and PCs).
  * @returns {Function} New/edit-mode role field slot component.
  */
 export function buildCharacterRoleField(variants, alwaysShow) {
