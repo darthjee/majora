@@ -41,8 +41,8 @@ Examples:
 - [x] `PATCH /treasures/<id>` (global treasure update) - Staff-or-superuser
 
 #### Superuser & Game Masters
-- [ ] `POST /games/<slug>/tasks.json` - TaskEditPermission
-- [ ] `PATCH /games/<slug>/tasks/<id>.json` - TaskEditPermission
+- [x] `POST /games/<slug>/tasks.json` - TaskEditPermission (already superuser/DM-only)
+- [x] `PATCH /games/<slug>/tasks/<id>.json` - TaskEditPermission (already superuser/DM-only)
 - [x] `GET /games/<slug>/items/all.json` - GameEditPermission
 - [x] `PATCH /games/<slug>/items/:id/full.json` - GameEditPermission
 - [x] `GET/PATCH /games/<slug>/treasures/<treasure_id>.json` (game-scoped treasure detail; there is no separate `treasures/:id/full.json` route) - GameEditPermission
