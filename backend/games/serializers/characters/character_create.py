@@ -26,7 +26,7 @@ class CharacterCreateSerializer(serializers.ModelSerializer):
             'private_description',
             'hidden',
             'money',
-            'allegiance',
+            'private_allegiance',
             'public_allegiance',
             'links',
         ]
@@ -37,7 +37,7 @@ class CharacterCreateSerializer(serializers.ModelSerializer):
             'private_description': {'required': False},
             'hidden': {'required': False},
             'money': {'required': False},
-            'allegiance': {'required': False},
+            'private_allegiance': {'required': False},
             'public_allegiance': {'required': False},
         }
 

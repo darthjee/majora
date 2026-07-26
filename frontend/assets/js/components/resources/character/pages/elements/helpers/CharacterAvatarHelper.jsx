@@ -3,6 +3,7 @@ import ActionsOverlay from '../../../../../common/misc/ActionsOverlay.jsx';
 import allegianceBorderClass from '../../../../../../utils/ui/AllegianceBorder.js';
 import SlainSecondaryButtons from '../../../../../common/list_types/SlainSecondaryButtons.js';
 import InfoBarRules from '../../../../../common/misc/helpers/InfoBarRules.js';
+import { resolveCharacterSlain, resolveCharacterAllegiance } from '../../../../../../utils/character/resolveCharacterVisibility.js';
 
 /**
  * Rendering helper for the CharacterAvatar element.
@@ -22,10 +23,13 @@ export default class CharacterAvatarHelper {
    *   set).
    * @param {boolean} [character.is_staff] - Whether the current user is Django staff, grants
    *   upload access (for both PCs and NPCs) even without edit rights.
-   * @param {boolean} [character.slain] - Whether the character is (really) slain.
+   * @param {boolean} [character.private_slain] - Whether the character is (really) slain.
    * @param {boolean} [character.public_slain] - Whether the character is publicly slain.
    * @param {boolean} [character.is_pc] - Whether the character is a PC.
-   * @param {string} [character.allegiance] - Allegiance value driving the border color.
+   * @param {string} [character.private_allegiance] - The character's real allegiance.
+   * @param {string} [character.public_allegiance] - The character's publicly known allegiance;
+   *   together with `private_allegiance`, drives the border color (private takes priority,
+   *   falling back to public — see `resolveCharacterVisibility.js`).
    * @param {boolean} [character.hidden] - Whether the character is hidden (NPC-only concept;
    *   only present when the current user may edit the character). Drives the dimmed photo
    *   treatment, matching the same rule already applied on the NPC list page
@@ -41,7 +45,7 @@ export default class CharacterAvatarHelper {
         alt={character.name}
         canEdit={character.can_edit || character.is_player || character.is_staff}
         onClick={handlers.onOpenUploadModal}
-        grayscale={character.slain}
+        grayscale={resolveCharacterSlain(character)}
         dimmed={!character.is_pc && Boolean(character.hidden)}
         secondaryButtons={CharacterAvatarHelper.#buildSecondaryButtons(character, handlers)}
         infoBarItems={InfoBarRules.build(character)}
@@ -52,7 +56,7 @@ export default class CharacterAvatarHelper {
       return picture;
     }
 
-    return <div className={allegianceBorderClass(character.allegiance)}>{picture}</div>;
+    return <div className={allegianceBorderClass(resolveCharacterAllegiance(character))}>{picture}</div>;
   }
 
   /**
@@ -66,10 +70,10 @@ export default class CharacterAvatarHelper {
    * @param {boolean} [character.is_pc] - Whether the character is a PC.
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
    * @param {boolean} [character.is_player] - Whether the current user is a player of the game.
-   * @param {boolean} [character.slain] - Whether the character is currently (really) slain
-   *   for a DM, or its public-facing slain alias for a non-editor.
-   * @param {boolean} [character.public_slain] - Whether the character is currently publicly
+   * @param {boolean} [character.private_slain] - Whether the character is currently (really)
    *   slain (DM-facing data only).
+   * @param {boolean} [character.public_slain] - Whether the character is currently publicly
+   *   slain.
    * @param {{onOpenSlainModal: Function, onOpenPublicSlainModal: Function,
    *   onOpenPlayerSlainModal: Function}} handlers - Event handlers.
    * @returns {{label: string, variant: string, icon: string, onClick: Function}[]} Secondary
@@ -95,7 +99,7 @@ export default class CharacterAvatarHelper {
    * Build the DM's real and public slain/revive secondary button definitions.
    *
    * @param {object} character - Character data object.
-   * @param {boolean} [character.slain] - Whether the character is currently (really) slain.
+   * @param {boolean} [character.private_slain] - Whether the character is currently (really) slain.
    * @param {boolean} [character.public_slain] - Whether the character is currently publicly slain.
    * @param {{onOpenSlainModal: Function, onOpenPublicSlainModal: Function}} handlers - Event handlers.
    * @returns {{label: string, variant: string, icon: string, onClick: Function}[]} Secondary
@@ -110,18 +114,18 @@ export default class CharacterAvatarHelper {
   /**
    * Build the single player-facing slain/revive secondary button definition,
    * reusing the DM's real-slain button shape (`Icons.heart`/`Icons.skullFill`)
-   * as an intentional icon reuse — players only ever toggle `public_slain`,
-   * which is already the value aliased onto `character.slain` for non-editors.
+   * as an intentional icon reuse — players only ever toggle `public_slain`
+   * directly, since they never receive `private_slain`.
    *
    * @param {object} character - Character data object.
-   * @param {boolean} [character.slain] - The character's public-facing slain alias.
+   * @param {boolean} [character.public_slain] - The character's publicly known slain state.
    * @param {{onOpenPlayerSlainModal: Function}} handlers - Event handlers.
    * @returns {{label: string, variant: string, icon: string, onClick: Function}[]} Secondary
    *   button definitions.
    */
   static #buildPlayerSecondaryButtons(character, handlers) {
     return [
-      SlainSecondaryButtons.buildSlainButton(character.slain, handlers.onOpenPlayerSlainModal),
+      SlainSecondaryButtons.buildSlainButton(character.public_slain, handlers.onOpenPlayerSlainModal),
     ];
   }
 }

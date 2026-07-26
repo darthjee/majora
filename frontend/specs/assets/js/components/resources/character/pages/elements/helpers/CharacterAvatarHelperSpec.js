@@ -32,13 +32,13 @@ describe('CharacterAvatarHelper', function() {
     });
 
     it('does not wrap a PC picture in an allegiance border', function() {
-      const character = buildCharacter({ name: 'Aragorn', is_pc: true, allegiance: 'enemy' });
+      const character = buildCharacter({ name: 'Aragorn', is_pc: true, private_allegiance: 'enemy' });
       const html = renderToStaticMarkup(CharacterAvatarHelper.render(character, {}));
       expect(html).not.toContain('border-danger');
     });
 
     it('wraps an NPC picture in the allegiance border class', function() {
-      const character = buildCharacter({ name: 'Goblin', is_pc: false, allegiance: 'enemy' });
+      const character = buildCharacter({ name: 'Goblin', is_pc: false, private_allegiance: 'enemy' });
       const html = renderToStaticMarkup(CharacterAvatarHelper.render(character, {}));
       expect(html).toContain('border-danger');
     });
@@ -93,7 +93,7 @@ describe('CharacterAvatarHelper', function() {
 
     it('renders the DM secondary slain/revive buttons for an editable NPC', function() {
       const character = buildCharacter({
-        name: 'Goblin', is_pc: false, can_edit: true, slain: false, public_slain: false,
+        name: 'Goblin', is_pc: false, can_edit: true, private_slain: false, public_slain: false,
       });
       const html = renderToStaticMarkup(CharacterAvatarHelper.render(character, {}));
       expect(html).toContain('bi-skull-fill');
@@ -102,7 +102,7 @@ describe('CharacterAvatarHelper', function() {
 
     it('renders a single player-facing secondary button for a non-editor player', function() {
       const character = buildCharacter({
-        name: 'Goblin', is_pc: false, can_edit: false, is_player: true, slain: false,
+        name: 'Goblin', is_pc: false, can_edit: false, is_player: true, public_slain: false,
       });
       const html = renderToStaticMarkup(CharacterAvatarHelper.render(character, {}));
       expect(html).toContain('bi-skull-fill');

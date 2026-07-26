@@ -22,7 +22,7 @@ describe('BaseCharacterEditController', function() {
         setDescription: jasmine.createSpy('setDescription'),
         setPrivateDescription: jasmine.createSpy('setPrivateDescription'),
         setMoney: jasmine.createSpy('setMoney'),
-        setAllegiance: jasmine.createSpy('setAllegiance'),
+        setPrivateAllegiance: jasmine.createSpy('setPrivateAllegiance'),
         setPublicAllegiance: jasmine.createSpy('setPublicAllegiance'),
         setPublicSlain: jasmine.createSpy('setPublicSlain'),
         setHidden: jasmine.createSpy('setHidden'),
@@ -125,7 +125,7 @@ describe('BaseCharacterEditController', function() {
         role: 'Fighter',
         public_description: 'A brave hero', private_description: 'DM notes', can_edit: true,
         money: 310,
-        allegiance: 'ally',
+        private_allegiance: 'ally',
         public_allegiance: 'enemy',
         public_slain: true,
         hidden: true,
@@ -139,7 +139,7 @@ describe('BaseCharacterEditController', function() {
       expect(setters.setDescription).toHaveBeenCalledWith('A brave hero');
       expect(setters.setPrivateDescription).toHaveBeenCalledWith('DM notes');
       expect(setters.setMoney).toHaveBeenCalledWith('310');
-      expect(setters.setAllegiance).toHaveBeenCalledWith('ally');
+      expect(setters.setPrivateAllegiance).toHaveBeenCalledWith('ally');
       expect(setters.setPublicAllegiance).toHaveBeenCalledWith('enemy');
       expect(setters.setPublicSlain).toHaveBeenCalledWith(true);
       expect(setters.setHidden).toHaveBeenCalledWith(true);
@@ -158,25 +158,25 @@ describe('BaseCharacterEditController', function() {
       expect(setters.setDescription).toHaveBeenCalledWith('');
       expect(setters.setPrivateDescription).toHaveBeenCalledWith('');
       expect(setters.setMoney).toHaveBeenCalledWith('0');
-      expect(setters.setAllegiance).toHaveBeenCalledWith('neutral');
+      expect(setters.setPrivateAllegiance).toHaveBeenCalledWith('neutral');
       expect(setters.setPublicAllegiance).toHaveBeenCalledWith('neutral');
       expect(setters.setPublicSlain).toHaveBeenCalledWith(false);
       expect(setters.setHidden).toHaveBeenCalledWith(false);
       expect(setters.setLinks).toHaveBeenCalledWith([]);
     });
 
-    it('falls back public_allegiance/public_slain to the plain-detail keys for a player-only editor', function() {
+    it('falls back private_allegiance to public_allegiance for a player-only editor', function() {
       const controller = new TestCharacterEditController(
         setCharacter, setLoading, setError, setFieldErrors, client, characterClient,
       );
       const character = {
         id: 1, can_edit: false, is_player: true, access_resolved: true,
-        allegiance: 'enemy', slain: true,
+        public_allegiance: 'enemy', public_slain: true,
       };
 
       controller.applyLoadedCharacter(character, 'demo', '1', setters);
 
-      expect(setters.setAllegiance).toHaveBeenCalledWith('enemy');
+      expect(setters.setPrivateAllegiance).toHaveBeenCalledWith('enemy');
       expect(setters.setPublicAllegiance).toHaveBeenCalledWith('enemy');
       expect(setters.setPublicSlain).toHaveBeenCalledWith(true);
     });

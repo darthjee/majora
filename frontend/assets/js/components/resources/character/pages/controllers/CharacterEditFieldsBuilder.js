@@ -5,12 +5,12 @@
  */
 export default class CharacterEditFieldsBuilder {
   /**
-   * Shape the form-seed fields object from a loaded character. A player-only editor's
-   * loaded character only ever carries the plain-detail fields (no `full.json`
-   * dual-load), so `public_allegiance`/`public_slain` fall back to the plain-detail
-   * `allegiance`/`slain` keys, which the backend already aliases from the very same
-   * public fields for a non-editor. `hidden` is only ever present on a full (dm/admin)
-   * editor's `full.json` load, so it naturally defaults to `false` for a player-only editor.
+   * Shape the form-seed fields object from a loaded character. `public_allegiance`/
+   * `public_slain` are always present, on both public and private/full loads alike, so they
+   * need no fallback. `private_allegiance` is only ever present on a full (dm/admin) editor's
+   * `full.json` load, so a player-only editor's `private_allegiance` field falls back to the
+   * always-present `public_allegiance`. `hidden` is only ever present on a full (dm/admin)
+   * editor's `full.json` load too, so it naturally defaults to `false` for a player-only editor.
    *
    * @param {object} character - Loaded character.
    * @returns {object} Seed fields for the edit form.
@@ -22,11 +22,11 @@ export default class CharacterEditFieldsBuilder {
       public_description: character.public_description ?? '',
       private_description: character.private_description ?? '',
       money: String(character.money ?? 0),
-      allegiance: character.allegiance ?? 'neutral',
-      public_allegiance: CharacterEditFieldsBuilder.#fallback(
-        character.public_allegiance, character.allegiance, 'neutral',
+      private_allegiance: CharacterEditFieldsBuilder.#fallback(
+        character.private_allegiance, character.public_allegiance, 'neutral',
       ),
-      public_slain: CharacterEditFieldsBuilder.#fallback(character.public_slain, character.slain, false),
+      public_allegiance: character.public_allegiance ?? 'neutral',
+      public_slain: character.public_slain ?? false,
       hidden: character.hidden ?? false,
       links: character.links ?? [],
     };
@@ -50,7 +50,7 @@ export default class CharacterEditFieldsBuilder {
     };
 
     if (routeSegment === 'npcs') {
-      fields.allegiance = formValues.allegiance;
+      fields.private_allegiance = formValues.privateAllegiance;
       fields.public_allegiance = formValues.publicAllegiance;
       fields.public_slain = formValues.publicSlain;
       fields.hidden = formValues.hidden;
@@ -71,9 +71,9 @@ export default class CharacterEditFieldsBuilder {
       name: formValues.name,
       role: formValues.role,
       public_description: formValues.description,
-      allegiance: formValues.publicAllegiance,
+      public_allegiance: formValues.publicAllegiance,
       links: CharacterEditFieldsBuilder.linksPayload(formValues.links),
-      slain: formValues.publicSlain,
+      public_slain: formValues.publicSlain,
     };
   }
 

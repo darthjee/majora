@@ -149,7 +149,7 @@ class TestGameNpcsHiddenFilter:
 
 @pytest.mark.django_db
 class TestGameNpcsFilter:
-    """Tests that game_npcs supports filtering by slain/name query params."""
+    """Tests that game_npcs supports filtering by public_slain/public_allegiance/name params."""
 
     def setup_method(self):
         """Set up common test fixtures."""
@@ -159,25 +159,25 @@ class TestGameNpcsFilter:
         """Return the list of character names from a JSON response."""
         return [item['name'] for item in json.loads(response.content)]
 
-    def test_slain_true_returns_only_slain_npcs(self, client):
-        """Test that slain=true returns only publicly slain NPCs."""
+    def test_public_slain_true_returns_only_slain_npcs(self, client):
+        """Test that public_slain=true returns only publicly slain NPCs."""
         CharacterFactory(name='Alive NPC', game=self.game, npc=True, public_slain=False)
         CharacterFactory(name='Dead NPC', game=self.game, npc=True, public_slain=True)
-        response = client.get('/games/test-game/npcs.json?slain=true')
+        response = client.get('/games/test-game/npcs.json?public_slain=true')
         assert self._names(response) == ['Dead NPC']
 
-    def test_slain_false_returns_only_alive_npcs(self, client):
-        """Test that slain=false returns only publicly alive NPCs."""
+    def test_public_slain_false_returns_only_alive_npcs(self, client):
+        """Test that public_slain=false returns only publicly alive NPCs."""
         CharacterFactory(name='Alive NPC', game=self.game, npc=True, public_slain=False)
         CharacterFactory(name='Dead NPC', game=self.game, npc=True, public_slain=True)
-        response = client.get('/games/test-game/npcs.json?slain=false')
+        response = client.get('/games/test-game/npcs.json?public_slain=false')
         assert self._names(response) == ['Alive NPC']
 
-    def test_invalid_slain_value_is_ignored(self, client):
-        """Test that an unrecognized slain value applies no filter and does not 400."""
+    def test_invalid_public_slain_value_is_ignored(self, client):
+        """Test that an unrecognized public_slain value applies no filter and does not 400."""
         CharacterFactory(name='Alive NPC', game=self.game, npc=True, public_slain=False)
         CharacterFactory(name='Dead NPC', game=self.game, npc=True, public_slain=True)
-        response = client.get('/games/test-game/npcs.json?slain=unknown')
+        response = client.get('/games/test-game/npcs.json?public_slain=unknown')
         assert response.status_code == 200
         assert sorted(self._names(response)) == ['Alive NPC', 'Dead NPC']
 
@@ -188,11 +188,11 @@ class TestGameNpcsFilter:
         response = client.get('/games/test-game/npcs.json?name=villain')
         assert self._names(response) == ['Sir Villain']
 
-    def test_name_and_slain_filters_combine(self, client):
-        """Test that name and slain filters apply together (AND)."""
+    def test_name_and_public_slain_filters_combine(self, client):
+        """Test that name and public_slain filters apply together (AND)."""
         CharacterFactory(name='Sir Villain', game=self.game, npc=True, public_slain=True)
         CharacterFactory(name='Sir Villain Twin', game=self.game, npc=True, public_slain=False)
-        response = client.get('/games/test-game/npcs.json?name=villain&slain=true')
+        response = client.get('/games/test-game/npcs.json?name=villain&public_slain=true')
         assert self._names(response) == ['Sir Villain']
 
     def test_filters_combine_with_pagination(self, client):
@@ -200,7 +200,7 @@ class TestGameNpcsFilter:
         for i in range(3):
             CharacterFactory(name=f'Slain NPC {i}', game=self.game, npc=True, public_slain=True)
         CharacterFactory(name='Alive NPC', game=self.game, npc=True, public_slain=False)
-        response = client.get('/games/test-game/npcs.json?slain=true&per_page=2')
+        response = client.get('/games/test-game/npcs.json?public_slain=true&per_page=2')
         assert response['pages'] == '2'
         assert response['total'] == '3'
 
@@ -211,35 +211,44 @@ class TestGameNpcsFilter:
         response = client.get('/games/test-game/npcs.json')
         assert sorted(self._names(response)) == ['Alive NPC', 'Dead NPC']
 
-    def test_slain_filter_matches_public_slain(self, client):
-        """Test that ?slain= filters npcs.json on public_slain, not the real slain field."""
+    def test_public_slain_filter_ignores_private_slain(self, client):
+        """Test that ?public_slain= filters on public_slain, not private_slain."""
         CharacterFactory(
-            name='Faked Death NPC', game=self.game, npc=True, slain=False, public_slain=True,
+            name='Faked Death NPC', game=self.game, npc=True,
+            private_slain=False, public_slain=True,
         )
         CharacterFactory(
-            name='Hidden Death NPC', game=self.game, npc=True, slain=True, public_slain=False,
+            name='Hidden Death NPC', game=self.game, npc=True,
+            private_slain=True, public_slain=False,
         )
-        response = client.get('/games/test-game/npcs.json?slain=true')
+        response = client.get('/games/test-game/npcs.json?public_slain=true')
         assert self._names(response) == ['Faked Death NPC']
 
-    def test_allegiance_filter_matches_public_allegiance(self, client):
-        """Test that ?allegiance= filters npcs.json on public_allegiance."""
+    def test_private_slain_param_is_ignored(self, client):
+        """Test that a private_slain query param has no effect on the public listing."""
+        CharacterFactory(name='Alive NPC', game=self.game, npc=True, private_slain=False)
+        CharacterFactory(name='Dead NPC', game=self.game, npc=True, private_slain=True)
+        response = client.get('/games/test-game/npcs.json?private_slain=true')
+        assert sorted(self._names(response)) == ['Alive NPC', 'Dead NPC']
+
+    def test_public_allegiance_filter_ignores_private_allegiance(self, client):
+        """Test that ?public_allegiance= filters npcs.json on public_allegiance."""
         CharacterFactory(
             name='Friendly NPC', game=self.game, npc=True,
-            allegiance='enemy', public_allegiance='ally',
+            private_allegiance='enemy', public_allegiance='ally',
         )
         CharacterFactory(
             name='Hostile NPC', game=self.game, npc=True,
-            allegiance='ally', public_allegiance='enemy',
+            private_allegiance='ally', public_allegiance='enemy',
         )
-        response = client.get('/games/test-game/npcs.json?allegiance=ally')
+        response = client.get('/games/test-game/npcs.json?public_allegiance=ally')
         assert self._names(response) == ['Friendly NPC']
 
-    def test_invalid_allegiance_value_is_ignored(self, client):
-        """Test that an unrecognized allegiance value applies no filter and does not 400."""
+    def test_invalid_public_allegiance_value_is_ignored(self, client):
+        """Test that an unrecognized public_allegiance value applies no filter and does not 400."""
         CharacterFactory(name='Ally NPC', game=self.game, npc=True, public_allegiance='ally')
         CharacterFactory(name='Enemy NPC', game=self.game, npc=True, public_allegiance='enemy')
-        response = client.get('/games/test-game/npcs.json?allegiance=unknown')
+        response = client.get('/games/test-game/npcs.json?public_allegiance=unknown')
         assert response.status_code == 200
         assert sorted(self._names(response)) == ['Ally NPC', 'Enemy NPC']
 
@@ -310,7 +319,7 @@ class TestGameNpcsCreate(TokenAuthRequestMixin):
                 'private_description': 'Secretly a good person',
                 'hidden': True,
                 'money': 42,
-                'allegiance': 'ally',
+                'private_allegiance': 'ally',
                 'public_allegiance': 'enemy',
             },
             token=self.dm_token,
@@ -321,7 +330,7 @@ class TestGameNpcsCreate(TokenAuthRequestMixin):
         assert character.private_description == 'Secretly a good person'
         assert character.hidden is True
         assert character.money == 42
-        assert character.allegiance == 'ally'
+        assert character.private_allegiance == 'ally'
         assert character.public_allegiance == 'enemy'
 
     def test_defaults_apply_when_optional_fields_omitted(self, client):
@@ -329,7 +338,7 @@ class TestGameNpcsCreate(TokenAuthRequestMixin):
         self._post(client, {'name': 'Villain'}, token=self.dm_token)
         character = Character.objects.get(name='Villain')
         assert character.hidden is False
-        assert character.allegiance == 'neutral'
+        assert character.private_allegiance == 'neutral'
         assert character.public_allegiance == 'neutral'
 
     def test_unauthenticated_post_returns_401(self, client):

@@ -25,9 +25,9 @@ export default class InfoBarRules {
    * @param {boolean} [character.is_pc] - Whether the character is a PC (vs. an NPC).
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
    * @param {boolean} [character.is_player] - Whether the current user is a player of the game.
-   * @param {boolean} [character.slain] - The character's real slain state.
+   * @param {boolean} [character.private_slain] - The character's real slain state.
    * @param {boolean} [character.public_slain] - The character's public slain state.
-   * @param {string} [character.allegiance] - The character's real allegiance, NPC only.
+   * @param {string} [character.private_allegiance] - The character's real allegiance, NPC only.
    * @param {string} [character.public_allegiance] - The character's public allegiance, NPC only.
    * @returns {{key: string, label: React.ReactElement}[]} Info item definitions to render, empty
    *   when the character has no status/deception items.

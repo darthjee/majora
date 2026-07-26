@@ -37,7 +37,7 @@ describe('InfoBarRules', function() {
     });
 
     it('returns a single status tooltip badge item when the character has slain status', function() {
-      const character = buildCharacter({ slain: true, public_slain: true });
+      const character = buildCharacter({ private_slain: true, public_slain: true });
 
       const items = InfoBarRules.build(character);
 
@@ -47,7 +47,7 @@ describe('InfoBarRules', function() {
     });
 
     it('builds the status tooltip badge with the info-circle-fill icon', function() {
-      const character = buildCharacter({ slain: true });
+      const character = buildCharacter({ private_slain: true });
 
       const items = InfoBarRules.build(character);
 
@@ -55,7 +55,7 @@ describe('InfoBarRules', function() {
     });
 
     it('builds the status tooltip badge with the CharacterStatusBadges item list', function() {
-      const character = buildCharacter({ slain: true, public_slain: false });
+      const character = buildCharacter({ private_slain: true, public_slain: false });
 
       const items = InfoBarRules.build(character);
 
@@ -63,7 +63,7 @@ describe('InfoBarRules', function() {
     });
 
     it('returns a status item for an NPC whose allegiance is set', function() {
-      const character = buildCharacter({ is_pc: false, allegiance: 'ally' });
+      const character = buildCharacter({ is_pc: false, private_allegiance: 'ally' });
 
       const items = InfoBarRules.build(character);
 
@@ -71,13 +71,13 @@ describe('InfoBarRules', function() {
     });
 
     it('returns no items for a PC whose allegiance is set (allegiance is NPC-only)', function() {
-      const character = buildCharacter({ is_pc: true, allegiance: 'ally' });
+      const character = buildCharacter({ is_pc: true, private_allegiance: 'ally' });
 
       expect(InfoBarRules.build(character)).toEqual([]);
     });
 
     it('returns an allegiance-deception item for an NPC whose allegiance and public_allegiance differ', function() {
-      const character = buildCharacter({ is_pc: false, allegiance: 'enemy', public_allegiance: 'ally' });
+      const character = buildCharacter({ is_pc: false, private_allegiance: 'enemy', public_allegiance: 'ally' });
 
       const items = InfoBarRules.build(character);
       const item = items.find((entry) => entry.key === 'allegiance-deception');
@@ -89,7 +89,7 @@ describe('InfoBarRules', function() {
     });
 
     it('omits the allegiance-deception item when allegiance and public_allegiance are equal', function() {
-      const character = buildCharacter({ is_pc: false, allegiance: 'enemy', public_allegiance: 'enemy' });
+      const character = buildCharacter({ is_pc: false, private_allegiance: 'enemy', public_allegiance: 'enemy' });
 
       const items = InfoBarRules.build(character);
 
@@ -97,7 +97,7 @@ describe('InfoBarRules', function() {
     });
 
     it('omits the allegiance-deception item for a PC even when allegiance and public_allegiance differ', function() {
-      const character = buildCharacter({ is_pc: true, allegiance: 'enemy', public_allegiance: 'ally' });
+      const character = buildCharacter({ is_pc: true, private_allegiance: 'enemy', public_allegiance: 'ally' });
 
       const items = InfoBarRules.build(character);
 
@@ -105,7 +105,7 @@ describe('InfoBarRules', function() {
     });
 
     it('returns a slain-deception item for an NPC whose slain and public_slain differ', function() {
-      const character = buildCharacter({ is_pc: false, slain: true, public_slain: false });
+      const character = buildCharacter({ is_pc: false, private_slain: true, public_slain: false });
 
       const items = InfoBarRules.build(character);
       const item = items.find((entry) => entry.key === 'slain-deception');
@@ -117,7 +117,7 @@ describe('InfoBarRules', function() {
     });
 
     it('omits the slain-deception item when slain and public_slain are equal', function() {
-      const character = buildCharacter({ is_pc: false, slain: true, public_slain: true });
+      const character = buildCharacter({ is_pc: false, private_slain: true, public_slain: true });
 
       const items = InfoBarRules.build(character);
 
@@ -125,7 +125,7 @@ describe('InfoBarRules', function() {
     });
 
     it('omits the slain-deception item for a PC even when slain and public_slain differ', function() {
-      const character = buildCharacter({ is_pc: true, slain: true, public_slain: false });
+      const character = buildCharacter({ is_pc: true, private_slain: true, public_slain: false });
 
       const items = InfoBarRules.build(character);
 
@@ -135,9 +135,9 @@ describe('InfoBarRules', function() {
     it('returns both deception items alongside the status item when all conditions are met', function() {
       const character = buildCharacter({
         is_pc: false,
-        slain: true,
+        private_slain: true,
         public_slain: false,
-        allegiance: 'enemy',
+        private_allegiance: 'enemy',
         public_allegiance: 'ally',
       });
 

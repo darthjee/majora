@@ -51,38 +51,39 @@ class TestCharacterListSerializer(TestCase):
         data = CharacterListSerializer(self.character).data
         assert data['profile_photo_path'] == 'photos/games/test-game/characters/1/profile.jpg'
 
-    def test_serializes_slain_as_false_by_default(self):
-        """Test that slain defaults to False."""
+    def test_serializes_public_slain_as_false_by_default(self):
+        """Test that public_slain defaults to False."""
         data = CharacterListSerializer(self.character).data
-        assert data['slain'] is False
+        assert data['public_slain'] is False
 
-    def test_serializes_slain_as_true_when_set(self):
-        """Test that slain reflects the model value when True."""
+    def test_serializes_public_slain_as_true_when_set(self):
+        """Test that public_slain reflects the model value when True."""
         self.character.public_slain = True
         self.character.save()
         data = CharacterListSerializer(self.character).data
-        assert data['slain'] is True
+        assert data['public_slain'] is True
 
-    def test_serializes_slain_sourced_from_public_slain(self):
-        """Test that slain is sourced from public_slain, not the real field."""
-        self.character.slain = True
-        self.character.public_slain = False
-        self.character.save()
+    def test_does_not_include_private_slain(self):
+        """Test that the private_slain field is not exposed."""
         data = CharacterListSerializer(self.character).data
-        assert data['slain'] is False
+        assert 'private_slain' not in data
 
-    def test_serializes_allegiance_as_neutral_by_default(self):
-        """Test that allegiance defaults to 'neutral'."""
+    def test_serializes_public_allegiance_as_neutral_by_default(self):
+        """Test that public_allegiance defaults to 'neutral'."""
         data = CharacterListSerializer(self.character).data
-        assert data['allegiance'] == 'neutral'
+        assert data['public_allegiance'] == 'neutral'
 
-    def test_serializes_allegiance_sourced_from_public_allegiance(self):
-        """Test that allegiance is sourced from public_allegiance, not the real field."""
-        self.character.allegiance = 'enemy'
+    def test_serializes_public_allegiance_as_set(self):
+        """Test that public_allegiance reflects the model value when set."""
         self.character.public_allegiance = 'ally'
         self.character.save()
         data = CharacterListSerializer(self.character).data
-        assert data['allegiance'] == 'ally'
+        assert data['public_allegiance'] == 'ally'
+
+    def test_does_not_include_private_allegiance(self):
+        """Test that the private_allegiance field is not exposed."""
+        data = CharacterListSerializer(self.character).data
+        assert 'private_allegiance' not in data
 
     def test_serializes_treasure_value_as_zero_when_no_treasures(self):
         """Test that treasure_value is 0 for a character with no treasure rows."""

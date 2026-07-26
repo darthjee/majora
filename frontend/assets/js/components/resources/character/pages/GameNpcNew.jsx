@@ -32,7 +32,7 @@ export default function GameNpcNew() {
     privateDescription: '',
     hidden: false,
     money: '0',
-    allegiance: 'neutral',
+    privateAllegiance: 'neutral',
     publicAllegiance: 'neutral',
   });
 
@@ -93,7 +93,7 @@ export default function GameNpcNew() {
           onOpenUploadModal: () => setShowUploadModal(true),
           onOpenMoneyModal: () => setShowMoneyModal(true),
           onHiddenChange: handleCheckboxChange('hidden'),
-          onAllegianceChange: handleChange('allegiance'),
+          onPrivateAllegianceChange: handleChange('privateAllegiance'),
           onPublicAllegianceChange: handleChange('publicAllegiance'),
           onRetryPhotoUpload: handleRetryPhotoUpload,
           onSkipPhotoUpload: handleSkipPhotoUpload,

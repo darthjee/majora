@@ -107,19 +107,19 @@ class TestCharacterUpdateSerializer(TestCase):
         assert not serializer.is_valid()
         assert 'name' in serializer.errors
 
-    def test_allegiance_field_is_writable(self):
-        """Test that the allegiance field is included and writable."""
+    def test_private_allegiance_field_is_writable(self):
+        """Test that the private_allegiance field is included and writable."""
         serializer = CharacterUpdateSerializer(
-            self.character, data={'allegiance': 'enemy'}, partial=True
+            self.character, data={'private_allegiance': 'enemy'}, partial=True
         )
         assert serializer.is_valid()
         updated = serializer.save()
-        assert updated.allegiance == 'enemy'
+        assert updated.private_allegiance == 'enemy'
 
-    def test_allegiance_field_defaults_to_neutral(self):
-        """Test that allegiance is 'neutral' by default and serialized correctly."""
+    def test_private_allegiance_field_defaults_to_neutral(self):
+        """Test that private_allegiance is 'neutral' by default and serialized correctly."""
         data = CharacterUpdateSerializer(self.character).data
-        assert data['allegiance'] == 'neutral'
+        assert data['private_allegiance'] == 'neutral'
 
     def test_public_allegiance_field_is_writable(self):
         """Test that the public_allegiance field is included and writable."""
@@ -135,20 +135,20 @@ class TestCharacterUpdateSerializer(TestCase):
         data = CharacterUpdateSerializer(self.character).data
         assert data['public_allegiance'] == 'neutral'
 
-    def test_slain_field_is_writable(self):
-        """Test that a PATCH with only slain persists it and leaves other fields untouched."""
+    def test_private_slain_field_is_writable(self):
+        """Test that a PATCH with only private_slain persists it and leaves other fields alone."""
         serializer = CharacterUpdateSerializer(
-            self.character, data={'slain': True}, partial=True
+            self.character, data={'private_slain': True}, partial=True
         )
         assert serializer.is_valid()
         updated = serializer.save()
-        assert updated.slain is True
+        assert updated.private_slain is True
         assert updated.name == 'Frodo'
 
-    def test_slain_field_defaults_to_false(self):
-        """Test that slain is False by default and serialized correctly."""
+    def test_private_slain_field_defaults_to_false(self):
+        """Test that private_slain is False by default and serialized correctly."""
         data = CharacterUpdateSerializer(self.character).data
-        assert data['slain'] is False
+        assert data['private_slain'] is False
 
     def test_public_slain_field_is_writable(self):
         """Test that a PATCH with only public_slain persists it and leaves other fields alone."""

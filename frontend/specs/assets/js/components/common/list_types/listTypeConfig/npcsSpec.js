@@ -39,7 +39,7 @@ describe('listTypeConfig', function() {
 
     describe('.buildCardClassName', function() {
       it('returns the allegiance border class', function() {
-        const item = new NpcListItem({ id: 1, name: 'Goblin', allegiance: 'enemy' });
+        const item = new NpcListItem({ id: 1, name: 'Goblin', private_allegiance: 'enemy' });
 
         expect(npcs.buildCardClassName(item)).toBe('border border-danger');
       });
@@ -53,14 +53,16 @@ describe('listTypeConfig', function() {
 
     describe('.buildInfoBarItems', function() {
       it('delegates to InfoBarRules.build', function() {
-        const item = new NpcListItem({ id: 1, name: 'Goblin', slain: true, public_slain: false });
+        const item = new NpcListItem({ id: 1, name: 'Goblin', private_slain: true, public_slain: false });
 
         expect(npcs.buildInfoBarItems(item).length).toBeGreaterThan(0);
       });
     });
 
     describe('.buildActionBarProps', function() {
-      const character = { id: 1, name: 'Goblin', slain: true, public_slain: false, hidden: true };
+      const character = {
+        id: 1, name: 'Goblin', private_slain: true, public_slain: false, hidden: true,
+      };
       const item = new NpcListItem(character);
 
       it('grants upload access to an editor', function() {
@@ -162,7 +164,7 @@ describe('listTypeConfig', function() {
 
       it('passes the filter params from the hash resolver as part of the query', async function() {
         const hashResolver = new HashRouteResolver(
-          () => '#/games/demo/npcs?slain=true&name=gob&allegiance=enemy&hidden=false',
+          () => '#/games/demo/npcs?public_slain=true&name=gob&public_allegiance=enemy&hidden=false',
         );
 
         spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
@@ -177,7 +179,9 @@ describe('listTypeConfig', function() {
           resource: 'npc',
           quantityType: 'collection',
           params: { gameSlug: 'demo' },
-          query: { slain: 'true', name: 'gob', allegiance: 'enemy', hidden: 'false' },
+          query: {
+            public_slain: 'true', name: 'gob', public_allegiance: 'enemy', hidden: 'false',
+          },
         });
       });
 

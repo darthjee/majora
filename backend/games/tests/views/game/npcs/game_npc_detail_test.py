@@ -6,8 +6,9 @@ serializer tests cannot: routing, status codes, the request/token permission pip
 and view-specific response shape (e.g. headers).
 
 `PATCH /games/<game_slug>/npcs/<id>.json` accepts a narrow
-`{"name", "role", "public_description", "allegiance", "slain", "links"}` payload (issue #416,
-widened by #445, #578), allowed for any player of the game (per the same computation backing
+`{"name", "role", "public_description", "public_allegiance", "public_slain", "links"}` payload
+(issue #416, widened by #445, #578, #861), allowed for any player of the game (per the same
+computation backing
 `is_player`) or an existing `CharacterEditPermission` editor (GM/superuser). See
 `docs/agents/security-guidelines.md` section 8 for why the "ignores non-editable
 fields" test must stay.
@@ -194,16 +195,16 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
 
     def test_patch_without_token_returns_401(self):
         """Test that PATCH without a token is rejected with 401."""
-        response = self._patch(self.client, {'slain': True})
+        response = self._patch(self.client, {'public_slain': True})
         assert response.status_code == 401
 
     def test_patch_by_player_of_game_returns_200(self):
-        """Test that a player of the game (via Player.game) can toggle slain."""
+        """Test that a player of the game (via Player.game) can toggle public_slain."""
         token = Token.objects.create(user=self.player_user)
 
-        response = self._patch(self.client, {'slain': True}, token=token)
+        response = self._patch(self.client, {'public_slain': True}, token=token)
 
-        assert_json_response(response, 200, slain=True)
+        assert_json_response(response, 200, public_slain=True)
         self.npc.refresh_from_db()
         assert self.npc.public_slain is True
 
@@ -211,18 +212,18 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
         """Test that a GameMaster of the game can also use this endpoint."""
         token = Token.objects.create(user=self.dm_user)
 
-        response = self._patch(self.client, {'slain': True}, token=token)
+        response = self._patch(self.client, {'public_slain': True}, token=token)
 
-        assert_json_response(response, 200, slain=True)
+        assert_json_response(response, 200, public_slain=True)
 
     def test_patch_by_superuser_returns_200(self):
         """Test that a superuser can also use this endpoint."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
 
-        response = self._patch(self.client, {'slain': True}, token=token)
+        response = self._patch(self.client, {'public_slain': True}, token=token)
 
-        assert_json_response(response, 200, slain=True)
+        assert_json_response(response, 200, public_slain=True)
 
     def test_patch_public_description_by_player_of_game_returns_200(self):
         """Test that a player of the game can update `public_description`."""
@@ -249,16 +250,16 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
         assert self.npc.name == 'Saruman'
         assert self.npc.role == 'Dark Wizard'
 
-    def test_patch_allegiance_by_player_of_game_returns_200(self):
-        """Test that a player of the game can update `allegiance` (writes public_allegiance)."""
+    def test_patch_public_allegiance_by_player_of_game_returns_200(self):
+        """Test that a player of the game can update `public_allegiance`."""
         token = Token.objects.create(user=self.player_user)
 
-        response = self._patch(self.client, {'allegiance': 'enemy'}, token=token)
+        response = self._patch(self.client, {'public_allegiance': 'enemy'}, token=token)
 
         assert response.status_code == 200
         self.npc.refresh_from_db()
         assert self.npc.public_allegiance == 'enemy'
-        assert self.npc.allegiance == 'neutral'
+        assert self.npc.private_allegiance == 'neutral'
 
     def test_patch_links_by_player_of_game_returns_200(self):
         """Test that a player of the game can create a link via `links`."""
@@ -283,8 +284,8 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
                 'name': 'Saruman',
                 'role': 'Dark Wizard',
                 'public_description': 'A wandering wizard.',
-                'allegiance': 'ally',
-                'slain': True,
+                'public_allegiance': 'ally',
+                'public_slain': True,
                 'links': [{'text': 'Loot table', 'url': 'http://example.com/loot'}],
             },
             token=token,
@@ -309,12 +310,12 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
 
         assert response.status_code == 200
 
-    def test_patch_allegiance_by_superuser_returns_200(self):
-        """Test that a superuser can also update `allegiance`."""
+    def test_patch_public_allegiance_by_superuser_returns_200(self):
+        """Test that a superuser can also update `public_allegiance`."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
 
-        response = self._patch(self.client, {'allegiance': 'ally'}, token=token)
+        response = self._patch(self.client, {'public_allegiance': 'ally'}, token=token)
 
         assert response.status_code == 200
 
@@ -323,32 +324,32 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
         other_user = UserFactory(username='other', password='secret-password')
         token = Token.objects.create(user=other_user)
 
-        response = self._patch(self.client, {'slain': True}, token=token)
+        response = self._patch(self.client, {'public_slain': True}, token=token)
 
         assert response.status_code == 403
         self.npc.refresh_from_db()
         assert self.npc.public_slain is False
 
-    def test_patch_sets_public_slain_and_leaves_real_slain_untouched(self):
-        """Test that {"slain": true} sets public_slain but not the real slain field."""
+    def test_patch_sets_public_slain_and_leaves_private_slain_untouched(self):
+        """Test that {"public_slain": true} sets public_slain but not private_slain."""
         token = Token.objects.create(user=self.player_user)
 
-        response = self._patch(self.client, {'slain': True}, token=token)
+        response = self._patch(self.client, {'public_slain': True}, token=token)
 
         assert response.status_code == 200
         self.npc.refresh_from_db()
         assert self.npc.public_slain is True
-        assert self.npc.slain is False
+        assert self.npc.private_slain is False
 
     def test_patch_sets_public_slain_back_to_false(self):
-        """Test that {"slain": false} reverts a slain NPC's public_slain to False."""
+        """Test that {"public_slain": false} reverts a slain NPC's public_slain to False."""
         self.npc.public_slain = True
         self.npc.save()
         token = Token.objects.create(user=self.player_user)
 
-        response = self._patch(self.client, {'slain': False}, token=token)
+        response = self._patch(self.client, {'public_slain': False}, token=token)
 
-        assert_json_response(response, 200, slain=False)
+        assert_json_response(response, 200, public_slain=False)
         self.npc.refresh_from_db()
         assert self.npc.public_slain is False
 
@@ -363,11 +364,11 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
         response = self._patch(
             self.client,
             {
-                'slain': True,
+                'public_slain': True,
                 'money': 999,
                 'private_description': 'Secretly Saruman.',
                 'public_allegiance': 'enemy',
-                'allegiance': 'enemy',
+                'private_allegiance': 'enemy',
             },
             token=token,
         )
@@ -378,14 +379,14 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
         assert self.npc.money == 0
         assert self.npc.private_description == ''
         assert self.npc.public_allegiance == 'enemy'
-        assert self.npc.allegiance == 'neutral'
+        assert self.npc.private_allegiance == 'neutral'
 
     def test_patch_response_matches_get_detail_shape(self):
         """Test that the PATCH response has the same shape as the GET detail response."""
         token = Token.objects.create(user=self.player_user)
 
         get_response = self.get(self.client, self._url())
-        patch_response = self._patch(self.client, {'slain': True}, token=token)
+        patch_response = self._patch(self.client, {'public_slain': True}, token=token)
 
         get_data = assert_json_response(get_response, 200)
         patch_data = assert_json_response(patch_response, 200)
@@ -394,7 +395,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
     def test_patch_response_includes_x_skip_cache_header(self):
         """Test that the PATCH response includes the X-Skip-Cache: true header."""
         token = Token.objects.create(user=self.player_user)
-        response = self._patch(self.client, {'slain': True}, token=token)
+        response = self._patch(self.client, {'public_slain': True}, token=token)
         assert response['X-Skip-Cache'] == 'true'
 
     def test_patch_on_pc_id_returns_404(self):
@@ -402,7 +403,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
         pc = CharacterFactory(name='Aragorn', game=self.game, npc=False)
         token = Token.objects.create(user=self.player_user)
 
-        response = self._patch(self.client, {'slain': True}, token=token, character=pc)
+        response = self._patch(self.client, {'public_slain': True}, token=token, character=pc)
 
         assert response.status_code == 404
 
@@ -430,7 +431,7 @@ class TestGameNpcPlayerUpdateHiddenGate(TokenAuthRequestMixin, TestCase):
         """Test that a player of the game (not an editor) gets 404 for a hidden NPC."""
         token = Token.objects.create(user=self.player_user)
 
-        response = self.patch(self.client, self._url(), {'slain': True}, token=token)
+        response = self.patch(self.client, self._url(), {'public_slain': True}, token=token)
 
         assert response.status_code == 404
 
@@ -438,6 +439,6 @@ class TestGameNpcPlayerUpdateHiddenGate(TokenAuthRequestMixin, TestCase):
         """Test that a DM can still PATCH a hidden NPC's slain state."""
         token = Token.objects.create(user=self.dm_user)
 
-        response = self.patch(self.client, self._url(), {'slain': True}, token=token)
+        response = self.patch(self.client, self._url(), {'public_slain': True}, token=token)
 
         assert response.status_code == 200

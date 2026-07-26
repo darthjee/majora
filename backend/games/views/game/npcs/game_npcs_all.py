@@ -24,7 +24,10 @@ def game_npcs_all(request, game_slug):
         return error_response
     npcs = game.characters.filter(npc=True)
     npcs = _filter_characters(
-        request, npcs, allegiance_field='allegiance', slain_field='slain', hidden_field='hidden',
+        request, npcs,
+        allegiance_fields=('public_allegiance', 'private_allegiance'),
+        slain_fields=('public_slain', 'private_slain'),
+        hidden_field='hidden',
     )
     npcs = _with_treasure_value(npcs)
     response = paginated_list_response(request, npcs, CharacterFullListSerializer)

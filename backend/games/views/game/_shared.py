@@ -39,8 +39,8 @@ def _hidden_gate_response(character, request):
 
 
 def _filter_by_slain(request, queryset, slain_field):
-    """Narrow `queryset` by the optional `slain` query param, when it's `true`/`false`."""
-    slain = request.query_params.get('slain')
+    """Narrow `queryset` by `slain_field`, read from an identically-named query param."""
+    slain = request.query_params.get(slain_field)
     if slain is not None and slain.lower() in ('true', 'false'):
         return queryset.filter(**{slain_field: (slain.lower() == 'true')})
     return queryset
@@ -55,8 +55,8 @@ def _filter_by_character_name(request, queryset):
 
 
 def _filter_by_allegiance(request, queryset, allegiance_field):
-    """Narrow `queryset` by the optional `allegiance` query param, when it's a recognized value."""
-    allegiance = request.query_params.get('allegiance')
+    """Narrow `queryset` by `allegiance_field`, read from an identically-named query param."""
+    allegiance = request.query_params.get(allegiance_field)
     allowed_allegiances = (
         Character.ALLEGIANCE_ALLY,
         Character.ALLEGIANCE_ENEMY,
@@ -78,11 +78,18 @@ def _filter_by_hidden(request, queryset, hidden_field):
 
 
 def _filter_characters(
-    request, queryset, allegiance_field='public_allegiance', slain_field='public_slain',
+    request, queryset, allegiance_fields=('public_allegiance',), slain_fields=('public_slain',),
     hidden_field=None,
 ):
-    """Narrow `queryset` by the optional `slain`/`name`/`allegiance`/`hidden` query params."""
-    queryset = _filter_by_slain(request, queryset, slain_field)
+    """Narrow `queryset` by slain/name/allegiance/hidden query params.
+
+    `slain_fields`/`allegiance_fields` list the model fields to filter by (each read from an
+    identically-named query param), applied as an AND — e.g. passing both `public_slain` and
+    `private_slain` filters on both independently.
+    """
+    for slain_field in slain_fields:
+        queryset = _filter_by_slain(request, queryset, slain_field)
     queryset = _filter_by_character_name(request, queryset)
-    queryset = _filter_by_allegiance(request, queryset, allegiance_field)
+    for allegiance_field in allegiance_fields:
+        queryset = _filter_by_allegiance(request, queryset, allegiance_field)
     return _filter_by_hidden(request, queryset, hidden_field)

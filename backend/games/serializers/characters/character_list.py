@@ -13,8 +13,6 @@ class CharacterListSerializer(serializers.ModelSerializer):
     profile_photo_path = serializers.CharField(
         source='profile_photo.path', default=None, read_only=True
     )
-    slain = serializers.BooleanField(source='public_slain', read_only=True)
-    allegiance = serializers.CharField(source='public_allegiance', read_only=True)
     treasure_value = serializers.SerializerMethodField()
 
     class Meta:
@@ -22,7 +20,7 @@ class CharacterListSerializer(serializers.ModelSerializer):
 
         model = Character
         fields = [
-            'id', 'name', 'game_slug', 'profile_photo_path', 'slain', 'allegiance',
+            'id', 'name', 'game_slug', 'profile_photo_path', 'public_slain', 'public_allegiance',
             'treasure_value',
         ]
 

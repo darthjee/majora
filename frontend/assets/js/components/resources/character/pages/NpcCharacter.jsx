@@ -11,7 +11,7 @@ import PlayerSlainConfirmController from './elements/controllers/PlayerSlainConf
  * slain-toggle field (real or public), plugging into the shared character
  * detail page's refresh effect.
  *
- * @param {'slain'|'public_slain'} field - Character field this pair toggles.
+ * @param {'private_slain'|'public_slain'} field - Character field this pair toggles.
  * @param {object|null} character - Loaded character, or null while still loading.
  * @param {import('./controllers/NpcCharacterController.js').default} controller - Detail controller,
  *   whose effect is re-run to refresh the character after toggling.
@@ -81,7 +81,7 @@ function usePlayerSlainToggle(character, controller) {
  *   modals for the shared detail page.
  */
 function useSlainExtra(character, controller) {
-  const slain = useSlainTogglePair('slain', character, controller);
+  const slain = useSlainTogglePair('private_slain', character, controller);
   const publicSlain = useSlainTogglePair('public_slain', character, controller);
   const playerSlain = usePlayerSlainToggle(character, controller);
 
@@ -95,7 +95,7 @@ function useSlainExtra(character, controller) {
       <>
         <SlainConfirmModal
           show={slain.show}
-          slain={character.slain}
+          slain={character.private_slain}
           onCancel={slain.close}
           onConfirm={slain.confirm}
         />
@@ -108,7 +108,7 @@ function useSlainExtra(character, controller) {
         />
         <SlainConfirmModal
           show={playerSlain.show}
-          slain={character.slain}
+          slain={character.public_slain}
           onCancel={playerSlain.close}
           onConfirm={playerSlain.confirm}
         />

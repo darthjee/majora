@@ -58,7 +58,7 @@ export default class SlainSecondaryButtons {
    * slain/revive second).
    *
    * @param {object} character - Character data object.
-   * @param {boolean} [character.slain] - The character's real slain state.
+   * @param {boolean} [character.private_slain] - The character's real slain state.
    * @param {boolean} [character.public_slain] - The character's public slain state.
    * @param {Function} onSlainClick - Click handler for the real slain/revive button.
    * @param {Function} onPublicSlainClick - Click handler for the public slain/revive button.
@@ -67,7 +67,7 @@ export default class SlainSecondaryButtons {
    */
   static buildDmButtons(character, onSlainClick, onPublicSlainClick) {
     return [
-      SlainSecondaryButtons.buildSlainButton(character.slain, onSlainClick),
+      SlainSecondaryButtons.buildSlainButton(character.private_slain, onSlainClick),
       SlainSecondaryButtons.buildPublicSlainButton(character.public_slain, onPublicSlainClick),
     ];
   }

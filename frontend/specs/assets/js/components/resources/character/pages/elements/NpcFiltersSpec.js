@@ -32,13 +32,16 @@ describe('NpcFilters', function() {
     );
 
     expect(getCaptured().state).toEqual({
-      status: '', name: '', allegiance: '', hidden: '', canEdit: false,
+      status: '', name: '', allegiance: '', hidden: '', privateStatus: '', privateAllegiance: '', canEdit: false,
     });
   });
 
   it('pre-populates draft fields from the hash query params (deep link)', function() {
     globalThis.window = {
-      location: { hash: '#/games/demo/npcs?slain=true&name=gob&allegiance=ally&hidden=true' },
+      location: {
+        hash: '#/games/demo/npcs?public_slain=true&name=gob&public_allegiance=ally&hidden=true'
+          + '&private_slain=false&private_allegiance=enemy',
+      },
     };
     const getCaptured = captureHandlers();
 
@@ -47,12 +50,20 @@ describe('NpcFilters', function() {
     );
 
     expect(getCaptured().state).toEqual({
-      status: 'slain', name: 'gob', allegiance: 'ally', hidden: 'hidden', canEdit: false,
+      status: 'slain',
+      name: 'gob',
+      allegiance: 'ally',
+      hidden: 'hidden',
+      privateStatus: 'alive',
+      privateAllegiance: 'enemy',
+      canEdit: false,
     });
   });
 
   it('calls onQuery with the built query when the Query handler runs', function() {
-    globalThis.window = { location: { hash: '#/games/demo/npcs?slain=true&name=gob&allegiance=ally' } };
+    globalThis.window = {
+      location: { hash: '#/games/demo/npcs?public_slain=true&name=gob&public_allegiance=ally' },
+    };
     const onQuery = jasmine.createSpy('onQuery');
     const getCaptured = captureHandlers();
 
@@ -61,7 +72,7 @@ describe('NpcFilters', function() {
     );
     getCaptured().handlers.onQuery();
 
-    expect(onQuery).toHaveBeenCalledWith({ slain: 'true', name: 'gob', allegiance: 'ally' });
+    expect(onQuery).toHaveBeenCalledWith({ public_slain: 'true', name: 'gob', public_allegiance: 'ally' });
   });
 
   it('calls onQuery with the built hidden filter when set', function() {
@@ -78,7 +89,7 @@ describe('NpcFilters', function() {
   });
 
   it('calls onClear when the Clear handler runs', function() {
-    globalThis.window = { location: { hash: '#/games/demo/npcs?slain=true&name=gob' } };
+    globalThis.window = { location: { hash: '#/games/demo/npcs?public_slain=true&name=gob' } };
     const onClear = jasmine.createSpy('onClear');
     const getCaptured = captureHandlers();
 

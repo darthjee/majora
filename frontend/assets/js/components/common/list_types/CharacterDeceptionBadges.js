@@ -17,21 +17,21 @@ import CharacterStatusBadges from './CharacterStatusBadges.js';
 export default class CharacterDeceptionBadges {
   /**
    * Build the allegiance-deception badge definition, or `null` when
-   * `character.allegiance`/`character.public_allegiance` are missing, equal,
+   * `character.private_allegiance`/`character.public_allegiance` are missing, equal,
    * or either one is `'neutral'` — a neutral allegiance isn't a claimed side
    * that turns out false, so it never counts as deception.
    *
    * @param {object} character - Character data object.
-   * @param {string} [character.allegiance] - The character's real allegiance.
+   * @param {string} [character.private_allegiance] - The character's real allegiance.
    * @param {string} [character.public_allegiance] - The character's public allegiance.
    * @returns {{icon: string, items: object[]}|null} The badge definition, or null.
    */
   static buildAllegianceDeception(character) {
-    if (!CharacterDeceptionBadges.#differs(character.allegiance, character.public_allegiance)) {
+    if (!CharacterDeceptionBadges.#differs(character.private_allegiance, character.public_allegiance)) {
       return null;
     }
 
-    if (character.allegiance === 'neutral' || character.public_allegiance === 'neutral') {
+    if (character.private_allegiance === 'neutral' || character.public_allegiance === 'neutral') {
       return null;
     }
 
@@ -47,15 +47,15 @@ export default class CharacterDeceptionBadges {
 
   /**
    * Build the slain-deception badge definition, or `null` when
-   * `character.slain`/`character.public_slain` are missing or equal.
+   * `character.private_slain`/`character.public_slain` are missing or equal.
    *
    * @param {object} character - Character data object.
-   * @param {boolean} [character.slain] - The character's real slain state.
+   * @param {boolean} [character.private_slain] - The character's real slain state.
    * @param {boolean} [character.public_slain] - The character's public slain state.
    * @returns {{icon: string, items: object[]}|null} The badge definition, or null.
    */
   static buildSlainDeception(character) {
-    if (!CharacterDeceptionBadges.#differs(character.slain, character.public_slain)) {
+    if (!CharacterDeceptionBadges.#differs(character.private_slain, character.public_slain)) {
       return null;
     }
 

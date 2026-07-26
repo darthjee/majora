@@ -150,14 +150,14 @@ character_full_page:
 character_info:
   role_label: 'Função:'
 character_status_badges:
-  slain: Morto
-  alive: Vivo
+  private_slain: Morto
+  private_alive: Vivo
   public_slain: Conhecido como Morto
   public_alive: Conhecido como Vivo
   hidden: Oculto
-  enemy: Inimigo
-  ally: Aliado
-  neutral: Neutro
+  private_enemy: Inimigo
+  private_ally: Aliado
+  private_neutral: Neutro
   public_enemy: Conhecido como Inimigo
   public_ally: Conhecido como Aliado
   public_neutral: Conhecido como Neutro
@@ -211,7 +211,7 @@ npc_edit_page:
   description_label: Descrição
   private_description_label: Notas do Mestre
   hidden_label: Personagem Oculto
-  allegiance_label: Aliança
+  private_allegiance_label: Aliança
   public_allegiance_label: Aliança Pública
   allegiance_ally: Aliado
   allegiance_enemy: Inimigo
@@ -599,16 +599,23 @@ game_npcs_page:
   loading: Carregando...
   title: NPCs
   new_npc: Novo NPC
-  filter_status_label: Status
-  filter_status_alive: Vivo
-  filter_status_slain: Morto
+  filter_public_status_label: Status
+  filter_public_status_alive: Vivo
+  filter_public_status_slain: Morto
   filter_hidden_label: Oculto
   filter_hidden_shown: Visível
   filter_hidden_only: Oculto
-  filter_allegiance_label: Aliança
-  filter_allegiance_ally: Aliado
-  filter_allegiance_enemy: Inimigo
-  filter_allegiance_neutral: Neutro
+  filter_public_allegiance_label: Aliança
+  filter_public_allegiance_ally: Aliado
+  filter_public_allegiance_enemy: Inimigo
+  filter_public_allegiance_neutral: Neutro
+  filter_private_status_label: Status Real
+  filter_private_status_alive: Vivo
+  filter_private_status_slain: Morto
+  filter_private_allegiance_label: Aliança Real
+  filter_private_allegiance_ally: Aliado
+  filter_private_allegiance_enemy: Inimigo
+  filter_private_allegiance_neutral: Neutro
   filter_name_label: Nome
   filter_name_placeholder: Buscar por nome...
   filter_query: Filtrar
@@ -620,7 +627,7 @@ game_npc_new_page:
   description_label: Descrição
   private_description_label: Notas do Mestre
   hidden_label: Personagem Oculto
-  allegiance_label: Aliança
+  private_allegiance_label: Aliança
   public_allegiance_label: Aliança Pública
   allegiance_ally: Aliado
   allegiance_enemy: Inimigo

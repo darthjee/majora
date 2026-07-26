@@ -32,31 +32,31 @@ class TestNpcPlayerUpdateSerializer(TestCase):
         updated = serializer.save()
         assert updated.public_description == 'A wandering wizard.'
 
-    def test_allegiance_is_writable(self):
-        """Test that an `allegiance`-only payload writes `public_allegiance`."""
+    def test_public_allegiance_is_writable(self):
+        """Test that a `public_allegiance`-only payload writes `public_allegiance`."""
         serializer = NpcPlayerUpdateSerializer(
-            self.npc, data={'allegiance': 'enemy'}, partial=True
+            self.npc, data={'public_allegiance': 'enemy'}, partial=True
         )
         assert serializer.is_valid()
         updated = serializer.save()
         assert updated.public_allegiance == 'enemy'
-        assert updated.allegiance == 'neutral'
+        assert updated.private_allegiance == 'neutral'
 
-    def test_invalid_allegiance_is_rejected(self):
-        """Test that an unknown allegiance choice produces a validation error."""
+    def test_invalid_public_allegiance_is_rejected(self):
+        """Test that an unknown public_allegiance choice produces a validation error."""
         serializer = NpcPlayerUpdateSerializer(
-            self.npc, data={'allegiance': 'unknown'}, partial=True
+            self.npc, data={'public_allegiance': 'unknown'}, partial=True
         )
         assert not serializer.is_valid()
-        assert 'allegiance' in serializer.errors
+        assert 'public_allegiance' in serializer.errors
 
-    def test_slain_is_writable(self):
-        """Test that a `slain`-only payload writes `public_slain`, leaving `slain` untouched."""
-        serializer = NpcPlayerUpdateSerializer(self.npc, data={'slain': True}, partial=True)
+    def test_public_slain_is_writable(self):
+        """Test that a `public_slain`-only payload writes it, leaving `private_slain` untouched."""
+        serializer = NpcPlayerUpdateSerializer(self.npc, data={'public_slain': True}, partial=True)
         assert serializer.is_valid()
         updated = serializer.save()
         assert updated.public_slain is True
-        assert updated.slain is False
+        assert updated.private_slain is False
 
     def test_combined_payload_updates_every_field(self):
         """Test that a payload combining every field applies all of them together."""
@@ -66,8 +66,8 @@ class TestNpcPlayerUpdateSerializer(TestCase):
                 'name': 'Saruman',
                 'role': 'Wizard',
                 'public_description': 'A wandering wizard.',
-                'allegiance': 'ally',
-                'slain': True,
+                'public_allegiance': 'ally',
+                'public_slain': True,
                 'links': [{'text': 'Official Wiki', 'url': 'http://example.com/wiki'}],
             },
             partial=True,
@@ -115,21 +115,23 @@ class TestNpcPlayerUpdateSerializer(TestCase):
         updated = serializer.save()
         assert updated.private_description == ''
 
-    def test_real_slain_is_not_writable(self):
-        """Test that the real `slain` field cannot be set through this serializer."""
-        serializer = NpcPlayerUpdateSerializer(self.npc, data={'slain': True}, partial=True)
-        assert serializer.is_valid()
-        updated = serializer.save()
-        assert updated.slain is False
-
-    def test_real_allegiance_is_not_writable(self):
-        """Test that the real `allegiance` field cannot be set through this serializer."""
+    def test_private_slain_is_not_writable(self):
+        """Test that `private_slain` cannot be set through this serializer."""
         serializer = NpcPlayerUpdateSerializer(
-            self.npc, data={'allegiance': 'enemy'}, partial=True
+            self.npc, data={'private_slain': True}, partial=True
         )
         assert serializer.is_valid()
         updated = serializer.save()
-        assert updated.allegiance == 'neutral'
+        assert updated.private_slain is False
+
+    def test_private_allegiance_is_not_writable(self):
+        """Test that `private_allegiance` cannot be set through this serializer."""
+        serializer = NpcPlayerUpdateSerializer(
+            self.npc, data={'private_allegiance': 'enemy'}, partial=True
+        )
+        assert serializer.is_valid()
+        updated = serializer.save()
+        assert updated.private_allegiance == 'neutral'
 
 
 class TestNpcPlayerUpdateSerializerLinks(TestCase):
