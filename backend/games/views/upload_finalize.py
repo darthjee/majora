@@ -39,12 +39,13 @@ def upload_finalize(request, upload_type, upload_id):
     upload = _find_upload(upload_id)
     if upload is None:
         return _FORBIDDEN
-    if upload.upload_type != upload_type:
-        return Response(status=status.HTTP_404_NOT_FOUND)
 
     error = _validate_upload(request, upload)
     if error:
         return error
+
+    if upload.upload_type != upload_type:
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
     new_status = request.data.get('status')
     if new_status not in _VALID_STATUSES:

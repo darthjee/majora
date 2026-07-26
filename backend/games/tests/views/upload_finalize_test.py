@@ -1071,6 +1071,44 @@ class TestUploadFinalizeView(TestCase):
         )
         assert response.status_code == 404
 
+    def test_mismatched_upload_type_without_valid_token_returns_403(self):
+        """Test that a wrong upload token with a mismatched type still returns 403, not 404."""
+        response = self._patch(
+            self.client,
+            self.upload.id,
+            {'status': 'uploading'},
+            token=self.dm_token,
+            upload_token='wrong-token',
+            upload_type='file',
+        )
+        assert response.status_code == 403
+
+    def test_mismatched_upload_type_by_non_owner_returns_403(self):
+        """Test that a non-owner (with a valid token) and a mismatched type returns 403."""
+        other_user = UserFactory(username='other_type', password='secret-password')
+        other_token = Token.objects.create(user=other_user)
+        response = self._patch(
+            self.client,
+            self.upload.id,
+            {'status': 'uploading'},
+            token=other_token,
+            upload_token=self.upload.token,
+            upload_type='file',
+        )
+        assert response.status_code == 403
+
+    def test_unrecognized_upload_type_url_segment_returns_404(self):
+        """Test that an unrecognized `upload_type` URL segment 404s at routing level."""
+        response = self._patch(
+            self.client,
+            self.upload.id,
+            {'status': 'uploading'},
+            token=self.dm_token,
+            upload_token=self.upload.token,
+            upload_type='bogus',
+        )
+        assert response.status_code == 404
+
     def _valid_document_file_patch(self, client, payload=None):
         """Issue a valid PATCH request for the document file upload, owned by the DM."""
         if payload is None:
