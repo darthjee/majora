@@ -73,7 +73,7 @@ describe('CharacterEdit', function() {
       description: 'A brave hero.',
       privateDescription: 'DM notes.',
       money: '310',
-      allegiance: 'ally',
+      privateAllegiance: 'ally',
       publicAllegiance: 'enemy',
       publicSlain: false,
       status: 'idle',
@@ -86,7 +86,7 @@ describe('CharacterEdit', function() {
       onDescriptionChange: Noop.noop,
       onPrivateDescriptionChange: Noop.noop,
       onMoneyChange: Noop.noop,
-      onAllegianceChange: Noop.noop,
+      onPrivateAllegianceChange: Noop.noop,
       onPublicAllegianceChange: Noop.noop,
       onPublicSlainChange: Noop.noop,
       onOpenUploadModal: Noop.noop,
@@ -102,7 +102,7 @@ describe('CharacterEdit', function() {
     expect(html).toContain('29');
   });
 
-  it('passes allegiance/publicAllegiance state and change handlers into EditHelper.render', function() {
+  it('passes privateAllegiance/publicAllegiance state and change handlers into EditHelper.render', function() {
     let captured;
     spyOn(EditHelper, 'render').and.callFake((state, handlers) => {
       captured = { state, handlers };
@@ -118,12 +118,12 @@ describe('CharacterEdit', function() {
       })
     );
 
-    expect(captured.state.allegiance).toBe('neutral');
+    expect(captured.state.privateAllegiance).toBe('neutral');
     expect(captured.state.publicAllegiance).toBe('neutral');
-    expect(typeof captured.handlers.onAllegianceChange).toBe('function');
+    expect(typeof captured.handlers.onPrivateAllegianceChange).toBe('function');
     expect(typeof captured.handlers.onPublicAllegianceChange).toBe('function');
 
-    captured.handlers.onAllegianceChange({ target: { value: 'ally' } });
+    captured.handlers.onPrivateAllegianceChange({ target: { value: 'ally' } });
     captured.handlers.onPublicAllegianceChange({ target: { value: 'enemy' } });
   });
 

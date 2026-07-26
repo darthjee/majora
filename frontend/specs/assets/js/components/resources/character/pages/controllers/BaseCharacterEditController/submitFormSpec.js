@@ -39,7 +39,7 @@ describe('BaseCharacterEditController', function() {
             role: 'Fighter',
             description: 'A brave hero', privateDescription: 'DM notes',
             money: '310',
-            allegiance: 'ally',
+            privateAllegiance: 'ally',
             publicAllegiance: 'enemy',
             publicSlain: true,
             hidden: true,
@@ -67,7 +67,7 @@ describe('BaseCharacterEditController', function() {
             role: 'Fighter',
             public_description: 'A brave hero', private_description: 'DM notes',
             money: 310,
-            allegiance: 'ally',
+            private_allegiance: 'ally',
             public_allegiance: 'enemy',
             public_slain: true,
             hidden: true,
@@ -175,7 +175,7 @@ describe('BaseCharacterEditController', function() {
               role: 'Shopkeeper',
               description: 'A brave hero', privateDescription: 'Ignored DM notes',
               money: '999',
-              allegiance: 'ally',
+              privateAllegiance: 'ally',
               publicAllegiance: 'enemy',
               publicSlain: true,
               links: [
@@ -197,13 +197,13 @@ describe('BaseCharacterEditController', function() {
               name: 'Grumbleknuckle',
               role: 'Shopkeeper',
               public_description: 'A brave hero',
-              allegiance: 'enemy',
+              public_allegiance: 'enemy',
               links: [
                 {
                   id: 12, text: 'Loot table', url: 'https://example.com/loot', link_type: 'lootstudio', delete: false,
                 },
               ],
-              slain: true,
+              public_slain: true,
             },
           });
         } finally {

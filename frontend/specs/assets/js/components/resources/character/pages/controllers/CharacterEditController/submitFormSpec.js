@@ -2,7 +2,7 @@ import RequestStore from '../../../../../../../../../assets/js/utils/requests/Re
 import { KINDS } from './support.js';
 
 KINDS.forEach(({
-  label, Controller, kind, name, role, description, allegiance, publicAllegiance, publicSlain, hidden,
+  label, Controller, kind, name, role, description, privateAllegiance, publicAllegiance, publicSlain, hidden,
 }) => {
   const resource = kind === 'npcs' ? 'npc' : 'pc';
 
@@ -56,7 +56,7 @@ KINDS.forEach(({
             description,
             privateDescription: 'Secret notes',
             money: '310',
-            allegiance,
+            privateAllegiance,
             publicAllegiance,
             publicSlain,
             hidden,
@@ -81,7 +81,7 @@ KINDS.forEach(({
         };
 
         if (kind === 'npcs') {
-          expectedFields.allegiance = allegiance;
+          expectedFields.private_allegiance = privateAllegiance;
           expectedFields.public_allegiance = publicAllegiance;
           expectedFields.public_slain = publicSlain;
           expectedFields.hidden = hidden;

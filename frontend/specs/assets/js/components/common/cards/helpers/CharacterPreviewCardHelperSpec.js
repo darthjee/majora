@@ -41,7 +41,7 @@ describe('CharacterPreviewCardHelper', function() {
     });
 
     it('applies grayscale for a slain character', function() {
-      const c = { ...character, slain: true };
+      const c = { ...character, private_slain: true };
       const html = renderToStaticMarkup(CharacterPreviewCardHelper.render(c, gameSlug, 'npc'));
       expect(html).toContain('photo-grayscale');
     });
@@ -52,19 +52,19 @@ describe('CharacterPreviewCardHelper', function() {
     });
 
     it('applies the green border class for an allied NPC', function() {
-      const c = { ...character, allegiance: 'ally' };
+      const c = { ...character, private_allegiance: 'ally' };
       const html = renderToStaticMarkup(CharacterPreviewCardHelper.render(c, gameSlug, 'npc'));
       expect(html).toContain('border-success');
     });
 
     it('applies the red border class for an enemy NPC', function() {
-      const c = { ...character, allegiance: 'enemy' };
+      const c = { ...character, private_allegiance: 'enemy' };
       const html = renderToStaticMarkup(CharacterPreviewCardHelper.render(c, gameSlug, 'npc'));
       expect(html).toContain('border-danger');
     });
 
     it('applies the gray border class for a neutral NPC', function() {
-      const c = { ...character, allegiance: 'neutral' };
+      const c = { ...character, private_allegiance: 'neutral' };
       const html = renderToStaticMarkup(CharacterPreviewCardHelper.render(c, gameSlug, 'npc'));
       expect(html).toContain('border-secondary');
     });
@@ -75,7 +75,7 @@ describe('CharacterPreviewCardHelper', function() {
     });
 
     it('does not apply any border class for a PC, regardless of allegiance', function() {
-      const c = { ...character, allegiance: 'enemy' };
+      const c = { ...character, private_allegiance: 'enemy' };
       const html = renderToStaticMarkup(CharacterPreviewCardHelper.render(c, gameSlug, 'pc'));
       expect(html).not.toContain('border-success');
       expect(html).not.toContain('border-danger');

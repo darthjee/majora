@@ -236,9 +236,12 @@ describe('HashRouteResolver', function() {
 
   it('extracts filter params only', function() {
     const params = new HashRouteResolver(
-      () => '#/games/campaign/npcs?slain=true&name=gob&allegiance=ally&page=2',
+      () => '#/games/campaign/npcs?public_slain=true&private_slain=false&name=gob'
+        + '&public_allegiance=ally&private_allegiance=enemy&page=2',
     ).getFilterParams();
-    expect(params.toString()).toBe('slain=true&name=gob&allegiance=ally');
+    expect(params.toString()).toBe(
+      'public_slain=true&private_slain=false&name=gob&public_allegiance=ally&private_allegiance=enemy',
+    );
   });
 
   it('extracts the npc hidden filter param', function() {

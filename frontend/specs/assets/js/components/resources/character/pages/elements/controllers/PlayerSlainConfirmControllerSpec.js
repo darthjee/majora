@@ -16,7 +16,7 @@ describe('PlayerSlainConfirmController', function() {
         Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({}) }),
       );
       const controller = new PlayerSlainConfirmController(onSuccess);
-      const character = { id: 7, slain: false };
+      const character = { id: 7, public_slain: false };
 
       await controller.handleConfirm('demo', character, 'auth-token');
 
@@ -26,7 +26,7 @@ describe('PlayerSlainConfirmController', function() {
         method: 'PATCH',
         quantityType: 'single',
         params: { gameSlug: 'demo', id: 7 },
-        body: { slain: true },
+        body: { public_slain: true },
         variantName: 'regular',
       });
     });
@@ -36,12 +36,12 @@ describe('PlayerSlainConfirmController', function() {
         Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({}) }),
       );
       const controller = new PlayerSlainConfirmController(onSuccess);
-      const character = { id: 7, slain: true };
+      const character = { id: 7, public_slain: true };
 
       await controller.handleConfirm('demo', character, 'auth-token');
 
       expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
-        body: { slain: false },
+        body: { public_slain: false },
       }));
     });
 
@@ -52,7 +52,7 @@ describe('PlayerSlainConfirmController', function() {
       );
       const controller = new PlayerSlainConfirmController(onSuccess);
 
-      await controller.handleConfirm('demo', { id: 7, slain: false }, 'auth-token');
+      await controller.handleConfirm('demo', { id: 7, public_slain: false }, 'auth-token');
 
       expect(RequestStore.purge).toHaveBeenCalledWith({ resource: 'npc' });
       expect(onSuccess).toHaveBeenCalled();
@@ -65,7 +65,7 @@ describe('PlayerSlainConfirmController', function() {
       );
       const controller = new PlayerSlainConfirmController(onSuccess);
 
-      await controller.handleConfirm('demo', { id: 7, slain: false }, 'auth-token');
+      await controller.handleConfirm('demo', { id: 7, public_slain: false }, 'auth-token');
 
       expect(RequestStore.purge).not.toHaveBeenCalled();
       expect(onSuccess).not.toHaveBeenCalled();
@@ -76,7 +76,7 @@ describe('PlayerSlainConfirmController', function() {
       const controller = new PlayerSlainConfirmController(onSuccess);
 
       await expectAsync(
-        controller.handleConfirm('demo', { id: 7, slain: false }, 'auth-token'),
+        controller.handleConfirm('demo', { id: 7, public_slain: false }, 'auth-token'),
       ).toBeRejected();
 
       expect(onSuccess).not.toHaveBeenCalled();

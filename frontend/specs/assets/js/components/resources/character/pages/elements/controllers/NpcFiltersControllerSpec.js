@@ -76,9 +76,9 @@ describe('NpcFiltersController', function() {
       expect(controller.buildQuery('', '', '')).toEqual({});
     });
 
-    it('includes slain when status is not blank', function() {
-      expect(controller.buildQuery('alive', '', '')).toEqual({ slain: 'false' });
-      expect(controller.buildQuery('slain', '', '')).toEqual({ slain: 'true' });
+    it('includes public_slain when status is not blank', function() {
+      expect(controller.buildQuery('alive', '', '')).toEqual({ public_slain: 'false' });
+      expect(controller.buildQuery('slain', '', '')).toEqual({ public_slain: 'true' });
     });
 
     it('includes name when non-blank, trimmed', function() {
@@ -89,14 +89,59 @@ describe('NpcFiltersController', function() {
       expect(controller.buildQuery('', '   ', '')).toEqual({});
     });
 
-    it('includes allegiance when non-blank', function() {
-      expect(controller.buildQuery('', '', 'ally')).toEqual({ allegiance: 'ally' });
+    it('includes public_allegiance when non-blank', function() {
+      expect(controller.buildQuery('', '', 'ally')).toEqual({ public_allegiance: 'ally' });
     });
 
-    it('includes all fields when set', function() {
+    it('includes all public fields when set', function() {
       expect(controller.buildQuery('slain', 'gob', 'enemy')).toEqual({
-        slain: 'true', name: 'gob', allegiance: 'enemy',
+        public_slain: 'true', name: 'gob', public_allegiance: 'enemy',
       });
+    });
+
+    it('includes private_slain/private_allegiance when the private draft fields are set', function() {
+      expect(controller.buildQuery('', '', '', '', 'slain', 'ally')).toEqual({
+        private_slain: 'true', private_allegiance: 'ally',
+      });
+    });
+
+    it('includes every field when all are set', function() {
+      expect(controller.buildQuery('slain', 'gob', 'enemy', 'shown', 'alive', 'ally')).toEqual({
+        public_slain: 'true',
+        name: 'gob',
+        public_allegiance: 'enemy',
+        hidden: 'false',
+        private_slain: 'false',
+        private_allegiance: 'ally',
+      });
+    });
+  });
+
+  describe('#handlePrivateStatusChange', function() {
+    it('sets the draft private status', function() {
+      const setPrivateStatus = jasmine.createSpy('setPrivateStatus');
+      const controller = new NpcFiltersController(
+        jasmine.createSpy('setStatus'), jasmine.createSpy('setName'), jasmine.createSpy('setAllegiance'),
+        jasmine.createSpy('setHidden'), setPrivateStatus,
+      );
+
+      controller.handlePrivateStatusChange('slain');
+
+      expect(setPrivateStatus).toHaveBeenCalledWith('slain');
+    });
+  });
+
+  describe('#handlePrivateAllegianceChange', function() {
+    it('sets the draft private allegiance', function() {
+      const setPrivateAllegiance = jasmine.createSpy('setPrivateAllegiance');
+      const controller = new NpcFiltersController(
+        jasmine.createSpy('setStatus'), jasmine.createSpy('setName'), jasmine.createSpy('setAllegiance'),
+        jasmine.createSpy('setHidden'), jasmine.createSpy('setPrivateStatus'), setPrivateAllegiance,
+      );
+
+      controller.handlePrivateAllegianceChange('ally');
+
+      expect(setPrivateAllegiance).toHaveBeenCalledWith('ally');
     });
   });
 
@@ -106,7 +151,11 @@ describe('NpcFiltersController', function() {
       const setName = jasmine.createSpy('setName');
       const setAllegiance = jasmine.createSpy('setAllegiance');
       const setHidden = jasmine.createSpy('setHidden');
-      const controller = new NpcFiltersController(setStatus, setName, setAllegiance, setHidden);
+      const setPrivateStatus = jasmine.createSpy('setPrivateStatus');
+      const setPrivateAllegiance = jasmine.createSpy('setPrivateAllegiance');
+      const controller = new NpcFiltersController(
+        setStatus, setName, setAllegiance, setHidden, setPrivateStatus, setPrivateAllegiance,
+      );
 
       controller.clear();
 
@@ -114,6 +163,8 @@ describe('NpcFiltersController', function() {
       expect(setName).toHaveBeenCalledWith('');
       expect(setAllegiance).toHaveBeenCalledWith('');
       expect(setHidden).toHaveBeenCalledWith('');
+      expect(setPrivateStatus).toHaveBeenCalledWith('');
+      expect(setPrivateAllegiance).toHaveBeenCalledWith('');
     });
   });
 

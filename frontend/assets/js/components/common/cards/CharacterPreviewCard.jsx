@@ -9,9 +9,17 @@ import CharacterPreviewCardHelper from './helpers/CharacterPreviewCardHelper.jsx
  * @param {number} props.character.id - Character ID.
  * @param {string} props.character.name - Character name.
  * @param {string|null} [props.character.profile_photo_path] - Optional profile photo path.
- * @param {boolean} [props.character.slain] - Whether the character is slain (NPC only).
- * @param {string} [props.character.allegiance] - Allegiance value (`'ally'`, `'enemy'`,
- *   `'neutral'`, or missing), drives the card border color for NPCs only.
+ * @param {boolean} [props.character.private_slain] - Whether the character is (really) slain
+ *   (NPC only, DM-facing data only).
+ * @param {boolean} [props.character.public_slain] - Whether the character is publicly slain
+ *   (NPC only); together with `private_slain`, drives the grayscale photo treatment (private
+ *   takes priority, falling back to public).
+ * @param {string} [props.character.private_allegiance] - The character's real allegiance
+ *   (`'ally'`, `'enemy'`, `'neutral'`, or missing), NPC only, DM-facing data only.
+ * @param {string} [props.character.public_allegiance] - The character's publicly known
+ *   allegiance (`'ally'`, `'enemy'`, `'neutral'`, or missing), NPC only; together with
+ *   `private_allegiance`, drives the card border color (private takes priority, falling back
+ *   to public).
  * @param {string} props.gameSlug - Game slug used to build the detail link.
  * @param {string} props.characterType - Character type, either 'pc' or 'npc'.
  * @returns {React.ReactElement} Character preview card element.

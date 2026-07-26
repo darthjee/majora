@@ -7,22 +7,28 @@ export default class NpcFiltersController {
   /**
    * Creates a new NpcFiltersController instance.
    *
-   * @param {Function} setStatus - state setter for the draft status field.
+   * @param {Function} setStatus - state setter for the draft public-status field.
    * @param {Function} setName - state setter for the draft name field.
-   * @param {Function} setAllegiance - state setter for the draft allegiance field.
+   * @param {Function} setAllegiance - state setter for the draft public-allegiance field.
    * @param {Function} [setHidden] - state setter for the draft hidden field.
+   * @param {Function} [setPrivateStatus] - state setter for the draft private-status field
+   *   (dm/admin only).
+   * @param {Function} [setPrivateAllegiance] - state setter for the draft private-allegiance
+   *   field (dm/admin only).
    */
-  constructor(setStatus, setName, setAllegiance, setHidden) {
+  constructor(setStatus, setName, setAllegiance, setHidden, setPrivateStatus, setPrivateAllegiance) {
     this.setStatus = setStatus;
     this.setName = setName;
     this.setAllegiance = setAllegiance;
     this.setHidden = setHidden;
+    this.setPrivateStatus = setPrivateStatus;
+    this.setPrivateAllegiance = setPrivateAllegiance;
   }
 
   /**
-   * Maps a `slain` query value to the Status dropdown value.
+   * Maps a `public_slain`/`private_slain` query value to a Status dropdown value.
    *
-   * @param {string|null} slain - raw `slain` query value (`"true"`/`"false"`/absent).
+   * @param {string|null} slain - raw slain query value (`"true"`/`"false"`/absent).
    * @returns {string} Status dropdown value (`""`/`"alive"`/`"slain"`).
    */
   static slainToStatus(slain) {
@@ -32,10 +38,10 @@ export default class NpcFiltersController {
   }
 
   /**
-   * Maps a Status dropdown value to the `slain` query value.
+   * Maps a Status dropdown value to a `public_slain`/`private_slain` query value.
    *
    * @param {string} status - Status dropdown value (`""`/`"alive"`/`"slain"`).
-   * @returns {string} `slain` query value (`""`/`"false"`/`"true"`).
+   * @returns {string} slain query value (`""`/`"false"`/`"true"`).
    */
   static statusToSlain(status) {
     if (status === 'alive') return 'false';
@@ -68,7 +74,7 @@ export default class NpcFiltersController {
   }
 
   /**
-   * Handles a Status dropdown change, updating the draft state.
+   * Handles a public Status dropdown change, updating the draft state.
    *
    * @param {string} value - newly selected status value.
    * @returns {void}
@@ -88,7 +94,7 @@ export default class NpcFiltersController {
   }
 
   /**
-   * Handles an Allegiance dropdown change, updating the draft state.
+   * Handles a public Allegiance dropdown change, updating the draft state.
    *
    * @param {string} value - newly selected allegiance value.
    * @returns {void}
@@ -108,21 +114,47 @@ export default class NpcFiltersController {
   }
 
   /**
+   * Handles a private Status dropdown change, updating the draft state.
+   *
+   * @param {string} value - newly selected private-status value.
+   * @returns {void}
+   */
+  handlePrivateStatusChange(value) {
+    this.setPrivateStatus(value);
+  }
+
+  /**
+   * Handles a private Allegiance dropdown change, updating the draft state.
+   *
+   * @param {string} value - newly selected private-allegiance value.
+   * @returns {void}
+   */
+  handlePrivateAllegianceChange(value) {
+    this.setPrivateAllegiance(value);
+  }
+
+  /**
    * Builds the query object for the Query button, omitting blank fields.
    *
-   * @param {string} status - current Status dropdown value.
+   * @param {string} status - current public Status dropdown value.
    * @param {string} name - current Name field value.
-   * @param {string} allegiance - current Allegiance dropdown value.
+   * @param {string} allegiance - current public Allegiance dropdown value.
    * @param {string} [hidden] - current Hidden dropdown value.
-   * @returns {{slain: string, name: string, allegiance: string, hidden: string}} query params
-   *   to apply, with blank fields omitted.
+   * @param {string} [privateStatus] - current private Status dropdown value (dm/admin only).
+   * @param {string} [privateAllegiance] - current private Allegiance dropdown value (dm/admin
+   *   only).
+   * @returns {{public_slain: string, name: string, public_allegiance: string, hidden: string,
+   *   private_slain: string, private_allegiance: string}} query params to apply, with blank
+   *   fields omitted.
    */
-  buildQuery(status, name, allegiance, hidden = '') {
+  buildQuery(status, name, allegiance, hidden = '', privateStatus = '', privateAllegiance = '') {
     return buildFilterQuery([
-      ['slain', NpcFiltersController.statusToSlain(status)],
+      ['public_slain', NpcFiltersController.statusToSlain(status)],
       ['name', name.trim()],
-      ['allegiance', allegiance],
+      ['public_allegiance', allegiance],
       ['hidden', NpcFiltersController.filterToHidden(hidden)],
+      ['private_slain', NpcFiltersController.statusToSlain(privateStatus)],
+      ['private_allegiance', privateAllegiance],
     ]);
   }
 
@@ -136,5 +168,7 @@ export default class NpcFiltersController {
     this.setName('');
     this.setAllegiance('');
     this.setHidden('');
+    this.setPrivateStatus('');
+    this.setPrivateAllegiance('');
   }
 }

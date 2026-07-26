@@ -44,7 +44,7 @@ describe('CharacterHelper slain/revive rendering', function() {
 
   describe('.render', function() {
     it('passes grayscale to the overlay when the character is slain', function() {
-      const c = { ...character, slain: true };
+      const c = { ...character, private_slain: true };
       const element = CharacterHelper.render(c, '#/games/demo/npcs');
       const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
@@ -52,7 +52,7 @@ describe('CharacterHelper slain/revive rendering', function() {
     });
 
     it('does not pass grayscale to the overlay when the character is not slain', function() {
-      const c = { ...character, slain: false };
+      const c = { ...character, private_slain: false };
       const element = CharacterHelper.render(c, '#/games/demo/npcs');
       const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
@@ -62,7 +62,7 @@ describe('CharacterHelper slain/revive rendering', function() {
     it('renders the real Mark as Slain button icon for an NPC with edit rights', function() {
       // slain/public_slain deliberately differ, as they would in a real full-character
       // response, to guard against a regression that conflates the two fields.
-      const c = { ...character, is_pc: false, can_edit: true, slain: false, public_slain: true };
+      const c = { ...character, is_pc: false, can_edit: true, private_slain: false, public_slain: true };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
 
       expect(html).toContain('bi-skull-fill');
@@ -71,7 +71,7 @@ describe('CharacterHelper slain/revive rendering', function() {
     });
 
     it('renders the real Revive button icon for a currently slain NPC with edit rights', function() {
-      const c = { ...character, is_pc: false, can_edit: true, slain: true, public_slain: false };
+      const c = { ...character, is_pc: false, can_edit: true, private_slain: true, public_slain: false };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
 
       expect(html).toContain('bi-heart-fill');
@@ -82,7 +82,7 @@ describe('CharacterHelper slain/revive rendering', function() {
     it('renders the public Mark as Publicly Slain button icon for an NPC with edit rights', function() {
       // slain is true while public_slain is false, mirroring a real DM-only response
       // where the two fields disagree — the public button must follow public_slain only.
-      const c = { ...character, is_pc: false, can_edit: true, slain: true, public_slain: false };
+      const c = { ...character, is_pc: false, can_edit: true, private_slain: true, public_slain: false };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
 
       expect(html).toContain('bi-skull"');
@@ -91,7 +91,7 @@ describe('CharacterHelper slain/revive rendering', function() {
     });
 
     it('renders the public Publicly Revive button icon for a currently publicly slain NPC with edit rights', function() {
-      const c = { ...character, is_pc: false, can_edit: true, slain: false, public_slain: true };
+      const c = { ...character, is_pc: false, can_edit: true, private_slain: false, public_slain: true };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
 
       expect(html).toContain('bi-heart"');
@@ -100,14 +100,14 @@ describe('CharacterHelper slain/revive rendering', function() {
     });
 
     it('does not render the slain/revive buttons for a PC even with edit rights', function() {
-      const c = { ...character, is_pc: true, can_edit: true, slain: false };
+      const c = { ...character, is_pc: true, can_edit: true, private_slain: false };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
 
       expect(html).not.toContain('bi-skull');
     });
 
     it('does not render the slain/revive buttons for an NPC without edit rights', function() {
-      const c = { ...character, is_pc: false, can_edit: false, slain: false };
+      const c = { ...character, is_pc: false, can_edit: false, private_slain: false };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
 
       expect(html).not.toContain('bi-skull');
@@ -115,7 +115,7 @@ describe('CharacterHelper slain/revive rendering', function() {
 
     it('invokes onOpenSlainModal when the real slain/revive button is clicked', function() {
       const onOpenSlainModal = jasmine.createSpy('onOpenSlainModal');
-      const c = { ...character, is_pc: false, can_edit: true, slain: false };
+      const c = { ...character, is_pc: false, can_edit: true, private_slain: false };
       const element = CharacterHelper.render(c, '#/games/demo/npcs', { onOpenSlainModal });
       const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 

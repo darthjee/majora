@@ -9,6 +9,8 @@ describe('NpcFiltersHelper', function() {
       onNameChange: Noop.noop,
       onAllegianceChange: Noop.noop,
       onHiddenChange: Noop.noop,
+      onPrivateStatusChange: Noop.noop,
+      onPrivateAllegianceChange: Noop.noop,
       onQuery: Noop.noop,
       onClear: Noop.noop,
     };
@@ -80,6 +82,47 @@ describe('NpcFiltersHelper', function() {
 
       expect(selectStart).toBeGreaterThan(-1);
       expect(html.indexOf('selected=""', selectStart)).toBeGreaterThan(-1);
+    });
+
+    it('does not render the private status/allegiance dropdowns when canEdit is false', function() {
+      const html = renderToStaticMarkup(
+        NpcFiltersHelper.render({
+          status: '', name: '', allegiance: '', hidden: '', privateStatus: '', privateAllegiance: '', canEdit: false,
+        }, handlers)
+      );
+
+      expect(html).not.toContain('data-testid="npc-filter-private-status"');
+      expect(html).not.toContain('data-testid="npc-filter-private-allegiance"');
+    });
+
+    it('renders the private status/allegiance dropdowns when canEdit is true', function() {
+      const html = renderToStaticMarkup(
+        NpcFiltersHelper.render({
+          status: '', name: '', allegiance: '', hidden: '', privateStatus: '', privateAllegiance: '', canEdit: true,
+        }, handlers)
+      );
+
+      expect(html).toContain('data-testid="npc-filter-private-status"');
+      expect(html).toContain('data-testid="npc-filter-private-allegiance"');
+    });
+
+    it('renders the current private status/allegiance values as selected', function() {
+      const html = renderToStaticMarkup(
+        NpcFiltersHelper.render({
+          status: '',
+          name: '',
+          allegiance: '',
+          hidden: '',
+          privateStatus: 'slain',
+          privateAllegiance: 'enemy',
+          canEdit: true,
+        }, handlers)
+      );
+      const statusStart = html.indexOf('data-testid="npc-filter-private-status"');
+      const allegianceStart = html.indexOf('data-testid="npc-filter-private-allegiance"');
+
+      expect(html.indexOf('selected=""', statusStart)).toBeGreaterThan(-1);
+      expect(html.indexOf('selected=""', allegianceStart)).toBeGreaterThan(-1);
     });
   });
 });

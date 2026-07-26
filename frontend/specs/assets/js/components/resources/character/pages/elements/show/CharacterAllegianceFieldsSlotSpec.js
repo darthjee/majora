@@ -10,15 +10,19 @@ describe('CharacterAllegianceFieldsSlot', function() {
   };
 
   const buildHandlers = () => ({
-    onAllegianceChange: jasmine.createSpy('onAllegianceChange'),
+    onPrivateAllegianceChange: jasmine.createSpy('onPrivateAllegianceChange'),
     onPublicAllegianceChange: jasmine.createSpy('onPublicAllegianceChange'),
   });
 
-  it('renders both allegiance selects with mode-scoped ids', function() {
+  it('renders both allegiance selects with mode-scoped ids for a full editor', function() {
     const AllegianceFields = buildCharacterAllegianceFields(variants);
     const html = renderToStaticMarkup(
       React.createElement(AllegianceFields, {
-        mode: 'edit', allegiance: 'ally', publicAllegiance: 'enemy', handlers: buildHandlers(),
+        mode: 'edit',
+        privateAllegiance: 'ally',
+        publicAllegiance: 'enemy',
+        isFullEditor: true,
+        handlers: buildHandlers(),
       }),
     );
 
@@ -26,11 +30,15 @@ describe('CharacterAllegianceFieldsSlot', function() {
     expect(html).toContain('id="npc-edit-public-allegiance"');
   });
 
-  it('scopes ids/options to the new-mode namespace', function() {
+  it('scopes ids/options to the new-mode namespace for a full editor', function() {
     const AllegianceFields = buildCharacterAllegianceFields(variants);
     const html = renderToStaticMarkup(
       React.createElement(AllegianceFields, {
-        mode: 'new', allegiance: 'neutral', publicAllegiance: 'neutral', handlers: buildHandlers(),
+        mode: 'new',
+        privateAllegiance: 'neutral',
+        publicAllegiance: 'neutral',
+        isFullEditor: true,
+        handlers: buildHandlers(),
       }),
     );
 
@@ -38,15 +46,35 @@ describe('CharacterAllegianceFieldsSlot', function() {
     expect(html).toContain('id="game-npc-new-public-allegiance"');
   });
 
-  it('selects the current allegiance/publicAllegiance values', function() {
+  it('selects the current privateAllegiance/publicAllegiance values for a full editor', function() {
     const AllegianceFields = buildCharacterAllegianceFields(variants);
     const html = renderToStaticMarkup(
       React.createElement(AllegianceFields, {
-        mode: 'edit', allegiance: 'ally', publicAllegiance: 'enemy', handlers: buildHandlers(),
+        mode: 'edit',
+        privateAllegiance: 'ally',
+        publicAllegiance: 'enemy',
+        isFullEditor: true,
+        handlers: buildHandlers(),
       }),
     );
 
     expect(html).toContain('<option value="ally" selected="">');
     expect(html).toContain('<option value="enemy" selected="">');
+  });
+
+  it('renders only the public allegiance select when not a full editor', function() {
+    const AllegianceFields = buildCharacterAllegianceFields(variants);
+    const html = renderToStaticMarkup(
+      React.createElement(AllegianceFields, {
+        mode: 'edit',
+        privateAllegiance: 'ally',
+        publicAllegiance: 'enemy',
+        isFullEditor: false,
+        handlers: buildHandlers(),
+      }),
+    );
+
+    expect(html).not.toContain('id="npc-edit-allegiance"');
+    expect(html).toContain('id="npc-edit-public-allegiance"');
   });
 });

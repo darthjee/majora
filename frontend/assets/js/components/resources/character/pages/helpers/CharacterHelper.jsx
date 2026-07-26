@@ -42,15 +42,18 @@ export default class CharacterHelper {
    *   NPCs, since any player may edit an NPC's player-writable fields.
    * @param {boolean} [character.is_pc] - Whether the character is a PC (vs. an NPC), used
    *   to pick the `showTypeConfig` type and to build the correct edit link segment.
-   * @param {boolean} [character.slain] - Whether the character is (really) slain for a DM,
-   *   or its public-facing slain alias for a non-editor; drives grayscale rendering and the
-   *   real/player slain/revive button label.
+   * @param {boolean} [character.private_slain] - Whether the character is (really) slain
+   *   (DM-facing data only); together with `public_slain`, drives grayscale rendering (private
+   *   takes priority, falling back to public) and the real slain/revive button label.
    * @param {boolean} [character.public_slain] - Whether the character is publicly slain,
-   *   drives the public slain/revive button label (DM-facing data only).
+   *   drives the public and player-facing slain/revive button labels.
    * @param {boolean} [character.hidden] - Whether the character is hidden (NPC-only concept;
    *   only present when the current user may edit the character); drives dimmed photo rendering.
-   * @param {string} [character.allegiance] - Allegiance value (`'ally'`, `'enemy'`,
-   *   `'neutral'`, or missing), drives the picture border color for NPCs only.
+   * @param {string} [character.private_allegiance] - The character's real allegiance
+   *   (`'ally'`, `'enemy'`, `'neutral'`, or missing), DM-facing data only.
+   * @param {string} [character.public_allegiance] - The character's publicly known allegiance
+   *   (`'ally'`, `'enemy'`, `'neutral'`, or missing); together with `private_allegiance`, drives
+   *   the picture border color for NPCs only (private takes priority, falling back to public).
    * @param {string} [character.game_slug] - Slug of the game the character belongs to.
    * @param {number|string} [character.id] - Character id.
    * @param {object[]} [character.photos] - Preview list of the character's photos

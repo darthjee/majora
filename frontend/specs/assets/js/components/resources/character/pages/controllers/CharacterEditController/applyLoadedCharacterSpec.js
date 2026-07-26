@@ -25,7 +25,7 @@ KINDS.forEach(({ label, Controller, kind, name, role, description }) => {
           setDescription: jasmine.createSpy('setDescription'),
           setPrivateDescription: jasmine.createSpy('setPrivateDescription'),
           setMoney: jasmine.createSpy('setMoney'),
-          setAllegiance: jasmine.createSpy('setAllegiance'),
+          setPrivateAllegiance: jasmine.createSpy('setPrivateAllegiance'),
           setPublicAllegiance: jasmine.createSpy('setPublicAllegiance'),
           setPublicSlain: jasmine.createSpy('setPublicSlain'),
           setHidden: jasmine.createSpy('setHidden'),
@@ -48,7 +48,7 @@ KINDS.forEach(({ label, Controller, kind, name, role, description }) => {
         expect(setters.setDescription).not.toHaveBeenCalled();
         expect(setters.setPrivateDescription).not.toHaveBeenCalled();
         expect(setters.setMoney).not.toHaveBeenCalled();
-        expect(setters.setAllegiance).not.toHaveBeenCalled();
+        expect(setters.setPrivateAllegiance).not.toHaveBeenCalled();
         expect(setters.setPublicAllegiance).not.toHaveBeenCalled();
         expect(setters.setPublicSlain).not.toHaveBeenCalled();
         expect(setters.setHidden).not.toHaveBeenCalled();
@@ -93,7 +93,7 @@ KINDS.forEach(({ label, Controller, kind, name, role, description }) => {
           private_description: 'Secret',
           can_edit: true,
           money: 310,
-          allegiance: 'ally',
+          private_allegiance: 'ally',
           public_allegiance: 'enemy',
           public_slain: true,
           hidden: true,
@@ -107,7 +107,7 @@ KINDS.forEach(({ label, Controller, kind, name, role, description }) => {
         expect(setters.setDescription).toHaveBeenCalledWith(description);
         expect(setters.setPrivateDescription).toHaveBeenCalledWith('Secret');
         expect(setters.setMoney).toHaveBeenCalledWith('310');
-        expect(setters.setAllegiance).toHaveBeenCalledWith('ally');
+        expect(setters.setPrivateAllegiance).toHaveBeenCalledWith('ally');
         expect(setters.setPublicAllegiance).toHaveBeenCalledWith('enemy');
         expect(setters.setPublicSlain).toHaveBeenCalledWith(true);
         expect(setters.setHidden).toHaveBeenCalledWith(true);
@@ -129,7 +129,7 @@ KINDS.forEach(({ label, Controller, kind, name, role, description }) => {
         expect(setters.setDescription).toHaveBeenCalledWith('');
         expect(setters.setPrivateDescription).toHaveBeenCalledWith('');
         expect(setters.setMoney).toHaveBeenCalledWith('0');
-        expect(setters.setAllegiance).toHaveBeenCalledWith('neutral');
+        expect(setters.setPrivateAllegiance).toHaveBeenCalledWith('neutral');
         expect(setters.setPublicAllegiance).toHaveBeenCalledWith('neutral');
         expect(setters.setPublicSlain).toHaveBeenCalledWith(false);
         expect(setters.setHidden).toHaveBeenCalledWith(false);

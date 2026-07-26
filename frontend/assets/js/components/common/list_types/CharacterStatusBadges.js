@@ -21,9 +21,9 @@ export default class CharacterStatusBadges {
    * @param {object} character - Character data object.
    * @param {boolean} [character.is_pc] - Whether the character is a PC (vs. an NPC);
    *   allegiance items are only built for NPCs.
-   * @param {boolean} [character.slain] - The character's real slain state.
+   * @param {boolean} [character.private_slain] - The character's real slain state.
    * @param {boolean} [character.public_slain] - The character's public slain state.
-   * @param {string} [character.allegiance] - The character's real allegiance
+   * @param {string} [character.private_allegiance] - The character's real allegiance
    *   (`'enemy'`, `'ally'`, or `'neutral'`), NPC only.
    * @param {string} [character.public_allegiance] - The character's public allegiance
    *   (`'enemy'`, `'ally'`, or `'neutral'`), NPC only.
@@ -49,22 +49,22 @@ export default class CharacterStatusBadges {
   }
 
   /**
-   * Build the real Slain/Alive status item, or `null` when `character.slain`
+   * Build the real Slain/Alive status item, or `null` when `character.private_slain`
    * is null/missing. Exposed publicly so other helpers (e.g. deception
    * badges) can reuse the same item shape for the same character field.
    *
    * @param {object} character - Character data object.
-   * @param {boolean} [character.slain] - The character's real slain state.
+   * @param {boolean} [character.private_slain] - The character's real slain state.
    * @returns {{icon: string, text: string, variant: string}|null} The status item, or null.
    */
   static buildSlain(character) {
-    if (character.slain === null || character.slain === undefined) {
+    if (character.private_slain === null || character.private_slain === undefined) {
       return null;
     }
 
-    return character.slain
-      ? { icon: Icons.skullFill, text: Translator.t('character_status_badges.slain'), variant: 'danger' }
-      : { icon: Icons.heart, text: Translator.t('character_status_badges.alive'), variant: 'success' };
+    return character.private_slain
+      ? { icon: Icons.skullFill, text: Translator.t('character_status_badges.private_slain'), variant: 'danger' }
+      : { icon: Icons.heart, text: Translator.t('character_status_badges.private_alive'), variant: 'success' };
   }
 
   /**
@@ -97,20 +97,20 @@ export default class CharacterStatusBadges {
 
   /**
    * Build the real Allegiance status item, or `null` when
-   * `character.allegiance` is null/missing/unrecognized. Exposed publicly so
+   * `character.private_allegiance` is null/missing/unrecognized. Exposed publicly so
    * other helpers (e.g. deception badges) can reuse the same item shape for
    * the same character field.
    *
    * @param {object} character - Character data object.
-   * @param {string} [character.allegiance] - The character's real allegiance
+   * @param {string} [character.private_allegiance] - The character's real allegiance
    *   (`'enemy'`, `'ally'`, or `'neutral'`).
    * @returns {{icon: string, text: string, variant: string|null}|null} The status item, or null.
    */
   static buildAllegiance(character) {
     return CharacterStatusBadges.#buildAllegianceItem(
-      character.allegiance,
+      character.private_allegiance,
       { enemy: Icons.emojiAngryFill, ally: Icons.emojiSmileFill, neutral: Icons.emojiExpressionlessFill },
-      { enemy: 'enemy', ally: 'ally', neutral: 'neutral' },
+      { enemy: 'private_enemy', ally: 'private_ally', neutral: 'private_neutral' },
     );
   }
 

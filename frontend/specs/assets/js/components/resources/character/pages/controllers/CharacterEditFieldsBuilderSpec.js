@@ -11,7 +11,7 @@ describe('CharacterEditFieldsBuilder', function() {
         public_description: 'King',
         private_description: 'Secret',
         money: 310,
-        allegiance: 'ally',
+        private_allegiance: 'ally',
         public_allegiance: 'enemy',
         public_slain: true,
         hidden: true,
@@ -24,7 +24,7 @@ describe('CharacterEditFieldsBuilder', function() {
         public_description: 'King',
         private_description: 'Secret',
         money: '310',
-        allegiance: 'ally',
+        private_allegiance: 'ally',
         public_allegiance: 'enemy',
         public_slain: true,
         hidden: true,
@@ -39,7 +39,7 @@ describe('CharacterEditFieldsBuilder', function() {
         public_description: '',
         private_description: '',
         money: '0',
-        allegiance: 'neutral',
+        private_allegiance: 'neutral',
         public_allegiance: 'neutral',
         public_slain: false,
         hidden: false,
@@ -47,10 +47,10 @@ describe('CharacterEditFieldsBuilder', function() {
       });
     });
 
-    it('falls back public_allegiance/public_slain to the plain-detail allegiance/slain keys', function() {
-      const fields = CharacterEditFieldsBuilder.fieldsFromCharacter({ allegiance: 'enemy', slain: true });
+    it('falls back private_allegiance to public_allegiance when absent', function() {
+      const fields = CharacterEditFieldsBuilder.fieldsFromCharacter({ public_allegiance: 'enemy', public_slain: true });
 
-      expect(fields.public_allegiance).toBe('enemy');
+      expect(fields.private_allegiance).toBe('enemy');
       expect(fields.public_slain).toBe(true);
     });
   });
@@ -62,7 +62,7 @@ describe('CharacterEditFieldsBuilder', function() {
       description: 'King',
       privateDescription: 'Secret',
       money: '310',
-      allegiance: 'ally',
+      privateAllegiance: 'ally',
       publicAllegiance: 'enemy',
       publicSlain: true,
       hidden: true,
@@ -82,10 +82,10 @@ describe('CharacterEditFieldsBuilder', function() {
       });
     });
 
-    it('adds allegiance, public_allegiance, public_slain, and hidden for an npc', function() {
+    it('adds private_allegiance, public_allegiance, public_slain, and hidden for an npc', function() {
       const fields = CharacterEditFieldsBuilder.fullEditorFields(formValues, 'npcs');
 
-      expect(fields.allegiance).toBe('ally');
+      expect(fields.private_allegiance).toBe('ally');
       expect(fields.public_allegiance).toBe('enemy');
       expect(fields.public_slain).toBe(true);
       expect(fields.hidden).toBe(true);
@@ -107,11 +107,11 @@ describe('CharacterEditFieldsBuilder', function() {
         name: 'Grumbleknuckle',
         role: 'Shopkeeper',
         public_description: 'A brave hero',
-        allegiance: 'enemy',
+        public_allegiance: 'enemy',
         links: [{
           text: 'https://example.com/new-link', url: 'https://example.com/new-link', link_type: '', delete: false,
         }],
-        slain: true,
+        public_slain: true,
       });
     });
   });

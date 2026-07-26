@@ -101,8 +101,9 @@ export default class BaseCharacterEditController extends BasePageController {
    * @param {string|number} characterId - Character id.
    * @param {object} fields - Fields to update — the full set (`name`, `role`,
    *   `public_description`, `private_description`, `money`, `links`, and, for NPCs,
-   *   `allegiance`/`public_allegiance`/`public_slain`/`hidden`) for a full editor, or the reduced
-   *   set (`public_description`, `allegiance`, `links`, `slain`) for a player-only editor.
+   *   `private_allegiance`/`public_allegiance`/`public_slain`/`hidden`) for a full editor, or the
+   *   reduced set (`public_description`, `public_allegiance`, `links`, `public_slain`) for a
+   *   player-only editor.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @param {boolean} [isFullEditor] - Whether to PATCH the full (dm/admin) `private` variant
    *   (`true`, the default) or the narrower player-writable `regular` variant (`false`) — forced
@@ -145,7 +146,7 @@ export default class BaseCharacterEditController extends BasePageController {
    * @param {string} gameSlug - Game slug.
    * @param {string|number} characterId - Character id.
    * @param {{name: string, role: string, description: string,
-   *   privateDescription: string, money: string, allegiance: string,
+   *   privateDescription: string, money: string, privateAllegiance: string,
    *   publicAllegiance: string, publicSlain: boolean, hidden: boolean,
    *   links: object[]}} formValues - Raw form field values.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
@@ -178,7 +179,7 @@ export default class BaseCharacterEditController extends BasePageController {
    * @param {string} gameSlug - Game slug, used to build the redirect hash.
    * @param {string|number} characterId - Character id, used to build the redirect hash.
    * @param {{setName: Function, setRole: Function, setDescription: Function,
-   *   setPrivateDescription: Function, setMoney: Function, setAllegiance: Function,
+   *   setPrivateDescription: Function, setMoney: Function, setPrivateAllegiance: Function,
    *   setPublicAllegiance: Function, setPublicSlain: Function, setHidden: Function,
    *   setLinks: Function}} setters - Form field setters.
    * @returns {void}
@@ -200,7 +201,7 @@ export default class BaseCharacterEditController extends BasePageController {
     setters.setDescription(fields.public_description);
     setters.setPrivateDescription(fields.private_description);
     setters.setMoney(fields.money);
-    setters.setAllegiance(fields.allegiance);
+    setters.setPrivateAllegiance(fields.private_allegiance);
     setters.setPublicAllegiance(fields.public_allegiance);
     setters.setPublicSlain(fields.public_slain);
     setters.setHidden(fields.hidden);
