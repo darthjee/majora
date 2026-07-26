@@ -140,8 +140,9 @@ def parse_role_booleans(request):
     `owner`, `superuser`, and `staff` each influence some `can_be_edited_by_roles`-shaped
     computation (`staff` first became meaningful via `CharacterItemCreatePermission`'s
     `is_allowed_for_roles`, issue #714) — `player` is accepted but silently has no effect,
-    same tolerant, no-400-on-a-typo convention already used by `?allegiance=`/`?slain=`
-    elsewhere in this codebase. Returns `None` when no `role` param was sent at all, signaling
+    same tolerant, no-400-on-a-typo convention already used by `?public_allegiance=`/
+    `?public_slain=` elsewhere in this codebase. Returns `None` when no `role` param was sent at
+    all, signaling
     "use the real requester's identity instead" — a `role` param with only unrecognized values
     still switches to the role-simulated path (with every boolean False), it just never falls
     back to the real identity.

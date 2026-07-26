@@ -14,27 +14,25 @@ class NpcPlayerUpdateSerializer(serializers.ModelSerializer):
     """Validate the narrow player-facing NPC payload, writing only its curated field set.
 
     Deliberately narrower than `CharacterUpdateSerializer`: this only ever maps `name`, `role`,
-    `public_description` directly, the wire-level `allegiance` key onto
-    `Character.public_allegiance`, the wire-level `slain` key onto `Character.public_slain`, and
-    `links` — `money` and `private_description` (and the real `allegiance`/`slain`) stay
-    `full.json`-only.
+    `public_description`, `public_allegiance`, `public_slain`, and `links` — `money`,
+    `private_description`, `private_allegiance`, and `private_slain` stay `full.json`-only.
     """
 
-    allegiance = serializers.ChoiceField(
-        source='public_allegiance', choices=Character.ALLEGIANCE_CHOICES, required=False
-    )
-    slain = serializers.BooleanField(source='public_slain', required=False)
     links = CharacterLinkWriteSerializer(many=True, required=False)
 
     class Meta:
         """Metadata for the NpcPlayerUpdateSerializer."""
 
         model = Character
-        fields = ['name', 'role', 'public_description', 'allegiance', 'slain', 'links']
+        fields = [
+            'name', 'role', 'public_description', 'public_allegiance', 'public_slain', 'links',
+        ]
         extra_kwargs = {
             'name': {'required': False},
             'role': {'required': False},
             'public_description': {'required': False},
+            'public_allegiance': {'required': False},
+            'public_slain': {'required': False},
         }
 
     def validate_links(self, value):

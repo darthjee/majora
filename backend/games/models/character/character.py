@@ -36,9 +36,9 @@ class Character(models.Model):
     private_description = models.TextField(blank=True)
     npc = models.BooleanField(default=True)
     hidden = models.BooleanField(default=False)
-    slain = models.BooleanField(default=False)
+    private_slain = models.BooleanField(default=False)
     public_slain = models.BooleanField(default=False)
-    allegiance = models.CharField(
+    private_allegiance = models.CharField(
         max_length=16, choices=ALLEGIANCE_CHOICES, default=ALLEGIANCE_NEUTRAL
     )
     public_allegiance = models.CharField(
