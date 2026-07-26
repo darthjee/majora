@@ -30,6 +30,8 @@ describe('PhotoUploadModal', function() {
           error: false,
           uploading: false,
           deferred: false,
+          translationPrefix: 'photo_upload_modal',
+          accept: undefined,
         },
         jasmine.objectContaining({
           onClose: jasmine.any(Function),
@@ -161,6 +163,30 @@ describe('PhotoUploadModal', function() {
         expect(onClose).toHaveBeenCalled();
         expect(PhotoUploadModalController.prototype.handleSubmit).not.toHaveBeenCalled();
         expect(capturedState.uploading).toBe(false);
+      });
+    });
+
+    describe('translationPrefix and accept (issue #726)', function() {
+      it('forwards a custom translationPrefix and accept to the helper state', function() {
+        let capturedState;
+        spyOn(PhotoUploadModalHelper, 'render').and.callFake((show, state) => {
+          capturedState = state;
+          return React.createElement('div', null, 'modal');
+        });
+
+        renderToStaticMarkup(
+          React.createElement(PhotoUploadModal, {
+            show: true,
+            uploadPath: '/games/my-game/documents/9/file_upload.json',
+            translationPrefix: 'file_upload_modal',
+            accept: '.pdf',
+            onClose: jasmine.createSpy('onClose'),
+            onSuccess: jasmine.createSpy('onSuccess'),
+          })
+        );
+
+        expect(capturedState.translationPrefix).toBe('file_upload_modal');
+        expect(capturedState.accept).toBe('.pdf');
       });
     });
   });

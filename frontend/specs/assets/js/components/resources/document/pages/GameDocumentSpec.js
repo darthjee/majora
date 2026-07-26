@@ -84,14 +84,18 @@ describe('GameDocument', function() {
     let capturedEditHref;
     let capturedCanUploadPhoto;
     let capturedOnUploadClick;
-    spyOn(DocumentDetailHelper, 'render').and.callFake((document, backHref, editHref, canUploadPhoto, onUploadClick) => {
-      capturedDocument = document;
-      capturedBackHref = backHref;
-      capturedEditHref = editHref;
-      capturedCanUploadPhoto = canUploadPhoto;
-      capturedOnUploadClick = onUploadClick;
-      return null;
-    });
+    let capturedOnFileUploadClick;
+    spyOn(DocumentDetailHelper, 'render').and.callFake(
+      (document, backHref, editHref, canUploadPhoto, onUploadClick, onFileUploadClick) => {
+        capturedDocument = document;
+        capturedBackHref = backHref;
+        capturedEditHref = editHref;
+        capturedCanUploadPhoto = canUploadPhoto;
+        capturedOnUploadClick = onUploadClick;
+        capturedOnFileUploadClick = onFileUploadClick;
+        return null;
+      },
+    );
 
     renderToStaticMarkup(React.createElement(GameDocument, { ControllerClass: LoadedController }));
 
@@ -100,6 +104,7 @@ describe('GameDocument', function() {
     expect(capturedEditHref).toBe('#/games/demo/documents/5/edit');
     expect(capturedCanUploadPhoto).toBe(true);
     expect(typeof capturedOnUploadClick).toBe('function');
+    expect(typeof capturedOnFileUploadClick).toBe('function');
   });
 
   it('passes canUploadPhoto=false through when the controller denies it', function() {
@@ -128,20 +133,47 @@ describe('GameDocument', function() {
     expect(() => capturedOnUploadClick()).not.toThrow();
   });
 
+  it('opens the file upload modal via the onFileUploadClick handler passed to DocumentDetailHelper', function() {
+    let capturedOnFileUploadClick;
+    spyOn(DocumentDetailHelper, 'render').and.callFake(
+      (document, backHref, editHref, canUploadPhoto, onUploadClick, onFileUploadClick) => {
+        capturedOnFileUploadClick = onFileUploadClick;
+        return null;
+      },
+    );
+
+    renderToStaticMarkup(React.createElement(GameDocument, { ControllerClass: LoadedController }));
+
+    expect(() => capturedOnFileUploadClick()).not.toThrow();
+  });
+
+  /**
+   * `GameDocument` renders two `PhotoUploadModal` instances (photo, then file), so
+   * `PhotoUploadModalHelper.render` is called once per instance in JSX order: index `0` is
+   * always the photo modal's handlers/state, index `1` the file modal's (issue #726).
+   *
+   * @param {Function} render - Jasmine spy for `PhotoUploadModalHelper.render`.
+   * @returns {{state: object, handlers: object}[]} Captured `(state, handlers)` per call, ordered.
+   */
+  function captureModalCalls(render) {
+    const captured = [];
+    render.and.callFake((show, state, handlers) => {
+      captured.push({ state, handlers });
+      return null;
+    });
+    return captured;
+  }
+
   describe('upload modal', function() {
     it('wires the modal to the uploadPath built from the game slug and document id', function() {
       spyOn(DocumentDetailHelper, 'render').and.returnValue(null);
       spyOn(AuthStorage, 'getToken').and.returnValue('auth-tok');
       spyOn(PhotoUploadModalController.prototype, 'handleSubmit').and.returnValue(Promise.resolve());
-      let capturedHandlers;
-      spyOn(PhotoUploadModalHelper, 'render').and.callFake((show, state, handlers) => {
-        capturedHandlers = handlers;
-        return null;
-      });
+      const captured = captureModalCalls(spyOn(PhotoUploadModalHelper, 'render'));
 
       renderToStaticMarkup(React.createElement(GameDocument, { ControllerClass: LoadedController }));
 
-      capturedHandlers.onSubmit();
+      captured[0].handlers.onSubmit();
 
       expect(PhotoUploadModalController.prototype.handleSubmit).toHaveBeenCalledWith(
         '/games/demo/documents/5/photo_upload.json',
@@ -159,17 +191,13 @@ describe('GameDocument', function() {
       });
       const buildEffectSpy = spyOn(LoadedController.prototype, 'buildEffect')
         .and.returnValue(() => Noop.noop);
-      let capturedHandlers;
-      spyOn(PhotoUploadModalHelper, 'render').and.callFake((show, state, handlers) => {
-        capturedHandlers = handlers;
-        return null;
-      });
+      const captured = captureModalCalls(spyOn(PhotoUploadModalHelper, 'render'));
 
       renderToStaticMarkup(React.createElement(GameDocument, { ControllerClass: LoadedController }));
 
       const callsBefore = buildEffectSpy.calls.count();
 
-      capturedHandlers.onSubmit();
+      captured[0].handlers.onSubmit();
 
       expect(buildEffectSpy.calls.count()).toBe(callsBefore + 1);
     });
@@ -183,15 +211,11 @@ describe('GameDocument', function() {
         return Promise.resolve();
       });
       spyOn(LoadedController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
-      let capturedHandlers;
-      spyOn(PhotoUploadModalHelper, 'render').and.callFake((show, state, handlers) => {
-        capturedHandlers = handlers;
-        return null;
-      });
+      const captured = captureModalCalls(spyOn(PhotoUploadModalHelper, 'render'));
 
       renderToStaticMarkup(React.createElement(GameDocument, { ControllerClass: LoadedController }));
 
-      capturedHandlers.onSubmit();
+      captured[0].handlers.onSubmit();
 
       expect(RequestStore.purge).toHaveBeenCalledWith({ resource: 'document' });
     });
@@ -200,19 +224,15 @@ describe('GameDocument', function() {
       spyOn(DocumentDetailHelper, 'render').and.returnValue(null);
       const buildEffectSpy = spyOn(LoadedController.prototype, 'buildEffect')
         .and.returnValue(() => Noop.noop);
-      let capturedHandlers;
-      spyOn(PhotoUploadModalHelper, 'render').and.callFake((show, state, handlers) => {
-        capturedHandlers = handlers;
-        return null;
-      });
+      const captured = captureModalCalls(spyOn(PhotoUploadModalHelper, 'render'));
 
       renderToStaticMarkup(React.createElement(GameDocument, { ControllerClass: LoadedController }));
 
       const callsBefore = buildEffectSpy.calls.count();
 
       expect(() => {
-        capturedHandlers.onClose();
-        capturedHandlers.onCancel();
+        captured[0].handlers.onClose();
+        captured[0].handlers.onCancel();
       }).not.toThrow();
       expect(buildEffectSpy.calls.count()).toBe(callsBefore);
     });

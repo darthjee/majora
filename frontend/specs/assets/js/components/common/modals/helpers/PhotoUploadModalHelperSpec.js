@@ -183,5 +183,61 @@ describe('PhotoUploadModalHelper', function() {
 
       expect(handlers.onFileChange).toHaveBeenCalledWith(changeEvent);
     });
+
+    describe('translationPrefix (issue #726)', function() {
+      it('uses "photo_upload_modal" strings by default', function() {
+        const element = PhotoUploadModalHelper.render(true, buildState({ error: true }), buildHandlers());
+        const alert = findElement(
+          element,
+          (child) => child.type === 'div' && child.props.className === 'alert alert-danger'
+        );
+
+        expect(alert.props.children).toBe('Failed to upload photo. Please try again.');
+      });
+
+      it('uses the given translationPrefix for the submit/cancel/error strings', function() {
+        const element = PhotoUploadModalHelper.render(
+          true, buildState({ error: true, translationPrefix: 'file_upload_modal' }), buildHandlers(),
+        );
+        const submitButton = findElement(
+          element,
+          (child) => child.type === 'button' && child.props.className === 'btn btn-primary'
+        );
+        const cancelButton = findElement(
+          element,
+          (child) => child.type === 'button' && child.props.className === 'btn btn-secondary'
+        );
+        const alert = findElement(
+          element,
+          (child) => child.type === 'div' && child.props.className === 'alert alert-danger'
+        );
+
+        expect(submitButton.props.children).toBe('Upload');
+        expect(cancelButton.props.children).toBe('Cancel');
+        expect(alert.props.children).toBe('Failed to upload file. Please try again.');
+      });
+    });
+
+    describe('accept (issue #726)', function() {
+      it('leaves the file input unrestricted by default', function() {
+        const element = PhotoUploadModalHelper.render(true, buildState(), buildHandlers());
+        const input = findElement(
+          element,
+          (child) => child.type === 'input' && child.props.type === 'file'
+        );
+
+        expect(input.props.accept).toBeUndefined();
+      });
+
+      it('forwards the given accept value to the file input', function() {
+        const element = PhotoUploadModalHelper.render(true, buildState({ accept: '.pdf' }), buildHandlers());
+        const input = findElement(
+          element,
+          (child) => child.type === 'input' && child.props.type === 'file'
+        );
+
+        expect(input.props.accept).toBe('.pdf');
+      });
+    });
   });
 });
