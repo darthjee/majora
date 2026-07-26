@@ -27,6 +27,7 @@ If parametrizing turns out messier than expected once in the code, a thin `FileU
 ### Step 4 — Document page: file upload button + modal
 In `frontend/assets/js/components/resources/document/pages/GameDocument.jsx`:
 - Add a `showFileUploadModal` state, a button next to "back" (per the issue's UI section) that opens it.
+- Gate the button the same way the existing photo-upload button/Edit button are gated: wrap it in `ConditionalComponent` keyed on the existing `canUploadPhoto` flag (`GameDocument.jsx:28`, computed in `GameDocumentController.js`'s `#canUploadPhoto`, which already ORs `is_superuser || is_staff || is_dm || is_player`). Do not introduce a new flag or backend serializer field for this — the role set required (dm, admin, player, staff) is identical to the existing photo-upload permission, and `canUploadPhoto` already covers exactly those four. If the name reads oddly for a non-photo action, it's fine to thread it through `DocumentDetailHelper.jsx` under its existing name unchanged (renaming it is out of scope — it would touch an unrelated, working code path for no functional gain).
 - Compute a `fileUploadPath` via `resourceConfig.get('POST', 'document', 'file').regular.path({ gameSlug, id: document?.id })` (see Step 5 for the resourceConfig entry).
 - Render the (now-parametrized) upload modal with `translationPrefix="file_upload_modal"` and `accept=".pdf"`.
 - On success, mirror the existing `handleUploadSuccess` pattern: purge `RequestStore` for `resource: 'document'`, then refetch.

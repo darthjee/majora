@@ -41,6 +41,10 @@ Introduce a second upload kind (`file`, PDF-only) alongside the existing `image`
 - File: MIME `application/pdf` + extension `pdf` only.
 - Storage base path: images keep the current `photosBasePath` (`photos_path` proxy config); files use a new sibling `filesBasePath` (`files_path` proxy config), set up by infra.
 
+### Permissions (dm, admin, player, staff all allowed — both layers)
+- Backend: `GameDocumentFileUploadPermission` (new, see [backend.md](backend.md) Step 6) mirrors `GameDocumentPhotoUploadPermission._is_allowed` exactly: `user.is_staff or game.has_player(user) or game.can_be_edited_by(user)` — this already covers staff, any player (including DM), and admin/superuser edit rights.
+- Frontend: button/modal visibility is not driven by a backend serializer field at all — it reuses the existing `canUploadPhoto` flag (`GameDocument.jsx`, computed in `GameDocumentController.js`'s `#canUploadPhoto` from `AccessStore`'s game-access response: `is_superuser || is_staff || is_dm || is_player`). The new file-upload button must be gated by this same flag (see [frontend.md](frontend.md) Step 4) rather than left unconditionally rendered — no new flag or endpoint is needed since the required role set is identical to the existing photo-upload gate.
+
 ## Suggested build order
 
 1. **infra**: add the `files` docker-compose volume, CircleCI `link_files` job, and confirm the prod file-storage location with backend/proxy so the proxy rule's `location` can be finalized. This unblocks proxy's local dev testing.
