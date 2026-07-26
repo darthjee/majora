@@ -179,15 +179,15 @@ class TestGamePcItemPhotoUploadView(TokenAuthRequestMixin):
         response = self._post(client, {'filename': 'photo.jpg'}, token=token)
         assert response.status_code == 201
 
-    def test_regular_player_of_game_returns_403(self, client):
-        """Test that a non-owning, non-DM player of the game is rejected with 403."""
+    def test_regular_player_of_game_returns_201(self, client):
+        """Test that a non-owning, non-DM player of the game can upload the item's photo."""
         player_user = UserFactory(username='player_user', password='secret-password')
         PlayerFactory(name='Alice', user=player_user, game=self.game)
         token = Token.objects.create(user=player_user)
 
         response = self._post(client, {'filename': 'photo.jpg'}, token=token)
 
-        assert response.status_code == 403
+        assert response.status_code == 201
 
     def test_editor_authenticated_via_session_cookie_returns_201(self, client):
         """Test that an editor authenticated via session cookie (no auth header) succeeds."""

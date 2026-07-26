@@ -1,6 +1,9 @@
 """Character permissions serializer for the games app; shared by the PC and NPC endpoints."""
 
-from games.permissions import CharacterItemCreatePermission, CharacterItemPhotoUploadPermission
+from games.permissions import (
+    CharacterItemPhotoUploadPermission,
+    CharacterItemPlayerCreatePermission,
+)
 from games.serializers.base_permissions import BasePermissionsSerializer
 
 
@@ -37,11 +40,11 @@ class CharacterPermissionsSerializer(BasePermissionsSerializer):
             return False
         roles = self._roles()
         if roles is not None:
-            return CharacterItemCreatePermission.is_allowed_for_roles(
+            return CharacterItemPlayerCreatePermission.is_allowed_for_roles(
                 roles['is_superuser'], roles['is_dm'], roles['is_owner'], roles['is_staff'],
-                character.is_pc,
+                roles['is_player'], character.is_pc,
             )
-        return CharacterItemCreatePermission.is_allowed(self._user(), character)
+        return CharacterItemPlayerCreatePermission.is_allowed(self._user(), character)
 
     def _get_can_upload_item_photo(self, character):
         """Return whether the requester (real or role-simulated) may upload an item photo."""
@@ -51,6 +54,6 @@ class CharacterPermissionsSerializer(BasePermissionsSerializer):
         if roles is not None:
             return CharacterItemPhotoUploadPermission.is_allowed_for_roles(
                 roles['is_superuser'], roles['is_dm'], roles['is_owner'], roles['is_staff'],
-                character.is_pc,
+                roles['is_player'], character.is_pc,
             )
         return CharacterItemPhotoUploadPermission.is_allowed(self._user(), character)

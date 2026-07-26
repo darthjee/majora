@@ -10,12 +10,12 @@ describe('GameSessionNewController', function() {
   });
 
   describe('#buildEffect', function() {
-    it('does not redirect when the user can edit the game', async function() {
+    it('does not redirect when the user can edit sessions', async function() {
       const setError = jasmine.createSpy('setError');
       const fakeWindow = { location: { hash: '#/games/demo/sessions/new' } };
       globalThis.window = fakeWindow;
 
-      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit_session: true }));
 
       try {
         const controller = new GameSessionNewController(setError, Noop.noop);
@@ -29,12 +29,12 @@ describe('GameSessionNewController', function() {
       }
     });
 
-    it('redirects to the sessions index when the user cannot edit the game', async function() {
+    it('redirects to the sessions index when the user cannot edit sessions', async function() {
       const setError = jasmine.createSpy('setError');
       const fakeWindow = { location: { hash: '#/games/demo/sessions/new' } };
       globalThis.window = fakeWindow;
 
-      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit_session: false }));
 
       try {
         const controller = new GameSessionNewController(setError, Noop.noop);

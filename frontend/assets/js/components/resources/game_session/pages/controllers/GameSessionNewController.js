@@ -34,7 +34,7 @@ export default class GameSessionNewController extends BasePageController {
    * Build the page mount effect.
    *
    * @description Returns a callback that checks whether the current user may
-   *   edit the game and redirects to the sessions index when they cannot.
+   *   create game sessions and redirects to the sessions index when they cannot.
    * @returns {Function} Effect callback.
    */
   buildEffect() {
@@ -90,7 +90,7 @@ export default class GameSessionNewController extends BasePageController {
   }
 
   #redirectIfNotAllowed(permissions, gameSlug) {
-    if (!permissions.can_edit) {
+    if (!permissions.can_edit_session) {
       this.#redirectToSessions(gameSlug);
     }
   }

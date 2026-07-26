@@ -78,15 +78,15 @@ class TestGameConversationsView(TestCase):
         response = self._get(token=self.outsider_token)
         assert response.status_code == 403
 
-    def test_superuser_get_returns_403(self):
-        """Test that a superuser with no game link gets 403 (no bypass, issue #695)."""
+    def test_superuser_get_returns_404_with_no_player_row(self):
+        """Test that a superuser passes PlayerPermission (issue #864) but 404s: no Player row."""
         response = self._get(token=self.superuser_token)
-        assert response.status_code == 403
+        assert response.status_code == 404
 
-    def test_staff_get_returns_403(self):
-        """Test that a staff user with no game link gets 403 (no bypass, issue #695)."""
+    def test_staff_get_returns_404_with_no_player_row(self):
+        """Test that a staff user passes PlayerPermission (issue #864) but 404s: no Player row."""
         response = self._get(token=self.staff_token)
-        assert response.status_code == 403
+        assert response.status_code == 404
 
     def test_returns_404_for_unknown_game_slug(self):
         """Test that 404 is returned for a non-existent game slug."""

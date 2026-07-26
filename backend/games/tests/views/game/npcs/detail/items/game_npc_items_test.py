@@ -181,7 +181,7 @@ class TestGameNpcItemsCreate(TokenAuthRequestMixin):
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True)
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.player = PlayerFactory(name='Frodo')
+        self.player = PlayerFactory(name='Frodo', game=self.game)
         self.pc_owner = UserFactory(username='pc_owner', password='secret-password')
         self.player.user = self.pc_owner
         self.player.save()
@@ -247,11 +247,11 @@ class TestGameNpcItemsCreate(TokenAuthRequestMixin):
         response = self._post(client, {'name': 'Staff'})
         assert response.status_code == 401
 
-    def test_pc_owner_returns_403(self, client):
-        """Test that a PC's owning player (not a DM) is rejected with 403 for an NPC."""
+    def test_pc_owner_can_create_item(self, client):
+        """Test that a PC's owning player (any player of the game) can create an NPC item."""
         token = Token.objects.create(user=self.pc_owner)
         response = self._post(client, {'name': 'Staff'}, token=token)
-        assert response.status_code == 403
+        assert response.status_code == 201
 
     def test_unrelated_user_returns_403(self, client):
         """Test that an authenticated user unrelated to the game is rejected with 403."""
@@ -288,4 +288,68 @@ class TestGameNpcItemsCreate(TokenAuthRequestMixin):
             content_type='application/json',
             HTTP_AUTHORIZATION=f'Token {token.key}',
         )
+        assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestGameNpcItemsCreateHidden(TokenAuthRequestMixin):
+    """Tests for the hidden-NPC visibility gate on POST items for an NPC."""
+
+    def setup_method(self):
+        """Set up a game, a DM, a hidden NPC, and a player unrelated to the NPC."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
+        self.hidden_npc = CharacterFactory(
+            name='Secret NPC', game=self.game, npc=True, hidden=True,
+        )
+        self.player = PlayerFactory(name='Frodo', game=self.game)
+        self.pc_owner = UserFactory(username='pc_owner', password='secret-password')
+        self.player.user = self.pc_owner
+        self.player.save()
+        CharacterFactory(name='Frodo', game=self.game, player=self.player, npc=False)
+
+    def _url(self):
+        """Return the items list URL for the hidden NPC."""
+        return f'/games/test-game/npcs/{self.hidden_npc.id}/items.json'
+
+    def _post(self, client, payload, token=None):
+        """Issue a POST request to create an item, optionally with a token."""
+        return self.post(client, self._url(), payload, token=token)
+
+    def test_player_gets_404_for_hidden_npc(self, client):
+        """Test that any player of the game gets 404, despite the broadened create permission."""
+        token = Token.objects.create(user=self.pc_owner)
+        response = self._post(client, {'name': 'Staff'}, token=token)
+        assert response.status_code == 404
+        assert not CharacterItem.objects.filter(character=self.hidden_npc).exists()
+
+    def test_regular_user_gets_404_for_hidden_npc(self, client):
+        """Test that a regular authenticated user (not even a player) gets 404."""
+        other_user = UserFactory(username='other', password='secret-password')
+        token = Token.objects.create(user=other_user)
+        response = self._post(client, {'name': 'Staff'}, token=token)
+        assert response.status_code == 404
+
+    def test_dm_can_still_create_item_for_hidden_npc(self, client):
+        """Test that a DM can still create an item for a hidden NPC."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._post(client, {'name': 'Staff'}, token=token)
+        assert response.status_code == 201
+        assert CharacterItem.objects.filter(character=self.hidden_npc).exists()
+
+    def test_superuser_can_still_create_item_for_hidden_npc(self, client):
+        """Test that a superuser can still create an item for a hidden NPC."""
+        superuser = SuperUserFactory(username='admin', password='secret-password')
+        token = Token.objects.create(user=superuser)
+        response = self._post(client, {'name': 'Staff'}, token=token)
+        assert response.status_code == 201
+
+    def test_staff_gets_404_for_hidden_npc(self, client):
+        """Test that a global Staff account gets 404, despite otherwise being able to create."""
+        staff_user = UserFactory(username='staff_user', password='secret-password')
+        staff_user.is_staff = True
+        staff_user.save()
+        token = Token.objects.create(user=staff_user)
+        response = self._post(client, {'name': 'Staff'}, token=token)
         assert response.status_code == 404

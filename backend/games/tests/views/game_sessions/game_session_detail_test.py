@@ -59,7 +59,7 @@ class TestGameSessionDetailPatchView(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        """Set up a game, a session, a DM, a superuser, and a regular user."""
+        """Set up a game, a session, a DM, a superuser, a player, staff, and a regular user."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.session = GameSession.objects.create(game=cls.game, title='Old Session')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
@@ -69,6 +69,13 @@ class TestGameSessionDetailPatchView(TestCase):
         cls.superuser_token = Token.objects.create(user=cls.superuser)
         cls.regular_user = UserFactory(username='player', password='secret-password')
         cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.player_user = UserFactory(username='player_user', password='secret-password')
+        PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
+        cls.player_token = Token.objects.create(user=cls.player_user)
+        cls.staff_user = UserFactory(
+            username='staff_user', password='secret-password', is_staff=True,
+        )
+        cls.staff_token = Token.objects.create(user=cls.staff_user)
 
     def _patch(self, client, payload, token=None):
         """Issue a PATCH request to the session detail endpoint, optionally with a token."""
@@ -92,6 +99,16 @@ class TestGameSessionDetailPatchView(TestCase):
     def test_superuser_can_patch(self):
         """Test that a superuser can update a session and receives 200."""
         response = self._patch(self.client, {'title': 'New Session'}, token=self.superuser_token)
+        assert response.status_code == 200
+
+    def test_player_of_game_can_patch(self):
+        """Test that any player of the game can update a session (issue #864)."""
+        response = self._patch(self.client, {'title': 'New Session'}, token=self.player_token)
+        assert response.status_code == 200
+
+    def test_staff_can_patch(self):
+        """Test that a global Staff account can update a session (issue #864)."""
+        response = self._patch(self.client, {'title': 'New Session'}, token=self.staff_token)
         assert response.status_code == 200
 
     def test_patch_persists_changes(self):

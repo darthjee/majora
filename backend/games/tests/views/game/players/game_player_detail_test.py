@@ -69,15 +69,15 @@ class TestGamePlayerDetailView(TestCase):
         data = json.loads(response.content)
         assert 'detail' in data['errors']
 
-    def test_superuser_get_returns_403(self):
-        """Test that a superuser with no game link gets 403 (no bypass, issue #695)."""
+    def test_superuser_get_returns_200(self):
+        """Test that a superuser with no game link can view a player (bypass, issue #864)."""
         response = self._get(token=self.superuser_token)
-        assert response.status_code == 403
+        assert response.status_code == 200
 
-    def test_staff_get_returns_403(self):
-        """Test that a staff user with no game link gets 403 (no bypass, issue #695)."""
+    def test_staff_get_returns_200(self):
+        """Test that a staff user with no game link can view a player (bypass, issue #864)."""
         response = self._get(token=self.staff_token)
-        assert response.status_code == 403
+        assert response.status_code == 200
 
     def test_dm_can_view_a_player(self):
         """Test that the DM of the game can view a single player."""

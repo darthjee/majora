@@ -201,11 +201,11 @@ class TestGameItemsCreate(TokenAuthRequestMixin, TestCase):
         response = self._post(self.client, {'name': 'Sting'})
         assert response.status_code == 401
 
-    def test_regular_player_returns_403(self):
-        """Test that a regular player of the game is rejected with 403."""
+    def test_regular_player_can_create_item(self):
+        """Test that a regular player of the game can create a bare GameItem (issue #864)."""
         token = Token.objects.create(user=self.player_user)
         response = self._post(self.client, {'name': 'Sting'}, token=token)
-        assert response.status_code == 403
+        assert response.status_code == 201
 
     def test_unrelated_user_returns_403(self):
         """Test that an authenticated user unrelated to the game is rejected with 403."""
