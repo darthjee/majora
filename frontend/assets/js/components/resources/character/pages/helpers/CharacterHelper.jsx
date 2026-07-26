@@ -38,8 +38,11 @@ export default class CharacterHelper {
    *   "Edit" link rendered beneath the money breakdown independently of `can_edit`.
    * @param {boolean} [character.is_player] - Whether the current user is a player of the
    *   game (but not necessarily this character's editor), gates the single player-facing
-   *   slain/revive button, and (together with `!is_pc`) also gates the Edit button for
-   *   NPCs, since any player may edit an NPC's player-writable fields.
+   *   slain/revive button, and unconditionally gates the Edit button too, since any player
+   *   may edit either an NPC's or a PC's player-writable fields.
+   * @param {boolean} [character.is_staff] - Whether the current user is a Staff account;
+   *   together with `is_pc`, also gates the Edit button for PCs, since Staff may edit a PC's
+   *   player-writable fields even when not a player of the game.
    * @param {boolean} [character.is_pc] - Whether the character is a PC (vs. an NPC), used
    *   to pick the `showTypeConfig` type and to build the correct edit link segment.
    * @param {boolean} [character.private_slain] - Whether the character is (really) slain
@@ -73,7 +76,9 @@ export default class CharacterHelper {
         mode="show"
         backHref={backHref}
         pageActions={(
-          <ConditionalComponent render={character.can_edit || (character.is_player && !character.is_pc)}>
+          <ConditionalComponent
+            render={character.can_edit || character.is_player || (character.is_pc && character.is_staff)}
+          >
             <EditButton href={`#/games/${character.game_slug}/${segment}/${character.id}/edit`}>
               {Translator.t('character_page.edit')}
             </EditButton>

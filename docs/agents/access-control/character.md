@@ -220,8 +220,9 @@ The general character update action lives on the full-detail endpoints, not the 
 | `PATCH /games/<slug>/pcs/<id>/full.json` | **CharacterEdit** |
 | `PATCH /games/<slug>/npcs/<id>/full.json` | **CharacterEdit** |
 
-`PATCH /games/<slug>/pcs/<id>.json` (the plain PC detail endpoint) does not accept `PATCH` —
-only `GET` remains on that route.
+`PATCH /games/<slug>/pcs/<id>.json` (the plain PC detail endpoint) also accepts `PATCH`, but only
+for a narrower, player-writable field set, gated by **CharacterRegularEdit** rather than
+**CharacterEdit** — see "Narrow player-facing PC PATCH" below (issue #865).
 
 **Write fields** (via `CharacterUpdateSerializer`): in addition to the scalar fields listed
 under "Create" below (`name`, `role`, `public_description`, `private_description`, `hidden`,
@@ -250,8 +251,35 @@ this serializer at all, so a player payload can never write them regardless of w
 
 The hidden-NPC gate (see "Detail" above) still applies: a hidden NPC returns 404 to a caller who
 is not an editor, same as `GET`. Success response: `200` with the same `CharacterDetailSerializer`
-body `GET` returns on this route, with `X-Skip-Cache: true`. This is additive only — the PC
-plain endpoint stays `GET`-only, and the DM-facing edit form keeps using `full.json`.
+body `GET` returns on this route, with `X-Skip-Cache: true`. This is additive only — the
+DM-facing edit form keeps using `full.json`.
+
+### Narrow player-facing PC PATCH
+
+`PATCH /games/<slug>/pcs/<id>.json` (the plain PC detail endpoint) also accepts `PATCH` (issue
+#865), for a small, curated, player-safe field set — the PC analogue of the NPC path above, but
+gated by a broader-audience permission (**CharacterRegularEdit** rather than **NpcPlayerEdit**)
+and a different field set:
+
+| Endpoint | Who can write | Body | Effect |
+|----------|--------------|------|--------|
+| `PATCH /games/<slug>/pcs/<id>.json` | **CharacterRegularEdit** | `{"name": "...", "role": "...", "public_description": "...", "money": <non-negative integer>, "links": [...]}`, all keys optional — any other key is silently ignored | Writes `Character.name`, `Character.role`, `Character.public_description`, `Character.money`, and syncs `links` (same shape/semantics as [CharacterLink](character-link.md)); `private_description`, `hidden`, `private_allegiance`, `public_allegiance`, `private_slain`, and `public_slain` are untouched and stay `full.json`-only |
+
+Validated by `CharacterRegularUpdateSerializer`
+(`backend/games/serializers/characters/character_regular_update.py`), a `ModelSerializer` whose
+`Meta.fields` is exactly `['name', 'role', 'public_description', 'money', 'links']` — a direct
+field-name passthrough with no `source=` remapping, plus a nested, writable `links` field using
+the same `CharacterLinkWriteSerializer`/`CharacterLinksSync` pattern `CharacterUpdateSerializer`
+and `NpcPlayerUpdateSerializer` use. `private_description`, `hidden`, `private_allegiance`, and
+`private_slain` are not declared on this serializer at all, so a player/Staff payload can never
+write them regardless of what keys it sends.
+
+This route is **PC-only** — there is no NPC equivalent, and the view (`game_pc_detail.py`) never
+routes an NPC id through this branch. Success response: `200` with the same
+`CharacterDetailSerializer` body `GET` returns on this route, with `X-Skip-Cache: true`.
+Unauthenticated → `401`; authenticated but not allowed → `403`. This is additive only — the
+`full.json` route, its permission (**CharacterEdit**), and its own full field set are entirely
+unchanged; a full editor (dm/admin/owner) continues to use `full.json` instead.
 
 ## Money-only update (PUT)
 
@@ -282,6 +310,12 @@ returns (not `CharacterFullSerializer` — so `private_description` and other fu
 fields are never exposed to a Staff caller who edits money without being a full editor), with
 `X-Skip-Cache: true`. Unauthenticated → `401`; authenticated but not allowed → `403`; unknown
 `game_slug`/`character_id`, or an id belonging to the other PC/NPC kind → `404`.
+
+For a PC, `money` is also writable — alongside `name`/`role`/`public_description`/`links` — through
+the narrower "Narrow player-facing PC PATCH" route above (**CharacterRegularEdit**, issue #865),
+an alternate write path with the exact same "any player of the game" leniency as
+**CharacterMoneyEdit**; it grants no wider access to `money` than this dedicated route already
+does.
 
 ## Create
 

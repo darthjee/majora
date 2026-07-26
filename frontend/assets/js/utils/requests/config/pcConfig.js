@@ -11,11 +11,10 @@
  *   `AccessStore.ensureCharacterPermissions`.
  *
  *   `PATCH.single` mirrors `GET.single`'s `regular`/`private` shape: `private` → `.../full.json`
- *   (`can_edit`, the full editor). Unlike NPC, no PC counterpart to `npc_player_update` exists on
- *   the backend today — `regular` still points at the plain `.../:id.json` path (which only
- *   supports `GET` today, so a mutation there 404s/405s), reserved for a future issue that adds
- *   player-writable PC updates; no PC caller reaches it today since the edit page redirects away
- *   when `!can_edit`.
+ *   (`can_edit`, the full editor), accepting the full field set. `regular` → the plain
+ *   `.../:id.json` path, accepting the reduced player-writable field set (`name`, `role`,
+ *   `public_description`, `money`, `links`); reachable by any player of the PC's game or any
+ *   Staff account (issue #865), same as the equivalent NPC endpoint.
  *
  *   `PUT.single` (money, `.../money.json`) and `POST.single` (photo upload init,
  *   `.../photo_upload.json`) are both single, un-branched variants (`CharacterMoneyEdit`/

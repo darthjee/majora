@@ -31,6 +31,12 @@ function CharacterMoneyShow({
 /**
  * Build the new/edit-mode money field slot for a character kind.
  *
+ * @description `canEditMoney` (only ever set for a PC, from `character.can_edit_money`) is ORed
+ *   in alongside `isFullEditor` before reaching `CharacterMoneyField`, so a PC's regular (non-full)
+ *   editor — any player of the game, or Staff — also sees the money block, while an NPC's money
+ *   field stays gated on `isFullEditor` alone (NPC money edits remain admin/dm/staff-only, no
+ *   player leniency). `canEditMoney` is `undefined`/falsy for the NPC "new" flow, which never sets
+ *   it, so no behavior change there.
  * @param {{edit: {label: string, button: string}, new: {label: string, button: string}}} variants
  *   - Per-mode label/button i18n keys, keyed by `'edit'` and/or `'new'` (PCs only ever provide
  *   `'edit'`). `new` money is always created with a `treasureValue` of `0` (the character does
@@ -39,13 +45,13 @@ function CharacterMoneyShow({
  */
 export function buildCharacterMoneyField(variants) {
   return function CharacterMoneyEditOrNew({
-    mode, isFullEditor, money, treasureValue = 0, gameType, fieldErrors = {}, handlers,
+    mode, isFullEditor, canEditMoney, money, treasureValue = 0, gameType, fieldErrors = {}, handlers,
   }) {
     const { label, button } = variants[mode];
 
     return (
       <CharacterMoneyField
-        isFullEditor={isFullEditor}
+        isFullEditor={isFullEditor || canEditMoney}
         label={Translator.t(label)}
         money={money}
         treasureValue={treasureValue}

@@ -222,6 +222,35 @@ class CharacterMoneyEditPermission(_EditPermission):
         return character.can_be_edited_by(user)
 
 
+class CharacterRegularEditPermission(_EditPermission):
+    """Encapsulate checks for the narrow, player-writable PC update endpoint (issue #865).
+
+    Grants the same access as CharacterEditPermission (superuser, the character's owning
+    player, or a GameMaster of the game) plus any Staff account (globally), plus — PC-only —
+    any other player of the game. Deliberately mirrors CharacterMoneyEditPermission's exact
+    shape (issues #615/#625) rather than reusing that class directly, so the two endpoints'
+    rules can diverge independently later, per this module's existing convention (see
+    CharacterItemCreatePermission/CharacterItemPhotoUploadPermission). PC-only: NPCs have no
+    counterpart to this endpoint at all.
+    """
+
+    @classmethod
+    def check(cls, request, character):
+        """Return an error Response if `request.user` may not perform this PC update."""
+        return cls._guarded_check(request, lambda: cls.is_allowed(request.user, character))
+
+    @classmethod
+    def is_allowed(cls, user, character):
+        """Return whether `user` may edit `character`'s regular (non-private) field set."""
+        if not user or not user.is_authenticated:
+            return False
+        if user.is_staff:
+            return True
+        if character.is_pc and character.game.has_player(user):
+            return True
+        return character.can_be_edited_by(user)
+
+
 class CharacterTreasureExchangePermission(_EditPermission):
     """Encapsulate checks for the PC/NPC treasure buy/sell endpoints (issue #712).
 
