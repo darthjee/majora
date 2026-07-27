@@ -22,8 +22,9 @@ class UploadInitiator:
     ):
         """Store the request and the per-endpoint hooks used to build the init response.
 
-        `build_file_path(filename)` derives the storage path; `create_photo(file_path)`
-        creates (or updates) the owning photo record. `id_field`/`id_value` name the
+        `build_file_path(filename)` derives the storage path; `create_photo(file_path, data)`
+        creates (or updates) the owning photo record, given the file path and the full
+        validated request data. `id_field`/`id_value` name the
         endpoint-specific id (e.g. `character_id`) included in the response payload.
         `serializer_class` validates the request payload (defaults to
         `PhotoUploadSerializer`); `upload_type` is stored on the created `Upload` row and
@@ -46,7 +47,7 @@ class UploadInitiator:
 
         filename = serializer.validated_data['filename']
         file_path = self._build_file_path(filename)
-        photo = self._create_photo(file_path)
+        photo = self._create_photo(file_path, serializer.validated_data)
 
         return self._create_upload_response(photo, file_path)
 

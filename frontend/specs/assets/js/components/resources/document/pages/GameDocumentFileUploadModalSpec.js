@@ -66,7 +66,8 @@ describe('GameDocument file upload modal (issue #726)', function() {
     expect(PhotoUploadModalController.prototype.handleSubmit).toHaveBeenCalledWith(
       '/games/demo/documents/5/file_upload.json',
       null,
-      'auth-tok'
+      'auth-tok',
+      ''
     );
   });
 
@@ -88,6 +89,16 @@ describe('GameDocument file upload modal (issue #726)', function() {
 
     expect(captured[0].state.translationPrefix).toBe('photo_upload_modal');
     expect(captured[0].state.accept).toBeUndefined();
+    expect(captured[0].state.showNameField).toBe(false);
+  });
+
+  it('passes showNameField={true} to the file modal state only (issue #874)', function() {
+    spyOn(DocumentDetailHelper, 'render').and.returnValue(null);
+    const captured = captureModalCalls(spyOn(PhotoUploadModalHelper, 'render'));
+
+    renderToStaticMarkup(React.createElement(GameDocument, { ControllerClass: LoadedController }));
+
+    expect(captured[1].state.showNameField).toBe(true);
   });
 
   it('refetches the document via buildEffect when the file upload succeeds', function() {

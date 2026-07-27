@@ -28,3 +28,5 @@ class FileUploadSerializer(PhotoUploadSerializer):
     """Validates the filename submitted to the (non-photo) file upload init endpoint."""
 
     ALLOWED_EXTENSIONS = {'.pdf'}
+
+    name = serializers.CharField(max_length=255, allow_blank=True, required=False, default='')

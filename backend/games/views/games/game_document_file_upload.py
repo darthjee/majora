@@ -28,8 +28,9 @@ def game_document_file_upload(request, game_slug, document_id):
     initiator = UploadInitiator(
         request,
         build_file_path=lambda filename: _build_file_path(game_slug, document_id, filename),
-        create_photo=lambda file_path: GameDocumentFile.objects.create(
-            game_document=document, path=file_path, ready=False
+        create_photo=lambda file_path, data: GameDocumentFile.objects.create(
+            game_document=document, path=file_path, ready=False,
+            name=data.get('name') or data['filename'],
         ),
         id_field='document_id',
         id_value=document.id,

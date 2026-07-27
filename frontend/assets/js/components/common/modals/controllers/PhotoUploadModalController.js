@@ -29,11 +29,13 @@ export default class PhotoUploadModalController {
    * @param {string} uploadPath - Full path to the photo upload init endpoint.
    * @param {File} file - File to upload.
    * @param {string} token - Authentication token.
+   * @param {string} [name] - Optional user-provided name for the uploaded file (issue #874),
+   *   forwarded to `initUpload`.
    * @returns {Promise<void>} Resolves when the upload handling finishes.
    */
-  async handleSubmit(uploadPath, file, token) {
+  async handleSubmit(uploadPath, file, token, name) {
     try {
-      const initResponse = await this.client.initUpload(uploadPath, file.name, token);
+      const initResponse = await this.client.initUpload(uploadPath, file.name, token, name);
 
       if (!initResponse.ok) {
         this.setError(true);

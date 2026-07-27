@@ -83,6 +83,7 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
         uploadPath={fileUploadPath}
         translationPrefix="file_upload_modal"
         accept=".pdf"
+        showNameField
         onClose={() => setShowFileUploadModal(false)}
         onSuccess={buildUploadSuccessHandler(setShowFileUploadModal)}
       />

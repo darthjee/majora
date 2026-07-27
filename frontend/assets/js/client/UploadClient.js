@@ -15,16 +15,19 @@ export default class UploadClient extends BaseClient {
    *   (e.g. `/games/my-game/photo_upload.json` or `/games/my-game/pcs/7/photo_upload.json`).
    * @param {string} filename - The original file name of the photo to upload.
    * @param {string} token - Authentication token.
+   * @param {string} [name] - Optional user-provided name for the uploaded file (issue #874),
+   *   sent alongside `filename` when present. Callers that don't pass it (e.g. the plain
+   *   photo-upload flow) keep sending exactly today's body.
    * @returns {Promise<Response>} fetch response from the photo upload init endpoint.
    */
-  initUpload(path, filename, token) {
+  initUpload(path, filename, token, name) {
     return this.request(path, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Token ${token}`,
       },
-      body: JSON.stringify({ filename }),
+      body: JSON.stringify(name ? { filename, name } : { filename }),
       signal: AbortSignal.timeout(UPLOAD_TIMEOUT_MS),
     });
   }

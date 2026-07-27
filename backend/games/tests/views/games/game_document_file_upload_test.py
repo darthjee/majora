@@ -176,3 +176,41 @@ class TestGameDocumentFileUploadView(TokenAuthRequestMixin):
             content_type='application/json',
         )
         assert response.status_code == 201
+
+    def test_name_provided_is_saved_as_is(self, client):
+        """Test that a provided name is saved on the GameDocumentFile as-is."""
+        response = self._post(
+            client, {'filename': 'scroll.pdf', 'name': 'Ancient Scroll'}, token=self.dm_token,
+        )
+        data = json.loads(response.content)
+        upload = Upload.objects.get(pk=data['upload_id'])
+        document_file = GameDocumentFile.objects.get(path=upload.file_path)
+        assert document_file.name == 'Ancient Scroll'
+
+    def test_name_omitted_falls_back_to_filename(self, client):
+        """Test that an omitted name falls back to the filename."""
+        response = self._post(client, {'filename': 'scroll.pdf'}, token=self.dm_token)
+        data = json.loads(response.content)
+        upload = Upload.objects.get(pk=data['upload_id'])
+        document_file = GameDocumentFile.objects.get(path=upload.file_path)
+        assert document_file.name == 'scroll.pdf'
+
+    def test_blank_name_falls_back_to_filename(self, client):
+        """Test that a blank name falls back to the filename."""
+        response = self._post(
+            client, {'filename': 'scroll.pdf', 'name': ''}, token=self.dm_token,
+        )
+        data = json.loads(response.content)
+        upload = Upload.objects.get(pk=data['upload_id'])
+        document_file = GameDocumentFile.objects.get(path=upload.file_path)
+        assert document_file.name == 'scroll.pdf'
+
+    def test_name_over_max_length_returns_400(self, client):
+        """Test that a name over 255 characters is rejected with 400."""
+        response = self._post(
+            client, {'filename': 'scroll.pdf', 'name': 'a' * 256}, token=self.dm_token,
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'errors' in data
+        assert 'name' in data['errors']

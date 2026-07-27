@@ -26,7 +26,7 @@ def photo_upload(request, game_slug):
     initiator = UploadInitiator(
         request,
         build_file_path=lambda filename: _build_file_path(game_slug, filename),
-        create_photo=lambda file_path: GamePhoto.objects.create(
+        create_photo=lambda file_path, _data: GamePhoto.objects.create(
             game=game, path=file_path, ready=False
         ),
         id_field='game_id',

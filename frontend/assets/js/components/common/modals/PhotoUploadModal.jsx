@@ -28,13 +28,17 @@ import PhotoUploadModalHelper from './helpers/PhotoUploadModalHelper.jsx';
  * @param {string} [props.accept] - Value forwarded to the `<input type="file">`'s `accept`
  *   attribute (issue #726), e.g. `.pdf` for file mode. Left unset for the default photo
  *   behavior (no restriction).
+ * @param {boolean} [props.showNameField] - Whether to render an optional name text input
+ *   (issue #874), sent alongside the file on submit. Defaults to `false`, preserving today's
+ *   photo-upload behavior; the file-upload variant passes `true`.
  * @returns {React.ReactElement} Rendered photo upload modal.
  */
 export default function PhotoUploadModal({
   show, uploadPath, deferred = false, onFileConfirmed = Noop.noop, onClose, onSuccess,
-  translationPrefix = 'photo_upload_modal', accept,
+  translationPrefix = 'photo_upload_modal', accept, showNameField = false,
 }) {
   const [file, setFile] = useState(null);
+  const [name, setName] = useState('');
   const [error, setError] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -46,6 +50,7 @@ export default function PhotoUploadModal({
   const handleClose = () => {
     controller.handleClear();
     setFile(null);
+    setName('');
 
     if (typeof onClose === 'function') {
       onClose();
@@ -61,11 +66,20 @@ export default function PhotoUploadModal({
 
     setUploading(true);
     const token = AuthStorage.getToken();
-    controller.handleSubmit(uploadPath, file, token);
+
+    if (showNameField) {
+      controller.handleSubmit(uploadPath, file, token, name);
+    } else {
+      controller.handleSubmit(uploadPath, file, token);
+    }
   };
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
+  };
+
+  const handleNameChange = (event) => {
+    setName(event.target.value);
   };
 
   const handleDragOver = (event) => {
@@ -84,13 +98,14 @@ export default function PhotoUploadModal({
   return PhotoUploadModalHelper.render(
     show,
     {
-      file, error, uploading, deferred, translationPrefix, accept,
+      file, error, uploading, deferred, translationPrefix, accept, showNameField, name,
     },
     {
       onClose: handleClose,
       onCancel: handleClose,
       onSubmit: handleSubmit,
       onFileChange: handleFileChange,
+      onNameChange: handleNameChange,
       onDragOver: handleDragOver,
       onDrop: handleDrop,
     },

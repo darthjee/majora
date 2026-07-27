@@ -26,7 +26,7 @@ def character_item_photo_upload(request, game, game_slug, character_id, item_id,
         build_file_path=lambda filename: _build_file_path(
             game_slug, kind, character_id, item_id, filename,
         ),
-        create_photo=lambda file_path: _reuse_or_create_photo(item, file_path),
+        create_photo=lambda file_path, _data: _reuse_or_create_photo(item, file_path),
         id_field='item_id',
         id_value=item.id,
     )
