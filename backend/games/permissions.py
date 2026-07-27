@@ -146,6 +146,20 @@ class GameDocumentFileUploadPermission(_EditPermission):
         return user.is_staff or game.has_player(user) or game.can_be_edited_by(user)
 
 
+class GameDocumentFilePhotoUploadPermission(_EditPermission):
+    """Broadened document file photo-upload action, mirroring GameDocumentFileUploadPermission."""
+
+    @classmethod
+    def check(cls, request, game):
+        """Return an error Response if `request.user` may not upload a document file's photo."""
+        return cls._guarded_check(request, lambda: cls._is_allowed(request.user, game))
+
+    @classmethod
+    def _is_allowed(cls, user, game):
+        """Return whether `user` is staff, a player of the game, or may edit it outright."""
+        return user.is_staff or game.has_player(user) or game.can_be_edited_by(user)
+
+
 class GameItemCreatePermission(_EditPermission):
     """Encapsulate checks for the game-level item-creation endpoint (issue #784).
 

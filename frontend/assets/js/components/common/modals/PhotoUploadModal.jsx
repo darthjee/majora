@@ -31,14 +31,22 @@ import PhotoUploadModalHelper from './helpers/PhotoUploadModalHelper.jsx';
  * @param {boolean} [props.showNameField] - Whether to render an optional name text input
  *   (issue #874), sent alongside the file on submit. Defaults to `false`, preserving today's
  *   photo-upload behavior; the file-upload variant passes `true`.
+ * @param {boolean} [props.showPhotoField] - Whether to render an optional second file input for
+ *   an image (issue #878), sent as a chained second upload after the main file upload succeeds.
+ *   Defaults to `false`; the file-upload variant passes `true`.
+ * @param {Function} [props.photoUploadPathBuilder] - Function taking the newly created file's id
+ *   (returned by the main upload's init response) and returning the photo-upload init path
+ *   (issue #878). Required when `showPhotoField` is `true` and a photo file was picked.
  * @returns {React.ReactElement} Rendered photo upload modal.
  */
 export default function PhotoUploadModal({
   show, uploadPath, deferred = false, onFileConfirmed = Noop.noop, onClose, onSuccess,
   translationPrefix = 'photo_upload_modal', accept, showNameField = false,
+  showPhotoField = false, photoUploadPathBuilder,
 }) {
   const [file, setFile] = useState(null);
   const [name, setName] = useState('');
+  const [photoFile, setPhotoFile] = useState(null);
   const [error, setError] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -51,6 +59,7 @@ export default function PhotoUploadModal({
     controller.handleClear();
     setFile(null);
     setName('');
+    setPhotoFile(null);
 
     if (typeof onClose === 'function') {
       onClose();
@@ -66,8 +75,13 @@ export default function PhotoUploadModal({
 
     setUploading(true);
     const token = AuthStorage.getToken();
+    const photoUpload = showPhotoField && photoFile
+      ? { file: photoFile, buildPath: photoUploadPathBuilder }
+      : undefined;
 
-    if (showNameField) {
+    if (photoUpload) {
+      controller.handleSubmit(uploadPath, file, token, name, photoUpload);
+    } else if (showNameField) {
       controller.handleSubmit(uploadPath, file, token, name);
     } else {
       controller.handleSubmit(uploadPath, file, token);
@@ -80,6 +94,10 @@ export default function PhotoUploadModal({
 
   const handleNameChange = (event) => {
     setName(event.target.value);
+  };
+
+  const handlePhotoFileChange = (event) => {
+    setPhotoFile(event.target.files[0]);
   };
 
   const handleDragOver = (event) => {
@@ -99,6 +117,7 @@ export default function PhotoUploadModal({
     show,
     {
       file, error, uploading, deferred, translationPrefix, accept, showNameField, name,
+      showPhotoField,
     },
     {
       onClose: handleClose,
@@ -106,6 +125,7 @@ export default function PhotoUploadModal({
       onSubmit: handleSubmit,
       onFileChange: handleFileChange,
       onNameChange: handleNameChange,
+      onPhotoFileChange: handlePhotoFileChange,
       onDragOver: handleDragOver,
       onDrop: handleDrop,
     },

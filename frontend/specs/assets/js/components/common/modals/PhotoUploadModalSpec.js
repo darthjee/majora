@@ -34,6 +34,7 @@ describe('PhotoUploadModal', function() {
           accept: undefined,
           showNameField: false,
           name: '',
+          showPhotoField: false,
         },
         jasmine.objectContaining({
           onClose: jasmine.any(Function),
@@ -41,6 +42,7 @@ describe('PhotoUploadModal', function() {
           onSubmit: jasmine.any(Function),
           onFileChange: jasmine.any(Function),
           onNameChange: jasmine.any(Function),
+          onPhotoFileChange: jasmine.any(Function),
           onDragOver: jasmine.any(Function),
           onDrop: jasmine.any(Function),
         })
@@ -264,5 +266,6 @@ describe('PhotoUploadModal', function() {
         );
       });
     });
+
   });
 });

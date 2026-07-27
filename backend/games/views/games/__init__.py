@@ -4,6 +4,7 @@ from .game_access import game_access
 from .game_detail import game_detail
 from .game_document_detail import game_document_detail
 from .game_document_detail_full import game_document_detail_full
+from .game_document_file_photo_upload import game_document_file_photo_upload
 from .game_document_file_upload import game_document_file_upload
 from .game_document_files import game_document_files
 from .game_document_files_all import game_document_files_all
@@ -47,6 +48,7 @@ __all__ = [
     'game_document_photo_upload',
     'game_document_photo_set',
     'game_document_file_upload',
+    'game_document_file_photo_upload',
     'game_document_files',
     'game_document_files_all',
     'game_items',

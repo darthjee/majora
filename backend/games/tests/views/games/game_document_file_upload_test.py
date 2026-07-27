@@ -110,6 +110,13 @@ class TestGameDocumentFileUploadView(TokenAuthRequestMixin):
         assert data['upload_type'] == Upload.UPLOAD_TYPE_FILE
         assert data['document_id'] == self.document.id
 
+    def test_happy_path_returns_201_with_created_file_id(self, client):
+        """Test that the response also exposes the newly created GameDocumentFile's id."""
+        response = self._post(client, {'filename': 'scroll.pdf'}, token=self.dm_token)
+        data = json.loads(response.content)
+        document_file = GameDocumentFile.objects.get(game_document=self.document)
+        assert data['id'] == document_file.id
+
     def test_happy_path_creates_upload_record(self, client):
         """Test that a valid request creates an Upload record with pending status and file type."""
         response = self._post(client, {'filename': 'scroll.pdf'}, token=self.dm_token)

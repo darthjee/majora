@@ -64,6 +64,7 @@ class UploadInitiator:
                 'upload_id': upload.id,
                 'token': upload.token,
                 'upload_type': upload.upload_type,
+                'id': photo.pk,
                 self._id_field: self._id_value,
             },
             status=201,

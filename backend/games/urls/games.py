@@ -84,6 +84,14 @@ urlpatterns = [
         name='game-document-file-upload',
     ),
     path(
+        (
+            'games/<slug:game_slug>/documents/<int:document_id>/files/<int:file_id>/'
+            'photo_upload.json'
+        ),
+        views.game_document_file_photo_upload,
+        name='game-document-file-photo-upload',
+    ),
+    path(
         'games/<slug:game_slug>/documents/<int:document_id>/photos/<int:photo_id>/set.json',
         views.game_document_photo_set,
         name='game-document-photo-set',

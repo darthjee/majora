@@ -62,6 +62,8 @@ file_upload_modal:
   confirm: Confirmar
   error: Falha ao enviar arquivo. Por favor, tente novamente.
   name_label: Nome
+  photo_error: Falha ao enviar foto. Por favor, tente novamente.
+  photo_label: Foto (opcional)
   submit: Enviar
   title: Enviar Arquivo
 photo_upload_modal:

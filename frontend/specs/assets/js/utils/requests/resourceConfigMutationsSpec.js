@@ -114,6 +114,18 @@ describe('resourceConfig mutations (issue #841)', function() {
       expect(file.regular.path({ gameSlug: 'demo', id: '9' })).toBe('/games/demo/documents/9/file_upload.json');
       expect(file.regular.permission).toBeNull();
     });
+
+    it(
+      'resolves POST.filePhoto (file photo-upload init) as a single un-branched variant (issue #878)',
+      function() {
+        const filePhoto = resourceConfig.get('POST', 'document', 'filePhoto');
+
+        expect(filePhoto.regular).toBe(filePhoto.private);
+        expect(filePhoto.regular.path({ gameSlug: 'demo', id: '9', fileId: '42' }))
+          .toBe('/games/demo/documents/9/files/42/photo_upload.json');
+        expect(filePhoto.regular.permission).toBeNull();
+      }
+    );
   });
 });
 

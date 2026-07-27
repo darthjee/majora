@@ -103,8 +103,12 @@ authoritative server-computed flag.
 
 | Endpoint | Method | Who can call | Request | Response |
 |----------|--------|-------------|---------|----------|
-| `/games/<slug>/pcs/<id>/items/<item_id>/photo_upload.json` | POST | **CharacterItemPhotoUploadPermission** — dm, admin, staff, or the PC's owning player | `{ filename: string }` | `201` with `{ upload_id, token, item_id }` |
+| `/games/<slug>/pcs/<id>/items/<item_id>/photo_upload.json` | POST | **CharacterItemPhotoUploadPermission** — dm, admin, staff, or the PC's owning player | `{ filename: string }` | `201` with `{ upload_id, token, id, item_id }` |
 | `/games/<slug>/npcs/<id>/items/<item_id>/photo_upload.json` | POST | **CharacterItemPhotoUploadPermission** — dm, admin, or staff (NPCs have no owner) | Same as above | Same as above |
+
+`id` (issue #878) is the created/reused `CharacterItemPhoto`'s own primary key, distinct from
+`item_id` — see [Upload](upload.md)'s "`id` in the init response" note for why this generic field
+now appears in every `UploadInitiator`-based endpoint's response.
 
 Both are init-only endpoints (issue #750), following the same two-step upload flow as every
 other photo (`POST .../photo_upload.json` → proxy-handled multipart submit → `PATCH

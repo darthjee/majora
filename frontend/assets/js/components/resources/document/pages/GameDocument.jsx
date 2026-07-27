@@ -19,7 +19,10 @@ import getCurrentHash from '../../../../utils/routing/currentHash.js';
  * general "edit" permission for documents). The photo shortlist's `selectedPhoto`/`PhotoViewModal`
  * state is lifted up here (issue #873), mirroring `CharacterPhotos.jsx`'s own wiring, since the
  * bottom photo shortlist slot (`DocumentPhotosPreview`) only opens the lightbox — it doesn't own
- * the modal itself.
+ * the modal itself. The file-upload modal also carries an optional photo field (issue #878):
+ * `photoUploadPathBuilder` builds the second, chained upload's init path from the newly created
+ * file's own id (only known after the first upload cycle completes), via the `document`/
+ * `filePhoto` resourceConfig entry.
  *
  * @param {object} [props] - Component props.
  * @param {Function} [props.ControllerClass] - Document controller class to instantiate, mainly
@@ -70,6 +73,9 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
   const editHref = `#/games/${gameSlug}/documents/${document?.id}/edit`;
   const uploadPath = resourceConfig.get('POST', 'document', 'single').regular.path({ gameSlug, id: document?.id });
   const fileUploadPath = resourceConfig.get('POST', 'document', 'file').regular.path({ gameSlug, id: document?.id });
+  const buildFilePhotoUploadPath = (fileId) => resourceConfig.get('POST', 'document', 'filePhoto').regular.path({
+    gameSlug, id: document?.id, fileId,
+  });
 
   return (
     <>
@@ -90,6 +96,8 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
         translationPrefix="file_upload_modal"
         accept=".pdf"
         showNameField
+        showPhotoField
+        photoUploadPathBuilder={buildFilePhotoUploadPath}
         onClose={() => setShowFileUploadModal(false)}
         onSuccess={buildUploadSuccessHandler(setShowFileUploadModal)}
       />

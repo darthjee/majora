@@ -9,16 +9,20 @@ export default class PhotoUploadModalHelper {
    * Renders the photo (or file, issue #726) upload modal.
    *
    * @param {boolean} show - Whether the modal is visible.
-   * @param {{error: boolean, uploading: boolean, deferred: boolean, translationPrefix: string,
-   *   accept: string, showNameField: boolean, name: string}} state - Modal state.
-   *   `translationPrefix` is the i18n key prefix used for every string rendered in this modal
-   *   (defaults to `photo_upload_modal`, e.g. `file_upload_modal` for the file-upload variant).
-   *   `accept` is forwarded as-is to the `<input type="file">`'s `accept` attribute (e.g.
-   *   `.pdf`), left unset for the default photo behavior (no restriction). `showNameField`
-   *   (issue #874) toggles an optional name text input, and `name` is its current value.
+   * @param {{error: boolean|string, uploading: boolean, deferred: boolean,
+   *   translationPrefix: string, accept: string, showNameField: boolean, name: string,
+   *   showPhotoField: boolean}} state - Modal state. `translationPrefix` is the i18n key prefix
+   *   used for every string rendered in this modal (defaults to `photo_upload_modal`, e.g.
+   *   `file_upload_modal` for the file-upload variant). `accept` is forwarded as-is to the
+   *   `<input type="file">`'s `accept` attribute (e.g. `.pdf`), left unset for the default photo
+   *   behavior (no restriction). `showNameField` (issue #874) toggles an optional name text
+   *   input, and `name` is its current value. `showPhotoField` (issue #878) toggles an optional
+   *   second file input for an image. `error` is `true`/`false` for the main upload step, or the
+   *   string `'photo'` when the chained photo-upload step failed instead (renders a distinct
+   *   `${translationPrefix}.photo_error` message).
    * @param {{onClose: Function, onCancel: Function, onSubmit: Function, onFileChange: Function,
-   *   onNameChange: Function, onDragOver: Function, onDrop: Function}} handlers - Modal event
-   *   handlers.
+   *   onNameChange: Function, onPhotoFileChange: Function, onDragOver: Function,
+   *   onDrop: Function}} handlers - Modal event handlers.
    * @returns {React.ReactElement} Rendered photo upload modal.
    */
   static render(show, state, handlers) {
@@ -38,6 +42,7 @@ export default class PhotoUploadModalHelper {
             onDrop={handlers.onDrop}
           />
           <input type="file" accept={accept} onChange={handlers.onFileChange} />
+          {PhotoUploadModalHelper.#renderPhotoField(state, handlers)}
         </Modal.Body>
         <Modal.Footer>
           <button className="btn btn-secondary" type="button" onClick={handlers.onCancel}>
@@ -61,9 +66,11 @@ export default class PhotoUploadModalHelper {
       return null;
     }
 
+    const errorKey = state.error === 'photo' ? 'photo_error' : 'error';
+
     return (
       <div className="alert alert-danger">
-        {Translator.t(`${translationPrefix}.error`)}
+        {Translator.t(`${translationPrefix}.${errorKey}`)}
       </div>
     );
   }
@@ -90,6 +97,31 @@ export default class PhotoUploadModalHelper {
         placeholder={label}
         value={name}
         onChange={handlers.onNameChange}
+      />
+    );
+  }
+
+  /**
+   * Renders the optional image file input (issue #878), when `state.showPhotoField` is true.
+   *
+   * @param {{showPhotoField: boolean, translationPrefix: string}} state - Modal state.
+   * @param {{onPhotoFileChange: Function}} handlers - Modal event handlers.
+   * @returns {React.ReactElement|null} The photo file input, or `null` when not shown.
+   */
+  static #renderPhotoField(state, handlers) {
+    if (!state.showPhotoField) {
+      return null;
+    }
+
+    const { translationPrefix = 'photo_upload_modal' } = state;
+    const label = Translator.t(`${translationPrefix}.photo_label`);
+
+    return (
+      <input
+        type="file"
+        accept="image/*"
+        aria-label={label}
+        onChange={handlers.onPhotoFileChange}
       />
     );
   }
