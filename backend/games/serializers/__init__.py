@@ -36,6 +36,7 @@ from games.serializers.characters.npcs.npc_player_create import NpcPlayerCreateS
 from games.serializers.characters.npcs.npc_player_update import NpcPlayerUpdateSerializer
 from games.serializers.characters.pcs.pc_access import PcAccessSerializer
 from games.serializers.games.conversations.conversation_list import ConversationListSerializer
+from games.serializers.games.documents.game_document_file import GameDocumentFileSerializer
 from games.serializers.games.documents.game_document_list import (
     GameDocumentAllListSerializer,
     GameDocumentDetailFullSerializer,
@@ -139,6 +140,7 @@ __all__ = [
     'GameDocumentAllListSerializer',
     'GameDocumentDetailFullSerializer',
     'GameDocumentDetailSerializer',
+    'GameDocumentFileSerializer',
     'GameDocumentListSerializer',
     'GameDocumentPhotoSerializer',
     'GameItemAllListSerializer',
