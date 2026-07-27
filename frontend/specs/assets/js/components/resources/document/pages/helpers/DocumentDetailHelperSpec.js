@@ -100,6 +100,34 @@ describe('DocumentDetailHelper', function() {
       expect(element.props.context.handlers.onOpenUploadModal).toBe(onUploadClick);
     });
 
+    it('passes gameSlug through to the show page layout context as game_slug (issue #873)', function() {
+      const document = { id: 5, name: 'Ancient Scroll', description: '' };
+      const element = DocumentDetailHelper.render(
+        document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true, undefined, undefined, 'demo',
+      );
+
+      expect(element.props.context.game_slug).toBe('demo');
+      expect(element.props.context.id).toBe(5);
+    });
+
+    it('passes onSelectPhoto through to the show page layout context handlers (issue #873)', function() {
+      const document = { id: 5, name: 'Ancient Scroll', description: '' };
+      const onSelectPhoto = jasmine.createSpy('onSelectPhoto');
+      const element = DocumentDetailHelper.render(
+        document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true,
+        undefined, undefined, 'demo', onSelectPhoto,
+      );
+
+      expect(element.props.context.handlers.onSelectPhoto).toBe(onSelectPhoto);
+    });
+
+    it('defaults onSelectPhoto to a no-op', function() {
+      const document = { id: 5, name: 'Ancient Scroll', description: '' };
+      const element = DocumentDetailHelper.render(document, '#/games/demo/documents');
+
+      expect(() => element.props.context.handlers.onSelectPhoto()).not.toThrow();
+    });
+
     it('does not render the edit button when canUploadPhoto is omitted', function() {
       const document = { id: 5, name: 'Ancient Scroll', description: '' };
       const html = renderToStaticMarkup(

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import DocumentDetailHelper from './helpers/DocumentDetailHelper.jsx';
 import GameDocumentController from './controllers/GameDocumentController.js';
 import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
+import PhotoViewModal from '../../../common/modals/PhotoViewModal.jsx';
 import RequestStore from '../../../../utils/requests/RequestStore.js';
 import resourceConfig from '../../../../utils/requests/resourceConfig.js';
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
@@ -15,7 +16,10 @@ import getCurrentHash from '../../../../utils/routing/currentHash.js';
  * file-upload modal (issue #726), both gated on the controller's independently-derived
  * `canUploadPhoto` flag, mirroring `GameItem`'s upload modal wiring, and an Edit button linking
  * to the document's `/edit` page, reusing `canUploadPhoto` as the edit gate (there is no separate
- * general "edit" permission for documents).
+ * general "edit" permission for documents). The photo shortlist's `selectedPhoto`/`PhotoViewModal`
+ * state is lifted up here (issue #873), mirroring `CharacterPhotos.jsx`'s own wiring, since the
+ * bottom photo shortlist slot (`DocumentPhotosPreview`) only opens the lightbox — it doesn't own
+ * the modal itself.
  *
  * @param {object} [props] - Component props.
  * @param {Function} [props.ControllerClass] - Document controller class to instantiate, mainly
@@ -29,6 +33,7 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
   const [canUploadPhoto, setCanUploadPhoto] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showFileUploadModal, setShowFileUploadModal] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
 
   const controller = useMemo(
     () => new ControllerClass(setDocument, setLoading, setError, setCanUploadPhoto),
@@ -71,6 +76,7 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
       {DocumentDetailHelper.render(
         document, backHref, editHref, canUploadPhoto,
         () => setShowUploadModal(true), () => setShowFileUploadModal(true),
+        gameSlug, setSelectedPhoto,
       )}
       <PhotoUploadModal
         show={showUploadModal}
@@ -86,6 +92,13 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
         showNameField
         onClose={() => setShowFileUploadModal(false)}
         onSuccess={buildUploadSuccessHandler(setShowFileUploadModal)}
+      />
+      <PhotoViewModal
+        show={selectedPhoto !== null}
+        photo={selectedPhoto}
+        alt={document?.name}
+        onClose={() => setSelectedPhoto(null)}
+        canSetProfilePhoto={false}
       />
     </>
   );
