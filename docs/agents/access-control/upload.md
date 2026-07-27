@@ -175,13 +175,19 @@ a file has at most one photo, mirroring the [Treasure photo upload init
 endpoint](#treasure-photo-upload-init-endpoint) below: if the file already has a `photo`
 (`file.photo_id` is set), the existing `GameDocumentFilePhoto` row is reused (its `path` updated,
 `ready` reset to `False`) rather than creating a second row; otherwise a new row is created and
-assigned to `file.photo`. Either way, the photo is not visible via `photo_path` on the file (see
-`GameDocumentFileSerializer`, exposed by `GET /games/<slug>/documents/<document_id>/files.json`
-and `.../files/all.json`) until the upload is finalised. Finalisation itself
-(`PATCH /uploads/image/<id>.json`) uses the default, unconditional `ready=True` behavior — there
-is no dedicated "if unset" or "always replace" dispatch branch for `GameDocumentFilePhoto` in the
-"Side effect on finalisation" list above, since the file's `photo` FK is already set at init time
-(reuse-or-create), not at finalisation time, unlike `GamePhoto`/`CharacterPhoto`/`GameDocumentPhoto`.
+assigned to `file.photo`. Unlike every other photo type above, this means `photo_path` on the file
+(`GameDocumentFileSerializer`, exposed by `GET /games/<slug>/documents/<document_id>/files.json`
+and `.../files/all.json`, both public for a non-hidden document's `ready=True` files) is **not**
+gated on the photo's own `ready` flag — `GameDocumentFileSerializer.photo_path` reads
+`photo.path` unconditionally, so it can reflect a freshly-initiated or mid-reupload photo before
+its own upload is finalised (pre-existing behavior from #873/#874, not changed by #878; see
+[GameDocument's "Document file photo upload
+endpoint"](game-document.md#document-file-photo-upload-endpoint) for the full note). Finalisation
+itself (`PATCH /uploads/image/<id>.json`) uses the default, unconditional `ready=True` behavior —
+there is no dedicated "if unset" or "always replace" dispatch branch for `GameDocumentFilePhoto`
+in the "Side effect on finalisation" list above, since the file's `photo` FK is already set at
+init time (reuse-or-create), not at finalisation time, unlike
+`GamePhoto`/`CharacterPhoto`/`GameDocumentPhoto`.
 
 ## Treasure photo upload init endpoint
 

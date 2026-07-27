@@ -168,8 +168,18 @@ since a file has at most one photo: if the file already has a photo, the existin
 `GameDocumentFilePhoto` row is reused (`path` updated, `ready` reset to `False`); otherwise a new
 row is created and assigned to `file.photo` immediately (not deferred to finalisation, unlike
 `GamePhoto`/`CharacterPhoto`/`GameDocumentPhoto`'s "if unset" pattern). The response's `id` field
-is the `GameDocumentFilePhoto`'s own id (distinct from `file_id`, the target file's id). Uploaded
-photos are exposed via `photo_path` on `GameDocumentFileSerializer`
-(`GET /games/<slug>/documents/<document_id>/files.json` and `.../files/all.json`) once
-`ready=True`. See [Upload](upload.md#document-file-photo-upload-init-endpoint) for the
-upload-init endpoint's full contract and finalisation behavior.
+is the `GameDocumentFilePhoto`'s own id (distinct from `file_id`, the target file's id).
+
+**Note — `photo_path` is not gated on `ready` (pre-existing, from #873/#874, not changed by
+#878):** because `file.photo` is assigned at *init* time rather than finalisation,
+`GameDocumentFileSerializer.photo_path` (`source='photo.path'`, exposed via
+`GET /games/<slug>/documents/<document_id>/files.json` and `.../files/all.json`, both public for
+a non-hidden document's already-`ready=True` files) reflects whatever photo is currently attached
+regardless of that photo's own `ready` flag — unlike the `photo_path`/`cover_photo`/
+`profile_photo` fields for `Game`/`Character`/`GameDocument` itself (see [Photo path
+fields](common-rules.md#photo-path-fields)), which are only ever set once their upload is
+finalised. In practice this means a file's `photo_path` can point at a path with no uploaded
+content yet (freshly initiated upload) or briefly at content mid-replacement (re-upload in
+progress) before the corresponding `PATCH /uploads/image/<id>.json` finalises it. This is an
+existing gap in `GameDocumentFileSerializer`, not introduced by #878 — flagged here rather than
+silently documented as a guarantee it doesn't provide.
