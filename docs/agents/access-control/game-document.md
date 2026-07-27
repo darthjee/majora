@@ -11,7 +11,10 @@ endpoints" below), and issue #727 wired up multi-photo storage/upload/display fo
 `GameDocument.photo` (see "Document photo endpoints" below) — unlike `GameItem`'s single-
 always-replace photo model, a document can have multiple stored `GameDocumentPhoto` rows, one of
 which is designated the display photo, mirroring the PC/NPC [CharacterPhoto](character-photo.md)
-pattern.
+pattern. Issue #726 additionally added a parallel `GameDocumentFile` collection
+(`related_name='files'`), so a document can also hold uploaded PDF files (not only scanned
+photos) — see "Document file upload endpoint" below; unlike the photo collection, there is no
+"display file" concept and no dedicated files-listing endpoint yet.
 
 ## Document index endpoints
 
@@ -121,3 +124,23 @@ game 404s rather than leaking cross-document/cross-game state.
 Unknown `game_slug` or `document_id` (or a `document_id` that does not belong to `game_slug`) →
 404 for all three endpoints. See [Upload](upload.md#document-photo-upload-init-endpoint) for the
 upload-init endpoint's request/response shape and finalisation side effect.
+
+## Document file upload endpoint
+
+A `GameDocument` can also have a collection of uploaded PDF files (`related_name='files'`,
+`GameDocumentFile` rows, issue #726), independent of its photo collection above — there is no
+single "display file" and no dedicated listing endpoint for it yet (out of scope for issue #726,
+left for a follow-up).
+
+| Endpoint | Method | Who can call | Request | Response |
+|----------|--------|-------------|---------|----------|
+| `/games/<slug>/documents/<document_id>/file_upload.json` | POST | **IsAuthenticated** + `GameDocumentFileUploadPermission` | `{ filename: string }` (`.pdf` only) | `201` `{upload_id, token, upload_type: "file", document_id}` |
+
+`GameDocumentFileUploadPermission` (`backend/games/permissions.py`) is identical to
+`GameDocumentPhotoUploadPermission` above: `user.is_staff or game.has_player(user) or
+game.can_be_edited_by(user)`. Unknown `game_slug` or `document_id` (or a `document_id` that does
+not belong to `game_slug`) → 404. Uploaded files are stored under
+`files/games/<slug>/documents/<document_id>/...` (parallel to the `photos/...` root used by
+photo uploads). See [Upload](upload.md#document-file-upload-init-endpoint) for the upload-init
+endpoint's full request/response shape, the breaking `upload_type`-scoped submit/finalize route
+change this introduced, and the proxy-side PDF validation strategy.
