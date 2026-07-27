@@ -4,11 +4,11 @@ import os
 
 from rest_framework import serializers
 
-ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
-
 
 class PhotoUploadSerializer(serializers.Serializer):
     """Validates the filename submitted to the photo upload init endpoint."""
+
+    ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
 
     filename = serializers.CharField(max_length=255, allow_blank=False)
 
@@ -16,9 +16,15 @@ class PhotoUploadSerializer(serializers.Serializer):
         """Reject filenames with disallowed extensions or no extension."""
         basename = os.path.basename(value)
         _, ext = os.path.splitext(basename)
-        if ext.lower() not in ALLOWED_EXTENSIONS:
+        if ext.lower() not in self.ALLOWED_EXTENSIONS:
             raise serializers.ValidationError(
                 f'File extension "{ext}" is not allowed. '
-                f'Allowed: {", ".join(sorted(ALLOWED_EXTENSIONS))}'
+                f'Allowed: {", ".join(sorted(self.ALLOWED_EXTENSIONS))}'
             )
         return basename  # return the sanitised basename, not the raw value
+
+
+class FileUploadSerializer(PhotoUploadSerializer):
+    """Validates the filename submitted to the (non-photo) file upload init endpoint."""
+
+    ALLOWED_EXTENSIONS = {'.pdf'}

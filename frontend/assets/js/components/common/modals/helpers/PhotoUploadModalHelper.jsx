@@ -6,32 +6,39 @@ import Translator from '../../../../i18n/Translator.js';
  */
 export default class PhotoUploadModalHelper {
   /**
-   * Renders the photo upload modal.
+   * Renders the photo (or file, issue #726) upload modal.
    *
    * @param {boolean} show - Whether the modal is visible.
-   * @param {{error: boolean, uploading: boolean, deferred: boolean}} state - Modal state.
+   * @param {{error: boolean, uploading: boolean, deferred: boolean, translationPrefix: string,
+   *   accept: string}} state - Modal state. `translationPrefix` is the i18n key prefix used for
+   *   every string rendered in this modal (defaults to `photo_upload_modal`, e.g.
+   *   `file_upload_modal` for the file-upload variant). `accept` is forwarded as-is to the
+   *   `<input type="file">`'s `accept` attribute (e.g. `.pdf`), left unset for the default photo
+   *   behavior (no restriction).
    * @param {{onClose: Function, onCancel: Function, onSubmit: Function,
    *   onFileChange: Function, onDragOver: Function, onDrop: Function}} handlers - Modal event handlers.
    * @returns {React.ReactElement} Rendered photo upload modal.
    */
   static render(show, state, handlers) {
+    const { translationPrefix = 'photo_upload_modal', accept } = state;
+
     return (
       <Modal show={show} onHide={handlers.onClose}>
         <Modal.Header closeButton>
-          <Modal.Title>{Translator.t('photo_upload_modal.title')}</Modal.Title>
+          <Modal.Title>{Translator.t(`${translationPrefix}.title`)}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {PhotoUploadModalHelper.#renderError(state)}
+          {PhotoUploadModalHelper.#renderError(state, translationPrefix)}
           <div
             className="border border-2 p-4 text-center"
             onDragOver={handlers.onDragOver}
             onDrop={handlers.onDrop}
           />
-          <input type="file" onChange={handlers.onFileChange} />
+          <input type="file" accept={accept} onChange={handlers.onFileChange} />
         </Modal.Body>
         <Modal.Footer>
           <button className="btn btn-secondary" type="button" onClick={handlers.onCancel}>
-            {Translator.t('photo_upload_modal.cancel')}
+            {Translator.t(`${translationPrefix}.cancel`)}
           </button>
           <button
             className="btn btn-primary"
@@ -39,21 +46,21 @@ export default class PhotoUploadModalHelper {
             onClick={handlers.onSubmit}
             disabled={state.uploading}
           >
-            {Translator.t(state.deferred ? 'photo_upload_modal.confirm' : 'photo_upload_modal.submit')}
+            {Translator.t(`${translationPrefix}.${state.deferred ? 'confirm' : 'submit'}`)}
           </button>
         </Modal.Footer>
       </Modal>
     );
   }
 
-  static #renderError(state) {
+  static #renderError(state, translationPrefix) {
     if (!state.error) {
       return null;
     }
 
     return (
       <div className="alert alert-danger">
-        {Translator.t('photo_upload_modal.error')}
+        {Translator.t(`${translationPrefix}.error`)}
       </div>
     );
   }

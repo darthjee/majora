@@ -11,6 +11,7 @@ from accounts.authentication import CookieTokenAuthentication
 from ..models import (
     CharacterItemPhoto,
     CharacterPhoto,
+    GameDocumentFile,
     GameDocumentPhoto,
     GameItemPhoto,
     TreasurePhoto,
@@ -19,6 +20,7 @@ from ..models import (
 from ..permissions import (
     CharacterItemPhotoUploadPermission,
     CharacterPhotoUploadPermission,
+    GameDocumentFileUploadPermission,
     GameDocumentPhotoUploadPermission,
     GameEditPermission,
     GameItemPhotoUploadPermission,
@@ -32,7 +34,7 @@ _VALID_STATUSES = {Upload.STATUS_UPLOADING, Upload.STATUS_UPLOADED}
 @api_view(['PATCH'])
 @authentication_classes([CookieTokenAuthentication])
 @permission_classes([IsAuthenticated])
-def upload_finalize(request, upload_id):
+def upload_finalize(request, upload_type, upload_id):
     """Advance the upload lifecycle and optionally mark the linked object as ready."""
     upload = _find_upload(upload_id)
     if upload is None:
@@ -41,6 +43,9 @@ def upload_finalize(request, upload_id):
     error = _validate_upload(request, upload)
     if error:
         return error
+
+    if upload.upload_type != upload_type:
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
     new_status = request.data.get('status')
     if new_status not in _VALID_STATUSES:
@@ -128,6 +133,14 @@ def _set_document_photo_if_unset(document_photo):
         document.save()
 
 
+def _set_document_file_if_unset(document_file):
+    """No-op ready marker for GameDocumentFile: it has no single "current file" slot to set.
+
+    Kept as a distinct function (rather than reusing a shared no-op) to match this module's
+    one-handler-per-entity convention alongside `_set_document_photo_if_unset`.
+    """
+
+
 def _set_treasure_photo(treasure_photo):
     """Set the treasure's photo to `treasure_photo`, always replacing any existing one."""
     treasure = treasure_photo.treasure
@@ -176,6 +189,11 @@ def _document_photo_permission(request, content_object):
     return GameDocumentPhotoUploadPermission.check(request, content_object.game_document.game)
 
 
+def _document_file_permission(request, content_object):
+    """Return a permission error Response for a GameDocumentFile content object, else None."""
+    return GameDocumentFileUploadPermission.check(request, content_object.game_document.game)
+
+
 def _game_photo_permission(request, content_object):
     """Return a permission error Response for a GamePhoto (default) content object, else None."""
     return GameEditPermission.check(request, content_object.game)
@@ -190,6 +208,7 @@ _PHOTO_HANDLERS = {
     GameItemPhoto: (_game_item_photo_permission, _set_item_photo),
     CharacterItemPhoto: (_character_item_photo_permission, _set_character_item_photo),
     GameDocumentPhoto: (_document_photo_permission, _set_document_photo_if_unset),
+    GameDocumentFile: (_document_file_permission, _set_document_file_if_unset),
 }
 _DEFAULT_HANDLERS = (_game_photo_permission, _set_cover_photo_if_unset)
 

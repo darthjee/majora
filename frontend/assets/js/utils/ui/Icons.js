@@ -41,6 +41,7 @@ export default {
   bookmarkStarFill: 'bi-bookmark-star-fill',
   databaseFillDash: 'bi-database-fill-dash',
   folder: 'bi-folder',
+  filePdf: 'bi-file-earmark-pdf-fill',
   typeBold: 'bi-type-bold',
   typeItalic: 'bi-type-italic',
   typeH1: 'bi-type-h1',

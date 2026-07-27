@@ -46,12 +46,12 @@ class PhotoPathBuilder:
         self._filename = filename
         self._use_uuid = use_uuid
 
-    def build(self):
-        """Return the fully-built, normalized storage path."""
+    def build(self, root='photos'):
+        """Return the fully-built, normalized storage path, rooted under `root`."""
         normalized_segments = [normalize_path_segment(str(segment)) for segment in self._segments]
         stem, ext = os.path.splitext(self._filename)
         normalized_stem = normalize_path_segment(stem)
         if self._use_uuid:
             normalized_stem = f'{normalized_stem}_{uuid.uuid4()}'
-        path_parts = ['photos', *normalized_segments, f'{normalized_stem}{ext}']
+        path_parts = [root, *normalized_segments, f'{normalized_stem}{ext}']
         return '/'.join(path_parts)

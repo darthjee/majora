@@ -22,10 +22,17 @@ import PhotoUploadModalHelper from './helpers/PhotoUploadModalHelper.jsx';
  *   Confirm is clicked in deferred mode.
  * @param {Function} props.onClose - Called when the modal is dismissed or cancelled.
  * @param {Function} [props.onSuccess] - Called after a successful immediate-mode upload.
+ * @param {string} [props.translationPrefix] - i18n key prefix for the modal's strings (issue
+ *   #726). Defaults to `photo_upload_modal`, preserving today's photo-upload behavior; the
+ *   file-upload variant passes `file_upload_modal`.
+ * @param {string} [props.accept] - Value forwarded to the `<input type="file">`'s `accept`
+ *   attribute (issue #726), e.g. `.pdf` for file mode. Left unset for the default photo
+ *   behavior (no restriction).
  * @returns {React.ReactElement} Rendered photo upload modal.
  */
 export default function PhotoUploadModal({
   show, uploadPath, deferred = false, onFileConfirmed = Noop.noop, onClose, onSuccess,
+  translationPrefix = 'photo_upload_modal', accept,
 }) {
   const [file, setFile] = useState(null);
   const [error, setError] = useState(false);
@@ -77,7 +84,7 @@ export default function PhotoUploadModal({
   return PhotoUploadModalHelper.render(
     show,
     {
-      file, error, uploading, deferred,
+      file, error, uploading, deferred, translationPrefix, accept,
     },
     {
       onClose: handleClose,

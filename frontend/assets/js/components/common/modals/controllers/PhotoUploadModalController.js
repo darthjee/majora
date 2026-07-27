@@ -22,8 +22,9 @@ export default class PhotoUploadModalController {
   /**
    * Initiates and submits a photo upload.
    *
-   * @description Calls initUpload to obtain an upload id and token, then calls
-   *   submitUpload with the file. On success, invokes onSuccess. On any
+   * @description Calls initUpload to obtain an upload id, token, and upload type, then calls
+   *   submitUpload with the file and that upload type (used to build the type-scoped submit
+   *   URL, e.g. `image` or `file` — issue #726). On success, invokes onSuccess. On any
    *   non-ok response or thrown error, sets the error flag.
    * @param {string} uploadPath - Full path to the photo upload init endpoint.
    * @param {File} file - File to upload.
@@ -40,8 +41,8 @@ export default class PhotoUploadModalController {
         return;
       }
 
-      const { upload_id: uploadId, token: uploadToken } = await initResponse.json();
-      const submitResponse = await this.client.submitUpload(uploadId, uploadToken, file);
+      const { upload_id: uploadId, token: uploadToken, upload_type: uploadType } = await initResponse.json();
+      const submitResponse = await this.client.submitUpload(uploadId, uploadToken, file, uploadType);
 
       if (!submitResponse.ok) {
         this.setError(true);

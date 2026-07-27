@@ -52,4 +52,8 @@ describe('Icons', function() {
   it('maps folder to the folder icon class', function() {
     expect(Icons.folder).toBe('bi-folder');
   });
+
+  it('maps filePdf to the filled PDF file icon class', function() {
+    expect(Icons.filePdf).toBe('bi-file-earmark-pdf-fill');
+  });
 });

@@ -10,6 +10,7 @@ from games.models.character.character_photo import CharacterPhoto
 from games.models.character.character_treasure import CharacterTreasure
 from games.models.game.game import Game
 from games.models.game.game_document import GameDocument
+from games.models.game.game_document_file import GameDocumentFile
 from games.models.game.game_document_photo import GameDocumentPhoto
 from games.models.game.game_item import GameItem
 from games.models.game.game_item_photo import GameItemPhoto
@@ -38,6 +39,7 @@ __all__ = [
     'CharacterTreasure',
     'Game',
     'GameDocument',
+    'GameDocumentFile',
     'GameDocumentPhoto',
     'GameItem',
     'GameItemPhoto',
