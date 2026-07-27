@@ -73,6 +73,7 @@ function usePlayerSlainTogglePair(refresh) {
 export default function GameNpcs() {
   const [canEdit, setCanEdit] = useState(false);
   const [isPlayer, setIsPlayer] = useState(false);
+  const [canCreateNpc, setCanCreateNpc] = useState(false);
   const [uploadTarget, setUploadTarget] = useState(null);
   const [refreshToken, setRefreshToken] = useState(0);
 
@@ -86,7 +87,7 @@ export default function GameNpcs() {
   const refresh = () => setRefreshToken((token) => token + 1);
 
   const accessController = useMemo(
-    () => new GameNpcsAccessController(gameSlug, setIsPlayer),
+    () => new GameNpcsAccessController(gameSlug, setIsPlayer, setCanCreateNpc),
     [gameSlug],
   );
 
@@ -116,7 +117,15 @@ export default function GameNpcs() {
     <>
       {GameCharactersHelper.render(
         {
-          gameSlug, basePath, backHref, newHref, canEdit, isPlayer, refreshToken, activeFilters,
+          gameSlug,
+          basePath,
+          backHref,
+          newHref,
+          canEdit,
+          canCreateNpc,
+          isPlayer,
+          refreshToken,
+          activeFilters,
         },
         {
           onCanEditChange: setCanEdit,

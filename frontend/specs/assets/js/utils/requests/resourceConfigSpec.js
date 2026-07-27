@@ -66,12 +66,13 @@ describe('resourceConfig', function() {
       expect(single.regular.path({ gameSlug: 'demo', id: '3' })).toBe('/games/demo/npcs/3/photo_upload.json');
     });
 
-    it('resolves POST.collection (creation) as a single un-branched, can_edit-gated variant (issue #830)', function() {
+    it('resolves POST.collection regular (player-writable)/private (full editor) paths and permissions (issue #868)', function() {
       const collection = resourceConfig.get('POST', 'npc', 'collection');
 
-      expect(collection.regular).toBe(collection.private);
       expect(collection.regular.path({ gameSlug: 'demo' })).toBe('/games/demo/npcs.json');
-      expect(collection.regular.permission).toBe('can_edit');
+      expect(collection.regular.permission).toBe('can_create_npc');
+      expect(collection.private.path({ gameSlug: 'demo' })).toBe('/games/demo/npcs/full.json');
+      expect(collection.private.permission).toBe('can_edit');
     });
   });
 

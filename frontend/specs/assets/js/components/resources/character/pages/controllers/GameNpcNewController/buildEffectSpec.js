@@ -10,8 +10,9 @@ describe('GameNpcNewController', function() {
   });
 
   describe('#buildEffect', function() {
-    it('does not redirect when the user can edit the game', async function() {
+    it('does not redirect when the user can edit the game, and reports full-editor access', async function() {
       const setError = jasmine.createSpy('setError');
+      const setIsFullEditor = jasmine.createSpy('setIsFullEditor');
       const characterClient = jasmine.createSpyObj('characterClient', ['createNpc']);
       const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame']);
       const fakeWindow = { location: { hash: '#/games/demo/npcs/new' } };
@@ -25,26 +26,59 @@ describe('GameNpcNewController', function() {
 
       try {
         const controller = new GameNpcNewController(
-          setError, Noop.noop, characterClient, Noop.noop, Noop.noop, gameClient,
+          setError, Noop.noop, characterClient, Noop.noop, Noop.noop, gameClient, setIsFullEditor,
         );
         controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
         expect(fakeWindow.location.hash).toBe('#/games/demo/npcs/new');
+        expect(setIsFullEditor).toHaveBeenCalledWith(true);
       } finally {
         delete globalThis.window;
       }
     });
 
-    it('redirects to the NPCs index when the user cannot edit the game', async function() {
+    it('does not redirect when the user can only create an NPC, and reports reduced-editor access', async function() {
+      const setError = jasmine.createSpy('setError');
+      const setIsFullEditor = jasmine.createSpy('setIsFullEditor');
+      const characterClient = jasmine.createSpyObj('characterClient', ['createNpc']);
+      const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame']);
+      const fakeWindow = { location: { hash: '#/games/demo/npcs/new' } };
+      globalThis.window = fakeWindow;
+
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(
+        Promise.resolve({ can_edit: false, can_create_npc: true }),
+      );
+      gameClient.fetchGame.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ game_slug: 'demo', game_type: 'dnd' }),
+      }));
+
+      try {
+        const controller = new GameNpcNewController(
+          setError, Noop.noop, characterClient, Noop.noop, Noop.noop, gameClient, setIsFullEditor,
+        );
+        controller.buildEffect()();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(fakeWindow.location.hash).toBe('#/games/demo/npcs/new');
+        expect(setIsFullEditor).toHaveBeenCalledWith(false);
+      } finally {
+        delete globalThis.window;
+      }
+    });
+
+    it('redirects to the NPCs index when the user can neither edit the game nor create an NPC', async function() {
       const setError = jasmine.createSpy('setError');
       const characterClient = jasmine.createSpyObj('characterClient', ['createNpc']);
       const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame']);
       const fakeWindow = { location: { hash: '#/games/demo/npcs/new' } };
       globalThis.window = fakeWindow;
 
-      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(
+        Promise.resolve({ can_edit: false, can_create_npc: false }),
+      );
       gameClient.fetchGame.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ game_slug: 'demo', game_type: 'dnd' }),

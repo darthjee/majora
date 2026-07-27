@@ -54,6 +54,7 @@ describe('GameNpcNewController', function() {
           method: 'POST',
           quantityType: 'collection',
           params: { gameSlug: 'demo' },
+          variantName: 'private',
           body: {
             name: 'Goblin King',
             role: 'Villain',
@@ -214,6 +215,77 @@ describe('GameNpcNewController', function() {
       } finally {
         delete globalThis.window;
       }
+    });
+
+    describe('when isFullEditor is false (reduced-access player/staff creator)', function() {
+      it('POSTs the reduced fields payload to the regular (player-writable) variant', async function() {
+        const controller = new GameNpcNewController(setError, setFieldErrors, characterClient);
+        const event = jasmine.createSpyObj('event', ['preventDefault']);
+        const fakeWindow = { location: { hash: '' } };
+        globalThis.window = fakeWindow;
+
+        try {
+          await controller.submitForm(
+            event,
+            'demo',
+            {
+              name: 'Goblin King',
+              role: 'Villain',
+              description: 'A menacing goblin.',
+              privateDescription: 'Secretly a coward.',
+              hidden: true,
+              money: '42',
+              privateAllegiance: 'ally',
+              publicAllegiance: 'enemy',
+              links: [{ text: 'Wiki', url: 'https://example.com/wiki' }],
+            },
+            { setStatus, setFieldErrors },
+            false,
+          );
+
+          expect(RequestStore.mutate).toHaveBeenCalledWith({
+            componentName: 'GameNpcNewController',
+            resource: 'npc',
+            method: 'POST',
+            quantityType: 'collection',
+            params: { gameSlug: 'demo' },
+            variantName: 'regular',
+            body: {
+              name: 'Goblin King',
+              role: 'Villain',
+              public_description: 'A menacing goblin.',
+              public_allegiance: 'enemy',
+              links: [{ text: 'Wiki', url: 'https://example.com/wiki' }],
+            },
+          });
+        } finally {
+          delete globalThis.window;
+        }
+      });
+
+      it('defaults links to an empty array when not provided in formValues', async function() {
+        const controller = new GameNpcNewController(setError, setFieldErrors, characterClient);
+        const fakeWindow = { location: { hash: '' } };
+        globalThis.window = fakeWindow;
+
+        try {
+          await controller.submitForm(
+            undefined,
+            'demo',
+            {
+              name: 'Goblin King', role: '', description: '', publicAllegiance: 'neutral',
+            },
+            { setStatus, setFieldErrors },
+            false,
+          );
+
+          expect(RequestStore.mutate).toHaveBeenCalledWith(
+            jasmine.objectContaining({ variantName: 'regular', body: jasmine.objectContaining({ links: [] }) }),
+          );
+        } finally {
+          delete globalThis.window;
+        }
+      });
     });
   });
 });
