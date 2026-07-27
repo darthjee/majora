@@ -33,6 +33,7 @@ from .npcs import (
     game_npc_treasures_all,
     game_npcs,
     game_npcs_all,
+    game_npcs_full,
 )
 from .pcs import (
     game_pc_access,
@@ -75,6 +76,7 @@ __all__ = [
     'game_npcs',
     'game_npc_detail',
     'game_npcs_all',
+    'game_npcs_full',
     'game_pc_detail',
     'game_npc_full',
     'game_pc_full',

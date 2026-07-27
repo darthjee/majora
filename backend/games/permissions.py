@@ -199,6 +199,32 @@ class GameDocumentCreatePermission(_EditPermission):
         return is_staff or is_superuser or is_dm or is_player
 
 
+class NpcPlayerCreatePermission(_EditPermission):
+    """Encapsulate checks for the player-facing NPC-creation endpoint (issue #868).
+
+    Grants the same access as GameEditPermission (superuser or a GameMaster of the game) plus
+    any Staff account (globally) plus any player of the game — mirroring GameItemCreatePermission/
+    GameDocumentCreatePermission's shape, since a to-be-created NPC has no owning character yet.
+    """
+
+    @classmethod
+    def check(cls, request, game):
+        """Return an error Response if `request.user` may not create an NPC for `game`."""
+        return cls._guarded_check(request, lambda: cls.is_allowed(request.user, game))
+
+    @classmethod
+    def is_allowed(cls, user, game):
+        """Return whether `user` may create a new player-facing NPC for `game`."""
+        if not user or not user.is_authenticated:
+            return False
+        return user.is_staff or game.has_player(user) or game.can_be_edited_by(user)
+
+    @classmethod
+    def is_allowed_for_roles(cls, is_superuser, is_dm, is_staff, is_player):
+        """Return whether a role-simulated caller may create a new player-facing NPC."""
+        return is_staff or is_superuser or is_dm or is_player
+
+
 class CharacterMoneyEditPermission(_EditPermission):
     """Encapsulate checks for the narrow, money-only character edit endpoint (issue #615).
 

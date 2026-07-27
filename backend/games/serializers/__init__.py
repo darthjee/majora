@@ -32,6 +32,7 @@ from games.serializers.characters.character_treasure import (
     CharacterTreasureSerializer,
 )
 from games.serializers.characters.character_update import CharacterUpdateSerializer
+from games.serializers.characters.npcs.npc_player_create import NpcPlayerCreateSerializer
 from games.serializers.characters.npcs.npc_player_update import NpcPlayerUpdateSerializer
 from games.serializers.characters.pcs.pc_access import PcAccessSerializer
 from games.serializers.games.conversations.conversation_list import ConversationListSerializer
@@ -162,6 +163,7 @@ __all__ = [
     'HiddenFieldSerializer',
     'LinkSerializer',
     'MyGamesItemSerializer',
+    'NpcPlayerCreateSerializer',
     'NpcPlayerUpdateSerializer',
     'PcAccessSerializer',
     'PhotoUploadSerializer',

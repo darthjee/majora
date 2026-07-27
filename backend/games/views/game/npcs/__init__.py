@@ -31,11 +31,13 @@ from .detail.treasures.game_npc_treasures_all import game_npc_treasures_all
 from .game_npc_detail import game_npc_detail
 from .game_npcs import game_npcs
 from .game_npcs_all import game_npcs_all
+from .game_npcs_full import game_npcs_full
 
 __all__ = [
     'game_npcs',
     'game_npc_detail',
     'game_npcs_all',
+    'game_npcs_full',
     'game_npc_full',
     'game_npc_money',
     'game_npc_access',
