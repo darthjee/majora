@@ -45,6 +45,26 @@ describe('UploadClient', function() {
       expect(url).toBe('/games/my-game/pcs/7/photo_upload.json');
     });
 
+    it('includes the given name in the request body (issue #874)', async function() {
+      const client = new UploadClient();
+
+      await client.initUpload('/games/demo/documents/9/file_upload.json', 'scroll.pdf', 'tok-abc', 'Ancient Scroll');
+
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/documents/9/file_upload.json', jasmine.objectContaining({
+        body: JSON.stringify({ filename: 'scroll.pdf', name: 'Ancient Scroll' }),
+      }));
+    });
+
+    it('omits the name from the request body when it is blank', async function() {
+      const client = new UploadClient();
+
+      await client.initUpload('/games/demo/documents/9/file_upload.json', 'scroll.pdf', 'tok-abc', '');
+
+      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/documents/9/file_upload.json', jasmine.objectContaining({
+        body: JSON.stringify({ filename: 'scroll.pdf' }),
+      }));
+    });
+
     it('passes an explicit AbortSignal distinct from the default timeout signal', async function() {
       const client = new UploadClient();
 

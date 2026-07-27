@@ -18,7 +18,7 @@ def character_photo_upload(request, game, game_slug, character_id, npc):
     initiator = UploadInitiator(
         request,
         build_file_path=lambda filename: _build_file_path(game_slug, character_id, filename),
-        create_photo=lambda file_path: CharacterPhoto.objects.create(
+        create_photo=lambda file_path, _data: CharacterPhoto.objects.create(
             character=character, path=file_path, ready=False
         ),
         id_field='character_id',

@@ -32,12 +32,15 @@ describe('PhotoUploadModal', function() {
           deferred: false,
           translationPrefix: 'photo_upload_modal',
           accept: undefined,
+          showNameField: false,
+          name: '',
         },
         jasmine.objectContaining({
           onClose: jasmine.any(Function),
           onCancel: jasmine.any(Function),
           onSubmit: jasmine.any(Function),
           onFileChange: jasmine.any(Function),
+          onNameChange: jasmine.any(Function),
           onDragOver: jasmine.any(Function),
           onDrop: jasmine.any(Function),
         })
@@ -187,6 +190,78 @@ describe('PhotoUploadModal', function() {
 
         expect(capturedState.translationPrefix).toBe('file_upload_modal');
         expect(capturedState.accept).toBe('.pdf');
+      });
+    });
+
+    describe('showNameField (issue #874)', function() {
+      it('defaults showNameField to false and name to an empty string', function() {
+        let capturedState;
+        spyOn(PhotoUploadModalHelper, 'render').and.callFake((show, state) => {
+          capturedState = state;
+          return React.createElement('div', null, 'modal');
+        });
+
+        renderToStaticMarkup(
+          React.createElement(PhotoUploadModal, {
+            show: true,
+            uploadPath: '/games/my-game/photo_upload.json',
+            onClose: jasmine.createSpy('onClose'),
+            onSuccess: jasmine.createSpy('onSuccess'),
+          })
+        );
+
+        expect(capturedState.showNameField).toBe(false);
+        expect(capturedState.name).toBe('');
+      });
+
+      it('forwards showNameField={true} to the helper state', function() {
+        let capturedState;
+        spyOn(PhotoUploadModalHelper, 'render').and.callFake((show, state) => {
+          capturedState = state;
+          return React.createElement('div', null, 'modal');
+        });
+
+        renderToStaticMarkup(
+          React.createElement(PhotoUploadModal, {
+            show: true,
+            uploadPath: '/games/my-game/documents/9/file_upload.json',
+            translationPrefix: 'file_upload_modal',
+            showNameField: true,
+            onClose: jasmine.createSpy('onClose'),
+            onSuccess: jasmine.createSpy('onSuccess'),
+          })
+        );
+
+        expect(capturedState.showNameField).toBe(true);
+      });
+
+      it('forwards the current name state to handleSubmit', function() {
+        spyOn(PhotoUploadModalController.prototype, 'handleSubmit').and.returnValue(Promise.resolve());
+        let capturedHandlers;
+
+        spyOn(PhotoUploadModalHelper, 'render').and.callFake((show, state, handlers) => {
+          capturedHandlers = handlers;
+          return React.createElement('div', null, 'modal');
+        });
+
+        renderToStaticMarkup(
+          React.createElement(PhotoUploadModal, {
+            show: true,
+            uploadPath: '/games/my-game/documents/9/file_upload.json',
+            showNameField: true,
+            onClose: jasmine.createSpy('onClose'),
+            onSuccess: jasmine.createSpy('onSuccess'),
+          })
+        );
+
+        capturedHandlers.onSubmit();
+
+        expect(PhotoUploadModalController.prototype.handleSubmit).toHaveBeenCalledWith(
+          '/games/my-game/documents/9/file_upload.json',
+          null,
+          null,
+          ''
+        );
       });
     });
   });

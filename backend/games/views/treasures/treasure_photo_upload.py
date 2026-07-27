@@ -28,7 +28,7 @@ def treasure_photo_upload(request, treasure_id):
     initiator = UploadInitiator(
         request,
         build_file_path=lambda filename: _build_file_path(treasure_id, filename),
-        create_photo=lambda file_path: _reuse_or_create_photo(treasure, file_path),
+        create_photo=lambda file_path, _data: _reuse_or_create_photo(treasure, file_path),
         id_field='treasure_id',
         id_value=treasure.id,
     )

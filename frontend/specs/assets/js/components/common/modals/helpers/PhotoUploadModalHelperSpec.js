@@ -35,6 +35,7 @@ describe('PhotoUploadModalHelper', function() {
     onCancel: jasmine.createSpy('onCancel'),
     onSubmit: jasmine.createSpy('onSubmit'),
     onFileChange: jasmine.createSpy('onFileChange'),
+    onNameChange: jasmine.createSpy('onNameChange'),
     onDragOver: jasmine.createSpy('onDragOver'),
     onDrop: jasmine.createSpy('onDrop'),
   });
@@ -237,6 +238,59 @@ describe('PhotoUploadModalHelper', function() {
         );
 
         expect(input.props.accept).toBe('.pdf');
+      });
+    });
+
+    describe('showNameField (issue #874)', function() {
+      const findNameInput = (element) => findElement(
+        element,
+        (child) => child.type === 'input' && child.props.type === 'text'
+      );
+
+      it('does not render the name input when showNameField is false', function() {
+        const element = PhotoUploadModalHelper.render(true, buildState(), buildHandlers());
+
+        expect(findNameInput(element)).toBeNull();
+      });
+
+      it('renders the name input when showNameField is true', function() {
+        const element = PhotoUploadModalHelper.render(
+          true, buildState({ showNameField: true, name: '' }), buildHandlers(),
+        );
+
+        expect(findNameInput(element)).not.toBeNull();
+      });
+
+      it('binds the current name value to the input', function() {
+        const element = PhotoUploadModalHelper.render(
+          true,
+          buildState({ showNameField: true, name: 'Ancient Scroll', translationPrefix: 'file_upload_modal' }),
+          buildHandlers(),
+        );
+
+        expect(findNameInput(element).props.value).toBe('Ancient Scroll');
+      });
+
+      it('wires the name change handler on the input', function() {
+        const handlers = buildHandlers();
+        const element = PhotoUploadModalHelper.render(
+          true, buildState({ showNameField: true, name: '' }), handlers,
+        );
+        const changeEvent = { target: { value: 'Ancient Scroll' } };
+
+        findNameInput(element).props.onChange(changeEvent);
+
+        expect(handlers.onNameChange).toHaveBeenCalledWith(changeEvent);
+      });
+
+      it('uses the name_label translation as the input placeholder', function() {
+        const element = PhotoUploadModalHelper.render(
+          true,
+          buildState({ showNameField: true, name: '', translationPrefix: 'file_upload_modal' }),
+          buildHandlers(),
+        );
+
+        expect(findNameInput(element).props.placeholder).toBe('Name');
       });
     });
   });

@@ -29,7 +29,7 @@ def game_item_photo_upload(request, game_slug, item_id):
     initiator = UploadInitiator(
         request,
         build_file_path=lambda filename: _build_file_path(game_slug, item_id, filename),
-        create_photo=lambda file_path: _reuse_or_create_photo(item, file_path),
+        create_photo=lambda file_path, _data: _reuse_or_create_photo(item, file_path),
         id_field='item_id',
         id_value=item.id,
     )

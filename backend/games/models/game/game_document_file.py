@@ -12,3 +12,7 @@ class GameDocumentFile(BaseFile):
     game_document = models.ForeignKey(
         GameDocument, on_delete=models.CASCADE, related_name='files',
     )
+    photo = models.ForeignKey(
+        'games.GameDocumentFilePhoto', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='+',
+    )

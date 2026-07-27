@@ -10,13 +10,15 @@ export default class PhotoUploadModalHelper {
    *
    * @param {boolean} show - Whether the modal is visible.
    * @param {{error: boolean, uploading: boolean, deferred: boolean, translationPrefix: string,
-   *   accept: string}} state - Modal state. `translationPrefix` is the i18n key prefix used for
-   *   every string rendered in this modal (defaults to `photo_upload_modal`, e.g.
-   *   `file_upload_modal` for the file-upload variant). `accept` is forwarded as-is to the
-   *   `<input type="file">`'s `accept` attribute (e.g. `.pdf`), left unset for the default photo
-   *   behavior (no restriction).
-   * @param {{onClose: Function, onCancel: Function, onSubmit: Function,
-   *   onFileChange: Function, onDragOver: Function, onDrop: Function}} handlers - Modal event handlers.
+   *   accept: string, showNameField: boolean, name: string}} state - Modal state.
+   *   `translationPrefix` is the i18n key prefix used for every string rendered in this modal
+   *   (defaults to `photo_upload_modal`, e.g. `file_upload_modal` for the file-upload variant).
+   *   `accept` is forwarded as-is to the `<input type="file">`'s `accept` attribute (e.g.
+   *   `.pdf`), left unset for the default photo behavior (no restriction). `showNameField`
+   *   (issue #874) toggles an optional name text input, and `name` is its current value.
+   * @param {{onClose: Function, onCancel: Function, onSubmit: Function, onFileChange: Function,
+   *   onNameChange: Function, onDragOver: Function, onDrop: Function}} handlers - Modal event
+   *   handlers.
    * @returns {React.ReactElement} Rendered photo upload modal.
    */
   static render(show, state, handlers) {
@@ -29,6 +31,7 @@ export default class PhotoUploadModalHelper {
         </Modal.Header>
         <Modal.Body>
           {PhotoUploadModalHelper.#renderError(state, translationPrefix)}
+          {PhotoUploadModalHelper.#renderNameField(state, handlers)}
           <div
             className="border border-2 p-4 text-center"
             onDragOver={handlers.onDragOver}
@@ -62,6 +65,32 @@ export default class PhotoUploadModalHelper {
       <div className="alert alert-danger">
         {Translator.t(`${translationPrefix}.error`)}
       </div>
+    );
+  }
+
+  /**
+   * Renders the optional name text input (issue #874), when `state.showNameField` is true.
+   *
+   * @param {{showNameField: boolean, name: string, translationPrefix: string}} state - Modal state.
+   * @param {{onNameChange: Function}} handlers - Modal event handlers.
+   * @returns {React.ReactElement|null} The name input, or `null` when not shown.
+   */
+  static #renderNameField(state, handlers) {
+    if (!state.showNameField) {
+      return null;
+    }
+
+    const { translationPrefix = 'photo_upload_modal', name } = state;
+    const label = Translator.t(`${translationPrefix}.name_label`);
+
+    return (
+      <input
+        type="text"
+        aria-label={label}
+        placeholder={label}
+        value={name}
+        onChange={handlers.onNameChange}
+      />
     );
   }
 }

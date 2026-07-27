@@ -8,6 +8,7 @@ class BaseFile(models.Model):
     """Abstract base model for non-photo files shared across game entities."""
 
     path = models.CharField(max_length=512, blank=True, default='')
+    name = models.CharField(max_length=255, blank=True, default='')
     ready = models.BooleanField(default=False)
     history = HistoricalRecords(app='versioning', user_db_constraint=False, inherit=True)
 
