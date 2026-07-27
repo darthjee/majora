@@ -61,6 +61,7 @@ file_upload_modal:
   cancel: Cancel
   confirm: Confirm
   error: Failed to upload file. Please try again.
+  name_label: Name
   submit: Upload
   title: Upload File
 photo_upload_modal:

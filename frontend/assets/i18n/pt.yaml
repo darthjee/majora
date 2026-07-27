@@ -61,6 +61,7 @@ file_upload_modal:
   cancel: Cancelar
   confirm: Confirmar
   error: Falha ao enviar arquivo. Por favor, tente novamente.
+  name_label: Nome
   submit: Enviar
   title: Enviar Arquivo
 photo_upload_modal:
