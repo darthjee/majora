@@ -59,6 +59,21 @@ urlpatterns = [
         name='game-document-photos',
     ),
     path(
+        'games/<slug:game_slug>/documents/<int:document_id>/photos/all.json',
+        views.game_document_photos_all,
+        name='game-document-photos-all',
+    ),
+    path(
+        'games/<slug:game_slug>/documents/<int:document_id>/files.json',
+        views.game_document_files,
+        name='game-document-files',
+    ),
+    path(
+        'games/<slug:game_slug>/documents/<int:document_id>/files/all.json',
+        views.game_document_files_all,
+        name='game-document-files-all',
+    ),
+    path(
         'games/<slug:game_slug>/documents/<int:document_id>/photo_upload.json',
         views.game_document_photo_upload,
         name='game-document-photo-upload',

@@ -41,11 +41,19 @@ export default class DocumentDetailHelper {
    *   clicked. Defaults to a no-op, matching the `canUploadPhoto` default.
    * @param {Function} [onFileUploadClick] - Handler invoked when the file-upload button is
    *   clicked (issue #726). Defaults to a no-op, matching the `canUploadPhoto` default.
+   * @param {string} [gameSlug] - Game slug the document belongs to, merged into the rendering
+   *   context as `game_slug` (issue #873) — the `GameDocument` payload itself carries no
+   *   `game_slug` field, unlike a character's own detail payload, so the bottom photo/file
+   *   shortlist slots (`DocumentPhotosPreview`/`DocumentFilesPreview`) need it passed in
+   *   explicitly by the caller, which already resolves it from the current hash.
+   * @param {Function} [onSelectPhoto] - Handler invoked with a photo when a photo shortlist card
+   *   is clicked, merged into `context.handlers` alongside `onOpenUploadModal` (issue #873).
+   *   Defaults to a no-op.
    * @returns {React.ReactElement} Document detail element.
    */
   static render(
     document, backHref, editHref, canUploadPhoto = false, onUploadClick = Noop.noop,
-    onFileUploadClick = Noop.noop,
+    onFileUploadClick = Noop.noop, gameSlug, onSelectPhoto = Noop.noop,
   ) {
     return (
       <ShowPageLayout
@@ -53,7 +61,12 @@ export default class DocumentDetailHelper {
         mode="show"
         backHref={backHref}
         pageActions={DocumentDetailHelper.#renderPageActions(canUploadPhoto, editHref, onFileUploadClick)}
-        context={{ ...document, canUploadPhoto, handlers: { onOpenUploadModal: onUploadClick } }}
+        context={{
+          ...document,
+          canUploadPhoto,
+          game_slug: gameSlug,
+          handlers: { onOpenUploadModal: onUploadClick, onSelectPhoto },
+        }}
       />
     );
   }

@@ -16,6 +16,14 @@ export const MAX_PREVIEW_ITEMS = 5;
 export const MAX_PREVIEW_PHOTOS = 11;
 
 /**
+ * Maximum number of files shown in a game document's file preview section (issue #873),
+ * matching `MAX_PREVIEW_PHOTOS`.
+ *
+ * @type {number}
+ */
+export const MAX_PREVIEW_FILES = 11;
+
+/**
  * Per-type configuration for `PreviewSection` call sites: an i18n title key and a `Icons.js` icon
  * used on the "see all" card.
  *

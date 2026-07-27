@@ -1,5 +1,5 @@
 import {
-  MAX_PREVIEW_ITEMS, MAX_PREVIEW_PHOTOS, PREVIEW_LIST_TYPES,
+  MAX_PREVIEW_ITEMS, MAX_PREVIEW_PHOTOS, MAX_PREVIEW_FILES, PREVIEW_LIST_TYPES,
 } from '../../../../../../assets/js/components/common/cards/characterPreviewConstants.js';
 import Icons from '../../../../../../assets/js/utils/ui/Icons.js';
 
@@ -10,6 +10,10 @@ describe('characterPreviewConstants', function() {
 
   it('caps preview photos at 11', function() {
     expect(MAX_PREVIEW_PHOTOS).toBe(11);
+  });
+
+  it('caps preview files at 11', function() {
+    expect(MAX_PREVIEW_FILES).toBe(11);
   });
 
   describe('PREVIEW_LIST_TYPES.pc', function() {

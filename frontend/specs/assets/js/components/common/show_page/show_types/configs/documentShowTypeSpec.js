@@ -15,6 +15,10 @@ import DocumentHiddenField
 import DocumentSubmitButton
   from '../../../../../../../../assets/js/components/resources/document/pages/elements/show/DocumentSubmitButton.jsx';
 import DescriptionBox from '../../../../../../../../assets/js/components/common/misc/DescriptionBox.jsx';
+import DocumentPhotosPreview
+  from '../../../../../../../../assets/js/components/resources/document/pages/elements/show/DocumentPhotosPreview.jsx';
+import DocumentFilesPreview
+  from '../../../../../../../../assets/js/components/resources/document/pages/elements/show/DocumentFilesPreview.jsx';
 
 describe('documentShowType', function() {
   it('offers the photo in the left column for show, edit, and new', function() {
@@ -69,7 +73,15 @@ describe('documentShowType', function() {
     expect(submitEntry.Edit).toBeUndefined();
   });
 
-  it('has no bottom-slot content', function() {
-    expect(documentShowType.bottom).toEqual([]);
+  it('shows the photos and files shortlists only in show mode (issue #873)', function() {
+    const photosEntry = documentShowType.bottom.find((entry) => entry.Show === DocumentPhotosPreview);
+    const filesEntry = documentShowType.bottom.find((entry) => entry.Show === DocumentFilesPreview);
+
+    expect(photosEntry).toBeDefined();
+    expect(photosEntry.Edit).toBeUndefined();
+    expect(photosEntry.New).toBeUndefined();
+    expect(filesEntry).toBeDefined();
+    expect(filesEntry.Edit).toBeUndefined();
+    expect(filesEntry.New).toBeUndefined();
   });
 });

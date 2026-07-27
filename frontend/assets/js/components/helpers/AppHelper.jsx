@@ -25,6 +25,8 @@ import GameDocument from '../resources/document/pages/GameDocument.jsx';
 import GameDocumentEdit from '../resources/document/pages/GameDocumentEdit.jsx';
 import GameDocumentNew from '../resources/document/pages/GameDocumentNew.jsx';
 import GameDocuments from '../resources/document/pages/GameDocuments.jsx';
+import GameDocumentPhotos from '../resources/document/pages/GameDocumentPhotos.jsx';
+import GameDocumentFiles from '../resources/document/pages/GameDocumentFiles.jsx';
 import GameTreasureEdit from '../resources/treasure/pages/GameTreasureEdit.jsx';
 import GameTreasureNew from '../resources/treasure/pages/GameTreasureNew.jsx';
 import GameTreasures from '../resources/treasure/pages/GameTreasures.jsx';
@@ -87,6 +89,8 @@ const PAGES = {
   gameDocumentEdit: <GameDocumentEdit />,
   gameDocumentNew: <GameDocumentNew />,
   gameDocuments: <GameDocuments />,
+  gameDocumentPhotos: <GameDocumentPhotos />,
+  gameDocumentFiles: <GameDocumentFiles />,
   gameSessions: <GameSessions />,
   gameSessionNew: <GameSessionNew />,
   gameSession: <GameSession />,
