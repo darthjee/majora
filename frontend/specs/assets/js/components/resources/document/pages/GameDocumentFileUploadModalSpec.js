@@ -90,6 +90,7 @@ describe('GameDocument file upload modal (issue #726)', function() {
     expect(captured[0].state.translationPrefix).toBe('photo_upload_modal');
     expect(captured[0].state.accept).toBeUndefined();
     expect(captured[0].state.showNameField).toBe(false);
+    expect(captured[0].state.showPhotoField).toBe(false);
   });
 
   it('passes showNameField={true} to the file modal state only (issue #874)', function() {
@@ -99,6 +100,26 @@ describe('GameDocument file upload modal (issue #726)', function() {
     renderToStaticMarkup(React.createElement(GameDocument, { ControllerClass: LoadedController }));
 
     expect(captured[1].state.showNameField).toBe(true);
+  });
+
+  it('passes showPhotoField={true} to the file modal state only (issue #878)', function() {
+    spyOn(DocumentDetailHelper, 'render').and.returnValue(null);
+    const captured = captureModalCalls(spyOn(PhotoUploadModalHelper, 'render'));
+
+    renderToStaticMarkup(React.createElement(GameDocument, { ControllerClass: LoadedController }));
+
+    expect(captured[1].state.showPhotoField).toBe(true);
+  });
+
+  it('wires the file modal photo file change handler without throwing (issue #878)', function() {
+    spyOn(DocumentDetailHelper, 'render').and.returnValue(null);
+    const captured = captureModalCalls(spyOn(PhotoUploadModalHelper, 'render'));
+
+    renderToStaticMarkup(React.createElement(GameDocument, { ControllerClass: LoadedController }));
+
+    expect(() => {
+      captured[1].handlers.onPhotoFileChange({ target: { files: [{ name: 'cover.png' }] } });
+    }).not.toThrow();
   });
 
   it('refetches the document via buildEffect when the file upload succeeds', function() {

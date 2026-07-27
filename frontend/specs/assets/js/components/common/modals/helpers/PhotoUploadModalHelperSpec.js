@@ -36,6 +36,7 @@ describe('PhotoUploadModalHelper', function() {
     onSubmit: jasmine.createSpy('onSubmit'),
     onFileChange: jasmine.createSpy('onFileChange'),
     onNameChange: jasmine.createSpy('onNameChange'),
+    onPhotoFileChange: jasmine.createSpy('onPhotoFileChange'),
     onDragOver: jasmine.createSpy('onDragOver'),
     onDrop: jasmine.createSpy('onDrop'),
   });
@@ -293,5 +294,6 @@ describe('PhotoUploadModalHelper', function() {
         expect(findNameInput(element).props.placeholder).toBe('Name');
       });
     });
+
   });
 });

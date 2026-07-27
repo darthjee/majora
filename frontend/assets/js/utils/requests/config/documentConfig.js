@@ -45,6 +45,17 @@
  *   Gated by the new `GameDocumentFileUploadPermission` on the backend (identical role set to
  *   `GameDocumentPhotoUploadPermission`) — `permission` is `null` here for the same reason as
  *   `POST.single`.
+ *
+ *   `POST.filePhoto` (file-photo-upload init, issue #878) targets the new
+ *   `.../documents/:id/files/:fileId/photo_upload.json` route — mirrors `itemConfig.js`'s own
+ *   two-id `characterPhotoUploadPath` shape (a document id plus the target file's own id) rather
+ *   than `POST.file`/`POST.single`'s single-id shape, since this endpoint uploads onto one
+ *   specific `GameDocumentFile`'s photo, not the document itself. Params: `gameSlug`, `id` (the
+ *   `GameDocument`'s own id), `fileId` (the `GameDocumentFile`'s own id, only known after the
+ *   file itself has been created via `POST.file`). Gated by the new
+ *   `GameDocumentFilePhotoUploadPermission` on the backend (identical role set to
+ *   `GameDocumentFileUploadPermission`) — `permission` is `null` here for the same reason as
+ *   `POST.single`/`POST.file`.
  */
 const gameDocumentCreate = { path: ({ gameSlug }) => `/games/${gameSlug}/documents.json`, permission: 'can_edit' };
 
@@ -55,6 +66,11 @@ const documentPhotoUploadInit = {
 
 const documentFileUploadInit = {
   path: ({ gameSlug, id }) => `/games/${gameSlug}/documents/${id}/file_upload.json`,
+  permission: null,
+};
+
+const documentFilePhotoUploadInit = {
+  path: ({ gameSlug, id, fileId }) => `/games/${gameSlug}/documents/${id}/files/${fileId}/photo_upload.json`,
   permission: null,
 };
 
@@ -85,5 +101,6 @@ export default {
     gameCollection: { regular: gameDocumentCreate, private: gameDocumentCreate },
     single: { regular: documentPhotoUploadInit, private: documentPhotoUploadInit },
     file: { regular: documentFileUploadInit, private: documentFileUploadInit },
+    filePhoto: { regular: documentFilePhotoUploadInit, private: documentFilePhotoUploadInit },
   },
 };
