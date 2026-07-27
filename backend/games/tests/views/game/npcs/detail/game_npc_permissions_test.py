@@ -104,18 +104,33 @@ class TestGameNpcPermissionsView(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert data == {'can_edit': False, 'can_create_item': False, 'can_upload_item_photo': False}
 
-    def test_staff_can_create_item_but_cannot_edit(self, client):
-        """Test that a global Staff account gets can_create_item True but can_edit False."""
+    def test_staff_can_create_item_but_cannot_edit_or_upload_photo(self, client):
+        """Test that Staff gets can_create_item True, can_edit/photo False (narrowed, #864)."""
         staff_user = UserFactory(username='staff_user', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
         token = Token.objects.create(user=staff_user)
         response = self.get(client, self._url(), token=token)
         data = json.loads(response.content)
-        assert data == {'can_edit': False, 'can_create_item': True, 'can_upload_item_photo': True}
+        assert data == {'can_edit': False, 'can_create_item': True, 'can_upload_item_photo': False}
 
-    def test_role_staff_can_create_item_but_cannot_edit(self, client):
-        """Test that ?role=staff grants can_create_item True but leaves can_edit False."""
+    def test_role_staff_can_create_item_but_cannot_edit_or_upload_photo(self, client):
+        """Test that ?role=staff grants can_create_item True but leaves can_edit/photo False."""
         response = self.get(client, self._url(query='role=staff'))
         data = json.loads(response.content)
-        assert data == {'can_edit': False, 'can_create_item': True, 'can_upload_item_photo': True}
+        assert data == {'can_edit': False, 'can_create_item': True, 'can_upload_item_photo': False}
+
+    def test_regular_player_can_create_item_but_cannot_edit_or_upload_photo(self, client):
+        """Test that a player may create an NPC item, but not upload a photo for it (#864)."""
+        player_user = UserFactory(username='player_user', password='secret-password')
+        PlayerFactory(name='Regular Player', user=player_user, game=self.game)
+        token = Token.objects.create(user=player_user)
+        response = self.get(client, self._url(), token=token)
+        data = json.loads(response.content)
+        assert data == {'can_edit': False, 'can_create_item': True, 'can_upload_item_photo': False}
+
+    def test_role_player_can_create_item_but_cannot_edit_or_upload_photo(self, client):
+        """Test that ?role=player grants can_create_item True but leaves photo upload False."""
+        response = self.get(client, self._url(query='role=player'))
+        data = json.loads(response.content)
+        assert data == {'can_edit': False, 'can_create_item': True, 'can_upload_item_photo': False}

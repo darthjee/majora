@@ -48,8 +48,8 @@ regardless of any other rule listed below.
 - [Conversation](access-control/conversation.md) — `Conversation`, `ConversationParticipant`,
   `Message`, `MessageVisualisation` (`conversations` app); exposed via `Game`'s
   `GET /my-games.json` (aggregate counts) and `GET /games/:game_slug/conversations.json`
-  (id/title list, issue #695) — **note the latter is one of the few endpoints in this
-  codebase where the superuser/staff default below does not apply**
+  (id/title list, issue #695; the superuser/staff exclusion `PlayerPermission` previously
+  applied there was reversed by issue #864, so the default below now applies as usual)
 
 ### Standalone endpoints
 

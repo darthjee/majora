@@ -226,6 +226,7 @@ class TestParseRoleBooleans:
         request = _make_query_request('role=dm')
         assert parse_role_booleans(request) == {
             'is_superuser': False, 'is_dm': True, 'is_owner': False, 'is_staff': False,
+            'is_player': False,
         }
 
     def test_repeated_roles_combine(self):
@@ -233,6 +234,7 @@ class TestParseRoleBooleans:
         request = _make_query_request('role=dm&role=owner')
         assert parse_role_booleans(request) == {
             'is_superuser': False, 'is_dm': True, 'is_owner': True, 'is_staff': False,
+            'is_player': False,
         }
 
     def test_superuser_role(self):
@@ -240,6 +242,7 @@ class TestParseRoleBooleans:
         request = _make_query_request('role=superuser')
         assert parse_role_booleans(request) == {
             'is_superuser': True, 'is_dm': False, 'is_owner': False, 'is_staff': False,
+            'is_player': False,
         }
 
     def test_staff_role_sets_is_staff(self):
@@ -247,13 +250,15 @@ class TestParseRoleBooleans:
         request = _make_query_request('role=staff')
         assert parse_role_booleans(request) == {
             'is_superuser': False, 'is_dm': False, 'is_owner': False, 'is_staff': True,
+            'is_player': False,
         }
 
-    def test_player_role_is_accepted_but_has_no_effect(self):
-        """Test that the player role is recognized as present but sets no booleans."""
+    def test_player_role_sets_is_player(self):
+        """Test that the player role sets is_player (issue #864)."""
         request = _make_query_request('role=player')
         assert parse_role_booleans(request) == {
             'is_superuser': False, 'is_dm': False, 'is_owner': False, 'is_staff': False,
+            'is_player': True,
         }
 
     def test_unrecognized_role_does_not_fall_back_to_real_identity(self):
@@ -261,6 +266,7 @@ class TestParseRoleBooleans:
         request = _make_query_request('role=bogus')
         assert parse_role_booleans(request) == {
             'is_superuser': False, 'is_dm': False, 'is_owner': False, 'is_staff': False,
+            'is_player': False,
         }
 
 
@@ -288,6 +294,7 @@ class TestPermissionsResponse(TestCase):
         request = _make_request(user=self.dm_user)
         role_booleans = {
             'is_superuser': False, 'is_dm': True, 'is_owner': False, 'is_staff': False,
+            'is_player': False,
         }
         response = permissions_response(
             GamePermissionsSerializer, self.game, request, role_booleans

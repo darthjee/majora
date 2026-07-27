@@ -11,7 +11,7 @@ describe('GameSessionsController', function() {
     const setCanEdit = jasmine.createSpy('setCanEdit');
     const client = buildClient('#/games/demo/sessions', () => Promise.reject(new Error('network error')));
 
-    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit_session: false }));
 
     const cleanup = new GameSessionsController(
       setColumns, setLoading, setError, client, setCanEdit,
@@ -31,7 +31,7 @@ describe('GameSessionsController', function() {
     const setCanEdit = jasmine.createSpy('setCanEdit');
     const client = buildClient('#/games');
 
-    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit_session: false }));
 
     const cleanup = new GameSessionsController(
       setColumns, setLoading, setError, client, setCanEdit,

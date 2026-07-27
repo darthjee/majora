@@ -19,7 +19,8 @@ export default class GameSessionsHelper {
    *   `past`/`future`/`unscheduled` (see `sessionColumns.js`).
    * @param {string} basePath - Base hash path used for pagination links.
    * @param {string} backHref - Hash path to the parent game page.
-   * @param {boolean} [canEdit] - Whether the current user may create new sessions.
+   * @param {boolean} [canEdit] - Whether the current user may create new sessions (derived from
+   *   the game permissions' `can_edit_session` field).
    * @param {string} [newHref] - Hash path to the new session form.
    * @returns {React.ReactElement} Sessions list with pagination.
    */

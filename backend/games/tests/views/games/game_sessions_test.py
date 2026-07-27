@@ -15,7 +15,7 @@ class TestGameSessionsCreateView(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        """Set up a game, a DM, a superuser, and a regular user."""
+        """Set up a game, a DM, a superuser, a player of the game, a staff, and a regular user."""
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
@@ -24,6 +24,13 @@ class TestGameSessionsCreateView(TestCase):
         cls.superuser_token = Token.objects.create(user=cls.superuser)
         cls.regular_user = UserFactory(username='player', password='secret-password')
         cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.player_user = UserFactory(username='player_user', password='secret-password')
+        PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
+        cls.player_token = Token.objects.create(user=cls.player_user)
+        cls.staff_user = UserFactory(
+            username='staff_user', password='secret-password', is_staff=True,
+        )
+        cls.staff_token = Token.objects.create(user=cls.staff_user)
 
     def _post(self, client, payload, token=None, game_slug=None):
         """Issue a POST request to the game sessions list endpoint, optionally with a token."""
@@ -43,6 +50,16 @@ class TestGameSessionsCreateView(TestCase):
     def test_superuser_can_create_session(self):
         """Test that a superuser can create a session and receives 201."""
         response = self._post(self.client, {'title': 'Session One'}, token=self.superuser_token)
+        assert response.status_code == 201
+
+    def test_player_of_game_can_create_session(self):
+        """Test that any player of the game can create a session (issue #864)."""
+        response = self._post(self.client, {'title': 'Session One'}, token=self.player_token)
+        assert response.status_code == 201
+
+    def test_staff_can_create_session(self):
+        """Test that a global Staff account can create a session (issue #864)."""
+        response = self._post(self.client, {'title': 'Session One'}, token=self.staff_token)
         assert response.status_code == 201
 
     def test_create_returns_session_detail(self):
