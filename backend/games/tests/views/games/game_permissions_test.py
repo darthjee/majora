@@ -33,6 +33,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
             'can_create_item': False,
             'can_create_document': False,
             'can_edit_session': False,
+            'can_create_npc': False,
         }
 
     def _all_true(self):
@@ -42,6 +43,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
             'can_create_item': True,
             'can_create_document': True,
             'can_edit_session': True,
+            'can_create_npc': True,
         }
 
     def test_non_existent_slug_returns_200_with_can_edit_false(self):
@@ -87,6 +89,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
             'can_create_item': True,
             'can_create_document': True,
             'can_edit_session': True,
+            'can_create_npc': True,
         }
 
     def test_staff_cannot_edit_but_can_create_and_edit_session(self):
@@ -102,6 +105,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
             'can_create_item': True,
             'can_create_document': True,
             'can_edit_session': True,
+            'can_create_npc': True,
         }
 
     def test_anonymous_cannot_edit(self):
@@ -137,6 +141,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
             'can_create_item': True,
             'can_create_document': True,
             'can_edit_session': True,
+            'can_create_npc': True,
         }
 
     def test_role_player_cannot_edit_but_can_create_and_edit_session(self):
@@ -148,6 +153,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
             'can_create_item': True,
             'can_create_document': True,
             'can_edit_session': True,
+            'can_create_npc': True,
         }
 
     def test_role_dm_overrides_authenticated_non_dm_real_identity(self):
