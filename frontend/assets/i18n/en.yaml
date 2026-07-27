@@ -473,6 +473,18 @@ document_new_page:
 document_page:
   loading: Loading document...
   hidden_label: Hidden
+  photos_title: Photos
+  files_title: Files
+game_document_photos_preview:
+  empty: No photos yet.
+game_document_files_preview:
+  empty: No files yet.
+game_document_photos_page:
+  title: Photos
+  loading: Loading photos...
+game_document_files_page:
+  title: Files
+  loading: Loading files...
 item_page:
   loading: Loading item...
   hidden_label: Hidden
