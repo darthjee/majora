@@ -370,6 +370,25 @@ class TestUploadFinalizeView(TestCase):
         cls.document_file_photo_upload_by_staff.content_object = cls.document_file_photo_by_staff
         cls.document_file_photo_upload_by_staff.save()
 
+        cls.orphaned_document_file_photo = GameDocumentFilePhoto.objects.create(
+            path=(
+                f'photos/games/epic-quest/documents/{cls.game_document.id}'
+                '/files/orphaned/photo.jpg'
+            ),
+            ready=False,
+        )
+        cls.orphaned_document_file_photo_upload = Upload.objects.create(
+            user=cls.dm_user,
+            file_path=(
+                f'photos/games/epic-quest/documents/{cls.game_document.id}'
+                '/files/orphaned/photo.jpg'
+            ),
+        )
+        cls.orphaned_document_file_photo_upload.content_object = (
+            cls.orphaned_document_file_photo
+        )
+        cls.orphaned_document_file_photo_upload.save()
+
     def _patch(
         self, client, upload_id, payload, token=None, upload_token=None, upload_type='image',
     ):
@@ -1347,3 +1366,14 @@ class TestUploadFinalizeView(TestCase):
         assert response.status_code == 200
         self.document_file_photo_by_staff.refresh_from_db()
         assert self.document_file_photo_by_staff.ready is True
+
+    def test_orphaned_document_file_photo_upload_returns_403(self):
+        """Test that finalizing an orphaned GameDocumentFilePhoto upload returns 403, not 500."""
+        response = self._patch(
+            self.client,
+            self.orphaned_document_file_photo_upload.id,
+            {'status': 'uploading'},
+            token=self.dm_token,
+            upload_token=self.orphaned_document_file_photo_upload.token,
+        )
+        assert response.status_code == 403

@@ -206,7 +206,10 @@ def _document_file_permission(request, content_object):
 
 def _document_file_photo_permission(request, content_object):
     """Return a permission error Response for a GameDocumentFilePhoto content object, else None."""
-    file = GameDocumentFile.objects.get(photo=content_object)
+    try:
+        file = GameDocumentFile.objects.get(photo=content_object)
+    except (GameDocumentFile.DoesNotExist, GameDocumentFile.MultipleObjectsReturned):
+        return _FORBIDDEN
     return GameDocumentFilePhotoUploadPermission.check(request, file.game_document.game)
 
 
