@@ -5,7 +5,7 @@ namespace Tent\RequestHandlers;
 use RuntimeException;
 
 /**
- * Raised when a backend call made by PhotoUploadHandler fails or returns an
+ * Raised when a backend call made by UploadHandler fails or returns an
  * unexpected response.
  *
  * Carries the httpCode and body that should be forwarded back to the client,

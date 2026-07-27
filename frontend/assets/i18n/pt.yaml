@@ -57,6 +57,12 @@ login_modal:
   authorize_expired: Esta solicitação expirou. Por favor, tente novamente.
   authorize_denied: Esta solicitação foi negada.
   authorize_approved: Aprovado! Efetuando login...
+file_upload_modal:
+  cancel: Cancelar
+  confirm: Confirmar
+  error: Falha ao enviar arquivo. Por favor, tente novamente.
+  submit: Enviar
+  title: Enviar Arquivo
 photo_upload_modal:
   cancel: Cancelar
   confirm: Confirmar

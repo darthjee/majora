@@ -57,6 +57,12 @@ login_modal:
   authorize_expired: This request has expired. Please try again.
   authorize_denied: This request was denied.
   authorize_approved: Approved! Logging you in...
+file_upload_modal:
+  cancel: Cancel
+  confirm: Confirm
+  error: Failed to upload file. Please try again.
+  submit: Upload
+  title: Upload File
 photo_upload_modal:
   cancel: Cancel
   confirm: Confirm

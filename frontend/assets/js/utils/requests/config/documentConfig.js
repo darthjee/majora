@@ -37,11 +37,24 @@
  *   or the game's dm/editor) — `permission` is `null` here, matching `itemConfig.js`'s own
  *   `photoUploadInit`, since the upload init endpoint itself carries no `can_edit`-style flag to
  *   resolve against.
+ *
+ *   `POST.file` (file-upload init, issue #726) mirrors `POST.single` above but targets the new
+ *   `.../documents/:id/file_upload.json` route — its own quantity-type key rather than reusing
+ *   `single`, since a `GameDocument` is document-scoped either way but the two init endpoints are
+ *   distinct routes (photo vs. file). Params: `gameSlug`, `id` (the `GameDocument`'s own id).
+ *   Gated by the new `GameDocumentFileUploadPermission` on the backend (identical role set to
+ *   `GameDocumentPhotoUploadPermission`) — `permission` is `null` here for the same reason as
+ *   `POST.single`.
  */
 const gameDocumentCreate = { path: ({ gameSlug }) => `/games/${gameSlug}/documents.json`, permission: 'can_edit' };
 
 const documentPhotoUploadInit = {
   path: ({ gameSlug, id }) => `/games/${gameSlug}/documents/${id}/photo_upload.json`,
+  permission: null,
+};
+
+const documentFileUploadInit = {
+  path: ({ gameSlug, id }) => `/games/${gameSlug}/documents/${id}/file_upload.json`,
   permission: null,
 };
 
@@ -71,5 +84,6 @@ export default {
   POST: {
     gameCollection: { regular: gameDocumentCreate, private: gameDocumentCreate },
     single: { regular: documentPhotoUploadInit, private: documentPhotoUploadInit },
+    file: { regular: documentFileUploadInit, private: documentFileUploadInit },
   },
 };

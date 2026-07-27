@@ -30,6 +30,7 @@ docker_volumes/static/
 docker_volumes/proxy_cache/
 docker_volumes/mysql_data/
 docker_volumes/photos/
+docker_volumes/files/
 
 # Environment files
 .env

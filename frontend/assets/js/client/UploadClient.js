@@ -40,12 +40,14 @@ export default class UploadClient extends BaseClient {
    * @param {number|string} id - Upload ID returned by initUpload.
    * @param {string} uploadToken - Upload token returned by initUpload.
    * @param {File} file - File to upload.
+   * @param {string} uploadType - Upload type returned by initUpload (e.g. `image` or `file`),
+   *   used to build the type-scoped submit URL.
    * @returns {Promise<Response>} fetch response from the upload submit endpoint.
    */
-  submitUpload(id, uploadToken, file) {
+  submitUpload(id, uploadToken, file, uploadType) {
     const formData = new FormData();
     formData.append('file', file);
-    return this.request(`/uploads/${id}/submit`, {
+    return this.request(`/uploads/${uploadType}/${id}/submit`, {
       method: 'POST',
       headers: {
         'X-Upload-Token': uploadToken,

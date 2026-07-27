@@ -2,6 +2,20 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import DocumentDetailHelper
   from '../../../../../../../../assets/js/components/resources/document/pages/helpers/DocumentDetailHelper.jsx';
 
+/**
+ * Extracts the `UploadButton` element rendered as the second `pageActions` entry (the
+ * file-upload button, alongside the Edit button), by unwrapping its `ConditionalComponent`
+ * wrapper.
+ *
+ * @param {React.ReactElement} element - The `ShowPageLayout` element returned by `.render`.
+ * @returns {React.ReactElement} The file-upload `UploadButton` element.
+ */
+function findFileUploadButton(element) {
+  const [, fileUploadWrapper] = element.props.pageActions.props.children;
+
+  return fileUploadWrapper.props.children;
+}
+
 describe('DocumentDetailHelper', function() {
   describe('.render', function() {
     it('renders the document name', function() {
@@ -111,6 +125,50 @@ describe('DocumentDetailHelper', function() {
       );
 
       expect(html).toContain('href="#/games/demo/documents/5/edit"');
+    });
+
+    describe('file upload button (issue #726)', function() {
+      it('does not render the file upload button when canUploadPhoto is omitted', function() {
+        const document = { id: 5, name: 'Ancient Scroll', description: '' };
+        const html = renderToStaticMarkup(
+          DocumentDetailHelper.render(document, '#/games/demo/documents', '#/games/demo/documents/5/edit'),
+        );
+
+        expect(html).not.toContain('bi-file-earmark-pdf-fill');
+      });
+
+      it('does not render the file upload button when canUploadPhoto is false', function() {
+        const document = { id: 5, name: 'Ancient Scroll', description: '' };
+        const html = renderToStaticMarkup(
+          DocumentDetailHelper.render(document, '#/games/demo/documents', '#/games/demo/documents/5/edit', false),
+        );
+
+        expect(html).not.toContain('bi-file-earmark-pdf-fill');
+      });
+
+      it('renders the file upload button when canUploadPhoto is true', function() {
+        const document = { id: 5, name: 'Ancient Scroll', description: '' };
+        const html = renderToStaticMarkup(
+          DocumentDetailHelper.render(document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true),
+        );
+
+        expect(html).toContain('bi-file-earmark-pdf-fill');
+      });
+
+      it('wires the given onFileUploadClick handler to the file upload button', function() {
+        const document = { id: 5, name: 'Ancient Scroll', description: '' };
+        const onUploadClick = jasmine.createSpy('onUploadClick');
+        const onFileUploadClick = jasmine.createSpy('onFileUploadClick');
+        const element = DocumentDetailHelper.render(
+          document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true,
+          onUploadClick, onFileUploadClick,
+        );
+        const button = findFileUploadButton(element);
+
+        button.props.onClick();
+
+        expect(onFileUploadClick).toHaveBeenCalled();
+      });
     });
   });
 

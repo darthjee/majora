@@ -78,6 +78,9 @@ workflows:
       - link_photos:
           requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks]
           filters: *tags_only
+      - link_files:
+          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks]
+          filters: *tags_only
       - upload_admin_assets:
           requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, release-circleci_majora-base]
           filters: *tags_only
@@ -95,6 +98,7 @@ workflows:
             - copy_proxy_configuration
             - upload_fe_files
             - link_photos
+            - link_files
             - upload_admin_assets
             - release-majora-base
             - release-majora-base-arm64
@@ -374,6 +378,22 @@ jobs:
       - run:
           name: Link photos
           command: SOURCE=$REMOTE_HOME/photos DEPLOY_PATH=photos bin/deploy_frontend.sh link
+
+  link_files:
+    docker:
+      - image: darthjee/tent:0.9.1
+    working_directory: /home/app/app
+    steps:
+      - checkout
+      - run:
+          name: Generate key file
+          command: bin/deploy_frontend.sh generate_key_file
+      - run:
+          name: Generate folder
+          command: bin/deploy_frontend.sh generate_folder
+      - run:
+          name: Link files
+          command: SOURCE=$REMOTE_HOME/files DEPLOY_PATH=files bin/deploy_frontend.sh link
 
   upload_admin_assets:
     docker:
