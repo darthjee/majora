@@ -4,9 +4,9 @@
  * (see rules/backend.php in both dev_configuration and prod_configuration).
  *
  * Builds $cacheCleanupMap out of the resource-family group definitions
- * split across npcs.php, pcs.php, treasures.php, sessions.php, and
- * items.php in this same folder, so both environments share a single
- * source instead of duplicating the map verbatim.
+ * split across npcs.php, pcs.php, treasures.php, sessions.php, items.php,
+ * and documents.php in this same folder, so both environments share a
+ * single source instead of duplicating the map verbatim.
  */
 
 use Tent\Middlewares\CacheCleanupMapBuilder;
@@ -16,13 +16,15 @@ $pcsCacheCleanupGroups = require __DIR__ . '/pcs.php';
 $treasuresCacheCleanupGroups = require __DIR__ . '/treasures.php';
 $sessionsCacheCleanupGroups = require __DIR__ . '/sessions.php';
 $itemsCacheCleanupGroups = require __DIR__ . '/items.php';
+$documentsCacheCleanupGroups = require __DIR__ . '/documents.php';
 
 $cacheCleanupGroups = array_merge(
     $npcsCacheCleanupGroups,
     $pcsCacheCleanupGroups,
     $treasuresCacheCleanupGroups,
     $sessionsCacheCleanupGroups,
-    $itemsCacheCleanupGroups
+    $itemsCacheCleanupGroups,
+    $documentsCacheCleanupGroups
 );
 
 $cacheCleanupMap = CacheCleanupMapBuilder::build($cacheCleanupGroups);
