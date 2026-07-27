@@ -7,7 +7,7 @@ import PhotoUploadModalHelper
   from '../../../../../../../assets/js/components/common/modals/helpers/PhotoUploadModalHelper.jsx';
 import MoneyEditModalHelper
   from '../../../../../../../assets/js/components/common/modals/helpers/MoneyEditModalHelper.jsx';
-import { stubBuildEffect } from '../../../../../../support/controllerStubs.js';
+import { stubBuildEffect, captureConstructorFields } from '../../../../../../support/controllerStubs.js';
 
 describe('GameNpcNew', function() {
   let originalWindow;
@@ -22,15 +22,18 @@ describe('GameNpcNew', function() {
     globalThis.window = originalWindow;
   });
 
+  // `isFullEditor` defaults to `false` until the mount effect's permissions check resolves
+  // (issue #868), and `stubBuildEffect` neutralizes that effect entirely, so a bare
+  // `renderToStaticMarkup` render only ever exercises the reduced-access field set here — full
+  // -only fields (private description, hidden, private allegiance) are covered by
+  // `GameNpcNewHelperSpec.js` (rendering, given `isFullEditor` directly) and the "isFullEditor
+  // wiring" describe block below (state plumbing).
   it('renders the NPC creation form', function() {
     const html = renderToStaticMarkup(React.createElement(GameNpcNew));
 
     expect(html).toContain('id="game-npc-new-name"');
     expect(html).toContain('id="game-npc-new-role"');
     expect(html).toContain('id="game-npc-new-description"');
-    expect(html).toContain('id="game-npc-new-private-description"');
-    expect(html).toContain('id="game-npc-new-hidden"');
-    expect(html).toContain('id="game-npc-new-allegiance"');
     expect(html).toContain('id="game-npc-new-public-allegiance"');
   });
 
@@ -159,6 +162,52 @@ describe('GameNpcNew', function() {
         capturedMoneyModalHandlers.onClose();
         capturedMoneyModalHandlers.onConfirm(500);
       }).not.toThrow();
+    });
+  });
+
+  describe('isFullEditor wiring (issue #868)', function() {
+    it('defaults isFullEditor to false before the permissions check resolves', function() {
+      let capturedState;
+      spyOn(GameNpcNewHelper, 'render').and.callFake((state) => {
+        capturedState = state;
+        return null;
+      });
+
+      renderToStaticMarkup(React.createElement(GameNpcNew));
+
+      expect(capturedState.isFullEditor).toBe(false);
+    });
+
+    it('passes a real setIsFullEditor setter into the controller constructor\'s 7th slot', function() {
+      const capture = captureConstructorFields(GameNpcNewController, ['setIsFullEditor']);
+
+      try {
+        renderToStaticMarkup(React.createElement(GameNpcNew));
+
+        expect(capture.spies.setIsFullEditor).toEqual(jasmine.any(Function));
+      } finally {
+        capture.restore();
+      }
+    });
+
+    it('threads isFullEditor from state into the submit handler', function() {
+      let capturedHandlers;
+      spyOn(GameNpcNewHelper, 'render').and.callFake((state, handlers) => {
+        capturedHandlers = handlers;
+        return null;
+      });
+      spyOn(GameNpcNewController.prototype, 'submitForm').and.returnValue(Promise.resolve());
+
+      renderToStaticMarkup(React.createElement(GameNpcNew));
+      capturedHandlers.onSubmit(jasmine.createSpyObj('event', ['preventDefault']));
+
+      expect(GameNpcNewController.prototype.submitForm).toHaveBeenCalledWith(
+        jasmine.anything(),
+        'demo',
+        jasmine.anything(),
+        jasmine.anything(),
+        false,
+      );
     });
   });
 });

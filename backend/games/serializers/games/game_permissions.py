@@ -4,6 +4,7 @@ from games.permissions import (
     GameDocumentCreatePermission,
     GameItemCreatePermission,
     GameSessionEditPermission,
+    NpcPlayerCreatePermission,
 )
 from games.serializers.base_permissions import BasePermissionsSerializer
 
@@ -17,6 +18,7 @@ class GamePermissionsSerializer(BasePermissionsSerializer):
         data['can_create_item'] = self._get_can_create_item(obj)
         data['can_create_document'] = self._get_can_create_document(obj)
         data['can_edit_session'] = self._get_can_edit_session(obj)
+        data['can_create_npc'] = self._get_can_create_npc(obj)
         return data
 
     def _get_can_edit(self, game):
@@ -60,3 +62,14 @@ class GamePermissionsSerializer(BasePermissionsSerializer):
                 roles['is_superuser'], roles['is_dm'], roles['is_staff'], roles['is_player'],
             )
         return GameSessionEditPermission.is_allowed(self._user(), game)
+
+    def _get_can_create_npc(self, game):
+        """Return whether the requester (real or role-simulated) may create a player-facing NPC."""
+        if game is None:
+            return False
+        roles = self._roles()
+        if roles is not None:
+            return NpcPlayerCreatePermission.is_allowed_for_roles(
+                roles['is_superuser'], roles['is_dm'], roles['is_staff'], roles['is_player'],
+            )
+        return NpcPlayerCreatePermission.is_allowed(self._user(), game)

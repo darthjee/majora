@@ -25,6 +25,7 @@ export default function GameNpcNew() {
   const [photoFile, setPhotoFile] = useState(null);
   const [characterId, setCharacterId] = useState(null);
   const [gameType, setGameType] = useState('dnd');
+  const [isFullEditor, setIsFullEditor] = useState(false);
   const { state: fields, setField, handleChange, handleCheckboxChange } = useFormState({
     name: '',
     role: '',
@@ -37,7 +38,7 @@ export default function GameNpcNew() {
   });
 
   const controller = useMemo(
-    () => new GameNpcNewController(Noop.noop, setFieldErrors, null, null, setGameType),
+    () => new GameNpcNewController(Noop.noop, setFieldErrors, null, null, setGameType, null, setIsFullEditor),
     [],
   );
 
@@ -62,6 +63,7 @@ export default function GameNpcNew() {
     gameSlug,
     { ...fields, links, photoFile },
     { setStatus, setFieldErrors, setCharacterId },
+    isFullEditor,
   );
 
   const handleRetryPhotoUpload = () => controller.retryPhotoUpload(
@@ -81,7 +83,7 @@ export default function GameNpcNew() {
     <>
       {GameNpcNewHelper.render(
         {
-          ...fields, links, gameType, status, fieldErrors, profile_photo_path: photoPreviewUrl,
+          ...fields, links, gameType, isFullEditor, status, fieldErrors, profile_photo_path: photoPreviewUrl,
         },
         {
           onSubmit: handleSubmit,

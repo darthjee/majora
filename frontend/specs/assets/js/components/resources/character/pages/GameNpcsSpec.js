@@ -5,7 +5,7 @@ import GameCharactersHelper from '../../../../../../../assets/js/components/reso
 import GameNpcsAccessController from '../../../../../../../assets/js/components/resources/character/pages/controllers/GameNpcsAccessController.js';
 import FacadeRefresh from '../../../../../../../assets/js/utils/access/useFacadeRefresh.js';
 import resourceConfig from '../../../../../../../assets/js/utils/requests/resourceConfig.js';
-import { stubBuildEffect } from '../../../../../../support/controllerStubs.js';
+import { stubBuildEffect, captureConstructorFields } from '../../../../../../support/controllerStubs.js';
 
 describe('GameNpcs', function() {
   let originalWindow;
@@ -56,5 +56,24 @@ describe('GameNpcs', function() {
     renderToStaticMarkup(React.createElement(GameNpcs));
 
     expect(resourceConfig.get).toHaveBeenCalledWith('POST', 'npc', 'single');
+  });
+
+  describe('wiring canCreateNpc (issue #868)', function() {
+    let capture;
+
+    afterEach(function() {
+      capture.restore();
+    });
+
+    it('passes a real setCanCreateNpc state setter into the access controller, defaulting to '
+      + 'false through to GameCharactersHelper.render', function() {
+      capture = captureConstructorFields(GameNpcsAccessController, ['setCanCreateNpc']);
+      const renderSpy = spyOn(GameCharactersHelper, 'render').and.callThrough();
+
+      renderToStaticMarkup(React.createElement(GameNpcs));
+
+      expect(renderSpy.calls.mostRecent().args[0].canCreateNpc).toBe(false);
+      expect(capture.spies.setCanCreateNpc).toEqual(jasmine.any(Function));
+    });
   });
 });

@@ -32,6 +32,7 @@ branching a shared serializer or filter by the requester's role:
 | Show | `GET .../:id.json` | `GET .../:id/full.json` |
 | Update | — (not accepted), *or* a narrower, curated, player-writable field set gated by its own broader-audience permission (see below) | `PATCH .../:id/full.json` |
 | Index | `GET ....json` | `GET .../all.json` |
+| Create | `POST ....json` (curated field set, broader-audience permission) | `POST .../full.json` |
 
 A requester lacking full access simply gets no access to the full-access route (401/403) — there
 is no partial fallback response on that route.

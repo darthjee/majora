@@ -321,17 +321,35 @@ does.
 
 | Endpoint | Who can write |
 |----------|--------------|
-| `POST /games/<slug>/npcs.json` | **GameEdit** |
+| `POST /games/<slug>/npcs.json` | **NpcPlayerCreate** |
+| `POST /games/<slug>/npcs/full.json` | **GameEdit** |
 
 There is no equivalent PC creation endpoint.
 
-**Write fields**: `name` (required), `role`, `public_description`, `private_description`,
-`hidden`, `money`, `private_allegiance`, `public_allegiance` (all optional except `name` — see
-"Allegiance fields" above), and `links` (optional array — see [CharacterLink](character-link.md) below). `game` and
-`npc` are never accepted from the request payload — `game` is always assigned server-side from
-the `<slug>` URL segment, and `npc` is always forced to `True`. `player` is not accepted at all
-— NPCs created this way have no player.
+**Write fields (`npcs/full.json`)**: `name` (required), `role`, `public_description`,
+`private_description`, `hidden`, `money`, `private_allegiance`, `public_allegiance` (all optional
+except `name` — see "Allegiance fields" above), and `links` (optional array — see
+[CharacterLink](character-link.md) below). `game` and `npc` are never accepted from the request
+payload — `game` is always assigned server-side from the `<slug>` URL segment, and `npc` is
+always forced to `True`. `player` is not accepted at all — NPCs created this way have no player.
+Validated by `CharacterCreateSerializer`, unchanged (this is exactly `npcs.json`'s pre-#868
+behavior, relocated).
+
+**Write fields (`npcs.json`)**: a small, curated, player-safe field set — `name` (required),
+`role`, `public_description`, `public_allegiance`, `public_slain`, and `links` (all optional
+except `name`), validated by `NpcPlayerCreateSerializer`
+(`backend/games/serializers/characters/npcs/npc_player_create.py`). `hidden`,
+`private_description`, `private_allegiance`, and `money` are not declared on this serializer at
+all, so a player-created NPC can never carry them, regardless of what keys the payload sends —
+mirroring `NpcPlayerUpdateSerializer`'s field set exactly (see "Narrow player-facing NPC PATCH"
+above), except `name` stays `required=True` here since this is a create, not a partial update.
+`game` and `npc` are never accepted from the request payload, same as `npcs/full.json` above.
+
+**NpcPlayerCreate** (`NpcPlayerCreatePermission`, `backend/games/permissions.py`): grants the
+same access as **GameEdit** (superuser or a GameMaster of the game) plus any global Staff account
+(`user.is_staff`) plus any player of the game — mirroring `GameItemCreatePermission`/
+`GameDocumentCreatePermission`'s shape, since a to-be-created NPC has no owning character yet.
 
 **Create response:** HTTP 201 with `CharacterDetailSerializer` body (same fields as "Detail"
-above) — note it does not include `private_description`, even though the create serializer
-accepts it as input, mirroring the PATCH behavior.
+above) on both endpoints — note it does not include `private_description`, even though
+`npcs/full.json`'s create serializer accepts it as input, mirroring the PATCH behavior.

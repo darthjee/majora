@@ -38,6 +38,7 @@ describe('GameCharactersHelper', function() {
     backHref: '#/games/demo',
     newHref: '#/games/demo/npcs/new',
     canEdit: false,
+    canCreateNpc: false,
     isPlayer: false,
     refreshToken: 0,
     activeFilters: {},
@@ -63,17 +64,24 @@ describe('GameCharactersHelper', function() {
       expect(html).toContain('href="#/games/demo"');
     });
 
-    it('does not render the new NPC button when canEdit is false', function() {
+    it('does not render the new NPC button when canCreateNpc is false', function() {
       const html = renderToStaticMarkup(GameCharactersHelper.render(baseState, baseHandlers));
       expect(html).not.toContain('New NPC');
     });
 
-    it('renders the new NPC button when canEdit is true', function() {
+    it('renders the new NPC button when canCreateNpc is true', function() {
       const html = renderToStaticMarkup(
-        GameCharactersHelper.render({ ...baseState, canEdit: true }, baseHandlers),
+        GameCharactersHelper.render({ ...baseState, canCreateNpc: true }, baseHandlers),
       );
       expect(html).toContain('New NPC');
       expect(html).toContain('href="#/games/demo/npcs/new"');
+    });
+
+    it('does not render the new NPC button when canEdit is true but canCreateNpc is false (issue #868)', function() {
+      const html = renderToStaticMarkup(
+        GameCharactersHelper.render({ ...baseState, canEdit: true, canCreateNpc: false }, baseHandlers),
+      );
+      expect(html).not.toContain('New NPC');
     });
 
     it('wires a ListPage of type npcs with the expected props', function() {

@@ -27,9 +27,12 @@
  *   `single`'s shape. `CharacterEditPermission`-gated (character-level `can_edit`), so
  *   `regular`/`private` are the same object too.
  *
- *   `POST.collection` (NPC creation, `/games/:game_slug/npcs.json`) is `GameEditPermission`-gated
- *   (game-level `can_edit`) with no restricted/full variant, so `regular`/`private` point at the
- *   exact same object.
+ *   `POST.collection` (NPC creation) mirrors `PATCH.single`'s `regular`/`private` shape: `regular`
+ *   → `.../npcs.json`, gated by the new `can_create_npc` permission (issue #868's
+ *   `NpcPlayerCreatePermission` — dm/admin/superuser/staff/any player of the game) and accepting
+ *   the narrower `NpcPlayerCreateSerializer` field set server-side; `private` → the new
+ *   `.../npcs/full.json`, gated by game-level `can_edit` (the DM/admin/superuser full creator),
+ *   accepting the full field set.
  */
 const patchRegular = { path: ({ gameSlug, id }) => `/games/${gameSlug}/npcs/${id}.json`, permission: null };
 const patchPrivate = {
@@ -43,7 +46,10 @@ const photoSet = {
   path: ({ gameSlug, id, photoId }) => `/games/${gameSlug}/npcs/${id}/photos/${photoId}/set.json`,
   permission: 'can_edit',
 };
-const create = { path: ({ gameSlug }) => `/games/${gameSlug}/npcs.json`, permission: 'can_edit' };
+const createRegular = { path: ({ gameSlug }) => `/games/${gameSlug}/npcs.json`, permission: 'can_create_npc' };
+const createPrivate = {
+  path: ({ gameSlug }) => `/games/${gameSlug}/npcs/full.json`, permission: 'can_edit',
+};
 
 export default {
   GET: {
@@ -65,6 +71,6 @@ export default {
   },
   POST: {
     single: { regular: photoUploadInit, private: photoUploadInit },
-    collection: { regular: create, private: create },
+    collection: { regular: createRegular, private: createPrivate },
   },
 };

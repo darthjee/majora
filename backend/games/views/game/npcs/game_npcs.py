@@ -8,11 +8,11 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 
 from ....models import Game
-from ....permissions import GameEditPermission
+from ....permissions import NpcPlayerCreatePermission
 from ....serializers import (
-    CharacterCreateSerializer,
     CharacterDetailSerializer,
     CharacterListSerializer,
+    NpcPlayerCreateSerializer,
 )
 from ...common import paginated_list_response, save_or_error, validated_or_error
 from .._shared import _filter_characters, _with_treasure_value
@@ -21,7 +21,7 @@ from .._shared import _filter_characters, _with_treasure_value
 @api_view(['GET', 'POST'])
 @authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public; POST authorization is enforced inline
-# inside _create_npc via GameEditPermission.check().
+# inside _create_npc via NpcPlayerCreatePermission.check().
 @permission_classes([AllowAny])
 def game_npcs(request, game_slug):
     """Return list of Non-Player Characters (NPCs) for a specific game, or create one."""
@@ -45,11 +45,11 @@ def _create_npc(request, game):
     must never be cached/shared across different requesters by the Tent reverse proxy
     (issue #730).
     """
-    error_response = GameEditPermission.check(request, game)
+    error_response = NpcPlayerCreatePermission.check(request, game)
     if error_response:
         return error_response
 
-    serializer = CharacterCreateSerializer(data=request.data)
+    serializer = NpcPlayerCreateSerializer(data=request.data)
     error_response = validated_or_error(serializer)
     if error_response:
         return error_response

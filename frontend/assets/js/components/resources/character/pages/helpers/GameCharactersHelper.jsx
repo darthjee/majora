@@ -12,7 +12,7 @@ import Translator from '../../../../../i18n/Translator.js';
  */
 export default class GameCharactersHelper {
   /**
-   * Render the NPCs page: header (back button, "New NPC" action gated on `canEdit`, heading)
+   * Render the NPCs page: header (back button, "New NPC" action gated on `canCreateNpc`, heading)
    * and the shared `ListPage` grid (type `npcs`), threading `isPlayer`/the slain-toggle click
    * handlers/the `NpcFilters` props through `ListPage`'s `context`/`filtersProps`.
    *
@@ -21,7 +21,10 @@ export default class GameCharactersHelper {
    * @param {string} state.basePath - Base hash path for the NPCs list.
    * @param {string} state.backHref - Hash path to the parent game page.
    * @param {string} state.newHref - Hash path to the new NPC form.
-   * @param {boolean} state.canEdit - Whether the current user may create/manage NPCs.
+   * @param {boolean} state.canEdit - Whether the current user may manage NPCs (game-level edit,
+   *   also gates the DM-only `NpcFilters` UI).
+   * @param {boolean} state.canCreateNpc - Whether the current user may create an NPC (issue
+   *   #868 — dm/admin/superuser/staff/any player of the game), gating the "New NPC" button.
    * @param {boolean} state.isPlayer - Whether the current user is a player of the game.
    * @param {number} state.refreshToken - Opaque value bumped to re-trigger the list fetch.
    * @param {object} state.activeFilters - Active filter query params preserved on pagination links.
@@ -42,7 +45,7 @@ export default class GameCharactersHelper {
       <>
         <div className="container mt-4">
           <PageActions backHref={state.backHref}>
-            <ConditionalComponent render={state.canEdit}>
+            <ConditionalComponent render={state.canCreateNpc}>
               <NewButton href={state.newHref}>
                 {Translator.t('game_npcs_page.new_npc')}
               </NewButton>

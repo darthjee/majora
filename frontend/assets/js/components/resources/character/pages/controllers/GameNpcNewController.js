@@ -34,10 +34,13 @@ export default class GameNpcNewController extends BasePageController {
    *   used so the money-editing modal renders the right denominations. Optional — a
    *   caller that does not need this display concern may omit it.
    * @param {GameClient|null} [gameClient] - Game client override.
+   * @param {Function} [setIsFullEditor] - Setter reporting whether the current viewer is a full
+   *   (dm/admin/superuser) creator, as opposed to a reduced-field player/staff creator. Optional —
+   *   a caller that does not need this display concern may omit it.
    */
   constructor(
     setError, setFieldErrors = Noop.noop, characterClient = null, uploadClient = null,
-    setGameType = Noop.noop, gameClient = null,
+    setGameType = Noop.noop, gameClient = null, setIsFullEditor = Noop.noop,
   ) {
     super();
     this.setError = setError;
@@ -47,14 +50,17 @@ export default class GameNpcNewController extends BasePageController {
     this.photoUploadSaga = new PhotoUploadSaga(this.uploadClient);
     this.setGameType = setGameType;
     this.gameClient = gameClient ?? new GameClient();
+    this.setIsFullEditor = setIsFullEditor;
   }
 
   /**
    * Build the page mount effect.
    *
-   * @description Returns a callback that checks whether the current user may
-   *   edit the game and redirects to the NPCs index when they cannot, and
-   *   fetches the containing game's currency type for the money-editing modal.
+   * @description Returns a callback that checks whether the current user may create an NPC at
+   *   all (full editor via `can_edit`, or reduced-field creator via `can_create_npc`) and
+   *   redirects to the NPCs index when neither is granted, reports which kind of access was
+   *   granted via `setIsFullEditor`, and fetches the containing game's currency type for the
+   *   money-editing modal.
    * @returns {Function} Effect callback.
    */
   buildEffect() {
@@ -101,15 +107,40 @@ export default class GameNpcNewController extends BasePageController {
    *   hidden: boolean, money: string, privateAllegiance: string, publicAllegiance: string,
    *   links: object[], photoFile: File|null}} formValues - Raw form field values.
    * @param {{setStatus: Function, setFieldErrors: Function, setCharacterId: Function}} setters - Page state setters.
+   * @param {boolean} [isFullEditor] - Whether the current viewer is a full (dm/admin/superuser)
+   *   creator. Defaults to `true`, so existing callers that don't pass it keep today's
+   *   dm/admin/superuser-only behavior. When `true`, submits the full field set to
+   *   `.../npcs/full.json`; when `false`, submits the reduced player-writable field set to
+   *   `.../npcs.json`.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
-  async submitForm(event, gameSlug, formValues, setters) {
+  async submitForm(event, gameSlug, formValues, setters, isFullEditor = true) {
     if (event && typeof event.preventDefault === 'function') {
       event.preventDefault();
     }
 
     setters.setStatus('submitting');
     setters.setFieldErrors({});
+
+    const body = isFullEditor
+      ? {
+        name: formValues.name,
+        role: formValues.role,
+        public_description: formValues.description,
+        private_description: formValues.privateDescription,
+        hidden: formValues.hidden,
+        money: parseInt(formValues.money, 10),
+        private_allegiance: formValues.privateAllegiance,
+        public_allegiance: formValues.publicAllegiance,
+        links: formValues.links ?? [],
+      }
+      : {
+        name: formValues.name,
+        role: formValues.role,
+        public_description: formValues.description,
+        public_allegiance: formValues.publicAllegiance,
+        links: formValues.links ?? [],
+      };
 
     try {
       const response = await RequestStore.mutate({
@@ -118,17 +149,8 @@ export default class GameNpcNewController extends BasePageController {
         method: 'POST',
         quantityType: 'collection',
         params: { gameSlug },
-        body: {
-          name: formValues.name,
-          role: formValues.role,
-          public_description: formValues.description,
-          private_description: formValues.privateDescription,
-          hidden: formValues.hidden,
-          money: parseInt(formValues.money, 10),
-          private_allegiance: formValues.privateAllegiance,
-          public_allegiance: formValues.publicAllegiance,
-          links: formValues.links ?? [],
-        },
+        body,
+        variantName: isFullEditor ? 'private' : 'regular',
       });
 
       await this.#handleResponse(response, gameSlug, formValues.photoFile, setters);
@@ -154,9 +176,11 @@ export default class GameNpcNewController extends BasePageController {
   }
 
   #redirectIfNotAllowed(permissions, gameSlug) {
-    if (!permissions.can_edit) {
+    if (!permissions.can_edit && !permissions.can_create_npc) {
       this.#redirectToNpcs(gameSlug);
+      return;
     }
+    this.setIsFullEditor(Boolean(permissions.can_edit));
   }
 
   #redirectToNpcs(gameSlug) {

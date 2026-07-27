@@ -13,7 +13,7 @@ describe('GameNpcNewHelper', function() {
     onOpenUploadModal: jasmine.createSpy('onOpenUploadModal'),
     onOpenMoneyModal: jasmine.createSpy('onOpenMoneyModal'),
     onHiddenChange: jasmine.createSpy('onHiddenChange'),
-    onAllegianceChange: jasmine.createSpy('onAllegianceChange'),
+    onPrivateAllegianceChange: jasmine.createSpy('onPrivateAllegianceChange'),
     onPublicAllegianceChange: jasmine.createSpy('onPublicAllegianceChange'),
     onRetryPhotoUpload: jasmine.createSpy('onRetryPhotoUpload'),
     onSkipPhotoUpload: jasmine.createSpy('onSkipPhotoUpload'),
@@ -28,8 +28,9 @@ describe('GameNpcNewHelper', function() {
     hidden: false,
     money: '42',
     gameType: 'dnd',
-    allegiance: 'neutral',
+    privateAllegiance: 'neutral',
     publicAllegiance: 'neutral',
+    isFullEditor: true,
     status: 'idle',
     fieldErrors: {},
     profile_photo_path: null,
@@ -114,7 +115,9 @@ describe('GameNpcNewHelper', function() {
 
     it('renders the allegiance and public allegiance selects with the current values', function() {
       const html = renderToStaticMarkup(
-        GameNpcNewHelper.render(buildState({ allegiance: 'ally', publicAllegiance: 'enemy' }), buildHandlers()),
+        GameNpcNewHelper.render(
+          buildState({ privateAllegiance: 'ally', publicAllegiance: 'enemy' }), buildHandlers(),
+        ),
       );
       const allegianceSelectStart = html.indexOf('id="game-npc-new-allegiance"');
       const publicAllegianceSelectStart = html.indexOf('id="game-npc-new-public-allegiance"');
@@ -255,6 +258,31 @@ describe('GameNpcNewHelper', function() {
       const html = renderToStaticMarkup(GameNpcNewHelper.render(buildState(), buildHandlers()));
 
       expect(html).toContain('type="submit"');
+    });
+
+    describe('when isFullEditor is false (reduced-access player/staff creator, issue #868)', function() {
+      it('hides the hidden switch, private description, money and private-allegiance fields', function() {
+        const html = renderToStaticMarkup(
+          GameNpcNewHelper.render(buildState({ isFullEditor: false }), buildHandlers()),
+        );
+
+        expect(html).not.toContain('id="game-npc-new-hidden"');
+        expect(html).not.toContain('id="game-npc-new-private-description"');
+        expect(html).not.toContain('id="game-npc-new-money"');
+        expect(html).not.toContain('Edit money');
+        expect(html).not.toContain('id="game-npc-new-allegiance"');
+      });
+
+      it('still renders the name, role, description, public-allegiance and links fields', function() {
+        const html = renderToStaticMarkup(
+          GameNpcNewHelper.render(buildState({ isFullEditor: false }), buildHandlers()),
+        );
+
+        expect(html).toContain('id="game-npc-new-name"');
+        expect(html).toContain('id="game-npc-new-role"');
+        expect(html).toContain('id="game-npc-new-description"');
+        expect(html).toContain('id="game-npc-new-public-allegiance"');
+      });
     });
   });
 });

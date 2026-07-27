@@ -15,12 +15,15 @@ export default class GameNpcNewHelper {
    *   own `photoPreviewUrl` state so it lines up with the edit page's field
    *   name) until the NPC is created and the photo is actually uploaded.
    *   Before a photo is picked, the avatar shows its default static
-   *   placeholder image. `isFullEditor` is always `true` and `treasureValue`
-   *   always `0`, since creation is always performed by a full editor of a
-   *   not-yet-existing character.
+   *   placeholder image. `treasureValue` is always `0`, since a not-yet-existing character has no
+   *   treasures. `isFullEditor` reflects whether the current viewer is a full (dm/admin/superuser)
+   *   creator or a reduced-field player/staff creator (issue #868) — same meaning the NPC edit
+   *   page's own `isFullEditor` already carries — so the shared "new"-mode slots
+   *   (`CharacterHiddenSlot`, `CharacterAllegianceFieldsSlot`, `CharacterDmNotesSlot`,
+   *   `CharacterMoneySlot`) hide their private/full-only fields for reduced-access creators.
    * @param {{name: string, role: string, description: string, privateDescription: string,
    *   links: object[], hidden: boolean, money: string, gameType: string, privateAllegiance: string,
-   *   publicAllegiance: string, status: string, fieldErrors: object,
+   *   publicAllegiance: string, isFullEditor: boolean, status: string, fieldErrors: object,
    *   profile_photo_path: string|null}} formState - Form state.
    * @param {{onSubmit: Function, onNameChange: Function, onRoleChange: Function,
    *   onDescriptionChange: Function, onPrivateDescriptionChange: Function,
@@ -36,7 +39,7 @@ export default class GameNpcNewHelper {
         type="npc"
         mode="new"
         context={{
-          isFullEditor: true, treasureValue: 0, ...formState, handlers,
+          treasureValue: 0, ...formState, handlers,
         }}
       />
     );

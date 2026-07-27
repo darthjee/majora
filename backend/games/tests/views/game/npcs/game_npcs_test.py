@@ -258,7 +258,7 @@ class TestGameNpcsCreate(TokenAuthRequestMixin):
     """Tests for the POST /games/<slug>/npcs.json endpoint."""
 
     def setup_method(self):
-        """Set up a game, a DM, a superuser, and a regular user."""
+        """Set up a game, a DM, a superuser, a staff user, a player, and a regular user."""
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.player = PlayerFactory(name='Alice')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
@@ -266,6 +266,15 @@ class TestGameNpcsCreate(TokenAuthRequestMixin):
         self.dm_token = Token.objects.create(user=self.dm_user)
         self.superuser = SuperUserFactory(username='admin', password='secret-password')
         self.superuser_token = Token.objects.create(user=self.superuser)
+        self.staff_user = UserFactory(username='staff_user', password='secret-password')
+        self.staff_user.is_staff = True
+        self.staff_user.save()
+        self.staff_token = Token.objects.create(user=self.staff_user)
+        self.game_player_user = UserFactory(
+            username='game_player_user', password='secret-password',
+        )
+        PlayerFactory(name='Bob', game=self.game, user=self.game_player_user)
+        self.game_player_token = Token.objects.create(user=self.game_player_user)
         self.regular_user = UserFactory(username='player', password='secret-password')
         self.regular_token = Token.objects.create(user=self.regular_user)
 
@@ -282,6 +291,16 @@ class TestGameNpcsCreate(TokenAuthRequestMixin):
     def test_superuser_can_create_npc(self, client):
         """Test that a superuser can create an NPC and receives 201."""
         response = self._post(client, {'name': 'Villain'}, token=self.superuser_token)
+        assert response.status_code == 201
+
+    def test_staff_can_create_npc(self, client):
+        """Test that a global Staff account can create an NPC and receives 201."""
+        response = self._post(client, {'name': 'Villain'}, token=self.staff_token)
+        assert response.status_code == 201
+
+    def test_any_player_of_game_can_create_npc(self, client):
+        """Test that any player of the game (not just the DM) can create an NPC."""
+        response = self._post(client, {'name': 'Villain'}, token=self.game_player_token)
         assert response.status_code == 201
 
     def test_created_character_is_npc_linked_to_game(self, client):
@@ -309,29 +328,23 @@ class TestGameNpcsCreate(TokenAuthRequestMixin):
         assert response['X-Skip-Cache'] == 'true'
 
     def test_optional_fields_are_persisted_when_provided(self, client):
-        """Test that optional fields are persisted when provided in the request."""
+        """Test that the curated optional fields are persisted when provided in the request."""
         self._post(
             client,
             {
                 'name': 'Villain',
                 'role': 'Antagonist',
                 'public_description': 'A shady figure',
-                'private_description': 'Secretly a good person',
-                'hidden': True,
-                'money': 42,
-                'private_allegiance': 'ally',
                 'public_allegiance': 'enemy',
+                'public_slain': True,
             },
             token=self.dm_token,
         )
         character = Character.objects.get(name='Villain')
         assert character.role == 'Antagonist'
         assert character.public_description == 'A shady figure'
-        assert character.private_description == 'Secretly a good person'
-        assert character.hidden is True
-        assert character.money == 42
-        assert character.private_allegiance == 'ally'
         assert character.public_allegiance == 'enemy'
+        assert character.public_slain is True
 
     def test_defaults_apply_when_optional_fields_omitted(self, client):
         """Test that optional fields fall back to model defaults when omitted."""
@@ -341,6 +354,26 @@ class TestGameNpcsCreate(TokenAuthRequestMixin):
         assert character.private_allegiance == 'neutral'
         assert character.public_allegiance == 'neutral'
 
+    def test_hidden_and_private_fields_in_payload_are_silently_ignored(self, client):
+        """Test that a player-submitted hidden/private/money key never reaches the NPC."""
+        response = self._post(
+            client,
+            {
+                'name': 'Villain',
+                'hidden': True,
+                'private_description': 'Secretly a good person',
+                'private_allegiance': 'ally',
+                'money': 42,
+            },
+            token=self.game_player_token,
+        )
+        assert response.status_code == 201
+        character = Character.objects.get(name='Villain')
+        assert character.hidden is False
+        assert character.private_description == ''
+        assert character.private_allegiance == 'neutral'
+        assert character.money == 0
+
     def test_unauthenticated_post_returns_401(self, client):
         """Test that a POST without a token returns 401."""
         response = self._post(client, {'name': 'Villain'})
@@ -348,8 +381,8 @@ class TestGameNpcsCreate(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert 'detail' in data['errors']
 
-    def test_non_game_master_post_returns_403(self, client):
-        """Test that a POST from a non-DM, non-superuser returns 403."""
+    def test_unrelated_authenticated_user_post_returns_403(self, client):
+        """Test that a POST from a user unrelated to the game returns 403."""
         response = self._post(client, {'name': 'Villain'}, token=self.regular_token)
         assert response.status_code == 403
         data = json.loads(response.content)

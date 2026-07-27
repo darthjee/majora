@@ -1,0 +1,37 @@
+"""View for creating an NPC with the full (private-field-included) field set — DM/admin only."""
+
+from django.shortcuts import get_object_or_404
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+
+from accounts.authentication import CookieTokenAuthentication
+
+from ....models import Game
+from ....permissions import GameEditPermission
+from ....serializers import CharacterCreateSerializer, CharacterDetailSerializer
+from ...common import save_or_error, validated_or_error
+
+
+@api_view(['POST'])
+@authentication_classes([CookieTokenAuthentication])
+@permission_classes([AllowAny])
+def game_npcs_full(request, game_slug):
+    """Create a new NPC with the full field set for a game — DM/admin/superuser only."""
+    game = get_object_or_404(Game, game_slug=game_slug)
+    error_response = GameEditPermission.check(request, game)
+    if error_response:
+        return error_response
+
+    serializer = CharacterCreateSerializer(data=request.data)
+    error_response = validated_or_error(serializer)
+    if error_response:
+        return error_response
+
+    character, error_response = save_or_error(serializer, game=game, npc=True)
+    if error_response:
+        return error_response
+    detail = CharacterDetailSerializer(character, context={'request': request})
+    response = Response(detail.data, status=201)
+    response['X-Skip-Cache'] = 'true'
+    return response
