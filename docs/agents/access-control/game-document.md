@@ -134,13 +134,42 @@ left for a follow-up).
 
 | Endpoint | Method | Who can call | Request | Response |
 |----------|--------|-------------|---------|----------|
-| `/games/<slug>/documents/<document_id>/file_upload.json` | POST | **IsAuthenticated** + `GameDocumentFileUploadPermission` | `{ filename: string }` (`.pdf` only) | `201` `{upload_id, token, upload_type: "file", document_id}` |
+| `/games/<slug>/documents/<document_id>/file_upload.json` | POST | **IsAuthenticated** + `GameDocumentFileUploadPermission` | `{ filename: string }` (`.pdf` only) | `201` `{upload_id, token, upload_type: "file", id, document_id}` |
 
 `GameDocumentFileUploadPermission` (`backend/games/permissions.py`) is identical to
 `GameDocumentPhotoUploadPermission` above: `user.is_staff or game.has_player(user) or
 game.can_be_edited_by(user)`. Unknown `game_slug` or `document_id` (or a `document_id` that does
 not belong to `game_slug`) → 404. Uploaded files are stored under
 `files/games/<slug>/documents/<document_id>/...` (parallel to the `photos/...` root used by
-photo uploads). See [Upload](upload.md#document-file-upload-init-endpoint) for the upload-init
+photo uploads). The response's `id` field (issue #878) is the newly created `GameDocumentFile`'s
+own id — see [Upload](upload.md#document-file-upload-init-endpoint) for the upload-init
 endpoint's full request/response shape, the breaking `upload_type`-scoped submit/finalize route
 change this introduced, and the proxy-side PDF validation strategy.
+
+## Document file photo upload endpoint
+
+A `GameDocumentFile` can itself carry at most one photo (`GameDocumentFile.photo`, `SET_NULL`,
+`related_name='+'`) — a `GameDocumentFilePhoto` row (issue #874 added the model/FK; issue #878
+added the upload flow below to actually populate it). Unlike a document's own multi-photo
+collection above, this mirrors `GameItem`'s/`Treasure`'s single-always-replace photo model: there
+is no gallery, and re-uploading replaces the existing photo rather than adding a new one.
+
+| Endpoint | Method | Who can call | Request | Response |
+|----------|--------|-------------|---------|----------|
+| `/games/<slug>/documents/<document_id>/files/<file_id>/photo_upload.json` | POST | **IsAuthenticated** + `GameDocumentFilePhotoUploadPermission` | `{ filename: string }` (image extensions only — `.jpg`/`.jpeg`/`.png`/`.webp`/`.gif`) | `201` `{upload_id, token, upload_type: "image", id, file_id}` |
+
+`GameDocumentFilePhotoUploadPermission` (`backend/games/permissions.py`) is identical to
+`GameDocumentFileUploadPermission` above: `user.is_staff or game.has_player(user) or
+game.can_be_edited_by(user)` (dm, admin, player, or staff — matching the issue's stated role
+set). Unknown `game_slug`, `document_id` (not belonging to `game_slug`), or `file_id` (not
+belonging to `document_id`) → 404. Uses a fixed, deterministic storage path
+(`photos/games/<slug>/documents/<document_id>/files/<file_id>/photo.<ext>`, no random UUID)
+since a file has at most one photo: if the file already has a photo, the existing
+`GameDocumentFilePhoto` row is reused (`path` updated, `ready` reset to `False`); otherwise a new
+row is created and assigned to `file.photo` immediately (not deferred to finalisation, unlike
+`GamePhoto`/`CharacterPhoto`/`GameDocumentPhoto`'s "if unset" pattern). The response's `id` field
+is the `GameDocumentFilePhoto`'s own id (distinct from `file_id`, the target file's id). Uploaded
+photos are exposed via `photo_path` on `GameDocumentFileSerializer`
+(`GET /games/<slug>/documents/<document_id>/files.json` and `.../files/all.json`) once
+`ready=True`. See [Upload](upload.md#document-file-photo-upload-init-endpoint) for the
+upload-init endpoint's full contract and finalisation behavior.
