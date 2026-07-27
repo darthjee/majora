@@ -212,6 +212,34 @@ class TestGameDocumentFilePhotoUploadView(TokenAuthRequestMixin):
         assert self.file.photo.path == expected_path
         assert self.file.photo.ready is False
 
+    def test_full_upload_lifecycle_finalizes_without_error(self, client):
+        """Test that init followed by finalize (uploading, then uploaded) succeeds end-to-end."""
+        init_response = self._post(client, {'filename': 'photo.png'}, token=self.dm_token)
+        assert init_response.status_code == 201
+        init_data = json.loads(init_response.content)
+        upload = Upload.objects.get(pk=init_data['upload_id'])
+
+        uploading_response = client.patch(
+            f'/uploads/{init_data["upload_type"]}/{upload.id}.json',
+            data=json.dumps({'status': 'uploading'}),
+            content_type='application/json',
+            HTTP_AUTHORIZATION=f'Token {self.dm_token.key}',
+            HTTP_X_UPLOAD_TOKEN=init_data['token'],
+        )
+        assert uploading_response.status_code == 200
+
+        uploaded_response = client.patch(
+            f'/uploads/{init_data["upload_type"]}/{upload.id}.json',
+            data=json.dumps({'status': 'uploaded'}),
+            content_type='application/json',
+            HTTP_AUTHORIZATION=f'Token {self.dm_token.key}',
+            HTTP_X_UPLOAD_TOKEN=init_data['token'],
+        )
+        assert uploaded_response.status_code == 200
+
+        self.file.refresh_from_db()
+        assert self.file.photo.ready is True
+
     def test_reupload_updates_game_document_file_photo_path(self, client):
         """Test that re-uploading updates the reused GameDocumentFilePhoto's extension."""
         self._attach_existing_photo()

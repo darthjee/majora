@@ -12,6 +12,7 @@ from ..models import (
     CharacterItemPhoto,
     CharacterPhoto,
     GameDocumentFile,
+    GameDocumentFilePhoto,
     GameDocumentPhoto,
     GameItemPhoto,
     TreasurePhoto,
@@ -20,6 +21,7 @@ from ..models import (
 from ..permissions import (
     CharacterItemPhotoUploadPermission,
     CharacterPhotoUploadPermission,
+    GameDocumentFilePhotoUploadPermission,
     GameDocumentFileUploadPermission,
     GameDocumentPhotoUploadPermission,
     GameEditPermission,
@@ -141,6 +143,14 @@ def _set_document_file_if_unset(document_file):
     """
 
 
+def _set_document_file_photo_if_unset(document_file_photo):
+    """No-op ready marker for GameDocumentFilePhoto: already assigned to its file at init time.
+
+    Kept as a distinct function (rather than reusing a shared no-op) to match this module's
+    one-handler-per-entity convention alongside `_set_document_file_if_unset`.
+    """
+
+
 def _set_treasure_photo(treasure_photo):
     """Set the treasure's photo to `treasure_photo`, always replacing any existing one."""
     treasure = treasure_photo.treasure
@@ -194,6 +204,12 @@ def _document_file_permission(request, content_object):
     return GameDocumentFileUploadPermission.check(request, content_object.game_document.game)
 
 
+def _document_file_photo_permission(request, content_object):
+    """Return a permission error Response for a GameDocumentFilePhoto content object, else None."""
+    file = GameDocumentFile.objects.get(photo=content_object)
+    return GameDocumentFilePhotoUploadPermission.check(request, file.game_document.game)
+
+
 def _game_photo_permission(request, content_object):
     """Return a permission error Response for a GamePhoto (default) content object, else None."""
     return GameEditPermission.check(request, content_object.game)
@@ -209,6 +225,7 @@ _PHOTO_HANDLERS = {
     CharacterItemPhoto: (_character_item_photo_permission, _set_character_item_photo),
     GameDocumentPhoto: (_document_photo_permission, _set_document_photo_if_unset),
     GameDocumentFile: (_document_file_permission, _set_document_file_if_unset),
+    GameDocumentFilePhoto: (_document_file_photo_permission, _set_document_file_photo_if_unset),
 }
 _DEFAULT_HANDLERS = (_game_photo_permission, _set_cover_photo_if_unset)
 
