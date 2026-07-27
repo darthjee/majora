@@ -96,12 +96,40 @@ class UploadHandlerTest extends TestCase
 
     /**
      * Creates a temporary upload file with the given content and returns its path.
+     *
+     * Defaults to real, minimal-but-valid JPEG bytes (rather than arbitrary
+     * text) so that tests exercising the happy path also satisfy the
+     * content-based (fileinfo) validation added in UploadHandler, without
+     * every caller having to spell out real bytes explicitly.
      */
-    private function makeTmpFile(string $content = 'fake image data'): string
+    private function makeTmpFile(string $content = self::REAL_JPEG_BYTES): string
     {
         $tmpFile = tempnam(sys_get_temp_dir(), 'test_upload_');
         file_put_contents($tmpFile, $content);
         return $tmpFile;
+    }
+
+    /**
+     * Minimal byte sequence that is a genuine JPEG per its magic header
+     * (SOI + APP0/JFIF marker), so finfo_file() detects it as image/jpeg.
+     */
+    private const REAL_JPEG_BYTES =
+        "\xFF\xD8\xFF\xE0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00";
+
+    /**
+     * A genuine 1x1 transparent PNG, so finfo_file() detects it as
+     * image/png. A bare 8-byte PNG signature isn't enough for libmagic to
+     * recognize the file — it needs a real (even if tiny) IHDR chunk.
+     */
+    private const REAL_PNG_BYTES_BASE64 =
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+
+    /**
+     * @return string Real PNG bytes decoded from REAL_PNG_BYTES_BASE64.
+     */
+    private function realPngBytes(): string
+    {
+        return base64_decode(self::REAL_PNG_BYTES_BASE64);
     }
 
     /**
@@ -253,7 +281,7 @@ class UploadHandlerTest extends TestCase
      */
     public function testOnlyAllowListedHeadersAreForwardedToBackend(): void
     {
-        $tmpFile    = $this->makeTmpFile();
+        $tmpFile    = $this->makeTmpFile($this->realPngBytes());
         $httpClient = $this->createMock(HttpClientInterface::class);
         $handler    = $this->makeHandler($httpClient);
 
@@ -319,7 +347,7 @@ class UploadHandlerTest extends TestCase
      */
     public function testAllowListedHeadersAreMatchedCaseInsensitively(): void
     {
-        $tmpFile    = $this->makeTmpFile();
+        $tmpFile    = $this->makeTmpFile($this->realPngBytes());
         $httpClient = $this->createMock(HttpClientInterface::class);
         $handler    = $this->makeHandler($httpClient);
 
@@ -457,6 +485,79 @@ class UploadHandlerTest extends TestCase
             ],
             json_decode($response->body(), true)
         );
+    }
+
+    /**
+     * A 'file' (PDF) upload whose Content-Type and .pdf extension both claim
+     * to be a PDF, but whose actual on-disk content is plain text/HTML (not
+     * a real PDF), is rejected with 'unsupported_mime_type' based on the
+     * fileinfo content check, and no backend call is made. This guards
+     * against an attacker spoofing Content-Type/filename to smuggle
+     * arbitrary content (e.g. HTML with an embedded <script>) past
+     * validation and have it served back statically via /files.
+     */
+    public function testFileTypeWithMismatchedContentIsRejected(): void
+    {
+        $tmpFile    = $this->makeTmpFile('<html><script>alert(1)</script></html>');
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = $this->makeHandler($httpClient);
+
+        $request = $this->makeRequest(
+            $this->submitPath('file', '42'),
+            ['tmp_name' => $tmpFile, 'type' => 'application/pdf', 'name' => 'document.pdf', 'size' => 10, 'error' => 0]
+        );
+
+        $httpClient->expects($this->never())->method('request');
+
+        $response = $handler->handleRequest($request);
+
+        $this->assertSame(422, $response->httpCode());
+        $this->assertSame(
+            [
+                'error'    => 'Unprocessable Entity',
+                'reason'   => 'unsupported_mime_type',
+                'filename' => 'document.pdf',
+                'mimeType' => 'application/pdf',
+            ],
+            json_decode($response->body(), true)
+        );
+
+        unlink($tmpFile);
+    }
+
+    /**
+     * An 'image' upload whose Content-Type and .jpg extension both claim to
+     * be a JPEG, but whose actual on-disk content is plain text/HTML (not a
+     * real image), is rejected with 'unsupported_mime_type' based on the
+     * fileinfo content check, and no backend call is made.
+     */
+    public function testImageTypeWithMismatchedContentIsRejected(): void
+    {
+        $tmpFile    = $this->makeTmpFile('<html><script>alert(1)</script></html>');
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = $this->makeHandler($httpClient);
+
+        $request = $this->makeRequest(
+            $this->submitPath('image', '42'),
+            ['tmp_name' => $tmpFile, 'type' => 'image/jpeg', 'name' => 'photo.jpg', 'size' => 10, 'error' => 0]
+        );
+
+        $httpClient->expects($this->never())->method('request');
+
+        $response = $handler->handleRequest($request);
+
+        $this->assertSame(422, $response->httpCode());
+        $this->assertSame(
+            [
+                'error'    => 'Unprocessable Entity',
+                'reason'   => 'unsupported_mime_type',
+                'filename' => 'photo.jpg',
+                'mimeType' => 'image/jpeg',
+            ],
+            json_decode($response->body(), true)
+        );
+
+        unlink($tmpFile);
     }
 
     /**

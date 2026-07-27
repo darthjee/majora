@@ -435,6 +435,12 @@ class UploadHandler extends RequestHandler
      * boolean. The MIME type is checked first, so when both checks would
      * fail, 'unsupported_mime_type' takes precedence.
      *
+     * The client-supplied MIME type and extension are trivially spoofable
+     * (an attacker fully controls both the Content-Type of a multipart part
+     * and the filename), so once those allow-list checks pass, the actual
+     * on-disk content is additionally inspected via fileinfo — this is the
+     * only one of the three checks that isn't just trusting client input.
+     *
      * @param array|null $file A single entry from $request->uploadedFiles() (raw
      *                         $_FILES format), or null when no file was sent.
      * @return string|null One of 'missing_file', 'unsupported_mime_type',
@@ -448,6 +454,7 @@ class UploadHandler extends RequestHandler
 
         $mimeType = ($file['type'] ?? '');
         $filename = ($file['name'] ?? '');
+        $tmpName  = ($file['tmp_name'] ?? '');
 
         if (!in_array($mimeType, self::IMAGE_MIME_TYPES, true)) {
             return 'unsupported_mime_type';
@@ -455,6 +462,10 @@ class UploadHandler extends RequestHandler
 
         if (!$this->imageFilenameValidator->isAllowed($filename)) {
             return 'unsupported_extension';
+        }
+
+        if (!in_array($this->detectedMimeType($tmpName), self::IMAGE_MIME_TYPES, true)) {
+            return 'unsupported_mime_type';
         }
 
         return null;
@@ -465,6 +476,10 @@ class UploadHandler extends RequestHandler
      *
      * Mirrors imageRejectionReason(), but validates against the 'file'
      * upload type's MIME/extension allow-list (application/pdf, .pdf only).
+     * On top of the fileinfo-based content check shared with images, PDFs
+     * additionally get their leading bytes checked against the well-known
+     * '%PDF-' magic header, since it's cheap to check and a real PDF is
+     * guaranteed to start with it.
      *
      * @param array|null $file A single entry from $request->uploadedFiles() (raw
      *                         $_FILES format), or null when no file was sent.
@@ -479,6 +494,7 @@ class UploadHandler extends RequestHandler
 
         $mimeType = ($file['type'] ?? '');
         $filename = ($file['name'] ?? '');
+        $tmpName  = ($file['tmp_name'] ?? '');
 
         if (!in_array($mimeType, self::FILE_MIME_TYPES, true)) {
             return 'unsupported_mime_type';
@@ -488,7 +504,58 @@ class UploadHandler extends RequestHandler
             return 'unsupported_extension';
         }
 
+        if (!in_array($this->detectedMimeType($tmpName), self::FILE_MIME_TYPES, true)) {
+            return 'unsupported_mime_type';
+        }
+
+        if (!$this->hasPdfMagicBytes($tmpName)) {
+            return 'unsupported_mime_type';
+        }
+
         return null;
+    }
+
+    /**
+     * Detects the actual MIME type of the file at $tmpName by inspecting its
+     * content (magic bytes) via the fileinfo extension, ignoring whatever
+     * Content-Type the client declared.
+     *
+     * @param string $tmpName Path to the uploaded file's temporary location.
+     * @return string|null The detected MIME type, or null when the file
+     *                      can't be opened/inspected (treated as a rejection
+     *                      by the caller, i.e. fails closed).
+     */
+    private function detectedMimeType(string $tmpName): ?string
+    {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        if ($finfo === false) {
+            return null;
+        }
+
+        $mimeType = finfo_file($finfo, $tmpName);
+        finfo_close($finfo);
+
+        return ($mimeType === false ? null : $mimeType);
+    }
+
+    /**
+     * Checks whether the file at $tmpName starts with the '%PDF-' magic
+     * header that every valid PDF file begins with.
+     *
+     * @param string $tmpName Path to the uploaded file's temporary location.
+     * @return bool True when the file's first 5 bytes are '%PDF-'.
+     */
+    private function hasPdfMagicBytes(string $tmpName): bool
+    {
+        $handle = @fopen($tmpName, 'rb');
+        if ($handle === false) {
+            return false;
+        }
+
+        $header = fread($handle, 5);
+        fclose($handle);
+
+        return $header === '%PDF-';
     }
 
     /**
