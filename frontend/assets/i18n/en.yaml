@@ -171,6 +171,7 @@ character_status_badges:
   public_slain: Known as Slain
   public_alive: Known as Alive
   hidden: Hidden
+  incognito: NPC is incognito
   private_enemy: Enemy
   private_ally: Ally
   private_neutral: Neutral
@@ -227,6 +228,7 @@ npc_edit_page:
   description_label: Description
   private_description_label: DM Notes
   hidden_label: Hidden Character
+  incognito_label: Incognito
   private_allegiance_label: Allegiance
   public_allegiance_label: Public Allegiance
   allegiance_ally: Ally
@@ -656,6 +658,7 @@ game_npc_new_page:
   description_label: Description
   private_description_label: DM Notes
   hidden_label: Hidden Character
+  incognito_label: Incognito
   private_allegiance_label: Allegiance
   public_allegiance_label: Public Allegiance
   allegiance_ally: Ally
