@@ -264,6 +264,54 @@ class TestCharacterDetailSerializer(TestCase):
         data = CharacterDetailSerializer(self.character, context={}).data
         assert data['can_set_profile_photo'] is False
 
+    def test_can_delete_photo_is_false_for_anonymous_user(self):
+        """Test that can_delete_photo is false for an anonymous user."""
+        data = self._serialize(AnonymousUser())
+        assert data['can_delete_photo'] is False
+
+    def test_can_delete_photo_is_true_for_superuser(self):
+        """Test that can_delete_photo is true for a superuser."""
+        superuser = SuperUserFactory(username='admin', password='secret-password')
+        data = self._serialize(superuser)
+        assert data['can_delete_photo'] is True
+
+    def test_can_delete_photo_is_true_for_game_master(self):
+        """Test that can_delete_photo is true for a DM of the character's game."""
+        dm_user = UserFactory(username='dm', password='secret-password')
+        PlayerFactory(game=self.game, user=dm_user, is_dm=True)
+        data = self._serialize(dm_user)
+        assert data['can_delete_photo'] is True
+
+    def test_can_delete_photo_is_true_for_staff_only_user(self):
+        """Test that can_delete_photo is true for a Staff account with no other edit rights."""
+        staff_user = UserFactory(
+            username='staff_user', password='secret-password', is_staff=True,
+        )
+        data = self._serialize(staff_user)
+        assert data['can_delete_photo'] is True
+        assert data['can_edit'] is False
+
+    def test_can_delete_photo_is_false_for_owning_player(self):
+        """Test that can_delete_photo is false for the character's owning player."""
+        user = UserFactory(username='owner', password='secret-password')
+        player = PlayerFactory(name='Owner', user=user)
+        self.character.player = player
+        self.character.save()
+        data = self._serialize(user)
+        assert data['can_delete_photo'] is False
+
+    def test_can_delete_photo_is_false_for_unrelated_player(self):
+        """Test that can_delete_photo is false for an unrelated player of the game."""
+        other_user = UserFactory(username='other', password='secret-password')
+        PlayerFactory(name='Other', user=other_user, game=self.game)
+        data = self._serialize(other_user)
+        assert data['can_delete_photo'] is False
+
+    def test_can_delete_photo_is_false_without_request_context(self):
+        """Test that can_delete_photo is false when no request is present in the context."""
+        data = CharacterDetailSerializer(self.character, context={}).data
+        assert data['can_delete_photo'] is False
+
     def test_serializes_profile_photo_path_as_none_when_unset(self):
         """Test that profile_photo_path is null when the character has no profile photo."""
         data = self._serialize()
