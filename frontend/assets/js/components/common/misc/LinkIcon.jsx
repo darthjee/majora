@@ -1,9 +1,11 @@
 import React from 'react';
 import lootstudioIcon from '../../../../images/links/lootstudio.png';
+import youtubeIcon from '../../../../images/links/youtube.png';
 import Icons from '../../../utils/ui/Icons.js';
 
 export const LINK_TYPE_ICONS = {
   lootstudio: lootstudioIcon,
+  youtube: youtubeIcon,
 };
 
 export const LINK_TYPE_BOOTSTRAP_ICONS = {

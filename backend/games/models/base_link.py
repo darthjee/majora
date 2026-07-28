@@ -8,6 +8,7 @@ class BaseLink(models.Model):
     """Abstract base model for external links shared across games and characters."""
 
     LINK_TYPE_LOOTSTUDIO = 'lootstudio'
+    LINK_TYPE_YOUTUBE = 'youtube'
     LINK_TYPE_DIARY = 'diary'
     LINK_TYPE_MUSIC = 'music'
     LINK_TYPE_STL = 'stl'
@@ -16,6 +17,7 @@ class BaseLink(models.Model):
 
     LINK_TYPE_CHOICES = [
         (LINK_TYPE_LOOTSTUDIO, 'LootStudio'),
+        (LINK_TYPE_YOUTUBE, 'YouTube'),
         (LINK_TYPE_DIARY, 'Diary'),
         (LINK_TYPE_MUSIC, 'Music'),
         (LINK_TYPE_STL, 'STL'),
