@@ -49,6 +49,34 @@ class SecurePhotoStorage
     }
 
     /**
+     * Deletes the file at $relativePath (resolved against the base path),
+     * guarding against path traversal the same way ensureDirectoryFor()
+     * does.
+     *
+     * A missing file is not an error: it silently no-ops instead of
+     * throwing, since it may simply mean a prior delete attempt was
+     * interrupted after removing the file but before the corresponding
+     * database record, and that shouldn't block the caller's DB-side
+     * delete that follows.
+     *
+     * @param string $relativePath Path of the file to delete, relative to
+     *                              the base path.
+     * @return void
+     * @throws InvalidArgumentException When the resolved path would escape
+     *                                   the base path.
+     */
+    public function deleteFile(string $relativePath): void
+    {
+        $absolutePath = $this->basePath . '/' . $relativePath;
+
+        $this->assertWithinBase($absolutePath);
+
+        if (is_file($absolutePath)) {
+            unlink($absolutePath);
+        }
+    }
+
+    /**
      * Verifies that $dir, once `.`/`..` segments are resolved, stays inside
      * $this->basePath.
      *
