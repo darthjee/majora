@@ -35,6 +35,8 @@ from ._item_photo_upload import character_item_photo_upload
 from ._item_update import character_item_update
 from ._items import character_item_detail, character_items
 from ._money import character_money_update
+from ._photo_deletable import character_photo_deletable
+from ._photo_detail import character_photo_detail
 from ._photo_set import character_photo_set
 from ._photo_upload import character_photo_upload
 from ._photos import character_photos
@@ -135,6 +137,30 @@ def build_photo_set_view(npc):
         """Update roles (e.g. profile) on a PC's/NPC's photo."""
         game = get_object_or_404(Game, game_slug=game_slug)
         return character_photo_set(request, game, character_id, photo_id, npc=npc)
+
+    return view
+
+
+def build_photo_detail_view(npc):
+    """Build the PATCH/DELETE photo-detail view for a PC (`npc=False`) or NPC (`npc=True`)."""
+
+    @_build_api_view(['PATCH', 'DELETE'], IsAuthenticated)
+    def view(request, game_slug, character_id, photo_id):
+        """Mark a PC's/NPC's photo not-ready (PATCH), or permanently delete it (DELETE)."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        return character_photo_detail(request, game, character_id, photo_id, npc=npc)
+
+    return view
+
+
+def build_photo_deletable_view(npc):
+    """Build the GET photo-deletable-check view for a PC (`npc=False`) or NPC (`npc=True`)."""
+
+    @_build_api_view(['GET'], IsAuthenticated)
+    def view(request, game_slug, character_id, photo_id):
+        """Return whether a PC's/NPC's photo may currently be deleted, plus its file path."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        return character_photo_deletable(request, game, character_id, photo_id, npc=npc)
 
     return view
 

@@ -104,6 +104,27 @@ class CharacterPhotoUploadPermission(_EditPermission):
         return user.is_staff or is_player_of_game or character.can_be_edited_by(user)
 
 
+class CharacterPhotoDeletePermission(_EditPermission):
+    """Allow only staff, a DM of the character's game, or a superuser to delete a photo.
+
+    Deliberately narrower than CharacterPhotoUploadPermission (issue #721): unlike that
+    class, this one never allows the owning player or any other player of the game — photo
+    deletion is admin/dm/staff only.
+    """
+
+    @classmethod
+    def check(cls, request, character):
+        """Return an error Response if `request.user` may not delete a photo for `character`."""
+        return cls._guarded_check(request, lambda: cls.is_allowed(request.user, character))
+
+    @classmethod
+    def is_allowed(cls, user, character):
+        """Return whether `user` is staff, a DM of the character's game, or a superuser."""
+        if not user or not user.is_authenticated:
+            return False
+        return user.is_staff or character.game.can_be_edited_by(user)
+
+
 class GameItemPhotoUploadPermission(_EditPermission):
     """Broadened item photo-upload action, mirroring CharacterPhotoUploadPermission (#619)."""
 
