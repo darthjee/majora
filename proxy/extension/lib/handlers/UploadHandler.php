@@ -32,10 +32,11 @@ use Tent\Models\Response;
 class UploadHandler extends RequestHandler
 {
     /**
-     * Allow-list of header names forwarded to the backend on both PATCH
-     * calls in updateStatus(). Matching is case-insensitive; any incoming
-     * header not on this list (e.g. X-Trace-Id) is dropped before the
-     * backend request is issued.
+     * Extra header, on top of ForwardedHeaderFilter's base allow-list,
+     * forwarded to the backend on both PATCH calls in updateStatus().
+     * Matching is case-insensitive; any incoming header not covered by the
+     * base list or this one (e.g. X-Trace-Id) is dropped before the backend
+     * request is issued.
      *
      * Accept-Encoding is intentionally excluded: these two PATCH calls are
      * internal to the proxy, and their JSON responses are parsed by
@@ -47,16 +48,7 @@ class UploadHandler extends RequestHandler
      *
      * @var string[]
      */
-    private const ALLOWED_FORWARD_HEADERS = [
-        'Host',
-        'X-Forwarded-Host',
-        'Cookie',
-        'X-Skip-Cache',
-        'Referer',
-        'Accept-Language',
-        'Accept',
-        'Content-Type',
-        'Authorization',
+    private const EXTRA_ALLOWED_FORWARD_HEADERS = [
         'X-Upload-Token',
     ];
 
@@ -311,7 +303,8 @@ class UploadHandler extends RequestHandler
      * @param string $uploadId   The upload id.
      * @param string $status     The new status (e.g. 'uploading', 'uploaded').
      * @param array  $headers    Incoming request headers to forward; filtered
-     *                         down to UploadHandler::ALLOWED_FORWARD_HEADERS
+     *                         down via ForwardedHeaderFilter (base allow-list
+     *                         plus UploadHandler::EXTRA_ALLOWED_FORWARD_HEADERS)
      *                         before Content-Type is overridden to
      *                         application/json, since the backend expects a
      *                         JSON body regardless of how the original
@@ -322,7 +315,7 @@ class UploadHandler extends RequestHandler
      */
     private function updateStatus(string $uploadType, string $uploadId, string $status, array $headers): array
     {
-        $headers = $this->filterHeaders($headers);
+        $headers = ForwardedHeaderFilter::filter($headers, self::EXTRA_ALLOWED_FORWARD_HEADERS);
         $headers['Content-Type'] = 'application/json';
 
         return $this->httpClient->request(
@@ -330,26 +323,6 @@ class UploadHandler extends RequestHandler
             $this->host . '/uploads/' . $uploadType . '/' . $uploadId . '.json',
             $headers,
             json_encode(['status' => $status])
-        );
-    }
-
-    /**
-     * Filters $headers down to the entries whose name matches (case-
-     * insensitively) one of UploadHandler::ALLOWED_FORWARD_HEADERS.
-     *
-     * @param array $headers Associative array of header name => value, as
-     *                        returned by $request->headers().
-     * @return array The filtered associative array, preserving the original
-     *                casing of the keys that pass the filter.
-     */
-    private function filterHeaders(array $headers): array
-    {
-        $allowed = array_map('strtolower', self::ALLOWED_FORWARD_HEADERS);
-
-        return array_filter(
-            $headers,
-            fn (string $name): bool => in_array(strtolower($name), $allowed, true),
-            ARRAY_FILTER_USE_KEY
         );
     }
 
