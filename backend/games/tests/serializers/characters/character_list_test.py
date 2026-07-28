@@ -51,6 +51,22 @@ class TestCharacterListSerializer(TestCase):
         data = CharacterListSerializer(self.character).data
         assert data['profile_photo_path'] == 'photos/games/test-game/characters/1/profile.jpg'
 
+    def test_serializes_profile_photo_path_as_none_when_incognito(self):
+        """Test that profile_photo_path is null when the character is incognito."""
+        photo = CharacterPhoto.objects.create(
+            path='photos/games/test-game/characters/1/profile.jpg', character=self.character
+        )
+        self.character.profile_photo = photo
+        self.character.incognito = True
+        self.character.save()
+        data = CharacterListSerializer(self.character).data
+        assert data['profile_photo_path'] is None
+
+    def test_does_not_include_incognito(self):
+        """Test that the incognito field is not exposed."""
+        data = CharacterListSerializer(self.character).data
+        assert 'incognito' not in data
+
     def test_serializes_public_slain_as_false_by_default(self):
         """Test that public_slain defaults to False."""
         data = CharacterListSerializer(self.character).data

@@ -11,6 +11,10 @@ class CharacterFullSerializer(CharacterDetailSerializer):
     private_allegiance = serializers.CharField(read_only=True)
     private_slain = serializers.BooleanField(read_only=True)
     hidden = serializers.BooleanField(read_only=True)
+    incognito = serializers.BooleanField(read_only=True)
+    profile_photo_path = serializers.CharField(
+        source='profile_photo.path', default=None, read_only=True
+    )
 
     class Meta(CharacterDetailSerializer.Meta):
         """Metadata for the CharacterFullSerializer."""
@@ -20,4 +24,5 @@ class CharacterFullSerializer(CharacterDetailSerializer):
             'private_allegiance',
             'private_slain',
             'hidden',
+            'incognito',
         ]

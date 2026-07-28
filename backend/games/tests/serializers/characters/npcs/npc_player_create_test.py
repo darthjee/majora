@@ -94,6 +94,17 @@ class TestNpcPlayerCreateSerializer(TestCase):
         character = serializer.save(game=self.game, npc=True)
         assert character.hidden is False
 
+    def test_incognito_is_not_a_declared_field(self):
+        """Test that `incognito` is not declared on the serializer at all."""
+        assert 'incognito' not in NpcPlayerCreateSerializer().fields
+
+    def test_incognito_in_payload_has_no_effect(self):
+        """Test that an `incognito` key in the payload is silently ignored, with no effect."""
+        serializer = NpcPlayerCreateSerializer(data={'name': 'Villain', 'incognito': True})
+        assert serializer.is_valid()
+        character = serializer.save(game=self.game, npc=True)
+        assert character.incognito is False
+
     def test_private_description_is_not_a_declared_field(self):
         """Test that `private_description` is not declared on the serializer at all."""
         assert 'private_description' not in NpcPlayerCreateSerializer().fields

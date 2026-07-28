@@ -79,6 +79,7 @@ class TestGameNpcsFullCreate(TokenAuthRequestMixin):
                 'public_description': 'A shady figure',
                 'private_description': 'Secretly a good person',
                 'hidden': True,
+                'incognito': True,
                 'money': 42,
                 'private_allegiance': 'ally',
                 'public_allegiance': 'enemy',
@@ -90,6 +91,7 @@ class TestGameNpcsFullCreate(TokenAuthRequestMixin):
         assert character.public_description == 'A shady figure'
         assert character.private_description == 'Secretly a good person'
         assert character.hidden is True
+        assert character.incognito is True
         assert character.money == 42
         assert character.private_allegiance == 'ally'
         assert character.public_allegiance == 'enemy'
@@ -99,6 +101,7 @@ class TestGameNpcsFullCreate(TokenAuthRequestMixin):
         self._post(client, {'name': 'Villain'}, token=self.dm_token)
         character = Character.objects.get(name='Villain')
         assert character.hidden is False
+        assert character.incognito is False
         assert character.private_allegiance == 'neutral'
         assert character.public_allegiance == 'neutral'
 

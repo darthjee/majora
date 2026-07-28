@@ -5,7 +5,7 @@ import json
 import pytest
 from rest_framework.authtoken.models import Token
 
-from games.models import Character, CharacterTreasure
+from games.models import Character, CharacterPhoto, CharacterTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
@@ -112,6 +112,37 @@ class TestGameNpcsView:
         data = json.loads(response.content)
         assert data[0]['treasure_value'] == 200
 
+    def test_does_not_include_incognito(self, client):
+        """Test that the incognito field is never exposed on the public listing."""
+        CharacterFactory(name='Villain', game=self.game, npc=True, incognito=True)
+        response = client.get(self._url())
+        data = json.loads(response.content)
+        assert 'incognito' not in data[0]
+
+    def test_profile_photo_path_is_null_when_incognito(self, client):
+        """Test that profile_photo_path is null for an incognito NPC, even with a photo set."""
+        npc = CharacterFactory(name='Villain', game=self.game, npc=True, incognito=True)
+        photo = CharacterPhoto.objects.create(
+            path='photos/games/test-game/characters/1/profile.jpg', character=npc
+        )
+        npc.profile_photo = photo
+        npc.save()
+        response = client.get(self._url())
+        data = json.loads(response.content)
+        assert data[0]['profile_photo_path'] is None
+
+    def test_profile_photo_path_is_set_when_not_incognito(self, client):
+        """Test that profile_photo_path returns the real path for a non-incognito NPC."""
+        npc = CharacterFactory(name='Villain', game=self.game, npc=True, incognito=False)
+        photo = CharacterPhoto.objects.create(
+            path='photos/games/test-game/characters/1/profile.jpg', character=npc
+        )
+        npc.profile_photo = photo
+        npc.save()
+        response = client.get(self._url())
+        data = json.loads(response.content)
+        assert data[0]['profile_photo_path'] == 'photos/games/test-game/characters/1/profile.jpg'
+
 
 @pytest.mark.django_db
 class TestGameNpcsHiddenFilter:
@@ -145,6 +176,18 @@ class TestGameNpcsHiddenFilter:
         CharacterFactory(name='Hidden NPC', game=self.game, npc=True, hidden=True)
         response = client.get('/games/test-game/npcs.json')
         assert response['total'] == '1'
+
+    def test_hidden_and_incognito_npc_is_excluded_same_as_hidden_alone(self, client):
+        """Test that hidden=True, incognito=True behaves exactly like hidden=True alone."""
+        CharacterFactory(name='Visible NPC', game=self.game, npc=True, hidden=False)
+        CharacterFactory(
+            name='Hidden Incognito NPC', game=self.game, npc=True, hidden=True, incognito=True,
+        )
+        response = client.get('/games/test-game/npcs.json')
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert len(data) == 1
+        assert data[0]['name'] == 'Visible NPC'
 
 
 @pytest.mark.django_db
@@ -361,6 +404,7 @@ class TestGameNpcsCreate(TokenAuthRequestMixin):
             {
                 'name': 'Villain',
                 'hidden': True,
+                'incognito': True,
                 'private_description': 'Secretly a good person',
                 'private_allegiance': 'ally',
                 'money': 42,
@@ -370,6 +414,7 @@ class TestGameNpcsCreate(TokenAuthRequestMixin):
         assert response.status_code == 201
         character = Character.objects.get(name='Villain')
         assert character.hidden is False
+        assert character.incognito is False
         assert character.private_description == ''
         assert character.private_allegiance == 'neutral'
         assert character.money == 0
