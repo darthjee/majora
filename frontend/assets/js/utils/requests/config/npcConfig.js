@@ -27,6 +27,12 @@
  *   `single`'s shape. `CharacterEditPermission`-gated (character-level `can_edit`), so
  *   `regular`/`private` are the same object too.
  *
+ *   `PATCH.photoDelete`/`DELETE.photoDelete` (issue #721, mark-then-delete photo removal,
+ *   `.../photos/:photo_id.json`) also need a `photo_id` param, kept under its own quantity-type
+ *   key (`'photoDelete'`) for the same reason as `'photo'` above. Gated by `can_delete_photo` — a
+ *   narrower, DM/admin/staff-only permission than `photo`'s `can_edit` — so `regular`/`private`
+ *   point at the same object too; the actual check is enforced server-side.
+ *
  *   `POST.collection` (NPC creation) mirrors `PATCH.single`'s `regular`/`private` shape: `regular`
  *   → `.../npcs.json`, gated by the new `can_create_npc` permission (issue #868's
  *   `NpcPlayerCreatePermission` — dm/admin/superuser/staff/any player of the game) and accepting
@@ -45,6 +51,10 @@ const photoUploadInit = {
 const photoSet = {
   path: ({ gameSlug, id, photoId }) => `/games/${gameSlug}/npcs/${id}/photos/${photoId}/set.json`,
   permission: 'can_edit',
+};
+const photoDelete = {
+  path: ({ gameSlug, id, photoId }) => `/games/${gameSlug}/npcs/${id}/photos/${photoId}.json`,
+  permission: 'can_delete_photo',
 };
 const createRegular = { path: ({ gameSlug }) => `/games/${gameSlug}/npcs.json`, permission: 'can_create_npc' };
 const createPrivate = {
@@ -65,6 +75,7 @@ export default {
   PATCH: {
     single: { regular: patchRegular, private: patchPrivate },
     photo: { regular: photoSet, private: photoSet },
+    photoDelete: { regular: photoDelete, private: photoDelete },
   },
   PUT: {
     single: { regular: money, private: money },
@@ -72,5 +83,8 @@ export default {
   POST: {
     single: { regular: photoUploadInit, private: photoUploadInit },
     collection: { regular: createRegular, private: createPrivate },
+  },
+  DELETE: {
+    photoDelete: { regular: photoDelete, private: photoDelete },
   },
 };

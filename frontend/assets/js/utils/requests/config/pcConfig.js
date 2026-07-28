@@ -29,6 +29,12 @@
  *   `single`'s shape. `CharacterEditPermission`-gated (character-level `can_edit`), so
  *   `regular`/`private` are the same object too — a caller with `can_edit` false gets a 403 from
  *   the backend regardless of which URL variant the frontend happened to pick.
+ *
+ *   `PATCH.photoDelete`/`DELETE.photoDelete` (issue #721, mark-then-delete photo removal,
+ *   `.../photos/:photo_id.json`) also need a `photo_id` param, kept under its own quantity-type
+ *   key (`'photoDelete'`) for the same reason as `'photo'` above. Gated by `can_delete_photo` — a
+ *   narrower, DM/admin/staff-only permission than `photo`'s `can_edit` — so `regular`/`private`
+ *   point at the same object too; the actual check is enforced server-side.
  */
 const collection = { path: ({ gameSlug }) => `/games/${gameSlug}/pcs.json`, permission: null };
 
@@ -44,6 +50,10 @@ const photoSet = {
   path: ({ gameSlug, id, photoId }) => `/games/${gameSlug}/pcs/${id}/photos/${photoId}/set.json`,
   permission: 'can_edit',
 };
+const photoDelete = {
+  path: ({ gameSlug, id, photoId }) => `/games/${gameSlug}/pcs/${id}/photos/${photoId}.json`,
+  permission: 'can_delete_photo',
+};
 
 export default {
   GET: {
@@ -56,11 +66,15 @@ export default {
   PATCH: {
     single: { regular: patchRegular, private: patchPrivate },
     photo: { regular: photoSet, private: photoSet },
+    photoDelete: { regular: photoDelete, private: photoDelete },
   },
   PUT: {
     single: { regular: money, private: money },
   },
   POST: {
     single: { regular: photoUploadInit, private: photoUploadInit },
+  },
+  DELETE: {
+    photoDelete: { regular: photoDelete, private: photoDelete },
   },
 };

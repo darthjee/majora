@@ -28,9 +28,15 @@ export default class PhotoCardHelper {
    *   profile photo.
    * @param {Function} [onSetProfilePhoto] - Handler invoked with the photo id when the
    *   "mark as profile" action bar button is clicked.
+   * @param {boolean} [canDelete] - Whether the current user may permanently delete this photo.
+   * @param {Function} [onDelete] - Handler invoked with the photo id when the delete action
+   *   bar button is clicked.
    * @returns {React.ReactElement} Photo card element.
    */
-  static render(photo, alt, onClick, canSetProfilePhoto = false, isProfilePhoto = false, onSetProfilePhoto = Noop.noop) {
+  static render(
+    photo, alt, onClick, canSetProfilePhoto = false, isProfilePhoto = false, onSetProfilePhoto = Noop.noop,
+    canDelete = false, onDelete = Noop.noop,
+  ) {
     const cardClassName = isProfilePhoto ? 'card h-100 border border-success' : 'card h-100';
 
     return (
@@ -49,7 +55,7 @@ export default class PhotoCardHelper {
             canEdit={false}
             onClick={Noop.noop}
             secondaryButtons={PhotoCardHelper.#buildSecondaryButtons(
-              photo, canSetProfilePhoto, isProfilePhoto, onSetProfilePhoto,
+              photo, canSetProfilePhoto, isProfilePhoto, onSetProfilePhoto, canDelete, onDelete,
             )}
           />
         </div>
@@ -58,8 +64,9 @@ export default class PhotoCardHelper {
   }
 
   /**
-   * Build the "mark as profile" secondary button definition, shown only when the
-   * current user may set the profile photo and this photo is not already it.
+   * Build the "mark as profile" and "delete" secondary button definitions, shown only when
+   * the current user may perform each action (and, for "mark as profile", when this photo
+   * is not already the profile photo).
    *
    * @param {object} photo - Photo data object.
    * @param {number} photo.id - Photo ID.
@@ -68,19 +75,32 @@ export default class PhotoCardHelper {
    * @param {boolean} isProfilePhoto - Whether this photo is already the character's
    *   profile photo.
    * @param {Function} onSetProfilePhoto - Handler invoked with the photo id on click.
+   * @param {boolean} canDelete - Whether the current user may permanently delete this photo.
+   * @param {Function} onDelete - Handler invoked with the photo id on click.
    * @returns {{label: string, variant: string, icon: string, onClick: Function}[]} Secondary
-   *   button definitions, empty when the action should not be shown.
+   *   button definitions, empty when neither action should be shown.
    */
-  static #buildSecondaryButtons(photo, canSetProfilePhoto, isProfilePhoto, onSetProfilePhoto) {
-    if (!canSetProfilePhoto || isProfilePhoto) {
-      return [];
+  static #buildSecondaryButtons(photo, canSetProfilePhoto, isProfilePhoto, onSetProfilePhoto, canDelete, onDelete) {
+    const buttons = [];
+
+    if (canSetProfilePhoto && !isProfilePhoto) {
+      buttons.push({
+        label: Translator.t('photo_view_modal.set_profile_photo'),
+        variant: 'primary',
+        icon: Icons.postage,
+        onClick: () => onSetProfilePhoto(photo.id),
+      });
     }
 
-    return [{
-      label: Translator.t('photo_view_modal.set_profile_photo'),
-      variant: 'primary',
-      icon: Icons.postage,
-      onClick: () => onSetProfilePhoto(photo.id),
-    }];
+    if (canDelete) {
+      buttons.push({
+        label: Translator.t('photo_card.delete_photo'),
+        variant: 'danger',
+        icon: Icons.trash,
+        onClick: () => onDelete(photo.id),
+      });
+    }
+
+    return buttons;
   }
 }

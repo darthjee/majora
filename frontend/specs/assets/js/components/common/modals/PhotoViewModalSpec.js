@@ -15,7 +15,7 @@ describe('PhotoViewModal', function() {
     );
 
     expect(PhotoViewModalHelper.render)
-      .toHaveBeenCalledWith(true, photo, 'Demo Game', onClose, false, false, undefined);
+      .toHaveBeenCalledWith(true, photo, 'Demo Game', onClose, false, false, undefined, false, undefined);
   });
 
   it('threads canSetProfilePhoto, isProfilePhoto, and onSetProfilePhoto through to the helper', function() {
@@ -38,6 +38,28 @@ describe('PhotoViewModal', function() {
     );
 
     expect(PhotoViewModalHelper.render)
-      .toHaveBeenCalledWith(true, photo, 'Demo Game', onClose, true, true, onSetProfilePhoto);
+      .toHaveBeenCalledWith(true, photo, 'Demo Game', onClose, true, true, onSetProfilePhoto, false, undefined);
+  });
+
+  it('threads canDelete and onDelete through to the helper', function() {
+    spyOn(PhotoViewModalHelper, 'render').and.returnValue(React.createElement('div', null, 'modal'));
+
+    const photo = { id: 1, path: 'photos/games/demo/photo.jpg' };
+    const onClose = jasmine.createSpy('onClose');
+    const onDelete = jasmine.createSpy('onDelete');
+
+    renderToStaticMarkup(
+      React.createElement(PhotoViewModal, {
+        show: true,
+        photo,
+        alt: 'Demo Game',
+        onClose,
+        canDelete: true,
+        onDelete,
+      })
+    );
+
+    expect(PhotoViewModalHelper.render)
+      .toHaveBeenCalledWith(true, photo, 'Demo Game', onClose, false, false, undefined, true, onDelete);
   });
 });

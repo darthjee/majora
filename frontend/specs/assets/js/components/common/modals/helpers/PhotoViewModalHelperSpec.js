@@ -109,5 +109,42 @@ describe('PhotoViewModalHelper', function() {
 
       expect(onSetProfilePhoto).toHaveBeenCalledWith(photo.id);
     });
+
+    it('renders no delete button when canDelete is omitted', function() {
+      const element = PhotoViewModalHelper.render(true, photo, 'Demo Game', Noop.noop);
+      const button = findElement(element, (child) => child.type === 'button' && child.props.className.includes('btn-danger'));
+
+      expect(button).toBeNull();
+    });
+
+    it('renders the delete button when canDelete is true and a photo is selected', function() {
+      const element = PhotoViewModalHelper.render(
+        true, photo, 'Demo Game', Noop.noop, false, false, Noop.noop, true, Noop.noop,
+      );
+      const button = findElement(element, (child) => child.type === 'button' && child.props.className.includes('btn-danger'));
+
+      expect(button).not.toBeNull();
+    });
+
+    it('renders no delete button when there is no photo, even when canDelete is true', function() {
+      const element = PhotoViewModalHelper.render(
+        true, null, 'Demo Game', Noop.noop, false, false, Noop.noop, true, Noop.noop,
+      );
+      const button = findElement(element, (child) => child.type === 'button' && child.props.className.includes('btn-danger'));
+
+      expect(button).toBeNull();
+    });
+
+    it('invokes onDelete with the photo id when the delete button is clicked', function() {
+      const onDelete = jasmine.createSpy('onDelete');
+      const element = PhotoViewModalHelper.render(
+        true, photo, 'Demo Game', Noop.noop, false, false, Noop.noop, true, onDelete,
+      );
+      const button = findElement(element, (child) => child.type === 'button' && child.props.className.includes('btn-danger'));
+
+      button.props.onClick();
+
+      expect(onDelete).toHaveBeenCalledWith(photo.id);
+    });
   });
 });

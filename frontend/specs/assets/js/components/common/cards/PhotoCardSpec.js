@@ -125,4 +125,46 @@ describe('PhotoCard', function() {
     expect(onSetProfilePhoto).toHaveBeenCalledWith(photo.id);
     expect(onClick).not.toHaveBeenCalled();
   });
+
+  it('does not render the delete action bar button by default', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(PhotoCard, { photo, alt: 'Demo Game', onClick: Noop.noop })
+    );
+    expect(html).not.toContain('bi-trash-fill');
+  });
+
+  it('renders the delete action bar button when canDelete is true', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(PhotoCard, {
+        photo, alt: 'Demo Game', onClick: Noop.noop, canDelete: true, onDelete: Noop.noop,
+      })
+    );
+    const label = Translator.t('photo_card.delete_photo');
+
+    expect(html).toContain('bi-trash-fill');
+    expect(html).toContain(`aria-label="${label}"`);
+    expect(html).toContain(`title="${label}"`);
+  });
+
+  it('hides the delete action bar button when canDelete is false', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(PhotoCard, {
+        photo, alt: 'Demo Game', onClick: Noop.noop, canDelete: false, onDelete: Noop.noop,
+      })
+    );
+    expect(html).not.toContain('bi-trash-fill');
+  });
+
+  it('calls onDelete (not onClick) with the photo id when the delete action bar button is clicked', function() {
+    const onClick = jasmine.createSpy('onClick');
+    const onDelete = jasmine.createSpy('onDelete');
+
+    const element = PhotoCardHelper.render(photo, 'Demo Game', onClick, false, false, Noop.noop, true, onDelete);
+    const actionBar = findElement(element, (child) => child.type === ActionBar);
+
+    actionBar.props.secondaryButtons[0].onClick();
+
+    expect(onDelete).toHaveBeenCalledWith(photo.id);
+    expect(onClick).not.toHaveBeenCalled();
+  });
 });

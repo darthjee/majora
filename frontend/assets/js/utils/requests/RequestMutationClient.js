@@ -4,6 +4,7 @@ const WRITERS = {
   POST: 'postJson',
   PATCH: 'patchJson',
   PUT: 'putJson',
+  DELETE: 'deleteJson',
 };
 
 /**
@@ -15,10 +16,11 @@ const WRITERS = {
  */
 export default class RequestMutationClient extends BaseClient {
   /**
-   * Fire a `POST`/`PATCH`/`PUT` request with a JSON body against an already-resolved path,
-   * reusing {@link BaseClient}'s existing `postJson`/`patchJson`/`putJson` helpers.
+   * Fire a `POST`/`PATCH`/`PUT`/`DELETE` request with a JSON body against an already-resolved
+   * path, reusing {@link BaseClient}'s existing `postJson`/`patchJson`/`putJson`/`deleteJson`
+   * helpers.
    *
-   * @param {string} method - HTTP method (`'POST'`, `'PATCH'`, or `'PUT'`).
+   * @param {string} method - HTTP method (`'POST'`, `'PATCH'`, `'PUT'`, or `'DELETE'`).
    * @param {string} path - Request path, already fully built by a `resourceConfig` path builder.
    * @param {object} body - Fields to serialize as the JSON request body.
    * @param {string|null} token - Authentication token, if any.

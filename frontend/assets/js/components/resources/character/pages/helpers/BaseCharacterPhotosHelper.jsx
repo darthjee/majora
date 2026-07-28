@@ -38,14 +38,18 @@ export default class BaseCharacterPhotosHelper {
    * @param {boolean} canUploadPhoto - Whether the current user can upload new photos.
    * @param {boolean} canSetProfilePhoto - Whether the current user can mark a photo as the
    *   character's profile photo.
+   * @param {boolean} canDeletePhoto - Whether the current user can permanently delete a photo.
    * @param {string} alt - Alt text applied to each photo image.
    * @param {number|null} profilePhotoId - Id of the character's current profile photo,
    *   or null/undefined when none is set.
-   * @param {{onOpenUploadModal: Function, onSelectPhoto: Function, onSetProfilePhoto: Function}} handlers - Event
+   * @param {{onOpenUploadModal: Function, onSelectPhoto: Function, onSetProfilePhoto: Function, onDelete: Function}} handlers - Event
    *   handlers.
    * @returns {React.ReactElement} Photos list with pagination.
    */
-  render(photos, pagination, basePath, backHref, canUploadPhoto, canSetProfilePhoto, alt, profilePhotoId, handlers) {
+  render(
+    photos, pagination, basePath, backHref, canUploadPhoto, canSetProfilePhoto, canDeletePhoto, alt, profilePhotoId,
+    handlers,
+  ) {
     const { i18nNamespace } = this;
 
     return (
@@ -64,6 +68,8 @@ export default class BaseCharacterPhotosHelper {
               canSetProfilePhoto={canSetProfilePhoto}
               isProfilePhoto={photo.id === profilePhotoId}
               onSetProfilePhoto={handlers.onSetProfilePhoto}
+              canDelete={canDeletePhoto}
+              onDelete={handlers.onDelete}
             />
           ))}
         </div>

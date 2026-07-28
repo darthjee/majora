@@ -4,6 +4,7 @@ import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
+import PhotoDeleteSaga from '../../../../common/base/controllers/PhotoDeleteSaga.js';
 
 /**
  * Base controller for character photos index pages (PC and NPC).
@@ -28,6 +29,7 @@ export default class BaseCharacterPhotosController extends BasePageController {
    * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`), used as the URL segment.
    * @param {GenericClient|null} [client] - Client override.
    * @param {CharacterClient|null} [characterClient] - Character client override.
+   * @param {PhotoDeleteSaga|null} [photoDeleteSaga] - Photo delete saga override.
    */
   constructor(
     setters,
@@ -35,6 +37,7 @@ export default class BaseCharacterPhotosController extends BasePageController {
     characterKind,
     client = null,
     characterClient = null,
+    photoDeleteSaga = null,
   ) {
     super();
     const { setPhotos, setPagination, setCharacter, setLoading, setError } = setters;
@@ -47,6 +50,7 @@ export default class BaseCharacterPhotosController extends BasePageController {
     this.characterKind = characterKind;
     this.client = client ?? new GenericClient();
     this.characterClient = characterClient ?? new CharacterClient();
+    this.photoDeleteSaga = photoDeleteSaga ?? new PhotoDeleteSaga();
   }
 
   /**
@@ -98,6 +102,33 @@ export default class BaseCharacterPhotosController extends BasePageController {
       params: { gameSlug, id: characterId, photoId },
       body: { roles: ['profile'] },
     }).then(() => this.#fetchCharacter(gameSlug, characterId, safeSet));
+  }
+
+  /**
+   * Permanently deletes a photo through {@link PhotoDeleteSaga} (mark not-ready, then delete),
+   * then refreshes both the photos list (so the deleted photo drops out and pagination stays
+   * correct) and the character state (so `can_delete_photo`/`profile_photo_id` reflect the
+   * change, mirroring {@link BaseCharacterPhotosController#setProfilePhoto}).
+   *
+   * @param {string} gameSlug - Game slug the character belongs to.
+   * @param {string|number} characterId - Character id.
+   * @param {string|number} photoId - Id of the photo to delete.
+   * @returns {Promise<void>} Resolves once the deletion (and refresh) settle, rejects when the
+   *   deletion itself fails.
+   */
+  deletePhoto(gameSlug, characterId, photoId) {
+    const safeSet = (setter, value) => setter(value);
+    const resource = this.characterKind === 'pcs' ? 'pc' : 'npc';
+
+    return this.photoDeleteSaga.run(resource, gameSlug, characterId, photoId)
+      .then((ok) => {
+        if (!ok) {
+          throw new Error('Unable to delete photo.');
+        }
+
+        this.#fetchPhotos(gameSlug, characterId, safeSet);
+        return this.#fetchCharacter(gameSlug, characterId, safeSet);
+      });
   }
 
   #fetchPhotos(gameSlug, characterId, safeSet) {
