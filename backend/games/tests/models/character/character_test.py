@@ -104,6 +104,11 @@ class TestCharacter(TestCase):
         character = CharacterFactory(name='Gimli', game=self.game)
         assert character.public_slain is False
 
+    def test_incognito_defaults_to_false(self):
+        """Test that incognito defaults to False on new characters."""
+        character = CharacterFactory(name='Gimli', game=self.game)
+        assert character.incognito is False
+
     def test_money_defaults_to_zero(self):
         """Test that money defaults to 0 on new characters."""
         character = CharacterFactory(name='Gimli', game=self.game)

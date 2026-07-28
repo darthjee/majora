@@ -72,6 +72,7 @@ class TestGameNpcFullView(TokenAuthRequestMixin):
         assert data['public_description'] == 'A wandering wizard.'
         assert data['private_description'] == 'The secret guardian of Middle Earth.'
         assert data['hidden'] is False
+        assert data['incognito'] is False
 
     def test_returns_200_with_descriptions_for_dm(self, client):
         """Test that a DM gets full detail including both descriptions."""
@@ -406,4 +407,15 @@ class TestGameNpcFullUpdateView(TokenAuthRequestMixin):
         assert response.status_code == 200
         self.character.refresh_from_db()
         assert self.character.public_slain is True
+        assert self.character.name == 'Gandalf'
+
+    def test_patch_incognito_only_is_persisted_and_leaves_other_fields_untouched(self, client):
+        """Test that PATCH with only {"incognito": true} persists it, leaving others alone."""
+        token = self._editor_token()
+
+        response = self._patch(client, {'incognito': True}, token=token)
+
+        assert response.status_code == 200
+        self.character.refresh_from_db()
+        assert self.character.incognito is True
         assert self.character.name == 'Gandalf'

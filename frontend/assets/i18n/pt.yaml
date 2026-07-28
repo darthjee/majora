@@ -171,6 +171,7 @@ character_status_badges:
   public_slain: Conhecido como Morto
   public_alive: Conhecido como Vivo
   hidden: Oculto
+  incognito: NPC está incógnito
   private_enemy: Inimigo
   private_ally: Aliado
   private_neutral: Neutro
@@ -227,6 +228,7 @@ npc_edit_page:
   description_label: Descrição
   private_description_label: Notas do Mestre
   hidden_label: Personagem Oculto
+  incognito_label: Incógnito
   private_allegiance_label: Aliança
   public_allegiance_label: Aliança Pública
   allegiance_ally: Aliado
@@ -656,6 +658,7 @@ game_npc_new_page:
   description_label: Descrição
   private_description_label: Notas do Mestre
   hidden_label: Personagem Oculto
+  incognito_label: Incógnito
   private_allegiance_label: Aliança
   public_allegiance_label: Aliança Pública
   allegiance_ally: Aliado

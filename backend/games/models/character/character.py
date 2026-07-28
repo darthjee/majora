@@ -36,6 +36,7 @@ class Character(models.Model):
     private_description = models.TextField(blank=True)
     npc = models.BooleanField(default=True)
     hidden = models.BooleanField(default=False)
+    incognito = models.BooleanField(default=False)
     private_slain = models.BooleanField(default=False)
     public_slain = models.BooleanField(default=False)
     private_allegiance = models.CharField(

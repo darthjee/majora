@@ -9,8 +9,9 @@ export default class CharacterEditFieldsBuilder {
    * `public_slain` are always present, on both public and private/full loads alike, so they
    * need no fallback. `private_allegiance` is only ever present on a full (dm/admin) editor's
    * `full.json` load, so a player-only editor's `private_allegiance` field falls back to the
-   * always-present `public_allegiance`. `hidden` is only ever present on a full (dm/admin)
-   * editor's `full.json` load too, so it naturally defaults to `false` for a player-only editor.
+   * always-present `public_allegiance`. `hidden`/`incognito` are only ever present on a full
+   * (dm/admin) editor's `full.json` load too, so they naturally default to `false` for a
+   * player-only editor.
    *
    * @param {object} character - Loaded character.
    * @returns {object} Seed fields for the edit form.
@@ -26,8 +27,9 @@ export default class CharacterEditFieldsBuilder {
         character.private_allegiance, character.public_allegiance, 'neutral',
       ),
       public_allegiance: character.public_allegiance ?? 'neutral',
-      public_slain: character.public_slain ?? false,
-      hidden: character.hidden ?? false,
+      public_slain: CharacterEditFieldsBuilder.#defaultFalse(character.public_slain),
+      hidden: CharacterEditFieldsBuilder.#defaultFalse(character.hidden),
+      incognito: CharacterEditFieldsBuilder.#defaultFalse(character.incognito),
       links: character.links ?? [],
     };
   }
@@ -54,6 +56,7 @@ export default class CharacterEditFieldsBuilder {
       fields.public_allegiance = formValues.publicAllegiance;
       fields.public_slain = formValues.publicSlain;
       fields.hidden = formValues.hidden;
+      fields.incognito = formValues.incognito;
     }
 
     return fields;
@@ -114,5 +117,15 @@ export default class CharacterEditFieldsBuilder {
    */
   static #fallback(value, altValue, defaultValue) {
     return value ?? altValue ?? defaultValue;
+  }
+
+  /**
+   * Default a nullish boolean field to `false`.
+   *
+   * @param {boolean|null|undefined} value - Raw field value.
+   * @returns {boolean} `value` when present, otherwise `false`.
+   */
+  static #defaultFalse(value) {
+    return value ?? false;
   }
 }

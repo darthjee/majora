@@ -29,6 +29,8 @@ export default class CharacterStatusBadges {
    *   (`'enemy'`, `'ally'`, or `'neutral'`), NPC only.
    * @param {boolean} [character.hidden] - Whether the NPC is hidden from players
    *   (DM/admin-only field), NPC only.
+   * @param {boolean} [character.incognito] - Whether the NPC is incognito, i.e. known to
+   *   players but not yet personally encountered (DM/admin-only field), NPC only.
    * @returns {{icon: string, text: string, variant: string|null}[]} Ordered status item definitions.
    */
   static build(character) {
@@ -42,6 +44,7 @@ export default class CharacterStatusBadges {
         CharacterStatusBadges.buildAllegiance(character),
         CharacterStatusBadges.buildPublicAllegiance(character),
         CharacterStatusBadges.buildHidden(character),
+        CharacterStatusBadges.buildIncognito(character),
       );
     }
 
@@ -149,6 +152,26 @@ export default class CharacterStatusBadges {
     return {
       icon: Icons.eyeSlashFill,
       text: Translator.t('character_status_badges.hidden'),
+      variant: null,
+    };
+  }
+
+  /**
+   * Build the Incognito status item, or `null` when `character.incognito` is falsy.
+   *
+   * @param {object} character - Character data object.
+   * @param {boolean} [character.incognito] - Whether the NPC is incognito, i.e. known to
+   *   players but not yet personally encountered (DM/admin-only field).
+   * @returns {{icon: string, text: string, variant: null}|null} The status item, or null.
+   */
+  static buildIncognito(character) {
+    if (!character.incognito) {
+      return null;
+    }
+
+    return {
+      icon: Icons.incognito,
+      text: Translator.t('character_status_badges.incognito'),
       variant: null,
     };
   }

@@ -7,6 +7,7 @@ import CharacterRoleShow, { buildCharacterRoleField } from '../../../../resource
 import CharacterDescriptionShow, { buildCharacterDescriptionField } from '../../../../resources/character/pages/elements/show/CharacterDescriptionSlot.jsx';
 import CharacterDmNotesShow, { buildCharacterDmNotesField } from '../../../../resources/character/pages/elements/show/CharacterDmNotesSlot.jsx';
 import { buildCharacterHiddenField } from '../../../../resources/character/pages/elements/show/CharacterHiddenSlot.jsx';
+import { buildCharacterIncognitoField } from '../../../../resources/character/pages/elements/show/CharacterIncognitoSlot.jsx';
 import { buildCharacterAllegianceFields } from '../../../../resources/character/pages/elements/show/CharacterAllegianceFieldsSlot.jsx';
 import CharacterPublicSlainFieldSlot from '../../../../resources/character/pages/elements/show/CharacterPublicSlainFieldSlot.jsx';
 import { buildCharacterSubmitButton } from '../../../../resources/character/pages/elements/show/CharacterSubmitSlot.jsx';
@@ -24,6 +25,10 @@ const npcNameField = buildCharacterNameField(
 const npcHiddenField = buildCharacterHiddenField({
   edit: { id: 'npc-edit-hidden', label: 'npc_edit_page.hidden_label' },
   new: { id: 'game-npc-new-hidden', label: 'game_npc_new_page.hidden_label' },
+});
+const npcIncognitoField = buildCharacterIncognitoField({
+  edit: { id: 'npc-edit-incognito', label: 'npc_edit_page.incognito_label' },
+  new: { id: 'game-npc-new-incognito', label: 'game_npc_new_page.incognito_label' },
 });
 const npcLinksField = buildCharacterLinksField({
   // The creation page reuses the edit page's "Edit links" translation key (an existing quirk of
@@ -77,6 +82,7 @@ const npcShowType = {
   left: [
     CharacterAvatarSlot,
     { New: npcHiddenField, Edit: npcHiddenField },
+    { New: npcIncognitoField, Edit: npcIncognitoField },
     { Show: CharacterNameShow, New: npcNameField, Edit: npcNameField },
     { Show: CharacterLinksShow, New: npcLinksField, Edit: npcLinksField },
     { Show: CharacterMoneyShow, New: npcMoneyField, Edit: npcMoneyField },

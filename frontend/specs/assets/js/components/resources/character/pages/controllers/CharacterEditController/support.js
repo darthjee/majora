@@ -28,5 +28,6 @@ export const KINDS = [
     publicAllegiance: 'enemy',
     publicSlain: true,
     hidden: true,
+    incognito: true,
   },
 ];

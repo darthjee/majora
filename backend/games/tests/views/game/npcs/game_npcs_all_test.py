@@ -71,6 +71,18 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         assert by_name['Visible NPC'] is False
         assert by_name['Hidden NPC'] is True
 
+    def test_returns_200_with_incognito_field_in_response_body(self):
+        """Test that the response body includes the `incognito` value for each NPC."""
+        self.hidden_npc.incognito = True
+        self.hidden_npc.save()
+        token = Token.objects.create(user=self.dm_user)
+        response = self._get(self.client, token=token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        by_name = {item['name']: item['incognito'] for item in data}
+        assert by_name['Visible NPC'] is False
+        assert by_name['Hidden NPC'] is True
+
     def test_returns_200_for_superuser_with_all_npcs(self):
         """Test that a superuser gets 200 with both visible and hidden NPCs."""
         superuser = SuperUserFactory(username='admin', password='secret-password')

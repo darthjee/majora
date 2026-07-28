@@ -8,7 +8,7 @@ Characters are scoped to a game. Access is symmetric for PCs and NPCs unless not
 |----------|-------------|-----------------|
 | `GET /games/<slug>/pcs.json` | **AllowAny** | `id`, `name`, `game_slug`, `profile_photo_path`, `public_slain`, `public_allegiance`, `treasure_value` |
 | `GET /games/<slug>/npcs.json` | **AllowAny** | Same as above |
-| `GET /games/<slug>/npcs/all.json` | **GameEdit** | Same as `npcs.json` (via `CharacterFullListSerializer`), plus `private_allegiance`, `private_slain`, and `hidden` — see "Allegiance fields", "Slain fields", and "Hidden field" below. Includes hidden NPCs, unlike `npcs.json`. Accepts optional `?hidden=true\|false`, `?public_slain=`, `?private_slain=`, `?public_allegiance=`, `?private_allegiance=` filters (same tolerant convention as `npcs.json`'s filters below). Always sets `X-Skip-Cache: true` |
+| `GET /games/<slug>/npcs/all.json` | **GameEdit** | Same as `npcs.json` (via `CharacterFullListSerializer`), plus `private_allegiance`, `private_slain`, `hidden`, and `incognito` — see "Allegiance fields", "Slain fields", "Hidden field", and "Incognito field" below. Includes hidden NPCs, unlike `npcs.json`. Accepts optional `?hidden=true\|false`, `?public_slain=`, `?private_slain=`, `?public_allegiance=`, `?private_allegiance=` filters (same tolerant convention as `npcs.json`'s filters below; no `?incognito=` filter exists). Always sets `X-Skip-Cache: true` |
 
 `treasure_value` — an `IntegerField` computed as the sum of `total_value` across the
 character's `CharacterTreasure` rows (see [CharacterTreasure](character-treasure.md)), exposed
@@ -57,7 +57,7 @@ the plain detail endpoints above.
 
 | Endpoint | Who can read/write | Fields returned |
 |----------|-------------|-----------------|
-| `GET /games/<slug>/pcs/<id>/full.json` | **CharacterEdit** | All detail fields + `private_description` + `private_allegiance` + `private_slain` + `hidden` |
+| `GET /games/<slug>/pcs/<id>/full.json` | **CharacterEdit** | All detail fields + `private_description` + `private_allegiance` + `private_slain` + `hidden` + `incognito` |
 | `GET /games/<slug>/npcs/<id>/full.json` | **CharacterEdit** | Same as above |
 | `PATCH /games/<slug>/pcs/<id>/full.json` | **CharacterEdit** | Same response shape as the `GET` above |
 | `PATCH /games/<slug>/npcs/<id>/full.json` | **CharacterEdit** | Same as above |
@@ -172,6 +172,41 @@ is visible in a list at all.
 endpoints (see "Detail" above) is a separate, pre-existing mechanism (a 404 response, not a
 filter param) and is unaffected by this query parameter.
 
+## Incognito field
+
+`Character.incognito` is a single `BooleanField` (default `False`), shared by both PCs and NPCs,
+mirroring `hidden`'s shape (issue #893). Unlike `hidden`, it does not gate visibility of the
+character itself — an incognito NPC still appears on `npcs.json`/`npcs/<id>.json` — it only
+nulls out `profile_photo_path` on those public endpoints (see "Photo path fields" in
+[common-rules.md](common-rules.md#photo-path-fields)). If a character is both `hidden` and
+`incognito`, `hidden`'s existing visibility gate applies unconditionally first — `incognito` has
+no observable effect on a hidden character.
+
+**Read exposure**: not returned on the public list/detail endpoints (`pcs.json`, `npcs.json`,
+`pcs/<id>.json`, `npcs/<id>.json`) — those endpoints never expose the `incognito` key itself, only
+its `profile_photo_path`-nulling side effect (see below). Returned read-only on the DM/admin
+endpoints (`npcs/all.json` via `CharacterFullListSerializer`, `pcs/<id>/full.json` and
+`npcs/<id>/full.json` via `CharacterFullSerializer`), same as `hidden`.
+
+**Write access**: writable through `CharacterUpdateSerializer` (**CharacterEdit**-gated, same
+`full.json` routes as "Slain fields"/"Allegiance fields"/"Hidden field" above) and through
+`CharacterCreateSerializer` (**GameEdit**-gated, `POST /games/<slug>/npcs/full.json`). Not
+accepted by the narrower `NpcPlayerCreateSerializer`/`NpcPlayerUpdateSerializer`
+(`POST`/`PATCH /games/<slug>/npcs/<id>.json`) — a regular player can never toggle a character's
+`incognito` state, exactly like `hidden`.
+
+**Public side effect**: `CharacterDetailSerializer`/`CharacterListSerializer`'s
+`profile_photo_path` (see [Photo path fields](common-rules.md#photo-path-fields)) resolves to
+`null` whenever `character.incognito` is `true`, regardless of whether a `profile_photo` is set —
+implemented as a `SerializerMethodField` rather than the plain `CharField(source=...)` those
+endpoints used before this field existed. `CharacterFullSerializer`/`CharacterFullListSerializer`
+(the private/full endpoints) redeclare `profile_photo_path` back to the original plain
+`CharField(source='profile_photo.path', ...)`, so a full editor always sees the real photo path
+regardless of `incognito`.
+
+**Filtering**: no `?incognito=` query parameter exists on any endpoint (unlike `?hidden=` on
+`npcs/all.json`) — this is intentionally out of scope for issue #893.
+
 ## Edit access status
 
 `GET /games/<slug>/pcs/<id>/access.json`, `GET /games/<slug>/npcs/<id>/access.json` —
@@ -234,9 +269,9 @@ for a narrower, player-writable field set, gated by **CharacterRegularEdit** rat
 
 **Write fields** (via `CharacterUpdateSerializer`): in addition to the scalar fields listed
 under "Create" below (`name`, `role`, `public_description`, `private_description`, `hidden`,
-`money`, `private_allegiance`, `public_allegiance`, `private_slain`, `public_slain`, all optional
-here too), a nested `links` array is accepted — see [CharacterLink](character-link.md) below for
-write semantics.
+`incognito`, `money`, `private_allegiance`, `public_allegiance`, `private_slain`, `public_slain`,
+all optional here too), a nested `links` array is accepted — see
+[CharacterLink](character-link.md) below for write semantics.
 
 ### Narrow player-facing NPC PATCH
 
@@ -335,8 +370,8 @@ does.
 There is no equivalent PC creation endpoint.
 
 **Write fields (`npcs/full.json`)**: `name` (required), `role`, `public_description`,
-`private_description`, `hidden`, `money`, `private_allegiance`, `public_allegiance` (all optional
-except `name` — see "Allegiance fields" above), and `links` (optional array — see
+`private_description`, `hidden`, `incognito`, `money`, `private_allegiance`, `public_allegiance`
+(all optional except `name` — see "Allegiance fields" above), and `links` (optional array — see
 [CharacterLink](character-link.md) below). `game` and `npc` are never accepted from the request
 payload — `game` is always assigned server-side from the `<slug>` URL segment, and `npc` is
 always forced to `True`. `player` is not accepted at all — NPCs created this way have no player.
@@ -346,7 +381,7 @@ behavior, relocated).
 **Write fields (`npcs.json`)**: a small, curated, player-safe field set — `name` (required),
 `role`, `public_description`, `public_allegiance`, `public_slain`, and `links` (all optional
 except `name`), validated by `NpcPlayerCreateSerializer`
-(`backend/games/serializers/characters/npcs/npc_player_create.py`). `hidden`,
+(`backend/games/serializers/characters/npcs/npc_player_create.py`). `hidden`, `incognito`,
 `private_description`, `private_allegiance`, and `money` are not declared on this serializer at
 all, so a player-created NPC can never carry them, regardless of what keys the payload sends —
 mirroring `NpcPlayerUpdateSerializer`'s field set exactly (see "Narrow player-facing NPC PATCH"

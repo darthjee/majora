@@ -106,6 +106,13 @@ class TestNpcPlayerUpdateSerializer(TestCase):
         updated = serializer.save()
         assert updated.money == 0
 
+    def test_incognito_is_not_writable(self):
+        """Test that `incognito` is silently ignored, never written to the model."""
+        serializer = NpcPlayerUpdateSerializer(self.npc, data={'incognito': True}, partial=True)
+        assert serializer.is_valid()
+        updated = serializer.save()
+        assert updated.incognito is False
+
     def test_private_description_is_not_writable(self):
         """Test that `private_description` is silently ignored, never written to the model."""
         serializer = NpcPlayerUpdateSerializer(

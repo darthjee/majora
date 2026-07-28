@@ -86,6 +86,19 @@ describe('GameNpcNew', function() {
     );
   });
 
+  it('exposes an onIncognitoChange handler that updates the form state without throwing', function() {
+    let capturedHandlers;
+    spyOn(GameNpcNewHelper, 'render').and.callFake((state, handlers) => {
+      capturedHandlers = handlers;
+      return null;
+    });
+
+    renderToStaticMarkup(React.createElement(GameNpcNew));
+
+    expect(typeof capturedHandlers.onIncognitoChange).toBe('function');
+    expect(() => capturedHandlers.onIncognitoChange({ target: { checked: true } })).not.toThrow();
+  });
+
   it('wires onSkipPhotoUpload to redirect to the NPC page using the game slug and character id', function() {
     let capturedHandlers;
     spyOn(GameNpcNewHelper, 'render').and.callFake((state, handlers) => {

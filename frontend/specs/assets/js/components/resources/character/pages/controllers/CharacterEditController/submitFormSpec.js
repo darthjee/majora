@@ -3,6 +3,7 @@ import { KINDS } from './support.js';
 
 KINDS.forEach(({
   label, Controller, kind, name, role, description, privateAllegiance, publicAllegiance, publicSlain, hidden,
+  incognito,
 }) => {
   const resource = kind === 'npcs' ? 'npc' : 'pc';
 
@@ -60,6 +61,7 @@ KINDS.forEach(({
             publicAllegiance,
             publicSlain,
             hidden,
+            incognito,
             links,
           },
           { setStatus, setFieldErrors },
@@ -85,6 +87,7 @@ KINDS.forEach(({
           expectedFields.public_allegiance = publicAllegiance;
           expectedFields.public_slain = publicSlain;
           expectedFields.hidden = hidden;
+          expectedFields.incognito = incognito;
         }
 
         expect(RequestStore.mutate).toHaveBeenCalledWith({

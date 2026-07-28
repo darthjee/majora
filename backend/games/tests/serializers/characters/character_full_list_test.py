@@ -2,7 +2,7 @@
 
 from django.test import TestCase
 
-from games.models import CharacterTreasure
+from games.models import CharacterPhoto, CharacterTreasure
 from games.serializers import CharacterFullListSerializer
 from games.tests.factories import CharacterFactory, GameFactory, TreasureFactory
 
@@ -61,6 +61,24 @@ class TestCharacterFullListSerializer(TestCase):
         self.character.save()
         data = CharacterFullListSerializer(self.character).data
         assert data['hidden'] is True
+
+    def test_serializes_incognito(self):
+        """Test that incognito is serialized."""
+        self.character.incognito = True
+        self.character.save()
+        data = CharacterFullListSerializer(self.character).data
+        assert data['incognito'] is True
+
+    def test_profile_photo_path_ignores_incognito(self):
+        """Test that profile_photo_path returns the real path even when incognito is True."""
+        photo = CharacterPhoto.objects.create(
+            path='photos/games/test-game/characters/1/profile.jpg', character=self.character
+        )
+        self.character.profile_photo = photo
+        self.character.incognito = True
+        self.character.save()
+        data = CharacterFullListSerializer(self.character).data
+        assert data['profile_photo_path'] == 'photos/games/test-game/characters/1/profile.jpg'
 
     def test_serializes_treasure_value_summed_across_treasures(self):
         """Test that treasure_value sums total_value across the character's treasure rows."""

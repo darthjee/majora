@@ -125,3 +125,10 @@ key) or `null` when unset, returned to anyone on that resource's list/detail end
 and `Character` may hold at most one *current* cover/profile photo but keep every previously
 uploaded photo in their gallery; `Treasure` has at most one photo ever — re-uploading always
 replaces it (see [Upload](upload.md) for how a photo becomes the selected one).
+
+Exception: on the public `Character` endpoints (`pcs.json`/`npcs.json`/`pcs/<id>.json`/
+`npcs/<id>.json`), `profile_photo_path` also resolves to `null` whenever the character's
+`incognito` field is `true`, regardless of whether a `profile_photo` is set — see "Incognito
+field" in [character.md](character.md#incognito-field). The private/full endpoints
+(`pcs/<id>/full.json`/`npcs/<id>/full.json`/`npcs/all.json`) are unaffected and always return the
+real path.

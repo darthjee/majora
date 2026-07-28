@@ -13,6 +13,7 @@ describe('GameNpcNewHelper', function() {
     onOpenUploadModal: jasmine.createSpy('onOpenUploadModal'),
     onOpenMoneyModal: jasmine.createSpy('onOpenMoneyModal'),
     onHiddenChange: jasmine.createSpy('onHiddenChange'),
+    onIncognitoChange: jasmine.createSpy('onIncognitoChange'),
     onPrivateAllegianceChange: jasmine.createSpy('onPrivateAllegianceChange'),
     onPublicAllegianceChange: jasmine.createSpy('onPublicAllegianceChange'),
     onRetryPhotoUpload: jasmine.createSpy('onRetryPhotoUpload'),
@@ -26,6 +27,7 @@ describe('GameNpcNewHelper', function() {
     privateDescription: 'Secretly a coward.',
     links: [],
     hidden: false,
+    incognito: false,
     money: '42',
     gameType: 'dnd',
     privateAllegiance: 'neutral',
@@ -46,6 +48,7 @@ describe('GameNpcNewHelper', function() {
       expect(html).toContain('id="game-npc-new-description"');
       expect(html).toContain('id="game-npc-new-private-description"');
       expect(html).toContain('id="game-npc-new-hidden"');
+      expect(html).toContain('id="game-npc-new-incognito"');
       expect(html).toContain('id="game-npc-new-allegiance"');
       expect(html).toContain('id="game-npc-new-public-allegiance"');
     });
@@ -135,21 +138,28 @@ describe('GameNpcNewHelper', function() {
       expect(html).toContain('value="Villain"');
     });
 
-    it('renders the hidden checkbox as checked when hidden is true', function() {
+    it('renders the hidden switch as a bootstrap switch, checked when hidden is true', function() {
       const html = renderToStaticMarkup(
         GameNpcNewHelper.render(buildState({ hidden: true }), buildHandlers()),
       );
-
-      expect(html).toContain('checked=""');
-    });
-
-    it('renders the hidden switch as a bootstrap switch', function() {
-      const html = renderToStaticMarkup(GameNpcNewHelper.render(buildState(), buildHandlers()));
       const hiddenIndex = html.indexOf('id="game-npc-new-hidden"');
 
       expect(hiddenIndex).toBeGreaterThan(-1);
       expect(html).toContain('form-switch');
       expect(html.lastIndexOf('role="switch"', hiddenIndex + 200)).toBeGreaterThan(-1);
+      expect(html).toContain('checked=""');
+    });
+
+    it('renders the incognito switch as a bootstrap switch, checked when incognito is true', function() {
+      const html = renderToStaticMarkup(
+        GameNpcNewHelper.render(buildState({ incognito: true }), buildHandlers()),
+      );
+      const incognitoIndex = html.indexOf('id="game-npc-new-incognito"');
+
+      expect(incognitoIndex).toBeGreaterThan(-1);
+      expect(html).toContain('form-switch');
+      expect(html.lastIndexOf('role="switch"', incognitoIndex + 200)).toBeGreaterThan(-1);
+      expect(html).toContain('checked=""');
     });
 
     it('does not dim the avatar preview when hidden is false', function() {
@@ -261,12 +271,13 @@ describe('GameNpcNewHelper', function() {
     });
 
     describe('when isFullEditor is false (reduced-access player/staff creator, issue #868)', function() {
-      it('hides the hidden switch, private description, money and private-allegiance fields', function() {
+      it('hides the hidden/incognito switches, private description, money and private-allegiance fields', function() {
         const html = renderToStaticMarkup(
           GameNpcNewHelper.render(buildState({ isFullEditor: false }), buildHandlers()),
         );
 
         expect(html).not.toContain('id="game-npc-new-hidden"');
+        expect(html).not.toContain('id="game-npc-new-incognito"');
         expect(html).not.toContain('id="game-npc-new-private-description"');
         expect(html).not.toContain('id="game-npc-new-money"');
         expect(html).not.toContain('Edit money');

@@ -11,14 +11,14 @@ export default class NpcCharacterEditHelper {
    * @param {{isFullEditor: boolean, name: string, profile_photo_path: string|null,
    *   links: object[], role: string, description: string, privateDescription: string,
    *   money: string, treasureValue: number, gameType: string, privateAllegiance: string,
-   *   publicAllegiance: string, publicSlain: boolean, hidden: boolean, status: string,
-   *   fieldErrors: object}} formState - Form state.
+   *   publicAllegiance: string, publicSlain: boolean, hidden: boolean, incognito: boolean,
+   *   status: string, fieldErrors: object}} formState - Form state.
    * @param {{onSubmit: Function, onNameChange: Function, onRoleChange: Function,
    *   onDescriptionChange: Function, onPrivateDescriptionChange: Function,
    *   onMoneyChange: Function, onOpenUploadModal: Function, onOpenLinksModal: Function,
    *   onOpenMoneyModal: Function, onPrivateAllegianceChange: Function,
    *   onPublicAllegianceChange: Function, onPublicSlainChange: Function,
-   *   onHiddenChange: Function}} handlers - Event handlers.
+   *   onHiddenChange: Function, onIncognitoChange: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered edit page.
    */
   static render(formState, handlers) {

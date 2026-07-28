@@ -32,6 +32,7 @@ export default {
   hourglassSplit: 'bi-hourglass-split',
   postage: 'bi-postage-fill',
   eyeSlashFill: 'bi-eye-slash-fill',
+  incognito: 'bi-incognito',
   pencilFill: 'bi-pencil-fill',
   feather: 'bi-feather',
   musicNoteList: 'bi-music-note-list',

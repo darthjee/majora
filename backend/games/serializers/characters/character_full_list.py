@@ -11,10 +11,14 @@ class CharacterFullListSerializer(CharacterListSerializer):
     private_allegiance = serializers.CharField(read_only=True)
     private_slain = serializers.BooleanField(read_only=True)
     hidden = serializers.BooleanField(read_only=True)
+    incognito = serializers.BooleanField(read_only=True)
+    profile_photo_path = serializers.CharField(
+        source='profile_photo.path', default=None, read_only=True
+    )
 
     class Meta(CharacterListSerializer.Meta):
         """Metadata for the CharacterFullListSerializer."""
 
         fields = CharacterListSerializer.Meta.fields + [
-            'private_allegiance', 'private_slain', 'hidden',
+            'private_allegiance', 'private_slain', 'hidden', 'incognito',
         ]

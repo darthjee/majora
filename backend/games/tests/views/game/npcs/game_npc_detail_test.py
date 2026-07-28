@@ -18,7 +18,7 @@ import pytest
 from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
-from games.models import CharacterTreasure
+from games.models import CharacterPhoto, CharacterTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
@@ -99,6 +99,25 @@ class TestGameNpcDetailView(TokenAuthRequestMixin):
         response = self.get(client, self._url())
         assert 'X-Skip-Cache' not in response
 
+    def test_does_not_include_incognito(self, client):
+        """Test that the incognito field is never exposed on the public detail endpoint."""
+        self.character.incognito = True
+        self.character.save()
+        response = self.get(client, self._url())
+        data = assert_json_response(response, 200)
+        assert 'incognito' not in data
+
+    def test_profile_photo_path_is_null_when_incognito(self, client):
+        """Test that profile_photo_path is null for an incognito NPC, even with a photo set."""
+        photo = CharacterPhoto.objects.create(
+            path='photos/games/test-game/characters/1/profile.jpg', character=self.character
+        )
+        self.character.profile_photo = photo
+        self.character.incognito = True
+        self.character.save()
+        response = self.get(client, self._url())
+        assert_json_response(response, 200, profile_photo_path=None)
+
 
 @pytest.mark.django_db
 class TestGameNpcDetailHidden(TokenAuthRequestMixin):
@@ -115,6 +134,9 @@ class TestGameNpcDetailHidden(TokenAuthRequestMixin):
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.hidden_npc = CharacterFactory(
             name='Secret NPC', game=self.game, npc=True, hidden=True
+        )
+        self.hidden_incognito_npc = CharacterFactory(
+            name='Secret Incognito NPC', game=self.game, npc=True, hidden=True, incognito=True,
         )
 
     def _url(self, character=None):
@@ -163,6 +185,11 @@ class TestGameNpcDetailHidden(TokenAuthRequestMixin):
         token = Token.objects.create(user=self.dm_user)
         response = self.get(client, self._url(), token=token)
         assert response['X-Skip-Cache'] == 'true'
+
+    def test_hidden_and_incognito_npc_returns_404_same_as_hidden_alone(self, client):
+        """Test that hidden=True, incognito=True behaves exactly like hidden=True alone."""
+        response = self.get(client, self._url(character=self.hidden_incognito_npc))
+        assert response.status_code == 404
 
 
 class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
