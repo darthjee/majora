@@ -69,28 +69,17 @@ class TestGameNpcDetailView(TokenAuthRequestMixin):
         response = self.get(client, self._url(game_slug='other-game'))
         assert response.status_code == 404
 
-    def test_can_edit_is_false_for_anonymous_request(self, client):
-        """Test that can_edit is false when the request has no token."""
+    def test_does_not_include_can_edit(self, client):
+        """Test that the response never includes can_edit (moved to permissions.json)."""
         response = self.get(client, self._url())
-        assert_json_response(response, 200, can_edit=False)
-
-    def test_can_edit_is_true_for_superuser(self, client):
-        """Test that can_edit is true when the token belongs to a superuser."""
-        superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
-        response = self.get(client, self._url(), token=token)
-        assert_json_response(response, 200, can_edit=True)
+        data = assert_json_response(response, 200)
+        assert 'can_edit' not in data
 
     def test_returns_404_for_pc_id(self, client):
         """Test that 404 is returned when the id belongs to a PC."""
         pc = CharacterFactory(name='Aragorn', game=self.game, player=self.player, npc=False)
         response = self.get(client, self._url(character=pc))
         assert response.status_code == 404
-
-    def test_response_includes_x_skip_cache_header(self, client):
-        """Test that the response includes the X-Skip-Cache: true header."""
-        response = self.get(client, self._url())
-        assert response['X-Skip-Cache'] == 'true'
 
     def test_includes_treasure_value_summed_across_treasures(self, client):
         """Test that treasure_value sums total_value across the NPC's treasure rows."""
@@ -158,12 +147,6 @@ class TestGameNpcDetailHidden(TokenAuthRequestMixin):
         visible_npc = CharacterFactory(name='Visible NPC', game=self.game, npc=True, hidden=False)
         response = self.get(client, self._url(character=visible_npc))
         assert response.status_code == 200
-
-    def test_hidden_npc_response_includes_x_skip_cache_header_for_dm(self, client):
-        """Test that a DM's response for a hidden NPC includes X-Skip-Cache: true."""
-        token = Token.objects.create(user=self.dm_user)
-        response = self.get(client, self._url(), token=token)
-        assert response['X-Skip-Cache'] == 'true'
 
     def test_hidden_npc_404_response_includes_x_skip_cache_header_for_anonymous(self, client):
         """Test that an anonymous 404 response for a hidden NPC includes X-Skip-Cache: true."""
@@ -391,12 +374,6 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
         get_data = assert_json_response(get_response, 200)
         patch_data = assert_json_response(patch_response, 200)
         assert set(patch_data.keys()) == set(get_data.keys())
-
-    def test_patch_response_includes_x_skip_cache_header(self):
-        """Test that the PATCH response includes the X-Skip-Cache: true header."""
-        token = Token.objects.create(user=self.player_user)
-        response = self._patch(self.client, {'public_slain': True}, token=token)
-        assert response['X-Skip-Cache'] == 'true'
 
     def test_patch_on_pc_id_returns_404(self):
         """Test that this NPC-only endpoint returns 404 for a PC id."""

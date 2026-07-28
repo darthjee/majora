@@ -22,6 +22,4 @@ def character_money_update(request, character):
     if error_response:
         return error_response
 
-    response = Response(CharacterDetailSerializer(character, context={'request': request}).data)
-    response['X-Skip-Cache'] = 'true'
-    return response
+    return Response(CharacterDetailSerializer(character, context={'request': request}).data)

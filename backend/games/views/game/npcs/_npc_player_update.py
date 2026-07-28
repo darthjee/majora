@@ -14,7 +14,7 @@ def npc_player_update(request, game, character_id):
     if error_response:
         return error_response
 
-    response = detail_or_update(
+    return detail_or_update(
         request,
         character,
         NpcPlayerEditPermission,
@@ -22,5 +22,3 @@ def npc_player_update(request, game, character_id):
         CharacterDetailSerializer,
         detail_context={'request': request},
     )
-    response['X-Skip-Cache'] = 'true'
-    return response

@@ -92,12 +92,6 @@ class TestGameNpcFullView(TokenAuthRequestMixin):
         assert data['public_description'] == 'A wandering wizard.'
         assert data['private_description'] == 'The secret guardian of Middle Earth.'
 
-    def test_response_includes_x_skip_cache_header(self, client):
-        """Test that the response includes the X-Skip-Cache: true header."""
-        token = self._editor_token()
-        response = self.get(client, self._url(), token=token)
-        assert response['X-Skip-Cache'] == 'true'
-
     def test_returns_404_for_unknown_character(self, client):
         """Test that 404 is returned for a non-existent character_id."""
         token = self._editor_token()

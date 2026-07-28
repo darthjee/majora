@@ -32,6 +32,4 @@ def game_npcs_full(request, game_slug):
     if error_response:
         return error_response
     detail = CharacterDetailSerializer(character, context={'request': request})
-    response = Response(detail.data, status=201)
-    response['X-Skip-Cache'] = 'true'
-    return response
+    return Response(detail.data, status=201)

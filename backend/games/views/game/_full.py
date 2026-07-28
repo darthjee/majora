@@ -14,7 +14,7 @@ def character_full(request, game, character_id, npc):
     if error_response:
         return error_response
 
-    response = detail_or_update(
+    return detail_or_update(
         request,
         character,
         CharacterEditPermission,
@@ -22,5 +22,3 @@ def character_full(request, game, character_id, npc):
         CharacterFullSerializer,
         detail_context={'request': request},
     )
-    response['X-Skip-Cache'] = 'true'
-    return response
