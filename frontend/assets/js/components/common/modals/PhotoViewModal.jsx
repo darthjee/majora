@@ -13,6 +13,9 @@ import PhotoViewModalHelper from './helpers/PhotoViewModalHelper.jsx';
  * @param {boolean} [props.isProfilePhoto] - Whether the displayed photo is already the profile photo.
  * @param {Function} [props.onSetProfilePhoto] - Handler invoked with the photo id when the
  *   "set as profile photo" button is clicked.
+ * @param {boolean} [props.canDelete] - Whether to show the delete-photo button.
+ * @param {Function} [props.onDelete] - Handler invoked with the photo id when the delete
+ *   button is clicked.
  * @returns {React.ReactElement} Photo view modal element.
  */
 export default function PhotoViewModal({
@@ -23,8 +26,10 @@ export default function PhotoViewModal({
   canSetProfilePhoto = false,
   isProfilePhoto = false,
   onSetProfilePhoto,
+  canDelete = false,
+  onDelete,
 }) {
   return PhotoViewModalHelper.render(
-    show, photo, alt, onClose, canSetProfilePhoto, isProfilePhoto, onSetProfilePhoto,
+    show, photo, alt, onClose, canSetProfilePhoto, isProfilePhoto, onSetProfilePhoto, canDelete, onDelete,
   );
 }

@@ -52,12 +52,14 @@ KINDS.forEach(({ label, Component, Controller, Helper, characterKind }) => {
     it('renders the upload button via the helper render when the character can be edited', function() {
       stubBuildEffect(Controller);
 
-      const handlers = { onOpenUploadModal: Noop.noop, onSelectPhoto: Noop.noop, onSetProfilePhoto: Noop.noop };
+      const handlers = {
+        onOpenUploadModal: Noop.noop, onSelectPhoto: Noop.noop, onSetProfilePhoto: Noop.noop, onDelete: Noop.noop,
+      };
       const pagination = { page: 1, pages: 1, perPage: 10 };
       const html = renderToStaticMarkup(
         Helper.render(
           [], pagination, `#/games/demo/${characterKind}/7/photos`, `#/games/demo/${characterKind}/7`,
-          true, true, 'Aragorn', null, handlers,
+          true, true, false, 'Aragorn', null, handlers,
         )
       );
 
@@ -68,16 +70,36 @@ KINDS.forEach(({ label, Component, Controller, Helper, characterKind }) => {
       stubBuildEffect(Controller);
 
       const photos = [{ id: 1, path: `photos/${characterKind}/7/a.jpg` }];
-      const handlers = { onOpenUploadModal: Noop.noop, onSelectPhoto: Noop.noop, onSetProfilePhoto: Noop.noop };
+      const handlers = {
+        onOpenUploadModal: Noop.noop, onSelectPhoto: Noop.noop, onSetProfilePhoto: Noop.noop, onDelete: Noop.noop,
+      };
       const pagination = { page: 1, pages: 1, perPage: 10 };
       const html = renderToStaticMarkup(
         Helper.render(
           photos, pagination, `#/games/demo/${characterKind}/7/photos`, `#/games/demo/${characterKind}/7`,
-          true, true, 'Aragorn', 999, handlers,
+          true, true, false, 'Aragorn', 999, handlers,
         )
       );
 
       expect(html).toContain('bi-postage-fill');
+    });
+
+    it('renders the delete action bar button via the helper render when canDeletePhoto is true', function() {
+      stubBuildEffect(Controller);
+
+      const photos = [{ id: 1, path: `photos/${characterKind}/7/a.jpg` }];
+      const handlers = {
+        onOpenUploadModal: Noop.noop, onSelectPhoto: Noop.noop, onSetProfilePhoto: Noop.noop, onDelete: Noop.noop,
+      };
+      const pagination = { page: 1, pages: 1, perPage: 10 };
+      const html = renderToStaticMarkup(
+        Helper.render(
+          photos, pagination, `#/games/demo/${characterKind}/7/photos`, `#/games/demo/${characterKind}/7`,
+          false, false, true, 'Aragorn', null, handlers,
+        )
+      );
+
+      expect(html).toContain('bi-trash-fill');
     });
 
     it(
@@ -120,6 +142,53 @@ KINDS.forEach(({ label, Component, Controller, Helper, characterKind }) => {
 
         expect(capturedCanSetProfilePhoto).toBe(true);
         expect(capturedModalCanSetProfilePhoto).toBe(true);
+      }
+    );
+
+    it(
+      'derives canDeletePhoto for PhotosHelper.render and PhotoViewModal from character.can_delete_photo',
+      function() {
+        class LoadedController {
+          constructor(setPhotos, setPagination, setCharacter, setLoading) {
+            setPhotos([]);
+            setPagination({ page: 1, pages: 1, perPage: 10 });
+            setCharacter({ id: 7, name: 'Aragorn', can_edit: false, can_delete_photo: true });
+            setLoading(false);
+          }
+
+          buildEffect() { return () => Noop.noop; }
+        }
+
+        let capturedCanDeletePhoto;
+        let capturedOnDelete;
+        spyOn(Helper, 'render').and.callFake((
+          photos, pagination, basePath, backHref, canUploadPhoto, canSetProfilePhoto, canDeletePhoto, alt,
+          profilePhotoId, handlers,
+        ) => {
+          capturedCanDeletePhoto = canDeletePhoto;
+          capturedOnDelete = handlers.onDelete;
+          return null;
+        });
+        let capturedModalCanDelete;
+        spyOn(PhotoViewModalHelper, 'render').and.callFake((
+          show, photo, alt, onClose, canSetProfilePhoto, isProfilePhoto, onSetProfilePhoto, canDelete,
+        ) => {
+          capturedModalCanDelete = canDelete;
+          return null;
+        });
+
+        renderToStaticMarkup(
+          React.createElement(CharacterPhotos, {
+            ControllerClass: LoadedController,
+            getParamsFromHash: () => ({ game_slug: 'demo', character_id: '7' }),
+            PhotosHelper: Helper,
+            characterKind,
+          })
+        );
+
+        expect(capturedCanDeletePhoto).toBe(true);
+        expect(capturedModalCanDelete).toBe(true);
+        expect(capturedOnDelete).toEqual(jasmine.any(Function));
       }
     );
   });

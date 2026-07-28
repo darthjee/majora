@@ -139,4 +139,110 @@ class SecurePhotoStorageTest extends TestCase
         $this->assertDirectoryExists($this->basePath . '/43');
         $this->assertDirectoryDoesNotExist($this->basePath . '/42');
     }
+
+    /**
+     * Normal case: an existing file nested under the base path is removed.
+     */
+    public function testDeleteFileRemovesExistingFile(): void
+    {
+        $storage = new SecurePhotoStorage($this->basePath);
+        mkdir($this->basePath . '/42', 0755, true);
+        $filePath = $this->basePath . '/42/photo.jpg';
+        file_put_contents($filePath, 'fake image bytes');
+
+        $storage->deleteFile('42/photo.jpg');
+
+        $this->assertFileDoesNotExist($filePath);
+    }
+
+    /**
+     * A missing file is not an error: deleteFile() silently no-ops instead
+     * of throwing, since it may simply mean a prior delete attempt was
+     * interrupted after removing the file but before the corresponding
+     * database record.
+     */
+    public function testDeleteFileSilentlyNoOpsWhenFileIsMissing(): void
+    {
+        $storage = new SecurePhotoStorage($this->basePath);
+
+        $storage->deleteFile('42/does-not-exist.jpg');
+
+        $this->assertFileDoesNotExist($this->basePath . '/42/does-not-exist.jpg');
+    }
+
+    /**
+     * Traversal via `..` segments that would resolve outside the base path
+     * is rejected, and no file is removed even if one happens to exist at
+     * the escaped location.
+     */
+    public function testDeleteFileRejectsTraversalEscapingBasePath(): void
+    {
+        $storage      = new SecurePhotoStorage($this->basePath);
+        $outsideDir   = dirname($this->basePath) . '/outside';
+        mkdir($outsideDir, 0755, true);
+        $outsideFile = $outsideDir . '/photo.jpg';
+        file_put_contents($outsideFile, 'fake image bytes');
+
+        $this->expectException(InvalidArgumentException::class);
+
+        try {
+            $storage->deleteFile('../outside/photo.jpg');
+        } finally {
+            $this->assertFileExists($outsideFile);
+            unlink($outsideFile);
+            rmdir($outsideDir);
+        }
+    }
+
+    /**
+     * Integration coverage for the realpath-based double-check added on top
+     * of the pre-existing string-level check: a symlink that lives inside
+     * the base path but points to a directory outside of it can't be
+     * detected by string normalization alone (it never touches the
+     * filesystem), so ensureDirectoryFor() must still reject it once the
+     * symlinked directory already exists.
+     */
+    public function testEnsureDirectoryForRejectsSymlinkEscapingBasePath(): void
+    {
+        $storage    = new SecurePhotoStorage($this->basePath);
+        $outsideDir = dirname($this->basePath) . '/outside_' . uniqid();
+        mkdir($outsideDir, 0755, true);
+        symlink($outsideDir, $this->basePath . '/42');
+
+        $this->expectException(InvalidArgumentException::class);
+
+        try {
+            $storage->ensureDirectoryFor($this->basePath . '/42/photo.jpg');
+        } finally {
+            unlink($this->basePath . '/42');
+            rmdir($outsideDir);
+        }
+    }
+
+    /**
+     * Integration coverage for the realpath-based double-check in
+     * deleteFile(): a symlinked directory inside the base path pointing
+     * outside of it is rejected before unlink() runs, so the file living at
+     * the real (outside) location is left untouched.
+     */
+    public function testDeleteFileRejectsSymlinkEscapingBasePath(): void
+    {
+        $storage    = new SecurePhotoStorage($this->basePath);
+        $outsideDir = dirname($this->basePath) . '/outside_' . uniqid();
+        mkdir($outsideDir, 0755, true);
+        $outsideFile = $outsideDir . '/photo.jpg';
+        file_put_contents($outsideFile, 'fake image bytes');
+        symlink($outsideDir, $this->basePath . '/42');
+
+        $this->expectException(InvalidArgumentException::class);
+
+        try {
+            $storage->deleteFile('42/photo.jpg');
+        } finally {
+            $this->assertFileExists($outsideFile);
+            unlink($this->basePath . '/42');
+            unlink($outsideFile);
+            rmdir($outsideDir);
+        }
+    }
 }

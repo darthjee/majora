@@ -18,6 +18,8 @@ from .detail.items.game_pc_items import game_pc_items
 from .detail.items.game_pc_items_all import game_pc_items_all
 from .detail.items.game_pc_items_available import game_pc_items_available
 from .detail.items.game_pc_items_available_all import game_pc_items_available_all
+from .detail.photos.game_pc_photo_deletable import game_pc_photo_deletable
+from .detail.photos.game_pc_photo_detail import game_pc_photo_detail
 from .detail.photos.game_pc_photo_set import game_pc_photo_set
 from .detail.photos.game_pc_photos import game_pc_photos
 from .detail.treasures.game_pc_treasure_acquire import game_pc_treasure_acquire
@@ -39,6 +41,8 @@ __all__ = [
     'game_pc_permissions',
     'game_pc_photo_upload',
     'game_pc_photo_set',
+    'game_pc_photo_detail',
+    'game_pc_photo_deletable',
     'game_pc_photos',
     'game_pc_documents',
     'game_pc_documents_all',

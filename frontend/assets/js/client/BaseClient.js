@@ -220,10 +220,23 @@ export default class BaseClient {
   }
 
   /**
-   * Perform a JSON write request (POST/PATCH/PUT), serializing the given fields
+   * Perform a DELETE request with a JSON body and `Content-Type` header.
+   *
+   * @param {string} path - Request path.
+   * @param {string|null} token - Authentication token, if any.
+   * @param {object} [fields] - Fields to serialize as the JSON request body.
+   * @param {object} [extraHeaders] - Additional headers to merge in.
+   * @returns {Promise<Response>} The fetch response.
+   */
+  deleteJson(path, token, fields = {}, extraHeaders = {}) {
+    return this.#writeJson('DELETE', path, token, fields, extraHeaders);
+  }
+
+  /**
+   * Perform a JSON write request (POST/PATCH/PUT/DELETE), serializing the given fields
    * as the request body and adding the `Content-Type` header.
    *
-   * @param {string} method - HTTP method to use (POST, PATCH, or PUT).
+   * @param {string} method - HTTP method to use (POST, PATCH, PUT, or DELETE).
    * @param {string} path - Request path.
    * @param {string|null} token - Authentication token, if any.
    * @param {object} fields - Fields to serialize as the JSON request body.

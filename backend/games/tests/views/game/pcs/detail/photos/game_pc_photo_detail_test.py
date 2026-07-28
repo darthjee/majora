@@ -1,0 +1,224 @@
+"""Tests for the PC photo detail (update-ready / delete) endpoint."""
+
+import pytest
+from rest_framework.authtoken.models import Token
+
+from games.models import CharacterPhoto
+from games.tests.behaviors import TokenAuthRequestMixin
+from games.tests.factories import (
+    CharacterFactory,
+    GameFactory,
+    PlayerFactory,
+    SuperUserFactory,
+    UserFactory,
+)
+
+
+@pytest.mark.django_db
+class TestGamePcPhotoDetailView(TokenAuthRequestMixin):
+    """Tests for PATCH/DELETE /games/<game_slug>/pcs/<character_id>/photos/<photo_id>.json."""
+
+    def setup_method(self):
+        """Set up a game, an owning player, a DM, a staff user, a superuser, and a photo."""
+        self.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
+        self.player = PlayerFactory(name='Bob')
+        self.owner = UserFactory(username='owner', password='secret-password')
+        self.player.user = self.owner
+        self.player.save()
+        self.character = CharacterFactory(
+            name='Aragorn', game=self.game, player=self.player, npc=False
+        )
+        self.photo = CharacterPhoto.objects.create(
+            path='photos/games/epic-quest/characters/1/img1.jpg',
+            character=self.character,
+            ready=False,
+        )
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
+        self.staff_user = UserFactory(
+            username='staff_user', password='secret-password', is_staff=True,
+        )
+        self.superuser = SuperUserFactory(username='admin', password='secret-password')
+        self.owner_token = Token.objects.create(user=self.owner)
+        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.staff_token = Token.objects.create(user=self.staff_user)
+        self.superuser_token = Token.objects.create(user=self.superuser)
+
+    def _url(self, character_id=None, photo_id=None):
+        """Return the photo detail endpoint URL for the given character/photo id."""
+        character_id = character_id if character_id is not None else self.character.id
+        photo_id = photo_id if photo_id is not None else self.photo.id
+        return f'/games/epic-quest/pcs/{character_id}/photos/{photo_id}.json'
+
+    def _patch(self, client, token=None, character_id=None, photo_id=None):
+        """Issue a PATCH request to the photo detail endpoint, optionally with a token."""
+        return self.patch(
+            client, self._url(character_id, photo_id), {'ready': False}, token=token
+        )
+
+    def _delete(self, client, token=None, character_id=None, photo_id=None):
+        """Issue a DELETE request to the photo detail endpoint, optionally with a token."""
+        return self.delete(client, self._url(character_id, photo_id), token=token)
+
+    def test_patch_unauthenticated_request_returns_401(self, client):
+        """Test that a PATCH request without a token is rejected with 401."""
+        response = self._patch(client)
+        assert response.status_code == 401
+
+    def test_delete_unauthenticated_request_returns_401(self, client):
+        """Test that a DELETE request without a token is rejected with 401."""
+        response = self._delete(client)
+        assert response.status_code == 401
+
+    def test_patch_owning_player_returns_403(self, client):
+        """Test that the owning player (allowed for upload/set) is rejected with 403."""
+        response = self._patch(client, token=self.owner_token)
+        assert response.status_code == 403
+
+    def test_delete_owning_player_returns_403(self, client):
+        """Test that the owning player is rejected with 403 on DELETE."""
+        response = self._delete(client, token=self.owner_token)
+        assert response.status_code == 403
+
+    def test_patch_non_dm_player_of_game_returns_403(self, client):
+        """Test that a non-DM player of the game is rejected with 403 on PATCH."""
+        player_user = UserFactory(username='player_user', password='secret-password')
+        PlayerFactory(name='Alice', user=player_user, game=self.game)
+        token = Token.objects.create(user=player_user)
+        response = self._patch(client, token=token)
+        assert response.status_code == 403
+
+    def test_delete_non_dm_player_of_game_returns_403(self, client):
+        """Test that a non-DM player of the game is rejected with 403 on DELETE."""
+        player_user = UserFactory(username='player_user', password='secret-password')
+        PlayerFactory(name='Alice', user=player_user, game=self.game)
+        token = Token.objects.create(user=player_user)
+        response = self._delete(client, token=token)
+        assert response.status_code == 403
+
+    def test_patch_dm_returns_200(self, client):
+        """Test that the game's DM can PATCH the photo to not-ready."""
+        response = self._patch(client, token=self.dm_token)
+        assert response.status_code == 200
+
+    def test_patch_staff_returns_200(self, client):
+        """Test that a staff user can PATCH the photo to not-ready."""
+        response = self._patch(client, token=self.staff_token)
+        assert response.status_code == 200
+
+    def test_patch_superuser_returns_200(self, client):
+        """Test that a superuser can PATCH the photo to not-ready."""
+        response = self._patch(client, token=self.superuser_token)
+        assert response.status_code == 200
+
+    def test_patch_sets_photo_not_ready(self, client):
+        """Test that PATCH marks the photo as not ready."""
+        self.photo.ready = True
+        self.photo.save()
+        response = self._patch(client, token=self.dm_token)
+        assert response.status_code == 200
+        self.photo.refresh_from_db()
+        assert self.photo.ready is False
+
+    def test_patch_clears_profile_photo_when_patched_photo_is_profile(self, client):
+        """Test that PATCH clears profile_photo when the patched photo was the profile photo."""
+        self.character.profile_photo = self.photo
+        self.character.save()
+        response = self._patch(client, token=self.dm_token)
+        assert response.status_code == 200
+        self.character.refresh_from_db()
+        assert self.character.profile_photo is None
+
+    def test_patch_leaves_profile_photo_untouched_for_other_photo(self, client):
+        """Test that PATCHing a photo does not clear an unrelated profile photo."""
+        other_photo = CharacterPhoto.objects.create(
+            path='photos/games/epic-quest/characters/1/img2.jpg', character=self.character
+        )
+        self.character.profile_photo = other_photo
+        self.character.save()
+        response = self._patch(client, token=self.dm_token)
+        assert response.status_code == 200
+        self.character.refresh_from_db()
+        assert self.character.profile_photo == other_photo
+
+    def test_patch_carries_skip_cache_header(self, client):
+        """Test that the PATCH response carries the X-Skip-Cache: true header."""
+        response = self._patch(client, token=self.dm_token)
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_delete_dm_returns_204(self, client):
+        """Test that the game's DM can delete a not-ready photo, receiving 204."""
+        response = self._delete(client, token=self.dm_token)
+        assert response.status_code == 204
+
+    def test_delete_staff_returns_204(self, client):
+        """Test that a staff user can delete a not-ready photo, receiving 204."""
+        response = self._delete(client, token=self.staff_token)
+        assert response.status_code == 204
+
+    def test_delete_superuser_returns_204(self, client):
+        """Test that a superuser can delete a not-ready photo, receiving 204."""
+        response = self._delete(client, token=self.superuser_token)
+        assert response.status_code == 204
+
+    def test_delete_removes_photo_record(self, client):
+        """Test that DELETE removes the photo's database record."""
+        photo_id = self.photo.id
+        response = self._delete(client, token=self.dm_token)
+        assert response.status_code == 204
+        assert not CharacterPhoto.objects.filter(id=photo_id).exists()
+
+    def test_delete_carries_skip_cache_header(self, client):
+        """Test that the DELETE response carries the X-Skip-Cache: true header."""
+        response = self._delete(client, token=self.dm_token)
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_delete_returns_422_when_photo_is_ready(self, client):
+        """Test that deleting a photo still marked ready returns 422."""
+        self.photo.ready = True
+        self.photo.save()
+        response = self._delete(client, token=self.dm_token)
+        assert response.status_code == 422
+        assert CharacterPhoto.objects.filter(id=self.photo.id).exists()
+
+    def test_delete_falls_back_to_profile_photo_set_null(self, client):
+        """Test that deleting a not-ready photo still clears profile_photo (SET_NULL backstop)."""
+        self.character.profile_photo = self.photo
+        self.character.save()
+        response = self._delete(client, token=self.dm_token)
+        assert response.status_code == 204
+        self.character.refresh_from_db()
+        assert self.character.profile_photo is None
+
+    def test_unknown_character_id_returns_404(self, client):
+        """Test that a non-existent character_id returns 404."""
+        response = self._delete(client, token=self.dm_token, character_id=99999)
+        assert response.status_code == 404
+
+    def test_opposite_role_id_returns_404(self, client):
+        """Test that an id belonging to the opposite role returns 404."""
+        other = CharacterFactory(name='Other', game=self.game, npc=True)
+        response = self._delete(client, token=self.dm_token, character_id=other.id)
+        assert response.status_code == 404
+
+    def test_unknown_photo_id_returns_404(self, client):
+        """Test that a non-existent photo_id returns 404."""
+        response = self._delete(client, token=self.dm_token, photo_id=99999)
+        assert response.status_code == 404
+
+    def test_photo_of_another_character_returns_404(self, client):
+        """Test that a photo id belonging to a different character returns 404."""
+        other_character = CharacterFactory(name='Legolas', game=self.game, npc=False)
+        other_photo = CharacterPhoto.objects.create(
+            path='photos/games/epic-quest/characters/2/img1.jpg', character=other_character
+        )
+        response = self._delete(client, token=self.dm_token, photo_id=other_photo.id)
+        assert response.status_code == 404
+
+    def test_unknown_game_slug_returns_404(self, client):
+        """Test that an unknown game slug returns 404."""
+        response = client.delete(
+            f'/games/unknown-game/pcs/{self.character.id}/photos/{self.photo.id}.json',
+            HTTP_AUTHORIZATION=f'Token {self.dm_token.key}',
+        )
+        assert response.status_code == 404

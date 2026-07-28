@@ -701,6 +701,53 @@ class UploadHandlerTest extends TestCase
     }
 
     /**
+     * A symlink planted at the destination file path (not its containing
+     * directory) inside photosBasePath, pointing outside of it: the
+     * directory-level double-check in SecurePhotoStorage::ensureDirectoryFor()
+     * doesn't catch this, since the containing directory itself is a real,
+     * legitimate directory inside the base path — only the leaf (the file
+     * being written) is a symlink escaping the base. This is exactly the gap
+     * the additional PathTraversalGuard::assertRealPathWithinBase() check in
+     * UploadHandler::writeUploadedFile() closes: once file_put_contents()
+     * follows the symlink and actually writes the file (making it resolvable
+     * via realpath()), the check catches that the real destination lives
+     * outside photosBasePath and rejects the upload with 400, before the
+     * second ('uploaded') backend PATCH call is ever made.
+     */
+    public function testUploadIsRejectedWhenDestinationFileSymlinkEscapesBasePath(): void
+    {
+        $tmpFile    = $this->makeTmpFile();
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = $this->makeHandler($httpClient);
+
+        $outsideDir = sys_get_temp_dir() . '/test_outside_' . uniqid();
+        mkdir($outsideDir, 0755, true);
+        mkdir($this->photosDir . '/42', 0755, true);
+        symlink($outsideDir . '/photo.jpg', $this->photosDir . '/42/photo.jpg');
+
+        $request = $this->makeRequest(
+            $this->submitPath('image', '42'),
+            ['tmp_name' => $tmpFile, 'type' => 'image/jpeg', 'name' => 'photo.jpg', 'size' => 10, 'error' => 0],
+            ['Authorization' => 'Bearer tok']
+        );
+
+        $httpClient->expects($this->once())
+            ->method('request')
+            ->willReturn(['httpCode' => 200, 'body' => '{"file_path":"42/photo.jpg"}', 'headers' => []]);
+
+        try {
+            $response = $handler->handleRequest($request);
+
+            $this->assertSame(400, $response->httpCode());
+        } finally {
+            @unlink($this->photosDir . '/42/photo.jpg');
+            @unlink($outsideDir . '/photo.jpg');
+            rmdir($outsideDir);
+            unlink($tmpFile);
+        }
+    }
+
+    /**
      * build() sets photosBasePath and filesBasePath from the 'photos_path'
      * and 'files_path' configuration parameters, respectively.
      */

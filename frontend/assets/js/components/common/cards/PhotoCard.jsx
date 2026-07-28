@@ -16,10 +16,17 @@ import PhotoCardHelper from './helpers/PhotoCardHelper.jsx';
  *   profile photo, hiding the action bar button when true.
  * @param {Function} [props.onSetProfilePhoto] - Handler invoked with the photo id when the
  *   "mark as profile" action bar button is clicked.
+ * @param {boolean} [props.canDelete] - Whether the current user may permanently delete this
+ *   photo, revealing the hover action bar delete button.
+ * @param {Function} [props.onDelete] - Handler invoked with the photo id when the delete
+ *   action bar button is clicked.
  * @returns {React.ReactElement} Photo card element.
  */
 export default function PhotoCard({
   photo, alt, onClick, canSetProfilePhoto = false, isProfilePhoto = false, onSetProfilePhoto,
+  canDelete = false, onDelete,
 }) {
-  return PhotoCardHelper.render(photo, alt, onClick, canSetProfilePhoto, isProfilePhoto, onSetProfilePhoto);
+  return PhotoCardHelper.render(
+    photo, alt, onClick, canSetProfilePhoto, isProfilePhoto, onSetProfilePhoto, canDelete, onDelete,
+  );
 }

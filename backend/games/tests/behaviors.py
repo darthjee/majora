@@ -52,6 +52,10 @@ class TokenAuthRequestMixin:
             **self.auth_kwargs(token),
         )
 
+    def delete(self, client, url, token=None):
+        """Issue a DELETE request to `url`, optionally authenticated with `token`."""
+        return client.delete(url, **self.auth_kwargs(token))
+
 
 class DetailNotFoundBehaviorMixin:
     """Mixin for the recurring "GET detail returns 200 / unknown id returns 404" shape."""

@@ -27,14 +27,20 @@ export default class PcCharacterPhotosController extends BaseCharacterPhotosCont
    * @param {Function} setError - Error setter.
    * @param {import('../../../client/GenericClient.js').default|null} [client] - Client override.
    * @param {import('../../../client/CharacterClient.js').default|null} [characterClient] - Character client override.
+   * @param {import('../../../common/base/controllers/PhotoDeleteSaga.js').default|null} [photoDeleteSaga] - Photo
+   *   delete saga override.
    */
-  constructor(setPhotos, setPagination, setCharacter, setLoading, setError, client = null, characterClient = null) {
+  constructor(
+    setPhotos, setPagination, setCharacter, setLoading, setError, client = null, characterClient = null,
+    photoDeleteSaga = null,
+  ) {
     super(
       { setPhotos, setPagination, setCharacter, setLoading, setError },
       PcCharacterPhotosController.getPcCharacterPhotosParamsFromHash,
       'pcs',
       client,
       characterClient,
+      photoDeleteSaga,
     );
   }
 }

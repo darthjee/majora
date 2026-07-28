@@ -50,9 +50,18 @@ describe('RequestMutationClient', function() {
       }));
     });
 
+    it('fires a DELETE request', async function() {
+      await new RequestMutationClient().mutate('DELETE', '/games/demo/npcs/2/photos/9.json', {}, 'tok');
+
+      expect(globalThis.fetch).toHaveBeenCalledWith('/games/demo/npcs/2/photos/9.json', jasmine.objectContaining({
+        method: 'DELETE',
+        body: JSON.stringify({}),
+      }));
+    });
+
     it('rejects for an unsupported method, without calling fetch', async function() {
       await expectAsync(
-        new RequestMutationClient().mutate('DELETE', '/games/demo/npcs/2.json', {}, 'tok')
+        new RequestMutationClient().mutate('OPTIONS', '/games/demo/npcs/2.json', {}, 'tok')
       ).toBeRejected();
       expect(globalThis.fetch).not.toHaveBeenCalled();
     });

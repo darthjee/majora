@@ -46,5 +46,50 @@ describe('PhotoCardHelper', function() {
 
       expect(html).not.toContain('border-success');
     });
+
+    it('does not render the delete action bar button by default', function() {
+      const html = renderToStaticMarkup(PhotoCardHelper.render(photo, 'Demo Game', Noop.noop));
+
+      expect(html).not.toContain('bi-trash-fill');
+    });
+
+    it('renders the delete action bar button when canDelete is true', function() {
+      const html = renderToStaticMarkup(
+        PhotoCardHelper.render(photo, 'Demo Game', Noop.noop, false, false, Noop.noop, true, Noop.noop)
+      );
+
+      expect(html).toContain('bi-trash-fill');
+    });
+
+    it('hides the delete action bar button when canDelete is false', function() {
+      const html = renderToStaticMarkup(
+        PhotoCardHelper.render(photo, 'Demo Game', Noop.noop, false, false, Noop.noop, false, Noop.noop)
+      );
+
+      expect(html).not.toContain('bi-trash-fill');
+    });
+
+    it('invokes onDelete (not onClick) with the photo id when the delete button is clicked', function() {
+      const onClick = jasmine.createSpy('onClick');
+      const onDelete = jasmine.createSpy('onDelete');
+
+      const element = PhotoCardHelper.render(photo, 'Demo Game', onClick, false, false, Noop.noop, true, onDelete);
+      const [, actionBar] = element.props.children.props.children;
+      const [deleteButton] = actionBar.props.secondaryButtons;
+
+      deleteButton.onClick();
+
+      expect(onDelete).toHaveBeenCalledWith(photo.id);
+      expect(onClick).not.toHaveBeenCalled();
+    });
+
+    it('renders both the mark-as-profile and delete buttons when both are enabled', function() {
+      const html = renderToStaticMarkup(
+        PhotoCardHelper.render(photo, 'Demo Game', Noop.noop, true, false, Noop.noop, true, Noop.noop)
+      );
+
+      expect(html).toContain('bi-postage-fill');
+      expect(html).toContain('bi-trash-fill');
+    });
   });
 });

@@ -17,9 +17,15 @@ export default class PhotoViewModalHelper {
    * @param {boolean} [isProfilePhoto] - Whether the displayed photo is already the profile photo.
    * @param {Function} [onSetProfilePhoto] - Handler invoked with the photo id when the
    *   "set as profile photo" button is clicked.
+   * @param {boolean} [canDelete] - Whether to show the delete-photo button.
+   * @param {Function} [onDelete] - Handler invoked with the photo id when the delete
+   *   button is clicked.
    * @returns {React.ReactElement} Photo view modal element.
    */
-  static render(show, photo, alt, onClose, canSetProfilePhoto = false, isProfilePhoto = false, onSetProfilePhoto) {
+  static render(
+    show, photo, alt, onClose, canSetProfilePhoto = false, isProfilePhoto = false, onSetProfilePhoto,
+    canDelete = false, onDelete,
+  ) {
     return (
       <Modal show={show} onHide={onClose} centered size="lg">
         <Modal.Header closeButton />
@@ -28,6 +34,7 @@ export default class PhotoViewModalHelper {
           {PhotoViewModalHelper.#renderSetProfilePhotoButton(
             photo, canSetProfilePhoto, isProfilePhoto, onSetProfilePhoto,
           )}
+          {PhotoViewModalHelper.#renderDeleteButton(photo, canDelete, onDelete)}
         </Modal.Body>
       </Modal>
     );
@@ -67,6 +74,29 @@ export default class PhotoViewModalHelper {
         onClick={() => onSetProfilePhoto(photo.id)}
       >
         {Translator.t('photo_view_modal.set_profile_photo')}
+      </button>
+    );
+  }
+
+  /**
+   * Render the delete-photo button, when a photo is selected and the current user may
+   * permanently delete it.
+   *
+   * @param {object|null} photo - Photo data object to display, or null when none is selected.
+   * @param {boolean} canDelete - Whether to show the button at all.
+   * @param {Function} onDelete - Handler invoked with the photo id on click.
+   * @returns {React.ReactElement|null} Button, or null.
+   */
+  static #renderDeleteButton(photo, canDelete, onDelete) {
+    if (!photo || !canDelete) return null;
+
+    return (
+      <button
+        type="button"
+        className="btn btn-danger mt-3 ms-2"
+        onClick={() => onDelete(photo.id)}
+      >
+        {Translator.t('photo_card.delete_photo')}
       </button>
     );
   }

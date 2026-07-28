@@ -3,6 +3,7 @@ import PhotoUploadModal from '../../../../common/modals/PhotoUploadModal.jsx';
 import PhotoViewModal from '../../../../common/modals/PhotoViewModal.jsx';
 import ProfilePhotoSetModal from '../../../../common/modals/ProfilePhotoSetModal.jsx';
 import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
+import DeletePhotoConfirmModal from '../elements/DeletePhotoConfirmModal.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import FacadeRefresh from '../../../../../utils/access/useFacadeRefresh.js';
 import resourceConfig from '../../../../../utils/requests/resourceConfig.js';
@@ -32,6 +33,7 @@ export default function CharacterPhotos({ ControllerClass, getParamsFromHash, Ph
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [profilePhotoSet, setProfilePhotoSet] = useState(null);
   const [actionError, setActionError] = useState('');
+  const [pendingDeletePhoto, setPendingDeletePhoto] = useState(null);
 
   const controller = useMemo(
     () => new ControllerClass(setPhotos, setPagination, setCharacter, setLoading, setError),
@@ -63,6 +65,24 @@ export default function CharacterPhotos({ ControllerClass, getParamsFromHash, Ph
       .catch(() => setActionError(Translator.t('character_photos_page.set_profile_photo_error')));
   };
 
+  const handleRequestDeletePhoto = (photoId) => {
+    const photo = photos.find((p) => p.id === photoId) ?? selectedPhoto;
+    setPendingDeletePhoto(photo);
+  };
+
+  const handleConfirmDeletePhoto = () => {
+    setActionError('');
+    controller.deletePhoto(gameSlug, characterId, pendingDeletePhoto.id)
+      .then(() => {
+        setSelectedPhoto(null);
+        setPendingDeletePhoto(null);
+      })
+      .catch(() => {
+        setActionError(Translator.t('character_photos_page.delete_photo_error'));
+        setPendingDeletePhoto(null);
+      });
+  };
+
   if (loading) return PhotosHelper.renderLoading();
   if (error) return PhotosHelper.renderError(error);
 
@@ -70,11 +90,12 @@ export default function CharacterPhotos({ ControllerClass, getParamsFromHash, Ph
     <>
       {actionError && <ErrorAlert error={actionError} />}
       {PhotosHelper.render(
-        photos, pagination, basePath, backHref, canUploadPhoto, character.can_set_profile_photo, alt,
-        character.profile_photo_id, {
+        photos, pagination, basePath, backHref, canUploadPhoto, character.can_set_profile_photo,
+        character.can_delete_photo, alt, character.profile_photo_id, {
           onOpenUploadModal: () => setShowUploadModal(true),
           onSelectPhoto: setSelectedPhoto,
           onSetProfilePhoto: handleSetProfilePhoto,
+          onDelete: handleRequestDeletePhoto,
         },
       )}
       <PhotoUploadModal
@@ -93,12 +114,20 @@ export default function CharacterPhotos({ ControllerClass, getParamsFromHash, Ph
         canSetProfilePhoto={character.can_set_profile_photo}
         isProfilePhoto={selectedPhoto?.id === character.profile_photo_id}
         onSetProfilePhoto={handleSetProfilePhoto}
+        canDelete={character.can_delete_photo}
+        onDelete={handleRequestDeletePhoto}
       />
       <ProfilePhotoSetModal
         show={profilePhotoSet !== null}
         photo={profilePhotoSet}
         alt={alt}
         onClose={() => setProfilePhotoSet(null)}
+      />
+      <DeletePhotoConfirmModal
+        show={pendingDeletePhoto !== null}
+        photo={pendingDeletePhoto}
+        onConfirm={handleConfirmDeletePhoto}
+        onCancel={() => setPendingDeletePhoto(null)}
       />
     </>
   );
