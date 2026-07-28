@@ -48,8 +48,7 @@ class TestCharacterFullSerializer(TestCase):
     def test_inherits_detail_fields(self):
         """Test that all CharacterDetailSerializer fields are still present."""
         data = self._serialize()
-        expected_fields = ['id', 'role', 'is_pc', 'links', 'game_slug',
-                           'can_edit', 'can_edit_money', 'money']
+        expected_fields = ['id', 'role', 'is_pc', 'links', 'game_slug', 'money']
         for field in expected_fields:
             assert field in data
 

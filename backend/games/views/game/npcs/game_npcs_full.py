@@ -33,5 +33,9 @@ def game_npcs_full(request, game_slug):
         return error_response
     detail = CharacterDetailSerializer(character, context={'request': request})
     response = Response(detail.data, status=201)
+    # The whole response is gated behind GameEditPermission.check() above, so it must
+    # never be cached/shared across requesters by Tent's identity-blind reverse-proxy
+    # cache, which would otherwise replay one caller's authorized 201 response to any
+    # subsequent, unauthorized caller of the same URL.
     response['X-Skip-Cache'] = 'true'
     return response

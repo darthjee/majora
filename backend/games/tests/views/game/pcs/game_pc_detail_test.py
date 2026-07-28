@@ -66,37 +66,17 @@ class TestGamePcDetailView(TokenAuthRequestMixin):
         response = self.get(client, self._url(game_slug='other-game'))
         assert response.status_code == 404
 
-    def test_can_edit_is_false_for_anonymous_request(self, client):
-        """Test that can_edit is false when the request has no token."""
+    def test_does_not_include_can_edit(self, client):
+        """Test that the response never includes can_edit (moved to permissions.json)."""
         response = self.get(client, self._url())
-        assert_json_response(response, 200, can_edit=False)
-
-    def test_can_edit_is_true_for_superuser(self, client):
-        """Test that can_edit is true when the token belongs to a superuser."""
-        superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
-        response = self.get(client, self._url(), token=token)
-        assert_json_response(response, 200, can_edit=True)
+        data = assert_json_response(response, 200)
+        assert 'can_edit' not in data
 
     def test_returns_404_for_npc_id(self, client):
         """Test that 404 is returned when the id belongs to an NPC."""
         npc = CharacterFactory(name='Gandalf', game=self.game, npc=True)
         response = self.get(client, self._url(character=npc))
         assert response.status_code == 404
-
-    def test_can_edit_is_true_for_connected_player_user(self, client):
-        """Test that can_edit is true when the token belongs to the character's player's user."""
-        user = UserFactory(username='owner', password='secret-password')
-        self.player.user = user
-        self.player.save()
-        token = Token.objects.create(user=user)
-        response = self.get(client, self._url(), token=token)
-        assert_json_response(response, 200, can_edit=True)
-
-    def test_response_includes_x_skip_cache_header(self, client):
-        """Test that the response includes the X-Skip-Cache: true header."""
-        response = self.get(client, self._url())
-        assert response['X-Skip-Cache'] == 'true'
 
     def test_includes_treasure_value_summed_across_treasures(self, client):
         """Test that treasure_value sums total_value across the PC's treasure rows."""
@@ -110,6 +90,11 @@ class TestGamePcDetailView(TokenAuthRequestMixin):
         )
         response = self.get(client, self._url())
         assert_json_response(response, 200, treasure_value=200)
+
+    def test_response_does_not_include_x_skip_cache_header_for_non_hidden_pc(self, client):
+        """Test that a non-hidden PC's response is safely cacheable (no X-Skip-Cache)."""
+        response = self.get(client, self._url())
+        assert 'X-Skip-Cache' not in response
 
 
 @pytest.mark.django_db

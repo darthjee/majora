@@ -23,5 +23,9 @@ def character_money_update(request, character):
         return error_response
 
     response = Response(CharacterDetailSerializer(character, context={'request': request}).data)
+    # The whole response is gated behind CharacterMoneyEditPermission.check() above, so it
+    # must never be cached/shared across requesters by Tent's identity-blind reverse-proxy
+    # cache, which would otherwise replay one caller's authorized response to any
+    # subsequent, unauthorized caller of the same URL.
     response['X-Skip-Cache'] = 'true'
     return response

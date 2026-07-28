@@ -84,6 +84,15 @@ call it; response is `{"can_edit": <bool>}`.
 Parsed by `parse_role_booleans` in `backend/games/views/common.py`, shared verbatim by all four
 `permissions.json` endpoints (Game, PC, NPC, Treasure).
 
+The response shape above (`can_edit` plus role-parsing/cache-header behavior) is the shared
+baseline — several resources' `permissions.json` additionally expose their own extra `can_*`
+fields following this same real-identity/role-simulated dual pattern: `can_create_item`/
+`can_upload_item_photo` (Character and Game, see [character-item.md](character-item.md)/
+[game-item.md](game-item.md#item-creation-endpoint)), and, since issue #884,
+`can_edit_money`/`can_exchange_treasure`/`can_set_profile_photo`/`can_delete_photo` (Character
+only, moved off the detail/full-detail response onto this endpoint specifically so those
+responses could become cacheable — see [character.md](character.md#edit-permission)).
+
 ## Cache-bypass mechanism for access endpoints
 
 Access-type endpoints return user-specific data, so caching them across users would serve stale

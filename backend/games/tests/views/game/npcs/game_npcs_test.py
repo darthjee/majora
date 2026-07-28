@@ -319,7 +319,7 @@ class TestGameNpcsCreate(TokenAuthRequestMixin):
         assert data['name'] == 'Villain'
         assert data['role'] == 'Antagonist'
         assert data['game_slug'] == 'test-game'
-        assert data['can_edit'] is True
+        assert 'can_edit' not in data
         assert 'id' in data
 
     def test_response_includes_x_skip_cache_header(self, client):

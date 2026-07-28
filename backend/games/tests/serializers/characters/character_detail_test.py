@@ -6,14 +6,7 @@ from rest_framework.test import APIRequestFactory
 
 from games.models import CharacterLink, CharacterPhoto, CharacterTreasure
 from games.serializers import CharacterDetailSerializer
-from games.tests.factories import (
-    CharacterFactory,
-    GameFactory,
-    PlayerFactory,
-    SuperUserFactory,
-    TreasureFactory,
-    UserFactory,
-)
+from games.tests.factories import CharacterFactory, GameFactory, TreasureFactory
 
 
 class TestCharacterDetailSerializer(TestCase):
@@ -100,217 +93,30 @@ class TestCharacterDetailSerializer(TestCase):
         data = self._serialize()
         assert 'private_description' not in data
 
-    def test_can_edit_is_false_for_anonymous_user(self):
-        """Test that can_edit is false for an anonymous user."""
-        data = self._serialize(AnonymousUser())
-        assert data['can_edit'] is False
+    def test_does_not_include_can_edit(self):
+        """Test that can_edit is not exposed (moved to permissions.json)."""
+        data = self._serialize()
+        assert 'can_edit' not in data
 
-    def test_can_edit_is_true_for_superuser(self):
-        """Test that can_edit is true for a superuser."""
-        superuser = SuperUserFactory(username='admin', password='secret-password')
-        data = self._serialize(superuser)
-        assert data['can_edit'] is True
+    def test_does_not_include_can_edit_money(self):
+        """Test that can_edit_money is not exposed (moved to permissions.json)."""
+        data = self._serialize()
+        assert 'can_edit_money' not in data
 
-    def test_can_edit_is_true_for_connected_player_user(self):
-        """Test that can_edit is true for the user linked to the character's player."""
-        user = UserFactory(username='owner', password='secret-password')
-        player = PlayerFactory(name='Owner', user=user)
-        self.character.player = player
-        self.character.save()
-        data = self._serialize(user)
-        assert data['can_edit'] is True
+    def test_does_not_include_can_exchange_treasure(self):
+        """Test that can_exchange_treasure is not exposed (moved to permissions.json)."""
+        data = self._serialize()
+        assert 'can_exchange_treasure' not in data
 
-    def test_can_edit_is_true_for_game_master(self):
-        """Test that can_edit is true for a DM of the character's game."""
-        dm_user = UserFactory(username='dm', password='secret-password')
-        PlayerFactory(game=self.game, user=dm_user, is_dm=True)
-        data = self._serialize(dm_user)
-        assert data['can_edit'] is True
+    def test_does_not_include_can_set_profile_photo(self):
+        """Test that can_set_profile_photo is not exposed (moved to permissions.json)."""
+        data = self._serialize()
+        assert 'can_set_profile_photo' not in data
 
-    def test_can_edit_is_false_for_unrelated_user(self):
-        """Test that can_edit is false for an unrelated authenticated user."""
-        other_user = UserFactory(username='other', password='secret-password')
-        data = self._serialize(other_user)
-        assert data['can_edit'] is False
-
-    def test_can_edit_is_false_without_request_context(self):
-        """Test that can_edit is false when no request is present in the context."""
-        data = CharacterDetailSerializer(self.character, context={}).data
-        assert data['can_edit'] is False
-
-    def test_can_edit_money_is_false_for_anonymous_user(self):
-        """Test that can_edit_money is false for an anonymous user."""
-        data = self._serialize(AnonymousUser())
-        assert data['can_edit_money'] is False
-
-    def test_can_edit_money_is_true_for_owning_player(self):
-        """Test that can_edit_money is true for the user linked to the character's player."""
-        user = UserFactory(username='owner', password='secret-password')
-        player = PlayerFactory(name='Owner', user=user)
-        self.character.player = player
-        self.character.save()
-        data = self._serialize(user)
-        assert data['can_edit_money'] is True
-
-    def test_can_edit_money_is_true_for_staff_only_user(self):
-        """Test that can_edit_money is true for a Staff account with no other edit rights."""
-        staff_user = UserFactory(
-            username='staff_user', password='secret-password', is_staff=True,
-        )
-        data = self._serialize(staff_user)
-        assert data['can_edit_money'] is True
-        assert data['can_edit'] is False
-
-    def test_can_edit_money_is_false_for_unrelated_player(self):
-        """Test that can_edit_money is false for an unrelated authenticated user."""
-        other_user = UserFactory(username='other', password='secret-password')
-        data = self._serialize(other_user)
-        assert data['can_edit_money'] is False
-
-    def test_can_exchange_treasure_is_false_for_anonymous_user(self):
-        """Test that can_exchange_treasure is false for an anonymous user."""
-        data = self._serialize(AnonymousUser())
-        assert data['can_exchange_treasure'] is False
-
-    def test_can_exchange_treasure_is_true_for_superuser(self):
-        """Test that can_exchange_treasure is true for a superuser."""
-        superuser = SuperUserFactory(username='admin', password='secret-password')
-        data = self._serialize(superuser)
-        assert data['can_exchange_treasure'] is True
-
-    def test_can_exchange_treasure_is_true_for_game_master(self):
-        """Test that can_exchange_treasure is true for a DM of the character's game."""
-        dm_user = UserFactory(username='dm', password='secret-password')
-        PlayerFactory(game=self.game, user=dm_user, is_dm=True)
-        data = self._serialize(dm_user)
-        assert data['can_exchange_treasure'] is True
-
-    def test_can_exchange_treasure_is_true_for_owning_player(self):
-        """Test that can_exchange_treasure is true for the user linked to the character's player."""
-        user = UserFactory(username='owner', password='secret-password')
-        player = PlayerFactory(name='Owner', user=user)
-        self.character.player = player
-        self.character.save()
-        data = self._serialize(user)
-        assert data['can_exchange_treasure'] is True
-
-    def test_can_exchange_treasure_is_true_for_staff_only_user(self):
-        """Test that can_exchange_treasure is true for a Staff account with no other edit rights."""
-        staff_user = UserFactory(
-            username='staff_user', password='secret-password', is_staff=True,
-        )
-        data = self._serialize(staff_user)
-        assert data['can_exchange_treasure'] is True
-        assert data['can_edit'] is False
-
-    def test_can_exchange_treasure_is_false_for_unrelated_player(self):
-        """Test that can_exchange_treasure is false for a player of the game who isn't the owner."""
-        other_user = UserFactory(username='other', password='secret-password')
-        PlayerFactory(name='Other', user=other_user, game=self.game)
-        data = self._serialize(other_user)
-        assert data['can_exchange_treasure'] is False
-
-    def test_can_set_profile_photo_is_false_for_anonymous_user(self):
-        """Test that can_set_profile_photo is false for an anonymous user."""
-        data = self._serialize(AnonymousUser())
-        assert data['can_set_profile_photo'] is False
-
-    def test_can_set_profile_photo_is_true_for_superuser(self):
-        """Test that can_set_profile_photo is true for a superuser."""
-        superuser = SuperUserFactory(username='admin', password='secret-password')
-        data = self._serialize(superuser)
-        assert data['can_set_profile_photo'] is True
-
-    def test_can_set_profile_photo_is_true_for_game_master(self):
-        """Test that can_set_profile_photo is true for a DM of the character's game."""
-        dm_user = UserFactory(username='dm', password='secret-password')
-        PlayerFactory(game=self.game, user=dm_user, is_dm=True)
-        data = self._serialize(dm_user)
-        assert data['can_set_profile_photo'] is True
-
-    def test_can_set_profile_photo_is_true_for_owning_player(self):
-        """Test that can_set_profile_photo is true for the character's owning player."""
-        user = UserFactory(username='owner', password='secret-password')
-        player = PlayerFactory(name='Owner', user=user)
-        self.character.player = player
-        self.character.save()
-        data = self._serialize(user)
-        assert data['can_set_profile_photo'] is True
-
-    def test_can_set_profile_photo_is_true_for_any_player_of_game(self):
-        """Test that can_set_profile_photo is true for any player of the game, not the owner."""
-        other_user = UserFactory(username='other', password='secret-password')
-        PlayerFactory(name='Other', user=other_user, game=self.game)
-        data = self._serialize(other_user)
-        assert data['can_set_profile_photo'] is True
-
-    def test_can_set_profile_photo_is_true_for_staff_only_user(self):
-        """Test that can_set_profile_photo is true for a Staff account with no other edit rights."""
-        staff_user = UserFactory(
-            username='staff_user', password='secret-password', is_staff=True,
-        )
-        data = self._serialize(staff_user)
-        assert data['can_set_profile_photo'] is True
-        assert data['can_edit'] is False
-
-    def test_can_set_profile_photo_is_false_for_unrelated_user(self):
-        """Test that can_set_profile_photo is false for a user unrelated to the game."""
-        other_user = UserFactory(username='other', password='secret-password')
-        data = self._serialize(other_user)
-        assert data['can_set_profile_photo'] is False
-
-    def test_can_set_profile_photo_is_false_without_request_context(self):
-        """Test that can_set_profile_photo is false when no request is present in the context."""
-        data = CharacterDetailSerializer(self.character, context={}).data
-        assert data['can_set_profile_photo'] is False
-
-    def test_can_delete_photo_is_false_for_anonymous_user(self):
-        """Test that can_delete_photo is false for an anonymous user."""
-        data = self._serialize(AnonymousUser())
-        assert data['can_delete_photo'] is False
-
-    def test_can_delete_photo_is_true_for_superuser(self):
-        """Test that can_delete_photo is true for a superuser."""
-        superuser = SuperUserFactory(username='admin', password='secret-password')
-        data = self._serialize(superuser)
-        assert data['can_delete_photo'] is True
-
-    def test_can_delete_photo_is_true_for_game_master(self):
-        """Test that can_delete_photo is true for a DM of the character's game."""
-        dm_user = UserFactory(username='dm', password='secret-password')
-        PlayerFactory(game=self.game, user=dm_user, is_dm=True)
-        data = self._serialize(dm_user)
-        assert data['can_delete_photo'] is True
-
-    def test_can_delete_photo_is_true_for_staff_only_user(self):
-        """Test that can_delete_photo is true for a Staff account with no other edit rights."""
-        staff_user = UserFactory(
-            username='staff_user', password='secret-password', is_staff=True,
-        )
-        data = self._serialize(staff_user)
-        assert data['can_delete_photo'] is True
-        assert data['can_edit'] is False
-
-    def test_can_delete_photo_is_false_for_owning_player(self):
-        """Test that can_delete_photo is false for the character's owning player."""
-        user = UserFactory(username='owner', password='secret-password')
-        player = PlayerFactory(name='Owner', user=user)
-        self.character.player = player
-        self.character.save()
-        data = self._serialize(user)
-        assert data['can_delete_photo'] is False
-
-    def test_can_delete_photo_is_false_for_unrelated_player(self):
-        """Test that can_delete_photo is false for an unrelated player of the game."""
-        other_user = UserFactory(username='other', password='secret-password')
-        PlayerFactory(name='Other', user=other_user, game=self.game)
-        data = self._serialize(other_user)
-        assert data['can_delete_photo'] is False
-
-    def test_can_delete_photo_is_false_without_request_context(self):
-        """Test that can_delete_photo is false when no request is present in the context."""
-        data = CharacterDetailSerializer(self.character, context={}).data
-        assert data['can_delete_photo'] is False
+    def test_does_not_include_can_delete_photo(self):
+        """Test that can_delete_photo is not exposed (moved to permissions.json)."""
+        data = self._serialize()
+        assert 'can_delete_photo' not in data
 
     def test_serializes_profile_photo_path_as_none_when_unset(self):
         """Test that profile_photo_path is null when the character has no profile photo."""
