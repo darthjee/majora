@@ -4,14 +4,14 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from games.models import Game
+from games.serializers.games.game_link import GameLinkSerializer
 from games.serializers.games.game_photo import GamePhotoSerializer
-from games.serializers.link import LinkSerializer
 
 
 class GameDetailSerializer(serializers.ModelSerializer):
     """Serializer for game detail view including links and photos."""
 
-    links = LinkSerializer(many=True, read_only=True)
+    links = GameLinkSerializer(many=True, read_only=True)
     photos = GamePhotoSerializer(many=True, read_only=True)
     cover_photo_path = serializers.CharField(
         source='cover_photo.path', default=None, read_only=True

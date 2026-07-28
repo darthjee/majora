@@ -15,12 +15,12 @@ from games.models.game.game_document_file_photo import GameDocumentFilePhoto
 from games.models.game.game_document_photo import GameDocumentPhoto
 from games.models.game.game_item import GameItem
 from games.models.game.game_item_photo import GameItemPhoto
+from games.models.game.game_link import GameLink
 from games.models.game.game_photo import GamePhoto
 from games.models.game.game_session import GameSession
 from games.models.game.game_session_message import GameSessionMessage
 from games.models.game.game_treasure import GameTreasure
 from games.models.game.player import Player
-from games.models.link import Link
 from games.models.poll.poll import Poll
 from games.models.poll.poll_option import PollOption
 from games.models.poll.poll_vote import PollVote
@@ -45,11 +45,11 @@ __all__ = [
     'GameDocumentPhoto',
     'GameItem',
     'GameItemPhoto',
+    'GameLink',
     'GamePhoto',
     'GameSession',
     'GameSessionMessage',
     'GameTreasure',
-    'Link',
     'Player',
     'Poll',
     'PollOption',

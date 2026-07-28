@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
-from games.models import GameSession, Link
+from games.models import GameLink, GameSession
 from games.tests.behaviors import DetailNotFoundBehaviorMixin, TokenAuthRequestMixin
 from games.tests.factories import GameFactory, PlayerFactory, SuperUserFactory, UserFactory
 
@@ -51,8 +51,8 @@ class TestGameDetailView(DetailNotFoundBehaviorMixin, TestCase):
 
     def test_includes_links(self):
         """Test that game detail includes associated links."""
-        Link.objects.create(
-            text='Rulebook', url='http://example.com/rules', content_object=self.game
+        GameLink.objects.create(
+            text='Rulebook', url='http://example.com/rules', game=self.game
         )
         response = self.client.get('/games/epic-quest.json')
         data = json.loads(response.content)

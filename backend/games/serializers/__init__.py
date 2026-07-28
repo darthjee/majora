@@ -47,6 +47,7 @@ from games.serializers.games.documents.game_document_photo import GameDocumentPh
 from games.serializers.games.game_access import GameAccessSerializer
 from games.serializers.games.game_create import GameCreateSerializer
 from games.serializers.games.game_detail import GameDetailSerializer
+from games.serializers.games.game_link import GameLinkSerializer
 from games.serializers.games.game_list import GameListSerializer
 from games.serializers.games.game_permissions import GamePermissionsSerializer
 from games.serializers.games.game_photo import GamePhotoSerializer
@@ -91,7 +92,6 @@ from games.serializers.games.tasks.game_task_list import GameTaskListSerializer
 from games.serializers.games.tasks.game_task_update import GameTaskUpdateSerializer
 from games.serializers.games.treasures.game_treasure_link import GameTreasureLinkSerializer
 from games.serializers.games.treasures.game_treasure_update import GameTreasureUpdateSerializer
-from games.serializers.link import LinkSerializer
 from games.serializers.photo_upload import FileUploadSerializer, PhotoUploadSerializer
 from games.serializers.staff.staff_user_detail import StaffUserDetailSerializer
 from games.serializers.staff.staff_user_list import StaffUserListSerializer
@@ -149,6 +149,7 @@ __all__ = [
     'GameItemListSerializer',
     'GameItemPhotoSerializer',
     'GameItemUpdateSerializer',
+    'GameLinkSerializer',
     'GameListSerializer',
     'GamePermissionsSerializer',
     'GamePhotoSerializer',
@@ -163,7 +164,6 @@ __all__ = [
     'GameTreasureUpdateSerializer',
     'GameUpdateSerializer',
     'HiddenFieldSerializer',
-    'LinkSerializer',
     'MyGamesItemSerializer',
     'NpcPlayerCreateSerializer',
     'NpcPlayerUpdateSerializer',
