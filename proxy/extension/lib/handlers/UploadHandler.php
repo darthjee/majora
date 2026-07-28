@@ -341,12 +341,24 @@ class UploadHandler extends RequestHandler
      * Writes the uploaded file to <basePath>/<filePath>, where basePath is
      * chosen based on $uploadType.
      *
+     * The directory-level double-check performed by
+     * SecurePhotoStorage::ensureDirectoryFor() (via PathTraversalGuard) only
+     * verifies the containing directory's real path, since it necessarily
+     * runs before the file itself exists on disk. Once file_put_contents()
+     * has actually written $destination, an additional
+     * PathTraversalGuard::assertRealPathWithinBase() check runs against the
+     * concrete file itself, closing the gap left open by anything that could
+     * happen between the directory check and the write (e.g. a symlink
+     * swapped in at the last moment).
+     *
      * @param string $uploadType The upload type ('image' or 'file').
      * @param string $filePath   The file_path returned by the backend.
      * @param array  $file       The raw $_FILES entry for the uploaded file.
      * @return string The full destination path the file was written to.
      * @throws InvalidArgumentException When the resolved destination would
-     *                                   escape the base path for $uploadType.
+     *                                   escape the base path for $uploadType,
+     *                                   whether at the directory level or,
+     *                                   once written, at the file level.
      */
     private function writeUploadedFile(string $uploadType, string $filePath, array $file): string
     {
@@ -358,6 +370,8 @@ class UploadHandler extends RequestHandler
         $this->storageFor($uploadType)->ensureDirectoryFor($destination);
 
         file_put_contents($destination, file_get_contents($file['tmp_name']));
+
+        PathTraversalGuard::assertRealPathWithinBase($basePath, $destination);
 
         return $destination;
     }
