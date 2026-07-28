@@ -18,10 +18,26 @@ describe('CharacterController', function() {
       const firstPass = controller.fetchAndMergeAccess({ id: 2, can_edit: true }, params, 'tok', safeSet);
 
       expect(firstPass).toEqual({
-        id: 2, can_edit: false, is_player: false, is_staff: false, access_resolved: false,
+        id: 2,
+        can_edit: false,
+        can_edit_money: false,
+        can_exchange_treasure: false,
+        can_set_profile_photo: false,
+        can_delete_photo: false,
+        is_player: false,
+        is_staff: false,
+        access_resolved: false,
       });
       expect(setCharacter).toHaveBeenCalledWith({
-        id: 2, can_edit: false, is_player: false, is_staff: false, access_resolved: false,
+        id: 2,
+        can_edit: false,
+        can_edit_money: false,
+        can_exchange_treasure: false,
+        can_set_profile_photo: false,
+        can_delete_photo: false,
+        is_player: false,
+        is_staff: false,
+        access_resolved: false,
       });
 
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -29,7 +45,15 @@ describe('CharacterController', function() {
       expect(AccessStore.ensureCharacterAccess).toHaveBeenCalledWith('pcs', 'demo', '2');
       expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('pcs', 'demo', '2');
       expect(setCharacter).toHaveBeenCalledWith({
-        id: 2, can_edit: false, is_player: false, is_staff: false, access_resolved: true,
+        id: 2,
+        can_edit: false,
+        can_edit_money: false,
+        can_exchange_treasure: false,
+        can_set_profile_photo: false,
+        can_delete_photo: false,
+        is_player: false,
+        is_staff: false,
+        access_resolved: true,
       });
     });
 
@@ -46,7 +70,15 @@ describe('CharacterController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(setCharacter).toHaveBeenCalledWith({
-        id: 2, can_edit: false, is_player: true, is_staff: false, access_resolved: true,
+        id: 2,
+        can_edit: false,
+        can_edit_money: false,
+        can_exchange_treasure: false,
+        can_set_profile_photo: false,
+        can_delete_photo: false,
+        is_player: true,
+        is_staff: false,
+        access_resolved: true,
       });
     });
 
@@ -63,7 +95,15 @@ describe('CharacterController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(setCharacter).toHaveBeenCalledWith({
-        id: 2, can_edit: false, is_player: false, is_staff: true, access_resolved: true,
+        id: 2,
+        can_edit: false,
+        can_edit_money: false,
+        can_exchange_treasure: false,
+        can_set_profile_photo: false,
+        can_delete_photo: false,
+        is_player: false,
+        is_staff: true,
+        access_resolved: true,
       });
     });
 
@@ -79,7 +119,15 @@ describe('CharacterController', function() {
       controller.fetchAndMergeAccess({ id: 2, can_edit: true }, params, null, safeSet);
 
       expect(setCharacter).toHaveBeenCalledWith({
-        id: 2, can_edit: false, is_player: false, is_staff: false, access_resolved: false,
+        id: 2,
+        can_edit: false,
+        can_edit_money: false,
+        can_exchange_treasure: false,
+        can_set_profile_photo: false,
+        can_delete_photo: false,
+        is_player: false,
+        is_staff: false,
+        access_resolved: false,
       });
     });
 
@@ -97,8 +145,16 @@ describe('CharacterController', function() {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(setCharacter).toHaveBeenCalledWith({
-        id: 2, can_edit: true, is_player: false, is_staff: false,
-        private_description: 'Secret notes.', access_resolved: true,
+        id: 2,
+        can_edit: true,
+        can_edit_money: false,
+        can_exchange_treasure: false,
+        can_set_profile_photo: false,
+        can_delete_photo: false,
+        is_player: false,
+        is_staff: false,
+        private_description: 'Secret notes.',
+        access_resolved: true,
       });
     });
   });

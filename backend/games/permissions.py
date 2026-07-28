@@ -85,9 +85,13 @@ class CharacterPhotoUploadPermission(_EditPermission):
     profile photo is itself a photo action rather than a general character edit.
 
     Exposes `is_allowed` as a public classmethod (unlike the previous private `_is_allowed`)
-    because `CharacterDetailSerializer.get_can_set_profile_photo` needs the exact same rule,
-    computed from a `request.user` that may be anonymous — mirroring the precedent already
-    set by `CharacterMoneyEditPermission`'s docstring for the same reason.
+    because `CharacterPermissionsSerializer`'s `can_set_profile_photo` field needs the exact
+    same rule, computed from a `request.user` that may be anonymous — mirroring the precedent
+    already set by `CharacterMoneyEditPermission`'s docstring for the same reason.
+
+    Also exposes `is_allowed_for_roles`, mirroring `CharacterItemCreatePermission`'s, so
+    `CharacterPermissionsSerializer`'s `can_set_profile_photo` field can reuse the exact same
+    rule for both the real-identity and role-simulated (`?role=`) paths.
     """
 
     @classmethod
@@ -103,6 +107,17 @@ class CharacterPhotoUploadPermission(_EditPermission):
         is_player_of_game = character.game.has_player(user)
         return user.is_staff or is_player_of_game or character.can_be_edited_by(user)
 
+    @classmethod
+    def is_allowed_for_roles(cls, is_superuser, is_dm, is_owner, is_staff, is_player, is_pc):
+        """Return whether a role-simulated caller may upload/set a character's photo.
+
+        Mirrors `is_allowed`: staff, any player of the game (regardless of PC/NPC), or
+        superuser/dm bypass; otherwise falls back to `can_be_edited_by_roles` (owner for a PC).
+        """
+        if is_staff or is_player or is_superuser or is_dm:
+            return True
+        return is_owner if is_pc else False
+
 
 class CharacterPhotoDeletePermission(_EditPermission):
     """Allow only staff, a DM of the character's game, or a superuser to delete a photo.
@@ -110,6 +125,10 @@ class CharacterPhotoDeletePermission(_EditPermission):
     Deliberately narrower than CharacterPhotoUploadPermission (issue #721): unlike that
     class, this one never allows the owning player or any other player of the game — photo
     deletion is admin/dm/staff only.
+
+    Also exposes `is_allowed_for_roles`, mirroring `CharacterItemCreatePermission`'s, so
+    `CharacterPermissionsSerializer`'s `can_delete_photo` field can reuse the exact same rule
+    for both the real-identity and role-simulated (`?role=`) paths.
     """
 
     @classmethod
@@ -123,6 +142,15 @@ class CharacterPhotoDeletePermission(_EditPermission):
         if not user or not user.is_authenticated:
             return False
         return user.is_staff or character.game.can_be_edited_by(user)
+
+    @classmethod
+    def is_allowed_for_roles(cls, is_superuser, is_dm, is_staff):
+        """Return whether a role-simulated caller may delete a character's photo.
+
+        Mirrors `is_allowed`: staff, superuser, or dm only — no owner/player leniency at all,
+        matching `Game.can_be_edited_by_roles`.
+        """
+        return is_staff or is_superuser or is_dm
 
 
 class GameItemPhotoUploadPermission(_EditPermission):
@@ -271,9 +299,13 @@ class CharacterMoneyEditPermission(_EditPermission):
     no owner concept, so that leniency is deliberately PC-only: NPC money editing stays
     admin/dm/staff-only.
 
-    Exposes `is_allowed` as a public classmethod because CharacterDetailSerializer's
+    Exposes `is_allowed` as a public classmethod because `CharacterPermissionsSerializer`'s
     `can_edit_money` field needs the exact same rule, computed from a `request.user` that
     may be anonymous — the same reason `CharacterPhotoUploadPermission.is_allowed` is public.
+
+    Also exposes `is_allowed_for_roles`, mirroring `CharacterItemCreatePermission`'s, so
+    `CharacterPermissionsSerializer`'s `can_edit_money` field can reuse the exact same rule
+    for both the real-identity and role-simulated (`?role=`) paths.
     """
 
     @classmethod
@@ -296,6 +328,22 @@ class CharacterMoneyEditPermission(_EditPermission):
         if character.is_pc and character.game.has_player(user):
             return True
         return character.can_be_edited_by(user)
+
+    @classmethod
+    def is_allowed_for_roles(cls, is_superuser, is_dm, is_owner, is_staff, is_player, is_pc):
+        """Return whether a role-simulated caller may edit a character's money.
+
+        Mirrors `is_allowed`: Staff bypass applies globally; the "any player of the game"
+        leniency is PC-only (issue #625); otherwise mirrors `can_be_edited_by_roles`
+        (superuser/dm, or the owner of a PC).
+        """
+        if is_staff:
+            return True
+        if is_pc and is_player:
+            return True
+        if is_superuser or is_dm:
+            return True
+        return is_owner if is_pc else False
 
 
 class CharacterRegularEditPermission(_EditPermission):
@@ -336,6 +384,10 @@ class CharacterTreasureExchangePermission(_EditPermission):
     per the issue's clarified Staff principle (admin-like power, but no access to
     secret/hidden content), and the buy/all.json hidden-treasure variant stays gated by
     GameEditPermission only, so Staff never gains access to hidden treasures through this.
+
+    Also exposes `is_allowed_for_roles`, mirroring `CharacterItemCreatePermission`'s, so
+    `CharacterPermissionsSerializer`'s `can_exchange_treasure` field can reuse the exact same
+    rule for both the real-identity and role-simulated (`?role=`) paths.
     """
 
     @classmethod
@@ -351,6 +403,18 @@ class CharacterTreasureExchangePermission(_EditPermission):
         if user.is_staff:
             return True
         return character.can_be_edited_by(user)
+
+    @classmethod
+    def is_allowed_for_roles(cls, is_superuser, is_dm, is_owner, is_staff, is_pc):
+        """Return whether a role-simulated caller may exchange treasure for a character.
+
+        Mirrors `is_allowed`: Staff/superuser/dm bypass, else falls back to
+        `can_be_edited_by_roles` (owner for a PC only) — no player-leniency, unlike
+        `CharacterMoneyEditPermission`.
+        """
+        if is_staff or is_superuser or is_dm:
+            return True
+        return is_owner if is_pc else False
 
 
 class CharacterItemCreatePermission(_EditPermission):

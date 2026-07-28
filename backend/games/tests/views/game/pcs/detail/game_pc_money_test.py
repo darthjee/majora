@@ -129,7 +129,6 @@ class TestGamePcMoneyView(TokenAuthRequestMixin):
         data = assert_json_response(response, 200)
         assert data['id'] == self.character.id
         assert data['name'] == 'Aragorn'
-        assert data['can_edit_money'] is True
 
     def test_put_response_includes_x_skip_cache_header(self, client):
         """Test that the response includes the X-Skip-Cache: true header."""

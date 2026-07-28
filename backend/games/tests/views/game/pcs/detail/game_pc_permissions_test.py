@@ -40,12 +40,36 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
             url = f'{url}?{query}'
         return url
 
+    def _all_false(self):
+        """Return the expected all-False permissions dict."""
+        return {
+            'can_edit': False,
+            'can_create_item': False,
+            'can_upload_item_photo': False,
+            'can_edit_money': False,
+            'can_exchange_treasure': False,
+            'can_set_profile_photo': False,
+            'can_delete_photo': False,
+        }
+
+    def _all_true(self):
+        """Return the expected all-True permissions dict."""
+        return {
+            'can_edit': True,
+            'can_create_item': True,
+            'can_upload_item_photo': True,
+            'can_edit_money': True,
+            'can_exchange_treasure': True,
+            'can_set_profile_photo': True,
+            'can_delete_photo': True,
+        }
+
     def test_returns_200_with_can_edit_false_for_unknown_character(self, client):
-        """Test that 200 with can_edit False is returned for a non-existent character_id."""
+        """Test that 200 with every permission False is returned for a non-existent id."""
         response = client.get('/games/test-game/pcs/99999/permissions.json')
         assert response.status_code == 200
         data = json.loads(response.content)
-        assert data == {'can_edit': False, 'can_create_item': False, 'can_upload_item_photo': False}
+        assert data == self._all_false()
 
     def test_response_includes_x_skip_cache_header_without_role(self, client):
         """Test that the response sets X-Skip-Cache: true when no role param is given."""
@@ -54,44 +78,44 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
         assert 'X-Force-Public-Cache' not in response
 
     def test_dm_can_edit(self, client):
-        """Test that the game's DM gets can_edit True."""
+        """Test that the game's DM gets every permission True."""
         token = Token.objects.create(user=self.dm_user)
         response = self.get(client, self._url(), token=token)
         data = json.loads(response.content)
-        assert data == {'can_edit': True, 'can_create_item': True, 'can_upload_item_photo': True}
+        assert data == self._all_true()
 
     def test_superuser_can_edit(self, client):
-        """Test that a superuser gets can_edit True."""
+        """Test that a superuser gets every permission True."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
         response = self.get(client, self._url(), token=token)
         data = json.loads(response.content)
-        assert data == {'can_edit': True, 'can_create_item': True, 'can_upload_item_photo': True}
+        assert data == self._all_true()
 
     def test_anonymous_cannot_edit(self, client):
-        """Test that an unauthenticated request gets can_edit False."""
+        """Test that an unauthenticated request gets every permission False."""
         response = self.get(client, self._url())
         data = json.loads(response.content)
-        assert data == {'can_edit': False, 'can_create_item': False, 'can_upload_item_photo': False}
+        assert data == self._all_false()
 
     def test_role_dm_can_edit_regardless_of_real_identity(self, client):
-        """Test that ?role=dm grants can_edit True even for an anonymous caller."""
+        """Test that ?role=dm grants every permission True even for an anonymous caller."""
         response = self.get(client, self._url(query='role=dm'))
         data = json.loads(response.content)
-        assert data == {'can_edit': True, 'can_create_item': True, 'can_upload_item_photo': True}
+        assert data == self._all_true()
 
     def test_role_superuser_can_edit(self, client):
-        """Test that ?role=superuser grants can_edit True."""
+        """Test that ?role=superuser grants every permission True."""
         response = self.get(client, self._url(query='role=superuser'))
         data = json.loads(response.content)
-        assert data == {'can_edit': True, 'can_create_item': True, 'can_upload_item_photo': True}
+        assert data == self._all_true()
 
     def test_unrecognized_role_does_not_fall_back_to_real_identity(self, client):
         """Test that an unrecognized role still switches to the role-simulated path."""
         token = Token.objects.create(user=self.dm_user)
         response = self.get(client, self._url(query='role=bogus'), token=token)
         data = json.loads(response.content)
-        assert data == {'can_edit': False, 'can_create_item': False, 'can_upload_item_photo': False}
+        assert data == self._all_false()
 
     def test_response_omits_x_skip_cache_and_sets_force_public_cache_with_role(self, client):
         """Test that a role-simulated response sets X-Force-Public-Cache instead of X-Skip-Cache."""
@@ -100,45 +124,93 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
         assert response['X-Force-Public-Cache'] == 'true'
 
     def test_owner_can_edit(self, client):
-        """Test that the character's owner gets can_edit True."""
+        """Test that the character's owner gets every permission True except can_delete_photo."""
         token = Token.objects.create(user=self.owner)
         response = self.get(client, self._url(), token=token)
         data = json.loads(response.content)
-        assert data == {'can_edit': True, 'can_create_item': True, 'can_upload_item_photo': True}
+        assert data == {
+            'can_edit': True,
+            'can_create_item': True,
+            'can_upload_item_photo': True,
+            'can_edit_money': True,
+            'can_exchange_treasure': True,
+            'can_set_profile_photo': True,
+            'can_delete_photo': False,
+        }
 
     def test_role_owner_can_edit_regardless_of_real_identity(self, client):
-        """Test that ?role=owner grants can_edit True even for an anonymous caller."""
+        """Test that ?role=owner grants owner-level permissions even for an anonymous caller."""
         response = self.get(client, self._url(query='role=owner'))
         data = json.loads(response.content)
-        assert data == {'can_edit': True, 'can_create_item': True, 'can_upload_item_photo': True}
+        assert data == {
+            'can_edit': True,
+            'can_create_item': True,
+            'can_upload_item_photo': True,
+            'can_edit_money': True,
+            'can_exchange_treasure': True,
+            'can_set_profile_photo': True,
+            'can_delete_photo': False,
+        }
 
     def test_staff_can_create_item_but_cannot_edit(self, client):
-        """Test that a global Staff account gets can_create_item True but can_edit False."""
+        """Test that a global Staff account gets the Staff-bypassed permissions, not can_edit."""
         staff_user = UserFactory(username='staff_user', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
         token = Token.objects.create(user=staff_user)
         response = self.get(client, self._url(), token=token)
         data = json.loads(response.content)
-        assert data == {'can_edit': False, 'can_create_item': True, 'can_upload_item_photo': True}
+        assert data == {
+            'can_edit': False,
+            'can_create_item': True,
+            'can_upload_item_photo': True,
+            'can_edit_money': True,
+            'can_exchange_treasure': True,
+            'can_set_profile_photo': True,
+            'can_delete_photo': True,
+        }
 
     def test_role_staff_can_create_item_but_cannot_edit(self, client):
-        """Test that ?role=staff grants can_create_item True but leaves can_edit False."""
+        """Test that ?role=staff grants the Staff-bypassed permissions but leaves can_edit False."""
         response = self.get(client, self._url(query='role=staff'))
         data = json.loads(response.content)
-        assert data == {'can_edit': False, 'can_create_item': True, 'can_upload_item_photo': True}
+        assert data == {
+            'can_edit': False,
+            'can_create_item': True,
+            'can_upload_item_photo': True,
+            'can_edit_money': True,
+            'can_exchange_treasure': True,
+            'can_set_profile_photo': True,
+            'can_delete_photo': True,
+        }
 
     def test_regular_player_can_create_item_and_upload_photo_but_cannot_edit(self, client):
-        """Test that any other player of the game gets can_create_item/photo True (#864)."""
+        """Test that any other player of the game (#864) gets the player-leniency permissions."""
         player_user = UserFactory(username='player_user', password='secret-password')
         PlayerFactory(name='Alice', user=player_user, game=self.game)
         token = Token.objects.create(user=player_user)
         response = self.get(client, self._url(), token=token)
         data = json.loads(response.content)
-        assert data == {'can_edit': False, 'can_create_item': True, 'can_upload_item_photo': True}
+        assert data == {
+            'can_edit': False,
+            'can_create_item': True,
+            'can_upload_item_photo': True,
+            'can_edit_money': True,
+            'can_exchange_treasure': False,
+            'can_set_profile_photo': True,
+            'can_delete_photo': False,
+        }
 
     def test_role_player_can_create_item_and_upload_photo_but_cannot_edit(self, client):
-        """Test that ?role=player grants can_create_item/photo True but leaves can_edit False."""
+        """Test that ?role=player grants the player-leniency permissions, not can_edit."""
         response = self.get(client, self._url(query='role=player'))
         data = json.loads(response.content)
-        assert data == {'can_edit': False, 'can_create_item': True, 'can_upload_item_photo': True}
+        assert data == {
+            'can_edit': False,
+            'can_create_item': True,
+            'can_upload_item_photo': True,
+            'can_edit_money': True,
+            'can_exchange_treasure': False,
+            'can_set_profile_photo': True,
+            'can_delete_photo': False,
+        }

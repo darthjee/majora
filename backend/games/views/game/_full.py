@@ -22,5 +22,9 @@ def character_full(request, game, character_id, npc):
         CharacterFullSerializer,
         detail_context={'request': request},
     )
+    # The entire response (GET and PATCH) is gated behind CharacterEditPermission.check()
+    # above, so it must never be cached/shared across requesters by Tent's identity-blind
+    # reverse-proxy cache, which would otherwise replay one caller's authorized response to
+    # any subsequent, unauthorized caller of the same URL.
     response['X-Skip-Cache'] = 'true'
     return response

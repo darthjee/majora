@@ -39,11 +39,10 @@ def game_npcs(request, game_slug):
 def _create_npc(request, game):
     """Validate the request and create a new NPC for the game, returning 201 detail data.
 
-    The successful response always carries `X-Skip-Cache`, because
-    `CharacterDetailSerializer` embeds requester-identity-tied fields (`can_edit`,
-    `can_edit_money`, `can_exchange_treasure`) that are computed from `request.user` and
-    must never be cached/shared across different requesters by the Tent reverse proxy
-    (issue #730).
+    The successful response always carries `X-Skip-Cache`, because the whole response is
+    gated behind `NpcPlayerCreatePermission.check()`: without it, Tent's identity-blind
+    reverse-proxy cache would replay one caller's authorized 201 response to any
+    subsequent, unauthorized caller of the same URL/query-string/method combination.
     """
     error_response = NpcPlayerCreatePermission.check(request, game)
     if error_response:
