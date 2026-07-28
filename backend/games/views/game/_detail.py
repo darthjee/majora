@@ -12,6 +12,13 @@ def character_detail(request, game, character_id, npc, check_hidden):
     When `check_hidden` is True, a hidden character is additionally gated behind the
     requester's edit permission, returning a 404 (carrying `X-Skip-Cache`, since that gate
     is itself requester-identity-tied) when not allowed; when False, that gate does not apply.
+    A non-hidden character's successful response is safely cacheable regardless of
+    `check_hidden`/requester, since no permission gate applies to it. A hidden character's
+    successful response (reachable only when `check_hidden` is False, or when True and the
+    requester passed the edit-permission gate) always carries `X-Skip-Cache` instead,
+    mirroring `game_treasure_detail`'s handling of hidden treasures: otherwise Tent's
+    identity-blind reverse-proxy cache would replay that response — revealing the hidden
+    character's existence and data — to any subsequent, unauthorized caller of the same URL.
     """
     character = _get_character_or_404(game, character_id, npc)
 
@@ -21,4 +28,7 @@ def character_detail(request, game, character_id, npc, check_hidden):
             return error_response
 
     serializer = CharacterDetailSerializer(character, context={'request': request})
-    return Response(serializer.data)
+    response = Response(serializer.data)
+    if character.hidden:
+        response['X-Skip-Cache'] = 'true'
+    return response

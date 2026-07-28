@@ -14,7 +14,7 @@ def npc_player_update(request, game, character_id):
     if error_response:
         return error_response
 
-    return detail_or_update(
+    response = detail_or_update(
         request,
         character,
         NpcPlayerEditPermission,
@@ -22,3 +22,9 @@ def npc_player_update(request, game, character_id):
         CharacterDetailSerializer,
         detail_context={'request': request},
     )
+    # This endpoint is PATCH-only in practice, and the whole response is gated behind
+    # NpcPlayerEditPermission.check(), so it must never be cached/shared across requesters
+    # by Tent's identity-blind reverse-proxy cache, which would otherwise replay one
+    # caller's authorized response to any subsequent, unauthorized caller of the same URL.
+    response['X-Skip-Cache'] = 'true'
+    return response

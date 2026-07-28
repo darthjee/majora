@@ -91,6 +91,11 @@ class TestGamePcDetailView(TokenAuthRequestMixin):
         response = self.get(client, self._url())
         assert_json_response(response, 200, treasure_value=200)
 
+    def test_response_does_not_include_x_skip_cache_header_for_non_hidden_pc(self, client):
+        """Test that a non-hidden PC's response is safely cacheable (no X-Skip-Cache)."""
+        response = self.get(client, self._url())
+        assert 'X-Skip-Cache' not in response
+
 
 @pytest.mark.django_db
 class TestGamePcRegularUpdateView(TokenAuthRequestMixin):
@@ -225,6 +230,14 @@ class TestGamePcRegularUpdateView(TokenAuthRequestMixin):
         data = assert_json_response(response, 200)
         assert data['id'] == self.character.id
         assert data['name'] == 'Strider'
+
+    def test_patch_response_includes_x_skip_cache_header(self, client):
+        """Test that the response includes the X-Skip-Cache: true header."""
+        token = self._owner_token()
+
+        response = self._patch(client, {'name': 'Strider'}, token=token)
+
+        assert response['X-Skip-Cache'] == 'true'
 
     def test_patch_negative_money_returns_400(self, client):
         """Test that PATCH with a negative money value is rejected with 400."""

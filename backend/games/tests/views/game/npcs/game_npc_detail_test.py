@@ -94,6 +94,11 @@ class TestGameNpcDetailView(TokenAuthRequestMixin):
         response = self.get(client, self._url())
         assert_json_response(response, 200, treasure_value=200)
 
+    def test_response_does_not_include_x_skip_cache_header_for_non_hidden_npc(self, client):
+        """Test that a non-hidden NPC's response is safely cacheable (no X-Skip-Cache)."""
+        response = self.get(client, self._url())
+        assert 'X-Skip-Cache' not in response
+
 
 @pytest.mark.django_db
 class TestGameNpcDetailHidden(TokenAuthRequestMixin):
@@ -151,6 +156,12 @@ class TestGameNpcDetailHidden(TokenAuthRequestMixin):
     def test_hidden_npc_404_response_includes_x_skip_cache_header_for_anonymous(self, client):
         """Test that an anonymous 404 response for a hidden NPC includes X-Skip-Cache: true."""
         response = self.get(client, self._url())
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_hidden_npc_response_includes_x_skip_cache_header_for_dm(self, client):
+        """Test that a DM's response for a hidden NPC includes X-Skip-Cache: true."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self.get(client, self._url(), token=token)
         assert response['X-Skip-Cache'] == 'true'
 
 
@@ -374,6 +385,12 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
         get_data = assert_json_response(get_response, 200)
         patch_data = assert_json_response(patch_response, 200)
         assert set(patch_data.keys()) == set(get_data.keys())
+
+    def test_patch_response_includes_x_skip_cache_header(self):
+        """Test that the PATCH response includes the X-Skip-Cache: true header."""
+        token = Token.objects.create(user=self.player_user)
+        response = self._patch(self.client, {'public_slain': True}, token=token)
+        assert response['X-Skip-Cache'] == 'true'
 
     def test_patch_on_pc_id_returns_404(self):
         """Test that this NPC-only endpoint returns 404 for a PC id."""

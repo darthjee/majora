@@ -116,6 +116,14 @@ class TestGameNpcMoneyView(TokenAuthRequestMixin):
         assert data['id'] == self.character.id
         assert data['name'] == 'Gandalf'
 
+    def test_put_response_includes_x_skip_cache_header(self, client):
+        """Test that the response includes the X-Skip-Cache: true header."""
+        token = self._dm_token()
+
+        response = self._put(client, {'money': 200}, token=token)
+
+        assert response['X-Skip-Cache'] == 'true'
+
     def test_put_missing_money_returns_400(self, client):
         """Test that a payload with no money key is rejected with 400."""
         token = self._dm_token()

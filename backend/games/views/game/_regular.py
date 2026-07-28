@@ -7,8 +7,14 @@ from ..common import detail_or_update
 
 def character_regular_update(request, character):
     """Update the narrow, player-writable field set for a PC."""
-    return detail_or_update(
+    response = detail_or_update(
         request, character, CharacterRegularEditPermission,
         CharacterRegularUpdateSerializer, CharacterDetailSerializer,
         detail_context={'request': request},
     )
+    # This endpoint is PATCH-only in practice, and the whole response is gated behind
+    # CharacterRegularEditPermission.check(), so it must never be cached/shared across
+    # requesters by Tent's identity-blind reverse-proxy cache, which would otherwise replay
+    # one caller's authorized response to any subsequent, unauthorized caller of the same URL.
+    response['X-Skip-Cache'] = 'true'
+    return response
