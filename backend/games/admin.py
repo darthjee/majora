@@ -12,10 +12,10 @@ from .models import (
     Game,
     GameDocument,
     GameItem,
+    GameLink,
     GamePhoto,
     GameSession,
     GameTreasure,
-    Link,
     Player,
     Poll,
     PollOption,
@@ -47,7 +47,7 @@ admin.site.register(Character)
 admin.site.register(CharacterLink)
 admin.site.register(CharacterPhoto)
 admin.site.register(CharacterTreasure)
-admin.site.register(Link)
+admin.site.register(GameLink)
 admin.site.register(GamePhoto)
 admin.site.register(GameItem)
 admin.site.register(CharacterItem)

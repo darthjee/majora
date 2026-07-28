@@ -1,6 +1,5 @@
 """Game model for Majora RPG Campaign Management System."""
 
-from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils.text import slugify
 from simple_history.models import HistoricalRecords
@@ -25,7 +24,6 @@ class Game(models.Model):
     game_type = models.CharField(
         max_length=16, choices=GAME_TYPE_CHOICES, default=GAME_TYPE_DND
     )
-    links = GenericRelation('games.Link')
     treasures = models.ManyToManyField(
         'Treasure', through='GameTreasure', blank=True,
         related_name='linked_games', related_query_name='linked_game',
