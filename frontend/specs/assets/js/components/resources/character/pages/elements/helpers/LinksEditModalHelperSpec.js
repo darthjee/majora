@@ -142,7 +142,7 @@ describe('LinksEditModalHelper', function() {
       const options = findAllElements(select, (child) => child.type === 'option');
 
       expect(options.map((option) => option.props.value))
-        .toEqual(['', 'lootstudio', 'diary', 'music', 'stl', 'background', 'reference']);
+        .toEqual(['', 'lootstudio', 'youtube', 'diary', 'music', 'stl', 'background', 'reference']);
     });
 
     it('wires the link_type select change to onLinkTypeChange with the entry index', function() {
