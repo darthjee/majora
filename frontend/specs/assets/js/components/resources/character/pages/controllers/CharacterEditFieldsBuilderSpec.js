@@ -15,6 +15,7 @@ describe('CharacterEditFieldsBuilder', function() {
         public_allegiance: 'enemy',
         public_slain: true,
         hidden: true,
+        incognito: true,
         links,
       };
 
@@ -28,11 +29,12 @@ describe('CharacterEditFieldsBuilder', function() {
         public_allegiance: 'enemy',
         public_slain: true,
         hidden: true,
+        incognito: true,
         links,
       });
     });
 
-    it('defaults missing fields to empty strings, "0" money, "neutral" allegiances, false slain/hidden, and no links', function() {
+    it('defaults missing fields to empty strings, "0" money, "neutral" allegiances, false slain/hidden/incognito, and no links', function() {
       expect(CharacterEditFieldsBuilder.fieldsFromCharacter({})).toEqual({
         name: '',
         role: '',
@@ -43,6 +45,7 @@ describe('CharacterEditFieldsBuilder', function() {
         public_allegiance: 'neutral',
         public_slain: false,
         hidden: false,
+        incognito: false,
         links: [],
       });
     });
@@ -66,6 +69,7 @@ describe('CharacterEditFieldsBuilder', function() {
       publicAllegiance: 'enemy',
       publicSlain: true,
       hidden: true,
+      incognito: true,
       links: [{ id: 9, text: 'Wiki', url: 'https://example.com/wiki', link_type: '' }],
     };
 
@@ -82,13 +86,14 @@ describe('CharacterEditFieldsBuilder', function() {
       });
     });
 
-    it('adds private_allegiance, public_allegiance, public_slain, and hidden for an npc', function() {
+    it('adds private_allegiance, public_allegiance, public_slain, hidden, and incognito for an npc', function() {
       const fields = CharacterEditFieldsBuilder.fullEditorFields(formValues, 'npcs');
 
       expect(fields.private_allegiance).toBe('ally');
       expect(fields.public_allegiance).toBe('enemy');
       expect(fields.public_slain).toBe(true);
       expect(fields.hidden).toBe(true);
+      expect(fields.incognito).toBe(true);
     });
   });
 
@@ -100,6 +105,8 @@ describe('CharacterEditFieldsBuilder', function() {
         description: 'A brave hero',
         publicAllegiance: 'enemy',
         publicSlain: true,
+        hidden: true,
+        incognito: true,
         links: [{ text: '', url: 'https://example.com/new-link', link_type: '' }],
       };
 
@@ -113,6 +120,20 @@ describe('CharacterEditFieldsBuilder', function() {
         }],
         public_slain: true,
       });
+    });
+
+    it('never includes incognito in the player-only NPC editor payload', function() {
+      const formValues = {
+        name: 'Grumbleknuckle',
+        role: 'Shopkeeper',
+        description: 'A brave hero',
+        publicAllegiance: 'enemy',
+        publicSlain: true,
+        incognito: true,
+        links: [],
+      };
+
+      expect(Object.keys(CharacterEditFieldsBuilder.playerFields(formValues))).not.toContain('incognito');
     });
   });
 

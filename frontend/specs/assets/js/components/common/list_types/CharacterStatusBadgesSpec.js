@@ -203,6 +203,41 @@ describe('CharacterStatusBadges', function() {
 
       expect(CharacterStatusBadges.build(character)).toEqual([]);
     });
+
+    it('builds the Incognito item for an NPC when incognito is true', function() {
+      const character = buildCharacter({ is_pc: false, incognito: true });
+
+      expect(CharacterStatusBadges.build(character)).toEqual([
+        { icon: 'bi-incognito', text: t('incognito'), variant: null },
+      ]);
+    });
+
+    it('omits the Incognito item when incognito is false', function() {
+      const character = buildCharacter({ is_pc: false, incognito: false });
+
+      expect(CharacterStatusBadges.build(character)).toEqual([]);
+    });
+
+    it('omits the Incognito item when incognito is missing', function() {
+      const character = buildCharacter({ is_pc: false });
+
+      expect(CharacterStatusBadges.build(character)).toEqual([]);
+    });
+
+    it('omits the Incognito item for a PC even when incognito is set', function() {
+      const character = buildCharacter({ is_pc: true, incognito: true });
+
+      expect(CharacterStatusBadges.build(character)).toEqual([]);
+    });
+
+    it('lists the Incognito item after the Hidden item when both are present', function() {
+      const character = buildCharacter({ is_pc: false, hidden: true, incognito: true });
+
+      expect(CharacterStatusBadges.build(character)).toEqual([
+        { icon: 'bi-eye-slash-fill', text: t('hidden'), variant: null },
+        { icon: 'bi-incognito', text: t('incognito'), variant: null },
+      ]);
+    });
   });
 
   describe('.buildHidden', function() {
@@ -224,6 +259,28 @@ describe('CharacterStatusBadges', function() {
       const character = buildCharacter({ is_pc: false });
 
       expect(CharacterStatusBadges.buildHidden(character)).toBeNull();
+    });
+  });
+
+  describe('.buildIncognito', function() {
+    it('returns the Incognito item when incognito is true', function() {
+      const character = buildCharacter({ is_pc: false, incognito: true });
+
+      expect(CharacterStatusBadges.buildIncognito(character)).toEqual(
+        { icon: 'bi-incognito', text: t('incognito'), variant: null },
+      );
+    });
+
+    it('returns null when incognito is false', function() {
+      const character = buildCharacter({ is_pc: false, incognito: false });
+
+      expect(CharacterStatusBadges.buildIncognito(character)).toBeNull();
+    });
+
+    it('returns null when incognito is missing', function() {
+      const character = buildCharacter({ is_pc: false });
+
+      expect(CharacterStatusBadges.buildIncognito(character)).toBeNull();
     });
   });
 });

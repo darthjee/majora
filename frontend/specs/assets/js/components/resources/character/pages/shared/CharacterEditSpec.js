@@ -127,6 +127,28 @@ describe('CharacterEdit', function() {
     captured.handlers.onPublicAllegianceChange({ target: { value: 'enemy' } });
   });
 
+  it('exposes an onIncognitoChange handler that updates the incognito form field', function() {
+    let captured;
+    spyOn(EditHelper, 'render').and.callFake((state, handlers) => {
+      captured = { state, handlers };
+      return null;
+    });
+
+    renderToStaticMarkup(
+      React.createElement(CharacterEdit, {
+        ControllerClass: LoadedController,
+        getParamsFromHash,
+        EditHelper,
+        characterKind: 'npcs',
+      })
+    );
+
+    expect(captured.state.incognito).toBe(false);
+    expect(typeof captured.handlers.onIncognitoChange).toBe('function');
+
+    expect(() => captured.handlers.onIncognitoChange({ target: { checked: true } })).not.toThrow();
+  });
+
   describe('upload modal', function() {
     it('wires the modal to the uploadPath built from characterKind, gameSlug and characterId', function() {
       spyOn(AuthStorage, 'getToken').and.returnValue('auth-tok');

@@ -32,10 +32,19 @@ describe('npcShowType', function() {
     expect(hiddenEntry.Edit).toBe(hiddenEntry.New);
   });
 
+  it('only shows the incognito switch on the new/edit forms, beneath the hidden switch, never on '
+    + 'the show page', function() {
+    const incognitoEntry = npcShowType.left[2];
+
+    expect(incognitoEntry.Show).toBeUndefined();
+    expect(incognitoEntry.New).toBeDefined();
+    expect(incognitoEntry.Edit).toBe(incognitoEntry.New);
+  });
+
   it('shares the name/links/money fields across show, new, and edit', function() {
-    const nameEntry = npcShowType.left[2];
-    const linksEntry = npcShowType.left[3];
-    const moneyEntry = npcShowType.left[4];
+    const nameEntry = npcShowType.left[3];
+    const linksEntry = npcShowType.left[4];
+    const moneyEntry = npcShowType.left[5];
 
     [nameEntry, linksEntry, moneyEntry].forEach((entry) => {
       expect(entry.Show).toBeDefined();

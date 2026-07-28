@@ -70,6 +70,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
     publicAllegiance: 'neutral',
     publicSlain: false,
     hidden: false,
+    incognito: false,
   });
 
   const controller = useMemo(
@@ -94,6 +95,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
       setPublicAllegiance: (value) => setField('publicAllegiance', value),
       setPublicSlain: (value) => setField('publicSlain', value),
       setHidden: (value) => setField('hidden', value),
+      setIncognito: (value) => setField('incognito', value),
       setLinks,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -151,6 +153,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
           onPublicAllegianceChange: handleChange('publicAllegiance'),
           onPublicSlainChange: handleCheckboxChange('publicSlain'),
           onHiddenChange: handleCheckboxChange('hidden'),
+          onIncognitoChange: handleCheckboxChange('incognito'),
           onOpenUploadModal: () => setShowUploadModal(true),
           onOpenLinksModal: () => setShowLinksModal(true),
           onOpenMoneyModal: () => setShowMoneyModal(true),

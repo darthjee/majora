@@ -104,8 +104,9 @@ export default class GameNpcNewController extends BasePageController {
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
    * @param {{name: string, role: string, description: string, privateDescription: string,
-   *   hidden: boolean, money: string, privateAllegiance: string, publicAllegiance: string,
-   *   links: object[], photoFile: File|null}} formValues - Raw form field values.
+   *   hidden: boolean, incognito: boolean, money: string, privateAllegiance: string,
+   *   publicAllegiance: string, links: object[], photoFile: File|null}} formValues - Raw form
+   *   field values.
    * @param {{setStatus: Function, setFieldErrors: Function, setCharacterId: Function}} setters - Page state setters.
    * @param {boolean} [isFullEditor] - Whether the current viewer is a full (dm/admin/superuser)
    *   creator. Defaults to `true`, so existing callers that don't pass it keep today's
@@ -129,6 +130,7 @@ export default class GameNpcNewController extends BasePageController {
         public_description: formValues.description,
         private_description: formValues.privateDescription,
         hidden: formValues.hidden,
+        incognito: formValues.incognito,
         money: parseInt(formValues.money, 10),
         private_allegiance: formValues.privateAllegiance,
         public_allegiance: formValues.publicAllegiance,

@@ -26,6 +26,7 @@ describe('BaseCharacterEditController', function() {
         setPublicAllegiance: jasmine.createSpy('setPublicAllegiance'),
         setPublicSlain: jasmine.createSpy('setPublicSlain'),
         setHidden: jasmine.createSpy('setHidden'),
+        setIncognito: jasmine.createSpy('setIncognito'),
         setLinks: jasmine.createSpy('setLinks'),
       };
     });
@@ -129,6 +130,7 @@ describe('BaseCharacterEditController', function() {
         public_allegiance: 'enemy',
         public_slain: true,
         hidden: true,
+        incognito: true,
         links,
       };
 
@@ -143,6 +145,7 @@ describe('BaseCharacterEditController', function() {
       expect(setters.setPublicAllegiance).toHaveBeenCalledWith('enemy');
       expect(setters.setPublicSlain).toHaveBeenCalledWith(true);
       expect(setters.setHidden).toHaveBeenCalledWith(true);
+      expect(setters.setIncognito).toHaveBeenCalledWith(true);
       expect(setters.setLinks).toHaveBeenCalledWith(links);
     });
 
@@ -162,6 +165,7 @@ describe('BaseCharacterEditController', function() {
       expect(setters.setPublicAllegiance).toHaveBeenCalledWith('neutral');
       expect(setters.setPublicSlain).toHaveBeenCalledWith(false);
       expect(setters.setHidden).toHaveBeenCalledWith(false);
+      expect(setters.setIncognito).toHaveBeenCalledWith(false);
       expect(setters.setLinks).toHaveBeenCalledWith([]);
     });
 

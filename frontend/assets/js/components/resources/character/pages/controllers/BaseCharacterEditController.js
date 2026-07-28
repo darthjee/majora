@@ -101,9 +101,9 @@ export default class BaseCharacterEditController extends BasePageController {
    * @param {string|number} characterId - Character id.
    * @param {object} fields - Fields to update — the full set (`name`, `role`,
    *   `public_description`, `private_description`, `money`, `links`, and, for NPCs,
-   *   `private_allegiance`/`public_allegiance`/`public_slain`/`hidden`) for a full editor, or the
-   *   reduced set (`public_description`, `public_allegiance`, `links`, `public_slain`) for a
-   *   player-only editor.
+   *   `private_allegiance`/`public_allegiance`/`public_slain`/`hidden`/`incognito`) for a full
+   *   editor, or the reduced set (`public_description`, `public_allegiance`, `links`,
+   *   `public_slain`) for a player-only editor.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @param {boolean} [isFullEditor] - Whether to PATCH the full (dm/admin) `private` variant
    *   (`true`, the default) or the narrower player-writable `regular` variant (`false`) — forced
@@ -147,7 +147,7 @@ export default class BaseCharacterEditController extends BasePageController {
    * @param {string|number} characterId - Character id.
    * @param {{name: string, role: string, description: string,
    *   privateDescription: string, money: string, privateAllegiance: string,
-   *   publicAllegiance: string, publicSlain: boolean, hidden: boolean,
+   *   publicAllegiance: string, publicSlain: boolean, hidden: boolean, incognito: boolean,
    *   links: object[]}} formValues - Raw form field values.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @param {boolean} [isFullEditor] - Whether the current viewer is a full (dm/admin)
@@ -181,7 +181,7 @@ export default class BaseCharacterEditController extends BasePageController {
    * @param {{setName: Function, setRole: Function, setDescription: Function,
    *   setPrivateDescription: Function, setMoney: Function, setPrivateAllegiance: Function,
    *   setPublicAllegiance: Function, setPublicSlain: Function, setHidden: Function,
-   *   setLinks: Function}} setters - Form field setters.
+   *   setIncognito: Function, setLinks: Function}} setters - Form field setters.
    * @returns {void}
    */
   applyLoadedCharacter(character, gameSlug, characterId, setters) {
@@ -205,6 +205,7 @@ export default class BaseCharacterEditController extends BasePageController {
     setters.setPublicAllegiance(fields.public_allegiance);
     setters.setPublicSlain(fields.public_slain);
     setters.setHidden(fields.hidden);
+    setters.setIncognito(fields.incognito);
     setters.setLinks(fields.links);
   }
 
