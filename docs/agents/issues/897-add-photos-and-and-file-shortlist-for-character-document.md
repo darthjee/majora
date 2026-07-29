@@ -14,8 +14,9 @@
 - `GameDocument` show page: files shortlist appears above the photos shortlist, and the shortlist limit is raised from 11 to 17.
 - `CharacterDocument` show pages (`/#/games/:game_slug/pcs/:character_id/documents/:id` and `.../npcs/:character_id/documents/:id`) look like the `GameDocument` show page: photo, name, description, files shortlist, photos shortlist — all delegated from the underlying `GameDocument`, since `CharacterDocument` carries no name/description/files/photos of its own.
 - New paginated endpoints list a `CharacterDocument`'s underlying `GameDocument` files/photos, for both PC and NPC, each with a public and a private (`/all.json`) variant:
-  - Public: 404 if `CharacterDocument` or `Character` is `hidden`; `[]` if `Character` is `incognito`; ignores `GameDocument.hidden`.
-  - Private (dm, admin, owner): ignores `CharacterDocument`/`Character` hidden and incognito state, and `GameDocument.hidden`.
+  - Public: 404 if `CharacterDocument` is `hidden`; for NPCs, also 404 if `Character` is `hidden` (matching the existing NPC-only hidden gate used by `documents.json`/`items.json` — a PC's own `hidden` flag does not gate its document endpoints, and this issue introduces no PC-hidden precedent); `[]` if `Character` is `incognito`; ignores `GameDocument.hidden`.
+  - Private (`/all.json`): PC via `CharacterEditPermission` (dm, admin, owner), NPC via `GameEditPermission` (dm, admin — no owner concept for NPCs), matching the existing `documents/all.json`/`items/all.json` permission shape (no Staff bypass). Ignores `CharacterDocument`/`Character` hidden and incognito state, and `GameDocument.hidden`.
+  - The `incognito` → `[]` rule is a **new extension** of `Character.incognito`'s documented scope (today it only nulls `profile_photo_path`, per `docs/agents/access-control/character.md`'s "Incognito field" section) — that doc must be updated in the same PR to reflect that incognito now also empties these content lists, alongside `docs/agents/access-control/character-document.md`'s endpoint table.
 
 ## Solution
 - Frontend: swap the order of `DocumentFilesPreview`/`DocumentPhotosPreview` in `documentShowType.js`'s `bottom` slot, and raise `MAX_PREVIEW_PHOTOS`/`MAX_PREVIEW_FILES` (`characterPreviewConstants.js`) from 11 to 17.
