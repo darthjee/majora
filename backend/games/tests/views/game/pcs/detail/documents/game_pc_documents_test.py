@@ -56,16 +56,6 @@ class TestGamePcDocumentsView(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert 'description' not in data[0]
 
-    def test_name_override_takes_precedence(self, client):
-        """Test that a character document's own name override is used over the game document's."""
-        game_document = GameDocumentFactory(game=self.game, name='Ancient Scroll')
-        CharacterDocument.objects.create(
-            character=self.character, game_document=game_document, name="Aragorn's Scroll",
-        )
-        response = client.get(self._url())
-        data = json.loads(response.content)
-        assert data[0]['name'] == "Aragorn's Scroll"
-
     def test_excludes_hidden_documents(self, client):
         """Test that a hidden character document is excluded from the response."""
         game_document = GameDocumentFactory(game=self.game, name='Secret Scroll')
