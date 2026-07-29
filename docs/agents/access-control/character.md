@@ -178,9 +178,22 @@ filter param) and is unaffected by this query parameter.
 mirroring `hidden`'s shape (issue #893). Unlike `hidden`, it does not gate visibility of the
 character itself — an incognito NPC still appears on `npcs.json`/`npcs/<id>.json` — it only
 nulls out `profile_photo_path` on those public endpoints (see "Photo path fields" in
-[common-rules.md](common-rules.md#photo-path-fields)). If a character is both `hidden` and
-`incognito`, `hidden`'s existing visibility gate applies unconditionally first — `incognito` has
-no observable effect on a hidden character.
+[common-rules.md](common-rules.md#photo-path-fields)), and, as of issue #897, empties the two
+[CharacterDocument](character-document.md#document-filesphotos-shortlist-endpoints) files/photos
+shortlist endpoints' lists (`[]`, not a 404). If a character is both `hidden` and `incognito`,
+`hidden`'s existing visibility gate applies unconditionally first — `incognito` has no observable
+effect on a hidden character.
+
+**Public content-list side effect** (issue #897): the public (non-`/all.json`) variant of
+`CharacterDocument`'s files/photos shortlist endpoints (`.../documents/<document_id>/files.json`
+and `.../photos.json`, for both PCs and NPCs) resolves to an empty paginated list (`[]`) whenever
+`character.incognito` is `true`, regardless of how many files/photos the held document actually
+has — modeled after the existing `_hidden_gate_response` pattern in `_shared.py`, but returning an
+empty list rather than a 404 (the `CharacterDocument`/`GameDocument` themselves stay visible; only
+their file/photo contents are concealed). The private `/all.json` variant of those same endpoints
+ignores `incognito` entirely, same as it already ignores `hidden`. See
+[CharacterDocument](character-document.md#document-filesphotos-shortlist-endpoints) for the full
+endpoint table and gating rules.
 
 **Read exposure**: not returned on the public list/detail endpoints (`pcs.json`, `npcs.json`,
 `pcs/<id>.json`, `npcs/<id>.json`) — those endpoints never expose the `incognito` key itself, only

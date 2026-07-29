@@ -24,7 +24,7 @@ class TestCharacterDocumentAllSerializer(TestCase):
         """Test that the serializer exposes every CharacterDocumentSerializer field plus hidden."""
         data = CharacterDocumentAllSerializer(self.character_document).data
         assert set(data.keys()) == {
-            'id', 'game_document_id', 'name', 'photo_path', 'hidden',
+            'id', 'game_document_id', 'name', 'description', 'photo_path', 'hidden',
         }
 
     def test_hidden_reflects_the_character_document_own_field(self):

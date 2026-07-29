@@ -2,6 +2,10 @@
 
 from .detail.documents.game_npc_document_detail import game_npc_document_detail
 from .detail.documents.game_npc_document_detail_full import game_npc_document_detail_full
+from .detail.documents.game_npc_document_files import game_npc_document_files
+from .detail.documents.game_npc_document_files_all import game_npc_document_files_all
+from .detail.documents.game_npc_document_photos import game_npc_document_photos
+from .detail.documents.game_npc_document_photos_all import game_npc_document_photos_all
 from .detail.documents.game_npc_documents import game_npc_documents
 from .detail.documents.game_npc_documents_all import game_npc_documents_all
 from .detail.game_npc_access import game_npc_access
@@ -55,6 +59,10 @@ __all__ = [
     'game_npc_documents_all',
     'game_npc_document_detail',
     'game_npc_document_detail_full',
+    'game_npc_document_files',
+    'game_npc_document_files_all',
+    'game_npc_document_photos',
+    'game_npc_document_photos_all',
     'game_npc_items',
     'game_npc_items_all',
     'game_npc_item_detail',

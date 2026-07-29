@@ -15,6 +15,7 @@ class CharacterDocumentSerializer(serializers.ModelSerializer):
 
     game_document_id = serializers.IntegerField(source='game_document.id', read_only=True)
     name = serializers.CharField(source='game_document.name', read_only=True)
+    description = serializers.CharField(source='game_document.description', read_only=True)
     photo_path = serializers.CharField(
         source='game_document.photo.path', default=None, read_only=True,
     )
@@ -23,7 +24,7 @@ class CharacterDocumentSerializer(serializers.ModelSerializer):
         """Metadata for the CharacterDocumentSerializer."""
 
         model = CharacterDocument
-        fields = ['id', 'game_document_id', 'name', 'photo_path']
+        fields = ['id', 'game_document_id', 'name', 'description', 'photo_path']
 
 
 class CharacterDocumentAllSerializer(HiddenFieldMixin, CharacterDocumentSerializer):

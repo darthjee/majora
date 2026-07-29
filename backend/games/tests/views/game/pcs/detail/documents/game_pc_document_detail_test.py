@@ -40,8 +40,8 @@ class TestGamePcDocumentDetailView(TokenAuthRequestMixin):
         assert data['name'] == 'Ancient Scroll'
         assert data['photo_path'] is None
 
-    def test_does_not_include_description(self, client):
-        """Test that description is not exposed on the public detail endpoint."""
+    def test_includes_description(self, client):
+        """Test that description is exposed on the public detail endpoint."""
         game_document = GameDocumentFactory(
             game=self.game, name='Ancient Scroll', description='A crumbling scroll.',
         )
@@ -50,7 +50,7 @@ class TestGamePcDocumentDetailView(TokenAuthRequestMixin):
         )
         response = client.get(self._url(character_document.id))
         data = json.loads(response.content)
-        assert 'description' not in data
+        assert data['description'] == 'A crumbling scroll.'
 
     def test_does_not_include_hidden_field(self, client):
         """Test that the hidden field is not exposed on the player-facing detail."""

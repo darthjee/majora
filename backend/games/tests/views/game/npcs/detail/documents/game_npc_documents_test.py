@@ -54,15 +54,15 @@ class TestGameNpcDocumentsView(TokenAuthRequestMixin):
         assert data[0]['name'] == 'Ancient Scroll'
         assert data[0]['photo_path'] is None
 
-    def test_does_not_include_description(self, client):
-        """Test that description is not exposed on the index endpoint."""
+    def test_includes_description(self, client):
+        """Test that description is exposed on the index endpoint."""
         game_document = GameDocumentFactory(
             game=self.game, name='Ancient Scroll', description='A crumbling scroll.',
         )
         CharacterDocument.objects.create(character=self.character, game_document=game_document)
         response = client.get(self._url())
         data = json.loads(response.content)
-        assert 'description' not in data[0]
+        assert data[0]['description'] == 'A crumbling scroll.'
 
     def test_excludes_hidden_documents(self, client):
         """Test that a hidden character document is excluded from the response."""
