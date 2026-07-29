@@ -1,4 +1,4 @@
-# Issue: Reduce `access-control` docs to principles + deviations only
+# Issue: Reduce access-control docs to principles + deviations only
 
 ## Description
 #900 condensed prose and removed issue-number citations across `docs/agents/access-control/`,
@@ -43,7 +43,7 @@ defaults in `principles.md`, then rewrites every per-resource file to state only
    visibility per endpoint — reference the new conventions instead.
 3. No code changes — documentation only, same constraint as #900.
 
-## What this issue is not about
+### What this issue is not about
 - No further splitting/merging of files — same file set as today.
 - No change to actual access-control behavior or code, only how it's described.
 - Not reopening #900's scope (citations/prose) — that already landed; this targets the
