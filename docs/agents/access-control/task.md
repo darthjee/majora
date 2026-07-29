@@ -15,7 +15,7 @@ as write access.
 | List (`GET /games/<slug>/tasks.json`) | **TaskEdit**; paginated, ordered by `id` (creation order); 404 if game slug unknown |
 | Create (`POST /games/<slug>/tasks.json`) | Same as List |
 | Update (`PATCH /games/<slug>/tasks/<id>.json`) | Same as List; 404 if task id unknown or the task does not belong to that game |
-| Delete | Superuser only (via Django admin, out of scope) — no `DELETE` endpoint exists |
+| Delete | Matches the [default resource CRUD pattern](principles.md#default-resource-crud-pattern) — superuser only, via Django admin; no `DELETE` endpoint exists |
 
 There is no standalone detail-GET endpoint (`GET /games/<slug>/tasks/<id>.json` does not exist):
 since every viewer of a task is already an editor (List already returns the full item shape,

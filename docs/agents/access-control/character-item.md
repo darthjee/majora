@@ -17,12 +17,18 @@ covers linking an already-existing `GameItem` from the game's catalog (Acquire) 
 unchanged and still always creates a brand-new `GameItem` from scratch. Deletion outside of the
 Remove endpoints remains Django-admin-only for superusers.
 
+The index/detail pairs below follow the [default hidden-gated collection
+pattern](principles.md#default-hidden-gated-collection-pattern); everything past that — the
+`PATCH` on the plain route, the available/acquire/remove endpoints, the fallback resolution, and
+the asymmetric `hidden` scope — is a deviation specific to this resource, documented in its own
+section below.
+
 ## Item index endpoints
 
 | Endpoint | Method | Who can call | Response |
 |----------|--------|-------------|----------|
 | `/games/<slug>/pcs/<id>/items.json` | GET | **AllowAny** | Paginated list of `CharacterItemSerializer` objects (`id`, `game_item_id`, `name`, `photo_path` — no `description`) for that PC's non-hidden `CharacterItem` rows |
-| `/games/<slug>/pcs/<id>/items/all.json` | GET | **CharacterEdit** (covers the PC's owning player, that game's GameMaster, or a superuser, via `Character.can_be_edited_by`) | Same lean fields as the plain list, plus a `hidden: boolean` field (via `CharacterItemAllSerializer`), and does not exclude hidden held items. Always sets `X-Skip-Cache: true` |
+| `/games/<slug>/pcs/<id>/items/all.json` | GET | **CharacterEdit** | Same lean fields as the plain list, plus a `hidden: boolean` field (via `CharacterItemAllSerializer`), and does not exclude hidden held items. Always sets `X-Skip-Cache: true` |
 | `/games/<slug>/npcs/<id>/items.json` | GET | **AllowAny**, but see the [hidden-NPC gate](character-photo.md#photo-index-endpoints) above | Same shape as the PC list, additionally excluding the NPC's own hidden `CharacterItem` rows |
 | `/games/<slug>/npcs/<id>/items/all.json` | GET | **GameEdit** | Same lean fields as the plain list, plus `hidden` (same `CharacterItemAllSerializer` as the PC variant), and does not exclude hidden held items. Always sets `X-Skip-Cache: true` |
 
@@ -37,18 +43,15 @@ by `id`.
 | Endpoint | Method | Who can call | Response |
 |----------|--------|-------------|----------|
 | `/games/<slug>/pcs/<id>/items/<item_id>.json` | GET | **AllowAny** | `CharacterItemDetailSerializer` object (`id`, `game_item_id`, `name`, `photo_path`, `description`) for a single non-hidden `CharacterItem`; 404 if hidden or unknown |
-| `/games/<slug>/pcs/<id>/items/<item_id>/full.json` | GET | **CharacterEdit** (covers the PC's owning player, that game's GameMaster, or a superuser) | Returns the item even if hidden, and additionally carries `hidden` (via `CharacterItemDetailFullSerializer`). Always sets `X-Skip-Cache: true` |
+| `/games/<slug>/pcs/<id>/items/<item_id>/full.json` | GET | **CharacterEdit** | Returns the item even if hidden, and additionally carries `hidden` (via `CharacterItemDetailFullSerializer`). Always sets `X-Skip-Cache: true` |
 | `/games/<slug>/npcs/<id>/items/<item_id>.json` | GET | **AllowAny**, but see the [hidden-NPC gate](character-photo.md#photo-index-endpoints) above | Same shape as the PC detail variant; 404 if the `CharacterItem` is hidden, if the NPC itself is hidden from the requester, or if unknown |
 | `/games/<slug>/npcs/<id>/items/<item_id>/full.json` | GET | **GameEdit** (dm/admin only — NPCs have no owner) | Returns the item even if hidden, and additionally carries `hidden` (same `CharacterItemDetailFullSerializer` as the PC variant). Always sets `X-Skip-Cache: true` |
 
 Unknown `game_slug`/`character_id`/`item_id`, or an id belonging to the opposite PC/NPC role,
-→ 404. All four `GET` endpoints mirror the permission/visibility semantics of the equivalent list
-endpoint above exactly, narrowed to a single row, but use detail-only serializer subclasses
+→ 404. All four `GET` endpoints use detail-only serializer subclasses
 (`CharacterItemDetailSerializer`/`CharacterItemDetailFullSerializer`, each extending the
-corresponding index serializer) that add `description` back on top of the lean index fields —
-no permission class changed, and the hidden-character gate on the two plain (non-`/full.json`)
-variants behaves identically to the list endpoints'. See "Item update endpoints" below for the
-`PATCH` variant of the plain (non-`/full.json`) route.
+corresponding index serializer) that add `description` back on top of the lean index fields. See
+"Item update endpoints" below for the `PATCH` variant of the plain (non-`/full.json`) route.
 
 ## Item update endpoints
 
@@ -57,11 +60,12 @@ variants behaves identically to the list endpoints'. See "Item update endpoints"
 | `/games/<slug>/pcs/<id>/items/<item_id>.json` | PATCH | **CharacterItemCreatePermission** — dm, admin, staff, or the PC's owning player | Partial `{ name?, description?, hidden? }` (`CharacterItemUpdateSerializer`) | `200` with `CharacterItemDetailFullSerializer` shape |
 | `/games/<slug>/npcs/<id>/items/<item_id>.json` | PATCH | **CharacterItemCreatePermission** — dm, admin, or staff, additionally gated by the same hidden-NPC-visibility pre-check as `GET /games/<slug>/npcs/<id>` (`_hidden_gate_response`): 404s *before* the permission check even runs when the NPC is hidden and the requester cannot edit it, so a global-staff account loses access it would otherwise have | Same as above | Same as above |
 
-Both share the same route as the `GET` detail endpoint above (`item_detail`, generated per PC/NPC
-via `build_item_detail_view`, now handles `GET` and `PATCH`). Only `name`/`description`/`hidden`
-are writable — `photo` stays on its own dedicated upload endpoint below, and `game_item`/
-`character`/`id` are not part of the update serializer's field allowlist, so they cannot be
-smuggled into the payload. Submitting `name`/`description` as an empty string persists `null`
+Deviation from the default pattern's "Create/Update → `*CreatePermission`": both `PATCH`s share
+the same route as the `GET` detail endpoint above (`item_detail`, generated per PC/NPC via
+`build_item_detail_view`, now handles `GET` and `PATCH`). Only `name`/`description`/`hidden` are
+writable — `photo` stays on its own dedicated upload endpoint below, and `game_item`/`character`/
+`id` are not part of the update serializer's field allowlist, so they cannot be smuggled into the
+payload. Submitting `name`/`description` as an empty string persists `null`
 (`CharacterItemUpdateSerializer.validate()` maps `''` → `None`), reverting to the linked
 `GameItem`'s value via the existing fallback resolution below — `hidden` has no such fallback and
 is stored as submitted. Error responses: `401` `{"errors": {"detail": ["authentication
@@ -135,16 +139,6 @@ also exposed on the existing `.../permissions.json` response (`CharacterPermissi
 for both the real-identity and role-simulated (`?role=`) paths — a separate field from
 `can_create_item`, even though both resolve identically today, so the frontend can gate its
 photo-upload button off an authoritative server-computed flag independent of item creation.
-
-Unlike [CharacterTreasure](character-treasure.md)'s NPC-only hidden-held-item filter (`hidden`
-there lives on the separate `GameTreasure` catalog row, and a PC keeps seeing every treasure it
-owns regardless of catalog visibility), `CharacterItem.hidden` lives directly on the character's
-own row — so **both** the PC and NPC regular list endpoints exclude a character's own hidden
-items; only the two DM/owner-facing `/all.json` variants reveal them. The PC `/items/all.json`
-endpoint is also a new permission shape with no `Treasure` precedent (`Treasure` has no
-`/pcs/<id>/treasures/all.json` at all) — gated by `CharacterEditPermission`, which already grants
-the PC's own owning player access in addition to a GameMaster/superuser, unlike the NPC variant's
-`GameEditPermission` (dm/admin only — an NPC has no "owning player" of its own).
 
 **Exposed fields** (read): `id` (the `CharacterItem` row id, not the `GameItem` id),
 `game_item_id`, `name`, `photo_path` — all already fallback-resolved server-side (see below), so
@@ -222,3 +216,13 @@ index endpoints above — it says nothing about the visibility of the `GameItem`
 [GameItem](game-item.md) above for that model's own, independent `hidden`). A hidden
 `CharacterItem` is still fully visible to the character's owning player (PC) or that game's
 GameMaster/superuser, via the appropriate `/all.json` endpoint.
+
+Unlike [CharacterTreasure](character-treasure.md)'s NPC-only hidden-held-item filter (`hidden`
+there lives on the separate `GameTreasure` catalog row, and a PC keeps seeing every treasure it
+owns regardless of catalog visibility), `CharacterItem.hidden` lives directly on the character's
+own row — so **both** the PC and NPC regular list endpoints exclude a character's own hidden
+items; only the two DM/owner-facing `/all.json` variants reveal them. The PC `/items/all.json`
+endpoint is also a new permission shape with no `Treasure` precedent (`Treasure` has no
+`/pcs/<id>/treasures/all.json` at all) — gated by `CharacterEditPermission`, which already grants
+the PC's own owning player access in addition to a GameMaster/superuser, unlike the NPC variant's
+`GameEditPermission` (dm/admin only — an NPC has no "owning player" of its own).

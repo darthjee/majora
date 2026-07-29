@@ -1,12 +1,9 @@
 # Game
 
-| Action | Who can |
-|--------|---------|
-| List (`GET /games.json`) | **AllowAny** |
-| Detail (`GET /games/<slug>.json`) | **AllowAny** |
-| Create (`POST /games.json`) | Any authenticated user |
-| Update (`PATCH /games/<slug>.json`) | **GameEdit** |
-| Delete | Superuser only (via Django admin, out of scope) |
+Follows the [default resource CRUD pattern](principles.md#default-resource-crud-pattern)
+(List/Detail = **AllowAny**, Update = **GameEdit**, Delete = superuser-only via Django admin),
+with one deviation: **Create** (`POST /games.json`) requires only any authenticated user, not
+**GameEdit** — there is no existing GameMaster to authorize a brand-new game.
 
 **Exposed fields** (read): `name`, `game_slug`, `description`, `game_type`, links list, photos
 list, treasures list (via `GET /games/<slug>/treasures.json`), `cover_photo_path` (see [Photo path fields](common-rules.md#photo-path-fields)

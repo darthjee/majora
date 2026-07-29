@@ -4,11 +4,12 @@ A `Player` is exposed as a standalone resource via a dedicated roster endpoint a
 single-player detail endpoint; it remains otherwise read indirectly through character data. No
 write endpoint exists.
 
-Per the top-level default that superusers/staff always have full access
-(`access-control.md`), both endpoints below grant Superuser/Staff via `PlayerPermission`, which
-mirrors `_is_admin_or_player` (already used by `PollPermission`'s/`SessionMessagePermission`'s/
-`PollVotePermission`'s view-only checks). [Conversation](conversation.md)'s `conversations.json`
-endpoint reuses the same `PlayerPermission` unchanged.
+Unlike the [default resource CRUD pattern](principles.md#default-resource-crud-pattern) (List/
+Detail = `AllowAny`), both endpoints below require Player/GameMaster/Superuser/Staff via
+`PlayerPermission`, which mirrors `_is_admin_or_player` (already used by
+`PollPermission`'s/`SessionMessagePermission`'s/`PollVotePermission`'s view-only checks).
+[Conversation](conversation.md)'s `conversations.json` endpoint reuses the same `PlayerPermission`
+unchanged.
 
 | Action | Who can |
 |--------|---------|

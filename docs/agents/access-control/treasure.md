@@ -1,11 +1,14 @@
 # Treasure
 
 Treasures are global by default, but may optionally be exclusive to one game via a `game` FK.
-All read endpoints are public; write endpoints on the global routes (create and update) remain
-restricted to superusers or staff. Treasures may also be associated with games via a separate, untouched
-M2M relationship and retrieved through the game-scoped list endpoint below — a treasure can be
-M2M-linked to any number of games *and/or* exclusively owned (via `game`) by at most one game,
-independently.
+All read endpoints are public, matching the [default resource CRUD
+pattern](principles.md#default-resource-crud-pattern)'s List/Detail = **AllowAny**, but Create/
+Update deviate: the global routes are gated by **TreasureEdit** (see
+[Common Rules](common-rules.md)) — superuser, or staff only for a global treasure — rather than
+a plain per-resource `<Resource>Edit` rule; the game-scoped routes below are **GameEdit** instead.
+Treasures may also be associated with games via a separate, untouched M2M relationship and
+retrieved through the game-scoped list endpoint below — a treasure can be M2M-linked to any
+number of games *and/or* exclusively owned (via `game`) by at most one game, independently.
 
 | Action | Who can |
 |--------|---------|
