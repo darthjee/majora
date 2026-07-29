@@ -65,15 +65,19 @@ function buildGameDocumentHref(item, context) {
 }
 
 /**
- * Build a character-scoped document's click-through href. Character-owned documents (PC/NPC)
- * have no standalone detail page yet (only the game-scoped `GameDocument` show page landed in
- * issue #758), so this always returns `null` — `ListPageHelper` renders a plain (non-link)
- * caption when `buildItemHref` returns a falsy value.
+ * Build a `buildItemHref(item, context)` function for a character-scoped documents list (PC or
+ * NPC), linking to the document's own detail page (issue #892) — mirrors `listTypeConfig.js`'s
+ * `buildCharacterItemItemHref`. Needs `context.characterId`, already threaded in by
+ * `CharacterDocumentsHelper` (via `ListPage`'s `context={{ characterId }}` prop), the same way
+ * `CharacterItemsHelper` threads it for items.
  *
- * @returns {null} Always `null`.
+ * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`), used as the URL segment.
+ * @returns {Function} A `buildItemHref(item, context)` function for this character kind.
  */
-function buildCharacterDocumentHref() {
-  return null;
+function buildCharacterDocumentItemHref(characterKind) {
+  return function buildHref(item, context) {
+    return `#/games/${context.gameSlug}/${characterKind}/${context.characterId}/documents/${item.data.id}`;
+  };
 }
 
 /**
@@ -102,7 +106,7 @@ const documentListTypes = {
     buildActionBarProps: buildReadOnlyActionBarProps,
     buildInfoBarItems: buildItemInfoBarItems('character_documents_page.hidden_label'),
     showCaption: true,
-    buildItemHref: buildCharacterDocumentHref,
+    buildItemHref: buildCharacterDocumentItemHref('pcs'),
     itemsPerRow: 6,
   },
   'npc-documents': {
@@ -113,7 +117,7 @@ const documentListTypes = {
     buildActionBarProps: buildReadOnlyActionBarProps,
     buildInfoBarItems: buildItemInfoBarItems('character_documents_page.hidden_label'),
     showCaption: true,
-    buildItemHref: buildCharacterDocumentHref,
+    buildItemHref: buildCharacterDocumentItemHref('npcs'),
     itemsPerRow: 6,
   },
 };

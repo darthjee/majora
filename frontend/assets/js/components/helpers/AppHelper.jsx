@@ -40,6 +40,7 @@ import NpcCharacterItem from '../resources/character/pages/NpcCharacterItem.jsx'
 import NpcCharacterItemEdit from '../resources/character/pages/NpcCharacterItemEdit.jsx';
 import NpcCharacterItemNew from '../resources/character/pages/NpcCharacterItemNew.jsx';
 import NpcCharacterItems from '../resources/character/pages/NpcCharacterItems.jsx';
+import NpcCharacterDocument from '../resources/character/pages/NpcCharacterDocument.jsx';
 import NpcCharacterDocuments from '../resources/character/pages/NpcCharacterDocuments.jsx';
 import NpcCharacterPhotos from '../resources/character/pages/NpcCharacterPhotos.jsx';
 import NpcCharacterTreasures from '../resources/character/pages/NpcCharacterTreasures.jsx';
@@ -49,6 +50,7 @@ import PcCharacterItem from '../resources/character/pages/PcCharacterItem.jsx';
 import PcCharacterItemEdit from '../resources/character/pages/PcCharacterItemEdit.jsx';
 import PcCharacterItemNew from '../resources/character/pages/PcCharacterItemNew.jsx';
 import PcCharacterItems from '../resources/character/pages/PcCharacterItems.jsx';
+import PcCharacterDocument from '../resources/character/pages/PcCharacterDocument.jsx';
 import PcCharacterDocuments from '../resources/character/pages/PcCharacterDocuments.jsx';
 import PcCharacterPhotos from '../resources/character/pages/PcCharacterPhotos.jsx';
 import PcCharacterTreasures from '../resources/character/pages/PcCharacterTreasures.jsx';
@@ -106,6 +108,7 @@ const PAGES = {
   npcCharacterItem: <NpcCharacterItem />,
   npcCharacterItemEdit: <NpcCharacterItemEdit />,
   npcCharacterItemNew: <NpcCharacterItemNew />,
+  npcCharacterDocument: <NpcCharacterDocument />,
   npcCharacterDocuments: <NpcCharacterDocuments />,
   pcCharacter: <PcCharacter />,
   pcCharacterEdit: <PcCharacterEdit />,
@@ -115,6 +118,7 @@ const PAGES = {
   pcCharacterItem: <PcCharacterItem />,
   pcCharacterItemEdit: <PcCharacterItemEdit />,
   pcCharacterItemNew: <PcCharacterItemNew />,
+  pcCharacterDocument: <PcCharacterDocument />,
   pcCharacterDocuments: <PcCharacterDocuments />,
   recoverPassword: <RecoverPassword />,
   register: <Register />,

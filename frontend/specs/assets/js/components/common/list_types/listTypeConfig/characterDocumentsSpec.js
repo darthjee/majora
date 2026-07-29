@@ -35,10 +35,11 @@ describe('listTypeConfig', function() {
       });
 
       describe('.buildItemHref', function() {
-        it('returns null, since documents have no standalone detail page (issue #725)', function() {
+        it('links to the document detail page for this character (issue #892)', function() {
           const item = new CharacterDocumentListItem({ id: 1, game_document_id: 5, name: 'Ancient Tome' });
 
-          expect(config.buildItemHref(item, { gameSlug: 'demo', characterId: '2' })).toBeNull();
+          expect(config.buildItemHref(item, { gameSlug: 'demo', characterId: '2' }))
+            .toBe(`#/games/demo/${characterKind}/2/documents/1`);
         });
       });
 

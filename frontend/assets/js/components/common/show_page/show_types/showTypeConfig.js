@@ -1,4 +1,5 @@
 import documentShowType from './configs/documentShowType.js';
+import characterDocumentShowType from './configs/characterDocumentShowType.js';
 import gameShowType from './configs/gameShowType.js';
 import itemShowType from './configs/itemShowType.js';
 import pcShowType from './configs/pcShowType.js';
@@ -7,8 +8,8 @@ import treasureShowType from './configs/treasureShowType.js';
 
 /**
  * Per-show-type configuration consumed by `ShowPageLayout`, keyed by show type (`'document'`,
- * `'game'`, `'item'`, `'pc'`, `'npc'`, `'treasure'`, and further resource types as they're
- * migrated onto the shared show/new/edit layout). Each entry holds:
+ * `'character_document'`, `'game'`, `'item'`, `'pc'`, `'npc'`, `'treasure'`, and further resource
+ * types as they're migrated onto the shared show/new/edit layout). Each entry holds:
  * - `left`, `right`, `bottom` — arrays of slot entries. A plain entry (a component) renders the
  *   same in every mode; a mode-variant entry (`{Show, New, Edit}`) picks the component matching
  *   the current mode, rendering nothing for a mode it doesn't declare. Every rendered component
@@ -26,9 +27,14 @@ import treasureShowType from './configs/treasureShowType.js';
  * `treasure` has no `Show` variant in any of its slots — it only backs the game-scoped
  * `new`/`edit` forms (see `treasureShowType.js`'s own doc comment for why the global treasure
  * detail/new/edit pages aren't included here).
+ *
+ * `character_document` (issue #892) is `Show`-only, deliberately kept separate from `document`
+ * (the unrelated `GameDocument` show/new/edit page) since `CharacterDocument`'s payload shape and
+ * available actions differ — see `characterDocumentShowType.js`'s own doc comment.
  */
 const showTypeConfig = {
   document: documentShowType,
+  character_document: characterDocumentShowType,
   game: gameShowType,
   item: itemShowType,
   pc: pcShowType,

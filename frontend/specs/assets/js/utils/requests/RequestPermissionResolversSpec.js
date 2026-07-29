@@ -99,13 +99,24 @@ describe('RequestPermissionResolvers', function() {
       expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('npcs', 'demo', '3');
     });
 
-    it('resolves game-level permissions for document single (GameDocument, issue #758)', function() {
+    it('resolves game-level permissions for document single with the game kind (GameDocument, issue #758)', function() {
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
-      RequestPermissionResolvers.resolve('document', 'single', { gameSlug: 'demo', id: '9' });
+      RequestPermissionResolvers.resolve('document', 'single', { gameSlug: 'demo', kind: 'game', id: '9' });
 
       expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
     });
+
+    it('resolves character-level permissions for document single, for either character-owned kind (issue #892)',
+      function() {
+        spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+        RequestPermissionResolvers.resolve('document', 'single', { gameSlug: 'demo', kind: 'npcs', id: '3' });
+        RequestPermissionResolvers.resolve('document', 'single', { gameSlug: 'demo', kind: 'pcs', id: '3' });
+
+        expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('npcs', 'demo', '3');
+        expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('pcs', 'demo', '3');
+      });
 
     it('resolves game-level permissions for document gameCollection (GameDocument creation, issue #841)', function() {
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));

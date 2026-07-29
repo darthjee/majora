@@ -33,7 +33,12 @@ const RESOLVERS = {
   },
   document: {
     collection: ({ gameSlug, kind, id }) => AccessStore.ensureCharacterPermissions(kind, gameSlug, id),
-    single: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+    // Branches on `kind` like `item.single` does (issue #892): `'game'` resolves the `GameDocument`
+    // detail (issue #758) at the game level, while `'pcs'|'npcs'` resolves the `CharacterDocument`
+    // detail at the character level.
+    single: ({ gameSlug, kind, id }) => (kind === 'game'
+      ? AccessStore.ensureGamePermissions(gameSlug)
+      : AccessStore.ensureCharacterPermissions(kind, gameSlug, id)),
     // Deliberately its own quantity-type key, not `collection`, since `collection` above already
     // resolves at the character level for `GET`'s `CharacterDocument` reads — a bare game-level
     // `GameDocument` create has no character to resolve against.
@@ -52,12 +57,13 @@ const RESOLVERS = {
  * @description See `docs/agents/access-control/character-item.md`, `character-treasure.md`,
  *   `game-item.md`, `game-treasure.md`, and `game-document.md` for the endpoints this mirrors.
  *   `npc` `collection`, the `'game'`- and NPC-`kind` `treasure` `collection`, `item`
- *   `single`/`collection`'s `'game'` kind (`GameItem`, not a `CharacterItem`), and `document`
- *   `single` (`GameDocument`, issue #758), and `document` `gameCollection` (`GameDocument`
- *   creation, issue #841) resolve `can_edit` at the *game* level (`GameEditPermission` on the
- *   backend); `npc`/`pc` `single`, `item` `single`/`collection`'s character kinds (`'pcs'`/
- *   `'npcs'`), and `document` `collection` resolve it at the *character* level
- *   (`CharacterEditPermission`) — for NPCs specifically the two happen to agree
+ *   `single`/`collection`'s `'game'` kind (`GameItem`, not a `CharacterItem`), `document`
+ *   `single`'s `'game'` kind (`GameDocument`, issue #758), and `document` `gameCollection`
+ *   (`GameDocument` creation, issue #841) resolve `can_edit` at the *game* level
+ *   (`GameEditPermission` on the backend); `npc`/`pc` `single`, `item` `single`/`collection`'s
+ *   character kinds (`'pcs'`/`'npcs'`), `document` `collection`, and `document` `single`'s
+ *   character kinds (`'pcs'`/`'npcs'`, `CharacterDocument`, issue #892) resolve it at the
+ *   *character* level (`CharacterEditPermission`) — for NPCs specifically the two happen to agree
  *   in practice (no owning player, so `Character.can_be_edited_by` reduces to the same
  *   dm/admin/superuser check as `Game.can_be_edited_by`), but each resource here is still resolved
  *   through whichever call actually matches its own backend permission class, not by relying on

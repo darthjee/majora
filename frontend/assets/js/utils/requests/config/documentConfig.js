@@ -1,11 +1,11 @@
 /**
  * GET resource configuration for `document`. `collection` covers a PC's or NPC's held
- * `CharacterDocument`s — mirrors `docs/agents/access-control/character-document.md`; no
- * detail endpoint exists for `CharacterDocument`, so `collection` is character-scoped only.
- * `single` covers a game's own `GameDocument` detail (issue #758) — mirrors
- * `docs/agents/access-control/game-document.md`'s "Document detail endpoints"; only the
- * `kind: 'game'` family exists so far (no character-document detail endpoint), unlike
- * `itemConfig.js`'s dual-family `single` branching.
+ * `CharacterDocument`s — mirrors `docs/agents/access-control/character-document.md`.
+ * `single` covers two distinct endpoint families under one resource name, mirroring
+ * `itemConfig.js`'s own dual-family `single` branching (issue #892): a game's own `GameDocument`
+ * detail (issue #758, `kind: 'game'`) and a PC's or NPC's held `CharacterDocument` detail (issue
+ * #892, `kind: 'pcs'|'npcs'`) — the same regular-vs-`full.json`-on-`can_edit` shape, so `single`
+ * picks the right path family from `kind` rather than needing a separate resource name.
  *
  * @description `collection` params: `gameSlug`, `kind` (`'pcs'` or `'npcs'`), `id` (character
  *   id). Its `private` variant (`/documents/all.json`) is character-level `can_edit`-gated on
@@ -14,10 +14,16 @@
  *   `can_edit` already exposed per-character regardless of `kind`, resolved via
  *   `AccessStore.ensureCharacterPermissions(kind, gameSlug, id)`.
  *
- *   `single` params: `gameSlug`, `id` (the `GameDocument`'s own id). Its `private` variant
- *   (`/games/:game_slug/documents/:id/full.json`) is `GameEditPermission`-gated (game-level
- *   `can_edit`), resolved via `AccessStore.ensureGamePermissions(gameSlug)` — see
- *   `RequestPermissionResolvers.js`.
+ *   `single` params: `gameSlug`, `kind` (`'pcs'`, `'npcs'`, or `'game'`), `id` — the character id
+ *   for `kind: 'pcs'|'npcs'`, or the `GameDocument`'s own id for `kind: 'game'` — and, for the
+ *   character-owned kinds only, `documentId` (the `CharacterDocument`'s id). Both families'
+ *   `private` variants (`/documents/:document_id/full.json`, `/documents/:id/full.json`) carry the
+ *   same `can_edit` permission key, but resolved at different scopes — character-level
+ *   (`AccessStore.ensureCharacterPermissions`) for `'pcs'|'npcs'`, game-level
+ *   (`AccessStore.ensureGamePermissions`, `GameEditPermission` on the backend) for `'game'` — see
+ *   `RequestPermissionResolvers.js`. `CharacterDocument` carries no `description`/`photo` of its
+ *   own to flavor (issue #892 stripped those overrides), so its `full.json` variant only adds
+ *   `hidden` on top of the public shape.
  *
  *   `POST.gameCollection` (create, `/games/:game_slug/documents.json`) creates a bare
  *   `GameDocument` — deliberately its own quantity-type key, not `POST.collection`, since
@@ -31,7 +37,8 @@
  *
  *   `POST.single` (photo-upload init, issue #727) mirrors `itemConfig.js`'s own game-owned
  *   `photoUploadInit` shape, but unbranched — there is no character-owned `CharacterDocument`
- *   photo-upload path to split against (out of scope for issue #727), so `regular`/`private`
+ *   photo-upload path to split against (out of scope for issue #727; `CharacterDocument` still has
+ *   no photo of its own after issue #892, only the linked `GameDocument`'s), so `regular`/`private`
  *   point at the exact same object. Params: `gameSlug`, `id` (the `GameDocument`'s own id).
  *   Gated by `GameDocumentPhotoUploadPermission` on the backend (staff, any player of the game,
  *   or the game's dm/editor) — `permission` is `null` here, matching `itemConfig.js`'s own
@@ -74,6 +81,54 @@ const documentFilePhotoUploadInit = {
   permission: null,
 };
 
+/**
+ * Build the player-facing single-`CharacterDocument` path.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string} params.kind - Character kind (`'pcs'` or `'npcs'`).
+ * @param {string|number} params.id - Character id.
+ * @param {string|number} params.documentId - `CharacterDocument` id.
+ * @returns {string} The endpoint path.
+ */
+const characterSinglePath = ({
+  gameSlug, kind, id, documentId,
+}) => `/games/${gameSlug}/${kind}/${id}/documents/${documentId}.json`;
+
+/**
+ * Build the full (editor-only) single-`CharacterDocument` path.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string} params.kind - Character kind (`'pcs'` or `'npcs'`).
+ * @param {string|number} params.id - Character id.
+ * @param {string|number} params.documentId - `CharacterDocument` id.
+ * @returns {string} The endpoint path.
+ */
+const characterSingleFullPath = ({
+  gameSlug, kind, id, documentId,
+}) => `/games/${gameSlug}/${kind}/${id}/documents/${documentId}/full.json`;
+
+/**
+ * Build the player-facing single-`GameDocument` path.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string|number} params.id - `GameDocument` id.
+ * @returns {string} The endpoint path.
+ */
+const gameSinglePath = ({ gameSlug, id }) => `/games/${gameSlug}/documents/${id}.json`;
+
+/**
+ * Build the full (editor-only) single-`GameDocument` path.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string|number} params.id - `GameDocument` id.
+ * @returns {string} The endpoint path.
+ */
+const gameSingleFullPath = ({ gameSlug, id }) => `/games/${gameSlug}/documents/${id}/full.json`;
+
 export default {
   GET: {
     collection: {
@@ -88,11 +143,11 @@ export default {
     },
     single: {
       regular: {
-        path: ({ gameSlug, id }) => `/games/${gameSlug}/documents/${id}.json`,
+        path: (params) => (params.kind === 'game' ? gameSinglePath(params) : characterSinglePath(params)),
         permission: null,
       },
       private: {
-        path: ({ gameSlug, id }) => `/games/${gameSlug}/documents/${id}/full.json`,
+        path: (params) => (params.kind === 'game' ? gameSingleFullPath(params) : characterSingleFullPath(params)),
         permission: 'can_edit',
       },
     },
