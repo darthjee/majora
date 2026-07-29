@@ -5,8 +5,8 @@ import Translator from '../../../../../../i18n/Translator.js';
 
 /**
  * Self-fetching bottom-slot preview section on the game document detail page, showing up to
- * `MAX_PREVIEW_FILES` of the document's own `GameDocumentFile`s, with a link to the full file
- * list page (issue #873). Mirrors `DocumentPhotosPreview`'s self-fetching pattern exactly.
+ * `MAX_PREVIEW_DOCUMENT_FILES` of the document's own `GameDocumentFile`s, with a link to the full
+ * file list page (issue #873). Mirrors `DocumentPhotosPreview`'s self-fetching pattern exactly.
  *
  * @param {object} props - Component props, the page's merged `ShowPageLayout` rendering context
  *   spread in.

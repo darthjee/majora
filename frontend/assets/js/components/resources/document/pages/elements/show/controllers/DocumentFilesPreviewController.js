@@ -1,5 +1,5 @@
 import RequestStore from '../../../../../../../utils/requests/RequestStore.js';
-import { MAX_PREVIEW_FILES } from '../../../../../../common/cards/characterPreviewConstants.js';
+import { MAX_PREVIEW_DOCUMENT_FILES } from '../../../../../../common/cards/characterPreviewConstants.js';
 
 /**
  * Manages the DocumentFilesPreview element's own fetch of a `GameDocument`'s file shortlist
@@ -36,7 +36,7 @@ export default class DocumentFilesPreviewController {
         resource: 'gameDocumentFile',
         quantityType: 'collection',
         params: { gameSlug, id },
-        query: { per_page: MAX_PREVIEW_FILES },
+        query: { per_page: MAX_PREVIEW_DOCUMENT_FILES },
       })
         .then(({ data }) => this.#handleResponse(data, mounted))
         .catch(() => this.#handleResponse([], mounted))

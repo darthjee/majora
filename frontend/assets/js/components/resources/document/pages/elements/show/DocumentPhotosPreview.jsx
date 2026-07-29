@@ -5,8 +5,8 @@ import Translator from '../../../../../../i18n/Translator.js';
 
 /**
  * Self-fetching bottom-slot preview section on the game document detail page, showing up to
- * `MAX_PREVIEW_PHOTOS` of the document's own `GameDocumentPhoto`s, with a link to the full photo
- * list page (issue #873). Mirrors `OpenPollsWidget`'s self-fetching pattern rather than
+ * `MAX_PREVIEW_DOCUMENT_PHOTOS` of the document's own `GameDocumentPhoto`s, with a link to the
+ * full photo list page (issue #873). Mirrors `OpenPollsWidget`'s self-fetching pattern rather than
  * `CharacterPhotosPreview` (which is fed already-fetched photos through context) — a document's
  * photos need their own dedicated fetch, since `ShowPageLayout`'s merged context only carries the
  * document itself, not its photos.

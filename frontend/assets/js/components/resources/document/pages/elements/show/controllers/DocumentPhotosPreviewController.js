@@ -1,5 +1,5 @@
 import RequestStore from '../../../../../../../utils/requests/RequestStore.js';
-import { MAX_PREVIEW_PHOTOS } from '../../../../../../common/cards/characterPreviewConstants.js';
+import { MAX_PREVIEW_DOCUMENT_PHOTOS } from '../../../../../../common/cards/characterPreviewConstants.js';
 
 /**
  * Manages the DocumentPhotosPreview element's own fetch of a `GameDocument`'s photo shortlist
@@ -36,7 +36,7 @@ export default class DocumentPhotosPreviewController {
         resource: 'gameDocumentPhoto',
         quantityType: 'collection',
         params: { gameSlug, id },
-        query: { per_page: MAX_PREVIEW_PHOTOS },
+        query: { per_page: MAX_PREVIEW_DOCUMENT_PHOTOS },
       })
         .then(({ data }) => this.#handleResponse(data, mounted))
         .catch(() => this.#handleResponse([], mounted))

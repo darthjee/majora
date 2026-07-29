@@ -1,9 +1,9 @@
-import DocumentFilesPreviewController
-  from '../../../../../../../../../../assets/js/components/resources/document/pages/elements/show/controllers/DocumentFilesPreviewController.js';
+import CharacterDocumentFilesPreviewController
+  from '../../../../../../../../../../assets/js/components/resources/character/pages/elements/show/controllers/CharacterDocumentFilesPreviewController.js';
 import RequestStore
   from '../../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 
-describe('DocumentFilesPreviewController', function() {
+describe('CharacterDocumentFilesPreviewController', function() {
   let setFiles;
   let setLoading;
   let ensureSpy;
@@ -15,23 +15,30 @@ describe('DocumentFilesPreviewController', function() {
   });
 
   describe('#buildEffect', function() {
-    it('fetches the document file shortlist through RequestStore.ensure', async function() {
+    it('fetches the character document file shortlist through RequestStore.ensure', async function() {
       ensureSpy.and.returnValue(Promise.resolve({
-        data: [{ id: 1, name: 'Notes', path: '/files/1/download', photo_path: null }],
+        data: [{
+          id: 1, character_document_id: 9, name: 'Notes', path: '/files/1/download', photo_path: null,
+        }],
         pagination: { page: 1, pages: 1, perPage: 17 },
       }));
 
-      const cleanup = new DocumentFilesPreviewController(setFiles, setLoading).buildEffect('demo', 9)();
+      const cleanup = new CharacterDocumentFilesPreviewController(setFiles, setLoading)
+        .buildEffect('demo', 'pcs', 7, 9)();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(ensureSpy).toHaveBeenCalledWith({
-        componentName: 'DocumentFilesPreviewController',
-        resource: 'gameDocumentFile',
+        componentName: 'CharacterDocumentFilesPreviewController',
+        resource: 'characterDocumentFile',
         quantityType: 'collection',
-        params: { gameSlug: 'demo', id: 9 },
+        params: {
+          gameSlug: 'demo', kind: 'pcs', characterId: 7, documentId: 9,
+        },
         query: { per_page: 17 },
       });
-      expect(setFiles).toHaveBeenCalledWith([{ id: 1, name: 'Notes', path: '/files/1/download', photo_path: null }]);
+      expect(setFiles).toHaveBeenCalledWith([{
+        id: 1, character_document_id: 9, name: 'Notes', path: '/files/1/download', photo_path: null,
+      }]);
       expect(setLoading).toHaveBeenCalledWith(false);
 
       cleanup();
@@ -40,7 +47,8 @@ describe('DocumentFilesPreviewController', function() {
     it('degrades to an empty list when the fetch rejects', async function() {
       ensureSpy.and.returnValue(Promise.reject(new Error('network error')));
 
-      const cleanup = new DocumentFilesPreviewController(setFiles, setLoading).buildEffect('demo', 9)();
+      const cleanup = new CharacterDocumentFilesPreviewController(setFiles, setLoading)
+        .buildEffect('demo', 'pcs', 7, 9)();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(setFiles).toHaveBeenCalledWith([]);
@@ -52,7 +60,8 @@ describe('DocumentFilesPreviewController', function() {
     it('degrades to an empty list when the response data is not an array', async function() {
       ensureSpy.and.returnValue(Promise.resolve({ data: null, pagination: {} }));
 
-      const cleanup = new DocumentFilesPreviewController(setFiles, setLoading).buildEffect('demo', 9)();
+      const cleanup = new CharacterDocumentFilesPreviewController(setFiles, setLoading)
+        .buildEffect('demo', 'pcs', 7, 9)();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(setFiles).toHaveBeenCalledWith([]);
@@ -62,11 +71,14 @@ describe('DocumentFilesPreviewController', function() {
 
     it('does not update state after unmount', async function() {
       ensureSpy.and.returnValue(Promise.resolve({
-        data: [{ id: 1, name: 'Notes', path: '/files/1/download', photo_path: null }],
+        data: [{
+          id: 1, character_document_id: 9, name: 'Notes', path: '/files/1/download', photo_path: null,
+        }],
         pagination: { page: 1, pages: 1, perPage: 17 },
       }));
 
-      const cleanup = new DocumentFilesPreviewController(setFiles, setLoading).buildEffect('demo', 9)();
+      const cleanup = new CharacterDocumentFilesPreviewController(setFiles, setLoading)
+        .buildEffect('demo', 'pcs', 7, 9)();
       cleanup();
       await new Promise((resolve) => setTimeout(resolve, 0));
 

@@ -24,7 +24,9 @@ import DocumentFilesPreview from '../../../../resources/document/pages/elements/
  * (now upload-capable) photo picker, matching `CharacterItemNewHelper`'s single-column form.
  *
  * `bottom`'s photo/file shortlists (issue #873) are `Show`-only: both need a real, already-
- * persisted `GameDocument` id to fetch against, so they make no sense on `new`/`edit`.
+ * persisted `GameDocument` id to fetch against, so they make no sense on `new`/`edit`. The files
+ * shortlist is listed before the photos shortlist (issue #897): it's the more useful of the two,
+ * so it takes the top slot.
  */
 const documentShowType = {
   left: [DocumentPhoto, { Show: DocumentNameHeading, Edit: DocumentNameHeading }],
@@ -36,8 +38,8 @@ const documentShowType = {
     { New: DocumentSubmitButton },
   ],
   bottom: [
-    { Show: DocumentPhotosPreview },
     { Show: DocumentFilesPreview },
+    { Show: DocumentPhotosPreview },
   ],
 };
 

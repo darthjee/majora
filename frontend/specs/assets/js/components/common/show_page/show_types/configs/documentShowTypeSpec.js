@@ -84,4 +84,11 @@ describe('documentShowType', function() {
     expect(filesEntry.Edit).toBeUndefined();
     expect(filesEntry.New).toBeUndefined();
   });
+
+  it('shows the files shortlist before the photos shortlist (issue #897)', function() {
+    const filesEntry = documentShowType.bottom.find((entry) => entry.Show === DocumentFilesPreview);
+    const photosEntry = documentShowType.bottom.find((entry) => entry.Show === DocumentPhotosPreview);
+
+    expect(documentShowType.bottom.indexOf(filesEntry)).toBeLessThan(documentShowType.bottom.indexOf(photosEntry));
+  });
 });

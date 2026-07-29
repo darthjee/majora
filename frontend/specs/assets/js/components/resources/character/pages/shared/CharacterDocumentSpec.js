@@ -67,12 +67,10 @@ class ErroredController {
       expect(html).toContain('Unable to load document.');
     });
 
-    it('delegates to CharacterDocumentDetailHelper.render with the document and back href', function() {
-      let capturedDocument;
-      let capturedBackHref;
-      spyOn(CharacterDocumentDetailHelper, 'render').and.callFake((document, backHref) => {
-        capturedDocument = document;
-        capturedBackHref = backHref;
+    it('delegates to CharacterDocumentDetailHelper.render with the document, back href, and scope params', function() {
+      let capturedArgs;
+      spyOn(CharacterDocumentDetailHelper, 'render').and.callFake((...args) => {
+        capturedArgs = args;
         return null;
       });
 
@@ -83,8 +81,14 @@ class ErroredController {
       const { character_id: characterId } = CharacterDocumentDetailController
         .getParamsFromHash(characterKind, hash);
 
-      expect(capturedDocument).toEqual(loadedDocument);
-      expect(capturedBackHref).toBe(`#/games/demo/${characterKind}/${characterId}/documents`);
+      const [document, backHref, gameSlug, kind, capturedCharacterId, onSelectPhoto] = capturedArgs;
+
+      expect(document).toEqual(loadedDocument);
+      expect(backHref).toBe(`#/games/demo/${characterKind}/${characterId}/documents`);
+      expect(gameSlug).toBe('demo');
+      expect(kind).toBe(characterKind);
+      expect(capturedCharacterId).toBe(characterId);
+      expect(onSelectPhoto).toEqual(jasmine.any(Function));
     });
   });
 });

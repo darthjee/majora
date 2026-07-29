@@ -503,6 +503,12 @@ item_page:
 character_document_page:
   loading: Loading document...
   hidden_label: Hidden
+  photos_title: Photos
+  files_title: Files
+character_document_photos_preview:
+  empty: No photos yet.
+character_document_files_preview:
+  empty: No files yet.
 item_edit_page:
   title: Edit item
   name_label: Name
