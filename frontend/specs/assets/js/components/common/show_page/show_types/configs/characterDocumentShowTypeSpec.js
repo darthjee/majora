@@ -4,6 +4,12 @@ import CharacterDocumentPhoto
   from '../../../../../../../../assets/js/components/resources/character/pages/elements/show/CharacterDocumentPhoto.jsx';
 import CharacterDocumentNameHeading
   from '../../../../../../../../assets/js/components/resources/character/pages/elements/show/CharacterDocumentNameHeading.jsx';
+import CharacterDocumentFilesPreview
+  from '../../../../../../../../assets/js/components/resources/character/pages/elements/show/CharacterDocumentFilesPreview.jsx';
+import CharacterDocumentPhotosPreview
+  from '../../../../../../../../assets/js/components/resources/character/pages/elements/show/CharacterDocumentPhotosPreview.jsx';
+import DescriptionBox
+  from '../../../../../../../../assets/js/components/common/misc/DescriptionBox.jsx';
 
 describe('characterDocumentShowType', function() {
   it('offers the photo in the left column', function() {
@@ -14,11 +20,26 @@ describe('characterDocumentShowType', function() {
     expect(characterDocumentShowType.left).toContain(CharacterDocumentNameHeading);
   });
 
-  it('has no right-column content', function() {
-    expect(characterDocumentShowType.right).toEqual([]);
+  it('shows the description via DescriptionBox in the right column, show mode only', function() {
+    const descriptionEntry = characterDocumentShowType.right.find((entry) => entry.Show === DescriptionBox);
+
+    expect(descriptionEntry).toBeDefined();
+    expect(descriptionEntry.Edit).toBeUndefined();
+    expect(descriptionEntry.New).toBeUndefined();
   });
 
-  it('has no bottom-slot content', function() {
-    expect(characterDocumentShowType.bottom).toEqual([]);
+  it('shows the files shortlist before the photos shortlist in the bottom slot, show mode only (issue #897)', function() {
+    const filesEntry = characterDocumentShowType.bottom.find((entry) => entry.Show === CharacterDocumentFilesPreview);
+    const photosEntry = characterDocumentShowType.bottom
+      .find((entry) => entry.Show === CharacterDocumentPhotosPreview);
+
+    expect(filesEntry).toBeDefined();
+    expect(photosEntry).toBeDefined();
+    expect(characterDocumentShowType.bottom.indexOf(filesEntry))
+      .toBeLessThan(characterDocumentShowType.bottom.indexOf(photosEntry));
+    expect(filesEntry.Edit).toBeUndefined();
+    expect(filesEntry.New).toBeUndefined();
+    expect(photosEntry.Edit).toBeUndefined();
+    expect(photosEntry.New).toBeUndefined();
   });
 });

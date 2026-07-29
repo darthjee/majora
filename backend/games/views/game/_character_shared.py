@@ -24,6 +24,8 @@ from ...serializers import (
     GameItemListSerializer,
 )
 from ..common import access_response, parse_role_booleans, permissions_response
+from ._document_files import character_document_files
+from ._document_photos import character_document_photos
 from ._documents import character_document_detail, character_documents
 from ._full import character_full
 from ._item_create import character_item_create
@@ -311,6 +313,88 @@ def build_document_detail_full_view(npc, serializer_class):
         response = character_document_detail(
             request, game, character_id, document_id, npc=npc, check_hidden=npc,
             allow_hidden=True, serializer_class=serializer_class,
+        )
+        response['X-Skip-Cache'] = 'true'
+        return response
+
+    return view
+
+
+def build_document_files_view(npc):
+    """Build the GET document files-list view for a PC (`npc=False`) or NPC (`npc=True`).
+
+    Mirrors `build_documents_view` above, narrowed to a single document's underlying
+    `GameDocument` files.
+    """
+
+    @_build_api_view(['GET'], AllowAny)
+    def view(request, game_slug, character_id, document_id):
+        """Return a paginated list of ready files for a document held by a specific PC/NPC."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        return character_document_files(
+            request, game, character_id, document_id, npc=npc, check_hidden=npc,
+        )
+
+    return view
+
+
+def build_document_files_all_view(npc):
+    """Build the DM/owner-only GET document files-list-all view for a PC or NPC.
+
+    Mirrors `build_documents_all_view` above; reuses `_check_character_all_permission` for the
+    same dm/admin(/owner) split `/documents/all.json` already applies.
+    """
+
+    @_build_api_view(['GET'], AllowAny)
+    def view(request, game_slug, character_id, document_id):
+        """Return all ready files for a document held by a PC/NPC — dm/owner/admin only."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        error_response = _check_character_all_permission(request, game, character_id, npc)
+        if error_response:
+            return error_response
+        response = character_document_files(
+            request, game, character_id, document_id, npc=npc, check_hidden=npc,
+            allow_hidden=True,
+        )
+        response['X-Skip-Cache'] = 'true'
+        return response
+
+    return view
+
+
+def build_document_photos_view(npc):
+    """Build the GET document photos-list view for a PC (`npc=False`) or NPC (`npc=True`).
+
+    Mirrors `build_document_files_view` above, for the document's underlying photos instead.
+    """
+
+    @_build_api_view(['GET'], AllowAny)
+    def view(request, game_slug, character_id, document_id):
+        """Return a paginated list of ready photos for a document held by a specific PC/NPC."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        return character_document_photos(
+            request, game, character_id, document_id, npc=npc, check_hidden=npc,
+        )
+
+    return view
+
+
+def build_document_photos_all_view(npc):
+    """Build the DM/owner-only GET document photos-list-all view for a PC or NPC.
+
+    Mirrors `build_document_files_all_view` above, for the document's underlying photos instead.
+    """
+
+    @_build_api_view(['GET'], AllowAny)
+    def view(request, game_slug, character_id, document_id):
+        """Return all ready photos for a document held by a PC/NPC — dm/owner/admin only."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        error_response = _check_character_all_permission(request, game, character_id, npc)
+        if error_response:
+            return error_response
+        response = character_document_photos(
+            request, game, character_id, document_id, npc=npc, check_hidden=npc,
+            allow_hidden=True,
         )
         response['X-Skip-Cache'] = 'true'
         return response

@@ -18,7 +18,7 @@ describe('DocumentPhotosPreviewController', function() {
     it('fetches the document photo shortlist through RequestStore.ensure', async function() {
       ensureSpy.and.returnValue(Promise.resolve({
         data: [{ id: 1, path: '/photos/1.jpg' }],
-        pagination: { page: 1, pages: 1, perPage: 11 },
+        pagination: { page: 1, pages: 1, perPage: 17 },
       }));
 
       const cleanup = new DocumentPhotosPreviewController(setPhotos, setLoading).buildEffect('demo', 9)();
@@ -29,7 +29,7 @@ describe('DocumentPhotosPreviewController', function() {
         resource: 'gameDocumentPhoto',
         quantityType: 'collection',
         params: { gameSlug: 'demo', id: 9 },
-        query: { per_page: 11 },
+        query: { per_page: 17 },
       });
       expect(setPhotos).toHaveBeenCalledWith([{ id: 1, path: '/photos/1.jpg' }]);
       expect(setLoading).toHaveBeenCalledWith(false);
@@ -63,7 +63,7 @@ describe('DocumentPhotosPreviewController', function() {
     it('does not update state after unmount', async function() {
       ensureSpy.and.returnValue(Promise.resolve({
         data: [{ id: 1, path: '/photos/1.jpg' }],
-        pagination: { page: 1, pages: 1, perPage: 11 },
+        pagination: { page: 1, pages: 1, perPage: 17 },
       }));
 
       const cleanup = new DocumentPhotosPreviewController(setPhotos, setLoading).buildEffect('demo', 9)();

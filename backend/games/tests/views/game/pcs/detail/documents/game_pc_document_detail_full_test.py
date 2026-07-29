@@ -84,11 +84,11 @@ class TestGamePcDocumentDetailFullView(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert data['hidden'] is True
 
-    def test_response_does_not_include_description(self, client):
-        """Test that description is not exposed, since no such field exists for documents."""
+    def test_response_includes_description(self, client):
+        """Test that description is exposed, sourced from the underlying game document."""
         response = self.get(client, self._url(), token=self.owner_token)
         data = json.loads(response.content)
-        assert 'description' not in data
+        assert data['description'] == 'A crumbling scroll.'
 
     def test_returns_404_for_unknown_document(self, client):
         """Test that 404 is returned for a non-existent document id."""

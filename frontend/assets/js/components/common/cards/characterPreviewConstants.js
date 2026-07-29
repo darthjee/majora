@@ -16,12 +16,23 @@ export const MAX_PREVIEW_ITEMS = 5;
 export const MAX_PREVIEW_PHOTOS = 11;
 
 /**
- * Maximum number of files shown in a game document's file preview section (issue #873),
- * matching `MAX_PREVIEW_PHOTOS`.
+ * Maximum number of items shown in a `GameDocument`'s (issue #873) or `CharacterDocument`'s
+ * (issue #897) file preview section — deliberately its own constant rather than reusing
+ * `MAX_PREVIEW_PHOTOS`, since that one is shared by the unrelated character-photo preview
+ * section (`CharacterPhotosPreviewHelper.jsx`), which must stay at 11.
  *
  * @type {number}
  */
-export const MAX_PREVIEW_FILES = 11;
+export const MAX_PREVIEW_DOCUMENT_FILES = 17;
+
+/**
+ * Maximum number of items shown in a `GameDocument`'s (issue #873) or `CharacterDocument`'s
+ * (issue #897) photo preview section — see `MAX_PREVIEW_DOCUMENT_FILES` for why this is a
+ * dedicated constant rather than reusing `MAX_PREVIEW_PHOTOS`.
+ *
+ * @type {number}
+ */
+export const MAX_PREVIEW_DOCUMENT_PHOTOS = 17;
 
 /**
  * Per-type configuration for `PreviewSection` call sites: an i18n title key and a `Icons.js` icon

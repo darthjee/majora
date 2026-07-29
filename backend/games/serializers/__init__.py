@@ -9,6 +9,12 @@ from games.serializers.characters.character_document import (
     CharacterDocumentAllSerializer,
     CharacterDocumentSerializer,
 )
+from games.serializers.characters.character_document_file import (
+    CharacterDocumentFileSerializer,
+)
+from games.serializers.characters.character_document_photo import (
+    CharacterDocumentPhotoSerializer,
+)
 from games.serializers.characters.character_full import CharacterFullSerializer
 from games.serializers.characters.character_full_list import CharacterFullListSerializer
 from games.serializers.characters.character_item import (
@@ -114,6 +120,8 @@ __all__ = [
     'CharacterCreateSerializer',
     'CharacterDetailSerializer',
     'CharacterDocumentAllSerializer',
+    'CharacterDocumentFileSerializer',
+    'CharacterDocumentPhotoSerializer',
     'CharacterDocumentSerializer',
     'CharacterFullListSerializer',
     'CharacterFullSerializer',

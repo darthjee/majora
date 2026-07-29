@@ -37,10 +37,10 @@ class TestCharacterDocumentSerializer(TestCase):
         data = CharacterDocumentSerializer(self.character_document).data
         assert data['name'] == 'Ancient Scroll'
 
-    def test_does_not_include_description(self):
-        """Test that description is not exposed by the index serializer."""
+    def test_description_is_sourced_from_game_document_description(self):
+        """Test that description is sourced directly from the game document's description."""
         data = CharacterDocumentSerializer(self.character_document).data
-        assert 'description' not in data
+        assert data['description'] == 'A crumbling scroll.'
 
     def test_photo_path_is_none_without_a_game_document_photo(self):
         """Test that photo_path is None when the game document has no photo."""
@@ -60,7 +60,7 @@ class TestCharacterDocumentSerializer(TestCase):
     def test_only_exposes_expected_fields(self):
         """Test that only the documented fields are exposed."""
         data = CharacterDocumentSerializer(self.character_document).data
-        assert set(data.keys()) == {'id', 'game_document_id', 'name', 'photo_path'}
+        assert set(data.keys()) == {'id', 'game_document_id', 'name', 'description', 'photo_path'}
 
     def test_does_not_include_character(self):
         """Test that the character field is not exposed."""

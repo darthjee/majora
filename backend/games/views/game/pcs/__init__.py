@@ -2,6 +2,10 @@
 
 from .detail.documents.game_pc_document_detail import game_pc_document_detail
 from .detail.documents.game_pc_document_detail_full import game_pc_document_detail_full
+from .detail.documents.game_pc_document_files import game_pc_document_files
+from .detail.documents.game_pc_document_files_all import game_pc_document_files_all
+from .detail.documents.game_pc_document_photos import game_pc_document_photos
+from .detail.documents.game_pc_document_photos_all import game_pc_document_photos_all
 from .detail.documents.game_pc_documents import game_pc_documents
 from .detail.documents.game_pc_documents_all import game_pc_documents_all
 from .detail.game_pc_access import game_pc_access
@@ -50,6 +54,10 @@ __all__ = [
     'game_pc_documents_all',
     'game_pc_document_detail',
     'game_pc_document_detail_full',
+    'game_pc_document_files',
+    'game_pc_document_files_all',
+    'game_pc_document_photos',
+    'game_pc_document_photos_all',
     'game_pc_items',
     'game_pc_items_all',
     'game_pc_item_detail',
