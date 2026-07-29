@@ -5,13 +5,12 @@ unlike `Treasure`, there is no shared cross-game registry: `GameItem` is the top
 hierarchy, holding its own `name`, `description`, and optional `photo` directly (parallel to how
 `GameTreasure` merely links a game to a separately-owned `Treasure`, `GameItem` needs no such
 through model). It also carries a `hidden` (`BooleanField`, default `False`) flag scoping its
-visibility within that game's catalog. There is still no dedicated delete endpoint (out of
-scope, left for follow-up issues; deletion remains Django-admin-only for superusers), but issue
-#766 added a dm/admin-only `PATCH` endpoint that can update `name`/`description`/`hidden` (see
-"Item detail endpoints" below), and issue #784 added a dm/admin/staff `POST` endpoint that
-creates a bare `GameItem` with no owning `CharacterItem` (see "Item creation endpoint" below) —
-unlike [CharacterItem](character-item.md)'s `POST .../items.json` pair, which always creates a
-`GameItem`/`CharacterItem` pair together.
+visibility within that game's catalog. There is still no dedicated delete endpoint (left for
+follow-up issues; deletion remains Django-admin-only for superusers). A dm/admin-only `PATCH`
+endpoint updates `name`/`description`/`hidden` (see "Item detail endpoints" below), and a
+dm/admin/staff `POST` endpoint creates a bare `GameItem` with no owning `CharacterItem` (see "Item
+creation endpoint" below) — unlike [CharacterItem](character-item.md)'s `POST .../items.json`
+pair, which always creates a `GameItem`/`CharacterItem` pair together.
 
 ## Item index endpoints
 
@@ -59,8 +58,8 @@ Unknown `game_slug` or `item_id` (or an item belonging to a different game) → 
 the two index endpoints above in permission/visibility semantics, narrowed to a single row, but
 uses detail-only serializer subclasses (`GameItemDetailSerializer`/`GameItemDetailFullSerializer`,
 each extending the corresponding index serializer) that add `description` back on top of the
-lean index fields — no permission class changed. `PATCH` (issue #766) shares the same route as
-`GET` (`game_item_detail` now handles both) but only `name`/`description`/`hidden` are writable —
+lean index fields — no permission class changed. `PATCH` shares the same route as
+`GET` (`game_item_detail` handles both) but only `name`/`description`/`hidden` are writable —
 `photo` stays on its own dedicated upload endpoint (still out of scope for `GameItem`). Error
 responses: `401` `{"errors": {"detail": ["authentication required"]}}` if unauthenticated; `403`
 `{"errors": {"detail": ["not allowed"]}}` if authenticated but not permitted; `400`

@@ -5,7 +5,7 @@ uploaded), generically for a `GamePhoto`, `CharacterPhoto`, `GameItemPhoto`,
 `CharacterItemPhoto`, `GameDocumentPhoto`, `GameDocumentFile`, or `TreasurePhoto`, via a
 `GenericForeignKey` (`content_type`/`object_id`/`content_object`).
 
-An `upload_type` field (`'image'` or `'file'`, default `'image'`, issue #726) records which
+An `upload_type` field (`'image'` or `'file'`, default `'image'`) records which
 validation/storage strategy the proxy applied. It is set at creation time by the initiating
 view (existing photo-upload views all keep the default `'image'`; the document file-upload
 endpoint below sets `'file'`), included in the init endpoint's response, and re-checked at
@@ -19,8 +19,8 @@ a defense-in-depth check that the URL's `upload_type` segment matches the row's 
 | Create (`POST /games/<slug>/pcs/<id>/photo_upload.json`) | **CharacterPhotoUpload** |
 | Create (`POST /games/<slug>/npcs/<id>/photo_upload.json`) | **NpcPlayerEdit** |
 | Create (`POST /games/<slug>/documents/<id>/photo_upload.json`) | **GameDocumentPhotoUploadPermission** (staff, any player of the game, or the game's dm/editor — see [Document photo upload init endpoint](#document-photo-upload-init-endpoint) below) |
-| Create (`POST /games/<slug>/documents/<id>/file_upload.json`) | **GameDocumentFileUploadPermission** — identical rule to `GameDocumentPhotoUploadPermission` above (staff, any player of the game, or the game's dm/editor); see [Document file upload init endpoint](#document-file-upload-init-endpoint) below |
-| Create (`POST /games/<slug>/documents/<document_id>/files/<file_id>/photo_upload.json`) | **GameDocumentFilePhotoUploadPermission** — identical rule to `GameDocumentFileUploadPermission` above (staff, any player of the game, or the game's dm/editor); see [Document file photo upload init endpoint](#document-file-photo-upload-init-endpoint) below (issue #878) |
+| Create (`POST /games/<slug>/documents/<id>/file_upload.json`) | **GameDocumentFileUploadPermission** — identical rule to `GameDocumentPhotoUploadPermission` above; see [Document file upload init endpoint](#document-file-upload-init-endpoint) below |
+| Create (`POST /games/<slug>/documents/<document_id>/files/<file_id>/photo_upload.json`) | **GameDocumentFilePhotoUploadPermission** — identical rule to `GameDocumentFileUploadPermission` above; see [Document file photo upload init endpoint](#document-file-photo-upload-init-endpoint) below |
 | Create (`POST /treasures/<id>/photo_upload.json`) | Superuser, or that treasure's owning game's GameMaster when `treasure.game_id` is set (see [Treasure photo upload init endpoint](#treasure-photo-upload-init-endpoint) below) |
 | Read | Only the user who initiated the upload (indirectly, via the 201 response at creation time) |
 | Update / Delete | No public endpoint; status transitions are handled internally |
@@ -34,32 +34,32 @@ a defense-in-depth check that the URL's `upload_type` segment matches the row's 
 - All other fields (`file_path`, `expiration_time`, `status`, `user`, `content_type`,
   `object_id`) are internal and never returned by any endpoint.
 
-**`id` in the init response (issue #878):** every init endpoint's 201 response also includes an
-`id` key — the primary key of the created (or reused) photo/file record itself (e.g. the
-`GameDocumentFile`'s own id for the document file-upload endpoint, or the `GameDocumentFilePhoto`'s
-own id for a photo-upload endpoint) — added generically in `UploadInitiator._create_upload_response`,
-distinct from the `Upload` row's own `upload_id`. This is not a confidentiality-sensitive value
-(these pks are already exposed elsewhere once `ready=True`, e.g. via the containing resource's
-list/detail endpoints); it exists so a caller can chain a second, dependent upload against the
-just-created record before that first upload has even been finalised — the document file-upload
-endpoint's chained photo upload (below) is the first consumer of this. Every "Response fields"
-table below now includes `id` alongside the pre-existing fields.
+**`id` in the init response:** every init endpoint's 201 response also includes an `id` key —
+the primary key of the created (or reused) photo/file record itself (e.g. the
+`GameDocumentFile`'s own id for the document file-upload endpoint, or the
+`GameDocumentFilePhoto`'s own id for a photo-upload endpoint) — added generically in
+`UploadInitiator._create_upload_response`, distinct from the `Upload` row's own `upload_id`. This
+is not a confidentiality-sensitive value (these pks are already exposed elsewhere once
+`ready=True`, e.g. via the containing resource's list/detail endpoints); it exists so a caller
+can chain a second, dependent upload against the just-created record before that first upload has
+even been finalised — the document file-upload endpoint's chained photo upload (below) is a
+consumer of this. Every "Response fields" table below includes `id` alongside the pre-existing
+fields.
 
-**Route shape (issue #726):** the submit route (proxy-facing, client-initiated) is
+**Route shape:** the submit route (proxy-facing, client-initiated) is
 `POST /uploads/<upload_type>/<id>/submit.json`; the finalize route (backend-facing, called by
 the proxy internally) is `PATCH /uploads/<upload_type>/<id>.json` — both carry `upload_type` as
-a URL segment, previously just `/uploads/<id>/...`, and the URL segment itself is constrained
-to only `image`/`file` at the routing layer (an unrecognized value 404s before the view even
-runs). The finalize view looks up the `Upload` row by `id` alone, runs the existing token/
-ownership/expiry/status checks first (uniform `403` for any failure, same as before this issue),
-and only once those pass does it return `404` if the URL's `upload_type` doesn't match the row's
-stored `upload_type`. This ordering is deliberate: the `404` must never be observable by a
-caller who hasn't already proven ownership via a valid `X-Upload-Token`, otherwise an
-unauthenticated-of-that-upload caller could distinguish "upload doesn't exist" (403) from
-"upload exists, wrong type" (404) from "upload exists, right type, not authorized" (403),
-leaking the existence and `upload_type` of an arbitrary upload it has no claim to — this would
-have broken the endpoint's pre-existing "no distinguishable 404" invariant (see
-`test_nonexistent_upload_returns_403` in `upload_finalize_test.py`).
+a URL segment, constrained to only `image`/`file` at the routing layer (an unrecognized value
+404s before the view even runs). The finalize view looks up the `Upload` row by `id` alone, runs
+the existing token/ownership/expiry/status checks first (uniform `403` for any failure), and only
+once those pass does it return `404` if the URL's `upload_type` doesn't match the row's stored
+`upload_type`. This ordering is deliberate: the `404` must never be observable by a caller who
+hasn't already proven ownership via a valid `X-Upload-Token`, otherwise an unauthenticated-of-that-
+upload caller could distinguish "upload doesn't exist" (403) from "upload exists, wrong type"
+(404) from "upload exists, right type, not authorized" (403), leaking the existence and
+`upload_type` of an arbitrary upload it has no claim to — this would break the endpoint's
+pre-existing "no distinguishable 404" invariant (see `test_nonexistent_upload_returns_403` in
+`upload_finalize_test.py`).
 
 **Side effect on finalisation:** `PATCH /uploads/<upload_type>/<id>.json` with `status=uploaded`
 marks the linked photo/file record as `ready=True` and, if its owner does not already have a
@@ -69,13 +69,12 @@ type:
   `Game.cover_photo` to that photo. Gated by **GameEdit**.
 - **`CharacterPhoto`**: if the photo's character does not already have a `profile_photo`, sets
   `Character.profile_photo` to that photo. Gated by **CharacterPhotoUpload** for both a PC and an
-  NPC (issue #668 aligned the PC finalize step with the same **CharacterPhotoUpload** rule already
-  used at PC upload init, below; issue #713 later aligned the NPC branch the same way).
+  NPC.
 - **`TreasurePhoto`**: unconditionally sets `Treasure.photo` to that photo — unlike the
   `GamePhoto`/`CharacterPhoto` cases, there is no "if unset" guard, since a treasure has at most
   one photo and re-uploading always replaces it. Gated by **TreasureEdit** for a global
   treasure, or **GameEdit** when the treasure is exclusive to a game.
-- **`GameDocumentPhoto`** (issue #727): if the document does not already have a `photo`, sets
+- **`GameDocumentPhoto`**: if the document does not already have a `photo`, sets
   `GameDocument.photo` to that photo — the same "if unset" guard as `GamePhoto`/`CharacterPhoto`,
   since a document keeps every uploaded photo (`related_name='photos'`) and only its first
   upload becomes the display photo. Gated by **`GameDocumentPhotoUploadPermission`** (staff, any
@@ -125,8 +124,8 @@ endpoints"](game-document.md#document-photo-endpoints) for the sibling list/set 
 |----------|--------|-------------|-----------------|
 | `/games/<slug>/documents/<id>/file_upload.json` | POST | **`GameDocumentFileUploadPermission`** | `upload_id`, `token`, `upload_type` (`'file'`), `id`, `document_id` |
 
-Introduced by issue #726 as the first non-photo upload type, so a `GameDocument` can represent a
-real in-game document (a PDF), not only a scanned photo. `GameDocumentFileUploadPermission` is
+The first non-photo upload type, so a `GameDocument` can represent a real in-game document (a
+PDF), not only a scanned photo. `GameDocumentFileUploadPermission` is
 `user.is_staff or game.has_player(user) or game.can_be_edited_by(user)` — identical to
 `GameDocumentPhotoUploadPermission` above (staff, any player of the game, or the game's
 dm/editor); the required role set for uploading a file is the same as for uploading a photo.
@@ -137,15 +136,13 @@ restricts `filename` to a `.pdf` extension (proxy re-validates MIME `application
 extension `pdf` at submit time — see below). Always creates a new `GameDocumentFile` row with
 `ready=False`, stored under a `files/games/<slug>/documents/<id>/...` path (parallel to photos'
 `photos/...` root, via `PhotoPathBuilder.build(root='files')`). Not visible via any read endpoint
-until the upload is finalised — there is no dedicated document-files listing endpoint yet (out of
-scope for issue #726, mirroring the fact that a document's non-display photos are likewise not
-independently browsable).
+until the upload is finalised — there is no dedicated document-files listing endpoint yet.
 
 At the proxy layer, the file upload's submit request goes through the same generalized
-`UploadHandler` (renamed from `PhotoUploadHandler`, issue #726) as photo uploads, dispatching to
-a PDF-only validation strategy (MIME `application/pdf` + extension `pdf`) and a separate
-`files_path` storage base, keyed off the `:upload_type` URL segment — see [the route shape
-section above](#upload) for the submit/finalize URL change this required.
+`UploadHandler` as photo uploads, dispatching to a PDF-only validation strategy (MIME
+`application/pdf` + extension `pdf`) and a separate `files_path` storage base, keyed off the
+`:upload_type` URL segment — see [the route shape section above](#upload) for the submit/finalize
+URL change this required.
 
 This endpoint's `id` response field (see the shared "`id` in the init response" note above) is
 the newly created `GameDocumentFile`'s own id — the frontend uses it to build the path for the
@@ -157,10 +154,10 @@ chained photo-upload cycle below, once the file itself finishes uploading.
 |----------|--------|-------------|-----------------|
 | `/games/<slug>/documents/<document_id>/files/<file_id>/photo_upload.json` | POST | **`GameDocumentFilePhotoUploadPermission`** | `upload_id`, `token`, `upload_type` (`'image'`), `id`, `file_id` |
 
-Introduced by issue #878 so a `GameDocumentFile` (a document's uploaded PDF, see above) can also
-carry its own single photo — a `GameDocumentFilePhoto` row (`games.models.game.game_document_file_photo`,
-a bare `BasePhoto` subclass: `path`, `ready`, versioned history — no fields of its own), referenced
-by `GameDocumentFile.photo` (`SET_NULL`, `related_name='+'`, so there is no reverse accessor from
+Lets a `GameDocumentFile` (a document's uploaded PDF, see above) also carry its own single photo
+— a `GameDocumentFilePhoto` row (`games.models.game.game_document_file_photo`, a bare `BasePhoto`
+subclass: `path`, `ready`, versioned history — no fields of its own), referenced by
+`GameDocumentFile.photo` (`SET_NULL`, `related_name='+'`, so there is no reverse accessor from
 the photo back to its file). `GameDocumentFilePhotoUploadPermission`
 (`backend/games/permissions.py`) is `user.is_staff or game.has_player(user) or
 game.can_be_edited_by(user)` — identical to `GameDocumentFileUploadPermission` above (staff, any
@@ -180,9 +177,8 @@ assigned to `file.photo`. Unlike every other photo type above, this means `photo
 and `.../files/all.json`, both public for a non-hidden document's `ready=True` files) is **not**
 gated on the photo's own `ready` flag — `GameDocumentFileSerializer.photo_path` reads
 `photo.path` unconditionally, so it can reflect a freshly-initiated or mid-reupload photo before
-its own upload is finalised (pre-existing behavior from #873/#874, not changed by #878; see
-[GameDocument's "Document file photo upload
-endpoint"](game-document.md#document-file-photo-upload-endpoint) for the full note). Finalisation
+its own upload is finalised. See [GameDocument's "Document file photo upload
+endpoint"](game-document.md#document-file-photo-upload-endpoint) for the full note. Finalisation
 itself (`PATCH /uploads/image/<id>.json`) uses the default, unconditional `ready=True` behavior —
 there is no dedicated "if unset" or "always replace" dispatch branch for `GameDocumentFilePhoto`
 in the "Side effect on finalisation" list above, since the file's `photo` FK is already set at
