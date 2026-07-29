@@ -12,12 +12,18 @@ public/`/all.json`) expose read access; there is no create endpoint, no update e
 photo upload endpoint for `CharacterDocument` itself (left for follow-up issues, if ever needed),
 only Django admin for superusers.
 
+The index/detail pairs below follow the [default hidden-gated collection
+pattern](principles.md#default-hidden-gated-collection-pattern) — there is no `Create`/`Update`
+deviation to state, since neither exists for this resource at all. The files/photos shortlist
+endpoints and the `incognito` interaction are deviations specific to this resource, covered in
+their own sections below.
+
 ## Document index endpoints
 
 | Endpoint | Method | Who can call | Response |
 |----------|--------|-------------|----------|
 | `/games/<slug>/pcs/<id>/documents.json` | GET | **AllowAny** | Paginated list of `CharacterDocumentSerializer` objects (`id`, `game_document_id`, `name`, `description`, `photo_path`) for that PC's non-hidden `CharacterDocument` rows |
-| `/games/<slug>/pcs/<id>/documents/all.json` | GET | **CharacterEdit** (covers the PC's owning player, that game's GameMaster, or a superuser, via `Character.can_be_edited_by`) | Same lean fields as the plain list, plus a `hidden: boolean` field (via `CharacterDocumentAllSerializer`), and does not exclude hidden held documents. Always sets `X-Skip-Cache: true` |
+| `/games/<slug>/pcs/<id>/documents/all.json` | GET | **CharacterEdit** | Same lean fields as the plain list, plus a `hidden: boolean` field (via `CharacterDocumentAllSerializer`), and does not exclude hidden held documents. Always sets `X-Skip-Cache: true` |
 | `/games/<slug>/npcs/<id>/documents.json` | GET | **AllowAny**, but see the [hidden-NPC gate](character-photo.md#photo-index-endpoints) above | Same shape as the PC list, additionally excluding the NPC's own hidden `CharacterDocument` rows |
 | `/games/<slug>/npcs/<id>/documents/all.json` | GET | **GameEdit** | Same lean fields as the plain list, plus `hidden` (same `CharacterDocumentAllSerializer` as the PC variant), and does not exclude hidden held documents. Always sets `X-Skip-Cache: true` |
 
@@ -34,7 +40,7 @@ No `PATCH` branch exists — there is nothing left on `CharacterDocument` to upd
 |----------|--------|-------------|----------|
 | `/games/<slug>/pcs/<id>/documents/<document_id>.json` | GET | **AllowAny** | A single `CharacterDocumentSerializer` object; 404 if the `CharacterDocument` row is hidden or does not exist (or belongs to a different character/role) |
 | `/games/<slug>/npcs/<id>/documents/<document_id>.json` | GET | **AllowAny**, but see the [hidden-NPC gate](character-photo.md#photo-index-endpoints) above | Same as the PC variant; also 404s if the NPC itself is hidden (unless the requester is that game's GameMaster/superuser, in which case `X-Skip-Cache: true` is set) |
-| `/games/<slug>/pcs/<id>/documents/<document_id>/full.json` | GET | **CharacterEdit** (PC's owning player, that game's GameMaster, or a superuser) | A single `CharacterDocumentAllSerializer` object (adds `hidden`), including hidden `CharacterDocument` rows. Always sets `X-Skip-Cache: true` |
+| `/games/<slug>/pcs/<id>/documents/<document_id>/full.json` | GET | **CharacterEdit** | A single `CharacterDocumentAllSerializer` object (adds `hidden`), including hidden `CharacterDocument` rows. Always sets `X-Skip-Cache: true` |
 | `/games/<slug>/npcs/<id>/documents/<document_id>/full.json` | GET | **GameEdit** (no owner concept for NPCs) | Same as the PC `/full.json` variant, including hidden `CharacterDocument` rows. Always sets `X-Skip-Cache: true` |
 
 Both endpoint groups share the same `CharacterDocumentSerializer`/`CharacterDocumentAllSerializer`
@@ -81,17 +87,18 @@ can be held by more than one character).
 (same lookup/exclusion as the show/detail endpoints above); for NPCs only, also 404 if the
 `Character` itself is `hidden` (a PC's own `hidden` flag never gates its document endpoints, same
 as everywhere else in this document); `[]` (an empty paginated response, not a 404) if the
-`Character` is `incognito` — see "Incognito field" in [Character](character.md#incognito-field)
-for this new extension of `incognito`'s scope. `GameDocument.hidden` is ignored by both the public
-and private variant: a character possessing a document may see its files/photos regardless of
-whether the DM has made the document itself public yet, mirroring how `GameDocument.hidden` is
-already ignored by the show/detail endpoints above. The private `/all.json` variant ignores
-`CharacterDocument.hidden`, `Character.hidden`, and `Character.incognito` alike (same as the
-`/all.json`/`/full.json` endpoints above), and applies the same PC-vs-NPC `CharacterEdit`/
-`GameEdit` permission split as `documents/all.json` (`_check_character_all_permission`), no Staff
-bypass. Always sets `X-Skip-Cache: true` on the `/all.json` responses, and on a public response
-served through the NPC hidden-character gate to an authorized dm/superuser (same convention as
-the other NPC document endpoints above).
+`Character` is `incognito` — see the `incognito` [field-naming
+convention](principles.md#incognito) for this extension of `incognito`'s cascade onto nested
+sub-resources. `GameDocument.hidden` is ignored by both the public and private variant: a
+character possessing a document may see its files/photos regardless of whether the DM has made
+the document itself public yet, mirroring how `GameDocument.hidden` is already ignored by the
+show/detail endpoints above. The private `/all.json` variant ignores `CharacterDocument.hidden`,
+`Character.hidden`, and `Character.incognito` alike (same as the `/all.json`/`/full.json`
+endpoints above), and applies the same PC-vs-NPC `CharacterEdit`/`GameEdit` permission split as
+`documents/all.json` (`_check_character_all_permission`), no Staff bypass. Always sets
+`X-Skip-Cache: true` on the `/all.json` responses, and on a public response served through the
+NPC hidden-character gate to an authorized dm/superuser (same convention as the other NPC
+document endpoints above).
 
 Unknown `game_slug`/`character_id`/`document_id` (or mismatched/wrong type, or a `document_id`
 that resolves to a different character's `CharacterDocument`) → 404 on all eight endpoints. All

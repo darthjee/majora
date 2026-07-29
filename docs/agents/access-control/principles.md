@@ -43,7 +43,47 @@ permission that is broader than the full route's but still requires at least "an
 game" (never `AllowAny`). See [Character](character.md)'s "Narrow player-facing NPC PATCH" and
 "Narrow player-facing PC PATCH" sections for the concrete field sets and permissions.
 
-## Public vs regular attribute pattern
+## Default resource CRUD pattern
+
+Absent a stated deviation, every top-level resource in this document set follows the same
+List/Detail/Create/Update/Delete shape:
+
+| Action | Who can |
+|--------|---------|
+| List | **AllowAny** |
+| Detail | **AllowAny** |
+| Create | The resource's own `<Resource>Edit` rule (e.g. `GameEdit`, `CharacterEdit`, `GameSessionEdit` — substitute the resource's actual named rule from [Common Rules](common-rules.md)) |
+| Update | Same rule as Create |
+| Delete | Superuser only, via Django admin — never an API route |
+
+A resource file only needs its own CRUD table/section when it **deviates** from this — otherwise
+a one-line reference to this pattern suffices (e.g. "follows the default resource CRUD pattern;
+no deviations").
+
+## Default hidden-gated collection pattern
+
+Sub-resources scoped to a `Character` or `Game` (`CharacterItem`/`GameItem`,
+`CharacterDocument`/`GameDocument`, `CharacterTreasure`/`GameTreasure`, and similar) follow a
+second, distinct shape — a plain, lean collection plus a restricted, fuller sibling:
+
+| Action | Who can | Notes |
+|--------|---------|-------|
+| Plain `list.json`/`detail.json` | **AllowAny** | Excludes rows where `hidden=true`; response never includes a `hidden` field |
+| Restricted `all.json`/`full.json` | The resource's edit-level permission (e.g. `CharacterEdit`/`GameEdit`) | Includes hidden rows; response includes `hidden` |
+| Create/Update | The resource's own `*CreatePermission` | — |
+
+As with the default CRUD pattern above, a file only needs to restate this table when it
+deviates. Resource-specific extras — fallback-to-parent field resolution, `available.json`/
+`acquire.json`/`remove.json`-style extra actions, NPC-only hidden-visibility gates — are
+deviations worth documenting per file; only the restated plain/all/full permission shape itself
+is safe to collapse to a one-line reference.
+
+## Field-naming conventions
+
+Recurring field names carry the same access rule wherever they appear, so a resource file states
+only the field's *presence*, not a re-derivation of what the name itself already implies:
+
+### Public vs regular attribute pattern
 
 When an attribute has a restricted "real" value and a wider-audience "public" value, the model
 carries **two fields**: `x` (the real value) and `public_x` (the public value).
@@ -56,12 +96,31 @@ carries **two fields**: `x` (the real value) and `public_x` (the public value).
   exposes under the shared key, so a query param never lets an unauthorized caller filter on data
   it cannot otherwise read.
 
-See `private_allegiance`/`public_allegiance` and `private_slain`/`public_slain` on
-[Character](character.md) for a concrete example.
+Exposed, for both read and write, only on the resource's full/edit-level route; never on the
+partial/public route. See `private_allegiance`/`public_allegiance` and
+`private_slain`/`public_slain` on [Character](character.md) for a concrete example.
 
-## Public/regular is distinct from hidden attributes
+This is not the same thing as a plain **hidden attribute** (e.g. `description` vs
+`hidden_description`, or a boolean `hidden` field below). A hidden attribute is simply absent
+from responses for audiences who lack access — there is no alternate public value substituted in
+its place, unlike `x`/`public_x` above where every audience gets a value, just not always the
+real one.
 
-The public/regular pattern above is not the same thing as a plain **hidden attribute** (e.g.
-`description` vs `hidden_description`). A hidden attribute is simply absent from responses for
-audiences who lack access — there is no alternate public value substituted in its place, unlike
-`x`/`public_x` above where every audience gets a value, just not always the real one.
+### `id` / `<related>_id`
+
+Always safe to expose to anyone, regardless of endpoint — never accepted in a create/update
+request payload (always server-assigned). Resource files no longer need to state this per
+endpoint.
+
+### `hidden`
+
+A restricted-only field exposure plus row filter, exactly per the [Default hidden-gated
+collection pattern](#default-hidden-gated-collection-pattern) above.
+
+### `incognito`
+
+Same restricted-visibility treatment as `hidden`, but `Character`-specific, and **cascades**: an
+incognito (or hidden) NPC also gates its own nested sub-resources (documents, items, photos), not
+just its own fields — the cascade is stated once here; per-file mentions are a one-line pointer
+back to this section instead of a re-derivation. See [Character](character.md#incognito-field)
+for the concrete field-level effects.

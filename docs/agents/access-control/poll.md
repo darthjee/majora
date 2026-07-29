@@ -5,9 +5,10 @@ to) a game's participants. `PollVote` links a `User` (not a `Player`) to the opt
 for — so a game's DM(s), who have no `Player` row, can vote too — and is exposed via a dedicated
 `GET`/`PUT .../votes.json` endpoint (see the Vote row below).
 
-Unlike most other game sub-resources, view and create share the **exact same** permission rule
-(**PollPermission**), rather than create being stricter (contrast with
-[GameSessionMessage](game-session-message.md), whose create check excludes the
+Unlike the [default resource CRUD pattern](principles.md#default-resource-crud-pattern), List is
+not `AllowAny` and Create is not gated by a plain `<Resource>Edit` rule: view and create instead
+share the **exact same** permission rule (**PollPermission**), rather than create being stricter
+(contrast with [GameSessionMessage](game-session-message.md), whose create check excludes the
 superuser/staff bypass that its view check allows) or view being open to everyone
 (contrast with [GameSession](game-session.md)/[Task](task.md), which use GameEdit-style rules).
 

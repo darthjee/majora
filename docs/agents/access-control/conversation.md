@@ -9,9 +9,9 @@ conversation endpoint](#adding-a-real-conversation-endpoint) below), exposes a `
 reserved for a future messages issue. The pre-existing aggregate-only exposure through
 [Game](game.md)'s `GET /my-games.json` is unchanged.
 
-Per the top-level default that superusers/staff always have full access
-(`access-control.md`), `conversations.json` grants Superuser/Staff via the shared
-`PlayerPermission.check`'s `_is_admin_or_player` — the same check used by
+Unlike the [default resource CRUD pattern](principles.md#default-resource-crud-pattern) (List/
+Detail = `AllowAny`), `conversations.json` requires Player/GameMaster/Superuser/Staff via the
+shared `PlayerPermission.check`'s `_is_admin_or_player` — the same check used by
 [Player](player.md)'s `players.json`/`players/:id.json`.
 
 | Action | Who can |

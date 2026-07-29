@@ -15,55 +15,42 @@ collection (`related_name='files'`), so it can hold uploaded PDF files (not only
 — see "Document file upload endpoint" below; unlike the photo collection, there is no "display
 file" concept and no dedicated files-listing endpoint yet.
 
+The index/detail pair below follows the [default hidden-gated collection
+pattern](principles.md#default-hidden-gated-collection-pattern); `hidden` lives directly on
+`GameDocument` (not a separate per-game link row, since `GameDocument` already belongs to exactly
+one game), independent of [CharacterDocument](character-document.md)'s own `hidden` — there is no
+buy/sell flow or NPC/PC "held document hidden" filter tied to `GameDocument.hidden` itself.
+
 ## Document index endpoints
 
 | Endpoint | Method | Who can call | Response |
 |----------|--------|-------------|----------|
 | `/games/<slug>/documents.json` | GET | **AllowAny** | Paginated list of `GameDocumentListSerializer` objects (`id`, `name`, `photo_path`) for the game's non-hidden documents |
-| `/games/<slug>/documents/all.json` | GET | **GameEdit** | DM-only variant: does not exclude hidden documents, and each document additionally carries a `hidden: boolean` field (via `GameDocumentAllListSerializer`, a `GameDocumentListSerializer` subclass used only by this endpoint). Always sets `X-Skip-Cache: true` |
+| `/games/<slug>/documents/all.json` | GET | **GameEdit** | Same lean fields, plus a `hidden: boolean` field (via `GameDocumentAllListSerializer`), and does not exclude hidden documents. Always sets `X-Skip-Cache: true` |
 
-Unknown `game_slug` → 404. Both endpoints order by `id`.
-
-**Exposed fields** (read, index): `id`, `name`, `photo_path` — all non-sensitive; `description`
-is intentionally omitted from both index endpoints (card/preview UI never renders it — see
-`GameDocumentDetailSerializer` below for where it is exposed). `GET /games/<slug>/documents/all.json`
-additionally exposes `hidden` — see the `hidden` section below; no other read endpoint exposes it.
+Unknown `game_slug` → 404. Both endpoints order by `id`. `description` is intentionally omitted
+from both index endpoints (card/preview UI never renders it — see the detail endpoints below).
 
 `photo_path` — see [Photo path fields](common-rules.md#photo-path-fields) above; `null` until a
 photo is uploaded for the document (see "Document photo endpoints" below) — the first photo ever
 uploaded for a document automatically becomes its display photo.
-
-## `hidden`
-
-`hidden` lives directly on `GameDocument` (not on a separate per-game link row, since
-`GameDocument` already belongs to exactly one game) — a plain field, default `False`, never
-inherited by a `CharacterDocument` that links to it (see
-[CharacterDocument](character-document.md) below, whose own `hidden` is independent). It is:
-- Excluded from `GET /games/<slug>/documents.json` (the regular catalog list).
-- Exposed (per document) only on `GET /games/<slug>/documents/all.json`, gated by
-  `GameEditPermission` (that game's GameMaster, or a superuser/staff) — the same permission
-  class used by `GET /games/<slug>/items/all.json`.
-
-There is no buy/sell flow, or NPC/PC "held document hidden" filter tied to
-`GameDocument.hidden` itself — see [CharacterDocument](character-document.md) below for the
-separate, per-character `hidden` flag that governs a PC's/NPC's own held-document list.
 
 ## Document detail endpoints
 
 | Endpoint | Method | Who can call | Response |
 |----------|--------|-------------|----------|
 | `/games/<slug>/documents/<document_id>.json` | GET | **AllowAny** | `GameDocumentDetailSerializer` object (`id`, `name`, `photo_path`, `description`) for a single non-hidden document; 404 if the document is hidden or unknown |
-| `/games/<slug>/documents/<document_id>/full.json` | GET | **GameEdit** | DM-only variant: returns the document even if hidden, and additionally carries `hidden` (via `GameDocumentDetailFullSerializer`). Always sets `X-Skip-Cache: true` |
+| `/games/<slug>/documents/<document_id>/full.json` | GET | **GameEdit** | Returns the document even if hidden, and additionally carries `hidden` (via `GameDocumentDetailFullSerializer`). Always sets `X-Skip-Cache: true` |
 
 Unknown `game_slug` or `document_id` (or a document belonging to a different game) → 404. `GET`
-mirrors the two index endpoints above in permission/visibility semantics, narrowed to a single
-row, but uses detail-only serializer subclasses (`GameDocumentDetailSerializer`/
+uses detail-only serializer subclasses (`GameDocumentDetailSerializer`/
 `GameDocumentDetailFullSerializer`, each extending the corresponding index serializer) that add
-`description` back on top of the lean index fields — no permission class changed. There is no
-`PATCH` for `GameDocument` (out of scope — unlike `GameItem`'s `PATCH .../items/<item_id>.json`).
-Error responses: `401` `{"errors": {"detail": ["authentication required"]}}` if unauthenticated
-and not permitted (full endpoint only); `403` `{"errors": {"detail": ["not allowed"]}}` if
-authenticated but not permitted (full endpoint only).
+`description` back on top of the lean index fields. Deviation from the default pattern: there is
+no `PATCH` for `GameDocument` at all (out of scope — unlike `GameItem`'s
+`PATCH .../items/<item_id>.json`). Error responses: `401` `{"errors": {"detail": ["authentication
+required"]}}` if unauthenticated and not permitted (full endpoint only); `403`
+`{"errors": {"detail": ["not allowed"]}}` if authenticated but not permitted (full endpoint
+only).
 
 ## Document creation endpoint
 

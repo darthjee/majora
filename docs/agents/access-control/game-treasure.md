@@ -10,9 +10,12 @@ derived `available_units = max(max_units - acquired_units, 0)` (or `null` when `
 `Treasure.value` for that game, populated at creation time (for both M2M-linked and
 game-exclusive treasures) and kept in sync with an exclusive treasure's own `value` on update
 (see the "Update by game" row under [Treasure](treasure.md) above). It also carries a
-per-`(game, treasure)` `hidden` (`BooleanField`, default `False`) — see the dedicated section
-below. There is no dedicated CRUD endpoint for `GameTreasure` itself — it is only ever
-read/written indirectly, through the `Treasure`/`CharacterTreasure` endpoints below.
+per-`(game, treasure)` `hidden` (`BooleanField`, default `False`, following the [`hidden`
+field-naming convention](principles.md#hidden)) — see the dedicated section below. There is no
+dedicated CRUD endpoint for `GameTreasure` itself — it is only ever read/written indirectly,
+through the `Treasure`/`CharacterTreasure` endpoints below, so the [default hidden-gated
+collection pattern](principles.md#default-hidden-gated-collection-pattern) doesn't apply to it
+directly.
 
 | Action | Who can |
 |--------|---------|

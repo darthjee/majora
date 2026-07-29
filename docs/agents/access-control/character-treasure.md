@@ -8,6 +8,11 @@ buy/sell and acquire/remove mutation endpoints scoped to the owning player/GameM
 There is no direct create/update/delete endpoint for a `CharacterTreasure` row itself — only the
 atomic buy/sell/acquire/remove operations below, plus Django admin for superusers.
 
+Deviates from the [default hidden-gated collection
+pattern](principles.md#default-hidden-gated-collection-pattern) in two ways: there is no PC
+`/all.json` variant at all (only an NPC one), and the plain PC list is never filtered by
+`GameTreasure.hidden` — only the plain NPC list is, per the table below.
+
 ## Treasure index endpoints
 
 | Endpoint | Method | Who can call | Response |

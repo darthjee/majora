@@ -73,12 +73,10 @@ pattern](principles.md#public-vs-regular-attribute-pattern):
 - `private_allegiance` — the character's real disposition, visible only to a DM/superuser.
 - `public_allegiance` — the disposition shown to regular players.
 
-**Read exposure**:
-
-- On the public list/detail endpoints (`pcs.json`, `npcs.json`, `pcs/<id>.json`,
-  `npcs/<id>.json`), only `public_allegiance` is exposed — `private_allegiance` never appears.
-- On the DM/admin endpoints (`npcs/all.json`, `pcs/<id>/full.json`, `npcs/<id>/full.json`),
-  both `private_allegiance` and `public_allegiance` are exposed under their own keys.
+**Read exposure** follows the pattern exactly: only `public_allegiance` on the public list/detail
+endpoints (`pcs.json`, `npcs.json`, `pcs/<id>.json`, `npcs/<id>.json`); both fields, under their
+own keys, on the DM/admin endpoints (`npcs/all.json`, `pcs/<id>/full.json`,
+`npcs/<id>/full.json`).
 
 Applies uniformly to both PCs and NPCs (shared model/serializers), though the fields are only
 meaningfully written for NPCs in practice — a PC's `private_allegiance`/`public_allegiance` stay
@@ -136,15 +134,15 @@ above.
 ## Hidden field
 
 `Character.hidden` is a single `BooleanField` (default `False`), shared by both PCs and NPCs,
-with no public/regular split (unlike `private_allegiance`/`private_slain` above) — there is only
-ever one real value, and it is never exposed on the public-facing endpoints at all.
-
-**Read exposure**: not returned on the public list/detail endpoints (`pcs.json`, `npcs.json`,
-`pcs/<id>.json`, `npcs/<id>.json`) — those endpoints unconditionally exclude hidden NPCs from
-`npcs.json`'s queryset instead of exposing the field. Returned read-only on the DM/admin
-endpoints (`npcs/all.json` via `CharacterFullListSerializer`, `pcs/<id>/full.json` and
-`npcs/<id>/full.json` via `CharacterFullSerializer`), which is also the only place a hidden NPC
-is visible in a list at all.
+following the [`hidden` field-naming convention](principles.md#hidden) — a genuinely hidden
+attribute (see the distinction drawn there), not the public/regular split `private_allegiance`/
+`private_slain` above use. `npcs.json`/`npcs/all.json` is the [default hidden-gated collection
+pattern](principles.md#default-hidden-gated-collection-pattern) applied to `Character` itself:
+`npcs.json` unconditionally excludes hidden NPCs from its queryset instead of exposing the field;
+`npcs/all.json` (via `CharacterFullListSerializer`) includes them and exposes `hidden` — the only
+place a hidden NPC is visible in a list at all. `pcs/<id>/full.json`/`npcs/<id>/full.json` (via
+`CharacterFullSerializer`) expose it too. It is never returned on the public list/detail
+endpoints (`pcs.json`, `npcs.json`, `pcs/<id>.json`, `npcs/<id>.json`).
 
 **Write access**: writable through `CharacterUpdateSerializer` (**CharacterEdit**-gated, same
 `full.json` routes as "Slain fields"/"Allegiance fields" above) and through
@@ -162,8 +160,10 @@ filter param) and is unaffected by this query parameter.
 ## Incognito field
 
 `Character.incognito` is a single `BooleanField` (default `False`), shared by both PCs and NPCs,
-mirroring `hidden`'s shape. Unlike `hidden`, it does not gate visibility of the character itself
-— an incognito NPC still appears on `npcs.json`/`npcs/<id>.json` — it only nulls out
+following the [`incognito` field-naming convention](principles.md#incognito) — same
+restricted-visibility treatment as `hidden`, mirroring its shape. Unlike `hidden`, it does not
+gate visibility of the character itself — an incognito NPC still appears on
+`npcs.json`/`npcs/<id>.json` — it only nulls out
 `profile_photo_path` on those public endpoints (see "Photo path fields" in
 [common-rules.md](common-rules.md#photo-path-fields)), and empties the two
 [CharacterDocument](character-document.md#document-filesphotos-shortlist-endpoints) files/photos
