@@ -1,5 +1,7 @@
 """Views for NPC (Non-Player Character) endpoints."""
 
+from .detail.documents.game_npc_document_detail import game_npc_document_detail
+from .detail.documents.game_npc_document_detail_full import game_npc_document_detail_full
 from .detail.documents.game_npc_documents import game_npc_documents
 from .detail.documents.game_npc_documents_all import game_npc_documents_all
 from .detail.game_npc_access import game_npc_access
@@ -51,6 +53,8 @@ __all__ = [
     'game_npc_photos',
     'game_npc_documents',
     'game_npc_documents_all',
+    'game_npc_document_detail',
+    'game_npc_document_detail_full',
     'game_npc_items',
     'game_npc_items_all',
     'game_npc_item_detail',

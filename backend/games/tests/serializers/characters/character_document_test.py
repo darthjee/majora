@@ -2,7 +2,7 @@
 
 from django.test import TestCase
 
-from games.models import CharacterDocument, CharacterDocumentPhoto, GameDocumentPhoto
+from games.models import CharacterDocument, GameDocumentPhoto
 from games.serializers import CharacterDocumentSerializer
 from games.tests.factories import CharacterFactory, GameDocumentFactory, GameFactory
 
@@ -32,30 +32,23 @@ class TestCharacterDocumentSerializer(TestCase):
         data = CharacterDocumentSerializer(self.character_document).data
         assert data['game_document_id'] == self.game_document.id
 
-    def test_name_falls_back_to_game_document_name(self):
-        """Test that name falls back to the game document's name when not overridden."""
+    def test_name_is_sourced_from_game_document_name(self):
+        """Test that name is sourced directly from the game document's name."""
         data = CharacterDocumentSerializer(self.character_document).data
         assert data['name'] == 'Ancient Scroll'
-
-    def test_name_uses_own_override_when_set(self):
-        """Test that name uses the character document's own override when set."""
-        self.character_document.name = "Frodo's Scroll"
-        self.character_document.save()
-        data = CharacterDocumentSerializer(self.character_document).data
-        assert data['name'] == "Frodo's Scroll"
 
     def test_does_not_include_description(self):
         """Test that description is not exposed by the index serializer."""
         data = CharacterDocumentSerializer(self.character_document).data
         assert 'description' not in data
 
-    def test_photo_path_is_none_without_any_photo(self):
-        """Test that photo_path is None when neither document has a photo."""
+    def test_photo_path_is_none_without_a_game_document_photo(self):
+        """Test that photo_path is None when the game document has no photo."""
         data = CharacterDocumentSerializer(self.character_document).data
         assert data['photo_path'] is None
 
-    def test_photo_path_falls_back_to_game_document_photo(self):
-        """Test that photo_path falls back to the game document's photo when not overridden."""
+    def test_photo_path_is_sourced_from_game_document_photo(self):
+        """Test that photo_path is sourced directly from the game document's photo."""
         photo = GameDocumentPhoto.objects.create(
             game_document=self.game_document, path='photos/game_documents/1/photo.png',
         )
@@ -63,17 +56,6 @@ class TestCharacterDocumentSerializer(TestCase):
         self.game_document.save()
         data = CharacterDocumentSerializer(self.character_document).data
         assert data['photo_path'] == 'photos/game_documents/1/photo.png'
-
-    def test_photo_path_uses_own_override_when_set(self):
-        """Test that photo_path uses the character document's own photo when set."""
-        own_photo = CharacterDocumentPhoto.objects.create(
-            character_document=self.character_document,
-            path='photos/character_documents/1/photo.png',
-        )
-        self.character_document.photo = own_photo
-        self.character_document.save()
-        data = CharacterDocumentSerializer(self.character_document).data
-        assert data['photo_path'] == 'photos/character_documents/1/photo.png'
 
     def test_only_exposes_expected_fields(self):
         """Test that only the documented fields are exposed."""

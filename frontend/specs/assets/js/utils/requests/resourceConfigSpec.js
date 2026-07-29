@@ -271,9 +271,23 @@ describe('resourceConfig', function() {
     it('resolves single regular/private paths and permissions for a game document (issue #758)', function() {
       const single = resourceConfig.get('GET', 'document', 'single');
 
-      expect(single.regular.path({ gameSlug: 'demo', id: '9' })).toBe('/games/demo/documents/9.json');
+      expect(single.regular.path({ gameSlug: 'demo', kind: 'game', id: '9' })).toBe('/games/demo/documents/9.json');
       expect(single.regular.permission).toBeNull();
-      expect(single.private.path({ gameSlug: 'demo', id: '9' })).toBe('/games/demo/documents/9/full.json');
+      expect(single.private.path({ gameSlug: 'demo', kind: 'game', id: '9' }))
+        .toBe('/games/demo/documents/9/full.json');
+      expect(single.private.permission).toBe('can_edit');
+    });
+
+    it('resolves single regular/private paths and permissions for a character document (issue #892)', function() {
+      const single = resourceConfig.get('GET', 'document', 'single');
+
+      expect(single.regular.path({
+        gameSlug: 'demo', kind: 'pcs', id: '3', documentId: '9',
+      })).toBe('/games/demo/pcs/3/documents/9.json');
+      expect(single.regular.permission).toBeNull();
+      expect(single.private.path({
+        gameSlug: 'demo', kind: 'npcs', id: '3', documentId: '9',
+      })).toBe('/games/demo/npcs/3/documents/9/full.json');
       expect(single.private.permission).toBe('can_edit');
     });
   });

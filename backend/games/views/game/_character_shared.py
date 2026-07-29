@@ -17,13 +17,14 @@ from accounts.authentication import CookieTokenAuthentication
 from ...models import Game
 from ...permissions import CharacterEditPermission, GameEditPermission
 from ...serializers import (
+    CharacterDocumentSerializer,
     CharacterItemDetailSerializer,
     CharacterPermissionsSerializer,
     GameItemAllListSerializer,
     GameItemListSerializer,
 )
 from ..common import access_response, parse_role_booleans, permissions_response
-from ._documents import character_documents
+from ._documents import character_document_detail, character_documents
 from ._full import character_full
 from ._item_create import character_item_create
 from ._item_exchange import (
@@ -266,6 +267,50 @@ def build_documents_all_view(npc, serializer_class):
         response = character_documents(
             request, game, character_id, npc=npc, check_hidden=npc, allow_hidden=True,
             serializer_class=serializer_class,
+        )
+        response['X-Skip-Cache'] = 'true'
+        return response
+
+    return view
+
+
+def build_document_detail_view(npc, serializer_class=CharacterDocumentSerializer):
+    """Build the GET document-detail view for a PC (`npc=False`) or NPC (`npc=True`).
+
+    Mirrors `build_item_detail_view` below, minus the `PATCH` branch — there is no update
+    endpoint for documents (nothing left on `CharacterDocument` to edit).
+    """
+
+    @_build_api_view(['GET'], AllowAny)
+    def view(request, game_slug, character_id, document_id):
+        """Return a single document held by a specific PC/NPC."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        return character_document_detail(
+            request, game, character_id, document_id, npc=npc, check_hidden=npc,
+            serializer_class=serializer_class,
+        )
+
+    return view
+
+
+def build_document_detail_full_view(npc, serializer_class):
+    """Build the DM/owner-only GET document-detail-full view for a PC or NPC.
+
+    Mirrors `build_item_detail_full_view` below, minus the `PATCH`/photo-upload wiring; reuses
+    `_check_character_all_permission` for the same dm/admin(/owner) split `/documents/all.json`
+    already applies.
+    """
+
+    @_build_api_view(['GET'], AllowAny)
+    def view(request, game_slug, character_id, document_id):
+        """Return detail for any document (incl. hidden) held by a PC/NPC — dm/owner/admin only."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        error_response = _check_character_all_permission(request, game, character_id, npc)
+        if error_response:
+            return error_response
+        response = character_document_detail(
+            request, game, character_id, document_id, npc=npc, check_hidden=npc,
+            allow_hidden=True, serializer_class=serializer_class,
         )
         response['X-Skip-Cache'] = 'true'
         return response

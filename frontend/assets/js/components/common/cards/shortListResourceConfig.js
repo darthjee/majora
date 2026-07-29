@@ -61,9 +61,10 @@ function renderCharacterPreviewCard(characterType, item, context) {
  * clicked card navigates (`action`/`buildHref`), and how to render a single item's card
  * (`renderItem(item, context, href)`).
  *
- * @description `document` keeps `action: 'none'` — no detail endpoint/route exists for a
- *   character's own `CharacterDocument`s (see `documentConfig.js`'s own doc comment); the only
- *   document show page (`documentShowType.js`) is for the unrelated game-level `GameDocument`.
+ * @description `document` (issue #892) now flips to `action: 'navigate'`, mirroring the `item`
+ *   entry immediately above it — a `CharacterDocument` show page (`character_document`
+ *   `showTypeConfig` entry) now exists to link to, distinct from the unrelated `document` show
+ *   type backing the game-level `GameDocument` show/new/edit page.
  *   `'show picture'` is a valid `action` value by shape, matching the issue's spec, but is not
  *   assigned to any resource here.
  * @type {object}
@@ -125,10 +126,15 @@ const shortListResourceConfig = {
     titleKey: PREVIEW_LIST_TYPES.document.titleKey,
     icon: PREVIEW_LIST_TYPES.document.icon,
     emptyTextKey: 'character_documents_preview.empty',
-    action: 'none',
+    action: 'navigate',
     buildParams: characterResourceParams,
     buildSeeAllHref: (context) => characterResourceSeeAllHref('document', context),
-    renderItem: (item) => React.createElement(DocumentPreviewCard, { key: item.id, document: item }),
+    buildHref: (context, item) => (
+      `#/games/${context.game_slug}/${characterSegment(context)}/${context.id}/documents/${item.id}`
+    ),
+    renderItem: (item, context, href) => React.createElement(
+      DocumentPreviewCard, { key: item.id, document: item, href },
+    ),
   },
 };
 

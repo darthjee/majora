@@ -500,6 +500,9 @@ game_document_files_page:
 item_page:
   loading: Carregando item...
   hidden_label: Oculto
+character_document_page:
+  loading: Carregando documento...
+  hidden_label: Oculto
 item_edit_page:
   title: Editar item
   name_label: Nome

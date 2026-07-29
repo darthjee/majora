@@ -2,7 +2,6 @@
 
 from games.models.character.character import Character
 from games.models.character.character_document import CharacterDocument
-from games.models.character.character_document_photo import CharacterDocumentPhoto
 from games.models.character.character_item import CharacterItem
 from games.models.character.character_item_photo import CharacterItemPhoto
 from games.models.character.character_link import CharacterLink
@@ -32,7 +31,6 @@ from games.models.upload import Upload
 __all__ = [
     'Character',
     'CharacterDocument',
-    'CharacterDocumentPhoto',
     'CharacterItem',
     'CharacterItemPhoto',
     'CharacterLink',

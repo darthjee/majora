@@ -45,5 +45,15 @@ describe('DocumentPreviewCardHelper', function() {
 
       expect(tooltip.props.content).toBe('Ancient Tome');
     });
+
+    it('does not link the card when href is not given', function() {
+      const html = renderToStaticMarkup(DocumentPreviewCardHelper.render(document));
+      expect(html).not.toContain('<a ');
+    });
+
+    it('links the whole card to href when given', function() {
+      const html = renderToStaticMarkup(DocumentPreviewCardHelper.render(document, '#/games/demo/pcs/7/documents/1'));
+      expect(html).toContain('href="#/games/demo/pcs/7/documents/1"');
+    });
   });
 });

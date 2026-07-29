@@ -140,17 +140,17 @@ describe('shortListResourceConfig', function() {
       expect(documentConfig.buildSeeAllHref(pcContext)).toBe('#/games/demo/pcs/7/documents');
     });
 
-    it('has no click action, since no detail route exists for CharacterDocuments', function() {
-      expect(documentConfig.action).toBe('none');
-      expect(documentConfig.buildHref).toBeUndefined();
+    it('navigates to the document\'s own character-scoped detail page (issue #892)', function() {
+      expect(documentConfig.action).toBe('navigate');
+      expect(documentConfig.buildHref(pcContext, { id: 3 })).toBe('#/games/demo/pcs/7/documents/3');
     });
 
-    it('renders a DocumentPreviewCard', function() {
+    it('renders a DocumentPreviewCard with the resolved href', function() {
       const item = { id: 1, name: 'Ancient Tome' };
-      const element = documentConfig.renderItem(item, pcContext);
+      const element = documentConfig.renderItem(item, pcContext, '#/games/demo/pcs/7/documents/1');
 
       expect(element.type).toBe(DocumentPreviewCard);
-      expect(element.props).toEqual({ document: item });
+      expect(element.props).toEqual({ document: item, href: '#/games/demo/pcs/7/documents/1' });
     });
 
     it('has an empty-state text key', function() {
