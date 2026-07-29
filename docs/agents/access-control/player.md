@@ -1,18 +1,14 @@
 # Player
 
-A `Player` is now exposed as a standalone resource via a dedicated roster endpoint (issue
-#589) and a single-player detail endpoint (issue #695); it remains otherwise read indirectly
-through character data. No write endpoint exists.
+A `Player` is exposed as a standalone resource via a dedicated roster endpoint and a
+single-player detail endpoint; it remains otherwise read indirectly through character data. No
+write endpoint exists.
 
-> **Access-control exception reversed (issue #864):** issue #695 previously excluded
-> Superuser and Staff (`is_staff`) from both endpoints below, breaking `access-control.md`'s
-> top-level default ("Superusers always have full access to everything, regardless of any
-> other rule listed below"). Issue #864 intentionally reverses that exclusion as part of a
-> broader player-empowerment policy shift: `PlayerPermission` now also grants Staff/Superuser,
-> mirroring `_is_admin_or_player` (already used by `PollPermission`'s/`SessionMessagePermission`'s/
-> `PollVotePermission`'s view-only checks). The same reversal applies to
-> [Conversation](conversation.md)'s `conversations.json` endpoint, which reuses
-> `PlayerPermission` unchanged.
+Per the top-level default that superusers/staff always have full access
+(`access-control.md`), both endpoints below grant Superuser/Staff via `PlayerPermission`, which
+mirrors `_is_admin_or_player` (already used by `PollPermission`'s/`SessionMessagePermission`'s/
+`PollVotePermission`'s view-only checks). [Conversation](conversation.md)'s `conversations.json`
+endpoint reuses the same `PlayerPermission` unchanged.
 
 | Action | Who can |
 |--------|---------|
@@ -50,8 +46,7 @@ not support Django's partial/conditional unique constraints
 A plain `UniqueConstraint` already achieves the same effect on MySQL without it, since
 MySQL's standard unique-index semantics treat every `NULL` as distinct — any number of
 NPCs/unowned PCs with `player=None` remain unaffected; only non-null `player` values are
-constrained to be unique. This is a schema-only change (issue #589); no backfill migration
-is included.
+constrained to be unique. This is a schema-only change; no backfill migration is included.
 
 ## GameMaster (DM) role
 

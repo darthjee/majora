@@ -48,14 +48,12 @@ regardless of any other rule listed below.
 - [Conversation](access-control/conversation.md) — `Conversation`, `ConversationParticipant`,
   `Message`, `MessageVisualisation` (`conversations` app); exposed via `Game`'s
   `GET /my-games.json` (aggregate counts) and `GET /games/:game_slug/conversations.json`
-  (id/title list, issue #695; the superuser/staff exclusion `PlayerPermission` previously
-  applied there was reversed by issue #864, so the default below now applies as usual)
+  (id/title list)
 
 ### Standalone endpoints
 
 - [Standalone endpoints](access-control/endpoints.md) — access-route config, health check,
-  authentication endpoints, and the `AuthorizationRequest` device-authorize login endpoints
-  (issue #701).
+  authentication endpoints, and the `AuthorizationRequest` device-authorize login endpoints.
 
 ### Versioning
 

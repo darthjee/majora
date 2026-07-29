@@ -2,8 +2,8 @@
 
 A `Poll` is a game-scoped question with a fixed set of `PollOption`s, created by (and visible
 to) a game's participants. `PollVote` links a `User` (not a `Player`) to the option they voted
-for — re-pointed from `Player` in #548 so a game's DM(s), who have no `Player` row, can vote too
-— and is now exposed via a dedicated `GET`/`PUT .../votes.json` endpoint (see the Vote row below).
+for — so a game's DM(s), who have no `Player` row, can vote too — and is exposed via a dedicated
+`GET`/`PUT .../votes.json` endpoint (see the Vote row below).
 
 Unlike most other game sub-resources, view and create share the **exact same** permission rule
 (**PollPermission**), rather than create being stricter (contrast with

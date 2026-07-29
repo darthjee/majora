@@ -17,15 +17,15 @@ per-caller-authorization sensitive.
 | Deny/ban a user (`POST /staff/users/deny.json`) | **Staff-or-superuser** |
 
 **Exposed fields** (list and detail): `id`, `name` (Django `username`), `email`, `status`
-(`pending`/`approved`/`denied`, sourced from the linked `UserProfile.status` — issue #859),
-`display_name` (also sourced from `UserProfile`, not `User`). No other `User` field (password,
-`is_staff`, `is_superuser`, `is_active`, etc.) is ever serialized.
+(`pending`/`approved`/`denied`, sourced from the linked `UserProfile.status`), `display_name`
+(also sourced from `UserProfile`, not `User`). No other `User` field (password, `is_staff`,
+`is_superuser`, `is_active`, etc.) is ever serialized.
 
-**List filters** (`GET /staff/users.json`, issue #859): both optional and combinable —
-`status` (exact match on one of the three status values) and `search` (case-insensitive
-substring match, OR'd across `name`/`display_name`/`email`).
+**List filters** (`GET /staff/users.json`): both optional and combinable — `status` (exact match
+on one of the three status values) and `search` (case-insensitive substring match, OR'd across
+`name`/`display_name`/`email`).
 
-**Approve/deny endpoints** (issue #859): identified by `{"user_id": <int>}` in the request body
+**Approve/deny endpoints**: identified by `{"user_id": <int>}` in the request body
 (no dynamic path segment). `approve` 404s if the user doesn't exist, 422s if the user's current
 `UserProfile.status` isn't `pending`, otherwise sets it to `approved`. `deny` 404s if the user
 doesn't exist; has no status precondition (works from any status, including re-denying an

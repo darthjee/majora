@@ -10,17 +10,16 @@ Characters are scoped to a game. Access is symmetric for PCs and NPCs unless not
 | `GET /games/<slug>/npcs.json` | **AllowAny** | Same as above |
 | `GET /games/<slug>/npcs/all.json` | **GameEdit** | Same as `npcs.json` (via `CharacterFullListSerializer`), plus `private_allegiance`, `private_slain`, `hidden`, and `incognito` — see "Allegiance fields", "Slain fields", "Hidden field", and "Incognito field" below. Includes hidden NPCs, unlike `npcs.json`. Accepts optional `?hidden=true\|false`, `?public_slain=`, `?private_slain=`, `?public_allegiance=`, `?private_allegiance=` filters (same tolerant convention as `npcs.json`'s filters below; no `?incognito=` filter exists). Always sets `X-Skip-Cache: true` |
 
-`treasure_value` — an `IntegerField` computed as the sum of `total_value` across the
-character's `CharacterTreasure` rows (see [CharacterTreasure](character-treasure.md)), exposed
-read-only on every list/detail/full-detail endpoint below, at the same visibility level as the
-endpoint itself (issue #581). Unlike `money`, it is intentionally exposed on the public list
-endpoints (`pcs.json`/`npcs.json`) too — it discloses nothing not already computable by summing
-the per-treasure `value`/`quantity` already public via the treasure endpoints, so it carries no
-higher sensitivity than the data already available. Backed by a `Coalesce(Sum(...), 0)` queryset
-annotation (`_with_treasure_value` in `backend/games/views/game/_shared.py`) so list responses
-stay a single query; the serializer falls back to a live aggregate
-(`games/serializers/characters/_treasure_value.py`) when an object hasn't gone through the
-annotated queryset (e.g. serializer unit tests, or any other read path added in the future).
+`treasure_value` — an `IntegerField` computed as the sum of `total_value` across the character's
+`CharacterTreasure` rows (see [CharacterTreasure](character-treasure.md)), exposed read-only on
+every list/detail/full-detail endpoint below, at the same visibility level as the endpoint
+itself. Unlike `money`, it is intentionally exposed on the public list endpoints
+(`pcs.json`/`npcs.json`) too — it discloses nothing not already computable by summing the
+per-treasure `value`/`quantity` already public via the treasure endpoints. Backed by a
+`Coalesce(Sum(...), 0)` queryset annotation (`_with_treasure_value` in
+`backend/games/views/game/_shared.py`) so list responses stay a single query; the serializer
+falls back to a live aggregate (`games/serializers/characters/_treasure_value.py`) when an object
+hasn't gone through the annotated queryset.
 
 ## Detail
 
@@ -29,19 +28,18 @@ annotated queryset (e.g. serializer unit tests, or any other read path added in 
 | `GET /games/<slug>/pcs/<id>.json` | **AllowAny** | `id`, `name`, `role`, `public_description`, `is_pc`, `links`, `game_slug`, `profile_photo_path`, `profile_photo_id`, `money`, `treasure_value`, `public_slain`, `public_allegiance` |
 | `GET /games/<slug>/npcs/<id>.json` | **AllowAny** | Same as above |
 
-As of issue #884, `CharacterDetailSerializer` (and therefore `CharacterFullSerializer` below)
-carries no `can_*` permission field at all — `can_edit`, `can_edit_money`,
-`can_exchange_treasure`, `can_set_profile_photo`, and `can_delete_photo` are exclusively exposed
-via `.../permissions.json` (see "Edit permission" below). Consequently the successful response
-here is cacheable like Game/Treasure detail, **except** when the character is `hidden`: it then
-still sets `X-Skip-Cache: true` (regardless of who's viewing it, or whether `check_hidden`
-applies to this route), mirroring `game_treasure_detail`'s handling of hidden treasures —
-otherwise Tent's identity-blind reverse-proxy cache would replay an editor's successful view of a
-hidden character to any later, unauthorized caller of the same URL, revealing its existence and
-data. A non-hidden character's response carries no such header.
+`CharacterDetailSerializer` (and therefore `CharacterFullSerializer` below) carries no `can_*`
+permission field at all — `can_edit`, `can_edit_money`, `can_exchange_treasure`,
+`can_set_profile_photo`, and `can_delete_photo` are exclusively exposed via
+`.../permissions.json` (see "Edit permission" below). Consequently the successful response here
+is cacheable like Game/Treasure detail, **except** when the character is `hidden`: it then still
+sets `X-Skip-Cache: true` (regardless of who's viewing it), mirroring `game_treasure_detail`'s
+handling of hidden treasures — otherwise Tent's identity-blind reverse-proxy cache would replay an
+editor's successful view of a hidden character to any later, unauthorized caller of the same URL.
+A non-hidden character's response carries no such header.
 
-`profile_photo_path` — see [Photo path fields](common-rules.md#photo-path-fields) above; returned on the list, detail, and
-full-detail endpoints, to anyone.
+`profile_photo_path` — see [Photo path fields](common-rules.md#photo-path-fields); returned on
+the list, detail, and full-detail endpoints, to anyone.
 
 `public_slain` is a `BooleanField` (default `False`) shared by `Character` for both PCs and NPCs,
 returned read-only on the list and detail endpoints to anyone under its own key — no key
@@ -75,11 +73,6 @@ pattern](principles.md#public-vs-regular-attribute-pattern):
 - `private_allegiance` — the character's real disposition, visible only to a DM/superuser.
 - `public_allegiance` — the disposition shown to regular players.
 
-Prior to issue #861 this pair was named `allegiance`/`public_allegiance`, with the public
-endpoints aliasing `public_allegiance` onto a bare `allegiance` JSON key. That transformation has
-been removed: every endpoint now exposes/accepts each field under its own real name, with no
-key remapping anywhere.
-
 **Read exposure**:
 
 - On the public list/detail endpoints (`pcs.json`, `npcs.json`, `pcs/<id>.json`,
@@ -94,10 +87,10 @@ at the `'neutral'` default since no PC write path ever sets them.
 **Write access**: both fields are on the shared `CharacterUpdateSerializer`
 (**CharacterEdit**-gated), writable through either `PATCH /games/<slug>/pcs/<id>/full.json` or
 `PATCH /games/<slug>/npcs/<id>/full.json`. Since NPCs have no player owner by product definition
-(see [`docs/agents/product.md`](../product.md)), this is DM/superuser-only in practice for NPCs; a PC's own
-player can technically set their own PC's `private_allegiance`/`public_allegiance` too (same as
-`hidden`/`money`), though nothing in the product currently reads or displays a PC's allegiance.
-Both fields are also writable at create time via `CharacterCreateSerializer`
+(see [`docs/agents/product.md`](../product.md)), this is DM/superuser-only in practice for NPCs; a
+PC's own player can technically set their own PC's `private_allegiance`/`public_allegiance` too
+(same as `hidden`/`money`), though nothing in the product currently reads or displays a PC's
+allegiance. Both fields are also writable at create time via `CharacterCreateSerializer`
 (`POST /games/<slug>/npcs.json`, **GameEdit**-gated); both remain optional and default to
 `'neutral'` when omitted.
 
@@ -116,12 +109,6 @@ an unauthorized caller filter on data it cannot otherwise read.
 
 - `private_slain` — the character's real death state, visible only to a DM/superuser.
 - `public_slain` — the death state shown to regular players.
-
-Prior to issue #861 this pair was named `slain`/`public_slain`, with the public endpoints
-aliasing `public_slain` onto a bare `slain` JSON key; that transformation has been removed, the
-same as `allegiance`/`public_allegiance` above. (`public_slain` was backfilled from each existing
-row's pre-rename `slain` value when it was introduced, so pre-existing NPCs' public and real
-death state started out identical.)
 
 **Read exposure** — same pattern as `private_allegiance`/`public_allegiance`: public list/detail
 endpoints expose only `public_slain`, under its own key; DM/admin endpoints (`npcs/all.json`,
@@ -149,8 +136,8 @@ above.
 ## Hidden field
 
 `Character.hidden` is a single `BooleanField` (default `False`), shared by both PCs and NPCs,
-with no public/regular split (unlike `private_allegiance`/`private_slain` above) — there is only ever one real
-value, and it is never exposed on the public-facing endpoints at all (issue #545).
+with no public/regular split (unlike `private_allegiance`/`private_slain` above) — there is only
+ever one real value, and it is never exposed on the public-facing endpoints at all.
 
 **Read exposure**: not returned on the public list/detail endpoints (`pcs.json`, `npcs.json`,
 `pcs/<id>.json`, `npcs/<id>.json`) — those endpoints unconditionally exclude hidden NPCs from
@@ -175,16 +162,16 @@ filter param) and is unaffected by this query parameter.
 ## Incognito field
 
 `Character.incognito` is a single `BooleanField` (default `False`), shared by both PCs and NPCs,
-mirroring `hidden`'s shape (issue #893). Unlike `hidden`, it does not gate visibility of the
-character itself — an incognito NPC still appears on `npcs.json`/`npcs/<id>.json` — it only
-nulls out `profile_photo_path` on those public endpoints (see "Photo path fields" in
-[common-rules.md](common-rules.md#photo-path-fields)), and, as of issue #897, empties the two
+mirroring `hidden`'s shape. Unlike `hidden`, it does not gate visibility of the character itself
+— an incognito NPC still appears on `npcs.json`/`npcs/<id>.json` — it only nulls out
+`profile_photo_path` on those public endpoints (see "Photo path fields" in
+[common-rules.md](common-rules.md#photo-path-fields)), and empties the two
 [CharacterDocument](character-document.md#document-filesphotos-shortlist-endpoints) files/photos
 shortlist endpoints' lists (`[]`, not a 404). If a character is both `hidden` and `incognito`,
 `hidden`'s existing visibility gate applies unconditionally first — `incognito` has no observable
 effect on a hidden character.
 
-**Public content-list side effect** (issue #897): the public (non-`/all.json`) variant of
+**Public content-list side effect**: the public (non-`/all.json`) variant of
 `CharacterDocument`'s files/photos shortlist endpoints (`.../documents/<document_id>/files.json`
 and `.../photos.json`, for both PCs and NPCs) resolves to an empty paginated list (`[]`) whenever
 `character.incognito` is `true`, regardless of how many files/photos the held document actually
@@ -218,50 +205,50 @@ endpoints used before this field existed. `CharacterFullSerializer`/`CharacterFu
 regardless of `incognito`.
 
 **Filtering**: no `?incognito=` query parameter exists on any endpoint (unlike `?hidden=` on
-`npcs/all.json`) — this is intentionally out of scope for issue #893.
+`npcs/all.json`).
 
 ## Edit access status
 
 `GET /games/<slug>/pcs/<id>/access.json`, `GET /games/<slug>/npcs/<id>/access.json` —
-**AllowAny**; see [Access status endpoints](common-rules.md#access-status-endpoints-accessjson) above for the shared response shape. `is_dm`/
-`is_player` are evaluated against the character's game. `is_owner` is a real boolean for a PC
-(`character.player.user_id == requester.id`); always `false` for an NPC (no player-ownership
-concept).
+**AllowAny**; see [Access status endpoints](common-rules.md#access-status-endpoints-accessjson)
+for the shared response shape. `is_dm`/`is_player` are evaluated against the character's game.
+`is_owner` is a real boolean for a PC (`character.player.user_id == requester.id`); always
+`false` for an NPC (no player-ownership concept).
 
 ## Edit permission
 
 `GET /games/<slug>/pcs/<id>/permissions.json`, `GET /games/<slug>/npcs/<id>/permissions.json` —
-**AllowAny**; see [Edit permission endpoints](common-rules.md#edit-permission-endpoints-permissionsjson) above. Both PC and NPC routes share one
-`CharacterPermissionsSerializer` — `is_owner` (and therefore the `owner` role) only ever affects
-the result for a PC; it is always a no-op for an NPC.
+**AllowAny**; see [Edit permission
+endpoints](common-rules.md#edit-permission-endpoints-permissionsjson). Both PC and NPC routes
+share one `CharacterPermissionsSerializer` — `is_owner` (and therefore the `owner` role) only
+ever affects the result for a PC; it is always a no-op for an NPC.
 
 Beyond the generic `can_edit`, and `can_create_item`/`can_upload_item_photo` (see
-[CharacterItem](character-item.md)), this endpoint exposes four more `bool` fields (moved here
-from the detail/full-detail response by issue #884, so they stay computed from
+[CharacterItem](character-item.md)), this endpoint exposes four more `bool` fields (computed from
 `self.context['request']` — or, on the role-simulated `?role=` path, from the same
 `is_allowed_for_roles` convention `can_create_item`/`can_upload_item_photo` already use — without
 forcing the detail/full-detail endpoints themselves to stay uncacheable):
 
-- `can_edit_money` — backed by **CharacterMoneyEditPermission** (issue #615): `true` for a
-  superuser, any GameMaster of the game, the PC's own owning player, any player of the game (PC
-  only — no such leniency for an NPC), or any global Staff account (`user.is_staff`), else
-  `false`, including for an anonymous requester. Gates the money "Edit" link on the frontend show
-  page, and is deliberately distinct from `can_edit`, since a pure Staff account may edit money
-  without qualifying as a full editor (see "Money-only update" below).
-- `can_set_profile_photo` — backed by **CharacterPhotoUploadPermission** (issue #852): `true` for
-  a superuser, any GameMaster of the game, the PC's own owning player, any player of the game, or
-  any global Staff account (`user.is_staff`), else `false` — the same rule already used by the
-  photo upload endpoints (see [CharacterPhoto](character-photo.md)). Gates the "set as profile
-  photo" action on the frontend show page and photos sub-page.
-- `can_exchange_treasure` — backed by **CharacterTreasureExchangePermission** (issue #712): `true`
-  for a superuser, any GameMaster of the game, the character's own owning player (PC only — an
-  NPC has no owner), or any global Staff account (`user.is_staff`), else `false`. Unlike
-  `can_edit_money`, there is deliberately no "any player of the game" leniency for PCs. Gates the
-  treasure buy/sell actions on the frontend show page.
+- `can_edit_money` — backed by **CharacterMoneyEditPermission**: `true` for a superuser, any
+  GameMaster of the game, the PC's own owning player, any player of the game (PC only — no such
+  leniency for an NPC), or any global Staff account (`user.is_staff`), else `false`, including for
+  an anonymous requester. Gates the money "Edit" link on the frontend show page, and is
+  deliberately distinct from `can_edit`, since a pure Staff account may edit money without
+  qualifying as a full editor (see "Money-only update" below).
+- `can_set_profile_photo` — backed by **CharacterPhotoUploadPermission**: `true` for a superuser,
+  any GameMaster of the game, the PC's own owning player, any player of the game, or any global
+  Staff account, else `false` — the same rule already used by the photo upload endpoints (see
+  [CharacterPhoto](character-photo.md)). Gates the "set as profile photo" action on the frontend
+  show page and photos sub-page.
+- `can_exchange_treasure` — backed by **CharacterTreasureExchangePermission**: `true` for a
+  superuser, any GameMaster of the game, the character's own owning player (PC only — an NPC has
+  no owner), or any global Staff account, else `false`. Unlike `can_edit_money`, there is
+  deliberately no "any player of the game" leniency for PCs. Gates the treasure buy/sell actions
+  on the frontend show page.
 - `can_delete_photo` — backed by **CharacterPhotoDeletePermission**: `true` for a superuser, any
-  GameMaster of the game, or any global Staff account (`user.is_staff`), else `false` — no
-  owner/player leniency at all (mirrors `Game.can_be_edited_by`/`can_be_edited_by_roles` with no
-  PC-specific extension). Gates the photo-delete action on the frontend photos sub-page.
+  GameMaster of the game, or any global Staff account, else `false` — no owner/player leniency at
+  all (mirrors `Game.can_be_edited_by`/`can_be_edited_by_roles` with no PC-specific extension).
+  Gates the photo-delete action on the frontend photos sub-page.
 
 All four follow the same real-identity vs. role-simulated dual path as `can_edit`: with no
 `?role=` param, each is computed via its permission class's `is_allowed(user, character)`;
@@ -278,20 +265,18 @@ The general character update action lives on the full-detail endpoints, not the 
 
 `PATCH /games/<slug>/pcs/<id>.json` (the plain PC detail endpoint) also accepts `PATCH`, but only
 for a narrower, player-writable field set, gated by **CharacterRegularEdit** rather than
-**CharacterEdit** — see "Narrow player-facing PC PATCH" below (issue #865).
+**CharacterEdit** — see "Narrow player-facing PC PATCH" below.
 
 **Write fields** (via `CharacterUpdateSerializer`): in addition to the scalar fields listed
 under "Create" below (`name`, `role`, `public_description`, `private_description`, `hidden`,
 `incognito`, `money`, `private_allegiance`, `public_allegiance`, `private_slain`, `public_slain`,
 all optional here too), a nested `links` array is accepted — see
-[CharacterLink](character-link.md) below for write semantics.
+[CharacterLink](character-link.md) for write semantics.
 
 ### Narrow player-facing NPC PATCH
 
 `PATCH /games/<slug>/npcs/<id>.json` (the plain NPC detail endpoint) accepts `PATCH` again, but
-only for a small, curated, player-safe field set (originally just the `slain` toggle, issue
-#416; widened to the full set below by issue #445; wire keys renamed from `allegiance`/`slain` to
-`public_allegiance`/`public_slain` — direct passthrough, no transformation — by issue #861).
+only for a small, curated, player-safe field set.
 
 | Endpoint | Who can write | Body | Effect |
 |----------|--------------|------|--------|
@@ -312,10 +297,10 @@ DM-facing edit form keeps using `full.json`.
 
 ### Narrow player-facing PC PATCH
 
-`PATCH /games/<slug>/pcs/<id>.json` (the plain PC detail endpoint) also accepts `PATCH` (issue
-#865), for a small, curated, player-safe field set — the PC analogue of the NPC path above, but
-gated by a broader-audience permission (**CharacterRegularEdit** rather than **NpcPlayerEdit**)
-and a different field set:
+`PATCH /games/<slug>/pcs/<id>.json` (the plain PC detail endpoint) also accepts `PATCH`, for a
+small, curated, player-safe field set — the PC analogue of the NPC path above, but gated by a
+broader-audience permission (**CharacterRegularEdit** rather than **NpcPlayerEdit**) and a
+different field set:
 
 | Endpoint | Who can write | Body | Effect |
 |----------|--------------|------|--------|
@@ -340,7 +325,7 @@ unchanged; a full editor (dm/admin/owner) continues to use `full.json` instead.
 ## Money-only update (PUT)
 
 A narrower, dedicated route for adjusting just a character's `money`, added so a quick "Edit"
-link can live directly on the show page without requiring full editor access (issue #615):
+link can live directly on the show page without requiring full editor access.
 
 | Endpoint | Who can write | Body | Effect |
 |----------|--------------|------|--------|
@@ -350,11 +335,11 @@ link can live directly on the show page without requiring full editor access (is
 **CharacterMoneyEdit** (`CharacterMoneyEditPermission`, `backend/games/permissions.py`): grants
 the same access as **CharacterEdit** (superuser, the character's owning player, or a GameMaster
 of the game) plus any global Staff account (`user.is_staff`), mirroring the Staff bypass
-`CharacterPhotoUploadPermission` added for PC photo upload (issue #619). For a **PC**, this also
-grants any player of that PC's game (issue #625), mirroring `CharacterPhotoUploadPermission`'s
-"any player of the game" leniency — but that leniency is **PC-only**: since an NPC has no owning
-player, NPC money edits stay admin/dm/staff-only, and a regular player who isn't otherwise a
-GameMaster/superuser/staff gets no access to it.
+`CharacterPhotoUploadPermission` grants for PC photo upload. For a **PC**, this also grants any
+player of that PC's game, mirroring `CharacterPhotoUploadPermission`'s "any player of the game"
+leniency — but that leniency is **PC-only**: since an NPC has no owning player, NPC money edits
+stay admin/dm/staff-only, and a regular player who isn't otherwise a GameMaster/superuser/staff
+gets no access to it.
 
 Validated by `CharacterMoneyUpdateSerializer` (`backend/games/serializers/characters/character_money_update.py`),
 a `ModelSerializer` restricted to `fields = ['money']` (required) — `money` being a
@@ -367,9 +352,9 @@ fields are never exposed to a Staff caller who edits money without being a full 
 `X-Skip-Cache: true`. Unauthenticated → `401`; authenticated but not allowed → `403`; unknown
 `game_slug`/`character_id`, or an id belonging to the other PC/NPC kind → `404`.
 
-For a PC, `money` is also writable — alongside `name`/`role`/`public_description`/`links` — through
-the narrower "Narrow player-facing PC PATCH" route above (**CharacterRegularEdit**, issue #865),
-an alternate write path with the exact same "any player of the game" leniency as
+For a PC, `money` is also writable — alongside `name`/`role`/`public_description`/`links` —
+through the narrower "Narrow player-facing PC PATCH" route above (**CharacterRegularEdit**), an
+alternate write path with the exact same "any player of the game" leniency as
 **CharacterMoneyEdit**; it grants no wider access to `money` than this dedicated route already
 does.
 
@@ -385,11 +370,10 @@ There is no equivalent PC creation endpoint.
 **Write fields (`npcs/full.json`)**: `name` (required), `role`, `public_description`,
 `private_description`, `hidden`, `incognito`, `money`, `private_allegiance`, `public_allegiance`
 (all optional except `name` — see "Allegiance fields" above), and `links` (optional array — see
-[CharacterLink](character-link.md) below). `game` and `npc` are never accepted from the request
+[CharacterLink](character-link.md)). `game` and `npc` are never accepted from the request
 payload — `game` is always assigned server-side from the `<slug>` URL segment, and `npc` is
 always forced to `True`. `player` is not accepted at all — NPCs created this way have no player.
-Validated by `CharacterCreateSerializer`, unchanged (this is exactly `npcs.json`'s pre-#868
-behavior, relocated).
+Validated by `CharacterCreateSerializer`.
 
 **Write fields (`npcs.json`)**: a small, curated, player-safe field set — `name` (required),
 `role`, `public_description`, `public_allegiance`, `public_slain`, and `links` (all optional

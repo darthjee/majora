@@ -1,10 +1,10 @@
 # Staff Cache (memory cache management)
 
 Two staff-only endpoints manage the process-wide in-memory cache
-(`backend/majora_project/cache/`) introduced by issue #704, plus the read-only summary added by
-issue #780. Both require `CookieTokenAuthentication` and enforce **Staff-or-superuser** inline via
-`require_staff` (`backend/games/views/common.py`), matching every other `staff/*` endpoint. Both
-responses set `X-Skip-Cache: true`.
+(`backend/majora_project/cache/`), plus a read-only summary. Both require
+`CookieTokenAuthentication` and enforce **Staff-or-superuser** inline via `require_staff`
+(`backend/games/views/common.py`), matching every other `staff/*` endpoint. Both responses set
+`X-Skip-Cache: true`.
 
 | Action | Who can |
 |--------|---------|

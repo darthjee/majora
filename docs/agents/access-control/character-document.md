@@ -8,9 +8,9 @@ inherited from `GameDocument.hidden`. `unique_together = ('character', 'game_doc
 character can hold at most one row per `GameDocument`. Four index endpoints (one PC pair, one
 NPC pair), four show/detail endpoints (one PC pair, one NPC pair), and eight files/photos
 shortlist endpoints (one PC pair, one NPC pair, each split files/photos, each split
-public/`/all.json`; issue #897) expose read access; there is no create endpoint, no update
-endpoint, and no photo upload endpoint for `CharacterDocument` itself (all left for follow-up
-issues, if ever needed), only Django admin for superusers.
+public/`/all.json`) expose read access; there is no create endpoint, no update endpoint, and no
+photo upload endpoint for `CharacterDocument` itself (left for follow-up issues, if ever needed),
+only Django admin for superusers.
 
 ## Document index endpoints
 
@@ -39,9 +39,9 @@ No `PATCH` branch exists — there is nothing left on `CharacterDocument` to upd
 
 Both endpoint groups share the same `CharacterDocumentSerializer`/`CharacterDocumentAllSerializer`
 pair the index endpoints already use — there is no separate "detail" tier, unlike
-`CharacterItem`'s detail tier: `description` (issue #897) is exposed at every tier (index,
-detail, `/all.json`, `/full.json` alike), not gated behind a narrower endpoint the way
-`CharacterItem`'s `description` is.
+`CharacterItem`'s detail tier: `description` is exposed at every tier (index, detail,
+`/all.json`, `/full.json` alike), not gated behind a narrower endpoint the way `CharacterItem`'s
+`description` is.
 
 **Exposed fields** (read): `id` (the `CharacterDocument` row id, not the `GameDocument` id),
 `game_document_id`, `name`, `description`, `photo_path` — all sourced directly from the linked
@@ -51,9 +51,9 @@ detail, `/all.json`, `/full.json` alike), not gated behind a narrower endpoint t
 ## Document files/photos shortlist endpoints
 
 `CharacterDocument` carries no files/photos of its own — a character possessing a `GameDocument`
-should be able to list and see that document's own `GameDocumentFile`/`GameDocumentPhoto` rows
-(issue #897). Eight endpoints (one PC pair, one NPC pair, each split files/photos, each split
-public/`/all.json`) read through a single `CharacterDocument` (looked up by its own id, matching
+can list and see that document's own `GameDocumentFile`/`GameDocumentPhoto` rows. Eight endpoints
+(one PC pair, one NPC pair, each split files/photos, each split public/`/all.json`) read through a
+single `CharacterDocument` (looked up by its own id, matching
 the show/detail endpoints above — **not** the underlying `GameDocument`'s id) to its
 `game_document.files`/`game_document.photos`, filtered to `ready=True`:
 

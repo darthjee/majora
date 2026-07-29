@@ -6,16 +6,16 @@ own value when `null` — see "Fallback resolution" below) and its own `hidden` 
 default `False`, never inherited from `GameItem.hidden` — see [GameItem](game-item.md) above).
 `unique_together = ('character', 'game_item')` — a character can hold at most one row per
 `GameItem`. Four dedicated index endpoints (one PC pair, one NPC pair) expose read access, and a
-PC/NPC `POST .../items.json` pair (issue #714) creates a brand-new `GameItem`/`CharacterItem`
-pair together, a PC/NPC `POST .../items/<item_id>/photo_upload.json` pair (issue #750) initiates
-a photo upload overriding a held item's photo, and a PC/NPC `PATCH .../items/<item_id>.json` pair
-(issue #766) updates `name`/`description`/`hidden` on an existing `CharacterItem` row. A separate
-`POST .../items/acquire.json`/`.../items/remove.json` pair (plus DM-only `/all.json` variants,
-issue #773) now covers linking an already-existing `GameItem` from the game's catalog (Acquire)
-and deleting a `CharacterItem` row outright (Remove) — see "Item available (Acquire catalog)
-endpoints" and "Item acquire/remove endpoints" below; the original `POST .../items.json` creation
-flow is unchanged and still always creates a brand-new `GameItem` from scratch. Deletion outside
-of the new Remove endpoints remains Django-admin-only for superusers.
+PC/NPC `POST .../items.json` pair creates a brand-new `GameItem`/`CharacterItem` pair together, a
+PC/NPC `POST .../items/<item_id>/photo_upload.json` pair initiates a photo upload overriding a
+held item's photo, and a PC/NPC `PATCH .../items/<item_id>.json` pair updates
+`name`/`description`/`hidden` on an existing `CharacterItem` row. A separate
+`POST .../items/acquire.json`/`.../items/remove.json` pair (plus DM-only `/all.json` variants)
+covers linking an already-existing `GameItem` from the game's catalog (Acquire) and deleting a
+`CharacterItem` row outright (Remove) — see "Item available (Acquire catalog) endpoints" and
+"Item acquire/remove endpoints" below; the original `POST .../items.json` creation flow is
+unchanged and still always creates a brand-new `GameItem` from scratch. Deletion outside of the
+Remove endpoints remains Django-admin-only for superusers.
 
 ## Item index endpoints
 
@@ -106,11 +106,11 @@ authoritative server-computed flag.
 | `/games/<slug>/pcs/<id>/items/<item_id>/photo_upload.json` | POST | **CharacterItemPhotoUploadPermission** — dm, admin, staff, or the PC's owning player | `{ filename: string }` | `201` with `{ upload_id, token, id, item_id }` |
 | `/games/<slug>/npcs/<id>/items/<item_id>/photo_upload.json` | POST | **CharacterItemPhotoUploadPermission** — dm, admin, or staff (NPCs have no owner) | Same as above | Same as above |
 
-`id` (issue #878) is the created/reused `CharacterItemPhoto`'s own primary key, distinct from
-`item_id` — see [Upload](upload.md)'s "`id` in the init response" note for why this generic field
-now appears in every `UploadInitiator`-based endpoint's response.
+`id` is the created/reused `CharacterItemPhoto`'s own primary key, distinct from `item_id` — see
+[Upload](upload.md)'s "`id` in the init response" note for why this generic field appears in
+every `UploadInitiator`-based endpoint's response.
 
-Both are init-only endpoints (issue #750), following the same two-step upload flow as every
+Both are init-only endpoints, following the same two-step upload flow as every
 other photo (`POST .../photo_upload.json` → proxy-handled multipart submit → `PATCH
 /uploads/<upload_id>.json` finalize). The storage path is fixed/deterministic, not
 hash-randomized (`photos/games/<slug>/<pcs|npcs>/<character_id>/items/<item_id>/photo.<ext>`) —
@@ -162,7 +162,7 @@ variants and the creation response only.
 | `/games/<slug>/npcs/<id>/items/available.json` | GET | **AllowAny**, but see the [hidden-NPC gate](character-photo.md#photo-index-endpoints) above | Same as the PC variant, for an NPC |
 | `/games/<slug>/npcs/<id>/items/available/all.json` | GET | **GameEdit** | Same as the PC `/all.json` variant, for an NPC |
 
-Added by issue #773 to back the item exchange modal's Acquire tab: since `CharacterItem` has no
+Backs the item exchange modal's Acquire tab: since `CharacterItem` has no
 `quantity` (`unique_together = ('character', 'game_item')`), the Acquire catalog must exclude
 already-owned `GameItem`s rather than showing a duplicate-acquire affordance the way
 [CharacterTreasure](character-treasure.md)'s Buy/Acquire tabs do. The `/all.json` variant here is
@@ -185,10 +185,10 @@ belonging to the opposite PC/NPC role, → 404.
 | `/games/<slug>/pcs/<id>/items/remove/all.json` | POST | **CharacterEdit** (dm, admin, or the PC's owning player — **not** staff) | Restricted variant of the PC remove endpoint: same request/response shape, but does not 404 on a hidden owned `CharacterItem` |
 | `/games/<slug>/npcs/<id>/items/remove/all.json` | POST | **GameEdit** (dm/admin only — NPCs have no owner) | Restricted variant of the NPC remove endpoint: same request/response shape, but does not 404 on a hidden owned `CharacterItem` |
 
-Added by issue #773, reusing `CharacterItemCreatePermission` unchanged for the public acquire/
-remove pair (the same rule that already governs item creation) and `_check_character_all_permission`
-unchanged for `remove/all.json` (the same PC-owner-inclusive/NPC-owner-exclusive split already
-used by `items/all.json`/`documents/all.json`). Two **distinct** permission scopes are
+Reuses `CharacterItemCreatePermission` unchanged for the public acquire/remove pair (the same
+rule that already governs item creation) and `_check_character_all_permission` unchanged for
+`remove/all.json` (the same PC-owner-inclusive/NPC-owner-exclusive split already used by
+`items/all.json`/`documents/all.json`). Two **distinct** permission scopes are
 load-bearing here and must not be conflated: **catalog visibility** (`available/all`,
 `acquire/all`) is game-level, dm/admin only, no owner — mirrors
 [CharacterTreasure](character-treasure.md)'s `acquire/all.json` precedent exactly; **owned-item

@@ -1,22 +1,18 @@
 # Conversation (`conversations` app)
 
 `Conversation`, `ConversationParticipant`, `Message`, and `MessageVisualisation`
-(`backend/conversations/models/`) model a private/group messaging system between `Player`s.
-As of issue #695, the `conversations` app gains its first real endpoint,
-`GET /games/<game_slug>/conversations.json` (routed/viewed/serialized from the `games` app,
-per `views-organization.md` — see [Adding a real conversation endpoint](#adding-a-real-conversation-endpoint)
-below), exposing a `Conversation`'s `id`/`title` (nothing else). `Message`/
-`MessageVisualisation` remain unexposed by any endpoint — reserved for a future messages
-issue referenced by #695. The pre-existing aggregate-only exposure through [Game](game.md)'s
-`GET /my-games.json` is unchanged.
+(`backend/conversations/models/`) model a private/group messaging system between `Player`s. The
+`conversations` app's one real endpoint, `GET /games/<game_slug>/conversations.json` (routed/
+viewed/serialized from the `games` app, per `views-organization.md` — see [Adding a real
+conversation endpoint](#adding-a-real-conversation-endpoint) below), exposes a `Conversation`'s
+`id`/`title` (nothing else). `Message`/`MessageVisualisation` remain unexposed by any endpoint —
+reserved for a future messages issue. The pre-existing aggregate-only exposure through
+[Game](game.md)'s `GET /my-games.json` is unchanged.
 
-> **Access-control exception reversed (issue #864):** issue #695 previously excluded
-> Superuser and Staff (`is_staff`) from `conversations.json`, breaking `access-control.md`'s
-> top-level default ("Superusers always have full access to everything, regardless of any
-> other rule listed below"). Issue #864 intentionally reverses that exclusion, mirroring the
-> same reversal made for [Player](player.md)'s `players.json`/`players/:id.json` — both
-> endpoints share the same `PlayerPermission.check`, which now also grants Staff/Superuser via
-> `_is_admin_or_player`.
+Per the top-level default that superusers/staff always have full access
+(`access-control.md`), `conversations.json` grants Superuser/Staff via the shared
+`PlayerPermission.check`'s `_is_admin_or_player` — the same check used by
+[Player](player.md)'s `players.json`/`players/:id.json`.
 
 | Action | Who can |
 |--------|---------|
@@ -37,7 +33,7 @@ issue's use case (the player detail page); it is not optional.
 
 **Serializer** (`ConversationListSerializer`): `id`, `title` only — no participant list, no
 last-message preview, since the right-hand message panel and richer conversation data are
-explicitly out of scope (reserved for the future messages issue referenced in #695).
+explicitly out of scope (reserved for a future messages issue).
 
 **Cache**: `X-Skip-Cache: true` is always set — see
 [Common Rules](common-rules.md#cache-bypass-mechanism-for-access-endpoints), since this is
@@ -65,8 +61,8 @@ No field of `Message` or `MessageVisualisation` is reachable from any endpoint t
 
 ## Adding a real conversation endpoint
 
-`conversations.json` (issue #695) only lists a conversation's `id`/`title` between two known
-players — it does not expose messages. If a future issue adds a `detail`/`create` endpoint
+`conversations.json` only lists a conversation's `id`/`title` between two known players — it does
+not expose messages. If a future issue adds a `detail`/`create` endpoint
 under the `conversations` app (e.g. to show message bodies), update this file with the same
 per-action table used by every other resource in this document set, including:
 

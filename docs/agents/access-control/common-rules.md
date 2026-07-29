@@ -8,10 +8,10 @@ restated in every section:
 | **GameEdit** | `GameEditPermission` | That game's GameMaster, or superuser |
 | **CharacterEdit** | `CharacterEditPermission` | The character's own player, any GameMaster of that game, or superuser |
 | **NpcPlayerEdit** | `NpcPlayerEditPermission` | Everyone CharacterEdit grants, OR any player of that game (`is_player`, below) — NPC routes only |
-| **CharacterPhotoUpload** | `CharacterPhotoUploadPermission` | Everyone CharacterEdit grants, OR any player of that game, OR any global Staff account (`user.is_staff`) — PC and NPC photo-upload flow: both the init routes (issue #619 for PC, #713 for NPC) and the finalize route's PC and NPC branches (issue #668 for PC, #713 for NPC); also the PC/NPC "set as profile photo" routes (issue #852) |
-| **CharacterMoneyEdit** | `CharacterMoneyEditPermission` | Everyone CharacterEdit grants, OR any global Staff account (`user.is_staff`) — no "any player of the game" grant, unlike CharacterPhotoUpload; PC/NPC money-only routes (issue #615) |
-| **CharacterRegularEdit** | `CharacterRegularEditPermission` | Everyone CharacterEdit grants, OR any global Staff account (`user.is_staff`), OR — **PC only** — any other player of that PC's game; byte-for-byte the same derivation as CharacterMoneyEdit today, kept as a separate class so the two endpoints' rules can diverge independently later (see `CharacterItemCreatePermission`/`CharacterItemPhotoUploadPermission` for the same convention); gates the narrow, player-writable `PATCH /games/<slug>/pcs/<id>.json` route only — no NPC counterpart (issue #865) |
-| **CharacterTreasureExchange** | `CharacterTreasureExchangePermission` | Everyone CharacterEdit grants, OR any global Staff account (`user.is_staff`) — no "any player of the game" grant (unlike CharacterMoneyEdit); PC/NPC treasure buy/sell routes only, not the DM-only `/buy/all.json` hidden-treasure variant, which stays gated by GameEdit alone (issue #712) |
+| **CharacterPhotoUpload** | `CharacterPhotoUploadPermission` | Everyone CharacterEdit grants, OR any player of that game, OR any global Staff account (`user.is_staff`) — PC/NPC photo-upload init/finalize routes, and the "set as profile photo" routes |
+| **CharacterMoneyEdit** | `CharacterMoneyEditPermission` | Everyone CharacterEdit grants, OR any global Staff account — no "any player of the game" grant, unlike CharacterPhotoUpload; PC/NPC money-only routes |
+| **CharacterRegularEdit** | `CharacterRegularEditPermission` | Everyone CharacterEdit grants, OR any global Staff account, OR — **PC only** — any other player of that PC's game; the same derivation as CharacterMoneyEdit, kept as a separate class so the two endpoints' rules can diverge independently later (same convention as `CharacterItemCreatePermission`/`CharacterItemPhotoUploadPermission`); gates the narrow, player-writable `PATCH /games/<slug>/pcs/<id>.json` route only — no NPC counterpart |
+| **CharacterTreasureExchange** | `CharacterTreasureExchangePermission` | Everyone CharacterEdit grants, OR any global Staff account — no "any player of the game" grant (unlike CharacterMoneyEdit); PC/NPC treasure buy/sell routes only, not the DM-only `/buy/all.json` hidden-treasure variant, which stays gated by GameEdit alone |
 | **TreasureEdit** | `TreasureEditPermission` | Superuser or Staff (staff only for a global treasure; a game-scoped treasure still requires GameEdit) |
 | **GameSessionEdit** | `GameSessionEditPermission` | Delegates entirely to GameEdit against the session's game |
 | **TaskEdit** | `TaskEditPermission` | Delegates entirely to GameEdit against the task's game; unlike every other rule here, also gates reads, not just writes (see [Task](task.md)) |
@@ -22,19 +22,18 @@ Full derivations:
 - `Game.can_be_edited_by(user)`: `True` when `user.is_superuser`, OR user has a `Player` row with `is_dm=True` for that game.
 - `Character.can_be_edited_by(user)`: `True` when `user.is_superuser`, OR user is the character's linked `Player.user`, OR user has a `Player` row with `is_dm=True` for the character's game.
 - `Treasure.can_be_edited_by(user)`: `True` when `user.is_superuser`, OR (`user.is_staff` AND the treasure is global, i.e. `game_id is None`). Game-scoped treasure routes (create/update/photo-upload under `/games/<slug>/...`) never use this method — they check GameEdit against the resolved game instead (see [Treasure](treasure.md)), so a treasure's own edit-rights method stays narrow while broader, game-derived access is layered on top only for routes explicitly scoped to a game.
-- `is_player` = `game.players.filter(user=user).exists()`. **Note:** `Player.games` is currently never written by any endpoint (only touched in a model test), so `is_player` reads `false` for every real authenticated user until a future issue builds a flow to populate it.
+- `is_player` = `game.players.filter(user=user).exists()`. **Note:** `Player.games` is currently never written by any endpoint (only touched in a model test), so `is_player` reads `false` for every real authenticated user until a future flow populates it.
 
 Unless noted otherwise, an unauthenticated request to a non-AllowAny endpoint gets 401, and an
 authenticated request that fails the permission check gets 403.
 
-**`UserProfile.status` gate (issue #859):** every rule above assumes the requesting user's
-`UserProfile.status` is `approved`. `CookieTokenAuthentication` — the project-wide default
-authentication class — resolves a `pending` or `denied` user as fully unauthenticated, so every
-rule in this document set that depends on "Authenticated" (or any role built on top of it) simply
-never applies to them; they look anonymous everywhere except the handful of endpoints that
-resolve status directly (login, status, recover, authorization-requests poll) — see
-[Standalone endpoints](endpoints.md#userprofilestatus-authentication-gate-issue-859) for the full
-list and behavior.
+**`UserProfile.status` gate:** every rule above assumes the requesting user's `UserProfile.status`
+is `approved`. `CookieTokenAuthentication` — the project-wide default authentication class —
+resolves a `pending` or `denied` user as fully unauthenticated, so every rule in this document set
+that depends on "Authenticated" (or any role built on top of it) simply never applies to them;
+they look anonymous everywhere except the handful of endpoints that resolve status directly
+(login, status, recover, authorization-requests poll) — see [Standalone
+endpoints](endpoints.md#userprofilestatus-authentication-gate) for the full list and behavior.
 
 ## Role-simulated permission checks
 
@@ -77,7 +76,7 @@ call it; response is `{"can_edit": <bool>}`.
   - `dm` → `is_dm = True`
   - `superuser` → `is_superuser = True`
   - `owner` → `is_owner = True` (only ever consulted by the Character/PC endpoint; a no-op for Game, NPC, Treasure)
-  - `player`, `staff` → recognized but always no-ops for `can_edit`/`can_be_edited_by_roles` specifically (neither appears in its signature) — included only so a caller can pass every role name it knows without triggering an "unrecognized value" branch. `staff` is **not** a no-op for every field on every `permissions.json` response, though: the Character (PC/NPC) endpoint's `can_create_item` field consumes `is_staff` via a separate `is_allowed_for_roles` method — see [character-item.md](character-item.md) — and, since issue #784, the Game endpoint's own `can_create_item` field does the same — see [game-item.md](game-item.md#item-creation-endpoint).
+  - `player`, `staff` → recognized but always no-ops for `can_edit`/`can_be_edited_by_roles` specifically (neither appears in its signature) — included only so a caller can pass every role name it knows without triggering an "unrecognized value" branch. `staff` is **not** a no-op for every field on every `permissions.json` response, though: the Character (PC/NPC) endpoint's `can_create_item` field consumes `is_staff` via a separate `is_allowed_for_roles` method — see [character-item.md](character-item.md) — and the Game endpoint's own `can_create_item` field does the same — see [game-item.md](game-item.md#item-creation-endpoint).
   - any other value → silently ignored (same tolerant, no-400-on-a-typo convention as `?public_allegiance=`/`?public_slain=` elsewhere) — but a `role` param containing only unrecognized/no-op values still computes `can_edit` with every boolean `False`; it does not fall back to the real-identity path
   - Whenever `role` is present (recognized or not), the response sets `X-Force-Public-Cache: true` instead of `X-Skip-Cache: true` — the result is identity-independent, so it's safe (and necessary, for UI-preview use cases like showing an anonymous visitor what a DM would see) to cache in the public tier.
 
@@ -88,10 +87,10 @@ The response shape above (`can_edit` plus role-parsing/cache-header behavior) is
 baseline — several resources' `permissions.json` additionally expose their own extra `can_*`
 fields following this same real-identity/role-simulated dual pattern: `can_create_item`/
 `can_upload_item_photo` (Character and Game, see [character-item.md](character-item.md)/
-[game-item.md](game-item.md#item-creation-endpoint)), and, since issue #884,
-`can_edit_money`/`can_exchange_treasure`/`can_set_profile_photo`/`can_delete_photo` (Character
-only, moved off the detail/full-detail response onto this endpoint specifically so those
-responses could become cacheable — see [character.md](character.md#edit-permission)).
+[game-item.md](game-item.md#item-creation-endpoint)), and `can_edit_money`/`can_exchange_treasure`/
+`can_set_profile_photo`/`can_delete_photo` (Character only, moved off the detail/full-detail
+response onto this endpoint specifically so those responses could become cacheable — see
+[character.md](character.md#edit-permission)).
 
 ## Cache-bypass mechanism for access endpoints
 

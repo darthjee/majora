@@ -4,17 +4,16 @@ A `GameDocument` is a special document belonging to exactly one game (`game` FK,
 field-for-field a mirror of [GameItem](game-item.md): it holds its own `name`, `description`,
 and optional `photo` directly, plus a `hidden` (`BooleanField`, default `False`) flag scoping its
 visibility within that game's catalog. There is still no dedicated update/delete endpoint for
-`GameDocument` (out of scope, left for follow-up issues) — but issue #758 added a dm/admin/staff
-`POST` endpoint that creates a bare `GameDocument` with no owning `CharacterDocument` (see
-"Document creation endpoint" below), plus public/dm-only show endpoints (see "Document detail
-endpoints" below), and issue #727 wired up multi-photo storage/upload/display for
-`GameDocument.photo` (see "Document photo endpoints" below) — unlike `GameItem`'s single-
-always-replace photo model, a document can have multiple stored `GameDocumentPhoto` rows, one of
-which is designated the display photo, mirroring the PC/NPC [CharacterPhoto](character-photo.md)
-pattern. Issue #726 additionally added a parallel `GameDocumentFile` collection
-(`related_name='files'`), so a document can also hold uploaded PDF files (not only scanned
-photos) — see "Document file upload endpoint" below; unlike the photo collection, there is no
-"display file" concept and no dedicated files-listing endpoint yet.
+`GameDocument` (left for follow-up issues) — but a dm/admin/staff `POST` endpoint creates a bare
+`GameDocument` with no owning `CharacterDocument` (see "Document creation endpoint" below), plus
+public/dm-only show endpoints (see "Document detail endpoints" below). Multi-photo
+storage/upload/display for `GameDocument.photo` (see "Document photo endpoints" below) works
+unlike `GameItem`'s single-always-replace photo model: a document can have multiple stored
+`GameDocumentPhoto` rows, one of which is designated the display photo, mirroring the PC/NPC
+[CharacterPhoto](character-photo.md) pattern. A document also has a parallel `GameDocumentFile`
+collection (`related_name='files'`), so it can hold uploaded PDF files (not only scanned photos)
+— see "Document file upload endpoint" below; unlike the photo collection, there is no "display
+file" concept and no dedicated files-listing endpoint yet.
 
 ## Document index endpoints
 
@@ -128,9 +127,8 @@ upload-init endpoint's request/response shape and finalisation side effect.
 ## Document file upload endpoint
 
 A `GameDocument` can also have a collection of uploaded PDF files (`related_name='files'`,
-`GameDocumentFile` rows, issue #726), independent of its photo collection above — there is no
-single "display file" and no dedicated listing endpoint for it yet (out of scope for issue #726,
-left for a follow-up).
+`GameDocumentFile` rows), independent of its photo collection above — there is no single "display
+file" and no dedicated listing endpoint for it yet (left for a follow-up).
 
 | Endpoint | Method | Who can call | Request | Response |
 |----------|--------|-------------|---------|----------|
@@ -141,16 +139,15 @@ left for a follow-up).
 game.can_be_edited_by(user)`. Unknown `game_slug` or `document_id` (or a `document_id` that does
 not belong to `game_slug`) → 404. Uploaded files are stored under
 `files/games/<slug>/documents/<document_id>/...` (parallel to the `photos/...` root used by
-photo uploads). The response's `id` field (issue #878) is the newly created `GameDocumentFile`'s
-own id — see [Upload](upload.md#document-file-upload-init-endpoint) for the upload-init
-endpoint's full request/response shape, the breaking `upload_type`-scoped submit/finalize route
-change this introduced, and the proxy-side PDF validation strategy.
+photo uploads). The response's `id` field is the newly created `GameDocumentFile`'s own id — see
+[Upload](upload.md#document-file-upload-init-endpoint) for the upload-init endpoint's full
+request/response shape, the `upload_type`-scoped submit/finalize route this introduced, and the
+proxy-side PDF validation strategy.
 
 ## Document file photo upload endpoint
 
 A `GameDocumentFile` can itself carry at most one photo (`GameDocumentFile.photo`, `SET_NULL`,
-`related_name='+'`) — a `GameDocumentFilePhoto` row (issue #874 added the model/FK; issue #878
-added the upload flow below to actually populate it). Unlike a document's own multi-photo
+`related_name='+'`) — a `GameDocumentFilePhoto` row. Unlike a document's own multi-photo
 collection above, this mirrors `GameItem`'s/`Treasure`'s single-always-replace photo model: there
 is no gallery, and re-uploading replaces the existing photo rather than adding a new one.
 
@@ -170,16 +167,15 @@ row is created and assigned to `file.photo` immediately (not deferred to finalis
 `GamePhoto`/`CharacterPhoto`/`GameDocumentPhoto`'s "if unset" pattern). The response's `id` field
 is the `GameDocumentFilePhoto`'s own id (distinct from `file_id`, the target file's id).
 
-**Note — `photo_path` is not gated on `ready` (pre-existing, from #873/#874, not changed by
-#878):** because `file.photo` is assigned at *init* time rather than finalisation,
-`GameDocumentFileSerializer.photo_path` (`source='photo.path'`, exposed via
-`GET /games/<slug>/documents/<document_id>/files.json` and `.../files/all.json`, both public for
-a non-hidden document's already-`ready=True` files) reflects whatever photo is currently attached
-regardless of that photo's own `ready` flag — unlike the `photo_path`/`cover_photo`/
+**Note — `photo_path` is not gated on `ready`:** because `file.photo` is assigned at *init* time
+rather than finalisation, `GameDocumentFileSerializer.photo_path` (`source='photo.path'`, exposed
+via `GET /games/<slug>/documents/<document_id>/files.json` and `.../files/all.json`, both public
+for a non-hidden document's already-`ready=True` files) reflects whatever photo is currently
+attached regardless of that photo's own `ready` flag — unlike the `photo_path`/`cover_photo`/
 `profile_photo` fields for `Game`/`Character`/`GameDocument` itself (see [Photo path
 fields](common-rules.md#photo-path-fields)), which are only ever set once their upload is
 finalised. In practice this means a file's `photo_path` can point at a path with no uploaded
 content yet (freshly initiated upload) or briefly at content mid-replacement (re-upload in
-progress) before the corresponding `PATCH /uploads/image/<id>.json` finalises it. This is an
-existing gap in `GameDocumentFileSerializer`, not introduced by #878 — flagged here rather than
-silently documented as a guarantee it doesn't provide.
+progress) before the corresponding `PATCH /uploads/image/<id>.json` finalises it. This is a gap
+in `GameDocumentFileSerializer` — flagged here rather than silently documented as a guarantee it
+doesn't provide.
