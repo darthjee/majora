@@ -8,14 +8,14 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game, Task
-from ...permissions import TaskEditPermission
+from ...permissions import EndpointPermission
 from ...serializers import GameTaskListSerializer, GameTaskUpdateSerializer
 from ..common import validated_or_error
 
 
 @api_view(['PATCH'])
 @authentication_classes([CookieTokenAuthentication])
-# AllowAny: authorisation is enforced inline below via TaskEditPermission.check(),
+# AllowAny: authorisation is enforced inline below via EndpointPermission.check(),
 # since this route has no GET counterpart to gate (Task has no public read path).
 @permission_classes([AllowAny])
 def game_task_detail(request, game_slug, task_id):
@@ -23,7 +23,9 @@ def game_task_detail(request, game_slug, task_id):
     game = get_object_or_404(Game, game_slug=game_slug)
     task = get_object_or_404(Task, id=task_id, game=game)
 
-    error_response = TaskEditPermission.check(request, task)
+    error_response = EndpointPermission(request.user, game=game).check(
+        request, 'game_task', 'restricted', 'edit',
+    )
     if error_response:
         return error_response
 

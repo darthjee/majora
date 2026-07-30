@@ -1,0 +1,14 @@
+# GamePermissionsSerializer's can_* fields.
+edit: []
+create_item:
+  - staff
+  - player
+create_document:
+  - staff
+  - player
+edit_session:
+  - staff
+  - player
+create_npc:
+  - staff
+  - player

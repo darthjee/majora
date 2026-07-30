@@ -9,9 +9,8 @@ from rest_framework.permissions import AllowAny
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game, GameTreasure, Treasure
-from ...permissions import GameEditPermission
 from ...serializers import TreasureAllListSerializer
-from ..common import paginated_list_response
+from ..common import check_game_edit, paginated_list_response
 from ._treasure_context import game_treasures_context
 from ._treasure_filters import filter_by_max_value, filter_by_min_value, filter_by_name
 
@@ -19,13 +18,13 @@ from ._treasure_filters import filter_by_max_value, filter_by_min_value, filter_
 @api_view(['GET'])
 @authentication_classes([CookieTokenAuthentication])
 # AllowAny: authorization for this whole endpoint is enforced inline via
-# GameEditPermission.check(), so unauthenticated/non-DM callers get the app's own
+# EndpointPermission.check(), so unauthenticated/non-DM callers get the app's own
 # 401/403 payload instead of DRF's default.
 @permission_classes([AllowAny])
 def game_treasures_all(request, game_slug):
     """Return all treasures (including hidden) for a game — DM/superuser only."""
     game = get_object_or_404(Game, game_slug=game_slug)
-    error_response = GameEditPermission.check(request, game)
+    error_response = check_game_edit(request, game)
     if error_response:
         return error_response
     treasures = Treasure.objects.for_game(game)

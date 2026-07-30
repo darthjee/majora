@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import GameTreasure, Treasure
-from ...permissions import TreasureEditPermission
+from ...permissions import EndpointPermission
 from ...serializers import TreasureDetailSerializer, TreasureUpdateSerializer
 from ..common import detail_or_update, validate_with_hidden_field
 
@@ -15,7 +15,7 @@ from ..common import detail_or_update, validate_with_hidden_field
 @api_view(['GET', 'PATCH'])
 @authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public; PATCH authentication/authorisation is
-# enforced inline in detail_or_update/_patch_treasure via TreasureEditPermission.check().
+# enforced inline in detail_or_update/_patch_treasure via _check_treasure_edit().
 @permission_classes([AllowAny])
 def treasure_detail(request, treasure_id):
     """Return or update detail for a specific treasure identified by treasure_id."""
@@ -27,9 +27,22 @@ def treasure_detail(request, treasure_id):
     if request.method == 'PATCH':
         return _patch_treasure(request, treasure)
     return detail_or_update(
-        request, treasure, TreasureEditPermission, TreasureUpdateSerializer,
+        request, treasure, _check_treasure_edit, TreasureUpdateSerializer,
         TreasureDetailSerializer,
     )
+
+
+def _check_treasure_edit(request, treasure):
+    """Return an error Response if `request.user` may not edit `treasure`, else None.
+
+    Never dm-aware: a game-exclusive treasure's DM must use the `game_treasure_detail`
+    endpoint (`game`/`restricted`/`edit`) instead — this check never resolves a `game`, so
+    the base admin/dm shortcut only ever grants via admin. `edit` (no owning game) also
+    allows staff; `edit_scoped` (has an owning game) does not, matching
+    `Treasure.can_be_edited_by`'s `self.game_id is None` condition.
+    """
+    action = 'edit' if treasure.game_id is None else 'edit_scoped'
+    return EndpointPermission(request.user).check(request, 'treasure', 'restricted', action)
 
 
 def _patch_treasure(request, treasure):
@@ -40,7 +53,7 @@ def _patch_treasure(request, treasure):
     `hidden` to, so it is silently dropped (matching this endpoint's existing "ignored field"
     convention, e.g. `game` in the body is never honored either).
     """
-    error_response = TreasureEditPermission.check(request, treasure)
+    error_response = _check_treasure_edit(request, treasure)
     if error_response:
         return error_response
 

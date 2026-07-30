@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game, Poll, PollVote
-from ...permissions import PollVotePermission
+from ...permissions import EndpointPermission
 from ...poll_vote_writer import MultiplePollVoteWriter, SinglePollVoteWriter
 from ...serializers import (
     PollOptionVoteCountSerializer,
@@ -24,7 +24,7 @@ from ..common import validated_or_error
 
 @api_view(['GET', 'PUT'])
 @authentication_classes([CookieTokenAuthentication])
-# AllowAny: authorisation is enforced inline below via PollVotePermission, since GET and
+# AllowAny: authorisation is enforced inline below via EndpointPermission, since GET and
 # PUT have different rules (view allows the superuser/staff bypass, voting does not) — there
 # is no public read path.
 @permission_classes([AllowAny])
@@ -34,12 +34,16 @@ def game_poll_votes(request, game_slug, poll_id):
     poll = get_object_or_404(Poll, id=poll_id, game=game)
 
     if request.method == 'PUT':
-        error_response = PollVotePermission.check_vote(request, game)
+        error_response = EndpointPermission(request.user, game=game).check(
+            request, 'poll_vote', 'regular', 'vote',
+        )
         if error_response:
             return error_response
         return _cast_votes(request, poll)
 
-    error_response = PollVotePermission.check_view(request, game)
+    error_response = EndpointPermission(request.user, game=game).check(
+        request, 'poll_vote', 'regular', 'show',
+    )
     if error_response:
         return error_response
     return _list_votes(request, poll)

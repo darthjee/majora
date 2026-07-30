@@ -5,10 +5,22 @@ import os
 from django.shortcuts import get_object_or_404
 
 from ...models import CharacterItemPhoto
-from ...permissions import CharacterItemPhotoUploadPermission
+from ...permissions import EndpointPermission
 from ...photo_path import PhotoPathBuilder
 from .._upload_init import UploadInitiator
-from ._shared import _get_character_or_404
+from ._shared import _character_item_resource, _get_character_or_404
+
+
+def _check_item_photo_upload(request, character):
+    """Return an error Response if `request.user` may not upload a photo for the item, else None.
+
+    PC: regular tier (staff/player/owner). NPC: restricted tier, narrowed (issue #864) to
+    drop the staff bypass — dm/admin shortcut only.
+    """
+    type_ = 'regular' if character.is_pc else 'restricted'
+    return EndpointPermission(request.user, game=character.game, pc=character).check(
+        request, _character_item_resource(character), type_, 'photo_upload',
+    )
 
 
 def character_item_photo_upload(request, game, game_slug, character_id, item_id, npc):
@@ -16,7 +28,7 @@ def character_item_photo_upload(request, game, game_slug, character_id, item_id,
     character = _get_character_or_404(game, character_id, npc)
     item = get_object_or_404(character.character_items, pk=item_id)
 
-    error_response = CharacterItemPhotoUploadPermission.check(request, character)
+    error_response = _check_item_photo_upload(request, character)
     if error_response:
         return error_response
 

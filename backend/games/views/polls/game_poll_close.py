@@ -9,14 +9,14 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game, Poll
-from ...permissions import PollClosePermission
+from ...permissions import EndpointPermission
 from ...poll_close_writer import PollCloseWriter
 from ...serializers import PollDetailSerializer
 
 
 @api_view(['PATCH'])
 @authentication_classes([CookieTokenAuthentication])
-# AllowAny: authorisation is enforced inline below via PollClosePermission.check(), since
+# AllowAny: authorisation is enforced inline below via EndpointPermission.check(), since
 # closing a poll has no public path.
 @permission_classes([AllowAny])
 def game_poll_close(request, game_slug, poll_id):
@@ -24,7 +24,9 @@ def game_poll_close(request, game_slug, poll_id):
     game = get_object_or_404(Game, game_slug=game_slug)
     poll = get_object_or_404(Poll, id=poll_id, game=game)
 
-    error_response = PollClosePermission.check(request, game)
+    error_response = EndpointPermission(request.user, game=game).check(
+        request, 'poll', 'restricted', 'close',
+    )
     if error_response:
         return error_response
 

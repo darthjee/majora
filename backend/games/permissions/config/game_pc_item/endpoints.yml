@@ -1,0 +1,18 @@
+# PC character-item endpoint rules. `create` (CharacterItemCreatePermission) is the
+# narrower rule, reused unchanged by the item acquire/remove endpoints (issue #773) in
+# addition to item creation from scratch. `create_update` (CharacterItemPlayerCreatePermission,
+# issue #864) is broader (any player of the game), used by the create-from-scratch and
+# update endpoints.
+restricted:
+  create:
+    - staff
+    - owner
+regular:
+  create_update:
+    - staff
+    - player
+    - owner
+  photo_upload:
+    - staff
+    - player
+    - owner

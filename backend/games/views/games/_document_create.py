@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.response import Response
 
 from ...models import GameDocument
-from ...permissions import GameDocumentCreatePermission
+from ...permissions import EndpointPermission
 from ...serializers import GameDocumentDetailFullSerializer
 from ..common import validated_or_error
 
@@ -19,7 +19,9 @@ class _GameDocumentCreateSerializer(serializers.Serializer):
 
 def game_document_create(request, game):
     """Create a new GameDocument for `game`, with no owning CharacterDocument."""
-    error_response = GameDocumentCreatePermission.check(request, game)
+    error_response = EndpointPermission(request.user, game=game).check(
+        request, 'game_document', 'regular', 'create',
+    )
     if error_response:
         return error_response
 

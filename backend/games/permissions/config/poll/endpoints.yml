@@ -1,0 +1,8 @@
+# PollPermission (view and create share the exact same check) / PollClosePermission
+# (dm/admin shortcut only).
+regular:
+  view_create:
+    - staff
+    - player
+restricted:
+  close: []

@@ -7,21 +7,23 @@ from rest_framework.permissions import AllowAny
 from accounts.authentication import CookieTokenAuthentication
 
 from ....models import Game
-from ....permissions import PlayerPermission
+from ....permissions import EndpointPermission
 from ....serializers import PlayerListSerializer
 from ...common import access_response
 
 
 @api_view(['GET'])
 @authentication_classes([CookieTokenAuthentication])
-# AllowAny: authorisation is enforced inline below via PlayerPermission.check(), since
+# AllowAny: authorisation is enforced inline below via EndpointPermission.check(), since
 # Players have no public read path.
 @permission_classes([AllowAny])
 def game_player_detail(request, game_slug, player_id):
     """Return detail for a single player of a game."""
     game = get_object_or_404(Game, game_slug=game_slug)
 
-    error_response = PlayerPermission.check(request, game)
+    error_response = EndpointPermission(request.user, game=game).check(
+        request, 'player', 'regular', 'show',
+    )
     if error_response:
         return error_response
 

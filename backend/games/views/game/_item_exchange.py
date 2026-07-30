@@ -5,11 +5,18 @@ from rest_framework import serializers
 from rest_framework.response import Response
 
 from ...models import CharacterItem
-from ...permissions import CharacterItemCreatePermission
+from ...permissions import EndpointPermission
 from ...serializers import CharacterItemDetailFullSerializer
 from ..common import paginated_list_response, validated_or_error
 from ..games._treasure_filters import filter_by_name
-from ._shared import _get_character_or_404, _hidden_gate_response
+from ._shared import _character_item_resource, _get_character_or_404, _hidden_gate_response
+
+
+def _check_item_create(request, game, character):
+    """Return an error Response if `request.user` may not create/remove an item, else None."""
+    return EndpointPermission(request.user, game=game, pc=character).check(
+        request, _character_item_resource(character), 'restricted', 'create',
+    )
 
 
 class _ItemAcquireSerializer(serializers.Serializer):
@@ -60,7 +67,7 @@ def character_item_acquire(request, game, character, allow_hidden=False):
     `allow_hidden` bypasses the hidden-GameItem 404 gate — reserved for the DM-only
     `/acquire/all.json` endpoints, mirroring `character_treasure_acquire`'s `allow_hidden`.
     """
-    error_response = CharacterItemCreatePermission.check(request, character)
+    error_response = _check_item_create(request, game, character)
     if error_response:
         return error_response
 
@@ -89,7 +96,7 @@ def character_item_remove(request, game, character, allow_hidden=False):
     `allow_hidden` bypasses the hidden-CharacterItem 404 gate — reserved for the DM-only
     `/remove/all.json` endpoints.
     """
-    error_response = CharacterItemCreatePermission.check(request, character)
+    error_response = _check_item_create(request, game, character)
     if error_response:
         return error_response
 

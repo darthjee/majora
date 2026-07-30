@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game
-from ...permissions import GameSessionEditPermission
+from ...permissions import EndpointPermission
 from ...serializers import GameSessionCreateSerializer, GameSessionDetailSerializer
 from ..common import validated_or_error
 
@@ -16,7 +16,7 @@ from ..common import validated_or_error
 @api_view(['POST'])
 @authentication_classes([CookieTokenAuthentication])
 # AllowAny: authorization is enforced inline inside _create_session via
-# GameSessionEditPermission.check().
+# EndpointPermission.check().
 @permission_classes([AllowAny])
 def game_sessions_create(request, game_slug):
     """Create a new session for the game identified by `game_slug`."""
@@ -27,7 +27,9 @@ def game_sessions_create(request, game_slug):
 
 def _create_session(request, game):
     """Validate the request and create a new session for the game, returning 201 detail data."""
-    error_response = GameSessionEditPermission.check(request, game)
+    error_response = EndpointPermission(request.user, game=game).check(
+        request, 'game_session', 'regular', 'edit',
+    )
     if error_response:
         return error_response
 

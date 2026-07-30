@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Treasure, TreasurePhoto
-from ...permissions import GameEditPermission, TreasureEditPermission
+from ...permissions import EndpointPermission
 from ...photo_path import PhotoPathBuilder
 from .._upload_init import UploadInitiator
 
@@ -38,8 +38,10 @@ def treasure_photo_upload(request, treasure_id):
 def _check_photo_permission(request, treasure):
     """Check edit permission via the treasure's owning game (if any), else the treasure itself."""
     if treasure.game_id is not None:
-        return GameEditPermission.check(request, treasure.game)
-    return TreasureEditPermission.check(request, treasure)
+        return EndpointPermission(request.user, game=treasure.game).check(
+            request, 'game', 'restricted', 'edit',
+        )
+    return EndpointPermission(request.user).check(request, 'treasure', 'restricted', 'edit')
 
 
 def _build_file_path(treasure_id, filename):

@@ -7,9 +7,9 @@ from rest_framework.permissions import IsAuthenticated
 from accounts.authentication import CookieTokenAuthentication
 
 from ..models import Game, GamePhoto
-from ..permissions import GameEditPermission
 from ..photo_path import PhotoPathBuilder
 from ._upload_init import UploadInitiator
+from .common import check_game_edit
 
 
 @api_view(['POST'])
@@ -19,7 +19,7 @@ def photo_upload(request, game_slug):
     """Initialise a game photo upload and return the upload id and token."""
     game = get_object_or_404(Game, game_slug=game_slug)
 
-    error_response = GameEditPermission.check(request, game)
+    error_response = check_game_edit(request, game)
     if error_response:
         return error_response
 

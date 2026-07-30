@@ -8,19 +8,18 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game, GameTreasure, Treasure
-from ...permissions import GameEditPermission
 from ...serializers import (
     GameTreasureUpdateSerializer,
     TreasureDetailSerializer,
     TreasureUpdateSerializer,
 )
-from ..common import validate_with_hidden_field, validated_or_error
+from ..common import check_game_edit, validate_with_hidden_field, validated_or_error
 
 
 @api_view(['GET', 'PATCH'])
 @authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public; PATCH authorization is enforced inline via
-# GameEditPermission.check() against the resolved game — distinct from, and does not
+# EndpointPermission.check() against the resolved game — distinct from, and does not
 # alter, the superuser-only `/treasures/<id>.json` endpoint.
 @permission_classes([AllowAny])
 def game_treasure_detail(request, game_slug, treasure_id):
@@ -61,7 +60,7 @@ def _hidden_gate_response(game_treasure, game, request):
 
 def _update_game_treasure(request, game, treasure):
     """Validate permission and payload, persist the update, then return the detail Response."""
-    error_response = GameEditPermission.check(request, game)
+    error_response = check_game_edit(request, game)
     if error_response:
         return error_response
 

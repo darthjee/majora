@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game, GameSession
-from ...permissions import SessionMessagePermission
+from ...permissions import EndpointPermission
 from ...serializers import SessionMessageCreateSerializer, SessionMessageListSerializer
 from ...session_message_paginator import SessionMessagePaginator
 from ..common import validated_or_error
@@ -16,7 +16,7 @@ from ..common import validated_or_error
 
 @api_view(['GET', 'POST'])
 @authentication_classes([CookieTokenAuthentication])
-# AllowAny: authorisation is enforced inline below via SessionMessagePermission, since
+# AllowAny: authorisation is enforced inline below via EndpointPermission, since
 # both GET and POST require the requester to be a player/DM/superuser/staff (view) or a
 # player/DM (create) — there is no public read path, unlike GameSession's own detail view.
 @permission_classes([AllowAny])
@@ -26,12 +26,16 @@ def session_messages_list(request, game_slug, session_id):
     session = get_object_or_404(GameSession, id=session_id, game=game)
 
     if request.method == 'POST':
-        error_response = SessionMessagePermission.check_create(request, session)
+        error_response = EndpointPermission(request.user, game=game).check(
+            request, 'session_message', 'regular', 'create',
+        )
         if error_response:
             return error_response
         return _create_message(request, session)
 
-    error_response = SessionMessagePermission.check_view(request, session)
+    error_response = EndpointPermission(request.user, game=game).check(
+        request, 'session_message', 'regular', 'show',
+    )
     if error_response:
         return error_response
     return _list_messages(request, session)

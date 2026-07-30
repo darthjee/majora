@@ -1,0 +1,5 @@
+# PlayerPermission (issue #864 reversed the previous staff/superuser exclusion, #695/#589).
+regular:
+  show:
+    - staff
+    - player

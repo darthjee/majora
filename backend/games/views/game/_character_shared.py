@@ -15,7 +15,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game
-from ...permissions import CharacterEditPermission, GameEditPermission
+from ...permissions import EndpointPermission
 from ...serializers import (
     CharacterDocumentSerializer,
     CharacterItemDetailSerializer,
@@ -23,7 +23,12 @@ from ...serializers import (
     GameItemAllListSerializer,
     GameItemListSerializer,
 )
-from ..common import access_response, parse_role_booleans, permissions_response
+from ..common import (
+    access_response,
+    check_game_edit,
+    parse_role_booleans,
+    permissions_response,
+)
 from ._document_files import character_document_files
 from ._document_photos import character_document_photos
 from ._documents import character_document_detail, character_documents
@@ -185,7 +190,7 @@ def build_items_view(npc):
 
     The `POST` branch applies the same `_hidden_gate_response` pre-check as
     `character_item_update` (issue #864 follow-up): without it,
-    `CharacterItemPlayerCreatePermission` would let any player of the game create an item on a
+    the `create_update` action would let any player of the game create an item on a
     hidden NPC, confirming that NPC's existence via the response.
     """
 
@@ -209,15 +214,17 @@ def _check_character_all_permission(request, game, character_id, npc):
     """Return an error Response if the requester may not view/edit all items/documents, else None.
 
     An NPC's `/items/all.json` (or `/documents/all.json`, or `/items/remove/all.json`) is
-    DM/superuser-only (`GameEditPermission`); a PC's own variant is additionally open to the
-    PC's owning player (`CharacterEditPermission`). Shared by the items, documents, and (issue
-    #773) item-remove `/all.json` view factories below — the branching is identical, only the
-    calling endpoint differs.
+    DM/superuser-only (`game`/`restricted`/`edit`); a PC's own variant is additionally open to
+    the PC's owning player (`game_pc`/`restricted`/`edit`). Shared by the items, documents, and
+    (issue #773) item-remove `/all.json` view factories below — the branching is identical,
+    only the calling endpoint differs.
     """
     if npc:
-        return GameEditPermission.check(request, game)
+        return check_game_edit(request, game)
     character = _get_character_or_404(game, character_id, npc=False)
-    return CharacterEditPermission.check(request, character)
+    return EndpointPermission(request.user, game=game, pc=character).check(
+        request, 'game_pc', 'restricted', 'edit',
+    )
 
 
 def build_items_all_view(npc, serializer_class):
@@ -476,7 +483,7 @@ def build_items_available_all_view(npc):
     def view(request, game_slug, character_id):
         """Return the catalog (incl. hidden), minus already-owned items — DM/admin only."""
         game = get_object_or_404(Game, game_slug=game_slug)
-        error_response = GameEditPermission.check(request, game)
+        error_response = check_game_edit(request, game)
         if error_response:
             return error_response
         response = character_items_available(
@@ -509,7 +516,7 @@ def build_item_acquire_all_view(npc):
     def view(request, game_slug, character_id):
         """Create a CharacterItem, including from a hidden GameItem — DM/admin only."""
         game = get_object_or_404(Game, game_slug=game_slug)
-        error_response = GameEditPermission.check(request, game)
+        error_response = check_game_edit(request, game)
         if error_response:
             return error_response
         character = _get_character_or_404(game, character_id, npc=npc)
@@ -534,9 +541,9 @@ def build_item_remove_view(npc):
 def build_item_remove_all_view(npc):
     """Build the restricted POST items/remove/all.json view for a PC or NPC.
 
-    PC: dm/admin/owner (CharacterEditPermission). NPC: dm/admin (GameEditPermission, no
-    owner concept) — same asymmetric split `_check_character_all_permission` already applies
-    to `items/all.json`/`documents/all.json`.
+    PC: dm/admin/owner (`game_pc`/`restricted`/`edit`). NPC: dm/admin (`game`/`restricted`/
+    `edit`, no owner concept) — same asymmetric split `_check_character_all_permission`
+    already applies to `items/all.json`/`documents/all.json`.
     """
 
     @_build_api_view(['POST'], AllowAny)
@@ -584,7 +591,7 @@ def build_treasure_buy_all_view(npc):
     def view(request, game_slug, character_id):
         """Spend a PC's/NPC's money to buy a treasure, including hidden ones — DM only."""
         game = get_object_or_404(Game, game_slug=game_slug)
-        error_response = GameEditPermission.check(request, game)
+        error_response = check_game_edit(request, game)
         if error_response:
             return error_response
         character = _get_character_or_404(game, character_id, npc=npc)
@@ -626,7 +633,7 @@ def build_treasure_acquire_all_view(npc):
     def view(request, game_slug, character_id):
         """Add a treasure, including hidden ones, to a PC/NPC without touching money — DM only."""
         game = get_object_or_404(Game, game_slug=game_slug)
-        error_response = GameEditPermission.check(request, game)
+        error_response = check_game_edit(request, game)
         if error_response:
             return error_response
         character = _get_character_or_404(game, character_id, npc=npc)

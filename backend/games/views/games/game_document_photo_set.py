@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game, GameDocument
-from ...permissions import GameDocumentPhotoUploadPermission
+from ...permissions import EndpointPermission
 
 
 @api_view(['PATCH'])
@@ -20,7 +20,9 @@ def game_document_photo_set(request, game_slug, document_id, photo_id):
     game = get_object_or_404(Game, game_slug=game_slug)
     document = get_object_or_404(GameDocument, pk=document_id, game=game)
 
-    error_response = GameDocumentPhotoUploadPermission.check(request, game)
+    error_response = EndpointPermission(request.user, game=game).check(
+        request, 'game_document', 'regular', 'photo_upload',
+    )
     if error_response:
         return error_response
 

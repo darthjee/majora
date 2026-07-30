@@ -29,6 +29,16 @@ def _get_character_or_404(game, character_id, npc):
     return character
 
 
+def _character_resource(character):
+    """Return the permissions resource name ('game_pc'/'game_npc') for `character`."""
+    return 'game_pc' if character.is_pc else 'game_npc'
+
+
+def _character_item_resource(character):
+    """Return the permissions resource name ('game_pc_item'/'game_npc_item') for `character`."""
+    return 'game_pc_item' if character.is_pc else 'game_npc_item'
+
+
 def _hidden_gate_response(character, request):
     """Return a 404 Response with X-Skip-Cache set if character is hidden and not editable."""
     if character.hidden and not character.can_be_edited_by(request.user):

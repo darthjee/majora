@@ -8,21 +8,23 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game, Poll
-from ...permissions import PollPermission
+from ...permissions import EndpointPermission
 from ...serializers import PollDetailSerializer
 
 
 @api_view(['GET'])
 @authentication_classes([CookieTokenAuthentication])
-# AllowAny: authorisation is enforced inline below via PollPermission.check(), since Polls
-# have no public read path.
+# AllowAny: authorisation is enforced inline below via EndpointPermission.check(), since
+# Polls have no public read path.
 @permission_classes([AllowAny])
 def game_poll_detail(request, game_slug, poll_id):
     """Return a specific poll's detail, including its options."""
     game = get_object_or_404(Game, game_slug=game_slug)
     poll = get_object_or_404(Poll, id=poll_id, game=game)
 
-    error_response = PollPermission.check(request, game)
+    error_response = EndpointPermission(request.user, game=game).check(
+        request, 'poll', 'regular', 'view_create',
+    )
     if error_response:
         return error_response
 

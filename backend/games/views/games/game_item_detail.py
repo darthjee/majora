@@ -8,19 +8,18 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game
-from ...permissions import GameEditPermission
 from ...serializers import (
     GameItemDetailFullSerializer,
     GameItemDetailSerializer,
     GameItemUpdateSerializer,
 )
-from ..common import validated_or_error
+from ..common import check_game_edit, validated_or_error
 
 
 @api_view(['GET', 'PATCH'])
 @authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public (hidden items excluded below); PATCH authorization
-# is enforced inline via GameEditPermission.check().
+# is enforced inline via EndpointPermission.check().
 @permission_classes([AllowAny])
 def game_item_detail(request, game_slug, item_id):
     """Return detail for, or update, a single item belonging to a specific game."""
@@ -33,7 +32,7 @@ def game_item_detail(request, game_slug, item_id):
 
 def _update_item(request, game, item_id):
     """Check dm/admin permission, validate the payload, persist it, and return the item."""
-    error_response = GameEditPermission.check(request, game)
+    error_response = check_game_edit(request, game)
     if error_response:
         return error_response
 
