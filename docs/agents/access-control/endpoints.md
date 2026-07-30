@@ -1,91 +1,61 @@
 # Standalone endpoints
 
-Covers the access-route config, health check, and authentication endpoints — small,
-standalone endpoints that don't belong to any single resource above.
+Covers the access-route config, health check, and authentication endpoints — small, standalone
+endpoints that don't belong to any single resource above.
 
 ## Access-route config endpoint
-
 | Endpoint | Method | Who can call | Response |
 |----------|--------|-------------|----------|
-| `/access-route-config.json` | GET | **AllowAny** | Static JSON object keyed by page identifier (see below) |
+| `/access-route-config.json` | GET | **AllowAny** | Static JSON keyed by frontend page identifier |
 
-Sourced from the plain Python dict `ACCESS_ROUTE_CONFIG` in
-`backend/games/access_route_config.py`. Returns no model data and no user data — a static,
-non-paginated, always-public-cache-tier config describing, for each frontend page identifier
-(the same identifiers `HashRouteResolver#getPage` produces — `game`, `gameEdit`, `pcCharacter`,
-`treasureEdit`, `staffUsers`, ...), which resource-kind access check(s) that page must perform
-before rendering. Each page key maps to a list of descriptors — most pages need only one, but
-e.g. `treasureEdit` needs both a superuser check and a treasure-ownership check — each descriptor
-a `{"kind": ...}` dict (`"game"`, `"character"`, `"treasure"`, `"superuser"`, or
-`"staffOrSuperuser"`), with `"character"` descriptors additionally carrying a `"characterKind"`
-key (`"pcs"` or `"npcs"`). Page identifiers with no access check at all (e.g. `games`, `home`)
-have no entry.
-
-This endpoint carries no URL patterns — route paths and param names remain frontend-owned
-routing knowledge (see [frontend.md](../frontend.md)). Authentication classes are explicitly empty
-(`@authentication_classes([])`) and permissions are `AllowAny`, identical to the health check
-endpoint below — this response never varies by caller, so it always gets the public/anonymous
-`Cache-Control` tier.
+Returns no model data and no user data — a static, non-paginated, always-public-cache-tier config
+describing, per frontend page identifier, which resource-kind access check(s) (`game`,
+`character` + `pcs`/`npcs`, `treasure`, `superuser`, `staffOrSuperuser`) that page must perform
+before rendering. A page needing no check (e.g. `games`, `home`) has no entry. Authentication
+classes are explicitly empty and permission is `AllowAny` — this response never varies by caller.
 
 ## Health check endpoint
-
 | Endpoint | Method | Who can call | Response |
 |----------|--------|-------------|----------|
 | `/health.json` | GET | **AllowAny** | `{"status": "ok"}` |
 
-Returns no model data and no user data. Used by the frontend to periodically verify backend
-connectivity. Authentication classes are explicitly empty (`@authentication_classes([])`) and
-permissions are `AllowAny`.
-
 ## Authentication endpoints
-
-These endpoints manage identity; they do not expose domain data beyond confirmation of
-success/failure. They are listed here for completeness.
+These manage identity; they do not expose domain data beyond success/failure.
 
 | Endpoint | Method | Who can call |
 |----------|--------|-------------|
-| `/users/login.json` | POST | Anyone. Returns `403 {'error': 'denied'}` if the credentials are correct but the account's `UserProfile.status` is `denied` (checked only after password verification, so this never becomes a pre-auth enumeration oracle). A `pending` account still logs in successfully (a token is issued) — see the `UserProfile.status` gate note below. |
-| `/users/logout.json` | POST | Authenticated (`IsAuthenticated`) |
-| `/users/register.json` | POST | Anyone. New accounts always start with `UserProfile.status = 'pending'`. |
-| `/users/status.json` | GET | Anyone. Returns `{"logged_in": false}` when unauthenticated or when the resolved user's `UserProfile.status` is `denied`; `{"logged_in": false, "status": "pending"}` when the resolved user's status is `pending` (the only case that carries a `status` key); otherwise the full logged-in shape (`logged_in: true`, `username`, `user_id`, `is_superuser`/`is_staff` for the requester, `settings`). |
-| `/users/test-email.json` | POST | Staff-or-superuser (via `require_staff`) |
-| `/users/recover.json` | POST | Anyone. Always returns the identical `200 {'sent': True}` regardless of whether the email matches a real user or that user's `UserProfile.status` (including `denied`) — token creation/email sending is silently skipped for a non-match or a `denied` user, preserving the enumeration-safety invariant. |
+| `/users/login.json` | POST | Anyone. `403` if credentials are correct but the account is `denied` (checked only after password verification — never a pre-auth enumeration oracle). A `pending` account still logs in successfully — see the status gate below |
+| `/users/logout.json` | POST | Authenticated |
+| `/users/register.json` | POST | Anyone. New accounts always start `pending` |
+| `/users/status.json` | GET | Anyone. `{"logged_in": false}` when unauthenticated or `denied`; adds `"status": "pending"` when pending (the only case with a `status` key); otherwise the full logged-in shape (`username`, `user_id`, `is_superuser`/`is_staff`, `settings`) |
+| `/users/test-email.json` | POST | **Staff-or-superuser** |
+| `/users/recover.json` | POST | Anyone. Always `200 {'sent': True}` regardless of match/status — enumeration-safe |
 | `/users/reset-password.json` | POST | Anyone (requires valid reset token) |
 | `/users/language.json` | POST | Authenticated |
-| `/users/account.json` | GET/PATCH | Authenticated; always scoped to the requesting user, never a different user id. Exposed fields: `name`, `email`, `avatar_url` (Gravatar URL derived from a SHA-256 hash of the requester's own, trimmed/lowercased email; `null` when the user has no email; never derived from or returned for any other user) |
+| `/users/account.json` | GET/PATCH | Authenticated; always scoped to the requester, never another user. Exposed: `name`, `email`, `avatar_url` (Gravatar-derived, `null` if no email) — an [account/sensitive-information resource](principles.md#resource-categories) |
 
 ### `UserProfile.status` authentication gate
-
-`CookieTokenAuthentication` (`backend/accounts/authentication.py`) — the project-wide default
-authentication class used by essentially every view — treats a resolved user whose
-`UserProfile.status` is not exactly `approved` as fully unauthenticated (`authenticate()` returns
-`None`). This applies **before** any other rule in this document set: a `pending` or `denied`
-user looks anonymous to every endpoint gated by `CookieTokenAuthentication`, with the sole
-exceptions of `/users/login.json`, `/users/status.json`, `/users/recover.json`, and the
-authorization-requests poll endpoint below, each of which resolves the user's real status
-directly (not via `CookieTokenAuthentication`) specifically to implement the behavior described
-above. New registrations start `pending`; a one-time data migration backfilled every pre-existing
-user (including staff/admins) to `approved` so nobody already using the site lost access.
-Staff/superuser accounts approve or deny pending users via the two endpoints documented in [User
-(Staff Management)](user.md).
+The project-wide default authentication class treats a resolved user whose `UserProfile.status`
+isn't `approved` as fully unauthenticated. This applies **before** every other rule in this
+document set: a `pending` or `denied` user looks anonymous everywhere, with the sole exceptions of
+`/users/login.json`, `/users/status.json`, `/users/recover.json`, and the authorization-requests
+poll endpoint below, each of which resolves the user's real status directly to implement the
+behavior described above. New registrations start `pending`; staff/superuser accounts approve or
+deny pending users via [User (Staff Management)](user.md).
 
 ## Authorization requests (device-authorize login)
-
-The `AuthorizationRequest` model (`accounts.models.authorization_request`) backs a passwordless
-"authorize with logged device" login mode: a new device asks, by username only, to be logged in;
-an already-authenticated session on another device approves or denies the request.
+A passwordless "authorize with logged device" login mode: a new device asks, by username only, to
+be logged in; an already-authenticated session on another device approves or denies the request.
 
 | Endpoint | Method | Who can call | Notes |
 |----------|--------|-------------|-------|
-| `/users/authorization_requests.json` | POST | **AllowAny** (pre-login) | Creates a request. Enumeration-safe: identical `201` status/shape whether or not `username` matches a real user (an unknown-username request is still created but can never leave `open`, since it has no matching user to approve it). Per-IP rate-limited (`AnonRateThrottle`, scope `authorization_request_create`). |
-| `/users/authorization_requests/<uuid>.json` | GET | **AllowAny** (pre-login) | Polled by the requesting device with the request's own bearer token in `X-Authorize-Token` (compared via `hmac.compare_digest` against a hashed value — never exposed in plaintext to any endpoint). `403` if not found, token mismatch, or already `logged`/`denied`. `200` while `open`. `202` on `approved` — atomically transitions the row to `logged` (guarded `UPDATE ... WHERE status='approved'`, so only one concurrent poll can win) and is the **only** point where real login credentials are ever returned; if the request's own `user`'s `UserProfile.status` is `denied`, this credential-issuing step is blocked and the same generic `403` used for not-found/already-consumed requests is returned instead, preserving this endpoint's enumeration-safety invariant. `422` if lazily expired. Per-IP/uuid rate-limited (scope `authorization_request_poll`). |
-| `/account/authorization_requests.json` | GET | Authenticated (`IsAuthenticated`) | Paginated, newest-first, strictly scoped to `request.user`'s own requests (never another user's). Every returned row is lazily re-checked for expiration before serialization, so a request past its `expires_at` always displays as `expired` even if no mutating endpoint has touched it yet. |
-| `/account/authorization_requests/<uuid>/deny.json` | PATCH | Authenticated (`IsAuthenticated`), owner-only | `403` if the request doesn't belong to the caller. `422` if not currently `open` (including lazily-expired). Sets `denied`. |
-| `/account/authorization_requests/<uuid>/authorize.json` | PATCH | Authenticated (`IsAuthenticated`), owner-only | Requires the caller's own current password in the request body (re-authentication before granting a login elsewhere): `401` on mismatch. `403` if the request doesn't belong to the caller. `422` if not currently `open` (including lazily-expired). Sets `approved`. |
+| `/users/authorization_requests.json` | POST | **AllowAny** (pre-login) | Enumeration-safe: identical `201` whether or not `username` matches a real user. Per-IP rate-limited |
+| `/users/authorization_requests/<uuid>.json` | GET | **AllowAny** (pre-login) | Polled with the request's own bearer token in `X-Authorize-Token` (compared via constant-time comparison, never exposed in plaintext). `403` if not found, token mismatch, or already `logged`/`denied`. `200` while `open`. `202` on `approved` — atomically transitions to `logged` (only one concurrent poll can win) and is the **only** point real login credentials are ever returned; if the request's own user is `denied`, this step is blocked and the same generic `403` is returned instead, preserving the enumeration-safety invariant. `422` if lazily expired. Rate-limited |
+| `/account/authorization_requests.json` | GET | Authenticated | Paginated, newest-first, strictly scoped to the requester's own requests. Lazily re-checked for expiration before serialization |
+| `/account/authorization_requests/<uuid>/deny.json` | PATCH | Authenticated, owner-only | `403` if not the caller's own request. `422` if not currently `open`. Sets `denied` |
+| `/account/authorization_requests/<uuid>/authorize.json` | PATCH | Authenticated, owner-only | Requires the caller's own current password (re-authentication before granting a login elsewhere): `401` on mismatch. `403` if not the caller's own request. `422` if not currently `open`. Sets `approved` |
 
-Serializer (`AuthorizationRequestListSerializer`, used by the list endpoint above) exposes only
-`uuid`, `created_at`, `status`, `ip`, `browser` — never the row's `id`, `token_hash` (the hashed
-bearer token), or `user`/`user_id`. `ip` is captured from `REMOTE_ADDR` only (deliberately
-ignoring `X-Forwarded-For`, unlike the analytics-only extraction in
-`statistics.middleware`), since it is shown to the approving human as a trust signal and must not
-be client-spoofable. All five endpoints set `X-Skip-Cache`.
+List serializer exposes only `uuid`, `created_at`, `status`, `ip`, `browser` — never the row's
+`id`, hashed token, or `user`/`user_id`. `ip` is captured from `REMOTE_ADDR` only (deliberately
+ignoring `X-Forwarded-For`), since it's shown to the approving human as a trust signal and must
+not be client-spoofable. All five endpoints set `X-Skip-Cache`.

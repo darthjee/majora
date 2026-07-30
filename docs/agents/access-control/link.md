@@ -1,7 +1,7 @@
 # Link
 
-Links are read-only through the game detail endpoint (`links` array in `GameDetailSerializer`).
-No direct link create/update/delete endpoint exists.
+**[Game resource](principles.md#resource-categories).** Links are read-only through the game
+detail endpoint (`links` array). No direct link create/update/delete endpoint exists.
 
 **Exposed fields** (read): `id`, `text`, `url`, `link_type` — visible to anyone who can read the
 game detail (i.e. anyone). `link_type` is a non-sensitive display-icon enum (`''` or

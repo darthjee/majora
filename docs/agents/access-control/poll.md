@@ -1,105 +1,64 @@
 # Poll
 
-A `Poll` is a game-scoped question with a fixed set of `PollOption`s, created by (and visible
-to) a game's participants. `PollVote` links a `User` (not a `Player`) to the option they voted
-for — so a game's DM(s), who have no `Player` row, can vote too — and is exposed via a dedicated
-`GET`/`PUT .../votes.json` endpoint (see the Vote row below).
+**[Game resource](principles.md#resource-categories).** A `Poll` is a game-scoped question with a
+fixed set of `PollOption`s, created by (and visible to) a game's participants. `PollVote` links a
+`User` (not a `Player`) to the option they voted for — so a game's DM(s), who have no `Player`
+row, can vote too.
 
 Unlike the [default resource CRUD pattern](principles.md#default-resource-crud-pattern), List is
-not `AllowAny` and Create is not gated by a plain `<Resource>Edit` rule: view and create instead
-share the **exact same** permission rule (**PollPermission**), rather than create being stricter
-(contrast with [GameSessionMessage](game-session-message.md), whose create check excludes the
-superuser/staff bypass that its view check allows) or view being open to everyone
-(contrast with [GameSession](game-session.md)/[Task](task.md), which use GameEdit-style rules).
+not `AllowAny` and Create is not gated by a plain `<Resource>Edit` rule: view and create share the
+**exact same** permission rule (**PollPermission**) — contrast with
+[GameSessionMessage](game-session-message.md), whose create check is stricter than its view check.
 
 | Action | Who can |
 |--------|---------|
-| List (`GET /games/<game_slug>/polls.json`) | Player of the game, that game's GameMaster, Superuser, or Staff (`is_staff`) — **PollPermission.check**; 401 if unauthenticated, 403 if authenticated but none of the above; 404 if the game slug is unknown |
-| Show (`GET /games/<game_slug>/polls/<id>.json`) | Same as List — **PollPermission.check**; 404 if the game slug or poll id is unknown, or the poll does not belong to that game |
-| Create (`POST /games/<game_slug>/polls.json`) | Same as List — **PollPermission.check**; no stricter create-only rule (a deliberate divergence from `SessionMessagePermission`, per the issue's explicit permission list) |
-| Session-scoped Create (`POST /games/<game_slug>/sessions/<session_id>/poll.json`) | Same as List/Create — **PollPermission.check**, same rule reused verbatim (the view's own `@permission_classes([AllowAny])` is intentional; authorisation is enforced inline via this same check, not by DRF's decorator); 404 if the game slug or session id is unknown, or the session does not belong to that game |
-| Update/Delete | Not exposed by any endpoint (Django admin only, out of scope) |
-| Vote List (`GET /games/<game_slug>/polls/<id>/votes.json`) | Player of the game, that game's GameMaster, Superuser, or Staff (`is_staff`) — **PollVotePermission.check_view**; 401 if unauthenticated, 403 if authenticated but none of the above; 404 if the game slug or poll id is unknown, or the poll does not belong to that game. Accepts an optional `?user_id=` filter (any `auth.User` id, not restricted to the requester's own); omitted or non-numeric, returns every vote for the poll |
-| Vote Cast (`PUT /games/<game_slug>/polls/<id>/votes.json`) | Only an actual player or GameMaster of the game — **PollVotePermission.check_vote**; unlike the view check above, there is **no** superuser/staff bypass, so a pure admin gets 403 just like an unrelated user. Body: `{"option_ids": [...]}`, the full set of options the requester is casting; each id must belong to the poll's own options (400 otherwise). Response: 200 with the requester's own resulting votes only |
+| List (`GET /games/<game_slug>/polls.json`) | Player, GameMaster, superuser, or staff — **PollPermission.check** |
+| Show (`GET /games/<game_slug>/polls/<id>.json`) | Same as List |
+| Create (`POST /games/<game_slug>/polls.json`) | Same as List — no stricter create-only rule |
+| Session-scoped Create (`POST /games/<game_slug>/sessions/<session_id>/poll.json`) | Same as List/Create, reused verbatim |
+| Update/Delete | Not exposed by any endpoint (Django admin only) |
+| Vote List (`GET /games/<game_slug>/polls/<id>/votes.json`) | Same as List — **PollVotePermission.check_view**. Optional `?user_id=` filter (any user id, not restricted to requester) |
+| Vote Cast (`PUT /games/<game_slug>/polls/<id>/votes.json`) | Only an actual player or GameMaster — **PollVotePermission.check_vote**; **no** superuser/staff bypass, unlike the view checks above |
 
-**Pagination**: standard numbered-page `Paginator` (same as `game_treasures`/`game_tasks`), not
-`SessionMessagePaginator`. List accepts an optional `?status=` filter (`open`/`inactive`/
-`closed`), applied via a plain equality filter with no validation against `Poll.STATUS_CHOICES` —
-an unrecognized value yields an empty page rather than a 400, matching the tolerant convention
-already used by `?public_allegiance=`/`?public_slain=` elsewhere.
+## Pagination/filters
+Standard numbered-page pagination. List accepts an optional `?status=` filter
+(`open`/`inactive`/`closed`); an unrecognized value yields an empty page (tolerant convention, no
+`400`).
 
-**Cache**: `X-Skip-Cache: true` is always set on all responses (List/Show/Create/Vote List/Vote
-Cast) — see [Common Rules](common-rules.md) for the cache-bypass mechanism. On the frontend,
-`PollClient` (`frontend/assets/js/client/PollClient.js`) explicitly sends the `X-Skip-Cache`
-request header on every GET call (`fetchPolls`/`fetchPoll`) rather than relying on the static
-suffix-matching config in `skipCacheSuffixes.js` — the per-id `polls/<id>.json` shape can't be
-expressed as a fixed suffix, the same reasoning already applied to the NPC-only case in
-`CharacterClient.js`.
+## Cache
+Always sets `X-Skip-Cache: true` on every response (List/Show/Create/Vote List/Vote Cast), per the
+[`X-Skip-Cache` rule](principles.md#x-skip-cache-rule).
 
-**Exposed fields**:
+## Fields
+**List**: `id`, `title`, `type`, `status` — no `description`/`options`, per the [list/show
+default](principles.md#listshow-serializer-defaults). **Show/Create-response**: adds
+`description`, `option_type`, `options` (nested `id`, `option` — no vote counts/voter identities).
 
-- List (`PollListSerializer`): `id`, `title`, `type`, `status` — no `description`/`options`,
-  kept light for the list surface.
-- Show/Create-response (`PollDetailSerializer`): `id`, `title`, `description`, `type`, `status`,
-  `option_type`, `options` (nested, `PollOptionSerializer`: `id`, `option` — no vote counts or
-  voter identities; `PollVote` is surfaced separately via its own `.../votes.json` endpoint,
-  not nested here).
-- Vote List response is an envelope, not a flat array of votes:
-  `{votes_count, users, votes}`.
-  - `votes_count` (`PollOptionVoteCountSerializer`): one entry per poll option, **always** —
-    including zero-vote options — and never filtered by `?user_id=`, since a per-user tally
-    wouldn't be meaningful. Fields: `option` (the `PollOption` id) and `count`.
-  - `users` (`PollVoteUserSerializer`): the distinct users backing the (`?user_id=`-filtered)
-    `votes` list below — i.e. only users who cast at least one vote captured there. Fields:
-    `id`, `name` (`UserProfile.display_name`, not the voter's real `username`/login credential),
-    `avatar_url` (Gravatar-based, same pattern as `SessionMessageUserSerializer`; `None` if the
-    user has no email hash).
-  - `votes` (`PollVoteSerializer`): the same per-vote rows as before, still respecting the
-    `?user_id=` filter. Fields: `id`, `option`, `user_id` — both plain FK ids, not nested
-    objects (`user_id` was renamed from `user`).
-- Vote Cast response (`PollVoteSerializer`): a **flat array** (not the envelope above) of
-  `id`, `option`, `user_id` — both plain FK ids, not nested objects.
+**Vote List response** is an envelope, not a flat array: `{votes_count, users, votes}`.
+- `votes_count`: one entry per option, always (including zero-vote), never filtered by
+  `?user_id=`. Fields: `option`, `count`.
+- `users`: distinct users backing the (`?user_id=`-filtered) `votes` below. Fields: `id`, `name`
+  (`UserProfile.display_name`, never the real username), `avatar_url` (Gravatar-based).
+- `votes`: per-vote rows, respecting `?user_id=`. Fields: `id`, `option`, `user_id` (plain FK ids).
 
-**Write fields** (create, `PollCreateSerializer`): `title` (required, non-blank), `description`
-(optional), `type` (optional, defaults to `Poll.TYPE_SINGLE`), `option_type` (optional, defaults
-to `Poll.OPTION_TYPE_TEXT`; applies to the whole poll, not per-option — controls whether the
-frontend renders/edits each option as plain text or as a date), `options` (required, at least one
-entry, each `{option: str}` via `PollOptionWriteSerializer`, capped at `MAX_OPTIONS` — mirrors
-`CharacterLinkWriteSerializer`'s `MAX_LINKS` bound). `game` is always assigned server-side from
-the URL segment (via serializer `context`), never from the request body. `status` is always
-force-set to `Poll.STATUS_OPEN` on create, regardless of the model's own default
-(`Poll.STATUS_INACTIVE`) — since no status-change endpoint exists yet, a poll created any other
-way could never become visible as "open" for the game-show-page widget.
+**Vote Cast response**: a flat array (not the envelope) of `id`, `option`, `user_id`.
 
-**Write fields** (session-scoped create, `SessionPollCreateSerializer`): `dates` (required, a
-non-empty list of `date`s, capped at `MAX_OPTIONS`), `type` (optional, defaults to
-`Poll.TYPE_MULTIPLE` — note this differs from the generic create endpoint's `Poll.TYPE_SINGLE`
-default, since a session date poll commonly needs to gather several dates that work for the
-group). Unlike `PollCreateSerializer`, this is a plain `serializers.Serializer` (not a
-`ModelSerializer`): `game` and the owning `GameSession` (`content_object`) are always assigned
-server-side from the URL segments (via serializer `context`), never from the request body;
-`status` is force-set to `Poll.STATUS_OPEN`, `option_type` to `Poll.OPTION_TYPE_DATE`, and
-`title` to a fixed `"Next session date"` — none of these four are caller-settable here, unlike
-the generic create endpoint where `option_type` (and effectively `title`) are caller-supplied.
-Each date becomes one `PollOption` (`option` = the date's ISO string), created via `bulk_create`.
+## Write fields
+**Create**: `title` (required), `description` (optional), `type` (optional, defaults to single),
+`option_type` (optional, defaults to text — applies to the whole poll), `options` (required, at
+least one, capped at `MAX_OPTIONS`). `game` is always server-assigned; `status` is always
+force-set to open on create, regardless of the model's own default, since no status-change
+endpoint exists yet.
 
-**Write fields** (vote cast, `PollVoteWriteSerializer`): `option_ids` (required, a list of ints;
-each must be an id of one of `poll`'s own options, else 400 — an empty list is valid and clears
-the requester's vote(s)). Unlike the other poll serializers, this one is a plain
-`serializers.Serializer`, not a `ModelSerializer` — persistence is delegated to
-`SinglePollVoteWriter`/`MultiplePollVoteWriter` (`backend/games/poll_vote_writer.py`), selected
-by `poll.type`, rather than to `.save()`:
+**Session-scoped create**: `dates` (required, non-empty, capped at `MAX_OPTIONS`), `type`
+(optional, defaults to multiple — differs from the generic endpoint's single default, since a
+session date poll commonly gathers several dates). `game`/session/`status`/`option_type`/`title`
+are all server-assigned (`status` open, `option_type` date, `title` fixed to
+`"Next session date"`) — none caller-settable here, unlike the generic create endpoint.
 
-- `single`-type: at most one `PollVote` row per user; switching the selected option updates that
-  row's `option` field in place (never a delete followed by a create); an empty `option_ids`
-  deletes the existing row instead.
-- `multiple`-type: diffs `option_ids` against the user's existing rows for the poll — creates
-  rows for newly selected options, deletes rows for options no longer selected, leaves unchanged
-  ones untouched.
-
-**Model**: `PollVote.user` is a `ForeignKey` to `auth.User` (`related_name='poll_votes'`),
-**not** `games.Player` — `PollVote.clean()`'s membership check is "user is a player of
-`poll.game`" (`game.players.filter(user=user).exists()`), mirroring `PollVotePermission`'s
-own check. Since `Player.is_dm=True` is itself a `Player` row, this single check already
-covers the game's GameMaster(s) too — no separate DM check is needed.
-`unique_together = [('user', 'option')]`.
+**Vote cast**: `option_ids` (required list of ints; each must belong to the poll's own options,
+else `400`; an empty list clears the requester's vote(s)). `single`-type polls keep at most one
+`PollVote` row per user (switching updates it in place); `multiple`-type diffs against existing
+rows. Membership is enforced at the model level: a vote requires the user be a player of the
+poll's game (a DM's own `Player`-less status doesn't block them, since DM is itself derived from a
+`Player` row with `is_dm=True`). `unique_together = [('user', 'option')]`.

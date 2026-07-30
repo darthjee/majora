@@ -1,77 +1,43 @@
 # Conversation (`conversations` app)
 
-`Conversation`, `ConversationParticipant`, `Message`, and `MessageVisualisation`
-(`backend/conversations/models/`) model a private/group messaging system between `Player`s. The
-`conversations` app's one real endpoint, `GET /games/<game_slug>/conversations.json` (routed/
-viewed/serialized from the `games` app, per `views-organization.md` — see [Adding a real
-conversation endpoint](#adding-a-real-conversation-endpoint) below), exposes a `Conversation`'s
-`id`/`title` (nothing else). `Message`/`MessageVisualisation` remain unexposed by any endpoint —
-reserved for a future messages issue. The pre-existing aggregate-only exposure through
-[Game](game.md)'s `GET /my-games.json` is unchanged.
+**[Game resource](principles.md#resource-categories)** (routed/viewed/serialized from the `games`
+app, per [`views-organization.md`](../views-organization.md)). `Conversation`,
+`ConversationParticipant`, `Message`, and `MessageVisualisation` model a private/group messaging
+system between `Player`s. The one real endpoint, `GET /games/<game_slug>/conversations.json`,
+exposes a `Conversation`'s `id`/`title` only. `Message`/`MessageVisualisation` remain unexposed by
+any endpoint — reserved for a future messages issue. The aggregate-only exposure through
+[Game](game.md)'s `GET /my-games.json` is separate and unaffected.
 
-Unlike the [default resource CRUD pattern](principles.md#default-resource-crud-pattern) (List/
-Detail = `AllowAny`), `conversations.json` requires Player/GameMaster/Superuser/Staff via the
-shared `PlayerPermission.check`'s `_is_admin_or_player` — the same check used by
-[Player](player.md)'s `players.json`/`players/:id.json`.
+Unlike the [default resource CRUD pattern](principles.md#default-resource-crud-pattern),
+`conversations.json` requires Player/GameMaster/Superuser/Staff via **PlayerPermission** — the
+same check [Player](player.md)'s endpoints use.
 
 | Action | Who can |
 |--------|---------|
-| List conversations shared between two players (`GET /games/<game_slug>/conversations.json?player_id=<id>`) | Player of the game, that game's GameMaster, or any Superuser/Staff — **PlayerPermission.check** (see above); 401 if unauthenticated, 403 if authenticated but none of the above; 400 if `player_id` is missing or not a valid integer; 404 if the game slug is unknown, or `player_id` doesn't belong to `game_slug` |
-| Show/Create/Update/Delete a `Conversation`, `Message`, or participant roster | Not exposed by any endpoint (Django admin only, out of scope) |
-| Read aggregate counts, via `GET /my-games.json` | Any authenticated user, for their own `ConversationParticipant` rows only — see below |
+| List conversations shared between two players (`GET /games/<game_slug>/conversations.json?player_id=<id>`) | Player, GameMaster, superuser, or staff — **PlayerPermission.check**; `400` if `player_id` missing/invalid; `404` if `player_id` doesn't belong to `game_slug` |
+| Show/Create/Update/Delete a `Conversation`, `Message`, or participant roster | Not exposed (Django admin only) |
+| Read aggregate counts, via `GET /my-games.json` | Any authenticated user, for their own rows only — see below |
 
 ## `GET /games/<game_slug>/conversations.json`
+Paginated, most-recent-first, returns only `Conversation`s where **both** the requester's own
+`Player` row (in `game_slug`) and the `player_id` query param's `Player` row participate — no way
+to browse a third party's conversations via this filter. `player_id` is required, not optional.
 
-Returns, paginated (standard numbered-page `Paginator`, same contract as
-`game_players`/`game_treasures`) and ordered most-recent-first (`-id`), the `Conversation`s
-where **both** the requesting user's own `Player` row (in `game_slug`) and the `player_id`
-query param's `Player` row have a `ConversationParticipant` row — i.e. only conversations the
-two players actually share. There is no way to browse a third party's conversations via this
-filter: a conversation only the requester is in (not `player_id`), or only `player_id` is in
-(not the requester), is excluded either way. `player_id` is a required query param for this
-issue's use case (the player detail page); it is not optional.
-
-**Serializer** (`ConversationListSerializer`): `id`, `title` only — no participant list, no
-last-message preview, since the right-hand message panel and richer conversation data are
-explicitly out of scope (reserved for a future messages issue).
-
-**Cache**: `X-Skip-Cache: true` is always set — see
-[Common Rules](common-rules.md#cache-bypass-mechanism-for-access-endpoints), since this is
-authorization-gated, per-viewer data.
+**Fields**: `id`, `title` only — no participant list or message preview (reserved for a future
+messages issue). Always sets `X-Skip-Cache: true` per the [`X-Skip-Cache`
+rule](principles.md#x-skip-cache-rule).
 
 ## Aggregate exposure via `GET /my-games.json`
-
-`MyGamesBuilder` (`backend/games/serializers/games/my_games/_my_games_builder.py`) scopes every
-query strictly to the requesting user, and only ever returns two integer counts per game — never
-message content, conversation titles, or other participants' identities:
-
-- Conversations considered: `Conversation.objects.filter(participants__player__user=request.user)`
-  — only conversations the requester actually has a `ConversationParticipant` row in (i.e.
-  follows). A conversation another user participates in, but the requester does not, is never
-  counted or referenced.
-- `conversations.count` (per game): number of those conversations with at least one
-  `ConversationParticipant` whose `Player.game` is that game.
-- `conversations.unread_count` (per game): subset of the above with at least one
-  `MessageVisualisation` where `player__user == request.user` and `not_seen=True` — i.e. the
-  requester's own unread state only; another participant's read/unread state is never read or
-  exposed.
-
-No field of `Message` or `MessageVisualisation` is reachable from any endpoint today (only
-`Conversation.id`/`title`, via `conversations.json` above, plus the aggregate counts above).
+Every query is scoped strictly to the requesting user, returning only two integer counts per
+game — never message content, titles, or other participants' identities: `conversations.count`
+(conversations the requester follows with at least one participant in that game) and
+`conversations.unread_count` (subset with at least one unread message for the requester). No field
+of `Message`/`MessageVisualisation` is reachable from any endpoint today.
 
 ## Adding a real conversation endpoint
-
-`conversations.json` only lists a conversation's `id`/`title` between two known players — it does
-not expose messages. If a future issue adds a `detail`/`create` endpoint
-under the `conversations` app (e.g. to show message bodies), update this file with the same
-per-action table used by every other resource in this document set, including:
-
-- Which roles can read a conversation's messages (presumably: its own `ConversationParticipant`s
-  only, per the ownership chain already used by `MyGamesBuilder` above and `conversations.json`'s
-  `PlayerPermission` check).
-- Whether `MessageVisualisation.not_seen` can be written by any client (marking a message
-  read/unread), and if so, scoped to the caller's own row only.
-- Whether the endpoint needs `X-Skip-Cache: true` (very likely yes, being per-viewer data — see
-  [Common Rules](common-rules.md#cache-bypass-mechanism-for-access-endpoints)).
-- Whether the same Superuser/Staff exclusion documented above for `conversations.json` should
-  carry over, or whether messages warrant a different rule.
+If a future issue adds a `detail`/`create` endpoint exposing message bodies, update this file with
+the same per-action table used elsewhere in this document set, including: which roles can read a
+conversation's messages (presumably its own participants only), whether
+`MessageVisualisation.not_seen` is writable (scoped to the caller's own row only if so), whether
+`X-Skip-Cache: true` is needed (very likely yes), and whether the Superuser/Staff exclusion
+documented above should carry over.

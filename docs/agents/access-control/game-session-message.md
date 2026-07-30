@@ -1,41 +1,30 @@
 # GameSessionMessage
 
-A `GameSessionMessage` is a chat/message-board entry posted to a specific `GameSession`.
-Unlike `GameSession` itself (whose write access mirrors `Game.can_be_edited_by` exactly, see
-[GameSession](game-session.md)), messages introduce an independent, player/DM-based permission
-model (**SessionMessagePermission**) with different rules for viewing versus posting.
+**[Game resource](principles.md#resource-categories).** A chat/message-board entry posted to a
+specific `GameSession`. Unlike `GameSession` itself, messages use an independent, player/DM-based
+permission model (**SessionMessagePermission**) with different rules for viewing versus posting.
 
 | Action | Who can |
 |--------|---------|
-| List (`GET /games/<game_slug>/sessions/<session_id>/messages.json`) | Player of the session's game, that game's GameMaster, Superuser, or Staff (`is_staff`) — **SessionMessagePermission.check_view**; 401 if unauthenticated, 403 if authenticated but none of the above; 404 if the game slug or session id is unknown, or the session does not belong to that game |
-| Create (`POST /games/<game_slug>/sessions/<session_id>/messages.json`) | Player of the session's game, or that game's GameMaster only — **SessionMessagePermission.check_create**; no Superuser/Staff bypass; 401 if unauthenticated, 403 if authenticated but not a player/DM of that game |
-| Update/Delete | Not exposed by any endpoint (Django admin only, out of scope) |
+| List (`GET /games/<game_slug>/sessions/<session_id>/messages.json`) | Player of the session's game, that game's GameMaster, superuser, or staff — `check_view` |
+| Create (`POST /games/<game_slug>/sessions/<session_id>/messages.json`) | Player of the session's game, or that game's GameMaster only — `check_create`; **no** superuser/staff bypass |
+| Update/Delete | Not exposed by any endpoint (Django admin only) |
 
-**Pagination**: a distinct id-cursor style (`SessionMessagePaginator`), not the numbered-page
-`Paginator` used elsewhere. Ordered by `id` descending (newest first), 20 per page.
+## Pagination
+A distinct id-cursor style, not the numbered-page paginator used elsewhere. Ordered by `id`
+descending (newest first), 20 per page.
+- No `next-entry-id` param: returns the most recent 20.
+- `?next-entry-id=<id>`: returns messages with `id <= <id>` (20 at a time) — the boundary message
+  is intentionally repeated as the first item (frontend dedupes it).
+- Response header `NEXT-ENTRY-ID`: the oldest message's `id` in the page, or empty if none older.
+- Always sets `X-Skip-Cache: true` on both `GET` and `POST`, per the [`X-Skip-Cache`
+  rule](principles.md#x-skip-cache-rule) — list results are user-specific/authorization-gated and
+  change frequently.
 
-- No `next-entry-id` query param: returns the most recent 20 messages.
-- `?next-entry-id=<id>`: returns messages with `id <= <id>` (20 at a time), continuing the
-  descending list — the boundary message is intentionally repeated as the first item of this
-  page (the frontend dedupes it against what's already rendered).
-- Response header `NEXT-ENTRY-ID`: the `id` of the oldest message in the page just returned, or
-  empty when there are no older messages left.
-- Response header `X-Skip-Cache: true` is always set on both `GET` and `POST` responses (see
-  [Common Rules](common-rules.md) for the cache-bypass mechanism) — list results are
-  user-specific/authorization-gated and change frequently, so they must never be served from the
-  shared proxy cache. The frontend client correspondingly always sends the `X-Skip-Cache` request
-  header for this endpoint (`/messages.json` is listed in the frontend's path-suffix cache-skip
-  set), matching the same both-sides-must-opt-out contract described in Common Rules.
+## Fields
+**List and create-response** (same shape): `id`, `content`, `user` (reduced: `name` —
+`UserProfile.display_name`, never the real username — and Gravatar-based `avatar_url`), `created_at`.
 
-**Exposed fields** (list and create-response — same shape):
-`id`, `content`, `user` (nested, reduced view — see below), `created_at`.
-
-**Reduced author view** (`user` field): only `name` (the poster's `UserProfile.display_name`, not
-their real `username`/login credential) and `avatar_url` (the poster's Gravatar URL, built via the
-shared `GravatarUrlBuilder`, `null` when the poster has no email hash) — no `email` or any other
-`User`/`UserProfile` field is ever exposed through this endpoint.
-
-**Write fields** (create): `content` only (required, length-bounded — see the model). `session`
-is always assigned server-side from the URL segment; `user` is always the requester; `player` is
-set server-side to the requester's `Player` row in that game when they post as a player, and left
-`null` when they post as the game's DM (a DM has no matching `Player` row in that game).
+**Write fields** (create): `content` only (required, length-bounded). `session` is server-assigned
+from the URL; `user` is always the requester; `player` is set to the requester's `Player` row when
+they post as a player, `null` when posting as DM (a DM has no `Player` row in that game).

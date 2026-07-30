@@ -1,44 +1,34 @@
 # CharacterPhoto
 
-Character photos are readable through the character detail endpoints (`photos` array in
-`CharacterDetailSerializer` and, by inheritance, `CharacterFullSerializer`) and through
-dedicated photo index endpoints (one for PCs, one for NPCs). `CharacterPhoto` fully replaces the
-legacy `Photo` model (which only had a bare `url` field and no upload/ready lifecycle) — serving
-both the character's photo gallery (`character.photos`) and, via `Character.profile_photo`, its
-profile picture.
-
-**Exposed fields** (read): `id`, `path` — both visible to anyone who can read the character
-detail or photo index endpoint (i.e. anyone, since PC endpoints are publicly accessible, and NPC
-endpoints are publicly accessible for non-hidden NPCs — see "Photo index endpoints" below). The
-`ready` field is internal and never serialised. As with `GamePhoto`, `path` is exposed both
-directly by `CharacterPhotoSerializer` and indirectly via `Character.profile_photo_path` — both
-apply simultaneously.
-
-**Write access:**
-- `POST /games/<slug>/pcs/<id>/photo_upload.json`, `POST /games/<slug>/npcs/<id>/photo_upload.json`
-  — see [Character photo upload init endpoints](upload.md#character-photo-upload-init-endpoints) above. Creates a `CharacterPhoto` row with
-  `ready=False`.
-- `PATCH /games/<slug>/pcs/<id>/photos/<photo_id>/set.json`, `PATCH /games/<slug>/npcs/<id>/photos/<photo_id>/set.json`
-  ("set as profile photo") — gated by **CharacterPhotoUpload**: a superuser, any GameMaster of
-  the game, the PC's own owning player, any player of the game, or any global Staff account —
-  matches the photo-upload endpoints above, so any user who may upload a character photo may also
-  set one as the profile photo. Accepts `{"roles": ["profile"]}`; when `"profile"` is present,
-  sets `Character.profile_photo` to that photo.
-- All other write operations: superuser only (via Django admin, out of scope).
+**[Game resource](principles.md#resource-categories).** Character photos are readable through the
+character detail endpoints (`photos` array) and through dedicated photo index endpoints (PC, NPC).
+`CharacterPhoto` fully replaces the legacy `Photo` model, serving both the character's photo
+gallery and, via `Character.profile_photo`, its profile picture.
 
 ## Photo index endpoints
-
 | Endpoint | Method | Who can call | Response |
 |----------|--------|-------------|----------|
-| `/games/<slug>/pcs/<id>/photos.json` | GET | **AllowAny** | Paginated list of `CharacterPhotoSerializer` objects (`id`, `path`) for photos where `ready=True` |
-| `/games/<slug>/npcs/<id>/photos.json` | GET | **AllowAny**, but see hidden-NPC gate below | Same as above |
+| `/games/<slug>/pcs/<id>/photos.json` | GET | **AllowAny** | Paginated `{id, path}`, `ready=True` only |
+| `/games/<slug>/npcs/<id>/photos.json` | GET | **AllowAny**, but see the hidden-NPC gate below | Same as above |
 
-Unknown `game_slug` or `character_id` (or a `character_id` that does not belong to `game_slug`,
-or is the wrong PC/NPC type) → 404. Not-ready photos are excluded.
+## Fields
+`id`, `path` — visible to anyone who can read the endpoint (i.e. anyone, since NPC endpoints are
+public for non-hidden NPCs). `ready` is internal, never serialized. As with `GamePhoto`, `path` is
+also exposed indirectly via `Character.profile_photo_path` — both apply simultaneously.
 
-**Hidden-NPC gate** (`game_npc_photos` only): if `character.hidden` is `True` and the requesting
-user cannot edit the character (`not character.can_be_edited_by(request.user)`), the endpoint
-raises `Http404` instead of returning the photo list — visible only to the character's player, a
-GameMaster of that game, or a superuser. `PC` characters have no `hidden` concept, so
-`game_pc_photos` has no equivalent gate. The same gate pattern is reused by the [treasure index
-endpoint](character-treasure.md#treasure-index-endpoints) below.
+## Hidden-NPC gate
+If `character.hidden` is `True` and the requester cannot edit the character, `game_npc_photos`
+raises `404` instead of returning the photo list — visible only to the character's player, that
+game's GameMaster, or a superuser. PCs have no `hidden` concept, so `game_pc_photos` has no
+equivalent gate. The same gate pattern is reused by
+[CharacterItem](character-item.md)/[CharacterDocument](character-document.md)/[CharacterTreasure](character-treasure.md)'s
+own NPC index endpoints.
+
+## Write access
+- `POST /games/<slug>/pcs\|npcs/<id>/photo_upload.json` — see [Upload](upload.md#endpoint-summary);
+  creates a `CharacterPhoto` with `ready=False`.
+- `PATCH /games/<slug>/pcs\|npcs/<id>/photos/<photo_id>/set.json` ("set as profile photo") —
+  **CharacterPhotoUpload**: superuser, any GameMaster of the game, the PC's own owning player, any
+  player of the game, or any global staff account — matches the upload endpoints, so anyone who
+  may upload a photo may also set one as profile photo. Accepts `{"roles": ["profile"]}`.
+- All other write operations: superuser only (Django admin).
