@@ -60,6 +60,80 @@ A resource file only needs its own CRUD table/section when it **deviates** from 
 a one-line reference to this pattern suffices (e.g. "follows the default resource CRUD pattern;
 no deviations").
 
+## Resource categories
+
+Every resource file in this folder belongs to one of four categories, modeled after
+[`resourceConfig.js`](../../../frontend/assets/js/utils/requests/resourceConfig.js)'s resource
+list — the category alone predicts most of a file's access shape, so a resource file only needs
+to name its category plus its deviations, not re-derive the shape from scratch.
+
+- **Game resources** — paths under `/games/<slug>/...` (Game, Character, Treasure-by-game,
+  GameSession, GameItem, GameDocument, and their sub-resources). Full/private endpoints go to
+  that game's DM (+ superuser); regular endpoints are readable by anyone and, for mutations,
+  writable by players of that game too — the exact player grant is the resource's own deviation
+  (e.g. **NpcPlayerEdit**, **CharacterRegularEdit**).
+- **Staff resources** — paths under `/staff/...` (User staff-management, Staff Cache). Admin/staff
+  only, full access — no player or DM grant of any kind.
+- **Account resources** — a user has full access over their own account (read and write their own
+  profile/settings), except no user, regardless of role, may write `is_superuser`/`is_staff` on
+  themselves (a standing privilege-escalation guard — no endpoint exposes either field as
+  self-writable today). **Known gap**: today's endpoints aren't fully unified under `/account/...`
+  yet (some, e.g. `/users/account.json`, still live under `/users/...`) — that layout gap is
+  tracked here, not fixed by reshuffling routes.
+- **Sensitive-information resources** — fields such as raw `email` or an account's real identity.
+  Never exposed to `AllowAny`; readable only by the account's own owner, players in a relevant
+  shared context (e.g. chat/poll participants seeing a reduced `name`/`avatar_url` view), or
+  staff/admin. Public-facing endpoints substitute a derived, non-sensitive value
+  (`UserProfile.display_name`, a Gravatar-derived `avatar_url`) instead of the raw field.
+
+## Endpoint/role scope
+
+- **Superuser** reaches every page and endpoint, unconditionally.
+- **`dm`** reaches every page/endpoint scoped to the game(s) they DM.
+- **`player`** reaches every regular (`GET` + mutation) endpoint scoped to the game(s) they play
+  in — never a restricted/full endpoint, unless a resource's own deviation says otherwise.
+- Only **`admin`/`staff`** reach `DELETE`-style actions. No resource in this document set exposes
+  a `DELETE` API endpoint today — every deletion is Django-admin-only (requiring `is_staff` to log
+  into the admin site at all) — so this rule currently applies at the admin-site layer, not
+  through any API route; a resource file only needs to flag it if that ever changes.
+
+## `X-Skip-Cache` rule
+
+Named once, so no resource file needs to restate it per endpoint:
+
+- Any endpoint not open to `AllowAny` always sets `X-Skip-Cache: true` on its response.
+- Every staff and account endpoint sets it too, regardless of caller — including staff-account
+  edit endpoints — since that data is always per-caller-sensitive even when the caller happens to
+  be a superuser.
+
+A resource file only needs to call this out when an endpoint **deviates** — e.g. an `AllowAny`
+endpoint that still sets the header because of hidden-state leakage (see
+[Character](character.md)'s hidden-detail case).
+
+## Filter-visibility rule
+
+A regular (non-restricted) endpoint never accepts a filter on a `hidden`, `incognito`, or
+`private_*` attribute — not even tolerantly/silently ignored-but-still-applied; the param is
+simply not wired to that column at all. A restricted endpoint accepts every filter its regular
+counterpart accepts, plus filters on the restricted-only attributes. A resource file only needs to
+list which filters exist per endpoint; which tier each filter belongs to follows from this rule.
+
+## List/show serializer defaults
+
+Unless a resource file states otherwise:
+
+- A list endpoint returns a smaller field set than the equivalent show/detail endpoint.
+- List endpoints are paginated.
+- Every accepted filter is optional.
+- A regular endpoint's exposed field set is always a subset of the equivalent restricted
+  endpoint's — a field is never regular-only.
+
+**List field convention**: a list endpoint returns only `id`, a name/identification field, the
+parent-connection field (e.g. `game_slug`, `game_item_id`), a photo URL field (when the resource
+has one), and whatever extra "badge" fields that specific resource's cards need (e.g.
+`public_slain`/`public_allegiance` for Character). A resource file states only its badge-field
+exceptions to this convention, not the whole field list again.
+
 ## Default hidden-gated collection pattern
 
 Sub-resources scoped to a `Character` or `Game` (`CharacterItem`/`GameItem`,
@@ -122,5 +196,5 @@ collection pattern](#default-hidden-gated-collection-pattern) above.
 Same restricted-visibility treatment as `hidden`, but `Character`-specific, and **cascades**: an
 incognito (or hidden) NPC also gates its own nested sub-resources (documents, items, photos), not
 just its own fields — the cascade is stated once here; per-file mentions are a one-line pointer
-back to this section instead of a re-derivation. See [Character](character.md#incognito-field)
+back to this section instead of a re-derivation. See [Character](character.md#incognito)
 for the concrete field-level effects.

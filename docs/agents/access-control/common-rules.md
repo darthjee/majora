@@ -24,8 +24,12 @@ Full derivations:
 - `Treasure.can_be_edited_by(user)`: `True` when `user.is_superuser`, OR (`user.is_staff` AND the treasure is global, i.e. `game_id is None`). Game-scoped treasure routes (create/update/photo-upload under `/games/<slug>/...`) never use this method — they check GameEdit against the resolved game instead (see [Treasure](treasure.md)), so a treasure's own edit-rights method stays narrow while broader, game-derived access is layered on top only for routes explicitly scoped to a game.
 - `is_player` = `game.players.filter(user=user).exists()`. **Note:** `Player.games` is currently never written by any endpoint (only touched in a model test), so `is_player` reads `false` for every real authenticated user until a future flow populates it.
 
-Unless noted otherwise, an unauthenticated request to a non-AllowAny endpoint gets 401, and an
-authenticated request that fails the permission check gets 403.
+Unless noted otherwise, an unauthenticated request to a non-AllowAny endpoint gets `401`
+(`{"errors": {"detail": ["authentication required"]}}`), an authenticated request that fails the
+permission check gets `403` (`{"errors": {"detail": ["not allowed"]}}`), an unknown/mismatched
+path id gets `404`, and a validation failure gets `400`
+(`{"errors": {"<field>": ["<message>", ...]}}`) — a resource file only needs to restate this shape
+when it deviates (e.g. a 404 masking an authorization failure to avoid leaking existence).
 
 **`UserProfile.status` gate:** every rule above assumes the requesting user's `UserProfile.status`
 is `approved`. `CookieTokenAuthentication` — the project-wide default authentication class —
@@ -80,8 +84,7 @@ call it; response is `{"can_edit": <bool>}`.
   - any other value → silently ignored (same tolerant, no-400-on-a-typo convention as `?public_allegiance=`/`?public_slain=` elsewhere) — but a `role` param containing only unrecognized/no-op values still computes `can_edit` with every boolean `False`; it does not fall back to the real-identity path
   - Whenever `role` is present (recognized or not), the response sets `X-Force-Public-Cache: true` instead of `X-Skip-Cache: true` — the result is identity-independent, so it's safe (and necessary, for UI-preview use cases like showing an anonymous visitor what a DM would see) to cache in the public tier.
 
-Parsed by `parse_role_booleans` in `backend/games/views/common.py`, shared verbatim by all four
-`permissions.json` endpoints (Game, PC, NPC, Treasure).
+Role-parsing is shared verbatim by all four `permissions.json` endpoints (Game, PC, NPC, Treasure).
 
 The response shape above (`can_edit` plus role-parsing/cache-header behavior) is the shared
 baseline — several resources' `permissions.json` additionally expose their own extra `can_*`
@@ -90,7 +93,7 @@ fields following this same real-identity/role-simulated dual pattern: `can_creat
 [game-item.md](game-item.md#item-creation-endpoint)), and `can_edit_money`/`can_exchange_treasure`/
 `can_set_profile_photo`/`can_delete_photo` (Character only, moved off the detail/full-detail
 response onto this endpoint specifically so those responses could become cacheable — see
-[character.md](character.md#edit-permission)).
+[character.md](character.md#edit-access-status-permission)).
 
 ## Cache-bypass mechanism for access endpoints
 
@@ -101,13 +104,11 @@ or incorrect values. Three layers enforce correctness:
    `permissions.json` view with no `role` param, sets `X-Skip-Cache: true` on the response,
    preventing Tent from caching it.
 2. **Backend header (role-simulated path)** — a `permissions.json` view with a `role` param
-   sets `X-Force-Public-Cache: true` instead, telling `CacheControlMiddleware`
-   (`backend/games/middleware.py`) to always apply the public/anonymous `Cache-Control` tier,
-   overriding what it would otherwise choose from the real requester's own `is_authenticated`
-   state.
-3. **Frontend header** — `BaseClient.request` (`frontend/assets/js/client/BaseClient.js`)
-   checks every request path against `frontend/assets/js/client/config/skipCacheEndpoints.js`
-   (exact static paths) and `skipCacheSuffixes.js` (path suffixes, e.g. `/access.json`) before
+   sets `X-Force-Public-Cache: true` instead, telling the cache-control middleware to always apply
+   the public/anonymous `Cache-Control` tier, overriding what it would otherwise choose from the
+   real requester's own `is_authenticated` state.
+3. **Frontend header** — the frontend's base request client checks every request path against its
+   own exact-path and path-suffix skip-cache config (e.g. suffix-matching `/access.json`) before
    calling `fetch`; a match sends `X-Skip-Cache: 1`, bypassing the Tent cache read.
 
 **Rule for future access-type endpoints:** if a new endpoint's response depends on the
@@ -127,7 +128,8 @@ replaces it (see [Upload](upload.md) for how a photo becomes the selected one).
 
 Exception: on the public `Character` endpoints (`pcs.json`/`npcs.json`/`pcs/<id>.json`/
 `npcs/<id>.json`), `profile_photo_path` also resolves to `null` whenever the character's
-`incognito` field is `true`, regardless of whether a `profile_photo` is set — see "Incognito
-field" in [character.md](character.md#incognito-field). The private/full endpoints
+`incognito` field is `true`, regardless of whether a `profile_photo` is set — see the
+[`incognito`](character.md#incognito) section in [character.md](character.md). The private/full
+endpoints
 (`pcs/<id>/full.json`/`npcs/<id>/full.json`/`npcs/all.json`) are unaffected and always return the
 real path.

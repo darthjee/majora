@@ -17,11 +17,15 @@ regardless of any other rule listed below.
 - [Common Rules](access-control/common-rules.md) — named permission patterns (GameEdit,
   CharacterEdit, TreasureEdit, ...), the shared `access.json`/`permissions.json` endpoint
   conventions, the cache-bypass mechanism, and the `photo_path` field convention.
-- [Permission Principles](access-control/principles.md) — the access-level hierarchy, the
-  partial-vs-full route pattern, the default resource CRUD pattern, the default hidden-gated
-  collection pattern, and the field-naming conventions (`public_x`, `id`/`<related>_id`,
-  `hidden`, `incognito`), stated once and referenced by resource files instead of being
-  re-derived per resource. Check here before diving into a per-resource file below.
+- [Permission Principles](access-control/principles.md) — the access-level hierarchy, resource
+  categories (game/staff/account/sensitive-information), endpoint/role scope, the `X-Skip-Cache`
+  rule, the filter-visibility rule, list/show serializer defaults, the partial-vs-full route
+  pattern, the default resource CRUD pattern, the default hidden-gated collection pattern, and the
+  field-naming conventions (`public_x`, `id`/`<related>_id`, `hidden`, `incognito`), stated once
+  and referenced by resource files instead of being re-derived per resource. Check here before
+  diving into a per-resource file below — a resource file states only its endpoints, roles, and
+  deviations from these conventions, trusting the code for serializer/permission-class names and
+  file paths.
 
 ### Models / resources
 
