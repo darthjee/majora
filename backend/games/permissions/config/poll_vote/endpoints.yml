@@ -1,0 +1,10 @@
+# PollVotePermission. `vote` deliberately does NOT get the admin/dm shortcut, mirroring
+# session_message.create — see the plan's Notes on the Shortcut conflict.
+regular:
+  show:
+    - staff
+    - player
+  vote:
+    roles:
+      - player
+    no_shortcut: true

@@ -1,0 +1,5 @@
+# GameSessionEditPermission (issue #864): dm/admin shortcut, plus staff and any player.
+regular:
+  edit:
+    - staff
+    - player

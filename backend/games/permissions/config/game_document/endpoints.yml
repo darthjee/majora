@@ -1,0 +1,15 @@
+# GameDocumentCreatePermission/GameDocumentPhotoUploadPermission/GameDocumentFileUploadPermission/
+# GameDocumentFilePhotoUploadPermission: dm/admin shortcut, plus staff and any player of the game.
+regular:
+  create:
+    - staff
+    - player
+  photo_upload:
+    - staff
+    - player
+  file_upload:
+    - staff
+    - player
+  file_photo_upload:
+    - staff
+    - player

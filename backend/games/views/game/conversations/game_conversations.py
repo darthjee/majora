@@ -9,21 +9,23 @@ from accounts.authentication import CookieTokenAuthentication
 from conversations.models import Conversation
 
 from ....models import Game
-from ....permissions import PlayerPermission
+from ....permissions import EndpointPermission
 from ....serializers import ConversationListSerializer
 from ...common import paginated_list_response
 
 
 @api_view(['GET'])
 @authentication_classes([CookieTokenAuthentication])
-# AllowAny: authorisation is enforced inline below via PlayerPermission.check(), since
+# AllowAny: authorisation is enforced inline below via EndpointPermission.check(), since
 # Conversations have no public read path.
 @permission_classes([AllowAny])
 def game_conversations(request, game_slug):
     """Return a paginated list of conversations the requester shares with `player_id`."""
     game = get_object_or_404(Game, game_slug=game_slug)
 
-    error_response = PlayerPermission.check(request, game)
+    error_response = EndpointPermission(request.user, game=game).check(
+        request, 'player', 'regular', 'show',
+    )
     if error_response:
         return error_response
 

@@ -3,11 +3,22 @@
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from ..caches import AdminOrStaffCache
 from ..paginator import Paginator
+from ..permissions import EndpointPermission
 from ..serializers import HiddenFieldSerializer
 
 UNAUTHENTICATED_RESPONSE_DATA = {'errors': {'detail': ['authentication required']}}
+
+
+def check_game_edit(request, game):
+    """Return an error Response if `request.user` may not edit `game`, else None.
+
+    Shared by the many DM/superuser-only (`game`/`restricted`/`edit`) endpoints scoped to a
+    whole game (items/documents/treasures catalogs, photo uploads, etc).
+    """
+    return EndpointPermission(request.user, game=game).check(
+        request, 'game', 'restricted', 'edit',
+    )
 
 
 def require_authenticated(request):
@@ -22,7 +33,7 @@ def require_staff(request):
     error_response = require_authenticated(request)
     if error_response:
         return error_response
-    if not AdminOrStaffCache.is_admin_or_staff(request.user):
+    if not (request.user.is_staff or request.user.is_superuser):
         return Response({'errors': {'detail': ['not allowed']}}, status=403)
     return None
 
@@ -70,21 +81,27 @@ def save_or_error(serializer, **kwargs):
 
 
 def detail_or_update(
-    request, obj, permission_cls, update_serializer_cls, detail_serializer_cls, detail_context=None
+    request, obj, permission_check, update_serializer_cls, detail_serializer_cls,
+    detail_context=None,
 ):
-    """Handle the shared GET-detail / PATCH-update pattern for a single object."""
+    """Handle the shared GET-detail / PATCH-update pattern for a single object.
+
+    `permission_check` is a callable `(request, obj) -> Response|None` (e.g.
+    `EndpointPermission(...).check`), returning an error Response when the PATCH is not
+    authorized, else `None`.
+    """
     if request.method == 'PATCH':
         return _update(
-            request, obj, permission_cls, update_serializer_cls, detail_serializer_cls,
+            request, obj, permission_check, update_serializer_cls, detail_serializer_cls,
             detail_context,
         )
     return _serialize_detail(obj, detail_serializer_cls, detail_context)
 
 
-def _update(request, obj, permission_cls, update_serializer_cls, detail_serializer_cls,
+def _update(request, obj, permission_check, update_serializer_cls, detail_serializer_cls,
             detail_context):
     """Validate permissions and payload, persist the update, then return the detail Response."""
-    error_response = permission_cls.check(request, obj)
+    error_response = permission_check(request, obj)
     if error_response:
         return error_response
 
@@ -138,9 +155,8 @@ def parse_role_booleans(request):
     Reads `request.query_params.getlist('role')`, handling both `?role=dm` and repeated
     `?role=dm&role=player`. Recognizes `dm`, `player`, `owner`, `superuser`, `staff`; each
     influences some `can_be_edited_by_roles`-shaped computation (`staff` first became
-    meaningful via `CharacterItemCreatePermission`'s `is_allowed_for_roles`, issue #714;
-    `player` via `CharacterItemPlayerCreatePermission`/`GameItemCreatePermission`/
-    `GameSessionEditPermission`'s `is_allowed_for_roles`, issue #864) — unrecognized values are
+    meaningful via `UIPermission`'s role-simulated `?role=` path, issue #714;
+    `player` via the same path, issue #864) — unrecognized values are
     tolerated with no 400, same convention already used by `?public_allegiance=`/
     `?public_slain=` elsewhere in this codebase. Returns `None` when no `role` param was sent at
     all, signaling

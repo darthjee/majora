@@ -1,0 +1,5 @@
+# CharacterPermissionsSerializer's can_create_item/can_upload_item_photo, for an NPC.
+create_update:
+  - staff
+  - player
+photo_upload: []

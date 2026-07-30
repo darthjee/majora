@@ -1,9 +1,16 @@
 """Shared implementation for the player-facing narrow NPC update endpoint."""
 
-from ....permissions import NpcPlayerEditPermission
+from ....permissions import EndpointPermission
 from ....serializers import CharacterDetailSerializer, NpcPlayerUpdateSerializer
 from ...common import detail_or_update
 from .._shared import _get_character_or_404, _hidden_gate_response
+
+
+def _check_npc_player_edit(request, character):
+    """Return an error Response if `request.user` may not perform this NPC edit, else None."""
+    return EndpointPermission(request.user, game=character.game, pc=character).check(
+        request, 'game_npc', 'regular', 'player_edit',
+    )
 
 
 def npc_player_update(request, game, character_id):
@@ -17,13 +24,13 @@ def npc_player_update(request, game, character_id):
     response = detail_or_update(
         request,
         character,
-        NpcPlayerEditPermission,
+        _check_npc_player_edit,
         NpcPlayerUpdateSerializer,
         CharacterDetailSerializer,
         detail_context={'request': request},
     )
     # This endpoint is PATCH-only in practice, and the whole response is gated behind
-    # NpcPlayerEditPermission.check(), so it must never be cached/shared across requesters
+    # _check_npc_player_edit(), so it must never be cached/shared across requesters
     # by Tent's identity-blind reverse-proxy cache, which would otherwise replay one
     # caller's authorized response to any subsequent, unauthorized caller of the same URL.
     response['X-Skip-Cache'] = 'true'

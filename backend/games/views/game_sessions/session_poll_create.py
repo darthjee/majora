@@ -8,22 +8,24 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game, GameSession
-from ...permissions import PollPermission
+from ...permissions import EndpointPermission
 from ...serializers import PollDetailSerializer, SessionPollCreateSerializer
 from ..common import validated_or_error
 
 
 @api_view(['POST'])
 @authentication_classes([CookieTokenAuthentication])
-# AllowAny: authorisation is enforced inline below via PollPermission.check(), since Polls
-# have no public read path, unlike GameSession's own detail view.
+# AllowAny: authorisation is enforced inline below via EndpointPermission.check(), since
+# Polls have no public read path, unlike GameSession's own detail view.
 @permission_classes([AllowAny])
 def session_poll_create(request, game_slug, session_id):
     """Create a date poll attached to a game session, open to the game's DM/players/admins."""
     game = get_object_or_404(Game, game_slug=game_slug)
     session = get_object_or_404(GameSession, id=session_id, game=game)
 
-    error_response = PollPermission.check(request, game)
+    error_response = EndpointPermission(request.user, game=game).check(
+        request, 'poll', 'regular', 'view_create',
+    )
     if error_response:
         return error_response
 

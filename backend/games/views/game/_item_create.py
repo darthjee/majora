@@ -5,9 +5,10 @@ from rest_framework import serializers
 from rest_framework.response import Response
 
 from ...models import CharacterItem, GameItem
-from ...permissions import CharacterItemPlayerCreatePermission
+from ...permissions import EndpointPermission
 from ...serializers import CharacterItemDetailFullSerializer
 from ..common import validated_or_error
+from ._shared import _character_item_resource
 
 
 class _CharacterItemCreateSerializer(serializers.Serializer):
@@ -29,10 +30,12 @@ def character_item_create(request, game, character):
     `CharacterItem` is left with `name`/`description` unset so it falls back to the linked
     `GameItem`'s values — there is no option to link an already-existing `GameItem`.
 
-    Uses `CharacterItemPlayerCreatePermission` (issue #864): any player of the game, in
-    addition to dm/admin/staff/owner-of-PC.
+    Uses `game_pc_item`/`game_npc_item`'s `create_update` action (issue #864): any player of
+    the game, in addition to dm/admin/staff/owner-of-PC.
     """
-    error_response = CharacterItemPlayerCreatePermission.check(request, character)
+    error_response = EndpointPermission(request.user, game=game, pc=character).check(
+        request, _character_item_resource(character), 'regular', 'create_update',
+    )
     if error_response:
         return error_response
 

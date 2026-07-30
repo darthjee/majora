@@ -1,0 +1,10 @@
+# NPC character-item endpoint rules. No owner concept. `photo_upload` is narrowed (issue
+# #864): no staff bypass, dm/admin shortcut only.
+restricted:
+  create:
+    - staff
+  photo_upload: []
+regular:
+  create_update:
+    - staff
+    - player

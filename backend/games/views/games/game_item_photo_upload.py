@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game, GameItem, GameItemPhoto
-from ...permissions import GameItemPhotoUploadPermission
+from ...permissions import EndpointPermission
 from ...photo_path import PhotoPathBuilder
 from .._upload_init import UploadInitiator
 
@@ -22,7 +22,9 @@ def game_item_photo_upload(request, game_slug, item_id):
     game = get_object_or_404(Game, game_slug=game_slug)
     item = get_object_or_404(GameItem, pk=item_id, game=game)
 
-    error_response = GameItemPhotoUploadPermission.check(request, game)
+    error_response = EndpointPermission(request.user, game=game).check(
+        request, 'game_item', 'regular', 'photo_upload',
+    )
     if error_response:
         return error_response
 

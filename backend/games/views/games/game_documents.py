@@ -15,7 +15,7 @@ from ._document_create import game_document_create
 @api_view(['GET', 'POST'])
 @authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public; POST authorization is enforced inline via
-# GameDocumentCreatePermission.check().
+# EndpointPermission.check().
 @permission_classes([AllowAny])
 def game_documents(request, game_slug):
     """Return a paginated list of non-hidden documents for a game, or create a new one."""

@@ -1,17 +1,19 @@
 """Shared implementation for the character photo upload-init endpoints."""
 
 from ...models import CharacterPhoto
-from ...permissions import CharacterPhotoUploadPermission
+from ...permissions import EndpointPermission
 from ...photo_path import PhotoPathBuilder
 from .._upload_init import UploadInitiator
-from ._shared import _get_character_or_404
+from ._shared import _character_resource, _get_character_or_404
 
 
 def character_photo_upload(request, game, game_slug, character_id, npc):
     """Initialise a character photo upload and return the upload id and token."""
     character = _get_character_or_404(game, character_id, npc)
 
-    error_response = CharacterPhotoUploadPermission.check(request, character)
+    error_response = EndpointPermission(request.user, game=character.game, pc=character).check(
+        request, _character_resource(character), 'regular', 'photo_upload',
+    )
     if error_response:
         return error_response
 

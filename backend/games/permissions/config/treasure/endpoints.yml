@@ -1,0 +1,10 @@
+# TreasureEditPermission: plain Treasure.can_be_edited_by, which is never dm-aware (a
+# game-exclusive treasure's DM must use the game_treasure_detail endpoint/`game` resource
+# instead) — callers never pass a `game`, so the base admin/dm shortcut only ever grants via
+# admin here. `edit` (no owning game) additionally allows staff; `edit_scoped` (the treasure
+# has an owning game) does not, matching `Treasure.can_be_edited_by`'s `self.game_id is None`
+# condition — chosen by the caller based on the treasure's own state, not the user's roles.
+restricted:
+  edit:
+    - staff
+  edit_scoped: []

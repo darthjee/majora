@@ -8,21 +8,23 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game
-from ...permissions import PollPermission
+from ...permissions import EndpointPermission
 from ...serializers import PollCreateSerializer, PollDetailSerializer, PollListSerializer
 from ..common import paginated_list_response, validated_or_error
 
 
 @api_view(['GET', 'POST'])
 @authentication_classes([CookieTokenAuthentication])
-# AllowAny: authorisation is enforced inline below via PollPermission.check(), since Polls
-# have no public read path (GET and POST share the same DM/player/admin check).
+# AllowAny: authorisation is enforced inline below via EndpointPermission.check(), since
+# Polls have no public read path (GET and POST share the same DM/player/admin check).
 @permission_classes([AllowAny])
 def game_polls_list(request, game_slug):
     """Return a paginated list of a game's polls, or create a new one."""
     game = get_object_or_404(Game, game_slug=game_slug)
 
-    error_response = PollPermission.check(request, game)
+    error_response = EndpointPermission(request.user, game=game).check(
+        request, 'poll', 'regular', 'view_create',
+    )
     if error_response:
         return error_response
 

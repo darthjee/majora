@@ -1,0 +1,3 @@
+# GameEditPermission: plain can_be_edited_by (dm/admin shortcut only).
+restricted:
+  edit: []

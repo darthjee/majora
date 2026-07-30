@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.response import Response
 
 from ...models import GameItem
-from ...permissions import GameItemCreatePermission
+from ...permissions import EndpointPermission
 from ...serializers import GameItemDetailFullSerializer
 from ..common import validated_or_error
 
@@ -19,7 +19,9 @@ class _GameItemCreateSerializer(serializers.Serializer):
 
 def game_item_create(request, game):
     """Create a new GameItem for `game`, with no owning CharacterItem."""
-    error_response = GameItemCreatePermission.check(request, game)
+    error_response = EndpointPermission(request.user, game=game).check(
+        request, 'game_item', 'regular', 'create',
+    )
     if error_response:
         return error_response
 

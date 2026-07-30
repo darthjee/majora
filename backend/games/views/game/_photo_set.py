@@ -3,15 +3,17 @@
 from django.http import Http404
 from rest_framework.response import Response
 
-from ...permissions import CharacterPhotoUploadPermission
-from ._shared import _get_character_or_404
+from ...permissions import EndpointPermission
+from ._shared import _character_resource, _get_character_or_404
 
 
 def character_photo_set(request, game, character_id, photo_id, npc):
     """Update roles on a character's photo (e.g. mark it as the profile photo)."""
     character = _get_character_or_404(game, character_id, npc)
 
-    error_response = CharacterPhotoUploadPermission.check(request, character)
+    error_response = EndpointPermission(request.user, game=character.game, pc=character).check(
+        request, _character_resource(character), 'regular', 'photo_upload',
+    )
     if error_response:
         return error_response
 

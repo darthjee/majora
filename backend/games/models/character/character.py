@@ -1,12 +1,17 @@
 """Character model for Majora RPG Campaign Management System."""
 
+import sys
+
 from django.contrib.auth.models import User
 from django.db import models
 from simple_history.models import HistoricalRecords
 
-from games.caches import CharacterEditorCache
 from games.models.game.game import Game
 from games.models.game.player import Player
+from majora_project.cache import memory_cache
+
+_PC_EDITOR_ENTRY_TYPE = 'pc_editor'
+_NPC_EDITOR_ENTRY_TYPE = 'npc_editor'
 
 
 class Character(models.Model):
@@ -86,8 +91,20 @@ class Character(models.Model):
         return User.objects.filter(q)
 
     def is_editor(self, user):
-        """Return True if `user` has explicit edit rights (player or DM, not superuser)."""
-        return CharacterEditorCache.is_editor(self, user)
+        """Return True if `user` has explicit edit rights (player or DM, not superuser).
+
+        Cached in the shared process-wide memory cache, keyed by user id and character id.
+        Kept as two distinct cache types (PC vs NPC) even though both branch through the same
+        `editors` query, matching the PC (DM or owner) / NPC (DM) split.
+        """
+        entry_type = _PC_EDITOR_ENTRY_TYPE if self.is_pc else _NPC_EDITOR_ENTRY_TYPE
+        key = (user.id, self.id)
+        cached = memory_cache.get(entry_type, key)
+        if cached is not None:
+            return cached
+        result = self.editors.filter(id=user.id).exists()
+        memory_cache.set(entry_type, key, result, sys.getsizeof(result))
+        return result
 
     def can_be_edited_by(self, user):
         """Return True if `user` may edit this character (its player, a DM, or a superuser).

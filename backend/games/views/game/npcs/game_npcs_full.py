@@ -8,9 +8,8 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 
 from ....models import Game
-from ....permissions import GameEditPermission
 from ....serializers import CharacterCreateSerializer, CharacterDetailSerializer
-from ...common import save_or_error, validated_or_error
+from ...common import check_game_edit, save_or_error, validated_or_error
 
 
 @api_view(['POST'])
@@ -19,7 +18,7 @@ from ...common import save_or_error, validated_or_error
 def game_npcs_full(request, game_slug):
     """Create a new NPC with the full field set for a game — DM/admin/superuser only."""
     game = get_object_or_404(Game, game_slug=game_slug)
-    error_response = GameEditPermission.check(request, game)
+    error_response = check_game_edit(request, game)
     if error_response:
         return error_response
 
@@ -33,7 +32,7 @@ def game_npcs_full(request, game_slug):
         return error_response
     detail = CharacterDetailSerializer(character, context={'request': request})
     response = Response(detail.data, status=201)
-    # The whole response is gated behind GameEditPermission.check() above, so it must
+    # The whole response is gated behind check_game_edit() above, so it must
     # never be cached/shared across requesters by Tent's identity-blind reverse-proxy
     # cache, which would otherwise replay one caller's authorized 201 response to any
     # subsequent, unauthorized caller of the same URL.

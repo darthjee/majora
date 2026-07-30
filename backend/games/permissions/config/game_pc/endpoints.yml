@@ -1,0 +1,24 @@
+# PC character endpoint rules (CharacterEditPermission / CharacterMoneyEditPermission /
+# CharacterRegularEditPermission / CharacterTreasureExchangePermission /
+# CharacterPhotoUploadPermission / CharacterPhotoDeletePermission).
+restricted:
+  edit:
+    - owner
+  photo_delete:
+    - staff
+  treasure_exchange:
+    - staff
+    - owner
+regular:
+  money_edit:
+    - staff
+    - player
+    - owner
+  regular_edit:
+    - staff
+    - player
+    - owner
+  photo_upload:
+    - staff
+    - player
+    - owner

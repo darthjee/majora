@@ -1,0 +1,9 @@
+# CharacterPermissionsSerializer's can_create_item/can_upload_item_photo, for a PC.
+create_update:
+  - staff
+  - player
+  - owner
+photo_upload:
+  - staff
+  - player
+  - owner

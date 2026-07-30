@@ -10,13 +10,12 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game, GameTreasure, Treasure
-from ...permissions import GameEditPermission
 from ...serializers import (
     TreasureCreateSerializer,
     TreasureDetailSerializer,
     TreasureListSerializer,
 )
-from ..common import paginated_list_response, validate_with_hidden_field
+from ..common import check_game_edit, paginated_list_response, validate_with_hidden_field
 from ._treasure_context import game_treasures_context
 from ._treasure_filters import filter_by_max_value, filter_by_min_value, filter_by_name
 
@@ -24,7 +23,7 @@ from ._treasure_filters import filter_by_max_value, filter_by_min_value, filter_
 @api_view(['GET', 'POST'])
 @authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public; POST authorization is enforced inline
-# inside _create_game_treasure via GameEditPermission.check().
+# inside _create_game_treasure via EndpointPermission.check().
 @permission_classes([AllowAny])
 def game_treasures(request, game_slug):
     """Return a paginated list of treasures for a specific game, or create one."""
@@ -67,7 +66,7 @@ def _apply_ordering(request, treasures):
 
 def _create_game_treasure(request, game):
     """Validate the request and create a treasure exclusive to `game`, returning 201 detail."""
-    error_response = GameEditPermission.check(request, game)
+    error_response = check_game_edit(request, game)
     if error_response:
         return error_response
 

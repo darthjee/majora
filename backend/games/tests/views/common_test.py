@@ -7,7 +7,7 @@ from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
 from games.models import Game
-from games.permissions import GameEditPermission
+from games.permissions import EndpointPermission
 from games.serializers import (
     GameAccessSerializer,
     GameDetailSerializer,
@@ -115,9 +115,15 @@ class TestDetailOrUpdate(TestCase):
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
 
     def _call(self, request):
-        """Invoke detail_or_update for self.game with GameEditPermission."""
+        """Invoke detail_or_update for self.game with the 'game'/'restricted'/'edit' check."""
         return detail_or_update(
-            request, self.game, GameEditPermission, GameUpdateSerializer, GameDetailSerializer
+            request, self.game, self._check_game_edit, GameUpdateSerializer, GameDetailSerializer
+        )
+
+    def _check_game_edit(self, request, game):
+        """Return an error Response if `request.user` may not edit `game`, else None."""
+        return EndpointPermission(request.user, game=game).check(
+            request, 'game', 'restricted', 'edit',
         )
 
     def test_get_returns_detail_serializer_data(self):

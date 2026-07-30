@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 
 from ....models import Game
-from ....permissions import NpcPlayerCreatePermission
+from ....permissions import EndpointPermission
 from ....serializers import (
     CharacterDetailSerializer,
     CharacterListSerializer,
@@ -21,7 +21,7 @@ from .._shared import _filter_characters, _with_treasure_value
 @api_view(['GET', 'POST'])
 @authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public; POST authorization is enforced inline
-# inside _create_npc via NpcPlayerCreatePermission.check().
+# inside _create_npc via EndpointPermission.check().
 @permission_classes([AllowAny])
 def game_npcs(request, game_slug):
     """Return list of Non-Player Characters (NPCs) for a specific game, or create one."""
@@ -40,11 +40,13 @@ def _create_npc(request, game):
     """Validate the request and create a new NPC for the game, returning 201 detail data.
 
     The successful response always carries `X-Skip-Cache`, because the whole response is
-    gated behind `NpcPlayerCreatePermission.check()`: without it, Tent's identity-blind
+    gated behind the `game_npc`/`regular`/`create` check: without it, Tent's identity-blind
     reverse-proxy cache would replay one caller's authorized 201 response to any
     subsequent, unauthorized caller of the same URL/query-string/method combination.
     """
-    error_response = NpcPlayerCreatePermission.check(request, game)
+    error_response = EndpointPermission(request.user, game=game).check(
+        request, 'game_npc', 'regular', 'create',
+    )
     if error_response:
         return error_response
 

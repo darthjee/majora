@@ -15,7 +15,7 @@ from ._item_create import game_item_create
 @api_view(['GET', 'POST'])
 @authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public; POST authorization is enforced inline via
-# GameItemCreatePermission.check().
+# EndpointPermission.check().
 @permission_classes([AllowAny])
 def game_items(request, game_slug):
     """Return a paginated list of non-hidden items for a game, or create a new one."""

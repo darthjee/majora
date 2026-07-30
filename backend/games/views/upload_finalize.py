@@ -18,16 +18,8 @@ from ..models import (
     TreasurePhoto,
     Upload,
 )
-from ..permissions import (
-    CharacterItemPhotoUploadPermission,
-    CharacterPhotoUploadPermission,
-    GameDocumentFilePhotoUploadPermission,
-    GameDocumentFileUploadPermission,
-    GameDocumentPhotoUploadPermission,
-    GameEditPermission,
-    GameItemPhotoUploadPermission,
-    TreasureEditPermission,
-)
+from ..permissions import EndpointPermission
+from .common import check_game_edit
 
 _FORBIDDEN = Response(status=status.HTTP_403_FORBIDDEN)
 _VALID_STATUSES = {Upload.STATUS_UPLOADING, Upload.STATUS_UPLOADED}
@@ -174,34 +166,52 @@ def _set_character_item_photo(item_photo):
 
 def _treasure_photo_permission(request, content_object):
     """Return a permission error Response for a TreasurePhoto content object, else None."""
-    return TreasureEditPermission.check(request, content_object.treasure)
+    treasure = content_object.treasure
+    action = 'edit' if treasure.game_id is None else 'edit_scoped'
+    return EndpointPermission(request.user).check(request, 'treasure', 'restricted', action)
 
 
 def _character_photo_permission(request, content_object):
     """Return a permission error Response for a CharacterPhoto content object, else None."""
-    return CharacterPhotoUploadPermission.check(request, content_object.character)
+    character = content_object.character
+    resource = 'game_pc' if character.is_pc else 'game_npc'
+    return EndpointPermission(request.user, game=character.game, pc=character).check(
+        request, resource, 'regular', 'photo_upload',
+    )
 
 
 def _game_item_photo_permission(request, content_object):
     """Return a permission error Response for a GameItemPhoto content object, else None."""
-    return GameItemPhotoUploadPermission.check(request, content_object.game_item.game)
+    game = content_object.game_item.game
+    return EndpointPermission(request.user, game=game).check(
+        request, 'game_item', 'regular', 'photo_upload',
+    )
 
 
 def _character_item_photo_permission(request, content_object):
     """Return a permission error Response for a CharacterItemPhoto content object, else None."""
-    return CharacterItemPhotoUploadPermission.check(
-        request, content_object.character_item.character,
+    character = content_object.character_item.character
+    resource = 'game_pc_item' if character.is_pc else 'game_npc_item'
+    type_ = 'regular' if character.is_pc else 'restricted'
+    return EndpointPermission(request.user, game=character.game, pc=character).check(
+        request, resource, type_, 'photo_upload',
     )
 
 
 def _document_photo_permission(request, content_object):
     """Return a permission error Response for a GameDocumentPhoto content object, else None."""
-    return GameDocumentPhotoUploadPermission.check(request, content_object.game_document.game)
+    game = content_object.game_document.game
+    return EndpointPermission(request.user, game=game).check(
+        request, 'game_document', 'regular', 'photo_upload',
+    )
 
 
 def _document_file_permission(request, content_object):
     """Return a permission error Response for a GameDocumentFile content object, else None."""
-    return GameDocumentFileUploadPermission.check(request, content_object.game_document.game)
+    game = content_object.game_document.game
+    return EndpointPermission(request.user, game=game).check(
+        request, 'game_document', 'regular', 'file_upload',
+    )
 
 
 def _document_file_photo_permission(request, content_object):
@@ -210,12 +220,15 @@ def _document_file_photo_permission(request, content_object):
         file = GameDocumentFile.objects.get(photo=content_object)
     except (GameDocumentFile.DoesNotExist, GameDocumentFile.MultipleObjectsReturned):
         return _FORBIDDEN
-    return GameDocumentFilePhotoUploadPermission.check(request, file.game_document.game)
+    game = file.game_document.game
+    return EndpointPermission(request.user, game=game).check(
+        request, 'game_document', 'regular', 'file_photo_upload',
+    )
 
 
 def _game_photo_permission(request, content_object):
     """Return a permission error Response for a GamePhoto (default) content object, else None."""
-    return GameEditPermission.check(request, content_object.game)
+    return check_game_edit(request, content_object.game)
 
 
 # Registry mapping each photo content-object type to its (permission_check, mark_ready) pair,

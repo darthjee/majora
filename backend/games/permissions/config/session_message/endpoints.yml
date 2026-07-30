@@ -1,0 +1,11 @@
+# SessionMessagePermission. `create` deliberately does NOT get the admin/dm shortcut: a
+# superuser or staff account who is not also a player/DM of this specific game is denied
+# (`no_shortcut: true`), per the plan's explicit deviation from the generic Shortcut rule.
+regular:
+  show:
+    - staff
+    - player
+  create:
+    roles:
+      - player
+    no_shortcut: true
