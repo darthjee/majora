@@ -65,6 +65,7 @@ Every `access.json` endpoint (Game, Character/PC/NPC, Treasure) shares one
 | `is_dm` | `bool \| null` | `Player.is_dm=True` for the relevant game. For Treasure, `false` (not `null`) when authenticated but the treasure has no owning game |
 | `is_player` | `bool \| null` | AnyPlayer, above. Always `false` (never `null`, even anonymous) for Treasure, which isn't nested under `/games/<slug>/` and never evaluates this |
 | `is_owner` | `bool \| null` | **PC only**: `character.player.user_id == requester.id`. Always `false` (never `null`) for Game, NPC, and Treasure, which have no ownership concept |
+| `is_logged` | `bool` | Never `null` (unlike every field above) — `true` iff the requester is authenticated. It IS the authentication signal itself, needed by anonymous callers too. Added by #922 so the frontend can always derive an explicit role set (including `logged`) for `permissions.json`, instead of that endpoint ever needing to fall back to inspecting the real session |
 
 `can_edit` is **not** part of this shape — see "Edit permission endpoints" below.
 
@@ -73,18 +74,30 @@ Every `access.json` endpoint (Game, Character/PC/NPC, Treasure) shares one
 Every resource with an `access.json` endpoint also has a `GET .../permissions.json` — anyone can
 call it; response is `{"can_edit": <bool>}`.
 
-- **No `?role=` param**: `can_edit` reflects the real requester's identity
-  (`<Model>.can_be_edited_by(request.user)`), and the response sets `X-Skip-Cache: true` —
-  identical to `access.json`'s per-caller behavior.
-- **`?role=` present** (accepts repeated values, e.g. `?role=dm&role=owner`): the real
-  requester's identity is ignored; `can_edit` is instead computed via
-  `<Model>.can_be_edited_by_roles(...)` from booleans derived from the given value(s):
-  - `dm` → `is_dm = True`
-  - `superuser` → `is_superuser = True`
-  - `owner` → `is_owner = True` (only consulted by the Character/PC endpoint; a no-op elsewhere)
-  - `player`, `staff` → no-ops for `can_edit` (absent from `can_be_edited_by_roles`'s signature), accepted only so a caller can pass every role name it knows without an "unrecognized value" branch. `staff` still matters elsewhere: `can_create_item` (Character PC/NPC and Game) consumes `is_staff` via a separate `is_allowed_for_roles` method — see [character-item.md](character-item.md), [game-item.md](game-item.md#item-creation-endpoint)
-  - any other value → silently ignored (same tolerant convention as `?public_allegiance=`/`?public_slain=`); a `role` param with only unrecognized/no-op values still computes `can_edit` with every boolean `False` — it does not fall back to the real-identity path
-  - Whenever `role` is present (recognized or not), the response sets `X-Force-Public-Cache: true` instead — identity-independent, so caching it publicly is safe (and needed for UI-preview, e.g. showing an anonymous visitor what a dm would see)
+Since #922, `permissions.json` is a **pure function of its `?role=` query string, in every case**
+— it never inspects the real requester's session/identity, whether or not a `role` param is
+present. `can_edit` is always computed via `<Model>.can_be_edited_by_roles(...)` from booleans
+derived from the given value(s) (accepts repeated values, e.g. `?role=dm&role=owner`):
+
+- `dm` → `is_dm = True`
+- `superuser` → `is_superuser = True`
+- `owner` → `is_owner = True` (only consulted by the Character/PC endpoint; a no-op elsewhere)
+- `logged` → `is_logged = True` (added by #922). A no-op for every current `can_*` computation
+  (absent from `can_be_edited_by_roles`'s signature) — accepted so the frontend can pass its full,
+  accurate role set (mirroring `access.json`'s `is_logged`) without an "unrecognized value" branch,
+  and so a future `can_*` rule can consult it without a parser change.
+- `player`, `staff` → no-ops for `can_edit` (absent from `can_be_edited_by_roles`'s signature), accepted only so a caller can pass every role name it knows without an "unrecognized value" branch. `staff` still matters elsewhere: `can_create_item` (Character PC/NPC and Game) consumes `is_staff` via a separate `is_allowed_for_roles` method — see [character-item.md](character-item.md), [game-item.md](game-item.md#item-creation-endpoint)
+- any other value → silently ignored (same tolerant convention as `?public_allegiance=`/`?public_slain=`)
+- **No `role` param at all** → treated identically to a `role` param with only unrecognized/no-op
+  values: every boolean (including `is_logged`) defaults `False`, i.e. the same anonymous/no-roles
+  response as an explicit `?role=logged` would be absent. There is no real-identity fallback of any
+  kind, with or without a `role` param — the frontend is responsible for deriving and always
+  sending the caller's real roles (via its own prior `access.json` call) when it wants a
+  real-identity-equivalent response, except when deliberately simulating "not logged" (sends none).
+- The response always sets `X-Force-Public-Cache: true` — identity-independent in every case, so
+  caching it publicly is always safe (and needed for UI-preview, e.g. showing an anonymous visitor
+  what a dm would see). It never sets `X-Skip-Cache` (that header, and the whole real-identity
+  code path, existed prior to #922 and has been fully removed).
 
 Role-parsing is shared verbatim by all four `permissions.json` endpoints (Game, PC, NPC, Treasure).
 Several resources' `permissions.json` also expose their own extra `can_*` fields following this
@@ -99,21 +112,23 @@ the detail/full-detail response so those could become cacheable — see
 Access-type endpoints return user-specific data, so caching them across users would serve stale
 or incorrect values. Three layers enforce correctness:
 
-1. **Backend header (real-identity path)** — every `access.json` view, and every
-   `permissions.json` view with no `role` param, sets `X-Skip-Cache: true`, preventing Tent from
-   caching it.
-2. **Backend header (role-simulated path)** — a `permissions.json` view with a `role` param sets
-   `X-Force-Public-Cache: true` instead, forcing the public/anonymous `Cache-Control` tier
-   regardless of the real requester's own `is_authenticated` state.
+1. **Backend header (identity-dependent path)** — every `access.json` view sets
+   `X-Skip-Cache: true`, preventing Tent from caching it (it's the one place real identity is
+   still read, e.g. for `is_logged`).
+2. **Backend header (`permissions.json`, always)** — since #922, every `permissions.json` view
+   sets `X-Force-Public-Cache: true` unconditionally, with or without a `role` param, forcing the
+   public/anonymous `Cache-Control` tier — safe because the endpoint never reads the real
+   requester's identity at all anymore (see "Edit permission endpoints" above). There is no
+   `X-Skip-Cache` branch left for this endpoint.
 3. **Frontend header** — the frontend's base request client checks every request path against its
    own exact-path/path-suffix skip-cache config (e.g. suffix-matching `/access.json`) before
    `fetch`; a match sends `X-Skip-Cache: 1`, bypassing the Tent cache read.
 
 **Rule for future access-type endpoints:** if a new endpoint's response depends on the
 requester's identity, add its path (or suffix) to the frontend skip-cache config — suffix
-matching exists because access-endpoint paths are dynamic (`<slug>`/`<id>`). A role-simulated,
-identity-independent endpoint (like `permissions.json` with `role`) needs no frontend bypass —
-its whole point is to be cacheable.
+matching exists because access-endpoint paths are dynamic (`<slug>`/`<id>`). An endpoint whose
+response is a pure function of its query string, never the real requester's identity (like
+`permissions.json`, since #922), needs no frontend bypass — its whole point is to be cacheable.
 
 ## Photo path fields
 
