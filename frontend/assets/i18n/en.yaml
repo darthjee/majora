@@ -25,6 +25,7 @@ header:
   resilience_retrying_alt: Retrying
 view_as_modal:
   title: View as
+  not_logged_label: Not Logged
   enabled_label: Simulate a different role
   role_dm: Game Master
   role_player: Player

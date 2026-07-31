@@ -3,16 +3,9 @@
 import json
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import (
-    CharacterFactory,
-    GameFactory,
-    PlayerFactory,
-    SuperUserFactory,
-    UserFactory,
-)
+from games.tests.factories import CharacterFactory, GameFactory, PlayerFactory, UserFactory
 
 
 @pytest.mark.django_db
@@ -26,8 +19,6 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
         self.owner = UserFactory(username='owner', password='secret-password')
         self.player.user = self.owner
         self.player.save()
-        self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.character = CharacterFactory(
             name='Aragorn', game=self.game, player=self.player, npc=False
         )
@@ -69,24 +60,21 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert data == self._all_false()
 
-    def test_response_includes_x_skip_cache_header_without_role(self, client):
-        """Test that the response sets X-Skip-Cache: true when no role param is given."""
+    def test_response_sets_force_public_cache_header_without_role(self, client):
+        """Test that the response sets X-Force-Public-Cache: true even with no role param."""
         response = self.get(client, self._url())
-        assert response['X-Skip-Cache'] == 'true'
-        assert 'X-Force-Public-Cache' not in response
+        assert response['X-Force-Public-Cache'] == 'true'
+        assert 'X-Skip-Cache' not in response
 
     def test_dm_can_edit(self, client):
-        """Test that the game's DM gets every permission True."""
-        token = Token.objects.create(user=self.dm_user)
-        response = self.get(client, self._url(), token=token)
+        """Test that ?role=dm grants every permission True."""
+        response = self.get(client, self._url(query='role=dm'))
         data = json.loads(response.content)
         assert data == self._all_true()
 
     def test_superuser_can_edit(self, client):
-        """Test that a superuser gets every permission True."""
-        superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
-        response = self.get(client, self._url(), token=token)
+        """Test that ?role=superuser grants every permission True."""
+        response = self.get(client, self._url(query='role=superuser'))
         data = json.loads(response.content)
         assert data == self._all_true()
 
@@ -110,8 +98,7 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
 
     def test_unrecognized_role_does_not_fall_back_to_real_identity(self, client):
         """Test that an unrecognized role still switches to the role-simulated path."""
-        token = Token.objects.create(user=self.dm_user)
-        response = self.get(client, self._url(query='role=bogus'), token=token)
+        response = self.get(client, self._url(query='role=bogus'))
         data = json.loads(response.content)
         assert data == self._all_false()
 
@@ -122,9 +109,8 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
         assert response['X-Force-Public-Cache'] == 'true'
 
     def test_owner_can_edit(self, client):
-        """Test that the character's owner gets every permission True except can_delete_photo."""
-        token = Token.objects.create(user=self.owner)
-        response = self.get(client, self._url(), token=token)
+        """Test that ?role=owner grants every permission True except can_delete_photo."""
+        response = self.get(client, self._url(query='role=owner'))
         data = json.loads(response.content)
         assert data == {
             'can_edit': True,
@@ -149,12 +135,8 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
         }
 
     def test_staff_can_create_item_but_cannot_edit(self, client):
-        """Test that a global Staff account gets the Staff-bypassed permissions, not can_edit."""
-        staff_user = UserFactory(username='staff_user', password='secret-password')
-        staff_user.is_staff = True
-        staff_user.save()
-        token = Token.objects.create(user=staff_user)
-        response = self.get(client, self._url(), token=token)
+        """Test that ?role=staff grants the Staff-bypassed permissions, not can_edit."""
+        response = self.get(client, self._url(query='role=staff'))
         data = json.loads(response.content)
         assert data == {
             'can_edit': False,
@@ -179,11 +161,8 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
         }
 
     def test_regular_player_can_create_item_and_upload_photo_but_cannot_edit(self, client):
-        """Test that any other player of the game (#864) gets the player-leniency permissions."""
-        player_user = UserFactory(username='player_user', password='secret-password')
-        PlayerFactory(name='Alice', user=player_user, game=self.game)
-        token = Token.objects.create(user=player_user)
-        response = self.get(client, self._url(), token=token)
+        """Test that ?role=player (#864) gets the player-leniency permissions."""
+        response = self.get(client, self._url(query='role=player'))
         data = json.loads(response.content)
         assert data == {
             'can_edit': False,

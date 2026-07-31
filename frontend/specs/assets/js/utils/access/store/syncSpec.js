@@ -19,36 +19,39 @@ describe('AccessStore', function() {
   });
 
   describe('#syncForRoute', function() {
-    it('resets cached state and requests both the game access and permissions for a game page', function() {
+    it('resets cached state and requests the game access, then the game permissions, for a game page', async function() {
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve(ACCESS_DEFAULT));
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
       AccessStore.syncForRoute('game', '#/games/demo');
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');
-      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo', []);
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
     });
 
-    it('requests both character access and permissions for a character page', function() {
+    it('requests character access, then character permissions, for a character page', async function() {
       spyOn(AccessStore, 'ensureCharacterAccess').and.returnValue(Promise.resolve(ACCESS_DEFAULT));
       spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
       AccessStore.syncForRoute('pcCharacter', '#/games/demo/pcs/2');
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(AccessStore.ensureCharacterAccess).toHaveBeenCalledWith('pcs', 'demo', '2');
-      expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('pcs', 'demo', '2', []);
+      expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('pcs', 'demo', '2');
     });
 
-    it('requests staffOrSuperuser, treasure access, and treasure permissions for the treasure edit page', function() {
+    it('requests staffOrSuperuser, then treasure access, then treasure permissions, for the treasure edit page', async function() {
       spyOn(AccessStore, 'ensureStaffOrSuperUser').and.returnValue(Promise.resolve(true));
       spyOn(AccessStore, 'ensureTreasureAccess').and.returnValue(Promise.resolve(ACCESS_DEFAULT));
       spyOn(AccessStore, 'ensureTreasurePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
       AccessStore.syncForRoute('treasureEdit', '#/treasures/42/edit');
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(AccessStore.ensureStaffOrSuperUser).toHaveBeenCalled();
       expect(AccessStore.ensureTreasureAccess).toHaveBeenCalledWith('42');
-      expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('42', []);
+      expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('42');
     });
 
     it('requests staffOrSuperuser access for a staff page', function() {
@@ -80,11 +83,11 @@ describe('AccessStore', function() {
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve(ACCESS_DEFAULT));
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
       spyOn(AccessEvents, 'emitFacadeChanged');
-      AccessStoreFacade.set(true, ['dm'], 'demo');
+      AccessStoreFacade.set(true, ['dm'], false, 'demo');
 
       AccessStore.syncForRoute('game', '#/games/other-game');
 
-      expect(AccessStoreFacade.get()).toEqual({ enabled: false, roles: [], gameSlug: null });
+      expect(AccessStoreFacade.get()).toEqual({ enabled: false, roles: [], notLogged: false, gameSlug: null });
       expect(AccessEvents.emitFacadeChanged).toHaveBeenCalled();
     });
 
@@ -92,12 +95,14 @@ describe('AccessStore', function() {
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve(ACCESS_DEFAULT));
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
       spyOn(AccessEvents, 'emitFacadeChanged');
-      AccessStoreFacade.set(true, ['dm'], 'demo');
+      AccessStoreFacade.set(true, ['dm'], false, 'demo');
 
       try {
         AccessStore.syncForRoute('game', '#/games/demo');
 
-        expect(AccessStoreFacade.get()).toEqual({ enabled: true, roles: ['dm'], gameSlug: 'demo' });
+        expect(AccessStoreFacade.get()).toEqual({
+          enabled: true, roles: ['dm'], notLogged: false, gameSlug: 'demo',
+        });
         expect(AccessEvents.emitFacadeChanged).not.toHaveBeenCalled();
       } finally {
         AccessStoreFacade.clear();
@@ -111,7 +116,7 @@ describe('AccessStore', function() {
       try {
         AccessStore.syncForRoute('home', '#/');
 
-        expect(AccessStoreFacade.get()).toEqual({ enabled: true, roles: ['dm'], gameSlug: null });
+        expect(AccessStoreFacade.get()).toEqual({ enabled: true, roles: ['dm'], notLogged: false, gameSlug: null });
         expect(AccessEvents.emitFacadeChanged).not.toHaveBeenCalled();
       } finally {
         AccessStoreFacade.clear();

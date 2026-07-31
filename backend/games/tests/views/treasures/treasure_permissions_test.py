@@ -49,8 +49,8 @@ class TestTreasurePermissionsView(TokenAuthRequestMixin, TestCase):
         assert data == {'can_edit': False}
 
     def test_superuser_can_edit_global_treasure(self):
-        """Test that a superuser gets can_edit True for a global treasure."""
-        response = self._get(self.client, token=self.superuser_token)
+        """Test that ?role=superuser gets can_edit True for a global treasure."""
+        response = self._get(self.client, query='role=superuser')
         data = json.loads(response.content)
         assert data == {'can_edit': True}
 
@@ -61,8 +61,8 @@ class TestTreasurePermissionsView(TokenAuthRequestMixin, TestCase):
         assert data == {'can_edit': False}
 
     def test_staff_can_edit_global_treasure(self):
-        """Test that a staff user gets can_edit True for a global treasure."""
-        response = self._get(self.client, token=self.staff_token)
+        """Test that ?role=staff gets can_edit True for a global treasure."""
+        response = self._get(self.client, query='role=staff')
         data = json.loads(response.content)
         assert data == {'can_edit': True}
 
@@ -82,14 +82,11 @@ class TestTreasurePermissionsView(TokenAuthRequestMixin, TestCase):
         assert data == {'can_edit': False}
 
     def test_dm_of_owning_game_can_edit_game_exclusive_treasure(self):
-        """Test that the DM of a treasure's owning game gets can_edit True."""
+        """Test that ?role=dm gets can_edit True for a treasure's owning game."""
         game = GameFactory(name='Test Game', game_slug='test-game')
-        dm_user = UserFactory(username='dm_user', password='secret-password')
-        PlayerFactory(game=game, user=dm_user, is_dm=True)
         self.treasure.game = game
         self.treasure.save()
-        token = Token.objects.create(user=dm_user)
-        response = self._get(self.client, token=token)
+        response = self._get(self.client, query='role=dm')
         data = json.loads(response.content)
         assert data == {'can_edit': True}
 
@@ -109,11 +106,11 @@ class TestTreasurePermissionsView(TokenAuthRequestMixin, TestCase):
         response = self.client.get(url)
         assert response.status_code == 200
 
-    def test_response_includes_x_skip_cache_header_without_role(self):
-        """Test that the response sets X-Skip-Cache: true when no role param is given."""
+    def test_response_sets_force_public_cache_header_without_role(self):
+        """Test that the response sets X-Force-Public-Cache: true even with no role param."""
         response = self._get(self.client)
-        assert response['X-Skip-Cache'] == 'true'
-        assert 'X-Force-Public-Cache' not in response
+        assert response['X-Force-Public-Cache'] == 'true'
+        assert 'X-Skip-Cache' not in response
 
     def test_role_superuser_can_edit_regardless_of_real_identity(self):
         """Test that ?role=superuser grants can_edit True even for an anonymous caller."""
@@ -138,7 +135,7 @@ class TestTreasurePermissionsView(TokenAuthRequestMixin, TestCase):
 
     def test_unrecognized_role_does_not_fall_back_to_real_identity(self):
         """Test that an unrecognized role still switches to the role-simulated path."""
-        response = self._get(self.client, token=self.superuser_token, query='role=bogus')
+        response = self._get(self.client, query='role=bogus')
         data = json.loads(response.content)
         assert data == {'can_edit': False}
 

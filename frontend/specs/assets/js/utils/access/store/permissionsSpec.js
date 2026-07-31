@@ -1,4 +1,5 @@
 import AccessStore from '../../../../../../assets/js/utils/access/store/AccessStore.js';
+import AccessStoreFacade from '../../../../../../assets/js/utils/access/store/AccessStoreFacade.js';
 import AccessEvents from '../../../../../../assets/js/utils/access/AccessEvents.js';
 import GameClient from '../../../../../../assets/js/client/GameClient.js';
 import CharacterClient from '../../../../../../assets/js/client/CharacterClient.js';
@@ -8,10 +9,12 @@ import { fakeResponse } from './support.js';
 describe('AccessStore', function() {
   beforeEach(function() {
     AccessStore.reset();
+    AccessStoreFacade.clear();
   });
 
   afterEach(function() {
     AccessStore.reset();
+    AccessStoreFacade.clear();
   });
 
   describe('#ensureGamePermissions', function() {
@@ -38,30 +41,41 @@ describe('AccessStore', function() {
       expect(result).toEqual({ can_edit: false });
     });
 
-    it('caches distinct role sets under distinct keys, without colliding', async function() {
+    it('derives the requested role set from the already-resolved game access', async function() {
+      spyOn(GameClient.prototype, 'fetchGameAccess').and.returnValue(
+        Promise.resolve(fakeResponse({ is_dm: true, is_logged: true })),
+      );
+      const fetchSpy = spyOn(GameClient.prototype, 'fetchGamePermissions').and.callFake(
+        (slug, token, signal, roles) => Promise.resolve(fakeResponse({ can_edit: roles.includes('dm') })),
+      );
+
+      await AccessStore.ensureGameAccess('demo');
+      const result = await AccessStore.ensureGamePermissions('demo');
+
+      expect(fetchSpy).toHaveBeenCalledWith('demo', null, jasmine.anything(), ['dm', 'logged']);
+      expect(result).toEqual({ can_edit: true });
+      expect(AccessStore.getGamePermissions('demo')).toEqual({ can_edit: true });
+    });
+
+    it('caches distinct role sets (e.g. real vs. facade-simulated) under distinct keys, without colliding', async function() {
       const fetchSpy = spyOn(GameClient.prototype, 'fetchGamePermissions').and.callFake(
         (slug, token, signal, roles) => Promise.resolve(fakeResponse({ can_edit: roles.includes('dm') })),
       );
 
       const noRole = await AccessStore.ensureGamePermissions('demo');
-      const dmRole = await AccessStore.ensureGamePermissions('demo', ['dm']);
+
+      expect(AccessStore.getGamePermissions('demo')).toEqual({ can_edit: false });
+
+      AccessStoreFacade.set(true, ['dm']);
+      const dmRole = await AccessStore.ensureGamePermissions('demo');
 
       expect(fetchSpy).toHaveBeenCalledTimes(2);
       expect(noRole).toEqual({ can_edit: false });
       expect(dmRole).toEqual({ can_edit: true });
+      expect(AccessStore.getGamePermissions('demo')).toEqual({ can_edit: true });
+
+      AccessStoreFacade.clear();
       expect(AccessStore.getGamePermissions('demo')).toEqual({ can_edit: false });
-      expect(AccessStore.getGamePermissions('demo', ['dm'])).toEqual({ can_edit: true });
-    });
-
-    it('normalizes (sorts/dedupes) the role set for the cache key', async function() {
-      const fetchSpy = spyOn(GameClient.prototype, 'fetchGamePermissions').and.returnValue(
-        Promise.resolve(fakeResponse({ can_edit: true })),
-      );
-
-      await AccessStore.ensureGamePermissions('demo', ['player', 'dm']);
-      await AccessStore.ensureGamePermissions('demo', ['dm', 'dm', 'player']);
-
-      expect(fetchSpy).toHaveBeenCalledTimes(1);
     });
   });
 

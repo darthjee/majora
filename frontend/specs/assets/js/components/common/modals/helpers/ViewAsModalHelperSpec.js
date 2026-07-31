@@ -58,12 +58,14 @@ describe('ViewAsModalHelper', function() {
     onCancel: jasmine.createSpy('onCancel'),
     onSave: jasmine.createSpy('onSave'),
     onToggleEnabled: jasmine.createSpy('onToggleEnabled'),
+    onToggleNotLogged: jasmine.createSpy('onToggleNotLogged'),
     onToggleRole: jasmine.createSpy('onToggleRole'),
   });
 
   const buildState = (overrides = {}) => ({
     enabled: false,
     roles: [],
+    notLogged: false,
     ...overrides,
   });
 
@@ -115,6 +117,38 @@ describe('ViewAsModalHelper', function() {
 
       expect(enabledCollapse.props.in).toBe(true);
       expect(disabledCollapse.props.in).toBe(false);
+    });
+
+    it('renders the "Not Logged" switch reflecting state.notLogged, wired to onToggleNotLogged', function() {
+      const handlers = buildHandlers();
+      const element = ViewAsModalHelper.render(true, buildState({ enabled: true, notLogged: true }), handlers);
+      const notLoggedSwitch = findElement(
+        element,
+        (child) => child.type === Form.Check && child.props.id === 'view-as-modal-not-logged'
+      );
+
+      expect(notLoggedSwitch.props.type).toBe('switch');
+      expect(notLoggedSwitch.props.checked).toBe(true);
+
+      notLoggedSwitch.props.onChange();
+
+      expect(handlers.onToggleNotLogged).toHaveBeenCalled();
+    });
+
+    it('hides the role checkboxes in a nested Collapse exactly when notLogged is on', function() {
+      const handlers = buildHandlers();
+      const notLoggedElement = ViewAsModalHelper.render(
+        true, buildState({ enabled: true, notLogged: true }), handlers,
+      );
+      const loggedElement = ViewAsModalHelper.render(
+        true, buildState({ enabled: true, notLogged: false }), handlers,
+      );
+
+      const collapses = findAllElements(notLoggedElement, (child) => child.type === Collapse);
+      const loggedCollapses = findAllElements(loggedElement, (child) => child.type === Collapse);
+
+      expect(collapses[1].props.in).toBe(false);
+      expect(loggedCollapses[1].props.in).toBe(true);
     });
 
     it('renders one checkbox per simulatable role, reflecting state.roles', function() {

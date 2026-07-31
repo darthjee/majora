@@ -6,75 +6,87 @@ import AccessStoreDescriptor from '../../../../../../assets/js/utils/access/stor
  * @returns {object} A jasmine spy object covering every `AccessStore.ensure*` method.
  */
 function buildStore() {
-  return jasmine.createSpyObj('store', [
+  const store = jasmine.createSpyObj('store', [
     'ensureSuperUser', 'ensureStaffOrSuperUser',
     'ensureGameAccess', 'ensureGamePermissions',
     'ensureTreasureAccess', 'ensureTreasurePermissions',
     'ensureCharacterAccess', 'ensureCharacterPermissions',
   ]);
+
+  store.ensureGameAccess.and.returnValue(Promise.resolve({}));
+  store.ensureTreasureAccess.and.returnValue(Promise.resolve({}));
+  store.ensureCharacterAccess.and.returnValue(Promise.resolve({}));
+  store.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: false }));
+  store.ensureTreasurePermissions.and.returnValue(Promise.resolve({ can_edit: false }));
+  store.ensureCharacterPermissions.and.returnValue(Promise.resolve({ can_edit: false }));
+
+  return store;
 }
 
 describe('AccessStoreDescriptor', function() {
   describe('#ensure', function() {
-    it('calls only ensureSuperUser for a superuser descriptor', function() {
+    it('calls only ensureSuperUser for a superuser descriptor', async function() {
       const store = buildStore();
 
-      AccessStoreDescriptor.ensure({ kind: 'superuser' }, '#/', store);
+      await AccessStoreDescriptor.ensure({ kind: 'superuser' }, '#/', store);
 
       expect(store.ensureSuperUser).toHaveBeenCalled();
       expect(store.ensureGameAccess).not.toHaveBeenCalled();
     });
 
-    it('calls only ensureStaffOrSuperUser for a staffOrSuperuser descriptor', function() {
+    it('calls only ensureStaffOrSuperUser for a staffOrSuperuser descriptor', async function() {
       const store = buildStore();
 
-      AccessStoreDescriptor.ensure({ kind: 'staffOrSuperuser' }, '#/', store);
+      await AccessStoreDescriptor.ensure({ kind: 'staffOrSuperuser' }, '#/', store);
 
       expect(store.ensureStaffOrSuperUser).toHaveBeenCalled();
     });
 
-    it('calls both ensureGameAccess and ensureGamePermissions for a game descriptor', function() {
+    it('calls ensureGameAccess before ensureGamePermissions for a game descriptor', async function() {
       const store = buildStore();
+      const descriptor = { kind: 'game', pattern: '/games/:game_slug', params: ['game_slug'] };
+
+      await AccessStoreDescriptor.ensure(descriptor, '#/games/demo', store);
+
+      expect(store.ensureGameAccess).toHaveBeenCalledWith('demo');
+      expect(store.ensureGamePermissions).toHaveBeenCalledWith('demo');
+    });
+
+    it('awaits ensureGameAccess before ever calling ensureGamePermissions', function() {
+      const store = buildStore();
+      let resolveAccess;
+      store.ensureGameAccess.and.returnValue(new Promise((resolve) => {
+        resolveAccess = resolve;
+      }));
       const descriptor = { kind: 'game', pattern: '/games/:game_slug', params: ['game_slug'] };
 
       AccessStoreDescriptor.ensure(descriptor, '#/games/demo', store);
 
-      expect(store.ensureGameAccess).toHaveBeenCalledWith('demo');
-      expect(store.ensureGamePermissions).toHaveBeenCalledWith('demo', []);
+      expect(store.ensureGamePermissions).not.toHaveBeenCalled();
+      resolveAccess({});
     });
 
-    it('calls both ensureTreasureAccess and ensureTreasurePermissions for a treasure descriptor', function() {
+    it('calls ensureTreasureAccess before ensureTreasurePermissions for a treasure descriptor', async function() {
       const store = buildStore();
       const descriptor = { kind: 'treasure', pattern: '/treasures/:treasure_id', params: ['treasure_id'] };
 
-      AccessStoreDescriptor.ensure(descriptor, '#/treasures/42', store);
+      await AccessStoreDescriptor.ensure(descriptor, '#/treasures/42', store);
 
       expect(store.ensureTreasureAccess).toHaveBeenCalledWith('42');
-      expect(store.ensureTreasurePermissions).toHaveBeenCalledWith('42', []);
+      expect(store.ensureTreasurePermissions).toHaveBeenCalledWith('42');
     });
 
-    it('calls both ensureCharacterAccess and ensureCharacterPermissions for a character descriptor', function() {
+    it('calls ensureCharacterAccess before ensureCharacterPermissions for a character descriptor', async function() {
       const store = buildStore();
       const descriptor = {
         kind: 'character', characterKind: 'pcs',
         pattern: '/games/:game_slug/pcs/:character_id', params: ['game_slug', 'character_id'],
       };
 
-      AccessStoreDescriptor.ensure(descriptor, '#/games/demo/pcs/2', store);
+      await AccessStoreDescriptor.ensure(descriptor, '#/games/demo/pcs/2', store);
 
       expect(store.ensureCharacterAccess).toHaveBeenCalledWith('pcs', 'demo', '2');
-      expect(store.ensureCharacterPermissions).toHaveBeenCalledWith('pcs', 'demo', '2', []);
-    });
-
-    it('forwards the descriptor-declared roles to the permissions ensure calls', function() {
-      const store = buildStore();
-      const descriptor = {
-        kind: 'game', pattern: '/games/:game_slug', params: ['game_slug'], roles: ['dm'],
-      };
-
-      AccessStoreDescriptor.ensure(descriptor, '#/games/demo', store);
-
-      expect(store.ensureGamePermissions).toHaveBeenCalledWith('demo', ['dm']);
+      expect(store.ensureCharacterPermissions).toHaveBeenCalledWith('pcs', 'demo', '2');
     });
   });
 });
