@@ -94,10 +94,12 @@ derived from the given value(s) (accepts repeated values, e.g. `?role=dm&role=ow
   kind, with or without a `role` param — the frontend is responsible for deriving and always
   sending the caller's real roles (via its own prior `access.json` call) when it wants a
   real-identity-equivalent response, except when deliberately simulating "not logged" (sends none).
-- The response always sets `X-Force-Public-Cache: true` — identity-independent in every case, so
-  caching it publicly is always safe (and needed for UI-preview, e.g. showing an anonymous visitor
-  what a dm would see). It never sets `X-Skip-Cache` (that header, and the whole real-identity
-  code path, existed prior to #922 and has been fully removed).
+- The response is always cacheable publicly, since it's identity-independent in every case (and
+  needed for UI-preview, e.g. showing an anonymous visitor what a dm would see): since #926, this
+  is enforced by `CacheControlMiddleware` recognizing the `/permissions/` path prefix directly
+  (see "Cache-bypass mechanism for access endpoints" below), not a per-response header. It never
+  sets `X-Skip-Cache` (that header, and the whole real-identity code path, existed prior to #922
+  and has been fully removed).
 
 Role-parsing is shared verbatim by all five `permissions.json` endpoints (Game, PC, NPC, and
 Treasure's two — global and game-exclusive, see [Treasure](treasure.md#edit-permission)).
@@ -116,11 +118,15 @@ or incorrect values. Three layers enforce correctness:
 1. **Backend header (identity-dependent path)** — every `access.json` view sets
    `X-Skip-Cache: true`, preventing Tent from caching it (it's the one place real identity is
    still read, e.g. for `is_logged`).
-2. **Backend header (`permissions.json`, always)** — since #922, every `permissions.json` view
-   sets `X-Force-Public-Cache: true` unconditionally, with or without a `role` param, forcing the
-   public/anonymous `Cache-Control` tier — safe because the endpoint never reads the real
-   requester's identity at all anymore (see "Edit permission endpoints" above). There is no
-   `X-Skip-Cache` branch left for this endpoint.
+2. **Backend path-prefix rule (`permissions.json`, always)** — since #922, no `permissions.json`
+   view ever reads the real requester's identity (see "Edit permission endpoints" above), so the
+   response is always safe to cache publicly regardless of the real caller's auth state. Since
+   #926 (when these endpoints moved to the entity-agnostic `/permissions/<entity_type>.json`
+   shape), this is enforced by `CacheControlMiddleware` (`backend/games/middleware.py`) forcing
+   the public/anonymous `Cache-Control` tier for any request path starting with `/permissions/`,
+   unconditionally — no per-response header involved (the earlier `X-Force-Public-Cache: true`
+   header this middleware used to key off of has been removed entirely, in favor of the
+   path-prefix check). There is no `X-Skip-Cache` branch left for this endpoint either.
 3. **Frontend header** — the frontend's base request client checks every request path against its
    own exact-path/path-suffix skip-cache config (e.g. suffix-matching `/access.json`) before
    `fetch`; a match sends `X-Skip-Cache: 1`, bypassing the Tent cache read.

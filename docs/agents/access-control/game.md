@@ -27,7 +27,8 @@ endpoints](common-rules.md#access-status-endpoints-accessjson). `is_owner` is al
 
 ## Edit permission
 
-`GET /games/<slug>/permissions.json` — **AllowAny**, standard shape per [Edit permission
+`GET /permissions/game.json` — entity-agnostic (no path parameters, since #926), **AllowAny**,
+standard shape per [Edit permission
 endpoints](common-rules.md#edit-permission-endpoints-permissionsjson). Beyond `can_edit`
 (**GameEdit**), exposes:
 - `can_create_item` — **GameItemCreatePermission**: dm, admin, or staff — broader than `can_edit`.
