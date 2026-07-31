@@ -1,9 +1,9 @@
 /**
  * "View as" facade state for {@link AccessStore} — an optional,
- * frontend-only simulated role set (`dm`/`player`/`owner`) that, while
- * enabled, is used in place of the requester's own real identity for every
- * `*Permissions` fetch, so admins/staff can preview how a page renders for
- * a lesser-privileged user.
+ * frontend-only simulated role set (`dm`/`player`/`owner`, plus a "Not
+ * Logged" mock) that, while enabled, is used in place of the requester's
+ * own real identity for every `*Permissions` fetch, so admins/staff can
+ * preview how a page renders for a lesser-privileged (or anonymous) user.
  *
  * @description Kept separate so this state/logic doesn't compete for line
  *   budget with the store's own fetch/cache orchestration. Never affects
@@ -13,18 +13,21 @@
 export default class AccessStoreFacade {
   static #enabled = false;
   static #roles = new Set();
+  static #notLogged = false;
   static #gameSlug = null;
 
   /**
    * Synchronously read the current facade state, used to pre-populate the
    * facade modal when it opens.
    *
-   * @returns {{enabled: boolean, roles: string[], gameSlug: (string|null)}} The current facade state.
+   * @returns {{enabled: boolean, roles: string[], notLogged: boolean,
+   *   gameSlug: (string|null)}} The current facade state.
    */
   static get() {
     return {
       enabled: AccessStoreFacade.#enabled,
       roles: Array.from(AccessStoreFacade.#roles),
+      notLogged: AccessStoreFacade.#notLogged,
       gameSlug: AccessStoreFacade.#gameSlug,
     };
   }
@@ -34,13 +37,16 @@ export default class AccessStoreFacade {
    *
    * @param {boolean} enabled - Whether the facade is active.
    * @param {string[]} roles - Roles to simulate while the facade is active.
+   * @param {boolean} [notLogged] - When `true` (and `enabled`), simulate an
+   *   anonymous (not logged in) requester instead of the selected roles.
    * @param {string|null} [gameSlug] - Game slug the facade is scoped to (DM
    *   activations only); `null` for an unscoped (admin/staff) facade.
    * @returns {void}
    */
-  static set(enabled, roles, gameSlug = null) {
+  static set(enabled, roles, notLogged = false, gameSlug = null) {
     AccessStoreFacade.#enabled = enabled;
     AccessStoreFacade.#roles = new Set(roles);
+    AccessStoreFacade.#notLogged = notLogged;
     AccessStoreFacade.#gameSlug = gameSlug;
   }
 
@@ -53,6 +59,7 @@ export default class AccessStoreFacade {
   static clear() {
     AccessStoreFacade.#enabled = false;
     AccessStoreFacade.#roles = new Set();
+    AccessStoreFacade.#notLogged = false;
     AccessStoreFacade.#gameSlug = null;
   }
 
@@ -81,18 +88,26 @@ export default class AccessStoreFacade {
   }
 
   /**
-   * Resolve the role set to actually request for a `*Permissions` fetch: the
-   * active facade's roles when enabled and non-empty, otherwise the
-   * caller-supplied roles unchanged (the real-identity path).
+   * Resolve the role set to actually request for a `*Permissions` fetch:
+   * the caller's real (derived) roles when the facade is disabled;
+   * an explicit empty set (anonymous) when the facade is enabled with "Not
+   * Logged" on; otherwise the facade's own simulated roles plus `'logged'`
+   * (a mock is always simulating a logged-in user unless "Not Logged" is set).
    *
-   * @param {string[]} roles - Caller-supplied roles.
+   * @param {string[]} realRoles - The caller's real, derived roles (see
+   *   {@link AccessStoreRoles.fromAccess}), used unchanged when the facade
+   *   is disabled.
    * @returns {string[]} The effective roles to fetch/cache under.
    */
-  static effectiveRoles(roles) {
-    if (AccessStoreFacade.#enabled && AccessStoreFacade.#roles.size > 0) {
-      return Array.from(AccessStoreFacade.#roles);
+  static rolesForPermissionsRequest(realRoles) {
+    if (!AccessStoreFacade.#enabled) {
+      return realRoles;
     }
 
-    return roles;
+    if (AccessStoreFacade.#notLogged) {
+      return [];
+    }
+
+    return [...Array.from(AccessStoreFacade.#roles), 'logged'];
   }
 }

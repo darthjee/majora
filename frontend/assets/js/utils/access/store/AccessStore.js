@@ -65,41 +65,38 @@ export default class AccessStore {
   }
 
   /**
-   * Resolve (or start) the edit-permissions check for a game.
+   * Resolve (or start) the edit-permissions check for a game, using the role
+   * set derived from its own `*Access` entry or the "view as" facade.
    *
    * @param {string} gameSlug - Game slug.
-   * @param {string[]} [roles] - Roles to simulate instead of the requester's own identity.
-   *   Defaults to the requester's real identity.
    * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
    */
-  static ensureGamePermissions(gameSlug, roles = []) {
-    return AccessStorePermissions.ensureGame(cache, gameClient, gameSlug, roles);
+  static ensureGamePermissions(gameSlug) {
+    return AccessStorePermissions.ensureGame(cache, gameClient, gameSlug);
   }
 
   /**
-   * Resolve (or start) the edit-permissions check for a character.
+   * Resolve (or start) the edit-permissions check for a character, using the
+   * role set derived from its own `*Access` entry or the "view as" facade.
    *
    * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {string|number} characterId - Character id.
-   * @param {string[]} [roles] - Roles to simulate instead of the requester's own identity.
-   *   Defaults to the requester's real identity.
    * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
    */
-  static ensureCharacterPermissions(characterKind, gameSlug, characterId, roles = []) {
-    return AccessStorePermissions.ensureCharacter(cache, characterClient, characterKind, gameSlug, characterId, roles);
+  static ensureCharacterPermissions(characterKind, gameSlug, characterId) {
+    return AccessStorePermissions.ensureCharacter(cache, characterClient, characterKind, gameSlug, characterId);
   }
 
   /**
-   * Resolve (or start) the edit-permissions check for a treasure.
+   * Resolve (or start) the edit-permissions check for a treasure, using the
+   * role set derived from its own `*Access` entry or the "view as" facade.
    *
    * @param {string|number} id - Treasure id.
-   * @param {string[]} [roles] - Roles to simulate instead of the requester's own identity.
-   *   Defaults to the requester's real identity.
    * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
    */
-  static ensureTreasurePermissions(id, roles = []) {
-    return AccessStorePermissions.ensureTreasure(cache, treasureClient, id, roles);
+  static ensureTreasurePermissions(id) {
+    return AccessStorePermissions.ensureTreasure(cache, treasureClient, id);
   }
 
   /**
@@ -168,11 +165,10 @@ export default class AccessStore {
    * Synchronously read the currently cached game permissions, without triggering a fetch.
    *
    * @param {string} gameSlug - Game slug.
-   * @param {string[]} [roles] - Role set the cached lookup was made for.
    * @returns {{can_edit: boolean}} The cached permissions payload, or the fail-closed default.
    */
-  static getGamePermissions(gameSlug, roles = []) {
-    return AccessStorePermissions.getGame(cache, gameSlug, roles);
+  static getGamePermissions(gameSlug) {
+    return AccessStorePermissions.getGame(cache, gameSlug);
   }
 
   /**
@@ -181,22 +177,20 @@ export default class AccessStore {
    * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {string|number} characterId - Character id.
-   * @param {string[]} [roles] - Role set the cached lookup was made for.
    * @returns {{can_edit: boolean}} The cached permissions payload, or the fail-closed default.
    */
-  static getCharacterPermissions(characterKind, gameSlug, characterId, roles = []) {
-    return AccessStorePermissions.getCharacter(cache, characterKind, gameSlug, characterId, roles);
+  static getCharacterPermissions(characterKind, gameSlug, characterId) {
+    return AccessStorePermissions.getCharacter(cache, characterKind, gameSlug, characterId);
   }
 
   /**
    * Synchronously read the currently cached treasure permissions, without triggering a fetch.
    *
    * @param {string|number} id - Treasure id.
-   * @param {string[]} [roles] - Role set the cached lookup was made for.
    * @returns {{can_edit: boolean}} The cached permissions payload, or the fail-closed default.
    */
-  static getTreasurePermissions(id, roles = []) {
-    return AccessStorePermissions.getTreasure(cache, id, roles);
+  static getTreasurePermissions(id) {
+    return AccessStorePermissions.getTreasure(cache, id);
   }
 
   /**
@@ -220,7 +214,8 @@ export default class AccessStore {
   /**
    * Synchronously read the current facade state, used to pre-populate the facade modal when it opens.
    *
-   * @returns {{enabled: boolean, roles: string[], gameSlug: (string|null)}} The current facade state.
+   * @returns {{enabled: boolean, roles: string[], notLogged: boolean,
+   *   gameSlug: (string|null)}} The current facade state.
    */
   static getFacade() {
     return AccessStoreFacade.get();
@@ -235,11 +230,12 @@ export default class AccessStore {
    * @param {object} facade - The new facade state.
    * @param {boolean} facade.enabled - Whether the facade is active.
    * @param {string[]} facade.roles - Roles to simulate (`'dm'`, `'player'`, `'owner'`) while active.
+   * @param {boolean} [facade.notLogged] - Simulate an anonymous (not logged in) requester instead.
    * @param {string} [facade.gameSlug] - Game slug the facade activates from (DM activations only).
    * @returns {void}
    */
-  static setFacade({ enabled, roles, gameSlug }) {
-    AccessStoreFacade.set(enabled, roles, AccessStore.isStaffOrSuperUser() ? null : (gameSlug ?? null));
+  static setFacade({ enabled, roles, notLogged = false, gameSlug }) {
+    AccessStoreFacade.set(enabled, roles, notLogged, AccessStore.isStaffOrSuperUser() ? null : (gameSlug ?? null));
     AccessStore.reset();
     AccessStore.#resyncCurrentRoute();
     AccessEvents.emitFacadeChanged();

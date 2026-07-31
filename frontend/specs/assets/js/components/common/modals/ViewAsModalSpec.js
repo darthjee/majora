@@ -35,7 +35,7 @@ describe('ViewAsModal', function() {
   it('seeds local state from the disabled/empty facade by default', function() {
     const { state } = renderModal();
 
-    expect(state).toEqual({ enabled: false, roles: [] });
+    expect(state).toEqual({ enabled: false, roles: [], notLogged: false });
   });
 
   it('seeds local state from an already-active facade', function() {
@@ -43,7 +43,15 @@ describe('ViewAsModal', function() {
 
     const { state } = renderModal();
 
-    expect(state).toEqual({ enabled: true, roles: ['dm'] });
+    expect(state).toEqual({ enabled: true, roles: ['dm'], notLogged: false });
+  });
+
+  it('seeds the notLogged local state from an already-active facade', function() {
+    AccessStore.setFacade({ enabled: true, roles: [], notLogged: true });
+
+    const { state } = renderModal();
+
+    expect(state).toEqual({ enabled: true, roles: [], notLogged: true });
   });
 
   it('forwards the show prop as-is', function() {
@@ -69,7 +77,7 @@ describe('ViewAsModal', function() {
 
     handlers.onSave();
 
-    expect(AccessStore.getFacade()).toEqual({ enabled: false, roles: [], gameSlug: null });
+    expect(AccessStore.getFacade()).toEqual({ enabled: false, roles: [], notLogged: false, gameSlug: null });
     expect(onClose).toHaveBeenCalled();
   });
 
@@ -89,6 +97,7 @@ describe('ViewAsModal', function() {
 
     expect(() => {
       handlers.onToggleEnabled();
+      handlers.onToggleNotLogged();
       handlers.onToggleRole('dm');
     }).not.toThrow();
   });

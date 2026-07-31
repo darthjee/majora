@@ -30,37 +30,33 @@ export default class AccessStoreDescriptor {
     }
 
     const params = Router.extractParams(descriptor.pattern, hash);
-    const roles = descriptor.roles ?? [];
 
     if (descriptor.kind === 'game') {
-      return AccessStoreDescriptor.#ensureGame(params[descriptor.params[0]], roles, store);
+      return AccessStoreDescriptor.#ensureGame(params[descriptor.params[0]], store);
     }
 
     if (descriptor.kind === 'treasure') {
-      return AccessStoreDescriptor.#ensureTreasure(params[descriptor.params[0]], roles, store);
+      return AccessStoreDescriptor.#ensureTreasure(params[descriptor.params[0]], store);
     }
 
-    return AccessStoreDescriptor.#ensureCharacter(descriptor, params, roles, store);
+    return AccessStoreDescriptor.#ensureCharacter(descriptor, params, store);
   }
 
-  static #ensureGame(gameSlug, roles, store) {
-    return Promise.all([
-      store.ensureGameAccess(gameSlug),
-      store.ensureGamePermissions(gameSlug, roles),
-    ]);
+  static async #ensureGame(gameSlug, store) {
+    await store.ensureGameAccess(gameSlug);
+
+    return store.ensureGamePermissions(gameSlug);
   }
 
-  static #ensureTreasure(treasureId, roles, store) {
-    return Promise.all([
-      store.ensureTreasureAccess(treasureId),
-      store.ensureTreasurePermissions(treasureId, roles),
-    ]);
+  static async #ensureTreasure(treasureId, store) {
+    await store.ensureTreasureAccess(treasureId);
+
+    return store.ensureTreasurePermissions(treasureId);
   }
 
-  static #ensureCharacter(descriptor, params, roles, store) {
-    return Promise.all([
-      store.ensureCharacterAccess(descriptor.characterKind, params.game_slug, params.character_id),
-      store.ensureCharacterPermissions(descriptor.characterKind, params.game_slug, params.character_id, roles),
-    ]);
+  static async #ensureCharacter(descriptor, params, store) {
+    await store.ensureCharacterAccess(descriptor.characterKind, params.game_slug, params.character_id);
+
+    return store.ensureCharacterPermissions(descriptor.characterKind, params.game_slug, params.character_id);
   }
 }

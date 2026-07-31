@@ -20,7 +20,7 @@ export default class AccessStoreLogging {
    * @param {string} method - Name of the wrapped `AccessStore*` method (e.g. `'ensureGame'`).
    * @param {Array} args - Arguments the wrapped method was called with.
    * @param {Promise<*>} fetcherPromise - The fetcher's raw promise, before `AccessCache` catches any rejection.
-   * @param {object} [meta] - Extra fields folded into the logged entry (e.g. `roles`/`effectiveRoles`).
+   * @param {object} [meta] - Extra fields folded into the logged entry (e.g. `roleSet`).
    * @returns {Promise<*>} `fetcherPromise`, unchanged.
    */
   static wrap(method, args, fetcherPromise, meta = {}) {

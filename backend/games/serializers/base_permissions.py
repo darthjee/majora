@@ -17,16 +17,14 @@ class BasePermissionsSerializer(RequestContextSerializerMixin, serializers.Seria
     """
 
     def _roles(self):
-        """Return the parsed role booleans from context, or None for the real-identity path."""
+        """Return the parsed role booleans from context."""
         return self.context.get('roles')
 
     def _simulated_roles(self):
-        """Build a role-simulated `Roles` from context, or None for the real-identity path."""
+        """Build a role-simulated `Roles` from the context's role booleans."""
         roles = self._roles()
-        if roles is None:
-            return None
         return Roles.from_booleans(
             is_superuser=roles['is_superuser'], is_dm=roles['is_dm'],
             is_owner=roles['is_owner'], is_staff=roles['is_staff'],
-            is_player=roles['is_player'],
+            is_player=roles['is_player'], is_logged=roles['is_logged'],
         )

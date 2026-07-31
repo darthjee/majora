@@ -222,17 +222,20 @@ class TestAccessResponse(TestCase):
 class TestParseRoleBooleans:
     """Tests for parse_role_booleans()."""
 
-    def test_returns_none_when_no_role_param(self):
-        """Test that no `role` param at all returns None."""
+    def test_returns_all_false_when_no_role_param(self):
+        """Test that no `role` param at all returns every boolean False."""
         request = _make_query_request()
-        assert parse_role_booleans(request) is None
+        assert parse_role_booleans(request) == {
+            'is_superuser': False, 'is_dm': False, 'is_owner': False, 'is_staff': False,
+            'is_player': False, 'is_logged': False,
+        }
 
     def test_single_recognized_role(self):
         """Test that a single recognized role sets only its own boolean."""
         request = _make_query_request('role=dm')
         assert parse_role_booleans(request) == {
             'is_superuser': False, 'is_dm': True, 'is_owner': False, 'is_staff': False,
-            'is_player': False,
+            'is_player': False, 'is_logged': False,
         }
 
     def test_repeated_roles_combine(self):
@@ -240,7 +243,7 @@ class TestParseRoleBooleans:
         request = _make_query_request('role=dm&role=owner')
         assert parse_role_booleans(request) == {
             'is_superuser': False, 'is_dm': True, 'is_owner': True, 'is_staff': False,
-            'is_player': False,
+            'is_player': False, 'is_logged': False,
         }
 
     def test_superuser_role(self):
@@ -248,7 +251,7 @@ class TestParseRoleBooleans:
         request = _make_query_request('role=superuser')
         assert parse_role_booleans(request) == {
             'is_superuser': True, 'is_dm': False, 'is_owner': False, 'is_staff': False,
-            'is_player': False,
+            'is_player': False, 'is_logged': False,
         }
 
     def test_staff_role_sets_is_staff(self):
@@ -256,7 +259,7 @@ class TestParseRoleBooleans:
         request = _make_query_request('role=staff')
         assert parse_role_booleans(request) == {
             'is_superuser': False, 'is_dm': False, 'is_owner': False, 'is_staff': True,
-            'is_player': False,
+            'is_player': False, 'is_logged': False,
         }
 
     def test_player_role_sets_is_player(self):
@@ -264,7 +267,15 @@ class TestParseRoleBooleans:
         request = _make_query_request('role=player')
         assert parse_role_booleans(request) == {
             'is_superuser': False, 'is_dm': False, 'is_owner': False, 'is_staff': False,
-            'is_player': True,
+            'is_player': True, 'is_logged': False,
+        }
+
+    def test_logged_role_sets_is_logged(self):
+        """Test that the logged role sets is_logged."""
+        request = _make_query_request('role=logged')
+        assert parse_role_booleans(request) == {
+            'is_superuser': False, 'is_dm': False, 'is_owner': False, 'is_staff': False,
+            'is_player': False, 'is_logged': True,
         }
 
     def test_unrecognized_role_does_not_fall_back_to_real_identity(self):
@@ -272,7 +283,7 @@ class TestParseRoleBooleans:
         request = _make_query_request('role=bogus')
         assert parse_role_booleans(request) == {
             'is_superuser': False, 'is_dm': False, 'is_owner': False, 'is_staff': False,
-            'is_player': False,
+            'is_player': False, 'is_logged': False,
         }
 
 
@@ -286,21 +297,12 @@ class TestPermissionsResponse(TestCase):
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
 
-    def test_real_identity_path_sets_skip_cache_header(self):
-        """Test that a None role_booleans (real-identity path) sets X-Skip-Cache: true."""
-        request = _make_request(user=self.dm_user)
-        response = permissions_response(GamePermissionsSerializer, self.game, request, None)
-        assert response.status_code == 200
-        assert response.data['can_edit'] is True
-        assert response['X-Skip-Cache'] == 'true'
-        assert 'X-Force-Public-Cache' not in response
-
     def test_role_simulated_path_sets_force_public_cache_header(self):
-        """Test that role_booleans (role-simulated path) sets X-Force-Public-Cache: true."""
+        """Test that role_booleans always sets X-Force-Public-Cache: true."""
         request = _make_request(user=self.dm_user)
         role_booleans = {
             'is_superuser': False, 'is_dm': True, 'is_owner': False, 'is_staff': False,
-            'is_player': False,
+            'is_player': False, 'is_logged': False,
         }
         response = permissions_response(
             GamePermissionsSerializer, self.game, request, role_booleans

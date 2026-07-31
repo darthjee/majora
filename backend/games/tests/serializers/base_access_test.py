@@ -42,6 +42,24 @@ class TestBaseAccessSerializerIsStaff:
 
 
 @pytest.mark.django_db
+class TestBaseAccessSerializerIsLogged:
+    """Tests for BaseAccessSerializer's is_logged, exercised via a concrete subclass."""
+
+    def test_authenticated_user_returns_true(self):
+        """Test that an authenticated user gets is_logged True."""
+        user = UserFactory(username='player', password='secret-password')
+        request = _make_request(user)
+        data = GameAccessSerializer(None, context={'request': request}).data
+        assert data['is_logged'] is True
+
+    def test_unauthenticated_returns_false(self):
+        """Test that an unauthenticated request gets is_logged False, never None."""
+        request = _make_request(AnonymousUser())
+        data = GameAccessSerializer(None, context={'request': request}).data
+        assert data['is_logged'] is False
+
+
+@pytest.mark.django_db
 class TestBaseAccessSerializerIsPlayer:
     """Tests for BaseAccessSerializer's _get_is_player(), exercised via a concrete subclass."""
 

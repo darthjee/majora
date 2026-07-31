@@ -28,7 +28,7 @@ class Roles:
 
     @classmethod
     def from_booleans(cls, is_superuser=False, is_dm=False, is_owner=False, is_staff=False,
-                       is_player=False):
+                       is_player=False, is_logged=False):
         """Build a `Roles` directly from role booleans, bypassing DB resolution.
 
         This is the hook `UIPermission` uses to power the `?role=` simulated-preview path.
@@ -36,7 +36,7 @@ class Roles:
         roles = cls()
         roles._booleans = {
             'admin': is_superuser,
-            'logged_user': True,
+            'logged_user': is_logged,
             'staff': is_staff,
             'dm': is_dm,
             'player': is_player,

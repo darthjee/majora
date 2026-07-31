@@ -10,6 +10,7 @@ const ACCESS_DEFAULT = {
   is_dm: null,
   is_player: false,
   is_owner: false,
+  is_logged: false,
 };
 
 /**
