@@ -33,12 +33,36 @@ describe('TreasureController', function() {
       expect(ensureSpy).toHaveBeenCalledWith({
         componentName: 'TreasureController', resource: 'treasure', quantityType: 'single', params: { id: '1' },
       });
-      expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('1');
+      expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('1', false);
       expect(setTreasure).toHaveBeenCalledWith(
         jasmine.objectContaining({ id: 1, name: 'Sword', value: 100, can_edit: false }),
       );
       expect(setLoading).toHaveBeenCalledWith(false);
       expect(setError).not.toHaveBeenCalled();
+
+      cleanup();
+    } finally {
+      delete globalThis.window;
+    }
+  });
+
+  it('calls ensureTreasurePermissions with isExclusive true for a game-exclusive treasure', async function() {
+    ensureSpy.and.returnValue(Promise.resolve({
+      data: { id: 1, name: 'Sword', value: 100, game_slug: 'demo' },
+    }));
+    stubAccessPair('ensureTreasurePermissions', 'getTreasurePermissions', { can_edit: false }, { can_edit: false });
+    const setTreasure = jasmine.createSpy('setTreasure');
+    const setLoading = jasmine.createSpy('setLoading');
+    const setError = jasmine.createSpy('setError');
+    const fakeWindow = { location: { hash: '#/treasures/1' } };
+    globalThis.window = fakeWindow;
+
+    try {
+      const cleanup = new TreasureController(setTreasure, setLoading, setError)
+        .buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('1', true);
 
       cleanup();
     } finally {

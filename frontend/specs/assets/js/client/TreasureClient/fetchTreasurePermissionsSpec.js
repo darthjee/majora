@@ -9,21 +9,45 @@ describe('TreasureClient', function() {
   });
 
   describe('#fetchTreasurePermissions', function() {
-    itSendsAuthHeader({
-      call: (token) => new TreasureClient().fetchTreasurePermissions(42, token),
-      url: '/permissions/treasure.json',
-      headers: { 'X-Skip-Cache': 'true' },
-      token: 'tok-abc',
+    describe('for a global treasure (isExclusive omitted/false)', function() {
+      itSendsAuthHeader({
+        call: (token) => new TreasureClient().fetchTreasurePermissions(42, token),
+        url: '/permissions/treasure.json',
+        headers: { 'X-Skip-Cache': 'true' },
+        token: 'tok-abc',
+      });
+
+      it('serializes roles as repeated role= query params', async function() {
+        await new TreasureClient().fetchTreasurePermissions(42, null, undefined, ['superuser']);
+
+        expect(fetchSpy).toHaveBeenCalledWith('/permissions/treasure.json?role=superuser', jasmine.objectContaining({
+          method: 'GET',
+          headers: { Accept: 'application/json' },
+          body: undefined,
+        }));
+      });
     });
 
-    it('serializes roles as repeated role= query params', async function() {
-      await new TreasureClient().fetchTreasurePermissions(42, null, undefined, ['superuser']);
+    describe('for a game-exclusive treasure (isExclusive true)', function() {
+      itSendsAuthHeader({
+        call: (token) => new TreasureClient().fetchTreasurePermissions(42, token, undefined, [], true),
+        url: '/permissions/game_treasure.json',
+        headers: { 'X-Skip-Cache': 'true' },
+        token: 'tok-abc',
+      });
 
-      expect(fetchSpy).toHaveBeenCalledWith('/permissions/treasure.json?role=superuser', jasmine.objectContaining({
-        method: 'GET',
-        headers: { Accept: 'application/json' },
-        body: undefined,
-      }));
+      it('serializes roles as repeated role= query params', async function() {
+        await new TreasureClient().fetchTreasurePermissions(42, null, undefined, ['superuser'], true);
+
+        expect(fetchSpy).toHaveBeenCalledWith(
+          '/permissions/game_treasure.json?role=superuser',
+          jasmine.objectContaining({
+            method: 'GET',
+            headers: { Accept: 'application/json' },
+            body: undefined,
+          }),
+        );
+      });
     });
   });
 });

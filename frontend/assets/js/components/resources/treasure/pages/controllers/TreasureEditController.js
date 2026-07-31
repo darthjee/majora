@@ -59,14 +59,18 @@ export default class TreasureEditController extends BaseEditController {
         return;
       }
 
-      this.fetchDataWithAccess(
-        RequestStore.ensure({
-          componentName: 'TreasureEditController', resource: 'treasure', quantityType: 'single', params: { id },
-        }),
-        AccessStore.ensureTreasurePermissions(id),
-        safeSet,
-        'Unable to load treasure.',
-      );
+      const resourcePromise = RequestStore.ensure({
+        componentName: 'TreasureEditController', resource: 'treasure', quantityType: 'single', params: { id },
+      });
+
+      // The permissions fetch must wait for the resource fetch to resolve: which
+      // route to call (global vs. game-exclusive) depends on the treasure's own
+      // `game_slug`, only known once its detail data has loaded (see TreasureClient
+      // #fetchTreasurePermissions).
+      const permissionsPromise = resourcePromise
+        .then(({ data }) => AccessStore.ensureTreasurePermissions(id, Boolean(data.game_slug)));
+
+      this.fetchDataWithAccess(resourcePromise, permissionsPromise, safeSet, 'Unable to load treasure.');
     });
   }
 

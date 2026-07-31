@@ -74,6 +74,11 @@ export default class AccessStoreKeys {
   /**
    * Build the cache key for a treasure's edit permissions, scoped by role set.
    *
+   * @description Deliberately not scoped by `isExclusive` (see
+   *   `AccessStorePermissions#ensureTreasure`/`TreasureClient#fetchTreasurePermissions`, which
+   *   pick between `/permissions/treasure.json` and `/permissions/game_treasure.json`): a given
+   *   treasure id is always either scoped or global for its whole lifetime, never both, so there
+   *   is no scenario where the same id/role-set pair would need two different cached shapes.
    * @param {string|number} id - Treasure id.
    * @param {string[]} roleSet - Normalized role set (see {@link AccessStoreKeys.normalizeRoles}).
    * @returns {string} Cache key.

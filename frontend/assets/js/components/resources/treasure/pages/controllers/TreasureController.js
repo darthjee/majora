@@ -79,7 +79,7 @@ export default class TreasureController extends BasePageController {
   #renderTreasure(id, treasure, safeSet) {
     safeSet(this.setTreasure, this.#mergePermissions(id, treasure));
 
-    AccessStore.ensureTreasurePermissions(id)
+    AccessStore.ensureTreasurePermissions(id, Boolean(treasure.game_slug))
       .then(() => safeSet(this.setTreasure, this.#mergePermissions(id, treasure)));
   }
 
