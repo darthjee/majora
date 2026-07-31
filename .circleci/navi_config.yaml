@@ -542,6 +542,18 @@ resources:
     - url: /permissions/treasure.json?role=staff&role=dm&role=player&role=logged
       status: 200
 
+  permissions_game_treasure:
+    - url: /permissions/game_treasure.json
+      status: 200
+    - url: /permissions/game_treasure.json?role=player&role=logged
+      status: 200
+    - url: /permissions/game_treasure.json?role=dm&role=player&role=logged
+      status: 200
+    - url: /permissions/game_treasure.json?role=staff&role=player&role=logged
+      status: 200
+    - url: /permissions/game_treasure.json?role=staff&role=dm&role=player&role=logged
+      status: 200
+
   permissions_game_pc:
     - url: /permissions/game_pc.json
       status: 200

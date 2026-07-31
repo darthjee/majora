@@ -15,8 +15,9 @@ re-extracting. See `.circleci/navi_config.yaml` for the exact resource names and
 patterns.
 
 It also covers the entity-agnostic `permissions_*` resources (`permissions_game`,
-`permissions_treasure`, `permissions_game_pc`, `permissions_game_npc`), which warm
-`/permissions/<entity_type>.json` for each of the 5 canonical `?role=` combinations. These are
+`permissions_treasure`, `permissions_game_treasure`, `permissions_game_pc`,
+`permissions_game_npc`), which warm `/permissions/<entity_type>.json` for each of the 5
+canonical `?role=` combinations. These are
 standalone, unparameterized top-level resources — unlike the chained resources above, they
 don't need a `slug`/`id` from `parsedBody`/`parameters.*` since the response depends only on
 entity type and the role query params, never on a specific entity instance.
