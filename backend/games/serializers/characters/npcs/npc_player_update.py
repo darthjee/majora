@@ -14,7 +14,7 @@ class NpcPlayerUpdateSerializer(serializers.ModelSerializer):
     """Validate the narrow player-facing NPC payload, writing only its curated field set.
 
     Deliberately narrower than `CharacterUpdateSerializer`: this only ever maps `name`, `role`,
-    `public_description`, `public_allegiance`, `public_slain`, and `links` — `money`,
+    `public_description`, `public_allegiance`, `public_slain`, `money`, and `links` —
     `private_description`, `private_allegiance`, and `private_slain` stay `full.json`-only.
     """
 
@@ -25,7 +25,8 @@ class NpcPlayerUpdateSerializer(serializers.ModelSerializer):
 
         model = Character
         fields = [
-            'name', 'role', 'public_description', 'public_allegiance', 'public_slain', 'links',
+            'name', 'role', 'public_description', 'public_allegiance', 'public_slain', 'money',
+            'links',
         ]
         extra_kwargs = {
             'name': {'required': False},
@@ -33,6 +34,7 @@ class NpcPlayerUpdateSerializer(serializers.ModelSerializer):
             'public_description': {'required': False},
             'public_allegiance': {'required': False},
             'public_slain': {'required': False},
+            'money': {'required': False},
         }
 
     def validate_links(self, value):

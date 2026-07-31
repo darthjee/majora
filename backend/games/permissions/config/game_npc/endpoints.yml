@@ -1,6 +1,6 @@
 # NPC character endpoint rules. No owner concept (NPCs have no PC-owning-player leniency);
-# `money_edit`/`treasure_exchange` are narrower (restricted, staff only, no player leniency)
-# than their PC counterparts. `player_edit` backs the narrow player-facing NPC update
+# `treasure_exchange` is narrower (restricted, staff only, no player leniency) than its PC
+# counterpart. `player_edit` backs the narrow player-facing NPC update
 # (NpcPlayerEditPermission); `create` backs creating a brand-new player-facing NPC
 # (NpcPlayerCreatePermission), checked against the game only (no existing NPC yet).
 restricted:
@@ -9,13 +9,12 @@ restricted:
     - staff
   treasure_exchange:
     - staff
-  money_edit:
-    - staff
 regular:
   photo_upload:
     - staff
     - player
   player_edit:
+    - staff
     - player
   create:
     - staff

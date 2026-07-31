@@ -1,10 +1,6 @@
 # CharacterPermissionsSerializer's can_* fields, for a PC.
 edit:
   - owner
-money_edit:
-  - staff
-  - player
-  - owner
 treasure_exchange:
   - staff
   - owner

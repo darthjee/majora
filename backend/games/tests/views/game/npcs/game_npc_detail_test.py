@@ -6,10 +6,10 @@ serializer tests cannot: routing, status codes, the request/token permission pip
 and view-specific response shape (e.g. headers).
 
 `PATCH /games/<game_slug>/npcs/<id>.json` accepts a narrow
-`{"name", "role", "public_description", "public_allegiance", "public_slain", "links"}` payload
-(issue #416, widened by #445, #578, #861), allowed for any player of the game (per the same
-computation backing
-`is_player`) or an existing `CharacterEditPermission` editor (GM/superuser). See
+`{"name", "role", "public_description", "public_allegiance", "public_slain", "money", "links"}`
+payload (issue #416, widened by #445, #578, #861, #915), allowed for any player of the game
+(per the same computation backing `is_player`), a global Staff account, or an existing
+`CharacterEditPermission` editor (GM/superuser). See
 `docs/agents/security-guidelines.md` section 8 for why the "ignores non-editable
 fields" test must stay.
 """
@@ -386,7 +386,6 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
             self.client,
             {
                 'public_slain': True,
-                'money': 999,
                 'private_description': 'Secretly Saruman.',
                 'public_allegiance': 'enemy',
                 'private_allegiance': 'enemy',
@@ -397,10 +396,32 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
         assert response.status_code == 200
         self.npc.refresh_from_db()
         assert self.npc.public_slain is True
-        assert self.npc.money == 0
         assert self.npc.private_description == ''
         assert self.npc.public_allegiance == 'enemy'
         assert self.npc.private_allegiance == 'neutral'
+
+    def test_patch_money_by_player_of_game_returns_200(self):
+        """Test that a player of the game can update `money` via the PATCH endpoint."""
+        token = Token.objects.create(user=self.player_user)
+
+        response = self._patch(self.client, {'money': 999}, token=token)
+
+        assert_json_response(response, 200, money=999)
+        self.npc.refresh_from_db()
+        assert self.npc.money == 999
+
+    def test_patch_by_staff_returns_200(self):
+        """Test that a global Staff account (not a player of the game) can PATCH an NPC."""
+        staff_user = UserFactory(username='staff_user', password='secret-password')
+        staff_user.is_staff = True
+        staff_user.save()
+        token = Token.objects.create(user=staff_user)
+
+        response = self._patch(self.client, {'money': 999}, token=token)
+
+        assert_json_response(response, 200, money=999)
+        self.npc.refresh_from_db()
+        assert self.npc.money == 999
 
     def test_patch_response_matches_get_detail_shape(self):
         """Test that the PATCH response has the same shape as the GET detail response."""
