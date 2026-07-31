@@ -1,0 +1,13 @@
+# TreasurePermissionsSerializer's can_edit resource, mirroring `Treasure.can_be_edited_by`/
+# `can_be_edited_by_roles`. `edit` (no owning game) explicitly lists `admin`/`staff` and opts
+# out of the generic admin/dm shortcut (`no_shortcut: true`): the simulated `?role=dm` path has
+# no concept of "dm of which game", so without this override a simulated dm would incorrectly
+# gain edit on every global treasure, not just a scoped one it actually DMs. `edit_scoped` (has
+# an owning game) keeps the default shortcut, since a real/simulated dm is already properly
+# scoped to that game there.
+edit:
+  roles:
+    - admin
+    - staff
+  no_shortcut: true
+edit_scoped: []

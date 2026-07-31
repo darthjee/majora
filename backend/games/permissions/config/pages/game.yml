@@ -1,0 +1,7 @@
+# GamePermissionsSerializer's response shape (page_key='game').
+game:
+  edit: can_edit
+  create_item: can_create_item
+  create_document: can_create_document
+  edit_session: can_edit_session
+  create_npc: can_create_npc

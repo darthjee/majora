@@ -1,7 +1,10 @@
 """Character permissions serializer for the games app; shared by the PC and NPC endpoints."""
 
-from games.permissions import Roles, UIPermission
+from games.permissions import PermissionsBuilder, Roles
 from games.serializers.base_permissions import BasePermissionsSerializer
+
+_PC_PAGE_KEY = 'character_pc'
+_NPC_PAGE_KEY = 'character_npc'
 
 
 class CharacterPermissionsSerializer(BasePermissionsSerializer):
@@ -13,87 +16,12 @@ class CharacterPermissionsSerializer(BasePermissionsSerializer):
     (`access.json`) side.
     """
 
-    def to_representation(self, obj):
-        """Build the permissions response dict for every can_* permission flag."""
-        data = super().to_representation(obj)
-        data['can_create_item'] = self._get_can_create_item(obj)
-        data['can_upload_item_photo'] = self._get_can_upload_item_photo(obj)
-        data['can_edit_money'] = self._get_can_edit_money(obj)
-        data['can_exchange_treasure'] = self._get_can_exchange_treasure(obj)
-        data['can_set_profile_photo'] = self._get_can_set_profile_photo(obj)
-        data['can_delete_photo'] = self._get_can_delete_photo(obj)
-        return data
-
-    def _character_resource(self, character):
-        """Return the permissions resource name ('game_pc'/'game_npc') for `character`."""
-        return 'game_pc' if character.is_pc else 'game_npc'
-
-    def _character_item_resource(self, character):
-        """Return the permissions resource name ('game_pc_item'/'game_npc_item')."""
-        return 'game_pc_item' if character.is_pc else 'game_npc_item'
-
-    def _ui_permission(self, character):
-        """Build a `UIPermission` for `character`, honoring the `?role=` simulated path."""
-        roles = self._roles()
-        if roles is not None:
-            simulated_roles = Roles.from_booleans(
-                is_superuser=roles['is_superuser'], is_dm=roles['is_dm'],
-                is_owner=roles['is_owner'], is_staff=roles['is_staff'],
-                is_player=roles['is_player'],
-            )
-            return UIPermission(roles=simulated_roles)
-        return UIPermission(user=self._user(), game=character.game, pc=character)
-
-    def _get_can_edit(self, character):
-        """Return whether the requester (real or role-simulated) may edit the character."""
+    def to_representation(self, character):
+        """Build the permissions response dict via the YAML-driven `PermissionsBuilder`."""
         if character is None:
-            return False
-        return self._ui_permission(character).allowed(self._character_resource(character), 'edit')
-
-    def _get_can_create_item(self, character):
-        """Return whether the requester (real or role-simulated) may create an item."""
-        if character is None:
-            return False
-        return self._ui_permission(character).allowed(
-            self._character_item_resource(character), 'create_update',
-        )
-
-    def _get_can_upload_item_photo(self, character):
-        """Return whether the requester (real or role-simulated) may upload an item photo."""
-        if character is None:
-            return False
-        return self._ui_permission(character).allowed(
-            self._character_item_resource(character), 'photo_upload',
-        )
-
-    def _get_can_edit_money(self, character):
-        """Return whether the requester (real or role-simulated) may edit the character's money."""
-        if character is None:
-            return False
-        return self._ui_permission(character).allowed(
-            self._character_resource(character), 'money_edit',
-        )
-
-    def _get_can_exchange_treasure(self, character):
-        """Return whether the requester (real or role-simulated) may exchange treasure."""
-        if character is None:
-            return False
-        return self._ui_permission(character).allowed(
-            self._character_resource(character), 'treasure_exchange',
-        )
-
-    def _get_can_set_profile_photo(self, character):
-        """Return whether the requester (real or role-simulated) may set the profile photo."""
-        if character is None:
-            return False
-        return self._ui_permission(character).allowed(
-            self._character_resource(character), 'photo_upload',
-        )
-
-    def _get_can_delete_photo(self, character):
-        """Return whether the requester (real or role-simulated) may delete a photo."""
-        if character is None:
-            return False
-        return self._ui_permission(character).allowed(
-            self._character_resource(character), 'photo_delete',
-        )
+            return PermissionsBuilder(page_key=_PC_PAGE_KEY, roles=Roles.from_booleans()).build()
+        page_key = _PC_PAGE_KEY if character.is_pc else _NPC_PAGE_KEY
+        return PermissionsBuilder(
+            page_key=page_key, user=self._user(), game=character.game, pc=character,
+            roles=self._simulated_roles(),
+        ).build()
