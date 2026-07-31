@@ -78,7 +78,7 @@ describe('CharacterEdit access guard (broadened for PCs, issue #865)', function(
     expect(html).toContain('Loading');
   });
 
-  it('passes canEditMoney (character.can_edit_money) into EditHelper.render', function() {
+  it('passes canEditMoney (character.can_edit) into EditHelper.render', function() {
     let captured;
     spyOn(EditHelper, 'render').and.callFake((state, handlers) => {
       captured = { state, handlers };
@@ -88,7 +88,7 @@ describe('CharacterEdit access guard (broadened for PCs, issue #865)', function(
     renderToStaticMarkup(
       React.createElement(CharacterEdit, {
         ControllerClass: buildController({
-          can_edit: false, is_player: true, is_pc: true, can_edit_money: true,
+          can_edit: true, is_player: true, is_pc: true,
         }),
         getParamsFromHash,
         EditHelper,

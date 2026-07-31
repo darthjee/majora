@@ -9,7 +9,7 @@ describe('CharacterMoneySlot', function() {
       const handlers = { onOpenMoneyModal: jasmine.createSpy('onOpenMoneyModal') };
       const html = renderToStaticMarkup(
         React.createElement(CharacterMoneyShow, {
-          money: 100, treasure_value: 0, game_type: 'dnd', can_edit_money: true, handlers,
+          money: 100, treasure_value: 0, game_type: 'dnd', can_edit: true, handlers,
         }),
       );
 

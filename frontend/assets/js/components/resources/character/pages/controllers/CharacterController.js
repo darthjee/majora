@@ -58,7 +58,7 @@ export default class CharacterController extends CharacterListsController {
   }
 
   /**
-   * Update a character's money through the narrow, money-only endpoint (issue #615), through
+   * Update a character's money through the regular PATCH endpoint (issue #915), through
    * {@link RequestStore.mutate} (issue #830) so the character's cached `GET` data is purged on
    * success instead of going stale.
    *
@@ -73,7 +73,7 @@ export default class CharacterController extends CharacterListsController {
     return RequestStore.mutate({
       componentName: 'CharacterController',
       resource: this.#resourceName(),
-      method: 'PUT',
+      method: 'PATCH',
       quantityType: 'single',
       params: { gameSlug, id: characterId },
       body: { money },

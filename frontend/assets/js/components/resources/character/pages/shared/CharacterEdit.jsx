@@ -133,7 +133,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
       {EditHelper.render(
         {
           isFullEditor: character.can_edit,
-          canEditMoney: character.can_edit_money,
+          canEditMoney: character.can_edit,
           ...fields,
           profile_photo_path: character.profile_photo_path,
           links,

@@ -8,7 +8,7 @@ import AuthStorage from '../../../../../../../../assets/js/utils/auth/AuthStorag
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
 const loadedCharacter = {
-  id: 5, can_edit: true, can_edit_money: true, money: 310, game_type: 'dnd', is_pc: true, game_slug: 'demo',
+  id: 5, can_edit: true, money: 310, game_type: 'dnd', is_pc: true, game_slug: 'demo',
 };
 
 // Sets character/loading state synchronously during render (in the useMemo

@@ -10,12 +10,12 @@ import Translator from '../../../../../../i18n/Translator.js';
  * @param {number} context.money - Total money, in the currency's lowest denomination.
  * @param {number} [context.treasure_value] - Read-only treasure value (issue #616).
  * @param {string} [context.game_type] - Currency model name (e.g. `dnd`, `deadlands`).
- * @param {boolean} [context.can_edit_money] - Whether the "Edit" link is shown.
+ * @param {boolean} [context.can_edit] - Whether the "Edit" link is shown.
  * @param {object} context.handlers - Event handlers.
  * @returns {React.ReactElement|null} Money breakdown element, or null.
  */
 function CharacterMoneyShow({
-  money, treasure_value: treasureValue, game_type: gameType, can_edit_money: canEditMoney, handlers,
+  money, treasure_value: treasureValue, game_type: gameType, can_edit: canEditMoney, handlers,
 }) {
   return (
     <CharacterMoney
@@ -31,7 +31,7 @@ function CharacterMoneyShow({
 /**
  * Build the new/edit-mode money field slot for a character kind.
  *
- * @description `canEditMoney` (only ever set for a PC, from `character.can_edit_money`) is ORed
+ * @description `canEditMoney` (only ever set for a PC, from `character.can_edit`) is ORed
  *   in alongside `isFullEditor` before reaching `CharacterMoneyField`, so a PC's regular (non-full)
  *   editor — any player of the game, or Staff — also sees the money block, while an NPC's money
  *   field stays gated on `isFullEditor` alone (NPC money edits remain admin/dm/staff-only, no

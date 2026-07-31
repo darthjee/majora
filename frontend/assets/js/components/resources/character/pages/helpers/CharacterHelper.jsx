@@ -32,10 +32,8 @@ export default class CharacterHelper {
    * @param {string} [character.game_type] - Currency model name (e.g. `dnd`, `deadlands`)
    *   of the character's own game, resolved live rather than stored on the character.
    *   Defaults to `dnd`.
-   * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
-   * @param {boolean} [character.can_edit_money] - Whether the current user may edit this
-   *   character's money through the narrow money-only endpoint (issue #615), gating the
-   *   "Edit" link rendered beneath the money breakdown independently of `can_edit`.
+   * @param {boolean} [character.can_edit] - Whether the current user may edit this character;
+   *   also gates the "Edit" link rendered beneath the money breakdown (issue #915).
    * @param {boolean} [character.is_player] - Whether the current user is a player of the
    *   game (but not necessarily this character's editor), gates the single player-facing
    *   slain/revive button, and unconditionally gates the Edit button too, since any player

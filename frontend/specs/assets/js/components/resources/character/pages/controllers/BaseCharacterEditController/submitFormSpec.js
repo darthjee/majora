@@ -199,6 +199,7 @@ describe('BaseCharacterEditController', function() {
               name: 'Grumbleknuckle',
               role: 'Shopkeeper',
               public_description: 'A brave hero',
+              money: 999,
               public_allegiance: 'enemy',
               links: [
                 {

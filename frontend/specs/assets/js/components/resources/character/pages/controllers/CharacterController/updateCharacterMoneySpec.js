@@ -6,7 +6,7 @@ import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 
 describe('CharacterController', function() {
   describe('#updateCharacterMoney', function() {
-    it('delegates to RequestStore.mutate with the pc resource, PUT, and the money body', function() {
+    it('delegates to RequestStore.mutate with the pc resource, PATCH, and the money body', function() {
       const response = Promise.resolve({ ok: true });
       spyOn(RequestStore, 'mutate').and.returnValue(response);
       const controller = new CharacterController(
@@ -18,7 +18,7 @@ describe('CharacterController', function() {
       expect(RequestStore.mutate).toHaveBeenCalledWith({
         componentName: 'CharacterController',
         resource: 'pc',
-        method: 'PUT',
+        method: 'PATCH',
         quantityType: 'single',
         params: { gameSlug: 'demo', id: '2' },
         body: { money: 500 },
@@ -37,7 +37,7 @@ describe('CharacterController', function() {
       expect(RequestStore.mutate).toHaveBeenCalledWith({
         componentName: 'CharacterController',
         resource: 'npc',
-        method: 'PUT',
+        method: 'PATCH',
         quantityType: 'single',
         params: { gameSlug: 'demo', id: '3' },
         body: { money: 200 },

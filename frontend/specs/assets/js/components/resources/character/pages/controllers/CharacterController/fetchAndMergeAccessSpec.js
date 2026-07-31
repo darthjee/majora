@@ -20,7 +20,6 @@ describe('CharacterController', function() {
       expect(firstPass).toEqual({
         id: 2,
         can_edit: false,
-        can_edit_money: false,
         can_exchange_treasure: false,
         can_set_profile_photo: false,
         can_delete_photo: false,
@@ -31,7 +30,6 @@ describe('CharacterController', function() {
       expect(setCharacter).toHaveBeenCalledWith({
         id: 2,
         can_edit: false,
-        can_edit_money: false,
         can_exchange_treasure: false,
         can_set_profile_photo: false,
         can_delete_photo: false,
@@ -47,7 +45,6 @@ describe('CharacterController', function() {
       expect(setCharacter).toHaveBeenCalledWith({
         id: 2,
         can_edit: false,
-        can_edit_money: false,
         can_exchange_treasure: false,
         can_set_profile_photo: false,
         can_delete_photo: false,
@@ -72,7 +69,6 @@ describe('CharacterController', function() {
       expect(setCharacter).toHaveBeenCalledWith({
         id: 2,
         can_edit: false,
-        can_edit_money: false,
         can_exchange_treasure: false,
         can_set_profile_photo: false,
         can_delete_photo: false,
@@ -97,7 +93,6 @@ describe('CharacterController', function() {
       expect(setCharacter).toHaveBeenCalledWith({
         id: 2,
         can_edit: false,
-        can_edit_money: false,
         can_exchange_treasure: false,
         can_set_profile_photo: false,
         can_delete_photo: false,
@@ -121,7 +116,6 @@ describe('CharacterController', function() {
       expect(setCharacter).toHaveBeenCalledWith({
         id: 2,
         can_edit: false,
-        can_edit_money: false,
         can_exchange_treasure: false,
         can_set_profile_photo: false,
         can_delete_photo: false,
@@ -147,7 +141,6 @@ describe('CharacterController', function() {
       expect(setCharacter).toHaveBeenCalledWith({
         id: 2,
         can_edit: true,
-        can_edit_money: false,
         can_exchange_treasure: false,
         can_set_profile_photo: false,
         can_delete_photo: false,
