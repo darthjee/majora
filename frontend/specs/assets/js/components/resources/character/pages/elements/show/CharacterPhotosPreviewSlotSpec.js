@@ -53,7 +53,7 @@ describe('CharacterPhotosPreviewSlot', function() {
     expect(html).toContain('href="#/games/demo/npcs/7/photos"');
   });
 
-  it('reads can_set_profile_photo/profile_photo_id off context and passes them through, rendering ' +
+  it('reads can_set_profile_photo/photo_id off context and passes them through, rendering ' +
     'the mark-as-profile action bar button', function() {
     const photos = [{ id: 1, path: '/photos/1.jpg' }];
     const html = renderToStaticMarkup(
@@ -63,7 +63,7 @@ describe('CharacterPhotosPreviewSlot', function() {
         is_pc: true,
         photos,
         can_set_profile_photo: true,
-        profile_photo_id: 999,
+        photo_id: 999,
         handlers: { onSetProfilePhoto: Noop.noop },
       }),
     );
@@ -80,7 +80,7 @@ describe('CharacterPhotosPreviewSlot', function() {
       is_pc: true,
       photos,
       can_set_profile_photo: true,
-      profile_photo_id: 999,
+      photo_id: 999,
       handlers: { onSetProfilePhoto },
     });
     const button = findElement(

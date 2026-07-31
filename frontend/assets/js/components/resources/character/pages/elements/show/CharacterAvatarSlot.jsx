@@ -22,14 +22,14 @@ function CharacterAvatarShow(context) {
  * marked hidden (a no-op for PCs, which never expose a hidden toggle and so never set it).
  *
  * @param {object} context - Merged `ShowPageLayout` rendering context.
- * @param {string|null} [context.profile_photo_path] - Current profile photo path/preview URL.
+ * @param {string|null} [context.photo_path] - Current photo path/preview URL.
  * @param {string} context.name - Current name field value, used as the image's alt text.
  * @param {boolean} [context.hidden] - Whether the character is currently marked hidden.
  * @param {{onOpenUploadModal: Function}} context.handlers - Event handlers.
  * @returns {React.ReactElement} Editable avatar field element.
  */
 function CharacterAvatarEditOrNew({
-  profile_photo_path: profilePhotoPath, name, hidden = false, handlers,
+  photo_path: profilePhotoPath, name, hidden = false, handlers,
 }) {
   return (
     <CharacterAvatarField

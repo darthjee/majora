@@ -14,7 +14,7 @@ export default class CharacterAvatarHelper {
    * for NPCs. PCs render the plain picture, unaffected by allegiance.
    *
    * @param {object} character - Character data object.
-   * @param {string|null} [character.profile_photo_path] - Optional profile photo path.
+   * @param {string|null} [character.photo_path] - Optional photo path.
    * @param {string} character.name - Character name.
    * @param {boolean} [character.can_edit] - Whether the current user may edit this character.
    * @param {boolean} [character.is_player] - Whether the current user is a player of the game,
@@ -41,7 +41,7 @@ export default class CharacterAvatarHelper {
     const picture = (
       <ActionsOverlay
         type="avatar"
-        url={character.profile_photo_path}
+        url={character.photo_path}
         alt={character.name}
         canEdit={character.can_edit || character.is_player || character.is_staff}
         onClick={handlers.onOpenUploadModal}

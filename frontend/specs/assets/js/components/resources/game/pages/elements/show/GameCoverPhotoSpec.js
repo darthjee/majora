@@ -3,7 +3,7 @@ import ActionsOverlay from '../../../../../../../../../assets/js/components/comm
 
 describe('GameCoverPhoto', function() {
   const buildProps = (overrides = {}) => ({
-    cover_photo_path: 'http://example.com/cover.png',
+    photo_path: 'http://example.com/cover.png',
     name: 'Epic Quest',
     can_edit: false,
     mode: 'show',

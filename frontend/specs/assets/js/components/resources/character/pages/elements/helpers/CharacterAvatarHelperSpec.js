@@ -5,7 +5,7 @@ import { buildCharacter } from '../../../../../../../../support/factories.js';
 
 describe('CharacterAvatarHelper', function() {
   describe('.render', function() {
-    it('renders the default avatar when profile_photo_path is null', function() {
+    it('renders the default avatar when photo_path is null', function() {
       const character = buildCharacter({ name: 'Aragorn' });
       const html = renderToStaticMarkup(CharacterAvatarHelper.render(character, {}));
       expect(html).toContain('default_character.png');
@@ -13,7 +13,7 @@ describe('CharacterAvatarHelper', function() {
 
     it('renders the profile photo when provided', function() {
       const character = buildCharacter({
-        name: 'Aragorn', profile_photo_path: 'http://example.com/avatar.png',
+        name: 'Aragorn', photo_path: 'http://example.com/avatar.png',
       });
       const html = renderToStaticMarkup(CharacterAvatarHelper.render(character, {}));
       expect(html).toContain('http://example.com/avatar.png');

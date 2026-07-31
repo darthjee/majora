@@ -133,7 +133,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
           isFullEditor: character.can_edit,
           canEditMoney: canReachEditPage(character),
           ...fields,
-          profile_photo_path: character.profile_photo_path,
+          photo_path: character.photo_path,
           links,
           treasureValue: character?.treasure_value ?? 0,
           gameType,

@@ -35,7 +35,7 @@ describe('GameNpcNewHelper', function() {
     isFullEditor: true,
     status: 'idle',
     fieldErrors: {},
-    profile_photo_path: null,
+    photo_path: null,
     ...overrides,
   });
 
@@ -83,9 +83,9 @@ describe('GameNpcNewHelper', function() {
       expect(html).toContain('actions-overlay-button');
     });
 
-    it('renders the picked photo preview when profile_photo_path is set', function() {
+    it('renders the picked photo preview when photo_path is set', function() {
       const html = renderToStaticMarkup(
-        GameNpcNewHelper.render(buildState({ profile_photo_path: 'blob:fake-preview' }), buildHandlers()),
+        GameNpcNewHelper.render(buildState({ photo_path: 'blob:fake-preview' }), buildHandlers()),
       );
 
       expect(html).toContain('blob:fake-preview');

@@ -4,7 +4,7 @@ import BaseListItem from '../../../../../../assets/js/components/common/list_typ
 describe('MyGameListItem', function() {
   it('extends BaseListItem', function() {
     const item = new MyGameListItem({
-      game: { name: 'Test Game', game_slug: 'test-game', cover_photo_path: null },
+      game: { name: 'Test Game', game_slug: 'test-game', photo_path: null },
       role: 'player',
       character: null,
       conversations: { count: 0, unread_count: 0 },
@@ -14,9 +14,9 @@ describe('MyGameListItem', function() {
   });
 
   describe('#photoUrl', function() {
-    it('uses the nested game cover_photo_path field', function() {
+    it('uses the nested game photo_path field', function() {
       const item = new MyGameListItem({
-        game: { name: 'Test Game', game_slug: 'test-game', cover_photo_path: '/photos/1.png' },
+        game: { name: 'Test Game', game_slug: 'test-game', photo_path: '/photos/1.png' },
         role: 'dm',
         character: null,
         conversations: { count: 0, unread_count: 0 },
@@ -25,7 +25,7 @@ describe('MyGameListItem', function() {
       expect(item.photoUrl).toBe('/photos/1.png');
     });
 
-    it('is null when the nested game has no cover_photo_path', function() {
+    it('is null when the nested game has no photo_path', function() {
       const item = new MyGameListItem({
         game: { name: 'Test Game', game_slug: 'test-game' },
         role: 'dm',
@@ -40,7 +40,7 @@ describe('MyGameListItem', function() {
   describe('#displayText', function() {
     it('uses the nested game name field', function() {
       const item = new MyGameListItem({
-        game: { name: 'Test Game', game_slug: 'test-game', cover_photo_path: null },
+        game: { name: 'Test Game', game_slug: 'test-game', photo_path: null },
         role: 'dm',
         character: null,
         conversations: { count: 0, unread_count: 0 },

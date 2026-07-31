@@ -82,7 +82,7 @@ export default class BaseCharacterPhotosController extends BasePageController {
   /**
    * Marks a photo as the character's profile photo, through {@link RequestStore.mutate}
    * (`pc`/`npc` `PATCH.photo`, issue #844, mirroring {@link CharacterController#setProfilePhoto}
-   * exactly), then refreshes the character state so `can_edit` and `profile_photo_id` reflect the
+   * exactly), then refreshes the character state so `can_edit` and `photo_id` reflect the
    * change.
    *
    * @param {string} gameSlug - Game slug the character belongs to.
@@ -107,7 +107,7 @@ export default class BaseCharacterPhotosController extends BasePageController {
   /**
    * Permanently deletes a photo through {@link PhotoDeleteSaga} (mark not-ready, then delete),
    * then refreshes both the photos list (so the deleted photo drops out and pagination stays
-   * correct) and the character state (so `can_delete_photo`/`profile_photo_id` reflect the
+   * correct) and the character state (so `can_delete_photo`/`photo_id` reflect the
    * change, mirroring {@link BaseCharacterPhotosController#setProfilePhoto}).
    *
    * @param {string} gameSlug - Game slug the character belongs to.

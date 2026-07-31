@@ -8,12 +8,12 @@ import BaseListItem from './BaseListItem.js';
  */
 export default class MyGameListItem extends BaseListItem {
   /**
-   * Cover photo URL for this entry's game, or null when the game has none.
+   * Photo URL for this entry's game, or null when the game has none.
    *
-   * @returns {string|null} Cover photo URL.
+   * @returns {string|null} Photo URL.
    */
   get photoUrl() {
-    return this.data.game.cover_photo_path ?? null;
+    return this.data.game.photo_path ?? null;
   }
 
   /**

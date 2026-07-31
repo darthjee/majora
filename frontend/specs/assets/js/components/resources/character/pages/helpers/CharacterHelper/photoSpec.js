@@ -6,15 +6,15 @@ import { character, findElement } from './support.js';
 
 describe('CharacterHelper', function() {
   describe('.render', function() {
-    it('renders the default avatar when profile_photo_path is null', function() {
+    it('renders the default avatar when photo_path is null', function() {
       const html = renderToStaticMarkup(CharacterHelper.render(character, '#/games/demo/pcs'));
       expect(html).toContain('default_character.png');
     });
 
-    it('renders the profile photo when profile_photo_path is provided', function() {
+    it('renders the profile photo when photo_path is provided', function() {
       const c = {
         ...character,
-        profile_photo_path: 'http://example.com/profile_photo.png',
+        photo_path: 'http://example.com/profile_photo.png',
       };
       const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
       expect(html).toContain('http://example.com/profile_photo.png');

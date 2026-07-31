@@ -47,12 +47,12 @@ describe('CharacterHelper', function() {
       expect(capturedOnSelectPhoto).toBe(onSelectPhoto);
     });
 
-    it('passes handlers.onSetProfilePhoto and character.can_set_profile_photo/profile_photo_id through ' +
+    it('passes handlers.onSetProfilePhoto and character.can_set_profile_photo/photo_id through ' +
       'to CharacterPhotosPreviewHelper', function() {
       const withPhotos = {
         ...character,
         can_set_profile_photo: true,
-        profile_photo_id: 999,
+        photo_id: 999,
         photos: [{ id: 1, path: '/photos/1.jpg' }],
       };
       const onSetProfilePhoto = jasmine.createSpy('onSetProfilePhoto');

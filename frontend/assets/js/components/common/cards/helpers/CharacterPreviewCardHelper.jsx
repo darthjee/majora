@@ -16,7 +16,7 @@ export default class CharacterPreviewCardHelper {
    * @param {object} character - Character data object.
    * @param {number} character.id - Character ID.
    * @param {string} character.name - Character name.
-   * @param {string|null} [character.profile_photo_path] - Optional profile photo path.
+   * @param {string|null} [character.photo_path] - Optional photo path.
    * @param {boolean} [character.private_slain] - Whether the character is (really) slain
    *   (NPC only, DM-facing data only).
    * @param {boolean} [character.public_slain] - Whether the character is publicly slain (NPC
@@ -47,7 +47,7 @@ export default class CharacterPreviewCardHelper {
           >
             <div className={cardClass}>
               <div className={photoClass}>
-                <CardAvatar url={character.profile_photo_path} alt={character.name} />
+                <CardAvatar url={character.photo_path} alt={character.name} />
               </div>
             </div>
           </a>

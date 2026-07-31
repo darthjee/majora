@@ -8,7 +8,7 @@ export default class PcCharacterEditHelper {
   /**
    * Render the PC edit form.
    *
-   * @param {{isFullEditor: boolean, name: string, profile_photo_path: string|null,
+   * @param {{isFullEditor: boolean, name: string, photo_path: string|null,
    *   links: object[], role: string, description: string, privateDescription: string,
    *   money: string, treasureValue: number, gameType: string, status: string,
    *   fieldErrors: object}} formState - Form state.

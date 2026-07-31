@@ -35,7 +35,7 @@ KINDS.forEach(({ label, Helper, idPrefix, name, role, description }) => {
     const buildState = (overrides = {}) => ({
       isFullEditor: true,
       name,
-      profile_photo_path: null,
+      photo_path: null,
       links: [],
       role,
       description,
@@ -59,10 +59,10 @@ KINDS.forEach(({ label, Helper, idPrefix, name, role, description }) => {
         expect(html).toContain('Secret DM notes.');
       });
 
-      it('renders an avatar preview reflecting the loaded profile_photo_path', function() {
+      it('renders an avatar preview reflecting the loaded photo_path', function() {
         const html = renderToStaticMarkup(
           Helper.render(
-            buildState({ profile_photo_path: 'http://example.com/avatar.png' }),
+            buildState({ photo_path: 'http://example.com/avatar.png' }),
             buildHandlers()
           )
         );
@@ -70,7 +70,7 @@ KINDS.forEach(({ label, Helper, idPrefix, name, role, description }) => {
         expect(html).toContain('http://example.com/avatar.png');
       });
 
-      it('renders the default avatar when profile_photo_path is null', function() {
+      it('renders the default avatar when photo_path is null', function() {
         const html = renderToStaticMarkup(Helper.render(buildState(), buildHandlers()));
 
         expect(html).toContain('default_character.png');

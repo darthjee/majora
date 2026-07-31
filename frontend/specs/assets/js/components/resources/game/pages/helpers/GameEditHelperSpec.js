@@ -99,13 +99,13 @@ describe('GameEditHelper', function() {
       expect(element.props.context.handlers.onOpenUploadModal).toBe(handlers.onOpenUploadModal);
     });
 
-    it('passes the cover_photo_path through to the show page layout context', function() {
+    it('passes the photo_path through to the show page layout context', function() {
       const element = GameEditHelper.render(
-        buildState({ cover_photo_path: 'http://example.com/cover.png' }),
+        buildState({ photo_path: 'http://example.com/cover.png' }),
         buildHandlers(),
       );
 
-      expect(element.props.context.cover_photo_path).toBe('http://example.com/cover.png');
+      expect(element.props.context.photo_path).toBe('http://example.com/cover.png');
     });
   });
 
