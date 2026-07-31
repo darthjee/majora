@@ -18,6 +18,7 @@ There is no standalone detail-`GET` endpoint — since every viewer of a task is
 (List already returns the full item shape), a separate detail read path adds nothing.
 
 ## Fields
+
 List/create-response/update-response (all share one shape): `id`, `short_description`,
 `long_description`, `completed`, `session` (nullable `GameSession` id).
 

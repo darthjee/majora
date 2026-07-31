@@ -29,6 +29,7 @@ All order by `id`. Unlike `CharacterItem`, `description` is exposed at every tie
 "detail" tier gating it further).
 
 ## Fields
+
 `id` (the `CharacterDocument` row id), `game_document_id`, `name`, `description`, `photo_path` —
 all sourced directly from the linked `GameDocument`. `hidden` is exposed on the `/all.json`/
 `/full.json` variants only.
@@ -61,6 +62,7 @@ itself public. The private `/all.json` variant ignores `CharacterDocument.hidden
 `CharacterEdit`/`GameEdit` split as `documents/all.json` (no staff bypass).
 
 ## `hidden`
+
 Governs only whether a `CharacterDocument` row itself is listed on the regular
 (non-`/all.json`/non-`/full.json`) endpoints — independent of [GameDocument](game-document.md)'s
 own `hidden`. A hidden `CharacterDocument` stays fully visible to the character's owning player

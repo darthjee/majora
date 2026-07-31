@@ -6,6 +6,7 @@ All Django source code lives under `backend/`. The backend owns data and busines
 Django project package: `settings.py`, root `urls.py`, `wsgi.py`. Entry point for the Django application.
 
 ## games/
+
 Core Django app containing domain models, REST views, and serializers for RPG campaign data.
 
 - `models/` — Domain models (see AGENTS.md for current list).
@@ -27,4 +28,5 @@ Key files:
 - `urls.py`, `templates/accounts/`, `migrations/`, `tests/`.
 
 ## versioning/
+
 Change-history infrastructure wrapping `django-simple-history`. Tracks full snapshots of saves/deletes for many `games` models; history tables are placed under `versioning/migrations/`. History is exposed only via Django Admin; no API endpoints are introduced by versioning.

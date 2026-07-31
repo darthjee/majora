@@ -54,6 +54,7 @@ NPCs, dm/admin/owner for PCs.
 frontend can gate item-creation and photo-upload independently.
 
 ## Fields
+
 Index: `id` (the `CharacterItem` row id), `game_item_id`, `name`, `photo_path` — all
 fallback-resolved server-side. Detail/creation-response add `description`. `/all.json`/`/full.json`
 and the creation response add `hidden`.
@@ -91,6 +92,7 @@ creates exactly one row (`400` on a duplicate rather than incrementing), remove 
 row outright.
 
 ## Fallback resolution
+
 `name`, `description`, and `photo_path` are nullable overrides on `CharacterItem`: `null` falls
 back to the linked `GameItem`'s own value. `hidden` is never part of this fallback — a plain field
 on both models, read independently on each.

@@ -2,12 +2,15 @@
 
 ```bash
 # Start the full stack (proxy + backend + frontend dev server)
+
 make dev-up
 
 # Frontend tests
+
 cd frontend && yarn test
 
 # Frontend lint
+
 cd frontend && yarn lint
 ```
 

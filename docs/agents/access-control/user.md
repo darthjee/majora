@@ -15,6 +15,7 @@ authentication and enforce **Staff-or-superuser** inline. Always sets `X-Skip-Ca
 | Deny/ban a user (`POST /staff/users/deny.json`) | **Staff-or-superuser** |
 
 ## Fields
+
 List/detail: `id`, `name` (Django `username`), `email`, `status`
 (`pending`/`approved`/`denied`, sourced from `UserProfile.status`), `display_name` (also from
 `UserProfile`). No other `User` field (password, `is_staff`, `is_superuser`, `is_active`, etc.) is

@@ -16,4 +16,3 @@ conversations the requesting user's `Player` shares with `player_id`'s `Player` 
 for a future messages feature. See
 [access-control/conversation.md](access-control/conversation.md) for the full endpoint and
 permission breakdown, including this endpoint's deliberate exclusion of Superuser/Staff.
-

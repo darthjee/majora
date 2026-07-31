@@ -28,6 +28,7 @@ Both index endpoints order by `id` and omit `description` (detail adds it back).
 the default pattern: there is no `PATCH` for `GameDocument` at all (unlike `GameItem`'s).
 
 ## Document creation endpoint
+
 | Endpoint | Method | Who can call |
 |----------|--------|-------------|
 | `/games/<slug>/documents.json` | POST | **GameDocumentCreatePermission**: dm, admin, or staff (no owner concept) |
@@ -53,6 +54,7 @@ read, so any permitted user may act on a hidden document. `photo_id` lookups are
 document's own photos.
 
 ## Document file upload endpoint
+
 A `GameDocument` can also hold a collection of uploaded PDF files, independent of its photo
 collection — no "display file", no listing endpoint yet.
 
@@ -65,6 +67,7 @@ collection — no "display file", no listing endpoint yet.
 introduced.
 
 ## Document file photo upload endpoint
+
 A `GameDocumentFile` can itself carry at most one photo — mirrors `GameItem`'s/`Treasure`'s
 single-always-replace model (no gallery; re-uploading replaces).
 

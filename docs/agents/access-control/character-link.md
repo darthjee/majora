@@ -5,6 +5,7 @@ character detail endpoints (`links` array). Writable only nested inside the char
 create/update payloads — no standalone `CharacterLink` endpoint.
 
 ## Fields
+
 `id`, `text`, `url`, `link_type` — visible to anyone who can read the character detail (i.e.
 anyone, both PC and NPC endpoints being public). `link_type` carries no access-control
 implications (same enum as [Link](link.md)).
@@ -17,6 +18,7 @@ character payload, gated by the same permission as the character write itself:
 - The narrow player-facing PC/NPC `PATCH`s — see [Character](character.md#narrow-player-facing-patch).
 
 ## Write semantics
+
 Each entry in the `links` array accepts `id` (optional), `text`, `url`, `link_type`, and a
 transient `delete` flag. Per entry, applied after the character's own fields are saved:
 - `delete: true` — deletes the link matching `id`. `id` is required; a delete with no `id` → 400.

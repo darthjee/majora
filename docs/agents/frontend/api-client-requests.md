@@ -34,4 +34,3 @@ follow-up issue. Three cooperating pieces:
   `ensure(...)`, `resyncPermissions()`, `reset()`, and a `subscribe()` that wires
   `resyncPermissions()` to `AuthEvents`/`AccessEvents.subscribeFacadeChanged` (not yet called
   from application bootstrap, same "structure only" scope as above).
-

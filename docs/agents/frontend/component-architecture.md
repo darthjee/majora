@@ -57,4 +57,3 @@ Pick one of these four extraction patterns, depending on what the condition guar
    `static renderXxx()` helper method following the existing convention in `helpers/*.jsx`
    (e.g. `CharacterHelper.#renderPrivateDescription`, `StaffUsersHelper.#renderRecoveryAction`),
    instead of writing the markup inline.
-

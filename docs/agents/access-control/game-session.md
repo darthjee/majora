@@ -17,6 +17,7 @@ endpoints instead of one.
 | Update (`PATCH /games/<slug>/sessions/<id>.json`) | **GameSessionEdit** |
 
 ## Fields
+
 **List** (all three past/future/unscheduled): `id`, `title`, `date`, `game_slug`. **Detail**: adds
 `description`. There is no `access.json`/`permissions.json` for a session — since edit rights are
 identical to its game's, the frontend reuses [Game](game.md)'s own access/permission endpoints.
