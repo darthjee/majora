@@ -56,7 +56,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
     def test_dm_can_edit(self):
         """Test that the game's DM gets every permission True."""
         token = Token.objects.create(user=self.dm_user)
-        response = self._get(self.client, token=token)
+        response = self._get(self.client, token=token, query='role=dm')
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data == self._all_true()
@@ -65,7 +65,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
         """Test that a superuser gets every permission True."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
-        response = self._get(self.client, token=token)
+        response = self._get(self.client, token=token, query='role=superuser')
         data = json.loads(response.content)
         assert data == self._all_true()
 
@@ -82,7 +82,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
         player_user = UserFactory(username='player_user', password='secret-password')
         PlayerFactory(name='Bob', user=player_user, game=self.game)
         token = Token.objects.create(user=player_user)
-        response = self._get(self.client, token=token)
+        response = self._get(self.client, token=token, query='role=player')
         data = json.loads(response.content)
         assert data == {
             'can_edit': False,
@@ -98,7 +98,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
         staff_user.is_staff = True
         staff_user.save()
         token = Token.objects.create(user=staff_user)
-        response = self._get(self.client, token=token)
+        response = self._get(self.client, token=token, query='role=staff')
         data = json.loads(response.content)
         assert data == {
             'can_edit': False,
@@ -114,11 +114,11 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
         data = json.loads(response.content)
         assert data == self._all_false()
 
-    def test_response_includes_x_skip_cache_header_without_role(self):
-        """Test that the response sets X-Skip-Cache: true when no role param is given."""
+    def test_response_sets_force_public_cache_header_without_role(self):
+        """Test that the response sets X-Force-Public-Cache: true even with no role param."""
         response = self._get(self.client)
-        assert response['X-Skip-Cache'] == 'true'
-        assert 'X-Force-Public-Cache' not in response
+        assert response['X-Force-Public-Cache'] == 'true'
+        assert 'X-Skip-Cache' not in response
 
     def test_role_dm_can_edit_regardless_of_real_identity(self):
         """Test that ?role=dm grants every permission True even for an anonymous caller."""

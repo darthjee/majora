@@ -151,49 +151,40 @@ def access_response(serializer_cls, obj, request, context_extra=None):
 
 
 def parse_role_booleans(request):
-    """Parse the `role` query param(s) into simulated-identity booleans, or None if absent.
+    """Parse the `role` query param(s) into simulated-identity booleans.
 
     Reads `request.query_params.getlist('role')`, handling both `?role=dm` and repeated
-    `?role=dm&role=player`. Recognizes `dm`, `player`, `owner`, `superuser`, `staff`; each
-    influences some `can_be_edited_by_roles`-shaped computation (`staff` first became
+    `?role=dm&role=player`. Recognizes `dm`, `player`, `owner`, `superuser`, `staff`, `logged`;
+    each influences some `can_be_edited_by_roles`-shaped computation (`staff` first became
     meaningful via `UIPermission`'s role-simulated `?role=` path, issue #714;
     `player` via the same path, issue #864) — unrecognized values are
     tolerated with no 400, same convention already used by `?public_allegiance=`/
-    `?public_slain=` elsewhere in this codebase. Returns `None` when no `role` param was sent at
-    all, signaling
-    "use the real requester's identity instead" — a `role` param with only unrecognized values
-    still switches to the role-simulated path (with every boolean False), it just never falls
-    back to the real identity.
+    `?public_slain=` elsewhere in this codebase. Always returns a full booleans dict, every key
+    defaulting to `False` when its role isn't present (including when no `role` param was sent
+    at all) — `permissions.json` is a pure function of the query string in every case.
     """
     roles = request.query_params.getlist('role')
-    if not roles:
-        return None
     return {
         'is_superuser': 'superuser' in roles,
         'is_dm': 'dm' in roles,
         'is_owner': 'owner' in roles,
         'is_staff': 'staff' in roles,
         'is_player': 'player' in roles,
+        'is_logged': 'logged' in roles,
     }
 
 
 def permissions_response(serializer_cls, obj, request, role_booleans, context_extra=None):
     """Build the shared "permissions" Response: serialize `obj`, honoring the cache contract.
 
-    Without a `role` param (`role_booleans` is `None`), mirrors `access_response`: the result
-    is tied to the real requester's identity, so `X-Skip-Cache: true` is set. With a `role`
-    param, the result is identity-independent and cacheable regardless of the real caller's
-    own auth state — `X-Force-Public-Cache: true` is set instead, telling
-    `CacheControlMiddleware` to use the public/anonymous cache tier even if the real
-    requester happens to be authenticated.
+    The result is identity-independent and cacheable regardless of the real caller's own auth
+    state, so `X-Force-Public-Cache: true` is always set, telling `CacheControlMiddleware` to
+    use the public/anonymous cache tier even if the real requester happens to be authenticated.
     """
     context = {'request': request, 'roles': role_booleans}
     if context_extra:
         context.update(context_extra)
     serializer = serializer_cls(obj, context=context)
     response = Response(serializer.data)
-    if role_booleans is None:
-        response['X-Skip-Cache'] = 'true'
-    else:
-        response['X-Force-Public-Cache'] = 'true'
+    response['X-Force-Public-Cache'] = 'true'
     return response

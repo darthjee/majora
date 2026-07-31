@@ -166,28 +166,30 @@ class TestRolesUserGameAndPc:
 class TestRolesFromBooleans:
     """Tests for Roles.from_booleans(), the `?role=` simulated-preview hook."""
 
-    def test_defaults_are_all_false_except_logged_user(self):
-        """Test that from_booleans() defaults every role to False except logged_user."""
+    def test_defaults_are_all_false(self):
+        """Test that from_booleans() defaults every role, including logged_user, to False."""
         roles = Roles.from_booleans()
         assert roles.is_admin() is False
         assert roles.is_dm() is False
         assert roles.is_owner() is False
         assert roles.is_staff() is False
         assert roles.is_player() is False
-        assert roles.is_logged_user() is True
+        assert roles.is_logged_user() is False
 
     def test_every_boolean_is_honored(self):
         """Test that each simulated boolean is reflected by its matching predicate."""
         roles = Roles.from_booleans(
             is_superuser=True, is_dm=True, is_owner=True, is_staff=True, is_player=True,
+            is_logged=True,
         )
         assert roles.is_admin() is True
         assert roles.is_dm() is True
         assert roles.is_owner() is True
         assert roles.is_staff() is True
         assert roles.is_player() is True
+        assert roles.is_logged_user() is True
 
     def test_all_roles_reflects_simulated_booleans(self):
         """Test that all_roles() reflects the simulated booleans, not any real DB state."""
-        roles = Roles.from_booleans(is_dm=True, is_player=True)
+        roles = Roles.from_booleans(is_dm=True, is_player=True, is_logged=True)
         assert sorted(roles.all_roles()) == ['dm', 'logged_user', 'player']

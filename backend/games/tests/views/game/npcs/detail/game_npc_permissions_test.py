@@ -68,16 +68,16 @@ class TestGameNpcPermissionsView(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert data == self._all_false()
 
-    def test_response_includes_x_skip_cache_header_without_role(self, client):
-        """Test that the response sets X-Skip-Cache: true when no role param is given."""
+    def test_response_sets_force_public_cache_header_without_role(self, client):
+        """Test that the response sets X-Force-Public-Cache: true even with no role param."""
         response = self.get(client, self._url())
-        assert response['X-Skip-Cache'] == 'true'
-        assert 'X-Force-Public-Cache' not in response
+        assert response['X-Force-Public-Cache'] == 'true'
+        assert 'X-Skip-Cache' not in response
 
     def test_dm_can_edit(self, client):
         """Test that the game's DM gets every permission True."""
         token = Token.objects.create(user=self.dm_user)
-        response = self.get(client, self._url(), token=token)
+        response = self.get(client, self._url(query='role=dm'), token=token)
         data = json.loads(response.content)
         assert data == self._all_true()
 
@@ -85,7 +85,7 @@ class TestGameNpcPermissionsView(TokenAuthRequestMixin):
         """Test that a superuser gets every permission True."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
-        response = self.get(client, self._url(), token=token)
+        response = self.get(client, self._url(query='role=superuser'), token=token)
         data = json.loads(response.content)
         assert data == self._all_true()
 
@@ -132,7 +132,7 @@ class TestGameNpcPermissionsView(TokenAuthRequestMixin):
         staff_user.is_staff = True
         staff_user.save()
         token = Token.objects.create(user=staff_user)
-        response = self.get(client, self._url(), token=token)
+        response = self.get(client, self._url(query='role=staff'), token=token)
         data = json.loads(response.content)
         assert data == {
             'can_edit': False,
@@ -161,7 +161,7 @@ class TestGameNpcPermissionsView(TokenAuthRequestMixin):
         player_user = UserFactory(username='player_user', password='secret-password')
         PlayerFactory(name='Regular Player', user=player_user, game=self.game)
         token = Token.objects.create(user=player_user)
-        response = self.get(client, self._url(), token=token)
+        response = self.get(client, self._url(query='role=player'), token=token)
         data = json.loads(response.content)
         assert data == {
             'can_edit': False,

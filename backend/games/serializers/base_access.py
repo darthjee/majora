@@ -12,6 +12,7 @@ class BaseAccessSerializer(RequestContextSerializerMixin, serializers.Serializer
         """Build the access response dict for the given object (may be None)."""
         return {
             'username': self._get_username(),
+            'is_logged': self._is_authenticated(),
             'is_superuser': self._get_is_superuser(),
             'is_staff': self._get_is_staff(),
             'is_dm': self._get_is_dm(obj),
