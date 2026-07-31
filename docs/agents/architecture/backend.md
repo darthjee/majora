@@ -18,6 +18,7 @@ Core Django app containing domain models, REST views, and serializers for RPG ca
 Authoritative sources: `backend/games/urls.py` and `backend/games/models/`.
 
 ## accounts/
+
 Account/authentication app — every `/users/*.json` endpoint (login, logout, register, status, account management, password reset).
 
 Key files:

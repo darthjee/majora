@@ -26,6 +26,7 @@ identical to its game's, the frontend reuses [Game](game.md)'s own access/permis
 `description` (optional, nullable). `game` is always server-assigned from the URL segment.
 
 ## Sub-resource
+
 Session messages (`/games/<slug>/sessions/<id>/messages.json`) use an independent,
 player/DM-based permission model distinct from **GameSessionEdit** — see
 [GameSessionMessage](game-session-message.md).

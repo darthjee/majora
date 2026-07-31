@@ -18,6 +18,7 @@ public for non-hidden NPCs). `ready` is internal, never serialized. As with `Gam
 also exposed indirectly via `Character.profile_photo_path` — both apply simultaneously.
 
 ## Hidden-NPC gate
+
 If `character.hidden` is `True` and the requester cannot edit the character, `game_npc_photos`
 raises `404` instead of returning the photo list — visible only to the character's player, that
 game's GameMaster, or a superuser. PCs have no `hidden` concept, so `game_pc_photos` has no

@@ -11,6 +11,7 @@ anyone, both PC and NPC endpoints being public). `link_type` carries no access-c
 implications (same enum as [Link](link.md)).
 
 ## Write access
+
 No dedicated endpoint — links are written exclusively as a nested `links` array inside the
 character payload, gated by the same permission as the character write itself:
 - `PATCH /games/<slug>/pcs\|npcs/<id>/full.json` — **CharacterEdit**.

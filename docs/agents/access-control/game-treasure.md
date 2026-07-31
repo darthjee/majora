@@ -54,6 +54,7 @@ never inferred from `GameEdit` — so the regular player-facing endpoints can ne
 bypass the gate just because the caller happens to be an editor.
 
 ## Stock-cap and cost/refund
+
 Buying `quantity` of an M2M-linked treasure caps the acquired amount at `available_units` instead
 of rejecting an over-sized request — the response's `acquired` field reports how many units were
 actually granted, and `acquired_units` increments by that amount; selling decrements it (floored at

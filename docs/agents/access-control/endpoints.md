@@ -21,6 +21,7 @@ classes are explicitly empty and permission is `AllowAny` — this response neve
 | `/health.json` | GET | **AllowAny** | `{"status": "ok"}` |
 
 ## Authentication endpoints
+
 These manage identity; they do not expose domain data beyond success/failure.
 
 | Endpoint | Method | Who can call |
@@ -36,6 +37,7 @@ These manage identity; they do not expose domain data beyond success/failure.
 | `/users/account.json` | GET/PATCH | Authenticated; always scoped to the requester, never another user. Exposed: `name`, `email`, `avatar_url` (Gravatar-derived, `null` if no email) — an [account/sensitive-information resource](principles.md#resource-categories) |
 
 ### `UserProfile.status` authentication gate
+
 The project-wide default authentication class treats a resolved user whose `UserProfile.status`
 isn't `approved` as fully unauthenticated. This applies **before** every other rule in this
 document set: a `pending` or `denied` user looks anonymous everywhere, with the sole exceptions of
@@ -45,6 +47,7 @@ behavior described above. New registrations start `pending`; staff/superuser acc
 deny pending users via [User (Staff Management)](user.md).
 
 ## Authorization requests (device-authorize login)
+
 A passwordless "authorize with logged device" login mode: a new device asks, by username only, to
 be logged in; an already-authenticated session on another device approves or denies the request.
 

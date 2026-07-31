@@ -98,6 +98,7 @@ back to the linked `GameItem`'s own value. `hidden` is never part of this fallba
 on both models, read independently on each.
 
 ## `hidden`
+
 Governs only whether a `CharacterItem` row itself is listed on the regular (non-`/all.json`)
 endpoints — independent of [GameItem](game-item.md)'s own `hidden`. A hidden `CharacterItem` stays
 fully visible to the character's owning player (PC) or that game's GameMaster/superuser via the
