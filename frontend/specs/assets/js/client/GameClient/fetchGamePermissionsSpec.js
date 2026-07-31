@@ -11,7 +11,7 @@ describe('GameClient', function() {
   describe('#fetchGamePermissions', function() {
     itSendsAuthHeader({
       call: (token) => new GameClient().fetchGamePermissions('demo', token),
-      url: '/games/demo/permissions.json',
+      url: '/permissions/game.json',
       headers: { 'X-Skip-Cache': 'true' },
       token: 'tok-abc',
     });
@@ -19,7 +19,7 @@ describe('GameClient', function() {
     it('serializes a single role as a role= query param and omits X-Skip-Cache', async function() {
       await new GameClient().fetchGamePermissions('demo', null, undefined, ['dm']);
 
-      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json?role=dm', jasmine.objectContaining({
+      expect(fetchSpy).toHaveBeenCalledWith('/permissions/game.json?role=dm', jasmine.objectContaining({
         method: 'GET',
         headers: { Accept: 'application/json' },
         body: undefined,
@@ -29,7 +29,7 @@ describe('GameClient', function() {
     it('serializes several roles as repeated role= query params', async function() {
       await new GameClient().fetchGamePermissions('demo', null, undefined, ['dm', 'player']);
 
-      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json?role=dm&role=player', jasmine.objectContaining({
+      expect(fetchSpy).toHaveBeenCalledWith('/permissions/game.json?role=dm&role=player', jasmine.objectContaining({
         method: 'GET',
         headers: { Accept: 'application/json' },
         body: undefined,

@@ -63,7 +63,10 @@ export default class CharacterClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the character permissions endpoint.
    */
   fetchCharacterPermissions(characterKind, gameSlug, characterId, token, signal, roles = []) {
-    return this.#fetchCharacter(characterKind, gameSlug, characterId, token, 'permissions', signal, roles);
+    const entity = characterKind === 'npcs' ? 'game_npc' : 'game_pc';
+    const path = `/permissions/${entity}.json${this.#buildCharacterQuery(roles)}`;
+
+    return this.getJson(path, token, {}, signal);
   }
 
   /**

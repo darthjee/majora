@@ -42,7 +42,7 @@ export default class TreasureClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the treasure permissions endpoint.
    */
   fetchTreasurePermissions(id, token, signal, roles = []) {
-    return this.getJson(`/treasures/${id}/permissions.json${this.buildRoleQuery(roles)}`, token, {}, signal);
+    return this.getJson(`/permissions/treasure.json${this.buildRoleQuery(roles)}`, token, {}, signal);
   }
 
   /**

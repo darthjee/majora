@@ -62,14 +62,14 @@ export default class BaseClient {
   /**
    * Returns true when the request requires the X-Skip-Cache: true header.
    * Always returns true for POST, PATCH, and DELETE methods. For GET
-   * requests to a `/permissions.json` path, this is role-aware: it returns
-   * true only when no `role` query param is present (a role-simulated
-   * permissions request is cacheable and must not skip cache). For every
-   * other GET request, returns true when the pathname matches a configured
-   * skip-cache endpoint, ends with a configured skip-cache suffix
-   * (`/access.json` unconditionally, among others), or starts with a
-   * configured skip-cache prefix (for dynamic path segments that can't be
-   * expressed as an exact match or fixed suffix).
+   * requests to a `/permissions/<entity_type>.json` path, this is
+   * role-aware: it returns true only when no `role` query param is present
+   * (a role-simulated permissions request is cacheable and must not skip
+   * cache). For every other GET request, returns true when the pathname
+   * matches a configured skip-cache endpoint, ends with a configured
+   * skip-cache suffix (`/access.json` unconditionally, among others), or
+   * starts with a configured skip-cache prefix (for dynamic path segments
+   * that can't be expressed as an exact match or fixed suffix).
    *
    * @param {string} method - The HTTP method (GET, POST, PATCH, DELETE, etc.).
    * @param {string} pathname - The request pathname without query string.
@@ -80,7 +80,7 @@ export default class BaseClient {
     if (method === 'POST' || method === 'PATCH' || method === 'DELETE') {
       return true;
     }
-    if (pathname.endsWith('/permissions.json')) {
+    if (pathname.startsWith('/permissions/')) {
       return !new URLSearchParams(search).has('role');
     }
     const matchesSuffix = [...SKIP_CACHE_SUFFIXES].some(
