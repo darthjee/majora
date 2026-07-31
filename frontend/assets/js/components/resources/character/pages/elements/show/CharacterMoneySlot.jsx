@@ -6,17 +6,27 @@ import Translator from '../../../../../../i18n/Translator.js';
 /**
  * Show-mode left-column slot: the character's money breakdown, identical for PCs and NPCs.
  *
+ * @description The "Edit" link is shown whenever the current user can reach the narrow-PATCH
+ *   edit surface that includes `money` — i.e. a full (dm/admin/owner) editor, any player of the
+ *   game, or a Staff account — matching `CharacterRegularEditPermission`/`NpcPlayerEditPermission`
+ *   on the backend, for both PCs and NPCs (issue #915).
  * @param {object} context - Merged `ShowPageLayout` rendering context.
  * @param {number} context.money - Total money, in the currency's lowest denomination.
  * @param {number} [context.treasure_value] - Read-only treasure value (issue #616).
  * @param {string} [context.game_type] - Currency model name (e.g. `dnd`, `deadlands`).
- * @param {boolean} [context.can_edit] - Whether the "Edit" link is shown.
+ * @param {boolean} [context.can_edit] - Whether the current user is a full (dm/admin/owner)
+ *   editor of the character.
+ * @param {boolean} [context.is_player] - Whether the current user is a player of the game.
+ * @param {boolean} [context.is_staff] - Whether the current user is a Staff account.
  * @param {object} context.handlers - Event handlers.
  * @returns {React.ReactElement|null} Money breakdown element, or null.
  */
 function CharacterMoneyShow({
-  money, treasure_value: treasureValue, game_type: gameType, can_edit: canEditMoney, handlers,
+  money, treasure_value: treasureValue, game_type: gameType,
+  can_edit: canEdit, is_player: isPlayer, is_staff: isStaff, handlers,
 }) {
+  const canEditMoney = Boolean(canEdit || isPlayer || isStaff);
+
   return (
     <CharacterMoney
       money={money}

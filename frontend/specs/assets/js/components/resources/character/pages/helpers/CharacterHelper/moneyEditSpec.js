@@ -21,6 +21,18 @@ describe('CharacterHelper', function() {
       expect(html).not.toContain('Edit money');
     });
 
+    it('renders the money edit button when is_player is true (not can_edit)', function() {
+      const c = { ...character, can_edit: false, is_player: true };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).toContain('Edit money');
+    });
+
+    it('renders the money edit button when is_staff is true (not can_edit)', function() {
+      const c = { ...character, can_edit: false, is_staff: true };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/pcs'));
+      expect(html).toContain('Edit money');
+    });
+
     it('passes onOpenMoneyModal through to CharacterMoney as the click handler', function() {
       const onOpenMoneyModal = jasmine.createSpy('onOpenMoneyModal');
       const c = { ...character, can_edit: true };

@@ -5,7 +5,7 @@ import CharacterMoneyShow, { buildCharacterMoneyField }
 
 describe('CharacterMoneySlot', function() {
   describe('Show', function() {
-    it('renders the money breakdown wired to the edit-money handler', function() {
+    it('renders the money breakdown wired to the edit-money handler when can_edit is true', function() {
       const handlers = { onOpenMoneyModal: jasmine.createSpy('onOpenMoneyModal') };
       const html = renderToStaticMarkup(
         React.createElement(CharacterMoneyShow, {
@@ -14,6 +14,39 @@ describe('CharacterMoneySlot', function() {
       );
 
       expect(html).toContain('Edit');
+    });
+
+    it('renders the Edit link when is_player is true (not can_edit)', function() {
+      const handlers = { onOpenMoneyModal: jasmine.createSpy('onOpenMoneyModal') };
+      const html = renderToStaticMarkup(
+        React.createElement(CharacterMoneyShow, {
+          money: 100, treasure_value: 0, game_type: 'dnd', can_edit: false, is_player: true, handlers,
+        }),
+      );
+
+      expect(html).toContain('Edit');
+    });
+
+    it('renders the Edit link when is_staff is true (not can_edit or is_player)', function() {
+      const handlers = { onOpenMoneyModal: jasmine.createSpy('onOpenMoneyModal') };
+      const html = renderToStaticMarkup(
+        React.createElement(CharacterMoneyShow, {
+          money: 100, treasure_value: 0, game_type: 'dnd', can_edit: false, is_staff: true, handlers,
+        }),
+      );
+
+      expect(html).toContain('Edit');
+    });
+
+    it('does not render the Edit link when none of can_edit/is_player/is_staff are true', function() {
+      const handlers = { onOpenMoneyModal: jasmine.createSpy('onOpenMoneyModal') };
+      const html = renderToStaticMarkup(
+        React.createElement(CharacterMoneyShow, {
+          money: 100, treasure_value: 0, game_type: 'dnd', can_edit: false, handlers,
+        }),
+      );
+
+      expect(html).not.toContain('Edit');
     });
   });
 
