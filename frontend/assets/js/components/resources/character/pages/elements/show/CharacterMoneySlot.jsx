@@ -41,12 +41,13 @@ function CharacterMoneyShow({
 /**
  * Build the new/edit-mode money field slot for a character kind.
  *
- * @description `canEditMoney` (only ever set for a PC, from `character.can_edit`) is ORed
- *   in alongside `isFullEditor` before reaching `CharacterMoneyField`, so a PC's regular (non-full)
- *   editor — any player of the game, or Staff — also sees the money block, while an NPC's money
- *   field stays gated on `isFullEditor` alone (NPC money edits remain admin/dm/staff-only, no
- *   player leniency). `canEditMoney` is `undefined`/falsy for the NPC "new" flow, which never sets
- *   it, so no behavior change there.
+ * @description `canEditMoney` is set uniformly for both PC and NPC edit pages (from
+ *   `CharacterEdit.jsx`'s `canReachEditPage(character)`, i.e. `can_edit || is_player || is_staff`)
+ *   and ORed in alongside `isFullEditor` before reaching `CharacterMoneyField`, so a kind's
+ *   regular (non-full) editor — any player of the game, or Staff — also sees the money block; NPC
+ *   money edits now follow the same player/staff leniency as PCs (issue #915), no longer
+ *   admin/dm/staff-only. `canEditMoney` is `undefined`/falsy for the NPC "new" flow, which never
+ *   sets it, so no behavior change there (creation stays full-editor-only for `money`).
  * @param {{edit: {label: string, button: string}, new: {label: string, button: string}}} variants
  *   - Per-mode label/button i18n keys, keyed by `'edit'` and/or `'new'` (PCs only ever provide
  *   `'edit'`). `new` money is always created with a `treasureValue` of `0` (the character does
