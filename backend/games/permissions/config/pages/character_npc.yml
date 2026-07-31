@@ -1,0 +1,10 @@
+# CharacterPermissionsSerializer's response shape for an NPC (page_key='character_npc').
+game_npc:
+  edit: can_edit
+  money_edit: can_edit_money
+  treasure_exchange: can_exchange_treasure
+  photo_upload: can_set_profile_photo
+  photo_delete: can_delete_photo
+game_npc_item:
+  create_update: can_create_item
+  photo_upload: can_upload_item_photo

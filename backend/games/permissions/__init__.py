@@ -6,9 +6,20 @@ user/game/pc, and `UIPermission`/`EndpointPermission` check those roles against 
 roles configured in `config/<resource>/{ui,endpoints}.yml` (loaded via `PermissionConfigStore`).
 """
 
+from .builder import PermissionsBuilder
 from .config_store import PermissionConfigStore
 from .endpoint import EndpointPermission
+from .page_config_store import PagePermissionConfigStore
+from .resource_resolver import ResourcePermissionsResolver
 from .roles import Roles
 from .ui import UIPermission
 
-__all__ = ['PermissionConfigStore', 'Roles', 'UIPermission', 'EndpointPermission']
+__all__ = [
+    'PermissionConfigStore',
+    'Roles',
+    'UIPermission',
+    'EndpointPermission',
+    'PagePermissionConfigStore',
+    'ResourcePermissionsResolver',
+    'PermissionsBuilder',
+]

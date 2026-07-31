@@ -2,27 +2,31 @@
 
 from rest_framework import serializers
 
+from games.permissions import Roles
 from games.serializers._request_context_mixin import RequestContextSerializerMixin
 
 
 class BasePermissionsSerializer(RequestContextSerializerMixin, serializers.Serializer):
-    """Shared can_edit-only serialization logic for permission-check endpoints.
+    """Shared context helpers for permission-check endpoint serializers.
 
-    Complements `BaseAccessSerializer` (identity/roles only): this serializer reports only
-    the `can_edit` permission, for the object and requester carried in `self.instance`/
-    `self.context`. When `self.context['roles']` is set (see `views/common.py`'s
-    `parse_role_booleans`), `can_edit` is computed for a simulated role instead of the real
-    requester's identity.
+    Complements `BaseAccessSerializer` (identity/roles only): each subclass builds its own
+    `permissions.json` response body (via `PermissionsBuilder`/`ResourcePermissionsResolver`),
+    for the object and requester carried in `self.instance`/`self.context`. This base class
+    only holds the `?role=` simulated-preview plumbing shared by every subclass — see
+    `views/common.py`'s `parse_role_booleans`.
     """
-
-    def to_representation(self, obj):
-        """Build the permissions response dict for the given object (may be None)."""
-        return {'can_edit': self._get_can_edit(obj)}
 
     def _roles(self):
         """Return the parsed role booleans from context, or None for the real-identity path."""
         return self.context.get('roles')
 
-    def _get_can_edit(self, obj):
-        """Return whether the requester (real or role-simulated) may edit obj."""
-        raise NotImplementedError
+    def _simulated_roles(self):
+        """Build a role-simulated `Roles` from context, or None for the real-identity path."""
+        roles = self._roles()
+        if roles is None:
+            return None
+        return Roles.from_booleans(
+            is_superuser=roles['is_superuser'], is_dm=roles['is_dm'],
+            is_owner=roles['is_owner'], is_staff=roles['is_staff'],
+            is_player=roles['is_player'],
+        )

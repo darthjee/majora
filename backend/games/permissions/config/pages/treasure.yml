@@ -1,0 +1,6 @@
+# TreasurePermissionsSerializer's response shape (page_key='treasure'). Only one of `edit`/
+# `edit_scoped` is ever resolved per request (see TreasurePermissionsSerializer), based on
+# whether the treasure has an owning game — both map to the same `can_edit` response key.
+treasure:
+  edit: can_edit
+  edit_scoped: can_edit
