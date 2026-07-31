@@ -516,6 +516,7 @@ resources:
 
   short_npc_documents:
     - url: /games/{:slug}/npcs/{:id}/documents.json?per_page=5
+      status: 200
 
   permissions_game:
     - url: /permissions/game.json
@@ -563,5 +564,4 @@ resources:
     - url: /permissions/game_npc.json?role=staff&role=player&role=logged
       status: 200
     - url: /permissions/game_npc.json?role=staff&role=dm&role=player&role=logged
-      status: 200
       status: 200
