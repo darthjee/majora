@@ -4,10 +4,10 @@ import { game } from './support.js';
 
 describe('GameHelper', function() {
   describe('.render', function() {
-    it('renders the cover photo when cover_photo_path is provided', function() {
+    it('renders the cover photo when photo_path is provided', function() {
       const gameWithPhoto = {
         ...game,
-        cover_photo_path: 'http://example.com/cover_photo.png',
+        photo_path: 'http://example.com/cover_photo.png',
       };
       const html = renderToStaticMarkup(GameHelper.render(gameWithPhoto));
       expect(html).toContain('http://example.com/cover_photo.png');

@@ -120,26 +120,26 @@ class TestGamePcPhotoDetailView(TokenAuthRequestMixin):
         self.photo.refresh_from_db()
         assert self.photo.ready is False
 
-    def test_patch_clears_profile_photo_when_patched_photo_is_profile(self, client):
-        """Test that PATCH clears profile_photo when the patched photo was the profile photo."""
-        self.character.profile_photo = self.photo
+    def test_patch_clears_photo_when_patched_photo_is_profile(self, client):
+        """Test that PATCH clears photo when the patched photo was the profile photo."""
+        self.character.photo = self.photo
         self.character.save()
         response = self._patch(client, token=self.dm_token)
         assert response.status_code == 200
         self.character.refresh_from_db()
-        assert self.character.profile_photo is None
+        assert self.character.photo is None
 
-    def test_patch_leaves_profile_photo_untouched_for_other_photo(self, client):
+    def test_patch_leaves_photo_untouched_for_other_photo(self, client):
         """Test that PATCHing a photo does not clear an unrelated profile photo."""
         other_photo = CharacterPhoto.objects.create(
             path='photos/games/epic-quest/characters/1/img2.jpg', character=self.character
         )
-        self.character.profile_photo = other_photo
+        self.character.photo = other_photo
         self.character.save()
         response = self._patch(client, token=self.dm_token)
         assert response.status_code == 200
         self.character.refresh_from_db()
-        assert self.character.profile_photo == other_photo
+        assert self.character.photo == other_photo
 
     def test_patch_carries_skip_cache_header(self, client):
         """Test that the PATCH response carries the X-Skip-Cache: true header."""
@@ -181,14 +181,14 @@ class TestGamePcPhotoDetailView(TokenAuthRequestMixin):
         assert response.status_code == 422
         assert CharacterPhoto.objects.filter(id=self.photo.id).exists()
 
-    def test_delete_falls_back_to_profile_photo_set_null(self, client):
-        """Test that deleting a not-ready photo still clears profile_photo (SET_NULL backstop)."""
-        self.character.profile_photo = self.photo
+    def test_delete_falls_back_to_photo_set_null(self, client):
+        """Test that deleting a not-ready photo still clears photo (SET_NULL backstop)."""
+        self.character.photo = self.photo
         self.character.save()
         response = self._delete(client, token=self.dm_token)
         assert response.status_code == 204
         self.character.refresh_from_db()
-        assert self.character.profile_photo is None
+        assert self.character.photo is None
 
     def test_unknown_character_id_returns_404(self, client):
         """Test that a non-existent character_id returns 404."""

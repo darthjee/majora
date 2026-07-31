@@ -107,16 +107,16 @@ class TestGameNpcDetailView(TokenAuthRequestMixin):
         data = assert_json_response(response, 200)
         assert 'incognito' not in data
 
-    def test_profile_photo_path_is_null_when_incognito(self, client):
-        """Test that profile_photo_path is null for an incognito NPC, even with a photo set."""
+    def test_photo_path_is_null_when_incognito(self, client):
+        """Test that photo_path is null for an incognito NPC, even with a photo set."""
         photo = CharacterPhoto.objects.create(
             path='photos/games/test-game/characters/1/profile.jpg', character=self.character
         )
-        self.character.profile_photo = photo
+        self.character.photo = photo
         self.character.incognito = True
         self.character.save()
         response = self.get(client, self._url())
-        assert_json_response(response, 200, profile_photo_path=None)
+        assert_json_response(response, 200, photo_path=None)
 
 
 @pytest.mark.django_db

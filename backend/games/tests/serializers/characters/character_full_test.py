@@ -105,16 +105,16 @@ class TestCharacterFullSerializer(TestCase):
         data = self._serialize()
         assert data['incognito'] is True
 
-    def test_profile_photo_path_ignores_incognito(self):
-        """Test that profile_photo_path returns the real path even when incognito is True."""
+    def test_photo_path_ignores_incognito(self):
+        """Test that photo_path returns the real path even when incognito is True."""
         photo = CharacterPhoto.objects.create(
             path='photos/games/test-game/characters/1/profile.jpg', character=self.character
         )
-        self.character.profile_photo = photo
+        self.character.photo = photo
         self.character.incognito = True
         self.character.save()
         data = self._serialize()
-        assert data['profile_photo_path'] == 'photos/games/test-game/characters/1/profile.jpg'
+        assert data['photo_path'] == 'photos/games/test-game/characters/1/profile.jpg'
 
     def test_serializes_treasure_value_summed_across_treasures(self):
         """Test that treasure_value sums total_value across the character's treasure rows."""

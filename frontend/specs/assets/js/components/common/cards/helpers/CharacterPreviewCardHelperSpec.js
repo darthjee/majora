@@ -23,14 +23,14 @@ describe('CharacterPreviewCardHelper', function() {
       expect(html).toContain('href="#/games/epic-quest/npcs/42"');
     });
 
-    it('renders the default avatar when profile_photo_path is null', function() {
+    it('renders the default avatar when photo_path is null', function() {
       const html = renderToStaticMarkup(CharacterPreviewCardHelper.render(character, gameSlug, 'pc'));
       expect(html).toContain('<img');
       expect(html).toContain('default_character.png');
     });
 
-    it('renders the avatar image when profile_photo_path is provided', function() {
-      const c = { ...character, profile_photo_path: 'http://example.com/aragorn.png' };
+    it('renders the avatar image when photo_path is provided', function() {
+      const c = { ...character, photo_path: 'http://example.com/aragorn.png' };
       const html = renderToStaticMarkup(CharacterPreviewCardHelper.render(c, gameSlug, 'pc'));
       expect(html).toContain('http://example.com/aragorn.png');
     });

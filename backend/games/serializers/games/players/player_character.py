@@ -8,9 +8,7 @@ from games.models import Character
 class PlayerCharacterSerializer(serializers.ModelSerializer):
     """Serializer for a player's owned PC, trimmed to just name and photo."""
 
-    photo_url = serializers.CharField(
-        source='profile_photo.path', default=None, read_only=True
-    )
+    photo_url = serializers.CharField(source='photo.path', default=None, read_only=True)
 
     class Meta:
         """Metadata for the PlayerCharacterSerializer."""

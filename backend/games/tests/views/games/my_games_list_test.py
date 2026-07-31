@@ -61,7 +61,7 @@ class TestMyGamesListView(TokenAuthRequestMixin):
         assert data[0]['game'] == {
             'name': 'Curse of Strahd',
             'game_slug': 'curse-of-strahd',
-            'cover_photo_path': None,
+            'photo_path': None,
         }
 
     def test_player_with_no_character_has_null_character(self, client):

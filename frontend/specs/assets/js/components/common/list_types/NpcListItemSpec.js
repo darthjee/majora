@@ -15,13 +15,13 @@ describe('NpcListItem', function() {
   });
 
   describe('#photoUrl', function() {
-    it('uses the profile_photo_path field', function() {
-      const item = new NpcListItem({ id: 1, name: 'Goblin', profile_photo_path: '/photos/1.png' });
+    it('inherits the photo_path field from BaseListItem', function() {
+      const item = new NpcListItem({ id: 1, name: 'Goblin', photo_path: '/photos/1.png' });
 
       expect(item.photoUrl).toBe('/photos/1.png');
     });
 
-    it('is null when profile_photo_path is absent', function() {
+    it('is null when photo_path is absent', function() {
       const item = new NpcListItem({ id: 1, name: 'Goblin' });
 
       expect(item.photoUrl).toBeNull();

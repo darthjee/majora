@@ -19,7 +19,7 @@ class TestCharacterFullListSerializer(TestCase):
     def test_inherits_list_fields(self):
         """Test that all CharacterListSerializer fields are still present."""
         data = CharacterFullListSerializer(self.character).data
-        expected_fields = ['id', 'name', 'game_slug', 'profile_photo_path', 'public_slain']
+        expected_fields = ['id', 'name', 'game_slug', 'photo_path', 'public_slain']
         for field in expected_fields:
             assert field in data
 
@@ -69,16 +69,16 @@ class TestCharacterFullListSerializer(TestCase):
         data = CharacterFullListSerializer(self.character).data
         assert data['incognito'] is True
 
-    def test_profile_photo_path_ignores_incognito(self):
-        """Test that profile_photo_path returns the real path even when incognito is True."""
+    def test_photo_path_ignores_incognito(self):
+        """Test that photo_path returns the real path even when incognito is True."""
         photo = CharacterPhoto.objects.create(
             path='photos/games/test-game/characters/1/profile.jpg', character=self.character
         )
-        self.character.profile_photo = photo
+        self.character.photo = photo
         self.character.incognito = True
         self.character.save()
         data = CharacterFullListSerializer(self.character).data
-        assert data['profile_photo_path'] == 'photos/games/test-game/characters/1/profile.jpg'
+        assert data['photo_path'] == 'photos/games/test-game/characters/1/profile.jpg'
 
     def test_serializes_treasure_value_summed_across_treasures(self):
         """Test that treasure_value sums total_value across the character's treasure rows."""

@@ -119,29 +119,29 @@ class TestGameNpcsView:
         data = json.loads(response.content)
         assert 'incognito' not in data[0]
 
-    def test_profile_photo_path_is_null_when_incognito(self, client):
-        """Test that profile_photo_path is null for an incognito NPC, even with a photo set."""
+    def test_photo_path_is_null_when_incognito(self, client):
+        """Test that photo_path is null for an incognito NPC, even with a photo set."""
         npc = CharacterFactory(name='Villain', game=self.game, npc=True, incognito=True)
         photo = CharacterPhoto.objects.create(
             path='photos/games/test-game/characters/1/profile.jpg', character=npc
         )
-        npc.profile_photo = photo
+        npc.photo = photo
         npc.save()
         response = client.get(self._url())
         data = json.loads(response.content)
-        assert data[0]['profile_photo_path'] is None
+        assert data[0]['photo_path'] is None
 
-    def test_profile_photo_path_is_set_when_not_incognito(self, client):
-        """Test that profile_photo_path returns the real path for a non-incognito NPC."""
+    def test_photo_path_is_set_when_not_incognito(self, client):
+        """Test that photo_path returns the real path for a non-incognito NPC."""
         npc = CharacterFactory(name='Villain', game=self.game, npc=True, incognito=False)
         photo = CharacterPhoto.objects.create(
             path='photos/games/test-game/characters/1/profile.jpg', character=npc
         )
-        npc.profile_photo = photo
+        npc.photo = photo
         npc.save()
         response = client.get(self._url())
         data = json.loads(response.content)
-        assert data[0]['profile_photo_path'] == 'photos/games/test-game/characters/1/profile.jpg'
+        assert data[0]['photo_path'] == 'photos/games/test-game/characters/1/profile.jpg'
 
 
 @pytest.mark.django_db

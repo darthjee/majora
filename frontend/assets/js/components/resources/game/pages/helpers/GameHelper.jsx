@@ -15,7 +15,7 @@ export default class GameHelper {
    * @param {object} game - Game data object.
    * @param {string} game.name - Game name.
    * @param {string} game.game_slug - Game slug used to build section hrefs (sessions, PCs, NPCs).
-   * @param {string|null} [game.cover_photo_path] - Optional cover photo URL.
+   * @param {string|null} [game.photo_path] - Optional photo URL.
    * @param {string} [game.description] - Game description text.
    * @param {object[]} [game.links] - External link objects with text and url.
    * @param {boolean} [game.can_edit] - Whether the current user can edit this game.

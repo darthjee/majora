@@ -15,15 +15,15 @@ describe('GameListItem', function() {
   });
 
   describe('#photoUrl', function() {
-    it('uses the cover_photo_path field', function() {
+    it('inherits the photo_path field from BaseListItem', function() {
       const item = new GameListItem({
-        name: 'Test Game', game_slug: 'test-game', cover_photo_path: '/photos/1.png',
+        name: 'Test Game', game_slug: 'test-game', photo_path: '/photos/1.png',
       });
 
       expect(item.photoUrl).toBe('/photos/1.png');
     });
 
-    it('is null when cover_photo_path is absent', function() {
+    it('is null when photo_path is absent', function() {
       const item = new GameListItem({ name: 'Test Game', game_slug: 'test-game' });
 
       expect(item.photoUrl).toBeNull();

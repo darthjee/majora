@@ -27,11 +27,11 @@ def character_photo_detail(request, game, character_id, photo_id, npc):
 
 
 def _update_ready(character, photo):
-    """Mark `photo` as not-ready, clearing it from `character`'s profile photo if set."""
+    """Mark `photo` as not-ready, clearing it from `character`'s photo if set."""
     photo.ready = False
     photo.save()
-    if character.profile_photo_id == photo.id:
-        character.profile_photo = None
+    if character.photo_id == photo.id:
+        character.photo = None
         character.save()
     response = Response(status=200)
     response['X-Skip-Cache'] = 'true'

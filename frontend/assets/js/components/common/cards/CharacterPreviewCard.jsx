@@ -8,7 +8,7 @@ import CharacterPreviewCardHelper from './helpers/CharacterPreviewCardHelper.jsx
  * @param {object} props.character - Character data object.
  * @param {number} props.character.id - Character ID.
  * @param {string} props.character.name - Character name.
- * @param {string|null} [props.character.profile_photo_path] - Optional profile photo path.
+ * @param {string|null} [props.character.photo_path] - Optional photo path.
  * @param {boolean} [props.character.private_slain] - Whether the character is (really) slain
  *   (NPC only, DM-facing data only).
  * @param {boolean} [props.character.public_slain] - Whether the character is publicly slain

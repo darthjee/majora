@@ -13,7 +13,7 @@ const photo2 = { id: 2, path: '/photos/2.jpg' };
 
 const loadedCharacter = {
   id: 5, name: 'Aragorn', can_edit: false, can_set_profile_photo: true, is_pc: true, game_slug: 'demo',
-  profile_photo_id: photo1.id, photos: [photo1, photo2],
+  photo_id: photo1.id, photos: [photo1, photo2],
 };
 
 // Sets character/loading state synchronously during render (in the useMemo

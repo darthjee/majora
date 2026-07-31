@@ -82,7 +82,7 @@ describe('listTypeConfig', function() {
       it('fetches the my-games index with no permission check', async function() {
         const client = jasmine.createSpyObj('client', ['fetchIndex']);
         const entry = {
-          game: { name: 'Test Game', game_slug: 'test-game', cover_photo_path: null },
+          game: { name: 'Test Game', game_slug: 'test-game', photo_path: null },
           role: 'dm',
           character: null,
           conversations: { count: 0, unread_count: 0 },

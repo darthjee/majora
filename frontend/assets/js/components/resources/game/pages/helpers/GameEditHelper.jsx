@@ -8,7 +8,7 @@ export default class GameEditHelper {
   /**
    * Render the game edit form.
    *
-   * @param {{name: string, description: string, cover_photo_path: string|null,
+   * @param {{name: string, description: string, photo_path: string|null,
    *   status: string, fieldErrors: object}} formState - Form state.
    * @param {{onSubmit: Function, onNameChange: Function,
    *   onDescriptionChange: Function,

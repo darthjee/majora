@@ -63,7 +63,7 @@ export default function GameEdit() {
   return (
     <>
       {GameEditHelper.render(
-        { ...fields, cover_photo_path: game?.cover_photo_path, status, fieldErrors },
+        { ...fields, photo_path: game?.photo_path, status, fieldErrors },
         {
           onSubmit: handleSubmit,
           onNameChange: handleChange('name'),

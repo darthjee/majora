@@ -67,7 +67,7 @@ describe('CharacterEdit', function() {
     const state = {
       isFullEditor: true,
       name: 'Test Character',
-      profile_photo_path: null,
+      photo_path: null,
       links: [],
       role: 'Fighter',
       description: 'A brave hero.',

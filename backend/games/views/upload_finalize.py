@@ -103,19 +103,19 @@ def _mark_content_object_ready(upload):
     mark_ready(content_object)
 
 
-def _set_cover_photo_if_unset(game_photo):
-    """Set the game's cover photo to `game_photo` if it does not already have one."""
+def _set_game_photo_if_unset(game_photo):
+    """Set the game's photo to `game_photo` if it does not already have one."""
     game = game_photo.game
-    if game.cover_photo_id is None:
-        game.cover_photo = game_photo
+    if game.photo_id is None:
+        game.photo = game_photo
         game.save()
 
 
-def _set_profile_photo_if_unset(character_photo):
-    """Set the character's profile photo to `character_photo` if it does not already have one."""
+def _set_character_photo_if_unset(character_photo):
+    """Set the character's photo to `character_photo` if it does not already have one."""
     character = character_photo.character
-    if character.profile_photo_id is None:
-        character.profile_photo = character_photo
+    if character.photo_id is None:
+        character.photo = character_photo
         character.save()
 
 
@@ -236,14 +236,14 @@ def _game_photo_permission(request, content_object):
 # content object type) falls through to `_DEFAULT_HANDLERS`, matching prior behavior.
 _PHOTO_HANDLERS = {
     TreasurePhoto: (_treasure_photo_permission, _set_treasure_photo),
-    CharacterPhoto: (_character_photo_permission, _set_profile_photo_if_unset),
+    CharacterPhoto: (_character_photo_permission, _set_character_photo_if_unset),
     GameItemPhoto: (_game_item_photo_permission, _set_item_photo),
     CharacterItemPhoto: (_character_item_photo_permission, _set_character_item_photo),
     GameDocumentPhoto: (_document_photo_permission, _set_document_photo_if_unset),
     GameDocumentFile: (_document_file_permission, _set_document_file_if_unset),
     GameDocumentFilePhoto: (_document_file_photo_permission, _set_document_file_photo_if_unset),
 }
-_DEFAULT_HANDLERS = (_game_photo_permission, _set_cover_photo_if_unset)
+_DEFAULT_HANDLERS = (_game_photo_permission, _set_game_photo_if_unset)
 
 
 def _handlers_for(content_object):

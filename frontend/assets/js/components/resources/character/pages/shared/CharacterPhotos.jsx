@@ -91,7 +91,7 @@ export default function CharacterPhotos({ ControllerClass, getParamsFromHash, Ph
       {actionError && <ErrorAlert error={actionError} />}
       {PhotosHelper.render(
         photos, pagination, basePath, backHref, canUploadPhoto, character.can_set_profile_photo,
-        character.can_delete_photo, alt, character.profile_photo_id, {
+        character.can_delete_photo, alt, character.photo_id, {
           onOpenUploadModal: () => setShowUploadModal(true),
           onSelectPhoto: setSelectedPhoto,
           onSetProfilePhoto: handleSetProfilePhoto,
@@ -112,7 +112,7 @@ export default function CharacterPhotos({ ControllerClass, getParamsFromHash, Ph
         alt={alt}
         onClose={() => setSelectedPhoto(null)}
         canSetProfilePhoto={character.can_set_profile_photo}
-        isProfilePhoto={selectedPhoto?.id === character.profile_photo_id}
+        isProfilePhoto={selectedPhoto?.id === character.photo_id}
         onSetProfilePhoto={handleSetProfilePhoto}
         canDelete={character.can_delete_photo}
         onDelete={handleRequestDeletePhoto}

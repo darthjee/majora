@@ -55,15 +55,15 @@ class TestGameUpdateSerializer(TestCase):
         assert not serializer.is_valid()
         assert 'name' in serializer.errors
 
-    def test_cover_photo_is_not_included(self):
-        """Test that cover_photo is not a field in the serializer."""
+    def test_photo_is_not_included(self):
+        """Test that photo is not a field in the serializer."""
         photo = GamePhoto.objects.create(game=self.game, path='covers/new.png')
         serializer = GameUpdateSerializer(
             self.game,
-            data={'name': 'New Quest', 'cover_photo': photo.id, 'cover_photo_id': photo.id},
+            data={'name': 'New Quest', 'photo': photo.id, 'photo_id': photo.id},
             partial=True,
         )
         assert serializer.is_valid()
         game = serializer.save()
         assert game.name == 'New Quest'
-        assert game.cover_photo is None
+        assert game.photo is None

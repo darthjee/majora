@@ -33,7 +33,7 @@ describe('CharacterAvatarSlot', function() {
       const handlers = { onOpenUploadModal: jasmine.createSpy('onOpenUploadModal') };
       const html = renderToStaticMarkup(
         React.createElement(CharacterAvatarSlot.Edit, {
-          profile_photo_path: null, name: 'Grix', hidden: true, handlers,
+          photo_path: null, name: 'Grix', hidden: true, handlers,
         }),
       );
 
@@ -43,7 +43,7 @@ describe('CharacterAvatarSlot', function() {
     it('defaults hidden to false (a no-op for PCs, which never expose a hidden toggle)', function() {
       const handlers = { onOpenUploadModal: jasmine.createSpy('onOpenUploadModal') };
       const html = renderToStaticMarkup(
-        React.createElement(CharacterAvatarSlot.Edit, { profile_photo_path: null, name: 'Aragorn', handlers }),
+        React.createElement(CharacterAvatarSlot.Edit, { photo_path: null, name: 'Aragorn', handlers }),
       );
 
       expect(html).not.toContain('photo-hidden');

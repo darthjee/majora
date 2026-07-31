@@ -8,7 +8,7 @@ export default class NpcCharacterEditHelper {
   /**
    * Render the NPC edit form.
    *
-   * @param {{isFullEditor: boolean, name: string, profile_photo_path: string|null,
+   * @param {{isFullEditor: boolean, name: string, photo_path: string|null,
    *   links: object[], role: string, description: string, privateDescription: string,
    *   money: string, treasureValue: number, gameType: string, privateAllegiance: string,
    *   publicAllegiance: string, publicSlain: boolean, hidden: boolean, incognito: boolean,

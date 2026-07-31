@@ -11,7 +11,7 @@ export default class GameNpcNewHelper {
    *   treasures/photos breakdown to: the avatar is editable but picking a
    *   photo opens the upload modal in its deferred mode (see
    *   `PhotoUploadModal`), which just keeps the picked file in the page's own
-   *   state (rendered here as `profile_photo_path`, normalized from the page's
+   *   state (rendered here as `photo_path`, normalized from the page's
    *   own `photoPreviewUrl` state so it lines up with the edit page's field
    *   name) until the NPC is created and the photo is actually uploaded.
    *   Before a photo is picked, the avatar shows its default static
@@ -25,7 +25,7 @@ export default class GameNpcNewHelper {
    * @param {{name: string, role: string, description: string, privateDescription: string,
    *   links: object[], hidden: boolean, incognito: boolean, money: string, gameType: string,
    *   privateAllegiance: string, publicAllegiance: string, isFullEditor: boolean, status: string,
-   *   fieldErrors: object, profile_photo_path: string|null}} formState - Form state.
+   *   fieldErrors: object, photo_path: string|null}} formState - Form state.
    * @param {{onSubmit: Function, onNameChange: Function, onRoleChange: Function,
    *   onDescriptionChange: Function, onPrivateDescriptionChange: Function,
    *   onOpenLinksModal: Function, onOpenUploadModal: Function, onOpenMoneyModal: Function,

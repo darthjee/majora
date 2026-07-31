@@ -20,7 +20,7 @@ export default class CharacterHelper {
    *   self-fetching `ShortList` element.
    * @param {object} character - Character data object.
    * @param {string} character.name - Character name.
-   * @param {string|null} [character.profile_photo_path] - Optional profile photo path.
+   * @param {string|null} [character.photo_path] - Optional photo path.
    * @param {string} [character.role] - Character role.
    * @param {string} [character.public_description] - Character public description.
    * @param {string} [character.private_description] - Character private description (DM notes).

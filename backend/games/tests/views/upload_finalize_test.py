@@ -541,26 +541,26 @@ class TestUploadFinalizeView(TestCase):
         self.game_photo.refresh_from_db()
         assert self.game_photo.ready is True
 
-    def test_uploaded_status_sets_game_cover_photo(self):
-        """Test that status=uploaded sets game.cover_photo when it was unset."""
+    def test_uploaded_status_sets_game_photo(self):
+        """Test that status=uploaded sets game.photo when it was unset."""
         self._valid_patch(self.client, {'status': 'uploaded'})
         self.game.refresh_from_db()
-        assert self.game.cover_photo == self.game_photo
+        assert self.game.photo == self.game_photo
 
-    def test_uploaded_status_does_not_overwrite_existing_cover_photo(self):
-        """Test that status=uploaded does not overwrite an existing game.cover_photo."""
+    def test_uploaded_status_does_not_overwrite_existing_game_photo(self):
+        """Test that status=uploaded does not overwrite an existing game.photo."""
         existing_cover = GamePhoto.objects.create(
             game=self.game,
             path='photos/games/epic-quest/existing.jpg',
             ready=True,
         )
-        self.game.cover_photo = existing_cover
+        self.game.photo = existing_cover
         self.game.save()
 
         self._valid_patch(self.client, {'status': 'uploaded'})
 
         self.game.refresh_from_db()
-        assert self.game.cover_photo == existing_cover
+        assert self.game.photo == existing_cover
 
     def test_invalid_status_value_returns_400(self):
         """Test that an invalid status value returns 400."""
@@ -620,26 +620,26 @@ class TestUploadFinalizeView(TestCase):
         self.character_photo.refresh_from_db()
         assert self.character_photo.ready is True
 
-    def test_uploaded_status_sets_character_profile_photo(self):
-        """Test that status=uploaded sets character.profile_photo when it was unset."""
+    def test_uploaded_status_sets_character_photo(self):
+        """Test that status=uploaded sets character.photo when it was unset."""
         self._valid_character_patch(self.client, {'status': 'uploaded'})
         self.character.refresh_from_db()
-        assert self.character.profile_photo == self.character_photo
+        assert self.character.photo == self.character_photo
 
-    def test_uploaded_status_does_not_overwrite_existing_profile_photo(self):
-        """Test that status=uploaded does not overwrite an existing character.profile_photo."""
-        existing_profile_photo = CharacterPhoto.objects.create(
+    def test_uploaded_status_does_not_overwrite_existing_character_photo(self):
+        """Test that status=uploaded does not overwrite an existing character.photo."""
+        existing_photo = CharacterPhoto.objects.create(
             character=self.character,
             path='photos/games/epic-quest/characters/1/existing.jpg',
             ready=True,
         )
-        self.character.profile_photo = existing_profile_photo
+        self.character.photo = existing_photo
         self.character.save()
 
         self._valid_character_patch(self.client, {'status': 'uploaded'})
 
         self.character.refresh_from_db()
-        assert self.character.profile_photo == existing_profile_photo
+        assert self.character.photo == existing_photo
 
     def test_uploading_status_returns_200_for_npc_upload_by_player_of_game(self):
         """Test that a player of the game finalizing an NPC CharacterPhoto upload gets 200."""

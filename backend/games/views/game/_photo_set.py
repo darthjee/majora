@@ -29,5 +29,5 @@ def character_photo_set(request, game, character_id, photo_id, npc):
 def _apply_roles(character, photo, roles):
     """Apply the requested roles to `photo`, mutating `character` as needed."""
     if 'profile' in roles:
-        character.profile_photo = photo
+        character.photo = photo
         character.save()

@@ -28,7 +28,7 @@ export function buildCharacter(overrides = {}) {
   return {
     id: 1,
     name: 'Test Character',
-    profile_photo_path: null,
+    photo_path: null,
     role: null,
     public_description: '',
     is_pc: false,
