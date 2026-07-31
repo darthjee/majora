@@ -180,6 +180,48 @@ resources:
   paginated_game_documents:
     - url: /games/{:slug}/documents.json?page={:page}
       status: 200
+      actions:
+        - resource: game_document_details
+          parameters:
+            slug: parameters.slug
+            id: parsedBody.id
+
+  game_document_details:
+    - url: /games/{:slug}/documents/{:id}.json
+      status: 200
+      actions:
+        - resource: game_document_files
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+        - resource: game_document_photos
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+        - resource: short_game_document_files
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+        - resource: short_game_document_photos
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+
+  game_document_files:
+    - url: /games/{:slug}/documents/{:id}/files.json
+      status: 200
+
+  game_document_photos:
+    - url: /games/{:slug}/documents/{:id}/photos.json
+      status: 200
+
+  short_game_document_files:
+    - url: /games/{:slug}/documents/{:id}/files.json?per_page=17
+      status: 200
+
+  short_game_document_photos:
+    - url: /games/{:slug}/documents/{:id}/photos.json?per_page=17
+      status: 200
 
   game_sessions:
     - url: /games/{:slug}/sessions/past.json

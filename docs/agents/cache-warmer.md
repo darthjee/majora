@@ -8,10 +8,29 @@ See [HOW_TO_USE_NAVI.md](external/HOW_TO_USE_NAVI.md) for the full Navi referenc
 The Navi configuration lives in [`.circleci/navi_config.yaml`](../../.circleci/navi_config.yaml).
 
 It covers all `.json` API endpoints, chaining from `/games.json` down through each game's
-detail, PCs, and NPCs, and from there to each character's detail — the `slug` extracted at
-the top of the chain is inherited by every resource below it, so it never needs
+detail, PCs, NPCs, treasures, items, documents, and sessions, and from there to each
+character's/document's detail (and its nested photos/files/treasures/items) — the `slug`
+extracted at the top of the chain is inherited by every resource below it, so it never needs
 re-extracting. See `.circleci/navi_config.yaml` for the exact resource names and URL
 patterns.
+
+## Maintaining this configuration
+
+`.circleci/navi_config.yaml` (and this document) is owned by the
+[`cache`](../../.claude/agents/cache.md) agent. When a new API endpoint is added, it should be
+added to the warm-up chain following these rules:
+
+- Include regular (unparameterized or already-reachable) endpoints, paginated resources
+  (`paginated_actions`), nested resources reached via `actions`, and `short_*` resources that
+  mirror shortlist requests made by the frontend (matching the real `MAX_PREVIEW_*` constant
+  the frontend uses for `per_page`, not an arbitrary number).
+- Never include mutation endpoints (anything other than `GET`).
+- Never include restricted endpoints (cross-check `docs/agents/access-control/`) — except when
+  the same URL serves both a regular and a restricted form (e.g. `/games.json`), in which case
+  the regular form is included as usual.
+- When an intermediate resource's response body doesn't carry a parameter needed further down
+  the chain (e.g. a detail serializer that omits `game_slug`), carry it forward via Navi's
+  inherited `parameters.*` namespace instead of `parsedBody.*`.
 
 ## CI (CircleCI)
 

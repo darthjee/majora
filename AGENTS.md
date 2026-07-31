@@ -79,7 +79,7 @@ All project documentation lives under [`docs/agents/`](docs/agents/):
 | [Product Definitions](docs/agents/product.md) | Authoritative product-level concepts: entity definitions, ownership chain, GameMaster role, and editing rules. Consult before planning any issue that introduces new entities or changes access logic. |
 | [Access Control](docs/agents/access-control.md) | Per-role access rules for every model and endpoint; updated alongside any new model or endpoint. |
 | [Security Guidelines](docs/agents/security-guidelines.md) | Project-specific vulnerability patterns (auth gaps, injection, insecure headers, exposed secrets, CSRF, insecure proxy rules, input validation); used by the `security` agent. |
-| [Cache Warmer](docs/agents/cache-warmer.md) | Navi setup for warming the proxy cache after release (CI and local). |
+| [Cache Warmer](docs/agents/cache-warmer.md) | Navi setup for warming the proxy cache after release (CI and local); used by the `cache` agent. |
 | [Frontend i18n](docs/agents/i18n.md) | Frontend translation layer: YAML files, `Translator`, language selector, and how to add a new language. |
 | [Mutation Migration](docs/agents/migration/README.md) | Temporary doc tracking the app-wide migration of mutation requests onto `RequestStore`; explains the approach once and checklists every route — deleted once the last route is migrated. |
 | [How to Use Navi](docs/agents/external/HOW_TO_USE_NAVI.md) | Full Navi reference: config format, chaining, pagination, CLI flags. |

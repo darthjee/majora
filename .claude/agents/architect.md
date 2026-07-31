@@ -23,9 +23,10 @@ Delegate implementation work to the right agent. Never implement what belongs to
 |-------|-------|
 | `frontend` | `frontend/` — React components, Jasmine specs, ESLint, Vite, CSS |
 | `backend` | `backend/` — Django models, views, serializers, migrations, pytest |
-| `infra` | `docker-compose.yml`, `dockerfiles/`, `.circleci/`, `scripts/`, `Makefile`, Navi config |
+| `infra` | `docker-compose.yml`, `dockerfiles/`, `.circleci/config.yml`, `scripts/`, `Makefile` |
 | `proxy` | `proxy/` — PHP Tent proxy configuration, custom middleware, and tests |
 | `translator` | `frontend/assets/i18n/*.yaml` — translation content and key-parity checks |
+| `cache` | `.circleci/navi_config.yaml`, cache-warmer docs — Navi warm-up route maintenance + `X-Skip-Cache` review |
 
 ## How to coordinate
 
@@ -42,12 +43,12 @@ When a task spans multiple agents:
 
 1. `backend` — add model, migration, serializer, view, tests
 2. `frontend` — add client call, components, specs
-3. `infra` — add new endpoints to `.circleci/navi_config.yaml` warm-up chain
+3. `cache` — add new endpoints to `.circleci/navi_config.yaml` warm-up chain
 
 **New API endpoint:**
 
 1. `backend` — implement and test
-2. `infra` — add to Navi config
+2. `cache` — add to Navi config
 
 **Infrastructure change affecting development workflow:**
 
@@ -83,6 +84,18 @@ findings, delegate the required corrections to the appropriate specialist agent 
 for Django code, `infra` for proxy rules), then re-invoke `security` to confirm all
 findings are resolved before merging the PR.
 
+### Cache warm-up review
+
+Invoke the `cache` agent after `backend`, `frontend`, or `proxy` finishes whenever an issue
+involves any of:
+
+- A new or changed API endpoint (keep `.circleci/navi_config.yaml`'s warm-up chain in sync)
+- A restricted endpoint (verify it carries the `X-Skip-Cache` header)
+
+Dispatch `cache` with the list of changed files. If it reports a missing `X-Skip-Cache`
+header, delegate the fix to `backend` (Django response) or `proxy` (Tent rule), then
+re-invoke `cache` to confirm the finding is resolved before merging the PR.
+
 ## Documentation (`docs/agents/`)
 
 | File | Contents |
@@ -90,7 +103,7 @@ findings are resolved before merging the PR.
 | `folder-structure.md` | Top-level directory layout |
 | `architecture.md` | Source layout, modules, code style, implementation guidelines |
 | `flow.md` | Main runtime flow of the application |
-| `cache-warmer.md` | Navi setup for warming the proxy cache |
+| `cache-warmer.md` | Navi setup for warming the proxy cache; used by the `cache` agent |
 | `access-control.md` | Short index linking to per-resource access rules under `access-control/` |
 | `access-control/` | One file per resource/topic — access rules for that resource only |
 | `external/HOW_TO_USE_NAVI.md` | Full Navi reference |
