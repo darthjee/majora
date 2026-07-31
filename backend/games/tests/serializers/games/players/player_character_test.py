@@ -31,7 +31,7 @@ class TestPlayerCharacterSerializer(TestCase):
         photo = CharacterPhoto.objects.create(
             path='photos/games/test-game/characters/1/profile.jpg', character=self.character
         )
-        self.character.profile_photo = photo
+        self.character.photo = photo
         self.character.save()
         data = PlayerCharacterSerializer(self.character).data
         assert data['photo_url'] == 'photos/games/test-game/characters/1/profile.jpg'

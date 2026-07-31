@@ -40,15 +40,15 @@ class TestCharacterPhoto(TestCase):
         )
         assert self.character.photos.count() == 2
 
-    def test_deleting_profile_photo_clears_character_profile_photo(self):
-        """Test that deleting a character's profile photo sets Character.profile_photo to None."""
+    def test_deleting_photo_clears_character_photo(self):
+        """Test that deleting a character's profile photo sets Character.photo to None."""
         photo = CharacterPhoto.objects.create(
             path='photos/games/test-game/characters/1/profile.png', character=self.character
         )
-        self.character.profile_photo = photo
+        self.character.photo = photo
         self.character.save()
 
         photo.delete()
 
         self.character.refresh_from_db()
-        assert self.character.profile_photo is None
+        assert self.character.photo is None

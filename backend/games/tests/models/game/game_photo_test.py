@@ -31,13 +31,13 @@ class TestGamePhoto(TestCase):
         GamePhoto.objects.create(path='photos/games/test-game/photo2.png', game=self.game)
         assert self.game.photos.count() == 2
 
-    def test_deleting_cover_photo_clears_game_cover_photo(self):
-        """Test that deleting a game's cover photo sets Game.cover_photo back to None."""
+    def test_deleting_photo_clears_game_photo(self):
+        """Test that deleting a game's cover photo sets Game.photo back to None."""
         photo = GamePhoto.objects.create(path='photos/games/test-game/cover.png', game=self.game)
-        self.game.cover_photo = photo
+        self.game.photo = photo
         self.game.save()
 
         photo.delete()
 
         self.game.refresh_from_db()
-        assert self.game.cover_photo is None
+        assert self.game.photo is None

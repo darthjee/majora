@@ -114,14 +114,14 @@ class TestGameNpcPhotoDetailView(TokenAuthRequestMixin):
         self.photo.refresh_from_db()
         assert self.photo.ready is False
 
-    def test_patch_clears_profile_photo_when_patched_photo_is_profile(self, client):
-        """Test that PATCH clears profile_photo when the patched photo was the profile photo."""
-        self.character.profile_photo = self.photo
+    def test_patch_clears_photo_when_patched_photo_is_profile(self, client):
+        """Test that PATCH clears photo when the patched photo was the profile photo."""
+        self.character.photo = self.photo
         self.character.save()
         response = self._patch(client, token=self.dm_token)
         assert response.status_code == 200
         self.character.refresh_from_db()
-        assert self.character.profile_photo is None
+        assert self.character.photo is None
 
     def test_patch_carries_skip_cache_header(self, client):
         """Test that the PATCH response carries the X-Skip-Cache: true header."""

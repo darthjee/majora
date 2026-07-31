@@ -28,7 +28,7 @@ class Game(models.Model):
         'Treasure', through='GameTreasure', blank=True,
         related_name='linked_games', related_query_name='linked_game',
     )
-    cover_photo = models.ForeignKey(
+    photo = models.ForeignKey(
         'games.GamePhoto', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
     )
     history = HistoricalRecords(app='versioning', user_db_constraint=False)

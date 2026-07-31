@@ -108,61 +108,61 @@ class TestCharacterDetailSerializer(TestCase):
         data = self._serialize()
         assert 'can_exchange_treasure' not in data
 
-    def test_does_not_include_can_set_profile_photo(self):
-        """Test that can_set_profile_photo is not exposed (moved to permissions.json)."""
+    def test_does_not_include_can_set_photo(self):
+        """Test that can_set_photo is not exposed (moved to permissions.json)."""
         data = self._serialize()
-        assert 'can_set_profile_photo' not in data
+        assert 'can_set_photo' not in data
 
     def test_does_not_include_can_delete_photo(self):
         """Test that can_delete_photo is not exposed (moved to permissions.json)."""
         data = self._serialize()
         assert 'can_delete_photo' not in data
 
-    def test_serializes_profile_photo_path_as_none_when_unset(self):
-        """Test that profile_photo_path is null when the character has no profile photo."""
+    def test_serializes_photo_path_as_none_when_unset(self):
+        """Test that photo_path is null when the character has no profile photo."""
         data = self._serialize()
-        assert data['profile_photo_path'] is None
+        assert data['photo_path'] is None
 
-    def test_serializes_profile_photo_path_when_set(self):
-        """Test that profile_photo_path equals the profile photo's path when set."""
+    def test_serializes_photo_path_when_set(self):
+        """Test that photo_path equals the profile photo's path when set."""
         photo = CharacterPhoto.objects.create(
             path='photos/games/test-game/characters/1/profile.jpg', character=self.character
         )
-        self.character.profile_photo = photo
+        self.character.photo = photo
         self.character.save()
         data = self._serialize()
-        assert data['profile_photo_path'] == 'photos/games/test-game/characters/1/profile.jpg'
+        assert data['photo_path'] == 'photos/games/test-game/characters/1/profile.jpg'
 
-    def test_serializes_profile_photo_path_as_none_when_incognito(self):
-        """Test that profile_photo_path is null when the character is incognito."""
+    def test_serializes_photo_path_as_none_when_incognito(self):
+        """Test that photo_path is null when the character is incognito."""
         photo = CharacterPhoto.objects.create(
             path='photos/games/test-game/characters/1/profile.jpg', character=self.character
         )
-        self.character.profile_photo = photo
+        self.character.photo = photo
         self.character.incognito = True
         self.character.save()
         data = self._serialize()
-        assert data['profile_photo_path'] is None
+        assert data['photo_path'] is None
 
     def test_does_not_include_incognito(self):
         """Test that the incognito field is not exposed."""
         data = self._serialize()
         assert 'incognito' not in data
 
-    def test_serializes_profile_photo_id_as_none_when_unset(self):
-        """Test that profile_photo_id is null when the character has no profile photo."""
+    def test_serializes_photo_id_as_none_when_unset(self):
+        """Test that photo_id is null when the character has no profile photo."""
         data = self._serialize()
-        assert data['profile_photo_id'] is None
+        assert data['photo_id'] is None
 
-    def test_serializes_profile_photo_id_when_set(self):
-        """Test that profile_photo_id equals the profile photo's id when set."""
+    def test_serializes_photo_id_when_set(self):
+        """Test that photo_id equals the profile photo's id when set."""
         photo = CharacterPhoto.objects.create(
             path='photos/games/test-game/characters/1/profile.jpg', character=self.character
         )
-        self.character.profile_photo = photo
+        self.character.photo = photo
         self.character.save()
         data = self._serialize()
-        assert data['profile_photo_id'] == photo.id
+        assert data['photo_id'] == photo.id
 
     def test_serializes_money(self):
         """Test that the money field is serialized."""

@@ -92,41 +92,41 @@ class TestGameNpcPhotoSetView(TokenAuthRequestMixin):
         )
         assert response.status_code == 404
 
-    def test_happy_path_sets_profile_photo(self, client):
+    def test_happy_path_sets_photo(self, client):
         """Test that sending roles=['profile'] sets the character's profile photo."""
         response = self._patch(client, {'roles': ['profile']}, token=self._editor_token())
         assert response.status_code == 200
         self.character.refresh_from_db()
-        assert self.character.profile_photo == self.photo
+        assert self.character.photo == self.photo
 
-    def test_replaces_existing_profile_photo(self, client):
+    def test_replaces_existing_photo(self, client):
         """Test that setting a new profile photo replaces a previously set one."""
         previous_photo = CharacterPhoto.objects.create(
             path='photos/games/epic-quest/characters/1/img2.jpg', character=self.character
         )
-        self.character.profile_photo = previous_photo
+        self.character.photo = previous_photo
         self.character.save()
 
         response = self._patch(client, {'roles': ['profile']}, token=self._editor_token())
         assert response.status_code == 200
         self.character.refresh_from_db()
-        assert self.character.profile_photo == self.photo
+        assert self.character.photo == self.photo
 
     def test_empty_roles_is_a_noop(self, client):
         """Test that an empty roles array is a no-op and still returns 200."""
         response = self._patch(client, {'roles': []}, token=self._editor_token())
         assert response.status_code == 200
         self.character.refresh_from_db()
-        assert self.character.profile_photo is None
+        assert self.character.photo is None
 
     def test_unrecognized_role_is_a_noop(self, client):
         """Test that unrecognized roles are ignored and still return 200."""
         response = self._patch(client, {'roles': ['something-else']}, token=self._editor_token())
         assert response.status_code == 200
         self.character.refresh_from_db()
-        assert self.character.profile_photo is None
+        assert self.character.photo is None
 
-    def test_superuser_can_set_profile_photo(self, client):
+    def test_superuser_can_set_photo(self, client):
         """Test that a superuser is allowed to set the profile photo for any character."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)

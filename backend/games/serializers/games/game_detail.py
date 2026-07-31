@@ -13,9 +13,7 @@ class GameDetailSerializer(serializers.ModelSerializer):
 
     links = GameLinkSerializer(many=True, read_only=True)
     photos = GamePhotoSerializer(many=True, read_only=True)
-    cover_photo_path = serializers.CharField(
-        source='cover_photo.path', default=None, read_only=True
-    )
+    photo_path = serializers.CharField(source='photo.path', default=None, read_only=True)
     next_session = serializers.SerializerMethodField()
 
     class Meta:
@@ -29,7 +27,7 @@ class GameDetailSerializer(serializers.ModelSerializer):
             'game_type',
             'links',
             'photos',
-            'cover_photo_path',
+            'photo_path',
             'next_session',
         ]
 

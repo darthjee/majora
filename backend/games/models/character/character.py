@@ -46,7 +46,7 @@ class Character(models.Model):
         max_length=16, choices=ALLEGIANCE_CHOICES, default=ALLEGIANCE_NEUTRAL
     )
     money = models.PositiveIntegerField(default=0)
-    profile_photo = models.ForeignKey(
+    photo = models.ForeignKey(
         'games.CharacterPhoto', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
     )
     history = HistoricalRecords(app='versioning', user_db_constraint=False)
