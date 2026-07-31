@@ -15,6 +15,7 @@ import ViewAsModalHelper from './helpers/ViewAsModalHelper.jsx';
 export default function ViewAsModal({ show, onClose, gameSlug }) {
   const [enabled, setEnabled] = useState(() => AccessStore.getFacade().enabled);
   const [roles, setRoles] = useState(() => AccessStore.getFacade().roles);
+  const [notLogged, setNotLogged] = useState(() => AccessStore.getFacade().notLogged);
 
   useEffect(() => {
     if (!show) return;
@@ -23,20 +24,22 @@ export default function ViewAsModal({ show, onClose, gameSlug }) {
 
     setEnabled(facade.enabled);
     setRoles(facade.roles);
+    setNotLogged(facade.notLogged);
   }, [show]);
 
   const controller = useMemo(
-    () => new ViewAsModalController(setEnabled, setRoles, onClose),
+    () => new ViewAsModalController(setEnabled, setRoles, setNotLogged, onClose),
     [onClose],
   );
 
   return ViewAsModalHelper.render(
     show,
-    { enabled, roles },
+    { enabled, roles, notLogged },
     {
       onCancel: () => controller.handleCancel(),
-      onSave: () => controller.handleSave(enabled, roles, gameSlug),
+      onSave: () => controller.handleSave(enabled, roles, notLogged, gameSlug),
       onToggleEnabled: () => controller.handleToggleEnabled(),
+      onToggleNotLogged: () => controller.handleToggleNotLogged(),
       onToggleRole: (role) => controller.handleToggleRole(role),
     },
   );

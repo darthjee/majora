@@ -11,11 +11,13 @@ export default class ViewAsModalController {
    *
    * @param {Function} setEnabled - State setter for the in-progress "enabled" flag.
    * @param {Function} setRoles - State setter for the in-progress roles array.
+   * @param {Function} setNotLogged - State setter for the in-progress "not logged" flag.
    * @param {Function} onClose - Callback invoked to close the modal.
    */
-  constructor(setEnabled, setRoles, onClose) {
+  constructor(setEnabled, setRoles, setNotLogged, onClose) {
     this.setEnabled = setEnabled;
     this.setRoles = setRoles;
+    this.setNotLogged = setNotLogged;
     this.onClose = onClose;
   }
 
@@ -43,6 +45,15 @@ export default class ViewAsModalController {
   }
 
   /**
+   * Toggles the in-progress "not logged" flag.
+   *
+   * @returns {void}
+   */
+  handleToggleNotLogged() {
+    this.setNotLogged((current) => !current);
+  }
+
+  /**
    * Discards the in-progress edit and closes the modal, without touching `AccessStore`.
    *
    * @returns {void}
@@ -56,12 +67,13 @@ export default class ViewAsModalController {
    *
    * @param {boolean} enabled - Whether the facade should be active.
    * @param {string[]} roles - Roles to simulate while the facade is active.
+   * @param {boolean} notLogged - Whether to simulate an anonymous (not logged in) requester.
    * @param {string} [gameSlug] - Current route's game slug, threaded through
    *   to `AccessStore.setFacade` (ignored for real admin/staff activations).
    * @returns {void}
    */
-  handleSave(enabled, roles, gameSlug) {
-    AccessStore.setFacade({ enabled, roles, gameSlug });
+  handleSave(enabled, roles, notLogged, gameSlug) {
+    AccessStore.setFacade({ enabled, roles, notLogged, gameSlug });
     this.onClose();
   }
 }

@@ -23,7 +23,7 @@ describe('AccessStore', function() {
 
   describe('#getFacade', function() {
     it('returns disabled/empty by default', function() {
-      expect(AccessStore.getFacade()).toEqual({ enabled: false, roles: [], gameSlug: null });
+      expect(AccessStore.getFacade()).toEqual({ enabled: false, roles: [], notLogged: false, gameSlug: null });
     });
   });
 
@@ -31,7 +31,13 @@ describe('AccessStore', function() {
     it('updates the facade state readable via #getFacade', function() {
       AccessStore.setFacade({ enabled: true, roles: ['dm'] });
 
-      expect(AccessStore.getFacade()).toEqual({ enabled: true, roles: ['dm'], gameSlug: null });
+      expect(AccessStore.getFacade()).toEqual({ enabled: true, roles: ['dm'], notLogged: false, gameSlug: null });
+    });
+
+    it('threads the notLogged flag through to #getFacade', function() {
+      AccessStore.setFacade({ enabled: true, roles: [], notLogged: true });
+
+      expect(AccessStore.getFacade()).toEqual({ enabled: true, roles: [], notLogged: true, gameSlug: null });
     });
 
     it('scopes the facade to the given gameSlug for a non-admin (DM) activation', function() {
@@ -39,7 +45,9 @@ describe('AccessStore', function() {
 
       AccessStore.setFacade({ enabled: true, roles: ['dm'], gameSlug: 'epic-quest' });
 
-      expect(AccessStore.getFacade()).toEqual({ enabled: true, roles: ['dm'], gameSlug: 'epic-quest' });
+      expect(AccessStore.getFacade()).toEqual({
+        enabled: true, roles: ['dm'], notLogged: false, gameSlug: 'epic-quest',
+      });
     });
 
     it('ignores the given gameSlug for a real staff/superuser activation', function() {
@@ -47,17 +55,19 @@ describe('AccessStore', function() {
 
       AccessStore.setFacade({ enabled: true, roles: ['dm'], gameSlug: 'epic-quest' });
 
-      expect(AccessStore.getFacade()).toEqual({ enabled: true, roles: ['dm'], gameSlug: null });
+      expect(AccessStore.getFacade()).toEqual({ enabled: true, roles: ['dm'], notLogged: false, gameSlug: null });
     });
 
-    it('resets cached state and re-syncs the current page route', function() {
+    it('resets cached state and re-syncs the current page route', async function() {
       spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 
       AccessStore.syncForRoute('game', '#/games/demo');
+      await new Promise((resolve) => setTimeout(resolve, 0));
       expect(AccessStore.ensureGamePermissions).toHaveBeenCalledTimes(1);
 
       AccessStore.setFacade({ enabled: true, roles: ['dm'] });
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(AccessStore.ensureGamePermissions).toHaveBeenCalledTimes(2);
     });
@@ -70,7 +80,7 @@ describe('AccessStore', function() {
       expect(AccessEvents.emitFacadeChanged).toHaveBeenCalledTimes(1);
     });
 
-    it('threads the simulated roles into the next #ensureGamePermissions fetch', async function() {
+    it('threads the simulated roles (plus "logged") into the next #ensureGamePermissions fetch', async function() {
       const fetchSpy = spyOn(GameClient.prototype, 'fetchGamePermissions').and.returnValue(
         Promise.resolve(fakeResponse({ can_edit: true })),
       );
@@ -79,7 +89,19 @@ describe('AccessStore', function() {
 
       await AccessStore.ensureGamePermissions('demo');
 
-      expect(fetchSpy).toHaveBeenCalledWith('demo', null, jasmine.anything(), ['dm']);
+      expect(fetchSpy).toHaveBeenCalledWith('demo', null, jasmine.anything(), ['dm', 'logged']);
+    });
+
+    it('sends an empty role set into the next #ensureGamePermissions fetch when "Not Logged" is on', async function() {
+      const fetchSpy = spyOn(GameClient.prototype, 'fetchGamePermissions').and.returnValue(
+        Promise.resolve(fakeResponse({ can_edit: false })),
+      );
+
+      AccessStore.setFacade({ enabled: true, roles: ['dm'], notLogged: true });
+
+      await AccessStore.ensureGamePermissions('demo');
+
+      expect(fetchSpy).toHaveBeenCalledWith('demo', null, jasmine.anything(), []);
     });
   });
 
@@ -100,7 +122,7 @@ describe('AccessStore', function() {
 
       AccessStore.syncForAuthChange();
 
-      expect(AccessStore.getFacade()).toEqual({ enabled: false, roles: [], gameSlug: null });
+      expect(AccessStore.getFacade()).toEqual({ enabled: false, roles: [], notLogged: false, gameSlug: null });
     });
 
     it('does not emit AccessEvents.emitFacadeChanged', function() {

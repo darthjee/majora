@@ -13,9 +13,9 @@ export default class ViewAsModalHelper {
    * Renders the view-as modal.
    *
    * @param {boolean} show - Whether the modal is visible.
-   * @param {{enabled: boolean, roles: string[]}} state - Modal state.
+   * @param {{enabled: boolean, roles: string[], notLogged: boolean}} state - Modal state.
    * @param {{onCancel: Function, onSave: Function, onToggleEnabled: Function,
-   *   onToggleRole: Function}} handlers - Modal event handlers.
+   *   onToggleNotLogged: Function, onToggleRole: Function}} handlers - Modal event handlers.
    * @returns {React.ReactElement} Rendered view-as modal.
    */
   static render(show, state, handlers) {
@@ -28,7 +28,12 @@ export default class ViewAsModalHelper {
           {ViewAsModalHelper.#renderEnabledCheckbox(state, handlers)}
           <Collapse in={state.enabled}>
             <div>
-              {ROLES.map((role) => ViewAsModalHelper.#renderRoleCheckbox(role, state, handlers))}
+              {ViewAsModalHelper.#renderNotLoggedCheckbox(state, handlers)}
+              <Collapse in={state.enabled && !state.notLogged}>
+                <div>
+                  {ROLES.map((role) => ViewAsModalHelper.#renderRoleCheckbox(role, state, handlers))}
+                </div>
+              </Collapse>
             </div>
           </Collapse>
         </Modal.Body>
@@ -53,6 +58,19 @@ export default class ViewAsModalHelper {
         label={Translator.t('view_as_modal.enabled_label')}
         checked={state.enabled}
         onChange={handlers.onToggleEnabled}
+      />
+    );
+  }
+
+  static #renderNotLoggedCheckbox(state, handlers) {
+    return (
+      <Form.Check
+        id="view-as-modal-not-logged"
+        type="switch"
+        className="mb-3"
+        label={Translator.t('view_as_modal.not_logged_label')}
+        checked={state.notLogged}
+        onChange={handlers.onToggleNotLogged}
       />
     );
   }
