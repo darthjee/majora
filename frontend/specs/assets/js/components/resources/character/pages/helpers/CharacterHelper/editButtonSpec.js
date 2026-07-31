@@ -56,6 +56,15 @@ describe('CharacterHelper', function() {
       expect(html).toContain('Edit');
     });
 
+    it('renders an npcs edit button for a staff account even when is_player is false', function() {
+      const c = {
+        ...character, can_edit: false, is_player: false, is_pc: false, is_staff: true, game_slug: 'demo', id: 7,
+      };
+      const html = renderToStaticMarkup(CharacterHelper.render(c, '#/games/demo/npcs'));
+      expect(html).toContain('href="#/games/demo/npcs/7/edit"');
+      expect(html).toContain('Edit');
+    });
+
     it('does not render a pcs edit button for neither a player nor a staff account', function() {
       const c = {
         ...character, can_edit: false, is_player: false, is_pc: true, is_staff: false, game_slug: 'demo', id: 7,
