@@ -83,9 +83,14 @@ export default class AccessStorePermissions {
    * @param {import('../AccessCache.js').default} cache - Shared cache instance.
    * @param {import('../../../client/TreasureClient.js').default} treasureClient - Treasure client.
    * @param {string|number} id - Treasure id.
+   * @param {boolean} [isExclusive] - Whether this treasure is game-exclusive (non-null/non-empty
+   *   `game_slug` on its already-loaded detail). Threaded through to
+   *   {@link TreasureClient#fetchTreasurePermissions} to pick the matching route; not part of the
+   *   cache key (see {@link AccessStoreKeys.treasurePermissions}) since a given treasure id is
+   *   always either scoped or global, never both.
    * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
    */
-  static ensureTreasure(cache, treasureClient, id) {
+  static ensureTreasure(cache, treasureClient, id, isExclusive = false) {
     const roleSet = AccessStorePermissions.#roleSet(AccessStoreAccess.getTreasure(cache, id));
 
     return AccessStorePermissions.#loggedEnsure(
@@ -93,7 +98,7 @@ export default class AccessStorePermissions {
       AccessStoreKeys.treasurePermissions(id, roleSet),
       'ensureTreasure',
       [id],
-      (signal) => treasureClient.fetchTreasurePermissions(id, AuthStorage.getToken(), signal, roleSet)
+      (signal) => treasureClient.fetchTreasurePermissions(id, AuthStorage.getToken(), signal, roleSet, isExclusive)
         .then(AccessStorePermissions.#parse),
       PERMISSIONS_DEFAULT,
       { roleSet },

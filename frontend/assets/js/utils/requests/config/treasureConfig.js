@@ -20,7 +20,7 @@
  *
  *   `single` params: `id` (treasure id) and, optionally, `gameSlug`. `GET /treasures/:id.json`
  *   (no `gameSlug`) is `AllowAny` with no separate restricted/full variant — a treasure's edit
- *   rights are resolved separately via `/treasures/:id/permissions.json`
+ *   rights are resolved separately via `/permissions/treasure.json`
  *   (`AccessStore.ensureTreasurePermissions`), not embedded in this response. `GET
  *   /games/:game_slug/treasures/:id.json` (`gameSlug` given, used by the per-game treasure edit
  *   page) is likewise `AllowAny` for `GET` — edit rights for that route are enforced inline on

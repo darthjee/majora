@@ -1,6 +1,17 @@
 """URL patterns for the games app, concatenated from per-resource modules."""
 
-from . import conversations, games, npcs, pcs, players, staff, system, treasures, uploads
+from . import (
+    conversations,
+    games,
+    npcs,
+    pcs,
+    permissions,
+    players,
+    staff,
+    system,
+    treasures,
+    uploads,
+)
 
 urlpatterns = (
     games.urlpatterns
@@ -12,4 +23,5 @@ urlpatterns = (
     + uploads.urlpatterns
     + staff.urlpatterns
     + system.urlpatterns
+    + permissions.urlpatterns
 )

@@ -47,12 +47,29 @@ describe('TreasureEditController', function() {
       expect(ensureSpy).toHaveBeenCalledWith({
         componentName: 'TreasureEditController', resource: 'treasure', quantityType: 'single', params: { id: '1' },
       });
-      expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('1');
+      expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('1', false);
       expect(setTreasure).toHaveBeenCalledWith(
         { id: 1, name: 'Sword', value: 100, can_edit: true },
       );
       expect(setLoading).toHaveBeenCalledWith(false);
       expect(setError).not.toHaveBeenCalled();
+
+      cleanup();
+    });
+
+    it('sequences the permissions fetch after the resource fetch resolves, passing isExclusive true for a '
+      + 'game-exclusive treasure', async function() {
+      ensureSpy.and.returnValue(
+        Promise.resolve({ data: { id: 1, name: 'Sword', value: 100, game_slug: 'demo' } }),
+      );
+
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('1', true);
+      expect(setTreasure).toHaveBeenCalledWith(
+        { id: 1, name: 'Sword', value: 100, game_slug: 'demo', can_edit: true },
+      );
 
       cleanup();
     });

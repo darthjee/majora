@@ -34,15 +34,27 @@ export default class TreasureClient extends BaseClient {
   /**
    * Fetches the edit permissions for a treasure.
    *
+   * @description Two routes exist because a treasure's edit permission genuinely differs by
+   *   whether it has an owning game, independent of `?role=` (see `docs/agents/access-control/
+   *   treasure.md`'s "Edit permission" section): `/permissions/treasure.json` always resolves the
+   *   global (gameless) action, `/permissions/game_treasure.json` always resolves the
+   *   game-exclusive one. The entity id no longer travels in either URL, so the caller must supply
+   *   `isExclusive` (derived from the treasure's own already-loaded `game_slug` detail field being
+   *   non-null/non-empty) to pick the right one.
    * @param {number|string} id - Treasure id.
    * @param {string|null} token - Authentication token, if any.
    * @param {AbortSignal} [signal] - Optional abort signal for the request.
    * @param {string[]} [roles] - Roles to simulate instead of the requester's own identity
    *   (serialized as repeated `role=` query params). Defaults to the requester's real identity.
+   * @param {boolean} [isExclusive] - Whether this treasure is game-exclusive (non-null/non-empty
+   *   `game_slug`). Selects `/permissions/game_treasure.json` when `true`, `/permissions/
+   *   treasure.json` (global) when `false` (default).
    * @returns {Promise<Response>} fetch response from the treasure permissions endpoint.
    */
-  fetchTreasurePermissions(id, token, signal, roles = []) {
-    return this.getJson(`/treasures/${id}/permissions.json${this.buildRoleQuery(roles)}`, token, {}, signal);
+  fetchTreasurePermissions(id, token, signal, roles = [], isExclusive = false) {
+    const entity = isExclusive ? 'game_treasure' : 'treasure';
+
+    return this.getJson(`/permissions/${entity}.json${this.buildRoleQuery(roles)}`, token, {}, signal);
   }
 
   /**

@@ -14,6 +14,14 @@ extracted at the top of the chain is inherited by every resource below it, so it
 re-extracting. See `.circleci/navi_config.yaml` for the exact resource names and URL
 patterns.
 
+It also covers the entity-agnostic `permissions_*` resources (`permissions_game`,
+`permissions_treasure`, `permissions_game_treasure`, `permissions_game_pc`,
+`permissions_game_npc`), which warm `/permissions/<entity_type>.json` for each of the 5
+canonical `?role=` combinations. These are
+standalone, unparameterized top-level resources — unlike the chained resources above, they
+don't need a `slug`/`id` from `parsedBody`/`parameters.*` since the response depends only on
+entity type and the role query params, never on a specific entity instance.
+
 ## Maintaining this configuration
 
 `.circleci/navi_config.yaml` (and this document) is owned by the

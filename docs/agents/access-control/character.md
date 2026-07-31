@@ -123,7 +123,8 @@ caller.
 endpoints](common-rules.md#access-status-endpoints-accessjson). `is_dm`/`is_player` are evaluated
 against the character's game; `is_owner` is real for a PC, always `false` for an NPC.
 
-`GET .../permissions.json` — **AllowAny**, standard shape per [Edit permission
+`GET /permissions/game_pc.json` (PC) / `GET /permissions/game_npc.json` (NPC) — entity-agnostic
+(no path parameters, since #926), **AllowAny**, standard shape per [Edit permission
 endpoints](common-rules.md#edit-permission-endpoints-permissionsjson); PC and NPC share one
 serializer, and `owner`/`is_owner` are no-ops for an NPC. Beyond `can_edit` and
 `can_create_item`/`can_upload_item_photo` (see [CharacterItem](character-item.md)), this endpoint

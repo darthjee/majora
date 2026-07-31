@@ -93,10 +93,13 @@ export default class AccessStore {
    * role set derived from its own `*Access` entry or the "view as" facade.
    *
    * @param {string|number} id - Treasure id.
+   * @param {boolean} [isExclusive] - Whether this treasure is game-exclusive (non-null/non-empty
+   *   `game_slug` on its already-loaded detail) — selects `/permissions/game_treasure.json`
+   *   instead of the global `/permissions/treasure.json`. Defaults to `false` (global).
    * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
    */
-  static ensureTreasurePermissions(id) {
-    return AccessStorePermissions.ensureTreasure(cache, treasureClient, id);
+  static ensureTreasurePermissions(id, isExclusive = false) {
+    return AccessStorePermissions.ensureTreasure(cache, treasureClient, id, isExclusive);
   }
 
   /**

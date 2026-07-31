@@ -42,7 +42,7 @@ export default class GameClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the game permissions endpoint.
    */
   fetchGamePermissions(gameSlug, token, signal, roles = []) {
-    return this.getJson(`/games/${gameSlug}/permissions.json${this.buildRoleQuery(roles)}`, token, {}, signal);
+    return this.getJson(`/permissions/game.json${this.buildRoleQuery(roles)}`, token, {}, signal);
   }
 
 }

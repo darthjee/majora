@@ -61,10 +61,22 @@ exclusive to one).
 
 ## Edit permission
 
-`GET /treasures/<id>/permissions.json` — **AllowAny**, standard shape per [Edit permission
-endpoints](common-rules.md#edit-permission-endpoints-permissionsjson). With no `role` param,
-`can_edit` includes staff for a global treasure, per the table above. With a `role` param, a
-global treasure remains superuser-only even under simulation (`dm` is a no-op there, and `staff`
-is intentionally never simulated); only a game-exclusive treasure's `dm` role additionally grants
-`can_edit` under simulation. This staff-granted-for-real-but-not-under-simulation asymmetry is
-intentional.
+Two entity-agnostic routes, per [Edit permission
+endpoints](common-rules.md#edit-permission-endpoints-permissionsjson) — both **AllowAny**, no path
+parameters, response `{"can_edit": <bool>}`:
+
+- `GET /permissions/treasure.json` — the global (gameless) action. With no `role` param,
+  `can_edit` is `False` (same no-role default as every `permissions.json` endpoint, per [Edit
+  permission endpoints](common-rules.md#edit-permission-endpoints-permissionsjson)). With a
+  `role` param, `superuser` and `staff` both grant `can_edit`; `dm` is a no-op here (a simulated
+  dm has no specific game to be dm *of* under this route, so the generic admin/dm shortcut is
+  deliberately disabled for it — see `backend/games/permissions/config/treasure/ui.yml`).
+- `GET /permissions/game_treasure.json` — the game-exclusive action. With no `role` param,
+  `can_edit` is `False`. With a `role` param, `superuser` and `dm` both grant `can_edit` (a
+  real/simulated dm is scoped to "some game", which is enough here since there's no specific
+  instance to check against); `staff` does not.
+
+Which route to call for a given treasure is the caller's responsibility — determined by whether
+that treasure's `game_slug` (from its already-loaded detail) is `null` (global) or not
+(game-exclusive) — since the entity id no longer travels in either URL. This
+staff-granted-for-real-but-not-under-simulation asymmetry between the two routes is intentional.

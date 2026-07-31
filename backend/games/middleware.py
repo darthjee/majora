@@ -10,10 +10,10 @@ class CacheControlMiddleware:
       typically authenticated write endpoints whose proxy caching is already
       suppressed).
     - Skips the health check endpoint (``/health.json``).
-    - Responses carrying ``X-Force-Public-Cache: true`` always get the public/anonymous
-      cache tier, regardless of the real requester's own auth state (e.g. a role-simulated
-      ``permissions.json`` response, which is identity-independent by construction even when
-      the actual caller happens to be logged in).
+    - Requests under the ``/permissions/`` path prefix always get the public/anonymous
+      cache tier, regardless of the real requester's own auth state: every endpoint there is
+      a role-simulated ``permissions.json`` response, identity-independent by construction
+      even when the actual caller happens to be logged in.
     - Unauthenticated requests → ``public, max-age=<anon_seconds>``
     - Authenticated requests    → ``private, max-age=<auth_seconds>``
     """
@@ -34,9 +34,10 @@ class CacheControlMiddleware:
         if request.path.endswith('/health.json'):
             return response
 
-        # A view may force the public/anonymous cache tier regardless of the real
-        # requester's own auth state (e.g. identity-independent, role-simulated data).
-        if response.get('X-Force-Public-Cache') == 'true':
+        # Every /permissions/ endpoint is identity-independent, role-simulated data, so it
+        # always gets the public/anonymous cache tier regardless of the real requester's own
+        # auth state.
+        if request.path.startswith('/permissions/'):
             return self._apply_public_cache_control(response)
 
         if request.user.is_authenticated:

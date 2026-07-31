@@ -297,8 +297,8 @@ class TestPermissionsResponse(TestCase):
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
 
-    def test_role_simulated_path_sets_force_public_cache_header(self):
-        """Test that role_booleans always sets X-Force-Public-Cache: true."""
+    def test_role_simulated_path_omits_cache_headers(self):
+        """Test that the response carries no cache-related header (middleware decides by path)."""
         request = _make_request(user=self.dm_user)
         role_booleans = {
             'is_superuser': False, 'is_dm': True, 'is_owner': False, 'is_staff': False,
@@ -310,7 +310,7 @@ class TestPermissionsResponse(TestCase):
         assert response.status_code == 200
         assert response.data['can_edit'] is True
         assert 'X-Skip-Cache' not in response
-        assert response['X-Force-Public-Cache'] == 'true'
+        assert 'X-Force-Public-Cache' not in response
 
     def test_merges_context_extra_into_serializer_context(self):
         """Test that context_extra is merged into the serializer context."""

@@ -19,16 +19,10 @@ from ...permissions import EndpointPermission
 from ...serializers import (
     CharacterDocumentSerializer,
     CharacterItemDetailSerializer,
-    CharacterPermissionsSerializer,
     GameItemAllListSerializer,
     GameItemListSerializer,
 )
-from ..common import (
-    access_response,
-    check_game_edit,
-    parse_role_booleans,
-    permissions_response,
-)
+from ..common import access_response, check_game_edit
 from ._document_files import character_document_files
 from ._document_photos import character_document_photos
 from ._documents import character_document_detail, character_documents
@@ -78,22 +72,6 @@ def build_access_view(npc, access_serializer_class):
         character = _find_character(game, character_id, npc=npc)
         return access_response(
             access_serializer_class, character, request, context_extra={'game': game}
-        )
-
-    return view
-
-
-def build_permissions_view(npc):
-    """Build the GET permissions-check view for a PC (`npc=False`) or NPC (`npc=True`)."""
-
-    @_build_api_view(['GET'], AllowAny)
-    def view(request, game_slug, character_id):
-        """Return whether the requester (real or role-simulated) may edit a specific PC/NPC."""
-        game = Game.objects.filter(game_slug=game_slug).first()
-        character = _find_character(game, character_id, npc=npc)
-        role_booleans = parse_role_booleans(request)
-        return permissions_response(
-            CharacterPermissionsSerializer, character, request, role_booleans,
         )
 
     return view

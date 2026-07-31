@@ -66,14 +66,14 @@ describe('AccessStoreDescriptor', function() {
       resolveAccess({});
     });
 
-    it('calls ensureTreasureAccess before ensureTreasurePermissions for a treasure descriptor', async function() {
+    it('calls only ensureTreasureAccess (not ensureTreasurePermissions) for a treasure descriptor', async function() {
       const store = buildStore();
       const descriptor = { kind: 'treasure', pattern: '/treasures/:treasure_id', params: ['treasure_id'] };
 
       await AccessStoreDescriptor.ensure(descriptor, '#/treasures/42', store);
 
       expect(store.ensureTreasureAccess).toHaveBeenCalledWith('42');
-      expect(store.ensureTreasurePermissions).toHaveBeenCalledWith('42');
+      expect(store.ensureTreasurePermissions).not.toHaveBeenCalled();
     });
 
     it('calls ensureCharacterAccess before ensureCharacterPermissions for a character descriptor', async function() {

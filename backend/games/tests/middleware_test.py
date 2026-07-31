@@ -106,26 +106,26 @@ class TestCacheControlMiddlewareErrorResponses:
 
 
 @pytest.mark.django_db
-class TestCacheControlMiddlewareForcePublicCache:
-    """Middleware forces the public/anonymous cache tier for X-Force-Public-Cache: true."""
+class TestCacheControlMiddlewarePermissionsPrefix:
+    """Middleware forces the public/anonymous cache tier for the `/permissions/` path prefix."""
 
     def test_public_cache_control_for_authenticated_caller(self, client):
-        """An authenticated caller still gets public Cache-Control when role-simulated."""
+        """An authenticated caller still gets public Cache-Control on a /permissions/ route."""
         user = UserFactory(username='dm_user', password='secret')
         token = Token.objects.create(user=user)
-        game = GameFactory(name='Force Cache Game', game_slug='force-cache-game')
-        # The game-permissions endpoint sets X-Force-Public-Cache: true only when a
-        # `role` param is present (role-simulated, identity-independent response).
+        # Every /permissions/ route is role-simulated/identity-independent by construction.
         response = client.get(
-            f'/games/{game.game_slug}/permissions.json?role=dm',
+            '/permissions/game.json?role=dm',
             HTTP_AUTHORIZATION=f'Token {token.key}',
         )
-        assert response['X-Force-Public-Cache'] == 'true'
         assert response['Cache-Control'] == 'public, max-age=3600'
 
     def test_public_cache_control_for_anonymous_caller(self, client):
-        """An anonymous caller also gets public Cache-Control when role-simulated."""
-        game = GameFactory(name='Force Cache Game 2', game_slug='force-cache-game-2')
-        response = client.get(f'/games/{game.game_slug}/permissions.json?role=dm')
-        assert response['X-Force-Public-Cache'] == 'true'
+        """An anonymous caller also gets public Cache-Control on a /permissions/ route."""
+        response = client.get('/permissions/game.json?role=dm')
+        assert response['Cache-Control'] == 'public, max-age=3600'
+
+    def test_public_cache_control_regardless_of_response_headers(self, client):
+        """Any route under /permissions/ gets the public tier, not just game.json."""
+        response = client.get('/permissions/treasure.json')
         assert response['Cache-Control'] == 'public, max-age=3600'

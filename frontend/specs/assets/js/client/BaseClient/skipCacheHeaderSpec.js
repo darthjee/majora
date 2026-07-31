@@ -186,24 +186,24 @@ describe('BaseClient', function() {
     }));
   });
 
-  it('adds X-Skip-Cache to a permissions.json request without a role param', async function() {
-    await client.request('/games/demo/permissions.json', {
+  it('adds X-Skip-Cache to a permissions/<entity_type>.json request without a role param', async function() {
+    await client.request('/permissions/game.json', {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json', jasmine.objectContaining({
+    expect(fetchSpy).toHaveBeenCalledWith('/permissions/game.json', jasmine.objectContaining({
       method: 'GET',
       headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,
     }));
   });
 
-  it('does not add X-Skip-Cache to a permissions.json request with a role param', async function() {
-    await client.request('/games/demo/permissions.json?role=dm', {
+  it('does not add X-Skip-Cache to a permissions/<entity_type>.json request with a role param', async function() {
+    await client.request('/permissions/game.json?role=dm', {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json?role=dm', jasmine.objectContaining({
+    expect(fetchSpy).toHaveBeenCalledWith('/permissions/game.json?role=dm', jasmine.objectContaining({
       method: 'GET',
       headers: { Accept: 'application/json' },
       body: undefined,
@@ -252,25 +252,25 @@ describe('BaseClient', function() {
     );
   });
 
-  it('does not add X-Skip-Cache to a permissions.json request with several role params', async function() {
-    await client.request('/games/demo/permissions.json?role=dm&role=player', {
+  it('does not add X-Skip-Cache to a permissions/<entity_type>.json request with several role params', async function() {
+    await client.request('/permissions/game.json?role=dm&role=player', {
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json?role=dm&role=player', jasmine.objectContaining({
+    expect(fetchSpy).toHaveBeenCalledWith('/permissions/game.json?role=dm&role=player', jasmine.objectContaining({
       method: 'GET',
       headers: { Accept: 'application/json' },
       body: undefined,
     }));
   });
 
-  it('adds X-Skip-Cache to a permissions.json POST request even with a role param', async function() {
-    await client.request('/games/demo/permissions.json?role=dm', {
+  it('adds X-Skip-Cache to a permissions/<entity_type>.json POST request even with a role param', async function() {
+    await client.request('/permissions/game.json?role=dm', {
       method: 'POST',
       headers: { Accept: 'application/json' },
     });
 
-    expect(fetchSpy).toHaveBeenCalledWith('/games/demo/permissions.json?role=dm', jasmine.objectContaining({
+    expect(fetchSpy).toHaveBeenCalledWith('/permissions/game.json?role=dm', jasmine.objectContaining({
       method: 'POST',
       headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
       body: undefined,

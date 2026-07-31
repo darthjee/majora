@@ -7,7 +7,7 @@
  *
  * @description The detail endpoint is `AllowAny` and there is no separate
  *   restricted/private variant (a session's edit rights mirror its game's,
- *   resolved separately via the existing `/games/:game_slug/permissions.json`
+ *   resolved separately via the existing `/permissions/game.json`
  *   endpoint, not embedded in this response) — so `private` points at the
  *   exact same `path`/`permission` object as `regular`. No `collection` `GET`
  *   entry is configured: the past/future/unscheduled list endpoints are not

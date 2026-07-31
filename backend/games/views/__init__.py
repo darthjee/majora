@@ -25,7 +25,6 @@ from .game import (
     game_npc_items_all,
     game_npc_items_available,
     game_npc_items_available_all,
-    game_npc_permissions,
     game_npc_photo_deletable,
     game_npc_photo_detail,
     game_npc_photo_set,
@@ -64,7 +63,6 @@ from .game import (
     game_pc_items_all,
     game_pc_items_available,
     game_pc_items_available_all,
-    game_pc_permissions,
     game_pc_photo_deletable,
     game_pc_photo_detail,
     game_pc_photo_set,
@@ -111,7 +109,6 @@ from .games import (
     game_item_photo_upload,
     game_items,
     game_items_all,
-    game_permissions,
     game_photos,
     game_treasure_detail,
     game_treasure_link,
@@ -122,6 +119,13 @@ from .games import (
     my_games_list,
 )
 from .health import health
+from .permissions import (
+    game_npc_permissions,
+    game_pc_permissions,
+    game_permissions,
+    game_treasure_permissions,
+    treasure_permissions,
+)
 from .photo_upload import photo_upload
 from .polls import game_poll_close, game_poll_detail, game_poll_votes, game_polls_list
 from .ready import ready
@@ -137,7 +141,6 @@ from .staff import (
 from .treasures import (
     treasure_access,
     treasure_detail,
-    treasure_permissions,
     treasure_photo_upload,
     treasures_list,
 )
@@ -147,7 +150,6 @@ __all__ = [
     'games_list',
     'game_detail',
     'game_access',
-    'game_permissions',
     'game_treasures',
     'game_treasures_all',
     'game_treasures_missing',
@@ -185,8 +187,6 @@ __all__ = [
     'game_pc_access',
     'game_pc_detail',
     'game_pc_full',
-    'game_pc_permissions',
-    'game_npc_permissions',
     'game_pc_photo_upload',
     'game_npc_photo_upload',
     'game_pc_photo_set',
@@ -272,7 +272,6 @@ __all__ = [
     'staff_cache_clear',
     'staff_cache_summary',
     'treasure_access',
-    'treasure_permissions',
     'treasure_detail',
     'treasure_photo_upload',
     'treasures_list',
@@ -280,4 +279,9 @@ __all__ = [
     'health',
     'ready',
     'access_route_config',
+    'game_permissions',
+    'treasure_permissions',
+    'game_treasure_permissions',
+    'game_pc_permissions',
+    'game_npc_permissions',
 ]

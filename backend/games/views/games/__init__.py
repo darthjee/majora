@@ -19,7 +19,6 @@ from .game_item_detail_full import game_item_detail_full
 from .game_item_photo_upload import game_item_photo_upload
 from .game_items import game_items
 from .game_items_all import game_items_all
-from .game_permissions import game_permissions
 from .game_photos import game_photos
 from .game_treasure_detail import game_treasure_detail
 from .game_treasure_link import game_treasure_link
@@ -33,7 +32,6 @@ __all__ = [
     'games_list',
     'game_detail',
     'game_access',
-    'game_permissions',
     'game_treasures',
     'game_treasures_all',
     'game_treasures_missing',

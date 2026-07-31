@@ -517,3 +517,63 @@ resources:
   short_npc_documents:
     - url: /games/{:slug}/npcs/{:id}/documents.json?per_page=5
       status: 200
+
+  permissions_game:
+    - url: /permissions/game.json
+      status: 200
+    - url: /permissions/game.json?role=player&role=logged
+      status: 200
+    - url: /permissions/game.json?role=dm&role=player&role=logged
+      status: 200
+    - url: /permissions/game.json?role=staff&role=player&role=logged
+      status: 200
+    - url: /permissions/game.json?role=staff&role=dm&role=player&role=logged
+      status: 200
+
+  permissions_treasure:
+    - url: /permissions/treasure.json
+      status: 200
+    - url: /permissions/treasure.json?role=player&role=logged
+      status: 200
+    - url: /permissions/treasure.json?role=dm&role=player&role=logged
+      status: 200
+    - url: /permissions/treasure.json?role=staff&role=player&role=logged
+      status: 200
+    - url: /permissions/treasure.json?role=staff&role=dm&role=player&role=logged
+      status: 200
+
+  permissions_game_treasure:
+    - url: /permissions/game_treasure.json
+      status: 200
+    - url: /permissions/game_treasure.json?role=player&role=logged
+      status: 200
+    - url: /permissions/game_treasure.json?role=dm&role=player&role=logged
+      status: 200
+    - url: /permissions/game_treasure.json?role=staff&role=player&role=logged
+      status: 200
+    - url: /permissions/game_treasure.json?role=staff&role=dm&role=player&role=logged
+      status: 200
+
+  permissions_game_pc:
+    - url: /permissions/game_pc.json
+      status: 200
+    - url: /permissions/game_pc.json?role=player&role=logged
+      status: 200
+    - url: /permissions/game_pc.json?role=dm&role=player&role=logged
+      status: 200
+    - url: /permissions/game_pc.json?role=staff&role=player&role=logged
+      status: 200
+    - url: /permissions/game_pc.json?role=staff&role=dm&role=player&role=logged
+      status: 200
+
+  permissions_game_npc:
+    - url: /permissions/game_npc.json
+      status: 200
+    - url: /permissions/game_npc.json?role=player&role=logged
+      status: 200
+    - url: /permissions/game_npc.json?role=dm&role=player&role=logged
+      status: 200
+    - url: /permissions/game_npc.json?role=staff&role=player&role=logged
+      status: 200
+    - url: /permissions/game_npc.json?role=staff&role=dm&role=player&role=logged
+      status: 200

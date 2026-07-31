@@ -9,11 +9,6 @@ urlpatterns = [
     path('my-games.json', views.my_games_list, name='my-games-list'),
     path('games/<slug:game_slug>.json', views.game_detail, name='game-detail'),
     path('games/<slug:game_slug>/access.json', views.game_access, name='game-access'),
-    path(
-        'games/<slug:game_slug>/permissions.json',
-        views.game_permissions,
-        name='game-permissions',
-    ),
     path('games/<slug:game_slug>/treasures.json', views.game_treasures, name='game-treasures'),
     path(
         'games/<slug:game_slug>/treasures/all.json',

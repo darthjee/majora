@@ -41,7 +41,7 @@ describe('AccessStore', function() {
       expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('pcs', 'demo', '2');
     });
 
-    it('requests staffOrSuperuser, then treasure access, then treasure permissions, for the treasure edit page', async function() {
+    it('requests staffOrSuperuser then treasure access (not treasure permissions) for the treasure edit page', async function() {
       spyOn(AccessStore, 'ensureStaffOrSuperUser').and.returnValue(Promise.resolve(true));
       spyOn(AccessStore, 'ensureTreasureAccess').and.returnValue(Promise.resolve(ACCESS_DEFAULT));
       spyOn(AccessStore, 'ensureTreasurePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
@@ -51,7 +51,11 @@ describe('AccessStore', function() {
 
       expect(AccessStore.ensureStaffOrSuperUser).toHaveBeenCalled();
       expect(AccessStore.ensureTreasureAccess).toHaveBeenCalledWith('42');
-      expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('42');
+      // Deliberately not called here: which permissions route to use (global vs.
+      // game-exclusive) depends on the treasure's own `game_slug`, only known once
+      // TreasureEditController's own detail fetch resolves (see AccessStoreDescriptor
+      // #ensureTreasure).
+      expect(AccessStore.ensureTreasurePermissions).not.toHaveBeenCalled();
     });
 
     it('requests staffOrSuperuser access for a staff page', function() {
