@@ -123,6 +123,7 @@ from .permissions import (
     game_npc_permissions,
     game_pc_permissions,
     game_permissions,
+    game_treasure_permissions,
     treasure_permissions,
 )
 from .photo_upload import photo_upload
@@ -280,6 +281,7 @@ __all__ = [
     'access_route_config',
     'game_permissions',
     'treasure_permissions',
+    'game_treasure_permissions',
     'game_pc_permissions',
     'game_npc_permissions',
 ]

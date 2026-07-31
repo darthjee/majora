@@ -4,9 +4,10 @@ Main plan: [plan.md](plan.md)
 
 ## Shared contracts
 
-Produce the 4 new routes exactly as specified in [plan.md](plan.md#shared-contracts), remove the
-4 old ones, and make `Cache-Control` public/anonymous for the new routes without
-`X-Force-Public-Cache`. Response body shape must not change.
+Produce the 5 new routes exactly as specified in [plan.md](plan.md#shared-contracts) (treasure
+splits into `/permissions/treasure.json` and `/permissions/game_treasure.json` — see the plan's
+Amendment paragraph), remove the 4 old ones, and make `Cache-Control` public/anonymous for the new
+routes without `X-Force-Public-Cache`. Response body shape must not change.
 
 ## Context
 

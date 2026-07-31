@@ -27,9 +27,25 @@ ever sending `X-Skip-Cache` on them, and warms the new routes in the Navi cache-
 | New route | Replaces |
 |---|---|
 | `/permissions/game.json` | `games/<slug:game_slug>/permissions.json` |
-| `/permissions/treasure.json` | `treasures/<int:treasure_id>/permissions.json` |
+| `/permissions/treasure.json` | `treasures/<int:treasure_id>/permissions.json`, only when the treasure is global (`game_id is None`) |
+| `/permissions/game_treasure.json` | `treasures/<int:treasure_id>/permissions.json`, only when the treasure is game-exclusive (`game_id is not None`) |
 | `/permissions/game_pc.json` | `games/<slug:game_slug>/pcs/<int:character_id>/permissions.json` |
 | `/permissions/game_npc.json` | `games/<slug:game_slug>/npcs/<int:character_id>/permissions.json` |
+
+**Amendment (found during implementation review):** the original 1:1 route mapping above missed
+that `TreasurePermissionsSerializer` resolves one of two *behaviorally different* actions
+(`edit`/`edit_scoped`, see `backend/games/permissions/config/treasure/ui.yml`) purely from
+`treasure.game_id is None`, independent of any `?role=` value — documented as intentional in
+`docs/agents/access-control/treasure.md`'s "Edit permission" section (a game-exclusive treasure's
+`dm` role grants `can_edit` under simulation; a global treasure's `staff` role does, and these
+don't overlap). So, unlike `game`/`pc`/`npc`, treasure's response is **not** a pure function of
+entity type + role alone — it also depends on whether the specific treasure has an owning game.
+Since the entity id (and thus that fact) no longer travels in the URL, `treasure` is split into
+two entity-agnostic types, mirroring the existing `game_pc`/`game_npc` split: `/permissions/
+treasure.json` always resolves the global (`edit`) action; the new `/permissions/game_treasure.
+json` always resolves the game-exclusive (`edit_scoped`) action. The frontend must pick whichever
+matches the specific treasure it's asking about (from that treasure's already-loaded `game_slug`
+detail field), not always call `treasure.json`.
 
 The old 4 routes are removed outright (not kept alongside the new ones). Response body shape is
 byte-for-byte unchanged from today's per-entity endpoints — only the URL and the removal of the

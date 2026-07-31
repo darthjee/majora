@@ -99,7 +99,8 @@ derived from the given value(s) (accepts repeated values, e.g. `?role=dm&role=ow
   what a dm would see). It never sets `X-Skip-Cache` (that header, and the whole real-identity
   code path, existed prior to #922 and has been fully removed).
 
-Role-parsing is shared verbatim by all four `permissions.json` endpoints (Game, PC, NPC, Treasure).
+Role-parsing is shared verbatim by all five `permissions.json` endpoints (Game, PC, NPC, and
+Treasure's two — global and game-exclusive, see [Treasure](treasure.md#edit-permission)).
 Several resources' `permissions.json` also expose their own extra `can_*` fields following this
 same real-identity/role-simulated pattern: `can_create_item`/`can_upload_item_photo` (Character
 and Game — [character-item.md](character-item.md), [game-item.md](game-item.md#item-creation-endpoint)),
