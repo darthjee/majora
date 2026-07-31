@@ -14,14 +14,14 @@
  *   (`can_edit`, the full editor), accepting the full field set. `regular` → the plain
  *   `.../:id.json` path, accepting the reduced player-writable field set (`name`, `role`,
  *   `public_description`, `money`, `links`); reachable by any player of the PC's game or any
- *   Staff account (issue #865), same as the equivalent NPC endpoint.
+ *   Staff account (issue #865), same as the equivalent NPC endpoint. Money edits (including the
+ *   quick-edit modal) go through this `regular` PATCH endpoint too (issue #915) — there is no
+ *   separate money-only endpoint anymore.
  *
- *   `PUT.single` (money, `.../money.json`) and `POST.single` (photo upload init,
- *   `.../photo_upload.json`) are both single, un-branched variants (`CharacterMoneyEdit`/
- *   `CharacterPhotoUpload` respectively — broader than character-level `can_edit`, granting any
- *   player of the PC's game too), so `regular`/`private` point at the exact same object; which
- *   one `resolveVariant` picks makes no difference since both resolve to the same path. The
- *   actual permission is enforced server-side, same as every other mutation here.
+ *   `POST.single` (photo upload init, `.../photo_upload.json`) is a single, un-branched variant
+ *   (`CharacterPhotoUpload` — broader than character-level `can_edit`, granting any player of the
+ *   PC's game too), so `regular`/`private` point at the exact same object. The actual permission
+ *   is enforced server-side, same as every other mutation here.
  *
  *   `PATCH.photo` (photo set-roles, `.../photos/:photo_id/set.json`) needs a `photo_id` param in
  *   addition to `id` — kept under its own quantity-type-like key (`'photo'`), following
@@ -42,7 +42,6 @@ const patchRegular = { path: ({ gameSlug, id }) => `/games/${gameSlug}/pcs/${id}
 const patchPrivate = {
   path: ({ gameSlug, id }) => `/games/${gameSlug}/pcs/${id}/full.json`, permission: 'can_edit',
 };
-const money = { path: ({ gameSlug, id }) => `/games/${gameSlug}/pcs/${id}/money.json`, permission: null };
 const photoUploadInit = {
   path: ({ gameSlug, id }) => `/games/${gameSlug}/pcs/${id}/photo_upload.json`, permission: null,
 };
@@ -67,9 +66,6 @@ export default {
     single: { regular: patchRegular, private: patchPrivate },
     photo: { regular: photoSet, private: photoSet },
     photoDelete: { regular: photoDelete, private: photoDelete },
-  },
-  PUT: {
-    single: { regular: money, private: money },
   },
   POST: {
     single: { regular: photoUploadInit, private: photoUploadInit },

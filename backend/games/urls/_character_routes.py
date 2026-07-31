@@ -5,7 +5,6 @@ from django.urls import path
 _CHARACTER_ROUTES = [
     ('.json', 'detail'),
     ('/full.json', 'full'),
-    ('/money.json', 'money'),
     ('/photos.json', 'photos'),
     ('/access.json', 'access'),
     ('/permissions.json', 'permissions'),

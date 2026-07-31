@@ -64,7 +64,9 @@ export default class CharacterEditFieldsBuilder {
 
   /**
    * Build the reduced fields payload sent by a player-only NPC editor to the
-   * narrower, player-writable NPC endpoint.
+   * narrower, player-writable NPC endpoint. Includes `money` (issue #915) — the
+   * backend's NPC PATCH serializer now accepts it, replacing the removed
+   * money-only endpoint.
    *
    * @param {object} formValues - Raw form field values.
    * @returns {object} Fields payload for {@link BaseCharacterEditController#handleSubmit}.
@@ -74,6 +76,7 @@ export default class CharacterEditFieldsBuilder {
       name: formValues.name,
       role: formValues.role,
       public_description: formValues.description,
+      money: parseInt(formValues.money, 10),
       public_allegiance: formValues.publicAllegiance,
       links: CharacterEditFieldsBuilder.linksPayload(formValues.links),
       public_slain: formValues.publicSlain,

@@ -7,9 +7,9 @@ import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 export default class CharacterAccessResolver {
   /**
    * Merge access (`is_player`, `is_staff`) and permission (`can_edit`,
-   * `can_edit_money`, `can_exchange_treasure`, `can_set_profile_photo`,
-   * `can_delete_photo`) data onto a character, tagging the result with
-   * whether it reflects a fail-closed pass or the real, resolved data.
+   * `can_exchange_treasure`, `can_set_profile_photo`, `can_delete_photo`)
+   * data onto a character, tagging the result with whether it reflects a
+   * fail-closed pass or the real, resolved data.
    *
    * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
    * @param {object} character - Base character data already loaded.
@@ -25,7 +25,6 @@ export default class CharacterAccessResolver {
     return {
       ...character,
       can_edit: permissions.can_edit,
-      can_edit_money: Boolean(permissions.can_edit_money),
       can_exchange_treasure: Boolean(permissions.can_exchange_treasure),
       can_set_profile_photo: Boolean(permissions.can_set_profile_photo),
       can_delete_photo: Boolean(permissions.can_delete_photo),

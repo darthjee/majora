@@ -103,6 +103,7 @@ describe('CharacterEditFieldsBuilder', function() {
         name: 'Grumbleknuckle',
         role: 'Shopkeeper',
         description: 'A brave hero',
+        money: '150',
         publicAllegiance: 'enemy',
         publicSlain: true,
         hidden: true,
@@ -114,6 +115,7 @@ describe('CharacterEditFieldsBuilder', function() {
         name: 'Grumbleknuckle',
         role: 'Shopkeeper',
         public_description: 'A brave hero',
+        money: 150,
         public_allegiance: 'enemy',
         links: [{
           text: 'https://example.com/new-link', url: 'https://example.com/new-link', link_type: '', delete: false,

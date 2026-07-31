@@ -99,12 +99,18 @@ class TestNpcPlayerUpdateSerializer(TestCase):
         updated = serializer.save()
         assert updated.role == 'Wizard'
 
-    def test_money_is_not_writable(self):
-        """Test that `money` is silently ignored, never written to the model."""
+    def test_money_is_writable(self):
+        """Test that a valid `money` payload is accepted and applied."""
         serializer = NpcPlayerUpdateSerializer(self.npc, data={'money': 999}, partial=True)
         assert serializer.is_valid()
         updated = serializer.save()
-        assert updated.money == 0
+        assert updated.money == 999
+
+    def test_negative_money_is_invalid(self):
+        """Test that a negative money update produces a validation error on the money key."""
+        serializer = NpcPlayerUpdateSerializer(self.npc, data={'money': -1}, partial=True)
+        assert not serializer.is_valid()
+        assert 'money' in serializer.errors
 
     def test_incognito_is_not_writable(self):
         """Test that `incognito` is silently ignored, never written to the model."""

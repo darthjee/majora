@@ -52,13 +52,6 @@ describe('resourceConfig', function() {
       expect(photo.regular.permission).toBe('can_edit');
     });
 
-    it('resolves PUT.single (money) as a single un-branched variant (issue #830)', function() {
-      const single = resourceConfig.get('PUT', 'npc', 'single');
-
-      expect(single.regular).toBe(single.private);
-      expect(single.regular.path({ gameSlug: 'demo', id: '3' })).toBe('/games/demo/npcs/3/money.json');
-    });
-
     it('resolves POST.single (photo upload init) as a single un-branched variant (issue #830)', function() {
       const single = resourceConfig.get('POST', 'npc', 'single');
 
@@ -110,13 +103,6 @@ describe('resourceConfig', function() {
       expect(photo.regular.path({ gameSlug: 'demo', id: '3', photoId: '9' }))
         .toBe('/games/demo/pcs/3/photos/9/set.json');
       expect(photo.regular.permission).toBe('can_edit');
-    });
-
-    it('resolves PUT.single (money) as a single un-branched variant (issue #830)', function() {
-      const single = resourceConfig.get('PUT', 'pc', 'single');
-
-      expect(single.regular).toBe(single.private);
-      expect(single.regular.path({ gameSlug: 'demo', id: '3' })).toBe('/games/demo/pcs/3/money.json');
     });
 
     it('resolves POST.single (photo upload init) as a single un-branched variant (issue #830)', function() {

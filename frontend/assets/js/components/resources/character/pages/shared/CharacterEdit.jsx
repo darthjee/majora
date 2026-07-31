@@ -21,20 +21,18 @@ function resourceName(characterKind) {
 
 /**
  * Whether the current user may reach the edit page for a character (full editor, any player of
- * the game, or — for a PC only — any Staff account).
+ * the game, or any Staff account — for both PCs and NPCs, matching
+ * `CharacterRegularEditPermission`/`NpcPlayerEditPermission` on the backend, issue #915).
  *
  * @param {object} character - Loaded character data object.
  * @param {boolean} [character.can_edit] - Whether the current user is a full (dm/admin/owner)
  *   editor of the character.
  * @param {boolean} [character.is_player] - Whether the current user is a player of the game.
- * @param {boolean} [character.is_pc] - Whether the character is a PC (vs. an NPC).
  * @param {boolean} [character.is_staff] - Whether the current user is a Staff account.
  * @returns {boolean} Whether the edit page is reachable for this character/user pair.
  */
 function canReachEditPage(character) {
-  return Boolean(
-    character.can_edit || character.is_player || (character.is_pc && character.is_staff),
-  );
+  return Boolean(character.can_edit || character.is_player || character.is_staff);
 }
 
 /**
@@ -133,7 +131,7 @@ export default function CharacterEdit({ ControllerClass, getParamsFromHash, Edit
       {EditHelper.render(
         {
           isFullEditor: character.can_edit,
-          canEditMoney: character.can_edit_money,
+          canEditMoney: canReachEditPage(character),
           ...fields,
           profile_photo_path: character.profile_photo_path,
           links,

@@ -30,7 +30,6 @@ class TestPermissionsBuilderRealIdentity:
         result = builder.build()
         assert result == {
             'can_edit': True,
-            'can_edit_money': True,
             'can_exchange_treasure': True,
             'can_set_profile_photo': True,
             'can_delete_photo': False,

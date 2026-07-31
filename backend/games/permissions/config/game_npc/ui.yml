@@ -1,7 +1,5 @@
 # CharacterPermissionsSerializer's can_* fields, for an NPC.
 edit: []
-money_edit:
-  - staff
 treasure_exchange:
   - staff
 photo_upload:

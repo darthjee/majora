@@ -42,7 +42,6 @@ from ._item_exchange import (
 from ._item_photo_upload import character_item_photo_upload
 from ._item_update import character_item_update
 from ._items import character_item_detail, character_items
-from ._money import character_money_update
 from ._photo_deletable import character_photo_deletable
 from ._photo_detail import character_photo_detail
 from ._photo_set import character_photo_set
@@ -108,19 +107,6 @@ def build_full_view(npc):
         """Return or update full detail (including private description) for a PC/NPC."""
         game = get_object_or_404(Game, game_slug=game_slug)
         return character_full(request, game, character_id, npc=npc)
-
-    return view
-
-
-def build_money_view(npc):
-    """Build the PUT money-only update view for a PC (`npc=False`) or NPC (`npc=True`)."""
-
-    @_build_api_view(['PUT'], AllowAny)
-    def view(request, game_slug, character_id):
-        """Update a PC's/NPC's money through the narrow money-only endpoint."""
-        game = get_object_or_404(Game, game_slug=game_slug)
-        character = _get_character_or_404(game, character_id, npc=npc)
-        return character_money_update(request, character)
 
     return view
 

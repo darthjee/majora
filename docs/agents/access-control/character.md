@@ -35,12 +35,12 @@ player-safe field set (see "Narrow player-facing PATCH" below).
 - `GET /games/<slug>/pcs.json` — no `/all.json` sibling yet (tracked for future API symmetry).
 
 ### Additional endpoints (deviations from the CRUD pattern)
-- `PUT /games/<slug>/pcs|npcs/<id>/money.json` — **CharacterMoneyEdit**: CharacterEdit roles plus
-  staff, plus (PC only) any player of the game. Writes `money` only; response uses the regular
-  (non-full) detail shape, so a Staff caller editing money alone never sees full-editor-only
-  fields.
 - `GET/PATCH .../access.json`, `GET .../permissions.json` — see "Edit access status/permission"
   below.
+
+There is no dedicated money-only edit endpoint (removed by issue #915) — `money` is writable
+through the regular narrow `PATCH` routes for both PCs and NPCs (see "Narrow player-facing PATCH"
+below).
 
 ## Filters
 
@@ -120,7 +120,6 @@ serializer, and `owner`/`is_owner` are no-ops for an NPC. Beyond `can_edit` and
 `can_create_item`/`can_upload_item_photo` (see [CharacterItem](character-item.md)), this endpoint
 exposes:
 
-- `can_edit_money` — **CharacterMoneyEdit** shape (see above).
 - `can_set_profile_photo` — **CharacterPhotoUpload** shape: admin, dm, superuser, staff, or any
   player of the game, both kinds — see [CharacterPhoto](character-photo.md).
 - `can_exchange_treasure` — **CharacterTreasureExchange** shape: admin, dm, superuser, staff, or
@@ -142,10 +141,11 @@ response never includes `private_description`, even on the full endpoint, mirror
 The plain detail routes accept `PATCH` for a small, curated, player-safe field set distinct from
 the full-editor field set — additive only, the full-editor form keeps using `full.json`.
 
-- **NPC** (`PATCH /games/<slug>/npcs/<id>.json`, **NpcPlayerEdit**): writes
-  `public_description`, `public_allegiance`, `public_slain`, and syncs `links`; `name`, `role`,
-  `money`, `private_description`, `private_allegiance`, `private_slain` stay `full.json`-only. The
-  hidden-NPC gate still applies (404 to a non-editor on a hidden NPC).
+- **NPC** (`PATCH /games/<slug>/npcs/<id>.json`, **NpcPlayerEdit**): writes `name`, `role`,
+  `public_description`, `public_allegiance`, `public_slain`, `money`, and syncs `links`;
+  `private_description`, `private_allegiance`, `private_slain` stay `full.json`-only (issue #915
+  moved `money` from the removed money-only endpoint onto this route). The hidden-NPC gate still
+  applies (404 to a non-editor on a hidden NPC).
 - **PC** (`PATCH /games/<slug>/pcs/<id>.json`, **CharacterRegularEdit**): writes `name`, `role`,
   `public_description`, `money`, and syncs `links`; `private_description`, `hidden`,
   `private_allegiance`, `public_allegiance`, `private_slain`, `public_slain` stay `full.json`-only.

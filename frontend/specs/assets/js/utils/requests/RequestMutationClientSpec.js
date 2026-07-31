@@ -34,11 +34,11 @@ describe('RequestMutationClient', function() {
     });
 
     it('fires a PUT request', async function() {
-      await new RequestMutationClient().mutate('PUT', '/games/demo/npcs/2/money.json', { money: 100 }, 'tok');
+      await new RequestMutationClient().mutate('PUT', '/games/demo/polls/2/votes.json', { votes: [1] }, 'tok');
 
-      expect(globalThis.fetch).toHaveBeenCalledWith('/games/demo/npcs/2/money.json', jasmine.objectContaining({
+      expect(globalThis.fetch).toHaveBeenCalledWith('/games/demo/polls/2/votes.json', jasmine.objectContaining({
         method: 'PUT',
-        body: JSON.stringify({ money: 100 }),
+        body: JSON.stringify({ votes: [1] }),
       }));
     });
 

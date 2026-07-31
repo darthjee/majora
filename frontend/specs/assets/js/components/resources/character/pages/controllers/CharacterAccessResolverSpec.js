@@ -10,7 +10,6 @@ describe('CharacterAccessResolver', function() {
       spyOn(AccessStore, 'getCharacterAccess').and.returnValue({ is_player: true, is_staff: false });
       spyOn(AccessStore, 'getCharacterPermissions').and.returnValue({
         can_edit: true,
-        can_edit_money: true,
         can_exchange_treasure: true,
         can_set_profile_photo: true,
         can_delete_photo: true,
@@ -21,7 +20,6 @@ describe('CharacterAccessResolver', function() {
       expect(result).toEqual({
         id: 2,
         can_edit: true,
-        can_edit_money: true,
         can_exchange_treasure: true,
         can_set_profile_photo: true,
         can_delete_photo: true,
@@ -57,35 +55,6 @@ describe('CharacterAccessResolver', function() {
       const result = CharacterAccessResolver.merge('pcs', { id: 2 }, params, true);
 
       expect(result.access_resolved).toBe(true);
-    });
-
-    describe('can_edit_money coercion', function() {
-      it('keeps can_edit_money true when present', function() {
-        spyOn(AccessStore, 'getCharacterAccess').and.returnValue({ is_player: false, is_staff: false });
-        spyOn(AccessStore, 'getCharacterPermissions').and.returnValue({ can_edit_money: true });
-
-        const result = CharacterAccessResolver.merge('pcs', { id: 2 }, params, true);
-
-        expect(result.can_edit_money).toBe(true);
-      });
-
-      it('defaults can_edit_money to false when missing', function() {
-        spyOn(AccessStore, 'getCharacterAccess').and.returnValue({ is_player: false, is_staff: false });
-        spyOn(AccessStore, 'getCharacterPermissions').and.returnValue({});
-
-        const result = CharacterAccessResolver.merge('pcs', { id: 2 }, params, true);
-
-        expect(result.can_edit_money).toBe(false);
-      });
-
-      it('coerces a falsy-but-defined can_edit_money to false', function() {
-        spyOn(AccessStore, 'getCharacterAccess').and.returnValue({ is_player: false, is_staff: false });
-        spyOn(AccessStore, 'getCharacterPermissions').and.returnValue({ can_edit_money: 0 });
-
-        const result = CharacterAccessResolver.merge('pcs', { id: 2 }, params, true);
-
-        expect(result.can_edit_money).toBe(false);
-      });
     });
 
     describe('can_exchange_treasure coercion', function() {

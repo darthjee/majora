@@ -24,11 +24,11 @@ class TestResourcePermissionsResolverRealIdentity:
 
     def test_resolves_every_action_in_the_map(self):
         """Test that every configured action becomes a response-key boolean."""
-        action_map = {'edit': 'can_edit', 'money_edit': 'can_edit_money'}
+        action_map = {'edit': 'can_edit', 'treasure_exchange': 'can_exchange_treasure'}
         resolver = ResourcePermissionsResolver(
             'game_pc', action_map, user=self.owner_user, game=self.game, pc=self.pc,
         )
-        assert resolver.resolve() == {'can_edit': True, 'can_edit_money': True}
+        assert resolver.resolve() == {'can_edit': True, 'can_exchange_treasure': True}
 
     def test_denies_actions_the_real_user_may_not_perform(self):
         """Test that an action the user isn't allowed resolves to False."""
