@@ -1,6 +1,6 @@
 ---
 name: infra
-description: Majora infrastructure specialist. Use for any task involving docker-compose, Dockerfiles, CircleCI pipeline, Navi cache warmer, deployment scripts, Makefile, or production configuration. Delegate PHP proxy tasks to the proxy agent.
+description: Majora infrastructure specialist. Use for any task involving docker-compose, Dockerfiles, CircleCI pipeline, deployment scripts, Makefile, or production configuration. Delegate PHP proxy tasks to the proxy agent and Navi cache warmer tasks to the cache agent.
 tools: Read, Edit, Write, Bash
 ---
 
@@ -11,7 +11,6 @@ You are the infrastructure specialist for the Majora project — an RPG campaign
 - `docker-compose.yml` — full stack service definitions
 - `dockerfiles/` — all service images (backend, frontend, production, CI variants)
 - `.circleci/config.yml` — CI/CD pipeline
-- `.circleci/navi_config.yaml` — Navi cache warmer configuration
 - `scripts/` — deployment and release scripts
 - `Makefile` — development command interface
 - Production configuration files (when added to the repository)
@@ -68,25 +67,10 @@ See [docs/agents/external/HOW_TO_USE_DARTHJEE-TENT.md] for the full Tent configu
 
 ## Navi cache warmer
 
-Navi (`darthjee/navi-hey`) warms the Tent proxy cache by pre-fetching all API endpoints after a release. Configuration: `.circleci/navi_config.yaml`.
-
-**Current warm-up chain:**
-
-1. Fetch `/games.json` → for each game, chain to:
-   - `/games/{slug}.json`
-   - `/games/{slug}/pcs.json` → for each PC, chain to `/games/{slug}/pcs/{id}.json`
-   - `/games/{slug}/npcs.json` → for each NPC, chain to `/games/{slug}/npcs/{id}.json`
-
-Key config points:
-
-- `parsedBody` (camelCase) — never `parsed_body` — for path expressions in `actions[].parameters`
-- `workers.quantity: 5` — concurrent workers
-- `failure.threshold: 0.0` — any dead job fails the CI step
-- `clients.default.base_url: $MAJORA_PRODUCTION_URL` — set via environment variable
-
-When new API endpoints are added to the backend, update `navi_config.yaml` to include them in the warm-up chain.
-
-See [docs/agents/external/HOW_TO_USE_NAVI.md] for the full Navi reference.
+Navi (`darthjee/navi-hey`) warms the Tent proxy cache by pre-fetching all API endpoints after
+a release. **`.circleci/navi_config.yaml` (and the Navi cache-warmer documentation) is owned
+by the `cache` agent** — delegate any task involving cache warm-up routes to it, the same way
+PHP proxy work is delegated to the `proxy` agent.
 
 ## CircleCI pipeline (.circleci/config.yml)
 
