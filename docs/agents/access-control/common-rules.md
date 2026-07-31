@@ -1,27 +1,32 @@
 # Common Rules
 
-Named permission patterns, referenced by name throughout this document instead of being
-restated in every section:
+**Baseline** (never restated per rule below): superuser always passes; that game's dm (`Player`
+with `is_dm=True`) always passes for anything scoped to their game — see [User
+Roles](user-roles.md).
 
-| Rule | Permission class | Grants access to |
+Shorthand used in the table:
+- **AnyPlayer** (`is_player`) — `game.players.filter(user=user).exists()`. Currently always
+  `false` for real users: `Player.games` is never written by any endpoint, only touched in a
+  model test
+- **Staff** — any global `user.is_staff` account
+
+| Rule | Permission class | Beyond baseline |
 |------|------|------|
-| **GameEdit** | `GameEditPermission` | That game's GameMaster, or superuser |
-| **CharacterEdit** | `CharacterEditPermission` | The character's own player, any GameMaster of that game, or superuser |
-| **NpcPlayerEdit** | `NpcPlayerEditPermission` | Everyone CharacterEdit grants, OR any player of that game (`is_player`, below) — NPC routes only |
-| **CharacterPhotoUpload** | `CharacterPhotoUploadPermission` | Everyone CharacterEdit grants, OR any player of that game, OR any global Staff account (`user.is_staff`) — PC/NPC photo-upload init/finalize routes, and the "set as profile photo" routes |
-| **CharacterRegularEdit** | `CharacterRegularEditPermission` | Everyone CharacterEdit grants, OR any global Staff account, OR — **PC only** — any other player of that PC's game; gates the narrow, player-writable `PATCH /games/<slug>/pcs/<id>.json` route only (including `money`, since issue #915 removed the dedicated PC money-only endpoint) — no NPC counterpart |
-| **CharacterTreasureExchange** | `CharacterTreasureExchangePermission` | Everyone CharacterEdit grants, OR any global Staff account — no "any player of the game" grant; PC/NPC treasure buy/sell routes only, not the DM-only `/buy/all.json` hidden-treasure variant, which stays gated by GameEdit alone |
-| **TreasureEdit** | `TreasureEditPermission` | Superuser or Staff (staff only for a global treasure; a game-scoped treasure still requires GameEdit) |
-| **GameSessionEdit** | `GameSessionEditPermission` | Delegates entirely to GameEdit against the session's game |
-| **TaskEdit** | `TaskEditPermission` | Delegates entirely to GameEdit against the task's game; unlike every other rule here, also gates reads, not just writes (see [Task](task.md)) |
-| **Staff-or-superuser** | inline `require_staff` check | `user.is_staff or user.is_superuser` |
+| **GameEdit** | `GameEditPermission` | — |
+| **CharacterEdit** | `CharacterEditPermission` | The character's own player (`Character.player.user`) |
+| **NpcPlayerEdit** | `NpcPlayerEditPermission` | CharacterEdit + AnyPlayer — NPC routes only |
+| **CharacterPhotoUpload** | `CharacterPhotoUploadPermission` | NpcPlayerEdit + Staff — PC/NPC upload init/finalize, and "set as profile photo" |
+| **CharacterRegularEdit** | `CharacterRegularEditPermission` | CharacterEdit + Staff + AnyPlayer — **PC only**, narrow `PATCH /games/<slug>/pcs/<id>.json` (incl. `money`, since #915 dropped the dedicated endpoint); no NPC counterpart |
+| **CharacterTreasureExchange** | `CharacterTreasureExchangePermission` | CharacterEdit + Staff — no AnyPlayer; excludes the DM-only `/buy/all.json` route, gated by GameEdit alone |
+| **TreasureEdit** | `TreasureEditPermission` | Global treasure (`game_id is None`): Staff — no dm branch, since there's no game. Game-scoped treasure routes skip this class entirely and check GameEdit directly |
+| **GameSessionEdit** | `GameSessionEditPermission` | — (delegates to GameEdit against the session's game) |
+| **TaskEdit** | `TaskEditPermission` | — (delegates to GameEdit against the task's game; unlike every other rule here, also gates reads, not just writes — see [Task](task.md)) |
+| **Staff-or-superuser** | inline `require_staff` check | `is_staff or is_superuser` — dm does **not** qualify here |
 | **AllowAny** | DRF `AllowAny` | Anyone, unauthenticated included |
 
-Full derivations:
-- `Game.can_be_edited_by(user)`: `True` when `user.is_superuser`, OR user has a `Player` row with `is_dm=True` for that game.
-- `Character.can_be_edited_by(user)`: `True` when `user.is_superuser`, OR user is the character's linked `Player.user`, OR user has a `Player` row with `is_dm=True` for the character's game.
-- `Treasure.can_be_edited_by(user)`: `True` when `user.is_superuser`, OR (`user.is_staff` AND the treasure is global, i.e. `game_id is None`). Game-scoped treasure routes (create/update/photo-upload under `/games/<slug>/...`) never use this method — they check GameEdit against the resolved game instead (see [Treasure](treasure.md)), so a treasure's own edit-rights method stays narrow while broader, game-derived access is layered on top only for routes explicitly scoped to a game.
-- `is_player` = `game.players.filter(user=user).exists()`. **Note:** `Player.games` is currently never written by any endpoint (only touched in a model test), so `is_player` reads `false` for every real authenticated user until a future flow populates it.
+`Game.can_be_edited_by`/`Character.can_be_edited_by`/`Treasure.can_be_edited_by` implement the
+GameEdit/CharacterEdit/TreasureEdit rows above directly (see [Treasure](treasure.md) for why
+game-scoped treasure routes bypass the Treasure method instead of extending it).
 
 Unless noted otherwise, an unauthenticated request to a non-AllowAny endpoint gets `401`
 (`{"errors": {"detail": ["authentication required"]}}`), an authenticated request that fails the
