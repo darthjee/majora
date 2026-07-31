@@ -1,6 +1,6 @@
 """Treasure permissions serializer for the games app."""
 
-from games.permissions import PagePermissionConfigStore, ResourcePermissionsResolver, Roles
+from games.permissions import PagePermissionConfigStore, ResourcePermissionsResolver
 from games.serializers.base_permissions import BasePermissionsSerializer
 
 _PAGE_KEY = 'treasure'
@@ -21,13 +21,16 @@ class TreasurePermissionsSerializer(BasePermissionsSerializer):
     """
 
     def to_representation(self, treasure):
-        """Build the permissions response dict for the single action `treasure` allows."""
-        if treasure is None:
-            return self._resolve(_GLOBAL_ACTION, user=None, game=None, roles=Roles.from_booleans())
-        action = _GLOBAL_ACTION if treasure.game_id is None else _SCOPED_ACTION
-        return self._resolve(
-            action, user=self._user(), game=treasure.game, roles=self._simulated_roles(),
-        )
+        """Build the permissions response dict for the single action `treasure` allows.
+
+        `treasure` may be `None` (the entity-agnostic `/permissions/treasure.json` endpoint
+        never looks one up), in which case the global (gameless) action is checked — harmless
+        since `roles` is always populated from `?role=` and the permission check below only
+        ever consults `roles`, never `game`/`user`.
+        """
+        game = None if treasure is None else treasure.game
+        action = _GLOBAL_ACTION if game is None else _SCOPED_ACTION
+        return self._resolve(action, user=self._user(), game=game, roles=self._simulated_roles())
 
     def _resolve(self, action, user, game, roles):
         """Resolve the single `action` entry from the page config into a `can_edit` result."""

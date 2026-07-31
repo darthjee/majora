@@ -10,7 +10,6 @@ from .detail.documents.game_npc_documents import game_npc_documents
 from .detail.documents.game_npc_documents_all import game_npc_documents_all
 from .detail.game_npc_access import game_npc_access
 from .detail.game_npc_full import game_npc_full
-from .detail.game_npc_permissions import game_npc_permissions
 from .detail.game_npc_photo_upload import game_npc_photo_upload
 from .detail.items.game_npc_item_acquire import game_npc_item_acquire
 from .detail.items.game_npc_item_acquire_all import game_npc_item_acquire_all
@@ -47,7 +46,6 @@ __all__ = [
     'game_npcs_full',
     'game_npc_full',
     'game_npc_access',
-    'game_npc_permissions',
     'game_npc_photo_upload',
     'game_npc_photo_set',
     'game_npc_photo_detail',

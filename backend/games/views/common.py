@@ -178,13 +178,12 @@ def permissions_response(serializer_cls, obj, request, role_booleans, context_ex
     """Build the shared "permissions" Response: serialize `obj`, honoring the cache contract.
 
     The result is identity-independent and cacheable regardless of the real caller's own auth
-    state, so `X-Force-Public-Cache: true` is always set, telling `CacheControlMiddleware` to
-    use the public/anonymous cache tier even if the real requester happens to be authenticated.
+    state. Callers of this helper live under the `/permissions/` path prefix, which
+    `CacheControlMiddleware` recognizes to force the public/anonymous cache tier even when the
+    real requester happens to be authenticated — no per-response header is needed here.
     """
     context = {'request': request, 'roles': role_booleans}
     if context_extra:
         context.update(context_extra)
     serializer = serializer_cls(obj, context=context)
-    response = Response(serializer.data)
-    response['X-Force-Public-Cache'] = 'true'
-    return response
+    return Response(serializer.data)

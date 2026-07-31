@@ -10,7 +10,6 @@ from .detail.documents.game_pc_documents import game_pc_documents
 from .detail.documents.game_pc_documents_all import game_pc_documents_all
 from .detail.game_pc_access import game_pc_access
 from .detail.game_pc_full import game_pc_full
-from .detail.game_pc_permissions import game_pc_permissions
 from .detail.game_pc_photo_upload import game_pc_photo_upload
 from .detail.items.game_pc_item_acquire import game_pc_item_acquire
 from .detail.items.game_pc_item_acquire_all import game_pc_item_acquire_all
@@ -42,7 +41,6 @@ __all__ = [
     'game_pc_detail',
     'game_pc_full',
     'game_pc_access',
-    'game_pc_permissions',
     'game_pc_photo_upload',
     'game_pc_photo_set',
     'game_pc_photo_detail',

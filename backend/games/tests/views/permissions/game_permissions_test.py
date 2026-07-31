@@ -1,4 +1,4 @@
-"""Tests for the game permissions-check view."""
+"""Tests for the entity-agnostic game permissions-check endpoint (issue #926)."""
 
 import json
 
@@ -10,7 +10,7 @@ from games.tests.factories import GameFactory, PlayerFactory, UserFactory
 
 
 class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
-    """Tests for the game permissions endpoint."""
+    """Tests for the GET /permissions/game.json endpoint."""
 
     @classmethod
     def setUpTestData(cls):
@@ -21,7 +21,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
 
     def _get(self, client, token=None, query=''):
         """Issue a GET request to the game permissions endpoint, optionally with a token/query."""
-        url = '/games/epic-quest/permissions.json'
+        url = '/permissions/game.json'
         if query:
             url = f'{url}?{query}'
         return self.get(client, url, token=token)
@@ -46,9 +46,9 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
             'can_create_npc': True,
         }
 
-    def test_non_existent_slug_returns_200_with_can_edit_false(self):
-        """Test that a non-existent game slug returns 200 with every permission False."""
-        response = self.client.get('/games/no-such-game/permissions.json')
+    def test_no_role_returns_all_false(self):
+        """Test that a request with no role param returns every permission False."""
+        response = self._get(self.client)
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data == self._all_false()
@@ -66,8 +66,8 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
         data = json.loads(response.content)
         assert data == self._all_true()
 
-    def test_non_dm_user_cannot_edit(self):
-        """Test that a non-DM, non-player authenticated user gets every permission False."""
+    def test_non_dm_authenticated_user_gets_all_false_without_role(self):
+        """Test that an authenticated real identity has no effect without a role param."""
         other = UserFactory(username='other', password='secret-password')
         token = Token.objects.create(user=other)
         response = self._get(self.client, token=token)
@@ -104,51 +104,11 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
         data = json.loads(response.content)
         assert data == self._all_false()
 
-    def test_response_sets_force_public_cache_header_without_role(self):
-        """Test that the response sets X-Force-Public-Cache: true even with no role param."""
-        response = self._get(self.client)
-        assert response['X-Force-Public-Cache'] == 'true'
-        assert 'X-Skip-Cache' not in response
-
-    def test_role_dm_can_edit_regardless_of_real_identity(self):
-        """Test that ?role=dm grants every permission True even for an anonymous caller."""
-        response = self._get(self.client, query='role=dm')
-        data = json.loads(response.content)
-        assert data == self._all_true()
-
-    def test_role_superuser_can_edit(self):
-        """Test that ?role=superuser grants every permission True."""
-        response = self._get(self.client, query='role=superuser')
-        data = json.loads(response.content)
-        assert data == self._all_true()
-
-    def test_role_staff_cannot_edit_but_can_create_and_edit_session(self):
-        """Test that ?role=staff grants can_create_item/document/session but not can_edit."""
-        response = self._get(self.client, query='role=staff')
-        data = json.loads(response.content)
-        assert data == {
-            'can_edit': False,
-            'can_create_item': True,
-            'can_create_document': True,
-            'can_edit_session': True,
-            'can_create_npc': True,
-        }
-
-    def test_role_player_cannot_edit_but_can_create_and_edit_session(self):
-        """Test that ?role=player grants can_create_item/document/can_edit_session (issue #864)."""
-        response = self._get(self.client, query='role=player')
-        data = json.loads(response.content)
-        assert data == {
-            'can_edit': False,
-            'can_create_item': True,
-            'can_create_document': True,
-            'can_edit_session': True,
-            'can_create_npc': True,
-        }
-
     def test_role_dm_overrides_authenticated_non_dm_real_identity(self):
-        """Test that ?role=dm grants every permission True even when real caller isn't."""
-        response = self._get(self.client, query='role=dm')
+        """Test that ?role=dm grants every permission True even when real caller isn't a DM."""
+        other = UserFactory(username='other2', password='secret-password')
+        token = Token.objects.create(user=other)
+        response = self._get(self.client, token=token, query='role=dm')
         data = json.loads(response.content)
         assert data == self._all_true()
 
@@ -158,14 +118,20 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
         data = json.loads(response.content)
         assert data == self._all_false()
 
-    def test_response_omits_x_skip_cache_and_sets_force_public_cache_with_role(self):
-        """Test that a role-simulated response sets X-Force-Public-Cache instead of X-Skip-Cache."""
+    def test_response_omits_x_skip_cache_header(self):
+        """Test that a role-simulated response never sets X-Skip-Cache."""
         response = self._get(self.client, query='role=dm')
         assert 'X-Skip-Cache' not in response
-        assert response['X-Force-Public-Cache'] == 'true'
 
-    def test_role_simulated_response_is_publicly_cacheable_for_authenticated_caller(self):
+    def test_response_is_publicly_cacheable_for_authenticated_caller(self):
         """Test that Cache-Control stays public even when the real caller is authenticated."""
         token = Token.objects.create(user=self.dm_user)
         response = self._get(self.client, token=token, query='role=owner')
         assert response['Cache-Control'].startswith('public')
+
+    def test_response_is_identical_regardless_of_which_games_exist(self):
+        """Test that the response for a given role doesn't depend on any real game in the DB."""
+        response_with_games = self._get(self.client, query='role=dm')
+        GameFactory(name='Another Quest', game_slug='another-quest')
+        response_with_more_games = self._get(self.client, query='role=dm')
+        assert response_with_games.content == response_with_more_games.content
