@@ -9,9 +9,8 @@ restated in every section:
 | **CharacterEdit** | `CharacterEditPermission` | The character's own player, any GameMaster of that game, or superuser |
 | **NpcPlayerEdit** | `NpcPlayerEditPermission` | Everyone CharacterEdit grants, OR any player of that game (`is_player`, below) — NPC routes only |
 | **CharacterPhotoUpload** | `CharacterPhotoUploadPermission` | Everyone CharacterEdit grants, OR any player of that game, OR any global Staff account (`user.is_staff`) — PC/NPC photo-upload init/finalize routes, and the "set as profile photo" routes |
-| **CharacterMoneyEdit** | `CharacterMoneyEditPermission` | Everyone CharacterEdit grants, OR any global Staff account — no "any player of the game" grant, unlike CharacterPhotoUpload; PC/NPC money-only routes |
-| **CharacterRegularEdit** | `CharacterRegularEditPermission` | Everyone CharacterEdit grants, OR any global Staff account, OR — **PC only** — any other player of that PC's game; the same derivation as CharacterMoneyEdit, kept as a separate class so the two endpoints' rules can diverge independently later (same convention as `CharacterItemCreatePermission`/`CharacterItemPhotoUploadPermission`); gates the narrow, player-writable `PATCH /games/<slug>/pcs/<id>.json` route only — no NPC counterpart |
-| **CharacterTreasureExchange** | `CharacterTreasureExchangePermission` | Everyone CharacterEdit grants, OR any global Staff account — no "any player of the game" grant (unlike CharacterMoneyEdit); PC/NPC treasure buy/sell routes only, not the DM-only `/buy/all.json` hidden-treasure variant, which stays gated by GameEdit alone |
+| **CharacterRegularEdit** | `CharacterRegularEditPermission` | Everyone CharacterEdit grants, OR any global Staff account, OR — **PC only** — any other player of that PC's game; gates the narrow, player-writable `PATCH /games/<slug>/pcs/<id>.json` route only (including `money`, since issue #915 removed the dedicated PC money-only endpoint) — no NPC counterpart |
+| **CharacterTreasureExchange** | `CharacterTreasureExchangePermission` | Everyone CharacterEdit grants, OR any global Staff account — no "any player of the game" grant; PC/NPC treasure buy/sell routes only, not the DM-only `/buy/all.json` hidden-treasure variant, which stays gated by GameEdit alone |
 | **TreasureEdit** | `TreasureEditPermission` | Superuser or Staff (staff only for a global treasure; a game-scoped treasure still requires GameEdit) |
 | **GameSessionEdit** | `GameSessionEditPermission` | Delegates entirely to GameEdit against the session's game |
 | **TaskEdit** | `TaskEditPermission` | Delegates entirely to GameEdit against the task's game; unlike every other rule here, also gates reads, not just writes (see [Task](task.md)) |
@@ -90,7 +89,7 @@ The response shape above (`can_edit` plus role-parsing/cache-header behavior) is
 baseline — several resources' `permissions.json` additionally expose their own extra `can_*`
 fields following this same real-identity/role-simulated dual pattern: `can_create_item`/
 `can_upload_item_photo` (Character and Game, see [character-item.md](character-item.md)/
-[game-item.md](game-item.md#item-creation-endpoint)), and `can_edit_money`/`can_exchange_treasure`/
+[game-item.md](game-item.md#item-creation-endpoint)), and `can_exchange_treasure`/
 `can_set_profile_photo`/`can_delete_photo` (Character only, moved off the detail/full-detail
 response onto this endpoint specifically so those responses could become cacheable — see
 [character.md](character.md#edit-access-status-permission)).
