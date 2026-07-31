@@ -3,16 +3,9 @@
 import json
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import (
-    CharacterFactory,
-    GameFactory,
-    PlayerFactory,
-    SuperUserFactory,
-    UserFactory,
-)
+from games.tests.factories import CharacterFactory, GameFactory, PlayerFactory, UserFactory
 
 
 @pytest.mark.django_db
@@ -26,8 +19,6 @@ class TestGameNpcPermissionsView(TokenAuthRequestMixin):
         self.pc_owner = UserFactory(username='pc_owner', password='secret-password')
         self.player.user = self.pc_owner
         self.player.save()
-        self.dm_user = UserFactory(username='dm_user', password='secret-password')
-        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         CharacterFactory(name='Frodo', game=self.game, player=self.player, npc=False)
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True)
 
@@ -75,17 +66,14 @@ class TestGameNpcPermissionsView(TokenAuthRequestMixin):
         assert 'X-Skip-Cache' not in response
 
     def test_dm_can_edit(self, client):
-        """Test that the game's DM gets every permission True."""
-        token = Token.objects.create(user=self.dm_user)
-        response = self.get(client, self._url(query='role=dm'), token=token)
+        """Test that ?role=dm grants every permission True."""
+        response = self.get(client, self._url(query='role=dm'))
         data = json.loads(response.content)
         assert data == self._all_true()
 
     def test_superuser_can_edit(self, client):
-        """Test that a superuser gets every permission True."""
-        superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
-        response = self.get(client, self._url(query='role=superuser'), token=token)
+        """Test that ?role=superuser grants every permission True."""
+        response = self.get(client, self._url(query='role=superuser'))
         data = json.loads(response.content)
         assert data == self._all_true()
 
@@ -109,8 +97,7 @@ class TestGameNpcPermissionsView(TokenAuthRequestMixin):
 
     def test_unrecognized_role_does_not_fall_back_to_real_identity(self, client):
         """Test that an unrecognized role still switches to the role-simulated path."""
-        token = Token.objects.create(user=self.dm_user)
-        response = self.get(client, self._url(query='role=bogus'), token=token)
+        response = self.get(client, self._url(query='role=bogus'))
         data = json.loads(response.content)
         assert data == self._all_false()
 
@@ -127,12 +114,8 @@ class TestGameNpcPermissionsView(TokenAuthRequestMixin):
         assert data == self._all_false()
 
     def test_staff_can_create_item_but_cannot_edit_or_upload_photo(self, client):
-        """Test that Staff gets the globally-bypassed permissions, narrowed item photo (#864)."""
-        staff_user = UserFactory(username='staff_user', password='secret-password')
-        staff_user.is_staff = True
-        staff_user.save()
-        token = Token.objects.create(user=staff_user)
-        response = self.get(client, self._url(query='role=staff'), token=token)
+        """Test that ?role=staff grants the globally-bypassed permissions, narrowed (#864)."""
+        response = self.get(client, self._url(query='role=staff'))
         data = json.loads(response.content)
         assert data == {
             'can_edit': False,
@@ -157,11 +140,8 @@ class TestGameNpcPermissionsView(TokenAuthRequestMixin):
         }
 
     def test_regular_player_can_create_item_but_cannot_edit_or_upload_photo(self, client):
-        """Test that a player may create/photo-set an NPC, but not upload an item photo (#864)."""
-        player_user = UserFactory(username='player_user', password='secret-password')
-        PlayerFactory(name='Regular Player', user=player_user, game=self.game)
-        token = Token.objects.create(user=player_user)
-        response = self.get(client, self._url(query='role=player'), token=token)
+        """Test that ?role=player may create/photo-set an NPC, but not upload an item photo."""
+        response = self.get(client, self._url(query='role=player'))
         data = json.loads(response.content)
         assert data == {
             'can_edit': False,

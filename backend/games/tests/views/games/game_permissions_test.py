@@ -6,7 +6,7 @@ from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import GameFactory, PlayerFactory, SuperUserFactory, UserFactory
+from games.tests.factories import GameFactory, PlayerFactory, UserFactory
 
 
 class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
@@ -54,18 +54,15 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
         assert data == self._all_false()
 
     def test_dm_can_edit(self):
-        """Test that the game's DM gets every permission True."""
-        token = Token.objects.create(user=self.dm_user)
-        response = self._get(self.client, token=token, query='role=dm')
+        """Test that ?role=dm grants every permission True."""
+        response = self._get(self.client, query='role=dm')
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data == self._all_true()
 
     def test_superuser_can_edit(self):
-        """Test that a superuser gets every permission True."""
-        superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
-        response = self._get(self.client, token=token, query='role=superuser')
+        """Test that ?role=superuser grants every permission True."""
+        response = self._get(self.client, query='role=superuser')
         data = json.loads(response.content)
         assert data == self._all_true()
 
@@ -78,11 +75,8 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
         assert data == self._all_false()
 
     def test_player_cannot_edit_but_can_create_and_edit_session(self):
-        """Test that a player gets can_edit False, but the rest True (issue #864)."""
-        player_user = UserFactory(username='player_user', password='secret-password')
-        PlayerFactory(name='Bob', user=player_user, game=self.game)
-        token = Token.objects.create(user=player_user)
-        response = self._get(self.client, token=token, query='role=player')
+        """Test that ?role=player gets can_edit False, but the rest True (issue #864)."""
+        response = self._get(self.client, query='role=player')
         data = json.loads(response.content)
         assert data == {
             'can_edit': False,
@@ -93,12 +87,8 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
         }
 
     def test_staff_cannot_edit_but_can_create_and_edit_session(self):
-        """Test that a global Staff account gets can_edit False, but the rest True."""
-        staff_user = UserFactory(username='staff_user', password='secret-password')
-        staff_user.is_staff = True
-        staff_user.save()
-        token = Token.objects.create(user=staff_user)
-        response = self._get(self.client, token=token, query='role=staff')
+        """Test that ?role=staff gets can_edit False, but the rest True."""
+        response = self._get(self.client, query='role=staff')
         data = json.loads(response.content)
         assert data == {
             'can_edit': False,
@@ -158,16 +148,13 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
 
     def test_role_dm_overrides_authenticated_non_dm_real_identity(self):
         """Test that ?role=dm grants every permission True even when real caller isn't."""
-        other = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other)
-        response = self._get(self.client, token=token, query='role=dm')
+        response = self._get(self.client, query='role=dm')
         data = json.loads(response.content)
         assert data == self._all_true()
 
     def test_unrecognized_role_does_not_fall_back_to_real_identity(self):
         """Test that an unrecognized role still switches to the role-simulated path."""
-        token = Token.objects.create(user=self.dm_user)
-        response = self._get(self.client, token=token, query='role=bogus')
+        response = self._get(self.client, query='role=bogus')
         data = json.loads(response.content)
         assert data == self._all_false()
 

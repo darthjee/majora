@@ -49,8 +49,8 @@ class TestTreasurePermissionsView(TokenAuthRequestMixin, TestCase):
         assert data == {'can_edit': False}
 
     def test_superuser_can_edit_global_treasure(self):
-        """Test that a superuser gets can_edit True for a global treasure."""
-        response = self._get(self.client, token=self.superuser_token, query='role=superuser')
+        """Test that ?role=superuser gets can_edit True for a global treasure."""
+        response = self._get(self.client, query='role=superuser')
         data = json.loads(response.content)
         assert data == {'can_edit': True}
 
@@ -61,8 +61,8 @@ class TestTreasurePermissionsView(TokenAuthRequestMixin, TestCase):
         assert data == {'can_edit': False}
 
     def test_staff_can_edit_global_treasure(self):
-        """Test that a staff user gets can_edit True for a global treasure."""
-        response = self._get(self.client, token=self.staff_token, query='role=staff')
+        """Test that ?role=staff gets can_edit True for a global treasure."""
+        response = self._get(self.client, query='role=staff')
         data = json.loads(response.content)
         assert data == {'can_edit': True}
 
@@ -82,14 +82,11 @@ class TestTreasurePermissionsView(TokenAuthRequestMixin, TestCase):
         assert data == {'can_edit': False}
 
     def test_dm_of_owning_game_can_edit_game_exclusive_treasure(self):
-        """Test that the DM of a treasure's owning game gets can_edit True."""
+        """Test that ?role=dm gets can_edit True for a treasure's owning game."""
         game = GameFactory(name='Test Game', game_slug='test-game')
-        dm_user = UserFactory(username='dm_user', password='secret-password')
-        PlayerFactory(game=game, user=dm_user, is_dm=True)
         self.treasure.game = game
         self.treasure.save()
-        token = Token.objects.create(user=dm_user)
-        response = self._get(self.client, token=token, query='role=dm')
+        response = self._get(self.client, query='role=dm')
         data = json.loads(response.content)
         assert data == {'can_edit': True}
 
@@ -138,7 +135,7 @@ class TestTreasurePermissionsView(TokenAuthRequestMixin, TestCase):
 
     def test_unrecognized_role_does_not_fall_back_to_real_identity(self):
         """Test that an unrecognized role still switches to the role-simulated path."""
-        response = self._get(self.client, token=self.superuser_token, query='role=bogus')
+        response = self._get(self.client, query='role=bogus')
         data = json.loads(response.content)
         assert data == {'can_edit': False}
 
