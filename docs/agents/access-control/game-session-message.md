@@ -11,6 +11,7 @@ permission model (**SessionMessagePermission**) with different rules for viewing
 | Update/Delete | Not exposed by any endpoint (Django admin only) |
 
 ## Pagination
+
 A distinct id-cursor style, not the numbered-page paginator used elsewhere. Ordered by `id`
 descending (newest first), 20 per page.
 - No `next-entry-id` param: returns the most recent 20.

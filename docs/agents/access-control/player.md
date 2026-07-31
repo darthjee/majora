@@ -20,6 +20,7 @@ per the [`X-Skip-Cache` rule](principles.md#x-skip-cache-rule) (authorization-ga
 data).
 
 ## Fields
+
 List and Show (same shape): `id`, `user`, `character`.
 - `user` — `null` when the `Player` has no linked account. Otherwise: `display_name`
   (`UserProfile.display_name`, never the real username) and `photo_url` (Gravatar-based).
@@ -32,6 +33,7 @@ most one PC. NPCs/unowned PCs (`player=None`) are unaffected — only non-null `
 constrained.
 
 ## GameMaster (DM) role
+
 `Player.is_dm` is the single source of truth for whether a player is that game's DM — there is no
 separate `GameMaster` model. A user may hold `is_dm=True` on at most one `Player` row per game, and
 may DM multiple games via separate `Player` rows. See [Common Rules](common-rules.md) for how

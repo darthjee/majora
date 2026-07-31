@@ -20,6 +20,7 @@ read-only, server-assigned only (`game_slug` auto-generated from `name`; `cover_
 only via [Upload](upload.md)).
 
 ## Edit access status
+
 `GET /games/<slug>/access.json` — **AllowAny**, standard shape per [Access status
 endpoints](common-rules.md#access-status-endpoints-accessjson). `is_owner` is always `false`
 (games have no ownership concept).

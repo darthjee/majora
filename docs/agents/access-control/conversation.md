@@ -19,6 +19,7 @@ same check [Player](player.md)'s endpoints use.
 | Read aggregate counts, via `GET /my-games.json` | Any authenticated user, for their own rows only — see below |
 
 ## `GET /games/<game_slug>/conversations.json`
+
 Paginated, most-recent-first, returns only `Conversation`s where **both** the requester's own
 `Player` row (in `game_slug`) and the `player_id` query param's `Player` row participate — no way
 to browse a third party's conversations via this filter. `player_id` is required, not optional.
@@ -28,6 +29,7 @@ messages issue). Always sets `X-Skip-Cache: true` per the [`X-Skip-Cache`
 rule](principles.md#x-skip-cache-rule).
 
 ## Aggregate exposure via `GET /my-games.json`
+
 Every query is scoped strictly to the requesting user, returning only two integer counts per
 game — never message content, titles, or other participants' identities: `conversations.count`
 (conversations the requester follows with at least one participant in that game) and

@@ -5,9 +5,11 @@ symmetric for PCs and NPCs unless noted. As per [principles](principles.md#parti
 endpoints have regular and restricted (`full.json`/`all.json`) versions.
 
 ## Regular access for `GET`
+
 Everyone (**AllowAny**).
 
 ## Regular access for mutation
+
 - PC narrow PATCH (`PATCH /games/<slug>/pcs/<id>.json`) — **CharacterRegularEdit**: admin, staff,
   dm, the PC's own player, or any other player of the game.
 - NPC narrow PATCH (`PATCH /games/<slug>/npcs/<id>.json`) — **NpcPlayerEdit**: admin, staff, dm,
@@ -32,9 +34,11 @@ routes above — never on the plain detail routes, which instead accept only the
 player-safe field set (see "Narrow player-facing PATCH" below).
 
 ### Regular endpoint missing its restricted counterpart
+
 - `GET /games/<slug>/pcs.json` — no `/all.json` sibling yet (tracked for future API symmetry).
 
 ### Additional endpoints (deviations from the CRUD pattern)
+
 - `GET/PATCH .../access.json`, `GET .../permissions.json` — see "Edit access status/permission"
   below.
 
@@ -52,6 +56,7 @@ below).
 Invalid values are silently ignored (tolerant convention — no `400`).
 
 #### `GET /games/<slug>/npcs/all.json`
+
 Everything above, plus, per the [filter-visibility rule](principles.md#filter-visibility-rule):
 - `private_allegiance=`, `private_slain=`, `hidden=`
 
@@ -92,6 +97,7 @@ pattern](principles.md#default-hidden-gated-collection-pattern) applied here. Wr
 `full.json`/`npcs/full.json` — never via the narrow player-facing PATCH/create paths.
 
 ### `incognito`
+
 Same restricted-visibility treatment as `hidden` per the [`incognito`
 convention](principles.md#incognito), Character-specific. Does not gate the character's own
 visibility (an incognito NPC still appears on the public list/detail) — it only nulls
@@ -110,6 +116,7 @@ needed so Tent's cache can't replay an editor's view of a hidden character to a 
 caller.
 
 ## Edit access status / permission
+
 `GET .../access.json` — **AllowAny**, standard shape per [Access status
 endpoints](common-rules.md#access-status-endpoints-accessjson). `is_dm`/`is_player` are evaluated
 against the character's game; `is_owner` is real for a PC, always `false` for an NPC.
@@ -138,6 +145,7 @@ server-assigned, never accepted from the payload — a player-created NPC can ne
 response never includes `private_description`, even on the full endpoint, mirroring `PATCH`.
 
 ## Narrow player-facing PATCH
+
 The plain detail routes accept `PATCH` for a small, curated, player-safe field set distinct from
 the full-editor field set — additive only, the full-editor form keeps using `full.json`.
 

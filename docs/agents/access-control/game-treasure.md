@@ -25,6 +25,7 @@ pattern](principles.md#default-hidden-gated-collection-pattern) doesn't apply to
 player-facing read endpoint omits it entirely.
 
 ## `hidden`
+
 Makes a treasure's presence in a specific game's catalog toggleable per game, independent of the
 treasure itself or any other game it's linked to. Every treasure a game can see already has a
 matching `GameTreasure` row, so a missing row defaults `hidden` to `False` rather than erroring.

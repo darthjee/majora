@@ -28,6 +28,7 @@ DM-controlled and the filter exists to stop a hidden "reward" treasure from bein
 the NPC's own inventory view.
 
 ## Fields
+
 `id` (the `CharacterTreasure` row id), `treasure_id`, `name`, `value`, `photo_path` (nullable),
 `quantity` — `treasure_id`/`photo_path` are not new disclosures, already public via the
 `/treasures.json` family. `value` resolves via the same per-game override as
@@ -72,6 +73,7 @@ on remove only. There is no `remove/all.json` DM-bypass variant — mirroring se
 either, since remove is scoped by ownership rather than catalog visibility.
 
 ## `max_value` filter on the game treasure list
+
 `/games/<slug>/treasures.json` (**AllowAny**, see [Treasure](treasure.md)) accepts an optional
 `max_value` (integer, copper pieces) filter against the same per-game resolved `value`; a missing
 or non-numeric value is silently ignored. `?ordering=asc|desc` sorts by the same value. The PC/NPC

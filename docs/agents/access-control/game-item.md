@@ -35,6 +35,7 @@ Detail adds `description`. `/all.json`/`/full.json`/create-response add `hidden`
 fallback target, unlike `CharacterItem`).
 
 ## Item creation endpoint
+
 `GameItemCreatePermission` is `user.is_staff or game.can_be_edited_by(user)`. Creates only a
 `GameItem` — no `CharacterItem` — unlike [CharacterItem](character-item.md)'s PC/NPC creation
 pair, which always creates a `GameItem`/`CharacterItem` pair together. A `can_create_item` boolean

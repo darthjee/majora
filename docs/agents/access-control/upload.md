@@ -20,6 +20,7 @@ that the URL's `upload_type` segment matches the row's stored value.
 | Update / Delete | No public endpoint; status transitions are handled internally |
 
 ## Fields
+
 - `id` (int), `token` (secret string), `upload_type` — returned in the `201` response to the
   authenticated initiator only. `token` must never be exposed to any user other than the one who
   created the upload, nor through any endpoint other than the init response.
@@ -59,6 +60,7 @@ All cases reuse the checks already enforced at upload creation (token match, req
 be the upload's owner) — only the object-level permission class differs, by `content_object` type.
 
 ## Endpoint summary
+
 Each endpoint below is init-only (creates/reuses the target photo/file row with `ready=False`,
 returning `upload_id`/`token`/`id` plus a resource-scoping id); the resource file linked covers the
 full access-control picture (hidden-state interaction, storage semantics), so only the permission

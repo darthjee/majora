@@ -12,6 +12,7 @@ gallery and, via `Character.profile_photo`, its profile picture.
 | `/games/<slug>/npcs/<id>/photos.json` | GET | **AllowAny**, but see the hidden-NPC gate below | Same as above |
 
 ## Fields
+
 `id`, `path` — visible to anyone who can read the endpoint (i.e. anyone, since NPC endpoints are
 public for non-hidden NPCs). `ready` is internal, never serialized. As with `GamePhoto`, `path` is
 also exposed indirectly via `Character.profile_photo_path` — both apply simultaneously.

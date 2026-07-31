@@ -14,6 +14,7 @@ never serialized. Once a `GamePhoto` becomes a game's `cover_photo`, it's also e
 `Game.cover_photo_path` — both exposures apply simultaneously.
 
 ## Write access
+
 - `POST /games/<slug>/photo_upload.json` — **GameEdit**; creates a `GamePhoto` with `ready=False`
   as part of the [upload init flow](upload.md#endpoint-summary). Not visible in the game detail
   until finalised.

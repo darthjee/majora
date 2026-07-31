@@ -29,6 +29,7 @@ check **GameEdit** against the resolved game directly instead (see [Common
 Rules](common-rules.md)).
 
 ## Fields
+
 **List/detail**: `id`, `name`, `value`, `photo_path`, `game_slug`, `available_units`, `max_units`
 — see [GameTreasure](game-treasure.md) for how `value`/`available_units`/`max_units` resolve.
 `GET /games/<slug>/treasures/all.json` additionally exposes `hidden` — no other read endpoint
@@ -45,18 +46,21 @@ create/update endpoints when `game_id` is `None` — a deliberate scope limit, n
 since global treasures are already fully public by design.
 
 ## `max_value` filter
+
 `GET /games/<slug>/treasures.json` accepts an optional `max_value` (integer) filter and an
 `?ordering=asc|desc`, both against the same per-game resolved `value` — see
 [CharacterTreasure](character-treasure.md#max_value-filter-on-the-game-treasure-list). Exposes no
 additional data, only narrows/reorders the same publicly readable list.
 
 ## Edit access status
+
 `GET /treasures/<id>/access.json` — **AllowAny**, standard shape per [Access status
 endpoints](common-rules.md#access-status-endpoints-accessjson). Edit permission is `true` via
 *either* path: superuser/staff (global rule) **or** GameEdit against the owning game (when
 exclusive to one).
 
 ## Edit permission
+
 `GET /treasures/<id>/permissions.json` — **AllowAny**, standard shape per [Edit permission
 endpoints](common-rules.md#edit-permission-endpoints-permissionsjson). With no `role` param,
 `can_edit` includes staff for a global treasure, per the table above. With a `role` param, a

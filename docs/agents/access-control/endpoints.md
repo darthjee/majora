@@ -15,6 +15,7 @@ before rendering. A page needing no check (e.g. `games`, `home`) has no entry. A
 classes are explicitly empty and permission is `AllowAny` — this response never varies by caller.
 
 ## Health check endpoint
+
 | Endpoint | Method | Who can call | Response |
 |----------|--------|-------------|----------|
 | `/health.json` | GET | **AllowAny** | `{"status": "ok"}` |

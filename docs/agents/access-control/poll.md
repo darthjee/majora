@@ -21,6 +21,7 @@ not `AllowAny` and Create is not gated by a plain `<Resource>Edit` rule: view an
 | Vote Cast (`PUT /games/<game_slug>/polls/<id>/votes.json`) | Only an actual player or GameMaster — **PollVotePermission.check_vote**; **no** superuser/staff bypass, unlike the view checks above |
 
 ## Pagination/filters
+
 Standard numbered-page pagination. List accepts an optional `?status=` filter
 (`open`/`inactive`/`closed`); an unrecognized value yields an empty page (tolerant convention, no
 `400`).
@@ -30,6 +31,7 @@ Always sets `X-Skip-Cache: true` on every response (List/Show/Create/Vote List/V
 [`X-Skip-Cache` rule](principles.md#x-skip-cache-rule).
 
 ## Fields
+
 **List**: `id`, `title`, `type`, `status` — no `description`/`options`, per the [list/show
 default](principles.md#listshow-serializer-defaults). **Show/Create-response**: adds
 `description`, `option_type`, `options` (nested `id`, `option` — no vote counts/voter identities).
