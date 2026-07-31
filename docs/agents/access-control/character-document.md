@@ -35,6 +35,7 @@ all sourced directly from the linked `GameDocument`. `hidden` is exposed on the 
 `/full.json` variants only.
 
 ## Document files/photos shortlist endpoints
+
 `CharacterDocument` carries no files/photos of its own — a character possessing a `GameDocument`
 can list that document's own `GameDocumentFile`/`GameDocumentPhoto` rows, looked up by the
 `CharacterDocument`'s own id (not the underlying `GameDocument`'s), filtered to `ready=True`.

@@ -32,6 +32,7 @@ that the URL's `upload_type` segment matches the row's stored value.
   `object_id`) are internal, never returned by any endpoint.
 
 ## Route shape and the no-leak ordering guarantee
+
 Submit (`POST /uploads/<upload_type>/<id>/submit.json`, proxy-facing) and finalize (`PATCH
 /uploads/<upload_type>/<id>.json`, backend-facing) both carry `upload_type` as a URL segment
 (`image`/`file` only — an unrecognized value 404s before the view runs). The finalize view runs

@@ -27,6 +27,7 @@ Standard numbered-page pagination. List accepts an optional `?status=` filter
 `400`).
 
 ## Cache
+
 Always sets `X-Skip-Cache: true` on every response (List/Show/Create/Vote List/Vote Cast), per the
 [`X-Skip-Cache` rule](principles.md#x-skip-cache-rule).
 
@@ -46,6 +47,7 @@ default](principles.md#listshow-serializer-defaults). **Show/Create-response**: 
 **Vote Cast response**: a flat array (not the envelope) of `id`, `option`, `user_id`.
 
 ## Write fields
+
 **Create**: `title` (required), `description` (optional), `type` (optional, defaults to single),
 `option_type` (optional, defaults to text — applies to the whole poll), `options` (required, at
 least one, capped at `MAX_OPTIONS`). `game` is always server-assigned; `status` is always

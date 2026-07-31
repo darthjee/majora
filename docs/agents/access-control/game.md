@@ -26,6 +26,7 @@ endpoints](common-rules.md#access-status-endpoints-accessjson). `is_owner` is al
 (games have no ownership concept).
 
 ## Edit permission
+
 `GET /games/<slug>/permissions.json` — **AllowAny**, standard shape per [Edit permission
 endpoints](common-rules.md#edit-permission-endpoints-permissionsjson). Beyond `can_edit`
 (**GameEdit**), exposes:
@@ -35,6 +36,7 @@ endpoints](common-rules.md#edit-permission-endpoints-permissionsjson). Beyond `c
   [GameDocument](game-document.md#document-creation-endpoint).
 
 ## My Games list
+
 `GET /my-games.json` — any authenticated user; `401` if unauthenticated. Always sets
 `X-Skip-Cache: true` per the [`X-Skip-Cache` rule](principles.md#x-skip-cache-rule) (per-viewer
 data). Not paginated — bounded by how many games one user plays.

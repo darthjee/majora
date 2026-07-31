@@ -17,6 +17,7 @@ Everyone (**AllowAny**).
 - NPC narrow create (`POST /games/<slug>/npcs.json`) — **NpcPlayerCreate**: same as NpcPlayerEdit.
 
 ## Restricted access (`full.json`/`all.json`)
+
 - **CharacterEdit**: admin, dm, or (PC only) the character's own owning player.
 - NPC full create (`POST /games/<slug>/npcs/full.json`) — **GameEdit**: admin or dm only.
 
@@ -109,6 +110,7 @@ first and `incognito` has no additional observable effect. Writable only via the
 `hidden`.
 
 ### Hidden-detail cache deviation
+
 A non-hidden character's detail response is cacheable like Game/Treasure detail; a **hidden**
 character's detail response still sets `X-Skip-Cache: true` regardless of viewer — a deviation
 from the [`X-Skip-Cache` rule](principles.md#x-skip-cache-rule) (this is an `AllowAny` route),
@@ -136,6 +138,7 @@ exposes:
 All four follow the same real-identity vs. role-simulated dual path as `can_edit`.
 
 ## Create
+
 Regular (`POST /games/<slug>/npcs.json`) accepts a curated player-safe field set: `name`
 (required), `role`, `public_description`, `public_allegiance`, `public_slain`, `links` (all other
 optional). Full (`POST /games/<slug>/npcs/full.json`) additionally accepts `private_description`,

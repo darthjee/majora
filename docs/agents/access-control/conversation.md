@@ -37,6 +37,7 @@ game — never message content, titles, or other participants' identities: `conv
 of `Message`/`MessageVisualisation` is reachable from any endpoint today.
 
 ## Adding a real conversation endpoint
+
 If a future issue adds a `detail`/`create` endpoint exposing message bodies, update this file with
 the same per-action table used elsewhere in this document set, including: which roles can read a
 conversation's messages (presumably its own participants only), whether

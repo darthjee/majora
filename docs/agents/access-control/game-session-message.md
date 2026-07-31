@@ -23,6 +23,7 @@ descending (newest first), 20 per page.
   change frequently.
 
 ## Fields
+
 **List and create-response** (same shape): `id`, `content`, `user` (reduced: `name` —
 `UserProfile.display_name`, never the real username — and Gravatar-based `avatar_url`), `created_at`.
 
