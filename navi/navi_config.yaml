@@ -1,0 +1,22 @@
+web:
+  port: $NAVI_PORT
+workers:
+  quantity: 5
+  retry_cooldown: 10000
+  sleep: 500
+  max-retries: 50
+
+failure:
+  threshold: 0.0
+
+clients:
+  default:
+    base_url: $MAJORA_PRODUCTION_URL
+    timeout: 20000
+
+include:
+  - resources/treasures.yml
+  - resources/games.yml
+  - resources/pcs.yml
+  - resources/npcs.yml
+  - resources/permissions.yml

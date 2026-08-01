@@ -3,19 +3,35 @@
 Majora uses [Navi](https://github.com/darthjee/navi) to warm the Tent proxy cache after each production release.
 See [HOW_TO_USE_NAVI.md](external/HOW_TO_USE_NAVI.md) for the full Navi reference (a hub
 linking to per-topic pages under `external/navi/`) — the config-format page
-([external/navi/prerequisites.md](external/navi/prerequisites.md)) and pagination page
-([external/navi/paginated-actions.md](external/navi/paginated-actions.md)) are the ones most
-relevant to maintaining `.circleci/navi_config.yaml`.
+([external/navi/prerequisites.md](external/navi/prerequisites.md)), pagination page
+([external/navi/paginated-actions.md](external/navi/paginated-actions.md)), and splitting page
+([external/navi/splitting-config.md](external/navi/splitting-config.md)) are the ones most
+relevant to maintaining `navi/navi_config.yaml`.
 
 ## Configuration
 
-The Navi configuration lives in [`.circleci/navi_config.yaml`](../../.circleci/navi_config.yaml).
+The Navi configuration entry file lives at
+[`navi/navi_config.yaml`](../../navi/navi_config.yaml). It holds the `web`, `workers`,
+`failure`, and `clients` sections, and pulls in the `resources` sections via a top-level
+`include:` list from five domain files under
+[`navi/resources/`](../../navi/resources/):
 
-It covers all `.json` API endpoints, chaining from `/games.json` down through each game's
-detail, PCs, NPCs, treasures, items, documents, and sessions, and from there to each
-character's/document's detail (and its nested photos/files/treasures/items) — the `slug`
+- `treasures.yml` — top-level `/treasures.json` chain.
+- `games.yml` — `/games.json` chain down through each game's detail, PCs, NPCs, treasures,
+  items, documents, and sessions listings (and their short-preview variants).
+- `pcs.yml` — a PC's detail and its nested photos/treasures/items/documents.
+- `npcs.yml` — an NPC's detail and its nested photos/treasures/items/documents.
+- `permissions.yml` — the entity-agnostic `permissions_*` resources (see below).
+
+None of these files declare a `namespace:` key, so every resource still resolves in the
+default namespace and cross-file `actions`/`paginated_actions` references (e.g. a resource in
+`games.yml` pointing at `pc`/`npc` in `pcs.yml`/`npcs.yml`) need no `namespace` key.
+
+Within `games.yml`, the chain runs from `/games.json` down through each game's detail, PCs,
+NPCs, treasures, items, documents, and sessions, and from there (via `pcs.yml`/`npcs.yml`) to
+each character's/document's detail (and its nested photos/files/treasures/items) — the `slug`
 extracted at the top of the chain is inherited by every resource below it, so it never needs
-re-extracting. See `.circleci/navi_config.yaml` for the exact resource names and URL
+re-extracting. See the files under `navi/resources/` for the exact resource names and URL
 patterns.
 
 It also covers the entity-agnostic `permissions_*` resources (`permissions_game`,
@@ -28,9 +44,10 @@ entity type and the role query params, never on a specific entity instance.
 
 ## Maintaining this configuration
 
-`.circleci/navi_config.yaml` (and this document) is owned by the
-[`cache`](../../.claude/agents/cache.md) agent. When a new API endpoint is added, it should be
-added to the warm-up chain following these rules:
+`navi/navi_config.yaml`, the files under `navi/resources/`, and this document are owned by
+the [`cache`](../../.claude/agents/cache.md) agent. When a new API endpoint is added, it
+should be added to the warm-up chain (in the domain file matching its entity) following these
+rules:
 
 - Include regular (unparameterized or already-reachable) endpoints, paginated resources
   (`paginated_actions`), nested resources reached via `actions`, and `short_*` resources that
@@ -48,7 +65,8 @@ added to the warm-up chain following these rules:
 
 The `warm-up-cache` job runs automatically after `release` on version tags (`\d+\.\d+\.\d+`).
 It uses the `darthjee/navi-hey:latest` image directly as the executor and reads
-`.circleci/navi_config.yaml` from the checked-out repository.
+`navi/navi_config.yaml` (which in turn includes the files under `navi/resources/`) from the
+checked-out repository.
 
 ```yaml
 warm-up-cache:
@@ -58,7 +76,7 @@ warm-up-cache:
     - checkout
     - run:
         name: Warm up proxy cache
-        command: navi-hey --config .circleci/navi_config.yaml
+        command: navi-hey --config navi/navi_config.yaml
 ```
 
 The `MAJORA_PRODUCTION_URL` environment variable must be set in the CircleCI project settings
