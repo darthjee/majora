@@ -119,7 +119,7 @@ services:
   majora_navi:
     image: darthjee/navi-hey:latest
     volumes:
-      - .circleci/:/home/node/app
+      - ./navi/:/home/node/app
     command: navi-hey --config navi_config.yaml
     environment:
       - MAJORA_PRODUCTION_URL=$MAJORA_PRODUCTION_URL
