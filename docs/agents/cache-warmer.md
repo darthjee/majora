@@ -1,7 +1,11 @@
 # Cache Warmer
 
 Majora uses [Navi](https://github.com/darthjee/navi) to warm the Tent proxy cache after each production release.
-See [HOW_TO_USE_NAVI.md](external/HOW_TO_USE_NAVI.md) for the full Navi reference.
+See [HOW_TO_USE_NAVI.md](external/HOW_TO_USE_NAVI.md) for the full Navi reference (a hub
+linking to per-topic pages under `external/navi/`) — the config-format page
+([external/navi/prerequisites.md](external/navi/prerequisites.md)) and pagination page
+([external/navi/paginated-actions.md](external/navi/paginated-actions.md)) are the ones most
+relevant to maintaining `.circleci/navi_config.yaml`.
 
 ## Configuration
 

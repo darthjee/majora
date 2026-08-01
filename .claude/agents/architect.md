@@ -106,7 +106,7 @@ re-invoke `cache` to confirm the finding is resolved before merging the PR.
 | `cache-warmer.md` | Navi setup for warming the proxy cache; used by the `cache` agent |
 | `access-control.md` | Short index linking to per-resource access rules under `access-control/` |
 | `access-control/` | One file per resource/topic — access rules for that resource only |
-| `external/HOW_TO_USE_NAVI.md` | Full Navi reference |
+| `external/HOW_TO_USE_NAVI.md` | Navi reference hub — links to per-topic pages under `external/navi/` |
 | `external/HOW_TO_USE_DARTHJEE-TENT.md` | Full Tent proxy configuration reference |
 | `plans/` | Implementation plans for ongoing or upcoming features |
 | `issues/` | Detailed specs for open issues |

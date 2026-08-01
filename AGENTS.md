@@ -82,7 +82,7 @@ All project documentation lives under [`docs/agents/`](docs/agents/):
 | [Cache Warmer](docs/agents/cache-warmer.md) | Navi setup for warming the proxy cache after release (CI and local); used by the `cache` agent. |
 | [Frontend i18n](docs/agents/i18n.md) | Frontend translation layer: YAML files, `Translator`, language selector, and how to add a new language. |
 | [Mutation Migration](docs/agents/migration/README.md) | Temporary doc tracking the app-wide migration of mutation requests onto `RequestStore`; explains the approach once and checklists every route — deleted once the last route is migrated. |
-| [How to Use Navi](docs/agents/external/HOW_TO_USE_NAVI.md) | Full Navi reference: config format, chaining, pagination, CLI flags. |
+| [How to Use Navi](docs/agents/external/HOW_TO_USE_NAVI.md) | Navi reference hub — links to per-topic pages under `docs/agents/external/navi/` (config format, chaining, pagination, CLI flags) so an agent only loads the page it needs. |
 | [Plans](docs/agents/plans/) | Implementation plans for ongoing or upcoming features. |
 | [Issues](docs/agents/issues/) | Detailed specs for open issues. |
 
