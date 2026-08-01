@@ -1,8 +1,10 @@
 # GameSession
 
 **[Game resource](principles.md#resource-categories).** Sessions are scoped to a game; write
-access mirrors `Game.can_be_edited_by` exactly (**GameSessionEdit**, which delegates entirely to
-**GameEdit**). Follows the [default resource CRUD
+access is gated by **GameSessionEdit**, whose roles beyond baseline (dm/admin) are staff and any
+player of the game — see
+[`game_session/endpoints.yml`](../../../backend/games/permissions/config/game_session/endpoints.yml)
+(`regular.edit`) and [Common Rules](common-rules.md). Follows the [default resource CRUD
 pattern](principles.md#default-resource-crud-pattern) (Create/Update = **GameSessionEdit**, Delete
 = superuser-only via Django admin), with one deviation: List is split into three separate
 endpoints instead of one.

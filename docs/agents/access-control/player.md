@@ -11,7 +11,7 @@ endpoint reuses unchanged.
 
 | Action | Who can |
 |--------|---------|
-| List (`GET /games/<game_slug>/players.json`) | Player, GameMaster, superuser, or staff — **PlayerPermission.check** |
+| List (`GET /games/<game_slug>/players.json`) | **PlayerPermission.check** — roles per [`player/endpoints.yml`](../../../backend/games/permissions/config/player/endpoints.yml) (`regular.show`) |
 | Show (`GET /games/<game_slug>/players/<id>.json`) | Same as List |
 | Create/Update/Delete | Not exposed by any endpoint (Django admin only) |
 

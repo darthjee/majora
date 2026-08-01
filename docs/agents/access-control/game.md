@@ -31,10 +31,12 @@ endpoints](common-rules.md#access-status-endpoints-accessjson). `is_owner` is al
 standard shape per [Edit permission
 endpoints](common-rules.md#edit-permission-endpoints-permissionsjson). Beyond `can_edit`
 (**GameEdit**), exposes:
-- `can_create_item` — **GameItemCreatePermission**: dm, admin, or staff — broader than `can_edit`.
-  See [GameItem](game-item.md#item-creation-endpoint).
-- `can_create_document` — same shape, backed by the document-creation permission. See
-  [GameDocument](game-document.md#document-creation-endpoint).
+- `can_create_item` — **GameItemCreatePermission**: roles per
+  [`game_item/endpoints.yml`](../../../backend/games/permissions/config/game_item/endpoints.yml)
+  (`create`) — broader than `can_edit`. See [GameItem](game-item.md#item-creation-endpoint).
+- `can_create_document` — same shape, roles per
+  [`game_document/endpoints.yml`](../../../backend/games/permissions/config/game_document/endpoints.yml)
+  (`create`). See [GameDocument](game-document.md#document-creation-endpoint).
 
 ## My Games list
 

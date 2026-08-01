@@ -30,8 +30,8 @@ All index endpoints order by `id` and omit `description` (detail endpoints add i
 
 | Endpoint | Method | Who can call |
 |----------|--------|-------------|
-| `/games/<slug>/pcs/<id>/items/<item_id>.json` | PATCH | **CharacterItemCreatePermission**: dm, admin, staff, or the PC's owning player |
-| `/games/<slug>/npcs/<id>/items/<item_id>.json` | PATCH | Same, minus owner (NPCs have none); additionally re-applies the hidden-NPC gate *before* the permission check, so staff loses access on a hidden NPC it can't otherwise view |
+| `/games/<slug>/pcs/<id>/items/<item_id>.json` | PATCH | **CharacterItemCreatePermission** — roles per [`game_pc_item/endpoints.yml`](../../../backend/games/permissions/config/game_pc_item/endpoints.yml) (`restricted.create`) |
+| `/games/<slug>/npcs/<id>/items/<item_id>.json` | PATCH | Same permission, roles per [`game_npc_item/endpoints.yml`](../../../backend/games/permissions/config/game_npc_item/endpoints.yml) (`restricted.create`; no owner concept); additionally re-applies the hidden-NPC gate *before* the permission check, so staff loses access on a hidden NPC it can't otherwise view |
 | `/games/<slug>/pcs/<id>/items.json` | POST | Same as PC PATCH above |
 | `/games/<slug>/npcs/<id>/items.json` | POST | Same as NPC PATCH above |
 | `/games/<slug>/pcs\|npcs/<id>/items/<item_id>/photo_upload.json` | POST | **CharacterItemPhotoUploadPermission** — same formula as CharacterItemCreatePermission, deliberately narrower than [CharacterPhoto](character-photo.md)'s "any player of the game" grant; kept as its own permission class so the two can diverge later |

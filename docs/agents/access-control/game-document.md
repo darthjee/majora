@@ -31,7 +31,7 @@ the default pattern: there is no `PATCH` for `GameDocument` at all (unlike `Game
 
 | Endpoint | Method | Who can call |
 |----------|--------|-------------|
-| `/games/<slug>/documents.json` | POST | **GameDocumentCreatePermission**: dm, admin, or staff (no owner concept) |
+| `/games/<slug>/documents.json` | POST | **GameDocumentCreatePermission** — roles per [`game_document/endpoints.yml`](../../../backend/games/permissions/config/game_document/endpoints.yml) (`create`; no owner concept) |
 
 Mirrors `GameItemCreatePermission`'s shape exactly. Creates only a `GameDocument` — no
 `CharacterDocument`. **Write fields**: `name` (required, ≤200 chars), `description` (defaults to
@@ -45,7 +45,7 @@ dedicated document-photos browsing page exists for photos beyond the current dis
 | Endpoint | Method | Who can call |
 |----------|--------|-------------|
 | `/games/<slug>/documents/<document_id>/photos.json` | GET | **AllowAny**, non-hidden documents only — no `GameEdit`-gated override for a hidden document's photos |
-| `/games/<slug>/documents/<document_id>/photo_upload.json` | POST | `IsAuthenticated` + **GameDocumentPhotoUploadPermission**: staff, any player of the game, or the game's dm/editor |
+| `/games/<slug>/documents/<document_id>/photo_upload.json` | POST | `IsAuthenticated` + **GameDocumentPhotoUploadPermission** — roles per [`game_document/endpoints.yml`](../../../backend/games/permissions/config/game_document/endpoints.yml) (`photo_upload`) |
 | `/games/<slug>/documents/<document_id>/photos/<photo_id>/set.json` | PATCH | Same permission |
 
 Fields (photos list): `id`, `path` — only `ready=True` photos. The upload-init and set endpoints

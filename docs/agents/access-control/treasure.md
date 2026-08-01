@@ -12,7 +12,7 @@ per-resource `<Resource>Edit` rule:
 |--------|---------|
 | List (`GET /treasures.json`) | **AllowAny** — global treasures only (`game__isnull=True`) |
 | Detail (`GET /treasures/<id>.json`) | **AllowAny** |
-| Create (global, `POST /treasures.json`) | **TreasureEdit**: superuser or staff |
+| Create (global, `POST /treasures.json`) | **TreasureEdit**: roles per [`treasure/endpoints.yml`](../../../backend/games/permissions/config/treasure/endpoints.yml) (`restricted.edit`) |
 | Update (global, `PATCH /treasures/<id>.json`) | **TreasureEdit** — staff only for a truly global treasure; includes the owning game's GameMaster for a game-exclusive one |
 | Photo upload (global, `POST /treasures/<id>/photo_upload.json`) | Superuser always; additionally that treasure's owning game's GameMaster when exclusive to a game |
 | List by game (`GET /games/<slug>/treasures.json`) | **AllowAny** — union of M2M-linked and exclusive treasures for that game, excluding any hidden for this game (see [GameTreasure](game-treasure.md#hidden)) |
@@ -70,7 +70,8 @@ parameters, response `{"can_edit": <bool>}`:
   permission endpoints](common-rules.md#edit-permission-endpoints-permissionsjson)). With a
   `role` param, `superuser` and `staff` both grant `can_edit`; `dm` is a no-op here (a simulated
   dm has no specific game to be dm *of* under this route, so the generic admin/dm shortcut is
-  deliberately disabled for it — see `backend/games/permissions/config/treasure/ui.yml`).
+  deliberately disabled for it — see
+  [`treasure/ui.yml`](../../../backend/games/permissions/config/treasure/ui.yml)).
 - `GET /permissions/game_treasure.json` — the game-exclusive action. With no `role` param,
   `can_edit` is `False`. With a `role` param, `superuser` and `dm` both grant `can_edit` (a
   real/simulated dm is scoped to "some game", which is enough here since there's no specific

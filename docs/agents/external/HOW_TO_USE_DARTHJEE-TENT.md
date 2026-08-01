@@ -1,5 +1,10 @@
 # How to Use darthjee/tent
 
+> **Agent Summary:** Full reference for configuring the Tent reverse proxy (routing rules,
+> request handlers, middlewares, and caching). Read in full only when changing
+> `docker_volumes/proxy_configuration/` rules or debugging proxy routing/caching behavior; for
+> Majora's own use of Tent as the single entry point, see [flow.md](../flow.md) instead.
+
 **Minimum version:** [0.9.1](https://github.com/darthjee/tent/releases/tag/0.9.1)
 
 [Tent](https://github.com/darthjee/tent) is a PHP-based reverse proxy and static file server distributed as a Docker image. It acts as the single entry point for applications that combine a backend API and a frontend — routing, caching, and serving files through a simple PHP configuration layer.

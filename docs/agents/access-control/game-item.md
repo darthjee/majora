@@ -20,7 +20,7 @@ character's held-item row — no buy/sell flow or NPC/PC "held item hidden" filt
 | `/games/<slug>/items/<item_id>.json` | GET | **AllowAny** — 404 if hidden or unknown |
 | `/games/<slug>/items/<item_id>/full.json` | GET | **GameEdit** — returns even if hidden, adds `hidden`. Always `X-Skip-Cache: true` |
 | `/games/<slug>/items/<item_id>.json` | PATCH | **GameEdit** (no staff bypass) |
-| `/games/<slug>/items.json` | POST | **GameItemCreatePermission**: dm, admin, or staff (no owner concept) |
+| `/games/<slug>/items.json` | POST | **GameItemCreatePermission** — roles per [`game_item/endpoints.yml`](../../../backend/games/permissions/config/game_item/endpoints.yml) (`create`; no owner concept) |
 
 Both index endpoints order by `id`; `description` is omitted from both (present on detail
 endpoints instead). `PATCH` shares the same route as `GET` on the plain detail endpoint; only
