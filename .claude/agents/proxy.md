@@ -38,6 +38,11 @@ docker run --rm -v "$PWD":/repo darthjee/tent:0.7.8 sh -c '
 Tent (`darthjee/tent`) is the single entry point on port 3000. It routes requests based on
 rules loaded by `configure.php`.
 
+For anything beyond this summary, see the per-topic pages under
+`docs/agents/external/tent/` (hub: `docs/agents/external/HOW_TO_USE_DARTHJEE-TENT.md`) —
+most relevant to this agent's scope: `request-handlers.md`, `middlewares.md`,
+`cache-configuration.md`, and `extending.md` (custom middleware classes).
+
 ### Rule loading order
 
 Both dev and prod configurations follow the same order (defined in `configure.php`):

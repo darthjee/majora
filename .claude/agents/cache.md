@@ -15,8 +15,12 @@ Do NOT touch `backend/`, `frontend/`, or `proxy/` — those belong to their own 
 
 ## Maintaining `.circleci/navi_config.yaml`
 
-See [docs/agents/external/HOW_TO_USE_NAVI.md] for the full Navi reference and
-[docs/agents/cache-warmer.md] for how the current warm-up chain is organized.
+For the config format itself, see [docs/agents/external/navi/prerequisites.md] (fields,
+`parsedBody` gotcha), [docs/agents/external/navi/paginated-actions.md] (`paginated_actions`),
+and [docs/agents/external/navi/splitting-config.md] (`include`/`namespace`, only relevant if
+`.circleci/navi_config.yaml` is ever split across files). The CI-integration pages under
+[docs/agents/external/navi/] (Docker/npm/CircleCI-executor options, CLI flags) are outside this
+agent's scope. See [docs/agents/cache-warmer.md] for how the current warm-up chain is organized.
 
 When a new API endpoint is added anywhere in the backend, add it to the warm-up chain
 following these rules:
