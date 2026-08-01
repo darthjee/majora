@@ -51,3 +51,19 @@ export function buildLink(overrides = {}) {
     ...overrides,
   };
 }
+
+/**
+ * Create a mock treasure object.
+ *
+ * @param {object} overrides - Properties to override the defaults.
+ * @returns {object} A mock treasure object.
+ */
+export function buildTreasure(overrides = {}) {
+  return {
+    id: 1,
+    name: 'Golden Crown',
+    value: 500,
+    photo_path: null,
+    ...overrides,
+  };
+}

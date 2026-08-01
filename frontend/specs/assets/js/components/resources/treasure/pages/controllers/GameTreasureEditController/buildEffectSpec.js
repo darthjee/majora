@@ -4,13 +4,14 @@ import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
+import { buildTreasure } from '../../../../../../../../support/factories.js';
 
 describe('GameTreasureEditController', function() {
   let ensureSpy;
 
   beforeEach(function() {
     ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(
-      Promise.resolve({ data: { id: 42, name: 'Sword', value: 100, game_slug: 'demo' } }),
+      Promise.resolve({ data: buildTreasure({ id: 42, name: 'Sword', value: 100, game_slug: 'demo' }) }),
     );
   });
 
@@ -52,7 +53,7 @@ describe('GameTreasureEditController', function() {
         params: { gameSlug: 'demo', id: '42' },
       });
       expect(setTreasure).toHaveBeenCalledWith(
-        { id: 42, name: 'Sword', value: 100, game_slug: 'demo' },
+        buildTreasure({ id: 42, name: 'Sword', value: 100, game_slug: 'demo' }),
       );
       expect(setLoading).toHaveBeenCalledWith(false);
       expect(setError).not.toHaveBeenCalled();

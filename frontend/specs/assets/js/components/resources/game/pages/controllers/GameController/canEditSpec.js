@@ -1,6 +1,7 @@
 import GameController from '../../../../../../../../../assets/js/components/resources/game/pages/controllers/GameController.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import { stubEnsureGameAccess, stubEnsureGamePermissions, stubEnsureGame } from './support.js';
+import { buildGame } from '../../../../../../../../support/factories.js';
 
 describe('GameController', function() {
   afterEach(function() {
@@ -10,7 +11,7 @@ describe('GameController', function() {
   it('renders can_edit false first, then merges the real can_edit once AccessStore resolves', async function() {
     stubEnsureGameAccess();
     const ensureGamePermissions = stubEnsureGamePermissions({ can_edit: true }, { can_edit: false });
-    stubEnsureGame({ name: 'Demo', game_slug: 'demo' });
+    stubEnsureGame(buildGame({ name: 'Demo', game_slug: 'demo' }));
     const setGame = jasmine.createSpy('setGame');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
@@ -37,7 +38,7 @@ describe('GameController', function() {
   it('sets can_edit to false when AccessStore resolves with the fail-closed default', async function() {
     stubEnsureGameAccess();
     stubEnsureGamePermissions({ can_edit: false }, { can_edit: false });
-    stubEnsureGame({ name: 'Demo', game_slug: 'demo' });
+    stubEnsureGame(buildGame({ name: 'Demo', game_slug: 'demo' }));
     const setGame = jasmine.createSpy('setGame');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');

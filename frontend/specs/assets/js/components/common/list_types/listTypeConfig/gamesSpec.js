@@ -1,6 +1,7 @@
 import listTypeConfig from '../../../../../../../assets/js/components/common/list_types/listTypeConfig.js';
 import GameListItem from '../../../../../../../assets/js/components/common/list_types/GameListItem.js';
 import RequestStore from '../../../../../../../assets/js/utils/requests/RequestStore.js';
+import { buildGame } from '../../../../../../support/factories.js';
 
 function fakeHashResolver() {
   return { getPaginationParams: () => new URLSearchParams() };
@@ -32,7 +33,7 @@ describe('listTypeConfig', function() {
 
     describe('.buildItemHref', function() {
       it('links to the game detail page', function() {
-        const item = new GameListItem({ name: 'Test Game', game_slug: 'test-game' });
+        const item = new GameListItem(buildGame());
 
         expect(games.buildItemHref(item)).toBe('#/games/test-game');
       });
@@ -40,7 +41,7 @@ describe('listTypeConfig', function() {
 
     describe('.buildActionBarProps', function() {
       it('is always non-manageable', function() {
-        const item = new GameListItem({ name: 'Test Game', game_slug: 'test-game' });
+        const item = new GameListItem(buildGame());
 
         expect(games.buildActionBarProps(item, {})).toEqual({ canEdit: false, secondaryButtons: [] });
       });
@@ -48,7 +49,7 @@ describe('listTypeConfig', function() {
 
     describe('.buildInfoBarItems', function() {
       it('is always empty', function() {
-        const item = new GameListItem({ name: 'Test Game', game_slug: 'test-game' });
+        const item = new GameListItem(buildGame());
 
         expect(games.buildInfoBarItems(item)).toEqual([]);
       });
@@ -61,7 +62,7 @@ describe('listTypeConfig', function() {
 
       it('fetches through RequestStore with no permission check', async function() {
         spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
-          data: [{ name: 'Test Game', game_slug: 'test-game' }],
+          data: [buildGame()],
           pagination: { page: 1, pages: 1, perPage: 10 },
         }));
 
@@ -70,7 +71,7 @@ describe('listTypeConfig', function() {
         expect(RequestStore.ensure).toHaveBeenCalledWith({
           componentName: 'ListPageController', resource: 'game', quantityType: 'collection', params: {}, query: {},
         });
-        expect(result.data).toEqual([{ name: 'Test Game', game_slug: 'test-game' }]);
+        expect(result.data).toEqual([buildGame()]);
         expect(result.pagination).toEqual({ page: 1, pages: 1, perPage: 10 });
         expect(result.canEdit).toBe(false);
       });

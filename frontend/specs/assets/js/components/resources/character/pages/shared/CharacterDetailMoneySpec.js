@@ -6,10 +6,11 @@ import MoneyEditModalHelper
   from '../../../../../../../../assets/js/components/common/modals/helpers/MoneyEditModalHelper.jsx';
 import AuthStorage from '../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
+import { buildCharacter } from '../../../../../../../support/factories.js';
 
-const loadedCharacter = {
+const loadedCharacter = buildCharacter({
   id: 5, can_edit: true, money: 310, game_type: 'dnd', is_pc: true, game_slug: 'demo',
-};
+});
 
 // Sets character/loading state synchronously during render (in the useMemo
 // factory), so the "loaded" branch of CharacterDetail is reachable via

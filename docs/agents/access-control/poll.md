@@ -12,13 +12,13 @@ not `AllowAny` and Create is not gated by a plain `<Resource>Edit` rule: view an
 
 | Action | Who can |
 |--------|---------|
-| List (`GET /games/<game_slug>/polls.json`) | Player, GameMaster, superuser, or staff — **PollPermission.check** |
+| List (`GET /games/<game_slug>/polls.json`) | **PollPermission.check** — roles per [`poll/endpoints.yml`](../../../backend/games/permissions/config/poll/endpoints.yml) (`regular.view_create`) |
 | Show (`GET /games/<game_slug>/polls/<id>.json`) | Same as List |
 | Create (`POST /games/<game_slug>/polls.json`) | Same as List — no stricter create-only rule |
 | Session-scoped Create (`POST /games/<game_slug>/sessions/<session_id>/poll.json`) | Same as List/Create, reused verbatim |
 | Update/Delete | Not exposed by any endpoint (Django admin only) |
-| Vote List (`GET /games/<game_slug>/polls/<id>/votes.json`) | Same as List — **PollVotePermission.check_view**. Optional `?user_id=` filter (any user id, not restricted to requester) |
-| Vote Cast (`PUT /games/<game_slug>/polls/<id>/votes.json`) | Only an actual player or GameMaster — **PollVotePermission.check_vote**; **no** superuser/staff bypass, unlike the view checks above |
+| Vote List (`GET /games/<game_slug>/polls/<id>/votes.json`) | **PollVotePermission.check_view** — roles per [`poll_vote/endpoints.yml`](../../../backend/games/permissions/config/poll_vote/endpoints.yml) (`regular.show`). Optional `?user_id=` filter (any user id, not restricted to requester) |
+| Vote Cast (`PUT /games/<game_slug>/polls/<id>/votes.json`) | **PollVotePermission.check_vote** — roles per the same file's `regular.vote` (`no_shortcut: true`, so **no** superuser/staff bypass, unlike the view checks above) |
 
 ## Pagination/filters
 

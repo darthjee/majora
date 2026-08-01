@@ -1,10 +1,11 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import ListPageHelper from '../../../../../../../assets/js/components/common/list_page/helpers/ListPageHelper.jsx';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
+import { buildTreasure, buildGame } from '../../../../../../support/factories.js';
 
 describe('ListPageHelper', function() {
   const treasures = [
-    { id: 1, name: 'Golden Crown', value: 500, game_slug: 'demo' },
+    buildTreasure({ game_slug: 'demo' }),
     { id: 2, name: 'Silver Ring', value: 50, game_slug: null },
   ];
   const pagination = { page: 1, pages: 3, perPage: 10 };
@@ -179,7 +180,7 @@ describe('ListPageHelper', function() {
 
   describe('items per row', function() {
     it('renders col-lg-3 for a list type configured with itemsPerRow 4', function() {
-      const games = [{ id: 1, name: 'Test Game', game_slug: 'test-game' }];
+      const games = [buildGame()];
       const html = renderToStaticMarkup(
         ListPageHelper.render('games', games, pagination, '#/games', {})
       );

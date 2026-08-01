@@ -3,13 +3,14 @@ import AccessStore from '../../../../../../../../../assets/js/utils/access/store
 import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import { buildGame } from '../../../../../../../../support/factories.js';
 
 describe('GameEditController', function() {
   let ensureSpy;
 
   beforeEach(function() {
     ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(
-      Promise.resolve({ data: { name: 'Demo', game_slug: 'demo' } }),
+      Promise.resolve({ data: buildGame({ name: 'Demo', game_slug: 'demo' }) }),
     );
   });
 
@@ -35,7 +36,7 @@ describe('GameEditController', function() {
           componentName: 'GameEditController', resource: 'game', quantityType: 'single', params: { gameSlug: 'demo' },
         });
         expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
-        expect(setGame).toHaveBeenCalledWith({ name: 'Demo', game_slug: 'demo', can_edit: true });
+        expect(setGame).toHaveBeenCalledWith(buildGame({ name: 'Demo', game_slug: 'demo', can_edit: true }));
         expect(setLoading).toHaveBeenCalledWith(false);
         expect(setError).not.toHaveBeenCalled();
 

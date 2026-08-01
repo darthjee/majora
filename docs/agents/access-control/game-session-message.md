@@ -6,8 +6,8 @@ permission model (**SessionMessagePermission**) with different rules for viewing
 
 | Action | Who can |
 |--------|---------|
-| List (`GET /games/<game_slug>/sessions/<session_id>/messages.json`) | Player of the session's game, that game's GameMaster, superuser, or staff — `check_view` |
-| Create (`POST /games/<game_slug>/sessions/<session_id>/messages.json`) | Player of the session's game, or that game's GameMaster only — `check_create`; **no** superuser/staff bypass |
+| List (`GET /games/<game_slug>/sessions/<session_id>/messages.json`) | `check_view` — roles per [`session_message/endpoints.yml`](../../../backend/games/permissions/config/session_message/endpoints.yml) (`regular.show`) |
+| Create (`POST /games/<game_slug>/sessions/<session_id>/messages.json`) | `check_create` — roles per the same file's `regular.create` (`no_shortcut: true`, so **no** superuser/staff bypass) |
 | Update/Delete | Not exposed by any endpoint (Django admin only) |
 
 ## Pagination

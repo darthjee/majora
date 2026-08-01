@@ -1,5 +1,11 @@
 # How to Use Navi
 
+> **Agent Summary:** Full reference for configuring and running Navi, the cache-warmer used to
+> warm Tent's cache after each release. Read in full only when adding or editing Navi's CI
+> integration or its YAML config's `resources`/`clients`/pagination shape; for a summary of
+> Majora's own warm-up chain (`.circleci/navi_config.yaml`), see
+> [cache-warmer.md](../cache-warmer.md) instead.
+
 [Navi](https://github.com/darthjee/navi) is a queue-based cache-warmer written in Node.js.
 It reads a YAML configuration file and performs HTTP requests concurrently using a configurable worker pool, with support for resource chaining and automatic retry of failed requests.
 

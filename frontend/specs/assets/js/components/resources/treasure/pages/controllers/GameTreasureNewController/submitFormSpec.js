@@ -2,6 +2,7 @@ import GameTreasureNewController
   from '../../../../../../../../../assets/js/components/resources/treasure/pages/controllers/GameTreasureNewController.js';
 import RequestStore
   from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
+import { buildTreasure } from '../../../../../../../../support/factories.js';
 
 describe('GameTreasureNewController', function() {
   describe('#submitForm', function() {
@@ -15,7 +16,7 @@ describe('GameTreasureNewController', function() {
       setStatus = jasmine.createSpy('setStatus');
       spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         status: 201,
-        json: () => Promise.resolve({ id: 7, name: 'Golden Crown', value: 500, game_slug: 'demo' }),
+        json: () => Promise.resolve(buildTreasure({ id: 7, game_slug: 'demo' })),
       }));
     });
 

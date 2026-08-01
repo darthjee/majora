@@ -1,8 +1,9 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import TreasureHelper from '../../../../../../../../assets/js/components/resources/treasure/pages/helpers/TreasureHelper.jsx';
+import { buildTreasure } from '../../../../../../../support/factories.js';
 
 describe('TreasureHelper', function() {
-  const treasure = { id: 42, name: 'Golden Crown', value: 500 };
+  const treasure = buildTreasure({ id: 42 });
 
   describe('.render', function() {
     it('renders the treasure name', function() {

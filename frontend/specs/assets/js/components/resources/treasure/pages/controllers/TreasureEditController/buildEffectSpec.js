@@ -4,13 +4,14 @@ import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 import AuthStorage from '../../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
+import { buildTreasure } from '../../../../../../../../support/factories.js';
 
 describe('TreasureEditController', function() {
   let ensureSpy;
 
   beforeEach(function() {
     ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(
-      Promise.resolve({ data: { id: 1, name: 'Sword', value: 100 } }),
+      Promise.resolve({ data: buildTreasure({ id: 1, name: 'Sword', value: 100 }) }),
     );
   });
 
@@ -49,7 +50,7 @@ describe('TreasureEditController', function() {
       });
       expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('1', false);
       expect(setTreasure).toHaveBeenCalledWith(
-        { id: 1, name: 'Sword', value: 100, can_edit: true },
+        buildTreasure({ id: 1, name: 'Sword', value: 100, can_edit: true }),
       );
       expect(setLoading).toHaveBeenCalledWith(false);
       expect(setError).not.toHaveBeenCalled();
@@ -60,7 +61,7 @@ describe('TreasureEditController', function() {
     it('sequences the permissions fetch after the resource fetch resolves, passing isExclusive true for a '
       + 'game-exclusive treasure', async function() {
       ensureSpy.and.returnValue(
-        Promise.resolve({ data: { id: 1, name: 'Sword', value: 100, game_slug: 'demo' } }),
+        Promise.resolve({ data: buildTreasure({ id: 1, name: 'Sword', value: 100, game_slug: 'demo' }) }),
       );
 
       const cleanup = buildController().buildEffect()();
@@ -68,7 +69,7 @@ describe('TreasureEditController', function() {
 
       expect(AccessStore.ensureTreasurePermissions).toHaveBeenCalledWith('1', true);
       expect(setTreasure).toHaveBeenCalledWith(
-        { id: 1, name: 'Sword', value: 100, game_slug: 'demo', can_edit: true },
+        buildTreasure({ id: 1, name: 'Sword', value: 100, game_slug: 'demo', can_edit: true }),
       );
 
       cleanup();

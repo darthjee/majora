@@ -1,6 +1,7 @@
 import listTypeConfig from '../../../../../../../assets/js/components/common/list_types/listTypeConfig.js';
 import MyGameListItem from '../../../../../../../assets/js/components/common/list_types/MyGameListItem.js';
 import MyGamesInfoBarRules from '../../../../../../../assets/js/components/common/list_types/helpers/MyGamesInfoBarRules.js';
+import { buildGame } from '../../../../../../support/factories.js';
 
 describe('listTypeConfig', function() {
   describe('my-games', function() {
@@ -29,7 +30,7 @@ describe('listTypeConfig', function() {
     describe('.buildItemHref', function() {
       it('links to the game detail page using the nested game slug', function() {
         const item = new MyGameListItem({
-          game: { name: 'Test Game', game_slug: 'test-game' },
+          game: buildGame(),
           role: 'dm',
           character: null,
           conversations: { count: 0, unread_count: 0 },
@@ -42,7 +43,7 @@ describe('listTypeConfig', function() {
     describe('.buildActionBarProps', function() {
       it('is always non-manageable', function() {
         const item = new MyGameListItem({
-          game: { name: 'Test Game', game_slug: 'test-game' },
+          game: buildGame(),
           role: 'dm',
           character: null,
           conversations: { count: 0, unread_count: 0 },
@@ -55,7 +56,7 @@ describe('listTypeConfig', function() {
     describe('.buildInfoBarItems', function() {
       it('delegates to MyGamesInfoBarRules with the raw entry', function() {
         const item = new MyGameListItem({
-          game: { name: 'Test Game', game_slug: 'test-game' },
+          game: buildGame(),
           role: 'player',
           character: { name: 'Aragorn' },
           conversations: { count: 2, unread_count: 1 },
@@ -66,7 +67,7 @@ describe('listTypeConfig', function() {
 
       it('omits the character badge for a DM', function() {
         const item = new MyGameListItem({
-          game: { name: 'Test Game', game_slug: 'test-game' },
+          game: buildGame(),
           role: 'dm',
           character: null,
           conversations: { count: 2, unread_count: 1 },
@@ -82,7 +83,7 @@ describe('listTypeConfig', function() {
       it('fetches the my-games index with no permission check', async function() {
         const client = jasmine.createSpyObj('client', ['fetchIndex']);
         const entry = {
-          game: { name: 'Test Game', game_slug: 'test-game', photo_path: null },
+          game: buildGame({ photo_path: null }),
           role: 'dm',
           character: null,
           conversations: { count: 0, unread_count: 0 },

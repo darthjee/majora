@@ -1,5 +1,11 @@
 # Character (PC and NPC)
 
+> **Agent Summary:** Full access-control reference for the Character resource (PC and NPC) —
+> permission classes per action, regular vs restricted routes, filters, exposed fields, and the
+> narrow player-facing PATCH/create field sets. Read past this summary when touching a
+> Character/PC/NPC endpoint, permission class, or serializer; skip it if you only need the shared
+> conventions (see [principles.md](principles.md)).
+
 **[Game resource](principles.md#resource-categories).** Characters are scoped to a game. Access is
 symmetric for PCs and NPCs unless noted. As per [principles](principles.md#partial-vs-full-access-pattern),
 endpoints have regular and restricted (`full.json`/`all.json`) versions.
@@ -10,16 +16,25 @@ Everyone (**AllowAny**).
 
 ## Regular access for mutation
 
-- PC narrow PATCH (`PATCH /games/<slug>/pcs/<id>.json`) — **CharacterRegularEdit**: admin, staff,
-  dm, the PC's own player, or any other player of the game.
-- NPC narrow PATCH (`PATCH /games/<slug>/npcs/<id>.json`) — **NpcPlayerEdit**: admin, staff, dm,
-  or any player of the game.
-- NPC narrow create (`POST /games/<slug>/npcs.json`) — **NpcPlayerCreate**: same as NpcPlayerEdit.
+- PC narrow PATCH (`PATCH /games/<slug>/pcs/<id>.json`) — **CharacterRegularEdit**: roles per
+  [`game_pc/endpoints.yml`](../../../backend/games/permissions/config/game_pc/endpoints.yml)
+  (`regular.regular_edit`).
+- NPC narrow PATCH (`PATCH /games/<slug>/npcs/<id>.json`) — **NpcPlayerEdit**: roles per
+  [`game_npc/endpoints.yml`](../../../backend/games/permissions/config/game_npc/endpoints.yml)
+  (`regular.player_edit`).
+- NPC narrow create (`POST /games/<slug>/npcs.json`) — **NpcPlayerCreate**: same shape as
+  NpcPlayerEdit, per that file's `regular.create`.
 
 ## Restricted access (`full.json`/`all.json`)
 
-- **CharacterEdit**: admin, dm, or (PC only) the character's own owning player.
-- NPC full create (`POST /games/<slug>/npcs/full.json`) — **GameEdit**: admin or dm only.
+- **CharacterEdit**: roles per
+  [`game_pc/endpoints.yml`](../../../backend/games/permissions/config/game_pc/endpoints.yml) /
+  [`game_npc/endpoints.yml`](../../../backend/games/permissions/config/game_npc/endpoints.yml)
+  (`restricted.edit`) — PC additionally allows the character's own owning player; NPC has no
+  owner concept.
+- NPC full create (`POST /games/<slug>/npcs/full.json`) — **GameEdit**: admin or dm only, per
+  [`game/endpoints.yml`](../../../backend/games/permissions/config/game/endpoints.yml)
+  (`restricted.edit`).
 
 There is no PC creation endpoint.
 
@@ -130,11 +145,15 @@ serializer, and `owner`/`is_owner` are no-ops for an NPC. Beyond `can_edit` and
 `can_create_item`/`can_upload_item_photo` (see [CharacterItem](character-item.md)), this endpoint
 exposes:
 
-- `can_set_profile_photo` — **CharacterPhotoUpload** shape: admin, dm, superuser, staff, or any
-  player of the game, both kinds — see [CharacterPhoto](character-photo.md).
-- `can_exchange_treasure` — **CharacterTreasureExchange** shape: admin, dm, superuser, staff, or
-  (PC only) the owning player — deliberately no "any player of the game" leniency.
-- `can_delete_photo` — admin, dm, superuser, or staff only — no owner/player leniency at all.
+- `can_set_profile_photo` — **CharacterPhotoUpload** shape: roles per
+  [`game_pc/ui.yml`](../../../backend/games/permissions/config/game_pc/ui.yml) /
+  [`game_npc/ui.yml`](../../../backend/games/permissions/config/game_npc/ui.yml)
+  (`photo_upload`) — see [CharacterPhoto](character-photo.md).
+- `can_exchange_treasure` — **CharacterTreasureExchange** shape: roles per the same two files'
+  `treasure_exchange` — deliberately no "any player of the game" leniency (PC only gets the
+  owning player, on top of admin/dm/staff).
+- `can_delete_photo` — roles per the same two files' `photo_delete` — no owner/player leniency at
+  all.
 
 All four follow the same real-identity vs. role-simulated dual path as `can_edit`.
 

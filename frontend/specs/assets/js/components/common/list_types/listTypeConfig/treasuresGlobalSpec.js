@@ -3,6 +3,7 @@ import TreasureListItem from '../../../../../../../assets/js/components/common/l
 import TreasureFilters from '../../../../../../../assets/js/components/resources/treasure/pages/elements/TreasureFilters.jsx';
 import TreasureCardHelper from '../../../../../../../assets/js/components/common/cards/helpers/TreasureCardHelper.jsx';
 import AccessStore from '../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import { buildTreasure } from '../../../../../../support/factories.js';
 
 describe('listTypeConfig', function() {
   describe('treasures-global', function() {
@@ -30,7 +31,7 @@ describe('listTypeConfig', function() {
 
     describe('.buildItemHref', function() {
       it('links to the global treasure detail page', function() {
-        const item = new TreasureListItem({ id: 42, name: 'Golden Crown', value: 500 });
+        const item = new TreasureListItem(buildTreasure({ id: 42 }));
 
         expect(config.buildItemHref(item)).toBe('#/treasures/42');
       });
@@ -38,7 +39,7 @@ describe('listTypeConfig', function() {
 
     describe('.buildInfoBarItems', function() {
       it('delegates to TreasureCardHelper.buildInfoBarItems', function() {
-        const item = new TreasureListItem({ id: 1, name: 'Golden Crown', value: 500 });
+        const item = new TreasureListItem(buildTreasure());
 
         expect(config.buildInfoBarItems(item)).toEqual(TreasureCardHelper.buildInfoBarItems(item.data));
       });
@@ -46,21 +47,21 @@ describe('listTypeConfig', function() {
 
     describe('.buildActionBarProps', function() {
       it('grants upload access uniformly when canEdit is true, without a game_slug exclusivity check', function() {
-        const item = new TreasureListItem({ id: 1, name: 'Golden Crown', value: 500, game_slug: 'other' });
+        const item = new TreasureListItem(buildTreasure({ game_slug: 'other' }));
         const props = config.buildActionBarProps(item, { canEdit: true });
 
         expect(props.canEdit).toBe(true);
       });
 
       it('denies upload access when canEdit is false', function() {
-        const item = new TreasureListItem({ id: 1, name: 'Golden Crown', value: 500 });
+        const item = new TreasureListItem(buildTreasure());
         const props = config.buildActionBarProps(item, { canEdit: false });
 
         expect(props.canEdit).toBe(false);
       });
 
       it('invokes the context onUploadClick with the raw treasure on upload click', function() {
-        const item = new TreasureListItem({ id: 1, name: 'Golden Crown', value: 500 });
+        const item = new TreasureListItem(buildTreasure());
         const onUploadClick = jasmine.createSpy('onUploadClick');
         const props = config.buildActionBarProps(item, { canEdit: true, onUploadClick });
 
@@ -70,7 +71,7 @@ describe('listTypeConfig', function() {
       });
 
       it('never renders a secondary edit button', function() {
-        const item = new TreasureListItem({ id: 1, name: 'Golden Crown', value: 500 });
+        const item = new TreasureListItem(buildTreasure());
 
         expect(config.buildActionBarProps(item, { canEdit: true }).secondaryButtons).toEqual([]);
       });

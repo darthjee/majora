@@ -1,5 +1,12 @@
 # Common Rules
 
+> **Agent Summary:** Table of named permission-class shorthands (GameEdit, CharacterEdit,
+> NpcPlayerEdit, etc.) referenced by every per-resource access-control file, plus the shared
+> `access.json`/`permissions.json` response shapes and the cache-bypass mechanism for
+> identity-dependent endpoints. Read in full when adding or reviewing a permission class or an
+> `access.json`/`permissions.json` endpoint; otherwise per-resource files link back to the
+> specific row/section they need.
+
 **Baseline** (never restated per rule below): superuser always passes; that game's dm (`Player`
 with `is_dm=True`) always passes for anything scoped to their game — see [User
 Roles](user-roles.md).
@@ -10,17 +17,22 @@ Shorthand used in the table:
   model test
 - **Staff** — any global `user.is_staff` account
 
+Every row's exact role list beyond baseline lives in the matching
+`backend/games/permissions/config/<resource>/{endpoints,ui}.yml` file (linked per row); this
+table states only the permission class name, the endpoint(s) it guards, and rationale/edge cases
+the YAML can't express.
+
 | Rule | Permission class | Beyond baseline |
 |------|------|------|
-| **GameEdit** | `GameEditPermission` | — |
-| **CharacterEdit** | `CharacterEditPermission` | The character's own player (`Character.player.user`) |
-| **NpcPlayerEdit** | `NpcPlayerEditPermission` | CharacterEdit + AnyPlayer — NPC routes only |
-| **CharacterPhotoUpload** | `CharacterPhotoUploadPermission` | NpcPlayerEdit + Staff — PC/NPC upload init/finalize, and "set as profile photo" |
-| **CharacterRegularEdit** | `CharacterRegularEditPermission` | CharacterEdit + Staff + AnyPlayer — **PC only**, narrow `PATCH /games/<slug>/pcs/<id>.json` (incl. `money`, since #915 dropped the dedicated endpoint); no NPC counterpart |
-| **CharacterTreasureExchange** | `CharacterTreasureExchangePermission` | CharacterEdit + Staff — no AnyPlayer; excludes the DM-only `/buy/all.json` route, gated by GameEdit alone |
-| **TreasureEdit** | `TreasureEditPermission` | Global treasure (`game_id is None`): Staff — no dm branch, since there's no game. Game-scoped treasure routes skip this class entirely and check GameEdit directly |
-| **GameSessionEdit** | `GameSessionEditPermission` | — (delegates to GameEdit against the session's game) |
-| **TaskEdit** | `TaskEditPermission` | — (delegates to GameEdit against the task's game; unlike every other rule here, also gates reads, not just writes — see [Task](task.md)) |
+| **GameEdit** | `GameEditPermission` | — ([`game/endpoints.yml`](../../../backend/games/permissions/config/game/endpoints.yml)'s `restricted.edit`) |
+| **CharacterEdit** | `CharacterEditPermission` | The character's own player (`Character.player.user`), PC only — [`game_pc/endpoints.yml`](../../../backend/games/permissions/config/game_pc/endpoints.yml) / [`game_npc/endpoints.yml`](../../../backend/games/permissions/config/game_npc/endpoints.yml)'s `restricted.edit` |
+| **NpcPlayerEdit** | `NpcPlayerEditPermission` | CharacterEdit + AnyPlayer — NPC routes only ([`game_npc/endpoints.yml`](../../../backend/games/permissions/config/game_npc/endpoints.yml)'s `regular.player_edit`) |
+| **CharacterPhotoUpload** | `CharacterPhotoUploadPermission` | NpcPlayerEdit + Staff — PC/NPC upload init/finalize, and "set as profile photo" ([`game_pc/endpoints.yml`](../../../backend/games/permissions/config/game_pc/endpoints.yml) / [`game_npc/endpoints.yml`](../../../backend/games/permissions/config/game_npc/endpoints.yml)'s `regular.photo_upload`) |
+| **CharacterRegularEdit** | `CharacterRegularEditPermission` | CharacterEdit + Staff + AnyPlayer — **PC only**, narrow `PATCH /games/<slug>/pcs/<id>.json` (incl. `money`, since #915 dropped the dedicated endpoint); no NPC counterpart ([`game_pc/endpoints.yml`](../../../backend/games/permissions/config/game_pc/endpoints.yml)'s `regular.regular_edit`) |
+| **CharacterTreasureExchange** | `CharacterTreasureExchangePermission` | CharacterEdit + Staff — no AnyPlayer; excludes the DM-only `/buy/all.json` route, gated by GameEdit alone ([`game_pc/endpoints.yml`](../../../backend/games/permissions/config/game_pc/endpoints.yml) / [`game_npc/endpoints.yml`](../../../backend/games/permissions/config/game_npc/endpoints.yml)'s `restricted.treasure_exchange`) |
+| **TreasureEdit** | `TreasureEditPermission` | Global treasure (`game_id is None`): Staff — no dm branch, since there's no game. Game-scoped treasure routes skip this class entirely and check GameEdit directly ([`treasure/endpoints.yml`](../../../backend/games/permissions/config/treasure/endpoints.yml)'s `restricted.edit`) |
+| **GameSessionEdit** | `GameSessionEditPermission` | Staff + AnyPlayer — broader than a plain GameEdit delegation ([`game_session/endpoints.yml`](../../../backend/games/permissions/config/game_session/endpoints.yml)'s `regular.edit`) |
+| **TaskEdit** | `TaskEditPermission` | — (delegates to GameEdit against the task's game; unlike every other rule here, also gates reads, not just writes — see [Task](task.md); [`game_task/endpoints.yml`](../../../backend/games/permissions/config/game_task/endpoints.yml)'s `restricted.edit`) |
 | **Staff-or-superuser** | inline `require_staff` check | `is_staff or is_superuser` — dm does **not** qualify here |
 | **AllowAny** | DRF `AllowAny` | Anyone, unauthenticated included |
 
