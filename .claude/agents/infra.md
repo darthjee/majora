@@ -73,9 +73,9 @@ middleware config are owned by the `proxy` agent, not `infra`.
 ## Navi cache warmer
 
 Navi (`darthjee/navi-hey`) warms the Tent proxy cache by pre-fetching all API endpoints after
-a release. **`.circleci/navi_config.yaml` (and the Navi cache-warmer documentation) is owned
-by the `cache` agent** — delegate any task involving cache warm-up routes to it, the same way
-PHP proxy work is delegated to the `proxy` agent.
+a release. **`navi/navi_config.yaml`, `navi/resources/*.yml` (and the Navi cache-warmer
+documentation) are owned by the `cache` agent** — delegate any task involving cache warm-up
+routes to it, the same way PHP proxy work is delegated to the `proxy` agent.
 
 ## CircleCI pipeline (.circleci/config.yml)
 
