@@ -449,4 +449,4 @@ jobs:
       - checkout
       - run:
           name: Warm up proxy cache
-          command: navi-hey --config .circleci/navi_config.yaml
+          command: navi-hey --config navi/navi_config.yaml

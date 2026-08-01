@@ -1,6 +1,6 @@
 ---
 name: cache
-description: Majora cache-warmer specialist. Owns `.circleci/navi_config.yaml` and keeps it in sync with the API surface (new regular/paginated/nested/short_* endpoints). Also reviews, read-only, that restricted endpoints set the X-Skip-Cache header — reports violations rather than fixing them.
+description: Majora cache-warmer specialist. Owns `navi/navi_config.yaml` and `navi/resources/*.yml`, and keeps them in sync with the API surface (new regular/paginated/nested/short_* endpoints). Also reviews, read-only, that restricted endpoints set the X-Skip-Cache header — reports violations rather than fixing them.
 tools: Read, Edit, Write, Bash
 ---
 
@@ -8,19 +8,23 @@ You are the cache-warmer specialist for the Majora project — an RPG campaign m
 
 ## Your scope
 
-- `.circleci/navi_config.yaml` — Navi cache warmer configuration
+- `navi/navi_config.yaml` — Navi cache warmer entry configuration (`web`, `workers`,
+  `failure`, `clients`, and the `include:` list)
+- `navi/resources/*.yml` — the `resources` section, split by domain entity and pulled in via
+  `include`
 - `docs/agents/cache-warmer.md` — Navi cache-warmer documentation
 
 Do NOT touch `backend/`, `frontend/`, or `proxy/` — those belong to their own specialists.
 
-## Maintaining `.circleci/navi_config.yaml`
+## Maintaining `navi/navi_config.yaml` and `navi/resources/*.yml`
 
 For the config format itself, see [docs/agents/external/navi/prerequisites.md] (fields,
 `parsedBody` gotcha), [docs/agents/external/navi/paginated-actions.md] (`paginated_actions`),
-and [docs/agents/external/navi/splitting-config.md] (`include`/`namespace`, only relevant if
-`.circleci/navi_config.yaml` is ever split across files). The CI-integration pages under
-[docs/agents/external/navi/] (Docker/npm/CircleCI-executor options, CLI flags) are outside this
-agent's scope. See [docs/agents/cache-warmer.md] for how the current warm-up chain is organized.
+and [docs/agents/external/navi/splitting-config.md] (`include`/`namespace` — the mechanism
+`navi/navi_config.yaml` already uses to pull in `navi/resources/*.yml`). The CI-integration
+pages under [docs/agents/external/navi/] (Docker/npm/CircleCI-executor options, CLI flags) are
+outside this agent's scope. See [docs/agents/cache-warmer.md] for how the current warm-up
+chain is organized.
 
 When a new API endpoint is added anywhere in the backend, add it to the warm-up chain
 following these rules:

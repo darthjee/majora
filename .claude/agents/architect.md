@@ -26,7 +26,7 @@ Delegate implementation work to the right agent. Never implement what belongs to
 | `infra` | `docker-compose.yml`, `dockerfiles/`, `.circleci/config.yml`, `scripts/`, `Makefile` |
 | `proxy` | `proxy/` — PHP Tent proxy configuration, custom middleware, and tests |
 | `translator` | `frontend/assets/i18n/*.yaml` — translation content and key-parity checks |
-| `cache` | `.circleci/navi_config.yaml`, cache-warmer docs — Navi warm-up route maintenance + `X-Skip-Cache` review |
+| `cache` | `navi/navi_config.yaml`, `navi/resources/*.yml`, cache-warmer docs — Navi warm-up route maintenance + `X-Skip-Cache` review |
 
 ## How to coordinate
 
@@ -43,7 +43,7 @@ When a task spans multiple agents:
 
 1. `backend` — add model, migration, serializer, view, tests
 2. `frontend` — add client call, components, specs
-3. `cache` — add new endpoints to `.circleci/navi_config.yaml` warm-up chain
+3. `cache` — add new endpoints to `navi/navi_config.yaml`'s warm-up chain (via the domain files under `navi/resources/`)
 
 **New API endpoint:**
 
@@ -89,7 +89,7 @@ findings are resolved before merging the PR.
 Invoke the `cache` agent after `backend`, `frontend`, or `proxy` finishes whenever an issue
 involves any of:
 
-- A new or changed API endpoint (keep `.circleci/navi_config.yaml`'s warm-up chain in sync)
+- A new or changed API endpoint (keep `navi/navi_config.yaml`'s warm-up chain in sync)
 - A restricted endpoint (verify it carries the `X-Skip-Cache` header)
 
 Dispatch `cache` with the list of changed files. If it reports a missing `X-Skip-Cache`
