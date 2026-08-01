@@ -69,6 +69,8 @@ All project documentation lives under [`docs/agents/`](docs/agents/):
 
 | File | Contents |
 |------|----------|
+| [Index](docs/agents/index.md) | Link-only table of contents for `docs/agents/` — fetch this first to navigate the doc set. |
+| [Summary](docs/agents/summary.md) | 2-4 line abstract of each doc under `docs/agents/`, to decide whether to open the full file. |
 | [Folder Structure](docs/agents/folder-structure.md) | Top-level directory layout and the role of each folder. |
 | [Architecture](docs/agents/architecture.md) | Source layout, modules, code style, and implementation guidelines. |
 | [Views Organization](docs/agents/views-organization.md) | Folder convention for `backend/games/views/` (and its mirrored test tree): plural resource folders, nested `game/` sub-resources, `detail/` member actions. |
