@@ -1,0 +1,20 @@
+# Docs-only quick reference. Not consumed by any code path — the
+# real source of truth is backend/games/permissions/config/ and
+# backend/games/permissions/roles.py. See docs/agents/access-control/
+# for the authoritative, per-endpoint rules.
+admin:
+  access: everything
+dm:
+  access: everything inside a game they are DM of
+owner:
+  access: everything inside a PC they own
+player:
+  access: regular mutation endpoints inside the game they are a player of
+staff:
+  access: >-
+    regular mutation endpoints in any game (as if a player), plus staff
+    endpoints
+other_users:
+  access: none, except mutations on their own account
+account_data:
+  access: restricted to the user, unless dm or staff
