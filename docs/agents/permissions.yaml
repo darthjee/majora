@@ -12,9 +12,13 @@ player:
   access: regular mutation endpoints inside the game they are a player of
 staff:
   access: >-
-    regular mutation endpoints in any game (as if a player), plus staff
-    endpoints
+    staff-only endpoints (staff-or-superuser; dm does not qualify), plus a
+    short, explicitly-documented list of game-scoped carve-outs (PC regular
+    edit, character photo upload, character treasure exchange, game session
+    edit, global treasure edit) — not blanket parity with the player role
+    across every game; see access-control/common-rules.md and
+    access-control/user-roles.md
 other_users:
   access: none, except mutations on their own account
 account_data:
-  access: restricted to the user, unless dm or staff
+  access: restricted to the user, unless staff (dm has no account-data access)
