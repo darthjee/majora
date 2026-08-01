@@ -2,9 +2,10 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
 import TreasureCard from '../../../../../../assets/js/components/common/cards/TreasureCard.jsx';
 import Noop from '../../../../../../assets/js/utils/Noop.js';
+import { buildTreasure } from '../../../../../support/factories.js';
 
 describe('TreasureCard', function() {
-  const treasure = { id: 42, name: 'Golden Crown', value: 500 };
+  const treasure = buildTreasure({ id: 42 });
 
   it('delegates rendering to TreasureCardHelper', function() {
     const html = renderToStaticMarkup(

@@ -3,9 +3,10 @@ import TreasureCardHelper from '../../../../../../../assets/js/components/common
 import TooltipBadge from '../../../../../../../assets/js/components/common/badges/TooltipBadge.jsx';
 import Translator from '../../../../../../../assets/js/i18n/Translator.js';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
+import { buildTreasure } from '../../../../../../support/factories.js';
 
 describe('TreasureCardHelper', function() {
-  const treasure = { id: 42, name: 'Golden Crown', value: 500 };
+  const treasure = buildTreasure({ id: 42 });
 
   describe('.render', function() {
     it('renders the treasure name', function() {

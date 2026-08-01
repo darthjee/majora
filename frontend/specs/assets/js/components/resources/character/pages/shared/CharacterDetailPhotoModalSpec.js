@@ -7,14 +7,15 @@ import PhotoViewModalHelper
 import ProfilePhotoSetModalHelper
   from '../../../../../../../../assets/js/components/common/modals/helpers/ProfilePhotoSetModalHelper.jsx';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
+import { buildCharacter } from '../../../../../../../support/factories.js';
 
 const photo1 = { id: 1, path: '/photos/1.jpg' };
 const photo2 = { id: 2, path: '/photos/2.jpg' };
 
-const loadedCharacter = {
+const loadedCharacter = buildCharacter({
   id: 5, name: 'Aragorn', can_edit: false, can_set_profile_photo: true, is_pc: true, game_slug: 'demo',
   photo_id: photo1.id, photos: [photo1, photo2],
-};
+});
 
 // Sets character/loading state synchronously during render (in the useMemo
 // factory), so the "loaded" branch of CharacterDetail is reachable via

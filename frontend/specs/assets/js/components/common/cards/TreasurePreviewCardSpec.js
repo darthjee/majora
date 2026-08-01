@@ -1,12 +1,11 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
 import TreasurePreviewCard from '../../../../../../assets/js/components/common/cards/TreasurePreviewCard.jsx';
+import { buildTreasure } from '../../../../../support/factories.js';
 
 describe('TreasurePreviewCard', function() {
   it('delegates rendering to TreasurePreviewCardHelper', function() {
-    const treasure = {
-      id: 42, name: 'Golden Crown', value: 500, photo_path: null,
-    };
+    const treasure = buildTreasure({ id: 42 });
     const html = renderToStaticMarkup(
       React.createElement(TreasurePreviewCard, { treasure, quantity: 2 })
     );

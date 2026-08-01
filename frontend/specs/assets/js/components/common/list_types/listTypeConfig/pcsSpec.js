@@ -1,6 +1,7 @@
 import listTypeConfig from '../../../../../../../assets/js/components/common/list_types/listTypeConfig.js';
 import PcListItem from '../../../../../../../assets/js/components/common/list_types/PcListItem.js';
 import RequestStore from '../../../../../../../assets/js/utils/requests/RequestStore.js';
+import { buildCharacter } from '../../../../../../support/factories.js';
 
 function fakeHashResolver() {
   return { getPaginationParams: () => new URLSearchParams() };
@@ -32,7 +33,7 @@ describe('listTypeConfig', function() {
 
     describe('.buildItemHref', function() {
       it('links to the pc detail page', function() {
-        const item = new PcListItem({ id: 1, name: 'Aragorn' });
+        const item = new PcListItem(buildCharacter({ id: 1, name: 'Aragorn' }));
 
         expect(pcs.buildItemHref(item, { gameSlug: 'demo' })).toBe('#/games/demo/pcs/1');
       });
@@ -40,7 +41,7 @@ describe('listTypeConfig', function() {
 
     describe('.buildActionBarProps', function() {
       it('is always non-manageable', function() {
-        const item = new PcListItem({ id: 1, name: 'Aragorn' });
+        const item = new PcListItem(buildCharacter({ id: 1, name: 'Aragorn' }));
 
         expect(pcs.buildActionBarProps(item, { gameSlug: 'demo', canEdit: true })).toEqual({
           canEdit: false, secondaryButtons: [],
@@ -50,7 +51,7 @@ describe('listTypeConfig', function() {
 
     describe('.buildInfoBarItems', function() {
       it('returns an empty array for a plain PC', function() {
-        const item = new PcListItem({ id: 1, name: 'Aragorn', is_pc: true });
+        const item = new PcListItem(buildCharacter({ id: 1, name: 'Aragorn', is_pc: true }));
 
         expect(pcs.buildInfoBarItems(item)).toEqual([]);
       });
@@ -63,7 +64,7 @@ describe('listTypeConfig', function() {
 
       it('fetches through RequestStore with no permission check', async function() {
         spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
-          data: [{ id: 1, name: 'Aragorn' }],
+          data: [buildCharacter({ id: 1, name: 'Aragorn' })],
           pagination: { page: 1, pages: 1, perPage: 10 },
         }));
 
@@ -76,7 +77,7 @@ describe('listTypeConfig', function() {
           params: { gameSlug: 'demo' },
           query: {},
         });
-        expect(result.data).toEqual([{ id: 1, name: 'Aragorn' }]);
+        expect(result.data).toEqual([buildCharacter({ id: 1, name: 'Aragorn' })]);
         expect(result.canEdit).toBe(false);
       });
 

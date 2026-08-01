@@ -1,11 +1,10 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import TreasurePreviewCardHelper
   from '../../../../../../../assets/js/components/common/cards/helpers/TreasurePreviewCardHelper.jsx';
+import { buildTreasure } from '../../../../../../support/factories.js';
 
 describe('TreasurePreviewCardHelper', function() {
-  const treasure = {
-    id: 42, name: 'Golden Crown', value: 500, photo_path: null,
-  };
+  const treasure = buildTreasure({ id: 42 });
 
   describe('.render', function() {
     it('renders the grid-cell column classes matching SeeAllCard', function() {

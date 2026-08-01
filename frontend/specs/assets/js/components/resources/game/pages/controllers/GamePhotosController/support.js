@@ -1,4 +1,5 @@
 import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import { buildGame } from '../../../../../../../../support/factories.js';
 
 /**
  * @description Builds a fresh gameClient spy shared by every GamePhotosController spec file.
@@ -8,7 +9,7 @@ export function buildGameClient() {
   const gameClient = jasmine.createSpyObj('gameClient', ['fetchGame']);
   gameClient.fetchGame.and.returnValue(Promise.resolve({
     ok: true,
-    json: () => Promise.resolve({ name: 'Demo', game_slug: 'demo' }),
+    json: () => Promise.resolve(buildGame({ name: 'Demo', game_slug: 'demo' })),
   }));
   return gameClient;
 }

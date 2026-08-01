@@ -1,10 +1,11 @@
 import MyGameListItem from '../../../../../../assets/js/components/common/list_types/MyGameListItem.js';
 import BaseListItem from '../../../../../../assets/js/components/common/list_types/BaseListItem.js';
+import { buildGame } from '../../../../../support/factories.js';
 
 describe('MyGameListItem', function() {
   it('extends BaseListItem', function() {
     const item = new MyGameListItem({
-      game: { name: 'Test Game', game_slug: 'test-game', photo_path: null },
+      game: buildGame({ photo_path: null }),
       role: 'player',
       character: null,
       conversations: { count: 0, unread_count: 0 },
@@ -16,7 +17,7 @@ describe('MyGameListItem', function() {
   describe('#photoUrl', function() {
     it('uses the nested game photo_path field', function() {
       const item = new MyGameListItem({
-        game: { name: 'Test Game', game_slug: 'test-game', photo_path: '/photos/1.png' },
+        game: buildGame({ photo_path: '/photos/1.png' }),
         role: 'dm',
         character: null,
         conversations: { count: 0, unread_count: 0 },
@@ -27,7 +28,7 @@ describe('MyGameListItem', function() {
 
     it('is null when the nested game has no photo_path', function() {
       const item = new MyGameListItem({
-        game: { name: 'Test Game', game_slug: 'test-game' },
+        game: buildGame(),
         role: 'dm',
         character: null,
         conversations: { count: 0, unread_count: 0 },
@@ -40,7 +41,7 @@ describe('MyGameListItem', function() {
   describe('#displayText', function() {
     it('uses the nested game name field', function() {
       const item = new MyGameListItem({
-        game: { name: 'Test Game', game_slug: 'test-game', photo_path: null },
+        game: buildGame({ photo_path: null }),
         role: 'dm',
         character: null,
         conversations: { count: 0, unread_count: 0 },

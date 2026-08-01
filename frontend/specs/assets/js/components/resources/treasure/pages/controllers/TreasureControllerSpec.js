@@ -3,13 +3,14 @@ import TreasureController
 import RequestStore from '../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import AccessStore from '../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 import { stubAccessPair } from '../../../../../../../support/accessStoreStub.js';
+import { buildTreasure } from '../../../../../../../support/factories.js';
 
 describe('TreasureController', function() {
   let ensureSpy;
 
   beforeEach(function() {
     ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
-      data: { id: 1, name: 'Sword', value: 100 },
+      data: buildTreasure({ id: 1, name: 'Sword', value: 100 }),
     }));
   });
 
@@ -48,7 +49,7 @@ describe('TreasureController', function() {
 
   it('calls ensureTreasurePermissions with isExclusive true for a game-exclusive treasure', async function() {
     ensureSpy.and.returnValue(Promise.resolve({
-      data: { id: 1, name: 'Sword', value: 100, game_slug: 'demo' },
+      data: buildTreasure({ id: 1, name: 'Sword', value: 100, game_slug: 'demo' }),
     }));
     stubAccessPair('ensureTreasurePermissions', 'getTreasurePermissions', { can_edit: false }, { can_edit: false });
     const setTreasure = jasmine.createSpy('setTreasure');

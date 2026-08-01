@@ -4,6 +4,7 @@ import TreasureFilters from '../../../../../../../assets/js/components/resources
 import TreasureCardHelper from '../../../../../../../assets/js/components/common/cards/helpers/TreasureCardHelper.jsx';
 import AccessStore from '../../../../../../../assets/js/utils/access/store/AccessStore.js';
 import RequestStore from '../../../../../../../assets/js/utils/requests/RequestStore.js';
+import { buildTreasure } from '../../../../../../support/factories.js';
 
 function fakeHashResolver(filterParams = new URLSearchParams()) {
   return { getFilterParams: () => filterParams, getPaginationParams: () => new URLSearchParams() };
@@ -35,7 +36,7 @@ describe('listTypeConfig', function() {
 
     describe('.buildItemHref', function() {
       it('links to the global treasure detail page', function() {
-        const item = new TreasureListItem({ id: 42, name: 'Golden Crown', value: 500 });
+        const item = new TreasureListItem(buildTreasure({ id: 42 }));
 
         expect(treasures.buildItemHref(item)).toBe('#/treasures/42');
       });
@@ -43,9 +44,7 @@ describe('listTypeConfig', function() {
 
     describe('.buildInfoBarItems', function() {
       it('delegates to TreasureCardHelper.buildInfoBarItems', function() {
-        const item = new TreasureListItem({
-          id: 1, name: 'Golden Crown', value: 500, hidden: true,
-        });
+        const item = new TreasureListItem(buildTreasure({ hidden: true }));
 
         expect(treasures.buildInfoBarItems(item)).toEqual(TreasureCardHelper.buildInfoBarItems(item.data));
       });
@@ -64,27 +63,21 @@ describe('listTypeConfig', function() {
       });
 
       it('gates canEdit on canEdit and the treasure being exclusive to the current game', function() {
-        const item = new TreasureListItem({
-          id: 1, name: 'Golden Crown', value: 500, game_slug: 'demo',
-        });
+        const item = new TreasureListItem(buildTreasure({ game_slug: 'demo' }));
         const props = treasures.buildActionBarProps(item, { gameSlug: 'demo', canEdit: true });
 
         expect(props.canEdit).toBe(true);
       });
 
       it('does not grant manage access for treasures from another game', function() {
-        const item = new TreasureListItem({
-          id: 1, name: 'Golden Crown', value: 500, game_slug: 'other',
-        });
+        const item = new TreasureListItem(buildTreasure({ game_slug: 'other' }));
         const props = treasures.buildActionBarProps(item, { gameSlug: 'demo', canEdit: true });
 
         expect(props.canEdit).toBe(false);
       });
 
       it('invokes the context onUploadClick with the raw treasure on upload click', function() {
-        const item = new TreasureListItem({
-          id: 1, name: 'Golden Crown', value: 500, game_slug: 'demo',
-        });
+        const item = new TreasureListItem(buildTreasure({ game_slug: 'demo' }));
         const onUploadClick = jasmine.createSpy('onUploadClick');
         const props = treasures.buildActionBarProps(item, { gameSlug: 'demo', canEdit: true, onUploadClick });
 
@@ -94,18 +87,14 @@ describe('listTypeConfig', function() {
       });
 
       it('does not include a secondary edit button when the user cannot manage the treasure', function() {
-        const item = new TreasureListItem({
-          id: 1, name: 'Golden Crown', value: 500, game_slug: 'demo',
-        });
+        const item = new TreasureListItem(buildTreasure({ game_slug: 'demo' }));
         const props = treasures.buildActionBarProps(item, { gameSlug: 'demo', canEdit: false });
 
         expect(props.secondaryButtons).toEqual([]);
       });
 
       it('navigates to the game-scoped edit page when the secondary edit button is clicked', function() {
-        const item = new TreasureListItem({
-          id: 1, name: 'Golden Crown', value: 500, game_slug: 'demo',
-        });
+        const item = new TreasureListItem(buildTreasure({ game_slug: 'demo' }));
         const props = treasures.buildActionBarProps(item, { gameSlug: 'demo', canEdit: true });
 
         expect(props.secondaryButtons.length).toBe(1);
