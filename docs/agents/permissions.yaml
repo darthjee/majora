@@ -2,23 +2,72 @@
 # real source of truth is backend/games/permissions/config/ and
 # backend/games/permissions/roles.py. See docs/agents/access-control/
 # for the authoritative, per-endpoint rules.
+#
+# Schema: each role is a list of entries shaped
+#   { scope, read: {regular, restricted}, mutation: {regular, restricted}, note? }
+# - scope: the resource scope the row applies to (any, game, owned_pc,
+#   staff, own_account, other_account).
+# - regular: the plain/public route for that scope (see
+#   access-control/principles.md's "Partial vs full access pattern").
+# - restricted: the full/private route for the same scope.
+# - note: free-text caveat, used whenever a boolean pair alone would
+#   overstate or understate the real per-endpoint rule.
 admin:
-  access: everything
+  - scope: any
+    read: { regular: true, restricted: true }
+    mutation: { regular: true, restricted: true }
+
 dm:
-  access: everything inside a game they are DM of
+  - scope: game
+    read: { regular: true, restricted: true }
+    mutation: { regular: true, restricted: true }
+    note: only for the game(s) they are DM of
+
 owner:
-  access: everything inside a PC they own
+  - scope: owned_pc
+    read: { regular: true, restricted: true }
+    mutation: { regular: true, restricted: true }
+    note: only for the PC they own
+
 player:
-  access: regular mutation endpoints inside the game they are a player of
+  - scope: game
+    read: { regular: true, restricted: false }
+    mutation: { regular: true, restricted: false }
+    note: only for the game(s) they are a player of
+
 staff:
-  access: >-
-    staff-only endpoints (staff-or-superuser; dm does not qualify), plus a
-    short, explicitly-documented list of game-scoped carve-outs (PC regular
-    edit, character photo upload, character treasure exchange, game session
-    edit, global treasure edit) — not blanket parity with the player role
-    across every game; see access-control/common-rules.md and
-    access-control/user-roles.md
+  - scope: staff
+    read: { regular: true, restricted: true }
+    mutation: { regular: true, restricted: true }
+    note: staff-or-superuser only; dm does not qualify for this scope
+  - scope: game
+    read: { regular: true, restricted: false }
+    mutation: { regular: false, restricted: false }
+    note: >-
+      not blanket player-parity — only a short, explicitly-documented list
+      of per-resource carve-outs (PC regular edit, character photo upload,
+      character treasure exchange, game session edit, global treasure
+      edit); see access-control/common-rules.md
+
 other_users:
-  access: none, except mutations on their own account
+  - scope: game
+    read: { regular: true, restricted: false }
+    mutation: { regular: false, restricted: false }
+    note: same as any anonymous/unrelated visitor — no player/dm/owner role held
+  - scope: own_account
+    read: { regular: true, restricted: true }
+    mutation: { regular: true, restricted: true }
+  - scope: other_account
+    read: { regular: false, restricted: false }
+    mutation: { regular: false, restricted: false }
+
 account_data:
-  access: restricted to the user, unless staff (dm has no account-data access)
+  - scope: own_account
+    read: { regular: true, restricted: true }
+    mutation: { regular: true, restricted: true }
+  - scope: other_account
+    read: { regular: false, restricted: false }
+    mutation: { regular: false, restricted: false }
+    note: >-
+      staff/admin are the only exception (see the staff/admin entries
+      above) — dm has no account-data access
