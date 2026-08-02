@@ -1,11 +1,5 @@
 # Permission Principles
 
-> **Agent Summary:** Shared access-control conventions referenced by every per-resource file in
-> this folder (roles, the partial/full route pattern, default CRUD/hidden-collection patterns,
-> field-naming conventions, and the `X-Skip-Cache`/filter-visibility rules). Read this in full
-> before writing or reviewing any access-control doc or permission class — per-resource files
-> assume it and only state their own deviations.
-
 Shared conventions that recur across multiple resources in this document set. Each is stated
 once here; per-resource files (e.g. [Character](character.md)) link back to this file instead of
 re-deriving the rationale, keeping only what's specific to that resource.

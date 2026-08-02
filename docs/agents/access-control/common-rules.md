@@ -1,12 +1,5 @@
 # Common Rules
 
-> **Agent Summary:** Table of named permission-class shorthands (GameEdit, CharacterEdit,
-> NpcPlayerEdit, etc.) referenced by every per-resource access-control file, plus the shared
-> `access.json`/`permissions.json` response shapes and the cache-bypass mechanism for
-> identity-dependent endpoints. Read in full when adding or reviewing a permission class or an
-> `access.json`/`permissions.json` endpoint; otherwise per-resource files link back to the
-> specific row/section they need.
-
 **Baseline** (never restated per rule below): superuser always passes; that game's dm (`Player`
 with `is_dm=True`) always passes for anything scoped to their game — see [User
 Roles](user-roles.md).

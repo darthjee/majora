@@ -33,7 +33,9 @@ regardless of any other rule listed below.
 - [GamePhoto](access-control/game-photo.md)
 - [Upload](access-control/upload.md) — the `Upload` model plus the Game/Character/Treasure/
   GameDocument photo and file upload init endpoints
-- [Character (PC and NPC)](access-control/character.md)
+- [Character (PC and NPC)](access-control/character.md) — permission classes per action for PCs
+  and NPCs, regular vs restricted (`full.json`/`all.json`) routes, filters, exposed fields, and the
+  narrow player-facing PATCH/create field sets.
 - [Player](access-control/player.md) — includes the DM/GameMaster role (`Player.is_dm`)
 - [User (Staff Management)](access-control/user.md)
 - [Staff Cache](access-control/staff-cache.md) — the staff-only memory-cache management endpoints
