@@ -1,12 +1,5 @@
 # Ownership Chain
 
-> **Agent Summary:** Defines the character ownership chain (`character.player.user`), the
-> GameMaster/DM and Staff roles, and the full character-editing rule set (superuser/owner/DM plus
-> the narrower NPC/PC player and photo-upload/money leniencies), along with the issues that shaped
-> each carve-out. Read in full when implementing or reviewing any character edit, photo-upload, or
-> money-edit permission; the Summary Table at the bottom is a quick lookup once you already know
-> the shape.
-
 The owner of a character is the Django `User` reachable via:
 
 ```

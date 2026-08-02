@@ -1,11 +1,5 @@
 # Character (PC and NPC)
 
-> **Agent Summary:** Full access-control reference for the Character resource (PC and NPC) —
-> permission classes per action, regular vs restricted routes, filters, exposed fields, and the
-> narrow player-facing PATCH/create field sets. Read past this summary when touching a
-> Character/PC/NPC endpoint, permission class, or serializer; skip it if you only need the shared
-> conventions (see [principles.md](principles.md)).
-
 **[Game resource](principles.md#resource-categories).** Characters are scoped to a game. Access is
 symmetric for PCs and NPCs unless noted. As per [principles](principles.md#partial-vs-full-access-pattern),
 endpoints have regular and restricted (`full.json`/`all.json`) versions.
