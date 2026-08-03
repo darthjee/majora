@@ -1,8 +1,6 @@
-[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md)
+# Reference
 
-## Reference
-
-### Container paths
+## Container paths
 
 | Path inside container          | Purpose                                      |
 |--------------------------------|----------------------------------------------|
@@ -10,7 +8,7 @@
 | `/var/www/html/static/`        | Static files served by `StaticFileHandler`   |
 | `./cache` (default, relative)  | File cache written by `FileCacheMiddleware`  |
 
-### Handlers
+## Handlers
 
 | `type`          | Class                          | What it does |
 |-----------------|--------------------------------|--------------|
@@ -18,7 +16,7 @@
 | `proxy`         | `ProxyRequestHandler`          | Bare proxy — no default middlewares |
 | `static`        | `StaticFileHandler`            | Serve files from a local directory |
 
-### Middlewares
+## Middlewares
 
 | Class                                   | What it does |
 |-----------------------------------------|--------------|
@@ -29,14 +27,14 @@
 | `Tent\Middlewares\SetPathMiddleware`    | Rewrite the request path before the handler runs |
 | `Tent\Middlewares\RedirectMiddleware`   | Rewrite path using regex and return a 302 response |
 
-### Cache matchers
+## Cache matchers
 
 | Class                              | What it does |
 |------------------------------------|--------------|
 | `Tent\Matchers\StatusCodeMatcher`  | Cache only responses matching specified status codes or patterns (`'2xx'`, `200`, `301`) |
 | `Tent\Matchers\RequestMethodMatcher` | Cache only requests with specified HTTP methods (`GET`, `HEAD`) |
 
-### Rule matchers
+## Rule matchers
 
 | `type`        | Behavior                                        |
 |---------------|-------------------------------------------------|
@@ -45,6 +43,4 @@
 | `ends_with`   | Match URI suffix                                |
 | `regex`       | Match URI with regular expression pattern       |
 
----
-
-[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md) · Previous: [Extending Tent](extending.md)
+[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md)

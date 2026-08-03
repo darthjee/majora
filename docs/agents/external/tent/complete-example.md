@@ -1,6 +1,4 @@
-[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md)
-
-## Complete Example Layout
+# Complete Example Layout
 
 ```
 my-project/
@@ -24,7 +22,7 @@ my-project/
             └── css/
 ```
 
-### `docker-compose.yml`
+## `docker-compose.yml`
 
 ```yaml
 services:
@@ -49,7 +47,7 @@ services:
     image: myapp/frontend:latest
 ```
 
-### `proxy_configuration/configure.php`
+## `proxy_configuration/configure.php`
 
 ```php
 <?php
@@ -58,7 +56,7 @@ require_once __DIR__ . '/rules/frontend.php';
 require_once __DIR__ . '/rules/backend.php';
 ```
 
-### `proxy_configuration/rules/backend.php`
+## `proxy_configuration/rules/backend.php`
 
 ```php
 <?php
@@ -91,6 +89,4 @@ Configuration::buildRule([
 ]);
 ```
 
----
-
-[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md) · Previous: [Dev Mode and Static Files](dev-mode-and-static.md) · Next: [Extending Tent](extending.md)
+[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md)

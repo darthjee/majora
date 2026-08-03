@@ -1,6 +1,4 @@
-[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md)
-
-## Frontend Dev Mode Flip
+# Frontend Dev Mode Flip
 
 When working with a modern JS frontend (e.g. Vite, webpack), you typically want two behaviors:
 
@@ -9,11 +7,11 @@ When working with a modern JS frontend (e.g. Vite, webpack), you typically want 
 
 Tent has no built-in knowledge of this distinction, but you can implement it yourself by reading an environment variable inside the rule file.
 
-### Environment variable
+## Environment variable
 
 Set `FRONTEND_DEV_MODE=true` in your `.env` for development and omit it (or set it to `false`) for production.
 
-### Rule file
+## Rule file
 
 ```php
 <?php
@@ -75,27 +73,8 @@ if (getenv('FRONTEND_DEV_MODE') === 'true') {
 }
 ```
 
-### Why this works
+## Why this works
 
 Rules are evaluated at request time, but `getenv()` is resolved at boot — when PHP parses the configuration. As long as the `FRONTEND_DEV_MODE` environment variable is set correctly before the container starts, Tent will load the right set of rules.
 
----
-
-## Static Files
-
-Place any assets you want Tent to serve directly (images, committed CSS, etc.) into the folder you mount at `/var/www/html/static/`.
-
-If your frontend build tool (e.g. Vite) writes its output to a different path, share a volume between the build container and the Tent container so built files land directly in the static root without a copy step:
-
-```yaml
-volumes:
-  - ./docker_volumes/static/index.html:/var/www/html/static/index.html
-  - ./docker_volumes/static/assets/js/:/var/www/html/static/assets/js/
-  - ./docker_volumes/static/assets/css/:/var/www/html/static/assets/css/
-```
-
-The Vite container writes to `./docker_volumes/static/` as its `outDir`, and Tent picks it up immediately.
-
----
-
-[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md) · Previous: [Cache Configuration](cache-configuration.md) · Next: [Complete Example Layout](complete-example.md)
+[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md)

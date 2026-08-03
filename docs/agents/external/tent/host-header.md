@@ -1,6 +1,4 @@
-[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md)
-
-## Host Header and Why It Matters
+# Host Header and Why It Matters
 
 When Tent forwards a request to an upstream backend, the `Host` header it sends determines how the backend identifies the virtual host being requested. Getting this wrong is a common source of routing failures with frameworks like Rails, Django, Express, and PHP servers such as Apache or nginx.
 
@@ -32,7 +30,7 @@ If you use `proxy` directly, you must do this manually:
 ]
 ```
 
-### Example: backend on a named Docker service
+## Example: backend on a named Docker service
 
 ```yaml
 # docker-compose.yml
@@ -59,6 +57,4 @@ Configuration::buildRule([
 ]);
 ```
 
----
-
-[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md) · Previous: [Request Handlers](request-handlers.md) · Next: [Middlewares](middlewares.md)
+[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md)
