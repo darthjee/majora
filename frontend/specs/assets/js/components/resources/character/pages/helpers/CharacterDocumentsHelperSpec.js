@@ -74,5 +74,34 @@ describe('CharacterDocumentsHelper', function() {
       const html = renderToStaticMarkup(CharacterDocumentsHelper.render('pcs', 'pc-documents', 'demo', '7'));
       expect(html).not.toContain('New');
     });
+
+    it('does not render an "Exchange" button when no onExchangeDocuments handler is given', function() {
+      const html = renderToStaticMarkup(CharacterDocumentsHelper.render('pcs', 'pc-documents', 'demo', '7'));
+      expect(html).not.toContain('Document Exchange');
+    });
+
+    it('renders an "Exchange" button when a handler is given', function() {
+      const html = renderToStaticMarkup(
+        CharacterDocumentsHelper.render('pcs', 'pc-documents', 'demo', '7', 0, jasmine.createSpy('onExchangeDocuments'))
+      );
+      expect(html).toContain('Document Exchange');
+    });
+
+    it('wires the "Exchange" button click to the given handler', function() {
+      const onExchangeDocuments = jasmine.createSpy('onExchangeDocuments');
+      const element = CharacterDocumentsHelper.render('pcs', 'pc-documents', 'demo', '7', 0, onExchangeDocuments);
+      const button = findElement(element, (child) => typeof child.props?.onClick === 'function');
+
+      button.props.onClick();
+
+      expect(onExchangeDocuments).toHaveBeenCalled();
+    });
+
+    it('passes refreshToken through to ListPage', function() {
+      const element = CharacterDocumentsHelper.render('pcs', 'pc-documents', 'demo', '7', 3);
+      const listPage = findElement(element, (child) => child.type === ListPage);
+
+      expect(listPage.props.refreshToken).toBe(3);
+    });
   });
 });

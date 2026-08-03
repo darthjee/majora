@@ -184,6 +184,30 @@ describe('resourceConfig mutations (issue #844)', function() {
     });
   });
 
+  describe('document', function() {
+    it('resolves POST.acquire regular/private paths and permissions', function() {
+      const acquire = resourceConfig.get('POST', 'document', 'acquire');
+
+      expect(acquire.regular.path({ gameSlug: 'demo', kind: 'pcs', id: '3' }))
+        .toBe('/games/demo/pcs/3/documents/acquire.json');
+      expect(acquire.regular.permission).toBeNull();
+      expect(acquire.private.path({ gameSlug: 'demo', kind: 'npcs', id: '3' }))
+        .toBe('/games/demo/npcs/3/documents/acquire/all.json');
+      expect(acquire.private.permission).toBe('can_edit');
+    });
+
+    it('resolves POST.remove regular/private paths and permissions', function() {
+      const remove = resourceConfig.get('POST', 'document', 'remove');
+
+      expect(remove.regular.path({ gameSlug: 'demo', kind: 'pcs', id: '3' }))
+        .toBe('/games/demo/pcs/3/documents/remove.json');
+      expect(remove.regular.permission).toBeNull();
+      expect(remove.private.path({ gameSlug: 'demo', kind: 'npcs', id: '3' }))
+        .toBe('/games/demo/npcs/3/documents/remove/all.json');
+      expect(remove.private.permission).toBe('can_edit');
+    });
+  });
+
   describe('treasure', function() {
     it('resolves POST.acquire regular/private paths and permissions', function() {
       const acquire = resourceConfig.get('POST', 'treasure', 'acquire');

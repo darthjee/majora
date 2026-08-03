@@ -6,5 +6,5 @@ import CharacterDocuments from './shared/CharacterDocuments.jsx';
  * @returns {React.ReactElement} NPC documents page element.
  */
 export default function NpcCharacterDocuments() {
-  return <CharacterDocuments characterKind="npcs" listType="npc-documents" />;
+  return <CharacterDocuments characterKind="npcs" listType="npc-documents" isPc={false} />;
 }

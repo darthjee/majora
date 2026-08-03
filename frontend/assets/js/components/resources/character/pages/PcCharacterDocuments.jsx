@@ -6,5 +6,5 @@ import CharacterDocuments from './shared/CharacterDocuments.jsx';
  * @returns {React.ReactElement} PC documents page element.
  */
 export default function PcCharacterDocuments() {
-  return <CharacterDocuments characterKind="pcs" listType="pc-documents" />;
+  return <CharacterDocuments characterKind="pcs" listType="pc-documents" isPc />;
 }
