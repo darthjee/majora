@@ -1,6 +1,4 @@
-[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md)
-
-## Middlewares
+# Middlewares
 
 Middlewares sit between the incoming request and the handler. Each middleware can:
 
@@ -11,7 +9,7 @@ Middlewares are applied in the order they appear in the configuration array.
 
 ---
 
-### `FileCacheMiddleware`
+## `FileCacheMiddleware`
 
 Caches upstream responses to disk and serves them on subsequent identical requests, bypassing the backend entirely.
 
@@ -28,7 +26,7 @@ Caches upstream responses to disk and serves them on subsequent identical reques
 ]
 ```
 
-#### Cache matchers
+### Cache matchers
 
 Matchers inside `FileCacheMiddleware` control which responses are stored. **All** matchers must pass for a response to be cached (logical AND).
 
@@ -52,7 +50,7 @@ Matchers inside `FileCacheMiddleware` control which responses are stored. **All*
 ['class' => 'Tent\Matchers\RequestMethodMatcher', 'requestMethods' => ['GET', 'HEAD']]
 ```
 
-#### Cache file structure
+### Cache file structure
 
 Cache files are named from a hash of the request path. Each unique URI maps to a unique cache file. The `location` directory is created automatically if it does not exist.
 
@@ -60,7 +58,7 @@ Cache files are named from a hash of the request path. Each unique URI maps to a
 
 ---
 
-### `CacheCleanupMiddleware`
+## `CacheCleanupMiddleware`
 
 Deletes stale `FileCacheMiddleware` cache directories when a mutating request (`POST`, `PATCH`, `PUT`, `DELETE`) arrives, before the request is forwarded upstream. Use it alongside `FileCacheMiddleware` so writes don't leave outdated `GET` responses cached.
 
@@ -94,7 +92,7 @@ Place it **before** the handler so the cleanup happens ahead of the upstream cal
 
 ---
 
-### `SetHeadersMiddleware`
+## `SetHeadersMiddleware`
 
 Injects or overrides request headers before the request is forwarded to the backend.
 
@@ -112,7 +110,7 @@ Common uses: setting `Host`, injecting auth tokens, adding routing headers.
 
 ---
 
-### `RenameHeaderMiddleware`
+## `RenameHeaderMiddleware`
 
 Copies the value of one request header to a new name and removes the original.
 
@@ -128,7 +126,7 @@ This is typically paired with `SetHeadersMiddleware`: first preserve the origina
 
 ---
 
-### `SetPathMiddleware`
+## `SetPathMiddleware`
 
 Rewrites the request path before it reaches the handler.
 
@@ -143,7 +141,7 @@ Primarily used with `StaticFileHandler` to map `/` to `/index.html` for single-p
 
 ---
 
-### `RedirectMiddleware`
+## `RedirectMiddleware`
 
 Rewrites the request path with a regex replacement and returns a `302` response immediately.
 
@@ -157,6 +155,4 @@ Rewrites the request path with a regex replacement and returns a `302` response 
 
 If the regex matches, the middleware sets a `Location` header and short-circuits handler execution.
 
----
-
-[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md) · Previous: [Host Header and Why It Matters](host-header.md) · Next: [Cache Configuration](cache-configuration.md)
+[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md)

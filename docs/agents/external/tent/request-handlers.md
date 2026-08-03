@@ -1,8 +1,6 @@
-[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md)
+# Request Handlers
 
-## Request Handlers
-
-### `default_proxy` — recommended proxy handler
+## `default_proxy` — recommended proxy handler
 
 `DefaultProxyRequestHandler` is the recommended handler for proxying requests to a backend. It automatically adds:
 
@@ -24,7 +22,7 @@ Configuration::buildRule([
 ]);
 ```
 
-#### Options
+### Options
 
 | Option       | Type             | Required | Default     | Description |
 |--------------|------------------|----------|-------------|-------------|
@@ -35,7 +33,7 @@ Configuration::buildRule([
 
 ---
 
-### `proxy` — low-level proxy handler
+## `proxy` — low-level proxy handler
 
 `ProxyRequestHandler` forwards the request as-is. It adds **no** default middlewares — no Host header rewriting, no caching. Use it when you need full control over the middleware stack.
 
@@ -64,7 +62,7 @@ Configuration::buildRule([
 
 ---
 
-### `static` — serve files from disk
+## `static` — serve files from disk
 
 `StaticFileHandler` serves files from a local directory. Tent maps the URI path to a file path inside `location`. A request for `/assets/js/app.js` will serve `/var/www/html/static/assets/js/app.js`.
 
@@ -88,7 +86,7 @@ Configuration::buildRule([
 
 ---
 
-### Which handler should I use?
+## Which handler should I use?
 
 | Scenario | Handler |
 |----------|---------|
@@ -99,6 +97,4 @@ Configuration::buildRule([
 
 In almost all backend proxy scenarios, prefer `default_proxy`. Only drop down to `proxy` when you explicitly need to change or omit the default middleware behavior.
 
----
-
-[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md) · Previous: [Setup](setup.md) · Next: [Host Header and Why It Matters](host-header.md)
+[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md)
