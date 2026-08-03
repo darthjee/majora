@@ -130,7 +130,6 @@ from .games import (
     games_list,
     my_games_list,
 )
-from .health import health
 from .permissions import (
     game_npc_permissions,
     game_pc_permissions,
@@ -300,7 +299,6 @@ __all__ = [
     'treasure_photo_upload',
     'treasures_list',
     'upload_finalize',
-    'health',
     'ready',
     'access_route_config',
     'game_permissions',
