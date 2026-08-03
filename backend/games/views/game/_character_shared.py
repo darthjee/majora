@@ -19,10 +19,17 @@ from ...permissions import EndpointPermission
 from ...serializers import (
     CharacterDocumentSerializer,
     CharacterItemDetailSerializer,
+    GameDocumentAllListSerializer,
+    GameDocumentListSerializer,
     GameItemAllListSerializer,
     GameItemListSerializer,
 )
 from ..common import access_response, check_game_edit
+from ._document_exchange import (
+    character_document_acquire,
+    character_document_remove,
+    character_documents_available,
+)
 from ._document_files import character_document_files
 from ._document_photos import character_document_photos
 from ._documents import character_document_detail, character_documents
@@ -369,6 +376,104 @@ def build_document_photos_all_view(npc):
         )
         response['X-Skip-Cache'] = 'true'
         return response
+
+    return view
+
+
+def build_documents_available_view(npc):
+    """Build the GET documents/available.json view for a PC (npc=False) or NPC (npc=True)."""
+
+    @_build_api_view(['GET'], AllowAny)
+    def view(request, game_slug, character_id):
+        """Return the game's document catalog minus documents already owned by the PC/NPC."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        return character_documents_available(
+            request, game, character_id, npc=npc, check_hidden=npc,
+            serializer_class=GameDocumentListSerializer,
+        )
+
+    return view
+
+
+def build_documents_available_all_view(npc):
+    """Build the DM-only GET documents/available/all.json view for a PC or NPC."""
+
+    @_build_api_view(['GET'], AllowAny)
+    def view(request, game_slug, character_id):
+        """Return the catalog (incl. hidden), minus already-owned documents — DM/admin only."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        error_response = check_game_edit(request, game)
+        if error_response:
+            return error_response
+        response = character_documents_available(
+            request, game, character_id, npc=npc, check_hidden=npc, allow_hidden=True,
+            serializer_class=GameDocumentAllListSerializer,
+        )
+        response['X-Skip-Cache'] = 'true'
+        return response
+
+    return view
+
+
+def build_document_acquire_view(npc):
+    """Build the POST documents/acquire.json view for a PC (npc=False) or NPC (npc=True)."""
+
+    @_build_api_view(['POST'], AllowAny)
+    def view(request, game_slug, character_id):
+        """Create a CharacterDocument for the PC/NPC from a submitted GameDocument."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        character = _get_character_or_404(game, character_id, npc=npc)
+        return character_document_acquire(request, game, character)
+
+    return view
+
+
+def build_document_acquire_all_view(npc):
+    """Build the DM-only POST documents/acquire/all.json view for a PC or NPC."""
+
+    @_build_api_view(['POST'], AllowAny)
+    def view(request, game_slug, character_id):
+        """Create a CharacterDocument, including from a hidden GameDocument — DM/admin only."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        error_response = check_game_edit(request, game)
+        if error_response:
+            return error_response
+        character = _get_character_or_404(game, character_id, npc=npc)
+        return character_document_acquire(request, game, character, allow_hidden=True)
+
+    return view
+
+
+def build_document_remove_view(npc):
+    """Build the POST documents/remove.json view for a PC (npc=False) or NPC (npc=True)."""
+
+    @_build_api_view(['POST'], AllowAny)
+    def view(request, game_slug, character_id):
+        """Remove a CharacterDocument owned by the PC/NPC."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        character = _get_character_or_404(game, character_id, npc=npc)
+        return character_document_remove(request, game, character)
+
+    return view
+
+
+def build_document_remove_all_view(npc):
+    """Build the restricted POST documents/remove/all.json view for a PC or NPC.
+
+    PC: dm/admin/owner (`game_pc`/`restricted`/`edit`). NPC: dm/admin (`game`/`restricted`/
+    `edit`, no owner concept) — same asymmetric split `_check_character_all_permission`
+    already applies to `items/remove/all.json`.
+    """
+
+    @_build_api_view(['POST'], AllowAny)
+    def view(request, game_slug, character_id):
+        """Remove a CharacterDocument, including a hidden one — dm/admin(/owner for PCs) only."""
+        game = get_object_or_404(Game, game_slug=game_slug)
+        error_response = _check_character_all_permission(request, game, character_id, npc)
+        if error_response:
+            return error_response
+        character = _get_character_or_404(game, character_id, npc=npc)
+        return character_document_remove(request, game, character, allow_hidden=True)
 
     return view
 

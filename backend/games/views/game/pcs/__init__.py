@@ -1,13 +1,19 @@
 """Views for PC (Player Character) endpoints."""
 
+from .detail.documents.game_pc_document_acquire import game_pc_document_acquire
+from .detail.documents.game_pc_document_acquire_all import game_pc_document_acquire_all
 from .detail.documents.game_pc_document_detail import game_pc_document_detail
 from .detail.documents.game_pc_document_detail_full import game_pc_document_detail_full
 from .detail.documents.game_pc_document_files import game_pc_document_files
 from .detail.documents.game_pc_document_files_all import game_pc_document_files_all
 from .detail.documents.game_pc_document_photos import game_pc_document_photos
 from .detail.documents.game_pc_document_photos_all import game_pc_document_photos_all
+from .detail.documents.game_pc_document_remove import game_pc_document_remove
+from .detail.documents.game_pc_document_remove_all import game_pc_document_remove_all
 from .detail.documents.game_pc_documents import game_pc_documents
 from .detail.documents.game_pc_documents_all import game_pc_documents_all
+from .detail.documents.game_pc_documents_available import game_pc_documents_available
+from .detail.documents.game_pc_documents_available_all import game_pc_documents_available_all
 from .detail.game_pc_access import game_pc_access
 from .detail.game_pc_full import game_pc_full
 from .detail.game_pc_photo_upload import game_pc_photo_upload
@@ -54,6 +60,12 @@ __all__ = [
     'game_pc_document_files_all',
     'game_pc_document_photos',
     'game_pc_document_photos_all',
+    'game_pc_documents_available',
+    'game_pc_documents_available_all',
+    'game_pc_document_acquire',
+    'game_pc_document_acquire_all',
+    'game_pc_document_remove',
+    'game_pc_document_remove_all',
     'game_pc_items',
     'game_pc_items_all',
     'game_pc_item_detail',
