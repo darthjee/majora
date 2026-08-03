@@ -434,6 +434,23 @@ item_exchange_modal:
   load_error: Unable to load items. Please try again.
   already_owned_error: This item is already owned.
   generic_error: Unable to complete this action. Please try again.
+document_exchange_modal:
+  title: Document Exchange
+  search_placeholder: Search documents...
+  acquire_tab: Acquire
+  acquire_tab_tooltip: Acquire a copy of the document
+  remove_tab: Remove
+  remove_tab_tooltip: Removes a document
+  hidden_label: Hidden
+  confirm: Confirm
+  cancel: Cancel
+  back: Back
+  cancel_selection: Cancel
+  loading: Loading documents...
+  empty: No documents available.
+  load_error: Unable to load documents. Please try again.
+  already_owned_error: This document is already owned.
+  generic_error: Unable to complete this action. Please try again.
 links_edit_modal:
   title: Edit links
   text_label: Text

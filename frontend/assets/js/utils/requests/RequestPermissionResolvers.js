@@ -43,6 +43,12 @@ const RESOLVERS = {
     // resolves at the character level for `GET`'s `CharacterDocument` reads — a bare game-level
     // `GameDocument` create has no character to resolve against.
     gameCollection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+    // Unconditionally game-level, mirroring `item.availableCollection` exactly (issue #920):
+    // `availableCollection` always backs a character-scoped path (`kind` is always
+    // `'pcs'|'npcs'`), but its `private` variant (`documents/available/all.json`) is authorized
+    // by the DM-only `GameEditPermission` on the backend, not `CharacterEditPermission` — a PC's
+    // owning player must not get hidden-catalog visibility just from owning the character.
+    availableCollection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
   },
 };
 

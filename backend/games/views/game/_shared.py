@@ -39,6 +39,11 @@ def _character_item_resource(character):
     return 'game_pc_item' if character.is_pc else 'game_npc_item'
 
 
+def _character_document_resource(character):
+    """Return the resource name ('game_pc_document'/'game_npc_document') for `character`."""
+    return 'game_pc_document' if character.is_pc else 'game_npc_document'
+
+
 def _hidden_gate_response(character, request):
     """Return a 404 Response with X-Skip-Cache set if character is hidden and not editable."""
     if character.hidden and not character.can_be_edited_by(request.user):

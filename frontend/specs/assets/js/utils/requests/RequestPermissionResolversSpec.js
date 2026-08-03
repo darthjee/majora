@@ -126,6 +126,15 @@ describe('RequestPermissionResolvers', function() {
       expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
     });
 
+    it('resolves game-level permissions for document.availableCollection regardless of kind (issue #920)',
+      function() {
+        spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+        RequestPermissionResolvers.resolve('document', 'availableCollection', { gameSlug: 'demo', kind: 'pcs', id: '3' });
+
+        expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+      });
+
     it('resolves no permissions for a resource/quantity-type with no restricted variant at all', async function() {
       const result = await RequestPermissionResolvers.resolve('game', 'collection', {});
 

@@ -434,6 +434,23 @@ item_exchange_modal:
   load_error: Falha ao carregar itens. Por favor, tente novamente.
   already_owned_error: Este item já foi adquirido.
   generic_error: Não foi possível concluir esta ação. Por favor, tente novamente.
+document_exchange_modal:
+  title: Troca de Documento
+  search_placeholder: Buscar documentos...
+  acquire_tab: Adquirir
+  acquire_tab_tooltip: Adquire uma cópia do documento
+  remove_tab: Remover
+  remove_tab_tooltip: Remove um documento
+  hidden_label: Oculto
+  confirm: Confirmar
+  cancel: Cancelar
+  back: Voltar
+  cancel_selection: Cancelar
+  loading: Carregando documentos...
+  empty: Nenhum documento disponível.
+  load_error: Falha ao carregar documentos. Por favor, tente novamente.
+  already_owned_error: Este documento já foi adquirido.
+  generic_error: Não foi possível concluir esta ação. Por favor, tente novamente.
 links_edit_modal:
   title: Editar links
   text_label: Texto

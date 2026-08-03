@@ -1,0 +1,4 @@
+restricted:
+  create:
+    - staff
+    - owner

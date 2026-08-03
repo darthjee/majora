@@ -1,13 +1,19 @@
 """Views for NPC (Non-Player Character) endpoints."""
 
+from .detail.documents.game_npc_document_acquire import game_npc_document_acquire
+from .detail.documents.game_npc_document_acquire_all import game_npc_document_acquire_all
 from .detail.documents.game_npc_document_detail import game_npc_document_detail
 from .detail.documents.game_npc_document_detail_full import game_npc_document_detail_full
 from .detail.documents.game_npc_document_files import game_npc_document_files
 from .detail.documents.game_npc_document_files_all import game_npc_document_files_all
 from .detail.documents.game_npc_document_photos import game_npc_document_photos
 from .detail.documents.game_npc_document_photos_all import game_npc_document_photos_all
+from .detail.documents.game_npc_document_remove import game_npc_document_remove
+from .detail.documents.game_npc_document_remove_all import game_npc_document_remove_all
 from .detail.documents.game_npc_documents import game_npc_documents
 from .detail.documents.game_npc_documents_all import game_npc_documents_all
+from .detail.documents.game_npc_documents_available import game_npc_documents_available
+from .detail.documents.game_npc_documents_available_all import game_npc_documents_available_all
 from .detail.game_npc_access import game_npc_access
 from .detail.game_npc_full import game_npc_full
 from .detail.game_npc_photo_upload import game_npc_photo_upload
@@ -59,6 +65,12 @@ __all__ = [
     'game_npc_document_files_all',
     'game_npc_document_photos',
     'game_npc_document_photos_all',
+    'game_npc_documents_available',
+    'game_npc_documents_available_all',
+    'game_npc_document_acquire',
+    'game_npc_document_acquire_all',
+    'game_npc_document_remove',
+    'game_npc_document_remove_all',
     'game_npc_items',
     'game_npc_items_all',
     'game_npc_item_detail',

@@ -276,6 +276,17 @@ describe('resourceConfig', function() {
       })).toBe('/games/demo/npcs/3/documents/9/full.json');
       expect(single.private.permission).toBe('can_edit');
     });
+
+    it('resolves availableCollection regular/private paths and permissions (issue #920)', function() {
+      const availableCollection = resourceConfig.get('GET', 'document', 'availableCollection');
+
+      expect(availableCollection.regular.path({ gameSlug: 'demo', kind: 'pcs', id: '3' }))
+        .toBe('/games/demo/pcs/3/documents/available.json');
+      expect(availableCollection.regular.permission).toBeNull();
+      expect(availableCollection.private.path({ gameSlug: 'demo', kind: 'npcs', id: '3' }))
+        .toBe('/games/demo/npcs/3/documents/available/all.json');
+      expect(availableCollection.private.permission).toBe('can_edit');
+    });
   });
 
   it('returns null for an unknown resource/method/quantity-type combination', function() {

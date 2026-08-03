@@ -63,6 +63,14 @@
  *   `GameDocumentFilePhotoUploadPermission` on the backend (identical role set to
  *   `GameDocumentFileUploadPermission`) — `permission` is `null` here for the same reason as
  *   `POST.single`/`POST.file`.
+ *
+ *   `GET.availableCollection`/`POST.acquire`/`POST.remove` (issue #920) back the document
+ *   exchange modal's Acquire/Remove tabs, mirroring `itemConfig.js`'s own
+ *   `availableCollection`/`acquire`/`remove` shape exactly (character-owned kinds only, `kind:
+ *   'pcs'|'npcs'`). Params: `gameSlug`, `kind`, `id`. `private` is the DM/admin-only endpoint
+ *   variant accepting a hidden `GameDocument`/`CharacterDocument`; callers pass `variantName`
+ *   explicitly (see `AcquireDocumentTabController.js`/`RemoveDocumentTabController.js`), so
+ *   `permission` here is documentation-only.
  */
 const gameDocumentCreate = { path: ({ gameSlug }) => `/games/${gameSlug}/documents.json`, permission: 'can_edit' };
 
@@ -129,6 +137,54 @@ const gameSinglePath = ({ gameSlug, id }) => `/games/${gameSlug}/documents/${id}
  */
 const gameSingleFullPath = ({ gameSlug, id }) => `/games/${gameSlug}/documents/${id}/full.json`;
 
+/**
+ * Build the player-facing available-documents (Acquire catalog) path.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string} params.kind - Character kind (`'pcs'` or `'npcs'`).
+ * @param {string|number} params.id - Character id.
+ * @returns {string} The endpoint path.
+ */
+const availablePath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/documents/available.json`;
+
+/**
+ * Build the DM/admin-only available-documents (Acquire catalog, including hidden) path.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string} params.kind - Character kind (`'pcs'` or `'npcs'`).
+ * @param {string|number} params.id - Character id.
+ * @returns {string} The endpoint path.
+ */
+const availableAllPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/documents/available/all.json`;
+
+/**
+ * Build the player-facing and DM/admin-only document-acquire paths (the latter also accepts a
+ * hidden `GameDocument`) — issue #920's document exchange modal.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string} params.kind - Character kind (`'pcs'` or `'npcs'`).
+ * @param {string|number} params.id - Character id.
+ * @returns {string} The endpoint path.
+ */
+const acquirePath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/documents/acquire.json`;
+const acquireAllPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/documents/acquire/all.json`;
+
+/**
+ * Build the player-facing and DM/admin-only document-remove paths (the latter also accepts a
+ * hidden `CharacterDocument`) — issue #920's document exchange modal.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string} params.kind - Character kind (`'pcs'` or `'npcs'`).
+ * @param {string|number} params.id - Character id.
+ * @returns {string} The endpoint path.
+ */
+const removePath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/documents/remove.json`;
+const removeAllPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/documents/remove/all.json`;
+
 export default {
   GET: {
     collection: {
@@ -151,11 +207,23 @@ export default {
         permission: 'can_edit',
       },
     },
+    availableCollection: {
+      regular: { path: availablePath, permission: null },
+      private: { path: availableAllPath, permission: 'can_edit' },
+    },
   },
   POST: {
     gameCollection: { regular: gameDocumentCreate, private: gameDocumentCreate },
     single: { regular: documentPhotoUploadInit, private: documentPhotoUploadInit },
     file: { regular: documentFileUploadInit, private: documentFileUploadInit },
     filePhoto: { regular: documentFilePhotoUploadInit, private: documentFilePhotoUploadInit },
+    acquire: {
+      regular: { path: acquirePath, permission: null },
+      private: { path: acquireAllPath, permission: 'can_edit' },
+    },
+    remove: {
+      regular: { path: removePath, permission: null },
+      private: { path: removeAllPath, permission: 'can_edit' },
+    },
   },
 };

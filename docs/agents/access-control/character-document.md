@@ -34,6 +34,41 @@ All order by `id`. Unlike `CharacterItem`, `description` is exposed at every tie
 all sourced directly from the linked `GameDocument`. `hidden` is exposed on the `/all.json`/
 `/full.json` variants only.
 
+## Document available (Acquire catalog) endpoints
+
+| Endpoint | Method | Who can call |
+|----------|--------|-------------|
+| `/games/<slug>/pcs\|npcs/<id>/documents/available.json` | GET | **AllowAny** — the game's `GameDocument` catalog minus hidden documents and documents the character already owns |
+| `/games/<slug>/pcs\|npcs/<id>/documents/available/all.json` | GET | **GameEdit** (dm/admin only — **no owner leniency**, unlike the document-index `/all.json` endpoints) — includes hidden. Always `X-Skip-Cache: true` |
+
+Backs the document-exchange modal's Acquire tab (issue #920), since `CharacterDocument` allows at
+most one instance per document (`unique_together = ('character', 'game_document')`) — the catalog
+must exclude already-owned documents rather than show a duplicate-acquire affordance. Mirrors
+[CharacterItem](character-item.md)'s own available/acquire pair exactly: the `/all.json` variant
+here is deliberately **game-level** (no owner), a narrower gate than `documents/all.json`'s own
+`CharacterEditPermission` (which does include the PC's owning player) — a PC's owning player must
+not get hidden-catalog visibility just by owning the character. Supports `?name=` (case-insensitive
+substring on `GameDocument.name`) and standard pagination.
+
+## Document acquire/remove endpoints
+
+| Endpoint | Method | Who can call | Effect |
+|----------|--------|-------------|--------|
+| `/games/<slug>/pcs\|npcs/<id>/documents/acquire.json` | POST | `restricted.create` on the `game_pc_document`/`game_npc_document` resource — per [`game_pc_document/endpoints.yml`](../../../backend/games/permissions/config/game_pc_document/endpoints.yml) (`staff`, `owner`) / [`game_npc_document/endpoints.yml`](../../../backend/games/permissions/config/game_npc_document/endpoints.yml) (`staff` only) | Creates a `CharacterDocument` for the submitted `game_document_id`. `404` if the `GameDocument` is hidden (never bypassed here) or unknown; **`422`** if already owned |
+| `/games/<slug>/pcs\|npcs/<id>/documents/remove.json` | POST | Same permission as acquire above | Deletes the character's `CharacterDocument` row for the submitted document. `404` if not owned, or owned but hidden (never bypassed here) |
+| `/games/<slug>/pcs\|npcs/<id>/documents/acquire/all.json` | POST | **GameEdit** (dm/admin only, no staff leniency beyond what GameEdit grants) | DM-only variant: does not `404` on a hidden `GameDocument` |
+| `/games/<slug>/pcs/<id>/documents/remove/all.json` | POST | **CharacterEdit** (dm, admin, or the PC's owning player — **not** staff) | Does not `404` on a hidden owned `CharacterDocument` |
+| `/games/<slug>/npcs/<id>/documents/remove/all.json` | POST | **GameEdit** (dm/admin only) | Does not `404` on a hidden owned `CharacterDocument` |
+
+Two **distinct** permission scopes are load-bearing and must not be conflated, exactly as with
+[CharacterItem](character-item.md#item-acquireremove-endpoints): **catalog visibility**
+(`available/all`, `acquire/all`) is game-level, dm/admin only, no owner; **owned-document
+visibility** (`remove/all`) is character-level, using the same asymmetric PC/NPC split
+`documents/all.json` already uses. Like `CharacterItem`, there is no `quantity` — acquire always
+creates exactly one row, remove always deletes the row outright. Unlike `CharacterItem`, acquiring
+an already-owned document returns **`422`** (not `400`) — a deliberate divergence from the Item
+precedent, decided during issue #920's `/enhance-issue` pass.
+
 ## Document files/photos shortlist endpoints
 
 `CharacterDocument` carries no files/photos of its own — a character possessing a `GameDocument`
