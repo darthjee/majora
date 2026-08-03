@@ -9,7 +9,6 @@ class CacheControlMiddleware:
     - Skips responses that already carry ``X-Skip-Cache: true`` (these are
       typically authenticated write endpoints whose proxy caching is already
       suppressed).
-    - Skips the health check endpoint (``/health.json``).
     - Requests under the ``/permissions/`` path prefix always get the public/anonymous
       cache tier, regardless of the real requester's own auth state: every endpoint there is
       a role-simulated ``permissions.json`` response, identity-independent by construction
@@ -28,10 +27,6 @@ class CacheControlMiddleware:
         # Respond with no-store so no client or proxy caches the result.
         if response.get('X-Skip-Cache') == 'true':
             response['Cache-Control'] = 'no-store'
-            return response
-
-        # Do not add Cache-Control to the health check endpoint.
-        if request.path.endswith('/health.json'):
             return response
 
         # Every /permissions/ endpoint is identity-independent, role-simulated data, so it

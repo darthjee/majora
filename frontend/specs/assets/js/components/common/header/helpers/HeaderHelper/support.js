@@ -17,7 +17,6 @@ export const buildState = (overrides = {}) => ({
   showModal: false,
   testEmailStatus: null,
   isSuperUser: false,
-  serverStatus: null,
   isStaff: false,
   route: { page: 'home' },
   gameAccess: undefined,

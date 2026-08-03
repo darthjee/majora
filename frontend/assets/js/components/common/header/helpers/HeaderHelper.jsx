@@ -18,7 +18,7 @@ export default class HeaderHelper {
   /**
    * Render the application header with navigation and auth controls.
    *
-   * @param {{loggedIn: boolean, showModal: boolean, testEmailStatus: (string|null), isSuperUser: boolean, serverStatus: (string|null), isStaff: boolean, route: ({page: string, gameSlug: (string|undefined), characterId: (string|undefined)}|undefined), gameAccess: ({is_dm: boolean, is_player: boolean, is_superuser: boolean, is_staff: boolean}|undefined), canViewAs: boolean, showViewAsModal: boolean, facadeEnabled: boolean}} state - header auth state.
+   * @param {{loggedIn: boolean, showModal: boolean, testEmailStatus: (string|null), isSuperUser: boolean, isStaff: boolean, route: ({page: string, gameSlug: (string|undefined), characterId: (string|undefined)}|undefined), gameAccess: ({is_dm: boolean, is_player: boolean, is_superuser: boolean, is_staff: boolean}|undefined), canViewAs: boolean, showViewAsModal: boolean, facadeEnabled: boolean}} state - header auth state.
    * @param {{onLoginClick: Function, onLogoffClick: Function, onModalClose: Function, onLoginSuccess: Function, onSendTestEmailClick: Function, onLanguageChange: Function, onViewAsClick: Function, onViewAsModalClose: Function}} handlers - header event handlers.
    * @returns {React.ReactElement} Header element.
    */
@@ -39,7 +39,6 @@ export default class HeaderHelper {
               {HeaderNavHelper.renderCharacterNavLinks(state)}
             </Nav>
             <Nav className="align-items-center">
-              {HeaderHelper.#renderServerStatus(state)}
               {HeaderHelper.#renderAuthControl(state, handlers)}
               <LanguageSelector onLanguageChange={handlers.onLanguageChange} />
               <ResilienceIndicator />
@@ -54,28 +53,6 @@ export default class HeaderHelper {
         <ViewAsModal show={state.showViewAsModal} onClose={handlers.onViewAsModalClose} gameSlug={state.route?.gameSlug} />
       </Navbar>
     );
-  }
-
-  /**
-   * Renders the server status indicator for superusers.
-   *
-   * @param {{isSuperUser: boolean, serverStatus: (string|null)}} state - header auth state.
-   * @returns {React.ReactElement|null} server status indicator, or null when not applicable.
-   */
-  static #renderServerStatus(state) {
-    if (!state.isSuperUser) {
-      return null;
-    }
-
-    if (state.serverStatus === 'up') {
-      return <span className="server-status up" data-testid="server-status">&#9679;</span>;
-    }
-
-    if (state.serverStatus === 'down') {
-      return <span className="server-status down" data-testid="server-status">&#9679;</span>;
-    }
-
-    return null;
   }
 
   /**

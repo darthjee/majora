@@ -1,5 +1,4 @@
 import BaseClient from '../../../../../assets/js/client/BaseClient.js';
-import ActivityTracker from '../../../../../assets/js/utils/logging/ActivityTracker.js';
 import { stubFetchJson } from '../../../../support/fetchMock.js';
 
 describe('BaseClient', function() {
@@ -8,7 +7,6 @@ describe('BaseClient', function() {
 
   beforeEach(function() {
     fetchSpy = stubFetchJson();
-    spyOn(ActivityTracker, 'register');
     client = new BaseClient();
   });
 

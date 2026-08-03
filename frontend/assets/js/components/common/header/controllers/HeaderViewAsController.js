@@ -5,7 +5,7 @@ import AccessStore from '../../../../utils/access/store/AccessStore.js';
  * facade-independent admin/staff check) and the facade modal's open state.
  * Kept separate from {@link HeaderController} so this small, focused
  * concern doesn't compete for line/complexity budget with the header's own
- * auth/route/health-check orchestration.
+ * auth/route orchestration.
  */
 export default class HeaderViewAsController {
   /**

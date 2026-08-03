@@ -8,7 +8,7 @@ import AccessEvents from '../../../../utils/access/AccessEvents.js';
  * the same audience rule already used by `OpenPollsWidget`/`GamePollsController`.
  * Kept separate from {@link HeaderController} so this small, focused concern
  * doesn't compete for line/complexity budget with the header's own
- * auth/route/health-check orchestration — mirrors {@link HeaderViewAsController}.
+ * auth/route orchestration — mirrors {@link HeaderViewAsController}.
  *
  * @description On the initial mount of any game-scoped route, `Header`'s own
  *   `ensureGameAccess` call races `AppController`'s route sync, which calls

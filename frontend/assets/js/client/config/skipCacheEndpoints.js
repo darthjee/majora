@@ -5,7 +5,6 @@
  * @type {Set<string>}
  */
 export default new Set([
-  '/health.json',
   '/ready.json',
   '/users/login.json',
   '/users/logout.json',

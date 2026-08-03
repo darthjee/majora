@@ -3,14 +3,14 @@ import HeaderRouteResolver from '../../../../../../../../assets/js/components/co
 import { buildContext, buildHeaderController } from './support.js';
 
 describe('HeaderController', function() {
-  let setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client;
+  let setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, client;
 
   const buildController = (overrides = {}) => buildHeaderController(
-    { setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client }, overrides
+    { setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, client }, overrides
   );
 
   beforeEach(function() {
-    ({ setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client } = buildContext());
+    ({ setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, client } = buildContext());
   });
 
   afterEach(function() {

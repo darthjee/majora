@@ -79,17 +79,6 @@ class TestCacheControlMiddlewareSkipCache:
 
 
 @pytest.mark.django_db
-class TestCacheControlMiddlewareHealthCheck:
-    """Middleware skips the health check endpoint."""
-
-    def test_no_cache_control_for_health_endpoint(self, client):
-        """GET /health.json does not receive a Cache-Control header."""
-        response = client.get('/health.json')
-        assert response.status_code == 200
-        assert 'Cache-Control' not in response
-
-
-@pytest.mark.django_db
 class TestCacheControlMiddlewareErrorResponses:
     """Middleware sets no-store on non-2xx responses."""
 
