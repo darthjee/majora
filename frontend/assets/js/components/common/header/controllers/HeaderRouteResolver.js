@@ -15,7 +15,7 @@ const CHARACTER_ROUTE_PATTERNS = {
  * Resolves the header's current route (page identifier and its params) from
  * a `HashRouteResolver`. Kept separate from {@link HeaderController} so this
  * route-parsing concern doesn't compete for line/complexity budget with the
- * header's own auth/health-check orchestration.
+ * header's own auth/route orchestration.
  */
 export default class HeaderRouteResolver {
   /**

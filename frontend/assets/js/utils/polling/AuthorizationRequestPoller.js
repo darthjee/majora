@@ -4,8 +4,7 @@ const DEFAULT_INTERVAL_MS = 5000;
 
 /**
  * Polls a pending device-authorization login request until a terminal
- * outcome is reached, modeled on `HeaderController`'s
- * `startHealthCheck`/`stopHealthCheck`/`#pollHealth` interval shape.
+ * outcome is reached, using a simple `setInterval`-based polling loop.
  *
  * @description Transient poll failures (network errors) are reported via a
  *   `'retrying'` event but never stop the interval — only a real terminal

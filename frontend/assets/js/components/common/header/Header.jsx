@@ -24,7 +24,6 @@ export default function Header({ children }) {
   const [showModal, setShowModal] = useState(false);
   const [testEmailStatus, setTestEmailStatus] = useState(null);
   const [isSuperUser, setIsSuperUser] = useState(false);
-  const [serverStatus, setServerStatus] = useState(null);
   const [isStaff, setIsStaff] = useState(false);
   const [route, setRoute] = useState(() => new HeaderController().getRoute());
   const [gameAccess, setGameAccess] = useState(() => AccessStore.getGameAccess(route.gameSlug));
@@ -39,8 +38,6 @@ export default function Header({ children }) {
     setShowModal,
     setTestEmailStatus,
     setIsSuperUser,
-    setServerStatus,
-    undefined,
     undefined,
     setIsStaff,
     setRoute,
@@ -54,7 +51,6 @@ export default function Header({ children }) {
   useEffect(() => {
     controller.checkStatus();
     viewAsController.checkAvailability();
-    controller.startHealthCheck();
 
     const handleAuthChanged = (event) => {
       const newLoggedIn = Boolean(event.detail?.loggedIn);
@@ -78,7 +74,6 @@ export default function Header({ children }) {
     const cleanupRoute = controller.buildRouteEffect()();
 
     return () => {
-      controller.stopHealthCheck();
       AuthEvents.unsubscribe(handleAuthChanged);
       AccessEvents.unsubscribeFacadeChanged(handleFacadeChanged);
       cleanupRoute();
@@ -98,7 +93,6 @@ export default function Header({ children }) {
           showModal,
           testEmailStatus,
           isSuperUser,
-          serverStatus,
           isStaff,
           route,
           gameAccess,

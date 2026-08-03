@@ -1,24 +1,20 @@
 import SKIP_CACHE_ENDPOINTS from './config/skipCacheEndpoints.js';
 import SKIP_CACHE_SUFFIXES from './config/skipCacheSuffixes.js';
 import SKIP_CACHE_PREFIXES from './config/skipCachePrefixes.js';
-import ActivityTracker from '../utils/logging/ActivityTracker.js';
-import ACTIVITY_ENDPOINT_PREFIXES from '../utils/config/activityEndpoints.js';
 import ResilientRequest from './ResilientRequest.js';
 
 const DEFAULT_TIMEOUT_MS = 5000;
 
 /**
  * Base HTTP client providing a shared `fetch` wrapper that automatically
- * adds the `X-Skip-Cache` header for configured endpoints and path suffixes,
- * and registers user activity for qualifying requests.
+ * adds the `X-Skip-Cache` header for configured endpoints and path suffixes.
  */
 export default class BaseClient {
   /**
    * Perform an HTTP request, adding `X-Skip-Cache: true` automatically when
    * the HTTP method is POST, PATCH, or DELETE, or when the request path
    * matches a configured skip-cache endpoint or ends with a configured
-   * skip-cache suffix. Also registers user activity for POST/PATCH/DELETE
-   * requests and allowlisted GET endpoints.
+   * skip-cache suffix.
    *
    * @param {string} path - Request path, optionally including a query string.
    * @param {object} options - Request options.
@@ -39,10 +35,6 @@ export default class BaseClient {
 
     if (this.#shouldSkipCache(method, pathname, search)) {
       finalHeaders['X-Skip-Cache'] = 'true';
-    }
-
-    if (this.#shouldRegisterActivity(method, pathname)) {
-      ActivityTracker.register();
     }
 
     const attempt = () => fetch(path, {
@@ -90,23 +82,6 @@ export default class BaseClient {
       (prefix) => pathname.startsWith(prefix)
     );
     return SKIP_CACHE_ENDPOINTS.has(pathname) || matchesSuffix || matchesPrefix;
-  }
-
-  /**
-   * Returns true when the request should register user activity in ActivityTracker.
-   * Applies to all write methods and allowlisted GET endpoints.
-   *
-   * @param {string} method - The HTTP method (GET, POST, PATCH, DELETE, etc.).
-   * @param {string} pathname - The request pathname without query string.
-   * @returns {boolean} Whether ActivityTracker.register() should be called.
-   */
-  #shouldRegisterActivity(method, pathname) {
-    if (method === 'POST' || method === 'PATCH' || method === 'DELETE') {
-      return true;
-    }
-    return method === 'GET' && [...ACTIVITY_ENDPOINT_PREFIXES].some(
-      (prefix) => pathname.startsWith(prefix)
-    );
   }
 
   /**

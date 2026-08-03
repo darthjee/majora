@@ -4,14 +4,14 @@ import Translator from '../../../../../../../../assets/js/i18n/Translator.js';
 import { buildContext, buildHeaderController } from './support.js';
 
 describe('HeaderController', function() {
-  let setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client, controller;
+  let setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, client, controller;
 
   const buildController = (overrides = {}) => buildHeaderController(
-    { setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client }, overrides
+    { setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, client }, overrides
   );
 
   beforeEach(function() {
-    ({ setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, setServerStatus, client } = buildContext());
+    ({ setLoggedIn, setShowModal, setTestEmailStatus, setIsSuperUser, client } = buildContext());
     controller = buildController();
   });
 

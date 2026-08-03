@@ -1,14 +1,10 @@
 import AuthClient from '../../../../client/AuthClient.js';
-import HealthClient from '../../../../client/HealthClient.js';
 import AuthEvents from '../../../../utils/auth/AuthEvents.js';
 import AuthStorage from '../../../../utils/auth/AuthStorage.js';
 import Translator from '../../../../i18n/Translator.js';
-import ActivityTracker from '../../../../utils/logging/ActivityTracker.js';
 import Noop from '../../../../utils/Noop.js';
 import HashRouteResolver from '../../../../utils/routing/HashRouteResolver.js';
 import HeaderRouteResolver from './HeaderRouteResolver.js';
-
-const THIRTY_MINUTES_MS = 30 * 60 * 1000;
 
 const NOOP_EVENT_TARGET = {
   addEventListener: Noop.noop,
@@ -36,9 +32,7 @@ export default class HeaderController {
    * @param {Function} setShowModal - state setter for the login modal visibility.
    * @param {Function} [setTestEmailStatus] - state setter for the test email status.
    * @param {Function} [setIsSuperUser] - state setter for the superuser flag.
-   * @param {Function} [setServerStatus] - state setter for the server status ('up'|'down'|null).
    * @param {AuthClient} [client] - HTTP client used for auth requests.
-   * @param {HealthClient} [healthClient] - HTTP client used for health-check polling.
    * @param {Function} [setIsStaff] - state setter for the staff flag.
    * @param {Function} [setRoute] - state setter for the current route info.
    * @param {HashRouteResolver} [routeResolver] - resolver used to derive the current route.
@@ -53,9 +47,7 @@ export default class HeaderController {
     setShowModal,
     setTestEmailStatus = Noop.noop,
     setIsSuperUser = Noop.noop,
-    setServerStatus = Noop.noop,
     client = new AuthClient(),
-    healthClient = new HealthClient(),
     setIsStaff = Noop.noop,
     setRoute = Noop.noop,
     routeResolver = new HashRouteResolver(),
@@ -66,15 +58,12 @@ export default class HeaderController {
     this.setShowModal = setShowModal;
     this.setTestEmailStatus = setTestEmailStatus;
     this.setIsSuperUser = setIsSuperUser;
-    this.setServerStatus = setServerStatus;
     this.client = client;
-    this.healthClient = healthClient;
     this.setIsStaff = setIsStaff;
     this.setRoute = setRoute;
     this.routeResolver = routeResolver;
     this.eventTarget = eventTarget;
     this.setPendingApproval = setPendingApproval;
-    this.healthIntervalId = null;
   }
 
   /**
@@ -106,55 +95,6 @@ export default class HeaderController {
         this.eventTarget.removeEventListener('hashchange', handleHashChange);
       };
     };
-  }
-
-  /**
-   * Starts polling the health-check endpoint at the given interval.
-   * Skips the request when the user has been idle for more than 30 minutes.
-   *
-   * @description Stores the interval ID so it can be cancelled later via stopHealthCheck.
-   * @param {number} [intervalMs=60000] - Polling interval in milliseconds.
-   * @returns {void}
-   */
-  startHealthCheck(intervalMs = 60000) {
-    this.healthIntervalId = setInterval(() => this.#pollHealth(), intervalMs);
-  }
-
-  /**
-   * Performs a single health-check poll, skipping the request when the user
-   * has been idle for more than 30 minutes, and updates the server status
-   * state with the outcome.
-   *
-   * @returns {Promise<void>} resolves when the poll finishes.
-   */
-  async #pollHealth() {
-    const lastActivity = ActivityTracker.getLastActivity();
-
-    if (lastActivity === null || Date.now() - lastActivity > THIRTY_MINUTES_MS) {
-      return;
-    }
-
-    try {
-      const response = await this.healthClient.check();
-
-      if (response.status === 502) {
-        this.setServerStatus('down');
-      } else {
-        this.setServerStatus('up');
-      }
-    } catch {
-      this.setServerStatus('down');
-    }
-  }
-
-  /**
-   * Stops the health-check polling interval.
-   *
-   * @description Clears the interval started by startHealthCheck.
-   * @returns {void}
-   */
-  stopHealthCheck() {
-    clearInterval(this.healthIntervalId);
   }
 
   /**

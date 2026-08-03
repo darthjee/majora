@@ -2,7 +2,6 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
 import Header from '../../../../../../assets/js/components/common/header/Header.jsx';
 import AuthClient from '../../../../../../assets/js/client/AuthClient.js';
-import HealthClient from '../../../../../../assets/js/client/HealthClient.js';
 import HeaderController from '../../../../../../assets/js/components/common/header/controllers/HeaderController.js';
 import HeaderHelper from '../../../../../../assets/js/components/common/header/helpers/HeaderHelper.jsx';
 import AccessStore from '../../../../../../assets/js/utils/access/store/AccessStore.js';
@@ -14,11 +13,6 @@ describe('Header', function() {
     spyOn(AuthClient.prototype, 'status').and.returnValue(
       Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: false }) })
     );
-    spyOn(HealthClient.prototype, 'check').and.returnValue(
-      Promise.resolve({ ok: true, status: 200 })
-    );
-    spyOn(HeaderController.prototype, 'startHealthCheck');
-    spyOn(HeaderController.prototype, 'stopHealthCheck');
   });
 
   it('renders a home link on the title', function() {
@@ -58,11 +52,6 @@ describe('Header', function() {
   it('renders the resilience indicator', function() {
     const html = renderToStaticMarkup(React.createElement(Header));
     expect(html).toContain('data-testid="resilience-indicator"');
-  });
-
-  it('does not render the server status indicator by default', function() {
-    const html = renderToStaticMarkup(React.createElement(Header));
-    expect(html).not.toContain('data-testid="server-status"');
   });
 
   it('does not render the Staff Users nav link by default', function() {
