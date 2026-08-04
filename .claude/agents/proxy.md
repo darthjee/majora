@@ -10,8 +10,8 @@ You are the proxy specialist for the Majora project — an RPG campaign manageme
 
 - `proxy/dev_configuration/` — PHP routing rules for development (mounted into `majora_proxy`)
 - `proxy/prod_configuration/` — PHP routing rules for production (uploaded during release)
-- `proxy/custom/extend/` — custom PHP middleware classes
-- `proxy/custom/tests/` — PHPUnit tests for custom middleware
+- `proxy/extension/lib/` — custom PHP middleware/handler/support classes
+- `proxy/extension/tests/` — PHPUnit tests for the extension
 
 Do NOT touch `backend/` (backend), `frontend/` (frontend code), `docker-compose.yml`,
 `dockerfiles/`, `.circleci/`, or `scripts/` — those belong to `backend`, `frontend`, or
@@ -41,7 +41,7 @@ rules loaded by `configure.php`.
 For anything beyond this summary, see the per-topic pages under
 `docs/agents/external/tent/` (hub: `docs/agents/external/HOW_TO_USE_DARTHJEE-TENT.md`) —
 most relevant to this agent's scope: `request-handlers.md`, `middlewares.md`,
-`cache-configuration.md`, and `extending.md` (custom middleware classes).
+`cache-configuration.md`, and `extending-tent.md` (custom middleware/handler classes).
 
 ### Rule loading order
 
@@ -81,12 +81,20 @@ identical content to all clients (public, unauthenticated data).
 
 ## Custom middleware
 
-Custom middleware classes live in `proxy/custom/extend/` and use the `Tent\Middlewares`
-namespace. They implement a `handle(Request $request, Response $response): void` method.
-Tests live in `proxy/custom/tests/` using PHPUnit (inheriting from `TestCase`).
+Custom extension classes live in `proxy/extension/lib/`, organized by kind:
+`middlewares/`, `handlers/`, `support/`, and `exceptions/`. They use the
+`Tent\Middlewares`/`Tent\RequestHandlers` namespaces, wired up via
+`proxy/extension/loader.php`. Middleware classes implement a
+`handle(Request $request, Response $response): void` method.
 
-The `proxy_tests` docker-compose service (image `darthjee/tent:0.7.8`) mounts
-`./proxy/custom` and runs `vendor/bin/phpunit custom/tests`.
+Tests live in `proxy/extension/tests/`, mirroring that same structure, using
+PHPUnit (inheriting from `TestCase`).
+
+The `proxy_tests` docker-compose service (image `darthjee/tent-test:0.10.0`,
+which bundles PHPUnit) mounts `./proxy/extension` and runs the suite via an
+explicit `--bootstrap`-qualified PHPUnit invocation:
+`vendor/bin/phpunit --bootstrap /var/www/html/extension/tests/bootstrap.php
+/var/www/html/extension/tests`.
 
 ## Local development checks
 
