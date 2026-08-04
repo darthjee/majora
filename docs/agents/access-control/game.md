@@ -6,6 +6,37 @@ pattern](principles.md#default-resource-crud-pattern) (List/Detail = **AllowAny*
 (`POST /games.json`) requires only any authenticated user, not **GameEdit** — there is no existing
 GameMaster to authorize a brand-new game.
 
+## Domain-scoped listing/creation (`ENABLE_GAMES_PER_DOMAIN`)
+
+When the `ENABLE_GAMES_PER_DOMAIN` env-driven Django setting is on (default `false`, so the
+behavior above is unaffected by default), `GET`/`POST /games.json` are additionally scoped to the
+requesting domain, resolved from `request.get_host()` (see `USE_X_FORWARDED_HOST` below):
+
+- The host is checked against `RegisteredDomainsCache.domains()` (the set of every
+  `GameDomain.domain`, `games/caches/registered_domains_cache.py`). An unrecognized host gets
+  `404` for both `GET` and `POST` — no game is listed or created.
+- `GET` on a recognized host filters to `Game.objects.filter(id__in=DomainGamesCache
+  .game_ids_for_domain(host))` (`#963`) before pagination — games not attached to that host's
+  `GameDomainGroup` are invisible, even though no per-role restriction changes (a recognized-host
+  visitor still sees the list under the same **AllowAny** rule as today, just narrowed to that
+  domain's games).
+- `POST` on a recognized host additionally attaches the newly created game to that host's
+  `GameDomainGroup` (`game.game_domain_groups.add(...)`), so the creator immediately sees it back
+  under the same domain — this is on top of, not instead of, the **Create** rule above.
+- Both successful and `404` responses in this mode set `X-Skip-Cache: true` per the
+  [`X-Skip-Cache` rule](principles.md#x-skip-cache-rule), since the response body now varies by
+  domain and Tent's file cache does not key on `Host`/`X-Forwarded-Host`.
+- **Trust assumption**: domain resolution relies on `USE_X_FORWARDED_HOST = True`
+  (`majora_project/settings.py`), which trusts the `X-Forwarded-Host` header set by the
+  `darthjee/tent` proxy's `RenameHeaderMiddleware` (which unconditionally overwrites any
+  client-supplied value with the actual `Host` it received — see
+  `docs/agents/external/tent/host-header.md`). This is safe under this project's architecture
+  where Tent is the sole entry point (see `docs/agents/architecture.md`/root `README.md`) and
+  Django is never reached directly by an external client; `ALLOWED_HOSTS` itself is `*` by
+  default and does not add a second layer of validation. If Django is ever exposed directly
+  (bypassing Tent), this header becomes spoofable and the domain gate above would no longer be
+  trustworthy — keep this assumption in mind before changing the deployment topology.
+
 ## Fields
 List/detail (`GET /games.json`/`GET /games/<slug>.json`): `name`, `game_slug`, `description`,
 `game_type`, links list, photos list, treasures list, `cover_photo_path` (see [Photo path
