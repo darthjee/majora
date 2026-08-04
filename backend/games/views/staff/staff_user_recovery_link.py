@@ -9,9 +9,11 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 from accounts.views.password_reset._shared import build_recovery_url, get_or_create_recovery_token
 
+from ...decorators import restricted
 from ..common import require_staff
 
 
+@restricted
 @api_view(['POST'])
 @authentication_classes([CookieTokenAuthentication])
 # AllowAny: authentication/authorisation is enforced inline via require_staff so
@@ -26,6 +28,4 @@ def staff_user_recovery_link(request, user_id):
     user = get_object_or_404(User, pk=user_id)
 
     token = get_or_create_recovery_token(user)
-    response = Response({'url': build_recovery_url(token)})
-    response['X-Skip-Cache'] = 'true'
-    return response
+    return Response({'url': build_recovery_url(token)})
