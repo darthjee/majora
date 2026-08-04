@@ -11,11 +11,20 @@ validate_schemes = RegexValidator(
     message='schemes must be a comma-separated list made only of "http"/"https".',
 )
 
+validate_domain = RegexValidator(
+    regex=(
+        r'\A([A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)'
+        r'(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)+\Z'
+    ),
+    message='domain must be a valid hostname (labels of letters, digits and hyphens '
+    'separated by dots, no wildcards or whitespace).',
+)
+
 
 class GameDomain(models.Model):
     """Model representing a hostname that resolves to a GameDomainGroup."""
 
-    domain = models.CharField(max_length=200, unique=True)
+    domain = models.CharField(max_length=200, unique=True, validators=[validate_domain])
     game_domain_group = models.ForeignKey(
         GameDomainGroup, on_delete=models.CASCADE, related_name='domains'
     )

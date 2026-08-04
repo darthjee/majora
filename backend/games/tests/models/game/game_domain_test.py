@@ -40,6 +40,22 @@ class TestGameDomain:
         with pytest.raises(IntegrityError):
             GameDomain.objects.create(domain='foo.majora.app', game_domain_group=None)
 
+    @pytest.mark.parametrize('domain', ['foo.majora.app', 'example.com'])
+    def test_domain_accepts_valid_hostnames(self, domain):
+        """Test that plausible hostnames pass validation."""
+        game_domain = GameDomain(domain=domain, game_domain_group=self.group)
+        game_domain.full_clean()
+
+    @pytest.mark.parametrize(
+        'domain',
+        ['example .com', 'example\tcom', '*.evil.com', 'example.com\n', 'exa\x00mple.com'],
+    )
+    def test_domain_rejects_invalid_hostnames(self, domain):
+        """Test that whitespace, control characters and wildcards fail validation."""
+        game_domain = GameDomain(domain=domain, game_domain_group=self.group)
+        with pytest.raises(ValidationError):
+            game_domain.full_clean()
+
     def test_schemes_defaults_to_https(self):
         """Test that schemes defaults to 'https' when not given."""
         domain = GameDomain.objects.create(
