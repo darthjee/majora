@@ -1,6 +1,4 @@
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)
-
-## Splitting Configuration Across Files
+# Splitting Configuration Across Files
 
 A single monolithic configuration file can become unwieldy for large applications. Navi lets you split
 `resources` and `clients` across multiple files using `include`, and organize them into `namespace`s so
@@ -139,6 +137,4 @@ resources:
             id: parsedBody.id
 ```
 
----
-
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md) · Previous: [Paginated Actions](paginated-actions.md) · Next: [Reference](reference.md)
+[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)

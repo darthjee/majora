@@ -21,13 +21,13 @@ Configuration::buildRule([
         ],
         [
             'class'    => 'Tent\\Middlewares\\CacheCleanupMiddleware',
-            'location' => './cache',
+            'location' => $cacheFolder,
             'clear'    => ['collection', 'entity'],
             'custom'   => $cacheCleanupMap
         ],
         [
             'class' => 'Tent\\Middlewares\\CacheStalenessMiddleware',
-            'location' => './cache',
+            'location' => $cacheFolder,
             'host' => $backendHost,
             'maxAgeSeconds' => 10
         ]

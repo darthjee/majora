@@ -1,6 +1,4 @@
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)
-
-## Paginated Actions
+# Paginated Actions
 
 When a resource response indicates multiple pages, use `paginated_actions` to fan out one downstream request per page. Unlike `actions` (which iterate over JSON array items), `paginated_actions` operate on the whole response and use a `pages` expression to determine how many pages to enqueue.
 
@@ -11,8 +9,15 @@ Each entry requires:
   - **`pages`** — path expression resolved against the response (e.g. `parsedBody.pagination.pages`) that returns the total page count.
   - **`page_key`** — parameter name injected as the current page number (used as `{:page_key}` in the target URL template).
   - **`zero_indexed`** *(optional, default `false`)* — when `true`, pages run from `0` to `pages-1`; when `false`, from `1` to `pages`.
+- **`parameters`** *(optional)* — a plain map (`{ key: pathExpression }`), same syntax as `actions`' `parameters`. Each value is a path expression resolved against the **same response** used to compute `pages` (no extra request). Use this to forward server-reported metadata — e.g. a `per_page` value returned in a response header — into every paginated request.
 
-The page parameter is merged with any parameters inherited from the parent chain, so it can coexist with other `{:placeholder}` tokens in the target URL.
+The parameters passed to each paginated request are merged in this order (later wins on a key collision):
+
+1. Parameters inherited from the parent chain (existing behavior).
+2. The resolved `parameters` map, when present — overrides same-named inherited parameters.
+3. `page_key`'s page number — always wins, even over a same-named `parameters` entry. Don't name a `parameters` key the same as your `page_key` (e.g. don't extract something into a key literally called `page`) — it will be silently overwritten by the page number.
+
+If a `parameters` path expression can't be resolved against the response (e.g. a missing header), that one paginated action fails — no pages are enqueued for it, the failure is logged, and it goes straight to the dead-letter/failed-job tracking with no retry. Other resources and other paginated actions are unaffected. This is the same error handling `actions`' `parameters` already has.
 
 ### Example
 
@@ -27,15 +32,15 @@ resources:
             - pages: parsedBody.pagination.pages
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['x-per-page']
   products_page:
-    - url: /products/{:page}.json
+    - url: /products/{:page}.json?per_page={:per_page}
       status: 200
 ```
 
-If `/categories.json` returns `{ "pagination": { "pages": 3 } }`, Navi enqueues requests for `/products/1.json`, `/products/2.json`, and `/products/3.json`.
+If `/categories.json` returns `{ "pagination": { "pages": 3 } }` with a `X-Per-Page: 25` response header, Navi enqueues requests for `/products/1.json?per_page=25`, `/products/2.json?per_page=25`, and `/products/3.json?per_page=25`. Header names in path expressions are always lowercase (`headers['x-per-page']`), regardless of how the server cased them — a Node.js HTTP normalization detail.
 
 `paginated_actions` and `actions` may coexist on the same resource — both are processed independently after a successful response.
 
----
-
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md) · Previous: [Warming HTML pages and their assets](html-assets.md) · Next: [Splitting Configuration Across Files](splitting-config.md)
+[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)

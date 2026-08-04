@@ -1,6 +1,4 @@
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)
-
-## Warming HTML pages and their assets
+# Warming HTML pages and their assets
 
 By default, Navi treats response bodies as JSON and chains further requests via `actions`.
 When a resource is an HTML page (e.g. `/`, `/about`), you can instruct Navi to also warm the
@@ -75,6 +73,4 @@ A resource may declare both `assets` and `actions`. Both are processed independe
 a successful response — `assets` for HTML asset extraction and `actions` for JSON response
 chaining. In practice, a resource would typically declare one or the other.
 
----
-
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md) · Previous: [Option C — CircleCI executor image](option-c-circleci.md) · Next: [Paginated Actions](paginated-actions.md)
+[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)

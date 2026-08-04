@@ -1,6 +1,4 @@
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)
-
-## Option B — Node.js image with `navi-hey` installed
+# Option B — Node.js image with `navi-hey` installed
 
 Use this option when your CI environment already provides a Node.js runtime and you prefer not to use Docker-in-Docker.
 
@@ -55,6 +53,4 @@ jobs:
           command: npx navi-hey --config navi_config.yml
 ```
 
----
-
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md) · Previous: [Option A — Docker image](option-a-docker.md) · Next: [Option C — CircleCI executor image](option-c-circleci.md)
+[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)

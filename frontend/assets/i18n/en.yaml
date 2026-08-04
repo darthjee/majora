@@ -328,6 +328,8 @@ staff_dashboard:
   memory_cache_title: Memory Cache
   refresh_tooltip: Refresh
   summary_load_error: Unable to load cache summary.
+  disk_cache_title: Disk Cache
+  disk_cache_load_error: Unable to load disk cache size.
 my_account_page:
   title: My Account
   loading: Loading account...
