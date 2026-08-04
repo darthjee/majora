@@ -16,14 +16,15 @@ Per the v1.5.1 contract, if the `per_page` header is ever missing from a respons
 
 ## Expected Behavior
 
-Every paginated request Navi issues should carry the same `per_page` value production actually uses, sourced from the `per_page` header of the triggering (first-page) response — across all paginated blocks in `navi/resources/*.yml` (treasures, games, pcs, npcs — 17 blocks total).
+Every paginated request Navi issues should carry the same `per_page` value production actually uses, sourced from the `per_page` header of the triggering (first-page) response — across all paginated blocks in `navi/resources/*.yml` (treasures, games, pcs, npcs — 18 blocks total).
 
 ## Solution
 
 **Depends on:** `darthjee/navi#621` (`parameters` support for `paginated_actions`) shipping as Navi `v1.5.1` first.
 
-1. Bump the `navi-hey` version used in `.circleci/config.yml` to `>= 1.5.1`.
-2. Update all 17 `paginated_actions` blocks across `navi/resources/{treasures,games,pcs,npcs}.yml` to add a `parameters` field (a sibling of `pagination`, not nested inside it) and extend each corresponding `paginated_*` URL template:
+The `warm-up-cache` CircleCI job (`.circleci/config.yml`) already runs `darthjee/navi-hey:latest`, so no version pin needs bumping — the next CI run after `v1.5.1` ships picks it up automatically.
+
+Update all 18 `paginated_actions` blocks across `navi/resources/{treasures,games,pcs,npcs}.yml` to add a `parameters` field (a sibling of `pagination`, not nested inside it) and extend each corresponding `paginated_*` URL template:
 
    ```yaml
    resources:
