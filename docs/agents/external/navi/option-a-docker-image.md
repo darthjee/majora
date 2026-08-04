@@ -1,6 +1,4 @@
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)
-
-## Option A — Docker image (`darthjee/navi-hey`)
+# Option A — Docker image (`darthjee/navi-hey`)
 
 > The `darthjee/navi-hey` image is available on [Docker Hub](https://hub.docker.com/r/darthjee/navi-hey).
 > It is built from `dockerfiles/production_navi_hey/Dockerfile` and installs `navi-hey` globally via npm.
@@ -47,6 +45,4 @@ jobs:
 
 The container exits with a non-zero code if any request ultimately fails after all retries, which causes the CI step to fail.
 
----
-
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md) · Previous: [Prerequisites](prerequisites.md) · Next: [Option B — Node.js image](option-b-nodejs.md)
+[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)

@@ -1,6 +1,4 @@
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)
-
-## Prerequisites
+# Prerequisites
 
 ### Navi configuration file
 
@@ -48,6 +46,7 @@ resources:
             id: parsedBody.id   # extract "id" from each response item
     - url: /products         # redirect — Navi validates the 302 status
       status: 302
+      disabled: true         # temporarily skip this entry without deleting it
     - url: /#/products       # hash-based SPA route — same HTML template as home
       status: 200
   product_detail:
@@ -73,6 +72,8 @@ Key points:
 | `url` | URL path appended to `base_url`. Supports `{:placeholder}` tokens. |
 | `status` | Expected HTTP status code. Requests returning a different code are retried. |
 | `client` | Name of the client to use for this request. Defaults to `default`. |
+| `enabled` | Optional. Set to `false` to mark this request disabled. Defaults to `true`. |
+| `disabled` | Optional. Set to `true` to mark this request disabled — always wins over `enabled`. Defaults to `false`. A disabled request is never enqueued (not at startup, not on manual/API trigger, and not when targeted by another resource's `actions`/`paginated_actions`). |
 | `actions[].resource` | Resource to enqueue after a successful response (resource chaining). |
 | `actions[].parameters` | Path expressions that extract values from the response (e.g. `parsedBody.id`, `headers['x-next-page']`). |
 | `paginated_actions` | Optional. Like `actions`, but fans out one request per page instead of one per array item. |
@@ -81,6 +82,7 @@ Key points:
 | `paginated_actions[].pagination[].pages` | Path expression resolving to the total page count (e.g. `parsedBody.pagination.pages`). |
 | `paginated_actions[].pagination[].page_key` | Parameter name injected as the page number into each downstream request URL. |
 | `paginated_actions[].pagination[].zero_indexed` | Boolean. Pages start at `0` when `true`, at `1` when `false` (default). |
+| `paginated_actions[].parameters` | Optional. Path expressions (same syntax as `actions[].parameters`) resolved against the response and merged into each page's request parameters. `page_key`'s value always takes precedence on key collision. |
 | `assets[].selector` | CSS selector used to find elements in an HTML response body. |
 | `assets[].attribute` | Attribute name on matched elements that holds the asset URL (e.g. `href`, `src`). |
 | `assets[].client` | Optional named client to use when fetching each discovered asset. Defaults to `default`. |
@@ -101,6 +103,4 @@ Key points:
 >
 > **Note:** HTTP response header names are always lowercase after Node.js normalization. Use lowercase keys in path expressions (e.g. `headers['x-total-pages']`), regardless of how the server set them.
 
----
-
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md) · Next: [Option A — Docker image](option-a-docker.md)
+[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)

@@ -1,6 +1,4 @@
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)
-
-## Reference
+# Reference
 
 ### CLI flags
 
@@ -44,6 +42,4 @@ When enabled, the web UI is accessible at `http://localhost:<port>` and includes
 
 For CI pipelines, omit the `web:` key so that Navi exits automatically once all jobs are processed.
 
----
-
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md) · Previous: [Splitting Configuration Across Files](splitting-config.md)
+[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)
