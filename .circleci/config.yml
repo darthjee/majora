@@ -298,10 +298,11 @@ jobs:
       - image: darthjee/tent-test:0.10.0
     working_directory: /home/app/app
     steps:
-      - checkout
+      - checkout:
+          path: /tmp/checkout
       - run:
           name: Copy extension into place
-          command: cp -r proxy/extension/. /var/www/html/extension/
+          command: cp -r /tmp/checkout/proxy/extension/. /var/www/html/extension/
       - run:
           name: Tests
           command: vendor/bin/phpunit --bootstrap /var/www/html/extension/tests/bootstrap.php /var/www/html/extension/tests
