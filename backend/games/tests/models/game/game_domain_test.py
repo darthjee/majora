@@ -29,20 +29,18 @@ class TestGameDomain:
         domain = GameDomain(domain='foo.majora.app', game_domain_group=self.group)
         assert str(domain) == 'foo.majora.app'
 
-    def test_domain_uniqueness_within_same_group(self):
+    def test_domain_uniqueness(self):
         """Test that a duplicate domain is rejected within the same group."""
         GameDomain.objects.create(domain='foo.majora.app', game_domain_group=self.group)
         with pytest.raises(IntegrityError):
             GameDomain.objects.create(domain='foo.majora.app', game_domain_group=self.group)
 
-    def test_domain_allowed_across_different_groups(self):
-        """Test that the same domain string may exist in different groups."""
+    def test_domain_rejected_across_different_groups(self):
+        """Test that the same domain string is rejected across two different groups."""
         other_group = GameDomainGroup.objects.create(name='Other Brand')
         GameDomain.objects.create(domain='foo.majora.app', game_domain_group=self.group)
-        domain = GameDomain.objects.create(
-            domain='foo.majora.app', game_domain_group=other_group
-        )
-        assert domain.pk is not None
+        with pytest.raises(IntegrityError):
+            GameDomain.objects.create(domain='foo.majora.app', game_domain_group=other_group)
 
     def test_domain_is_normalized_to_lowercase(self):
         """Test that a mixed-case domain is stored and read back as lowercase."""
@@ -110,6 +108,21 @@ class TestGameDomain:
             domain='foo.majora.app', game_domain_group=self.group, schemes='http,https'
         )
         assert domain.origins == ['http://foo.majora.app', 'https://foo.majora.app']
+
+    def test_title_defaults_to_empty_string(self):
+        """Test that title defaults to an empty string when not given."""
+        domain = GameDomain.objects.create(
+            domain='foo.majora.app', game_domain_group=self.group
+        )
+        assert domain.title == ''
+
+    def test_title_accepts_and_persists_a_custom_value(self):
+        """Test that a custom title is stored and read back unchanged."""
+        domain = GameDomain.objects.create(
+            domain='foo.majora.app', game_domain_group=self.group, title='Majora Brand Site'
+        )
+        domain.refresh_from_db()
+        assert domain.title == 'Majora Brand Site'
 
 
 class TestGameDomainGroupCascade(TestCase):

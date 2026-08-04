@@ -45,6 +45,6 @@ class DomainGamesCache:
         if game_domain is None:
             return []
         return list(
-            Game.objects.filter(game_domain_group=game_domain.game_domain_group)
+            Game.objects.filter(game_domain_groups=game_domain.game_domain_group)
             .values_list('id', flat=True)
         )
