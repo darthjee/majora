@@ -23,6 +23,8 @@ workflows:
       - frontend-checks:
           filters: *all_tags
           requires: [release-vite_majora-base, release-vite_majora-base-arm64]
+      - proxy_extension_tests:
+          filters: *all_tags
       - coverage-final:
           requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine]
           filters: *all_tags
@@ -63,26 +65,26 @@ workflows:
           arch: arm64
           filters: *all_tags
       - build-and-release:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, release-production_majora-base, release-production_majora-base-arm64]
+          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, release-production_majora-base, release-production_majora-base-arm64]
           filters: &tags_only
             tags:
               only: /\d+\.\d+\.\d+/
             branches:
               ignore: /.*/
       - upload_proxy_files:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks]
+          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests]
           filters: *tags_only
       - upload_fe_files:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, release-vite_majora-base, release-vite_majora-base-arm64]
+          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, release-vite_majora-base, release-vite_majora-base-arm64]
           filters: *tags_only
       - link_photos:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks]
+          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests]
           filters: *tags_only
       - link_files:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks]
+          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests]
           filters: *tags_only
       - upload_admin_assets:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, release-circleci_majora-base]
+          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, release-circleci_majora-base]
           filters: *tags_only
       - upload_extension:
           requires: [upload_proxy_files]
@@ -290,6 +292,20 @@ jobs:
       - run:
           name: Check JS Lint
           command: npm run lint
+
+  proxy_extension_tests:
+    docker:
+      - image: darthjee/tent-test:0.10.0
+    working_directory: /home/app/app
+    steps:
+      - checkout:
+          path: /tmp/checkout
+      - run:
+          name: Copy extension into place
+          command: cp -r /tmp/checkout/proxy/extension/. /var/www/html/extension/
+      - run:
+          name: Tests
+          command: vendor/bin/phpunit --bootstrap /var/www/html/extension/tests/bootstrap.php /var/www/html/extension/tests
 
   upload_proxy_files:
     docker:
