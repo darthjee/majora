@@ -9,10 +9,12 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 from accounts.models import UserProfile
 
+from ...decorators import restricted
 from ...serializers import StaffUserListSerializer
 from ..common import paginated_list_response, require_staff
 
 
+@restricted
 @api_view(['GET'])
 @authentication_classes([CookieTokenAuthentication])
 # AllowAny: authentication/authorisation is enforced inline via require_staff so
@@ -28,9 +30,7 @@ def staff_users_list(request):
     if error_response:
         return error_response
 
-    response = paginated_list_response(request, queryset, StaffUserListSerializer)
-    response['X-Skip-Cache'] = 'true'
-    return response
+    return paginated_list_response(request, queryset, StaffUserListSerializer)
 
 
 def _filtered_queryset(request):
@@ -50,14 +50,8 @@ def _filter_by_status(request, queryset):
     if status not in dict(UserProfile.STATUS_CHOICES):
         valid_choices = ', '.join(dict(UserProfile.STATUS_CHOICES))
         errors = {'status': [f'must be one of: {valid_choices}']}
-        return None, _skip_cache(Response({'errors': errors}, status=400))
+        return None, Response({'errors': errors}, status=400)
     return queryset.filter(profile__status=status), None
-
-
-def _skip_cache(response):
-    """Set the X-Skip-Cache header on `response` and return it."""
-    response['X-Skip-Cache'] = 'true'
-    return response
 
 
 def _filter_by_search(request, queryset):
