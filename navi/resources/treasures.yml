@@ -8,9 +8,11 @@ resources:
             - pages: headers['pages']
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
 
   paginated_treasures:
-    - url: /treasures.json?page={:page}
+    - url: /treasures.json?page={:page}&per_page={:per_page}
       status: 200
       actions:
         - resource: treasure_detail
