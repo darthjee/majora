@@ -8,10 +8,12 @@ from rest_framework.response import Response
 
 from accounts.authentication import CookieTokenAuthentication
 
+from ...decorators import restricted
 from ...serializers import StaffUserDetailSerializer, StaffUserUpdateSerializer
 from ..common import require_staff, validated_or_error
 
 
+@restricted
 @api_view(['GET', 'PATCH'])
 @authentication_classes([CookieTokenAuthentication])
 # AllowAny: authentication/authorisation is enforced inline via require_staff so
@@ -28,7 +30,7 @@ def staff_user_detail(request, user_id):
     if request.method == 'PATCH':
         return _update_user(request, user)
 
-    return _skip_cache(Response(StaffUserDetailSerializer(user).data))
+    return Response(StaffUserDetailSerializer(user).data)
 
 
 def _update_user(request, user):
@@ -39,10 +41,4 @@ def _update_user(request, user):
         return error_response
 
     serializer.save()
-    return _skip_cache(Response(StaffUserDetailSerializer(user).data))
-
-
-def _skip_cache(response):
-    """Set the X-Skip-Cache header on `response` and return it."""
-    response['X-Skip-Cache'] = 'true'
-    return response
+    return Response(StaffUserDetailSerializer(user).data)

@@ -10,10 +10,12 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 from accounts.models import UserProfile
 
+from ...decorators import restricted
 from ...serializers import StaffUserListSerializer
 from ..common import require_staff
 
 
+@restricted
 @api_view(['POST'])
 @authentication_classes([CookieTokenAuthentication])
 # AllowAny: authentication/authorisation is enforced inline via require_staff so
@@ -36,7 +38,7 @@ def staff_user_deny(request):
     profile.save(update_fields=['status'])
     Token.objects.filter(user=user).delete()
 
-    return _skip_cache(Response(StaffUserListSerializer(user).data))
+    return Response(StaffUserListSerializer(user).data)
 
 
 def _parse_user_id(request):
@@ -45,10 +47,4 @@ def _parse_user_id(request):
         return int(request.data.get('user_id')), None
     except (TypeError, ValueError):
         errors = {'user_id': ['must be an integer']}
-        return None, _skip_cache(Response({'errors': errors}, status=400))
-
-
-def _skip_cache(response):
-    """Set the X-Skip-Cache header on `response` and return it."""
-    response['X-Skip-Cache'] = 'true'
-    return response
+        return None, Response({'errors': errors}, status=400)

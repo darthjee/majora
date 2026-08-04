@@ -7,9 +7,11 @@ from rest_framework.response import Response
 from accounts.authentication import CookieTokenAuthentication
 from majora_project.cache import memory_cache
 
+from ...decorators import restricted
 from ..common import require_staff
 
 
+@restricted
 @api_view(['DELETE'])
 @authentication_classes([CookieTokenAuthentication])
 # AllowAny: authentication/authorisation is enforced inline via require_staff so
@@ -22,10 +24,4 @@ def staff_cache_clear(request):
         return error_response
 
     memory_cache.clear()
-    return _skip_cache(Response(status=204))
-
-
-def _skip_cache(response):
-    """Set the X-Skip-Cache header on `response` and return it."""
-    response['X-Skip-Cache'] = 'true'
-    return response
+    return Response(status=204)
