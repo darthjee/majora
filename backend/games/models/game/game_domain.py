@@ -24,22 +24,13 @@ validate_domain = RegexValidator(
 class GameDomain(models.Model):
     """Model representing a hostname that resolves to a GameDomainGroup."""
 
-    domain = models.CharField(max_length=200, validators=[validate_domain])
+    domain = models.CharField(max_length=200, unique=True, validators=[validate_domain])
     game_domain_group = models.ForeignKey(
         GameDomainGroup, on_delete=models.CASCADE, related_name='domains'
     )
     schemes = models.CharField(max_length=20, default='https', validators=[validate_schemes])
+    title = models.CharField(max_length=200, blank=True, default='')
     history = HistoricalRecords(app='versioning', user_db_constraint=False)
-
-    class Meta:
-        """Metadata for the GameDomain model."""
-
-        constraints = [
-            models.UniqueConstraint(
-                fields=['domain', 'game_domain_group'],
-                name='unique_domain_per_group',
-            ),
-        ]
 
     def save(self, *args, **kwargs):
         """Save the domain, normalizing it to lowercase first."""

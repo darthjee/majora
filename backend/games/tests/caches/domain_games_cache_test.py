@@ -9,6 +9,28 @@ from majora_project.cache import memory_cache
 
 
 @pytest.mark.django_db
+class TestDomainGamesCacheGameLinkedToMultipleGroups:
+    """Tests for a game linked to more than one GameDomainGroup."""
+
+    def setup_method(self):
+        """Set up two domains/groups and a game linked to both."""
+        memory_cache.clear()
+        self.first_domain = GameDomainFactory(domain='first.com')
+        self.second_domain = GameDomainFactory(domain='second.com')
+        self.game = GameFactory(
+            game_domain_groups=[
+                self.first_domain.game_domain_group,
+                self.second_domain.game_domain_group,
+            ]
+        )
+
+    def test_game_is_returned_under_both_domains(self):
+        """Test that a game linked to two groups is returned under both groups' domains."""
+        assert DomainGamesCache.game_ids_for_domain('first.com') == [self.game.id]
+        assert DomainGamesCache.game_ids_for_domain('second.com') == [self.game.id]
+
+
+@pytest.mark.django_db
 class TestDomainGamesCacheGameIdsForDomain:
     """Tests for DomainGamesCache.game_ids_for_domain()."""
 
@@ -16,8 +38,8 @@ class TestDomainGamesCacheGameIdsForDomain:
         """Set up a domain with games under its group, and clear the shared memory cache."""
         memory_cache.clear()
         self.game_domain = GameDomainFactory(domain='example.com')
-        self.game = GameFactory(game_domain_group=self.game_domain.game_domain_group)
-        self.other_game = GameFactory(game_domain_group=self.game_domain.game_domain_group)
+        self.game = GameFactory(game_domain_groups=[self.game_domain.game_domain_group])
+        self.other_game = GameFactory(game_domain_groups=[self.game_domain.game_domain_group])
 
     def test_returns_ids_of_games_under_the_matching_group(self):
         """Test that game ids under the matching GameDomainGroup are returned."""
@@ -58,7 +80,7 @@ class TestDomainGamesCacheGameIdsForRequest:
         """Set up a domain with a game under its group, and clear the shared memory cache."""
         memory_cache.clear()
         self.game_domain = GameDomainFactory(domain='example.com')
-        self.game = GameFactory(game_domain_group=self.game_domain.game_domain_group)
+        self.game = GameFactory(game_domain_groups=[self.game_domain.game_domain_group])
         self.factory = RequestFactory()
 
     @override_settings(ALLOWED_HOSTS=['example.com'])

@@ -41,6 +41,7 @@ class GameAdmin(admin.ModelAdmin):
     """Admin configuration for Game, managing shared treasure links via an inline."""
 
     inlines = [GameTreasureInline]
+    filter_horizontal = ('game_domain_groups',)
 
 
 admin.site.register(Game, GameAdmin)

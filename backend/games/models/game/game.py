@@ -31,10 +31,8 @@ class Game(models.Model):
     photo = models.ForeignKey(
         'games.GamePhoto', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
     )
-    game_domain_group = models.ForeignKey(
+    game_domain_groups = models.ManyToManyField(
         'games.GameDomainGroup',
-        on_delete=models.SET_NULL,
-        null=True,
         blank=True,
         related_name='games',
     )

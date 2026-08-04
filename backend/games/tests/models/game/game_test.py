@@ -60,25 +60,24 @@ class TestGame:
     def test_game_domain_group_is_optional(self):
         """Test that a game saves fine without a game_domain_group."""
         game = GameFactory(name='Test Game', game_slug='test-game')
-        assert game.game_domain_group is None
+        assert game.game_domain_groups.count() == 0
 
 
-class TestGameDomainGroupSetNull(TestCase):
-    """Tests for Game.game_domain_group's on_delete=SET_NULL behavior."""
+class TestGameDomainGroupsM2M(TestCase):
+    """Tests for Game.game_domain_groups' M2M behavior."""
 
     @classmethod
     def setUpTestData(cls):
         """Set up a game domain group and a game linked to it."""
         cls.domain_group = GameDomainGroup.objects.create(name='Majora Brand')
         cls.game = GameFactory(
-            name='Test Game', game_slug='test-game', game_domain_group=cls.domain_group
+            name='Test Game', game_slug='test-game', game_domain_groups=[cls.domain_group]
         )
 
-    def test_deleting_domain_group_nulls_game_field(self):
-        """Test that deleting the domain group sets game.game_domain_group to None."""
+    def test_deleting_domain_group_removes_it_from_game_groups(self):
+        """Test that deleting the domain group removes it from game.game_domain_groups."""
         self.domain_group.delete()
-        self.game.refresh_from_db()
-        assert self.game.game_domain_group is None
+        assert self.game.game_domain_groups.count() == 0
 
     def test_deleting_domain_group_does_not_delete_game(self):
         """Test that deleting the domain group does not delete the game itself."""
