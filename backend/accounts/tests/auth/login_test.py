@@ -136,3 +136,20 @@ class TestLoginView:
 
         post_login_cookie = response.cookies[cookies.COOKIE_NAME].value
         assert cookies.unsign(post_login_cookie) != existing_session.token
+
+    def test_no_crash_when_skip_header_used_on_login(self, client, monkeypatch):
+        """Test that logging in with the skip header present succeeds without a statistics row."""
+        monkeypatch.setenv('STATISTICS_SKIP_SECRET', 'shh')
+        UserFactory(username='alice', password=TEST_PASSWORD)
+
+        response = client.post(
+            '/users/login.json',
+            data=json.dumps({'username': 'alice', 'password': TEST_PASSWORD}),
+            content_type='application/json',
+            HTTP_X_STATISTICS_SKIP_SECRET='shh',
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert 'token' in data
+        assert Session.objects.count() == 0
