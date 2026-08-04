@@ -111,10 +111,10 @@ services:
       - 0.0.0.0:3000:80
 
   proxy_tests:
-    image: darthjee/tent:0.10.0
+    image: darthjee/tent-test:0.10.0
     volumes:
       - ./proxy/extension:/var/www/html/extension
-    command: vendor/bin/phpunit extension/tests
+    command: vendor/bin/phpunit --bootstrap /var/www/html/extension/tests/bootstrap.php /var/www/html/extension/tests
 
   majora_navi:
     image: darthjee/navi-hey:latest
