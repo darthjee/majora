@@ -21,3 +21,4 @@ require_once __DIR__ . '/lib/support/ForwardedHeaderFilter.php';
 require_once __DIR__ . '/lib/support/UploadFilenameValidator.php';
 require_once __DIR__ . '/lib/handlers/UploadHandler.php';
 require_once __DIR__ . '/lib/handlers/DeleteHandler.php';
+require_once __DIR__ . '/lib/handlers/CacheSizeHandler.php';

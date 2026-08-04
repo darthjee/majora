@@ -328,6 +328,8 @@ staff_dashboard:
   memory_cache_title: Cache de Memória
   refresh_tooltip: Atualizar
   summary_load_error: Não foi possível carregar o resumo do cache.
+  disk_cache_title: Cache em Disco
+  disk_cache_load_error: Não foi possível carregar o tamanho do cache em disco.
 my_account_page:
   title: Minha Conta
   loading: Carregando conta...

@@ -26,4 +26,14 @@ export default class StaffCacheClient extends BaseClient {
   fetchSummary(token) {
     return this.getJson('/staff/cache/summary.json', token);
   }
+
+  /**
+   * Fetches the current on-disk cache size.
+   *
+   * @param {string|null} token - Authentication token, if any.
+   * @returns {Promise<Response>} fetch response from the disk cache size endpoint.
+   */
+  fetchDiskCacheSize(token) {
+    return this.getJson('/staff/cache/size.json', token);
+  }
 }
