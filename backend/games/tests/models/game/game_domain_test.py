@@ -1,6 +1,7 @@
 """Tests for the GameDomain model."""
 
 import pytest
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.test import TestCase
 
@@ -38,6 +39,44 @@ class TestGameDomain:
         """Test that a domain cannot be saved without a game_domain_group."""
         with pytest.raises(IntegrityError):
             GameDomain.objects.create(domain='foo.majora.app', game_domain_group=None)
+
+    def test_schemes_defaults_to_https(self):
+        """Test that schemes defaults to 'https' when not given."""
+        domain = GameDomain.objects.create(
+            domain='foo.majora.app', game_domain_group=self.group
+        )
+        assert domain.schemes == 'https'
+
+    @pytest.mark.parametrize('schemes', ['https', 'http', 'http,https', 'https,http'])
+    def test_schemes_accepts_valid_tokens(self, schemes):
+        """Test that valid comma-separated http/https combinations pass validation."""
+        domain = GameDomain(
+            domain='foo.majora.app', game_domain_group=self.group, schemes=schemes
+        )
+        domain.full_clean()
+
+    @pytest.mark.parametrize('schemes', ['ftp', 'https,ftp', 'HTTPS', '', 'https,'])
+    def test_schemes_rejects_invalid_tokens(self, schemes):
+        """Test that anything other than http/https tokens fails validation."""
+        domain = GameDomain(
+            domain='foo.majora.app', game_domain_group=self.group, schemes=schemes
+        )
+        with pytest.raises(ValidationError):
+            domain.full_clean()
+
+    def test_origins_for_single_scheme(self):
+        """Test that origins returns one scheme://domain entry for a single scheme."""
+        domain = GameDomain(
+            domain='foo.majora.app', game_domain_group=self.group, schemes='https'
+        )
+        assert domain.origins == ['https://foo.majora.app']
+
+    def test_origins_for_multiple_schemes(self):
+        """Test that origins returns one entry per configured scheme."""
+        domain = GameDomain(
+            domain='foo.majora.app', game_domain_group=self.group, schemes='http,https'
+        )
+        assert domain.origins == ['http://foo.majora.app', 'https://foo.majora.app']
 
 
 class TestGameDomainGroupCascade(TestCase):

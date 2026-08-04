@@ -1,9 +1,15 @@
 """GameDomain model for Majora RPG Campaign Management System."""
 
+from django.core.validators import RegexValidator
 from django.db import models
 from simple_history.models import HistoricalRecords
 
 from games.models.game.game_domain_group import GameDomainGroup
+
+validate_schemes = RegexValidator(
+    regex=r'^(http|https)(,(http|https))*$',
+    message='schemes must be a comma-separated list made only of "http"/"https".',
+)
 
 
 class GameDomain(models.Model):
@@ -13,8 +19,14 @@ class GameDomain(models.Model):
     game_domain_group = models.ForeignKey(
         GameDomainGroup, on_delete=models.CASCADE, related_name='domains'
     )
+    schemes = models.CharField(max_length=20, default='https', validators=[validate_schemes])
     history = HistoricalRecords(app='versioning', user_db_constraint=False)
 
     def __str__(self):
         """Return string representation of the game domain."""
         return self.domain
+
+    @property
+    def origins(self):
+        """Return this domain's `scheme://domain` origins, one per configured scheme."""
+        return [f'{scheme}://{self.domain}' for scheme in self.schemes.split(',')]
