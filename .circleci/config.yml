@@ -460,7 +460,7 @@ jobs:
 
   warm-up-cache:
     docker:
-      - image: darthjee/navi-hey:latest
+      - image: darthjee/navi-hey:1.5.1
     steps:
       - checkout
       - run:
