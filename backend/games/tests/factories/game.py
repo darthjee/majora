@@ -12,6 +12,7 @@ class GameFactory(factory.django.DjangoModelFactory):
         """Factory configuration."""
 
         model = Game
+        skip_postgeneration_save = True
 
     name = 'Test Game'
     game_slug = factory.Sequence(lambda n: 'test-game' if n == 0 else f'test-game-{n}')
