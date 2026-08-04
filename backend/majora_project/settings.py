@@ -17,6 +17,18 @@ CSRF_TRUSTED_ORIGINS = [
     origin for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if origin
 ]
 
+# Behind the `darthjee/tent` proxy, the original `Host` is forwarded as `X-Forwarded-Host`
+# while `Host` itself is overwritten with the backend's internal service hostname. This makes
+# `request.get_host()` transparently prefer `X-Forwarded-Host` when present, so per-domain
+# lookups (e.g. `DomainGamesCache`) resolve the real requested domain. Safe because Tent's
+# `RenameHeaderMiddleware` always overwrites `X-Forwarded-Host` with whatever `Host` it
+# actually received — a client cannot smuggle a spoofed value past Tent to the backend.
+USE_X_FORWARDED_HOST = True
+
+# Restricts `/games.json` (GET+POST) to the games reachable from the requesting domain,
+# via `GameDomain`/`GameDomainGroup` (see `games/views/games/games_list.py`).
+ENABLE_GAMES_PER_DOMAIN = os.environ.get('ENABLE_GAMES_PER_DOMAIN', 'false').lower() == 'true'
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
