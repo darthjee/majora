@@ -123,6 +123,7 @@ services:
     command: navi-hey --config navi_config.yaml
     environment:
       - MAJORA_PRODUCTION_URL=$MAJORA_PRODUCTION_URL
+      - STATISTICS_SKIP_SECRET=$STATISTICS_SKIP_SECRET
       - NAVI_PORT=3000
     ports:
       - 0.0.0.0:3100:3000

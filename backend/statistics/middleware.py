@@ -1,5 +1,7 @@
 """Request middleware tracking one statistics `Session` per visitor."""
 
+import secrets
+
 from django.conf import settings as django_settings
 
 from statistics import cookies
@@ -21,6 +23,10 @@ class StatisticsSessionMiddleware:
 
     def __call__(self, request):
         """Attach `request.statistics_session`, run the view, then write the session cookie."""
+        if self._skip_requested(request):
+            request.statistics_session = None
+            return self.get_response(request)
+
         ip = self._client_ip(request)
         request.statistics_session = self._load_or_create_session(request, ip)
 
@@ -30,6 +36,14 @@ class StatisticsSessionMiddleware:
         if not self._cookie_deleted_by_view(response):
             self._set_cookie(response, request.statistics_session)
         return response
+
+    def _skip_requested(self, request):
+        """Return whether this request carries a valid statistics-skip header."""
+        secret = Settings.skip_secret()
+        header = request.META.get('HTTP_X_STATISTICS_SKIP_SECRET')
+        if not secret or not header:
+            return False
+        return secrets.compare_digest(header, secret)
 
     def _client_ip(self, request):
         """Return the trusted client IP, preferring `X-Forwarded-For` over `REMOTE_ADDR`."""
@@ -60,6 +74,8 @@ class StatisticsSessionMiddleware:
         request happens to hit it first.
         """
         session = request.statistics_session
+        if session is None:
+            return
         if session.user_id is not None or not request.user.is_authenticated:
             return
 

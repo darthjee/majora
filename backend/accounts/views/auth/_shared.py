@@ -144,6 +144,8 @@ def attach_statistics_session(request, user):
     so both credential-issuing paths behave identically afterwards.
     """
     session = request.statistics_session
+    if session is None:
+        return
     new_session = attach_user(session, user)
     if new_session is not session:
         _set_statistics_session(request, new_session)

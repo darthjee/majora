@@ -13,6 +13,8 @@ clients:
   default:
     base_url: $MAJORA_PRODUCTION_URL
     timeout: 20000
+    headers:
+      X-Statistics-Skip-Secret: $STATISTICS_SKIP_SECRET
 
 include:
   - resources/treasures.yml

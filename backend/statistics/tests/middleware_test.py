@@ -123,3 +123,66 @@ class TestStatisticsSessionMiddleware:
 
         session.refresh_from_db()
         assert session.user_id is None
+
+    def test_skips_session_when_valid_skip_header_present(self, client, monkeypatch):
+        """Test that a request with a matching skip header creates no session or cookie."""
+        monkeypatch.setenv('STATISTICS_SKIP_SECRET', 'shh')
+
+        response = client.get(
+            '/ready.json',
+            REMOTE_ADDR='1.2.3.4',
+            HTTP_X_STATISTICS_SKIP_SECRET='shh',
+        )
+
+        assert Session.objects.count() == 0
+        assert cookies.COOKIE_NAME not in response.cookies
+
+    def test_creates_session_when_skip_header_missing(self, client, monkeypatch):
+        """Test that a request with no skip header is recorded as today, secret configured."""
+        monkeypatch.setenv('STATISTICS_SKIP_SECRET', 'shh')
+
+        client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        assert Session.objects.count() == 1
+
+    def test_creates_session_when_skip_header_wrong_value(self, client, monkeypatch):
+        """Test that a wrong skip header value falls through to normal recording."""
+        monkeypatch.setenv('STATISTICS_SKIP_SECRET', 'shh')
+
+        response = client.get(
+            '/ready.json',
+            REMOTE_ADDR='1.2.3.4',
+            HTTP_X_STATISTICS_SKIP_SECRET='wrong',
+        )
+
+        assert response.status_code == 200
+        assert Session.objects.count() == 1
+
+    def test_creates_session_when_skip_secret_not_configured(self, client, monkeypatch):
+        """Test that an unset skip secret always falls through to normal recording."""
+        monkeypatch.delenv('STATISTICS_SKIP_SECRET', raising=False)
+
+        response = client.get(
+            '/ready.json',
+            REMOTE_ADDR='1.2.3.4',
+            HTTP_X_STATISTICS_SKIP_SECRET='whatever',
+        )
+
+        assert response.status_code == 200
+        assert Session.objects.count() == 1
+
+    def test_no_crash_when_skip_header_used_on_authenticated_request(self, client, monkeypatch):
+        """Test that the skip header on an authenticated request does not crash `_backfill_user`."""
+        monkeypatch.setenv('STATISTICS_SKIP_SECRET', 'shh')
+        user = UserFactory(username='alice')
+        token = Token.objects.create(user=user)
+
+        response = client.get(
+            '/games.json',
+            REMOTE_ADDR='1.2.3.4',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+            HTTP_X_STATISTICS_SKIP_SECRET='shh',
+        )
+
+        assert response.status_code == 200
+        assert Session.objects.count() == 0
