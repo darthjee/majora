@@ -5,7 +5,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 from django.utils.text import slugify
 
-from games.models import Game, GameTreasure
+from games.models import Game, GameDomainGroup, GameTreasure
 from games.tests.factories import (
     GameFactory,
     PlayerFactory,
@@ -56,6 +56,34 @@ class TestGame:
         """Test that game_type defaults to 'dnd' when not given at creation."""
         game = GameFactory(name='Test Game', game_slug='test-game')
         assert game.game_type == Game.GAME_TYPE_DND
+
+    def test_game_domain_group_is_optional(self):
+        """Test that a game saves fine without a game_domain_group."""
+        game = GameFactory(name='Test Game', game_slug='test-game')
+        assert game.game_domain_group is None
+
+
+class TestGameDomainGroupSetNull(TestCase):
+    """Tests for Game.game_domain_group's on_delete=SET_NULL behavior."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up a game domain group and a game linked to it."""
+        cls.domain_group = GameDomainGroup.objects.create(name='Majora Brand')
+        cls.game = GameFactory(
+            name='Test Game', game_slug='test-game', game_domain_group=cls.domain_group
+        )
+
+    def test_deleting_domain_group_nulls_game_field(self):
+        """Test that deleting the domain group sets game.game_domain_group to None."""
+        self.domain_group.delete()
+        self.game.refresh_from_db()
+        assert self.game.game_domain_group is None
+
+    def test_deleting_domain_group_does_not_delete_game(self):
+        """Test that deleting the domain group does not delete the game itself."""
+        self.domain_group.delete()
+        assert Game.objects.filter(pk=self.game.pk).exists()
 
 
 class TestGameCanBeEditedBy(TestCase):

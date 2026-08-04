@@ -31,6 +31,13 @@ class Game(models.Model):
     photo = models.ForeignKey(
         'games.GamePhoto', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
     )
+    game_domain_group = models.ForeignKey(
+        'games.GameDomainGroup',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='games',
+    )
     history = HistoricalRecords(app='versioning', user_db_constraint=False)
 
     class Meta:
