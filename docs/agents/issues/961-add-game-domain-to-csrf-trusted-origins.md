@@ -1,12 +1,15 @@
 # Issue: Add game domain to CSRF_TRUSTED_ORIGINS
 
 ## Description
+
 In the backend, `CSRF_TRUSTED_ORIGINS` is currently populated only from an environment variable, but the app now has a `GameDomain` model representing hostnames that map to a `GameDomainGroup` (tenant/brand). Game domains should also be treated as trusted CSRF origins, without requiring every domain to be manually added to the env var.
 
 ## Problem
+
 `CSRF_TRUSTED_ORIGINS` only reflects origins configured via the `CSRF_TRUSTED_ORIGINS` env var. `GameDomain` rows aren't reflected there, so requests coming through a game domain that isn't also manually listed in the env var fail Django's CSRF origin check.
 
 ## Expected Behavior
+
 On backend boot, all `GameDomain` rows are turned into `scheme://domain` origins (based on each domain's `schemes`) and merged into `CSRF_TRUSTED_ORIGINS` alongside the existing env-var-based origins. This doesn't need to be live — adding a new `GameDomain` takes effect on the next server restart, which is already understood as part of the current ops process (the person adding domains is also the one restarting the server).
 
 ## Solution
@@ -47,5 +50,6 @@ Instead:
 - Cases to cover: multiple schemes on one domain producing multiple origins; several domains all included; env-based origins preserved alongside the new ones (combine, not replace); a DB error during the query (mock `GameDomain.objects.all` to raise) falling back gracefully with env-only origins remaining and no exception propagating.
 
 ## Benefits
+
 - Game domains are automatically trusted for CSRF without manually maintaining them in an env var.
 - No risk to `migrate`, `collectstatic`, or other management commands/CI jobs that import settings without a DB, since the DB query only happens in the middleware's `__init__`, safely after migrations have completed.
