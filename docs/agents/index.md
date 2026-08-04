@@ -14,6 +14,7 @@ open. For a short abstract of each doc's content, see [summary.md](summary.md) i
 ## Conventions
 
 - [Contributing](contributing.md)
+- [Documentation](documentation.md)
 - [Flow](flow.md)
 - [Product Definitions](product.md)
 
