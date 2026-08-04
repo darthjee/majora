@@ -45,9 +45,11 @@ resources:
             - pages: headers['pages']
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
 
   paginated_npc_photos:
-    - url: /games/{:slug}/npcs/{:id}/photos.json?page={:page}
+    - url: /games/{:slug}/npcs/{:id}/photos.json?page={:page}&per_page={:per_page}
       status: 200
 
   short_npc_photos:
@@ -63,9 +65,11 @@ resources:
             - pages: headers['pages']
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
 
   paginated_npc_treasures:
-    - url: /games/{:slug}/npcs/{:id}/treasures.json?page={:page}
+    - url: /games/{:slug}/npcs/{:id}/treasures.json?page={:page}&per_page={:per_page}
       status: 200
 
   short_npc_treasures:
@@ -81,9 +85,11 @@ resources:
             - pages: headers['pages']
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
 
   paginated_npc_items:
-    - url: /games/{:slug}/npcs/{:id}/items.json?page={:page}
+    - url: /games/{:slug}/npcs/{:id}/items.json?page={:page}&per_page={:per_page}
       status: 200
       actions:
         - resource: npc_item_detail
@@ -109,9 +115,11 @@ resources:
             - pages: headers['pages']
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
 
   paginated_npc_documents:
-    - url: /games/{:slug}/npcs/{:id}/documents.json?page={:page}
+    - url: /games/{:slug}/npcs/{:id}/documents.json?page={:page}&per_page={:per_page}
       status: 200
 
   short_npc_documents:

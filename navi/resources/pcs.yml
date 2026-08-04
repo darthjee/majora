@@ -45,9 +45,11 @@ resources:
             - pages: headers['pages']
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
 
   paginated_pc_photos:
-    - url: /games/{:slug}/pcs/{:id}/photos.json?page={:page}
+    - url: /games/{:slug}/pcs/{:id}/photos.json?page={:page}&per_page={:per_page}
       status: 200
 
   short_pc_photos:
@@ -63,9 +65,11 @@ resources:
             - pages: headers['pages']
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
 
   paginated_pc_treasures:
-    - url: /games/{:slug}/pcs/{:id}/treasures.json?page={:page}
+    - url: /games/{:slug}/pcs/{:id}/treasures.json?page={:page}&per_page={:per_page}
       status: 200
 
   short_pc_treasures:
@@ -81,9 +85,11 @@ resources:
             - pages: headers['pages']
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
 
   paginated_pc_items:
-    - url: /games/{:slug}/pcs/{:id}/items.json?page={:page}
+    - url: /games/{:slug}/pcs/{:id}/items.json?page={:page}&per_page={:per_page}
       status: 200
       actions:
         - resource: pc_item_detail
@@ -109,9 +115,11 @@ resources:
             - pages: headers['pages']
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
 
   paginated_pc_documents:
-    - url: /games/{:slug}/pcs/{:id}/documents.json?page={:page}
+    - url: /games/{:slug}/pcs/{:id}/documents.json?page={:page}&per_page={:per_page}
       status: 200
 
   short_pc_documents:

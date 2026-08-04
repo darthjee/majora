@@ -8,9 +8,11 @@ resources:
             - pages: headers['pages']
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
 
   paginated_games:
-    - url: /games.json?page={:page}
+    - url: /games.json?page={:page}&per_page={:per_page}
       status: 200
       actions:
         - resource: game_detail
@@ -63,9 +65,11 @@ resources:
             - pages: headers['pages']
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
 
   paginated_game_pcs:
-    - url: /games/{:slug}/pcs.json?page={:page}
+    - url: /games/{:slug}/pcs.json?page={:page}&per_page={:per_page}
       status: 200
       actions:
         - resource: pc
@@ -82,9 +86,11 @@ resources:
             - pages: headers['pages']
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
 
   paginated_game_npcs:
-    - url: /games/{:slug}/npcs.json?page={:page}
+    - url: /games/{:slug}/npcs.json?page={:page}&per_page={:per_page}
       status: 200
       actions:
         - resource: npc
@@ -101,9 +107,11 @@ resources:
             - pages: headers['pages']
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
 
   paginated_game_treasures:
-    - url: /games/{:slug}/treasures.json?page={:page}
+    - url: /games/{:slug}/treasures.json?page={:page}&per_page={:per_page}
       status: 200
 
   game_items:
@@ -115,9 +123,11 @@ resources:
             - pages: headers['pages']
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
 
   paginated_game_items:
-    - url: /games/{:slug}/items.json?page={:page}
+    - url: /games/{:slug}/items.json?page={:page}&per_page={:per_page}
       status: 200
       actions:
         - resource: game_item_detail
@@ -138,9 +148,11 @@ resources:
             - pages: headers['pages']
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
 
   paginated_game_documents:
-    - url: /games/{:slug}/documents.json?page={:page}
+    - url: /games/{:slug}/documents.json?page={:page}&per_page={:per_page}
       status: 200
       actions:
         - resource: game_document_details
@@ -194,6 +206,8 @@ resources:
             - pages: headers['pages']
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
     - url: /games/{:slug}/sessions/future.json
       status: 200
       paginated_actions:
@@ -202,6 +216,8 @@ resources:
             - pages: headers['pages']
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
     - url: /games/{:slug}/sessions/unscheduled.json
       status: 200
       paginated_actions:
@@ -210,9 +226,11 @@ resources:
             - pages: headers['pages']
             - page_key: page
             - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
 
   paginated_game_sessions_past:
-    - url: /games/{:slug}/sessions/past.json?page={:page}
+    - url: /games/{:slug}/sessions/past.json?page={:page}&per_page={:per_page}
       status: 200
       actions:
         - resource: session
@@ -221,7 +239,7 @@ resources:
             slug: parsedBody.game_slug
 
   paginated_game_sessions_future:
-    - url: /games/{:slug}/sessions/future.json?page={:page}
+    - url: /games/{:slug}/sessions/future.json?page={:page}&per_page={:per_page}
       status: 200
       actions:
         - resource: session
@@ -230,7 +248,7 @@ resources:
             slug: parsedBody.game_slug
 
   paginated_game_sessions_unscheduled:
-    - url: /games/{:slug}/sessions/unscheduled.json?page={:page}
+    - url: /games/{:slug}/sessions/unscheduled.json?page={:page}&per_page={:per_page}
       status: 200
       actions:
         - resource: session
