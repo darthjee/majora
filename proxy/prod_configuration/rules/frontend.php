@@ -5,7 +5,7 @@ use Tent\Configuration;
 Configuration::buildRule([
     'handler' => [
         'type' => 'static',
-        'location' => '/home/moria_user/moria.ffavs.net/static'
+        'location' => $staticRoot . '/static'
     ],
     'matchers' => [
         ['method' => 'GET', 'uri' => '/assets', 'type' => 'begins_with'],
@@ -21,7 +21,7 @@ Configuration::buildRule([
 Configuration::buildRule([
     'handler' => [
         'type' => 'static',
-        'location' => '/home/moria_user/moria.ffavs.net/static'
+        'location' => $staticRoot . '/static'
     ],
     'matchers' => [
         ['method' => 'GET', 'uri' => '/', 'type' => 'exact'],
