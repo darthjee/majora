@@ -29,11 +29,28 @@ class TestGameDomain:
         domain = GameDomain(domain='foo.majora.app', game_domain_group=self.group)
         assert str(domain) == 'foo.majora.app'
 
-    def test_domain_uniqueness(self):
-        """Test that domain must be globally unique."""
+    def test_domain_uniqueness_within_same_group(self):
+        """Test that a duplicate domain is rejected within the same group."""
         GameDomain.objects.create(domain='foo.majora.app', game_domain_group=self.group)
         with pytest.raises(IntegrityError):
             GameDomain.objects.create(domain='foo.majora.app', game_domain_group=self.group)
+
+    def test_domain_allowed_across_different_groups(self):
+        """Test that the same domain string may exist in different groups."""
+        other_group = GameDomainGroup.objects.create(name='Other Brand')
+        GameDomain.objects.create(domain='foo.majora.app', game_domain_group=self.group)
+        domain = GameDomain.objects.create(
+            domain='foo.majora.app', game_domain_group=other_group
+        )
+        assert domain.pk is not None
+
+    def test_domain_is_normalized_to_lowercase(self):
+        """Test that a mixed-case domain is stored and read back as lowercase."""
+        domain = GameDomain.objects.create(
+            domain='Foo.Majora.App', game_domain_group=self.group
+        )
+        domain.refresh_from_db()
+        assert domain.domain == 'foo.majora.app'
 
     def test_domain_requires_group(self):
         """Test that a domain cannot be saved without a game_domain_group."""
