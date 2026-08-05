@@ -14,11 +14,21 @@ describe('MemoryCacheCard', function() {
     expect(html).toContain('Loading dashboard...');
   });
 
-  it('renders the actions', function() {
+  it('renders the clear-cache and refresh actions with distinct icons', function() {
     stubBuildEffect(MemoryCacheCardController);
 
     const html = renderToStaticMarkup(React.createElement(MemoryCacheCard));
 
-    expect((html.match(/bi-database-fill-dash/g) || []).length).toBe(2);
+    expect(html).toContain('bi-trash-fill');
+    expect(html).toContain('bi-arrow-clockwise');
+  });
+
+  it('does not clear the cache immediately when clicking Clear Cache, without a confirm click', function() {
+    stubBuildEffect(MemoryCacheCardController);
+    const clearCacheSpy = spyOn(MemoryCacheCardController.prototype, 'clearCache');
+
+    renderToStaticMarkup(React.createElement(MemoryCacheCard));
+
+    expect(clearCacheSpy).not.toHaveBeenCalled();
   });
 });

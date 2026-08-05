@@ -9,8 +9,9 @@ use Tent\Models\Response;
 /**
  * Handles GET /staff/cache/size.json.
  *
- * Gates access behind the backend's admin/staff check, then reports the
- * total size (in bytes) of the proxy's on-disk cache folder:
+ * Gates access behind the backend's admin/staff check (delegated to
+ * StaffAccessGuard, shared with CacheClearHandler), then reports the total
+ * size (in bytes) of the proxy's on-disk cache folder:
  *   1. Calls GET .../users/status.json to check the caller is logged in and
  *      is staff or superuser (403 otherwise; a non-200 response from that
  *      call is forwarded to the client as-is).
@@ -20,8 +21,8 @@ use Tent\Models\Response;
  * Deliberately has no SecurePhotoStorage-style path-traversal guard: this is
  * a read-only size check over a fixed, config-supplied path, never a path
  * derived from request input, so there is no traversal surface here. The
- * future "clear cache" handler (see the issue's "Future work" section), which
- * will delete files, is where that guard will actually matter.
+ * same reasoning applies to CacheClearHandler, which deletes files under
+ * that same fixed, config-supplied path.
  */
 class CacheSizeHandler extends RequestHandler
 {
@@ -97,7 +98,7 @@ class CacheSizeHandler extends RequestHandler
     protected function processsRequest(RequestInterface $request): Response
     {
         try {
-            $this->requireStaffAccess($request->headers());
+            StaffAccessGuard::requireStaffAccess($this->client, $request->headers());
 
             $size = $this->cacheSize();
         } catch (BackendErrorException $e) {
@@ -111,35 +112,6 @@ class CacheSizeHandler extends RequestHandler
             'headers'  => ['Content-Type: application/json'],
             'body'     => json_encode(['size' => $size]),
         ]);
-    }
-
-    /**
-     * Calls the backend's users/status.json endpoint and ensures the caller
-     * is logged in and is either staff or a superuser.
-     *
-     * @param array $headers Raw, unfiltered incoming request headers.
-     * @return void
-     * @throws BackendErrorException When the backend call itself fails
-     *                                (forwarded as-is), or the caller isn't
-     *                                admin/staff (403).
-     */
-    private function requireStaffAccess(array $headers): void
-    {
-        $result = $this->client->request('GET', '/users/status.json', $headers);
-
-        if ($result['httpCode'] !== 200) {
-            throw new BackendErrorException($result['httpCode'], $result['body']);
-        }
-
-        $body = json_decode($result['body'], true);
-
-        $loggedIn    = (($body['logged_in'] ?? false) === true);
-        $isStaff     = (($body['is_staff'] ?? false) === true);
-        $isSuperuser = (($body['is_superuser'] ?? false) === true);
-
-        if (!$loggedIn || (!$isStaff && !$isSuperuser)) {
-            throw new BackendErrorException(403, '{"error":"Forbidden"}');
-        }
     }
 
     /**

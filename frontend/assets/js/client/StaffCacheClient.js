@@ -36,4 +36,17 @@ export default class StaffCacheClient extends BaseClient {
   fetchDiskCacheSize(token) {
     return this.getJson('/staff/cache/size.json', token);
   }
+
+  /**
+   * Clears the entire on-disk cache.
+   *
+   * @param {string|null} token - Authentication token, if any.
+   * @returns {Promise<Response>} fetch response from the disk cache endpoint.
+   */
+  clearDiskCache(token) {
+    return this.request('/staff/cache/disk.json', {
+      method: 'DELETE',
+      headers: this.buildHeaders(token),
+    });
+  }
 }
