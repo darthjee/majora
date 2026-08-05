@@ -6,72 +6,34 @@ use PHPUnit\Framework\TestCase;
 use Tent\Http\HttpClientInterface;
 use Tent\Models\ProcessingRequest;
 use Tent\RequestHandlers\CacheSizeHandler;
+use Tent\RequestHandlers\DirectorySizeCalculator;
+use Tent\RequestHandlers\ShellCommandFailedException;
 
 /**
  * Unit tests for CacheSizeHandler.
  *
- * Uses a temporary directory as the cache path to avoid touching the real
- * on-disk proxy cache during tests.
+ * Covers only staff-gating and response shaping at the HTTP layer: the
+ * actual directory-size computation is delegated to DirectorySizeCalculator,
+ * which is faked here (see DirectorySizeCalculatorTest and the per-strategy
+ * suites under tests/support/ for that computation's own coverage) so no
+ * real filesystem fixture is needed in this file.
  */
 class CacheSizeHandlerTest extends TestCase
 {
-    /** @var string Temporary directory used as the cache path */
-    private string $cacheDir;
-
-    protected function setUp(): void
-    {
-        $this->cacheDir = sys_get_temp_dir() . '/test_cache_size_' . uniqid();
-        mkdir($this->cacheDir, 0755, true);
-    }
-
-    protected function tearDown(): void
-    {
-        $this->removeDir($this->cacheDir);
-    }
-
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
     /**
-     * Builds a CacheSizeHandler wired to the temporary cache directory.
+     * Builds a CacheSizeHandler wired to a fake DirectorySizeCalculator that
+     * always returns $size for the configured cache path.
      */
-    private function makeHandler(HttpClientInterface $httpClient): CacheSizeHandler
+    private function makeHandler(HttpClientInterface $httpClient, int $size = 0): CacheSizeHandler
     {
-        return new CacheSizeHandler('http://backend:8080', $httpClient, $this->cacheDir);
-    }
+        $calculator = $this->createMock(DirectorySizeCalculator::class);
+        $calculator->method('sizeOf')->willReturn($size);
 
-    /**
-     * Recursively removes a directory and all its contents.
-     */
-    private function removeDir(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-        foreach (scandir($dir) as $entry) {
-            if ($entry === '.' || $entry === '..') {
-                continue;
-            }
-            $path = $dir . '/' . $entry;
-            is_dir($path) ? $this->removeDir($path) : unlink($path);
-        }
-        rmdir($dir);
-    }
-
-    /**
-     * Creates a file (with the containing directories) under the temporary
-     * cache directory, at the given path relative to it, with $size bytes of
-     * content.
-     */
-    private function makeCacheFile(string $relativePath, int $size): void
-    {
-        $fullPath = $this->cacheDir . '/' . $relativePath;
-        $dir      = dirname($fullPath);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-        file_put_contents($fullPath, str_repeat('a', $size));
+        return new CacheSizeHandler('http://backend:8080', $httpClient, '/cache', 'php_walk', $calculator);
     }
 
     /**
@@ -106,16 +68,13 @@ class CacheSizeHandlerTest extends TestCase
     // -------------------------------------------------------------------------
 
     /**
-     * A staff user (is_staff: true) gets a 200 with the correct summed byte
-     * size of the files under the cache directory.
+     * A staff user (is_staff: true) gets a 200 with the calculator's
+     * returned size in the body.
      */
     public function testStaffUserGetsCacheSize(): void
     {
-        $this->makeCacheFile('a.cache', 10);
-        $this->makeCacheFile('nested/b.cache', 25);
-
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $handler    = $this->makeHandler($httpClient);
+        $handler    = $this->makeHandler($httpClient, 35);
 
         $request = $this->makeRequest(['Authorization' => 'Bearer tok']);
 
@@ -142,7 +101,9 @@ class CacheSizeHandlerTest extends TestCase
     public function testTrailingSlashOnHostDoesNotProduceDoubleSlash(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $handler    = new CacheSizeHandler('http://backend:8080/', $httpClient, $this->cacheDir);
+        $calculator = $this->createMock(DirectorySizeCalculator::class);
+        $calculator->method('sizeOf')->willReturn(0);
+        $handler = new CacheSizeHandler('http://backend:8080/', $httpClient, '/cache', 'php_walk', $calculator);
 
         $request = $this->makeRequest(['Authorization' => 'Bearer tok']);
 
@@ -166,10 +127,8 @@ class CacheSizeHandlerTest extends TestCase
      */
     public function testSuperuserAloneGetsCacheSize(): void
     {
-        $this->makeCacheFile('a.cache', 12);
-
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $handler    = $this->makeHandler($httpClient);
+        $handler    = $this->makeHandler($httpClient, 12);
 
         $request = $this->makeRequest(['Authorization' => 'Bearer tok']);
 
@@ -188,12 +147,13 @@ class CacheSizeHandlerTest extends TestCase
     }
 
     /**
-     * An empty cache directory returns 200 with size 0.
+     * When the calculator reports a size of 0 (e.g. an empty/missing cache
+     * directory), the response is still a 200 with size 0.
      */
     public function testEmptyCacheDirectoryReturnsZeroSize(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $handler    = $this->makeHandler($httpClient);
+        $handler    = $this->makeHandler($httpClient, 0);
 
         $request = $this->makeRequest(['Authorization' => 'Bearer tok']);
 
@@ -212,15 +172,45 @@ class CacheSizeHandlerTest extends TestCase
     }
 
     /**
+     * When the configured DirectorySizeCalculator strategy fails at runtime
+     * (e.g. the `du` binary missing or exiting non-zero, surfaced as a
+     * ShellCommandFailedException), the handler turns that into a
+     * controlled 500 response rather than letting the exception propagate,
+     * the same way BackendErrorException failures are handled.
+     */
+    public function testCalculatorFailureReturnsControlledServerError(): void
+    {
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $calculator = $this->createMock(DirectorySizeCalculator::class);
+        $calculator->method('sizeOf')->willThrowException(new ShellCommandFailedException('du -sb /cache', 1));
+        $handler = new CacheSizeHandler('http://backend:8080', $httpClient, '/cache', 'du', $calculator);
+
+        $request = $this->makeRequest(['Authorization' => 'Bearer tok']);
+
+        $httpClient->expects($this->once())
+            ->method('request')
+            ->willReturn([
+                'httpCode' => 200,
+                'body'     => $this->statusBody(true, true, false),
+                'headers'  => [],
+            ]);
+
+        $response = $handler->handleRequest($request);
+
+        $this->assertSame(500, $response->httpCode());
+        $this->assertSame('Internal Server Error', $response->body());
+    }
+
+    /**
      * Not logged in: 403, regardless of the (irrelevant) staff/superuser
-     * flags, and no filesystem work is attempted.
+     * flags, and the calculator is never consulted.
      */
     public function testNotLoggedInReturnsForbidden(): void
     {
-        $this->makeCacheFile('a.cache', 10);
-
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $handler    = $this->makeHandler($httpClient);
+        $calculator = $this->createMock(DirectorySizeCalculator::class);
+        $calculator->expects($this->never())->method('sizeOf');
+        $handler = new CacheSizeHandler('http://backend:8080', $httpClient, '/cache', 'php_walk', $calculator);
 
         $request = $this->makeRequest();
 
@@ -339,7 +329,7 @@ class CacheSizeHandlerTest extends TestCase
     {
         $handler = CacheSizeHandler::build([
             'host'       => 'http://backend:8080',
-            'cache_path' => $this->cacheDir,
+            'cache_path' => '/some/cache/path',
         ]
         );
 
@@ -347,6 +337,53 @@ class CacheSizeHandlerTest extends TestCase
         $prop       = $reflection->getProperty('cachePath');
         $prop->setAccessible(true);
 
-        $this->assertSame($this->cacheDir, $prop->getValue($handler));
+        $this->assertSame('/some/cache/path', $prop->getValue($handler));
+    }
+
+    /**
+     * build() reads 'cache_size_tool' from params and passes it through to
+     * the DirectorySizeCalculator it builds.
+     */
+    public function testBuildPassesCacheSizeToolThroughToCalculator(): void
+    {
+        $handler = CacheSizeHandler::build([
+            'host'            => 'http://backend:8080',
+            'cache_path'      => '/some/cache/path',
+            'cache_size_tool' => 'du',
+        ]
+        );
+
+        $reflection    = new \ReflectionClass($handler);
+        $calculatorProp = $reflection->getProperty('calculator');
+        $calculatorProp->setAccessible(true);
+        $calculator = $calculatorProp->getValue($handler);
+
+        $toolProp = new \ReflectionProperty(DirectorySizeCalculator::class, 'tool');
+        $toolProp->setAccessible(true);
+
+        $this->assertSame('du', $toolProp->getValue($calculator));
+    }
+
+    /**
+     * When 'cache_size_tool' is omitted from params, build() defaults to
+     * 'php_walk' rather than silently trying to shell out.
+     */
+    public function testBuildDefaultsCacheSizeToolToPhpWalk(): void
+    {
+        $handler = CacheSizeHandler::build([
+            'host'       => 'http://backend:8080',
+            'cache_path' => '/some/cache/path',
+        ]
+        );
+
+        $reflection    = new \ReflectionClass($handler);
+        $calculatorProp = $reflection->getProperty('calculator');
+        $calculatorProp->setAccessible(true);
+        $calculator = $calculatorProp->getValue($handler);
+
+        $toolProp = new \ReflectionProperty(DirectorySizeCalculator::class, 'tool');
+        $toolProp->setAccessible(true);
+
+        $this->assertSame('php_walk', $toolProp->getValue($calculator));
     }
 }
