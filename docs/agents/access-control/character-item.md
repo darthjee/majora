@@ -3,8 +3,10 @@
 **[Game resource](principles.md#resource-categories).** `CharacterItem` links a `Character` (PC or
 NPC) to a `GameItem`, with its own optional `name`/`description`/`photo` overrides (nullable,
 falling back to the linked `GameItem` — see "Fallback resolution" below) and its own `hidden`
-(never inherited from `GameItem.hidden`, see [GameItem](game-item.md)). `unique_together =
-('character', 'game_item')`. Deletion outside the Remove endpoints below is Django-admin-only.
+(never inherited from `GameItem.hidden`, see [GameItem](game-item.md)). No uniqueness constraint on
+`(character, game_item)` (dropped by issue #827) — a character may own several instances of the
+same `GameItem` simultaneously, each its own `CharacterItem` row (no `quantity` field; "owning 3
+potions" means 3 separate rows). Deletion outside the Remove endpoints below is Django-admin-only.
 
 The index/detail pairs follow the [default hidden-gated collection
 pattern](principles.md#default-hidden-gated-collection-pattern); everything past that — the
@@ -77,9 +79,9 @@ not get hidden-catalog visibility just by owning the character.
 
 | Endpoint | Method | Who can call | Effect |
 |----------|--------|-------------|--------|
-| `/games/<slug>/pcs\|npcs/<id>/items/acquire.json` | POST | **CharacterItemCreatePermission** | Creates a `CharacterItem` for the submitted `game_item_id` (falls back to the `GameItem`'s own info). `404` if the `GameItem` is hidden (never bypassed here) or unknown; `400` if already owned |
-| `/games/<slug>/pcs\|npcs/<id>/items/remove.json` | POST | **CharacterItemCreatePermission** | Deletes the character's `CharacterItem` row for the submitted item. `404` if not owned, or owned but hidden (never bypassed here) |
-| `/games/<slug>/pcs\|npcs/<id>/items/acquire/all.json` | POST | **GameEdit** (dm/admin only, no staff leniency beyond what GameEdit grants) | DM-only variant: does not `404` on a hidden `GameItem` |
+| `/games/<slug>/pcs\|npcs/<id>/items/acquire.json` | POST | **CharacterItemCreatePermission** | Always creates a new `CharacterItem` for the submitted `game_item_id` (falls back to the `GameItem`'s own info) — no dedup check (issue #827 dropped the `400` "already owned" response; duplicates are intentional, see the model note above). `404` if the `GameItem` is hidden (never bypassed here) or unknown |
+| `/games/<slug>/pcs\|npcs/<id>/items/remove.json` | POST | **CharacterItemCreatePermission** | Deletes (at most) one of the character's `CharacterItem` rows for the submitted item (`.first()` when several instances exist). `404` if not owned, or owned but hidden (never bypassed here) |
+| `/games/<slug>/pcs\|npcs/<id>/items/acquire/all.json` | POST | **GameEdit** (dm/admin only, no staff leniency beyond what GameEdit grants) | DM-only variant: does not `404` on a hidden `GameItem`; also always creates, no dedup |
 | `/games/<slug>/pcs/<id>/items/remove/all.json` | POST | **CharacterEdit** (dm, admin, or the PC's owning player — **not** staff) | Does not `404` on a hidden owned `CharacterItem` |
 | `/games/<slug>/npcs/<id>/items/remove/all.json` | POST | **GameEdit** (dm/admin only) | Does not `404` on a hidden owned `CharacterItem` |
 
@@ -88,8 +90,23 @@ visibility** (`available/all`, `acquire/all`) is game-level, dm/admin only, no o
 [CharacterTreasure](character-treasure.md)'s `acquire/all.json` precedent exactly; **owned-item
 visibility** (`remove/all`) is character-level, using the same asymmetric PC/NPC split
 `items/all.json` already uses. Unlike `CharacterTreasure`, there is no `quantity` — acquire always
-creates exactly one row (`400` on a duplicate rather than incrementing), remove always deletes the
-row outright.
+creates a brand-new row (issue #827: no dedup check, duplicates allowed — see the model note
+above), remove deletes (at most) one row outright.
+
+## Item quantity summary endpoints (issue #827)
+
+| Endpoint | Method | Who can call |
+|----------|--------|-------------|
+| `/games/<slug>/items/<item_id>/pcs/<id>/summary.json` | GET | **AllowAny** — 404 if the `GameItem`/PC is unknown. Always `X-Skip-Cache: true` (deviation: an `AllowAny` endpoint that still opts out of the shared proxy cache, since responses are per-character-per-item and not worth caching) |
+| `/games/<slug>/items/<item_id>/npcs/<id>/summary.json` | GET | **AllowAny**, plus the [hidden-NPC gate](character-photo.md#hidden-npc-gate) — 404 if hidden or unknown. Always `X-Skip-Cache: true` |
+| `/games/<slug>/items/<item_id>/pcs/<id>/summary/all.json` | GET | **CharacterItemCreatePermission** (dm, admin, or the PC's owning player) — roles per [`game_pc_item/endpoints.yml`](../../../backend/games/permissions/config/game_pc_item/endpoints.yml) (`restricted.create`). Always `X-Skip-Cache: true` |
+| `/games/<slug>/items/<item_id>/npcs/<id>/summary/all.json` | GET | **CharacterItemCreatePermission** (dm/admin only, no owner concept) — roles per [`game_npc_item/endpoints.yml`](../../../backend/games/permissions/config/game_npc_item/endpoints.yml) (`restricted.create`). The permission check runs **before** the NPC is resolved, so an unauthorized/unauthenticated caller gets the same `403`/`401` regardless of whether the target `id` is unknown, hidden, or visible — a hidden NPC's existence must never be distinguishable from a nonexistent one via this endpoint (same rule as [Character](character.md)'s own hidden-NPC gate). Always `X-Skip-Cache: true` |
+
+Backs the give-item modal's right-side "receiving" list: `{"quantity": <int>}`, the count of
+`CharacterItem` rows for that `(character, game_item)` pair. The regular variant excludes
+`CharacterItem.hidden=True` rows; `/all.json` includes them. `GameItem.hidden` is irrelevant here —
+whether the requester can reach the item at all is already gated by the item detail
+page/endpoint, not by this summary endpoint.
 
 ## Fallback resolution
 
