@@ -3,7 +3,7 @@
 from django.http import Http404
 from rest_framework.response import Response
 
-from ._item_exchange import _check_item_create
+from ...permissions import EndpointPermission
 from ._shared import _get_character_or_404, _hidden_gate_response
 
 
@@ -44,11 +44,17 @@ def _find_game_item(game, item_id):
     return game_item
 
 
-def check_item_summary_all_permission(request, game, character):
-    """Return an error Response if `request.user` may not view `character`'s full summary.
+def check_item_summary_all_permission(request, game, resource, character=None):
+    """Return an error Response if `request.user` may not view the full item summary.
 
     Reuses the same `restricted`/`create` permission tier the acquire/remove endpoints check
-    (`_check_item_create`) — for a PC that already grants dm/admin (via the universal
-    shortcut) plus the PC's own owner; for an NPC, dm/admin only (no owner concept).
+    (`_check_item_create` in `_item_exchange.py`) — for a PC, `character` must be resolved so
+    its owner also grants access; for an NPC (no owner concept), `character` is left `None`
+    since `Roles._resolve_owner` short-circuits to `False` whenever `pc` is `None`. This lets
+    the NPC `/summary/all.json` view check permission *before* ever resolving the target NPC,
+    so an unauthorized/unauthenticated caller gets an identical `401`/`403` whether
+    `character_id` is nonexistent, hidden, or a normal visible NPC.
     """
-    return _check_item_create(request, game, character)
+    return EndpointPermission(request.user, game=game, pc=character).check(
+        request, resource, 'restricted', 'create',
+    )

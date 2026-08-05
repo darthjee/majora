@@ -78,6 +78,24 @@ class TestGameNpcItemSummaryAllView(TokenAuthRequestMixin):
         response = self.get(client, self._url(character_id=hidden_npc.id), token=self.dm_token)
         assert response.status_code == 200
 
+    def test_non_dm_gets_same_status_for_hidden_and_unknown_npc(self, client):
+        """Test a non-dm caller cannot distinguish a hidden NPC from a nonexistent one."""
+        hidden_npc = CharacterFactory(name='Secret NPC', game=self.game, npc=True, hidden=True)
+        hidden_response = self.get(
+            client, self._url(character_id=hidden_npc.id), token=self.other_token,
+        )
+        unknown_response = self.get(
+            client, self._url(character_id=99999), token=self.other_token,
+        )
+        assert hidden_response.status_code == unknown_response.status_code == 403
+
+    def test_unauthenticated_gets_same_status_for_hidden_and_unknown_npc(self, client):
+        """Test an unauthenticated caller cannot distinguish a hidden NPC from a nonexistent one."""
+        hidden_npc = CharacterFactory(name='Secret NPC', game=self.game, npc=True, hidden=True)
+        hidden_response = self.get(client, self._url(character_id=hidden_npc.id))
+        unknown_response = self.get(client, self._url(character_id=99999))
+        assert hidden_response.status_code == unknown_response.status_code == 401
+
     def test_response_includes_x_skip_cache_header(self, client):
         """Test that the response includes the X-Skip-Cache: true header."""
         response = self.get(client, self._url(), token=self.dm_token)

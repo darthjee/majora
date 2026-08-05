@@ -20,7 +20,7 @@ def game_pc_item_summary_all(request, game_slug, item_id, character_id):
     """Return a PC's item quantity, including hidden rows — dm/admin/owner only."""
     game = get_object_or_404(Game, game_slug=game_slug)
     character = _get_character_or_404(game, character_id, npc=False)
-    error_response = check_item_summary_all_permission(request, game, character)
+    error_response = check_item_summary_all_permission(request, game, 'game_pc_item', character)
     if error_response:
         return error_response
     return character_item_summary(
