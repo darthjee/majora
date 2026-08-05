@@ -4,19 +4,20 @@ import { buildContext } from './support.js';
 
 describe('DiskCacheCardController', function() {
   let setSize;
+  let setStatus;
   let setLoading;
   let setError;
   let client;
 
   beforeEach(function() {
-    ({ setSize, setLoading, setError, client } = buildContext());
+    ({ setSize, setStatus, setLoading, setError, client } = buildContext());
   });
 
   describe('#buildEffect', function() {
     it('sets the size and clears loading on a successful fetch', async function() {
       client.fetchDiskCacheSize.and.returnValue(Promise.resolve(mockFetchJson({ size: 128 })));
 
-      const cleanup = new DiskCacheCardController(setSize, setLoading, setError, client)
+      const cleanup = new DiskCacheCardController(setSize, setStatus, setLoading, setError, client)
         .buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -36,7 +37,7 @@ describe('DiskCacheCardController', function() {
           Promise.resolve(mockFetchJson({ size: 256 })),
         );
 
-        const cleanup = new DiskCacheCardController(setSize, setLoading, setError, client)
+        const cleanup = new DiskCacheCardController(setSize, setStatus, setLoading, setError, client)
           .buildEffect()();
 
         await Promise.resolve();
@@ -71,7 +72,7 @@ describe('DiskCacheCardController', function() {
           Promise.resolve(mockFetchJson({ size: 512 })),
         );
 
-        const cleanup = new DiskCacheCardController(setSize, setLoading, setError, client)
+        const cleanup = new DiskCacheCardController(setSize, setStatus, setLoading, setError, client)
           .buildEffect()();
 
         await Promise.resolve();
@@ -98,7 +99,7 @@ describe('DiskCacheCardController', function() {
     it('does not update state after unmount', async function() {
       client.fetchDiskCacheSize.and.returnValue(Promise.resolve(mockFetchJson({ size: 128 })));
 
-      const cleanup = new DiskCacheCardController(setSize, setLoading, setError, client)
+      const cleanup = new DiskCacheCardController(setSize, setStatus, setLoading, setError, client)
         .buildEffect()();
       cleanup();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -113,7 +114,7 @@ describe('DiskCacheCardController', function() {
       try {
         client.fetchDiskCacheSize.and.returnValue(Promise.reject(new Error('network error')));
 
-        const cleanup = new DiskCacheCardController(setSize, setLoading, setError, client)
+        const cleanup = new DiskCacheCardController(setSize, setStatus, setLoading, setError, client)
           .buildEffect()();
 
         await Promise.resolve();
