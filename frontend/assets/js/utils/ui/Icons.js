@@ -53,4 +53,7 @@ export default {
   arrowsExpand: 'bi-arrows-expand',
   arrowsCollapse: 'bi-arrows-collapse',
   questionCircleFill: 'bi-question-circle-fill',
+  caretUpSquareFill: 'bi-caret-up-square-fill',
+  caretDownSquareFill: 'bi-caret-down-square-fill',
+  personX: 'bi-person-x',
 };

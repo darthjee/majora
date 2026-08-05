@@ -32,7 +32,6 @@ class CharacterItem(models.Model):
         """Metadata for the CharacterItem model."""
 
         ordering = ['id']
-        unique_together = [('character', 'game_item')]
 
     def __str__(self):
         """Return string representation of the character item."""

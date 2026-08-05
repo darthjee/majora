@@ -81,11 +81,9 @@ def character_item_acquire(request, game, character, allow_hidden=False):
     if hidden is None:
         hidden = game_item.hidden
 
-    character_item, created = CharacterItem.objects.get_or_create(
-        character=character, game_item=game_item, defaults={'hidden': hidden},
+    character_item = CharacterItem.objects.create(
+        character=character, game_item=game_item, hidden=hidden,
     )
-    if not created:
-        return Response({'errors': {'game_item_id': ['already owned']}}, status=400)
 
     return Response(CharacterItemDetailFullSerializer(character_item).data, status=201)
 

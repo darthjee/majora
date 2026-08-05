@@ -6,6 +6,10 @@ import PhotoUploadModalHelper
   from '../../../../../../../assets/js/components/common/modals/helpers/PhotoUploadModalHelper.jsx';
 import PhotoUploadModalController
   from '../../../../../../../assets/js/components/common/modals/controllers/PhotoUploadModalController.js';
+import GiveItemModalHelper
+  from '../../../../../../../assets/js/components/resources/item/pages/elements/helpers/GiveItemModalHelper.jsx';
+import GiveItemModalController
+  from '../../../../../../../assets/js/components/resources/item/pages/elements/controllers/GiveItemModalController.js';
 import RequestStore from '../../../../../../../assets/js/utils/requests/RequestStore.js';
 import AuthStorage from '../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
@@ -86,13 +90,17 @@ describe('GameItem', function() {
     let capturedCanEdit;
     let capturedCanUploadPhoto;
     let capturedOnUploadClick;
-    spyOn(ItemDetailHelper, 'render').and.callFake((item, backHref, editHref, canEdit, canUploadPhoto, onUploadClick) => {
+    let capturedOnGiveItemClick;
+    spyOn(ItemDetailHelper, 'render').and.callFake((
+      item, backHref, editHref, canEdit, canUploadPhoto, onUploadClick, onGiveItemClick,
+    ) => {
       capturedItem = item;
       capturedBackHref = backHref;
       capturedEditHref = editHref;
       capturedCanEdit = canEdit;
       capturedCanUploadPhoto = canUploadPhoto;
       capturedOnUploadClick = onUploadClick;
+      capturedOnGiveItemClick = onGiveItemClick;
       return null;
     });
 
@@ -104,6 +112,7 @@ describe('GameItem', function() {
     expect(capturedCanEdit).toBe(true);
     expect(capturedCanUploadPhoto).toBe(true);
     expect(typeof capturedOnUploadClick).toBe('function');
+    expect(typeof capturedOnGiveItemClick).toBe('function');
   });
 
   it('passes canEdit=false and canUploadPhoto=false through when the controller denies them', function() {
@@ -222,6 +231,66 @@ describe('GameItem', function() {
         capturedHandlers.onCancel();
       }).not.toThrow();
       expect(buildEffectSpy.calls.count()).toBe(callsBefore);
+    });
+  });
+
+  describe('give-item modal', function() {
+    it('is shown once the give-item button handler is invoked', function() {
+      let capturedOnGiveItemClick;
+      spyOn(ItemDetailHelper, 'render').and.callFake((
+        item, backHref, editHref, canEdit, canUploadPhoto, onUploadClick, onGiveItemClick,
+      ) => {
+        capturedOnGiveItemClick = onGiveItemClick;
+        return null;
+      });
+      let capturedShow;
+      spyOn(GiveItemModalHelper, 'render').and.callFake((show) => {
+        capturedShow = show;
+        return null;
+      });
+
+      renderToStaticMarkup(React.createElement(GameItem, { ControllerClass: LoadedController }));
+
+      expect(capturedShow).toBe(false);
+      expect(() => capturedOnGiveItemClick()).not.toThrow();
+    });
+
+    it('wires the modal to the loaded item, game slug, and canEdit gating', async function() {
+      spyOn(ItemDetailHelper, 'render').and.returnValue(null);
+      let capturedHandlers;
+      spyOn(GiveItemModalHelper, 'render').and.callFake((show, state, handlers) => {
+        capturedHandlers = handlers;
+        return null;
+      });
+      spyOn(GiveItemModalController.prototype, 'addCharacter').and.returnValue(Promise.resolve());
+      spyOn(GiveItemModalController.prototype, 'submit').and.returnValue(Promise.resolve());
+
+      renderToStaticMarkup(React.createElement(GameItem, { ControllerClass: LoadedController }));
+
+      capturedHandlers.onSelectCharacter({ id: 3, name: 'Aria' });
+
+      expect(GiveItemModalController.prototype.addCharacter).toHaveBeenCalledWith(
+        { id: 3, name: 'Aria' }, 'pcs', 'demo', loadedItem.id, [], jasmine.any(Function),
+      );
+
+      await capturedHandlers.onSubmit();
+
+      expect(GiveItemModalController.prototype.submit).toHaveBeenCalledWith(
+        [], 'demo', loadedItem.id, false, true, jasmine.any(Object),
+      );
+    });
+
+    it('closes without throwing when onClose is invoked', function() {
+      spyOn(ItemDetailHelper, 'render').and.returnValue(null);
+      let capturedHandlers;
+      spyOn(GiveItemModalHelper, 'render').and.callFake((show, state, handlers) => {
+        capturedHandlers = handlers;
+        return null;
+      });
+
+      renderToStaticMarkup(React.createElement(GameItem, { ControllerClass: LoadedController }));
+
+      expect(() => capturedHandlers.onClose()).not.toThrow();
     });
   });
 });

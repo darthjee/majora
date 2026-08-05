@@ -437,6 +437,23 @@ item_exchange_modal:
   load_error: Falha ao carregar itens. Por favor, tente novamente.
   already_owned_error: Este item já foi adquirido.
   generic_error: Não foi possível concluir esta ação. Por favor, tente novamente.
+give_item_modal:
+  title: Dar Item
+  pc_tab: PJs
+  npc_tab: PNJs
+  search_placeholder: Buscar personagens...
+  cancel: Cancelar
+  clear: Limpar
+  submit: Enviar
+  owned_quantity_tooltip: Quantas unidades deste item o personagem já possui
+  pending_quantity_tooltip: Quantas novas unidades serão criadas para este personagem
+  increment_tooltip: Aumenta a quantidade a dar
+  decrement_tooltip: Diminui a quantidade a dar
+  remove_character_tooltip: Remove este personagem da lista
+  loading: Carregando personagens...
+  load_error: Falha ao carregar personagens. Por favor, tente novamente.
+  result_success: 'Item entregue a {{name}}.'
+  result_failure: 'Não foi possível entregar o item a {{name}}.'
 document_exchange_modal:
   title: Troca de Documento
   search_placeholder: Buscar documentos...

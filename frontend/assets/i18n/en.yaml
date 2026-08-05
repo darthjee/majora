@@ -437,6 +437,23 @@ item_exchange_modal:
   load_error: Unable to load items. Please try again.
   already_owned_error: This item is already owned.
   generic_error: Unable to complete this action. Please try again.
+give_item_modal:
+  title: Give Item
+  pc_tab: PCs
+  npc_tab: NPCs
+  search_placeholder: Search characters...
+  cancel: Cancel
+  clear: Clear
+  submit: Submit
+  owned_quantity_tooltip: How many of this item the character already owns
+  pending_quantity_tooltip: How many new copies will be created for this character
+  increment_tooltip: Increase the quantity to give
+  decrement_tooltip: Decrease the quantity to give
+  remove_character_tooltip: Remove this character from the list
+  loading: Loading characters...
+  load_error: Unable to load characters. Please try again.
+  result_success: 'Item given to {{name}}.'
+  result_failure: 'Unable to give item to {{name}}.'
 document_exchange_modal:
   title: Document Exchange
   search_placeholder: Search documents...

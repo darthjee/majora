@@ -69,6 +69,11 @@
  *   character-owned kinds only (`kind: 'pcs'|'npcs'`). Params: `gameSlug`, `kind`, `id`. `private`
  *   is the DM/admin-only endpoint accepting a hidden `GameItem`/`CharacterItem`; callers pass
  *   `variantName` explicitly, so `permission` here is documentation-only.
+ *
+ *   `GET.summary` (issue #827) backs the give-item modal's receiving list: how many of a given
+ *   `GameItem` a character owns. Params: `gameSlug`, `itemId`, `kind`, `id`. `skipCache: true` on
+ *   both variants (not worth caching). See the `summary` entry's own comment below for why
+ *   `can_edit` is the correct `private`-tier permission key for both pcs and npcs.
  */
 /**
  * Build the player-facing single-`CharacterItem` path.
@@ -214,6 +219,15 @@ const characterPhotoUploadPath = ({ gameSlug, kind, id, itemId }) =>
 const acquirePath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/items/acquire.json`;
 const acquireAllPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/items/acquire/all.json`;
 
+// Per-character item-summary paths (issue #827's give-item modal). `itemId` is the `GameItem`
+// being given; `kind`/`id` identify the receiving character.
+const summaryPath = ({
+  gameSlug, itemId, kind, id,
+}) => `/games/${gameSlug}/items/${itemId}/${kind}/${id}/summary.json`;
+const summaryAllPath = ({
+  gameSlug, itemId, kind, id,
+}) => `/games/${gameSlug}/items/${itemId}/${kind}/${id}/summary/all.json`;
+
 /**
  * Build the player-facing and DM/admin-only item-remove paths (the latter also accepts a
  * hidden `CharacterItem`) — issue #844's item exchange modal.
@@ -267,6 +281,18 @@ export default {
     availableCollection: {
       regular: { path: availablePath, permission: null },
       private: { path: availableAllPath, permission: 'can_edit' },
+    },
+    // issue #827: the backend's `check_item_summary_all_permission` reuses `_check_item_create`'s
+    // `game_pc_item` `restricted.create` tier (`[staff, owner]`, plus the universal admin/dm
+    // shortcut baked into every tier check), so `/summary/all.json` already resolves to
+    // dm/admin/owner for pcs and dm/admin for npcs — exactly what the existing character-level
+    // `can_edit` field already exposes (`game_pc/ui.yml`'s `edit: [owner]` for pcs,
+    // `game_npc/ui.yml`'s `edit: []` for npcs, both plus the same admin/dm shortcut), matching the
+    // `items/all.json` precedent (`docs/agents/access-control/character-item.md`'s "`hidden`"
+    // section). No kind-based branching needed.
+    summary: {
+      regular: { path: summaryPath, permission: null, skipCache: true },
+      private: { path: summaryAllPath, permission: 'can_edit', skipCache: true },
     },
   },
   PATCH: {

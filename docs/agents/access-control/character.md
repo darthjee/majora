@@ -58,6 +58,9 @@ below).
 
 ## Filters
 
+#### `GET /games/<slug>/pcs.json`
+- `name=` (case-insensitive substring match)
+
 #### `GET /games/<slug>/npcs.json`
 - `public_allegiance=` (`ally`/`enemy`/`neutral`)
 - `public_slain=` (`true`/`false`)
