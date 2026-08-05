@@ -3,25 +3,47 @@ import GameEditController from './controllers/GameEditController.js';
 import GameEditHelper from './helpers/GameEditHelper.jsx';
 import GameHelper from './helpers/GameHelper.jsx';
 import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
+import LinksEditModal from '../../../common/modals/LinksEditModal.jsx';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
 import useFormState from '../../../../utils/useFormState.js';
 
 /**
+ * Whether the current user may reach the game edit page (full editor, any player of the game, or
+ * any Staff account), matching the same `canReachEditPage` shape already used by the character
+ * edit page (issue #891).
+ *
+ * @param {object} game - Loaded game data object.
+ * @param {boolean} [game.can_edit] - Whether the current user is a full (dm/admin) editor.
+ * @param {boolean} [game.is_player] - Whether the current user is a player of the game.
+ * @param {boolean} [game.is_staff] - Whether the current user is a Staff account.
+ * @returns {boolean} Whether the edit page is reachable for this game/user pair.
+ */
+function canReachEditPage(game) {
+  return Boolean(game.can_edit || game.is_player || game.is_staff);
+}
+
+/**
  * Game edit page.
  *
+ * @param {object} [props] - Component props.
+ * @param {Function} [props.ControllerClass] - Game edit controller class to instantiate, mainly
+ *   for tests.
  * @returns {React.ReactElement} Game edit page element.
  */
-export default function GameEdit() {
+export default function GameEdit({ ControllerClass = GameEditController }) {
   const [game, setGame] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [status, setStatus] = useState('idle');
+  const [links, setLinks] = useState([]);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showLinksModal, setShowLinksModal] = useState(false);
   const { state: fields, setField, handleChange } = useFormState({ name: '', description: '' });
 
   const controller = useMemo(
-    () => new GameEditController(setGame, setLoading, setError, setFieldErrors),
+    () => new ControllerClass(setGame, setLoading, setError, setFieldErrors),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
@@ -33,7 +55,7 @@ export default function GameEdit() {
   useEffect(() => {
     if (!game) return;
 
-    if (!game.can_edit) {
+    if (!canReachEditPage(game)) {
       if (typeof window !== 'undefined') {
         window.location.hash = `/games/${gameSlug}`;
       }
@@ -42,6 +64,7 @@ export default function GameEdit() {
 
     setField('name', game.name ?? '');
     setField('description', game.description ?? '');
+    setLinks(game.links ?? []);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game]);
 
@@ -53,7 +76,7 @@ export default function GameEdit() {
   const handleSubmit = (event) => controller.submitForm(
     event,
     gameSlug,
-    fields,
+    { ...fields, links },
     { setStatus, setFieldErrors },
   );
 
@@ -63,12 +86,20 @@ export default function GameEdit() {
   return (
     <>
       {GameEditHelper.render(
-        { ...fields, photo_path: game?.photo_path, status, fieldErrors },
+        {
+          isFullEditor: game?.can_edit,
+          ...fields,
+          photo_path: game?.photo_path,
+          links,
+          status,
+          fieldErrors,
+        },
         {
           onSubmit: handleSubmit,
           onNameChange: handleChange('name'),
           onDescriptionChange: handleChange('description'),
           onOpenUploadModal: () => setShowUploadModal(true),
+          onOpenLinksModal: () => setShowLinksModal(true),
         },
       )}
       <PhotoUploadModal
@@ -76,6 +107,15 @@ export default function GameEdit() {
         uploadPath={`/games/${gameSlug}/photo_upload.json`}
         onClose={() => setShowUploadModal(false)}
         onSuccess={handleUploadSuccess}
+      />
+      <LinksEditModal
+        show={showLinksModal}
+        links={links}
+        onClose={() => setShowLinksModal(false)}
+        onConfirm={(newLinks) => {
+          setLinks(newLinks);
+          setShowLinksModal(false);
+        }}
       />
     </>
   );

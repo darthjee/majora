@@ -32,8 +32,11 @@ export default class GameEditController extends BaseEditController {
   }
 
   /**
-   * Load the game and its access permissions.
+   * Load the game and its access identity/permissions.
    *
+   * @description Merges both `AccessStore.ensureGameAccess` (`is_player`/`is_staff`, needed to
+   *   decide whether a regular, non-full editor may reach this page at all) and
+   *   `AccessStore.ensureGamePermissions` (`can_edit`) onto the loaded game.
    * @param {Function} safeSet - Setter wrapper that ignores unmounted updates.
    * @returns {void}
    */
@@ -47,11 +50,16 @@ export default class GameEditController extends BaseEditController {
       return;
     }
 
+    const accessAndPermissions = Promise.all([
+      AccessStore.ensureGameAccess(gameSlug),
+      AccessStore.ensureGamePermissions(gameSlug),
+    ]).then(([access, permissions]) => ({ ...access, ...permissions }));
+
     this.fetchDataWithAccess(
       RequestStore.ensure({
         componentName: 'GameEditController', resource: 'game', quantityType: 'single', params: { gameSlug },
       }),
-      AccessStore.ensureGamePermissions(gameSlug),
+      accessAndPermissions,
       safeSet,
       'Unable to load game.',
     );
@@ -66,7 +74,9 @@ export default class GameEditController extends BaseEditController {
    *   error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
-   * @param {{name: string, description: string}} formValues - Raw form field values.
+   * @param {{name: string, description: string, links: object[]}} formValues - Raw form field
+   *   values. `links` is always sent; a regular (non-full) editor's `name` value is silently
+   *   dropped server-side by the regular-tier serializer, so no frontend gating is needed here.
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
@@ -83,6 +93,7 @@ export default class GameEditController extends BaseEditController {
         body: {
           name: formValues.name,
           description: formValues.description,
+          links: formValues.links,
         },
       }),
       `/games/${gameSlug}`,
