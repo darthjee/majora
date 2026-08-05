@@ -132,6 +132,7 @@ class CacheSizeHandlerTest extends TestCase
 
         $this->assertSame(200, $response->httpCode());
         $this->assertSame(['size' => 35], json_decode($response->body(), true));
+        $this->assertSame(['Content-Type: application/json'], $response->headers());
     }
 
     /**
