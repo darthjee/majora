@@ -7,6 +7,8 @@ use RecursiveIteratorIterator;
 use SplFileInfo;
 use Tent\Http\CurlHttpClient;
 use Tent\Http\HttpClientInterface;
+use Tent\Middlewares\RenameHeaderMiddleware;
+use Tent\Middlewares\SetHeadersMiddleware;
 use Tent\Models\RequestInterface;
 use Tent\Models\Response;
 
@@ -51,6 +53,11 @@ class CacheSizeHandler extends RequestHandler
         $this->host = $host;
         $this->httpClient = ($httpClient ?? new CurlHttpClient());
         $this->cachePath = $cachePath;
+
+        // See DeleteHandler/UploadHandler for why the Host header must be
+        // rewritten before forwarding to the backend.
+        $this->addMiddleware(new RenameHeaderMiddleware('Host', 'X-Forwarded-Host'));
+        $this->addMiddleware(new SetHeadersMiddleware(['Host' => $this->backendHost()]));
     }
 
     /**
@@ -163,5 +170,16 @@ class CacheSizeHandler extends RequestHandler
         }
 
         return $size;
+    }
+
+    /**
+     * Derives the bare host (no scheme, no trailing path) the backend
+     * actually expects in the Host header.
+     *
+     * @return string The backend host, e.g. 'moria-api.ffavs.net'.
+     */
+    private function backendHost(): string
+    {
+        return (parse_url($this->host, PHP_URL_HOST) ?? $this->host);
     }
 }
