@@ -2,6 +2,8 @@ import SellTreasureTabHelper
   from '../../../../../../../../../../../assets/js/components/resources/character/pages/elements/tabs/helpers/SellTreasureTabHelper.jsx';
 import ExchangeDetailPane
   from '../../../../../../../../../../../assets/js/components/resources/character/pages/elements/tabs/shared/ExchangeDetailPane.jsx';
+import TwoColumnLayout
+  from '../../../../../../../../../../../assets/js/components/common/layout/TwoColumnLayout.jsx';
 import { buildHandlers, buildState, findElement } from './support.js';
 
 describe('SellTreasureTabHelper', function() {
@@ -16,8 +18,9 @@ describe('SellTreasureTabHelper', function() {
           selected, browse: { items: [selected], page: 1, pages: 1, loading: false, error: '' },
         });
         const element = SellTreasureTabHelper.render(state, buildHandlers());
+        const layout = findElement(element, (node) => node.type === TwoColumnLayout);
 
-        expect(JSON.stringify(element)).toContain('row');
+        expect(layout.props.detailPane).not.toBeNull();
         expect(JSON.stringify(element)).toContain('Golden Crown');
       });
 
