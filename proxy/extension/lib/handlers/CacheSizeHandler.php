@@ -5,10 +5,7 @@ namespace Tent\RequestHandlers;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
-use Tent\Http\CurlHttpClient;
 use Tent\Http\HttpClientInterface;
-use Tent\Middlewares\RenameHeaderMiddleware;
-use Tent\Middlewares\SetHeadersMiddleware;
 use Tent\Models\RequestInterface;
 use Tent\Models\Response;
 
@@ -31,11 +28,8 @@ use Tent\Models\Response;
  */
 class CacheSizeHandler extends RequestHandler
 {
-    /** @var string Backend host URL (e.g. http://backend:8080) */
-    private string $host;
-
-    /** @var HttpClientInterface HTTP client used for backend calls */
-    private HttpClientInterface $httpClient;
+    /** @var BackendClient Client used for backend calls. */
+    private BackendClient $client;
 
     /** @var string Path to the proxy's on-disk cache folder */
     private string $cachePath;
@@ -50,14 +44,8 @@ class CacheSizeHandler extends RequestHandler
         ?HttpClientInterface $httpClient = null,
         string $cachePath = ''
     ) {
-        $this->host = $host;
-        $this->httpClient = ($httpClient ?? new CurlHttpClient());
+        $this->client = new BackendClient($host, $httpClient);
         $this->cachePath = $cachePath;
-
-        // See DeleteHandler/UploadHandler for why the Host header must be
-        // rewritten before forwarding to the backend.
-        $this->addMiddleware(new RenameHeaderMiddleware('Host', 'X-Forwarded-Host'));
-        $this->addMiddleware(new SetHeadersMiddleware(['Host' => $this->backendHost()]));
     }
 
     /**
@@ -90,9 +78,7 @@ class CacheSizeHandler extends RequestHandler
     protected function processsRequest(RequestInterface $request): Response
     {
         try {
-            $headers = ForwardedHeaderFilter::filter($request->headers());
-
-            $this->requireStaffAccess($headers);
+            $this->requireStaffAccess($request->headers());
 
             $size = $this->cacheSize();
         } catch (BackendErrorException $e) {
@@ -110,7 +96,7 @@ class CacheSizeHandler extends RequestHandler
      * Calls the backend's users/status.json endpoint and ensures the caller
      * is logged in and is either staff or a superuser.
      *
-     * @param array $headers Headers to forward to the backend.
+     * @param array $headers Raw, unfiltered incoming request headers.
      * @return void
      * @throws BackendErrorException When the backend call itself fails
      *                                (forwarded as-is), or the caller isn't
@@ -118,7 +104,7 @@ class CacheSizeHandler extends RequestHandler
      */
     private function requireStaffAccess(array $headers): void
     {
-        $result = $this->httpClient->request('GET', $this->statusUrl(), $headers);
+        $result = $this->client->request('GET', '/users/status.json', $headers);
 
         if ($result['httpCode'] !== 200) {
             throw new BackendErrorException($result['httpCode'], $result['body']);
@@ -133,16 +119,6 @@ class CacheSizeHandler extends RequestHandler
         if (!$loggedIn || (!$isStaff && !$isSuperuser)) {
             throw new BackendErrorException(403, '{"error":"Forbidden"}');
         }
-    }
-
-    /**
-     * Builds the GET .../users/status.json backend URL.
-     *
-     * @return string
-     */
-    private function statusUrl(): string
-    {
-        return $this->host . '/users/status.json';
     }
 
     /**
@@ -170,16 +146,5 @@ class CacheSizeHandler extends RequestHandler
         }
 
         return $size;
-    }
-
-    /**
-     * Derives the bare host (no scheme, no trailing path) the backend
-     * actually expects in the Host header.
-     *
-     * @return string The backend host, e.g. 'moria-api.ffavs.net'.
-     */
-    private function backendHost(): string
-    {
-        return (parse_url($this->host, PHP_URL_HOST) ?? $this->host);
     }
 }

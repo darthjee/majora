@@ -3,10 +3,7 @@
 namespace Tent\RequestHandlers;
 
 use InvalidArgumentException;
-use Tent\Http\CurlHttpClient;
 use Tent\Http\HttpClientInterface;
-use Tent\Middlewares\RenameHeaderMiddleware;
-use Tent\Middlewares\SetHeadersMiddleware;
 use Tent\Models\RequestInterface;
 use Tent\Models\Response;
 
@@ -24,11 +21,8 @@ use Tent\Models\Response;
  */
 class DeleteHandler extends RequestHandler
 {
-    /** @var string Backend host URL (e.g. http://backend:8080) */
-    private string $host;
-
-    /** @var HttpClientInterface HTTP client used for backend calls */
-    private HttpClientInterface $httpClient;
+    /** @var BackendClient Client used for backend calls. */
+    private BackendClient $client;
 
     /** @var string Base path photos are stored under */
     private string $photosBasePath;
@@ -46,15 +40,9 @@ class DeleteHandler extends RequestHandler
         ?HttpClientInterface $httpClient = null,
         string $photosBasePath = ''
     ) {
-        $this->host = $host;
-        $this->httpClient = ($httpClient ?? new CurlHttpClient());
+        $this->client = new BackendClient($host, $httpClient);
         $this->photosBasePath = $photosBasePath;
         $this->photoStorage = new SecurePhotoStorage($photosBasePath);
-
-        // See UploadHandler for why the Host header must be rewritten before
-        // forwarding to the backend.
-        $this->addMiddleware(new RenameHeaderMiddleware('Host', 'X-Forwarded-Host'));
-        $this->addMiddleware(new SetHeadersMiddleware(['Host' => $this->backendHost()]));
     }
 
     /**
@@ -90,13 +78,13 @@ class DeleteHandler extends RequestHandler
     {
         try {
             $identifiers = $this->extractPathIdentifiers($request);
-            $headers     = ForwardedHeaderFilter::filter($request->headers());
+            $headers     = $request->headers();
 
             $path = $this->requestDeletablePath($identifiers, $headers);
 
             $this->photoStorage->deleteFile($path);
 
-            $result = $this->httpClient->request('DELETE', $this->deleteUrl($identifiers), $headers);
+            $result = $this->client->request('DELETE', $this->deleteUrl($identifiers), $headers);
         } catch (BackendErrorException $e) {
             return new Response(['httpCode' => $e->httpCode(), 'body' => $e->body()]);
         } catch (InvalidArgumentException $e) {
@@ -140,14 +128,14 @@ class DeleteHandler extends RequestHandler
      * file path when the photo is deletable.
      *
      * @param array $identifiers As returned by extractPathIdentifiers().
-     * @param array $headers    Headers to forward to the backend.
+     * @param array $headers    Raw, unfiltered incoming request headers.
      * @return string The 'path' value from the backend's response body.
      * @throws BackendErrorException When the backend call fails, or the
      *                                response doesn't include a path.
      */
     private function requestDeletablePath(array $identifiers, array $headers): string
     {
-        $result = $this->httpClient->request('GET', $this->deletableUrl($identifiers), $headers);
+        $result = $this->client->request('GET', $this->deletableUrl($identifiers), $headers);
 
         if ($result['httpCode'] !== 200) {
             throw new BackendErrorException($result['httpCode'], $result['body']);
@@ -163,39 +151,28 @@ class DeleteHandler extends RequestHandler
     }
 
     /**
-     * Builds the GET .../photos/:photo_id/deletable.json backend URL.
+     * Builds the GET .../photos/:photo_id/deletable.json backend path.
      *
      * @param array $identifiers As returned by extractPathIdentifiers().
      * @return string
      */
     private function deletableUrl(array $identifiers): string
     {
-        return $this->host . '/games/' . $identifiers['game_slug']
+        return '/games/' . $identifiers['game_slug']
             . '/' . $identifiers['kind'] . '/' . $identifiers['character_id']
             . '/photos/' . $identifiers['photo_id'] . '/deletable.json';
     }
 
     /**
-     * Builds the DELETE .../photos/:photo_id.json backend URL.
+     * Builds the DELETE .../photos/:photo_id.json backend path.
      *
      * @param array $identifiers As returned by extractPathIdentifiers().
      * @return string
      */
     private function deleteUrl(array $identifiers): string
     {
-        return $this->host . '/games/' . $identifiers['game_slug']
+        return '/games/' . $identifiers['game_slug']
             . '/' . $identifiers['kind'] . '/' . $identifiers['character_id']
             . '/photos/' . $identifiers['photo_id'] . '.json';
-    }
-
-    /**
-     * Derives the bare host (no scheme, no trailing path) the backend
-     * actually expects in the Host header.
-     *
-     * @return string The backend host, e.g. 'moria-api.ffavs.net'.
-     */
-    private function backendHost(): string
-    {
-        return (parse_url($this->host, PHP_URL_HOST) ?? $this->host);
     }
 }

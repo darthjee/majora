@@ -19,6 +19,7 @@ require_once __DIR__ . '/lib/support/PathTraversalGuard.php';
 require_once __DIR__ . '/lib/support/SecurePhotoStorage.php';
 require_once __DIR__ . '/lib/support/CachePathSanitizer.php';
 require_once __DIR__ . '/lib/support/ForwardedHeaderFilter.php';
+require_once __DIR__ . '/lib/support/BackendClient.php';
 require_once __DIR__ . '/lib/support/UploadFilenameValidator.php';
 require_once __DIR__ . '/lib/handlers/UploadHandler.php';
 require_once __DIR__ . '/lib/handlers/DeleteHandler.php';
