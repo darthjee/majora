@@ -25,6 +25,11 @@ const RESOLVERS = {
     // this into branching on `kind` like `collection`/`single` do; that would incorrectly grant
     // an owning player elevated catalog access.
     availableCollection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+    // issue #827: resolved character-level, mirroring `single`/`collection`'s own character-kind
+    // branch — the `summary` config entry's `private` permission key is `null` for `kind: 'pcs'`
+    // (a known, flagged gap; see `itemConfig.js`'s own comment), so in practice this resolver's
+    // result is only ever consulted for `kind: 'npcs'` today.
+    summary: ({ gameSlug, kind, id }) => AccessStore.ensureCharacterPermissions(kind, gameSlug, id),
   },
   treasure: {
     collection: ({ gameSlug, kind }) => (

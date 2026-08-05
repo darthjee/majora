@@ -69,6 +69,11 @@
  *   character-owned kinds only (`kind: 'pcs'|'npcs'`). Params: `gameSlug`, `kind`, `id`. `private`
  *   is the DM/admin-only endpoint accepting a hidden `GameItem`/`CharacterItem`; callers pass
  *   `variantName` explicitly, so `permission` here is documentation-only.
+ *
+ *   `GET.summary` (issue #827) backs the give-item modal's receiving list: how many of a given
+ *   `GameItem` a character owns. Params: `gameSlug`, `itemId`, `kind`, `id`. `skipCache: true` on
+ *   both variants (not worth caching). See the `summary` entry's own comment below for the
+ *   pc-owner `private`-tier gap.
  */
 /**
  * Build the player-facing single-`CharacterItem` path.
@@ -214,6 +219,15 @@ const characterPhotoUploadPath = ({ gameSlug, kind, id, itemId }) =>
 const acquirePath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/items/acquire.json`;
 const acquireAllPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/items/acquire/all.json`;
 
+// Per-character item-summary paths (issue #827's give-item modal). `itemId` is the `GameItem`
+// being given; `kind`/`id` identify the receiving character.
+const summaryPath = ({
+  gameSlug, itemId, kind, id,
+}) => `/games/${gameSlug}/items/${itemId}/${kind}/${id}/summary.json`;
+const summaryAllPath = ({
+  gameSlug, itemId, kind, id,
+}) => `/games/${gameSlug}/items/${itemId}/${kind}/${id}/summary/all.json`;
+
 /**
  * Build the player-facing and DM/admin-only item-remove paths (the latter also accepts a
  * hidden `CharacterItem`) — issue #844's item exchange modal.
@@ -267,6 +281,20 @@ export default {
     availableCollection: {
       regular: { path: availablePath, permission: null },
       private: { path: availableAllPath, permission: 'can_edit' },
+    },
+    // issue #827: the pc `private` permission mirrors `treasureConfig.js`'s own
+    // `kind === 'npcs' ? 'can_edit' : null` pattern. Per `resolveVariant.js`, a `null` permission
+    // key never selects `private`, so a PC's owning player never reaches `/summary/all.json`
+    // today, despite the backend tier being "dm/admin/owner" — a known, flagged gap (frontend
+    // plan Notes), not fixed here with new client logic; the owner falls back to the regular
+    // (hidden-`CharacterItem`-excluding) summary instead, a safe degradation.
+    summary: {
+      regular: { path: summaryPath, permission: null, skipCache: true },
+      private: {
+        path: summaryAllPath,
+        permission: (params) => (params.kind === 'npcs' ? 'can_edit' : null),
+        skipCache: true,
+      },
     },
   },
   PATCH: {

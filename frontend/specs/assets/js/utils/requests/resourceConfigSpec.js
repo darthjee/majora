@@ -165,6 +165,33 @@ describe('resourceConfig', function() {
         .toBe('/games/demo/npcs/3/items/available/all.json');
       expect(availableCollection.private.permission).toBe('can_edit');
     });
+
+    it('resolves summary regular/private paths for an npc (issue #827)', function() {
+      const summary = resourceConfig.get('GET', 'item', 'summary');
+
+      expect(summary.regular.path({
+        gameSlug: 'demo', itemId: '9', kind: 'npcs', id: '3',
+      })).toBe('/games/demo/items/9/npcs/3/summary.json');
+      expect(summary.regular.permission).toBeNull();
+      expect(summary.regular.skipCache).toBe(true);
+      expect(summary.private.path({
+        gameSlug: 'demo', itemId: '9', kind: 'npcs', id: '3',
+      })).toBe('/games/demo/items/9/npcs/3/summary/all.json');
+      expect(summary.private.permission({ kind: 'npcs' })).toBe('can_edit');
+      expect(summary.private.skipCache).toBe(true);
+    });
+
+    it('resolves summary paths for a pc, with a null private permission (issue #827)', function() {
+      const summary = resourceConfig.get('GET', 'item', 'summary');
+
+      expect(summary.regular.path({
+        gameSlug: 'demo', itemId: '9', kind: 'pcs', id: '3',
+      })).toBe('/games/demo/items/9/pcs/3/summary.json');
+      expect(summary.private.path({
+        gameSlug: 'demo', itemId: '9', kind: 'pcs', id: '3',
+      })).toBe('/games/demo/items/9/pcs/3/summary/all.json');
+      expect(summary.private.permission({ kind: 'pcs' })).toBeNull();
+    });
   });
 
   describe('treasure', function() {

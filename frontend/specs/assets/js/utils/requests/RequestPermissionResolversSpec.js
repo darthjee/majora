@@ -43,6 +43,16 @@ describe('RequestPermissionResolvers', function() {
       expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('pcs', 'demo', '3');
     });
 
+    it('resolves character-level permissions for item summary, for either kind (issue #827)', function() {
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+      RequestPermissionResolvers.resolve('item', 'summary', { gameSlug: 'demo', kind: 'npcs', id: '3' });
+      RequestPermissionResolvers.resolve('item', 'summary', { gameSlug: 'demo', kind: 'pcs', id: '3' });
+
+      expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('npcs', 'demo', '3');
+      expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('pcs', 'demo', '3');
+    });
+
     it('resolves game-level permissions for item single with the game kind (GameItem)', function() {
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
