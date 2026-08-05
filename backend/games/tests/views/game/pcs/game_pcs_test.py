@@ -92,3 +92,30 @@ class TestGamePcsView:
         response = client.get(self._url())
         data = json.loads(response.content)
         assert data[0]['treasure_value'] == 200
+
+
+@pytest.mark.django_db
+class TestGamePcsFilter:
+    """Tests that game_pcs supports filtering by the name param."""
+
+    def setup_method(self):
+        """Set up common test fixtures."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+
+    def _names(self, response):
+        """Return the list of character names from a JSON response."""
+        return [item['name'] for item in json.loads(response.content)]
+
+    def test_name_filter_matches_case_insensitively(self, client):
+        """Test that name filters case-insensitively, anywhere in the name."""
+        CharacterFactory(name='Sir Hero', game=self.game, npc=False)
+        CharacterFactory(name='Villain', game=self.game, npc=False)
+        response = client.get('/games/test-game/pcs.json?name=hero')
+        assert self._names(response) == ['Sir Hero']
+
+    def test_no_filter_params_preserves_current_behavior(self, client):
+        """Test that omitting the name param returns the unfiltered PC list."""
+        CharacterFactory(name='Sir Hero', game=self.game, npc=False)
+        CharacterFactory(name='Villain', game=self.game, npc=False)
+        response = client.get('/games/test-game/pcs.json')
+        assert sorted(self._names(response)) == ['Sir Hero', 'Villain']
