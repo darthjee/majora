@@ -104,6 +104,7 @@ class BackendClient
         $headers = $this->withoutHeader($headers, 'Host');
         $headers['Host'] = $this->backendHost();
 
+        $headers = $this->withoutHeader($headers, 'X-Forwarded-Host');
         if ($originalHost !== null) {
             $headers['X-Forwarded-Host'] = $originalHost;
         }

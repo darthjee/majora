@@ -209,6 +209,36 @@ class BackendClientTest extends TestCase
         $client->request('GET', '/users/status.json', ['Authorization' => 'Bearer tok']);
     }
 
+    /**
+     * A client-supplied X-Forwarded-Host header (regardless of casing) must
+     * never survive into the outgoing request — only the server-computed
+     * value (derived from the incoming Host) is forwarded.
+     */
+    public function testRequestDiscardsClientSuppliedForwardedHost(): void
+    {
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $client     = new BackendClient('http://backend:8080', $httpClient);
+
+        $httpClient->expects($this->once())
+            ->method('request')
+            ->with(
+                'GET',
+                'http://backend:8080/users/status.json',
+                [
+                    'Host'             => 'backend',
+                    'X-Forwarded-Host' => 'majora.example.com',
+                    'Accept-Encoding'  => 'gzip',
+                ],
+                null
+            )
+            ->willReturn(['httpCode' => 200, 'body' => '{}', 'headers' => []]);
+
+        $client->request('GET', '/users/status.json', [
+            'Host'             => 'majora.example.com',
+            'x-forwarded-host' => 'evil.com',
+        ]);
+    }
+
     // -------------------------------------------------------------------------
     // request() - overrideHeaders
     // -------------------------------------------------------------------------
