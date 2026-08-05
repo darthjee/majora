@@ -43,5 +43,19 @@ export const findElement = (node, matcher) => {
     return node;
   }
 
-  return findElement(node.props?.children, matcher);
+  if (!node.props) {
+    return null;
+  }
+
+  // Walks every prop value (not just `children`), so elements passed through named props (e.g.
+  // `TwoColumnLayout`'s `browsePane`/`detailPane`) are still reachable.
+  for (const value of Object.values(node.props)) {
+    const match = findElement(value, matcher);
+
+    if (match) {
+      return match;
+    }
+  }
+
+  return null;
 };

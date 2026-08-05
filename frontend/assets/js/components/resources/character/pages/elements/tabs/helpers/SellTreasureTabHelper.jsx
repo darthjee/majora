@@ -1,5 +1,6 @@
 import TreasureMoney from '../../../../../../common/misc/TreasureMoney.jsx';
 import BrowsePager from '../../../../../../common/pagination/BrowsePager.jsx';
+import TwoColumnLayout from '../../../../../../common/layout/TwoColumnLayout.jsx';
 import Translator from '../../../../../../../i18n/Translator.js';
 import ExchangeDetailPane from '../shared/ExchangeDetailPane.jsx';
 
@@ -28,28 +29,30 @@ export default class SellTreasureTabHelper {
   static render(state, handlers) {
     const { selected } = state;
 
-    if (!selected) {
-      return SellTreasureTabHelper.#renderBrowsePane(state, handlers);
-    }
+    return (
+      <TwoColumnLayout
+        browsePane={SellTreasureTabHelper.#renderBrowsePane(state, handlers)}
+        detailPane={selected ? SellTreasureTabHelper.#renderDetailPane(state, handlers) : null}
+      />
+    );
+  }
+
+  static #renderDetailPane(state, handlers) {
+    const { selected } = state;
 
     return (
-      <div className="row">
-        <div className="col-6">{SellTreasureTabHelper.#renderBrowsePane(state, handlers)}</div>
-        <div className="col-6">
-          <ExchangeDetailPane
-            selected={selected}
-            quantity={state.quantity}
-            owned={selected.quantity}
-            maxQuantity={selected.quantity}
-            submitting={state.submitting}
-            actionError={state.actionError}
-            gameType={state.gameType}
-            onQuantityChange={handlers.onQuantityChange}
-            onConfirm={handlers.onConfirm}
-            onCancel={handlers.onCancel}
-          />
-        </div>
-      </div>
+      <ExchangeDetailPane
+        selected={selected}
+        quantity={state.quantity}
+        owned={selected.quantity}
+        maxQuantity={selected.quantity}
+        submitting={state.submitting}
+        actionError={state.actionError}
+        gameType={state.gameType}
+        onQuantityChange={handlers.onQuantityChange}
+        onConfirm={handlers.onConfirm}
+        onCancel={handlers.onCancel}
+      />
     );
   }
 

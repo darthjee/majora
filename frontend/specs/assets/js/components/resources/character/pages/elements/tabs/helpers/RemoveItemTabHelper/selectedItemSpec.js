@@ -2,6 +2,8 @@ import RemoveItemTabHelper
   from '../../../../../../../../../../../assets/js/components/resources/character/pages/elements/tabs/helpers/RemoveItemTabHelper.jsx';
 import CardItemImage
   from '../../../../../../../../../../../assets/js/components/common/cards/CardItemImage.jsx';
+import TwoColumnLayout
+  from '../../../../../../../../../../../assets/js/components/common/layout/TwoColumnLayout.jsx';
 import { buildHandlers, buildState, findElement } from './support.js';
 
 describe('RemoveItemTabHelper', function() {
@@ -14,8 +16,9 @@ describe('RemoveItemTabHelper', function() {
           selected, browse: { items: [selected], page: 1, pages: 1, loading: false, error: '' },
         });
         const element = RemoveItemTabHelper.render(state, buildHandlers());
+        const layout = findElement(element, (node) => node.type === TwoColumnLayout);
 
-        expect(JSON.stringify(element)).toContain('row');
+        expect(layout.props.detailPane).not.toBeNull();
         expect(JSON.stringify(element)).toContain('Sting');
       });
 
