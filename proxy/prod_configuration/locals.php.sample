@@ -5,3 +5,11 @@ $photosPath = '/var/www/html';
 $filesPath = '/var/www/html';
 $staticRoot = '/home/moria_user/moria.ffavs.net';
 $cacheFolder = './cache';
+
+// Domains that get their own dedicated cache for GET /games.json, keyed by
+// domain instead of sharing the generic `.json` catch-all cache in
+// rules/backend.php (keyed by URI only). See rules/games.php.
+$gamesJsonCacheDomains = [
+    'game-a.example.com',
+    'game-b.example.com',
+];
