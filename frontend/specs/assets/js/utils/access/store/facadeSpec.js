@@ -81,6 +81,7 @@ describe('AccessStore', function() {
     });
 
     it('threads the simulated roles (plus "logged") into the next #ensureGamePermissions fetch', async function() {
+      spyOn(GameClient.prototype, 'fetchGameAccess').and.returnValue(Promise.resolve(fakeResponse({})));
       const fetchSpy = spyOn(GameClient.prototype, 'fetchGamePermissions').and.returnValue(
         Promise.resolve(fakeResponse({ can_edit: true })),
       );
@@ -93,6 +94,7 @@ describe('AccessStore', function() {
     });
 
     it('sends an empty role set into the next #ensureGamePermissions fetch when "Not Logged" is on', async function() {
+      spyOn(GameClient.prototype, 'fetchGameAccess').and.returnValue(Promise.resolve(fakeResponse({})));
       const fetchSpy = spyOn(GameClient.prototype, 'fetchGamePermissions').and.returnValue(
         Promise.resolve(fakeResponse({ can_edit: false })),
       );

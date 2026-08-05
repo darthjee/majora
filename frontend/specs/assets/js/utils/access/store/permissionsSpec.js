@@ -19,6 +19,7 @@ describe('AccessStore', function() {
 
   describe('#ensureGamePermissions', function() {
     it('resolves with the fetched permissions payload and emits an event', async function() {
+      spyOn(GameClient.prototype, 'fetchGameAccess').and.returnValue(Promise.resolve(fakeResponse({})));
       const fetchSpy = spyOn(GameClient.prototype, 'fetchGamePermissions').and.returnValue(
         Promise.resolve(fakeResponse({ can_edit: true })),
       );
@@ -32,6 +33,7 @@ describe('AccessStore', function() {
     });
 
     it('resolves with the fail-closed default when the request throws', async function() {
+      spyOn(GameClient.prototype, 'fetchGameAccess').and.returnValue(Promise.resolve(fakeResponse({})));
       spyOn(GameClient.prototype, 'fetchGamePermissions').and.returnValue(
         Promise.reject(new Error('network error')),
       );
@@ -58,6 +60,7 @@ describe('AccessStore', function() {
     });
 
     it('caches distinct role sets (e.g. real vs. facade-simulated) under distinct keys, without colliding', async function() {
+      spyOn(GameClient.prototype, 'fetchGameAccess').and.returnValue(Promise.resolve(fakeResponse({})));
       const fetchSpy = spyOn(GameClient.prototype, 'fetchGamePermissions').and.callFake(
         (slug, token, signal, roles) => Promise.resolve(fakeResponse({ can_edit: roles.includes('dm') })),
       );
@@ -81,6 +84,7 @@ describe('AccessStore', function() {
 
   describe('#ensureCharacterPermissions', function() {
     it('resolves with the fetched permissions payload, keyed by kind/game/character/roles', async function() {
+      spyOn(CharacterClient.prototype, 'fetchCharacterAccess').and.returnValue(Promise.resolve(fakeResponse({})));
       spyOn(CharacterClient.prototype, 'fetchCharacterPermissions').and.returnValue(
         Promise.resolve(fakeResponse({ can_edit: true })),
       );
@@ -95,6 +99,7 @@ describe('AccessStore', function() {
 
   describe('#ensureTreasurePermissions', function() {
     it('resolves with the fetched permissions payload', async function() {
+      spyOn(TreasureClient.prototype, 'fetchTreasureAccess').and.returnValue(Promise.resolve(fakeResponse({})));
       spyOn(TreasureClient.prototype, 'fetchTreasurePermissions').and.returnValue(
         Promise.resolve(fakeResponse({ can_edit: true })),
       );
