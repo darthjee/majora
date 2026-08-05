@@ -18,6 +18,7 @@ the YAML can't express.
 | Rule | Permission class | Beyond baseline |
 |------|------|------|
 | **GameEdit** | `GameEditPermission` | — ([`game/endpoints.yml`](../../../backend/games/permissions/config/game/endpoints.yml)'s `restricted.edit`) |
+| **GameRegularEdit** | (config-driven via `EndpointPermission`) | Staff + AnyPlayer — narrow `description`/`links`-only `PATCH /games/<slug>.json` tier, `name` silently dropped if sent ([`game/endpoints.yml`](../../../backend/games/permissions/config/game/endpoints.yml)'s `regular.regular_edit`) |
 | **CharacterEdit** | `CharacterEditPermission` | The character's own player (`Character.player.user`), PC only — [`game_pc/endpoints.yml`](../../../backend/games/permissions/config/game_pc/endpoints.yml) / [`game_npc/endpoints.yml`](../../../backend/games/permissions/config/game_npc/endpoints.yml)'s `restricted.edit` |
 | **NpcPlayerEdit** | `NpcPlayerEditPermission` | CharacterEdit + AnyPlayer — NPC routes only ([`game_npc/endpoints.yml`](../../../backend/games/permissions/config/game_npc/endpoints.yml)'s `regular.player_edit`) |
 | **CharacterPhotoUpload** | `CharacterPhotoUploadPermission` | NpcPlayerEdit + Staff — PC/NPC upload init/finalize, and "set as profile photo" ([`game_pc/endpoints.yml`](../../../backend/games/permissions/config/game_pc/endpoints.yml) / [`game_npc/endpoints.yml`](../../../backend/games/permissions/config/game_npc/endpoints.yml)'s `regular.photo_upload`) |
