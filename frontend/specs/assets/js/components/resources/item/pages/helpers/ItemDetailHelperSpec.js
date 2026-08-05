@@ -108,6 +108,26 @@ describe('ItemDetailHelper', function() {
 
       expect(html).toContain('href="#/games/demo/items/5/edit"');
     });
+
+    it('renders the give-item button unconditionally, regardless of canEdit', function() {
+      const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
+      const html = renderToStaticMarkup(ItemDetailHelper.render(item, '#/games/demo/items'));
+
+      expect(html).toContain('Give Item');
+    });
+
+    it('invokes onGiveItemClick when the give-item button is clicked', function() {
+      const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
+      const onGiveItemClick = jasmine.createSpy('onGiveItemClick');
+      const element = ItemDetailHelper.render(
+        item, '#/games/demo/items', '#/games/demo/items/5/edit', false, false, undefined, onGiveItemClick,
+      );
+      const giveItemButton = element.props.pageActions.props.children[0];
+
+      giveItemButton.props.onClick();
+
+      expect(onGiveItemClick).toHaveBeenCalled();
+    });
   });
 
   describe('.renderLoading', function() {

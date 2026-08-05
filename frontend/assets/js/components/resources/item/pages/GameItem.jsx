@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import ItemDetailHelper from './helpers/ItemDetailHelper.jsx';
 import GameItemController from './controllers/GameItemController.js';
 import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
+import GiveItemModal from './elements/GiveItemModal.jsx';
 import RequestStore from '../../../../utils/requests/RequestStore.js';
 import resourceConfig from '../../../../utils/requests/resourceConfig.js';
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
@@ -13,7 +14,10 @@ import getCurrentHash from '../../../../utils/routing/currentHash.js';
  * game-level edit permission) and delegates rendering to {@link ItemDetailHelper}. Also wires up
  * the photo upload modal (issue #749), gated on the controller's independently-derived
  * `canUploadPhoto` flag, mirroring `CharacterDetail`'s upload modal wiring. Also renders an Edit
- * button, gated on the controller's independently-derived `canEdit` flag (issue #782).
+ * button, gated on the controller's independently-derived `canEdit` flag (issue #782). Also
+ * renders the give-item modal (issue #827), unconditionally offered (no permission gate — every
+ * per-character grant is checked server-side by the reused acquire endpoint instead); no forced
+ * page refetch on its own success/close, since this page displays nothing summary-derived.
  *
  * @param {object} [props] - Component props.
  * @param {Function} [props.ControllerClass] - Item controller class to instantiate, mainly for
@@ -27,6 +31,7 @@ export default function GameItem({ ControllerClass = GameItemController }) {
   const [canEdit, setCanEdit] = useState(false);
   const [canUploadPhoto, setCanUploadPhoto] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showGiveItemModal, setShowGiveItemModal] = useState(false);
 
   const controller = useMemo(
     () => new ControllerClass(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto),
@@ -58,12 +63,22 @@ export default function GameItem({ ControllerClass = GameItemController }) {
 
   return (
     <>
-      {ItemDetailHelper.render(item, backHref, editHref, canEdit, canUploadPhoto, () => setShowUploadModal(true))}
+      {ItemDetailHelper.render(
+        item, backHref, editHref, canEdit, canUploadPhoto,
+        () => setShowUploadModal(true), () => setShowGiveItemModal(true),
+      )}
       <PhotoUploadModal
         show={showUploadModal}
         uploadPath={uploadPath}
         onClose={() => setShowUploadModal(false)}
         onSuccess={handleUploadSuccess}
+      />
+      <GiveItemModal
+        show={showGiveItemModal}
+        item={item ?? {}}
+        gameSlug={gameSlug}
+        canEdit={canEdit}
+        onClose={() => setShowGiveItemModal(false)}
       />
     </>
   );

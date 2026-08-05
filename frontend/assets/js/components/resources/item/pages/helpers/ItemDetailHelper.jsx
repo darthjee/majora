@@ -35,23 +35,47 @@ export default class ItemDetailHelper {
    *   have no upload feature (issue #749 scope decision).
    * @param {Function} [onUploadClick] - Handler invoked when the upload button is clicked.
    *   Defaults to a no-op, matching the `canUploadPhoto` default.
+   * @param {Function} [onGiveItemClick] - Handler invoked when the "Give Item" button is clicked
+   *   (issue #827). Defaults to a no-op.
    * @returns {React.ReactElement} Item detail element.
    */
-  static render(item, backHref, editHref, canEdit = false, canUploadPhoto = false, onUploadClick = Noop.noop) {
+  static render(
+    item, backHref, editHref, canEdit = false, canUploadPhoto = false, onUploadClick = Noop.noop,
+    onGiveItemClick = Noop.noop,
+  ) {
     return (
       <ShowPageLayout
         type="item"
         mode="show"
         backHref={backHref}
-        pageActions={(
-          <ConditionalComponent render={canEdit}>
-            <EditButton href={editHref}>
-              {Translator.t('character_page.edit')}
-            </EditButton>
-          </ConditionalComponent>
-        )}
+        pageActions={ItemDetailHelper.#renderPageActions(editHref, canEdit, onGiveItemClick)}
         context={{ ...item, canUploadPhoto, handlers: { onOpenUploadModal: onUploadClick } }}
       />
+    );
+  }
+
+  /**
+   * Renders the item detail page's action buttons: an unconditionally visible "Give Item" button
+   * (issue #827, no permission gate — per-character permission is enforced server-side by the
+   * reused acquire endpoint instead) and the existing Edit button, gated on `canEdit`.
+   *
+   * @param {string} editHref - Hash path to the item's edit page.
+   * @param {boolean} canEdit - Whether the current user may edit this item.
+   * @param {Function} onGiveItemClick - Handler invoked when the "Give Item" button is clicked.
+   * @returns {React.ReactElement} Rendered page actions.
+   */
+  static #renderPageActions(editHref, canEdit, onGiveItemClick) {
+    return (
+      <>
+        <button type="button" className="btn btn-primary mb-3" onClick={onGiveItemClick}>
+          {Translator.t('give_item_modal.title')}
+        </button>
+        <ConditionalComponent render={canEdit}>
+          <EditButton href={editHref}>
+            {Translator.t('character_page.edit')}
+          </EditButton>
+        </ConditionalComponent>
+      </>
     );
   }
 
