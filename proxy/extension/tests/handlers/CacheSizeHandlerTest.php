@@ -12,11 +12,18 @@ use Tent\RequestHandlers\ShellCommandFailedException;
 /**
  * Unit tests for CacheSizeHandler.
  *
- * Covers only staff-gating and response shaping at the HTTP layer: the
- * actual directory-size computation is delegated to DirectorySizeCalculator,
- * which is faked here (see DirectorySizeCalculatorTest and the per-strategy
- * suites under tests/support/ for that computation's own coverage) so no
- * real filesystem fixture is needed in this file.
+ * Covers response shaping at the HTTP layer: the actual directory-size
+ * computation is delegated to DirectorySizeCalculator, which is faked here
+ * (see DirectorySizeCalculatorTest and the per-strategy suites under
+ * tests/support/ for that computation's own coverage) so no real filesystem
+ * fixture is needed in this file.
+ *
+ * The staff-gating logic itself (every logged-out/staff/superuser/
+ * upstream-failure combination) is delegated to StaffAccessGuard and fully
+ * covered by StaffAccessGuardTest; this file only keeps a single
+ * integration-level case (testNotLoggedInReturnsForbidden) to prove the
+ * handler wires that guard in correctly and short-circuits before ever
+ * consulting the calculator.
  */
 class CacheSizeHandlerTest extends TestCase
 {
@@ -225,54 +232,6 @@ class CacheSizeHandlerTest extends TestCase
         $response = $handler->handleRequest($request);
 
         $this->assertSame(403, $response->httpCode());
-    }
-
-    /**
-     * Logged in, but neither staff nor superuser: 403.
-     */
-    public function testLoggedInWithoutStaffOrSuperuserReturnsForbidden(): void
-    {
-        $httpClient = $this->createMock(HttpClientInterface::class);
-        $handler    = $this->makeHandler($httpClient);
-
-        $request = $this->makeRequest();
-
-        $httpClient->expects($this->once())
-            ->method('request')
-            ->willReturn([
-                'httpCode' => 200,
-                'body'     => $this->statusBody(true, false, false),
-                'headers'  => [],
-            ]);
-
-        $response = $handler->handleRequest($request);
-
-        $this->assertSame(403, $response->httpCode());
-    }
-
-    /**
-     * A non-200 response from /users/status.json (e.g. a backend 500) is
-     * propagated as-is, not collapsed to 403.
-     */
-    public function testUpstreamFailureIsPropagatedAsIs(): void
-    {
-        $httpClient = $this->createMock(HttpClientInterface::class);
-        $handler    = $this->makeHandler($httpClient);
-
-        $request = $this->makeRequest();
-
-        $httpClient->expects($this->once())
-            ->method('request')
-            ->willReturn([
-                'httpCode' => 500,
-                'body'     => 'Internal Server Error',
-                'headers'  => [],
-            ]);
-
-        $response = $handler->handleRequest($request);
-
-        $this->assertSame(500, $response->httpCode());
-        $this->assertSame('Internal Server Error', $response->body());
     }
 
     /**
