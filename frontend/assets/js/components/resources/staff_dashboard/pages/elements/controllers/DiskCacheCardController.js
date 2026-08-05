@@ -1,28 +1,33 @@
 import StaffCacheClient from '../../../../../../client/StaffCacheClient.js';
 import AuthStorage from '../../../../../../utils/auth/AuthStorage.js';
+import Noop from '../../../../../../utils/Noop.js';
 
 const RETRY_DELAY_MS = 60000;
 
 /**
  * Manages the disk-cache size fetch, with an automatic 60s retry on
- * failure, for the `DiskCacheCard` element. Not a `BasePageController`
- * subclass since it's scoped to a single card, not a page (same precedent
- * as `MemoryCacheCardController`).
+ * failure, plus manual refresh and clear-cache actions, for the
+ * `DiskCacheCard` element. Not a `BasePageController` subclass since it's
+ * scoped to a single card, not a page (same precedent as
+ * `MemoryCacheCardController`).
  */
 export default class DiskCacheCardController {
   /**
    * Create a disk-cache card controller.
    *
    * @param {Function} setSize - Fetched size (bytes) setter.
+   * @param {Function} setStatus - Action status setter (`idle`, `loading`, `success`, `error`).
    * @param {Function} setLoading - Initial-load loading setter.
    * @param {Function} setError - Load-error setter.
    * @param {StaffCacheClient|null} [client] - Client override.
    */
-  constructor(setSize, setLoading, setError, client = null) {
+  constructor(setSize, setStatus, setLoading, setError, client = null) {
     this.setSize = setSize;
+    this.setStatus = setStatus;
     this.setLoading = setLoading;
     this.setError = setError;
     this.client = client ?? new StaffCacheClient();
+    this.retryTimer = null;
   }
 
   /**
@@ -34,7 +39,6 @@ export default class DiskCacheCardController {
   buildEffect() {
     return () => {
       let mounted = true;
-      let timer = null;
       const safeSet = this.#buildSafeSetter(() => mounted);
 
       const run = () => {
@@ -46,7 +50,7 @@ export default class DiskCacheCardController {
           return;
         }
 
-        timer = setTimeout(run, RETRY_DELAY_MS);
+        this.retryTimer = setTimeout(run, RETRY_DELAY_MS);
       };
 
       run();
@@ -54,11 +58,52 @@ export default class DiskCacheCardController {
       return () => {
         mounted = false;
 
-        if (timer !== null) {
-          clearTimeout(timer);
+        if (this.retryTimer !== null) {
+          clearTimeout(this.retryTimer);
+          this.retryTimer = null;
         }
       };
     };
+  }
+
+  /**
+   * Re-fetches the disk cache size, e.g. after a manual refresh, cancelling
+   * any pending automatic retry first.
+   *
+   * @returns {Promise<void>} Resolves when the fetch handling finishes.
+   */
+  refresh() {
+    if (this.retryTimer !== null) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = null;
+    }
+
+    return this.#fetchSize(this.#buildSafeSetter(() => true), Noop.noop);
+  }
+
+  /**
+   * Clears the on-disk cache, then refreshes the size on success.
+   *
+   * @returns {Promise<void>} Resolves when the request handling finishes.
+   */
+  async clearCache() {
+    this.setStatus('loading');
+
+    const token = AuthStorage.getToken();
+
+    try {
+      const response = await this.client.clearDiskCache(token);
+
+      if (!response.ok) {
+        this.setStatus('error');
+        return;
+      }
+
+      this.setStatus('success');
+      await this.refresh();
+    } catch {
+      this.setStatus('error');
+    }
   }
 
   async #fetchSize(safeSet, scheduleRetry) {

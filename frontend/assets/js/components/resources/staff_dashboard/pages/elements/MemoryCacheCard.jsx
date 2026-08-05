@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import MemoryCacheCardController from './controllers/MemoryCacheCardController.js';
 import MemoryCacheCardHelper from './helpers/MemoryCacheCardHelper.jsx';
+import ClearCacheConfirmModal from './ClearCacheConfirmModal.jsx';
 
 /**
  * Dashboard card showing the current server-side memory cache usage as a
@@ -13,6 +14,7 @@ export default function MemoryCacheCard() {
   const [status, setStatus] = useState('idle');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const controller = useMemo(
     () => new MemoryCacheCardController(setSummary, setStatus, setLoading, setError),
@@ -21,12 +23,21 @@ export default function MemoryCacheCard() {
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
-  return MemoryCacheCardHelper.render(
-    { summary, status, loading, error },
-    {
-      onClearCache: () => controller.clearCache(),
-      onRefresh: () => controller.refresh(),
-      onDataClick: () => controller.logData(summary),
-    },
+  return (
+    <>
+      {MemoryCacheCardHelper.render(
+        { summary, status, loading, error },
+        {
+          onClearCache: () => setShowConfirm(true),
+          onRefresh: () => controller.refresh(),
+          onDataClick: () => controller.logData(summary),
+        },
+      )}
+      <ClearCacheConfirmModal
+        show={showConfirm}
+        onConfirm={() => { setShowConfirm(false); controller.clearCache(); }}
+        onCancel={() => setShowConfirm(false)}
+      />
+    </>
   );
 }

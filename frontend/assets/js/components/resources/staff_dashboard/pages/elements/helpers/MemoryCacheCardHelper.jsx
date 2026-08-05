@@ -45,13 +45,13 @@ export default class MemoryCacheCardHelper {
 
     return [
       {
-        icon: Icons.databaseFillDash,
+        icon: Icons.trash,
         tooltip: Translator.t('staff_dashboard.clear_cache_tooltip'),
         onClick: handlers.onClearCache,
         disabled,
       },
       {
-        icon: Icons.databaseFillDash,
+        icon: Icons.arrowClockwise,
         tooltip: Translator.t('staff_dashboard.refresh_tooltip'),
         onClick: handlers.onRefresh,
         disabled,
