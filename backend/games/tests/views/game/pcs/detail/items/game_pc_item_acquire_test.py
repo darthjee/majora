@@ -97,15 +97,29 @@ class TestGamePcItemAcquireView(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert data['hidden'] is True
 
-    def test_already_owned_returns_400(self, client):
-        """Test that acquiring an already-owned game item returns 400."""
+    def test_acquiring_an_already_owned_item_creates_a_second_row(self, client):
+        """Test that acquiring an already-owned game item succeeds and creates a distinct row."""
         CharacterItem.objects.create(character=self.character, game_item=self.game_item)
-        response = self._post(
-            client, {'game_item_id': self.game_item.id}, token=self._editor_token(),
-        )
-        assert response.status_code == 400
-        data = json.loads(response.content)
-        assert 'game_item_id' in data['errors']
+        token = self._editor_token()
+        response = self._post(client, {'game_item_id': self.game_item.id}, token=token)
+        assert response.status_code == 201
+        assert CharacterItem.objects.filter(
+            character=self.character, game_item=self.game_item,
+        ).count() == 2
+
+    def test_two_consecutive_acquires_both_succeed_with_distinct_rows(self, client):
+        """Test that two consecutive acquire calls for the same pair both succeed distinctly."""
+        token = self._editor_token()
+        first_response = self._post(client, {'game_item_id': self.game_item.id}, token=token)
+        second_response = self._post(client, {'game_item_id': self.game_item.id}, token=token)
+        assert first_response.status_code == 201
+        assert second_response.status_code == 201
+        first_id = json.loads(first_response.content)['id']
+        second_id = json.loads(second_response.content)['id']
+        assert first_id != second_id
+        assert CharacterItem.objects.filter(
+            character=self.character, game_item=self.game_item,
+        ).count() == 2
 
     def test_hidden_game_item_returns_404_via_public_endpoint(self, client):
         """Test that acquiring a hidden game item via the public endpoint 404s, even for the DM."""

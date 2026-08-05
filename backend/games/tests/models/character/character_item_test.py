@@ -1,7 +1,5 @@
 """Tests for the CharacterItem model."""
 
-import pytest
-from django.db import IntegrityError, transaction
 from django.test import TestCase
 
 from games.models import CharacterItem
@@ -112,9 +110,9 @@ class TestCharacterItem(TestCase):
         self.game_item.delete()
         assert not CharacterItem.objects.filter(id=character_item.id).exists()
 
-    def test_duplicate_character_item_raises_integrity_error(self):
-        """Test that a second row for the same character/game_item pair is rejected."""
-        CharacterItem.objects.create(character=self.character, game_item=self.game_item)
-        with pytest.raises(IntegrityError):
-            with transaction.atomic():
-                CharacterItem.objects.create(character=self.character, game_item=self.game_item)
+    def test_duplicate_character_item_is_allowed(self):
+        """Test that a character can own multiple instances of the same game item."""
+        first = CharacterItem.objects.create(character=self.character, game_item=self.game_item)
+        second = CharacterItem.objects.create(character=self.character, game_item=self.game_item)
+        assert first.id != second.id
+        assert self.character.character_items.filter(game_item=self.game_item).count() == 2

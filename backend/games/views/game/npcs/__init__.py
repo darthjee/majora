@@ -24,6 +24,8 @@ from .detail.items.game_npc_item_detail_full import game_npc_item_detail_full
 from .detail.items.game_npc_item_photo_upload import game_npc_item_photo_upload
 from .detail.items.game_npc_item_remove import game_npc_item_remove
 from .detail.items.game_npc_item_remove_all import game_npc_item_remove_all
+from .detail.items.game_npc_item_summary import game_npc_item_summary
+from .detail.items.game_npc_item_summary_all import game_npc_item_summary_all
 from .detail.items.game_npc_items import game_npc_items
 from .detail.items.game_npc_items_all import game_npc_items_all
 from .detail.items.game_npc_items_available import game_npc_items_available
@@ -82,6 +84,8 @@ __all__ = [
     'game_npc_item_acquire_all',
     'game_npc_item_remove',
     'game_npc_item_remove_all',
+    'game_npc_item_summary',
+    'game_npc_item_summary_all',
     'game_npc_treasures',
     'game_npc_treasures_all',
     'game_npc_treasure_buy',
