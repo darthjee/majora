@@ -135,6 +135,31 @@ class CacheSizeHandlerTest extends TestCase
     }
 
     /**
+     * A trailing slash on the configured 'host' never produces a double
+     * slash at the host/path boundary of the backend URL.
+     */
+    public function testTrailingSlashOnHostDoesNotProduceDoubleSlash(): void
+    {
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = new CacheSizeHandler('http://backend:8080/', $httpClient, $this->cacheDir);
+
+        $request = $this->makeRequest(['Authorization' => 'Bearer tok']);
+
+        $httpClient->expects($this->once())
+            ->method('request')
+            ->with('GET', 'http://backend:8080/users/status.json', $this->anything())
+            ->willReturn([
+                'httpCode' => 200,
+                'body'     => $this->statusBody(true, true, false),
+                'headers'  => [],
+            ]);
+
+        $response = $handler->handleRequest($request);
+
+        $this->assertSame(200, $response->httpCode());
+    }
+
+    /**
      * A superuser (is_superuser: true, is_staff: false) also gets a 200:
      * either flag alone is sufficient.
      */
@@ -289,6 +314,7 @@ class CacheSizeHandlerTest extends TestCase
             'Accept'           => 'application/json',
             'Host'             => 'backend',
             'X-Forwarded-Host' => 'majora.example.com',
+            'Accept-Encoding'  => 'gzip',
         ];
 
         $httpClient->expects($this->once())

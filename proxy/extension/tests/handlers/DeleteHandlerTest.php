@@ -142,6 +142,43 @@ class DeleteHandlerTest extends TestCase
     }
 
     /**
+     * A trailing slash on the configured 'host' never produces a double
+     * slash at the host/path boundary of either backend URL.
+     */
+    public function testTrailingSlashOnHostDoesNotProduceDoubleSlash(): void
+    {
+        $filePath = $this->makePhotoFile('42/photo.jpg');
+
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = new DeleteHandler('http://backend:8080/', $httpClient, $this->photosDir);
+
+        $request = $this->makeRequest($this->deletePath('my-game', 'pcs', '42', '7'));
+
+        $calls = [];
+        $httpClient->expects($this->exactly(2))
+            ->method('request')
+            ->willReturnCallback(function (string $method, string $url) use (&$calls) {
+                $calls[] = [$method, $url];
+
+                return count($calls) === 1
+                    ? ['httpCode' => 200, 'body' => '{"deletable":true,"path":"42/photo.jpg"}', 'headers' => []]
+                    : ['httpCode' => 204, 'body' => '', 'headers' => []];
+            });
+
+        $response = $handler->handleRequest($request);
+
+        $this->assertSame(204, $response->httpCode());
+        $this->assertFileDoesNotExist($filePath);
+        $this->assertSame(
+            [
+                ['GET', 'http://backend:8080/games/my-game/pcs/42/photos/7/deletable.json'],
+                ['DELETE', 'http://backend:8080/games/my-game/pcs/42/photos/7.json'],
+            ],
+            $calls
+        );
+    }
+
+    /**
      * The deletable.json check returns 404 (photo not found): that response
      * is forwarded straight through, no DELETE call is made, and no file
      * deletion is attempted.
@@ -272,6 +309,7 @@ class DeleteHandlerTest extends TestCase
             'Accept-Language' => 'en-US',
             'Accept'          => 'application/json',
             'Host'            => 'backend',
+            'Accept-Encoding' => 'gzip',
         ];
 
         $httpClient->expects($this->exactly(2))

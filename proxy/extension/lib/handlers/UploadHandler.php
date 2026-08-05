@@ -3,11 +3,8 @@
 namespace Tent\RequestHandlers;
 
 use InvalidArgumentException;
-use Tent\Http\CurlHttpClient;
 use Tent\Http\HttpClientInterface;
 use Tent\Log\Logger;
-use Tent\Middlewares\RenameHeaderMiddleware;
-use Tent\Middlewares\SetHeadersMiddleware;
 use Tent\Models\RequestInterface;
 use Tent\Models\Response;
 
@@ -38,13 +35,13 @@ class UploadHandler extends RequestHandler
      * base list or this one (e.g. X-Trace-Id) is dropped before the backend
      * request is issued.
      *
-     * Accept-Encoding is intentionally excluded: these two PATCH calls are
-     * internal to the proxy, and their JSON responses are parsed by
-     * requestUploadingStatus()/requestUploadedStatus() and never re-sent to
-     * the browser. Forwarding the client's Accept-Encoding would let the
-     * backend (or an intermediary in front of it) return a gzip-compressed
-     * body that Tent\Http\CurlHttpClient never decompresses, which breaks
-     * json_decode() and trips a spurious BackendErrorException(500).
+     * The client's own Accept-Encoding is never forwarded either way (it
+     * isn't on the base allow-list or here), but BackendClient adds its own
+     * Accept-Encoding: gzip to every outgoing request regardless, and
+     * transparently decodes a gzip-compressed response before it ever
+     * reaches requestUploadingStatus()/requestUploadedStatus(), so a
+     * compressed body from the backend no longer risks breaking
+     * json_decode().
      *
      * @var string[]
      */
@@ -87,11 +84,8 @@ class UploadHandler extends RequestHandler
      */
     private const FILE_EXTENSIONS = ['pdf'];
 
-    /** @var string Backend host URL (e.g. http://backend:8080) */
-    private string $host;
-
-    /** @var HttpClientInterface HTTP client used for backend calls */
-    private HttpClientInterface $httpClient;
+    /** @var BackendClient Client used for backend calls. */
+    private BackendClient $client;
 
     /** @var string Base path where 'image' uploads are written */
     private string $photosBasePath;
@@ -123,23 +117,13 @@ class UploadHandler extends RequestHandler
         string $photosBasePath = '',
         string $filesBasePath = ''
     ) {
-        $this->host = $host;
-        $this->httpClient = ($httpClient ?? new CurlHttpClient());
+        $this->client = new BackendClient($host, $httpClient);
         $this->photosBasePath = $photosBasePath;
         $this->filesBasePath = $filesBasePath;
         $this->photoStorage = new SecurePhotoStorage($photosBasePath);
         $this->fileStorage = new SecurePhotoStorage($filesBasePath);
         $this->imageFilenameValidator = new UploadFilenameValidator(self::IMAGE_EXTENSIONS);
         $this->fileFilenameValidator = new UploadFilenameValidator(self::FILE_EXTENSIONS);
-
-        // The incoming request's original Host header (e.g. the browser-facing
-        // `moria.ffavs.net`) must never be forwarded as-is when the backend lives
-        // behind a different host (e.g. `moria-api.ffavs.net`) — edge providers
-        // like Cloudflare reject that mismatch with a 403 before the request ever
-        // reaches the application. This mirrors what Tent's
-        // DefaultProxyRequestHandler does for every other backend-proxied route.
-        $this->addMiddleware(new RenameHeaderMiddleware('Host', 'X-Forwarded-Host'));
-        $this->addMiddleware(new SetHeadersMiddleware(['Host' => $this->backendHost()]));
     }
 
     /**
@@ -302,39 +286,26 @@ class UploadHandler extends RequestHandler
      * @param string $uploadType The upload type ('image' or 'file').
      * @param string $uploadId   The upload id.
      * @param string $status     The new status (e.g. 'uploading', 'uploaded').
-     * @param array  $headers    Incoming request headers to forward; filtered
-     *                         down via ForwardedHeaderFilter (base allow-list
-     *                         plus UploadHandler::EXTRA_ALLOWED_FORWARD_HEADERS)
-     *                         before Content-Type is overridden to
-     *                         application/json, since the backend expects a
-     *                         JSON body regardless of how the original
-     *                         multipart request was encoded. Host is already
-     *                         overridden by the middlewares added in the
-     *                         constructor.
+     * @param array  $headers    Raw, unfiltered incoming request headers;
+     *                           BackendClient filters them down to its base
+     *                           allow-list plus
+     *                           UploadHandler::EXTRA_ALLOWED_FORWARD_HEADERS,
+     *                           overrides Content-Type to application/json
+     *                           (the backend expects a JSON body regardless
+     *                           of how the original multipart request was
+     *                           encoded), and overrides Host/X-Forwarded-Host.
      * @return array{body: string, httpCode: int, headers: string[]}
      */
     private function updateStatus(string $uploadType, string $uploadId, string $status, array $headers): array
     {
-        $headers = ForwardedHeaderFilter::filter($headers, self::EXTRA_ALLOWED_FORWARD_HEADERS);
-        $headers['Content-Type'] = 'application/json';
-
-        return $this->httpClient->request(
+        return $this->client->request(
             'PATCH',
-            $this->host . '/uploads/' . $uploadType . '/' . $uploadId . '.json',
+            '/uploads/' . $uploadType . '/' . $uploadId . '.json',
             $headers,
-            json_encode(['status' => $status])
+            json_encode(['status' => $status]),
+            self::EXTRA_ALLOWED_FORWARD_HEADERS,
+            ['Content-Type' => 'application/json']
         );
-    }
-
-    /**
-     * Derives the bare host (no scheme, no trailing path) the backend actually
-     * expects in the Host header.
-     *
-     * @return string The backend host, e.g. 'moria-api.ffavs.net'.
-     */
-    private function backendHost(): string
-    {
-        return (parse_url($this->host, PHP_URL_HOST) ?? $this->host);
     }
 
     /**

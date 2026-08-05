@@ -270,14 +270,51 @@ class UploadHandlerTest extends TestCase
     }
 
     /**
+     * A trailing slash on the configured 'host' never produces a double
+     * slash at the host/path boundary of the backend URL.
+     */
+    public function testTrailingSlashOnHostDoesNotProduceDoubleSlash(): void
+    {
+        $tmpFile    = $this->makeTmpFile('%PDF-1.4 fake pdf data');
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = new UploadHandler('http://backend:8080/', $httpClient, $this->photosDir, $this->filesDir);
+
+        $request = $this->makeRequest(
+            $this->submitPath('file', '99'),
+            ['tmp_name' => $tmpFile, 'type' => 'application/pdf', 'name' => 'document.pdf', 'size' => 20, 'error' => 0]
+        );
+
+        $httpClient->expects($this->exactly(2))
+            ->method('request')
+            ->with(
+                'PATCH',
+                'http://backend:8080/uploads/file/99.json',
+                $this->anything(),
+                $this->anything()
+            )
+            ->willReturnOnConsecutiveCalls(
+                ['httpCode' => 200, 'body' => '{"file_path":"99/document.pdf"}', 'headers' => []],
+                ['httpCode' => 200, 'body' => '{}', 'headers' => []]
+            );
+
+        $response = $handler->handleRequest($request);
+
+        $this->assertSame(200, $response->httpCode());
+
+        unlink($tmpFile);
+    }
+
+    /**
      * Only allow-listed headers are forwarded to both backend PATCH calls,
      * with Content-Type overridden to application/json and Host overridden to
      * the backend's own host, regardless of what the client sent.
-     * Non-allow-listed headers (e.g. X-Trace-Id and Accept-Encoding) must be
-     * dropped before reaching the backend, while allow-listed ones such as
-     * Authorization and X-Upload-Token are forwarded as-is. Accept-Encoding
-     * is deliberately not forwarded so the backend never compresses these
-     * internal-only response bodies.
+     * Non-allow-listed headers (e.g. X-Trace-Id) must be dropped before
+     * reaching the backend, while allow-listed ones such as Authorization
+     * and X-Upload-Token are forwarded as-is. The client's own
+     * Accept-Encoding header is not itself forwarded (it isn't on the
+     * allow-list), but BackendClient always sets its own
+     * Accept-Encoding: gzip on the outgoing request regardless, and
+     * transparently decodes a gzip response before it reaches this handler.
      */
     public function testOnlyAllowListedHeadersAreForwardedToBackend(): void
     {
@@ -312,6 +349,7 @@ class UploadHandlerTest extends TestCase
             'Accept'          => 'application/json',
             'Content-Type'    => 'application/json',
             'Host'            => 'backend',
+            'Accept-Encoding' => 'gzip',
         ];
 
         $httpClient->expects($this->exactly(2))
@@ -362,10 +400,11 @@ class UploadHandlerTest extends TestCase
         );
 
         $expectedHeaders = [
-            'cookie'       => 'session=abc',
-            'REFERER'      => 'http://client/upload',
-            'Content-Type' => 'application/json',
-            'Host'         => 'backend',
+            'cookie'          => 'session=abc',
+            'REFERER'         => 'http://client/upload',
+            'Content-Type'    => 'application/json',
+            'Host'            => 'backend',
+            'Accept-Encoding' => 'gzip',
         ];
 
         $httpClient->expects($this->exactly(2))
