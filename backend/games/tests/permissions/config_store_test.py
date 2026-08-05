@@ -16,7 +16,10 @@ class TestPermissionConfigStore:
     def test_loads_endpoints_config_for_a_known_resource(self):
         """Test that a known resource/endpoints config loads its expected shape."""
         config = PermissionConfigStore.get('game', 'endpoints')
-        assert config == {'restricted': {'edit': []}}
+        assert config == {
+            'regular': {'regular_edit': ['staff', 'player']},
+            'restricted': {'edit': []},
+        }
 
     def test_loads_ui_config_for_a_known_resource(self):
         """Test that a known resource/ui config loads its expected shape."""
@@ -33,7 +36,10 @@ class TestPermissionConfigStore:
         config = PermissionConfigStore.get('game', 'endpoints')
         config['restricted']['edit'].append('mutated')
         fresh_config = PermissionConfigStore.get('game', 'endpoints')
-        assert fresh_config == {'restricted': {'edit': []}}
+        assert fresh_config == {
+            'regular': {'regular_edit': ['staff', 'player']},
+            'restricted': {'edit': []},
+        }
 
     def test_no_shortcut_entry_round_trips_as_a_dict(self):
         """Test that a no_shortcut entry (session_message.create) parses as a dict."""

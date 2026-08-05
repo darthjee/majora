@@ -16,6 +16,7 @@ class TestPagePermissionConfigStore:
         assert config == {
             'game': {
                 'edit': 'can_edit',
+                'regular_edit': 'can_edit_regular',
                 'create_item': 'can_create_item',
                 'create_document': 'can_create_document',
                 'edit_session': 'can_edit_session',
