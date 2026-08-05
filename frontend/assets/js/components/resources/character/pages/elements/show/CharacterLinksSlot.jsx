@@ -1,6 +1,6 @@
 import React from 'react';
 import LinkList from '../../../../../common/misc/LinkList.jsx';
-import CharacterLinksField from '../CharacterLinksField.jsx';
+import LinksField from '../../../../../common/misc/LinksField.jsx';
 import Translator from '../../../../../../i18n/Translator.js';
 
 /**
@@ -24,7 +24,7 @@ function CharacterLinksShow({ links }) {
 export function buildCharacterLinksField(buttonLabelKeys) {
   return function CharacterLinksEditOrNew({ mode, links = [], handlers }) {
     return (
-      <CharacterLinksField
+      <LinksField
         links={links}
         buttonLabel={Translator.t(buttonLabelKeys[mode])}
         onOpenLinksModal={handlers.onOpenLinksModal}

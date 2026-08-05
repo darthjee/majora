@@ -4,7 +4,7 @@ import GameNpcNew from '../../../../../../../assets/js/components/resources/char
 import GameNpcNewController from '../../../../../../../assets/js/components/resources/character/pages/controllers/GameNpcNewController.js';
 import GameNpcNewHelper from '../../../../../../../assets/js/components/resources/character/pages/helpers/GameNpcNewHelper.jsx';
 import LinksEditModalHelper
-  from '../../../../../../../assets/js/components/resources/character/pages/elements/helpers/LinksEditModalHelper.jsx';
+  from '../../../../../../../assets/js/components/common/modals/helpers/LinksEditModalHelper.jsx';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
 import { stubBuildEffect } from '../../../../../../support/controllerStubs.js';
 import { buildLink } from '../../../../../../support/factories.js';

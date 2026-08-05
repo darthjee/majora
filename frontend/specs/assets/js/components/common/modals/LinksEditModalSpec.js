@@ -1,8 +1,8 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import LinksEditModal from '../../../../../../../../assets/js/components/resources/character/pages/elements/LinksEditModal.jsx';
-import LinksEditModalHelper from '../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/LinksEditModalHelper.jsx';
-import { buildLink } from '../../../../../../../support/factories.js';
+import LinksEditModal from '../../../../../../assets/js/components/common/modals/LinksEditModal.jsx';
+import LinksEditModalHelper from '../../../../../../assets/js/components/common/modals/helpers/LinksEditModalHelper.jsx';
+import { buildLink } from '../../../../../support/factories.js';
 
 describe('LinksEditModal', function() {
   const links = [

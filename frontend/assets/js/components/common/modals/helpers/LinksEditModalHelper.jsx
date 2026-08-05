@@ -1,8 +1,8 @@
 import Modal from 'react-bootstrap/cjs/Modal.js';
-import Translator from '../../../../../../i18n/Translator.js';
-import Icons from '../../../../../../utils/ui/Icons.js';
-import FormField from '../../../../../common/forms/FormField.jsx';
-import LinkIcon, { LINK_TYPES } from '../../../../../common/misc/LinkIcon.jsx';
+import Translator from '../../../../i18n/Translator.js';
+import Icons from '../../../../utils/ui/Icons.js';
+import FormField from '../../forms/FormField.jsx';
+import LinkIcon, { LINK_TYPES } from '../../misc/LinkIcon.jsx';
 
 const LINK_TYPE_VALUES = ['', ...LINK_TYPES];
 
