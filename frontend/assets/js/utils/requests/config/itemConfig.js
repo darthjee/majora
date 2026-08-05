@@ -72,8 +72,8 @@
  *
  *   `GET.summary` (issue #827) backs the give-item modal's receiving list: how many of a given
  *   `GameItem` a character owns. Params: `gameSlug`, `itemId`, `kind`, `id`. `skipCache: true` on
- *   both variants (not worth caching). See the `summary` entry's own comment below for the
- *   pc-owner `private`-tier gap.
+ *   both variants (not worth caching). See the `summary` entry's own comment below for why
+ *   `can_edit` is the correct `private`-tier permission key for both pcs and npcs.
  */
 /**
  * Build the player-facing single-`CharacterItem` path.
@@ -282,19 +282,17 @@ export default {
       regular: { path: availablePath, permission: null },
       private: { path: availableAllPath, permission: 'can_edit' },
     },
-    // issue #827: the pc `private` permission mirrors `treasureConfig.js`'s own
-    // `kind === 'npcs' ? 'can_edit' : null` pattern. Per `resolveVariant.js`, a `null` permission
-    // key never selects `private`, so a PC's owning player never reaches `/summary/all.json`
-    // today, despite the backend tier being "dm/admin/owner" — a known, flagged gap (frontend
-    // plan Notes), not fixed here with new client logic; the owner falls back to the regular
-    // (hidden-`CharacterItem`-excluding) summary instead, a safe degradation.
+    // issue #827: the backend's `check_item_summary_all_permission` reuses `_check_item_create`'s
+    // `game_pc_item` `restricted.create` tier (`[staff, owner]`, plus the universal admin/dm
+    // shortcut baked into every tier check), so `/summary/all.json` already resolves to
+    // dm/admin/owner for pcs and dm/admin for npcs — exactly what the existing character-level
+    // `can_edit` field already exposes (`game_pc/ui.yml`'s `edit: [owner]` for pcs,
+    // `game_npc/ui.yml`'s `edit: []` for npcs, both plus the same admin/dm shortcut), matching the
+    // `items/all.json` precedent (`docs/agents/access-control/character-item.md`'s "`hidden`"
+    // section). No kind-based branching needed.
     summary: {
       regular: { path: summaryPath, permission: null, skipCache: true },
-      private: {
-        path: summaryAllPath,
-        permission: (params) => (params.kind === 'npcs' ? 'can_edit' : null),
-        skipCache: true,
-      },
+      private: { path: summaryAllPath, permission: 'can_edit', skipCache: true },
     },
   },
   PATCH: {
