@@ -85,6 +85,12 @@ class CacheSizeHandler extends RequestHandler
      *    but is neither staff nor superuser.
      * 3. Otherwise, computes the cache folder's total size and returns it.
      *
+     * If the configured DirectorySizeCalculator strategy fails at runtime
+     * (e.g. the `du` binary is missing or exits non-zero), that failure is
+     * turned into a controlled 500 response rather than propagating
+     * uncaught, the same way BackendErrorException failures are handled
+     * above.
+     *
      * @param RequestInterface $request The incoming HTTP request.
      * @return Response
      */
@@ -96,6 +102,8 @@ class CacheSizeHandler extends RequestHandler
             $size = $this->cacheSize();
         } catch (BackendErrorException $e) {
             return new Response(['httpCode' => $e->httpCode(), 'body' => $e->body()]);
+        } catch (ShellCommandFailedException $e) {
+            return new Response(['httpCode' => 500, 'body' => 'Internal Server Error']);
         }
 
         return new Response([

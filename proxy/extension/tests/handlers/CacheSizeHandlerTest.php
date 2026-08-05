@@ -7,6 +7,7 @@ use Tent\Http\HttpClientInterface;
 use Tent\Models\ProcessingRequest;
 use Tent\RequestHandlers\CacheSizeHandler;
 use Tent\RequestHandlers\DirectorySizeCalculator;
+use Tent\RequestHandlers\ShellCommandFailedException;
 
 /**
  * Unit tests for CacheSizeHandler.
@@ -168,6 +169,36 @@ class CacheSizeHandlerTest extends TestCase
 
         $this->assertSame(200, $response->httpCode());
         $this->assertSame(['size' => 0], json_decode($response->body(), true));
+    }
+
+    /**
+     * When the configured DirectorySizeCalculator strategy fails at runtime
+     * (e.g. the `du` binary missing or exiting non-zero, surfaced as a
+     * ShellCommandFailedException), the handler turns that into a
+     * controlled 500 response rather than letting the exception propagate,
+     * the same way BackendErrorException failures are handled.
+     */
+    public function testCalculatorFailureReturnsControlledServerError(): void
+    {
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $calculator = $this->createMock(DirectorySizeCalculator::class);
+        $calculator->method('sizeOf')->willThrowException(new ShellCommandFailedException('du -sb /cache', 1));
+        $handler = new CacheSizeHandler('http://backend:8080', $httpClient, '/cache', 'du', $calculator);
+
+        $request = $this->makeRequest(['Authorization' => 'Bearer tok']);
+
+        $httpClient->expects($this->once())
+            ->method('request')
+            ->willReturn([
+                'httpCode' => 200,
+                'body'     => $this->statusBody(true, true, false),
+                'headers'  => [],
+            ]);
+
+        $response = $handler->handleRequest($request);
+
+        $this->assertSame(500, $response->httpCode());
+        $this->assertSame('Internal Server Error', $response->body());
     }
 
     /**
