@@ -87,7 +87,7 @@ class CacheSizeHandler extends RequestHandler
 
         return new Response([
             'httpCode' => 200,
-            'headers'  => ['Content-Type' => 'application/json'],
+            'headers'  => ['Content-Type: application/json'],
             'body'     => json_encode(['size' => $size]),
         ]);
     }
