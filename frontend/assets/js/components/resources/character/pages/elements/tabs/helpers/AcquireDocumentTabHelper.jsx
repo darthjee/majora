@@ -1,5 +1,6 @@
 import CardDocumentImage from '../../../../../../common/cards/CardDocumentImage.jsx';
 import BrowsePager from '../../../../../../common/pagination/BrowsePager.jsx';
+import TwoColumnLayout from '../../../../../../common/layout/TwoColumnLayout.jsx';
 import Translator from '../../../../../../../i18n/Translator.js';
 
 function renderActionError(actionError) {
@@ -38,15 +39,11 @@ export default class AcquireDocumentTabHelper {
   static render(state, handlers) {
     const { selected } = state;
 
-    if (!selected) {
-      return AcquireDocumentTabHelper.#renderBrowsePane(state, handlers);
-    }
-
     return (
-      <div className="row">
-        <div className="col-6">{AcquireDocumentTabHelper.#renderBrowsePane(state, handlers)}</div>
-        <div className="col-6">{AcquireDocumentTabHelper.#renderDetailPane(state, handlers)}</div>
-      </div>
+      <TwoColumnLayout
+        browsePane={AcquireDocumentTabHelper.#renderBrowsePane(state, handlers)}
+        detailPane={selected ? AcquireDocumentTabHelper.#renderDetailPane(state, handlers) : null}
+      />
     );
   }
 

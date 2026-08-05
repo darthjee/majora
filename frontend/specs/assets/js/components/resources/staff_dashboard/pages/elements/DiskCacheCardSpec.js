@@ -14,11 +14,12 @@ describe('DiskCacheCard', function() {
     expect(html).toContain('Loading dashboard...');
   });
 
-  it('renders no actions', function() {
+  it('renders the clear-cache and refresh actions', function() {
     stubBuildEffect(DiskCacheCardController);
 
     const html = renderToStaticMarkup(React.createElement(DiskCacheCard));
 
-    expect(html).not.toContain('btn-outline');
+    expect(html).toContain('bi-trash-fill');
+    expect(html).toContain('bi-arrow-clockwise');
   });
 });

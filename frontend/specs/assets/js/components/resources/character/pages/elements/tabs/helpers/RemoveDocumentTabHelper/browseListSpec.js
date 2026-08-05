@@ -2,10 +2,19 @@ import RemoveDocumentTabHelper
   from '../../../../../../../../../../../assets/js/components/resources/character/pages/elements/tabs/helpers/RemoveDocumentTabHelper.jsx';
 import BrowsePager
   from '../../../../../../../../../../../assets/js/components/common/pagination/BrowsePager.jsx';
+import TwoColumnLayout
+  from '../../../../../../../../../../../assets/js/components/common/layout/TwoColumnLayout.jsx';
 import { buildHandlers, buildState, findElement } from './support.js';
 
 describe('RemoveDocumentTabHelper', function() {
   describe('.render', function() {
+    it('passes a null detailPane to TwoColumnLayout when nothing is selected', function() {
+      const element = RemoveDocumentTabHelper.render(buildState(), buildHandlers());
+      const layout = findElement(element, (node) => node.type === TwoColumnLayout);
+
+      expect(layout.props.detailPane).toBeNull();
+    });
+
     it('renders a loading message when browsing is loading', function() {
       const element = RemoveDocumentTabHelper.render(
         buildState({ browse: { items: [], page: 1, pages: 1, loading: true, error: '' } }), buildHandlers()

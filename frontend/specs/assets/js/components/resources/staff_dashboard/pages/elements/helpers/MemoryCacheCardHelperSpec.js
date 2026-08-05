@@ -75,5 +75,14 @@ describe('MemoryCacheCardHelper', function() {
       expect(clearAction.onClick).toBe(handlers.onClearCache);
       expect(refreshAction.onClick).toBe(handlers.onRefresh);
     });
+
+    it('uses distinct icons for the clear-cache and refresh actions', function() {
+      const state = { summary: { size: 10, limit: 100 }, status: 'idle', loading: false, error: false };
+      const html = renderToStaticMarkup(MemoryCacheCardHelper.render(state, buildHandlers()));
+
+      expect(html).toContain('bi-trash-fill');
+      expect(html).toContain('bi-arrow-clockwise');
+      expect(html).not.toContain('bi-database-fill-dash');
+    });
   });
 });

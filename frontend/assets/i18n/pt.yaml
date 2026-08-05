@@ -81,6 +81,11 @@ profile_photo_set_modal:
   title: Foto de Perfil Atualizada
   body: Esta imagem agora é a foto de perfil.
   close: Fechar
+clear_cache_confirm_modal:
+  title: Limpar Cache
+  body: Esta ação não pode ser desfeita.
+  confirm: Limpar Cache
+  cancel: Cancelar
 delete_photo_confirm_modal:
   title: Excluir Foto
   body: Tem certeza de que deseja excluir esta foto? Esta ação não pode ser desfeita.
