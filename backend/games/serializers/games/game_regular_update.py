@@ -1,4 +1,4 @@
-"""Game update serializer for the games app."""
+"""Game regular (staff/player-writable) update serializer for the games app."""
 
 from rest_framework import serializers
 
@@ -7,19 +7,21 @@ from games.serializers.characters.character_link_write import validate_links_cou
 from games.serializers.games.game_link_write import GameLinksSync, GameLinkWriteSerializer
 
 
-class GameUpdateSerializer(serializers.ModelSerializer):
-    """Serializer for the full field set a full editor (dm/admin) may edit on a game.
+class GameRegularUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for the narrow, staff/player-writable game update endpoint (issue #891).
 
-    See `GameRegularUpdateSerializer` for the narrower, staff/player-writable field set.
+    Unlike `GameUpdateSerializer`, `name` is not declared here — a regular-tier request that
+    includes it is silently dropped, matching `CharacterRegularUpdateSerializer`'s handling of
+    its own restricted-only fields.
     """
 
     links = GameLinkWriteSerializer(many=True, required=False)
 
     class Meta:
-        """Metadata for the GameUpdateSerializer."""
+        """Metadata for the GameRegularUpdateSerializer."""
 
         model = Game
-        fields = ['name', 'description', 'links']
+        fields = ['description', 'links']
         extra_kwargs = {
             field: {'required': False} for field in fields if field != 'links'
         }

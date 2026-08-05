@@ -4,10 +4,10 @@
  */
 export default class LinksEditModalController {
   /**
-   * Builds a local links array seeded from the character's current links,
+   * Builds a local links array seeded from the resource's current links,
    * cloning each entry so local edits do not mutate the caller's objects.
    *
-   * @param {object[]} [links] - Character's current links array.
+   * @param {object[]} [links] - Resource's current links array.
    * @returns {object[]} Cloned local links array.
    */
   static seedLinks(links) {

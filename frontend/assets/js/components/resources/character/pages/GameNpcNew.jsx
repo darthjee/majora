@@ -4,7 +4,7 @@ import {
 import GameNpcNewController from './controllers/GameNpcNewController.js';
 import Noop from '../../../../utils/Noop.js';
 import GameNpcNewHelper from './helpers/GameNpcNewHelper.jsx';
-import LinksEditModal from './elements/LinksEditModal.jsx';
+import LinksEditModal from '../../../common/modals/LinksEditModal.jsx';
 import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
 import MoneyEditModal from '../../../common/modals/MoneyEditModal.jsx';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';

@@ -4,7 +4,7 @@ import CharacterEdit from '../../../../../../../../assets/js/components/resource
 import NpcCharacterEditHelper
   from '../../../../../../../../assets/js/components/resources/character/pages/helpers/NpcCharacterEditHelper.jsx';
 import LinksEditModalHelper
-  from '../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/LinksEditModalHelper.jsx';
+  from '../../../../../../../../assets/js/components/common/modals/helpers/LinksEditModalHelper.jsx';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 import { buildLink } from '../../../../../../../support/factories.js';
 

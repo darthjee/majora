@@ -1,10 +1,10 @@
 import React from 'react';
-import LinkList from '../../../../../common/misc/LinkList.jsx';
+import LinkList from '../LinkList.jsx';
 
 /**
- * Rendering helper for the CharacterLinksField element.
+ * Rendering helper for the LinksField element.
  */
-export default class CharacterLinksFieldHelper {
+export default class LinksFieldHelper {
   /**
    * Render the read-only links preview and the "Edit links" button.
    *

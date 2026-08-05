@@ -1,7 +1,7 @@
 import LinksEditModalHelper
-  from '../../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/LinksEditModalHelper.jsx';
+  from '../../../../../../../assets/js/components/common/modals/helpers/LinksEditModalHelper.jsx';
 import Modal from 'react-bootstrap/cjs/Modal.js';
-import { buildLink } from '../../../../../../../../support/factories.js';
+import { buildLink } from '../../../../../../support/factories.js';
 
 // Function components (e.g. FormField) are rendered by calling them with
 // their props so the search can traverse into their output; class/exotic

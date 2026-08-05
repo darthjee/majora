@@ -7,11 +7,14 @@ describe('GameEditHelper', function() {
     onNameChange: jasmine.createSpy('onNameChange'),
     onDescriptionChange: jasmine.createSpy('onDescriptionChange'),
     onOpenUploadModal: jasmine.createSpy('onOpenUploadModal'),
+    onOpenLinksModal: jasmine.createSpy('onOpenLinksModal'),
   });
 
   const buildState = (overrides = {}) => ({
     name: 'Epic Quest',
     description: 'A heroic adventure.',
+    links: [],
+    isFullEditor: true,
     status: 'idle',
     fieldErrors: {},
     ...overrides,
@@ -92,11 +95,40 @@ describe('GameEditHelper', function() {
       expect(html).toContain('Upload Photo');
     });
 
+    it('renders the edit links button', function() {
+      const html = renderToStaticMarkup(GameEditHelper.render(buildState(), buildHandlers()));
+
+      expect(html).toContain('Edit links');
+    });
+
+    it('renders the name field for a full (dm/admin) editor', function() {
+      const html = renderToStaticMarkup(
+        GameEditHelper.render(buildState({ isFullEditor: true }), buildHandlers()),
+      );
+
+      expect(html).toContain('id="game-edit-name"');
+    });
+
+    it('hides the name field for a regular (non-full) editor', function() {
+      const html = renderToStaticMarkup(
+        GameEditHelper.render(buildState({ isFullEditor: false }), buildHandlers()),
+      );
+
+      expect(html).not.toContain('id="game-edit-name"');
+    });
+
     it('passes the upload handler through to the show page layout context', function() {
       const handlers = buildHandlers();
       const element = GameEditHelper.render(buildState(), handlers);
 
       expect(element.props.context.handlers.onOpenUploadModal).toBe(handlers.onOpenUploadModal);
+    });
+
+    it('passes the links handler through to the show page layout context', function() {
+      const handlers = buildHandlers();
+      const element = GameEditHelper.render(buildState(), handlers);
+
+      expect(element.props.context.handlers.onOpenLinksModal).toBe(handlers.onOpenLinksModal);
     });
 
     it('passes the photo_path through to the show page layout context', function() {

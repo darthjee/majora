@@ -46,9 +46,24 @@ unscheduled session, or `null`) are detail-only, per the [list/show
 default](principles.md#listshow-serializer-defaults).
 
 **Write fields** (create/update): `name` (required for create), `description` (optional),
-`game_type` (create-only, defaults to `dnd`, fixed thereafter). `cover_photo_path`/`game_slug` are
-read-only, server-assigned only (`game_slug` auto-generated from `name`; `cover_photo_path` set
-only via [Upload](upload.md)).
+`game_type` (create-only, defaults to `dnd`, fixed thereafter), `links` (optional, update only —
+see [Link](link.md#write-semantics)). `cover_photo_path`/`game_slug` are read-only,
+server-assigned only (`game_slug` auto-generated from `name`; `cover_photo_path` set only via
+[Upload](upload.md)).
+
+## Regular access for mutation (issue #891)
+
+`PATCH /games/<slug>.json` has two tiers, mirroring the [Character](character.md#regular-access-for-mutation)
+regular/restricted split:
+- Full tier (`name`+`description`+`links`) — **GameEdit**, i.e. the plain `Update` rule from the
+  default CRUD pattern above (admin/dm shortcut only).
+- Regular tier (`description`+`links` only — `name` is absent from the serializer's field set, so
+  a `name` value sent by a regular-tier request is silently dropped, not merely rejected) —
+  **GameRegularEdit**: roles per
+  [`game/endpoints.yml`](../../../backend/games/permissions/config/game/endpoints.yml)'s
+  `regular.regular_edit` (Staff + AnyPlayer, on top of the universal superuser/dm shortcut). The
+  view tries the full-tier check first, falling back to the regular-tier check — see
+  [common-rules](common-rules.md).
 
 ## Edit access status
 
@@ -68,6 +83,10 @@ endpoints](common-rules.md#edit-permission-endpoints-permissionsjson). Beyond `c
 - `can_create_document` — same shape, roles per
   [`game_document/endpoints.yml`](../../../backend/games/permissions/config/game_document/endpoints.yml)
   (`create`). See [GameDocument](game-document.md#document-creation-endpoint).
+- `can_edit_regular` (issue #891) — **GameRegularEdit**: roles per
+  [`game/endpoints.yml`](../../../backend/games/permissions/config/game/endpoints.yml)'s
+  `regular.regular_edit` — broader than `can_edit`, gates the `description`+`links`-only `PATCH`
+  tier above.
 
 ## My Games list
 

@@ -1,5 +1,8 @@
 # GamePermissionsSerializer's can_* fields.
 edit: []
+regular_edit:
+  - staff
+  - player
 create_item:
   - staff
   - player

@@ -32,7 +32,7 @@ describe('GameEditController', function() {
         await controller.submitForm(
           event,
           'demo',
-          { name: 'New Name', description: 'Great game' },
+          { name: 'New Name', description: 'Great game', links: [{ url: 'https://example.com' }] },
           { setStatus, setFieldErrors },
         );
 
@@ -45,7 +45,11 @@ describe('GameEditController', function() {
           method: 'PATCH',
           quantityType: 'single',
           params: { gameSlug: 'demo' },
-          body: { name: 'New Name', description: 'Great game' },
+          body: {
+            name: 'New Name',
+            description: 'Great game',
+            links: [{ url: 'https://example.com' }],
+          },
         });
       } finally {
         delete globalThis.window;

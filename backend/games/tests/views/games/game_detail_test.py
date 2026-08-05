@@ -160,3 +160,98 @@ class TestGameDetailPatchView(TokenAuthRequestMixin, TestCase):
         self.game.refresh_from_db()
         assert self.game.name == 'Partial Update'
         assert self.game.description == 'Original description.'
+
+    def test_patch_includes_links_in_response(self):
+        """Test that a dm PATCH creating a link returns it in the response."""
+        response = self._patch(
+            self.client,
+            {'links': [{'text': 'Rulebook', 'url': 'http://example.com/rules'}]},
+            token=self.dm_token,
+        )
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['links'][0]['text'] == 'Rulebook'
+        assert GameLink.objects.filter(game=self.game, url='http://example.com/rules').exists()
+
+
+class TestGameDetailPatchRegularTierView(TokenAuthRequestMixin, TestCase):
+    """Tests for the regular (staff/player) tier of the PATCH game detail endpoint."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up a game, a staff user, a player, and an unrelated outsider."""
+        cls.game = GameFactory(
+            name='Epic Quest',
+            game_slug='epic-quest',
+            description='Original description.',
+        )
+        cls.staff_user = UserFactory(
+            username='staff_user', password='secret-password', is_staff=True,
+        )
+        cls.staff_token = Token.objects.create(user=cls.staff_user)
+
+        cls.player_user = UserFactory(username='player_user', password='secret-password')
+        PlayerFactory(game=cls.game, user=cls.player_user, is_dm=False)
+        cls.player_token = Token.objects.create(user=cls.player_user)
+
+        cls.outsider = UserFactory(username='outsider', password='secret-password')
+        cls.outsider_token = Token.objects.create(user=cls.outsider)
+
+    def _patch(self, client, payload, token=None):
+        """Issue a PATCH request to the game detail endpoint, optionally with a token."""
+        return self.patch(client, '/games/epic-quest.json', payload, token=token)
+
+    def test_staff_can_update_description(self):
+        """Test that a staff user can update description via the regular tier."""
+        response = self._patch(
+            self.client, {'description': 'Staff update.'}, token=self.staff_token,
+        )
+        assert response.status_code == 200
+        self.game.refresh_from_db()
+        assert self.game.description == 'Staff update.'
+
+    def test_player_can_update_description(self):
+        """Test that a player can update description via the regular tier."""
+        response = self._patch(
+            self.client, {'description': 'Player update.'}, token=self.player_token,
+        )
+        assert response.status_code == 200
+        self.game.refresh_from_db()
+        assert self.game.description == 'Player update.'
+
+    def test_player_can_update_links(self):
+        """Test that a player can create a link via the regular tier."""
+        response = self._patch(
+            self.client,
+            {'links': [{'text': 'Session notes', 'url': 'http://example.com/notes'}]},
+            token=self.player_token,
+        )
+        assert response.status_code == 200
+        assert GameLink.objects.filter(game=self.game, url='http://example.com/notes').exists()
+
+    def test_staff_name_change_is_silently_ignored(self):
+        """Test that a name value from a staff (regular-tier) request does not change name."""
+        response = self._patch(
+            self.client, {'name': 'Renamed by staff'}, token=self.staff_token,
+        )
+        assert response.status_code == 200
+        self.game.refresh_from_db()
+        assert self.game.name == 'Epic Quest'
+
+    def test_player_name_change_is_silently_ignored(self):
+        """Test that a name value from a player (regular-tier) request does not change name."""
+        response = self._patch(
+            self.client, {'name': 'Renamed by player'}, token=self.player_token,
+        )
+        assert response.status_code == 200
+        self.game.refresh_from_db()
+        assert self.game.name == 'Epic Quest'
+
+    def test_outsider_cannot_update_description(self):
+        """Test that an unrelated user (not staff/player/dm) is rejected with 403."""
+        response = self._patch(
+            self.client, {'description': 'Should not apply.'}, token=self.outsider_token,
+        )
+        assert response.status_code == 403
+        self.game.refresh_from_db()
+        assert self.game.description == 'Original description.'

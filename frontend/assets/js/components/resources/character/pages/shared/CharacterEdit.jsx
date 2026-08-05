@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import CharacterHelper from '../helpers/CharacterHelper.jsx';
 import PhotoUploadModal from '../../../../common/modals/PhotoUploadModal.jsx';
-import LinksEditModal from '../elements/LinksEditModal.jsx';
+import LinksEditModal from '../../../../common/modals/LinksEditModal.jsx';
 import MoneyEditModal from '../../../../common/modals/MoneyEditModal.jsx';
 import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import resourceConfig from '../../../../../utils/requests/resourceConfig.js';

@@ -1,6 +1,6 @@
 import LinksEditModalController
-  from '../../../../../../../../../assets/js/components/resources/character/pages/elements/controllers/LinksEditModalController.js';
-import { buildLink } from '../../../../../../../../support/factories.js';
+  from '../../../../../../../assets/js/components/common/modals/controllers/LinksEditModalController.js';
+import { buildLink } from '../../../../../../support/factories.js';
 
 describe('LinksEditModalController', function() {
   describe('.seedLinks', function() {

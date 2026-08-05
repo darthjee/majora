@@ -248,6 +248,7 @@ game_edit_page:
   submit: Save changes
   error: Failed to save game. Please try again.
   upload_photo_button: Upload Photo
+  edit_links_button: Edit links
 game_new_page:
   title: New Game
   name_label: Name

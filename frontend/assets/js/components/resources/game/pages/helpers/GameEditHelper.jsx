@@ -8,11 +8,12 @@ export default class GameEditHelper {
   /**
    * Render the game edit form.
    *
-   * @param {{name: string, description: string, photo_path: string|null,
-   *   status: string, fieldErrors: object}} formState - Form state.
+   * @param {{name: string, description: string, links: object[], isFullEditor: boolean,
+   *   photo_path: string|null, status: string, fieldErrors: object}} formState - Form state.
+   *   `isFullEditor` gates the `name` field for a regular (non-full, staff/player) editor.
    * @param {{onSubmit: Function, onNameChange: Function,
-   *   onDescriptionChange: Function,
-   *   onOpenUploadModal: Function}} handlers - Event handlers.
+   *   onDescriptionChange: Function, onOpenUploadModal: Function,
+   *   onOpenLinksModal: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered edit page.
    */
   static render(formState, handlers) {

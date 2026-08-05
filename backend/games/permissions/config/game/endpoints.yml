@@ -1,3 +1,9 @@
 # GameEditPermission: plain can_be_edited_by (dm/admin shortcut only).
+# GameRegularEditPermission (issue #891): dm/admin shortcut, plus staff and any player, for
+# the narrower description/links-only field set.
+regular:
+  regular_edit:
+    - staff
+    - player
 restricted:
   edit: []

@@ -2,6 +2,10 @@ import gameShowType
   from '../../../../../../../../assets/js/components/common/show_page/show_types/configs/gameShowType.js';
 import GameCoverPhoto
   from '../../../../../../../../assets/js/components/resources/game/pages/elements/show/GameCoverPhoto.jsx';
+import GameLinksShow
+  from '../../../../../../../../assets/js/components/resources/game/pages/elements/show/GameLinksSlot.jsx';
+import GameNextSessionBlock
+  from '../../../../../../../../assets/js/components/resources/game/pages/elements/show/GameNextSessionBlock.jsx';
 import GameNameField
   from '../../../../../../../../assets/js/components/resources/game/pages/elements/show/GameNameField.jsx';
 import GameSubmitButton
@@ -10,6 +14,20 @@ import GameTypeSelect
   from '../../../../../../../../assets/js/components/resources/game/pages/elements/show/GameTypeSelect.jsx';
 
 describe('gameShowType', function() {
+  it('positions the links slot in the left column, before GameNextSessionBlock', function() {
+    const linksIndex = gameShowType.left.findIndex((entry) => entry.Show === GameLinksShow);
+    const nextSessionIndex = gameShowType.left.findIndex((entry) => entry.Show === GameNextSessionBlock);
+
+    expect(linksIndex).toBeGreaterThan(-1);
+    expect(linksIndex).toBeLessThan(nextSessionIndex);
+  });
+
+  it('no longer has a links entry in the right column', function() {
+    const rightLinksEntry = gameShowType.right.find((entry) => entry && entry.Show === GameLinksShow);
+
+    expect(rightLinksEntry).toBeUndefined();
+  });
+
   it('shows the pc/npc shortlists only on the show page', function() {
     const shortListEntries = gameShowType.right.filter(
       (entry) => entry.Show && entry.Show.name === 'ShortListSlot',

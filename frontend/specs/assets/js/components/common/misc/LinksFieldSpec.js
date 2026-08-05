@@ -1,13 +1,13 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
-import CharacterLinksField from '../../../../../../../../assets/js/components/resources/character/pages/elements/CharacterLinksField.jsx';
-import Noop from '../../../../../../../../assets/js/utils/Noop.js';
-import { buildLink } from '../../../../../../../support/factories.js';
+import LinksField from '../../../../../../assets/js/components/common/misc/LinksField.jsx';
+import Noop from '../../../../../../assets/js/utils/Noop.js';
+import { buildLink } from '../../../../../support/factories.js';
 
-describe('CharacterLinksField', function() {
-  it('delegates rendering to CharacterLinksFieldHelper', function() {
+describe('LinksField', function() {
+  it('delegates rendering to LinksFieldHelper', function() {
     const html = renderToStaticMarkup(
-      React.createElement(CharacterLinksField, {
+      React.createElement(LinksField, {
         links: [buildLink({ text: 'Wiki', url: 'https://example.com/wiki' })],
         buttonLabel: 'Edit links',
         onOpenLinksModal: Noop.noop,
@@ -20,7 +20,7 @@ describe('CharacterLinksField', function() {
 
   it('defaults links to an empty array', function() {
     expect(() => renderToStaticMarkup(
-      React.createElement(CharacterLinksField, { buttonLabel: 'Edit links', onOpenLinksModal: Noop.noop })
+      React.createElement(LinksField, { buttonLabel: 'Edit links', onOpenLinksModal: Noop.noop })
     )).not.toThrow();
   });
 });

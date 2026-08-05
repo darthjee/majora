@@ -37,4 +37,22 @@ describe('GameNameField', function() {
 
     expect(element.props.onChange).toBe(handlers.onNameChange);
   });
+
+  it('renders on the new form even without an isFullEditor prop', function() {
+    const element = GameNameField(buildProps({ mode: 'new' }));
+
+    expect(element.type).toBe(FormField);
+  });
+
+  it('renders on the edit form for a full (dm/admin) editor', function() {
+    const element = GameNameField(buildProps({ mode: 'edit', isFullEditor: true }));
+
+    expect(element.type).toBe(FormField);
+  });
+
+  it('renders nothing on the edit form for a regular (non-full) editor', function() {
+    const element = GameNameField(buildProps({ mode: 'edit', isFullEditor: false }));
+
+    expect(element).toBeNull();
+  });
 });

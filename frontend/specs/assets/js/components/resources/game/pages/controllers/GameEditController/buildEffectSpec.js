@@ -21,6 +21,7 @@ describe('GameEditController', function() {
   describe('#buildEffect', function() {
     it('fetches the game through RequestStore and merges AccessStore access, calling setGame with the result', async function() {
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ is_player: true, is_staff: false }));
       const setGame = jasmine.createSpy('setGame');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -36,7 +37,10 @@ describe('GameEditController', function() {
           componentName: 'GameEditController', resource: 'game', quantityType: 'single', params: { gameSlug: 'demo' },
         });
         expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
-        expect(setGame).toHaveBeenCalledWith(buildGame({ name: 'Demo', game_slug: 'demo', can_edit: true }));
+        expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');
+        expect(setGame).toHaveBeenCalledWith(buildGame({
+          name: 'Demo', game_slug: 'demo', can_edit: true, is_player: true, is_staff: false,
+        }));
         expect(setLoading).toHaveBeenCalledWith(false);
         expect(setError).not.toHaveBeenCalled();
 
@@ -48,6 +52,7 @@ describe('GameEditController', function() {
 
     it('sets can_edit to false when AccessStore resolves with the fail-closed default', async function() {
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ is_player: false, is_staff: false }));
       const setGame = jasmine.createSpy('setGame');
       const setLoading = jasmine.createSpy('setLoading');
       const setError = jasmine.createSpy('setError');
@@ -72,6 +77,7 @@ describe('GameEditController', function() {
 
     it('sets error when the game fetch fails', async function() {
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+      spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({ is_player: false, is_staff: false }));
       ensureSpy.and.returnValue(Promise.reject(new Error('network error')));
       const setGame = jasmine.createSpy('setGame');
       const setLoading = jasmine.createSpy('setLoading');

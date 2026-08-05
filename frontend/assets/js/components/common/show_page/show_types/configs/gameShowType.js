@@ -1,6 +1,6 @@
 import DescriptionBox from '../../../misc/DescriptionBox.jsx';
-import LinkList from '../../../misc/LinkList.jsx';
 import GameCoverPhoto from '../../../../resources/game/pages/elements/show/GameCoverPhoto.jsx';
+import GameLinksShow, { buildGameLinksField } from '../../../../resources/game/pages/elements/show/GameLinksSlot.jsx';
 import GameNextSessionBlock from '../../../../resources/game/pages/elements/show/GameNextSessionBlock.jsx';
 import GameOpenPollsWidgetSlot from '../../../../resources/game/pages/elements/show/GameOpenPollsWidgetSlot.jsx';
 import GameHeading from '../../../../resources/game/pages/elements/show/GameHeading.jsx';
@@ -10,6 +10,8 @@ import GameDescriptionField from '../../../../resources/game/pages/elements/show
 import GameTypeSelect from '../../../../resources/game/pages/elements/show/GameTypeSelect.jsx';
 import GameSubmitButton from '../../../../resources/game/pages/elements/show/GameSubmitButton.jsx';
 
+const gameLinksField = buildGameLinksField('game_edit_page.edit_links_button');
+
 /**
  * `showTypeConfig` entry for the `game` show/new/edit pages. `new` has no natural left-side
  * content (game creation has always been a plain single-column form) — `GameCoverPhoto` simply
@@ -18,13 +20,13 @@ import GameSubmitButton from '../../../../resources/game/pages/elements/show/Gam
 const gameShowType = {
   left: [
     { Show: GameCoverPhoto, Edit: GameCoverPhoto },
+    { Show: GameLinksShow, Edit: gameLinksField },
     { Show: GameNextSessionBlock },
     { Show: GameOpenPollsWidgetSlot },
   ],
   right: [
     GameHeading,
     { Show: DescriptionBox },
-    { Show: LinkList },
     { Show: buildShortListSlot('pc') },
     { Show: buildShortListSlot('npc') },
     { New: GameNameField, Edit: GameNameField },

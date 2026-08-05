@@ -53,9 +53,11 @@ from games.serializers.games.game_access import GameAccessSerializer
 from games.serializers.games.game_create import GameCreateSerializer
 from games.serializers.games.game_detail import GameDetailSerializer
 from games.serializers.games.game_link import GameLinkSerializer
+from games.serializers.games.game_link_write import GameLinkWriteSerializer
 from games.serializers.games.game_list import GameListSerializer
 from games.serializers.games.game_permissions import GamePermissionsSerializer
 from games.serializers.games.game_photo import GamePhotoSerializer
+from games.serializers.games.game_regular_update import GameRegularUpdateSerializer
 from games.serializers.games.game_update import GameUpdateSerializer
 from games.serializers.games.items.game_item_list import (
     GameItemAllListSerializer,
@@ -156,9 +158,11 @@ __all__ = [
     'GameItemPhotoSerializer',
     'GameItemUpdateSerializer',
     'GameLinkSerializer',
+    'GameLinkWriteSerializer',
     'GameListSerializer',
     'GamePermissionsSerializer',
     'GamePhotoSerializer',
+    'GameRegularUpdateSerializer',
     'GameSessionCreateSerializer',
     'GameSessionDetailSerializer',
     'GameSessionListSerializer',

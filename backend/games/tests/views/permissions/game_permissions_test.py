@@ -30,6 +30,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
         """Return the expected response when no permission is granted."""
         return {
             'can_edit': False,
+            'can_edit_regular': False,
             'can_create_item': False,
             'can_create_document': False,
             'can_edit_session': False,
@@ -40,6 +41,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
         """Return the expected response when every permission is granted."""
         return {
             'can_edit': True,
+            'can_edit_regular': True,
             'can_create_item': True,
             'can_create_document': True,
             'can_edit_session': True,
@@ -80,6 +82,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
         data = json.loads(response.content)
         assert data == {
             'can_edit': False,
+            'can_edit_regular': True,
             'can_create_item': True,
             'can_create_document': True,
             'can_edit_session': True,
@@ -92,11 +95,18 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
         data = json.loads(response.content)
         assert data == {
             'can_edit': False,
+            'can_edit_regular': True,
             'can_create_item': True,
             'can_create_document': True,
             'can_edit_session': True,
             'can_create_npc': True,
         }
+
+    def test_owner_cannot_edit_regular(self):
+        """Test that ?role=owner (PC-scoped, not a game role) gets can_edit_regular False."""
+        response = self._get(self.client, query='role=owner')
+        data = json.loads(response.content)
+        assert data['can_edit_regular'] is False
 
     def test_anonymous_cannot_edit(self):
         """Test that an unauthenticated request gets every permission False."""

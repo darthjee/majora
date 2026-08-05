@@ -3,15 +3,14 @@ import LinksEditModalHelper from './helpers/LinksEditModalHelper.jsx';
 import LinksEditModalController from './controllers/LinksEditModalController.js';
 
 /**
- * Modal for locally editing a character's links (add, edit text/URL/type, and
- * mark links for deletion) before committing the change together with the
- * rest of the character edit form. Holds its own local links state, seeded
- * from `props.links` whenever the modal opens, independent from the
- * character page's links state until confirmed.
+ * Modal for locally editing a resource's (character or game) links (add, edit text/URL/type,
+ * and mark links for deletion) before committing the change together with the rest of the edit
+ * form. Holds its own local links state, seeded from `props.links` whenever the modal opens,
+ * independent from the host page's links state until confirmed.
  *
  * @param {object} props - Component props.
  * @param {boolean} props.show - Whether the modal is visible.
- * @param {object[]} props.links - Character's current links array, used to seed
+ * @param {object[]} props.links - Resource's current links array, used to seed
  *   the modal's local state whenever it opens.
  * @param {Function} props.onClose - Handler invoked when the modal is cancelled/dismissed,
  *   discarding local changes.
