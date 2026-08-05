@@ -260,6 +260,52 @@ class CacheSizeHandlerTest extends TestCase
     }
 
     /**
+     * Only allow-listed headers are forwarded to the backend call, with Host
+     * overridden to the backend's own host regardless of what the client
+     * sent. Non-allow-listed headers (e.g. X-Trace-Id) are dropped.
+     */
+    public function testOnlyAllowListedHeadersAreForwardedToBackend(): void
+    {
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = $this->makeHandler($httpClient);
+
+        $request = $this->makeRequest([
+            'Authorization'   => 'Bearer tok',
+            'X-Trace-Id'      => 'trace-abc',
+            'Cookie'          => 'session=abc',
+            'X-Skip-Cache'    => '1',
+            'Referer'         => 'http://client/photo',
+            'Accept-Language' => 'en-US',
+            'Accept'          => 'application/json',
+            'Host'            => 'majora.example.com',
+        ]);
+
+        $expectedHeaders = [
+            'Authorization'    => 'Bearer tok',
+            'Cookie'           => 'session=abc',
+            'X-Skip-Cache'     => '1',
+            'Referer'          => 'http://client/photo',
+            'Accept-Language'  => 'en-US',
+            'Accept'           => 'application/json',
+            'Host'             => 'backend',
+            'X-Forwarded-Host' => 'majora.example.com',
+        ];
+
+        $httpClient->expects($this->once())
+            ->method('request')
+            ->with('GET', 'http://backend:8080/users/status.json', $expectedHeaders)
+            ->willReturn([
+                'httpCode' => 200,
+                'body'     => $this->statusBody(true, true, false),
+                'headers'  => [],
+            ]);
+
+        $response = $handler->handleRequest($request);
+
+        $this->assertSame(200, $response->httpCode());
+    }
+
+    /**
      * build() sets cachePath from the 'cache_path' configuration parameter.
      */
     public function testBuildSetsCachePathFromParams(): void
