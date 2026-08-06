@@ -1,5 +1,6 @@
 import CardDocumentImage from '../../../../../../common/cards/CardDocumentImage.jsx';
 import BrowsePager from '../../../../../../common/pagination/BrowsePager.jsx';
+import TwoColumnLayout from '../../../../../../common/layout/TwoColumnLayout.jsx';
 import Translator from '../../../../../../../i18n/Translator.js';
 
 function renderActionError(actionError) {
@@ -34,15 +35,11 @@ export default class RemoveDocumentTabHelper {
   static render(state, handlers) {
     const { selected } = state;
 
-    if (!selected) {
-      return RemoveDocumentTabHelper.#renderBrowsePane(state, handlers);
-    }
-
     return (
-      <div className="row">
-        <div className="col-6">{RemoveDocumentTabHelper.#renderBrowsePane(state, handlers)}</div>
-        <div className="col-6">{RemoveDocumentTabHelper.#renderDetailPane(state, handlers)}</div>
-      </div>
+      <TwoColumnLayout
+        browsePane={RemoveDocumentTabHelper.#renderBrowsePane(state, handlers)}
+        detailPane={selected ? RemoveDocumentTabHelper.#renderDetailPane(state, handlers) : null}
+      />
     );
   }
 

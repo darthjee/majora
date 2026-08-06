@@ -12,6 +12,7 @@ export default {
   skull: 'bi-skull',
   skullFill: 'bi-skull-fill',
   trash: 'bi-trash-fill',
+  arrowClockwise: 'bi-arrow-clockwise',
   restore: 'bi-plus-circle-fill',
   viewAs: 'bi-file-person-fill',
   filePerson: 'bi-file-earmark-person',
@@ -53,4 +54,7 @@ export default {
   arrowsExpand: 'bi-arrows-expand',
   arrowsCollapse: 'bi-arrows-collapse',
   questionCircleFill: 'bi-question-circle-fill',
+  caretUpSquareFill: 'bi-caret-up-square-fill',
+  caretDownSquareFill: 'bi-caret-down-square-fill',
+  personX: 'bi-person-x',
 };

@@ -2,9 +2,6 @@
 
 namespace Tent\RequestHandlers;
 
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use SplFileInfo;
 use Tent\Http\HttpClientInterface;
 use Tent\Models\RequestInterface;
 use Tent\Models\Response;
@@ -12,19 +9,20 @@ use Tent\Models\Response;
 /**
  * Handles GET /staff/cache/size.json.
  *
- * Gates access behind the backend's admin/staff check, then reports the
- * total size (in bytes) of the proxy's on-disk cache folder:
+ * Gates access behind the backend's admin/staff check (delegated to
+ * StaffAccessGuard, shared with CacheClearHandler), then reports the total
+ * size (in bytes) of the proxy's on-disk cache folder:
  *   1. Calls GET .../users/status.json to check the caller is logged in and
  *      is staff or superuser (403 otherwise; a non-200 response from that
  *      call is forwarded to the client as-is).
- *   2. Recursively sums the size of every file under the configured cache
- *      path and returns it as {"size": <bytes>}.
+ *   2. Computes the total size of the configured cache path (via
+ *      DirectorySizeCalculator) and returns it as {"size": <bytes>}.
  *
  * Deliberately has no SecurePhotoStorage-style path-traversal guard: this is
  * a read-only size check over a fixed, config-supplied path, never a path
  * derived from request input, so there is no traversal surface here. The
- * future "clear cache" handler (see the issue's "Future work" section), which
- * will delete files, is where that guard will actually matter.
+ * same reasoning applies to CacheClearHandler, which deletes files under
+ * that same fixed, config-supplied path.
  */
 class CacheSizeHandler extends RequestHandler
 {
@@ -34,24 +32,39 @@ class CacheSizeHandler extends RequestHandler
     /** @var string Path to the proxy's on-disk cache folder */
     private string $cachePath;
 
+    /** @var DirectorySizeCalculator Calculator used to size the cache folder. */
+    private DirectorySizeCalculator $calculator;
+
     /**
-     * @param string                   $host       Backend host URL.
-     * @param HttpClientInterface|null $httpClient HTTP client (defaults to CurlHttpClient).
-     * @param string                   $cachePath  Path to the cache folder to measure.
+     * @param string                        $host          Backend host URL.
+     * @param HttpClientInterface|null      $httpClient    HTTP client (defaults to
+     *                                                       CurlHttpClient).
+     * @param string                        $cachePath     Path to the cache folder to measure.
+     * @param string                        $cacheSizeTool Directory-size tool identifier used
+     *                                                       to build the default calculator
+     *                                                       (e.g. 'du', 'php_walk'); ignored
+     *                                                       when $calculator is given.
+     * @param DirectorySizeCalculator|null  $calculator    Calculator used to size the cache
+     *                                                       folder (defaults to one built from
+     *                                                       $cacheSizeTool).
      */
     public function __construct(
         string $host,
         ?HttpClientInterface $httpClient = null,
-        string $cachePath = ''
+        string $cachePath = '',
+        string $cacheSizeTool = 'php_walk',
+        ?DirectorySizeCalculator $calculator = null
     ) {
         $this->client = new BackendClient($host, $httpClient);
         $this->cachePath = $cachePath;
+        $this->calculator = ($calculator ?? new DirectorySizeCalculator($cacheSizeTool));
     }
 
     /**
      * Builds a CacheSizeHandler from configuration parameters.
      *
-     * @param array $params Must contain 'host' (string) and 'cache_path' (string).
+     * @param array $params Must contain 'host' (string) and 'cache_path' (string); optionally
+     *                        'cache_size_tool' (string, defaults to 'php_walk').
      * @return self
      */
     public static function build(array $params): self
@@ -59,7 +72,8 @@ class CacheSizeHandler extends RequestHandler
         return new self(
             ($params['host'] ?? ''),
             null,
-            ($params['cache_path'] ?? '')
+            ($params['cache_path'] ?? ''),
+            ($params['cache_size_tool'] ?? 'php_walk')
         );
     }
 
@@ -72,79 +86,42 @@ class CacheSizeHandler extends RequestHandler
      *    but is neither staff nor superuser.
      * 3. Otherwise, computes the cache folder's total size and returns it.
      *
+     * If the configured DirectorySizeCalculator strategy fails at runtime
+     * (e.g. the `du` binary is missing or exits non-zero), that failure is
+     * turned into a controlled 500 response rather than propagating
+     * uncaught, the same way BackendErrorException failures are handled
+     * above.
+     *
      * @param RequestInterface $request The incoming HTTP request.
      * @return Response
      */
     protected function processsRequest(RequestInterface $request): Response
     {
         try {
-            $this->requireStaffAccess($request->headers());
+            StaffAccessGuard::requireStaffAccess($this->client, $request->headers());
 
             $size = $this->cacheSize();
         } catch (BackendErrorException $e) {
             return new Response(['httpCode' => $e->httpCode(), 'body' => $e->body()]);
+        } catch (ShellCommandFailedException $e) {
+            return new Response(['httpCode' => 500, 'body' => 'Internal Server Error']);
         }
 
         return new Response([
             'httpCode' => 200,
-            'headers'  => ['Content-Type' => 'application/json'],
+            'headers'  => ['Content-Type: application/json'],
             'body'     => json_encode(['size' => $size]),
         ]);
     }
 
     /**
-     * Calls the backend's users/status.json endpoint and ensures the caller
-     * is logged in and is either staff or a superuser.
+     * Computes the total size (in bytes) of the configured cache folder,
+     * delegating to the configured DirectorySizeCalculator.
      *
-     * @param array $headers Raw, unfiltered incoming request headers.
-     * @return void
-     * @throws BackendErrorException When the backend call itself fails
-     *                                (forwarded as-is), or the caller isn't
-     *                                admin/staff (403).
-     */
-    private function requireStaffAccess(array $headers): void
-    {
-        $result = $this->client->request('GET', '/users/status.json', $headers);
-
-        if ($result['httpCode'] !== 200) {
-            throw new BackendErrorException($result['httpCode'], $result['body']);
-        }
-
-        $body = json_decode($result['body'], true);
-
-        $loggedIn    = (($body['logged_in'] ?? false) === true);
-        $isStaff     = (($body['is_staff'] ?? false) === true);
-        $isSuperuser = (($body['is_superuser'] ?? false) === true);
-
-        if (!$loggedIn || (!$isStaff && !$isSuperuser)) {
-            throw new BackendErrorException(403, '{"error":"Forbidden"}');
-        }
-    }
-
-    /**
-     * Recursively sums the size (in bytes) of every file under $cachePath.
-     *
-     * @return int Total size in bytes; 0 when the folder doesn't exist or is
-     *              empty.
+     * @return int Total size in bytes.
      */
     private function cacheSize(): int
     {
-        if (!is_dir($this->cachePath)) {
-            return 0;
-        }
-
-        $size = 0;
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->cachePath, RecursiveDirectoryIterator::SKIP_DOTS)
-        );
-
-        /** @var SplFileInfo $file */
-        foreach ($iterator as $file) {
-            if ($file->isFile()) {
-                $size += $file->getSize();
-            }
-        }
-
-        return $size;
+        return $this->calculator->sizeOf($this->cachePath);
     }
 }

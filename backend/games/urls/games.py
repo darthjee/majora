@@ -112,6 +112,26 @@ urlpatterns = [
         views.game_item_photo_upload,
         name='game-item-photo-upload',
     ),
+    path(
+        'games/<slug:game_slug>/items/<int:item_id>/pcs/<int:character_id>/summary.json',
+        views.game_pc_item_summary,
+        name='game-item-pc-summary',
+    ),
+    path(
+        'games/<slug:game_slug>/items/<int:item_id>/pcs/<int:character_id>/summary/all.json',
+        views.game_pc_item_summary_all,
+        name='game-item-pc-summary-all',
+    ),
+    path(
+        'games/<slug:game_slug>/items/<int:item_id>/npcs/<int:character_id>/summary.json',
+        views.game_npc_item_summary,
+        name='game-item-npc-summary',
+    ),
+    path(
+        'games/<slug:game_slug>/items/<int:item_id>/npcs/<int:character_id>/summary/all.json',
+        views.game_npc_item_summary_all,
+        name='game-item-npc-summary-all',
+    ),
     path('games/<slug:game_slug>/photos.json', views.game_photos, name='game-photos'),
     path(
         'games/<slug:game_slug>/sessions.json',

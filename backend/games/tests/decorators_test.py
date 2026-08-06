@@ -2,7 +2,7 @@
 
 from django.http import HttpResponse
 
-from games.decorators import regular, restricted
+from games.decorators import regular, restricted, skip_cache
 
 
 class TestRestricted:
@@ -57,6 +57,63 @@ class TestRestricted:
             return HttpResponse(status=200)
 
         wrapped = restricted(view)
+
+        assert wrapped.__name__ == 'view'
+        assert wrapped.__doc__ == 'Original docstring.'
+
+
+class TestSkipCache:
+    """Tests for the `@skip_cache` decorator."""
+
+    def test_sets_skip_cache_header_on_success_response(self):
+        """A successful response gets `X-Skip-Cache: true`."""
+
+        def view(request):
+            """Return a plain 200 response."""
+            return HttpResponse(status=200)
+
+        wrapped = skip_cache(view)
+        response = wrapped(request=None)
+
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_sets_skip_cache_header_regardless_of_status_code(self):
+        """An error response also gets `X-Skip-Cache: true`."""
+
+        def view(request):
+            """Return a 404 error response."""
+            return HttpResponse(status=404)
+
+        wrapped = skip_cache(view)
+        response = wrapped(request=None)
+
+        assert response.status_code == 404
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_preserves_args_and_kwargs_passthrough(self):
+        """Positional and keyword arguments are passed through to the wrapped view."""
+        captured = {}
+
+        def view(request, *args, **kwargs):
+            """Capture the args/kwargs it received, then return a response."""
+            captured['args'] = args
+            captured['kwargs'] = kwargs
+            return HttpResponse(status=200)
+
+        wrapped = skip_cache(view)
+        wrapped(None, 'positional', user_id=42)
+
+        assert captured['args'] == ('positional',)
+        assert captured['kwargs'] == {'user_id': 42}
+
+    def test_preserves_wrapped_function_identity(self):
+        """`functools.wraps` preserves the wrapped view's `__name__` and `__doc__`."""
+
+        def view(request):
+            """Original docstring."""
+            return HttpResponse(status=200)
+
+        wrapped = skip_cache(view)
 
         assert wrapped.__name__ == 'view'
         assert wrapped.__doc__ == 'Original docstring.'

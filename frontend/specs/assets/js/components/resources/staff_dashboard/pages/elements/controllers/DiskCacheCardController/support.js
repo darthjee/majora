@@ -5,8 +5,9 @@
 export function buildContext() {
   return {
     setSize: jasmine.createSpy('setSize'),
+    setStatus: jasmine.createSpy('setStatus'),
     setLoading: jasmine.createSpy('setLoading'),
     setError: jasmine.createSpy('setError'),
-    client: jasmine.createSpyObj('client', ['fetchDiskCacheSize']),
+    client: jasmine.createSpyObj('client', ['fetchDiskCacheSize', 'clearDiskCache']),
   };
 }
