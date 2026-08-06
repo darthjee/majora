@@ -70,7 +70,15 @@
  *   'pcs'|'npcs'`). Params: `gameSlug`, `kind`, `id`. `private` is the DM/admin-only endpoint
  *   variant accepting a hidden `GameDocument`/`CharacterDocument`; callers pass `variantName`
  *   explicitly (see `AcquireDocumentTabController.js`/`RemoveDocumentTabController.js`), so
- *   `permission` here is documentation-only.
+ *   `permission` here is documentation-only. The same `acquire`/`remove` entries are reused
+ *   unchanged by the give-document modal (issue #1005) — no new request-config needed there.
+ *
+ *   `GET.summary` (issue #1005) backs the give-document modal's receiving list: whether a
+ *   character already owns a given `GameDocument`. Params: `gameSlug`, `documentId`, `kind`,
+ *   `id`. Mirrors `treasureConfig.js`'s own `summary` entry exactly — `skipCache: true` on both
+ *   variants (not worth caching), `private` gated by `can_edit` (the NPC variant additionally
+ *   404s on a hidden NPC when the requester can't edit the game, checked before resolving the
+ *   NPC so an unauthorized caller can't distinguish hidden-vs-nonexistent).
  */
 const gameDocumentCreate = { path: ({ gameSlug }) => `/games/${gameSlug}/documents.json`, permission: 'can_edit' };
 
@@ -185,6 +193,15 @@ const acquireAllPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/$
 const removePath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/documents/remove.json`;
 const removeAllPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/documents/remove/all.json`;
 
+// Per-character document-ownership summary paths (issue #1005's give-document modal).
+// `documentId` is the `GameDocument` being given; `kind`/`id` identify the receiving character.
+const summaryPath = ({
+  gameSlug, documentId, kind, id,
+}) => `/games/${gameSlug}/documents/${documentId}/${kind}/${id}/summary.json`;
+const summaryAllPath = ({
+  gameSlug, documentId, kind, id,
+}) => `/games/${gameSlug}/documents/${documentId}/${kind}/${id}/summary/all.json`;
+
 export default {
   GET: {
     collection: {
@@ -210,6 +227,10 @@ export default {
     availableCollection: {
       regular: { path: availablePath, permission: null },
       private: { path: availableAllPath, permission: 'can_edit' },
+    },
+    summary: {
+      regular: { path: summaryPath, permission: null, skipCache: true },
+      private: { path: summaryAllPath, permission: 'can_edit', skipCache: true },
     },
   },
   POST: {
