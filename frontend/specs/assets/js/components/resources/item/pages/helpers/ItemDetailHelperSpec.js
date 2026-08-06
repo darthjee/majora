@@ -109,9 +109,27 @@ describe('ItemDetailHelper', function() {
       expect(html).toContain('href="#/games/demo/items/5/edit"');
     });
 
-    it('renders the give-item button unconditionally, regardless of canEdit', function() {
+    it('does not render the give-item button when canUploadPhoto is omitted (issue #1005)', function() {
       const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
       const html = renderToStaticMarkup(ItemDetailHelper.render(item, '#/games/demo/items'));
+
+      expect(html).not.toContain('Give Item');
+    });
+
+    it('does not render the give-item button when canUploadPhoto is false, regardless of canEdit', function() {
+      const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
+      const html = renderToStaticMarkup(
+        ItemDetailHelper.render(item, '#/games/demo/items', '#/games/demo/items/5/edit', true, false),
+      );
+
+      expect(html).not.toContain('Give Item');
+    });
+
+    it('renders the give-item button when canUploadPhoto is true', function() {
+      const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
+      const html = renderToStaticMarkup(
+        ItemDetailHelper.render(item, '#/games/demo/items', '#/games/demo/items/5/edit', false, true),
+      );
 
       expect(html).toContain('Give Item');
     });
@@ -120,11 +138,11 @@ describe('ItemDetailHelper', function() {
       const item = { id: 5, name: 'Cloak of Elvenkind', description: '' };
       const onGiveItemClick = jasmine.createSpy('onGiveItemClick');
       const element = ItemDetailHelper.render(
-        item, '#/games/demo/items', '#/games/demo/items/5/edit', false, false, undefined, onGiveItemClick,
+        item, '#/games/demo/items', '#/games/demo/items/5/edit', false, true, undefined, onGiveItemClick,
       );
-      const giveItemButton = element.props.pageActions.props.children[0];
+      const [giveItemWrapper] = element.props.pageActions.props.children;
 
-      giveItemButton.props.onClick();
+      giveItemWrapper.props.children.props.onClick();
 
       expect(onGiveItemClick).toHaveBeenCalled();
     });

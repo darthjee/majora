@@ -12,10 +12,11 @@ const loadedTreasure = {
   id: 5, name: 'Golden Crown', value: 500, can_edit: false, available_units: null,
 };
 
-/** Stub controller that synchronously loads a treasure during construction. */
+/** Stub controller that synchronously loads a treasure (with give permission) during construction. */
 class LoadedController {
-  constructor(setTreasure, setLoading) {
+  constructor(setTreasure, setLoading, setError, setCanUploadPhoto) {
     setTreasure(loadedTreasure);
+    setCanUploadPhoto?.(true);
     setLoading(false);
   }
 
@@ -24,8 +25,20 @@ class LoadedController {
 
 /** Stub controller that synchronously loads an editable treasure during construction. */
 class LoadedEditableController {
-  constructor(setTreasure, setLoading) {
+  constructor(setTreasure, setLoading, setError, setCanUploadPhoto) {
     setTreasure({ ...loadedTreasure, can_edit: true });
+    setCanUploadPhoto?.(true);
+    setLoading(false);
+  }
+
+  buildEffect() { return () => Noop.noop; }
+}
+
+/** Stub controller that synchronously loads a treasure without give permission during construction. */
+class LoadedWithoutGivePermissionController {
+  constructor(setTreasure, setLoading, setError, setCanUploadPhoto) {
+    setTreasure(loadedTreasure);
+    setCanUploadPhoto?.(false);
     setLoading(false);
   }
 
@@ -75,18 +88,22 @@ describe('GameTreasure', function() {
     expect(html).toContain('Unable to load treasure.');
   });
 
-  it('delegates to GameTreasureHelper.render with the treasure, back href, edit href, and handler', function() {
+  it('delegates to GameTreasureHelper.render with the treasure, back href, edit href, handler, and gating', function() {
     let capturedTreasure;
     let capturedBackHref;
     let capturedEditHref;
     let capturedOnGiveTreasureClick;
-    spyOn(GameTreasureHelper, 'render').and.callFake((treasure, backHref, editHref, onGiveTreasureClick) => {
-      capturedTreasure = treasure;
-      capturedBackHref = backHref;
-      capturedEditHref = editHref;
-      capturedOnGiveTreasureClick = onGiveTreasureClick;
-      return null;
-    });
+    let capturedCanUploadPhoto;
+    spyOn(GameTreasureHelper, 'render').and.callFake(
+      (treasure, backHref, editHref, onGiveTreasureClick, canUploadPhoto) => {
+        capturedTreasure = treasure;
+        capturedBackHref = backHref;
+        capturedEditHref = editHref;
+        capturedOnGiveTreasureClick = onGiveTreasureClick;
+        capturedCanUploadPhoto = canUploadPhoto;
+        return null;
+      },
+    );
 
     renderToStaticMarkup(React.createElement(GameTreasure, { ControllerClass: LoadedController }));
 
@@ -94,6 +111,21 @@ describe('GameTreasure', function() {
     expect(capturedBackHref).toBe('#/games/demo/treasures');
     expect(capturedEditHref).toBe('#/games/demo/treasures/5/edit');
     expect(typeof capturedOnGiveTreasureClick).toBe('function');
+    expect(capturedCanUploadPhoto).toBe(true);
+  });
+
+  it('passes canUploadPhoto=false through when the controller denies it (issue #1005)', function() {
+    let capturedCanUploadPhoto;
+    spyOn(GameTreasureHelper, 'render').and.callFake((treasure, backHref, editHref, onGiveTreasureClick, canUploadPhoto) => {
+      capturedCanUploadPhoto = canUploadPhoto;
+      return null;
+    });
+
+    renderToStaticMarkup(
+      React.createElement(GameTreasure, { ControllerClass: LoadedWithoutGivePermissionController }),
+    );
+
+    expect(capturedCanUploadPhoto).toBe(false);
   });
 
   describe('give-treasure modal', function() {

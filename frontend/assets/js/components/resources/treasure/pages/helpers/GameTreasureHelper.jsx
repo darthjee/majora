@@ -1,5 +1,6 @@
 import React from 'react';
 import BackButton from '../../../../common/buttons/BackButton.jsx';
+import ConditionalComponent from '../../../../common/misc/ConditionalComponent.jsx';
 import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
 import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
 import Translator from '../../../../../i18n/Translator.js';
@@ -8,13 +9,14 @@ import TreasureListItem from '../../../../common/list_types/TreasureListItem.js'
 import Noop from '../../../../../utils/Noop.js';
 
 /**
- * Rendering helper for the game-scoped Treasure detail page (issue #1001). Mirrors
- * `TreasureHelper.jsx`'s manual (non-`ShowPageLayout`) rendering style, plus an unconditional
- * "Give Treasure" button (no permission gate — every per-character grant is checked server-side
- * by the reused acquire endpoint instead, same rationale as `ItemDetailHelper`'s Give Item
- * button) and, when the treasure is capped (`max_units` set), an availability line reusing
- * `TreasureListItem#availabilityText` (the same `available_units`/`max_units` display already
- * used by `TreasureCardHelper`/the game treasures list).
+ * Rendering helper for the game-scoped Treasure detail page (issue #1001, "Give Treasure" button
+ * gating added in #1005). Mirrors `TreasureHelper.jsx`'s manual (non-`ShowPageLayout`) rendering
+ * style, plus a "Give Treasure" button gated on `canUploadPhoto` (superuser/staff/dm/player of
+ * the game, fixing its previously-unconditional visibility — every per-character grant is still
+ * checked server-side by the reused acquire endpoint) and, when the treasure is capped
+ * (`max_units` set), an availability line reusing `TreasureListItem#availabilityText` (the same
+ * `available_units`/`max_units` display already used by `TreasureCardHelper`/the game treasures
+ * list).
  */
 export default class GameTreasureHelper {
   /**
@@ -35,9 +37,11 @@ export default class GameTreasureHelper {
    * @param {string} editHref - Hash path to the treasure's edit page.
    * @param {Function} [onGiveTreasureClick] - Handler invoked when the "Give Treasure" button is
    *   clicked. Defaults to a no-op.
+   * @param {boolean} [canUploadPhoto] - Whether the current user may give this treasure, gating
+   *   the "Give Treasure" button (issue #1005). Defaults to `false`.
    * @returns {React.ReactElement} Game treasure detail element.
    */
-  static render(treasure, backHref, editHref, onGiveTreasureClick = Noop.noop) {
+  static render(treasure, backHref, editHref, onGiveTreasureClick = Noop.noop, canUploadPhoto = false) {
     return (
       <div className="container mt-4">
         <BackButton href={backHref} />
@@ -51,9 +55,11 @@ export default class GameTreasureHelper {
           <TreasureMoney value={treasure.value} gameType={treasure.game_type} />
         </p>
         {GameTreasureHelper.#renderAvailability(treasure)}
-        <button type="button" className="btn btn-primary mt-2" onClick={onGiveTreasureClick}>
-          {Translator.t('give_treasure_modal.title')}
-        </button>
+        <ConditionalComponent render={canUploadPhoto}>
+          <button type="button" className="btn btn-primary mt-2" onClick={onGiveTreasureClick}>
+            {Translator.t('give_treasure_modal.title')}
+          </button>
+        </ConditionalComponent>
       </div>
     );
   }

@@ -11,7 +11,10 @@ import Translator from '../../../../../i18n/Translator.js';
  * Rendering helper for the item detail pages (issue #724): shared by `GameItem`,
  * `PcCharacterItem`, and `NpcCharacterItem`, since the layout and fields (`name`,
  * `description`, `photo_path`, optional `hidden`) are identical across all three response
- * shapes, via the `item` `showTypeConfig` entry (issue #738).
+ * shapes, via the `item` `showTypeConfig` entry (issue #738). The "Give Item" button (issue #827)
+ * is gated on `canUploadPhoto` (issue #1005) — superuser/staff/dm/player of the game — the same
+ * flag already gating `GameItem`'s photo-upload affordance, fixing its previously-unconditional
+ * visibility.
  */
 export default class ItemDetailHelper {
   /**
@@ -48,28 +51,31 @@ export default class ItemDetailHelper {
         type="item"
         mode="show"
         backHref={backHref}
-        pageActions={ItemDetailHelper.#renderPageActions(editHref, canEdit, onGiveItemClick)}
+        pageActions={ItemDetailHelper.#renderPageActions(editHref, canEdit, canUploadPhoto, onGiveItemClick)}
         context={{ ...item, canUploadPhoto, handlers: { onOpenUploadModal: onUploadClick } }}
       />
     );
   }
 
   /**
-   * Renders the item detail page's action buttons: an unconditionally visible "Give Item" button
-   * (issue #827, no permission gate — per-character permission is enforced server-side by the
-   * reused acquire endpoint instead) and the existing Edit button, gated on `canEdit`.
+   * Renders the item detail page's action buttons: a "Give Item" button (issue #827), gated on
+   * `canUploadPhoto` (issue #1005 — superuser/staff/dm/player of the game, fixing its previously
+   * -unconditional visibility), and the existing Edit button, gated on `canEdit`.
    *
    * @param {string} editHref - Hash path to the item's edit page.
    * @param {boolean} canEdit - Whether the current user may edit this item.
+   * @param {boolean} canUploadPhoto - Whether the current user may give this item.
    * @param {Function} onGiveItemClick - Handler invoked when the "Give Item" button is clicked.
    * @returns {React.ReactElement} Rendered page actions.
    */
-  static #renderPageActions(editHref, canEdit, onGiveItemClick) {
+  static #renderPageActions(editHref, canEdit, canUploadPhoto, onGiveItemClick) {
     return (
       <>
-        <button type="button" className="btn btn-primary mb-3" onClick={onGiveItemClick}>
-          {Translator.t('give_item_modal.title')}
-        </button>
+        <ConditionalComponent render={canUploadPhoto}>
+          <button type="button" className="btn btn-primary mb-3" onClick={onGiveItemClick}>
+            {Translator.t('give_item_modal.title')}
+          </button>
+        </ConditionalComponent>
         <ConditionalComponent render={canEdit}>
           <EditButton href={editHref}>
             {Translator.t('character_page.edit')}

@@ -8,9 +8,11 @@ import getCurrentHash from '../../../../utils/routing/currentHash.js';
 /**
  * Game-scoped treasure detail page (issue #1001): loads a single game-scoped `Treasure` (via
  * {@link GameTreasureController}) and delegates rendering to {@link GameTreasureHelper}. Also
- * renders the give-treasure modal, unconditionally offered (no permission gate — every
- * per-character grant is checked server-side by the reused acquire endpoint instead); no forced
- * page refetch on its own success/close, since this page displays nothing summary-derived.
+ * renders the give-treasure modal, gated on the controller's independently-derived
+ * `canUploadPhoto` flag (issue #1005 — superuser/staff/dm/player of the game, fixing the "Give
+ * Treasure" button's previously-unconditional visibility); every per-character grant is still
+ * checked server-side by the reused acquire endpoint. No forced page refetch on the modal's own
+ * success/close, since this page displays nothing summary-derived.
  *
  * @param {object} [props] - Component props.
  * @param {Function} [props.ControllerClass] - Treasure controller class to instantiate, mainly
@@ -21,10 +23,11 @@ export default function GameTreasure({ ControllerClass = GameTreasureController 
   const [treasure, setTreasure] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [canUploadPhoto, setCanUploadPhoto] = useState(false);
   const [showGiveTreasureModal, setShowGiveTreasureModal] = useState(false);
 
   const controller = useMemo(
-    () => new ControllerClass(setTreasure, setLoading, setError),
+    () => new ControllerClass(setTreasure, setLoading, setError, setCanUploadPhoto),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
@@ -44,7 +47,7 @@ export default function GameTreasure({ ControllerClass = GameTreasureController 
   return (
     <>
       {GameTreasureHelper.render(
-        treasure, backHref, editHref, () => setShowGiveTreasureModal(true),
+        treasure, backHref, editHref, () => setShowGiveTreasureModal(true), canUploadPhoto,
       )}
       <GiveTreasureModal
         show={showGiveTreasureModal}
