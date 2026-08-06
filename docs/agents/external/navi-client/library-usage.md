@@ -26,6 +26,17 @@ await client.engineStart({
 await client.engineStop();
 ```
 
+You can also point the client directly at the same YAML/JSON config files a self-hosted Navi engine reads, instead of building the payload by hand:
+
+```js
+// One POST /api/config call per distinct namespace found across the files
+await client.configFromFiles(['./config/reports.yml', './config/billing.json']);
+
+// Force JSON or YAML parsing regardless of file extension
+await client.configFromJson(['./config/reports.cfg']);
+await client.configFromYaml(['./config/reports.cfg']);
+```
+
 ## `NaviClient`
 
 | Constructor option | Description |
@@ -37,10 +48,15 @@ await client.engineStop();
 | Method | Maps to |
 |--------|---------|
 | `config(payload)` | `POST /api/config` |
+| `configFromJson(paths)` | `POST /api/config` (once per namespace) — reads one or more files, forcing JSON parsing. |
+| `configFromYaml(paths)` | `POST /api/config` (once per namespace) — reads one or more files, forcing YAML parsing. |
+| `configFromFiles(paths)` | `POST /api/config` (once per namespace) — reads one or more files, auto-detecting JSON vs. YAML from each path's extension (`.json` vs. `.yml`/`.yaml`). |
 | `engineStart(payload = {})` | `POST /api/engine/start` |
 | `engineStop()` | `POST /api/engine/stop` |
 
-Every method returns a `Promise` resolving to the parsed JSON response body, and rejects with an `ApiRequestFailed` error (`statusCode`, `url`, `body`) when the request fails or the response status is `>= 400`.
+`configFromJson`/`configFromYaml`/`configFromFiles` each accept a single path or an array of paths. Every given file is read and parsed up front — no `include:` chain is followed, only the `namespace`/`resources`/`clients` keys are extracted from each file — and the call throws before sending any request if any file is missing or fails to parse. Files are grouped by `namespace` (defaulting to `'default'` when omitted) in order of first appearance across the given paths, with same-namespace collisions resolved last-file-wins; one `POST /api/config` request is then issued **sequentially** per namespace group, and the call resolves to an array of per-namespace results, in that same order. `${VAR}`/`$VAR` env references found in the file content are resolved locally, against the client process's own environment, before anything is sent.
+
+Every method returns a `Promise` resolving to the parsed JSON response body — or, for the `configFrom*` methods, an array of response bodies, one per namespace — and rejects with an `ApiRequestFailed` error (`statusCode`, `url`, `body`) when a request fails or the response status is `>= 400`.
 
 See [Reference](./reference.md) for the full request/response shape of each `/api/*` route.
 
