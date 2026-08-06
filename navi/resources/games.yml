@@ -1,3 +1,4 @@
+namespace: $NAVI_NAMEPACE
 resources:
   games:
     - url: /games.json
