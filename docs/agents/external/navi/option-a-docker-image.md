@@ -2,6 +2,7 @@
 
 > The `darthjee/navi-hey` image is available on [Docker Hub](https://hub.docker.com/r/darthjee/navi-hey).
 > It is built from `dockerfiles/production_navi_hey/Dockerfile` and installs `navi-hey` globally via npm.
+> The image now ships a working, minimal configuration out of the box (`web`, env-var overridable via `NAVI_CONFIG` and friends — see [Reference](reference.md)), so `docker run -p 3000:3000 darthjee/navi-hey:latest` brings up a browsable Navi instance with zero mounts. CI usage generally still needs a custom config (its own `resources:`/`clients:`), so the examples below keep mounting one.
 
 Use this option when your CI environment supports Docker.
 Mount your configuration file into the container and run Navi headlessly.
