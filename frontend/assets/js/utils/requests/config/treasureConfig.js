@@ -76,6 +76,13 @@
  *   backend with no non-DM variant at all, so `regular`/`private` point at the exact same object,
  *   mirroring `collection`'s own `create` shape — `permission: 'can_edit'` here is
  *   documentation-only, the same way it is on `create`.
+ *
+ *   `GET.summary` (issue #1001) backs the give-treasure modal's receiving list: how many of a
+ *   given `Treasure` a character owns. Params: `gameSlug`, `treasureId`, `kind`, `id`. Mirrors
+ *   `itemConfig.js`'s own `summary` entry exactly — `skipCache: true` on both variants (not worth
+ *   caching), `private` gated by `can_edit` (the NPC variant additionally 404s on a hidden NPC
+ *   when the requester can't edit the game, checked before resolving the NPC so an unauthorized
+ *   caller can't distinguish hidden-vs-nonexistent).
  */
 /**
  * Build the regular (everyone-readable) game-catalog treasure collection path.
@@ -207,6 +214,15 @@ const removeExchange = { path: removeExchangePath, permission: null };
 const sell = { path: sellPath, permission: null };
 const link = { path: ({ gameSlug }) => `/games/${gameSlug}/treasures/link.json`, permission: 'can_edit' };
 
+// Per-character treasure-summary paths (issue #1001's give-treasure modal). `treasureId` is the
+// `Treasure` being given; `kind`/`id` identify the receiving character.
+const summaryPath = ({
+  gameSlug, treasureId, kind, id,
+}) => `/games/${gameSlug}/treasures/${treasureId}/${kind}/${id}/summary.json`;
+const summaryAllPath = ({
+  gameSlug, treasureId, kind, id,
+}) => `/games/${gameSlug}/treasures/${treasureId}/${kind}/${id}/summary/all.json`;
+
 export default {
   GET: {
     collection: {
@@ -229,6 +245,10 @@ export default {
     },
     single: { regular: single, private: single },
     ownedCollection: { regular: ownedCollection, private: ownedCollection },
+    summary: {
+      regular: { path: summaryPath, permission: null, skipCache: true },
+      private: { path: summaryAllPath, permission: 'can_edit', skipCache: true },
+    },
   },
   PATCH: {
     single: { regular: patch, private: patch },
