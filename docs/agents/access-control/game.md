@@ -23,9 +23,12 @@ requesting domain, resolved from `request.get_host()` (see `USE_X_FORWARDED_HOST
 - `POST` on a recognized host additionally attaches the newly created game to that host's
   `GameDomainGroup` (`game.game_domain_groups.add(...)`), so the creator immediately sees it back
   under the same domain — this is on top of, not instead of, the **Create** rule above.
-- Both successful and `404` responses in this mode set `X-Skip-Cache: true` per the
-  [`X-Skip-Cache` rule](principles.md#x-skip-cache-rule), since the response body now varies by
-  domain and Tent's file cache does not key on `Host`/`X-Forwarded-Host`.
+- The `404` (unrecognized domain) and `POST` responses in this mode set `X-Skip-Cache: true` per
+  the [`X-Skip-Cache` rule](principles.md#x-skip-cache-rule) — those paths stay uncached. A
+  successful `GET` on a recognized domain no longer sets it: the proxy partitions the cache per
+  domain (`$domainCacheLocation` in `proxy/prod_configuration/rules/games.php`), so the response
+  body varying by domain no longer risks a cross-domain cache collision even though Tent's file
+  cache key itself does not include `Host`/`X-Forwarded-Host`.
 - **Trust assumption**: domain resolution relies on `USE_X_FORWARDED_HOST = True`
   (`majora_project/settings.py`), which trusts the `X-Forwarded-Host` header set by the
   `darthjee/tent` proxy's `RenameHeaderMiddleware` (which unconditionally overwrites any
