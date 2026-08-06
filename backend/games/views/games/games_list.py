@@ -40,10 +40,10 @@ def _games_list_per_domain(request):
 
     if request.method == 'POST':
         response = _create_game(request, domain=host)
+        response['X-Skip-Cache'] = 'true'
     else:
         games = Game.objects.filter(id__in=DomainGamesCache.game_ids_for_domain(host))
         response = paginated_list_response(request, games, GameListSerializer)
-    response['X-Skip-Cache'] = 'true'
     return response
 
 

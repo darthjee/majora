@@ -228,10 +228,10 @@ class TestGamesListViewPerDomainGet:
         assert response.status_code == 404
 
     @override_settings(ENABLE_GAMES_PER_DOMAIN=True, ALLOWED_HOSTS=['*'])
-    def test_recognized_domain_response_sets_skip_cache_header(self, client):
-        """Test that a successful GET on a recognized domain sets X-Skip-Cache."""
+    def test_recognized_domain_response_does_not_set_skip_cache_header(self, client):
+        """Test that a successful GET on a recognized domain does NOT set X-Skip-Cache."""
         response = client.get('/games.json', HTTP_HOST='tenant.example.com')
-        assert response['X-Skip-Cache'] == 'true'
+        assert 'X-Skip-Cache' not in response
 
     @override_settings(ENABLE_GAMES_PER_DOMAIN=True, ALLOWED_HOSTS=['*'])
     def test_unrecognized_domain_response_sets_skip_cache_header(self, client):
