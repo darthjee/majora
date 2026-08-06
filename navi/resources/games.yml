@@ -113,6 +113,15 @@ resources:
   paginated_game_treasures:
     - url: /games/{:slug}/treasures.json?page={:page}&per_page={:per_page}
       status: 200
+      actions:
+        - resource: game_treasure_detail
+          parameters:
+            slug: parameters.slug
+            id: parsedBody.id
+
+  game_treasure_detail:
+    - url: /games/{:slug}/treasures/{:id}.json
+      status: 200
 
   game_items:
     - url: /games/{:slug}/items.json

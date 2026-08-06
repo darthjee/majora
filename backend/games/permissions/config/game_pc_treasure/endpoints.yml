@@ -1,0 +1,7 @@
+# PC character-treasure endpoint rules. `create` (used by the treasure summary's
+# `/all.json` variant, issue #1001) mirrors `game_pc_item`'s own `restricted.create` tier
+# (staff, or the PC's owning player).
+restricted:
+  create:
+    - staff
+    - owner

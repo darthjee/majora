@@ -43,6 +43,7 @@ const ROUTES = [
   ['/games/:game_slug/players', 'gamePlayers'],
   ['/games/:game_slug/treasures/new', 'gameTreasureNew'],
   ['/games/:game_slug/treasures/:treasure_id/edit', 'gameTreasureEdit'],
+  ['/games/:game_slug/treasures/:treasure_id', 'gameTreasure'],
   ['/games/:game_slug/treasures', 'gameTreasures'],
   ['/games/:game_slug/items/new', 'gameItemNew'],
   ['/games/:game_slug/items/:id/edit', 'gameItemEdit'],
