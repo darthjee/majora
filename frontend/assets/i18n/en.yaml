@@ -478,6 +478,20 @@ give_treasure_modal:
   result_failure: 'Unable to give treasure to {{name}}.'
   remaining_units: '{{remaining}} left to give'
   partially_fulfilled: 'Only {{acquired}} of {{requested}} were available and were given to {{name}}.'
+give_document_modal:
+  title: Give Document
+  pc_tab: PCs
+  npc_tab: NPCs
+  search_placeholder: Search characters...
+  cancel: Cancel
+  clear: Clear
+  submit: Submit
+  already_owned_tooltip: This character already owns this document
+  remove_character_tooltip: Remove this character from the list
+  loading: Loading characters...
+  load_error: Unable to load characters. Please try again.
+  result_success: 'Document given to {{name}}.'
+  result_failure: 'Unable to give document to {{name}}.'
 document_exchange_modal:
   title: Document Exchange
   search_placeholder: Search documents...

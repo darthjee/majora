@@ -3,6 +3,7 @@ import DocumentDetailHelper from './helpers/DocumentDetailHelper.jsx';
 import GameDocumentController from './controllers/GameDocumentController.js';
 import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
 import PhotoViewModal from '../../../common/modals/PhotoViewModal.jsx';
+import GiveDocumentModal from './elements/GiveDocumentModal.jsx';
 import RequestStore from '../../../../utils/requests/RequestStore.js';
 import resourceConfig from '../../../../utils/requests/resourceConfig.js';
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
@@ -22,7 +23,12 @@ import getCurrentHash from '../../../../utils/routing/currentHash.js';
  * the modal itself. The file-upload modal also carries an optional photo field (issue #878):
  * `photoUploadPathBuilder` builds the second, chained upload's init path from the newly created
  * file's own id (only known after the first upload cycle completes), via the `document`/
- * `filePhoto` resourceConfig entry.
+ * `filePhoto` resourceConfig entry. Also renders the give-document modal (issue #1005), gated the
+ * same way as the Edit/file-upload buttons (`canUploadPhoto`); the modal itself is routed through
+ * the controller's independently-derived `canEdit` flag (`canGiveHidden` prop) so a hidden
+ * document can still be given by a dm/admin/staff-with-edit caller. No forced page refetch on the
+ * modal's own success/close, mirroring `GiveTreasureModal`'s rationale — this page displays
+ * nothing summary-derived.
  *
  * @param {object} [props] - Component props.
  * @param {Function} [props.ControllerClass] - Document controller class to instantiate, mainly
@@ -34,12 +40,14 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [canUploadPhoto, setCanUploadPhoto] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showFileUploadModal, setShowFileUploadModal] = useState(false);
+  const [showGiveDocumentModal, setShowGiveDocumentModal] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
 
   const controller = useMemo(
-    () => new ControllerClass(setDocument, setLoading, setError, setCanUploadPhoto),
+    () => new ControllerClass(setDocument, setLoading, setError, setCanUploadPhoto, setCanEdit),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
@@ -82,7 +90,7 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
       {DocumentDetailHelper.render(
         document, backHref, editHref, canUploadPhoto,
         () => setShowUploadModal(true), () => setShowFileUploadModal(true),
-        gameSlug, setSelectedPhoto,
+        gameSlug, setSelectedPhoto, () => setShowGiveDocumentModal(true),
       )}
       <PhotoUploadModal
         show={showUploadModal}
@@ -107,6 +115,13 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
         alt={document?.name}
         onClose={() => setSelectedPhoto(null)}
         canSetProfilePhoto={false}
+      />
+      <GiveDocumentModal
+        show={showGiveDocumentModal}
+        document={document ?? {}}
+        gameSlug={gameSlug}
+        canGiveHidden={canEdit}
+        onClose={() => setShowGiveDocumentModal(false)}
       />
     </>
   );

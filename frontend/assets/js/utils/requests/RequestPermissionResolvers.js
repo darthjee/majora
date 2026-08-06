@@ -54,6 +54,12 @@ const RESOLVERS = {
     // by the DM-only `GameEditPermission` on the backend, not `CharacterEditPermission` — a PC's
     // owning player must not get hidden-catalog visibility just from owning the character.
     availableCollection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+    // issue #1005: resolved character-level, mirroring `item.summary` exactly — the `summary`
+    // config entry's `private` permission key is `can_edit` for both `kind: 'pcs'` and
+    // `kind: 'npcs'`, so this resolver's result is consulted for both kinds, letting
+    // `RequestStore.ensure` auto-pick the `private` variant for an authorized (staff/owning-
+    // player) caller without the give-document modal having to decide explicitly.
+    summary: ({ gameSlug, kind, id }) => AccessStore.ensureCharacterPermissions(kind, gameSlug, id),
   },
 };
 

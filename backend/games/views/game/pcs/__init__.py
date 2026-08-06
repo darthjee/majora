@@ -10,6 +10,8 @@ from .detail.documents.game_pc_document_photos import game_pc_document_photos
 from .detail.documents.game_pc_document_photos_all import game_pc_document_photos_all
 from .detail.documents.game_pc_document_remove import game_pc_document_remove
 from .detail.documents.game_pc_document_remove_all import game_pc_document_remove_all
+from .detail.documents.game_pc_document_summary import game_pc_document_summary
+from .detail.documents.game_pc_document_summary_all import game_pc_document_summary_all
 from .detail.documents.game_pc_documents import game_pc_documents
 from .detail.documents.game_pc_documents_all import game_pc_documents_all
 from .detail.documents.game_pc_documents_available import game_pc_documents_available
@@ -70,6 +72,8 @@ __all__ = [
     'game_pc_document_acquire_all',
     'game_pc_document_remove',
     'game_pc_document_remove_all',
+    'game_pc_document_summary',
+    'game_pc_document_summary_all',
     'game_pc_items',
     'game_pc_items_all',
     'game_pc_item_detail',

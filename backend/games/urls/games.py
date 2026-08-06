@@ -117,6 +117,32 @@ urlpatterns = [
         views.game_document_photo_set,
         name='game-document-photo-set',
     ),
+    path(
+        'games/<slug:game_slug>/documents/<int:document_id>/pcs/<int:character_id>/summary.json',
+        views.game_pc_document_summary,
+        name='game-document-pc-summary',
+    ),
+    path(
+        (
+            'games/<slug:game_slug>/documents/<int:document_id>/pcs/<int:character_id>/'
+            'summary/all.json'
+        ),
+        views.game_pc_document_summary_all,
+        name='game-document-pc-summary-all',
+    ),
+    path(
+        'games/<slug:game_slug>/documents/<int:document_id>/npcs/<int:character_id>/summary.json',
+        views.game_npc_document_summary,
+        name='game-document-npc-summary',
+    ),
+    path(
+        (
+            'games/<slug:game_slug>/documents/<int:document_id>/npcs/<int:character_id>/'
+            'summary/all.json'
+        ),
+        views.game_npc_document_summary_all,
+        name='game-document-npc-summary-all',
+    ),
     path('games/<slug:game_slug>/items.json', views.game_items, name='game-items'),
     path(
         'games/<slug:game_slug>/items/all.json',

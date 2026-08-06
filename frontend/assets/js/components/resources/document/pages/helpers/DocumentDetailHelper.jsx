@@ -11,11 +11,11 @@ import Icons from '../../../../../utils/ui/Icons.js';
 
 /**
  * Rendering helper for the game document detail page (issue #758, photo upload and Edit button
- * added in #727; file-upload button added in #726): mirrors `ItemDetailHelper`, but simpler — no
- * separate `canEdit` flag, since the Edit button (and, now, the file-upload button) reuse the
- * same `canUploadPhoto` gate (there is no separate general "edit"/"upload file" permission for
- * documents; see `docs/agents/plans/726-add-document-file-upload/plan.md`'s "Permissions"
- * section).
+ * added in #727; file-upload button added in #726; Give Document button added in #1005): mirrors
+ * `ItemDetailHelper`, but simpler — no separate `canEdit` flag, since the Edit button (and the
+ * file-upload and Give Document buttons) all reuse the same `canUploadPhoto` gate (there is no
+ * separate general "edit"/"upload file" permission for documents; see
+ * `docs/agents/plans/726-add-document-file-upload/plan.md`'s "Permissions" section).
  */
 export default class DocumentDetailHelper {
   /**
@@ -49,18 +49,23 @@ export default class DocumentDetailHelper {
    * @param {Function} [onSelectPhoto] - Handler invoked with a photo when a photo shortlist card
    *   is clicked, merged into `context.handlers` alongside `onOpenUploadModal` (issue #873).
    *   Defaults to a no-op.
+   * @param {Function} [onGiveDocumentClick] - Handler invoked when the "Give Document" button is
+   *   clicked (issue #1005), gated the same way as the Edit/file-upload buttons. Defaults to a
+   *   no-op.
    * @returns {React.ReactElement} Document detail element.
    */
   static render(
     document, backHref, editHref, canUploadPhoto = false, onUploadClick = Noop.noop,
-    onFileUploadClick = Noop.noop, gameSlug, onSelectPhoto = Noop.noop,
+    onFileUploadClick = Noop.noop, gameSlug, onSelectPhoto = Noop.noop, onGiveDocumentClick = Noop.noop,
   ) {
     return (
       <ShowPageLayout
         type="document"
         mode="show"
         backHref={backHref}
-        pageActions={DocumentDetailHelper.#renderPageActions(canUploadPhoto, editHref, onFileUploadClick)}
+        pageActions={DocumentDetailHelper.#renderPageActions(
+          canUploadPhoto, editHref, onFileUploadClick, onGiveDocumentClick,
+        )}
         context={{
           ...document,
           canUploadPhoto,
@@ -71,9 +76,14 @@ export default class DocumentDetailHelper {
     );
   }
 
-  static #renderPageActions(canUploadPhoto, editHref, onFileUploadClick) {
+  static #renderPageActions(canUploadPhoto, editHref, onFileUploadClick, onGiveDocumentClick) {
     return (
       <>
+        <ConditionalComponent render={canUploadPhoto}>
+          <button type="button" className="btn btn-primary mb-3" onClick={onGiveDocumentClick}>
+            {Translator.t('give_document_modal.title')}
+          </button>
+        </ConditionalComponent>
         <ConditionalComponent render={canUploadPhoto}>
           <EditButton href={editHref}>
             {Translator.t('character_page.edit')}

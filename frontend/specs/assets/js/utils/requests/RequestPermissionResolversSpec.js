@@ -145,6 +145,16 @@ describe('RequestPermissionResolvers', function() {
         expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
       });
 
+    it('resolves character-level permissions for document summary, for either kind (issue #1005)', function() {
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+      RequestPermissionResolvers.resolve('document', 'summary', { gameSlug: 'demo', kind: 'npcs', id: '3' });
+      RequestPermissionResolvers.resolve('document', 'summary', { gameSlug: 'demo', kind: 'pcs', id: '3' });
+
+      expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('npcs', 'demo', '3');
+      expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('pcs', 'demo', '3');
+    });
+
     it('resolves no permissions for a resource/quantity-type with no restricted variant at all', async function() {
       const result = await RequestPermissionResolvers.resolve('game', 'collection', {});
 

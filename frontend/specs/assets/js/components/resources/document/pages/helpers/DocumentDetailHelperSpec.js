@@ -3,17 +3,30 @@ import DocumentDetailHelper
   from '../../../../../../../../assets/js/components/resources/document/pages/helpers/DocumentDetailHelper.jsx';
 
 /**
- * Extracts the `UploadButton` element rendered as the second `pageActions` entry (the
- * file-upload button, alongside the Edit button), by unwrapping its `ConditionalComponent`
- * wrapper.
+ * Extracts the `UploadButton` element rendered as the third `pageActions` entry (the
+ * file-upload button, after the Give Document and Edit buttons), by unwrapping its
+ * `ConditionalComponent` wrapper.
  *
  * @param {React.ReactElement} element - The `ShowPageLayout` element returned by `.render`.
  * @returns {React.ReactElement} The file-upload `UploadButton` element.
  */
 function findFileUploadButton(element) {
-  const [, fileUploadWrapper] = element.props.pageActions.props.children;
+  const [, , fileUploadWrapper] = element.props.pageActions.props.children;
 
   return fileUploadWrapper.props.children;
+}
+
+/**
+ * Extracts the "Give Document" button element rendered as the first `pageActions` entry, by
+ * unwrapping its `ConditionalComponent` wrapper.
+ *
+ * @param {React.ReactElement} element - The `ShowPageLayout` element returned by `.render`.
+ * @returns {React.ReactElement} The "Give Document" button element.
+ */
+function findGiveDocumentButton(element) {
+  const [giveDocumentWrapper] = element.props.pageActions.props.children;
+
+  return giveDocumentWrapper.props.children;
 }
 
 describe('DocumentDetailHelper', function() {
@@ -153,6 +166,49 @@ describe('DocumentDetailHelper', function() {
       );
 
       expect(html).toContain('href="#/games/demo/documents/5/edit"');
+    });
+
+    describe('give document button (issue #1005)', function() {
+      it('does not render the give document button when canUploadPhoto is omitted', function() {
+        const document = { id: 5, name: 'Ancient Scroll', description: '' };
+        const html = renderToStaticMarkup(
+          DocumentDetailHelper.render(document, '#/games/demo/documents', '#/games/demo/documents/5/edit'),
+        );
+
+        expect(html).not.toContain('Give Document');
+      });
+
+      it('does not render the give document button when canUploadPhoto is false', function() {
+        const document = { id: 5, name: 'Ancient Scroll', description: '' };
+        const html = renderToStaticMarkup(
+          DocumentDetailHelper.render(document, '#/games/demo/documents', '#/games/demo/documents/5/edit', false),
+        );
+
+        expect(html).not.toContain('Give Document');
+      });
+
+      it('renders the give document button when canUploadPhoto is true', function() {
+        const document = { id: 5, name: 'Ancient Scroll', description: '' };
+        const html = renderToStaticMarkup(
+          DocumentDetailHelper.render(document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true),
+        );
+
+        expect(html).toContain('Give Document');
+      });
+
+      it('wires the given onGiveDocumentClick handler to the give document button', function() {
+        const document = { id: 5, name: 'Ancient Scroll', description: '' };
+        const onGiveDocumentClick = jasmine.createSpy('onGiveDocumentClick');
+        const element = DocumentDetailHelper.render(
+          document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true,
+          undefined, undefined, undefined, undefined, onGiveDocumentClick,
+        );
+        const button = findGiveDocumentButton(element);
+
+        button.props.onClick();
+
+        expect(onGiveDocumentClick).toHaveBeenCalled();
+      });
     });
 
     describe('file upload button (issue #726)', function() {

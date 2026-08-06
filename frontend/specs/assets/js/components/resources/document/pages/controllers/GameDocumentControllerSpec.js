@@ -8,6 +8,7 @@ describe('GameDocumentController', function() {
   let setLoading;
   let setError;
   let setCanUploadPhoto;
+  let setCanEdit;
   let client;
   let ensureSpy;
 
@@ -16,9 +17,11 @@ describe('GameDocumentController', function() {
     setLoading = jasmine.createSpy('setLoading');
     setError = jasmine.createSpy('setError');
     setCanUploadPhoto = jasmine.createSpy('setCanUploadPhoto');
+    setCanEdit = jasmine.createSpy('setCanEdit');
     client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
     client.currentHash.and.returnValue('#/games/demo/documents/5');
     spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
+    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({}));
     ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(
       Promise.resolve({ data: { id: 5, name: 'Ancient Scroll' } }),
     );
@@ -40,7 +43,7 @@ describe('GameDocumentController', function() {
 
   describe('#buildEffect', function() {
     it('fetches the document through RequestStore with the game-owned kind', async function() {
-      const cleanup = new GameDocumentController(setDocument, setLoading, setError, setCanUploadPhoto, client)
+      const cleanup = new GameDocumentController(setDocument, setLoading, setError, setCanUploadPhoto, setCanEdit, client)
         .buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -60,7 +63,7 @@ describe('GameDocumentController', function() {
     it('sets an error when the fetch rejects', async function() {
       ensureSpy.and.returnValue(Promise.reject(new Error('network error')));
 
-      const cleanup = new GameDocumentController(setDocument, setLoading, setError, setCanUploadPhoto, client)
+      const cleanup = new GameDocumentController(setDocument, setLoading, setError, setCanUploadPhoto, setCanEdit, client)
         .buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -73,7 +76,7 @@ describe('GameDocumentController', function() {
     it('sets an error and skips fetching when route params are missing', function() {
       client.currentHash.and.returnValue('#/games/demo');
 
-      const cleanup = new GameDocumentController(setDocument, setLoading, setError, setCanUploadPhoto, client)
+      const cleanup = new GameDocumentController(setDocument, setLoading, setError, setCanUploadPhoto, setCanEdit, client)
         .buildEffect()();
 
       expect(setError).toHaveBeenCalledWith('Unable to load document.');
@@ -84,7 +87,7 @@ describe('GameDocumentController', function() {
     });
 
     it('does not update state after unmount', async function() {
-      const cleanup = new GameDocumentController(setDocument, setLoading, setError, setCanUploadPhoto, client)
+      const cleanup = new GameDocumentController(setDocument, setLoading, setError, setCanUploadPhoto, setCanEdit, client)
         .buildEffect()();
       cleanup();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -96,7 +99,7 @@ describe('GameDocumentController', function() {
 
   describe('canUploadPhoto', function() {
     const runController = async () => {
-      const cleanup = new GameDocumentController(setDocument, setLoading, setError, setCanUploadPhoto, client)
+      const cleanup = new GameDocumentController(setDocument, setLoading, setError, setCanUploadPhoto, setCanEdit, client)
         .buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
       cleanup();
@@ -156,6 +159,45 @@ describe('GameDocumentController', function() {
       await runController();
 
       expect(setCanUploadPhoto).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('canEdit (issue #1005)', function() {
+    const runController = async () => {
+      const cleanup = new GameDocumentController(setDocument, setLoading, setError, setCanUploadPhoto, setCanEdit, client)
+        .buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      cleanup();
+    };
+
+    it('calls ensureGamePermissions with the game slug independently of the document fetch', async function() {
+      await runController();
+
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+    });
+
+    it('is true when the requester can edit the game', async function() {
+      AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: true }));
+
+      await runController();
+
+      expect(setCanEdit).toHaveBeenCalledWith(true);
+    });
+
+    it('is false when the requester cannot edit the game', async function() {
+      AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: false }));
+
+      await runController();
+
+      expect(setCanEdit).toHaveBeenCalledWith(false);
+    });
+
+    it('fails closed to false when the permissions check rejects', async function() {
+      AccessStore.ensureGamePermissions.and.returnValue(Promise.reject(new Error('nope')));
+
+      await runController();
+
+      expect(setCanEdit).toHaveBeenCalledWith(false);
     });
   });
 });

@@ -32,17 +32,31 @@ describe('GameTreasureHelper', function() {
       expect(html).not.toContain('/edit');
     });
 
-    it('renders the give-treasure button unconditionally, regardless of can_edit', function() {
+    it('does not render the give-treasure button when canUploadPhoto is omitted (issue #1005)', function() {
       const html = renderToStaticMarkup(GameTreasureHelper.render(treasure, backHref, editHref));
+      expect(html).not.toContain('Give Treasure');
+    });
+
+    it('does not render the give-treasure button when canUploadPhoto is false', function() {
+      const html = renderToStaticMarkup(
+        GameTreasureHelper.render(treasure, backHref, editHref, undefined, false),
+      );
+      expect(html).not.toContain('Give Treasure');
+    });
+
+    it('renders the give-treasure button when canUploadPhoto is true, regardless of can_edit', function() {
+      const html = renderToStaticMarkup(
+        GameTreasureHelper.render(treasure, backHref, editHref, undefined, true),
+      );
       expect(html).toContain('Give Treasure');
     });
 
     it('invokes onGiveTreasureClick when the give-treasure button is clicked', function() {
       const onGiveTreasureClick = jasmine.createSpy('onGiveTreasureClick');
-      const element = GameTreasureHelper.render(treasure, backHref, editHref, onGiveTreasureClick);
-      const giveTreasureButton = element.props.children[4];
+      const element = GameTreasureHelper.render(treasure, backHref, editHref, onGiveTreasureClick, true);
+      const giveTreasureWrapper = element.props.children[4];
 
-      giveTreasureButton.props.onClick();
+      giveTreasureWrapper.props.children.props.onClick();
 
       expect(onGiveTreasureClick).toHaveBeenCalled();
     });

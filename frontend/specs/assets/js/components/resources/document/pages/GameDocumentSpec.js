@@ -13,11 +13,12 @@ import Noop from '../../../../../../../assets/js/utils/Noop.js';
 
 const loadedDocument = { id: 5, name: 'Ancient Scroll', description: 'A crumbling scroll.' };
 
-/** Stub controller that synchronously loads a document (with upload permission) during construction. */
+/** Stub controller that synchronously loads a document (with upload/edit permission) during construction. */
 class LoadedController {
-  constructor(setDocument, setLoading, setError, setCanUploadPhoto) {
+  constructor(setDocument, setLoading, setError, setCanUploadPhoto, setCanEdit) {
     setDocument(loadedDocument);
     setCanUploadPhoto(true);
+    setCanEdit?.(true);
     setLoading(false);
   }
 
@@ -26,9 +27,10 @@ class LoadedController {
 
 /** Stub controller that synchronously loads a document without upload permission. */
 class LoadedWithoutUploadController {
-  constructor(setDocument, setLoading, setError, setCanUploadPhoto) {
+  constructor(setDocument, setLoading, setError, setCanUploadPhoto, setCanEdit) {
     setDocument(loadedDocument);
     setCanUploadPhoto(false);
+    setCanEdit?.(false);
     setLoading(false);
   }
 
@@ -85,14 +87,16 @@ describe('GameDocument', function() {
     let capturedCanUploadPhoto;
     let capturedOnUploadClick;
     let capturedOnFileUploadClick;
+    let capturedOnGiveDocumentClick;
     spyOn(DocumentDetailHelper, 'render').and.callFake(
-      (document, backHref, editHref, canUploadPhoto, onUploadClick, onFileUploadClick) => {
+      (document, backHref, editHref, canUploadPhoto, onUploadClick, onFileUploadClick, gameSlug, onSelectPhoto, onGiveDocumentClick) => {
         capturedDocument = document;
         capturedBackHref = backHref;
         capturedEditHref = editHref;
         capturedCanUploadPhoto = canUploadPhoto;
         capturedOnUploadClick = onUploadClick;
         capturedOnFileUploadClick = onFileUploadClick;
+        capturedOnGiveDocumentClick = onGiveDocumentClick;
         return null;
       },
     );
@@ -105,6 +109,7 @@ describe('GameDocument', function() {
     expect(capturedCanUploadPhoto).toBe(true);
     expect(typeof capturedOnUploadClick).toBe('function');
     expect(typeof capturedOnFileUploadClick).toBe('function');
+    expect(typeof capturedOnGiveDocumentClick).toBe('function');
   });
 
   it('passes canUploadPhoto=false through when the controller denies it', function() {

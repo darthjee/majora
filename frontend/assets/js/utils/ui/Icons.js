@@ -57,4 +57,5 @@ export default {
   caretUpSquareFill: 'bi-caret-up-square-fill',
   caretDownSquareFill: 'bi-caret-down-square-fill',
   personX: 'bi-person-x',
+  checkCircleFill: 'bi-check-circle-fill',
 };

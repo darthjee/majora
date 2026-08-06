@@ -341,6 +341,33 @@ describe('resourceConfig', function() {
         .toBe('/games/demo/npcs/3/documents/available/all.json');
       expect(availableCollection.private.permission).toBe('can_edit');
     });
+
+    it('resolves summary regular/private paths for an npc (issue #1005)', function() {
+      const summary = resourceConfig.get('GET', 'document', 'summary');
+
+      expect(summary.regular.path({
+        gameSlug: 'demo', documentId: '9', kind: 'npcs', id: '3',
+      })).toBe('/games/demo/documents/9/npcs/3/summary.json');
+      expect(summary.regular.permission).toBeNull();
+      expect(summary.regular.skipCache).toBe(true);
+      expect(summary.private.path({
+        gameSlug: 'demo', documentId: '9', kind: 'npcs', id: '3',
+      })).toBe('/games/demo/documents/9/npcs/3/summary/all.json');
+      expect(summary.private.permission).toBe('can_edit');
+      expect(summary.private.skipCache).toBe(true);
+    });
+
+    it('resolves summary regular/private paths for a pc, with can_edit gating private (issue #1005)', function() {
+      const summary = resourceConfig.get('GET', 'document', 'summary');
+
+      expect(summary.regular.path({
+        gameSlug: 'demo', documentId: '9', kind: 'pcs', id: '3',
+      })).toBe('/games/demo/documents/9/pcs/3/summary.json');
+      expect(summary.private.path({
+        gameSlug: 'demo', documentId: '9', kind: 'pcs', id: '3',
+      })).toBe('/games/demo/documents/9/pcs/3/summary/all.json');
+      expect(summary.private.permission).toBe('can_edit');
+    });
   });
 
   it('returns null for an unknown resource/method/quantity-type combination', function() {
