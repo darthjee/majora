@@ -44,6 +44,8 @@ def _games_list_per_domain(request):
     else:
         games = Game.objects.filter(id__in=DomainGamesCache.game_ids_for_domain(host))
         response = paginated_list_response(request, games, GameListSerializer)
+        if host not in settings.GAMES_JSON_CACHE_DOMAINS:
+            response['X-Skip-Cache'] = 'true'
     return response
 
 
