@@ -11,6 +11,7 @@ from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
+    GameTreasureFactory,
     PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
@@ -117,3 +118,47 @@ class TestGamePcTreasureSummaryAllView(TokenAuthRequestMixin):
         )
         response = self.get(client, url, token=self.dm_token)
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestGamePcTreasureSummaryAllHiddenTreasure(TokenAuthRequestMixin):
+    """Tests for the /all.json summary endpoint against a hidden (GameTreasure.hidden) treasure."""
+
+    def setup_method(self):
+        """Set up a game, a DM, an owning PC, and a hidden treasure the PC owns some of."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
+        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.owner = UserFactory(username='owner', password='secret-password')
+        self.player = PlayerFactory(name='Bob', game=self.game, user=self.owner)
+        self.character = CharacterFactory(
+            name='Aragorn', game=self.game, npc=False, player=self.player,
+        )
+        self.owner_token = Token.objects.create(user=self.owner)
+        self.treasure = TreasureFactory(name='Secret Gem', value=100, game=self.game)
+        GameTreasureFactory(
+            game=self.game, treasure=self.treasure, value=self.treasure.value, hidden=True,
+        )
+        CharacterTreasure.objects.create(
+            character=self.character, treasure=self.treasure, quantity=3,
+        )
+
+    def _url(self):
+        """Return the summary/all endpoint URL for the hidden treasure fixtures."""
+        return (
+            f'/games/{self.game.game_slug}/treasures/{self.treasure.id}/'
+            f'pcs/{self.character.id}/summary/all.json'
+        )
+
+    def test_dm_can_view_the_owned_quantity_of_a_hidden_treasure(self, client):
+        """Test that the DM-only /all.json variant bypasses the hidden-treasure gate."""
+        response = self.get(client, self._url(), token=self.dm_token)
+        assert response.status_code == 200
+        assert json.loads(response.content) == {'quantity': 3}
+
+    def test_owner_can_view_the_owned_quantity_of_a_hidden_treasure(self, client):
+        """Test that the PC's owning player also bypasses the hidden-treasure gate."""
+        response = self.get(client, self._url(), token=self.owner_token)
+        assert response.status_code == 200
+        assert json.loads(response.content) == {'quantity': 3}

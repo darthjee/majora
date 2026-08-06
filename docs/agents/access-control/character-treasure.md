@@ -85,8 +85,11 @@ Backs the give-treasure modal's right-side "receiving" list: `{"quantity": <int>
 character's `CharacterTreasure.quantity` for that `(character, treasure)` pair — `0` when no row
 exists. Unlike [item](character-item.md)'s equivalent, there is no `count_hidden` concept:
 `CharacterTreasure` carries no `hidden` flag of its own — `GameTreasure.hidden`, at the catalog
-level, is already gated by the same treasure-lookup helper the buy/sell/acquire/remove endpoints
-use, applying identically to both the regular and `/all.json` variants.
+level, is gated by the same treasure-lookup helper the buy/sell/acquire/remove endpoints use. As
+with `buy/all.json`/`acquire/all.json` above, the `/all.json` summary variants bypass that
+hidden-treasure gate for their authorized (staff/owning-player) caller, while the regular
+`summary.json` variants still `404` on a hidden treasure — so a DM can see a character's current
+quantity of a hidden "surprise reward" treasure before granting more of it.
 
 ## `max_value` filter on the game treasure list
 

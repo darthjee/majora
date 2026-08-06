@@ -27,4 +27,5 @@ def game_pc_treasure_summary_all(request, game_slug, treasure_id, character_id):
         return error_response
     return character_treasure_summary(
         request, game, character_id, treasure_id, npc=False, check_hidden=False,
+        allow_hidden=True,
     )

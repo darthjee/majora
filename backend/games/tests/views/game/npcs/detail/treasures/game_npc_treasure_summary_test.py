@@ -8,7 +8,14 @@ from rest_framework.authtoken.models import Token
 
 from games.models import CharacterTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import CharacterFactory, GameFactory, TreasureFactory, UserFactory
+from games.tests.factories import (
+    CharacterFactory,
+    GameFactory,
+    GameTreasureFactory,
+    PlayerFactory,
+    TreasureFactory,
+    UserFactory,
+)
 
 
 @pytest.mark.django_db
@@ -103,3 +110,32 @@ class TestGameNpcTreasureSummaryView(TokenAuthRequestMixin):
         )
         response = self.get(client, url)
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestGameNpcTreasureSummaryHiddenTreasure(TokenAuthRequestMixin):
+    """Tests for the summary endpoint against a treasure hidden (GameTreasure.hidden) in game."""
+
+    def setup_method(self):
+        """Set up a game, a DM, a visible NPC, and a hidden treasure."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
+        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True)
+        self.treasure = TreasureFactory(name='Secret Gem', value=100, game=self.game)
+        GameTreasureFactory(
+            game=self.game, treasure=self.treasure, value=self.treasure.value, hidden=True,
+        )
+
+    def _url(self):
+        """Return the summary endpoint URL for the hidden treasure fixtures."""
+        return (
+            f'/games/{self.game.game_slug}/treasures/{self.treasure.id}/'
+            f'npcs/{self.character.id}/summary.json'
+        )
+
+    def test_dm_gets_404_for_a_hidden_treasure(self, client):
+        """Test that the regular summary endpoint 404s on a hidden treasure, even for the DM."""
+        response = self.get(client, self._url(), token=self.dm_token)
+        assert response.status_code == 404

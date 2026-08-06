@@ -21,4 +21,5 @@ def game_npc_treasure_summary(request, game_slug, treasure_id, character_id):
     game = get_object_or_404(Game, game_slug=game_slug)
     return character_treasure_summary(
         request, game, character_id, treasure_id, npc=True, check_hidden=True,
+        allow_hidden=False,
     )
