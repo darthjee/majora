@@ -72,6 +72,22 @@ as buy/sell — `money` is unchanged and still included in the response for symm
 on remove only. There is no `remove/all.json` DM-bypass variant — mirroring sell having none
 either, since remove is scoped by ownership rather than catalog visibility.
 
+## Treasure quantity summary endpoints (issue #1001)
+
+| Endpoint | Method | Who can call |
+|----------|--------|-------------|
+| `/games/<slug>/treasures/<treasure_id>/pcs/<id>/summary.json` | GET | **AllowAny** — 404 if the treasure/PC is unknown. Always `X-Skip-Cache: true` (deviation: an `AllowAny` endpoint that still opts out of the shared proxy cache, since responses are per-character-per-treasure and not worth caching) |
+| `/games/<slug>/treasures/<treasure_id>/npcs/<id>/summary.json` | GET | **AllowAny**, plus the [hidden-NPC gate](character-photo.md#hidden-npc-gate) — 404 if hidden or unknown. Always `X-Skip-Cache: true` |
+| `/games/<slug>/treasures/<treasure_id>/pcs/<id>/summary/all.json` | GET | roles per [`game_pc_treasure/endpoints.yml`](../../../backend/games/permissions/config/game_pc_treasure/endpoints.yml) (`restricted.create`: staff, or the PC's owning player). Always `X-Skip-Cache: true` |
+| `/games/<slug>/treasures/<treasure_id>/npcs/<id>/summary/all.json` | GET | roles per [`game_npc_treasure/endpoints.yml`](../../../backend/games/permissions/config/game_npc_treasure/endpoints.yml) (`restricted.create`: staff only, no owner concept). The permission check runs **before** the NPC is resolved, so an unauthorized/unauthenticated caller gets the same `403`/`401` regardless of whether the target `id` is unknown, hidden, or visible — a hidden NPC's existence must never be distinguishable from a nonexistent one via this endpoint (same rule as [Character](character.md)'s own hidden-NPC gate). Always `X-Skip-Cache: true` |
+
+Backs the give-treasure modal's right-side "receiving" list: `{"quantity": <int>}`, the target
+character's `CharacterTreasure.quantity` for that `(character, treasure)` pair — `0` when no row
+exists. Unlike [item](character-item.md)'s equivalent, there is no `count_hidden` concept:
+`CharacterTreasure` carries no `hidden` flag of its own — `GameTreasure.hidden`, at the catalog
+level, is already gated by the same treasure-lookup helper the buy/sell/acquire/remove endpoints
+use, applying identically to both the regular and `/all.json` variants.
+
 ## `max_value` filter on the game treasure list
 
 `/games/<slug>/treasures.json` (**AllowAny**, see [Treasure](treasure.md)) accepts an optional

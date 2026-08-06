@@ -31,6 +31,32 @@ urlpatterns = [
         name='game-treasure-detail',
     ),
     path(
+        'games/<slug:game_slug>/treasures/<int:treasure_id>/pcs/<int:character_id>/summary.json',
+        views.game_pc_treasure_summary,
+        name='game-treasure-pc-summary',
+    ),
+    path(
+        (
+            'games/<slug:game_slug>/treasures/<int:treasure_id>/pcs/<int:character_id>/'
+            'summary/all.json'
+        ),
+        views.game_pc_treasure_summary_all,
+        name='game-treasure-pc-summary-all',
+    ),
+    path(
+        'games/<slug:game_slug>/treasures/<int:treasure_id>/npcs/<int:character_id>/summary.json',
+        views.game_npc_treasure_summary,
+        name='game-treasure-npc-summary',
+    ),
+    path(
+        (
+            'games/<slug:game_slug>/treasures/<int:treasure_id>/npcs/<int:character_id>/'
+            'summary/all.json'
+        ),
+        views.game_npc_treasure_summary_all,
+        name='game-treasure-npc-summary-all',
+    ),
+    path(
         'games/<slug:game_slug>/documents.json', views.game_documents, name='game-documents',
     ),
     path(
