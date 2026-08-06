@@ -23,9 +23,19 @@ requesting domain, resolved from `request.get_host()` (see `USE_X_FORWARDED_HOST
 - `POST` on a recognized host additionally attaches the newly created game to that host's
   `GameDomainGroup` (`game.game_domain_groups.add(...)`), so the creator immediately sees it back
   under the same domain — this is on top of, not instead of, the **Create** rule above.
-- Both successful and `404` responses in this mode set `X-Skip-Cache: true` per the
-  [`X-Skip-Cache` rule](principles.md#x-skip-cache-rule), since the response body now varies by
-  domain and Tent's file cache does not key on `Host`/`X-Forwarded-Host`.
+- The `404` (unrecognized domain) and `POST` responses in this mode always set `X-Skip-Cache:
+  true` per the [`X-Skip-Cache` rule](principles.md#x-skip-cache-rule) — those paths stay
+  uncached. A successful `GET` only omits it when the host is also in the `GAMES_JSON_CACHE_DOMAINS`
+  env-driven setting (`majora_project/settings.py`) — the backend-side mirror of the proxy's
+  `$gamesJsonCacheDomains` (`proxy/prod_configuration/locals.php`), the only domains for which the
+  proxy actually partitions its cache (`$domainCacheLocation` in
+  `proxy/prod_configuration/rules/games.php`). For any recognized host not in that set (the safe
+  default, including every host when the env var is unset), `GET` keeps setting `X-Skip-Cache:
+  true` too, since Tent's file cache key does not include `Host`/`X-Forwarded-Host` and dropping
+  the header for a host the proxy hasn't been told to partition would let two domains collide on
+  the same cache entry. The two domain lists (backend env var, proxy config) must be kept in sync
+  — see the comments on both settings — or a domain added to one but not the other either wastes
+  caching (safe) or reopens the cross-domain leak (unsafe), depending on which side is missing it.
 - **Trust assumption**: domain resolution relies on `USE_X_FORWARDED_HOST = True`
   (`majora_project/settings.py`), which trusts the `X-Forwarded-Host` header set by the
   `darthjee/tent` proxy's `RenameHeaderMiddleware` (which unconditionally overwrites any

@@ -10,6 +10,7 @@ foreach ($gamesJsonCacheDomains as $domain) {
         'handler' => [
             'type' => 'default_proxy',
             'host' => $backendHost,
+            'cache' => $domainCacheLocation,
             'skip_cache_header' => 'X-Skip-Cache'
         ],
         'matchers' => [
