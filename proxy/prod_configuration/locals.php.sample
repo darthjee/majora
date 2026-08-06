@@ -9,6 +9,15 @@ $cacheFolder = './cache';
 // Domains that get their own dedicated cache for GET /games.json, keyed by
 // domain instead of sharing the generic `.json` catch-all cache in
 // rules/backend.php (keyed by URI only). See rules/games.php.
+//
+// IMPORTANT: must be kept in sync with the backend's `GAMES_JSON_CACHE_DOMAINS`
+// env var (comma-separated, parsed in `backend/majora_project/settings.py`) —
+// the backend only omits `X-Skip-Cache` for a successful GET when the host is in
+// that env var. A domain listed here but missing from the backend's env var is
+// safe (just uncached); the reverse (in the backend's env var but not here) is a
+// cross-domain cache leak, since the proxy would then cache that domain's
+// response in the shared, unpartitioned cache root. Always add a domain to both
+// together, proxy first, then the backend env var, then redeploy both.
 $gamesJsonCacheDomains = [
     'game-a.example.com',
     'game-b.example.com',
