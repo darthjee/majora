@@ -30,6 +30,9 @@ class TestGameNpcDocumentAcquireView(TokenAuthRequestMixin):
         self.dm_token = Token.objects.create(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
         self.other_token = Token.objects.create(user=self.other_user)
+        self.plain_player_user = UserFactory(username='plain_player', password='secret-password')
+        PlayerFactory(game=self.game, user=self.plain_player_user)
+        self.plain_player_token = Token.objects.create(user=self.plain_player_user)
         self.game_document = GameDocumentFactory(game=self.game, name='Elven Lore')
 
     def _url(self, character_id=None, game_slug=None):
@@ -64,6 +67,13 @@ class TestGameNpcDocumentAcquireView(TokenAuthRequestMixin):
         staff_token = Token.objects.create(user=staff_user)
         response = self._post(
             client, {'game_document_id': self.game_document.id}, token=staff_token,
+        )
+        assert response.status_code == 201
+
+    def test_plain_player_can_acquire_document(self, client):
+        """Test that a plain player of the game (not staff/dm) can acquire a document for an NPC."""
+        response = self._post(
+            client, {'game_document_id': self.game_document.id}, token=self.plain_player_token,
         )
         assert response.status_code == 201
 

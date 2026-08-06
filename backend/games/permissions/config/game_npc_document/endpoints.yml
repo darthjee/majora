@@ -1,3 +1,7 @@
 restricted:
   create:
     - staff
+regular:
+  create:
+    - staff
+    - player

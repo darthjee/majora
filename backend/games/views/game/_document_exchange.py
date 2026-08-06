@@ -12,10 +12,10 @@ from ..games._treasure_filters import filter_by_name
 from ._shared import _character_document_resource, _get_character_or_404, _hidden_gate_response
 
 
-def _check_document_create(request, game, character):
-    """Return an error Response if `request.user` may not create/remove a document, else None."""
+def _check_document_create(request, game, character, tier):
+    """Return an error Response if `request.user` may not create/remove a document at `tier`."""
     return EndpointPermission(request.user, game=game, pc=character).check(
-        request, _character_document_resource(character), 'restricted', 'create',
+        request, _character_document_resource(character), tier, 'create',
     )
 
 
@@ -66,9 +66,12 @@ def character_document_acquire(request, game, character, allow_hidden=False):
     """Create a CharacterDocument linking `character` to a submitted GameDocument.
 
     `allow_hidden` bypasses the hidden-GameDocument 404 gate — reserved for the DM-only
-    `/acquire/all.json` endpoints, mirroring `character_item_acquire`'s `allow_hidden`.
+    `/acquire/all.json` endpoints, mirroring `character_item_acquire`'s `allow_hidden`. Also
+    selects the permission tier: `restricted` (staff/owner) for `/acquire/all.json`, `regular`
+    (staff/player) for the plain `/acquire.json`.
     """
-    error_response = _check_document_create(request, game, character)
+    tier = 'restricted' if allow_hidden else 'regular'
+    error_response = _check_document_create(request, game, character, tier)
     if error_response:
         return error_response
 
@@ -97,9 +100,11 @@ def character_document_remove(request, game, character, allow_hidden=False):
     """Delete the CharacterDocument linking `character` to a submitted GameDocument.
 
     `allow_hidden` bypasses the hidden-CharacterDocument 404 gate — reserved for the DM-only
-    `/remove/all.json` endpoints.
+    `/remove/all.json` endpoints. Also selects the permission tier: `restricted` (staff/owner)
+    for `/remove/all.json`, `regular` (staff/player) for the plain `/remove.json`.
     """
-    error_response = _check_document_create(request, game, character)
+    tier = 'restricted' if allow_hidden else 'regular'
+    error_response = _check_document_create(request, game, character, tier)
     if error_response:
         return error_response
 

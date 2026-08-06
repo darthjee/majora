@@ -54,8 +54,8 @@ substring on `GameDocument.name`) and standard pagination.
 
 | Endpoint | Method | Who can call | Effect |
 |----------|--------|-------------|--------|
-| `/games/<slug>/pcs\|npcs/<id>/documents/acquire.json` | POST | `restricted.create` on the `game_pc_document`/`game_npc_document` resource — per [`game_pc_document/endpoints.yml`](../../../backend/games/permissions/config/game_pc_document/endpoints.yml) (`staff`, `owner`) / [`game_npc_document/endpoints.yml`](../../../backend/games/permissions/config/game_npc_document/endpoints.yml) (`staff` only) | Creates a `CharacterDocument` for the submitted `game_document_id`. `404` if the `GameDocument` is hidden (never bypassed here) or unknown; **`422`** if already owned |
-| `/games/<slug>/pcs\|npcs/<id>/documents/remove.json` | POST | Same permission as acquire above | Deletes the character's `CharacterDocument` row for the submitted document. `404` if not owned, or owned but hidden (never bypassed here) |
+| `/games/<slug>/pcs\|npcs/<id>/documents/acquire.json` | POST | `regular.create` on the `game_pc_document`/`game_npc_document` resource — per [`game_pc_document/endpoints.yml`](../../../backend/games/permissions/config/game_pc_document/endpoints.yml) (`staff`, `player`) / [`game_npc_document/endpoints.yml`](../../../backend/games/permissions/config/game_npc_document/endpoints.yml) (`staff`, `player`); dm/admin always bypass. Issue #1005 added this tier — any staff member or player of the game, not just the PC's owner, can now use the plain endpoint | Creates a `CharacterDocument` for the submitted `game_document_id`. `404` if the `GameDocument` is hidden (never bypassed here) or unknown; **`422`** if already owned |
+| `/games/<slug>/pcs\|npcs/<id>/documents/remove.json` | POST | Same permission as acquire above (`regular.create`) | Deletes the character's `CharacterDocument` row for the submitted document. `404` if not owned, or owned but hidden (never bypassed here) |
 | `/games/<slug>/pcs\|npcs/<id>/documents/acquire/all.json` | POST | **GameEdit** (dm/admin only, no staff leniency beyond what GameEdit grants) | DM-only variant: does not `404` on a hidden `GameDocument` |
 | `/games/<slug>/pcs/<id>/documents/remove/all.json` | POST | **CharacterEdit** (dm, admin, or the PC's owning player — **not** staff) | Does not `404` on a hidden owned `CharacterDocument` |
 | `/games/<slug>/npcs/<id>/documents/remove/all.json` | POST | **GameEdit** (dm/admin only) | Does not `404` on a hidden owned `CharacterDocument` |
@@ -68,6 +68,24 @@ visibility** (`remove/all`) is character-level, using the same asymmetric PC/NPC
 creates exactly one row, remove always deletes the row outright. Unlike `CharacterItem`, acquiring
 an already-owned document returns **`422`** (not `400`) — a deliberate divergence from the Item
 precedent, decided during issue #920's `/enhance-issue` pass.
+
+## Document ownership summary endpoints (issue #1005)
+
+| Endpoint | Method | Who can call |
+|----------|--------|-------------|
+| `/games/<slug>/documents/<document_id>/pcs/<id>/summary.json` | GET | **AllowAny** — 404 if the document/PC is unknown. Always `X-Skip-Cache: true` (deviation: an `AllowAny` endpoint that still opts out of the shared proxy cache, since responses are per-character-per-document and not worth caching) |
+| `/games/<slug>/documents/<document_id>/npcs/<id>/summary.json` | GET | **AllowAny**, plus the [hidden-NPC gate](character-photo.md#hidden-npc-gate) — 404 if hidden or unknown. Always `X-Skip-Cache: true` |
+| `/games/<slug>/documents/<document_id>/pcs/<id>/summary/all.json` | GET | roles per [`game_pc_document/endpoints.yml`](../../../backend/games/permissions/config/game_pc_document/endpoints.yml) (`restricted.create`: staff, or the PC's owning player). Always `X-Skip-Cache: true` |
+| `/games/<slug>/documents/<document_id>/npcs/<id>/summary/all.json` | GET | roles per [`game_npc_document/endpoints.yml`](../../../backend/games/permissions/config/game_npc_document/endpoints.yml) (`restricted.create`: staff only, no owner concept). The permission check runs **before** the NPC is resolved, so an unauthorized/unauthenticated caller gets the same `403`/`401` regardless of whether the target `id` is unknown, hidden, or visible — a hidden NPC's existence must never be distinguishable from a nonexistent one via this endpoint (same rule as [Character](character.md)'s own hidden-NPC gate). Always `X-Skip-Cache: true` |
+
+Backs the give-document modal's right-side "receiving" list: `{"owned": <bool>}` — whether
+`CharacterDocument.objects.filter(character=character, game_document=document).exists()`. Boolean
+instead of [treasure](character-treasure.md#treasure-quantity-summary-endpoints-issue-1001)'s
+`quantity`, since `CharacterDocument` is a plain join (`unique_together = ('character',
+'game_document')`) with no quantity field. Reuses the same `_find_game_document` hidden-document
+gate the acquire/remove endpoints use. As with treasure's summary pair, the `/all.json` variants
+bypass that hidden-document gate for their authorized (staff/owning-player) caller, while the
+regular `summary.json` variants still `404` on a hidden document.
 
 ## Document files/photos shortlist endpoints
 

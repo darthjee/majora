@@ -24,7 +24,7 @@ class TestGamePcDocumentAcquireView(TokenAuthRequestMixin):
     def setup_method(self):
         """Set up a game, a PC, a DM, an unrelated user, and an available game document."""
         self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.player = PlayerFactory(name='Aragorn Player')
+        self.player = PlayerFactory(name='Aragorn Player', game=self.game)
         self.owner = UserFactory(username='owner', password='secret-password')
         self.player.user = self.owner
         self.player.save()
@@ -36,6 +36,9 @@ class TestGamePcDocumentAcquireView(TokenAuthRequestMixin):
         self.dm_token = Token.objects.create(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
         self.other_token = Token.objects.create(user=self.other_user)
+        self.plain_player_user = UserFactory(username='plain_player', password='secret-password')
+        PlayerFactory(game=self.game, user=self.plain_player_user)
+        self.plain_player_token = Token.objects.create(user=self.plain_player_user)
         self.game_document = GameDocumentFactory(game=self.game, name='Elven Lore')
 
     def _editor_token(self):
@@ -193,6 +196,13 @@ class TestGamePcDocumentAcquireView(TokenAuthRequestMixin):
         staff_token = Token.objects.create(user=staff_user)
         response = self._post(
             client, {'game_document_id': self.game_document.id}, token=staff_token,
+        )
+        assert response.status_code == 201
+
+    def test_plain_player_can_acquire_document(self, client):
+        """Test that a plain player of the game (not staff/owner/dm) can acquire for another PC."""
+        response = self._post(
+            client, {'game_document_id': self.game_document.id}, token=self.plain_player_token,
         )
         assert response.status_code == 201
 
