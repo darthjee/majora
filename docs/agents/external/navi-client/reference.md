@@ -14,6 +14,15 @@ For the full request/response shape of each route, see the [`/api` namespace doc
 
 `web.api.token` — the bearer token every `/api/*` request must present — is a Navi-side config value on the target instance; see [How to Use Navi](../HOW_TO_USE_NAVI.md) for how to configure it.
 
+## Env var resolution
+
+Env var substitution around `POST /api/config` is entirely a client-side concern:
+
+- `configFromJson`/`configFromYaml`/`configFromFiles` resolve `${VAR}`/`$VAR` references found in a file's content **locally**, against the client process's own environment, before the payload is sent.
+- The API itself (`POST /api/config`) never resolves env vars in a payload it receives — resources/clients arriving through the API are stored/echoed exactly as given, literally, even if the raw string still contains `${VAR}`-style text and a matching variable happens to be set in the server's own environment.
+
+If you build a payload by hand and call `config(payload)` directly (bypassing the `configFrom*` file helpers), no env var resolution happens on your behalf at any point — resolve any values you need before constructing the payload.
+
 ## Error handling
 
 Both the library and the CLI surface failures the same way: any request that fails outright, or that receives a response with status `>= 400`, rejects with an `ApiRequestFailed` error carrying:

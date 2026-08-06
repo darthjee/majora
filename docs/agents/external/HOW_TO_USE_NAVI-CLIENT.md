@@ -4,6 +4,16 @@
 
 Navi's `/api/*` namespace (`POST /api/config`, `POST /api/engine/start`, `POST /api/engine/stop`) allows external, programmatic control of an already-running Navi instance — pushing configuration in, starting a warming run, or stopping one — without hand-rolling requests and bearer-token handling yourself.
 
+The `POST /api/config` payload can be built by hand, or loaded directly from the same YAML/JSON config files a self-hosted Navi engine reads (requires `navi-hey-client >= 0.1.1`):
+
+```js
+await client.configFromFiles(['./config/reports.yml']);
+```
+
+```sh
+navi-client -b http://localhost:3000 -t $NAVI_API_TOKEN -a config --file ./config/reports.yml
+```
+
 This guide is intended for developers and AI agents who want to control a running Navi instance from their own Node.js code, CI pipelines, or the command line.
 
 ---
