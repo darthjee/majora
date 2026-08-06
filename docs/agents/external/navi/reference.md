@@ -6,6 +6,30 @@
 |------|-------|---------|-------------|
 | `--config=<path>` | `-c <path>` | `config/navi_config.yml` | Path to the YAML configuration file. |
 
+### Production Docker image configuration
+
+`dockerfiles/production_navi_hey/Dockerfile` packs a minimal, production-ready config (`config/web.yml`) into the `darthjee/navi-hey` image, so `docker run -p 3000:3000 darthjee/navi-hey:latest` works with zero volume mounts (see [Option A — Docker image](option-a-docker-image.md)). The image ships no `resources:`/`clients:` — add those afterwards through the Navi client/API. Every setting the packed config exposes is a Dockerfile `ENV`, overridable at `docker run`/compose time without editing or rebuilding the image:
+
+| Env var | Default | Config field |
+|---------|---------|--------------|
+| `NAVI_CONFIG` | `./config/web.yml` | Full relative (or absolute) path to the config file `navi-hey -c` loads. Selects which packed config runs — future images may ship additional configs (e.g. `config/web_and_workers.yml`) selectable the same way. |
+| `PORT` | `3000` | `web.port` |
+| `LOGS_PAGE_SIZE` | `20` | `web.logs_page_size` |
+| `ENABLE_SHUTDOWN` | `false` | `web.enable_shutdown` |
+| `AUTOSTART` | `true` | `web.autostart` |
+| `IDLE_TIMEOUT` | `0` (disabled) | `web.idle_timeout` — `0` disables auto-shutdown, so the web UI stays up indefinitely. |
+| `API_TOKEN` | empty (disabled) | `web.api.token` — empty disables the token-secured `/api/*` namespace (every request rejected). |
+| `WORKERS` | `1` | `workers.quantity` |
+| `RETRY_COOLDOWN` | `2000` | `workers.retry_cooldown` |
+| `WORKERS_SLEEP` | `500` | `workers.sleep` |
+| `MAX_RETRIES` | `3` | `workers.max-retries` |
+
+For example, to change the exposed port:
+
+```bash
+docker run -p 8080:8080 -e PORT=8080 darthjee/navi-hey:latest
+```
+
 ### Environment variables in client configuration
 
 Both `base_url` and header values support environment variable substitution at load time using `$VAR` or `${VAR}` syntax:
