@@ -6,11 +6,11 @@ from majora_project.cache import memory_cache
 
 
 class DomainGamesCache:
-    """Cache the list of `Game` ids available under a hostname's `GameDomainGroup`.
+    """Cache the list of `Game` ids available under a hostname's `DomainGroup`.
 
-    Keyed by the lowercased hostname, since `GameDomain.domain` is normalized to lowercase
+    Keyed by the lowercased hostname, since `Domain.domain` is normalized to lowercase
     on save. An unrecognized hostname is cached as an empty id list, same as a matched
-    `GameDomain` with zero games, to avoid repeated lookups for bad hosts.
+    `Domain` with zero games, to avoid repeated lookups for bad hosts.
     """
 
     CACHE_TYPE = 'domain_games'
@@ -37,14 +37,14 @@ class DomainGamesCache:
         """Run the underlying database query resolving `domain` to its games' ids."""
         # Imported lazily: `games.caches` is imported by `games.models.character.character`
         # while `games.models` is still being populated, so a module-level import of `Game`
-        # / `GameDomain` here would trigger a circular import.
+        # / `Domain` here would trigger a circular import.
+        from domains.models import Domain
         from games.models.game.game import Game
-        from games.models.game.game_domain import GameDomain
 
-        game_domain = GameDomain.objects.filter(domain=domain).first()
+        game_domain = Domain.objects.filter(domain=domain).first()
         if game_domain is None:
             return []
         return list(
-            Game.objects.filter(game_domain_groups=game_domain.game_domain_group)
+            Game.objects.filter(game_domain_groups=game_domain.domain_group)
             .values_list('id', flat=True)
         )

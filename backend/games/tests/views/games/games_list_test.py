@@ -7,8 +7,9 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
+from domains.tests.factories import DomainFactory
 from games.models import Game, Player
-from games.tests.factories import GameDomainFactory, GameFactory, UserFactory
+from games.tests.factories import GameFactory, UserFactory
 from majora_project.cache import memory_cache
 
 
@@ -23,7 +24,7 @@ class TestGamesListView:
         matches the domain-scoped resolution `games_list` always performs now.
         """
         memory_cache.clear()
-        self.game_domain = GameDomainFactory(domain='testserver')
+        self.game_domain = DomainFactory(domain='testserver')
 
     def test_returns_empty_list(self, client):
         """Test that an empty list is returned when no games exist."""
@@ -35,11 +36,11 @@ class TestGamesListView:
         """Test that created games are returned in the list."""
         GameFactory(
             name='Game One', game_slug='game-one',
-            game_domain_groups=[self.game_domain.game_domain_group],
+            game_domain_groups=[self.game_domain.domain_group],
         )
         GameFactory(
             name='Game Two', game_slug='game-two',
-            game_domain_groups=[self.game_domain.game_domain_group],
+            game_domain_groups=[self.game_domain.domain_group],
         )
         response = client.get('/games.json')
         assert response.status_code == 200
@@ -75,7 +76,7 @@ class TestGamesListView:
         for i in range(5):
             GameFactory(
                 name=f'Game {i}', game_slug=f'game-{i}',
-                game_domain_groups=[self.game_domain.game_domain_group],
+                game_domain_groups=[self.game_domain.domain_group],
             )
         response = client.get('/games.json?page=2&per_page=3')
         assert response.status_code == 200
@@ -87,7 +88,7 @@ class TestGamesListView:
         for i in range(5):
             GameFactory(
                 name=f'Game {i}', game_slug=f'game-{i}',
-                game_domain_groups=[self.game_domain.game_domain_group],
+                game_domain_groups=[self.game_domain.domain_group],
             )
         response = client.get('/games.json?per_page=2')
         assert response.status_code == 200
@@ -102,12 +103,12 @@ class TestGamesCreateView(TestCase):
     def setUpTestData(cls):
         """Set up an authenticated user, token, and a registered domain matching the test host.
 
-        Django's test client defaults to `Host: testserver`, so a matching `GameDomain` is
+        Django's test client defaults to `Host: testserver`, so a matching `Domain` is
         required for POST requests to resolve through the domain-scoped creation path.
         """
         cls.user = UserFactory(username='creator', password='secret-password')
         cls.token = Token.objects.create(user=cls.user)
-        cls.game_domain = GameDomainFactory(domain='testserver')
+        cls.game_domain = DomainFactory(domain='testserver')
 
     def setUp(self):
         """Clear the shared memory cache before each test."""
@@ -197,10 +198,10 @@ class TestGamesListViewPerDomainGet:
     def setup_method(self):
         """Set up a recognized domain with games, and clear the shared memory cache."""
         memory_cache.clear()
-        self.game_domain = GameDomainFactory(domain='tenant.example.com')
+        self.game_domain = DomainFactory(domain='tenant.example.com')
         self.game = GameFactory(
             name='Tenant Game', game_slug='tenant-game',
-            game_domain_groups=[self.game_domain.game_domain_group],
+            game_domain_groups=[self.game_domain.domain_group],
         )
         GameFactory(name='Other Game', game_slug='other-game')
 
@@ -222,7 +223,7 @@ class TestGamesListViewPerDomainGet:
     @override_settings(ALLOWED_HOSTS=['*'])
     def test_recognized_domain_with_zero_games_returns_empty_list(self, client):
         """Test that a recognized domain with no games returns 200 and an empty list."""
-        empty_domain = GameDomainFactory(domain='empty.example.com')
+        empty_domain = DomainFactory(domain='empty.example.com')
         response = client.get('/games.json', HTTP_HOST=empty_domain.domain)
         assert response.status_code == 200
         assert json.loads(response.content) == []
@@ -266,7 +267,7 @@ class TestGamesListViewPerDomainPost:
     def setup_method(self):
         """Set up a recognized domain, an authenticated user, and clear the memory cache."""
         memory_cache.clear()
-        self.game_domain = GameDomainFactory(domain='tenant-create.example.com')
+        self.game_domain = DomainFactory(domain='tenant-create.example.com')
         self.user = UserFactory(username='domain-creator', password='secret-password')
         self.token = Token.objects.create(user=self.user)
 
@@ -282,14 +283,14 @@ class TestGamesListViewPerDomainPost:
 
     @override_settings(ALLOWED_HOSTS=['*'])
     def test_recognized_domain_attaches_new_game_to_its_group(self, client):
-        """Test that a created game is attached to the requesting domain's GameDomainGroup."""
+        """Test that a created game is attached to the requesting domain's DomainGroup."""
         response = self._post(
             client, {'name': 'New Tenant Game'}, host=self.game_domain.domain,
         )
         assert response.status_code == 201
         data = json.loads(response.content)
         game = Game.objects.get(game_slug=data['game_slug'])
-        assert self.game_domain.game_domain_group in game.game_domain_groups.all()
+        assert self.game_domain.domain_group in game.game_domain_groups.all()
 
     @override_settings(ALLOWED_HOSTS=['*'])
     def test_recognized_domain_response_sets_skip_cache_header(self, client):

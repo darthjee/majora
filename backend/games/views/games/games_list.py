@@ -5,9 +5,10 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from accounts.authentication import CookieTokenAuthentication
+from domains.models import Domain
 
 from ...caches import DomainGamesCache, RegisteredDomainsCache
-from ...models import Game, GameDomain, Player
+from ...models import Game, Player
 from ...serializers import GameCreateSerializer, GameDetailSerializer, GameListSerializer
 from ..common import paginated_list_response, require_authenticated, validated_or_error
 
@@ -40,7 +41,7 @@ def _create_game(request, domain=None):
     """Validate request and create a new game, returning 201 with detail data.
 
     When `domain` is given (per-domain mode), the new game is also attached to that
-    domain's `GameDomainGroup` so it remains visible on the domain that created it.
+    domain's `DomainGroup` so it remains visible on the domain that created it.
     """
     error_response = require_authenticated(request)
     if error_response:
@@ -53,8 +54,8 @@ def _create_game(request, domain=None):
 
     game = serializer.save()
     if domain is not None:
-        game_domain = GameDomain.objects.get(domain=domain)
-        game.game_domain_groups.add(game_domain.game_domain_group)
+        game_domain = Domain.objects.get(domain=domain)
+        game.game_domain_groups.add(game_domain.domain_group)
     Player.objects.get_or_create(
         game=game,
         user=request.user,

@@ -3,7 +3,8 @@
 import pytest
 from rest_framework.authtoken.models import Token
 
-from games.tests.factories import GameDomainFactory, GameFactory, UserFactory
+from domains.tests.factories import DomainFactory
+from games.tests.factories import GameFactory, UserFactory
 from majora_project.cache import memory_cache
 
 
@@ -19,13 +20,13 @@ class TestCacheControlMiddlewareAnonymous:
         client's default `Host: testserver` to resolve at all.
         """
         memory_cache.clear()
-        self.game_domain = GameDomainFactory(domain='testserver')
+        self.game_domain = DomainFactory(domain='testserver')
 
     def test_adds_public_cache_control_header(self, client):
         """Unauthenticated requests to a regular endpoint get public Cache-Control."""
         GameFactory(
             name='Test Game', game_slug='test-game',
-            game_domain_groups=[self.game_domain.game_domain_group],
+            game_domain_groups=[self.game_domain.domain_group],
         )
         response = client.get('/games.json')
         assert 'Cache-Control' in response
@@ -36,7 +37,7 @@ class TestCacheControlMiddlewareAnonymous:
         monkeypatch.setenv('MAJORA_CACHE_CONTROL_ANONYMOUS_SECONDS', '600')
         GameFactory(
             name='Test Game', game_slug='test-game',
-            game_domain_groups=[self.game_domain.game_domain_group],
+            game_domain_groups=[self.game_domain.domain_group],
         )
         response = client.get('/games.json')
         assert response['Cache-Control'] == 'public, max-age=600'
@@ -54,7 +55,7 @@ class TestCacheControlMiddlewareAuthenticated:
         client's default `Host: testserver` to resolve at all.
         """
         memory_cache.clear()
-        GameDomainFactory(domain='testserver')
+        DomainFactory(domain='testserver')
 
     def test_adds_private_cache_control_header(self, client):
         """Authenticated requests to a regular endpoint get private Cache-Control."""

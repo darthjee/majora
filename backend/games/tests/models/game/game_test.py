@@ -5,7 +5,8 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 from django.utils.text import slugify
 
-from games.models import Game, GameDomainGroup, GameTreasure
+from domains.models import DomainGroup
+from games.models import Game, GameTreasure
 from games.tests.factories import (
     GameFactory,
     PlayerFactory,
@@ -69,7 +70,7 @@ class TestGameDomainGroupsM2M(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Set up a game domain group and a game linked to it."""
-        cls.domain_group = GameDomainGroup.objects.create(name='Majora Brand')
+        cls.domain_group = DomainGroup.objects.create(name='Majora Brand')
         cls.game = GameFactory(
             name='Test Game', game_slug='test-game', game_domain_groups=[cls.domain_group]
         )

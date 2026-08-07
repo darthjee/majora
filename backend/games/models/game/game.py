@@ -32,7 +32,7 @@ class Game(models.Model):
         'games.GamePhoto', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
     )
     game_domain_groups = models.ManyToManyField(
-        'games.GameDomainGroup',
+        'domains.DomainGroup',
         blank=True,
         related_name='games',
     )
