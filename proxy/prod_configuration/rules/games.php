@@ -1,37 +1,30 @@
 <?php
 
 use Tent\Configuration;
-use Tent\RequestHandlers\CachePathSanitizer;
+use Tent\Cache\HostQueryRequestHasher;
 
-foreach ($gamesJsonCacheDomains as $domain) {
-    $domainCacheLocation = "$cacheFolder/." . CachePathSanitizer::sanitize($domain, $cacheFolder);
+$gamesJsonCacheLocation = "$cacheFolder/games_json";
 
-    Configuration::buildRule([
-        'handler' => [
-            'type' => 'default_proxy',
+Configuration::buildRule([
+    'handler' => [
+        'type' => 'default_proxy',
+        'host' => $backendHost,
+        'cache' => $gamesJsonCacheLocation,
+        'skip_cache_header' => 'X-Skip-Cache',
+        'request_hasher' => ['class' => HostQueryRequestHasher::class]
+    ],
+    'matchers' => [
+        ['method' => 'GET', 'uri' => '/games.json', 'type' => 'exact', 'domain' => '%'],
+    ],
+    'middlewares' => [
+        [
+            'class' => 'Tent\\Middlewares\\SetClientIpMiddleware'
+        ],
+        [
+            'class' => 'Tent\\Middlewares\\CacheStalenessMiddleware',
+            'location' => $gamesJsonCacheLocation,
             'host' => $backendHost,
-            'cache' => $domainCacheLocation,
-            'skip_cache_header' => 'X-Skip-Cache'
-        ],
-        'matchers' => [
-            ['method' => 'GET', 'uri' => '/games.json', 'type' => 'exact', 'domain' => $domain],
-        ],
-        'middlewares' => [
-            [
-                'class' => 'Tent\\Middlewares\\SetClientIpMiddleware'
-            ],
-            [
-                'class'    => 'Tent\\Middlewares\\CacheCleanupMiddleware',
-                'location' => $domainCacheLocation,
-                'clear'    => ['collection', 'entity'],
-                'custom'   => $cacheCleanupMap
-            ],
-            [
-                'class' => 'Tent\\Middlewares\\CacheStalenessMiddleware',
-                'location' => $domainCacheLocation,
-                'host' => $backendHost,
-                'maxAgeSeconds' => 10
-            ]
+            'maxAgeSeconds' => 10
         ]
-    ]);
-}
+    ]
+]);

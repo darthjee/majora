@@ -5,17 +5,3 @@ $photosPath = '/var/www/html';
 $filesPath = '/var/www/html';
 $staticRoot = '/home/moria_user/moria.ffavs.net';
 $cacheFolder = './cache';
-
-// Domains that get their own dedicated cache for GET /games.json, keyed by
-// domain instead of sharing the generic `.json` catch-all cache in
-// rules/backend.php (keyed by URI only). See rules/games.php.
-//
-// This is a proxy-only concern — the backend never sets X-Skip-Cache on a
-// successful GET /games.json, regardless of domain. A domain that Apache
-// forwards here but that is missing from this array falls through to
-// rules/backend.php's shared, unpartitioned cache instead of getting its own.
-// Add a domain here before Apache starts forwarding it.
-$gamesJsonCacheDomains = [
-    'game-a.example.com',
-    'game-b.example.com',
-];
