@@ -6,11 +6,10 @@ pattern](principles.md#default-resource-crud-pattern) (List/Detail = **AllowAny*
 (`POST /games.json`) requires only any authenticated user, not **GameEdit** — there is no existing
 GameMaster to authorize a brand-new game.
 
-## Domain-scoped listing/creation (`ENABLE_GAMES_PER_DOMAIN`)
+## Domain-scoped listing/creation
 
-When the `ENABLE_GAMES_PER_DOMAIN` env-driven Django setting is on (default `false`, so the
-behavior above is unaffected by default), `GET`/`POST /games.json` are additionally scoped to the
-requesting domain, resolved from `request.get_host()` (see `USE_X_FORWARDED_HOST` below):
+`GET`/`POST /games.json` are always scoped to the requesting domain, resolved from
+`request.get_host()` (see `USE_X_FORWARDED_HOST` below):
 
 - The host is checked against `RegisteredDomainsCache.domains()` (the set of every
   `GameDomain.domain`, `games/caches/registered_domains_cache.py`). An unrecognized host gets
@@ -23,17 +22,17 @@ requesting domain, resolved from `request.get_host()` (see `USE_X_FORWARDED_HOST
 - `POST` on a recognized host additionally attaches the newly created game to that host's
   `GameDomainGroup` (`game.game_domain_groups.add(...)`), so the creator immediately sees it back
   under the same domain — this is on top of, not instead of, the **Create** rule above.
-- The `404` (unrecognized domain) and `POST` responses in this mode always set `X-Skip-Cache:
+- The `404` (unrecognized domain) and `POST` responses always set `X-Skip-Cache:
   true` per the [`X-Skip-Cache` rule](principles.md#x-skip-cache-rule) — those paths stay
   uncached. A successful `GET` never sets `X-Skip-Cache`, for any host, recognized or not:
   per-domain cache isolation for this endpoint is the proxy's job, not the backend's. The proxy's
   single wildcard-domain rule for `/games.json` (`proxy/prod_configuration/rules/games.php`)
-  only partitions its cache by `Host` (via `HostQueryRequestHasher`) when the
-  `$gamesJsonPerDomainCaching` local (`proxy/prod_configuration/locals.php.sample`) is `true` —
-  this local must be kept in sync with `ENABLE_GAMES_PER_DOMAIN` (it should be `true` if and only
-  if that Django setting is also `true`), since when `ENABLE_GAMES_PER_DOMAIN` is `false` every
-  `Host` gets byte-identical content and per-domain cache partitioning would let a client with an
-  arbitrary `Host` header create unbounded, never-evicted cache files for no benefit.
+  unconditionally partitions its cache into a per-domain folder named by
+  `Tent\Cache\DomainHash::hash($request)` (`proxy/extension/lib/cache/DomainHash.php`, a
+  `"domain_"`-prefixed SHA-256 hash of the request's `Host`). `X-Skip-Cache` on the `404`/`POST`
+  paths above remains the only guard against a client with an arbitrary, unregistered `Host`
+  header creating unbounded, never-evicted cache folders — a successful `GET` only ever reaches
+  a registered, bounded set of hosts.
 - **Trust assumption**: domain resolution relies on `USE_X_FORWARDED_HOST = True`
   (`majora_project/settings.py`), which trusts the `X-Forwarded-Host` header set by the
   `darthjee/tent` proxy's `RenameHeaderMiddleware` (which unconditionally overwrites any
