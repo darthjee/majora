@@ -107,7 +107,7 @@ re-invoke `cache` to confirm the finding is resolved before merging the PR.
 | `access-control.md` | Short index linking to per-resource access rules under `access-control/` |
 | `access-control/` | One file per resource/topic — access rules for that resource only |
 | `external/HOW_TO_USE_NAVI.md` | Navi reference hub — links to per-topic pages under `external/navi/` |
-| `external/HOW_TO_USE_DARTHJEE-TENT.md` | Tent proxy reference hub — links to per-topic pages under `external/tent/` |
+| `external/how-to-use-tent.md` | Tent proxy reference hub — links to per-topic pages under `external/tent/` |
 | `plans/` | Implementation plans for ongoing or upcoming features |
 | `issues/` | Detailed specs for open issues |
 

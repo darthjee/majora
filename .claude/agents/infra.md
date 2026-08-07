@@ -63,7 +63,7 @@ and the CI jobs that upload proxy files (`upload_proxy_files`).
 **PHP proxy source files (`proxy/`) are owned by the `proxy` agent** — delegate any task
 involving routing rules, custom middleware, or PHP tests to it.
 
-See [docs/agents/external/HOW_TO_USE_DARTHJEE-TENT.md] (a hub linking to per-topic pages under
+See [docs/agents/external/how-to-use-tent.md] (a hub linking to per-topic pages under
 `docs/agents/external/tent/`) for the full Tent configuration reference — the
 [docs/agents/external/tent/setup.md] (Docker mounts, `configure.php`) and
 [docs/agents/external/tent/complete-example.md] (full `docker-compose.yml` layout) pages are

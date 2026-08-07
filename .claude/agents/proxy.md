@@ -39,7 +39,7 @@ Tent (`darthjee/tent`) is the single entry point on port 3000. It routes request
 rules loaded by `configure.php`.
 
 For anything beyond this summary, see the per-topic pages under
-`docs/agents/external/tent/` (hub: `docs/agents/external/HOW_TO_USE_DARTHJEE-TENT.md`) —
+`docs/agents/external/tent/` (hub: `docs/agents/external/how-to-use-tent.md`) —
 most relevant to this agent's scope: `request-handlers.md`, `middlewares.md`,
 `cache-configuration.md`, and `extending-tent.md` (custom middleware/handler classes).
 
