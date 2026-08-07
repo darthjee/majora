@@ -68,9 +68,11 @@ rules:
   the same URL serves both a regular and a restricted form (e.g. `/games.json`), in which case
   the regular form is included as usual. Note that `/games.json`'s per-domain form
   (`ENABLE_GAMES_PER_DOMAIN`) is itself cacheable (domain-partitioned by the proxy's
-  `$domainCacheLocation`, not blanket `X-Skip-Cache: true`) — it's still excluded from Navi's
-  warm-up chain, but only because Navi has no multi-domain `clients:`/resource config to warm it
-  yet, not because the response can't be cached.
+  `HostQueryRequestHasher`, gated behind the `$gamesJsonPerDomainCaching` local in
+  `proxy/prod_configuration/locals.php.sample` — which must mirror `ENABLE_GAMES_PER_DOMAIN` —
+  rather than blanket `X-Skip-Cache: true`) — it's still excluded from Navi's warm-up chain, but
+  only because Navi has no multi-domain `clients:`/resource config to warm it yet, not because
+  the response can't be cached.
 - When an intermediate resource's response body doesn't carry a parameter needed further down
   the chain (e.g. a detail serializer that omits `game_slug`), carry it forward via Navi's
   inherited `parameters.*` namespace instead of `parsedBody.*`.
