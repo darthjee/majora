@@ -2,8 +2,9 @@
 
 `django-simple-history` generates one `Historical<Model>` table per tracked model — `Game`,
 `Player`, `Character`, `Treasure`, `CharacterTreasure`, `GamePhoto`, `CharacterPhoto`, `Link`,
-`CharacterLink`, `TreasurePhoto` (see [`architecture.md`](../architecture.md)'s `versioning/`
-section). `GameTreasure` is not tracked.
+`CharacterLink`, `TreasurePhoto`, `StlModel`, `StlModelLink`, `StlModelPhoto`, `Source`, `Tag`
+(see [`architecture.md`](../architecture.md)'s `versioning/` section). `GameTreasure` is not
+tracked.
 
 These tables carry the full field state of every tracked model at every past save/delete, plus
 `history_user` (the acting user, when known). **They are exposed only via Django Admin — never

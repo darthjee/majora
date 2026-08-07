@@ -57,6 +57,8 @@ regardless of any other rule listed below.
   `Message`, `MessageVisualisation` (`conversations` app); exposed via `Game`'s
   `GET /my-games.json` (aggregate counts) and `GET /games/:game_slug/conversations.json`
   (id/title list)
+- [StlModel](access-control/stl-model.md) — `StlModel`, `StlModelLink`, `StlModelPhoto`,
+  `Source`, `Tag` (`miniatures` app); a cross-domain, login-only STL/miniature catalog
 
 ### Standalone endpoints
 
