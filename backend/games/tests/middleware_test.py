@@ -3,16 +3,30 @@
 import pytest
 from rest_framework.authtoken.models import Token
 
-from games.tests.factories import GameFactory, UserFactory
+from games.tests.factories import GameDomainFactory, GameFactory, UserFactory
+from majora_project.cache import memory_cache
 
 
 @pytest.mark.django_db
 class TestCacheControlMiddlewareAnonymous:
     """Cache-Control header for unauthenticated requests."""
 
+    def setup_method(self):
+        """Clear the shared memory cache and register 'testserver' as a known domain.
+
+        `/games.json` is used here only as a stand-in "regular endpoint" to exercise the
+        cache-control middleware, so it needs a registered domain matching the test
+        client's default `Host: testserver` to resolve at all.
+        """
+        memory_cache.clear()
+        self.game_domain = GameDomainFactory(domain='testserver')
+
     def test_adds_public_cache_control_header(self, client):
         """Unauthenticated requests to a regular endpoint get public Cache-Control."""
-        GameFactory(name='Test Game', game_slug='test-game')
+        GameFactory(
+            name='Test Game', game_slug='test-game',
+            game_domain_groups=[self.game_domain.game_domain_group],
+        )
         response = client.get('/games.json')
         assert 'Cache-Control' in response
         assert response['Cache-Control'] == 'public, max-age=3600'
@@ -20,7 +34,10 @@ class TestCacheControlMiddlewareAnonymous:
     def test_uses_custom_anonymous_max_age(self, client, monkeypatch):
         """Custom MAJORA_CACHE_CONTROL_ANONYMOUS_SECONDS is reflected in the header."""
         monkeypatch.setenv('MAJORA_CACHE_CONTROL_ANONYMOUS_SECONDS', '600')
-        GameFactory(name='Test Game', game_slug='test-game')
+        GameFactory(
+            name='Test Game', game_slug='test-game',
+            game_domain_groups=[self.game_domain.game_domain_group],
+        )
         response = client.get('/games.json')
         assert response['Cache-Control'] == 'public, max-age=600'
 
@@ -28,6 +45,16 @@ class TestCacheControlMiddlewareAnonymous:
 @pytest.mark.django_db
 class TestCacheControlMiddlewareAuthenticated:
     """Cache-Control header for authenticated requests."""
+
+    def setup_method(self):
+        """Clear the shared memory cache and register 'testserver' as a known domain.
+
+        `/games.json` is used here only as a stand-in "regular endpoint" to exercise the
+        cache-control middleware, so it needs a registered domain matching the test
+        client's default `Host: testserver` to resolve at all.
+        """
+        memory_cache.clear()
+        GameDomainFactory(domain='testserver')
 
     def test_adds_private_cache_control_header(self, client):
         """Authenticated requests to a regular endpoint get private Cache-Control."""

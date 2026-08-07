@@ -1,6 +1,5 @@
 """View for listing all games or creating a new one."""
 
-from django.conf import settings
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -21,17 +20,7 @@ UNRECOGNIZED_DOMAIN_RESPONSE_DATA = {'errors': {'detail': ['domain not recognize
 # inline inside _create_game so that unauthenticated callers receive a proper 401.
 @permission_classes([AllowAny])
 def games_list(request):
-    """Return a list of all games or create a new game."""
-    if not settings.ENABLE_GAMES_PER_DOMAIN:
-        if request.method == 'POST':
-            return _create_game(request)
-        return paginated_list_response(request, Game.objects.all(), GameListSerializer)
-
-    return _games_list_per_domain(request)
-
-
-def _games_list_per_domain(request):
-    """Handle GET/POST once `ENABLE_GAMES_PER_DOMAIN` is on, scoping both to the host."""
+    """Return a list of all games or create a new game, scoping both to the requesting host."""
     host = request.get_host().split(':')[0].lower()
     if host not in RegisteredDomainsCache.domains():
         response = Response(UNRECOGNIZED_DOMAIN_RESPONSE_DATA, status=404)
