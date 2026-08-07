@@ -3,7 +3,8 @@
 import pytest
 from rest_framework.authtoken.models import Token
 
-from games.tests.factories import UserFactory
+from games.tests.factories import GameDomainFactory, UserFactory
+from majora_project.cache import memory_cache
 from statistics import cookies
 from statistics.models import Session
 
@@ -11,6 +12,16 @@ from statistics.models import Session
 @pytest.mark.django_db
 class TestStatisticsSessionMiddleware:
     """Tests for `StatisticsSessionMiddleware`."""
+
+    def setup_method(self):
+        """Clear the shared memory cache and register 'testserver' as a known domain.
+
+        Some tests below use `/games.json` only as a stand-in authenticated endpoint to
+        exercise the session-backfill middleware, so it needs a registered domain matching
+        the test client's default `Host: testserver` to resolve at all.
+        """
+        memory_cache.clear()
+        GameDomainFactory(domain='testserver')
 
     def test_creates_session_when_no_cookie_present(self, client):
         """Test that a request with no cookie creates a new session and sets a cookie."""

@@ -23,11 +23,10 @@ CSRF_TRUSTED_ORIGINS = [
 # lookups (e.g. `DomainGamesCache`) resolve the real requested domain. Safe because Tent's
 # `RenameHeaderMiddleware` always overwrites `X-Forwarded-Host` with whatever `Host` it
 # actually received — a client cannot smuggle a spoofed value past Tent to the backend.
+#
+# `/games.json` (GET+POST) is always restricted to the games reachable from the requesting
+# domain, via `GameDomain`/`GameDomainGroup` (see `games/views/games/games_list.py`).
 USE_X_FORWARDED_HOST = True
-
-# Restricts `/games.json` (GET+POST) to the games reachable from the requesting domain,
-# via `GameDomain`/`GameDomainGroup` (see `games/views/games/games_list.py`).
-ENABLE_GAMES_PER_DOMAIN = os.environ.get('ENABLE_GAMES_PER_DOMAIN', 'false').lower() == 'true'
 
 INSTALLED_APPS = [
     'django.contrib.admin',

@@ -16,6 +16,15 @@ from majora_project.cache import memory_cache
 class TestGamesListView:
     """Tests for the games list endpoint."""
 
+    def setup_method(self):
+        """Clear the shared memory cache and register 'testserver' as a known domain.
+
+        Django's test client defaults to `Host: testserver`, so registering it here
+        matches the domain-scoped resolution `games_list` always performs now.
+        """
+        memory_cache.clear()
+        self.game_domain = GameDomainFactory(domain='testserver')
+
     def test_returns_empty_list(self, client):
         """Test that an empty list is returned when no games exist."""
         response = client.get('/games.json')
@@ -24,8 +33,14 @@ class TestGamesListView:
 
     def test_returns_games(self, client):
         """Test that created games are returned in the list."""
-        GameFactory(name='Game One', game_slug='game-one')
-        GameFactory(name='Game Two', game_slug='game-two')
+        GameFactory(
+            name='Game One', game_slug='game-one',
+            game_domain_groups=[self.game_domain.game_domain_group],
+        )
+        GameFactory(
+            name='Game Two', game_slug='game-two',
+            game_domain_groups=[self.game_domain.game_domain_group],
+        )
         response = client.get('/games.json')
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -58,7 +73,10 @@ class TestGamesListView:
     def test_respects_page_param(self, client):
         """Test that ?page=N returns the correct page of results."""
         for i in range(5):
-            GameFactory(name=f'Game {i}', game_slug=f'game-{i}')
+            GameFactory(
+                name=f'Game {i}', game_slug=f'game-{i}',
+                game_domain_groups=[self.game_domain.game_domain_group],
+            )
         response = client.get('/games.json?page=2&per_page=3')
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -67,7 +85,10 @@ class TestGamesListView:
     def test_respects_per_page_param(self, client):
         """Test that ?per_page=N limits the number of results returned."""
         for i in range(5):
-            GameFactory(name=f'Game {i}', game_slug=f'game-{i}')
+            GameFactory(
+                name=f'Game {i}', game_slug=f'game-{i}',
+                game_domain_groups=[self.game_domain.game_domain_group],
+            )
         response = client.get('/games.json?per_page=2')
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -79,9 +100,18 @@ class TestGamesCreateView(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        """Set up an authenticated user and token."""
+        """Set up an authenticated user, token, and a registered domain matching the test host.
+
+        Django's test client defaults to `Host: testserver`, so a matching `GameDomain` is
+        required for POST requests to resolve through the domain-scoped creation path.
+        """
         cls.user = UserFactory(username='creator', password='secret-password')
         cls.token = Token.objects.create(user=cls.user)
+        cls.game_domain = GameDomainFactory(domain='testserver')
+
+    def setUp(self):
+        """Clear the shared memory cache before each test."""
+        memory_cache.clear()
 
     def _post(self, client, payload, token=None):
         """Issue a POST request to the games list endpoint, optionally with a token."""
@@ -161,32 +191,8 @@ class TestGamesCreateView(TestCase):
 
 
 @pytest.mark.django_db
-class TestGamesListViewDomainFlagOff:
-    """Tests for /games.json with ENABLE_GAMES_PER_DOMAIN left at its default (off)."""
-
-    def setup_method(self):
-        """Clear the shared memory cache and create a couple of games."""
-        memory_cache.clear()
-        self.first_game = GameFactory(name='Game One', game_slug='domain-off-one')
-        self.second_game = GameFactory(name='Game Two', game_slug='domain-off-two')
-
-    @override_settings(ALLOWED_HOSTS=['*'])
-    def test_returns_all_games_regardless_of_host(self, client):
-        """Test that GET still returns every game when the flag is off."""
-        response = client.get('/games.json', HTTP_HOST='unrecognized.example.com')
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert len(data) == 2
-
-    def test_does_not_set_skip_cache_header(self, client):
-        """Test that no X-Skip-Cache header is set when the flag is off."""
-        response = client.get('/games.json')
-        assert 'X-Skip-Cache' not in response
-
-
-@pytest.mark.django_db
 class TestGamesListViewPerDomainGet:
-    """Tests for GET /games.json with ENABLE_GAMES_PER_DOMAIN on."""
+    """Tests for GET /games.json."""
 
     def setup_method(self):
         """Set up a recognized domain with games, and clear the shared memory cache."""
@@ -198,7 +204,7 @@ class TestGamesListViewPerDomainGet:
         )
         GameFactory(name='Other Game', game_slug='other-game')
 
-    @override_settings(ENABLE_GAMES_PER_DOMAIN=True, ALLOWED_HOSTS=['*'])
+    @override_settings(ALLOWED_HOSTS=['*'])
     def test_recognized_domain_returns_only_its_games(self, client):
         """Test that only games under the requested domain's group are returned."""
         response = client.get('/games.json', HTTP_HOST='tenant.example.com')
@@ -207,13 +213,13 @@ class TestGamesListViewPerDomainGet:
         assert len(data) == 1
         assert data[0]['game_slug'] == 'tenant-game'
 
-    @override_settings(ENABLE_GAMES_PER_DOMAIN=True, ALLOWED_HOSTS=['*'])
+    @override_settings(ALLOWED_HOSTS=['*'])
     def test_recognized_domain_reflects_filtered_pagination(self, client):
         """Test that the pages header reflects the filtered count, not the global one."""
         response = client.get('/games.json?per_page=1', HTTP_HOST='tenant.example.com')
         assert response['pages'] == '1'
 
-    @override_settings(ENABLE_GAMES_PER_DOMAIN=True, ALLOWED_HOSTS=['*'])
+    @override_settings(ALLOWED_HOSTS=['*'])
     def test_recognized_domain_with_zero_games_returns_empty_list(self, client):
         """Test that a recognized domain with no games returns 200 and an empty list."""
         empty_domain = GameDomainFactory(domain='empty.example.com')
@@ -221,25 +227,25 @@ class TestGamesListViewPerDomainGet:
         assert response.status_code == 200
         assert json.loads(response.content) == []
 
-    @override_settings(ENABLE_GAMES_PER_DOMAIN=True, ALLOWED_HOSTS=['*'])
+    @override_settings(ALLOWED_HOSTS=['*'])
     def test_unrecognized_domain_returns_404(self, client):
         """Test that an unrecognized domain returns 404."""
         response = client.get('/games.json', HTTP_HOST='unknown.example.com')
         assert response.status_code == 404
 
-    @override_settings(ENABLE_GAMES_PER_DOMAIN=True, ALLOWED_HOSTS=['*'])
+    @override_settings(ALLOWED_HOSTS=['*'])
     def test_recognized_domain_response_does_not_set_skip_cache_header(self, client):
         """Test that GET on a recognized domain does NOT set X-Skip-Cache."""
         response = client.get('/games.json', HTTP_HOST='tenant.example.com')
         assert 'X-Skip-Cache' not in response
 
-    @override_settings(ENABLE_GAMES_PER_DOMAIN=True, ALLOWED_HOSTS=['*'])
+    @override_settings(ALLOWED_HOSTS=['*'])
     def test_unrecognized_domain_response_sets_skip_cache_header(self, client):
         """Test that a 404 for an unrecognized domain also sets X-Skip-Cache."""
         response = client.get('/games.json', HTTP_HOST='unknown.example.com')
         assert response['X-Skip-Cache'] == 'true'
 
-    @override_settings(ENABLE_GAMES_PER_DOMAIN=True, ALLOWED_HOSTS=['*'])
+    @override_settings(ALLOWED_HOSTS=['*'])
     def test_domain_resolved_via_x_forwarded_host(self, client):
         """Test that the domain is resolved from X-Forwarded-Host behind the proxy."""
         response = client.get(
@@ -255,7 +261,7 @@ class TestGamesListViewPerDomainGet:
 
 @pytest.mark.django_db
 class TestGamesListViewPerDomainPost:
-    """Tests for POST /games.json with ENABLE_GAMES_PER_DOMAIN on."""
+    """Tests for POST /games.json."""
 
     def setup_method(self):
         """Set up a recognized domain, an authenticated user, and clear the memory cache."""
@@ -274,7 +280,7 @@ class TestGamesListViewPerDomainPost:
             HTTP_HOST=host,
         )
 
-    @override_settings(ENABLE_GAMES_PER_DOMAIN=True, ALLOWED_HOSTS=['*'])
+    @override_settings(ALLOWED_HOSTS=['*'])
     def test_recognized_domain_attaches_new_game_to_its_group(self, client):
         """Test that a created game is attached to the requesting domain's GameDomainGroup."""
         response = self._post(
@@ -285,7 +291,7 @@ class TestGamesListViewPerDomainPost:
         game = Game.objects.get(game_slug=data['game_slug'])
         assert self.game_domain.game_domain_group in game.game_domain_groups.all()
 
-    @override_settings(ENABLE_GAMES_PER_DOMAIN=True, ALLOWED_HOSTS=['*'])
+    @override_settings(ALLOWED_HOSTS=['*'])
     def test_recognized_domain_response_sets_skip_cache_header(self, client):
         """Test that a successful POST on a recognized domain sets X-Skip-Cache."""
         response = self._post(
@@ -293,13 +299,13 @@ class TestGamesListViewPerDomainPost:
         )
         assert response['X-Skip-Cache'] == 'true'
 
-    @override_settings(ENABLE_GAMES_PER_DOMAIN=True, ALLOWED_HOSTS=['*'])
+    @override_settings(ALLOWED_HOSTS=['*'])
     def test_unrecognized_domain_returns_404(self, client):
         """Test that POSTing on an unrecognized domain returns 404."""
         response = self._post(client, {'name': 'Ghost Game'}, host='unknown.example.com')
         assert response.status_code == 404
 
-    @override_settings(ENABLE_GAMES_PER_DOMAIN=True, ALLOWED_HOSTS=['*'])
+    @override_settings(ALLOWED_HOSTS=['*'])
     def test_unrecognized_domain_does_not_create_a_game(self, client):
         """Test that POSTing on an unrecognized domain creates no Game row."""
         self._post(client, {'name': 'Ghost Game'}, host='unknown.example.com')
