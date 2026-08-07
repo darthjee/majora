@@ -1,9 +1,11 @@
 """Tests for `StatisticsSessionMiddleware`."""
 
 import pytest
+from django.test import override_settings
 from rest_framework.authtoken.models import Token
 
-from games.tests.factories import GameDomainFactory, UserFactory
+from domains.tests.factories import DomainFactory
+from games.tests.factories import UserFactory
 from majora_project.cache import memory_cache
 from statistics import cookies
 from statistics.models import Session
@@ -21,7 +23,7 @@ class TestStatisticsSessionMiddleware:
         the test client's default `Host: testserver` to resolve at all.
         """
         memory_cache.clear()
-        GameDomainFactory(domain='testserver')
+        self.domain = DomainFactory(domain='testserver')
 
     def test_creates_session_when_no_cookie_present(self, client):
         """Test that a request with no cookie creates a new session and sets a cookie."""
@@ -34,9 +36,24 @@ class TestStatisticsSessionMiddleware:
         signed_value = response.cookies[cookies.COOKIE_NAME].value
         assert cookies.unsign(signed_value) == session.token
 
+    def test_attaches_the_resolved_domain_on_creation(self, client):
+        """Test that a session created for a registered host's request carries its domain."""
+        client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        session = Session.objects.get()
+        assert session.domain_id == self.domain.id
+
+    @override_settings(ALLOWED_HOSTS=['*'])
+    def test_creates_session_with_no_domain_for_an_unrecognized_host(self, client):
+        """Test that a session created for an unregistered host's request has no domain."""
+        client.get('/ready.json', REMOTE_ADDR='1.2.3.4', HTTP_HOST='unregistered.example.com')
+
+        session = Session.objects.get()
+        assert session.domain_id is None
+
     def test_reuses_session_when_cookie_ip_matches(self, client):
         """Test that a valid cookie with a matching IP reuses the same session row."""
-        session = Session.objects.create(ip='1.2.3.4')
+        session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
         original_last_seen_at = session.last_seen_at
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
 
@@ -48,7 +65,7 @@ class TestStatisticsSessionMiddleware:
 
     def test_creates_new_session_when_cookie_ip_differs(self, client):
         """Test that a valid cookie with a mismatched IP rotates to a brand-new session."""
-        old_session = Session.objects.create(ip='1.2.3.4')
+        old_session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(old_session.token)
 
         response = client.get('/ready.json', REMOTE_ADDR='9.9.9.9')
@@ -61,6 +78,23 @@ class TestStatisticsSessionMiddleware:
         assert new_token != old_session.token
         new_session = Session.objects.get(token=new_token)
         assert new_session.ip == '9.9.9.9'
+
+    def test_creates_new_session_when_cookie_domain_differs(self, client):
+        """Test that a valid cookie with a mismatched domain rotates to a brand-new session."""
+        other_domain = DomainFactory(domain='other.example.com')
+        old_session = Session.objects.create(ip='1.2.3.4', domain=other_domain)
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(old_session.token)
+
+        response = client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        assert Session.objects.count() == 2
+        old_session.refresh_from_db()
+        assert old_session.domain_id == other_domain.id
+        new_signed_value = response.cookies[cookies.COOKIE_NAME].value
+        new_token = cookies.unsign(new_signed_value)
+        assert new_token != old_session.token
+        new_session = Session.objects.get(token=new_token)
+        assert new_session.domain_id == self.domain.id
 
     def test_tampered_cookie_creates_new_session_without_error(self, client):
         """Test that a tampered/garbage cookie is treated as no session, not a 500."""
@@ -86,7 +120,7 @@ class TestStatisticsSessionMiddleware:
         """Test that an authenticated request rotates an anonymous session to a new one."""
         user = UserFactory(username='alice')
         token = Token.objects.create(user=user)
-        session = Session.objects.create(ip='1.2.3.4')
+        session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
 
         response = client.get(
@@ -108,7 +142,7 @@ class TestStatisticsSessionMiddleware:
     def test_leaves_session_untouched_when_already_tied_to_a_different_user(self, client):
         """Test that a session already tied to a user is not reattached/rotated on later hits."""
         other_user = UserFactory(username='bob')
-        existing_session = Session.objects.create(ip='1.2.3.4', user=other_user)
+        existing_session = Session.objects.create(ip='1.2.3.4', user=other_user, domain=self.domain)
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(existing_session.token)
 
         user = UserFactory(username='alice')
@@ -127,7 +161,7 @@ class TestStatisticsSessionMiddleware:
 
     def test_does_not_backfill_user_for_unauthenticated_request(self, client):
         """Test that an unauthenticated request leaves the session's user untouched."""
-        session = Session.objects.create(ip='1.2.3.4')
+        session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
 
         client.get('/games.json', REMOTE_ADDR='1.2.3.4')

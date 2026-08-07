@@ -3,24 +3,25 @@
 import pytest
 from django.test import RequestFactory, override_settings
 
+from domains.tests.factories import DomainFactory
 from games.caches import DomainGamesCache
-from games.tests.factories import GameDomainFactory, GameFactory
+from games.tests.factories import GameFactory
 from majora_project.cache import memory_cache
 
 
 @pytest.mark.django_db
 class TestDomainGamesCacheGameLinkedToMultipleGroups:
-    """Tests for a game linked to more than one GameDomainGroup."""
+    """Tests for a game linked to more than one DomainGroup."""
 
     def setup_method(self):
         """Set up two domains/groups and a game linked to both."""
         memory_cache.clear()
-        self.first_domain = GameDomainFactory(domain='first.com')
-        self.second_domain = GameDomainFactory(domain='second.com')
+        self.first_domain = DomainFactory(domain='first.com')
+        self.second_domain = DomainFactory(domain='second.com')
         self.game = GameFactory(
             game_domain_groups=[
-                self.first_domain.game_domain_group,
-                self.second_domain.game_domain_group,
+                self.first_domain.domain_group,
+                self.second_domain.domain_group,
             ]
         )
 
@@ -37,12 +38,12 @@ class TestDomainGamesCacheGameIdsForDomain:
     def setup_method(self):
         """Set up a domain with games under its group, and clear the shared memory cache."""
         memory_cache.clear()
-        self.game_domain = GameDomainFactory(domain='example.com')
-        self.game = GameFactory(game_domain_groups=[self.game_domain.game_domain_group])
-        self.other_game = GameFactory(game_domain_groups=[self.game_domain.game_domain_group])
+        self.game_domain = DomainFactory(domain='example.com')
+        self.game = GameFactory(game_domain_groups=[self.game_domain.domain_group])
+        self.other_game = GameFactory(game_domain_groups=[self.game_domain.domain_group])
 
     def test_returns_ids_of_games_under_the_matching_group(self):
-        """Test that game ids under the matching GameDomainGroup are returned."""
+        """Test that game ids under the matching DomainGroup are returned."""
         result = DomainGamesCache.game_ids_for_domain('example.com')
         assert sorted(result) == sorted([self.game.id, self.other_game.id])
 
@@ -52,7 +53,7 @@ class TestDomainGamesCacheGameIdsForDomain:
         assert sorted(result) == sorted([self.game.id, self.other_game.id])
 
     def test_returns_empty_list_for_unknown_domain(self):
-        """Test that a domain with no matching GameDomain resolves to an empty list."""
+        """Test that a domain with no matching Domain resolves to an empty list."""
         assert DomainGamesCache.game_ids_for_domain('unknown.com') == []
 
     def test_serves_from_cache_on_hit_even_after_games_change(self):
@@ -79,8 +80,8 @@ class TestDomainGamesCacheGameIdsForRequest:
     def setup_method(self):
         """Set up a domain with a game under its group, and clear the shared memory cache."""
         memory_cache.clear()
-        self.game_domain = GameDomainFactory(domain='example.com')
-        self.game = GameFactory(game_domain_groups=[self.game_domain.game_domain_group])
+        self.game_domain = DomainFactory(domain='example.com')
+        self.game = GameFactory(game_domain_groups=[self.game_domain.domain_group])
         self.factory = RequestFactory()
 
     @override_settings(ALLOWED_HOSTS=['example.com'])

@@ -12,8 +12,6 @@ from games.models.game.game_document import GameDocument
 from games.models.game.game_document_file import GameDocumentFile
 from games.models.game.game_document_file_photo import GameDocumentFilePhoto
 from games.models.game.game_document_photo import GameDocumentPhoto
-from games.models.game.game_domain import GameDomain
-from games.models.game.game_domain_group import GameDomainGroup
 from games.models.game.game_item import GameItem
 from games.models.game.game_item_photo import GameItemPhoto
 from games.models.game.game_link import GameLink
@@ -43,8 +41,6 @@ __all__ = [
     'GameDocumentFile',
     'GameDocumentFilePhoto',
     'GameDocumentPhoto',
-    'GameDomain',
-    'GameDomainGroup',
     'GameItem',
     'GameItemPhoto',
     'GameLink',

@@ -4,6 +4,7 @@ import secrets
 
 from django.conf import settings as django_settings
 
+from domains.models import Domain
 from statistics import cookies
 from statistics.models import Session
 from statistics.session_attachment import attach_user
@@ -28,7 +29,8 @@ class StatisticsSessionMiddleware:
             return self.get_response(request)
 
         ip = self._client_ip(request)
-        request.statistics_session = self._load_or_create_session(request, ip)
+        domain = self._domain_for_request(request)
+        request.statistics_session = self._load_or_create_session(request, ip, domain)
 
         response = self.get_response(request)
         self._backfill_user(request)
@@ -49,16 +51,22 @@ class StatisticsSessionMiddleware:
         """Return the trusted client IP, preferring `X-Forwarded-For` over `REMOTE_ADDR`."""
         return request.META.get('HTTP_X_FORWARDED_FOR') or request.META.get('REMOTE_ADDR')
 
-    def _load_or_create_session(self, request, ip):
-        """Return the current request's session, reusing a valid cookie-borne one if possible."""
-        session = self._session_from_cookie(request)
+    def _domain_for_request(self, request):
+        """Return the `Domain` matching the request's host, or `None` if unrecognized."""
+        host = request.get_host().split(':')[0].lower()
+        return Domain.objects.filter(domain=host).first()
 
-        if session is not None and session.ip == ip:
+    def _load_or_create_session(self, request, ip, domain):
+        """Return the current request's session, reusing a valid cookie-borne one if possible."""
+        session = self._session_from_cookie(request, domain)
+        domain_id = domain.id if domain is not None else None
+
+        if session is not None and session.ip == ip and session.domain_id == domain_id:
             session.save(update_fields=['last_seen_at'])
             return session
 
         user = request.user if request.user.is_authenticated else None
-        return Session.objects.create(ip=ip, user=user)
+        return Session.objects.create(ip=ip, user=user, domain=domain)
 
     def _backfill_user(self, request):
         """Attach the DRF-resolved authenticated user to the session, if not already tied.
@@ -81,7 +89,7 @@ class StatisticsSessionMiddleware:
 
         request.statistics_session = attach_user(session, request.user, always_rotate=True)
 
-    def _session_from_cookie(self, request):
+    def _session_from_cookie(self, request, domain):
         """Return the `Session` referenced by the request's cookie, or `None` if invalid."""
         cookie_value = request.COOKIES.get(cookies.COOKIE_NAME)
         if cookie_value is None:
@@ -91,7 +99,7 @@ class StatisticsSessionMiddleware:
         if token is None:
             return None
 
-        return Session.objects.filter(token=token).first()
+        return Session.objects.filter(token=token, domain=domain).first()
 
     def _cookie_deleted_by_view(self, response):
         """Return whether the view already explicitly deleted the statistics cookie."""

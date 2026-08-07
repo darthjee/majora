@@ -19,7 +19,7 @@ class GameFactory(factory.django.DjangoModelFactory):
 
     @factory.post_generation
     def game_domain_groups(self, create, extracted, **kwargs):
-        """Attach any GameDomainGroups passed at construction time."""
+        """Attach any DomainGroups passed at construction time."""
         if not create or not extracted:
             return
         self.game_domain_groups.set(extracted)

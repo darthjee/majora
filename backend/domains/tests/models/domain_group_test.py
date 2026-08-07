@@ -1,21 +1,21 @@
-"""Tests for the GameDomainGroup model."""
+"""Tests for the DomainGroup model."""
 
 import pytest
 
-from games.models import GameDomainGroup
+from domains.models import DomainGroup
 
 
 @pytest.mark.django_db
-class TestGameDomainGroup:
-    """Tests for the GameDomainGroup model."""
+class TestDomainGroup:
+    """Tests for the DomainGroup model."""
 
     def test_group_creation(self):
         """Test that a group can be created and saved with just a name."""
-        group = GameDomainGroup.objects.create(name='Majora Brand')
+        group = DomainGroup.objects.create(name='Majora Brand')
         assert group.pk is not None
         assert group.name == 'Majora Brand'
 
     def test_group_str(self):
         """Test string representation of a group."""
-        group = GameDomainGroup(name='Majora Brand')
+        group = DomainGroup(name='Majora Brand')
         assert str(group) == 'Majora Brand'

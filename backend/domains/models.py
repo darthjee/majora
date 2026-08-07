@@ -1,10 +1,8 @@
-"""GameDomain model for Majora RPG Campaign Management System."""
+"""Models for the domains app."""
 
 from django.core.validators import RegexValidator
 from django.db import models
 from simple_history.models import HistoricalRecords
-
-from games.models.game.game_domain_group import GameDomainGroup
 
 validate_schemes = RegexValidator(
     regex=r'^(http|https)(,(http|https))*$',
@@ -21,12 +19,23 @@ validate_domain = RegexValidator(
 )
 
 
-class GameDomain(models.Model):
-    """Model representing a hostname that resolves to a GameDomainGroup."""
+class DomainGroup(models.Model):
+    """Model representing a tenant/brand reachable through multiple hostnames."""
+
+    name = models.CharField(max_length=200)
+    history = HistoricalRecords(app='versioning', user_db_constraint=False)
+
+    def __str__(self):
+        """Return string representation of the domain group."""
+        return self.name
+
+
+class Domain(models.Model):
+    """Model representing a hostname that resolves to a DomainGroup."""
 
     domain = models.CharField(max_length=200, unique=True, validators=[validate_domain])
-    game_domain_group = models.ForeignKey(
-        GameDomainGroup, on_delete=models.CASCADE, related_name='domains'
+    domain_group = models.ForeignKey(
+        DomainGroup, on_delete=models.CASCADE, related_name='domains'
     )
     schemes = models.CharField(max_length=20, default='https', validators=[validate_schemes])
     title = models.CharField(max_length=200, blank=True, default='')
@@ -38,7 +47,7 @@ class GameDomain(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        """Return string representation of the game domain."""
+        """Return string representation of the domain."""
         return self.domain
 
     @property

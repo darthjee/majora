@@ -16,7 +16,7 @@ def attach_user(session, user, *, always_rotate=False):
     if not always_rotate and session.user_id is None and _attach_in_place(session, user):
         return session
 
-    return Session.objects.create(ip=session.ip, user=user)
+    return Session.objects.create(ip=session.ip, user=user, domain=session.domain)
 
 
 def _attach_in_place(session, user):

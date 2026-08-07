@@ -1,4 +1,4 @@
-"""Cache wrapper resolving the set of every registered `GameDomain.domain`."""
+"""Cache wrapper resolving the set of every registered `Domain.domain`."""
 
 import sys
 
@@ -6,7 +6,7 @@ from majora_project.cache import memory_cache
 
 
 class RegisteredDomainsCache:
-    """Cache the set of every registered hostname (`GameDomain.domain`).
+    """Cache the set of every registered hostname (`Domain.domain`).
 
     Used alongside `DomainGamesCache` to distinguish an unrecognized domain (not in this
     set) from a recognized domain with zero games (in this set, but `DomainGamesCache`
@@ -18,7 +18,7 @@ class RegisteredDomainsCache:
 
     @classmethod
     def domains(cls):
-        """Return the cached (or freshly computed) set of every registered `GameDomain.domain`."""
+        """Return the cached (or freshly computed) set of every registered `Domain.domain`."""
         cached = memory_cache.get(cls.CACHE_TYPE, cls._KEY)
         if cached is not None:
             return cached
@@ -31,7 +31,7 @@ class RegisteredDomainsCache:
         """Run the underlying database query listing every registered domain."""
         # Imported lazily: `games.caches` is imported by `games.models.character.character`
         # while `games.models` is still being populated, so a module-level import of
-        # `GameDomain` here would trigger a circular import.
-        from games.models.game.game_domain import GameDomain
+        # `Domain` here would trigger a circular import.
+        from domains.models import Domain
 
-        return set(GameDomain.objects.values_list('domain', flat=True))
+        return set(Domain.objects.values_list('domain', flat=True))
