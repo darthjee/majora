@@ -1,26 +1,18 @@
 <?php
 
 use Tent\Configuration;
-use Tent\Cache\HostQueryRequestHasher;
+use Tent\Cache\DomainHash;
+use Tent\Models\Request;
 
-$gamesJsonCacheLocation = "$cacheFolder/games_json";
-
-$gamesJsonHandler = [
-    'type' => 'default_proxy',
-    'host' => $backendHost,
-    'cache' => $gamesJsonCacheLocation,
-    'skip_cache_header' => 'X-Skip-Cache',
-];
-
-if ($gamesJsonPerDomainCaching) {
-    // Only partition the cache by Host when the backend's ENABLE_GAMES_PER_DOMAIN mirror is on;
-    // otherwise fall back to Tent's default, domain-blind QueryRequestHasher (see
-    // DefaultProxyRequestHandler's docblock) to avoid unbounded, attacker-keyed cache growth.
-    $gamesJsonHandler['request_hasher'] = ['class' => HostQueryRequestHasher::class];
-}
+$gamesJsonCacheLocation = "$cacheFolder/" . DomainHash::hash(new Request());
 
 Configuration::buildRule([
-    'handler' => $gamesJsonHandler,
+    'handler' => [
+        'type' => 'default_proxy',
+        'host' => $backendHost,
+        'cache' => $gamesJsonCacheLocation,
+        'skip_cache_header' => 'X-Skip-Cache',
+    ],
     'matchers' => [
         ['method' => 'GET', 'uri' => '/games.json', 'type' => 'exact', 'domain' => '%'],
     ],
