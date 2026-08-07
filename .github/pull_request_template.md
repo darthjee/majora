@@ -14,4 +14,8 @@
 
 <!-- Optional: implementation notes, migration steps, caveats. Remove this section if not needed. -->
 
+## Environment Variables & Settings
+
+<!-- List any new or changed environment variables / Django settings this PR introduces. Write "None" if not applicable. -->
+
 Fixes #
