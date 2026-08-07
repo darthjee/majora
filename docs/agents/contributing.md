@@ -12,6 +12,7 @@
 ## Pull Requests
 
 - **Descriptive Summary:** Every PR must include a clear and descriptive summary of its purpose and changes.
+- **Environment Variables & Settings:** Every PR that introduces or changes an environment variable or Django/proxy setting must call it out explicitly in its own PR section, naming the variable and what deploying it requires (e.g. a new production env var to set). This is not satisfied by the variable merely appearing in a code diff.
 - **PR Description Files:** If a description cannot be provided directly in the PR, generate a file with the PR description (e.g., `docs/agents/issues/<pr_number>_description.md`), but do not commit this file.
 
 ## Definition of Done for PRs
@@ -22,6 +23,7 @@ A PR is considered complete when:
 - All tests are passing.
 - Linting passes without errors.
 - Code coverage is as high as reasonably possible.
+- Any new or changed environment variable/setting is documented in the PR's "Environment Variables & Settings" section.
 - Code is not overly complex:
   - Classes/modules and methods should have clear, focused responsibilities.
   - If a class or function is taking on too many responsibilities, refactor to simplify.
