@@ -1,3 +1,4 @@
+namespace: $NAVI_NAMEPACE
 resources:
   npc:
     - url: /games/{:slug}/npcs/{:id}.json

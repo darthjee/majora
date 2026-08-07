@@ -1,3 +1,4 @@
+namespace: $NAVI_NAMEPACE
 resources:
   permissions_game:
     - url: /permissions/game.json

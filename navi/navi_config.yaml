@@ -9,16 +9,10 @@ workers:
 failure:
   threshold: 0.0
 
-clients:
-  default:
-    base_url: $MAJORA_PRODUCTION_URL
-    timeout: 20000
-    headers:
-      X-Statistics-Skip-Secret: $STATISTICS_SKIP_SECRET
-
 include:
   - resources/treasures.yml
   - resources/games.yml
   - resources/pcs.yml
   - resources/npcs.yml
   - resources/permissions.yml
+  - resources/clients.yml

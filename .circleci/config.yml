@@ -114,6 +114,8 @@ workflows:
       - warm-up-cache:
           requires: [release]
           filters: *tags_only
+      - wake-navi:
+          filters: *tags_only
 jobs:
   release-image:
     parameters:
@@ -460,9 +462,24 @@ jobs:
 
   warm-up-cache:
     docker:
-      - image: darthjee/navi-hey:1.5.1
+      - image: darthjee/navi-hey-client:latest
     steps:
       - checkout
       - run:
-          name: Warm up proxy cache
-          command: navi-hey --config navi/navi_config.yaml
+          name: Set Navi namespace
+          command: echo 'export NAVI_NAMEPACE="${MAJORA_NAMESPACE}-${CIRCLE_WORKFLOW_WORKSPACE_ID}"' >> "$BASH_ENV"
+      - run:
+          name: Push navi config
+          command: scripts/warm_navi_cache.sh config
+      - run:
+          name: Start navi engine
+          command: scripts/warm_navi_cache.sh engine-start
+
+  wake-navi:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - checkout
+      - run:
+          name: Wake up Navi
+          command: scripts/wake_navi.sh
