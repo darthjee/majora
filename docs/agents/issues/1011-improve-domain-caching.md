@@ -90,3 +90,29 @@ concern, just at filename instead of directory granularity.
   rule's matcher is `GET`-only and that middleware only acts on mutating
   methods, it appears to never actually fire as configured — dropping it
   when collapsing to the single rule is acceptable for now.
+
+### Correction (found during implementation, PR review)
+
+There is no `GAMES_JSON_CACHE_DOMAINS` backend env var — the real
+mechanism is Django's `ENABLE_GAMES_PER_DOMAIN` setting (default
+`false`), which gates `games_list()`'s per-domain filtering and its
+`X-Skip-Cache` denial of unrecognized hosts (see
+`docs/agents/access-control/game.md`'s "Domain-scoped
+listing/creation" section). Per that same doc, "per-domain cache
+isolation for this endpoint is the proxy's job, not the backend's" —
+a successful `GET /games.json` **never** sets `X-Skip-Cache`, for any
+host, recognized or not, regardless of `ENABLE_GAMES_PER_DOMAIN`. So
+when `ENABLE_GAMES_PER_DOMAIN` is `false` (the default), the response
+is byte-identical for every `Host`, and hashing the cache key on
+`domain|query` in that mode only lets a client with an arbitrary
+`Host` header create unbounded, never-evicted cache files for
+byte-identical content — a disk-exhaustion DoS, since Tent's file
+cache has no eviction mechanism. The implementation was corrected to
+gate `HostQueryRequestHasher` behind a new proxy-side boolean local
+(`$gamesJsonPerDomainCaching` in `locals.php`) that operators must set
+to mirror the backend's `ENABLE_GAMES_PER_DOMAIN` — when `false`, the
+rule falls back to Tent's default, domain-blind `QueryRequestHasher`,
+matching the safe pre-existing single-tenant behavior. This keeps this
+issue's original goal intact (no proxy redeploy needed to add/remove
+an individual domain — only a one-time toggle when per-domain mode
+itself is turned on).

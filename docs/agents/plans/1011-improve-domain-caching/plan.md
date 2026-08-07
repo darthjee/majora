@@ -150,3 +150,17 @@ Rewrite `proxy/prod_configuration/rules/games.php`:
 - The shared cache folder name (`games_json` in Step 3) is a suggestion;
   any static, non-request-derived name works since it no longer needs
   per-domain sanitization.
+- **Correction (post-implementation security review):** the backend
+  never sets `X-Skip-Cache` on a successful `GET /games.json` regardless
+  of domain or `ENABLE_GAMES_PER_DOMAIN` (see
+  `docs/agents/access-control/game.md`), so it is not a safety net for
+  this rule when `ENABLE_GAMES_PER_DOMAIN` is `false` (default) — in
+  that mode the response is domain-invariant, so hashing on
+  `domain|query` only enables unbounded, attacker-keyed disk-cache
+  growth for no benefit. Step 3 was amended to gate
+  `HostQueryRequestHasher` behind a new opt-in local
+  (`$gamesJsonPerDomainCaching`) that operators set to mirror
+  `ENABLE_GAMES_PER_DOMAIN`; when unset/`false`, the rule omits
+  `request_hasher` and falls back to Tent's default, domain-blind
+  `QueryRequestHasher`. See the issue file's "Correction" note for
+  detail.

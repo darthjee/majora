@@ -5,3 +5,8 @@ $photosPath = '/var/www/html';
 $filesPath = '/var/www/html';
 $staticRoot = '/home/moria_user/moria.ffavs.net';
 $cacheFolder = './cache';
+// Mirrors the backend's ENABLE_GAMES_PER_DOMAIN Django setting. Must be true only when
+// that setting is also true — otherwise GET /games.json returns identical content for
+// every Host, and per-domain cache partitioning below would let a client with an
+// arbitrary Host header create unbounded, never-evicted cache files for no benefit.
+$gamesJsonPerDomainCaching = false;

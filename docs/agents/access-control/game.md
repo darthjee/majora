@@ -27,10 +27,13 @@ requesting domain, resolved from `request.get_host()` (see `USE_X_FORWARDED_HOST
   true` per the [`X-Skip-Cache` rule](principles.md#x-skip-cache-rule) — those paths stay
   uncached. A successful `GET` never sets `X-Skip-Cache`, for any host, recognized or not:
   per-domain cache isolation for this endpoint is the proxy's job, not the backend's. The proxy's
-  `$gamesJsonCacheDomains` (`proxy/prod_configuration/locals.php`) builds one Tent rule per domain
-  (`$domainCacheLocation` in `proxy/prod_configuration/rules/games.php`), each independently gated
-  on that domain, so it partitions the cache correctly on its own without any backend-side mirror
-  or env var to keep in sync.
+  single wildcard-domain rule for `/games.json` (`proxy/prod_configuration/rules/games.php`)
+  only partitions its cache by `Host` (via `HostQueryRequestHasher`) when the
+  `$gamesJsonPerDomainCaching` local (`proxy/prod_configuration/locals.php.sample`) is `true` —
+  this local must be kept in sync with `ENABLE_GAMES_PER_DOMAIN` (it should be `true` if and only
+  if that Django setting is also `true`), since when `ENABLE_GAMES_PER_DOMAIN` is `false` every
+  `Host` gets byte-identical content and per-domain cache partitioning would let a client with an
+  arbitrary `Host` header create unbounded, never-evicted cache files for no benefit.
 - **Trust assumption**: domain resolution relies on `USE_X_FORWARDED_HOST = True`
   (`majora_project/settings.py`), which trusts the `X-Forwarded-Host` header set by the
   `darthjee/tent` proxy's `RenameHeaderMiddleware` (which unconditionally overwrites any
