@@ -5,9 +5,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from accounts.authentication import CookieTokenAuthentication
+from permissions import EndpointPermission
 
 from ...models import GameTreasure, Treasure
-from ...permissions import EndpointPermission
 from ...serializers import TreasureDetailSerializer, TreasureUpdateSerializer
 from ..common import detail_or_update, validate_with_hidden_field
 

@@ -152,15 +152,6 @@ from .permissions import (
 from .photo_upload import photo_upload
 from .polls import game_poll_close, game_poll_detail, game_poll_votes, game_polls_list
 from .ready import ready
-from .staff import (
-    staff_cache_clear,
-    staff_cache_summary,
-    staff_user_approve,
-    staff_user_deny,
-    staff_user_detail,
-    staff_user_recovery_link,
-    staff_users_list,
-)
 from .treasures import (
     treasure_access,
     treasure_detail,
@@ -311,13 +302,6 @@ __all__ = [
     'game_poll_close',
     'game_poll_detail',
     'game_poll_votes',
-    'staff_users_list',
-    'staff_user_approve',
-    'staff_user_deny',
-    'staff_user_detail',
-    'staff_user_recovery_link',
-    'staff_cache_clear',
-    'staff_cache_summary',
     'treasure_access',
     'treasure_detail',
     'treasure_photo_upload',

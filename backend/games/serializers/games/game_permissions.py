@@ -1,7 +1,7 @@
 """Game permissions serializer for the games app."""
 
-from games.permissions import PermissionsBuilder
 from games.serializers.base_permissions import BasePermissionsSerializer
+from permissions import PermissionsBuilder
 
 _PAGE_KEY = 'game'
 

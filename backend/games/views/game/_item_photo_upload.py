@@ -4,8 +4,9 @@ import os
 
 from django.shortcuts import get_object_or_404
 
+from permissions import EndpointPermission
+
 from ...models import CharacterItemPhoto
-from ...permissions import EndpointPermission
 from ...photo_path import PhotoPathBuilder
 from .._upload_init import UploadInitiator
 from ._shared import _character_item_resource, _get_character_or_404

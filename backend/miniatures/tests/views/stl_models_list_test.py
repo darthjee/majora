@@ -1,4 +1,4 @@
-"""Tests for the STL models list view (GET /miniatures.json)."""
+"""Tests for the STL models list view (GET /miniatures/stl_models.json)."""
 
 import json
 
@@ -9,12 +9,12 @@ from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import UserFactory
 from miniatures.tests.factories import StlModelFactory
 
-LIST_URL = '/miniatures.json'
+LIST_URL = '/miniatures/stl_models.json'
 
 
 @pytest.mark.django_db
 class TestStlModelsListView(TokenAuthRequestMixin):
-    """Tests for GET /miniatures.json."""
+    """Tests for GET /miniatures/stl_models.json."""
 
     def setup_method(self):
         """Set up an authenticated user."""

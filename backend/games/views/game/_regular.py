@@ -1,6 +1,7 @@
 """Shared implementation for the PC-only, player-writable regular update endpoint (issue #865)."""
 
-from ...permissions import EndpointPermission
+from permissions import EndpointPermission
+
 from ...serializers import CharacterDetailSerializer, CharacterRegularUpdateSerializer
 from ..common import detail_or_update
 

@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'simple_history',
     'games',
+    'staff',
+    'permissions',
     'domains',
     'accounts',
     'versioning',

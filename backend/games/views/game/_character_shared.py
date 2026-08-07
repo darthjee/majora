@@ -13,9 +13,9 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from accounts.authentication import CookieTokenAuthentication
+from permissions import EndpointPermission
 
 from ...models import Game
-from ...permissions import EndpointPermission
 from ...serializers import (
     CharacterDocumentSerializer,
     CharacterItemDetailSerializer,

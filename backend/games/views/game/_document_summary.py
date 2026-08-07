@@ -2,7 +2,8 @@
 
 from rest_framework.response import Response
 
-from ...permissions import EndpointPermission
+from permissions import EndpointPermission
+
 from ._document_exchange import _find_game_document
 from ._shared import _get_character_or_404, _hidden_gate_response
 

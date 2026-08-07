@@ -4,8 +4,9 @@ from django.db import transaction
 from rest_framework import serializers
 from rest_framework.response import Response
 
+from permissions import EndpointPermission
+
 from ...models import CharacterItem, GameItem
-from ...permissions import EndpointPermission
 from ...serializers import CharacterItemDetailFullSerializer
 from ..common import validated_or_error
 from ._shared import _character_item_resource

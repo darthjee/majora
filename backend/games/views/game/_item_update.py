@@ -3,7 +3,8 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 
-from ...permissions import EndpointPermission
+from permissions import EndpointPermission
+
 from ...serializers import CharacterItemDetailFullSerializer, CharacterItemUpdateSerializer
 from ..common import validated_or_error
 from ._shared import _character_item_resource, _hidden_gate_response
