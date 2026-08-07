@@ -9,8 +9,8 @@ field and is available across every domain.
 
 | Action | Who can |
 |--------|---------|
-| List (`GET /miniatures.json`) | **IsAuthenticated** — no `AllowAny` regular form |
-| Detail (`GET /miniatures/<id>.json`) | **IsAuthenticated** |
+| List (`GET /miniatures/stl_models.json`) | **IsAuthenticated** — no `AllowAny` regular form |
+| Detail (`GET /miniatures/stl_models/<id>.json`) | **IsAuthenticated** |
 | Create/Update/Delete | None — no write endpoints exist yet for any of the five models; `Source`/`Tag`/`StlModel`/`StlModelLink`/`StlModelPhoto` are all Django-admin-only for now |
 
 **Deviation — `X-Skip-Cache: true` on both endpoints.** Per [Permission
@@ -28,6 +28,6 @@ detail endpoint's 404 response.
 
 ## No search/filter yet
 
-`GET /miniatures.json` accepts no query parameters beyond the shared `Paginator`'s `page`/
+`GET /miniatures/stl_models.json` accepts no query parameters beyond the shared `Paginator`'s `page`/
 `per_page` — no name/source/tag filtering, despite issue #1017's title. Deferred to a follow-up
 issue.
