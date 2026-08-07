@@ -11,8 +11,6 @@ from .models import (
     CharacterTreasure,
     Game,
     GameDocument,
-    GameDomain,
-    GameDomainGroup,
     GameItem,
     GameLink,
     GamePhoto,
@@ -63,5 +61,3 @@ admin.site.register(Upload)
 admin.site.register(Poll)
 admin.site.register(PollOption)
 admin.site.register(PollVote)
-admin.site.register(GameDomainGroup)
-admin.site.register(GameDomain)

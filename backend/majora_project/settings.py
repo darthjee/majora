@@ -25,7 +25,7 @@ CSRF_TRUSTED_ORIGINS = [
 # actually received — a client cannot smuggle a spoofed value past Tent to the backend.
 #
 # `/games.json` (GET+POST) is always restricted to the games reachable from the requesting
-# domain, via `GameDomain`/`GameDomainGroup` (see `games/views/games/games_list.py`).
+# domain, via `domains.Domain`/`domains.DomainGroup` (see `games/views/games/games_list.py`).
 USE_X_FORWARDED_HOST = True
 
 INSTALLED_APPS = [
@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'simple_history',
     'games',
+    'domains',
     'accounts',
     'versioning',
     'statistics',
@@ -51,7 +52,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'games.middleware.GameDomainCsrfOriginsMiddleware',
+    'domains.middleware.DomainCsrfOriginsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'statistics.middleware.StatisticsSessionMiddleware',

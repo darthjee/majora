@@ -2,6 +2,7 @@
 
 import pytest
 
+from domains.tests.factories import DomainFactory
 from games.tests.factories import UserFactory
 from statistics.models import Session
 from statistics.session_attachment import attach_user
@@ -14,6 +15,7 @@ class TestAttachUser:
     def setup_method(self):
         """Set up common test fixtures."""
         self.user = UserFactory(username='alice')
+        self.domain = DomainFactory(domain='example.com')
 
     def test_attaches_user_to_anonymous_session_in_place(self):
         """Test that an anonymous session is updated in place and returned."""
@@ -67,6 +69,15 @@ class TestAttachUser:
         assert result.ip == session.ip
         session.refresh_from_db()
         assert session.user_id is None
+
+    def test_rotation_carries_the_original_sessions_domain_forward(self):
+        """Test that a rotated session keeps the original session's `domain`."""
+        session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
+
+        result = attach_user(session, self.user, always_rotate=True)
+
+        assert result.id != session.id
+        assert result.domain_id == self.domain.id
 
     def test_rotates_when_in_place_update_loses_a_race(self):
         """Test that a concurrently-claimed row falls through to rotation instead of failing."""

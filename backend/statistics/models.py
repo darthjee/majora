@@ -20,5 +20,9 @@ class Session(models.Model):
         on_delete=models.SET_NULL, related_name='statistics_sessions',
     )
     ip = models.GenericIPAddressField()
+    domain = models.ForeignKey(
+        'domains.Domain', null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='statistics_sessions',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     last_seen_at = models.DateTimeField(auto_now=True)
