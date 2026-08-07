@@ -7,8 +7,9 @@ from django.http import Http404
 from rest_framework import serializers
 from rest_framework.response import Response
 
+from permissions import EndpointPermission
+
 from ...models import Character, CharacterTreasure, GameTreasure, Treasure
-from ...permissions import EndpointPermission
 from ...serializers.games.treasures.game_treasure_fields import resolve_treasure_value
 from ..common import validated_or_error
 from ._shared import _character_resource

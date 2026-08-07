@@ -1,7 +1,7 @@
 """Treasure permissions serializer for the games app."""
 
-from games.permissions import PagePermissionConfigStore, ResourcePermissionsResolver
 from games.serializers.base_permissions import BasePermissionsSerializer
+from permissions import PagePermissionConfigStore, ResourcePermissionsResolver
 
 _PAGE_KEY = 'treasure'
 _RESOURCE = 'treasure'

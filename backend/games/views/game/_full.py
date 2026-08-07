@@ -1,6 +1,7 @@
 """Shared implementation for the character full (private-description-included) endpoint."""
 
-from ...permissions import EndpointPermission
+from permissions import EndpointPermission
+
 from ...serializers import CharacterFullSerializer, CharacterUpdateSerializer
 from ..common import detail_or_update
 from ._shared import _character_resource, _get_character_or_404

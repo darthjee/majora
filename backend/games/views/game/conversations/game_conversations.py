@@ -7,9 +7,9 @@ from rest_framework.response import Response
 
 from accounts.authentication import CookieTokenAuthentication
 from conversations.models import Conversation
+from permissions import EndpointPermission
 
 from ....models import Game
-from ....permissions import EndpointPermission
 from ....serializers import ConversationListSerializer
 from ...common import paginated_list_response
 

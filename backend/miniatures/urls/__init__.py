@@ -1,10 +1,5 @@
-"""URL patterns for the miniatures app."""
+"""URL patterns for the miniatures app, concatenated from per-resource modules."""
 
-from django.urls import path
+from . import stl_models
 
-from .. import views
-
-urlpatterns = [
-    path('miniatures.json', views.stl_models_list, name='miniatures-list'),
-    path('miniatures/<int:stl_model_id>.json', views.stl_model_detail, name='miniatures-detail'),
-]
+urlpatterns = stl_models.urlpatterns

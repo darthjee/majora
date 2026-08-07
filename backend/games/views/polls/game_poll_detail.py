@@ -6,9 +6,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from accounts.authentication import CookieTokenAuthentication
+from permissions import EndpointPermission
 
 from ...models import Game, Poll
-from ...permissions import EndpointPermission
 from ...serializers import PollDetailSerializer
 
 

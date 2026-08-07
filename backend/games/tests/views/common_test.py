@@ -7,7 +7,6 @@ from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
 from games.models import Game
-from games.permissions import EndpointPermission
 from games.serializers import (
     GameAccessSerializer,
     GameDetailSerializer,
@@ -25,6 +24,7 @@ from games.views.common import (
     require_authenticated,
     validated_or_error,
 )
+from permissions import EndpointPermission
 
 
 def _make_query_request(query_string=''):

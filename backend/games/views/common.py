@@ -3,9 +3,10 @@
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from permissions import EndpointPermission
+
 from ..caches import AdminOrStaffCache
 from ..paginator import Paginator
-from ..permissions import EndpointPermission
 from ..serializers import HiddenFieldSerializer
 
 UNAUTHENTICATED_RESPONSE_DATA = {'errors': {'detail': ['authentication required']}}

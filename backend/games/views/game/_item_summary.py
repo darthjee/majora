@@ -3,7 +3,8 @@
 from django.http import Http404
 from rest_framework.response import Response
 
-from ...permissions import EndpointPermission
+from permissions import EndpointPermission
+
 from ._shared import _get_character_or_404, _hidden_gate_response
 
 

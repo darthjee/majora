@@ -4,8 +4,9 @@ from django.http import Http404
 from rest_framework import serializers
 from rest_framework.response import Response
 
+from permissions import EndpointPermission
+
 from ...models import CharacterDocument
-from ...permissions import EndpointPermission
 from ...serializers import CharacterDocumentAllSerializer
 from ..common import paginated_list_response, validated_or_error
 from ..games._treasure_filters import filter_by_name

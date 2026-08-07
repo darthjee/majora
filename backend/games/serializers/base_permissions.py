@@ -2,7 +2,7 @@
 
 from rest_framework import serializers
 
-from games.permissions import Roles
+from games.roles import Roles
 from games.serializers._request_context_mixin import RequestContextSerializerMixin
 
 

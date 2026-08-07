@@ -1,7 +1,7 @@
 """Character permissions serializer for the games app; shared by the PC and NPC endpoints."""
 
-from games.permissions import PermissionsBuilder
 from games.serializers.base_permissions import BasePermissionsSerializer
+from permissions import PermissionsBuilder
 
 _PC_PAGE_KEY = 'character_pc'
 _NPC_PAGE_KEY = 'character_npc'

@@ -5,9 +5,9 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import IsAuthenticated
 
 from accounts.authentication import CookieTokenAuthentication
+from permissions import EndpointPermission
 
 from ...models import Game, GameDocument, GameDocumentFile, Upload
-from ...permissions import EndpointPermission
 from ...photo_path import PhotoPathBuilder
 from ...serializers import FileUploadSerializer
 from .._upload_init import UploadInitiator

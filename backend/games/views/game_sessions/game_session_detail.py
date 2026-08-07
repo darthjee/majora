@@ -5,9 +5,9 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import AllowAny
 
 from accounts.authentication import CookieTokenAuthentication
+from permissions import EndpointPermission
 
 from ...models import Game, GameSession
-from ...permissions import EndpointPermission
 from ...serializers import GameSessionDetailSerializer, GameSessionUpdateSerializer
 from ..common import detail_or_update
 

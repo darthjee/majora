@@ -6,9 +6,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from accounts.authentication import CookieTokenAuthentication
+from permissions import EndpointPermission
 
 from ...models import Game, Task
-from ...permissions import EndpointPermission
 from ...serializers import GameTaskListSerializer, GameTaskUpdateSerializer
 from ..common import validated_or_error
 

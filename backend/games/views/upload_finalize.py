@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from accounts.authentication import CookieTokenAuthentication
+from permissions import EndpointPermission
 
 from ..models import (
     CharacterItemPhoto,
@@ -18,7 +19,6 @@ from ..models import (
     TreasurePhoto,
     Upload,
 )
-from ..permissions import EndpointPermission
 from .common import check_game_edit
 
 _FORBIDDEN = Response(status=status.HTTP_403_FORBIDDEN)

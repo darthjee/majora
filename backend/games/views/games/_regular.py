@@ -1,6 +1,7 @@
 """Shared implementation for the game regular (staff/player) update tier (issue #891)."""
 
-from ...permissions import EndpointPermission
+from permissions import EndpointPermission
+
 from ...serializers import GameDetailSerializer, GameRegularUpdateSerializer
 from ..common import detail_or_update
 

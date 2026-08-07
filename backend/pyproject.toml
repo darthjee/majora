@@ -31,6 +31,8 @@ pythonpath = ["."]
 testpaths = [
     "accounts/tests",
     "games/tests",
+    "staff/tests",
+    "permissions/tests",
     "versioning/tests",
     "statistics/tests",
     "conversations/tests",
@@ -39,7 +41,10 @@ testpaths = [
 python_files = ["*_test.py"]
 
 [tool.coverage.run]
-source = ["accounts", "games", "versioning", "statistics", "conversations", "miniatures"]
+source = [
+    "accounts", "games", "staff", "permissions", "versioning", "statistics", "conversations",
+    "miniatures",
+]
 omit = ["*/migrations/*", "*/tests/*"]
 
 [tool.coverage.report]
@@ -51,6 +56,10 @@ exclude_dirs = [
     "backend/accounts/tests",
     "games/tests",
     "backend/games/tests",
+    "staff/tests",
+    "backend/staff/tests",
+    "permissions/tests",
+    "backend/permissions/tests",
     "versioning/tests",
     "backend/versioning/tests",
     "statistics/tests",
@@ -70,8 +79,8 @@ select = ["E", "F", "W", "I", "D211", "D106"]
 
 [tool.ruff.lint.isort]
 known-first-party = [
-    "accounts", "games", "versioning", "statistics", "conversations", "miniatures",
-    "majora_project",
+    "accounts", "games", "staff", "permissions", "versioning", "statistics", "conversations",
+    "miniatures", "majora_project",
 ]
 
 [build-system]

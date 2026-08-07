@@ -100,9 +100,6 @@ from games.serializers.games.tasks.game_task_update import GameTaskUpdateSeriali
 from games.serializers.games.treasures.game_treasure_link import GameTreasureLinkSerializer
 from games.serializers.games.treasures.game_treasure_update import GameTreasureUpdateSerializer
 from games.serializers.photo_upload import FileUploadSerializer, PhotoUploadSerializer
-from games.serializers.staff.staff_user_detail import StaffUserDetailSerializer
-from games.serializers.staff.staff_user_list import StaffUserListSerializer
-from games.serializers.staff.staff_user_update import StaffUserUpdateSerializer
 from games.serializers.treasures.hidden_field import HiddenFieldSerializer
 from games.serializers.treasures.treasure_access import TreasureAccessSerializer
 from games.serializers.treasures.treasure_create import TreasureCreateSerializer
@@ -195,9 +192,6 @@ __all__ = [
     'SessionMessageListSerializer',
     'SessionMessageUserSerializer',
     'SessionPollCreateSerializer',
-    'StaffUserDetailSerializer',
-    'StaffUserListSerializer',
-    'StaffUserUpdateSerializer',
     'TreasureAccessSerializer',
     'TreasureAllListSerializer',
     'TreasureCreateSerializer',

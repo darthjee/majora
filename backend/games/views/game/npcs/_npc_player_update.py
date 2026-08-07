@@ -1,6 +1,7 @@
 """Shared implementation for the player-facing narrow NPC update endpoint."""
 
-from ....permissions import EndpointPermission
+from permissions import EndpointPermission
+
 from ....serializers import CharacterDetailSerializer, NpcPlayerUpdateSerializer
 from ...common import detail_or_update
 from .._shared import _get_character_or_404, _hidden_gate_response

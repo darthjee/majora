@@ -3,8 +3,9 @@
 from rest_framework import serializers
 from rest_framework.response import Response
 
+from permissions import EndpointPermission
+
 from ...models import GameDocument
-from ...permissions import EndpointPermission
 from ...serializers import GameDocumentDetailFullSerializer
 from ..common import validated_or_error
 

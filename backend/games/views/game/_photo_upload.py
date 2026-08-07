@@ -1,7 +1,8 @@
 """Shared implementation for the character photo upload-init endpoints."""
 
+from permissions import EndpointPermission
+
 from ...models import CharacterPhoto
-from ...permissions import EndpointPermission
 from ...photo_path import PhotoPathBuilder
 from .._upload_init import UploadInitiator
 from ._shared import _character_resource, _get_character_or_404
