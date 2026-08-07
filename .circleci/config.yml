@@ -479,6 +479,7 @@ jobs:
     docker:
       - image: cimg/base:current
     steps:
+      - checkout
       - run:
           name: Wake up Navi
           command: scripts/wake_navi.sh
