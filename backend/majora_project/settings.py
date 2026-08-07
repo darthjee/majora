@@ -29,16 +29,6 @@ USE_X_FORWARDED_HOST = True
 # via `GameDomain`/`GameDomainGroup` (see `games/views/games/games_list.py`).
 ENABLE_GAMES_PER_DOMAIN = os.environ.get('ENABLE_GAMES_PER_DOMAIN', 'false').lower() == 'true'
 
-# Domains where the proxy (`proxy/prod_configuration/locals.php`'s `$gamesJsonCacheDomains`)
-# partitions the cache per domain for a successful GET /games.json. Must be kept in sync with
-# that proxy-side list — a domain missing here when `ENABLE_GAMES_PER_DOMAIN` is on and the
-# proxy doesn't cache-partition it is safe (this default keeps X-Skip-Cache set); the reverse
-# (listed here but not proxy-partitioned) would allow a cross-domain cache leak, so only add a
-# domain here once it's confirmed present in the proxy's `$gamesJsonCacheDomains` too.
-GAMES_JSON_CACHE_DOMAINS = {
-    domain for domain in os.environ.get('GAMES_JSON_CACHE_DOMAINS', '').split(',') if domain
-}
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
