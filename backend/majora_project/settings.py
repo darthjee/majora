@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'versioning',
     'statistics',
     'conversations',
+    'miniatures',
 ]
 
 MIDDLEWARE = [

@@ -4,6 +4,8 @@
 
 Pagination is applied to collection endpoints that can return large result sets. The backend slices the queryset and sets response headers; the frontend reads those headers and renders a Bootstrap pagination component.
 
+**Convention:** every new list endpoint must use the shared `Paginator`. Existing unpaginated endpoints are not retrofitted as a side effect of unrelated work — only paginate a pre-existing endpoint as its own dedicated change.
+
 ---
 
 ## Backend
@@ -33,6 +35,7 @@ call signature.
 | `GET /games/:game_slug/npcs.json` | `game_npcs` |
 | `GET /games/:game_slug/treasures.json` | `game_treasures` |
 | `GET /games/:game_slug/sessions.json` | `game_sessions_list` |
+| `GET /miniatures.json` | `stl_models_list` |
 
 ---
 
