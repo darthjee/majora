@@ -6,9 +6,12 @@
 
 1. `RenameHeaderMiddleware('Host', 'X-Forwarded-Host')` — preserves the original `Host` header.
 2. `SetHeadersMiddleware(['Host' => <configured host>])` — sets the correct `Host` for the upstream.
-3. `FileCacheMiddleware` — caches successful responses to disk (unless disabled).
+3. `FilterQueryParamsMiddleware` — filters the query string (only when `filter_query_params` is configured).
+4. `FileCacheMiddleware` — caches successful responses to disk (unless disabled).
 
 This means you get correct Host header handling and caching out of the box, with no extra configuration.
+
+Rule-level `middlewares` are appended *after* these built-in defaults. If you need a custom middleware to run *before* them (e.g. before `Host` header rewriting), use `prependMiddlewares` instead — see [Defining Rules](defining-rules.md) and [Middleware Order](../../request-handlers.md#middleware-order).
 
 ```php
 Configuration::buildRule([
@@ -30,6 +33,9 @@ Configuration::buildRule([
 | `cache`      | `string\|false`  | No       | `'./cache'` | Cache directory path, or `false` to disable |
 | `cacheCodes` | `array`          | No       | `['2xx']`   | HTTP status codes/patterns to cache |
 | `skip_cache_header` | `string`   | No       | —           | Request header name that bypasses cache read/write when present |
+| `filter_query_params` | `array` | No       | — (middleware not added) | Filters incoming query params; passed straight through to `FilterQueryParamsMiddleware::build()` — see [Middlewares](middlewares.md#filterqueryparamsmiddleware) |
+
+Query filtering runs **before** caching, so the cache key reflects the already-filtered query string.
 
 ---
 
@@ -97,4 +103,4 @@ Configuration::buildRule([
 
 In almost all backend proxy scenarios, prefer `default_proxy`. Only drop down to `proxy` when you explicitly need to change or omit the default middleware behavior.
 
-[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md)
+[← Back to How to Use darthjee/tent](../how-to-use-tent.md)

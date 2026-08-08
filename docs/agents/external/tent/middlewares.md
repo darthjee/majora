@@ -92,6 +92,27 @@ Place it **before** the handler so the cleanup happens ahead of the upstream cal
 
 ---
 
+## `FilterQueryParamsMiddleware`
+
+Filters the request's query string against a configured list of parameter names, before it reaches the handler.
+
+```php
+[
+    'class'  => 'Tent\Middlewares\FilterQueryParamsMiddleware',
+    'params' => ['id', 'page'],
+    'mode'   => 'allow' // optional, defaults to 'allow'
+]
+```
+
+- **`params`** (optional) — top-level query parameter names to allow/deny. Defaults to `[]`.
+- **`mode`** (optional) — `'allow'` (default) keeps only the listed `params`; `'deny'` removes the listed `params` and keeps everything else. Any other value throws `\InvalidArgumentException`.
+
+Only top-level parameter names are matched — listing `a` matches both `a[]=1` (array-style) and `a[b]=1` (nested-key style). Parameters not present in the query string have no effect, and a request with no query string is left unchanged.
+
+Place it **before** `FileCacheMiddleware` so the cache key (derived by `QueryRequestHasher`) reflects the already-filtered query string. `default_proxy`'s `filter_query_params` option does this automatically — see [Request Handlers](../../request-handlers.md#defaultproxyrequesthandler-default_proxy).
+
+---
+
 ## `SetHeadersMiddleware`
 
 Injects or overrides request headers before the request is forwarded to the backend.
@@ -155,4 +176,4 @@ Rewrites the request path with a regex replacement and returns a `302` response 
 
 If the regex matches, the middleware sets a `Location` header and short-circuits handler execution.
 
-[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md)
+[← Back to How to Use darthjee/tent](../how-to-use-tent.md)

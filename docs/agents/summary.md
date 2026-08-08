@@ -58,7 +58,7 @@ open the full file before loading it. For a bare link-only table of contents ins
 
 ## External tooling
 
-- **[How to Use darthjee/tent](external/HOW_TO_USE_DARTHJEE-TENT.md)** — Reference hub for
+- **[How to Use darthjee/tent](external/how-to-use-tent.md)** — Reference hub for
   configuring the Tent reverse proxy; links to focused pages under `external/tent/` (routing
   rules, request handlers, middlewares, caching). Read in full only when changing
   `docker_volumes/proxy_configuration/` rules or debugging proxy routing/caching behavior; for
