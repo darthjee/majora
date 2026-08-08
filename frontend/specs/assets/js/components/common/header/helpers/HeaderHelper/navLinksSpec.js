@@ -16,6 +16,21 @@ describe('HeaderHelper', function() {
       expect(html).toContain('Games');
     });
 
+    describe('STL Models nav link', function() {
+      it('renders the STL Models link when logged in', function() {
+        const html = render({ loggedIn: true });
+
+        expect(html).toContain('href="#/stl_models"');
+        expect(html).toContain('STL Models');
+      });
+
+      it('does not render the STL Models link when logged out', function() {
+        const html = render({ loggedIn: false });
+
+        expect(html).not.toContain('href="#/stl_models"');
+      });
+    });
+
     describe('admin nav dropdown', function() {
       it('renders the Admin dropdown with Treasures/Staff Users/Dashboard items when the user is a superuser', function() {
         const html = render({ isSuperUser: true });

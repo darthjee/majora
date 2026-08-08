@@ -8,6 +8,7 @@ header:
   nav_pc: PC
   nav_npc: NPC
   nav_treasures: Tesouros
+  nav_stl_models: Modelos STL
   nav_staff_users: Usuários
   nav_staff_dashboard: Dashboard
   nav_my_games: Meus Jogos
@@ -263,6 +264,13 @@ game_new_page:
   error: Falha ao criar jogo. Por favor, tente novamente.
 language_selector:
   label: Idioma
+stl_models_page:
+  loading: Carregando modelos STL...
+stl_model_page:
+  loading: Carregando modelo STL...
+  links: Links
+  sources: Fontes
+  tags: Tags
 treasures_page:
   loading: Carregando tesouros...
   new_treasure: Novo Tesouro

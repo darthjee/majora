@@ -51,6 +51,16 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/staff/users/7/edit').getPage()).toBe('staffUserEdit');
     expect(new HashRouteResolver(() => '#/games/campaign/players').getPage()).toBe('gamePlayers');
     expect(new HashRouteResolver(() => '#/games/campaign/players/7').getPage()).toBe('gamePlayer');
+    expect(new HashRouteResolver(() => '#/stl_models').getPage()).toBe('stlModels');
+    expect(new HashRouteResolver(() => '#/stl_models/7').getPage()).toBe('stlModel');
+  });
+
+  it('resolves /stl_models/:id to stlModel, not stlModels', function() {
+    expect(new HashRouteResolver(() => '#/stl_models/7').getPage()).toBe('stlModel');
+  });
+
+  it('still resolves /stl_models to stlModels', function() {
+    expect(new HashRouteResolver(() => '#/stl_models').getPage()).toBe('stlModels');
   });
 
   it('resolves /staff/users/:id/edit to staffUserEdit, not staffUser', function() {
