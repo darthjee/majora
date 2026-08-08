@@ -8,6 +8,7 @@ header:
   nav_pc: PC
   nav_npc: NPC
   nav_treasures: Treasures
+  nav_stl_models: STL Models
   nav_staff_users: Users
   nav_staff_dashboard: Dashboard
   nav_my_games: My Games
@@ -263,6 +264,13 @@ game_new_page:
   error: Failed to create game. Please try again.
 language_selector:
   label: Language
+stl_models_page:
+  loading: Loading STL models...
+stl_model_page:
+  loading: Loading STL model...
+  links: Links
+  sources: Sources
+  tags: Tags
 treasures_page:
   loading: Loading treasures...
   new_treasure: New Treasure
