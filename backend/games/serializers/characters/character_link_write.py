@@ -7,7 +7,7 @@ from games.models import CharacterLink
 
 #: Maximum number of `links` entries accepted in a single create/update payload, to bound
 #: the number of synchronous per-entry DB queries `CharacterLinksSync` issues per request.
-MAX_LINKS = 50
+MAX_LINKS = 10
 
 
 class CharacterLinkWriteSerializer(serializers.ModelSerializer):

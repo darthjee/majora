@@ -1,6 +1,6 @@
 import React from 'react';
 import BackButton from '../../../../common/buttons/BackButton.jsx';
-import CardPhoto from '../../../../common/cards/CardPhoto.jsx';
+import ActionsOverlay from '../../../../common/misc/ActionsOverlay.jsx';
 import Badge from '../../../../common/badges/Badge.jsx';
 import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
 import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
@@ -11,8 +11,10 @@ import Translator from '../../../../../i18n/Translator.js';
  */
 export default class StlModelHelper {
   /**
-   * Render the STL model detail view: a back button, the model's name and picture, then its
-   * links, sources, and tags — every field `StlModelDetailSerializer` returns.
+   * Render the STL model detail view: a back button, the model's picture (click-to-upload,
+   * mirroring the PC/NPC detail pages, when `isStaffOrSuperUser` is true) and tags in the left
+   * column, then its name, links, and sources in the right column — every field
+   * `StlModelDetailSerializer` returns.
    *
    * @param {object} stlModel - STL model data object.
    * @param {number} stlModel.id - STL model id.
@@ -23,21 +25,31 @@ export default class StlModelHelper {
    *   External links for this STL model.
    * @param {{name: string}[]} [stlModel.sources] - Sources this STL model comes from.
    * @param {string[]} [stlModel.tags] - Tag names attached to this STL model.
+   * @param {boolean} isStaffOrSuperUser - Whether the current viewer may upload a new photo
+   *   (resolved via `AccessStore.ensureStaffOrSuperUser()`, since `stl_models` has no per-item
+   *   edit concept embedded in the payload).
+   * @param {{onOpenUploadModal: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} STL model detail element.
    */
-  static render(stlModel) {
+  static render(stlModel, isStaffOrSuperUser, handlers) {
     return (
       <div className="container mt-4">
         <BackButton href="#/stl_models" />
         <div className="row mt-3">
           <div className="col-md-4">
-            <CardPhoto url={stlModel.photo_url} alt={stlModel.name} />
+            <ActionsOverlay
+              type="stl_model"
+              url={stlModel.photo_url}
+              alt={stlModel.name}
+              canEdit={isStaffOrSuperUser}
+              onClick={handlers.onOpenUploadModal}
+            />
+            {StlModelHelper.#renderTags(stlModel.tags)}
           </div>
           <div className="col-md-8">
             <h1>{stlModel.name}</h1>
             {StlModelHelper.#renderLinks(stlModel.links)}
             {StlModelHelper.#renderSources(stlModel.sources)}
-            {StlModelHelper.#renderTags(stlModel.tags)}
           </div>
         </div>
       </div>

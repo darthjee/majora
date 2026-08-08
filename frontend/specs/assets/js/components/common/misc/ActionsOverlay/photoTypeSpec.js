@@ -73,4 +73,18 @@ describe('ActionsOverlay', function() {
 
     expect(html).toContain('default_character.png');
   });
+
+  it('renders a CardStlModelImage when type is stl_model', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(ActionsOverlay, {
+        type: 'stl_model',
+        url: null,
+        alt: 'Goblin Miniature',
+        canEdit: true,
+        onClick: Noop.noop,
+      })
+    );
+
+    expect(html).toContain('default_stl_model.png');
+  });
 });

@@ -11,12 +11,14 @@ field and is available across every domain.
 |--------|---------|
 | List (`GET /miniatures/stl_models.json`) | **IsAuthenticated** — no `AllowAny` regular form |
 | Detail (`GET /miniatures/stl_models/<id>.json`) | **IsAuthenticated** |
-| Create/Update/Delete | None — no write endpoints exist yet for any of the five models; `Source`/`Tag`/`StlModel`/`StlModelLink`/`StlModelPhoto` are all Django-admin-only for now |
+| Create (`POST /miniatures/stl_models.json`) | **Staff-or-superuser** (`require_staff`, see [common rules](common-rules.md)) |
+| Photo upload (`POST /miniatures/stl_models/<id>/photo_upload.json`) | **Staff-or-superuser** (`require_staff`) — see [Upload](upload.md) |
+| Update/Delete | None — still no update/delete endpoints; `Source`/`Tag`/`StlModelLink` remain Django-admin-only for now |
 
-**Deviation — `X-Skip-Cache: true` on both endpoints.** Per [Permission
+**Deviation — `X-Skip-Cache: true` on all endpoints, including the writes.** Per [Permission
 Principles](principles.md#x-skip-cache-rule), any endpoint not open to `AllowAny` always sets
-this header; since both endpoints require login, they set it unconditionally, including on the
-detail endpoint's 404 response.
+this header; since every endpoint requires login, they all set it unconditionally, including on
+the detail endpoint's 404 response.
 
 ## Fields
 
@@ -24,7 +26,19 @@ detail endpoint's 404 response.
 
 **Detail** (`StlModelDetailSerializer`): `id`, `name`, `photo_url`, `links` (`id`, `text`, `url`,
 `link_type` — same shape as [Link](link.md)'s `GameLinkSerializer`), `sources` (`name` only, no
-`id`), `tags` (flat array of strings, not `{id, name}` objects).
+`id`), `tags` (flat array of strings, not `{id, name}` objects). The create endpoint (`201`)
+returns this same shape.
+
+## Create endpoint
+
+`POST /miniatures/stl_models.json` accepts `name` (required) and `tags` (optional array of
+strings, max **20** entries). `sources` is not accepted on create — new `StlModel`s always start
+with an empty `sources` list; attaching sources is a separate, not-yet-built feature. Each `tags`
+entry is trimmed/lowercased and resolved via `Tag.objects.get_or_create`, so tags are
+case-insensitively deduplicated and shared globally across `StlModel`s. A `tags` entry longer than
+`Tag.name`'s DB `max_length` (200), or a `tags` list over 20 entries, returns `400` before any DB
+write. Responses: `201` (created, `StlModelDetailSerializer` shape), `400` (validation error),
+`401` (unauthenticated), `403` (authenticated but not staff/superuser).
 
 ## No search/filter yet
 

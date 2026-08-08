@@ -2,7 +2,8 @@
 
 The `Upload` model tracks the lifecycle of a photo/file upload (pending → uploading → uploaded),
 generically for a `GamePhoto`, `CharacterPhoto`, `GameItemPhoto`, `CharacterItemPhoto`,
-`GameDocumentPhoto`, `GameDocumentFile`, `GameDocumentFilePhoto`, or `TreasurePhoto`.
+`GameDocumentPhoto`, `GameDocumentFile`, `GameDocumentFilePhoto`, `TreasurePhoto`, or
+`StlModelPhoto`.
 
 An `upload_type` field (`'image'` or `'file'`, default `'image'`) records which validation/storage
 strategy the proxy applied — not itself an access-control gate (the per-endpoint permission
@@ -16,6 +17,7 @@ that the URL's `upload_type` segment matches the row's stored value.
 | Create (`POST /games/<slug>/npcs/<id>/photo_upload.json`) | **NpcPlayerEdit** |
 | Create (`POST /games/<slug>/documents/<id>/photo_upload.json`, `.../file_upload.json`, `.../files/<file_id>/photo_upload.json`) | Staff, any player of the game, or the game's dm/editor — see [GameDocument](game-document.md) |
 | Create (`POST /treasures/<id>/photo_upload.json`) | Superuser always; additionally the treasure's owning game's GameMaster, when exclusive to a game |
+| Create (`POST /miniatures/stl_models/<id>/photo_upload.json`) | **Staff-or-superuser** (`require_staff`) — see [StlModel](stl-model.md) |
 | Read | Only the user who initiated the upload (indirectly, via the 201 response at creation time) |
 | Update / Delete | No public endpoint; status transitions are handled internally |
 
@@ -56,6 +58,10 @@ reference. Dispatches on `content_object` type:
 - **`GameDocumentPhoto`**: sets `GameDocument.photo` if unset — a document keeps every uploaded
   photo, only its first becomes the display photo. Gated by the document photo-upload permission
   (see [GameDocument](game-document.md)).
+- **`StlModelPhoto`**: unconditionally sets `StlModel.photo` — like `TreasurePhoto`, an `StlModel`
+  has at most one photo, so re-uploading always replaces it (no "if unset" guard). Gated by
+  **Staff-or-superuser** (`require_staff`), not a game/owner-based permission class — `StlModel`
+  has no owning-game concept at all.
 
 All cases reuse the checks already enforced at upload creation (token match, requesting user must
 be the upload's owner) — only the object-level permission class differs, by `content_object` type.
@@ -75,3 +81,4 @@ and any upload-specific deviation is repeated here.
 | `/games/<slug>/documents/<id>/file_upload.json` | Same permission (see [GameDocument](game-document.md#document-file-upload-endpoint)) | `.pdf`-only; the first non-photo upload type in this codebase |
 | `/games/<slug>/documents/<document_id>/files/<file_id>/photo_upload.json` | Same permission (see [GameDocument](game-document.md#document-file-photo-upload-endpoint)) | Fixed, deterministic storage path (at most one photo per file); the file's `photo` FK is assigned at *init* time, not finalisation — see that section's `photo_path`-not-gated-on-`ready` note |
 | `/treasures/<id>/photo_upload.json` | Superuser always; additionally the owning game's GameMaster when exclusive to a game | Fixed, deterministic storage path (a treasure has at most one photo); reuses the existing row if one exists rather than creating a second |
+| `/miniatures/stl_models/<id>/photo_upload.json` | **Staff-or-superuser** (`require_staff`) | Fixed, deterministic storage path (an `StlModel` has at most one photo); reuses the existing row if one exists rather than creating a second |

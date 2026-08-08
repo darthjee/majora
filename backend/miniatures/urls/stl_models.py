@@ -11,4 +11,9 @@ urlpatterns = [
         views.stl_model_detail,
         name='miniatures-detail',
     ),
+    path(
+        'miniatures/stl_models/<int:stl_model_id>/photo_upload.json',
+        views.stl_model_photo_upload,
+        name='miniatures-photo-upload',
+    ),
 ]
