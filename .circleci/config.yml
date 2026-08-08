@@ -466,8 +466,8 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Set Navi namespace
-          command: echo 'export NAVI_NAMEPACE="${MAJORA_NAMESPACE}-${CIRCLE_WORKFLOW_WORKSPACE_ID}"' >> "$BASH_ENV"
+          name: Set Navi namespace base
+          command: echo 'export NAVI_NAMEPACE_BASE="${MAJORA_NAMESPACE}-${CIRCLE_WORKFLOW_WORKSPACE_ID}"' >> "$BASH_ENV"
       - run:
           name: Push navi config
           command: scripts/warm_navi_cache.sh config
