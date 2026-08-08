@@ -1,15 +1,16 @@
 <?php
 
 use Tent\Configuration;
-use Tent\Models\Rule;
-use Tent\Handlers\ProxyRequestHandler;
-use Tent\Models\Server;
-use Tent\Models\RequestMatcher;
+use Tent\Cache\DomainHash;
+use Tent\Models\Request;
+
+$backendCacheLocation = "$cacheFolder/" . DomainHash::hash(new Request());
 
 Configuration::buildRule([
     'handler' => [
         'type' => 'default_proxy',
         'host' => $backendHost,
+        'cache' => $backendCacheLocation,
         'skip_cache_header' => 'X-Skip-Cache'
     ],
     'matchers' => [
@@ -21,13 +22,13 @@ Configuration::buildRule([
         ],
         [
             'class'    => 'Tent\\Middlewares\\CacheCleanupMiddleware',
-            'location' => $cacheFolder,
+            'location' => $backendCacheLocation,
             'clear'    => ['collection', 'entity'],
             'custom'   => $cacheCleanupMap
         ],
         [
             'class' => 'Tent\\Middlewares\\CacheStalenessMiddleware',
-            'location' => $cacheFolder,
+            'location' => $backendCacheLocation,
             'host' => $backendHost,
             'maxAgeSeconds' => 10
         ]
