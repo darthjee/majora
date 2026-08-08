@@ -266,11 +266,23 @@ language_selector:
   label: Language
 stl_models_page:
   loading: Loading STL models...
+  new_stl_model: New STL Model
 stl_model_page:
   loading: Loading STL model...
   links: Links
   sources: Sources
   tags: Tags
+stl_model_new_page:
+  title: New STL Model
+  name_label: Name
+  tags_label: Tags
+  tags_input_placeholder: Type a tag and press Enter, or separate multiple with commas
+  add_tag: Add
+  submit: Create STL Model
+  error: Failed to create STL model. Please try again.
+  photo_upload_failed: Failed to upload the photo. The STL model was created — you can retry the upload or skip it for now.
+  retry_photo_upload: Retry photo upload
+  skip_photo_upload: Skip and continue
 treasures_page:
   loading: Loading treasures...
   new_treasure: New Treasure
