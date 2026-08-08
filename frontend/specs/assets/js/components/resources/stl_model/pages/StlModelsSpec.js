@@ -9,6 +9,6 @@ describe('StlModels', function() {
 
     renderToStaticMarkup(React.createElement(StlModels));
 
-    expect(renderSpy).toHaveBeenCalledWith();
+    expect(renderSpy).toHaveBeenCalledWith(false);
   });
 });
