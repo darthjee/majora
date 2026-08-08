@@ -116,6 +116,8 @@ Configuration::buildRule([
 
 By default, the cache key for a request is a SHA-256 hash of its query string only (`Tent\Cache\QueryRequestHasher`). Pass a `request_hasher` option (a `class` key, following the same pattern as matchers) to derive the cache key from other request data instead — for example, to key cached responses per authenticated caller via a request header:
 
+> **Tip**: To keep noisy or irrelevant query parameters (e.g. tracking params) out of the cache key entirely, configure `filter_query_params` on `default_proxy` — see [`FilterQueryParamsMiddleware`](middlewares.md#filterqueryparamsmiddleware). It runs before `FileCacheMiddleware`, so the hash reflects the already-filtered query string.
+
 ```php
 Configuration::buildRule([
     'handler' => [
@@ -145,6 +147,6 @@ The same option is available on a manual `FileCacheMiddleware` entry:
 ]
 ```
 
-See [Creating Request Hashers](../creating-request-hashers.md) for the full `RequestHasher` interface, security guidance, and a complete custom-hasher example.
+See [Creating Request Hashers](./creating-request-hashers.md) for the full `RequestHasher` interface, security guidance, and a complete custom-hasher example.
 
-[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md)
+[← Back to How to Use darthjee/tent](../how-to-use-tent.md)

@@ -5,6 +5,7 @@ Each rule is registered with `Configuration::buildRule()`. A rule has three part
 - **`handler`** — what to do with the request (proxy it, serve a file, serve a folder).
 - **`matchers`** — which requests this rule applies to.
 - **`middlewares`** (optional) — transformations applied before or after the handler.
+- **`prependMiddlewares`** (optional) — same shape as `middlewares`, but its entries run *before* the handler's built-in default middlewares (if any) instead of after.
 
 ## Matcher types
 
@@ -17,4 +18,4 @@ Each rule is registered with `Configuration::buildRule()`. A rule has three part
 
 Matchers also accept a `method` field (`GET`, `POST`, `PUT`, `DELETE`, etc.). When `method` is omitted, the rule matches any HTTP method for the given URI pattern.
 
-[← Back to How to Use darthjee/tent](../HOW_TO_USE_DARTHJEE-TENT.md)
+[← Back to How to Use darthjee/tent](../how-to-use-tent.md)
