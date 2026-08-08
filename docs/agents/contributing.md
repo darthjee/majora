@@ -24,6 +24,7 @@ A PR is considered complete when:
 - Linting passes without errors.
 - Code coverage is as high as reasonably possible.
 - Any new or changed environment variable/setting is documented in the PR's "Environment Variables & Settings" section.
+- Any PR that adds a new backend endpoint, or newly wires up a previously unused one to the frontend, updates [`docs/agents/unused-endpoints.md`](unused-endpoints.md) accordingly.
 - Code is not overly complex:
   - Classes/modules and methods should have clear, focused responsibilities.
   - If a class or function is taking on too many responsibilities, refactor to simplify.

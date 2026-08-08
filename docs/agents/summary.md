@@ -22,6 +22,10 @@ open the full file before loading it. For a bare link-only table of contents ins
 - **[Models Organization](models-organization.md)** — Folder convention for
   `backend/games/models/` (and its mirrored test tree): resource folders, no PC/NPC split
   since `Character` is a single model.
+- **[Unused Endpoints](unused-endpoints.md)** — Script-assisted, human-curated list of
+  registered backend routes with no matching frontend usage, so endpoints built ahead of
+  their frontend integration stay traceable to their originating initiative. Includes the
+  command to regenerate the candidate list.
 
 ## Conventions
 

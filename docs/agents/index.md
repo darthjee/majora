@@ -10,6 +10,7 @@ open. For a short abstract of each doc's content, see [summary.md](summary.md) i
 - [Views Organization](views-organization.md)
 - [Serializers Organization](serializers-organization.md)
 - [Models Organization](models-organization.md)
+- [Unused Endpoints](unused-endpoints.md)
 
 ## Conventions
 
