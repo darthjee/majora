@@ -370,6 +370,20 @@ describe('resourceConfig', function() {
     });
   });
 
+  describe('stlModel', function() {
+    it('has no separate private endpoint for collection or single', function() {
+      const collection = resourceConfig.get('GET', 'stlModel', 'collection');
+      const single = resourceConfig.get('GET', 'stlModel', 'single');
+
+      expect(collection.regular).toBe(collection.private);
+      expect(single.regular).toBe(single.private);
+      expect(collection.regular.path()).toBe('/miniatures/stl_models.json');
+      expect(collection.regular.permission).toBeNull();
+      expect(single.regular.path({ id: '42' })).toBe('/miniatures/stl_models/42.json');
+      expect(single.regular.permission).toBeNull();
+    });
+  });
+
   it('returns null for an unknown resource/method/quantity-type combination', function() {
     expect(resourceConfig.get('GET', 'unknown', 'collection')).toBeNull();
     expect(resourceConfig.get('PUT', 'game', 'collection')).toBeNull();

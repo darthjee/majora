@@ -67,3 +67,21 @@ export function buildTreasure(overrides = {}) {
     ...overrides,
   };
 }
+
+/**
+ * Create a mock STL model object.
+ *
+ * @param {object} overrides - Properties to override the defaults.
+ * @returns {object} A mock STL model object.
+ */
+export function buildStlModel(overrides = {}) {
+  return {
+    id: 1,
+    name: 'Goblin Miniature',
+    photo_url: null,
+    links: [],
+    sources: [],
+    tags: [],
+    ...overrides,
+  };
+}
