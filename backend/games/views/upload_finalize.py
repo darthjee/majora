@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from accounts.authentication import CookieTokenAuthentication
+from miniatures.models import StlModelPhoto
 from permissions import EndpointPermission
 
 from ..models import (
@@ -19,7 +20,7 @@ from ..models import (
     TreasurePhoto,
     Upload,
 )
-from .common import check_game_edit
+from .common import check_game_edit, require_staff
 
 _FORBIDDEN = Response(status=status.HTTP_403_FORBIDDEN)
 _VALID_STATUSES = {Upload.STATUS_UPLOADING, Upload.STATUS_UPLOADED}
@@ -150,6 +151,13 @@ def _set_treasure_photo(treasure_photo):
     treasure.save()
 
 
+def _set_stl_model_photo(stl_model_photo):
+    """Set the STL model's photo to `stl_model_photo`, always replacing any existing one."""
+    stl_model = stl_model_photo.stl_model
+    stl_model.photo = stl_model_photo
+    stl_model.save()
+
+
 def _set_item_photo(item_photo):
     """Set the item's photo to `item_photo`, always replacing any existing one."""
     item = item_photo.game_item
@@ -231,11 +239,22 @@ def _game_photo_permission(request, content_object):
     return check_game_edit(request, content_object.game)
 
 
+def _stl_model_photo_permission(request, content_object):
+    """Return a permission error Response for a StlModelPhoto content object, else None.
+
+    `StlModel` has no owning-game/ownership concept -- creation and photo upload are both
+    uniformly staff-only, so the same `require_staff` gate used by the upload-init endpoint
+    applies here too.
+    """
+    return require_staff(request)
+
+
 # Registry mapping each photo content-object type to its (permission_check, mark_ready) pair,
 # replacing the previous per-entity isinstance dispatch chains. GamePhoto (and any other/default
 # content object type) falls through to `_DEFAULT_HANDLERS`, matching prior behavior.
 _PHOTO_HANDLERS = {
     TreasurePhoto: (_treasure_photo_permission, _set_treasure_photo),
+    StlModelPhoto: (_stl_model_photo_permission, _set_stl_model_photo),
     CharacterPhoto: (_character_photo_permission, _set_character_photo_if_unset),
     GameItemPhoto: (_game_item_photo_permission, _set_item_photo),
     CharacterItemPhoto: (_character_item_photo_permission, _set_character_item_photo),
