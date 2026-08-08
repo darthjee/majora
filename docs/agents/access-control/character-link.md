@@ -30,7 +30,7 @@ transient `delete` flag. Per entry, applied after the character's own fields are
 On create (a brand-new character), any `id`/`delete` in the entries is ignored — a link is
 unconditionally created per entry.
 
-**Batch cap**: `MAX_LINKS` (50) entries per request, `400` when exceeded. **Atomicity**: the whole
+**Batch cap**: `MAX_LINKS` (10) entries per request, `400` when exceeded. **Atomicity**: the whole
 batch runs in one transaction — any entry failing rolls back every entry already
 applied/created in the same request. **Ownership check**: for update/delete, `id` must resolve to
 a link already owned by the target character — an `id` for a link that doesn't exist, or belongs
