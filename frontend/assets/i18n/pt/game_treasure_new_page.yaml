@@ -1,0 +1,6 @@
+game_treasure_new_page:
+  title: Novo Tesouro
+  name_label: Nome
+  value_label: Valor
+  submit: Criar Tesouro
+  error: Falha ao criar tesouro. Tente novamente.

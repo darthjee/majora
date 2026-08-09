@@ -1,0 +1,5 @@
+my_games:
+  role_dm: DM
+  role_player: Player
+  following_tooltip: 'Following {{count}} conversations'
+  unread_tooltip: '{{count}} unread conversations'

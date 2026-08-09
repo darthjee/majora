@@ -1,0 +1,18 @@
+money:
+  platinum_coin: moeda(s) de platina
+  gold_coin: moeda(s) de ouro
+  silver_coin: moeda(s) de prata
+  copper_coin: moeda(s) de cobre
+  platinum_piece: peça(s) de platina
+  gold_piece: peça(s) de ouro
+  silver_piece: peça(s) de prata
+  copper_piece: peça(s) de cobre
+  gems: gemas
+  gp_in_gems: PO em gemas
+  in_gems: em Gemas
+  pp_abbreviation: PL
+  gp_abbreviation: PO
+  sp_abbreviation: PP
+  cp_abbreviation: PC
+  cents_abbreviation: Centavos
+  dollars_abbreviation: Dólares

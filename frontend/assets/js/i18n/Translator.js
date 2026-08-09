@@ -1,23 +1,36 @@
 import { load } from 'js-yaml';
-import enYaml from '../../i18n/en.yaml?raw';
-import ptYaml from '../../i18n/pt.yaml?raw';
+import enChunks from '../../i18n/en/index.js';
+import ptChunks from '../../i18n/pt/index.js';
 import LanguageEvents from './LanguageEvents.js';
 import LanguageStorage from './LanguageStorage.js';
 
+/**
+ * Merges every raw YAML chunk of a language's manifest into one flat
+ * namespace map.
+ *
+ * @param {object} chunks - Map of chunk name to raw YAML string content, as
+ *   exported by a language's `index.js` manifest (e.g. `frontend/assets/i18n/en/index.js`).
+ * @returns {object} the merged namespace map for that language.
+ */
+const mergeChunks = (chunks) =>
+  Object.values(chunks).reduce((merged, raw) => Object.assign(merged, load(raw)), {});
+
 const TRANSLATIONS = {
-  en: load(enYaml),
-  pt: load(ptYaml),
+  en: mergeChunks(enChunks),
+  pt: mergeChunks(ptChunks),
 };
 
 const DEFAULT_LANGUAGE = 'en';
 
 /**
- * Singleton in-memory translator. Loads bundled YAML translation files at
+ * Singleton in-memory translator. Loads bundled YAML translation chunks at
  * module load time and exposes a `t(key)` dot-path lookup, plus language
  * selection backed by `LanguageStorage`/`LanguageEvents`.
  *
  * `en` and `pt` are bundled today; adding a new language means adding a new
- * `<code>.yaml` file under `frontend/assets/i18n/`, importing it above, and
+ * `<code>/` directory under `frontend/assets/i18n/` (mirroring `en/`'s exact
+ * file set, i.e. a `common.yaml` plus one file per page-specific namespace)
+ * with its own `index.js` manifest, then importing that manifest above and
  * registering it in the `TRANSLATIONS` table.
  */
 export default class Translator {

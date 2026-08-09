@@ -1,0 +1,15 @@
+game_page:
+  loading: Carregando jogo...
+  player_characters: Personagens
+  non_player_characters: NPCs
+  treasures: Tesouros
+  items: Itens
+  documents: Documentos
+  sessions: Sessões
+  players: Jogadores
+  see_all_photos: Fotos
+  next_session_title: Próxima Sessão
+  no_next_session: Nenhuma sessão futura agendada.
+  polls_title: Enquetes
+  open_polls_count: '{{count}} enquete(s) aberta(s)'
+  view_polls: Ver enquetes

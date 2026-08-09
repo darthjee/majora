@@ -1,0 +1,11 @@
+staff_dashboard:
+  title: Staff Dashboard
+  loading: Loading dashboard...
+  clear_cache_tooltip: Clear Cache
+  clear_cache_success: Cache cleared successfully.
+  clear_cache_error: Failed to clear cache. Please try again.
+  memory_cache_title: Memory Cache
+  refresh_tooltip: Refresh
+  summary_load_error: Unable to load cache summary.
+  disk_cache_title: Disk Cache
+  disk_cache_load_error: Unable to load disk cache size.

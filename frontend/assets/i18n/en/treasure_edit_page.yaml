@@ -1,0 +1,6 @@
+treasure_edit_page:
+  title: Edit Treasure
+  name_label: Name
+  value_label: Value
+  submit: Save changes
+  error: Failed to save treasure. Please try again.

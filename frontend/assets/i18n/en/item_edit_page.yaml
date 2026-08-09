@@ -1,0 +1,7 @@
+item_edit_page:
+  title: Edit item
+  name_label: Name
+  description_label: Description
+  hidden_label: Hidden
+  submit: Save changes
+  error: Failed to save item. Please try again.

@@ -1,0 +1,5 @@
+my_games:
+  role_dm: Mestre
+  role_player: Jogador
+  following_tooltip: 'Seguindo {{count}} conversas'
+  unread_tooltip: '{{count}} conversas não lidas'

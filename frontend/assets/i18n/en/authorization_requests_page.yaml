@@ -1,0 +1,23 @@
+authorization_requests_page:
+  title: Authorization requests
+  loading: Loading authorization requests...
+  column_uuid: UUID
+  column_created_at: Request date
+  column_status: Status
+  status_open: Open
+  status_approved: Approved
+  status_denied: Denied
+  status_expired: Expired
+  status_logged: Logged
+  dismiss: Dismiss
+  authorize: Authorize
+  confirm: Confirm
+  cancel: Cancel
+  dismiss_modal_title: Deny authorization request
+  dismiss_modal_body: Are you sure you want to deny this authorization request?
+  authorize_modal_title: Authorize login request
+  authorize_modal_body: Are you sure you want to authorize this login request? Make sure the device and location below are your own.
+  ip_label: IP address
+  browser_label: Browser
+  password_label: Password
+  error: Failed to update the authorization request. Please try again.

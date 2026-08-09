@@ -1,0 +1,7 @@
+game_session_new_page:
+  title: Nova Sessão
+  title_label: Título
+  date_label: Data
+  description_label: Descrição
+  submit: Criar Sessão
+  error: Falha ao criar sessão. Tente novamente.

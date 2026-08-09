@@ -1,0 +1,7 @@
+game_session_edit_page:
+  title: Edit Session
+  title_label: Title
+  date_label: Date
+  description_label: Description
+  submit: Save changes
+  error: Failed to save session. Please try again.

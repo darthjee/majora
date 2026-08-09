@@ -1,0 +1,3 @@
+character_photos_page:
+  set_profile_photo_error: Falha ao definir a foto de perfil. Por favor, tente novamente.
+  delete_photo_error: Falha ao excluir a foto. Por favor, tente novamente.

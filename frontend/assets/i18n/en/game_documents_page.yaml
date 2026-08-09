@@ -1,0 +1,5 @@
+game_documents_page:
+  loading: Loading documents...
+  title: Documents
+  hidden_label: Hidden
+  create_document: Create Document

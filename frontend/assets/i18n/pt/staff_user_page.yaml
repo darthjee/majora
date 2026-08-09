@@ -1,0 +1,7 @@
+staff_user_page:
+  loading: Carregando usuário...
+  title: Usuário
+  name_label: Nome
+  email_label: E-mail
+  edit: Editar
+  error: Falha ao carregar usuário. Tente novamente.

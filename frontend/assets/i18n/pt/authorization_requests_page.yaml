@@ -1,0 +1,23 @@
+authorization_requests_page:
+  title: Solicitações de autorização
+  loading: Carregando solicitações de autorização...
+  column_uuid: UUID
+  column_created_at: Data da solicitação
+  column_status: Status
+  status_open: Aberta
+  status_approved: Aprovada
+  status_denied: Negada
+  status_expired: Expirada
+  status_logged: Utilizada
+  dismiss: Negar
+  authorize: Autorizar
+  confirm: Confirmar
+  cancel: Cancelar
+  dismiss_modal_title: Negar solicitação de autorização
+  dismiss_modal_body: Tem certeza de que deseja negar esta solicitação de autorização?
+  authorize_modal_title: Autorizar solicitação de login
+  authorize_modal_body: Tem certeza de que deseja autorizar esta solicitação de login? Confira se o dispositivo e a localização abaixo são realmente seus.
+  ip_label: Endereço IP
+  browser_label: Navegador
+  password_label: Senha
+  error: Falha ao atualizar a solicitação de autorização. Tente novamente.

@@ -1,0 +1,6 @@
+character_items_page:
+  loading: Carregando itens...
+  title: Itens
+  hidden_label: Oculto
+  new_item: Criar Item
+  exchange_items: Trocar Itens
