@@ -272,3 +272,49 @@ game_treasures_page:
   edit: Editar
   available_units_label: 'Disponível: {{available}} / {{max}}'
   hidden_label: Oculto
+errors:
+  max_length: Este campo é muito longo.
+  min_length: Este campo é muito curto.
+  required: Este campo é obrigatório.
+  blank: Este campo não pode ficar em branco.
+  null: Este campo não pode ser nulo.
+  unique: Este valor já está em uso.
+  invalid: Este valor é inválido.
+  invalid_choice: Esta não é uma opção válida.
+  does_not_exist: Este item relacionado não existe.
+  incorrect_type: Este campo tem um tipo incorreto.
+  empty: É necessário pelo menos um item.
+  max_value: Este valor é muito alto.
+  min_value: Este valor é muito baixo.
+  authentication_required: É necessário estar autenticado.
+  not_allowed: Você não tem permissão para fazer isso.
+  not_found: Não encontrado.
+  max_tags_exceeded: Um modelo STL pode ter no máximo 20 tags.
+  tag_name_too_long: O nome da tag é muito longo.
+  name_already_exists: Este nome já está em uso.
+  display_name_already_exists: Este nome de exibição já está em uso.
+  email_already_exists: Este email já está em uso.
+  password_confirmation_mismatch: A senha e a confirmação não coincidem.
+  link_id_required_when_deleting: É necessário um id para excluir um link.
+  link_url_required: É necessária uma URL para um novo link.
+  link_not_found: Id de link desconhecido.
+  max_links_exceeded: Um personagem pode ter no máximo 10 links.
+  poll_options_required: É necessária pelo menos uma opção.
+  max_poll_options_exceeded: Uma enquete pode ter no máximo 50 opções.
+  invalid_poll_option: Esta opção não pertence à enquete.
+  session_wrong_game: A sessão deve pertencer ao mesmo jogo.
+  treasure_type_mismatch: O tipo deste tesouro não corresponde ao tipo do jogo.
+  treasure_already_linked: Este tesouro já está vinculado a este jogo.
+  file_extension_not_allowed: Este tipo de arquivo não é permitido.
+  document_already_owned: Este documento já foi adquirido.
+  insufficient_funds: Fundos insuficientes para esta compra.
+  insufficient_quantity: Quantidade insuficiente deste item.
+  invalid_player_id: É necessário um id de jogador válido.
+  domain_not_recognized: Este domínio não é reconhecido.
+  poll_already_closed: Esta enquete já está fechada.
+  poll_not_open: A enquete deve estar aberta para aceitar votos.
+  single_poll_option_only: Uma enquete de escolha única aceita apenas uma opção.
+  invalid_upload_status: Este status é inválido.
+  invalid_user_id: É necessário um id de usuário válido.
+  user_not_pending: Este usuário não está pendente de aprovação.
+  invalid_status_filter: Este filtro de status é inválido.
