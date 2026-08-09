@@ -296,25 +296,24 @@ errors:
   email_already_exists: This email is already in use.
   password_confirmation_mismatch: Password and confirmation do not match.
   link_id_required_when_deleting: An id is required when deleting a link.
-  link_url_required: A URL is required for a new link.
-  link_not_found: Unknown link id.
+  unknown_link_id: Unknown link id.
   max_links_exceeded: A character may have at most 10 links.
   poll_options_required: At least one option is required.
   max_poll_options_exceeded: A poll may have at most 50 options.
-  invalid_poll_option: This option does not belong to the poll.
+  invalid_poll_option_id: This option does not belong to the poll.
   session_wrong_game: Session must belong to the same game.
-  treasure_type_mismatch: "This treasure's type does not match the game's type."
+  treasure_game_type_mismatch: "This treasure's type does not match the game's type."
   treasure_already_linked: This treasure is already linked to this game.
   file_extension_not_allowed: This file type is not allowed.
-  document_already_owned: This document is already owned.
+  game_document_already_owned: This document is already owned.
   insufficient_funds: Insufficient funds for this purchase.
-  insufficient_quantity: Not enough of this item is owned.
+  treasure_not_enough_owned: Not enough of this item is owned.
   invalid_player_id: A valid player id is required.
   domain_not_recognized: This domain is not recognized.
-  poll_already_closed: This poll is already closed.
   poll_not_open: The poll must be open to accept votes.
-  single_poll_option_only: A single-choice poll accepts only one option.
-  invalid_upload_status: This status is invalid.
+  single_poll_multiple_options: A single-choice poll accepts only one option.
+  invalid_status: This status is invalid.
   invalid_user_id: A valid user id is required.
   user_not_pending: This user is not pending approval.
-  invalid_status_filter: This status filter is invalid.
+  poll_vote_user_not_in_game: You must be a player or game master in this game to vote.
+  invalid_poll_option_date: The winning option's date is invalid.
