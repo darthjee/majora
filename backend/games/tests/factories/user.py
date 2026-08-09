@@ -22,6 +22,11 @@ class UserFactory(factory.django.DjangoModelFactory):
         model = User
 
     username = factory.Sequence(lambda n: f'user{n}')
+    # Defaults to a unique-per-user address (mirroring `username`'s Sequence), so tests that
+    # build multiple users without an explicit `email=` don't collide against `auth_user`'s
+    # DB-level unique constraint on email; tests exercising blank-email behavior still pass
+    # `email=''` explicitly, which overrides this default.
+    email = factory.LazyAttribute(lambda o: f'{o.username}@example.com')
     password = 'secret-password'
 
     @classmethod

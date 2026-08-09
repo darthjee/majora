@@ -32,7 +32,10 @@ class TestGamePollVotesGetView(TestCase):
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
         cls.dm_token = Token.objects.create(user=cls.dm_user)
-        cls.player_user = UserFactory(username='player_user', password='secret-password')
+        # email='' -- test_users_include_name_and_avatar_url asserts a blank Gravatar avatar.
+        cls.player_user = UserFactory(
+            username='player_user', password='secret-password', email='',
+        )
         UserProfileFactory(user=cls.player_user, display_name='player_display')
         cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
         cls.player_token = Token.objects.create(user=cls.player_user)

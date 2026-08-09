@@ -8,6 +8,7 @@ NOT_FOUND_ERROR = {'error': 'not_found'}
 NOT_OPEN_ERROR = {'error': 'not_open'}
 EXPIRED_ERROR = {'error': 'expired'}
 INVALID_CREDENTIALS_ERROR = {'error': 'invalid_credentials'}
+MISSING_IDENTIFIER_ERROR = {'error': 'missing_identifier'}
 
 _EXPIRABLE_STATUSES = (AuthorizationRequest.STATUS_OPEN, AuthorizationRequest.STATUS_APPROVED)
 
