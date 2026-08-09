@@ -31,6 +31,43 @@ class TestLoginView:
         assert 'token' in data
         assert Token.objects.filter(key=data['token'], user__username='alice').exists()
 
+    def test_returns_token_for_email_login(self, client):
+        """Test that logging in with an email address returns a token."""
+        UserFactory(username='alice', password=TEST_PASSWORD, email='alice@example.com')
+        response = client.post(
+            '/users/login.json',
+            data=json.dumps({'username': 'alice@example.com', 'password': TEST_PASSWORD}),
+            content_type='application/json',
+        )
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert 'token' in data
+        assert Token.objects.filter(key=data['token'], user__username='alice').exists()
+
+    def test_returns_token_for_case_insensitive_username(self, client):
+        """Test that logging in with a different-cased username returns a token."""
+        UserFactory(username='alice', password=TEST_PASSWORD)
+        response = client.post(
+            '/users/login.json',
+            data=json.dumps({'username': 'ALICE', 'password': TEST_PASSWORD}),
+            content_type='application/json',
+        )
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert Token.objects.filter(key=data['token'], user__username='alice').exists()
+
+    def test_returns_token_for_case_insensitive_email(self, client):
+        """Test that logging in with a different-cased email returns a token."""
+        UserFactory(username='alice', password=TEST_PASSWORD, email='alice@example.com')
+        response = client.post(
+            '/users/login.json',
+            data=json.dumps({'username': 'ALICE@EXAMPLE.COM', 'password': TEST_PASSWORD}),
+            content_type='application/json',
+        )
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert Token.objects.filter(key=data['token'], user__username='alice').exists()
+
     def test_returns_unauthorized_for_invalid_credentials(self, client):
         """Test that invalid credentials are rejected."""
         UserFactory(username='alice', password=TEST_PASSWORD)

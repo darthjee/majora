@@ -94,6 +94,52 @@ class TestAuthorizationRequestCreateView:
         response = self._post(client, 'alice')
         assert response['X-Skip-Cache'] == 'true'
 
+    def test_returns_201_for_known_email(self, client):
+        """Test that a request for a real user's email returns 201."""
+        UserFactory(username='alice', password=TEST_PASSWORD, email='alice@example.com')
+        response = self._post(client, 'alice@example.com')
+        assert response.status_code == 201
+
+    def test_creates_request_linked_to_the_matching_user_by_email(self, client):
+        """Test that a matching email links the created request to that user."""
+        user = UserFactory(username='alice', password=TEST_PASSWORD, email='alice@example.com')
+        response = self._post(client, 'alice@example.com')
+        data = json.loads(response.content)
+        authorization_request = AuthorizationRequest.objects.get(uuid=data['uuid'])
+        assert authorization_request.user_id == user.id
+
+    def test_matches_username_case_insensitively(self, client):
+        """Test that an uppercased username still matches the lowercase-stored user."""
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
+        response = self._post(client, 'ALICE')
+        data = json.loads(response.content)
+        authorization_request = AuthorizationRequest.objects.get(uuid=data['uuid'])
+        assert authorization_request.user_id == user.id
+
+    def test_matches_email_case_insensitively(self, client):
+        """Test that an uppercased email still matches the lowercase-stored user."""
+        user = UserFactory(username='alice', password=TEST_PASSWORD, email='alice@example.com')
+        response = self._post(client, 'ALICE@EXAMPLE.COM')
+        data = json.loads(response.content)
+        authorization_request = AuthorizationRequest.objects.get(uuid=data['uuid'])
+        assert authorization_request.user_id == user.id
+
+    def test_missing_username_returns_422(self, client):
+        """Test that a missing username field is rejected with 422."""
+        response = client.post(
+            CREATE_URL,
+            data=json.dumps({}),
+            content_type='application/json',
+        )
+        assert response.status_code == 422
+        assert json.loads(response.content) == {'error': 'missing_identifier'}
+
+    def test_blank_username_returns_422(self, client):
+        """Test that a blank username field is rejected with 422."""
+        response = self._post(client, '')
+        assert response.status_code == 422
+        assert json.loads(response.content) == {'error': 'missing_identifier'}
+
     def test_truncates_an_oversized_user_agent(self, client):
         """Test that an oversized User-Agent is truncated to 255 chars, not rejected."""
         UserFactory(username='alice', password=TEST_PASSWORD)
