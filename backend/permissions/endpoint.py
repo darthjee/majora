@@ -5,8 +5,8 @@ from rest_framework.response import Response
 from .base import BasePermission
 from .config_store import PermissionConfigStore
 
-_UNAUTHENTICATED_RESPONSE_DATA = {'errors': {'detail': ['authentication required']}}
-_FORBIDDEN_RESPONSE_DATA = {'errors': {'detail': ['not allowed']}}
+_UNAUTHENTICATED_RESPONSE_DATA = {'errors': {'detail': ['authentication_required']}}
+_FORBIDDEN_RESPONSE_DATA = {'errors': {'detail': ['not_allowed']}}
 
 
 class EndpointPermission(BasePermission):
