@@ -23,11 +23,11 @@ class StaffUserUpdateSerializer(serializers.ModelSerializer):
     def validate_name(self, value):
         """Reject a name already used by a different user."""
         if User.objects.exclude(pk=self.instance.pk).filter(username=value).exists():
-            raise serializers.ValidationError('name already exists')
+            raise serializers.ValidationError('name_already_exists', code='name_already_exists')
         return value
 
     def validate_email(self, value):
         """Reject an email already used by a different user."""
         if User.objects.exclude(pk=self.instance.pk).filter(email=value).exists():
-            raise serializers.ValidationError('email already exists')
+            raise serializers.ValidationError('email_already_exists', code='email_already_exists')
         return value

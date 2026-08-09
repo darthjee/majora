@@ -29,7 +29,7 @@ class _PollVoteWriter:
         """Raise ValidationError if any requested option id doesn't belong to `self.poll`."""
         valid_ids = set(self.poll.options.values_list('id', flat=True))
         if not set(self.option_ids).issubset(valid_ids):
-            raise ValidationError('All option ids must belong to the poll.')
+            raise ValidationError('invalid_poll_option_id', code='invalid_poll_option_id')
 
     def _existing_votes(self):
         """Return `self.user`'s current PollVote queryset for `self.poll`."""
@@ -55,7 +55,9 @@ class SinglePollVoteWriter(_PollVoteWriter):
     def _validate_at_most_one_option(self):
         """Raise ValidationError if more than one option id was submitted."""
         if len(self.option_ids) > 1:
-            raise ValidationError('A single-type poll only accepts one option id.')
+            raise ValidationError(
+                'single_poll_multiple_options', code='single_poll_multiple_options',
+            )
 
     def _delete_if_present(self, existing_vote):
         """Delete `existing_vote` if it exists, clearing the user's vote."""

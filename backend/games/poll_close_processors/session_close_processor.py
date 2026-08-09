@@ -20,4 +20,6 @@ class GameSessionCloseProcessor:
         try:
             return datetime.date.fromisoformat(option)
         except ValueError as exc:
-            raise ValidationError(f'Winning option {option!r} is not a valid ISO date.') from exc
+            raise ValidationError(
+                'invalid_poll_option_date', code='invalid_poll_option_date',
+            ) from exc

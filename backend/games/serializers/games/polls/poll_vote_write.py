@@ -18,5 +18,7 @@ class PollVoteWriteSerializer(serializers.Serializer):
         poll = self.context['poll']
         valid_ids = set(poll.options.values_list('id', flat=True))
         if not set(value).issubset(valid_ids):
-            raise serializers.ValidationError('All option ids must belong to the poll.')
+            raise serializers.ValidationError(
+                'invalid_poll_option_id', code='invalid_poll_option_id',
+            )
         return value

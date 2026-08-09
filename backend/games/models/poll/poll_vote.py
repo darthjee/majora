@@ -31,9 +31,7 @@ class PollVote(models.Model):
         game = self.option.poll.game
         is_member = game.has_player(self.user)
         if not is_member:
-            raise ValidationError(
-                'User must be a player or game master of the poll game to vote.'
-            )
+            raise ValidationError('poll_vote_user_not_in_game', code='poll_vote_user_not_in_game')
 
     def _validate_single_type_vote(self):
         """Raise ValidationError on a second option vote for a single-type poll.
@@ -49,7 +47,9 @@ class PollVote(models.Model):
             user=self.user, option__poll=self.option.poll,
         ).exclude(models.Q(pk=self.pk) | models.Q(option=self.option)).exists()
         if other_votes_exist:
-            raise ValidationError('User may only vote for one option on a single-type poll.')
+            raise ValidationError(
+                'single_poll_multiple_options', code='single_poll_multiple_options',
+            )
 
     def save(self, *args, **kwargs):
         """Persist the vote, enforcing validation rules beforehand."""

@@ -92,7 +92,9 @@ def character_document_acquire(request, game, character, allow_hidden=False):
         character=character, game_document=game_document, defaults={'hidden': hidden},
     )
     if not created:
-        return Response({'errors': {'game_document_id': ['already owned']}}, status=422)
+        return Response(
+            {'errors': {'game_document_id': ['game_document_already_owned']}}, status=422,
+        )
 
     return Response(CharacterDocumentAllSerializer(character_document).data, status=201)
 

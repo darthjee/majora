@@ -20,7 +20,9 @@ class SessionPollCreateSerializer(serializers.Serializer):
     def validate_dates(self, value):
         """Ensure at most `MAX_OPTIONS` dates are provided."""
         if len(value) > MAX_OPTIONS:
-            raise serializers.ValidationError(f'A poll may have at most {MAX_OPTIONS} options.')
+            raise serializers.ValidationError(
+                'max_poll_options_exceeded', code='max_poll_options_exceeded',
+            )
         return value
 
     def create(self, validated_data):

@@ -97,5 +97,5 @@ class TestTestEmailView(TestCase):
         )
 
         assert response.status_code == 403
-        assert json.loads(response.content) == {'errors': {'detail': ['not allowed']}}
+        assert json.loads(response.content) == {'errors': {'detail': ['not_allowed']}}
         assert mail.outbox == []

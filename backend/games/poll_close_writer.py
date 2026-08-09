@@ -37,7 +37,7 @@ class PollCloseWriter:
     def _validate_open(self):
         """Raise ValidationError unless `self.poll` is currently open."""
         if self.poll.status != Poll.STATUS_OPEN:
-            raise ValidationError('Poll must be open to be closed.')
+            raise ValidationError('poll_not_open', code='poll_not_open')
 
     def _resolve_winner(self):
         """Return the winning PollOption: explicitly chosen, or the highest-voted one."""
@@ -49,7 +49,7 @@ class PollCloseWriter:
         """Return the option for `self.option_id`, raising if it isn't one of the poll's."""
         option = self.poll.options.filter(id=self.option_id).first()
         if option is None:
-            raise ValidationError('option_id must belong to the poll.')
+            raise ValidationError('invalid_poll_option_id', code='invalid_poll_option_id')
         return option
 
     def _tally_winner(self):

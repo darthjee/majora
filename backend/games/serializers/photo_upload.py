@@ -18,8 +18,7 @@ class PhotoUploadSerializer(serializers.Serializer):
         _, ext = os.path.splitext(basename)
         if ext.lower() not in self.ALLOWED_EXTENSIONS:
             raise serializers.ValidationError(
-                f'File extension "{ext}" is not allowed. '
-                f'Allowed: {", ".join(sorted(self.ALLOWED_EXTENSIONS))}'
+                'file_extension_not_allowed', code='file_extension_not_allowed',
             )
         return basename  # return the sanitised basename, not the raw value
 

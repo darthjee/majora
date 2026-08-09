@@ -47,13 +47,13 @@ def _parse_user_id(request):
     try:
         return int(request.data.get('user_id')), None
     except (TypeError, ValueError):
-        errors = {'user_id': ['must be an integer']}
+        errors = {'user_id': ['invalid_user_id']}
         return None, Response({'errors': errors}, status=400)
 
 
 def _require_pending(profile):
     """Return a 422 Response if `profile`'s status isn't `pending`, else None."""
     if profile.status != UserProfile.STATUS_PENDING:
-        errors = {'status': ['user is not pending']}
+        errors = {'status': ['user_not_pending']}
         return Response({'errors': errors}, status=422)
     return None

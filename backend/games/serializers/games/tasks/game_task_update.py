@@ -27,5 +27,5 @@ class GameTaskUpdateSerializer(serializers.ModelSerializer):
         """Ensure a given `session` belongs to the same game as the task, if any."""
         game = self.context.get('game')
         if value is not None and game is not None and value.game_id != game.id:
-            raise serializers.ValidationError('session must belong to the same game')
+            raise serializers.ValidationError('session_wrong_game', code='session_wrong_game')
         return value
