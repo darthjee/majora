@@ -26,7 +26,7 @@ These manage identity; they do not expose domain data beyond success/failure.
 
 | Endpoint | Method | Who can call |
 |----------|--------|-------------|
-| `/users/login.json` | POST | Anyone. `403` if credentials are correct but the account is `denied` (checked only after password verification — never a pre-auth enumeration oracle). A `pending` account still logs in successfully — see the status gate below |
+| `/users/login.json` | POST | Anyone. `username` matches against either `User.username` or `User.email`, case-insensitively. `403` if credentials are correct but the account is `denied` (checked only after password verification — never a pre-auth enumeration oracle). A `pending` account still logs in successfully — see the status gate below |
 | `/users/logout.json` | POST | Authenticated |
 | `/users/register.json` | POST | Anyone. New accounts always start `pending` |
 | `/users/status.json` | GET | Anyone. `{"logged_in": false}` when unauthenticated or `denied`; adds `"status": "pending"` when pending (the only case with a `status` key); otherwise the full logged-in shape (`username`, `user_id`, `is_superuser`/`is_staff`, `settings`) |
@@ -48,12 +48,13 @@ deny pending users via [User (Staff Management)](user.md).
 
 ## Authorization requests (device-authorize login)
 
-A passwordless "authorize with logged device" login mode: a new device asks, by username only, to
-be logged in; an already-authenticated session on another device approves or denies the request.
+A passwordless "authorize with logged device" login mode: a new device asks, by username or
+email (case-insensitive), to be logged in; an already-authenticated session on another device
+approves or denies the request.
 
 | Endpoint | Method | Who can call | Notes |
 |----------|--------|-------------|-------|
-| `/users/authorization_requests.json` | POST | **AllowAny** (pre-login) | Enumeration-safe: identical `201` whether or not `username` matches a real user. Per-IP rate-limited |
+| `/users/authorization_requests.json` | POST | **AllowAny** (pre-login) | Enumeration-safe: identical `201` whether or not the `username` (matched against `User.username` or `User.email`, case-insensitively) matches a real user. `422 {"error": "missing_identifier"}` if `username` is missing/blank — a client-error case, not an enumeration concern. Per-IP rate-limited |
 | `/users/authorization_requests/<uuid>.json` | GET | **AllowAny** (pre-login) | Polled with the request's own bearer token in `X-Authorize-Token` (compared via constant-time comparison, never exposed in plaintext). `403` if not found, token mismatch, or already `logged`/`denied`. `200` while `open`. `202` on `approved` — atomically transitions to `logged` (only one concurrent poll can win) and is the **only** point real login credentials are ever returned; if the request's own user is `denied`, this step is blocked and the same generic `403` is returned instead, preserving the enumeration-safety invariant. `422` if lazily expired. Rate-limited |
 | `/account/authorization_requests.json` | GET | Authenticated | Paginated, newest-first, strictly scoped to the requester's own requests. Lazily re-checked for expiration before serialization |
 | `/account/authorization_requests/<uuid>/deny.json` | PATCH | Authenticated, owner-only | `403` if not the caller's own request. `422` if not currently `open`. Sets `denied` |
