@@ -1,0 +1,6 @@
+staff_user_edit_page:
+  title: Edit User
+  name_label: Name
+  email_label: Email
+  submit: Save changes
+  error: Failed to save user. Please try again.

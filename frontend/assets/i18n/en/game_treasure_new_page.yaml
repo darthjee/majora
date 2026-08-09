@@ -1,0 +1,6 @@
+game_treasure_new_page:
+  title: New Treasure
+  name_label: Name
+  value_label: Value
+  submit: Create Treasure
+  error: Failed to create treasure. Please try again.

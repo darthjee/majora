@@ -1,0 +1,20 @@
+game_npc_new_page:
+  title: New NPC
+  name_label: Name
+  role_label: Role
+  description_label: Description
+  private_description_label: DM Notes
+  hidden_label: Hidden Character
+  incognito_label: Incognito
+  private_allegiance_label: Allegiance
+  public_allegiance_label: Public Allegiance
+  allegiance_ally: Ally
+  allegiance_enemy: Enemy
+  allegiance_neutral: Neutral
+  money_label: Money
+  edit_money_button: Edit money
+  submit: Create NPC
+  error: Failed to create NPC. Please try again.
+  photo_upload_failed: Failed to upload the photo. The NPC was created — you can retry the upload or skip it for now.
+  retry_photo_upload: Retry photo upload
+  skip_photo_upload: Skip and continue

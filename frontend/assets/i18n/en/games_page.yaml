@@ -1,0 +1,4 @@
+games_page:
+  loading: Loading games...
+  back_href_label: Back
+  new_game: New Game

@@ -1,0 +1,15 @@
+game_page:
+  loading: Loading game...
+  player_characters: Player Characters
+  non_player_characters: Non-Player Characters
+  treasures: Treasures
+  items: Items
+  documents: Documents
+  sessions: Sessions
+  players: Players
+  see_all_photos: Photos
+  next_session_title: Next Session
+  no_next_session: No upcoming session scheduled.
+  polls_title: Polls
+  open_polls_count: '{{count}} open poll(s)'
+  view_polls: View polls

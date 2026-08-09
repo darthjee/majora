@@ -1,0 +1,8 @@
+game_edit_page:
+  title: Editar jogo
+  name_label: Nome
+  description_label: Descrição
+  submit: Salvar alterações
+  error: Falha ao salvar o jogo. Por favor, tente novamente.
+  upload_photo_button: Enviar Foto
+  edit_links_button: Editar links

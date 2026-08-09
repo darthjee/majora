@@ -1,0 +1,25 @@
+game_npcs_page:
+  loading: Carregando...
+  title: NPCs
+  new_npc: Novo NPC
+  filter_public_status_label: Status
+  filter_public_status_alive: Vivo
+  filter_public_status_slain: Morto
+  filter_hidden_label: Oculto
+  filter_hidden_shown: Visível
+  filter_hidden_only: Oculto
+  filter_public_allegiance_label: Aliança
+  filter_public_allegiance_ally: Aliado
+  filter_public_allegiance_enemy: Inimigo
+  filter_public_allegiance_neutral: Neutro
+  filter_private_status_label: Status Real
+  filter_private_status_alive: Vivo
+  filter_private_status_slain: Morto
+  filter_private_allegiance_label: Aliança Real
+  filter_private_allegiance_ally: Aliado
+  filter_private_allegiance_enemy: Inimigo
+  filter_private_allegiance_neutral: Neutro
+  filter_name_label: Nome
+  filter_name_placeholder: Buscar por nome...
+  filter_query: Filtrar
+  filter_clear: Limpar

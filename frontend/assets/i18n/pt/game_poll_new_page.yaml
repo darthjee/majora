@@ -1,0 +1,14 @@
+game_poll_new_page:
+  title: Nova Enquete
+  title_label: Título
+  description_label: Descrição
+  type_label: Tipo
+  type_single: Escolha única
+  type_multiple: Escolha múltipla
+  option_type_label: Tipo de opção
+  option_type_text: Texto
+  option_type_date: Data
+  options_label: Opções
+  add_option: Adicionar opção
+  submit: Criar Enquete
+  error: Falha ao criar enquete. Tente novamente.

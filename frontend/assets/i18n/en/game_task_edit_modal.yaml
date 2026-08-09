@@ -1,0 +1,7 @@
+game_task_edit_modal:
+  title: Task
+  edit: Edit
+  save: Save
+  cancel: Cancel
+  short_description_label: Short description
+  long_description_label: Long description

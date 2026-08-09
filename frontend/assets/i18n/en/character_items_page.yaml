@@ -1,0 +1,6 @@
+character_items_page:
+  loading: Loading items...
+  title: Items
+  hidden_label: Hidden
+  new_item: Create Item
+  exchange_items: Exchange Items

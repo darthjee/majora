@@ -1,0 +1,8 @@
+game_edit_page:
+  title: Edit game
+  name_label: Name
+  description_label: Description
+  submit: Save changes
+  error: Failed to save game. Please try again.
+  upload_photo_button: Upload Photo
+  edit_links_button: Edit links

@@ -1,0 +1,13 @@
+my_account_page:
+  title: My Account
+  loading: Loading account...
+  avatar_alt: User avatar
+  name_label: Username
+  display_name_label: Display name
+  first_name_label: First name
+  last_name_label: Last name
+  email_label: Email
+  password_label: Password
+  password_confirmation_label: Confirm password
+  submit: Save changes
+  error: Failed to save account. Please try again.

@@ -1,0 +1,7 @@
+character_treasures_page:
+  loading: Loading treasures...
+  title: Treasures
+  name_column: Name
+  quantity_column: Quantity
+  value_column: Value
+  add_treasure: Exchange Treasure

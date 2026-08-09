@@ -1,0 +1,7 @@
+item_edit_page:
+  title: Editar item
+  name_label: Nome
+  description_label: Descrição
+  hidden_label: Oculto
+  submit: Salvar alterações
+  error: Falha ao salvar o item. Tente novamente.

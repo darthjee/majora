@@ -1,0 +1,19 @@
+npc_edit_page:
+  title: Editar personagem
+  name_label: Nome
+  role_label: Função
+  description_label: Descrição
+  private_description_label: Notas do Mestre
+  hidden_label: Personagem Oculto
+  incognito_label: Incógnito
+  private_allegiance_label: Aliança
+  public_allegiance_label: Aliança Pública
+  allegiance_ally: Aliado
+  allegiance_enemy: Inimigo
+  allegiance_neutral: Neutro
+  money_label: Dinheiro (peças de cobre)
+  submit: Salvar alterações
+  error: Falha ao salvar o personagem. Tente novamente.
+  upload_photo_button: Enviar Foto
+  edit_links_button: Editar links
+  edit_money_button: Editar dinheiro

@@ -1,0 +1,8 @@
+add_game_treasure_modal:
+  title: Add Treasure
+  value_label: Value
+  max_units_label: Max units
+  save: Save
+  load_error: Unable to load treasures. Please try again.
+  save_error: Unable to add this treasure. Please try again.
+  empty: No treasures left to add.

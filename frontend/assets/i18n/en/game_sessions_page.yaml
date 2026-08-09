@@ -1,0 +1,7 @@
+game_sessions_page:
+  loading: Loading sessions...
+  title: Sessions
+  new_session: New Session
+  past: Past
+  future: Upcoming
+  unscheduled: Unscheduled

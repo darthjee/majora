@@ -1,0 +1,12 @@
+pc_edit_page:
+  title: Edit character
+  name_label: Name
+  role_label: Role
+  description_label: Description
+  private_description_label: DM Notes
+  money_label: Money
+  submit: Save changes
+  error: Failed to save character. Please try again.
+  upload_photo_button: Upload Photo
+  edit_links_button: Edit links
+  edit_money_button: Edit money
