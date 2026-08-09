@@ -130,6 +130,8 @@ describe('ShowPageLayout', function() {
   });
 
   it('joins multiple detail error codes into a single alert', function() {
+    spyOn(Translator, 't').and.callFake((key) => `translated(${key})`);
+
     const html = renderToStaticMarkup(
       React.createElement(ShowPageLayout, {
         type: 'spec-test',
@@ -139,7 +141,9 @@ describe('ShowPageLayout', function() {
     );
 
     expect(html.match(/alert-danger/g).length).toBe(1);
-    expect(html).toContain('not_allowed max_length');
+    expect(Translator.t).toHaveBeenCalledWith('errors.not_allowed', 'not_allowed');
+    expect(Translator.t).toHaveBeenCalledWith('errors.max_length', 'max_length');
+    expect(html).toContain('translated(errors.not_allowed) translated(errors.max_length)');
   });
 
   it('renders no detail error alert when fieldErrors.detail is absent', function() {
