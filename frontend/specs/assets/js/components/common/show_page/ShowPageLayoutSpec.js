@@ -2,6 +2,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import ShowPageLayout from '../../../../../../assets/js/components/common/show_page/ShowPageLayout.jsx';
 import showTypeConfig from '../../../../../../assets/js/components/common/show_page/show_types/showTypeConfig.js';
+import Translator from '../../../../../../assets/js/i18n/Translator.js';
 
 function LeftShow() {
   return React.createElement('span', null, 'left-show');
@@ -102,5 +103,70 @@ describe('ShowPageLayout', function() {
 
     expect(html).toContain('href="#/spec-tests"');
     expect(html).toContain('href="#/spec-tests/edit"');
+  });
+
+  it('renders the detail error alert in edit mode when fieldErrors.detail has entries', function() {
+    spyOn(Translator, 't').and.callFake((key) => `translated(${key})`);
+
+    const html = renderToStaticMarkup(
+      React.createElement(ShowPageLayout, {
+        type: 'spec-test', mode: 'edit', context: { fieldErrors: { detail: ['not_allowed'] } },
+      }),
+    );
+
+    expect(html).toContain('alert-danger');
+    expect(Translator.t).toHaveBeenCalledWith('errors.not_allowed', 'not_allowed');
+    expect(html).toContain('translated(errors.not_allowed)');
+  });
+
+  it('renders the detail error alert in new mode when fieldErrors.detail has entries', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(ShowPageLayout, {
+        type: 'spec-test', mode: 'new', context: { fieldErrors: { detail: ['not_allowed'] } },
+      }),
+    );
+
+    expect(html).toContain('alert-danger');
+  });
+
+  it('joins multiple detail error codes into a single alert', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(ShowPageLayout, {
+        type: 'spec-test',
+        mode: 'edit',
+        context: { fieldErrors: { detail: ['not_allowed', 'max_length'] } },
+      }),
+    );
+
+    expect(html.match(/alert-danger/g).length).toBe(1);
+    expect(html).toContain('not_allowed max_length');
+  });
+
+  it('renders no detail error alert when fieldErrors.detail is absent', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(ShowPageLayout, { type: 'spec-test', mode: 'edit', context: {} }),
+    );
+
+    expect(html).not.toContain('alert-danger');
+  });
+
+  it('renders no detail error alert when fieldErrors.detail is empty', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(ShowPageLayout, {
+        type: 'spec-test', mode: 'edit', context: { fieldErrors: { detail: [] } },
+      }),
+    );
+
+    expect(html).not.toContain('alert-danger');
+  });
+
+  it('renders no detail error alert in show mode regardless of fieldErrors', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(ShowPageLayout, {
+        type: 'spec-test', mode: 'show', context: { fieldErrors: { detail: ['not_allowed'] } },
+      }),
+    );
+
+    expect(html).not.toContain('alert-danger');
   });
 });
