@@ -18,7 +18,7 @@ class MyAccountUpdateSerializer(serializers.ModelSerializer):
     display_name = serializers.CharField(max_length=150)
     first_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
     last_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
-    email = serializers.EmailField()
+    email = serializers.EmailField(max_length=254)
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
     password_confirmation = serializers.CharField(
         write_only=True, required=False, allow_blank=True,
@@ -36,19 +36,21 @@ class MyAccountUpdateSerializer(serializers.ModelSerializer):
     def validate_name(self, value):
         """Reject a name already used by a different user."""
         if username_taken(value, exclude_pk=self.instance.pk):
-            raise serializers.ValidationError('name already exists')
+            raise serializers.ValidationError('name_already_exists', code='name_already_exists')
         return value
 
     def validate_display_name(self, value):
         """Reject a display_name already used by a different user's profile."""
         if display_name_taken(value, exclude_user=self.instance):
-            raise serializers.ValidationError('display name already exists')
+            raise serializers.ValidationError(
+                'display_name_already_exists', code='display_name_already_exists',
+            )
         return value
 
     def validate_email(self, value):
         """Reject an email already used by a different user."""
         if email_taken(value, exclude_pk=self.instance.pk):
-            raise serializers.ValidationError('email already exists')
+            raise serializers.ValidationError('email_already_exists', code='email_already_exists')
         return value
 
     def validate(self, attrs):
@@ -57,7 +59,8 @@ class MyAccountUpdateSerializer(serializers.ModelSerializer):
         confirmation = attrs.get('password_confirmation') or ''
         if (password or confirmation) and password != confirmation:
             raise serializers.ValidationError(
-                {'password_confirmation': ['password and password_confirmation must match']}
+                {'password_confirmation': ['password_confirmation_mismatch']},
+                code='password_confirmation_mismatch',
             )
         return attrs
 

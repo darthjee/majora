@@ -30,9 +30,11 @@ class PollCreateSerializer(serializers.ModelSerializer):
     def validate_options(self, value):
         """Ensure between one and `MAX_OPTIONS` options are provided."""
         if not value:
-            raise serializers.ValidationError('At least one option is required.')
+            raise serializers.ValidationError('poll_options_required', code='poll_options_required')
         if len(value) > MAX_OPTIONS:
-            raise serializers.ValidationError(f'A poll may have at most {MAX_OPTIONS} options.')
+            raise serializers.ValidationError(
+                'max_poll_options_exceeded', code='max_poll_options_exceeded',
+            )
         return value
 
     def create(self, validated_data):

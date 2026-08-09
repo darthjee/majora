@@ -46,5 +46,5 @@ def _parse_user_id(request):
     try:
         return int(request.data.get('user_id')), None
     except (TypeError, ValueError):
-        errors = {'user_id': ['must be an integer']}
+        errors = {'user_id': ['invalid_user_id']}
         return None, Response({'errors': errors}, status=400)

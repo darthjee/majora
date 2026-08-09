@@ -12,7 +12,7 @@ from ...models import Game, Player
 from ...serializers import GameCreateSerializer, GameDetailSerializer, GameListSerializer
 from ..common import paginated_list_response, require_authenticated, validated_or_error
 
-UNRECOGNIZED_DOMAIN_RESPONSE_DATA = {'errors': {'detail': ['domain not recognized']}}
+UNRECOGNIZED_DOMAIN_RESPONSE_DATA = {'errors': {'detail': ['domain_not_recognized']}}
 
 
 @api_view(['GET', 'POST'])

@@ -9,7 +9,16 @@ from ..caches import AdminOrStaffCache
 from ..paginator import Paginator
 from ..serializers import HiddenFieldSerializer
 
-UNAUTHENTICATED_RESPONSE_DATA = {'errors': {'detail': ['authentication required']}}
+UNAUTHENTICATED_RESPONSE_DATA = {'errors': {'detail': ['authentication_required']}}
+
+
+def _error_codes(errors):
+    """Recursively replace ErrorDetail messages with their `.code`, preserving structure."""
+    if isinstance(errors, dict):
+        return {key: _error_codes(value) for key, value in errors.items()}
+    if isinstance(errors, list):
+        return [_error_codes(item) for item in errors]
+    return getattr(errors, 'code', errors)
 
 
 def check_game_edit(request, game):
@@ -36,14 +45,14 @@ def require_staff(request):
     if error_response:
         return error_response
     if not AdminOrStaffCache.is_admin_or_staff(request.user):
-        return Response({'errors': {'detail': ['not allowed']}}, status=403)
+        return Response({'errors': {'detail': ['not_allowed']}}, status=403)
     return None
 
 
 def validated_or_error(serializer):
     """Validate `serializer`; return a 400 `{'errors': ...}` Response on failure, else None."""
     if not serializer.is_valid():
-        return Response({'errors': serializer.errors}, status=400)
+        return Response({'errors': _error_codes(serializer.errors)}, status=400)
     return None
 
 
@@ -79,7 +88,7 @@ def save_or_error(serializer, **kwargs):
     try:
         return serializer.save(**kwargs), None
     except ValidationError as exc:
-        return None, Response({'errors': exc.detail}, status=400)
+        return None, Response({'errors': _error_codes(exc.detail)}, status=400)
 
 
 def detail_or_update(

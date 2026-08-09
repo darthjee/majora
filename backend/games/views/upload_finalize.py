@@ -44,7 +44,7 @@ def upload_finalize(request, upload_type, upload_id):
 
     new_status = request.data.get('status')
     if new_status not in _VALID_STATUSES:
-        return Response({'errors': {'status': ['invalid status']}}, status=400)
+        return Response({'errors': {'status': ['invalid_status']}}, status=400)
 
     upload.status = new_status
     upload.save()

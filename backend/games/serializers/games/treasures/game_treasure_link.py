@@ -16,7 +16,11 @@ class GameTreasureLinkSerializer(serializers.Serializer):
         """Ensure `treasure` matches the context game's type and isn't already linked to it."""
         game = self.context['game']
         if treasure.game_type != game.game_type:
-            raise serializers.ValidationError('treasure game_type does not match the game')
+            raise serializers.ValidationError(
+                'treasure_game_type_mismatch', code='treasure_game_type_mismatch',
+            )
         if GameTreasure.objects.filter(game=game, treasure=treasure).exists():
-            raise serializers.ValidationError('treasure is already linked to this game')
+            raise serializers.ValidationError(
+                'treasure_already_linked', code='treasure_already_linked',
+            )
         return treasure

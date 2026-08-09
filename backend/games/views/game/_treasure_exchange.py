@@ -159,7 +159,7 @@ def _buy(character, treasure, quantity, game):
         value = _resolve_value(game, treasure, game_treasure)
         cost = acquired * value
         if cost > character.money:
-            return Response({'errors': {'quantity': ['insufficient funds']}}, status=400)
+            return Response({'errors': {'quantity': ['insufficient_funds']}}, status=400)
 
         character_treasure = _lock_or_create_character_treasure(character, treasure)
         character_treasure.quantity += acquired
@@ -224,7 +224,7 @@ def _remove(character, treasure, quantity, game):
             raise Http404
 
         if quantity > character_treasure.quantity:
-            return Response({'errors': {'quantity': ['not enough owned']}}, status=400)
+            return Response({'errors': {'quantity': ['treasure_not_enough_owned']}}, status=400)
 
         game_treasure = _lock_game_treasure(game, treasure)
         value = _resolve_value(game, treasure, game_treasure)
@@ -247,7 +247,7 @@ def _sell(character, treasure, quantity, game):
             raise Http404
 
         if quantity > character_treasure.quantity:
-            return Response({'errors': {'quantity': ['not enough owned']}}, status=400)
+            return Response({'errors': {'quantity': ['treasure_not_enough_owned']}}, status=400)
 
         game_treasure = _lock_game_treasure(game, treasure)
         value = _resolve_value(game, treasure, game_treasure)

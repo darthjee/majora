@@ -50,8 +50,7 @@ def _target_player_or_error(game, request):
     player_id = request.query_params.get('player_id')
     if not player_id or not player_id.isdigit():
         error = Response(
-            {'errors': {'player_id': ['is required and must be a valid player id']}},
-            status=400,
+            {'errors': {'player_id': ['invalid_player_id']}}, status=400,
         )
         return None, error
     return get_object_or_404(game.players, id=player_id), None

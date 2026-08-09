@@ -144,6 +144,18 @@ class TestMyAccountUpdateSerializer(TestCase):
         assert not serializer.is_valid()
         assert 'name' in serializer.errors
 
+    def test_rejects_email_longer_than_254_characters(self):
+        """Test that an email over 254 characters is rejected instead of hitting the database."""
+        overlong_email = f'{"a" * 250}@a.com'
+        serializer = MyAccountUpdateSerializer(
+            self.user,
+            data={
+                'name': 'alice', 'display_name': 'alice-display', 'email': overlong_email,
+            },
+        )
+        assert not serializer.is_valid()
+        assert 'email' in serializer.errors
+
     def test_valid_first_and_last_name_update(self):
         """Test that a valid first_name/last_name update is accepted and persisted."""
         serializer = MyAccountUpdateSerializer(

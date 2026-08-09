@@ -103,6 +103,12 @@ class TestValidatedOrError(TestCase):
         assert response.status_code == 400
         assert 'errors' in response.data
 
+    def test_error_response_carries_codes_not_messages(self):
+        """Test that the errors payload holds the ErrorDetail `.code`, not its message text."""
+        serializer = GameUpdateSerializer(self.game, data={'name': 'x' * 201}, partial=True)
+        response = validated_or_error(serializer)
+        assert response.data['errors']['name'] == ['max_length']
+
 
 class TestDetailOrUpdate(TestCase):
     """Tests for detail_or_update()."""

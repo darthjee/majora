@@ -42,9 +42,11 @@ class CharacterLinkWriteSerializer(serializers.ModelSerializer):
         `CharacterLinksSync._update`), so it must not be forced here.
         """
         if attrs.get('delete') and not attrs.get('id'):
-            raise serializers.ValidationError({'id': ['This field is required when deleting.']})
+            raise serializers.ValidationError(
+                {'id': ['link_id_required_when_deleting']}, code='link_id_required_when_deleting',
+            )
         if not attrs.get('delete') and not attrs.get('id') and not attrs.get('url'):
-            raise serializers.ValidationError({'url': ['This field is required.']})
+            raise serializers.ValidationError({'url': ['required']}, code='required')
         return attrs
 
 
@@ -110,7 +112,9 @@ class CharacterLinksSync:
         """Return the character-owned `CharacterLink` for `link_id`, or raise a 400."""
         link = self.character.links.filter(id=link_id).first()
         if link is None:
-            raise serializers.ValidationError({'links': [f'Unknown link id {link_id}.']})
+            raise serializers.ValidationError(
+                {'links': ['unknown_link_id']}, code='unknown_link_id',
+            )
         return link
 
 
@@ -121,5 +125,5 @@ def validate_links_count(value):
     to bound the number of per-entry DB queries `CharacterLinksSync` issues per request.
     """
     if len(value) > MAX_LINKS:
-        raise serializers.ValidationError(f'A character may have at most {MAX_LINKS} links.')
+        raise serializers.ValidationError('max_links_exceeded', code='max_links_exceeded')
     return value

@@ -1,5 +1,7 @@
 import React from 'react';
 import PageActions from '../list_page/PageActions.jsx';
+import ErrorAlert from '../misc/ErrorAlert.jsx';
+import Translator from '../../../i18n/Translator.js';
 import showTypeConfig from './show_types/showTypeConfig.js';
 
 const MODE_KEYS = { show: 'Show', new: 'New', edit: 'Edit' };
@@ -39,6 +41,25 @@ function renderSlot(entries, mode, context) {
 }
 
 /**
+ * Render the non-field (`detail`) error alert for new/edit pages, when present. Each detail
+ * code is resolved via `Translator.t('errors.<code>')` (falling back to the raw code), and
+ * multiple codes are joined into a single alert.
+ *
+ * @param {'show'|'new'|'edit'} mode - Current page mode.
+ * @param {object} [fieldErrors] - Field errors keyed by field name or `'detail'`.
+ * @returns {React.ReactElement|null} The rendered alert, or `null` when there is nothing to show.
+ */
+function renderDetailError(mode, fieldErrors) {
+  const detail = fieldErrors?.detail;
+
+  if (mode === 'show' || !detail?.length) return null;
+
+  const message = detail.map((code) => Translator.t(`errors.${code}`, code)).join(' ');
+
+  return <ErrorAlert error={message} />;
+}
+
+/**
  * Shared left/right/bottom layout shell for show, new, and edit pages, mirroring the
  * `ListPage`/`listTypeConfig` pattern already used for index pages. The owning page supplies a
  * `type` (key into `showTypeConfig`) and a `mode`; the slot components declared for that type
@@ -65,6 +86,7 @@ export default function ShowPageLayout({
   const body = (
     <>
       {backHref && <PageActions backHref={backHref}>{pageActions}</PageActions>}
+      {renderDetailError(mode, context.fieldErrors)}
       <div className="row">
         <div className="col-md-4">{renderSlot(config.left ?? [], mode, slotContext)}</div>
         <div className="col-md-8">{renderSlot(config.right ?? [], mode, slotContext)}</div>

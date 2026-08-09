@@ -99,6 +99,26 @@ class TestStlModelsCreateView(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert 'name' in data['errors']
 
+    def test_overlong_tag_returns_400_with_tag_name_too_long_code(self, client):
+        """Test that a tag longer than Tag.NAME_MAX_LENGTH returns 400, not a raw DB error."""
+        response = self.post(
+            client, LIST_URL, {'name': 'Dragon Miniature', 'tags': ['x' * 201]},
+            token=self.superuser_token,
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert data['errors']['tags'] == ['tag_name_too_long']
+
+    def test_too_many_tags_returns_400_with_max_tags_exceeded_code(self, client):
+        """Test that more than MAX_TAGS tags returns 400 with the max_tags_exceeded code."""
+        response = self.post(
+            client, LIST_URL, {'name': 'Dragon Miniature', 'tags': [f'tag{i}' for i in range(21)]},
+            token=self.superuser_token,
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert data['errors']['tags'] == ['max_tags_exceeded']
+
     def test_returns_stl_model_detail_shape(self, client):
         """Test that the response body matches the StlModelDetailSerializer shape."""
         response = self.post(

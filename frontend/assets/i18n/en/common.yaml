@@ -272,3 +272,48 @@ game_treasures_page:
   edit: Edit
   available_units_label: 'Available: {{available}} / {{max}}'
   hidden_label: Hidden
+errors:
+  max_length: This field is too long.
+  min_length: This field is too short.
+  required: This field is required.
+  blank: This field cannot be blank.
+  null: This field cannot be null.
+  unique: This value is already in use.
+  invalid: This value is invalid.
+  invalid_choice: This is not a valid choice.
+  does_not_exist: This related item does not exist.
+  incorrect_type: This field has an incorrect type.
+  empty: At least one item is required.
+  max_value: This value is too large.
+  min_value: This value is too small.
+  authentication_required: Authentication is required.
+  not_allowed: You are not allowed to do this.
+  not_found: Not found.
+  max_tags_exceeded: An STL model may have at most 20 tags.
+  tag_name_too_long: Tag name is too long.
+  name_already_exists: This name is already in use.
+  display_name_already_exists: This display name is already in use.
+  email_already_exists: This email is already in use.
+  password_confirmation_mismatch: Password and confirmation do not match.
+  link_id_required_when_deleting: An id is required when deleting a link.
+  unknown_link_id: Unknown link id.
+  max_links_exceeded: A character may have at most 10 links.
+  poll_options_required: At least one option is required.
+  max_poll_options_exceeded: A poll may have at most 50 options.
+  invalid_poll_option_id: This option does not belong to the poll.
+  session_wrong_game: Session must belong to the same game.
+  treasure_game_type_mismatch: "This treasure's type does not match the game's type."
+  treasure_already_linked: This treasure is already linked to this game.
+  file_extension_not_allowed: This file type is not allowed.
+  game_document_already_owned: This document is already owned.
+  insufficient_funds: Insufficient funds for this purchase.
+  treasure_not_enough_owned: Not enough of this item is owned.
+  invalid_player_id: A valid player id is required.
+  domain_not_recognized: This domain is not recognized.
+  poll_not_open: The poll must be open to accept votes.
+  single_poll_multiple_options: A single-choice poll accepts only one option.
+  invalid_status: This status is invalid.
+  invalid_user_id: A valid user id is required.
+  user_not_pending: This user is not pending approval.
+  poll_vote_user_not_in_game: You must be a player or game master in this game to vote.
+  invalid_poll_option_date: The winning option's date is invalid.

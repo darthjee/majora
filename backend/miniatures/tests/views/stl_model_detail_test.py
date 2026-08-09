@@ -34,7 +34,7 @@ class TestStlModelDetailView(TokenAuthRequestMixin):
         """Test that an unknown id returns 404."""
         response = self.get(client, '/miniatures/stl_models/999999.json', token=self.token)
         assert response.status_code == 404
-        assert json.loads(response.content) == {'errors': {'detail': ['not found']}}
+        assert json.loads(response.content) == {'errors': {'detail': ['not_found']}}
 
     def test_returns_detail(self, client):
         """Test that detail fields are returned for a valid STL model."""

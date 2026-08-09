@@ -1,6 +1,6 @@
 """Private helpers shared across miniatures view modules."""
 
-NOT_FOUND_RESPONSE_DATA = {'errors': {'detail': ['not found']}}
+NOT_FOUND_RESPONSE_DATA = {'errors': {'detail': ['not_found']}}
 
 
 def skip_cache(response):

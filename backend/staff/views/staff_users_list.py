@@ -48,8 +48,7 @@ def _filter_by_status(request, queryset):
     if not status:
         return queryset, None
     if status not in dict(UserProfile.STATUS_CHOICES):
-        valid_choices = ', '.join(dict(UserProfile.STATUS_CHOICES))
-        errors = {'status': [f'must be one of: {valid_choices}']}
+        errors = {'status': ['invalid_status']}
         return None, Response({'errors': errors}, status=400)
     return queryset.filter(profile__status=status), None
 

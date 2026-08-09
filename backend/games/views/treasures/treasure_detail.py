@@ -22,7 +22,7 @@ def treasure_detail(request, treasure_id):
     try:
         treasure = Treasure.objects.get(pk=treasure_id)
     except Treasure.DoesNotExist:
-        return Response({'errors': {'detail': ['not found']}}, status=404)
+        return Response({'errors': {'detail': ['not_found']}}, status=404)
 
     if request.method == 'PATCH':
         return _patch_treasure(request, treasure)
