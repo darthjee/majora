@@ -18,7 +18,7 @@ class TestPlayerUserSerializer(TestCase):
 
     def test_serializes_photo_url_as_none_without_email(self):
         """Test that photo_url is None when the user has no email set."""
-        user = UserFactory(username='bob')
+        user = UserFactory(username='bob', email='')
         data = PlayerUserSerializer(user).data
         assert data['photo_url'] is None
 
