@@ -44,12 +44,29 @@ def send_welcome_email(user):
     )
 
 
+def _normalize_register_payload(data):
+    """Return a copy of `data` with string `name`/`email` values lowercased.
+
+    Every other key/value (including unexpected extra keys) is copied as-is, so
+    `_validate_required_fields`'s exact-keys check still behaves correctly. Non-string
+    `name`/`email` values are left untouched, so the existing validators still reject
+    malformed payloads the same way they do today.
+    """
+    normalized = dict(data)
+    for field in ('name', 'email'):
+        value = normalized.get(field)
+        if isinstance(value, str):
+            normalized[field] = value.lower()
+    return normalized
+
+
 def _validate_register_payload(data):
     """Validate the registration payload, returning the first error message, or None."""
     validators = (
         _validate_required_fields,
         _validate_email_format,
         _validate_passwords_match,
+        _validate_username_format,
         _validate_unique_name,
         _validate_unique_display_name,
         _validate_unique_email,
@@ -83,6 +100,13 @@ def _validate_passwords_match(data):
     """Return an error message if password and password_confirmation differ, else None."""
     if data.get('password') != data.get('password_confirmation'):
         return 'password and password_confirmation must match'
+    return None
+
+
+def _validate_username_format(data):
+    """Return an error message if the username contains '@', else None."""
+    if '@' in data.get('name', ''):
+        return 'username cannot contain @'
     return None
 
 

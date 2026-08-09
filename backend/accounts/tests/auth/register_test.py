@@ -132,6 +132,44 @@ class TestRegisterView(TestCase):
         response = self._post(self.client, payload)
         assert response.status_code == 400
 
+    def test_rejects_username_containing_at_symbol(self):
+        """Test that registering with an '@' in the username fails."""
+        payload = {**self.valid_payload, 'name': 'bob@example.com'}
+        response = self._post(self.client, payload)
+        assert response.status_code == 400
+
+    def test_lowercases_username_on_registration(self):
+        """Test that a mixed-case username is stored in lowercase."""
+        payload = {**self.valid_payload, 'name': 'BoB'}
+        response = self._post(self.client, payload)
+
+        assert response.status_code == 201
+        data = json.loads(response.content)
+        assert data['username'] == 'bob'
+        assert User.objects.filter(username='bob').exists()
+
+    def test_lowercases_email_on_registration(self):
+        """Test that a mixed-case email is stored in lowercase."""
+        payload = {**self.valid_payload, 'email': 'Bob@Example.com'}
+        response = self._post(self.client, payload)
+
+        assert response.status_code == 201
+        assert User.objects.filter(username='bob', email='bob@example.com').exists()
+
+    def test_rejects_duplicate_name_differing_only_by_case(self):
+        """Test that a username differing only by case from an existing one is rejected."""
+        UserFactory(username='bob', password=TEST_PASSWORD)
+        payload = {**self.valid_payload, 'name': 'BOB'}
+        response = self._post(self.client, payload)
+        assert response.status_code == 400
+
+    def test_rejects_duplicate_email_differing_only_by_case(self):
+        """Test that an email differing only by case from an existing one is rejected."""
+        UserFactory(username='alice', password=TEST_PASSWORD, email='bob@example.com')
+        payload = {**self.valid_payload, 'email': 'BOB@EXAMPLE.COM'}
+        response = self._post(self.client, payload)
+        assert response.status_code == 400
+
     def test_sends_welcome_email_when_emails_enabled(self):
         """Test that a welcome email is sent on success when EMAILS_ENABLED is true."""
         self.monkeypatch.setenv('EMAILS_ENABLED', 'true')
