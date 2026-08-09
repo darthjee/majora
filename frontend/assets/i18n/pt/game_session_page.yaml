@@ -1,0 +1,9 @@
+game_session_page:
+  loading: Carregando sessão...
+  edit: Editar
+  create_pool: Criar Enquete
+  no_date: Sem data
+  messages_title: Mensagens
+  messages_content_label: Mensagem
+  messages_submit: Enviar
+  messages_load_more: Carregar mais mensagens

@@ -1,0 +1,274 @@
+header:
+  title: Majora
+  subtitle: RPG
+  nav_games: Campanhas
+  nav_game: Jogo
+  nav_game_show: Ver
+  nav_admin: Admin
+  nav_pc: PC
+  nav_npc: NPC
+  nav_treasures: Tesouros
+  nav_stl_models: Modelos STL
+  nav_staff_users: Usuários
+  nav_staff_dashboard: Dashboard
+  nav_my_games: Meus Jogos
+  login: Login
+  logoff: Logoff
+  send_test_email: Enviar e-mail de teste
+  test_email_sent: E-mail de teste enviado
+  test_email_error: Falha ao enviar e-mail de teste
+  register: Registrar
+  my_account_alt: Minha conta
+  nav_authorization_requests: Autorizações
+  view_as_alt: Ver como
+  resilience_idle_alt: Inativo
+  resilience_requesting_alt: Solicitando
+  resilience_retrying_alt: Repetindo
+view_as_modal:
+  title: Ver como
+  not_logged_label: Não conectado
+  enabled_label: Simular outra função
+  role_dm: Mestre
+  role_player: Jogador
+  role_owner: Dono do personagem
+  cancel: Cancelar
+  save: Salvar
+login_modal:
+  title: Login
+  username_label: Usuario
+  password_label: Senha
+  cancel: Cancelar
+  submit: Login
+  forgot_password: Esqueci a senha
+  incorrect: Credenciais inválidas.
+  error: Um erro inesperado ocorreu, tente novamente mais tarde.
+  recover_title: Recuperar a senha
+  email_label: E-mail
+  recover_submit: Enviar email de recuperação
+  back_to_login: Voltar ao login
+  recovery_sent: Caso o e-mail esteja registrado, o link de recuperaçao será enviado.
+  register_link: Criar uma conta
+  mode_password_label: Senha
+  mode_authorize_label: Autorizar com dispositivo conectado
+  authorize_username_label: Usuario
+  authorize_submit: Solicitar autorização
+  authorize_waiting_title: Aguardando aprovação
+  authorize_waiting_body: Verifique seu outro dispositivo e aprove esta solicitação de login.
+  authorize_retry: Conexão perdida. Tentando novamente...
+  authorize_error: Um erro inesperado ocorreu, tente novamente mais tarde.
+  authorize_expired: Esta solicitação expirou. Por favor, tente novamente.
+  authorize_denied: Esta solicitação foi negada.
+  authorize_approved: Aprovado! Efetuando login...
+file_upload_modal:
+  cancel: Cancelar
+  confirm: Confirmar
+  error: Falha ao enviar arquivo. Por favor, tente novamente.
+  name_label: Nome
+  photo_error: Falha ao enviar foto. Por favor, tente novamente.
+  photo_label: Foto (opcional)
+  submit: Enviar
+  title: Enviar Arquivo
+photo_upload_modal:
+  cancel: Cancelar
+  confirm: Confirmar
+  error: Falha ao enviar foto. Por favor, tente novamente.
+  submit: Enviar
+  title: Enviar Foto
+photo_view_modal:
+  set_profile_photo: Definir como foto de perfil
+photo_card:
+  delete_photo: Excluir Foto
+profile_photo_set_modal:
+  title: Foto de Perfil Atualizada
+  body: Esta imagem agora é a foto de perfil.
+  close: Fechar
+clear_cache_confirm_modal:
+  title: Limpar Cache
+  body: Esta ação não pode ser desfeita.
+  confirm: Limpar Cache
+  cancel: Cancelar
+delete_photo_confirm_modal:
+  title: Excluir Foto
+  body: Tem certeza de que deseja excluir esta foto? Esta ação não pode ser desfeita.
+  confirm: Excluir
+  cancel: Cancelar
+slain_confirm_modal:
+  slain_title: Marcar como Morto
+  revive_title: Reviver Personagem
+  slain_body: Tem certeza de que deseja marcar este personagem como morto?
+  revive_body: Tem certeza de que deseja reviver este personagem?
+  public_slain_title: Marcar como Publicamente Morto
+  public_revive_title: Reviver Publicamente Personagem
+  public_slain_body: Tem certeza de que deseja marcar este personagem como publicamente morto?
+  public_revive_body: Tem certeza de que deseja reviver publicamente este personagem?
+  confirm: Confirmar
+  cancel: Cancelar
+back_button:
+  label: Voltar
+pagination:
+  aria_label: Pagina de Jogos
+  previous: Anterior
+  next: Próximo
+description_box:
+  show_more: Mostrar mais
+  show_less: Mostrar menos
+markdown_editor:
+  write_tab: Escrever
+  preview_tab: Pré-visualizar
+  bold: Negrito
+  italic: Itálico
+  heading: Título
+  bulleted_list: Lista com marcadores
+  numbered_list: Lista numerada
+  link: Link
+  preview_empty: Nada para pré-visualizar ainda
+character_page:
+  loading: Carregando personagem...
+  edit: Editar
+  edit_money_button: Editar dinheiro
+  see_all_photos: Fotos
+  slain_button: Marcar como Morto
+  revive_button: Reviver
+  public_slain_button: Marcar como Publicamente Morto
+  public_revive_button: Reviver Publicamente
+  treasures_title: Tesouros
+  items_title: Itens
+  documents_title: Documentos
+  photos_title: Fotos
+character_status_badges:
+  private_slain: Morto
+  private_alive: Vivo
+  public_slain: Conhecido como Morto
+  public_alive: Conhecido como Vivo
+  hidden: Oculto
+  incognito: NPC está incógnito
+  private_enemy: Inimigo
+  private_ally: Aliado
+  private_neutral: Neutro
+  public_enemy: Conhecido como Inimigo
+  public_ally: Conhecido como Aliado
+  public_neutral: Conhecido como Neutro
+  players_deceived: Jogadores enganados
+character_preview_section:
+  see_all: Ver todos {{title}}
+language_selector:
+  label: Idioma
+treasure_exchange_modal:
+  title: Troca de Tesouro
+  search_placeholder: Buscar tesouros...
+  your_money: 'Seu dinheiro:'
+  buy_tab: Comprar
+  buy_tab_tooltip: Compra tesouro usando o dinheiro do personagem
+  sell_tab: Vender
+  sell_tab_tooltip: Vende tesouro recuperando o dinheiro do personagem
+  acquire_tab: Adquirir
+  acquire_tab_tooltip: Adquire tesouro sem alterar o dinheiro do personagem
+  remove_tab: Remover
+  remove_tab_tooltip: Remove tesouro sem alterar o dinheiro do personagem
+  quantity_label: Quantidade
+  already_owned: 'Já possui: {{quantity}}'
+  confirm: Confirmar
+  cancel: Cancelar
+  back: Voltar
+  cancel_selection: Cancelar
+  loading: Carregando tesouros...
+  empty: Nenhum tesouro disponível.
+  load_error: Falha ao carregar tesouros. Por favor, tente novamente.
+  insufficient_funds: Dinheiro insuficiente para comprar essa quantidade.
+  not_enough_owned: Você não possui essa quantidade para vender.
+  generic_error: Não foi possível concluir esta ação. Por favor, tente novamente.
+  available_units_badge: '{{available}} restantes'
+  partially_fulfilled: 'Apenas {{acquired}} de {{requested}} estavam disponíveis e foram adquiridos.'
+item_exchange_modal:
+  title: Troca de Item
+  search_placeholder: Buscar itens...
+  acquire_tab: Adquirir
+  acquire_tab_tooltip: Adquire uma cópia do item
+  remove_tab: Remover
+  remove_tab_tooltip: Remove um item
+  hidden_label: Oculto
+  confirm: Confirmar
+  cancel: Cancelar
+  back: Voltar
+  cancel_selection: Cancelar
+  loading: Carregando itens...
+  empty: Nenhum item disponível.
+  load_error: Falha ao carregar itens. Por favor, tente novamente.
+  already_owned_error: Este item já foi adquirido.
+  generic_error: Não foi possível concluir esta ação. Por favor, tente novamente.
+give_item_modal:
+  title: Dar Item
+  pc_tab: PJs
+  npc_tab: PNJs
+  search_placeholder: Buscar personagens...
+  cancel: Cancelar
+  clear: Limpar
+  submit: Enviar
+  owned_quantity_tooltip: Quantas unidades deste item o personagem já possui
+  pending_quantity_tooltip: Quantas novas unidades serão criadas para este personagem
+  increment_tooltip: Aumenta a quantidade a dar
+  decrement_tooltip: Diminui a quantidade a dar
+  remove_character_tooltip: Remove este personagem da lista
+  loading: Carregando personagens...
+  load_error: Falha ao carregar personagens. Por favor, tente novamente.
+  result_success: 'Item entregue a {{name}}.'
+  result_failure: 'Não foi possível entregar o item a {{name}}.'
+give_treasure_modal:
+  title: Dar Tesouro
+  pc_tab: PJs
+  npc_tab: PNJs
+  search_placeholder: Buscar personagens...
+  cancel: Cancelar
+  clear: Limpar
+  submit: Enviar
+  owned_quantity_tooltip: Quantas unidades deste tesouro o personagem já possui
+  pending_quantity_tooltip: Quantas unidades serão entregues a este personagem
+  increment_tooltip: Aumenta a quantidade a dar
+  decrement_tooltip: Diminui a quantidade a dar
+  remove_character_tooltip: Remove este personagem da lista
+  loading: Carregando personagens...
+  load_error: Falha ao carregar personagens. Por favor, tente novamente.
+  result_success: 'Tesouro entregue a {{name}}.'
+  result_failure: 'Não foi possível entregar o tesouro a {{name}}.'
+  remaining_units: '{{remaining}} restantes para dar'
+  partially_fulfilled: 'Apenas {{acquired}} de {{requested}} estavam disponíveis e foram entregues a {{name}}.'
+give_document_modal:
+  title: Dar Documento
+  pc_tab: PJs
+  npc_tab: PNJs
+  search_placeholder: Buscar personagens...
+  cancel: Cancelar
+  clear: Limpar
+  submit: Enviar
+  already_owned_tooltip: Este personagem já possui este documento
+  remove_character_tooltip: Remove este personagem da lista
+  loading: Carregando personagens...
+  load_error: Falha ao carregar personagens. Por favor, tente novamente.
+  result_success: 'Documento entregue a {{name}}.'
+  result_failure: 'Não foi possível entregar o documento a {{name}}.'
+document_exchange_modal:
+  title: Troca de Documento
+  search_placeholder: Buscar documentos...
+  acquire_tab: Adquirir
+  acquire_tab_tooltip: Adquire uma cópia do documento
+  remove_tab: Remover
+  remove_tab_tooltip: Remove um documento
+  hidden_label: Oculto
+  confirm: Confirmar
+  cancel: Cancelar
+  back: Voltar
+  cancel_selection: Cancelar
+  loading: Carregando documentos...
+  empty: Nenhum documento disponível.
+  load_error: Falha ao carregar documentos. Por favor, tente novamente.
+  already_owned_error: Este documento já foi adquirido.
+  generic_error: Não foi possível concluir esta ação. Por favor, tente novamente.
+game_treasures_page:
+  loading: Carregando tesouros...
+  title: Tesouros
+  treasures: Tesouros
+  new_treasure: Novo Tesouro
+  add_treasure: Adicionar Tesouro
+  edit: Editar
+  available_units_label: 'Disponível: {{available}} / {{max}}'
+  hidden_label: Oculto

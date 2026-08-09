@@ -1,0 +1,11 @@
+stl_model_new_page:
+  title: Novo Modelo STL
+  name_label: Nome
+  tags_label: Tags
+  tags_input_placeholder: Digite uma tag e pressione Enter, ou separe várias com vírgulas
+  add_tag: Adicionar
+  submit: Criar Modelo STL
+  error: Falha ao criar o modelo STL. Tente novamente.
+  photo_upload_failed: Falha ao enviar a foto. O modelo STL foi criado — você pode tentar novamente ou pular por enquanto.
+  retry_photo_upload: Tentar enviar a foto novamente
+  skip_photo_upload: Pular e continuar

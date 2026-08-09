@@ -1,0 +1,7 @@
+staff_user_page:
+  loading: Loading user...
+  title: User
+  name_label: Name
+  email_label: Email
+  edit: Edit
+  error: Failed to load user. Please try again.

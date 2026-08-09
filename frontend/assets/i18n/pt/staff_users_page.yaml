@@ -1,0 +1,23 @@
+staff_users_page:
+  loading: Carregando usuários...
+  title: Usuários
+  name_column: Nome
+  email_column: E-mail
+  display_name_column: Nome de exibição
+  status_column: Status
+  status_pending: Pendente
+  status_approved: Aprovado
+  status_denied: Negado
+  edit: Editar
+  approve: Aprovar
+  deny: Negar
+  generate_link: Gerar link de recuperação
+  copy_link: Copiar link
+  copied: Copiado!
+  link_error: Falha ao gerar link de recuperação. Tente novamente.
+  filter_status_label: Status
+  filter_status_all: Todos
+  filter_search_label: Buscar
+  filter_search_placeholder: Buscar por nome, nome de exibição ou e-mail...
+  filter_query: Filtrar
+  filter_clear: Limpar

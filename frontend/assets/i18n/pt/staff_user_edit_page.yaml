@@ -1,0 +1,6 @@
+staff_user_edit_page:
+  title: Editar Usuário
+  name_label: Nome
+  email_label: E-mail
+  submit: Salvar alterações
+  error: Falha ao salvar usuário. Tente novamente.

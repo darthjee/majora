@@ -1,0 +1,7 @@
+character_treasures_page:
+  loading: Carregando tesouros...
+  title: Tesouros
+  name_column: Nome
+  quantity_column: Quantidade
+  value_column: Valor
+  add_treasure: Trocar Tesouros

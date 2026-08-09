@@ -1,0 +1,20 @@
+game_npc_new_page:
+  title: Novo NPC
+  name_label: Nome
+  role_label: Função
+  description_label: Descrição
+  private_description_label: Notas do Mestre
+  hidden_label: Personagem Oculto
+  incognito_label: Incógnito
+  private_allegiance_label: Aliança
+  public_allegiance_label: Aliança Pública
+  allegiance_ally: Aliado
+  allegiance_enemy: Inimigo
+  allegiance_neutral: Neutro
+  money_label: Dinheiro
+  edit_money_button: Editar dinheiro
+  submit: Criar NPC
+  error: Falha ao criar o personagem. Tente novamente.
+  photo_upload_failed: Falha ao enviar a foto. O NPC foi criado — você pode tentar novamente ou pular por enquanto.
+  retry_photo_upload: Tentar enviar a foto novamente
+  skip_photo_upload: Pular e continuar

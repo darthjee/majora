@@ -1,0 +1,9 @@
+player_page:
+  loading: Carregando jogador...
+  character_label: Personagem
+  player_label: Jogador
+  no_character: Sem personagem
+  no_user: Sem conta vinculada
+  conversations_title: Conversas
+  conversations_loading: Carregando conversas...
+  conversations_empty: Nenhuma conversa compartilhada ainda.

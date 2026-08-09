@@ -1,0 +1,5 @@
+game_items_page:
+  loading: Loading items...
+  title: Items
+  hidden_label: Hidden
+  create_item: Create Item
