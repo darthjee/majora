@@ -7,7 +7,10 @@ from simple_history.models import HistoricalRecords
 class Tag(models.Model):
     """Model representing a deduplicated, global tag a `StlModel` can be labeled with."""
 
-    name = models.CharField(max_length=200, unique=True)
+    #: Shared with `StlModelCreateSerializer.tags` so both can never drift apart.
+    NAME_MAX_LENGTH = 200
+
+    name = models.CharField(max_length=NAME_MAX_LENGTH, unique=True)
     history = HistoricalRecords(app='versioning', user_db_constraint=False)
 
     def __str__(self):

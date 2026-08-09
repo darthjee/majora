@@ -41,5 +41,17 @@ def validate_tags_count(value):
     queries `TagsSync` issues per request.
     """
     if len(value) > MAX_TAGS:
-        raise serializers.ValidationError(f'An STL model may have at most {MAX_TAGS} tags.')
+        raise serializers.ValidationError('max_tags_exceeded', code='max_tags_exceeded')
+    return value
+
+
+def validate_tag_lengths(value):
+    """Raise a 400 when any tag in `value` exceeds `Tag.NAME_MAX_LENGTH`.
+
+    A plain `CharField(max_length=...)` on the `tags` child would instead surface DRF's
+    generic, index-keyed `max_length` code; this keeps the shape consistent with
+    `validate_tags_count`'s flat `tags` error and names the specific field at fault.
+    """
+    if any(len(name) > Tag.NAME_MAX_LENGTH for name in value):
+        raise serializers.ValidationError('tag_name_too_long', code='tag_name_too_long')
     return value

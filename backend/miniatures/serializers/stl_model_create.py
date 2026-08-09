@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from miniatures.models import StlModel
 
-from ._tags_sync import TagsSync, validate_tags_count
+from ._tags_sync import TagsSync, validate_tag_lengths, validate_tags_count
 
 
 class StlModelCreateSerializer(serializers.ModelSerializer):
@@ -14,9 +14,7 @@ class StlModelCreateSerializer(serializers.ModelSerializer):
     created with an empty `sources` list, attached later via a separate feature.
     """
 
-    tags = serializers.ListField(
-        child=serializers.CharField(max_length=200), required=False, default=list,
-    )
+    tags = serializers.ListField(child=serializers.CharField(), required=False, default=list)
 
     class Meta:
         """Metadata for the StlModelCreateSerializer."""
@@ -28,7 +26,8 @@ class StlModelCreateSerializer(serializers.ModelSerializer):
         }
 
     def validate_tags(self, value):
-        """Reject a `tags` list exceeding `MAX_TAGS` entries."""
+        """Reject a `tags` list exceeding `MAX_TAGS` entries or containing an over-long tag."""
+        validate_tag_lengths(value)
         return validate_tags_count(value)
 
     def create(self, validated_data):
