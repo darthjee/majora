@@ -11,13 +11,14 @@ describe('RegisterController', function() {
       setStatus = jasmine.createSpy('setStatus');
       client = jasmine.createSpyObj('client', ['register']);
       spyOn(AuthStorage, 'setToken');
+      spyOn(AuthStorage, 'setCacheToken');
       spyOn(AuthEvents, 'emit');
     });
 
     it('stores the token, emits auth-changed, and redirects home on success', async function() {
       client.register.and.returnValue(Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ username: 'jane', token: 'tok-abc' }),
+        json: () => Promise.resolve({ username: 'jane', token: 'tok-abc', cache_token: 'cache-tok-abc' }),
       }));
 
       const controller = new RegisterController(setStatus, client);
@@ -33,6 +34,7 @@ describe('RegisterController', function() {
         );
         expect(setStatus).toHaveBeenCalledWith('submitting');
         expect(AuthStorage.setToken).toHaveBeenCalledWith('tok-abc');
+        expect(AuthStorage.setCacheToken).toHaveBeenCalledWith('cache-tok-abc');
         expect(AuthEvents.emit).toHaveBeenCalledWith(true);
         expect(setStatus).toHaveBeenCalledWith('success');
         expect(fakeWindow.location.hash).toBe('/');
@@ -53,6 +55,7 @@ describe('RegisterController', function() {
 
       expect(setStatus).toHaveBeenCalledWith('error');
       expect(AuthStorage.setToken).not.toHaveBeenCalled();
+      expect(AuthStorage.setCacheToken).not.toHaveBeenCalled();
     });
 
     it('marks an error when the server omits a message', async function() {

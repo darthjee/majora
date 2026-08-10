@@ -26,9 +26,10 @@ describe('LoginModalController', function() {
     it('stores the token, emits auth:changed, and calls onSuccess on success', async function() {
       spyOn(AuthEvents, 'emit');
       spyOn(AuthStorage, 'setToken');
+      spyOn(AuthStorage, 'setCacheToken');
       client.login.and.returnValue(Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ token: 'tok-123' }),
+        json: () => Promise.resolve({ token: 'tok-123', cache_token: 'cache-tok-123' }),
       }));
 
       const controller = new LoginModalController(
@@ -44,6 +45,7 @@ describe('LoginModalController', function() {
 
       expect(client.login).toHaveBeenCalledWith('majora-user', 'secret');
       expect(AuthStorage.setToken).toHaveBeenCalledWith('tok-123');
+      expect(AuthStorage.setCacheToken).toHaveBeenCalledWith('cache-tok-123');
       expect(setUsername).toHaveBeenCalledWith('');
       expect(setPassword).toHaveBeenCalledWith('');
       expect(setIncorrect).toHaveBeenCalledWith(false);

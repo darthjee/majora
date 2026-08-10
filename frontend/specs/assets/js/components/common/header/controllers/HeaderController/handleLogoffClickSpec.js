@@ -24,12 +24,14 @@ describe('HeaderController', function() {
       spyOn(AuthEvents, 'emit');
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
       spyOn(AuthStorage, 'clearToken');
+      spyOn(AuthStorage, 'clearCacheToken');
       client.logout.and.returnValue(Promise.resolve({ ok: true }));
 
       await controller.handleLogoffClick();
 
       expect(client.logout).toHaveBeenCalledWith('tok-123');
       expect(AuthStorage.clearToken).toHaveBeenCalled();
+      expect(AuthStorage.clearCacheToken).toHaveBeenCalled();
       expect(setLoggedIn).toHaveBeenCalledWith(false);
       expect(AuthEvents.emit).toHaveBeenCalledWith(false);
     });
@@ -38,11 +40,13 @@ describe('HeaderController', function() {
       spyOn(AuthEvents, 'emit');
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
       spyOn(AuthStorage, 'clearToken');
+      spyOn(AuthStorage, 'clearCacheToken');
       client.logout.and.returnValue(Promise.reject(new Error('network')));
 
       await controller.handleLogoffClick();
 
       expect(AuthStorage.clearToken).toHaveBeenCalled();
+      expect(AuthStorage.clearCacheToken).toHaveBeenCalled();
       expect(setLoggedIn).toHaveBeenCalledWith(false);
       expect(AuthEvents.emit).toHaveBeenCalledWith(false);
     });

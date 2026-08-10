@@ -57,6 +57,7 @@ export default class RegisterController {
     const data = await response.json();
 
     AuthStorage.setToken(data.token);
+    AuthStorage.setCacheToken(data.cache_token);
     AuthEvents.emit(true);
     this.setStatus('success');
     this.#redirectHome();
