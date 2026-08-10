@@ -84,6 +84,30 @@ class TestSourceCreateSerializer:
         assert not serializer.is_valid()
         assert 'url' in serializer.errors
 
+    def test_tab_obfuscated_javascript_scheme_url_is_rejected(self):
+        """Test that a `javascript:` scheme url obfuscated with an embedded tab is rejected."""
+        serializer = SourceCreateSerializer(
+            data={'name': 'MyMiniFactory', 'url': 'java\tscript:alert(1)'}
+        )
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors
+
+    def test_newline_obfuscated_javascript_scheme_url_is_rejected(self):
+        """Test that a `javascript:` scheme url obfuscated with an embedded newline is rejected."""
+        serializer = SourceCreateSerializer(
+            data={'name': 'MyMiniFactory', 'url': 'java\nscript:alert(1)'}
+        )
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors
+
+    def test_carriage_return_obfuscated_javascript_scheme_url_is_rejected(self):
+        """Test that a `javascript:` scheme url with an embedded carriage return is rejected."""
+        serializer = SourceCreateSerializer(
+            data={'name': 'MyMiniFactory', 'url': 'java\rscript:alert(1)'}
+        )
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors
+
     def test_bare_domain_url_is_accepted(self):
         """Test that a bare-domain url (no scheme) is still accepted."""
         serializer = SourceCreateSerializer(
