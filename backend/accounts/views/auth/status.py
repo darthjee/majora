@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from accounts.models import UserProfile
+from accounts.models import CacheToken, UserProfile
 
 from ._shared import _authenticate_from_session
 
@@ -57,7 +57,13 @@ def _build_payload(user, profile, token_obj, session_auth):
 
 
 def _build_logged_in_payload(user, profile, token_obj, session_auth):
-    """Build the full logged-in payload for an `approved` `user`."""
+    """Build the full logged-in payload for an `approved` `user`.
+
+    `cache_token` is (re)minted unconditionally, unlike `token` (which is only ever
+    returned for `session_auth`), since a cache token needs to be established on every
+    bootstrap call regardless of which authentication path resolved the user.
+    """
+    cache_token, _ = CacheToken.objects.get_or_create(user=user)
     payload = {
         'logged_in': True,
         'username': user.username,
@@ -65,6 +71,7 @@ def _build_logged_in_payload(user, profile, token_obj, session_auth):
         'is_superuser': user.is_superuser,
         'is_staff': user.is_staff,
         'settings': {'favorite_language': profile.favorite_language},
+        'cache_token': cache_token.key,
     }
     if session_auth:
         payload['token'] = token_obj.key

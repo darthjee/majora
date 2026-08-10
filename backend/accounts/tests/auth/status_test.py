@@ -6,7 +6,7 @@ import pytest
 from django.utils.crypto import get_random_string
 from rest_framework.authtoken.models import Token
 
-from accounts.models import UserProfile
+from accounts.models import CacheToken, UserProfile
 from games.tests.factories import UserFactory, UserProfileFactory
 
 TEST_PASSWORD = get_random_string(20)
@@ -27,7 +27,9 @@ class TestStatusView:
         )
 
         assert response.status_code == 200
-        assert json.loads(response.content) == {
+        data = json.loads(response.content)
+        cache_token = data.pop('cache_token')
+        assert data == {
             'logged_in': True,
             'username': 'alice',
             'user_id': user.id,
@@ -35,6 +37,7 @@ class TestStatusView:
             'is_staff': False,
             'settings': {'favorite_language': 'en'},
         }
+        assert CacheToken.objects.filter(key=cache_token, user=user).exists()
 
     def test_returns_is_superuser_false_for_regular_user(self, client):
         """Test that a non-superuser's status response includes is_superuser false."""
@@ -133,6 +136,34 @@ class TestStatusView:
         assert data['logged_in'] is True
         assert data['username'] == 'alice'
         assert data['token'] == token.key
+
+    def test_includes_cache_token_regardless_of_auth_path(self, client):
+        """Test that cache_token is present even for token (non-session) authentication."""
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
+        token = Token.objects.create(user=user)
+
+        response = client.get(
+            '/users/status.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert CacheToken.objects.filter(key=data['cache_token'], user=user).exists()
+
+    def test_repeated_status_calls_return_the_same_cache_token(self, client):
+        """Test that a second status call in the same session reuses the same cache_token."""
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
+        token = Token.objects.create(user=user)
+        session = client.session
+        session['auth_token'] = token.key
+        session.save()
+
+        first = json.loads(client.get('/users/status.json').content)
+        second = json.loads(client.get('/users/status.json').content)
+
+        assert first['cache_token'] == second['cache_token']
+        assert CacheToken.objects.filter(user=user).count() == 1
 
     def test_returns_logged_out_for_stale_session_token(self, client):
         """Test that a session referencing a deleted token returns logged_in false."""

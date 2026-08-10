@@ -1,9 +1,12 @@
 """Tests for the logout endpoint."""
 
+import json
+
 import pytest
 from django.utils.crypto import get_random_string
 from rest_framework.authtoken.models import Token
 
+from accounts.models import CacheToken
 from games.tests.factories import UserFactory
 from statistics import cookies
 
@@ -26,6 +29,43 @@ class TestLogoutView:
 
         assert response.status_code == 204
         assert not Token.objects.filter(user=user).exists()
+
+    def test_revokes_cache_token(self, client):
+        """Test that logout deletes the user's cache token."""
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
+        token = Token.objects.create(user=user)
+        CacheToken.objects.create(user=user)
+
+        response = client.delete(
+            '/users/logout.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        assert response.status_code == 204
+        assert not CacheToken.objects.filter(user=user).exists()
+
+    def test_subsequent_login_mints_a_fresh_cache_token_after_logout(self, client):
+        """Test that logging back in after logout mints a brand-new cache token."""
+        UserFactory(username='alice', password=TEST_PASSWORD)
+        first_login = json.loads(client.post(
+            '/users/login.json',
+            data=json.dumps({'username': 'alice', 'password': TEST_PASSWORD}),
+            content_type='application/json',
+        ).content)
+
+        client.delete(
+            '/users/logout.json',
+            HTTP_AUTHORIZATION=f'Token {first_login["token"]}',
+        )
+
+        second_login = json.loads(client.post(
+            '/users/login.json',
+            data=json.dumps({'username': 'alice', 'password': TEST_PASSWORD}),
+            content_type='application/json',
+        ).content)
+
+        assert second_login['cache_token'] != first_login['cache_token']
+        assert CacheToken.objects.filter(user__username='alice').count() == 1
 
     def test_requires_authentication(self, client):
         """Test that logout without a token is rejected."""
