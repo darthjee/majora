@@ -51,3 +51,47 @@ class TestSourceCreateSerializer:
         serializer.is_valid()
         source = serializer.save()
         assert source.url == ''
+
+    def test_javascript_scheme_url_is_rejected(self):
+        """Test that a `javascript:` scheme url is rejected."""
+        serializer = SourceCreateSerializer(
+            data={'name': 'MyMiniFactory', 'url': 'javascript:alert(1)'}
+        )
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors
+
+    def test_data_scheme_url_is_rejected(self):
+        """Test that a `data:` scheme url is rejected."""
+        serializer = SourceCreateSerializer(
+            data={'name': 'MyMiniFactory', 'url': 'data:text/html,<script>alert(1)</script>'}
+        )
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors
+
+    def test_vbscript_scheme_url_is_rejected(self):
+        """Test that a `vbscript:` scheme url is rejected."""
+        serializer = SourceCreateSerializer(
+            data={'name': 'MyMiniFactory', 'url': 'vbscript:msgbox(1)'}
+        )
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors
+
+    def test_dangerous_scheme_url_rejected_case_insensitively_with_whitespace(self):
+        """Test that a dangerous scheme is rejected regardless of case or surrounding spaces."""
+        serializer = SourceCreateSerializer(
+            data={'name': 'MyMiniFactory', 'url': '  JavaScript:alert(1)  '}
+        )
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors
+
+    def test_bare_domain_url_is_accepted(self):
+        """Test that a bare-domain url (no scheme) is still accepted."""
+        serializer = SourceCreateSerializer(
+            data={'name': 'MyMiniFactory', 'url': 'mymminifactory.com'}
+        )
+        assert serializer.is_valid()
+
+    def test_blank_url_is_accepted(self):
+        """Test that a blank url is still accepted."""
+        serializer = SourceCreateSerializer(data={'name': 'MyMiniFactory', 'url': ''})
+        assert serializer.is_valid()
