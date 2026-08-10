@@ -31,6 +31,9 @@ resources:
         - resource: game_items
           parameters:
             slug: parsedBody.game_slug
+        - resource: game_photos
+          parameters:
+            slug: parsedBody.game_slug
         - resource: game_documents
           parameters:
             slug: parsedBody.game_slug
@@ -147,6 +150,22 @@ resources:
 
   game_item_detail:
     - url: /games/{:slug}/items/{:id}.json
+      status: 200
+
+  game_photos:
+    - url: /games/{:slug}/photos.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_photos
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
+
+  paginated_game_photos:
+    - url: /games/{:slug}/photos.json?page={:page}&per_page={:per_page}
       status: 200
 
   game_documents:
