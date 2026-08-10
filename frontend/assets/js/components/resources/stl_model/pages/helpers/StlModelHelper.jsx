@@ -34,7 +34,7 @@ export default class StlModelHelper {
   static render(stlModel, isStaffOrSuperUser, handlers) {
     return (
       <div className="container mt-4">
-        <BackButton href="#/stl_models" />
+        <BackButton href="#/miniatures/stl_models" />
         <div className="row mt-3">
           <div className="col-md-4">
             <ActionsOverlay

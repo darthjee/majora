@@ -35,7 +35,7 @@ describe('listTypeConfig', function() {
       it('links to the STL model detail page', function() {
         const item = new StlModelListItem(buildStlModel({ id: 7 }));
 
-        expect(stlModels.buildItemHref(item)).toBe('#/stl_models/7');
+        expect(stlModels.buildItemHref(item)).toBe('#/miniatures/stl_models/7');
       });
     });
 

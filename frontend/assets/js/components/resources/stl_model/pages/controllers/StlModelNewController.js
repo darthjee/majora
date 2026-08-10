@@ -7,14 +7,16 @@ import UploadClient from '../../../../../client/UploadClient.js';
 import Noop from '../../../../../utils/Noop.js';
 
 /**
- * Controller for the STL model creation page.
+ * Controller for the "New STL model" modal (`StlModelNewModal.jsx`).
  *
- * @description Mirrors `TreasureNewController`'s staff/superuser page-level gate combined with
- *   `GameNpcNewController`'s deferred-photo-upload flow: the STL model is created first (name +
- *   tags, no photo), then — if a photo was picked — a second saga step uploads it against the
- *   newly created id, mirroring `GameNpcNewController#retryPhotoUpload`/`#failPhotoUpload`. Unlike
- *   `GameNpcNewController`, there is no `gameSlug` param at all: `stlModel`'s `resourceConfig`
- *   entries only need `id`.
+ * @description Mirrors `GameNpcNewController`'s deferred-photo-upload flow: the STL model is
+ *   created first (name + tags, no photo), then — if a photo was picked — a second saga step
+ *   uploads it against the newly created id, mirroring `GameNpcNewController#retryPhotoUpload`/
+ *   `#failPhotoUpload`. Unlike the former standalone `/stl_models/new` page, there is no page-mount
+ *   redirect gate here — the modal is only reachable through a button `StlModelsHelper` already
+ *   renders exclusively for staff/superuser viewers — and every terminal success calls the
+ *   caller-supplied `onSuccess` (via `setters.onSuccess`) instead of navigating to the new
+ *   record's show page, so the modal/page decides what "success" means.
  */
 export default class StlModelNewController extends BasePageController {
   /**
@@ -33,37 +35,22 @@ export default class StlModelNewController extends BasePageController {
   }
 
   /**
-   * Build the page mount effect.
-   *
-   * @description Returns a callback that checks whether the current user is
-   *   staff or a superuser and redirects to the home page when they are not.
-   * @returns {Function} Effect callback.
-   */
-  buildEffect() {
-    return () => {
-      AccessStore.ensureStaffOrSuperUser().then((isStaffOrSuperUser) => {
-        if (!isStaffOrSuperUser) {
-          if (typeof window !== 'undefined') {
-            window.location.hash = '/';
-          }
-        }
-      });
-    };
-  }
-
-  /**
    * Submit the new STL model form.
    *
    * @description Prevents the default form submission, resets status and field errors, sends a
    *   POST request through {@link RequestStore.mutate} (so the STL model collection's cached
-   *   `GET` data is purged on success), then on success redirects immediately when no photo was
-   *   picked, or runs the photo upload saga step first when `formValues.photoFile` is set. On a
-   *   400 response, sets field errors. On any other failure, sets the general error status.
+   *   `GET` data is purged on success), then on success calls `setters.onSuccess` immediately when
+   *   no photo was picked, or runs the photo upload saga step first when `formValues.photoFile` is
+   *   set. On a 400 response, sets field errors. On any other failure, sets the general error
+   *   status. `AccessStore.ensureStaffOrSuperUser()` is re-checked here as a defensive guard (the
+   *   modal is only reachable through a button already gated on this same check) — on failure, the
+   *   general error status is set instead of navigating away.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {{name: string, tags: string[], photoFile: File|null}} formValues - Raw form field
    *   values.
-   * @param {{setStatus: Function, setFieldErrors: Function, setCreatedId: Function}} setters - Page
-   *   state setters.
+   * @param {{setStatus: Function, setFieldErrors: Function, setCreatedId: Function,
+   *   onSuccess: Function}} setters - Page state setters; `onSuccess` is called (with the created
+   *   STL model id) once creation, and its photo upload if any, has fully succeeded.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
   async submitForm(event, formValues, setters) {
@@ -77,9 +64,7 @@ export default class StlModelNewController extends BasePageController {
     const isStaffOrSuperUser = await AccessStore.ensureStaffOrSuperUser();
 
     if (!isStaffOrSuperUser) {
-      if (typeof window !== 'undefined') {
-        window.location.hash = '/';
-      }
+      setters.setStatus('error');
       return;
     }
 
@@ -98,7 +83,8 @@ export default class StlModelNewController extends BasePageController {
    *   photo-upload-failed UI state.
    * @param {number|string} stlModelId - Already-created STL model id.
    * @param {File} photoFile - Photo file to upload.
-   * @param {{setStatus: Function, setCreatedId: Function}} setters - Page state setters.
+   * @param {{setStatus: Function, setCreatedId: Function, onSuccess: Function}} setters - Page
+   *   state setters.
    * @returns {Promise<void>} Resolves when the retry handling finishes.
    */
   retryPhotoUpload(stlModelId, photoFile, setters) {
@@ -130,7 +116,7 @@ export default class StlModelNewController extends BasePageController {
         return;
       }
 
-      this.#redirectToStlModel(data.id);
+      setters.onSuccess(data.id);
       return;
     }
 
@@ -153,10 +139,10 @@ export default class StlModelNewController extends BasePageController {
     const ok = await this.photoUploadSaga.upload(uploadPath, photoFile, token);
 
     if (ok) {
-      // Purge before redirecting, so the STL model show page's own `RequestStore.ensure` GET
-      // (triggered by the redirect) doesn't re-serve the pre-upload cached STL model.
+      // Purge before calling onSuccess, so the reloaded list's own `RequestStore.ensure` GET
+      // doesn't re-serve the pre-upload cached STL model.
       RequestStore.purge({ resource: 'stlModel' });
-      this.#redirectToStlModel(stlModelId);
+      setters.onSuccess(stlModelId);
       return;
     }
 
@@ -166,11 +152,5 @@ export default class StlModelNewController extends BasePageController {
   #failPhotoUpload(stlModelId, setters) {
     setters.setCreatedId(stlModelId);
     setters.setStatus('photo-upload-failed');
-  }
-
-  #redirectToStlModel(stlModelId) {
-    if (typeof window !== 'undefined') {
-      window.location.hash = `/stl_models/${stlModelId}`;
-    }
   }
 }

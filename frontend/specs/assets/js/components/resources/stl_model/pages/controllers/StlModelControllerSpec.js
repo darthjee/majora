@@ -13,14 +13,14 @@ describe('StlModelController', function() {
   });
 
   it('extracts STL model id from hash', function() {
-    expect(StlModelController.getStlModelIdFromHash('#/stl_models/42')).toBe('42');
+    expect(StlModelController.getStlModelIdFromHash('#/miniatures/stl_models/42')).toBe('42');
   });
 
   it('fetches STL model detail through RequestStore', async function() {
     const setStlModel = jasmine.createSpy('setStlModel');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
-    const fakeWindow = { location: { hash: '#/stl_models/1' } };
+    const fakeWindow = { location: { hash: '#/miniatures/stl_models/1' } };
     globalThis.window = fakeWindow;
 
     try {
@@ -47,7 +47,7 @@ describe('StlModelController', function() {
     const setStlModel = jasmine.createSpy('setStlModel');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
-    const fakeWindow = { location: { hash: '#/stl_models/1' } };
+    const fakeWindow = { location: { hash: '#/miniatures/stl_models/1' } };
     globalThis.window = fakeWindow;
 
     ensureSpy.and.returnValue(Promise.reject(new Error('network error')));
@@ -71,7 +71,7 @@ describe('StlModelController', function() {
     const setStlModel = jasmine.createSpy('setStlModel');
     const setLoading = jasmine.createSpy('setLoading');
     const setError = jasmine.createSpy('setError');
-    const fakeWindow = { location: { hash: '#/stl_models' } };
+    const fakeWindow = { location: { hash: '#/miniatures/stl_models' } };
     globalThis.window = fakeWindow;
 
     try {

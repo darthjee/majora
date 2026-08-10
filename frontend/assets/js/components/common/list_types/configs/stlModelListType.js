@@ -51,7 +51,7 @@ function buildEmptyInfoBarItems() {
  * @returns {string} Hash path to the STL model detail page.
  */
 function buildItemHref(item) {
-  return `#/stl_models/${item.data.id}`;
+  return `#/miniatures/stl_models/${item.data.id}`;
 }
 
 /**
