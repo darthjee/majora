@@ -6,20 +6,26 @@ from rest_framework import serializers
 
 from miniatures.models import Source
 
-#: URL schemes rejected on `url`, case-insensitively, regardless of surrounding whitespace.
+#: URL schemes allowed on `url`.
 #:
 #: `Source.url` is intentionally a free-text `CharField` with no full URL-format validation
 #: (see the issue #1053 design), but the frontend renders it directly as an `<a href=...>`, so
-#: dangerous schemes must still be denylisted to prevent stored-XSS-via-href.
-DANGEROUS_URL_SCHEMES = ('javascript:', 'data:', 'vbscript:')
+#: only known-safe schemes are allowed through, mirroring the http/https convention used by
+#: `games.models.base_link.BaseLink.url` for external links. Values with no scheme at all
+#: (bare domains, relative paths, plain text) are left untouched.
+ALLOWED_URL_SCHEMES = {'http', 'https'}
 
-#: Matches ASCII tab, newline and carriage-return characters anywhere in the string.
+#: Matches ASCII C0 control characters (`\x00`-`\x1f`) and the space character, anywhere in
+#: the string.
 #:
 #: Per the WHATWG URL spec, browsers strip these characters from anywhere in a URL before
-#: parsing it, so they must be stripped here too before the scheme denylist check, otherwise
-#: a payload such as `"java\tscript:alert(1)"` would bypass `startswith` while still being
-#: normalized and executed as `javascript:alert(1)` by the browser.
-_CONTROL_CHARS_RE = re.compile(r'[\t\r\n]')
+#: parsing it, so they must be stripped here too before inspecting the scheme, otherwise a
+#: payload such as `"\x01javascript:alert(1)"` or `"java\tscript:alert(1)"` would evade
+#: detection while still being normalized and executed by the browser.
+_CONTROL_CHARS_RE = re.compile(r'[\x00-\x20]')
+
+#: Matches a URI scheme prefix per the standard scheme grammar (e.g. `https:`, `javascript:`).
+_SCHEME_RE = re.compile(r'^([a-z][a-z0-9+.\-]*):')
 
 
 class SourceCreateSerializer(serializers.ModelSerializer):
@@ -36,9 +42,10 @@ class SourceCreateSerializer(serializers.ModelSerializer):
         }
 
     def validate_url(self, value):
-        """Reject `url` values using a dangerous scheme (e.g. `javascript:`), case-insensitive."""
-        normalized = _CONTROL_CHARS_RE.sub('', value).strip().lower()
-        if normalized.startswith(DANGEROUS_URL_SCHEMES):
+        """Reject `url` values whose scheme, if any, is not in the allowlist."""
+        normalized = _CONTROL_CHARS_RE.sub('', value).lower()
+        match = _SCHEME_RE.match(normalized)
+        if match and match.group(1) not in ALLOWED_URL_SCHEMES:
             raise serializers.ValidationError(
                 'url_scheme_not_allowed', code='url_scheme_not_allowed',
             )

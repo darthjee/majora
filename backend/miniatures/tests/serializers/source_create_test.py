@@ -115,7 +115,44 @@ class TestSourceCreateSerializer:
         )
         assert serializer.is_valid()
 
+    def test_relative_path_url_is_accepted(self):
+        """Test that a relative-path-like url (no scheme) is still accepted."""
+        serializer = SourceCreateSerializer(
+            data={'name': 'MyMiniFactory', 'url': '/some/relative/path'}
+        )
+        assert serializer.is_valid()
+
     def test_blank_url_is_accepted(self):
         """Test that a blank url is still accepted."""
         serializer = SourceCreateSerializer(data={'name': 'MyMiniFactory', 'url': ''})
         assert serializer.is_valid()
+
+    def test_http_scheme_url_is_accepted(self):
+        """Test that a legitimate `http:` scheme url is accepted."""
+        serializer = SourceCreateSerializer(
+            data={'name': 'MyMiniFactory', 'url': 'http://example.com'}
+        )
+        assert serializer.is_valid()
+
+    def test_https_scheme_url_is_accepted(self):
+        """Test that a legitimate `https:` scheme url is accepted."""
+        serializer = SourceCreateSerializer(
+            data={'name': 'MyMiniFactory', 'url': 'https://example.com'}
+        )
+        assert serializer.is_valid()
+
+    def test_control_char_prefixed_javascript_scheme_url_is_rejected(self):
+        """Test that a `javascript:` scheme url prefixed with a C0 control char is rejected."""
+        serializer = SourceCreateSerializer(
+            data={'name': 'MyMiniFactory', 'url': '\x01javascript:alert(1)'}
+        )
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors
+
+    def test_null_byte_prefixed_javascript_scheme_url_is_rejected(self):
+        """Test that a `javascript:` scheme url prefixed with a null byte is rejected."""
+        serializer = SourceCreateSerializer(
+            data={'name': 'MyMiniFactory', 'url': '\x00javascript:alert(1)'}
+        )
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors
