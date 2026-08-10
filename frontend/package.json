@@ -7,8 +7,8 @@
   "scripts": {
     "build": "vite build",
     "server": "vite dev --host 0.0.0.0 --port 8080",
-    "test": "NODE_OPTIONS='--loader ./specs/support/jsx-loader.mjs' nyc npx jasmine \"specs/**/*[sS]pec.js\"",
-    "coverage": "NODE_OPTIONS='--loader ./specs/support/jsx-loader.mjs' npx c8 --reporter=lcov jasmine \"specs/**/*[sS]pec.js\"",
+    "test": "NODE_OPTIONS='--loader ./specs/support/jsx-loader.mjs' nyc npx jasmine --helper=specs/support/preloadTranslations.js \"specs/**/*[sS]pec.js\"",
+    "coverage": "NODE_OPTIONS='--loader ./specs/support/jsx-loader.mjs' npx c8 --reporter=lcov jasmine --helper=specs/support/preloadTranslations.js \"specs/**/*[sS]pec.js\"",
     "lint": "eslint assets specs",
     "lint_fix": "eslint assets specs --fix",
     "check_i18n": "node scripts/check_i18n.js"
