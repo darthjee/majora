@@ -18,6 +18,7 @@ require_once __DIR__ . '/rules/uploads.php';
 require_once __DIR__ . '/rules/delete.php';
 require_once __DIR__ . '/../extension/lib/configuration/cache_cleanup/cache_cleanup_map.php';
 require_once __DIR__ . '/rules/cache.php';
+require_once __DIR__ . '/rules/private_cache.php';
 require_once __DIR__ . '/rules/backend.php';
 require_once __DIR__ . '/rules/admin.php';
 require_once __DIR__ . '/rules/redirects.php';

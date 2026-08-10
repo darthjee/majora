@@ -5,3 +5,9 @@ $photosPath = '/var/www/html';
 $filesPath = '/var/www/html';
 $staticRoot = '/home/moria_user/moria.ffavs.net';
 $cacheFolder = './cache';
+// Pilot: private (per-caller) response caching for restricted endpoints
+// (issue #949). Conservative default is false — flip to true only after
+// verifying the mechanism in dev. This value is NOT read from this sample
+// file: prod_configuration/locals.php itself is gitignored/untracked, so
+// it must be set manually on the real production server after deploy.
+$privateCacheEnabled = false;
