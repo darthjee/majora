@@ -384,6 +384,20 @@ describe('resourceConfig', function() {
     });
   });
 
+  describe('source', function() {
+    it('has no separate private endpoint for collection or single', function() {
+      const collection = resourceConfig.get('GET', 'source', 'collection');
+      const single = resourceConfig.get('GET', 'source', 'single');
+
+      expect(collection.regular).toBe(collection.private);
+      expect(single.regular).toBe(single.private);
+      expect(collection.regular.path()).toBe('/miniatures/sources.json');
+      expect(collection.regular.permission).toBeNull();
+      expect(single.regular.path({ id: '42' })).toBe('/miniatures/sources/42.json');
+      expect(single.regular.permission).toBeNull();
+    });
+  });
+
   it('returns null for an unknown resource/method/quantity-type combination', function() {
     expect(resourceConfig.get('GET', 'unknown', 'collection')).toBeNull();
     expect(resourceConfig.get('PUT', 'game', 'collection')).toBeNull();

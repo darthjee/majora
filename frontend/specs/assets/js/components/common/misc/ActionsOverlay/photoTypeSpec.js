@@ -87,4 +87,18 @@ describe('ActionsOverlay', function() {
 
     expect(html).toContain('default_stl_model.png');
   });
+
+  it('renders a CardSourceImage when type is source', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(ActionsOverlay, {
+        type: 'source',
+        url: null,
+        alt: 'MyMiniFactory',
+        canEdit: true,
+        onClick: Noop.noop,
+      })
+    );
+
+    expect(html).toContain('default_source.png');
+  });
 });

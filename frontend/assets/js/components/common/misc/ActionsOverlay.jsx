@@ -5,6 +5,7 @@ import CardTreasureImage from '../cards/CardTreasureImage.jsx';
 import CardItemImage from '../cards/CardItemImage.jsx';
 import CardDocumentImage from '../cards/CardDocumentImage.jsx';
 import CardStlModelImage from '../cards/CardStlModelImage.jsx';
+import CardSourceImage from '../cards/CardSourceImage.jsx';
 import ActionBar from './ActionBar.jsx';
 import InfoBar from './InfoBar.jsx';
 
@@ -14,6 +15,7 @@ const PHOTO_COMPONENTS = {
   item: CardItemImage,
   document: CardDocumentImage,
   stl_model: CardStlModelImage,
+  source: CardSourceImage,
 };
 
 /**
@@ -24,11 +26,11 @@ const PHOTO_COMPONENTS = {
  *   delegates the upload button and any secondary overlay action buttons
  *   (e.g. Slain/Revive) to {@link ActionBar}.
  * @param {object} props - Component props.
- * @param {'photo'|'avatar'|'treasure'|'item'|'document'|'stl_model'} [props.type] - Which
+ * @param {'photo'|'avatar'|'treasure'|'item'|'document'|'stl_model'|'source'} [props.type] - Which
  *   underlying image component to render: `'avatar'` uses {@link CardAvatar}, `'treasure'` uses
  *   {@link CardTreasureImage}, `'item'` uses {@link CardItemImage}, `'document'` uses
- *   {@link CardDocumentImage}, `'stl_model'` uses {@link CardStlModelImage}, anything else
- *   (default) uses {@link CardPhoto}.
+ *   {@link CardDocumentImage}, `'stl_model'` uses {@link CardStlModelImage}, `'source'` uses
+ *   {@link CardSourceImage}, anything else (default) uses {@link CardPhoto}.
  * @param {string|null} [props.url] - Image URL, or null/undefined to use the default photo.
  * @param {string} props.alt - Alt text for the image.
  * @param {boolean} [props.canEdit] - Whether the current user may upload a new photo.
