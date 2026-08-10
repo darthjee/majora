@@ -1,5 +1,6 @@
 import AppController from '../../../../assets/js/components/AppController.js';
 import LanguageEvents from '../../../../assets/js/i18n/LanguageEvents.js';
+import TranslationEvents from '../../../../assets/js/i18n/TranslationEvents.js';
 import AuthEvents from '../../../../assets/js/utils/auth/AuthEvents.js';
 import AccessStore from '../../../../assets/js/utils/access/store/AccessStore.js';
 import AccessRouteConfigStore from '../../../../assets/js/utils/access/AccessRouteConfigStore.js';
@@ -76,6 +77,25 @@ describe('AppController', function() {
     expect(LanguageEvents.unsubscribe).toHaveBeenCalledWith(handler);
   });
 
+  it('bumps loadVersion on a translation chunk load and unsubscribes on cleanup', function() {
+    const setLoadVersion = jasmine.createSpy('setLoadVersion');
+    const eventTarget = jasmine.createSpyObj('eventTarget', ['addEventListener', 'removeEventListener']);
+    spyOn(TranslationEvents, 'subscribe');
+    spyOn(TranslationEvents, 'unsubscribe');
+
+    const controller = new AppController(Noop.noop, eventTarget, () => '#/games', null, null, setLoadVersion);
+    const cleanup = controller.buildEffect()();
+
+    const handler = TranslationEvents.subscribe.calls.mostRecent().args[0];
+    handler();
+
+    expect(setLoadVersion).toHaveBeenCalledWith(jasmine.any(Function));
+    expect(setLoadVersion.calls.mostRecent().args[0](1)).toBe(2);
+
+    cleanup();
+    expect(TranslationEvents.unsubscribe).toHaveBeenCalledWith(handler);
+  });
+
   it('syncs access state on auth change and unsubscribes on cleanup', function() {
     const eventTarget = jasmine.createSpyObj('eventTarget', ['addEventListener', 'removeEventListener']);
     spyOn(AuthEvents, 'subscribe');
@@ -98,6 +118,12 @@ describe('AppController', function() {
       const eventTarget = jasmine.createSpyObj('eventTarget', ['addEventListener', 'removeEventListener']);
       const controller = new AppController(Noop.noop, eventTarget, () => '#/games');
       expect(() => controller.renderPage('games', '#/games', 'en')).not.toThrow();
+    });
+
+    it('passes the load version through to AppHelper', function() {
+      const eventTarget = jasmine.createSpyObj('eventTarget', ['addEventListener', 'removeEventListener']);
+      const controller = new AppController(Noop.noop, eventTarget, () => '#/games');
+      expect(() => controller.renderPage('games', '#/games', 'en', 3)).not.toThrow();
     });
   });
 });

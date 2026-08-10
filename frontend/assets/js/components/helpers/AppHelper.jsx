@@ -151,13 +151,14 @@ export default class AppHelper {
    * @param {string} page - Page key.
    * @param {string} hash - Current hash.
    * @param {string} [lang] - Current language code.
+   * @param {number} [loadVersion] - Counter bumped on each translation chunk load.
    * @returns {React.ReactElement} App element tree.
    */
-  static render(page, hash = '', lang = '') {
+  static render(page, hash = '', lang = '', loadVersion = 0) {
     return (
       <div className="app">
         <Header>
-          <React.Fragment key={`${hash}:${lang}`}>
+          <React.Fragment key={`${hash}:${lang}:${loadVersion}`}>
             {PAGES[page] ?? PAGES.home}
           </React.Fragment>
         </Header>

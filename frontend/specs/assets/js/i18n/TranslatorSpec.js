@@ -1,4 +1,19 @@
 import Translator from '../../../../assets/js/i18n/Translator.js';
+import * as en from '../../../../assets/i18n/en/index.js';
+
+const waitUntil = (predicate) => new Promise((resolve) => {
+  const poll = () => {
+    if (predicate()) {
+      resolve();
+
+      return;
+    }
+
+    setTimeout(poll, 0);
+  };
+
+  poll();
+});
 
 describe('Translator', function() {
   afterEach(function() {
@@ -16,6 +31,22 @@ describe('Translator', function() {
 
     it('returns the given fallback when the key is missing', function() {
       expect(Translator.t('missing.key', 'fallback value')).toBe('fallback value');
+    });
+
+    // Registers a disposable, fictional namespace directly on `en`'s
+    // (mutable) `chunkLoaders` manifest, so this exercises the genuine lazy
+    // path against a chunk `TranslationLoader` has never seen before: a miss
+    // returns the fallback and triggers a background load, which resolves
+    // the key once the underlying dynamic import settles.
+    it('returns the fallback on first call and resolves once the chunk loads', async function() {
+      const namespace = 'translator_spec_lazy_namespace';
+      en.chunkLoaders[namespace] = () => Promise.resolve({ default: `${namespace}:\n  greeting: Hello\n` });
+
+      expect(Translator.t(`${namespace}.greeting`, 'fallback greeting')).toBe('fallback greeting');
+
+      await waitUntil(() => Translator.t(`${namespace}.greeting`, 'fallback greeting') !== 'fallback greeting');
+
+      expect(Translator.t(`${namespace}.greeting`)).toBe('Hello');
     });
   });
 

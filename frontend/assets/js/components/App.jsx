@@ -13,6 +13,7 @@ export default function App() {
   const [page, setPage] = useState('home');
   const [hash, setHash] = useState(getCurrentHash);
   const [lang, setLang] = useState(() => Translator.getLanguage());
+  const [loadVersion, setLoadVersion] = useState(0);
 
   const controller = useMemo(() => {
     const defaultTarget = {
@@ -22,7 +23,7 @@ export default function App() {
 
     const eventTarget = typeof window === 'undefined' ? defaultTarget : window;
 
-    return new AppController(setPage, eventTarget, getCurrentHash, setHash, setLang);
+    return new AppController(setPage, eventTarget, getCurrentHash, setHash, setLang, setLoadVersion);
   }, []);
 
   useEffect(() => {
@@ -31,5 +32,5 @@ export default function App() {
     return effect();
   }, [controller]);
 
-  return controller.renderPage(page, hash, lang);
+  return controller.renderPage(page, hash, lang, loadVersion);
 }
