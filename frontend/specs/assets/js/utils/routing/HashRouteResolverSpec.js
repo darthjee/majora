@@ -53,6 +53,16 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/players/7').getPage()).toBe('gamePlayer');
     expect(new HashRouteResolver(() => '#/miniatures/stl_models').getPage()).toBe('stlModels');
     expect(new HashRouteResolver(() => '#/miniatures/stl_models/7').getPage()).toBe('stlModel');
+    expect(new HashRouteResolver(() => '#/miniatures/sources').getPage()).toBe('sources');
+    expect(new HashRouteResolver(() => '#/miniatures/sources/7').getPage()).toBe('source');
+  });
+
+  it('resolves /miniatures/sources/:id to source, not sources', function() {
+    expect(new HashRouteResolver(() => '#/miniatures/sources/7').getPage()).toBe('source');
+  });
+
+  it('still resolves /miniatures/sources to sources', function() {
+    expect(new HashRouteResolver(() => '#/miniatures/sources').getPage()).toBe('sources');
   });
 
   it('resolves /miniatures/stl_models/:id to stlModel, not stlModels', function() {

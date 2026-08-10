@@ -13,6 +13,7 @@ import gameDocumentFileConfig from './config/gameDocumentFileConfig.js';
 import characterDocumentFileConfig from './config/characterDocumentFileConfig.js';
 import characterDocumentPhotoConfig from './config/characterDocumentPhotoConfig.js';
 import stlModelConfig from './config/stlModelConfig.js';
+import sourceConfig from './config/sourceConfig.js';
 
 const RESOURCES = {
   game: gameConfig,
@@ -30,6 +31,7 @@ const RESOURCES = {
   characterDocumentFile: characterDocumentFileConfig,
   characterDocumentPhoto: characterDocumentPhotoConfig,
   stlModel: stlModelConfig,
+  source: sourceConfig,
 };
 
 /**
@@ -55,7 +57,8 @@ export default {
    * @param {string} method - HTTP method (e.g. `'GET'`, `'POST'`, `'PATCH'`, `'PUT'`).
    * @param {string} resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'treasure'`,
    *   `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`, `'gameDocumentPhoto'`,
-   *   `'gameDocumentFile'`, `'characterDocumentFile'`, `'characterDocumentPhoto'`, `'stlModel'`).
+   *   `'gameDocumentFile'`, `'characterDocumentFile'`, `'characterDocumentPhoto'`, `'stlModel'`,
+   *   `'source'`).
    * @param {string} quantityType - `'collection'`, `'single'`, or a resource-specific key.
    * @returns {{regular: object, private: object}|null} The config entry, or `null` when no
    *   configuration exists for the given method/resource/quantity-type combination.

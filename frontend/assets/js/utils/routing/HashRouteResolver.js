@@ -10,6 +10,8 @@ import getCurrentHash from './currentHash.js';
 const ROUTES = [
   ['/miniatures/stl_models/:id', 'stlModel'],
   ['/miniatures/stl_models', 'stlModels'],
+  ['/miniatures/sources/:id', 'source'],
+  ['/miniatures/sources', 'sources'],
   ['/treasures/new', 'treasureNew'],
   ['/treasures/:id/edit', 'treasureEdit'],
   ['/treasures/:id', 'treasure'],
