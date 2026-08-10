@@ -58,7 +58,9 @@ regardless of any other rule listed below.
   `GET /my-games.json` (aggregate counts) and `GET /games/:game_slug/conversations.json`
   (id/title list)
 - [StlModel](access-control/stl-model.md) — `StlModel`, `StlModelLink`, `StlModelPhoto`,
-  `Source`, `Tag` (`miniatures` app); a cross-domain, login-only STL/miniature catalog
+  `Tag` (`miniatures` app); a cross-domain, login-only STL/miniature catalog
+- [Source](access-control/source.md) — `Source`, `SourcePhoto` (`miniatures` app); a cross-domain,
+  login-only catalog of STL sites/publishers
 
 ### Standalone endpoints
 
