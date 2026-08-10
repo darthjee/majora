@@ -8,9 +8,8 @@ import getCurrentHash from './currentHash.js';
  * @type {Array<Array<string>>}
  */
 const ROUTES = [
-  ['/stl_models/new', 'stlModelNew'],
-  ['/stl_models/:id', 'stlModel'],
-  ['/stl_models', 'stlModels'],
+  ['/miniatures/stl_models/:id', 'stlModel'],
+  ['/miniatures/stl_models', 'stlModels'],
   ['/treasures/new', 'treasureNew'],
   ['/treasures/:id/edit', 'treasureEdit'],
   ['/treasures/:id', 'treasure'],

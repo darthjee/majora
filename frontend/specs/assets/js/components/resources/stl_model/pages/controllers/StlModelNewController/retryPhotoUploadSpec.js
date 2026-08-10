@@ -11,12 +11,14 @@ describe('StlModelNewController', function() {
   describe('#retryPhotoUpload', function() {
     let setStatus;
     let setCreatedId;
+    let onSuccess;
     let uploadClient;
     const photoFile = { name: 'photo.jpg' };
 
     beforeEach(function() {
       setStatus = jasmine.createSpy('setStatus');
       setCreatedId = jasmine.createSpy('setCreatedId');
+      onSuccess = jasmine.createSpy('onSuccess');
       uploadClient = jasmine.createSpyObj('uploadClient', ['initUpload', 'submitUpload']);
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
       spyOn(RequestStore, 'resolvePath').and.returnValue(
@@ -25,7 +27,7 @@ describe('StlModelNewController', function() {
       spyOn(RequestStore, 'purge');
     });
 
-    it('re-runs the upload-only path and redirects on success, without creating a new STL model', async function() {
+    it('re-runs the upload-only path and calls onSuccess on success, without creating a new STL model', async function() {
       uploadClient.initUpload.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ upload_id: 1, token: 'up-token' }),
@@ -34,43 +36,31 @@ describe('StlModelNewController', function() {
       spyOn(RequestStore, 'mutate');
 
       const controller = new StlModelNewController(null, null, uploadClient);
-      const fakeWindow = { location: { hash: '' } };
-      globalThis.window = fakeWindow;
 
-      try {
-        await controller.retryPhotoUpload(7, photoFile, { setStatus, setCreatedId });
+      await controller.retryPhotoUpload(7, photoFile, { setStatus, setCreatedId, onSuccess });
 
-        expect(RequestStore.mutate).not.toHaveBeenCalled();
-        expect(RequestStore.resolvePath).toHaveBeenCalledWith({
-          resource: 'stlModel', method: 'POST', quantityType: 'single', params: { id: 7 },
-        });
-        expect(uploadClient.initUpload).toHaveBeenCalledWith(
-          '/miniatures/stl_models/7/photo_upload.json', 'photo.jpg', 'tok-abc',
-        );
-        expect(RequestStore.purge).toHaveBeenCalledWith({ resource: 'stlModel' });
-        expect(fakeWindow.location.hash).toBe('/stl_models/7');
-      } finally {
-        delete globalThis.window;
-      }
+      expect(RequestStore.mutate).not.toHaveBeenCalled();
+      expect(RequestStore.resolvePath).toHaveBeenCalledWith({
+        resource: 'stlModel', method: 'POST', quantityType: 'single', params: { id: 7 },
+      });
+      expect(uploadClient.initUpload).toHaveBeenCalledWith(
+        '/miniatures/stl_models/7/photo_upload.json', 'photo.jpg', 'tok-abc',
+      );
+      expect(RequestStore.purge).toHaveBeenCalledWith({ resource: 'stlModel' });
+      expect(onSuccess).toHaveBeenCalledWith(7);
     });
 
     it('sets status back to photo-upload-failed when the retry also fails', async function() {
       uploadClient.initUpload.and.returnValue(Promise.resolve({ ok: false, status: 500 }));
 
       const controller = new StlModelNewController(null, null, uploadClient);
-      const fakeWindow = { location: { hash: '' } };
-      globalThis.window = fakeWindow;
 
-      try {
-        await controller.retryPhotoUpload(7, photoFile, { setStatus, setCreatedId });
+      await controller.retryPhotoUpload(7, photoFile, { setStatus, setCreatedId, onSuccess });
 
-        expect(setStatus).toHaveBeenCalledWith('photo-upload-failed');
-        expect(setCreatedId).toHaveBeenCalledWith(7);
-        expect(RequestStore.purge).not.toHaveBeenCalled();
-        expect(fakeWindow.location.hash).toBe('');
-      } finally {
-        delete globalThis.window;
-      }
+      expect(setStatus).toHaveBeenCalledWith('photo-upload-failed');
+      expect(setCreatedId).toHaveBeenCalledWith(7);
+      expect(RequestStore.purge).not.toHaveBeenCalled();
+      expect(onSuccess).not.toHaveBeenCalled();
     });
   });
 });

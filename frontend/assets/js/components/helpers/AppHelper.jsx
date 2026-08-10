@@ -62,7 +62,6 @@ import StaffUser from '../resources/staff_user/pages/StaffUser.jsx';
 import StaffUserEdit from '../resources/staff_user/pages/StaffUserEdit.jsx';
 import StaffUsers from '../resources/staff_user/pages/StaffUsers.jsx';
 import StlModel from '../resources/stl_model/pages/StlModel.jsx';
-import StlModelNew from '../resources/stl_model/pages/StlModelNew.jsx';
 import StlModels from '../resources/stl_model/pages/StlModels.jsx';
 import Treasure from '../resources/treasure/pages/Treasure.jsx';
 import TreasureEdit from '../resources/treasure/pages/TreasureEdit.jsx';
@@ -133,7 +132,6 @@ const PAGES = {
   staffUserEdit: <StaffUserEdit />,
   stlModels: <StlModels />,
   stlModel: <StlModel />,
-  stlModelNew: <StlModelNew />,
   treasures: <Treasures />,
   treasure: <Treasure />,
   treasureNew: <TreasureNew />,

@@ -15,7 +15,7 @@ export default class StlModelController extends BasePageController {
    * @returns {string} STL model id.
    */
   static getStlModelIdFromHash(hash = '') {
-    return BasePageController.extractParam('/stl_models/:stl_model_id', 'stl_model_id', hash);
+    return BasePageController.extractParam('/miniatures/stl_models/:stl_model_id', 'stl_model_id', hash);
   }
 
   /**

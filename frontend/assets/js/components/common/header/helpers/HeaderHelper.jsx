@@ -35,7 +35,7 @@ export default class HeaderHelper {
             <Nav className="me-auto">
               <Nav.Link href="#/games">{Translator.t('header.nav_games')}</Nav.Link>
               {state.loggedIn && (
-                <Nav.Link href="#/stl_models">{Translator.t('header.nav_stl_models')}</Nav.Link>
+                <Nav.Link href="#/miniatures/stl_models">{Translator.t('header.nav_stl_models')}</Nav.Link>
               )}
               {HeaderNavHelper.renderAdminNavLinks(state)}
               {HeaderNavHelper.renderGameNavLinks(state)}

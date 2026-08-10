@@ -14,7 +14,7 @@ describe('StlModelHelper', function() {
 
     it('renders a back button to the STL models index', function() {
       const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel(), false, handlers));
-      expect(html).toContain('href="#/stl_models"');
+      expect(html).toContain('href="#/miniatures/stl_models"');
     });
 
     it('renders the photo', function() {

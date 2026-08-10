@@ -9,10 +9,11 @@ describe('StlModelNewController', function() {
   let setFieldErrors;
   let setStatus;
   let setCreatedId;
+  let onSuccess;
 
   beforeEach(function() {
     ({
-      setError, setFieldErrors, setStatus, setCreatedId,
+      setError, setFieldErrors, setStatus, setCreatedId, onSuccess,
     } = buildContext());
   });
 
@@ -28,74 +29,56 @@ describe('StlModelNewController', function() {
     it('prevents default, resets status/errors, and submits the name/tags payload', async function() {
       const controller = new StlModelNewController(setError, setFieldErrors);
       const event = jasmine.createSpyObj('event', ['preventDefault']);
-      const fakeWindow = { location: { hash: '' } };
-      globalThis.window = fakeWindow;
 
-      try {
-        await controller.submitForm(
-          event,
-          { name: 'Goblin', tags: ['goblin', 'humanoid'], photoFile: null },
-          {
-            setStatus, setFieldErrors, setCreatedId,
-          },
-        );
+      await controller.submitForm(
+        event,
+        { name: 'Goblin', tags: ['goblin', 'humanoid'], photoFile: null },
+        {
+          setStatus, setFieldErrors, setCreatedId, onSuccess,
+        },
+      );
 
-        expect(event.preventDefault).toHaveBeenCalled();
-        expect(setStatus).toHaveBeenCalledWith('submitting');
-        expect(setFieldErrors).toHaveBeenCalledWith({});
-        expect(RequestStore.mutate).toHaveBeenCalledWith({
-          componentName: 'StlModelNewController',
-          resource: 'stlModel',
-          method: 'POST',
-          quantityType: 'collection',
-          params: {},
-          body: { name: 'Goblin', tags: ['goblin', 'humanoid'] },
-        });
-      } finally {
-        delete globalThis.window;
-      }
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(setStatus).toHaveBeenCalledWith('submitting');
+      expect(setFieldErrors).toHaveBeenCalledWith({});
+      expect(RequestStore.mutate).toHaveBeenCalledWith({
+        componentName: 'StlModelNewController',
+        resource: 'stlModel',
+        method: 'POST',
+        quantityType: 'collection',
+        params: {},
+        body: { name: 'Goblin', tags: ['goblin', 'humanoid'] },
+      });
     });
 
     it('defaults tags to an empty array when none are given', async function() {
       const controller = new StlModelNewController(setError, setFieldErrors);
-      const fakeWindow = { location: { hash: '' } };
-      globalThis.window = fakeWindow;
 
-      try {
-        await controller.submitForm(
-          undefined,
-          { name: 'Goblin', photoFile: null },
-          {
-            setStatus, setFieldErrors, setCreatedId,
-          },
-        );
+      await controller.submitForm(
+        undefined,
+        { name: 'Goblin', photoFile: null },
+        {
+          setStatus, setFieldErrors, setCreatedId, onSuccess,
+        },
+      );
 
-        expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
-          body: { name: 'Goblin', tags: [] },
-        }));
-      } finally {
-        delete globalThis.window;
-      }
+      expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
+        body: { name: 'Goblin', tags: [] },
+      }));
     });
 
-    it('redirects to the STL model detail page on 201 success with no photo picked', async function() {
+    it('calls onSuccess with the created id on 201 success with no photo picked', async function() {
       const controller = new StlModelNewController(setError, setFieldErrors);
-      const fakeWindow = { location: { hash: '' } };
-      globalThis.window = fakeWindow;
 
-      try {
-        await controller.submitForm(
-          undefined,
-          { name: 'Goblin', tags: [], photoFile: null },
-          {
-            setStatus, setFieldErrors, setCreatedId,
-          },
-        );
+      await controller.submitForm(
+        undefined,
+        { name: 'Goblin', tags: [], photoFile: null },
+        {
+          setStatus, setFieldErrors, setCreatedId, onSuccess,
+        },
+      );
 
-        expect(fakeWindow.location.hash).toBe('/stl_models/5');
-      } finally {
-        delete globalThis.window;
-      }
+      expect(onSuccess).toHaveBeenCalledWith(5);
     });
 
     it('sets field errors on a 400 response', async function() {
@@ -110,11 +93,12 @@ describe('StlModelNewController', function() {
         undefined,
         { name: '', tags: [], photoFile: null },
         {
-          setStatus, setFieldErrors, setCreatedId,
+          setStatus, setFieldErrors, setCreatedId, onSuccess,
         },
       );
 
       expect(setFieldErrors).toHaveBeenCalledWith({ name: ['is required'] });
+      expect(onSuccess).not.toHaveBeenCalled();
     });
 
     it('sets status to error on a non-400 failure', async function() {
@@ -129,34 +113,30 @@ describe('StlModelNewController', function() {
         undefined,
         { name: 'Goblin', tags: [], photoFile: null },
         {
-          setStatus, setFieldErrors, setCreatedId,
+          setStatus, setFieldErrors, setCreatedId, onSuccess,
         },
       );
 
       expect(setStatus).toHaveBeenCalledWith('error');
+      expect(onSuccess).not.toHaveBeenCalled();
     });
 
-    it('redirects to home when the user is neither staff nor a superuser', async function() {
+    it('sets status to error (instead of navigating away) when the user is neither staff nor a superuser', async function() {
       AccessStore.ensureStaffOrSuperUser.and.returnValue(Promise.resolve(false));
-      const fakeWindow = { location: { hash: '' } };
-      globalThis.window = fakeWindow;
 
       const controller = new StlModelNewController(setError, setFieldErrors);
 
-      try {
-        await controller.submitForm(
-          undefined,
-          { name: 'Goblin', tags: [], photoFile: null },
-          {
-            setStatus, setFieldErrors, setCreatedId,
-          },
-        );
+      await controller.submitForm(
+        undefined,
+        { name: 'Goblin', tags: [], photoFile: null },
+        {
+          setStatus, setFieldErrors, setCreatedId, onSuccess,
+        },
+      );
 
-        expect(fakeWindow.location.hash).toBe('/');
-        expect(RequestStore.mutate).not.toHaveBeenCalled();
-      } finally {
-        delete globalThis.window;
-      }
+      expect(setStatus).toHaveBeenCalledWith('error');
+      expect(RequestStore.mutate).not.toHaveBeenCalled();
+      expect(onSuccess).not.toHaveBeenCalled();
     });
 
     it('sets status to error when the network request throws', async function() {
@@ -168,7 +148,7 @@ describe('StlModelNewController', function() {
         undefined,
         { name: 'Goblin', tags: [], photoFile: null },
         {
-          setStatus, setFieldErrors, setCreatedId,
+          setStatus, setFieldErrors, setCreatedId, onSuccess,
         },
       );
 

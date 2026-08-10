@@ -20,14 +20,14 @@ describe('HeaderHelper', function() {
       it('renders the STL Models link when logged in', function() {
         const html = render({ loggedIn: true });
 
-        expect(html).toContain('href="#/stl_models"');
+        expect(html).toContain('href="#/miniatures/stl_models"');
         expect(html).toContain('STL Models');
       });
 
       it('does not render the STL Models link when logged out', function() {
         const html = render({ loggedIn: false });
 
-        expect(html).not.toContain('href="#/stl_models"');
+        expect(html).not.toContain('href="#/miniatures/stl_models"');
       });
     });
 
