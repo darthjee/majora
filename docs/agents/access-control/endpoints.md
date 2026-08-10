@@ -26,10 +26,10 @@ These manage identity; they do not expose domain data beyond success/failure.
 
 | Endpoint | Method | Who can call |
 |----------|--------|-------------|
-| `/users/login.json` | POST | Anyone. `username` matches against either `User.username` or `User.email`, case-insensitively. `403` if credentials are correct but the account is `denied` (checked only after password verification — never a pre-auth enumeration oracle). A `pending` account still logs in successfully — see the status gate below |
-| `/users/logout.json` | POST | Authenticated |
+| `/users/login.json` | POST | Anyone. `username` matches against either `User.username` or `User.email`, case-insensitively. `403` if credentials are correct but the account is `denied` (checked only after password verification — never a pre-auth enumeration oracle). A `pending` account still logs in successfully — see the status gate below. Response also includes `cache_token` (see [CacheToken](#cachetoken-model) below) |
+| `/users/logout.json` | POST | Authenticated. Deletes the caller's `CacheToken` row alongside their DRF `Token` |
 | `/users/register.json` | POST | Anyone. New accounts always start `pending` |
-| `/users/status.json` | GET | Anyone. `{"logged_in": false}` when unauthenticated or `denied`; adds `"status": "pending"` when pending (the only case with a `status` key); otherwise the full logged-in shape (`username`, `user_id`, `is_superuser`/`is_staff`, `settings`) |
+| `/users/status.json` | GET | Anyone. `{"logged_in": false}` when unauthenticated or `denied`; adds `"status": "pending"` when pending (the only case with a `status` key); otherwise the full logged-in shape (`username`, `user_id`, `is_superuser`/`is_staff`, `settings`, `cache_token`) |
 | `/users/test-email.json` | POST | **Staff-or-superuser** |
 | `/users/recover.json` | POST | Anyone. Always `200 {'sent': True}` regardless of match/status — enumeration-safe |
 | `/users/reset-password.json` | POST | Anyone (requires valid reset token) |
@@ -64,3 +64,21 @@ List serializer exposes only `uuid`, `created_at`, `status`, `ip`, `browser` —
 `id`, hashed token, or `user`/`user_id`. `ip` is captured from `REMOTE_ADDR` only (deliberately
 ignoring `X-Forwarded-For`), since it's shown to the approving human as a trust signal and must
 not be client-spoofable. All five endpoints set `X-Skip-Cache`.
+
+## `CacheToken` model
+
+A per-user credential (`accounts.CacheToken`, random 40-char hex key, `OneToOneField` to `User`)
+whose only purpose is to key the Tent proxy's private (per-user) response cache for restricted
+endpoints piloting that mechanism — see `docs/agents/security-guidelines/proxy-rules.md`. It is
+**never consulted by any backend authentication class**: unlike the DRF `Token`, an unhashed leak
+of a `cache_token` value can never authenticate a real (mutating) backend request, so it carries no
+read/write access of its own and needs no per-field role table.
+
+- **Minted**: `get_or_create(user=...)` on `/users/login.json` and unconditionally on every
+  `/users/status.json` logged-in response (not gated behind `session_auth`, unlike `token`).
+- **Read**: only the owning user ever sees their own `cache_token`, via the two endpoints above —
+  never returned for any other user, never listed/enumerable.
+- **Invalidated**: deleted on `/users/logout.json`, alongside the `Token` row.
+- **Superuser access**: none — not registered in Django admin (matches `PasswordResetToken`'s
+  precedent of staying unregistered), and superusers have no special read path for other users'
+  cache tokens beyond the general admin-pages carve-out at the top of this document set.
