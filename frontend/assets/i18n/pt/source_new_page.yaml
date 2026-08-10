@@ -1,0 +1,9 @@
+source_new_page:
+  title: Nova Fonte
+  name_label: Nome
+  url_label: Url
+  submit: Criar Fonte
+  error: Falha ao criar a fonte. Tente novamente.
+  photo_upload_failed: Falha ao enviar a foto. A fonte foi criada — você pode tentar novamente ou pular por enquanto.
+  retry_photo_upload: Tentar enviar a foto novamente
+  skip_photo_upload: Pular e continuar

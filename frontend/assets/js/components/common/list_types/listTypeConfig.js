@@ -16,6 +16,7 @@ import globalTreasureListType from './configs/globalTreasureListType.js';
 import playersListType from './configs/playersListType.js';
 import documentListTypes from './configs/documentListTypes.js';
 import stlModelListType from './configs/stlModelListType.js';
+import sourceListType from './configs/sourceListType.js';
 
 /**
  * Fetch a page of a game's treasures through `RequestStore` (`treasure.collection`, `kind:
@@ -201,7 +202,7 @@ function buildCharacterItemItemHref(characterKind) {
  * `'npc-treasures'`, `'treasures-global'`, `'stlModels'`), matching the
  * existing `PHOTO_COMPONENTS` precedent in `ActionsOverlay.jsx`. The `games`/`my-games`/
  * `players`/`pcs`/`npcs`/`pc-treasures`/`npc-treasures`/`treasures-global`/`documents`/
- * `pc-documents`/`npc-documents`/`stlModels` entries live in `./configs/`, split out of this file
+ * `pc-documents`/`npc-documents`/`stlModels`/`sources` entries live in `./configs/`, split out of this file
  * to keep it under the project's max-lines limit; they are merged into this object below. Each
  * entry holds:
  * - `fetchList(gameSlug, hashResolver, client?)` — fetches one page of list data. Every type
@@ -277,6 +278,7 @@ const listTypeConfig = {
   'treasures-global': globalTreasureListType,
   ...documentListTypes,
   stlModels: stlModelListType,
+  sources: sourceListType,
 };
 
 export default listTypeConfig;

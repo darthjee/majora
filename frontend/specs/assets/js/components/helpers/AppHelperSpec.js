@@ -46,6 +46,8 @@ describe('AppHelper', function() {
     expect(renderToStaticMarkup(AppHelper.render('myGames', '#/my-games'))).toContain(Translator.t('game_characters_page.loading'));
     expect(renderToStaticMarkup(AppHelper.render('stlModels', '#/miniatures/stl_models'))).toContain(Translator.t('stl_models_page.loading'));
     expect(renderToStaticMarkup(AppHelper.render('stlModel', '#/miniatures/stl_models/1'))).toContain(Translator.t('stl_model_page.loading'));
+    expect(renderToStaticMarkup(AppHelper.render('sources', '#/miniatures/sources'))).toContain(Translator.t('sources_page.loading'));
+    expect(renderToStaticMarkup(AppHelper.render('source', '#/miniatures/sources/1'))).toContain(Translator.t('source_page.loading'));
   });
 
   it('falls back to home page for unknown page key', function() {

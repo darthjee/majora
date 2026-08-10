@@ -85,3 +85,19 @@ export function buildStlModel(overrides = {}) {
     ...overrides,
   };
 }
+
+/**
+ * Create a mock source object.
+ *
+ * @param {object} overrides - Properties to override the defaults.
+ * @returns {object} A mock source object.
+ */
+export function buildSource(overrides = {}) {
+  return {
+    id: 1,
+    name: 'MyMiniFactory',
+    url: '',
+    photo_url: null,
+    ...overrides,
+  };
+}
