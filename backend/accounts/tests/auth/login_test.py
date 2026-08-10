@@ -6,7 +6,7 @@ import pytest
 from django.utils.crypto import get_random_string
 from rest_framework.authtoken.models import Token
 
-from accounts.models import UserProfile
+from accounts.models import CacheToken, UserProfile
 from games.tests.factories import UserFactory, UserProfileFactory
 from statistics import cookies
 from statistics.models import Session
@@ -30,6 +30,21 @@ class TestLoginView:
         data = json.loads(response.content)
         assert 'token' in data
         assert Token.objects.filter(key=data['token'], user__username='alice').exists()
+
+    def test_returns_cache_token_for_valid_credentials(self, client):
+        """Test that a valid login also returns a cache_token, backed by a CacheToken row."""
+        UserFactory(username='alice', password=TEST_PASSWORD)
+        response = client.post(
+            '/users/login.json',
+            data=json.dumps({'username': 'alice', 'password': TEST_PASSWORD}),
+            content_type='application/json',
+        )
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert 'cache_token' in data
+        assert CacheToken.objects.filter(
+            key=data['cache_token'], user__username='alice'
+        ).exists()
 
     def test_returns_token_for_email_login(self, client):
         """Test that logging in with an email address returns a token."""

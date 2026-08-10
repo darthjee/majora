@@ -14,6 +14,7 @@ require_once __DIR__ . '/lib/middlewares/CacheControlMiddleware.php';
 require_once __DIR__ . '/lib/middlewares/SetClientIpMiddleware.php';
 require_once __DIR__ . '/lib/middlewares/CacheCleanupMapBuilder.php';
 require_once __DIR__ . '/lib/cache/DomainHash.php';
+require_once __DIR__ . '/lib/cache/PrivateRequestHasher.php';
 require_once __DIR__ . '/lib/exceptions/UnprocessableUploadException.php';
 require_once __DIR__ . '/lib/exceptions/BackendErrorException.php';
 require_once __DIR__ . '/lib/support/PathTraversalGuard.php';

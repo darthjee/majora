@@ -88,6 +88,7 @@ describe('LoginModalController', function() {
       }));
       spyOn(AuthEvents, 'emit');
       spyOn(AuthStorage, 'setToken');
+      spyOn(AuthStorage, 'setCacheToken');
 
       const controller = buildController();
 
@@ -99,6 +100,7 @@ describe('LoginModalController', function() {
 
       expect(setAuthorizeStatus).toHaveBeenCalledWith('approved');
       expect(AuthStorage.setToken).toHaveBeenCalledWith('login-tok');
+      expect(AuthStorage.setCacheToken).toHaveBeenCalledWith(null);
       expect(AuthEvents.emit).toHaveBeenCalledWith(true);
       expect(onSuccess).toHaveBeenCalled();
     });

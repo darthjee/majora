@@ -2,6 +2,7 @@ import SKIP_CACHE_ENDPOINTS from './config/skipCacheEndpoints.js';
 import SKIP_CACHE_SUFFIXES from './config/skipCacheSuffixes.js';
 import SKIP_CACHE_PREFIXES from './config/skipCachePrefixes.js';
 import ResilientRequest from './ResilientRequest.js';
+import AuthStorage from '../utils/auth/AuthStorage.js';
 
 const DEFAULT_TIMEOUT_MS = 5000;
 
@@ -85,18 +86,24 @@ export default class BaseClient {
   }
 
   /**
-   * Build the shared `Accept`/`Authorization` header set used by JSON
-   * requests, merging in any caller-supplied extra headers (e.g.
+   * Build the shared `Accept`/`Authorization`/`X-Cache-Token` header set used
+   * by JSON requests, merging in any caller-supplied extra headers (e.g.
    * `X-Skip-Cache`). `Authorization` is only added when a token is given.
+   * `X-Cache-Token` is read directly from {@link AuthStorage} (unlike the
+   * auth token, it is never call-site-specific) and only added once known,
+   * i.e. omitted for the very first bootstrap call.
    *
    * @param {string|null} token - Authentication token, if any.
    * @param {object} [extraHeaders] - Additional headers to merge in.
    * @returns {object} Header object for a JSON request.
    */
   buildHeaders(token, extraHeaders = {}) {
+    const cacheToken = AuthStorage.getCacheToken();
+
     return {
       Accept: 'application/json',
       ...(token ? { Authorization: `Token ${token}` } : {}),
+      ...(cacheToken ? { 'X-Cache-Token': cacheToken } : {}),
       ...extraHeaders,
     };
   }

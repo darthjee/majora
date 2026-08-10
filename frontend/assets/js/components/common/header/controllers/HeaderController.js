@@ -117,6 +117,10 @@ export default class HeaderController {
         AuthStorage.setToken(data.token);
       }
 
+      if (data.cache_token) {
+        AuthStorage.setCacheToken(data.cache_token);
+      }
+
       this.setLoggedIn(Boolean(data.logged_in));
       this.setIsSuperUser(Boolean(data.is_superuser));
       this.setIsStaff(Boolean(data.is_staff));
@@ -180,6 +184,7 @@ export default class HeaderController {
       // Ignore logout request failures; local auth state is cleared regardless.
     } finally {
       AuthStorage.clearToken();
+      AuthStorage.clearCacheToken();
       this.setLoggedIn(false);
       AuthEvents.emit(false);
     }

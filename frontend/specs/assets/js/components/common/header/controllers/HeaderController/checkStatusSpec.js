@@ -68,6 +68,27 @@ describe('HeaderController', function() {
       expect(AuthStorage.setToken).not.toHaveBeenCalled();
     });
 
+    it('stores the cache token from the status response when present', async function() {
+      spyOn(AuthStorage, 'setCacheToken');
+      client.status.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ logged_in: true, cache_token: 'new-cache-tok-456' }),
+      }));
+
+      await controller.checkStatus();
+
+      expect(AuthStorage.setCacheToken).toHaveBeenCalledWith('new-cache-tok-456');
+    });
+
+    it('does not call setCacheToken when the status response has no cache_token field', async function() {
+      spyOn(AuthStorage, 'setCacheToken');
+      client.status.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: true }) }));
+
+      await controller.checkStatus();
+
+      expect(AuthStorage.setCacheToken).not.toHaveBeenCalled();
+    });
+
     it('does nothing when the status response is not ok', async function() {
       client.status.and.returnValue(Promise.resolve({ ok: false }));
 

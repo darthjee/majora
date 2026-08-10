@@ -150,7 +150,7 @@ export default class LoginModalController {
     if (response.ok) {
       const data = await response.json();
 
-      this.#applySuccessLogin(data.token);
+      this.#applySuccessLogin(data.token, data.cache_token);
       return;
     }
 
@@ -172,10 +172,14 @@ export default class LoginModalController {
    * auth-changed event, and invokes `onSuccess`.
    *
    * @param {string} token - Login token to store.
+   * @param {string} [cacheToken] - Cache token to store, when present in the response (the
+   *   `'authorize'` poll response doesn't carry one; it's re-hydrated by the status check
+   *   Header runs right after the auth-changed event this method emits).
    * @returns {void}
    */
-  #applySuccessLogin(token) {
+  #applySuccessLogin(token, cacheToken = null) {
     AuthStorage.setToken(token);
+    AuthStorage.setCacheToken(cacheToken);
     this.handleClear();
     AuthEvents.emit(true);
 
@@ -187,7 +191,7 @@ export default class LoginModalController {
   #handleAuthorizeEvent(event) {
     if (event.status === 'approved') {
       this.#setAuthorizeStatus('approved');
-      this.#applySuccessLogin(event.token);
+      this.#applySuccessLogin(event.token, event.cache_token);
       return;
     }
 
