@@ -1,0 +1,9 @@
+source_new_page:
+  title: New Source
+  name_label: Name
+  url_label: Url
+  submit: Create Source
+  error: Failed to create source. Please try again.
+  photo_upload_failed: Failed to upload the photo. The source was created — you can retry the upload or skip it for now.
+  retry_photo_upload: Retry photo upload
+  skip_photo_upload: Skip and continue

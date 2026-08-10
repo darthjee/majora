@@ -9,6 +9,7 @@ header:
   nav_npc: NPC
   nav_treasures: Treasures
   nav_stl_models: STL Models
+  nav_sources: Sources
   nav_staff_users: Users
   nav_staff_dashboard: Dashboard
   nav_my_games: My Games
