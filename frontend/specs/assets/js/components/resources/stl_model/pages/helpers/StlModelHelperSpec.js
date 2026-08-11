@@ -53,6 +53,18 @@ describe('StlModelHelper', function() {
       expect(html).toContain('Kickstarter Batch 3');
     });
 
+    it('does not render a collections section when there are no collections', function() {
+      const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel({ collections: [] }), false, handlers));
+      expect(html).not.toContain('Collections');
+    });
+
+    it('renders collections', function() {
+      const stlModel = buildStlModel({ collections: [{ name: 'Dungeon Pack' }] });
+      const html = renderToStaticMarkup(StlModelHelper.render(stlModel, false, handlers));
+
+      expect(html).toContain('Dungeon Pack');
+    });
+
     it('does not render a tags section when there are no tags', function() {
       const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel({ tags: [] }), false, handlers));
       expect(html).not.toContain('Tags');

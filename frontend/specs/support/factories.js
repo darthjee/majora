@@ -81,6 +81,7 @@ export function buildStlModel(overrides = {}) {
     photo_url: null,
     links: [],
     sources: [],
+    collections: [],
     tags: [],
     ...overrides,
   };

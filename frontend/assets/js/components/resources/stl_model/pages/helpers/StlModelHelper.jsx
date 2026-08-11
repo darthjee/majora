@@ -24,6 +24,7 @@ export default class StlModelHelper {
    * @param {{id: number, text: string, url: string, link_type: string}[]} [stlModel.links] -
    *   External links for this STL model.
    * @param {{name: string}[]} [stlModel.sources] - Sources this STL model comes from.
+   * @param {{name: string}[]} [stlModel.collections] - Collections this STL model belongs to.
    * @param {string[]} [stlModel.tags] - Tag names attached to this STL model.
    * @param {boolean} isStaffOrSuperUser - Whether the current viewer may upload a new photo
    *   (resolved via `AccessStore.ensureStaffOrSuperUser()`, since `stl_models` has no per-item
@@ -50,6 +51,7 @@ export default class StlModelHelper {
             <h1>{stlModel.name}</h1>
             {StlModelHelper.#renderLinks(stlModel.links)}
             {StlModelHelper.#renderSources(stlModel.sources)}
+            {StlModelHelper.#renderCollections(stlModel.collections)}
           </div>
         </div>
       </div>
@@ -104,6 +106,21 @@ export default class StlModelHelper {
         <h5>{Translator.t('stl_model_page.sources')}</h5>
         <ul className="list-unstyled">
           {sources.map((source) => <li key={source.name}>{source.name}</li>)}
+        </ul>
+      </div>
+    );
+  }
+
+  static #renderCollections(collections) {
+    if (!collections || collections.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="mt-3">
+        <h5>{Translator.t('stl_model_page.collections')}</h5>
+        <ul className="list-unstyled">
+          {collections.map((collection) => <li key={collection.name}>{collection.name}</li>)}
         </ul>
       </div>
     );
