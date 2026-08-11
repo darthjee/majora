@@ -11,6 +11,7 @@ Files
 - pages-elements.md — Pages vs Elements / Adding pages & elements
 - routing-pagination.md — Routing and Pagination
 - api-client-requests.md — API Client and Resource Data Requests
+- logging.md — Logging
 - bootstrap-linting-tests.md — Bootstrap, Linting & Tests
 
 Each file preserves the original headings and contents from the consolidated document.
