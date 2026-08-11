@@ -3,6 +3,7 @@ import * as en from '../../i18n/en/index.js';
 import * as pt from '../../i18n/pt/index.js';
 import Translator from './Translator.js';
 import TranslationEvents from './TranslationEvents.js';
+import MajoraLogger from '../utils/logging/MajoraLogger.js';
 
 const MANIFESTS = { en, pt };
 
@@ -110,8 +111,14 @@ export default class TranslationLoader {
       if (entry.language === Translator.getLanguage()) {
         TranslationEvents.emit();
       }
-    } catch {
+    } catch (error) {
       entry.state = 'failed';
+      MajoraLogger.warn({
+        event: 'translation-chunk-load-failed',
+        language: entry.language,
+        namespace: entry.namespace,
+        error,
+      });
     }
   }
 }
