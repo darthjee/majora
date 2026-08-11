@@ -1,5 +1,7 @@
 """Tests for the StlModel model."""
 
+import pytest
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from miniatures.models import StlModel
@@ -73,3 +75,42 @@ class TestStlModel(TestCase):
         collection2 = CollectionFactory(name='Terrain Set')
         stl_model.collections.add(collection1, collection2)
         assert set(stl_model.collections.all()) == {collection1, collection2}
+
+    def test_owned_defaults_to_true(self):
+        """Test that owned defaults to True."""
+        stl_model = StlModelFactory(name='Dragon Miniature')
+        assert stl_model.owned is True
+
+    def test_race_defaults_to_none(self):
+        """Test that race defaults to None."""
+        stl_model = StlModelFactory(name='Dragon Miniature')
+        assert stl_model.race is None
+
+    def test_role_defaults_to_none(self):
+        """Test that role defaults to None."""
+        stl_model = StlModelFactory(name='Dragon Miniature')
+        assert stl_model.role is None
+
+    def test_type_is_required(self):
+        """Test that a blank type fails full_clean() validation."""
+        stl_model = StlModel(name='Dragon Miniature', type='')
+        with pytest.raises(ValidationError):
+            stl_model.full_clean()
+
+    def test_invalid_type_raises_on_full_clean(self):
+        """Test that an unknown type value fails full_clean() validation."""
+        stl_model = StlModel(name='Dragon Miniature', type='not-a-type')
+        with pytest.raises(ValidationError):
+            stl_model.full_clean()
+
+    def test_invalid_race_raises_on_full_clean(self):
+        """Test that an unknown race value fails full_clean() validation."""
+        stl_model = StlModel(name='Dragon Miniature', type=StlModel.TYPE_OTHER, race='not-a-race')
+        with pytest.raises(ValidationError):
+            stl_model.full_clean()
+
+    def test_invalid_role_raises_on_full_clean(self):
+        """Test that an unknown role value fails full_clean() validation."""
+        stl_model = StlModel(name='Dragon Miniature', type=StlModel.TYPE_OTHER, role='not-a-role')
+        with pytest.raises(ValidationError):
+            stl_model.full_clean()

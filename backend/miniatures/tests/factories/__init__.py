@@ -23,6 +23,7 @@ class StlModelFactory(factory.django.DjangoModelFactory):
         model = StlModel
 
     name = 'Test Miniature'
+    type = StlModel.TYPE_OTHER
 
 
 class StlModelLinkFactory(factory.django.DjangoModelFactory):

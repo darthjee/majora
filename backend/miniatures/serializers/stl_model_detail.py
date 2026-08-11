@@ -22,4 +22,7 @@ class StlModelDetailSerializer(serializers.ModelSerializer):
         """Metadata for the StlModelDetailSerializer."""
 
         model = StlModel
-        fields = ['id', 'name', 'photo_url', 'links', 'sources', 'collections', 'tags']
+        fields = [
+            'id', 'name', 'owned', 'type', 'race', 'role', 'photo_url', 'links', 'sources',
+            'collections', 'tags',
+        ]

@@ -12,6 +12,7 @@ from miniatures.serializers.stl_model_create import StlModelCreateSerializer
 from miniatures.serializers.stl_model_detail import StlModelDetailSerializer
 from miniatures.serializers.stl_model_link import StlModelLinkSerializer
 from miniatures.serializers.stl_model_list import StlModelListSerializer
+from miniatures.serializers.stl_model_update import StlModelUpdateSerializer
 
 __all__ = [
     'CollectionCreateSerializer',
@@ -26,4 +27,5 @@ __all__ = [
     'StlModelDetailSerializer',
     'StlModelLinkSerializer',
     'StlModelListSerializer',
+    'StlModelUpdateSerializer',
 ]

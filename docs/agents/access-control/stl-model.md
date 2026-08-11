@@ -20,7 +20,8 @@ endpoint (see [Fields](#fields) below).
 | Detail (`GET /miniatures/stl_models/<id>.json`) | **IsAuthenticated** |
 | Create (`POST /miniatures/stl_models.json`) | **Staff-or-superuser** (`require_staff`, see [common rules](common-rules.md)) |
 | Photo upload (`POST /miniatures/stl_models/<id>/photo_upload.json`) | **Staff-or-superuser** (`require_staff`) — see [Upload](upload.md) |
-| Update/Delete | None — still no update/delete endpoints; `Tag`/`StlModelLink` remain Django-admin-only for now (see [Source](source.md) for `Source`'s own, now-standalone, permissions) |
+| Update (`PATCH /miniatures/stl_models/<id>.json`) | **Staff-or-superuser** (`require_staff`, same tier as create) |
+| Delete | None — still no delete endpoint; `Tag`/`StlModelLink` remain Django-admin-only for now (see [Source](source.md) for `Source`'s own, now-standalone, permissions) |
 
 **Deviation — `X-Skip-Cache: true` on all endpoints, including the writes.** Per [Permission
 Principles](principles.md#x-skip-cache-rule), any endpoint not open to `AllowAny` always sets
@@ -31,25 +32,41 @@ the detail endpoint's 404 response.
 
 **List** (`StlModelListSerializer`): `id`, `name`, `photo_url` (`null` when no photo is set).
 
-**Detail** (`StlModelDetailSerializer`): `id`, `name`, `photo_url`, `links` (`id`, `text`, `url`,
-`link_type` — same shape as [Link](link.md)'s `GameLinkSerializer`), `sources` (`name` only, no
-`id`), `collections` (`name` only, no `id`, via `CollectionSerializer` — mirrors `sources`'s
-shape), `tags` (flat array of strings, not `{id, name}` objects). The create endpoint (`201`)
-returns this same shape.
+**Detail** (`StlModelDetailSerializer`): `id`, `name`, `owned` (boolean, defaults `true`), `type`
+(required choice — `terrain`/`prop`/`creature`/`other`), `race` (nullable choice, `null` when
+unset — standard D&D 5e race list), `role` (nullable choice, `null` when unset — standard D&D 5e
+class list), `photo_url`, `links` (`id`, `text`, `url`, `link_type` — same shape as
+[Link](link.md)'s `GameLinkSerializer`), `sources` (`name` only, no `id`), `collections` (`name`
+only, no `id`, via `CollectionSerializer` — mirrors `sources`'s shape), `tags` (flat array of
+strings, not `{id, name}` objects). The create endpoint (`201`) returns this same shape.
 
 ## Create endpoint
 
-`POST /miniatures/stl_models.json` accepts `name` (required), `tags` (optional array of strings,
-max **20** entries), `source_ids` (optional array of `Source` ids, default `[]`), and
-`collection_ids` (optional array of `Collection` ids, default `[]`) — each validated one-by-one via
-`PrimaryKeyRelatedField` (an unknown id in either list returns `400`) and bulk-`.set()` onto the
-new `StlModel`'s `sources`/`collections` M2Ms after creation; omitting either leaves the
-corresponding M2M empty. Each `tags` entry is trimmed/lowercased and resolved via
-`Tag.objects.get_or_create`, so tags are case-insensitively deduplicated and shared globally
-across `StlModel`s. A `tags` entry longer than `Tag.name`'s DB `max_length` (200), or a `tags`
-list over 20 entries, returns `400` before any DB write. Responses: `201` (created,
-`StlModelDetailSerializer` shape), `400` (validation error), `401` (unauthenticated), `403`
-(authenticated but not staff/superuser).
+`POST /miniatures/stl_models.json` accepts `name` (required), `owned` (optional boolean, default
+`true`), `type` (required choice), `race`/`role` (optional nullable choices, default `null`),
+`tags` (optional array of strings, max **20** entries), `source_ids` (optional array of `Source`
+ids, default `[]`), and `collection_ids` (optional array of `Collection` ids, default `[]`) — each
+id-list entry validated one-by-one via `PrimaryKeyRelatedField` (an unknown id in either list
+returns `400`) and bulk-`.set()` onto the new `StlModel`'s `sources`/`collections` M2Ms after
+creation; omitting either leaves the corresponding M2M empty. Each `tags` entry is
+trimmed/lowercased and resolved via `Tag.objects.get_or_create`, so tags are case-insensitively
+deduplicated and shared globally across `StlModel`s. A `tags` entry longer than `Tag.name`'s DB
+`max_length` (200), or a `tags` list over 20 entries, returns `400` before any DB write. An
+unknown `type`/`race`/`role` value, or an omitted `type`, also returns `400` (Django's model
+`choices=` auto-generates the rejecting `ChoiceField`, no custom `validate_*` needed). Responses:
+`201` (created, `StlModelDetailSerializer` shape), `400` (validation error), `401`
+(unauthenticated), `403` (authenticated but not staff/superuser).
+
+## Update endpoint
+
+`PATCH /miniatures/stl_models/<id>.json` accepts any subset of `name`, `owned`, `type`, `race`,
+`role` (via `StlModelUpdateSerializer`) and persists the given fields; `race`/`role` accept
+explicit `null` to clear a previously-set value. `photo`/`tags`/`sources`/`collections` are
+intentionally out of scope — they already have their own dedicated flows (photo upload endpoint;
+no edit UI in scope for the others). Gated the same as create: `require_staff` (staff-or-superuser).
+Responses: `200` (updated, `StlModelDetailSerializer` shape), `400` (validation error, e.g. an
+unknown `type`/`race`/`role` value), `401` (unauthenticated), `403` (authenticated but not
+staff/superuser), `404` (unknown id).
 
 ## No search/filter yet
 

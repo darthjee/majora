@@ -2,6 +2,7 @@
 
 import pytest
 
+from miniatures.models import StlModel
 from miniatures.serializers import StlModelDetailSerializer
 from miniatures.tests.factories import (
     CollectionFactory,
@@ -28,6 +29,27 @@ class TestStlModelDetailSerializer:
         assert data['id'] == stl_model.id
         assert data['name'] == 'Dragon Miniature'
         assert data['photo_url'] == 'photos/miniatures/1/photo.png'
+
+    def test_returns_owned_type_race_role(self):
+        """Test that owned, type, race, and role are returned."""
+        stl_model = StlModelFactory(
+            name='Dragon Miniature', owned=False, type=StlModel.TYPE_CREATURE,
+            race=StlModel.RACE_DRAGONBORN, role=StlModel.ROLE_SORCERER,
+        )
+
+        data = StlModelDetailSerializer(stl_model).data
+        assert data['owned'] is False
+        assert data['type'] == StlModel.TYPE_CREATURE
+        assert data['race'] == StlModel.RACE_DRAGONBORN
+        assert data['role'] == StlModel.ROLE_SORCERER
+
+    def test_race_and_role_serialize_as_none_when_unset(self):
+        """Test that race and role serialize as null when unset."""
+        stl_model = StlModelFactory(name='Dragon Miniature')
+
+        data = StlModelDetailSerializer(stl_model).data
+        assert data['race'] is None
+        assert data['role'] is None
 
     def test_photo_url_is_none_without_a_photo(self):
         """Test that photo_url resolves to None when no photo is set."""

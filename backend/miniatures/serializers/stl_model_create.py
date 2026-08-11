@@ -27,9 +27,13 @@ class StlModelCreateSerializer(serializers.ModelSerializer):
         """Metadata for the StlModelCreateSerializer."""
 
         model = StlModel
-        fields = ['name', 'tags', 'source_ids', 'collection_ids']
+        fields = ['name', 'owned', 'type', 'race', 'role', 'tags', 'source_ids', 'collection_ids']
         extra_kwargs = {
             'name': {'required': True},
+            'owned': {'required': False, 'default': True},
+            'type': {'required': True},
+            'race': {'required': False, 'default': None},
+            'role': {'required': False, 'default': None},
         }
 
     def validate_tags(self, value):
