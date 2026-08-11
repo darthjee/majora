@@ -1,0 +1,4 @@
+collections_page:
+  loading: Carregando coleções...
+  new_collection: Nova Coleção
+  stl_model_count: '{{count}} Modelos STL'

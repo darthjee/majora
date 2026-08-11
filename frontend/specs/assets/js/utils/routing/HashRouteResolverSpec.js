@@ -55,6 +55,16 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/miniatures/stl_models/7').getPage()).toBe('stlModel');
     expect(new HashRouteResolver(() => '#/miniatures/sources').getPage()).toBe('sources');
     expect(new HashRouteResolver(() => '#/miniatures/sources/7').getPage()).toBe('source');
+    expect(new HashRouteResolver(() => '#/miniatures/collections').getPage()).toBe('collections');
+    expect(new HashRouteResolver(() => '#/miniatures/collections/7').getPage()).toBe('collection');
+  });
+
+  it('resolves /miniatures/collections/:id to collection, not collections', function() {
+    expect(new HashRouteResolver(() => '#/miniatures/collections/7').getPage()).toBe('collection');
+  });
+
+  it('still resolves /miniatures/collections to collections', function() {
+    expect(new HashRouteResolver(() => '#/miniatures/collections').getPage()).toBe('collections');
   });
 
   it('resolves /miniatures/sources/:id to source, not sources', function() {

@@ -12,6 +12,8 @@ const ROUTES = [
   ['/miniatures/stl_models', 'stlModels'],
   ['/miniatures/sources/:id', 'source'],
   ['/miniatures/sources', 'sources'],
+  ['/miniatures/collections/:id', 'collection'],
+  ['/miniatures/collections', 'collections'],
   ['/treasures/new', 'treasureNew'],
   ['/treasures/:id/edit', 'treasureEdit'],
   ['/treasures/:id', 'treasure'],

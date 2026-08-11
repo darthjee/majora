@@ -101,3 +101,24 @@ export function buildSource(overrides = {}) {
     ...overrides,
   };
 }
+
+/**
+ * Create a mock collection object, covering both the list serializer shape
+ * (`id`/`name`/`photo_url`/`stl_model_count`) and the detail serializer shape
+ * (`id`/`name`/`url`/`photo_url`/`source`/`stl_models`).
+ *
+ * @param {object} overrides - Properties to override the defaults.
+ * @returns {object} A mock collection object.
+ */
+export function buildCollection(overrides = {}) {
+  return {
+    id: 1,
+    name: 'Goblin Pack',
+    url: '',
+    photo_url: null,
+    stl_model_count: 0,
+    source: null,
+    stl_models: [],
+    ...overrides,
+  };
+}

@@ -65,6 +65,8 @@ import StlModel from '../resources/stl_model/pages/StlModel.jsx';
 import StlModels from '../resources/stl_model/pages/StlModels.jsx';
 import Source from '../resources/source/pages/Source.jsx';
 import Sources from '../resources/source/pages/Sources.jsx';
+import Collection from '../resources/collection/pages/Collection.jsx';
+import Collections from '../resources/collection/pages/Collections.jsx';
 import Treasure from '../resources/treasure/pages/Treasure.jsx';
 import TreasureEdit from '../resources/treasure/pages/TreasureEdit.jsx';
 import TreasureNew from '../resources/treasure/pages/TreasureNew.jsx';
@@ -136,6 +138,8 @@ const PAGES = {
   stlModel: <StlModel />,
   sources: <Sources />,
   source: <Source />,
+  collections: <Collections />,
+  collection: <Collection />,
   treasures: <Treasures />,
   treasure: <Treasure />,
   treasureNew: <TreasureNew />,

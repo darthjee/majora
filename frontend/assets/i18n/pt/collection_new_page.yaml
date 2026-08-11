@@ -1,0 +1,9 @@
+collection_new_page:
+  title: Nova Coleção
+  name_label: Nome
+  url_label: Url
+  submit: Criar Coleção
+  error: Falha ao criar a coleção. Tente novamente.
+  photo_upload_failed: Falha ao enviar a foto. A coleção foi criada — você pode tentar novamente ou pular por enquanto.
+  retry_photo_upload: Tentar enviar a foto novamente
+  skip_photo_upload: Pular e continuar

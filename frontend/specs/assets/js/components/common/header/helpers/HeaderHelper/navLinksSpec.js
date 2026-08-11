@@ -46,6 +46,21 @@ describe('HeaderHelper', function() {
       });
     });
 
+    describe('Collections nav link', function() {
+      it('renders the Collections link when logged in', function() {
+        const html = render({ loggedIn: true });
+
+        expect(html).toContain('href="#/miniatures/collections"');
+        expect(html).toContain('Collections');
+      });
+
+      it('does not render the Collections link when logged out', function() {
+        const html = render({ loggedIn: false });
+
+        expect(html).not.toContain('href="#/miniatures/collections"');
+      });
+    });
+
     describe('admin nav dropdown', function() {
       it('renders the Admin dropdown with Treasures/Staff Users/Dashboard items when the user is a superuser', function() {
         const html = render({ isSuperUser: true });
