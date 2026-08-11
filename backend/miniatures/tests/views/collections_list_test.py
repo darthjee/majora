@@ -8,7 +8,7 @@ from rest_framework.authtoken.models import Token
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import SuperUserFactory, UserFactory
 from miniatures.models import Collection
-from miniatures.tests.factories import CollectionFactory, StlModelFactory
+from miniatures.tests.factories import CollectionFactory, SourceFactory, StlModelFactory
 
 LIST_URL = '/miniatures/collections.json'
 
@@ -64,6 +64,22 @@ class TestCollectionsListView(TokenAuthRequestMixin):
         """Test that the response includes the X-Skip-Cache: true header."""
         response = self.get(client, LIST_URL, token=self.token)
         assert response['X-Skip-Cache'] == 'true'
+
+    def test_name_param_narrows_results_case_insensitively(self, client):
+        """Test that a `name` query param narrows results via a case-insensitive substring."""
+        CollectionFactory(name='Monster Pack')
+        CollectionFactory(name='Terrain Set')
+        response = self.get(client, f'{LIST_URL}?name=monster', token=self.token)
+        data = json.loads(response.content)
+        assert [item['name'] for item in data] == ['Monster Pack']
+
+    def test_no_name_param_returns_full_list(self, client):
+        """Test that omitting `name` returns the full list, as before."""
+        CollectionFactory(name='Monster Pack')
+        CollectionFactory(name='Terrain Set')
+        response = self.get(client, LIST_URL, token=self.token)
+        data = json.loads(response.content)
+        assert {item['name'] for item in data} == {'Monster Pack', 'Terrain Set'}
 
 
 @pytest.mark.django_db
@@ -152,6 +168,30 @@ class TestCollectionsCreateView(TokenAuthRequestMixin):
         assert data['photo_url'] is None
         assert data['source'] is None
         assert data['stl_models'] == []
+
+    def test_create_with_source_id_sets_source(self, client):
+        """Test that source_id links the created collection to the given source."""
+        source = SourceFactory(name='MyMiniFactory')
+        response = self.post(
+            client,
+            LIST_URL,
+            {'name': 'Monster Pack', 'source_id': source.id},
+            token=self.superuser_token,
+        )
+        data = json.loads(response.content)
+        assert data['source'] == {'id': source.id, 'name': 'MyMiniFactory'}
+
+    def test_unknown_source_id_returns_400(self, client):
+        """Test that an unknown source_id returns 400."""
+        response = self.post(
+            client,
+            LIST_URL,
+            {'name': 'Monster Pack', 'source_id': 999999},
+            token=self.superuser_token,
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'source_id' in data['errors']
 
     def test_create_persists_collection(self, client):
         """Test that a successful POST persists a new Collection row."""

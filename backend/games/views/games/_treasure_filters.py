@@ -1,5 +1,7 @@
 """Shared query-param filter helpers for game/character-scoped treasure list views."""
 
+from common.query_filters import filter_by_name as _common_filter_by_name
+
 
 def _filter_by_value(request, queryset, param, lookup, field):
     """Filter `queryset` to `<field>__<lookup>` an optional integer query param `param`."""
@@ -27,8 +29,4 @@ def filter_by_max_value(request, queryset, field='game_value'):
 
 def filter_by_name(request, queryset, field='name'):
     """Filter `queryset` to a case-insensitive substring match on `<field>` from `name`."""
-    name = request.GET.get('name')
-    if not name:
-        return queryset
-
-    return queryset.filter(**{f'{field}__icontains': name})
+    return _common_filter_by_name(request, queryset, field=field)

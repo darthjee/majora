@@ -4,6 +4,7 @@ import pytest
 
 from miniatures.serializers import StlModelDetailSerializer
 from miniatures.tests.factories import (
+    CollectionFactory,
     SourceFactory,
     StlModelFactory,
     StlModelLinkFactory,
@@ -54,6 +55,21 @@ class TestStlModelDetailSerializer:
 
         data = StlModelDetailSerializer(stl_model).data
         assert data['sources'] == [{'name': 'MyMiniFactory'}]
+
+    def test_returns_collections_as_name_only_objects(self):
+        """Test that collections are serialized as flat {name} objects."""
+        stl_model = StlModelFactory(name='Dragon Miniature')
+        stl_model.collections.add(CollectionFactory(name='Monster Pack'))
+
+        data = StlModelDetailSerializer(stl_model).data
+        assert data['collections'] == [{'name': 'Monster Pack'}]
+
+    def test_returns_empty_collections_list_when_none_linked(self):
+        """Test that collections serializes as an empty list when none are linked."""
+        stl_model = StlModelFactory(name='Dragon Miniature')
+
+        data = StlModelDetailSerializer(stl_model).data
+        assert data['collections'] == []
 
     def test_returns_tags_as_flat_string_array(self):
         """Test that tags are serialized as a flat array of strings."""

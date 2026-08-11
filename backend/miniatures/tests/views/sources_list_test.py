@@ -50,6 +50,22 @@ class TestSourcesListView(TokenAuthRequestMixin):
         response = self.get(client, LIST_URL, token=self.token)
         assert response['X-Skip-Cache'] == 'true'
 
+    def test_name_param_narrows_results_case_insensitively(self, client):
+        """Test that a `name` query param narrows results via a case-insensitive substring."""
+        SourceFactory(name='MyMiniFactory')
+        SourceFactory(name='Thingiverse')
+        response = self.get(client, f'{LIST_URL}?name=mini', token=self.token)
+        data = json.loads(response.content)
+        assert [item['name'] for item in data] == ['MyMiniFactory']
+
+    def test_no_name_param_returns_full_list(self, client):
+        """Test that omitting `name` returns the full list, as before."""
+        SourceFactory(name='MyMiniFactory')
+        SourceFactory(name='Thingiverse')
+        response = self.get(client, LIST_URL, token=self.token)
+        data = json.loads(response.content)
+        assert {item['name'] for item in data} == {'MyMiniFactory', 'Thingiverse'}
+
 
 @pytest.mark.django_db
 class TestSourcesCreateView(TokenAuthRequestMixin):

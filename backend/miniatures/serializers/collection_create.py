@@ -4,7 +4,7 @@ import re
 
 from rest_framework import serializers
 
-from miniatures.models import Collection
+from miniatures.models import Collection, Source
 
 #: URL schemes allowed on `url`.
 #:
@@ -31,16 +31,19 @@ _SCHEME_RE = re.compile(r'^([a-z][a-z0-9+.\-]*):')
 class CollectionCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a new collection, with `name` required and `url` optional.
 
-    `source` is not accepted here -- a new `Collection` always starts with `source=None`,
-    assigned later via a separate, not-yet-built feature (mirroring how `StlModel.sources`
-    also starts empty on create).
+    `source_id` is optional and, when given, sets `Collection.source` to that `Source`; when
+    omitted, the collection starts with `source=None`.
     """
+
+    source_id = serializers.PrimaryKeyRelatedField(
+        source='source', queryset=Source.objects.all(), required=False, allow_null=True,
+    )
 
     class Meta:
         """Metadata for the CollectionCreateSerializer."""
 
         model = Collection
-        fields = ['name', 'url']
+        fields = ['name', 'url', 'source_id']
         extra_kwargs = {
             'name': {'required': True},
             'url': {'required': False, 'allow_null': True},

@@ -8,7 +8,7 @@ from rest_framework.authtoken.models import Token
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import SuperUserFactory, UserFactory
 from miniatures.models import StlModel
-from miniatures.tests.factories import StlModelFactory
+from miniatures.tests.factories import CollectionFactory, SourceFactory, StlModelFactory
 
 LIST_URL = '/miniatures/stl_models.json'
 
@@ -134,6 +134,54 @@ class TestStlModelsCreateView(TokenAuthRequestMixin):
         assert data['links'] == []
         assert data['sources'] == []
         assert set(data['tags']) == {'dragon', 'monster'}
+
+    def test_create_with_source_ids_links_given_sources(self, client):
+        """Test that source_ids links the created STL model to the given sources."""
+        source = SourceFactory(name='MyMiniFactory')
+        response = self.post(
+            client,
+            LIST_URL,
+            {'name': 'Dragon Miniature', 'source_ids': [source.id]},
+            token=self.superuser_token,
+        )
+        data = json.loads(response.content)
+        assert data['sources'] == [{'name': 'MyMiniFactory'}]
+
+    def test_create_with_collection_ids_links_given_collections(self, client):
+        """Test that collection_ids links the created STL model to the given collections."""
+        collection = CollectionFactory(name='Monster Pack')
+        response = self.post(
+            client,
+            LIST_URL,
+            {'name': 'Dragon Miniature', 'collection_ids': [collection.id]},
+            token=self.superuser_token,
+        )
+        data = json.loads(response.content)
+        assert data['collections'] == [{'name': 'Monster Pack'}]
+
+    def test_unknown_source_id_returns_400(self, client):
+        """Test that an unknown source_ids entry returns 400."""
+        response = self.post(
+            client,
+            LIST_URL,
+            {'name': 'Dragon Miniature', 'source_ids': [999999]},
+            token=self.superuser_token,
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'source_ids' in data['errors']
+
+    def test_unknown_collection_id_returns_400(self, client):
+        """Test that an unknown collection_ids entry returns 400."""
+        response = self.post(
+            client,
+            LIST_URL,
+            {'name': 'Dragon Miniature', 'collection_ids': [999999]},
+            token=self.superuser_token,
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'collection_ids' in data['errors']
 
     def test_create_persists_stl_model(self, client):
         """Test that a successful POST persists a new StlModel row."""
