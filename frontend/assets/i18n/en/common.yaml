@@ -8,6 +8,7 @@ header:
   nav_pc: PC
   nav_npc: NPC
   nav_treasures: Treasures
+  nav_miniatures: Miniatures
   nav_stl_models: STL Models
   nav_sources: Sources
   nav_collections: Collections
