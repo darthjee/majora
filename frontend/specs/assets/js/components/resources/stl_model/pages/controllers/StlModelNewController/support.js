@@ -10,7 +10,6 @@ export function buildContext() {
     setFieldErrors: jasmine.createSpy('setFieldErrors'),
     setStatus: jasmine.createSpy('setStatus'),
     setCreatedId: jasmine.createSpy('setCreatedId'),
-    onSuccess: jasmine.createSpy('onSuccess'),
   };
 }
 

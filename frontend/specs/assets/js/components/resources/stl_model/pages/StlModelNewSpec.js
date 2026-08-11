@@ -1,14 +1,14 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import StlModelNewModal, { buildTagsAfterAdd }
-  from '../../../../../../../../assets/js/components/resources/stl_model/pages/elements/StlModelNewModal.jsx';
+import StlModelNew, { buildTagsAfterAdd }
+  from '../../../../../../../assets/js/components/resources/stl_model/pages/StlModelNew.jsx';
 import StlModelNewController
-  from '../../../../../../../../assets/js/components/resources/stl_model/pages/controllers/StlModelNewController.js';
-import StlModelNewModalHelper
-  from '../../../../../../../../assets/js/components/resources/stl_model/pages/elements/helpers/StlModelNewModalHelper.jsx';
+  from '../../../../../../../assets/js/components/resources/stl_model/pages/controllers/StlModelNewController.js';
+import StlModelNewHelper
+  from '../../../../../../../assets/js/components/resources/stl_model/pages/helpers/StlModelNewHelper.jsx';
 import PhotoUploadModalHelper
-  from '../../../../../../../../assets/js/components/common/modals/helpers/PhotoUploadModalHelper.jsx';
-import Noop from '../../../../../../../../assets/js/utils/Noop.js';
+  from '../../../../../../../assets/js/components/common/modals/helpers/PhotoUploadModalHelper.jsx';
+import { stubBuildEffect } from '../../../../../../support/controllerStubs.js';
 
 describe('buildTagsAfterAdd', function() {
   it('splits comma-separated input into trimmed pieces', function() {
@@ -32,31 +32,31 @@ describe('buildTagsAfterAdd', function() {
   });
 });
 
-describe('StlModelNewModal', function() {
-  const buildProps = (overrides = {}) => ({
-    show: true,
-    onClose: Noop.noop,
-    onSuccess: Noop.noop,
-    ...overrides,
+describe('StlModelNew', function() {
+  beforeEach(function() {
+    stubBuildEffect(StlModelNewController);
   });
 
-  it('renders through StlModelNewModalHelper.render with the show flag and the initial idle form state', function() {
-    const renderSpy = spyOn(StlModelNewModalHelper, 'render').and.callThrough();
+  it('renders through StlModelNewHelper.render with the initial idle form state', function() {
+    const renderSpy = spyOn(StlModelNewHelper, 'render').and.callThrough();
 
-    renderToStaticMarkup(React.createElement(StlModelNewModal, buildProps({ show: true })));
+    renderToStaticMarkup(React.createElement(StlModelNew));
 
     expect(renderSpy).toHaveBeenCalledWith(
-      true,
-      {
+      jasmine.objectContaining({
         name: '',
         tags: [],
         tagInput: '',
+        owned: true,
+        type: 'terrain',
+        race: '',
+        role: '',
         sources: [],
         collections: [],
         status: 'idle',
         fieldErrors: {},
         photoPreviewUrl: null,
-      },
+      }),
       jasmine.any(Object),
     );
   });
@@ -68,7 +68,7 @@ describe('StlModelNewModal', function() {
       return null;
     });
 
-    renderToStaticMarkup(React.createElement(StlModelNewModal, buildProps()));
+    renderToStaticMarkup(React.createElement(StlModelNew));
 
     expect(capturedState.deferred).toBe(true);
   });
@@ -80,55 +80,55 @@ describe('StlModelNewModal', function() {
       return null;
     });
 
-    renderToStaticMarkup(React.createElement(StlModelNewModal, buildProps()));
+    renderToStaticMarkup(React.createElement(StlModelNew));
 
     expect(capturedShow).toBe(false);
   });
 
   it('opens the upload modal via onOpenUploadModal without throwing', function() {
     let capturedHandlers;
-    spyOn(StlModelNewModalHelper, 'render').and.callFake((show, state, handlers) => {
+    spyOn(StlModelNewHelper, 'render').and.callFake((state, handlers) => {
       capturedHandlers = handlers;
       return null;
     });
 
-    renderToStaticMarkup(React.createElement(StlModelNewModal, buildProps()));
+    renderToStaticMarkup(React.createElement(StlModelNew));
 
     expect(() => capturedHandlers.onOpenUploadModal()).not.toThrow();
   });
 
   it('appends split tags via onAddTag without throwing', function() {
     let capturedHandlers;
-    spyOn(StlModelNewModalHelper, 'render').and.callFake((show, state, handlers) => {
+    spyOn(StlModelNewHelper, 'render').and.callFake((state, handlers) => {
       capturedHandlers = handlers;
       return null;
     });
 
-    renderToStaticMarkup(React.createElement(StlModelNewModal, buildProps()));
+    renderToStaticMarkup(React.createElement(StlModelNew));
 
     expect(() => capturedHandlers.onAddTag()).not.toThrow();
   });
 
   it('removes a tag via onRemoveTag without throwing', function() {
     let capturedHandlers;
-    spyOn(StlModelNewModalHelper, 'render').and.callFake((show, state, handlers) => {
+    spyOn(StlModelNewHelper, 'render').and.callFake((state, handlers) => {
       capturedHandlers = handlers;
       return null;
     });
 
-    renderToStaticMarkup(React.createElement(StlModelNewModal, buildProps()));
+    renderToStaticMarkup(React.createElement(StlModelNew));
 
     expect(() => capturedHandlers.onRemoveTag('goblin')).not.toThrow();
   });
 
   it('picks sources/collections via onSourcesChange/onCollectionsChange without throwing', function() {
     let capturedHandlers;
-    spyOn(StlModelNewModalHelper, 'render').and.callFake((show, state, handlers) => {
+    spyOn(StlModelNewHelper, 'render').and.callFake((state, handlers) => {
       capturedHandlers = handlers;
       return null;
     });
 
-    renderToStaticMarkup(React.createElement(StlModelNewModal, buildProps()));
+    renderToStaticMarkup(React.createElement(StlModelNew));
 
     expect(() => {
       capturedHandlers.onSourcesChange([{ id: 1, name: 'Wyrmwood' }]);
@@ -136,41 +136,65 @@ describe('StlModelNewModal', function() {
     }).not.toThrow();
   });
 
-  it('wires onSubmit to controller.submitForm with the name/tags/sources/collections/photo payload and an onSuccess setter', function() {
+  it('updates owned/type/race/role via their change handlers without throwing', function() {
     let capturedHandlers;
-    spyOn(StlModelNewModalHelper, 'render').and.callFake((show, state, handlers) => {
+    spyOn(StlModelNewHelper, 'render').and.callFake((state, handlers) => {
+      capturedHandlers = handlers;
+      return null;
+    });
+
+    renderToStaticMarkup(React.createElement(StlModelNew));
+
+    expect(() => {
+      capturedHandlers.onOwnedChange({ target: { checked: false } });
+      capturedHandlers.onTypeChange({ target: { value: 'prop' } });
+      capturedHandlers.onRaceChange({ target: { value: 'elf' } });
+      capturedHandlers.onRoleChange({ target: { value: 'wizard' } });
+    }).not.toThrow();
+  });
+
+  it('wires onSubmit to controller.submitForm with the full field payload', function() {
+    let capturedHandlers;
+    spyOn(StlModelNewHelper, 'render').and.callFake((state, handlers) => {
       capturedHandlers = handlers;
       return null;
     });
     spyOn(StlModelNewController.prototype, 'submitForm').and.returnValue(Promise.resolve());
 
-    renderToStaticMarkup(React.createElement(StlModelNewModal, buildProps()));
+    renderToStaticMarkup(React.createElement(StlModelNew));
     const event = jasmine.createSpyObj('event', ['preventDefault']);
     capturedHandlers.onSubmit(event);
 
     expect(StlModelNewController.prototype.submitForm).toHaveBeenCalledWith(
       event,
       jasmine.objectContaining({
-        name: '', tags: [], sources: [], collections: [], photoFile: null,
+        name: '',
+        tags: [],
+        owned: true,
+        type: 'terrain',
+        race: '',
+        role: '',
+        sources: [],
+        collections: [],
+        photoFile: null,
       }),
       jasmine.objectContaining({
         setStatus: jasmine.any(Function),
         setFieldErrors: jasmine.any(Function),
         setCreatedId: jasmine.any(Function),
-        onSuccess: jasmine.any(Function),
       }),
     );
   });
 
-  it('wires onRetryPhotoUpload to controller.retryPhotoUpload with the created id, photo file, and an onSuccess setter', function() {
+  it('wires onRetryPhotoUpload to controller.retryPhotoUpload with the created id and photo file', function() {
     let capturedHandlers;
-    spyOn(StlModelNewModalHelper, 'render').and.callFake((show, state, handlers) => {
+    spyOn(StlModelNewHelper, 'render').and.callFake((state, handlers) => {
       capturedHandlers = handlers;
       return null;
     });
     spyOn(StlModelNewController.prototype, 'retryPhotoUpload').and.returnValue(Promise.resolve());
 
-    renderToStaticMarkup(React.createElement(StlModelNewModal, buildProps()));
+    renderToStaticMarkup(React.createElement(StlModelNew));
     capturedHandlers.onRetryPhotoUpload();
 
     expect(StlModelNewController.prototype.retryPhotoUpload).toHaveBeenCalledWith(
@@ -179,48 +203,27 @@ describe('StlModelNewModal', function() {
       jasmine.objectContaining({
         setStatus: jasmine.any(Function),
         setCreatedId: jasmine.any(Function),
-        onSuccess: jasmine.any(Function),
       }),
     );
   });
 
-  it('calls onSuccess (closing the modal and reloading the list) when the skip-photo-upload action is used', function() {
-    let capturedHandlers;
-    const onSuccess = jasmine.createSpy('onSuccess');
-    spyOn(StlModelNewModalHelper, 'render').and.callFake((show, state, handlers) => {
-      capturedHandlers = handlers;
-      return null;
+  it('redirects to the (not yet known) created STL model show page when the skip-photo-upload action is used',
+    function() {
+      let capturedHandlers;
+      spyOn(StlModelNewHelper, 'render').and.callFake((state, handlers) => {
+        capturedHandlers = handlers;
+        return null;
+      });
+      const fakeWindow = { location: { hash: '' } };
+      globalThis.window = fakeWindow;
+
+      try {
+        renderToStaticMarkup(React.createElement(StlModelNew));
+        capturedHandlers.onSkipPhotoUpload();
+
+        expect(fakeWindow.location.hash).toBe('/miniatures/stl_models/null');
+      } finally {
+        delete globalThis.window;
+      }
     });
-
-    renderToStaticMarkup(React.createElement(StlModelNewModal, buildProps({ onSuccess })));
-    capturedHandlers.onSkipPhotoUpload();
-
-    expect(onSuccess).toHaveBeenCalled();
-  });
-
-  it('calls onClose when the modal is dismissed', function() {
-    let capturedHandlers;
-    const onClose = jasmine.createSpy('onClose');
-    spyOn(StlModelNewModalHelper, 'render').and.callFake((show, state, handlers) => {
-      capturedHandlers = handlers;
-      return null;
-    });
-
-    renderToStaticMarkup(React.createElement(StlModelNewModal, buildProps({ onClose })));
-    capturedHandlers.onClose();
-
-    expect(onClose).toHaveBeenCalled();
-  });
-
-  it('passes the show prop through to the helper', function() {
-    let capturedShow;
-    spyOn(StlModelNewModalHelper, 'render').and.callFake((show) => {
-      capturedShow = show;
-      return null;
-    });
-
-    renderToStaticMarkup(React.createElement(StlModelNewModal, buildProps({ show: false })));
-
-    expect(capturedShow).toBe(false);
-  });
 });

@@ -4,3 +4,42 @@ stl_model_page:
   sources: Fontes
   collections: Coleções
   tags: Tags
+  edit: Editar
+
+  owned_label: Possuído
+  not_owned_label: Não possuído
+  type_label: Tipo
+  race_label: Raça
+  role_label: Classe
+  none_label: Nenhum
+
+  type_terrain: Terreno
+  type_prop: Adereço
+  type_creature: Criatura
+  type_other: Outro
+
+  race_human: Humano
+  race_elf: Elfo
+  race_dwarf: Anão
+  race_halfling: Halfling
+  race_gnome: Gnomo
+  race_half-elf: Meio-Elfo
+  race_half-orc: Meio-Orc
+  race_tiefling: Tiefling
+  race_dragonborn: Dragonato
+  race_orc: Orc
+  race_goblin: Goblin
+
+  role_barbarian: Bárbaro
+  role_bard: Bardo
+  role_cleric: Clérigo
+  role_druid: Druida
+  role_fighter: Guerreiro
+  role_monk: Monge
+  role_paladin: Paladino
+  role_ranger: Patrulheiro
+  role_rogue: Ladino
+  role_sorcerer: Feiticeiro
+  role_warlock: Bruxo
+  role_wizard: Mago
+  role_archer: Arqueiro

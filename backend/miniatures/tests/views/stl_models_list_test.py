@@ -81,28 +81,42 @@ class TestStlModelsCreateView(TokenAuthRequestMixin):
     def test_superuser_can_create(self, client):
         """Test that a superuser can create an STL model and receives 201."""
         response = self.post(
-            client, LIST_URL, {'name': 'Dragon Miniature'}, token=self.superuser_token,
+            client, LIST_URL, {'name': 'Dragon Miniature', 'type': StlModel.TYPE_CREATURE},
+            token=self.superuser_token,
         )
         assert response.status_code == 201
 
     def test_staff_can_create(self, client):
         """Test that a staff user can create an STL model and receives 201."""
         response = self.post(
-            client, LIST_URL, {'name': 'Dragon Miniature'}, token=self.staff_token,
+            client, LIST_URL, {'name': 'Dragon Miniature', 'type': StlModel.TYPE_CREATURE},
+            token=self.staff_token,
         )
         assert response.status_code == 201
 
     def test_missing_name_returns_400(self, client):
         """Test that a POST without a name returns 400."""
-        response = self.post(client, LIST_URL, {}, token=self.superuser_token)
+        response = self.post(
+            client, LIST_URL, {'type': StlModel.TYPE_CREATURE}, token=self.superuser_token,
+        )
         assert response.status_code == 400
         data = json.loads(response.content)
         assert 'name' in data['errors']
 
+    def test_missing_type_returns_400(self, client):
+        """Test that a POST without a type returns 400."""
+        response = self.post(
+            client, LIST_URL, {'name': 'Dragon Miniature'}, token=self.superuser_token,
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'type' in data['errors']
+
     def test_overlong_tag_returns_400_with_tag_name_too_long_code(self, client):
         """Test that a tag longer than Tag.NAME_MAX_LENGTH returns 400, not a raw DB error."""
         response = self.post(
-            client, LIST_URL, {'name': 'Dragon Miniature', 'tags': ['x' * 201]},
+            client, LIST_URL,
+            {'name': 'Dragon Miniature', 'type': StlModel.TYPE_CREATURE, 'tags': ['x' * 201]},
             token=self.superuser_token,
         )
         assert response.status_code == 400
@@ -112,7 +126,11 @@ class TestStlModelsCreateView(TokenAuthRequestMixin):
     def test_too_many_tags_returns_400_with_max_tags_exceeded_code(self, client):
         """Test that more than MAX_TAGS tags returns 400 with the max_tags_exceeded code."""
         response = self.post(
-            client, LIST_URL, {'name': 'Dragon Miniature', 'tags': [f'tag{i}' for i in range(21)]},
+            client, LIST_URL,
+            {
+                'name': 'Dragon Miniature', 'type': StlModel.TYPE_CREATURE,
+                'tags': [f'tag{i}' for i in range(21)],
+            },
             token=self.superuser_token,
         )
         assert response.status_code == 400
@@ -124,16 +142,34 @@ class TestStlModelsCreateView(TokenAuthRequestMixin):
         response = self.post(
             client,
             LIST_URL,
-            {'name': 'Dragon Miniature', 'tags': ['Dragon', 'Monster']},
+            {
+                'name': 'Dragon Miniature', 'type': StlModel.TYPE_CREATURE,
+                'tags': ['Dragon', 'Monster'],
+            },
             token=self.superuser_token,
         )
         data = json.loads(response.content)
-        assert data['name'] == 'Dragon Miniature'
         assert 'id' in data
-        assert data['photo_url'] is None
-        assert data['links'] == []
-        assert data['sources'] == []
         assert set(data['tags']) == {'dragon', 'monster'}
+        assert {
+            'name': data['name'],
+            'owned': data['owned'],
+            'type': data['type'],
+            'race': data['race'],
+            'role': data['role'],
+            'photo_url': data['photo_url'],
+            'links': data['links'],
+            'sources': data['sources'],
+        } == {
+            'name': 'Dragon Miniature',
+            'owned': True,
+            'type': StlModel.TYPE_CREATURE,
+            'race': None,
+            'role': None,
+            'photo_url': None,
+            'links': [],
+            'sources': [],
+        }
 
     def test_create_with_source_ids_links_given_sources(self, client):
         """Test that source_ids links the created STL model to the given sources."""
@@ -141,7 +177,10 @@ class TestStlModelsCreateView(TokenAuthRequestMixin):
         response = self.post(
             client,
             LIST_URL,
-            {'name': 'Dragon Miniature', 'source_ids': [source.id]},
+            {
+                'name': 'Dragon Miniature', 'type': StlModel.TYPE_CREATURE,
+                'source_ids': [source.id],
+            },
             token=self.superuser_token,
         )
         data = json.loads(response.content)
@@ -153,7 +192,10 @@ class TestStlModelsCreateView(TokenAuthRequestMixin):
         response = self.post(
             client,
             LIST_URL,
-            {'name': 'Dragon Miniature', 'collection_ids': [collection.id]},
+            {
+                'name': 'Dragon Miniature', 'type': StlModel.TYPE_CREATURE,
+                'collection_ids': [collection.id],
+            },
             token=self.superuser_token,
         )
         data = json.loads(response.content)
@@ -164,7 +206,10 @@ class TestStlModelsCreateView(TokenAuthRequestMixin):
         response = self.post(
             client,
             LIST_URL,
-            {'name': 'Dragon Miniature', 'source_ids': [999999]},
+            {
+                'name': 'Dragon Miniature', 'type': StlModel.TYPE_CREATURE,
+                'source_ids': [999999],
+            },
             token=self.superuser_token,
         )
         assert response.status_code == 400
@@ -176,17 +221,31 @@ class TestStlModelsCreateView(TokenAuthRequestMixin):
         response = self.post(
             client,
             LIST_URL,
-            {'name': 'Dragon Miniature', 'collection_ids': [999999]},
+            {
+                'name': 'Dragon Miniature', 'type': StlModel.TYPE_CREATURE,
+                'collection_ids': [999999],
+            },
             token=self.superuser_token,
         )
         assert response.status_code == 400
         data = json.loads(response.content)
         assert 'collection_ids' in data['errors']
 
+    def test_unknown_type_returns_400(self, client):
+        """Test that an unknown type value returns 400."""
+        response = self.post(
+            client, LIST_URL, {'name': 'Dragon Miniature', 'type': 'not-a-type'},
+            token=self.superuser_token,
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'type' in data['errors']
+
     def test_create_persists_stl_model(self, client):
         """Test that a successful POST persists a new StlModel row."""
         response = self.post(
-            client, LIST_URL, {'name': 'Dragon Miniature'}, token=self.superuser_token,
+            client, LIST_URL, {'name': 'Dragon Miniature', 'type': StlModel.TYPE_CREATURE},
+            token=self.superuser_token,
         )
         data = json.loads(response.content)
         assert StlModel.objects.filter(pk=data['id'], name='Dragon Miniature').exists()
@@ -194,6 +253,7 @@ class TestStlModelsCreateView(TokenAuthRequestMixin):
     def test_returns_skip_cache_header(self, client):
         """Test that the create response includes the X-Skip-Cache: true header."""
         response = self.post(
-            client, LIST_URL, {'name': 'Dragon Miniature'}, token=self.superuser_token,
+            client, LIST_URL, {'name': 'Dragon Miniature', 'type': StlModel.TYPE_CREATURE},
+            token=self.superuser_token,
         )
         assert response['X-Skip-Cache'] == 'true'

@@ -1,6 +1,13 @@
 stl_model_new_page:
   title: Novo Modelo STL
   name_label: Nome
+  owned_switch_label: Possuído
+  type_select_label: Tipo
+  type_select_placeholder: Selecione um tipo
+  race_select_label: Raça
+  race_select_none_option: Nenhuma
+  role_select_label: Classe
+  role_select_none_option: Nenhuma
   tags_label: Tags
   tags_input_placeholder: Digite uma tag e pressione Enter, ou separe várias com vírgulas
   add_tag: Adicionar

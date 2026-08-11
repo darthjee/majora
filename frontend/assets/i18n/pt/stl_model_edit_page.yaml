@@ -1,0 +1,4 @@
+stl_model_edit_page:
+  title: Editar Modelo STL
+  submit: Salvar
+  error: Algo deu errado. Por favor, tente novamente.

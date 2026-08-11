@@ -4,3 +4,42 @@ stl_model_page:
   sources: Sources
   collections: Collections
   tags: Tags
+  edit: Edit
+
+  owned_label: Owned
+  not_owned_label: Not owned
+  type_label: Type
+  race_label: Race
+  role_label: Role
+  none_label: None
+
+  type_terrain: Terrain
+  type_prop: Prop
+  type_creature: Creature
+  type_other: Other
+
+  race_human: Human
+  race_elf: Elf
+  race_dwarf: Dwarf
+  race_halfling: Halfling
+  race_gnome: Gnome
+  race_half-elf: Half-Elf
+  race_half-orc: Half-Orc
+  race_tiefling: Tiefling
+  race_dragonborn: Dragonborn
+  race_orc: Orc
+  race_goblin: Goblin
+
+  role_barbarian: Barbarian
+  role_bard: Bard
+  role_cleric: Cleric
+  role_druid: Druid
+  role_fighter: Fighter
+  role_monk: Monk
+  role_paladin: Paladin
+  role_ranger: Ranger
+  role_rogue: Rogue
+  role_sorcerer: Sorcerer
+  role_warlock: Warlock
+  role_wizard: Wizard
+  role_archer: Archer

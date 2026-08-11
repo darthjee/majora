@@ -87,6 +87,55 @@ describe('StlModelHelper', function() {
       const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel(), false, handlers));
       expect(html).not.toContain('actions-overlay-button');
     });
+
+    it('renders an "Owned" badge when owned is true', function() {
+      const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel({ owned: true }), false, handlers));
+      expect(html).toContain('Owned');
+    });
+
+    it('renders a "Not owned" badge when owned is false', function() {
+      const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel({ owned: false }), false, handlers));
+      expect(html).toContain('Not owned');
+    });
+
+    it('renders the translated type', function() {
+      const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel({ type: 'prop' }), false, handlers));
+      expect(html).toContain('Prop');
+    });
+
+    it('renders the translated race when set', function() {
+      const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel({ race: 'elf' }), false, handlers));
+      expect(html).toContain('Elf');
+    });
+
+    it('renders "None" when race is null', function() {
+      const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel({ race: null }), false, handlers));
+      expect(html).toContain('None');
+    });
+
+    it('renders the translated role when set', function() {
+      const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel({ role: 'wizard' }), false, handlers));
+      expect(html).toContain('Wizard');
+    });
+
+    it('renders "None" when role is null', function() {
+      const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel({ role: null }), false, handlers));
+      expect(html).toContain('None');
+    });
+
+    it('renders an Edit link to the edit page when isStaffOrSuperUser is true', function() {
+      const html = renderToStaticMarkup(
+        StlModelHelper.render(buildStlModel({ id: 7 }), true, handlers),
+      );
+      expect(html).toContain('href="#/miniatures/stl_models/7/edit"');
+    });
+
+    it('does not render an Edit link when isStaffOrSuperUser is false', function() {
+      const html = renderToStaticMarkup(
+        StlModelHelper.render(buildStlModel({ id: 7 }), false, handlers),
+      );
+      expect(html).not.toContain('href="#/miniatures/stl_models/7/edit"');
+    });
   });
 
   describe('.renderLoading', function() {

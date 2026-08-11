@@ -9,11 +9,10 @@ describe('StlModelNewController', function() {
   let setFieldErrors;
   let setStatus;
   let setCreatedId;
-  let onSuccess;
 
   beforeEach(function() {
     ({
-      setError, setFieldErrors, setStatus, setCreatedId, onSuccess,
+      setError, setFieldErrors, setStatus, setCreatedId,
     } = buildContext());
   });
 
@@ -26,22 +25,27 @@ describe('StlModelNewController', function() {
       }));
     });
 
-    it('prevents default, resets status/errors, and submits the name/tags/sources/collections payload', async function() {
+    const buildFormValues = (overrides = {}) => ({
+      name: 'Goblin',
+      owned: true,
+      type: 'creature',
+      race: '',
+      role: '',
+      tags: ['goblin', 'humanoid'],
+      sources: [{ id: 1, name: 'Wyrmwood' }],
+      collections: [{ id: 2, name: 'Dungeon Pack' }],
+      photoFile: null,
+      ...overrides,
+    });
+
+    it('prevents default, resets status/errors, and submits the full field payload', async function() {
       const controller = new StlModelNewController(setError, setFieldErrors);
       const event = jasmine.createSpyObj('event', ['preventDefault']);
 
       await controller.submitForm(
         event,
-        {
-          name: 'Goblin',
-          tags: ['goblin', 'humanoid'],
-          sources: [{ id: 1, name: 'Wyrmwood' }],
-          collections: [{ id: 2, name: 'Dungeon Pack' }],
-          photoFile: null,
-        },
-        {
-          setStatus, setFieldErrors, setCreatedId, onSuccess,
-        },
+        buildFormValues(),
+        { setStatus, setFieldErrors, setCreatedId },
       );
 
       expect(event.preventDefault).toHaveBeenCalled();
@@ -54,9 +58,30 @@ describe('StlModelNewController', function() {
         quantityType: 'collection',
         params: {},
         body: {
-          name: 'Goblin', tags: ['goblin', 'humanoid'], source_ids: [1], collection_ids: [2],
+          name: 'Goblin',
+          owned: true,
+          type: 'creature',
+          race: null,
+          role: null,
+          tags: ['goblin', 'humanoid'],
+          source_ids: [1],
+          collection_ids: [2],
         },
       });
+    });
+
+    it('converts blank race/role selections to null', async function() {
+      const controller = new StlModelNewController(setError, setFieldErrors);
+
+      await controller.submitForm(
+        undefined,
+        buildFormValues({ race: 'elf', role: 'wizard' }),
+        { setStatus, setFieldErrors, setCreatedId },
+      );
+
+      expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
+        body: jasmine.objectContaining({ race: 'elf', role: 'wizard' }),
+      }));
     });
 
     it('defaults tags/source_ids/collection_ids to empty arrays when none are given', async function() {
@@ -64,31 +89,35 @@ describe('StlModelNewController', function() {
 
       await controller.submitForm(
         undefined,
-        { name: 'Goblin', photoFile: null },
         {
-          setStatus, setFieldErrors, setCreatedId, onSuccess,
+          name: 'Goblin', owned: true, type: 'creature', race: '', role: '', photoFile: null,
         },
+        { setStatus, setFieldErrors, setCreatedId },
       );
 
       expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
-        body: {
-          name: 'Goblin', tags: [], source_ids: [], collection_ids: [],
-        },
+        body: jasmine.objectContaining({
+          tags: [], source_ids: [], collection_ids: [],
+        }),
       }));
     });
 
-    it('calls onSuccess with the created id on 201 success with no photo picked', async function() {
+    it('redirects to the new record\'s show page on 201 success with no photo picked', async function() {
       const controller = new StlModelNewController(setError, setFieldErrors);
+      const fakeWindow = { location: { hash: '' } };
+      globalThis.window = fakeWindow;
 
-      await controller.submitForm(
-        undefined,
-        { name: 'Goblin', tags: [], photoFile: null },
-        {
-          setStatus, setFieldErrors, setCreatedId, onSuccess,
-        },
-      );
+      try {
+        await controller.submitForm(
+          undefined,
+          buildFormValues(),
+          { setStatus, setFieldErrors, setCreatedId },
+        );
 
-      expect(onSuccess).toHaveBeenCalledWith(5);
+        expect(fakeWindow.location.hash).toBe('/miniatures/stl_models/5');
+      } finally {
+        delete globalThis.window;
+      }
     });
 
     it('sets field errors on a 400 response', async function() {
@@ -101,14 +130,11 @@ describe('StlModelNewController', function() {
 
       await controller.submitForm(
         undefined,
-        { name: '', tags: [], photoFile: null },
-        {
-          setStatus, setFieldErrors, setCreatedId, onSuccess,
-        },
+        buildFormValues({ name: '' }),
+        { setStatus, setFieldErrors, setCreatedId },
       );
 
       expect(setFieldErrors).toHaveBeenCalledWith({ name: ['is required'] });
-      expect(onSuccess).not.toHaveBeenCalled();
     });
 
     it('sets status to error on a non-400 failure', async function() {
@@ -121,32 +147,26 @@ describe('StlModelNewController', function() {
 
       await controller.submitForm(
         undefined,
-        { name: 'Goblin', tags: [], photoFile: null },
-        {
-          setStatus, setFieldErrors, setCreatedId, onSuccess,
-        },
+        buildFormValues(),
+        { setStatus, setFieldErrors, setCreatedId },
       );
 
       expect(setStatus).toHaveBeenCalledWith('error');
-      expect(onSuccess).not.toHaveBeenCalled();
     });
 
-    it('sets status to error (instead of navigating away) when the user is neither staff nor a superuser', async function() {
+    it('sets status to error (instead of submitting) when the user is neither staff nor a superuser', async function() {
       AccessStore.ensureStaffOrSuperUser.and.returnValue(Promise.resolve(false));
 
       const controller = new StlModelNewController(setError, setFieldErrors);
 
       await controller.submitForm(
         undefined,
-        { name: 'Goblin', tags: [], photoFile: null },
-        {
-          setStatus, setFieldErrors, setCreatedId, onSuccess,
-        },
+        buildFormValues(),
+        { setStatus, setFieldErrors, setCreatedId },
       );
 
       expect(setStatus).toHaveBeenCalledWith('error');
       expect(RequestStore.mutate).not.toHaveBeenCalled();
-      expect(onSuccess).not.toHaveBeenCalled();
     });
 
     it('sets status to error when the network request throws', async function() {
@@ -156,10 +176,8 @@ describe('StlModelNewController', function() {
 
       await controller.submitForm(
         undefined,
-        { name: 'Goblin', tags: [], photoFile: null },
-        {
-          setStatus, setFieldErrors, setCreatedId, onSuccess,
-        },
+        buildFormValues(),
+        { setStatus, setFieldErrors, setCreatedId },
       );
 
       expect(setStatus).toHaveBeenCalledWith('error');

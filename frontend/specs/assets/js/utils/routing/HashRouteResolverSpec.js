@@ -91,8 +91,12 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/stl_models/new').getPage()).toBe('home');
   });
 
-  it('no longer resolves /miniatures/stl_models/new (superseded by the modal)', function() {
-    expect(new HashRouteResolver(() => '#/miniatures/stl_models/new').getPage()).toBe('stlModel');
+  it('resolves /miniatures/stl_models/new to stlModelNew, not stlModel (issue #1069)', function() {
+    expect(new HashRouteResolver(() => '#/miniatures/stl_models/new').getPage()).toBe('stlModelNew');
+  });
+
+  it('resolves /miniatures/stl_models/:id/edit to stlModelEdit, not stlModel', function() {
+    expect(new HashRouteResolver(() => '#/miniatures/stl_models/7/edit').getPage()).toBe('stlModelEdit');
   });
 
   it('resolves /staff/users/:id/edit to staffUserEdit, not staffUser', function() {

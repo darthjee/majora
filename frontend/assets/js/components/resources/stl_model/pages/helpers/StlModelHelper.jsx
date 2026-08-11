@@ -13,7 +13,8 @@ export default class StlModelHelper {
   /**
    * Render the STL model detail view: a back button, the model's picture (click-to-upload,
    * mirroring the PC/NPC detail pages, when `isStaffOrSuperUser` is true) and tags in the left
-   * column, then its name, links, and sources in the right column — every field
+   * column, then its name (with an Edit link, when `isStaffOrSuperUser` is true),
+   * owned/type/race/role, links, sources, and collections in the right column — every field
    * `StlModelDetailSerializer` returns.
    *
    * @param {object} stlModel - STL model data object.
@@ -21,14 +22,18 @@ export default class StlModelHelper {
    * @param {string} stlModel.name - STL model name.
    * @param {string|null} [stlModel.photo_url] - STL model photo URL, or null/undefined to fall
    *   back to the default placeholder image.
+   * @param {boolean} [stlModel.owned] - Whether this STL model is already owned.
+   * @param {string} [stlModel.type] - STL model type (`terrain`/`prop`/`creature`/`other`).
+   * @param {string|null} [stlModel.race] - STL model race, or null when unset.
+   * @param {string|null} [stlModel.role] - STL model role, or null when unset.
    * @param {{id: number, text: string, url: string, link_type: string}[]} [stlModel.links] -
    *   External links for this STL model.
    * @param {{name: string}[]} [stlModel.sources] - Sources this STL model comes from.
    * @param {{name: string}[]} [stlModel.collections] - Collections this STL model belongs to.
    * @param {string[]} [stlModel.tags] - Tag names attached to this STL model.
-   * @param {boolean} isStaffOrSuperUser - Whether the current viewer may upload a new photo
-   *   (resolved via `AccessStore.ensureStaffOrSuperUser()`, since `stl_models` has no per-item
-   *   edit concept embedded in the payload).
+   * @param {boolean} isStaffOrSuperUser - Whether the current viewer may upload a new photo and
+   *   reach the edit page (resolved via `AccessStore.ensureStaffOrSuperUser()`, since
+   *   `stl_models` has no per-item edit concept embedded in the payload).
    * @param {{onOpenUploadModal: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} STL model detail element.
    */
@@ -48,7 +53,14 @@ export default class StlModelHelper {
             {StlModelHelper.#renderTags(stlModel.tags)}
           </div>
           <div className="col-md-8">
-            <h1>{stlModel.name}</h1>
+            <div className="d-flex align-items-center">
+              <h1 className="mb-0">{stlModel.name}</h1>
+              {StlModelHelper.#renderEditLink(stlModel, isStaffOrSuperUser)}
+            </div>
+            {StlModelHelper.#renderOwned(stlModel)}
+            {StlModelHelper.#renderEnumField('type', stlModel.type)}
+            {StlModelHelper.#renderEnumField('race', stlModel.race)}
+            {StlModelHelper.#renderEnumField('role', stlModel.role)}
             {StlModelHelper.#renderLinks(stlModel.links)}
             {StlModelHelper.#renderSources(stlModel.sources)}
             {StlModelHelper.#renderCollections(stlModel.collections)}
@@ -75,6 +87,44 @@ export default class StlModelHelper {
    */
   static renderError(error) {
     return <ErrorAlert error={error} />;
+  }
+
+  static #renderEditLink(stlModel, isStaffOrSuperUser) {
+    if (!isStaffOrSuperUser) {
+      return null;
+    }
+
+    return (
+      <a
+        href={`#/miniatures/stl_models/${stlModel.id}/edit`}
+        className="btn btn-outline-secondary btn-sm ms-2"
+      >
+        {Translator.t('stl_model_page.edit')}
+      </a>
+    );
+  }
+
+  static #renderOwned(stlModel) {
+    return (
+      <p className="mt-2">
+        <Badge
+          text={Translator.t(stlModel.owned ? 'stl_model_page.owned_label' : 'stl_model_page.not_owned_label')}
+          variant={stlModel.owned ? 'success' : 'secondary'}
+        />
+      </p>
+    );
+  }
+
+  static #renderEnumField(field, value) {
+    const displayValue = value
+      ? Translator.t(`stl_model_page.${field}_${value}`)
+      : Translator.t('stl_model_page.none_label');
+
+    return (
+      <p>
+        <strong>{Translator.t(`stl_model_page.${field}_label`)}:</strong> {displayValue}
+      </p>
+    );
   }
 
   static #renderLinks(links) {
