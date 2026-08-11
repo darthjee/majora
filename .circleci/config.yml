@@ -115,6 +115,7 @@ workflows:
           requires: [release]
           filters: *tags_only
       - wake-navi:
+          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests]
           filters: *tags_only
 jobs:
   release-image:
