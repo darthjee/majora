@@ -109,7 +109,7 @@ All jobs run on every push. Release jobs run **only on version tags** matching `
 | `link_photos` | `darthjee/tent` | Link photos directory on server |
 | `release` | `darthjee/vite_majora-base` | Finalize asset release on server |
 | `warm-up-cache` | `darthjee/navi-hey-client:latest` | Push resource/client config and trigger `engine-start` against the persistent Navi server via `navi-client` |
-| `wake-navi` | `cimg/base:current` | Non-blocking, no `requires:`; pings `$NAVI_URL` to wake the persistent Navi server before it's needed |
+| `wake-navi` | `cimg/base:current` | Runs in parallel with the `release` job chain (`requires:` the same test/check jobs as `build-and-release`); pings `$NAVI_URL` to wake the persistent Navi server, then keeps it warm with periodic pings before `warm-up-cache` needs it |
 
 ### CI setup pattern (backend/frontend jobs)
 
@@ -131,7 +131,7 @@ Both backend and frontend CI jobs copy their respective subdirectory to the work
 | `scripts/render.sh` | Render.com API helpers (sourced by deploy.sh) |
 | `scripts/bump_version.sh` | Bump version in README, package.json, and pyproject.toml |
 | `scripts/warm_navi_cache.sh` | `config`/`engine-start` actions driving `navi-client` against the persistent Navi server (used by the `warm-up-cache` CI job) |
-| `scripts/wake_navi.sh` | Retry loop that pings `$NAVI_URL` until it stops responding `502` (used by the `wake-navi` CI job) |
+| `scripts/wake_navi.sh` | Retry loop that pings `$NAVI_URL` until it stops responding `502`, then keeps it warm with periodic keep-alive pings for a short window (`MAX_ATTEMPTS`, `SLEEP_SECONDS`, `KEEPALIVE_PINGS`, `KEEPALIVE_SLEEP_SECONDS` are all env-overridable; used by the `wake-navi` CI job) |
 
 ### bump_version.sh
 
