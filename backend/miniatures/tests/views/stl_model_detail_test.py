@@ -48,16 +48,28 @@ class TestStlModelDetailView(TokenAuthRequestMixin):
         response = self.get(client, url, token=self.token)
         assert response.status_code == 200
         data = json.loads(response.content)
-        assert data['id'] == stl_model.id
-        assert data['name'] == 'Dragon Miniature'
-        assert data['owned'] is True
-        assert data['type'] == StlModel.TYPE_OTHER
-        assert data['race'] is None
-        assert data['role'] is None
-        assert data['photo_url'] is None
         assert data['links'][0]['text'] == 'Thingiverse'
-        assert data['sources'] == [{'name': 'MyMiniFactory'}]
-        assert data['tags'] == ['dragon']
+        assert {
+            'id': data['id'],
+            'name': data['name'],
+            'owned': data['owned'],
+            'type': data['type'],
+            'race': data['race'],
+            'role': data['role'],
+            'photo_url': data['photo_url'],
+            'sources': data['sources'],
+            'tags': data['tags'],
+        } == {
+            'id': stl_model.id,
+            'name': 'Dragon Miniature',
+            'owned': True,
+            'type': StlModel.TYPE_OTHER,
+            'race': None,
+            'role': None,
+            'photo_url': None,
+            'sources': [{'name': 'MyMiniFactory'}],
+            'tags': ['dragon'],
+        }
 
     def test_returns_skip_cache_header(self, client):
         """Test that the response includes the X-Skip-Cache: true header."""

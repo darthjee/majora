@@ -149,16 +149,27 @@ class TestStlModelsCreateView(TokenAuthRequestMixin):
             token=self.superuser_token,
         )
         data = json.loads(response.content)
-        assert data['name'] == 'Dragon Miniature'
         assert 'id' in data
-        assert data['owned'] is True
-        assert data['type'] == StlModel.TYPE_CREATURE
-        assert data['race'] is None
-        assert data['role'] is None
-        assert data['photo_url'] is None
-        assert data['links'] == []
-        assert data['sources'] == []
         assert set(data['tags']) == {'dragon', 'monster'}
+        assert {
+            'name': data['name'],
+            'owned': data['owned'],
+            'type': data['type'],
+            'race': data['race'],
+            'role': data['role'],
+            'photo_url': data['photo_url'],
+            'links': data['links'],
+            'sources': data['sources'],
+        } == {
+            'name': 'Dragon Miniature',
+            'owned': True,
+            'type': StlModel.TYPE_CREATURE,
+            'race': None,
+            'role': None,
+            'photo_url': None,
+            'links': [],
+            'sources': [],
+        }
 
     def test_create_with_source_ids_links_given_sources(self, client):
         """Test that source_ids links the created STL model to the given sources."""
