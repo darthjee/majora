@@ -62,6 +62,8 @@ import StaffUser from '../resources/staff_user/pages/StaffUser.jsx';
 import StaffUserEdit from '../resources/staff_user/pages/StaffUserEdit.jsx';
 import StaffUsers from '../resources/staff_user/pages/StaffUsers.jsx';
 import StlModel from '../resources/stl_model/pages/StlModel.jsx';
+import StlModelEdit from '../resources/stl_model/pages/StlModelEdit.jsx';
+import StlModelNew from '../resources/stl_model/pages/StlModelNew.jsx';
 import StlModels from '../resources/stl_model/pages/StlModels.jsx';
 import Source from '../resources/source/pages/Source.jsx';
 import Sources from '../resources/source/pages/Sources.jsx';
@@ -136,6 +138,8 @@ const PAGES = {
   staffUserEdit: <StaffUserEdit />,
   stlModels: <StlModels />,
   stlModel: <StlModel />,
+  stlModelNew: <StlModelNew />,
+  stlModelEdit: <StlModelEdit />,
   sources: <Sources />,
   source: <Source />,
   collections: <Collections />,

@@ -5,7 +5,11 @@ import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 /**
  * Controller for the STL model detail page. Unlike `TreasureController`, this fetches through
  * `RequestStore` alone with no `AccessStore` permission merge — `stl_models` has no per-item
- * edit concept (no write endpoint exists for `stl_models` at all).
+ * `can_edit` concept embedded in its payload; instead, edit access (the show page's "Edit" link,
+ * and the `PATCH /miniatures/stl_models/:id.json` update endpoint added by issue #1069) is
+ * gated by the same global staff-or-superuser check the create flow already uses, resolved
+ * separately by the show page via `useStaffOrSuperUser()`. This controller's own logic still
+ * only performs a `GET`.
  */
 export default class StlModelController extends BasePageController {
   /**

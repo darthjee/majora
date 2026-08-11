@@ -14,13 +14,13 @@ describe('StlModelNewController', function() {
     let setFieldErrors;
     let setStatus;
     let setCreatedId;
-    let onSuccess;
     let uploadClient;
+    let fakeWindow;
     const photoFile = { name: 'photo.jpg' };
 
     beforeEach(function() {
       ({
-        setError, setFieldErrors, setStatus, setCreatedId, onSuccess,
+        setError, setFieldErrors, setStatus, setCreatedId,
       } = buildContext());
       stubAccessStore(true);
       uploadClient = jasmine.createSpyObj('uploadClient', ['initUpload', 'submitUpload']);
@@ -33,11 +33,20 @@ describe('StlModelNewController', function() {
         Promise.resolve('/miniatures/stl_models/7/photo_upload.json'),
       );
       spyOn(RequestStore, 'purge');
+      fakeWindow = { location: { hash: '' } };
+      globalThis.window = fakeWindow;
     });
 
-    const buildFormValues = () => ({ name: 'Goblin', tags: [], photoFile });
+    afterEach(function() {
+      delete globalThis.window;
+    });
 
-    it('uploads the photo and calls onSuccess when the STL model is created and the upload succeeds', async function() {
+    const buildFormValues = () => ({
+      name: 'Goblin', owned: true, type: 'creature', race: '', role: '', tags: [], photoFile,
+    });
+
+    it('uploads the photo and redirects to the show page when the STL model is created and the upload '
+      + 'succeeds', async function() {
       uploadClient.initUpload.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ upload_id: 1, token: 'up-token' }),
@@ -49,9 +58,7 @@ describe('StlModelNewController', function() {
       await controller.submitForm(
         undefined,
         buildFormValues(),
-        {
-          setStatus, setFieldErrors, setCreatedId, onSuccess,
-        },
+        { setStatus, setFieldErrors, setCreatedId },
       );
 
       expect(RequestStore.resolvePath).toHaveBeenCalledWith({
@@ -62,7 +69,7 @@ describe('StlModelNewController', function() {
       );
       expect(uploadClient.submitUpload).toHaveBeenCalledWith(1, 'up-token', photoFile);
       expect(RequestStore.purge).toHaveBeenCalledWith({ resource: 'stlModel' });
-      expect(onSuccess).toHaveBeenCalledWith(7);
+      expect(fakeWindow.location.hash).toBe('/miniatures/stl_models/7');
       expect(setStatus).not.toHaveBeenCalledWith('photo-upload-failed');
     });
 
@@ -74,16 +81,14 @@ describe('StlModelNewController', function() {
       await controller.submitForm(
         undefined,
         buildFormValues(),
-        {
-          setStatus, setFieldErrors, setCreatedId, onSuccess,
-        },
+        { setStatus, setFieldErrors, setCreatedId },
       );
 
       expect(setStatus).toHaveBeenCalledWith('photo-upload-failed');
       expect(setCreatedId).toHaveBeenCalledWith(7);
       expect(uploadClient.submitUpload).not.toHaveBeenCalled();
       expect(RequestStore.purge).not.toHaveBeenCalled();
-      expect(onSuccess).not.toHaveBeenCalled();
+      expect(fakeWindow.location.hash).toBe('');
     });
 
     it('sets status to photo-upload-failed when submitUpload fails', async function() {
@@ -98,14 +103,11 @@ describe('StlModelNewController', function() {
       await controller.submitForm(
         undefined,
         buildFormValues(),
-        {
-          setStatus, setFieldErrors, setCreatedId, onSuccess,
-        },
+        { setStatus, setFieldErrors, setCreatedId },
       );
 
       expect(setStatus).toHaveBeenCalledWith('photo-upload-failed');
       expect(setCreatedId).toHaveBeenCalledWith(7);
-      expect(onSuccess).not.toHaveBeenCalled();
     });
 
     it('sets status to photo-upload-failed when the upload client throws', async function() {
@@ -116,9 +118,7 @@ describe('StlModelNewController', function() {
       await controller.submitForm(
         undefined,
         buildFormValues(),
-        {
-          setStatus, setFieldErrors, setCreatedId, onSuccess,
-        },
+        { setStatus, setFieldErrors, setCreatedId },
       );
 
       expect(setStatus).toHaveBeenCalledWith('photo-upload-failed');

@@ -8,6 +8,8 @@ import getCurrentHash from './currentHash.js';
  * @type {Array<Array<string>>}
  */
 const ROUTES = [
+  ['/miniatures/stl_models/new', 'stlModelNew'],
+  ['/miniatures/stl_models/:id/edit', 'stlModelEdit'],
   ['/miniatures/stl_models/:id', 'stlModel'],
   ['/miniatures/stl_models', 'stlModels'],
   ['/miniatures/sources/:id', 'source'],

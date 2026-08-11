@@ -7,16 +7,15 @@ import UploadClient from '../../../../../client/UploadClient.js';
 import Noop from '../../../../../utils/Noop.js';
 
 /**
- * Controller for the "New STL model" modal (`StlModelNewModal.jsx`).
+ * Controller for the "New STL model" page (`StlModelNew.jsx`).
  *
  * @description Mirrors `GameNpcNewController`'s deferred-photo-upload flow: the STL model is
- *   created first (name + tags, no photo), then — if a photo was picked — a second saga step
- *   uploads it against the newly created id, mirroring `GameNpcNewController#retryPhotoUpload`/
- *   `#failPhotoUpload`. Unlike the former standalone `/stl_models/new` page, there is no page-mount
- *   redirect gate here — the modal is only reachable through a button `StlModelsHelper` already
- *   renders exclusively for staff/superuser viewers — and every terminal success calls the
- *   caller-supplied `onSuccess` (via `setters.onSuccess`) instead of navigating to the new
- *   record's show page, so the modal/page decides what "success" means.
+ *   created first (name/owned/type/race/role/tags/sources/collections, no photo), then — if a
+ *   photo was picked — a second saga step uploads it against the newly created id, mirroring
+ *   `GameNpcNewController#retryPhotoUpload`/`#failPhotoUpload`. Issue #1069 turned this back into
+ *   a full page (from the `StlModelNewModal.jsx` it used to back): every terminal success now
+ *   redirects to the new record's show page (`#/miniatures/stl_models/:id`) instead of calling a
+ *   caller-supplied `onSuccess`, since there is no longer any caller-owned modal state to close.
  */
 export default class StlModelNewController extends BasePageController {
   /**
@@ -35,23 +34,43 @@ export default class StlModelNewController extends BasePageController {
   }
 
   /**
+   * Build the page mount effect.
+   *
+   * @description Returns a callback that checks whether the current user is staff or a
+   *   superuser and redirects to the STL models index when they are not, since this page (unlike
+   *   the modal it replaces) is directly reachable by URL.
+   * @returns {Function} Effect callback.
+   */
+  buildEffect() {
+    return () => {
+      AccessStore.ensureStaffOrSuperUser().then((isStaffOrSuperUser) => {
+        if (!isStaffOrSuperUser) {
+          this.redirectTo('/miniatures/stl_models');
+        }
+      });
+    };
+  }
+
+  /**
    * Submit the new STL model form.
    *
    * @description Prevents the default form submission, resets status and field errors, sends a
    *   POST request through {@link RequestStore.mutate} (so the STL model collection's cached
-   *   `GET` data is purged on success), then on success calls `setters.onSuccess` immediately when
-   *   no photo was picked, or runs the photo upload saga step first when `formValues.photoFile` is
-   *   set. On a 400 response, sets field errors. On any other failure, sets the general error
-   *   status. `AccessStore.ensureStaffOrSuperUser()` is re-checked here as a defensive guard (the
-   *   modal is only reachable through a button already gated on this same check) — on failure, the
-   *   general error status is set instead of navigating away.
+   *   `GET` data is purged on success), then redirects to the new record's show page immediately
+   *   when no photo was picked, or runs the photo upload saga step first when
+   *   `formValues.photoFile` is set. On a 400 response, sets field errors. On any other failure,
+   *   sets the general error status. `AccessStore.ensureStaffOrSuperUser()` is re-checked here as
+   *   a defensive guard (the page's own mount effect already redirects unauthorized viewers
+   *   away) — on failure, the general error status is set instead of navigating away.
    * @param {Event|undefined} event - Form submit event, if any.
-   * @param {{name: string, tags: string[], sources: {id: number, name: string}[],
+   * @param {{name: string, owned: boolean, type: string, race: string, role: string,
+   *   tags: string[], sources: {id: number, name: string}[],
    *   collections: {id: number, name: string}[], photoFile: File|null}} formValues - Raw form
-   *   field values. `sources`/`collections` resolve to `source_ids`/`collection_ids` on submit.
-   * @param {{setStatus: Function, setFieldErrors: Function, setCreatedId: Function,
-   *   onSuccess: Function}} setters - Page state setters; `onSuccess` is called (with the created
-   *   STL model id) once creation, and its photo upload if any, has fully succeeded.
+   *   field values. `sources`/`collections` resolve to `source_ids`/`collection_ids` on submit;
+   *   `race`/`role` are converted from `''` (the `<select>`'s native blank-option value) to
+   *   `null` on submit.
+   * @param {{setStatus: Function, setFieldErrors: Function,
+   *   setCreatedId: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
   async submitForm(event, formValues, setters) {
@@ -84,8 +103,7 @@ export default class StlModelNewController extends BasePageController {
    *   photo-upload-failed UI state.
    * @param {number|string} stlModelId - Already-created STL model id.
    * @param {File} photoFile - Photo file to upload.
-   * @param {{setStatus: Function, setCreatedId: Function, onSuccess: Function}} setters - Page
-   *   state setters.
+   * @param {{setStatus: Function, setCreatedId: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the retry handling finishes.
    */
   retryPhotoUpload(stlModelId, photoFile, setters) {
@@ -101,6 +119,10 @@ export default class StlModelNewController extends BasePageController {
       params: {},
       body: {
         name: formValues.name,
+        owned: formValues.owned,
+        type: formValues.type,
+        race: formValues.race || null,
+        role: formValues.role || null,
         tags: formValues.tags ?? [],
         source_ids: (formValues.sources ?? []).map((source) => source.id),
         collection_ids: (formValues.collections ?? []).map((collection) => collection.id),
@@ -119,7 +141,7 @@ export default class StlModelNewController extends BasePageController {
         return;
       }
 
-      setters.onSuccess(data.id);
+      this.redirectTo(`/miniatures/stl_models/${data.id}`);
       return;
     }
 
@@ -142,10 +164,10 @@ export default class StlModelNewController extends BasePageController {
     const ok = await this.photoUploadSaga.upload(uploadPath, photoFile, token);
 
     if (ok) {
-      // Purge before calling onSuccess, so the reloaded list's own `RequestStore.ensure` GET
-      // doesn't re-serve the pre-upload cached STL model.
+      // Purge before redirecting, so the show page's own `RequestStore.ensure` GET (triggered by
+      // the redirect) doesn't re-serve the pre-upload cached STL model.
       RequestStore.purge({ resource: 'stlModel' });
-      setters.onSuccess(stlModelId);
+      this.redirectTo(`/miniatures/stl_models/${stlModelId}`);
       return;
     }
 
