@@ -26,13 +26,19 @@ describe('StlModelNewController', function() {
       }));
     });
 
-    it('prevents default, resets status/errors, and submits the name/tags payload', async function() {
+    it('prevents default, resets status/errors, and submits the name/tags/sources/collections payload', async function() {
       const controller = new StlModelNewController(setError, setFieldErrors);
       const event = jasmine.createSpyObj('event', ['preventDefault']);
 
       await controller.submitForm(
         event,
-        { name: 'Goblin', tags: ['goblin', 'humanoid'], photoFile: null },
+        {
+          name: 'Goblin',
+          tags: ['goblin', 'humanoid'],
+          sources: [{ id: 1, name: 'Wyrmwood' }],
+          collections: [{ id: 2, name: 'Dungeon Pack' }],
+          photoFile: null,
+        },
         {
           setStatus, setFieldErrors, setCreatedId, onSuccess,
         },
@@ -47,11 +53,13 @@ describe('StlModelNewController', function() {
         method: 'POST',
         quantityType: 'collection',
         params: {},
-        body: { name: 'Goblin', tags: ['goblin', 'humanoid'] },
+        body: {
+          name: 'Goblin', tags: ['goblin', 'humanoid'], source_ids: [1], collection_ids: [2],
+        },
       });
     });
 
-    it('defaults tags to an empty array when none are given', async function() {
+    it('defaults tags/source_ids/collection_ids to empty arrays when none are given', async function() {
       const controller = new StlModelNewController(setError, setFieldErrors);
 
       await controller.submitForm(
@@ -63,7 +71,9 @@ describe('StlModelNewController', function() {
       );
 
       expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
-        body: { name: 'Goblin', tags: [] },
+        body: {
+          name: 'Goblin', tags: [], source_ids: [], collection_ids: [],
+        },
       }));
     });
 
