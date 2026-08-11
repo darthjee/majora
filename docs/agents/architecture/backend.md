@@ -66,9 +66,10 @@ the engine code and config they call into live here.
 
 ## miniatures/
 
-`StlModel`/`StlModelLink`/`StlModelPhoto`/`Source`/`Tag` models for the miniature-scanning
-feature. Routes are scoped under the underlying resource name (`miniatures/stl_models*.json`),
-mirroring `games/urls/`'s per-resource pattern via `urls/stl_models.py`.
+`StlModel`/`StlModelLink`/`StlModelPhoto`/`Source`/`Tag`/`Collection`/`CollectionPhoto` models
+for the miniature-scanning feature. Routes are scoped under the underlying resource name
+(`miniatures/stl_models*.json`, `miniatures/collections*.json`), mirroring `games/urls/`'s
+per-resource pattern via `urls/stl_models.py`/`urls/collections.py`.
 
 ## versioning/
 

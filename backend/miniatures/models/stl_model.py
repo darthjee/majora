@@ -17,6 +17,9 @@ class StlModel(models.Model):
         related_name='+',
     )
     sources = models.ManyToManyField('miniatures.Source', related_name='stl_models', blank=True)
+    collections = models.ManyToManyField(
+        'miniatures.Collection', related_name='stl_models', blank=True,
+    )
     tags = models.ManyToManyField('miniatures.Tag', related_name='stl_models', blank=True)
     history = HistoricalRecords(app='versioning', user_db_constraint=False)
 

@@ -9,6 +9,11 @@ field and is available across every domain. `Source` is now its own standalone c
 with its own endpoints — see [Source](source.md); `Tag` and `StlModelLink` remain
 Django-admin-only.
 
+`StlModel` also has a `collections` many-to-many field (`related_name='stl_models'` on
+[Collection](collection.md)) — mirroring `sources`'s own M2M shape, it is not yet settable
+through any `StlModel` endpoint (no create/update field accepts it); attaching a `Collection` to
+an `StlModel` is a separate, not-yet-built feature.
+
 | Action | Who can |
 |--------|---------|
 | List (`GET /miniatures/stl_models.json`) | **IsAuthenticated** — no `AllowAny` regular form |

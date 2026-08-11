@@ -1,0 +1,5 @@
+collection_page:
+  loading: Loading collection...
+  url: Website
+  source_label: 'Source:'
+  stl_models_title: STL Models

@@ -40,6 +40,9 @@ export default class HeaderHelper {
               {state.loggedIn && (
                 <Nav.Link href="#/miniatures/sources">{Translator.t('header.nav_sources')}</Nav.Link>
               )}
+              {state.loggedIn && (
+                <Nav.Link href="#/miniatures/collections">{Translator.t('header.nav_collections')}</Nav.Link>
+              )}
               {HeaderNavHelper.renderAdminNavLinks(state)}
               {HeaderNavHelper.renderGameNavLinks(state)}
               {HeaderNavHelper.renderCharacterNavLinks(state)}

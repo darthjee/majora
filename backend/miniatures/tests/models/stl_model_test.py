@@ -4,6 +4,7 @@ from django.test import TestCase
 
 from miniatures.models import StlModel
 from miniatures.tests.factories import (
+    CollectionFactory,
     SourceFactory,
     StlModelFactory,
     StlModelPhotoFactory,
@@ -64,3 +65,11 @@ class TestStlModel(TestCase):
         tag2 = TagFactory(name='monster')
         stl_model.tags.add(tag1, tag2)
         assert set(stl_model.tags.all()) == {tag1, tag2}
+
+    def test_collections_can_be_attached(self):
+        """Test that an STL model can be linked to multiple collections."""
+        stl_model = StlModelFactory(name='Dragon Miniature')
+        collection1 = CollectionFactory(name='Monster Pack')
+        collection2 = CollectionFactory(name='Terrain Set')
+        stl_model.collections.add(collection1, collection2)
+        assert set(stl_model.collections.all()) == {collection1, collection2}

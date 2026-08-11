@@ -101,4 +101,18 @@ describe('ActionsOverlay', function() {
 
     expect(html).toContain('default_source.png');
   });
+
+  it('renders a CardCollectionImage when type is collection', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(ActionsOverlay, {
+        type: 'collection',
+        url: null,
+        alt: 'Goblin Pack',
+        canEdit: true,
+        onClick: Noop.noop,
+      })
+    );
+
+    expect(html).toContain('default_collection.png');
+  });
 });

@@ -2,7 +2,16 @@
 
 from django.contrib import admin
 
-from miniatures.models import Source, SourcePhoto, StlModel, StlModelLink, StlModelPhoto, Tag
+from miniatures.models import (
+    Collection,
+    CollectionPhoto,
+    Source,
+    SourcePhoto,
+    StlModel,
+    StlModelLink,
+    StlModelPhoto,
+    Tag,
+)
 
 
 class TestMiniaturesAdmin:
@@ -31,3 +40,11 @@ class TestMiniaturesAdmin:
     def test_tag_registered(self):
         """Test that Tag is registered."""
         assert Tag in admin.site._registry
+
+    def test_collection_registered(self):
+        """Test that Collection is registered."""
+        assert Collection in admin.site._registry
+
+    def test_collection_photo_registered(self):
+        """Test that CollectionPhoto is registered."""
+        assert CollectionPhoto in admin.site._registry

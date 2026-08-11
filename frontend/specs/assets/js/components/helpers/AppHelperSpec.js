@@ -48,6 +48,8 @@ describe('AppHelper', function() {
     expect(renderToStaticMarkup(AppHelper.render('stlModel', '#/miniatures/stl_models/1'))).toContain(Translator.t('stl_model_page.loading'));
     expect(renderToStaticMarkup(AppHelper.render('sources', '#/miniatures/sources'))).toContain(Translator.t('sources_page.loading'));
     expect(renderToStaticMarkup(AppHelper.render('source', '#/miniatures/sources/1'))).toContain(Translator.t('source_page.loading'));
+    expect(renderToStaticMarkup(AppHelper.render('collections', '#/miniatures/collections'))).toContain(Translator.t('collections_page.loading'));
+    expect(renderToStaticMarkup(AppHelper.render('collection', '#/miniatures/collections/1'))).toContain(Translator.t('collection_page.loading'));
   });
 
   it('falls back to home page for unknown page key', function() {

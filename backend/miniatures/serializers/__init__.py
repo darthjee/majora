@@ -1,5 +1,8 @@
 """Serializers package for the miniatures app."""
 
+from miniatures.serializers.collection_create import CollectionCreateSerializer
+from miniatures.serializers.collection_detail import CollectionDetailSerializer
+from miniatures.serializers.collection_list import CollectionListSerializer
 from miniatures.serializers.source import SourceSerializer
 from miniatures.serializers.source_create import SourceCreateSerializer
 from miniatures.serializers.source_detail import SourceDetailSerializer
@@ -10,6 +13,9 @@ from miniatures.serializers.stl_model_link import StlModelLinkSerializer
 from miniatures.serializers.stl_model_list import StlModelListSerializer
 
 __all__ = [
+    'CollectionCreateSerializer',
+    'CollectionDetailSerializer',
+    'CollectionListSerializer',
     'SourceCreateSerializer',
     'SourceDetailSerializer',
     'SourceListSerializer',

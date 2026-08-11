@@ -61,6 +61,8 @@ regardless of any other rule listed below.
   `Tag` (`miniatures` app); a cross-domain, login-only STL/miniature catalog
 - [Source](access-control/source.md) — `Source`, `SourcePhoto` (`miniatures` app); a cross-domain,
   login-only catalog of STL sites/publishers
+- [Collection](access-control/collection.md) — `Collection`, `CollectionPhoto` (`miniatures` app);
+  a cross-domain, login-only grouping of related `StlModel`s, optionally attributed to a `Source`
 
 ### Standalone endpoints
 
