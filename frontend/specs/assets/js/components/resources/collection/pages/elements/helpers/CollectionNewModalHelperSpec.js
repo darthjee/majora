@@ -1,11 +1,17 @@
 import Modal from 'react-bootstrap/cjs/Modal.js';
 import CollectionNewModalHelper
   from '../../../../../../../../../assets/js/components/resources/collection/pages/elements/helpers/CollectionNewModalHelper.jsx';
+import SingleResourcePickerField
+  from '../../../../../../../../../assets/js/components/common/forms/SingleResourcePickerField.jsx';
 
-// Function components (e.g. FormField) are rendered by calling them with
-// their props so the search can traverse into their output; class/exotic
-// components (Modal, Modal.Header, ...) are left as-is.
-const isFunctionComponent = (type) => typeof type === 'function' && !type.prototype?.isReactComponent;
+// Function components (e.g. FormField) are rendered by calling them with their props so the
+// search can traverse into their output; class/exotic components (Modal, Modal.Header, ...) and
+// stateful components (e.g. `SingleResourcePickerField`, which owns hooks and cannot be invoked
+// directly outside of a real React render) are left as opaque leaves instead.
+const STATEFUL_COMPONENTS = [SingleResourcePickerField];
+const isFunctionComponent = (type) => (
+  typeof type === 'function' && !type.prototype?.isReactComponent && !STATEFUL_COMPONENTS.includes(type)
+);
 
 const childrenOf = (node) => {
   if (isFunctionComponent(node.type)) {
@@ -65,6 +71,7 @@ describe('CollectionNewModalHelper', function() {
     onSubmit: jasmine.createSpy('onSubmit'),
     onNameChange: jasmine.createSpy('onNameChange'),
     onUrlChange: jasmine.createSpy('onUrlChange'),
+    onSourceChange: jasmine.createSpy('onSourceChange'),
     onOpenUploadModal: jasmine.createSpy('onOpenUploadModal'),
     onRetryPhotoUpload: jasmine.createSpy('onRetryPhotoUpload'),
     onSkipPhotoUpload: jasmine.createSpy('onSkipPhotoUpload'),
@@ -73,6 +80,7 @@ describe('CollectionNewModalHelper', function() {
   const buildState = (overrides = {}) => ({
     name: 'Goblin Pack',
     url: 'http://example.com',
+    source: null,
     status: 'idle',
     fieldErrors: {},
     photoPreviewUrl: null,
@@ -123,6 +131,19 @@ describe('CollectionNewModalHelper', function() {
       const input = findElement(element, (child) => child.type === 'input' && child.props.id === 'collection-new-url');
 
       expect(input.props.value).toBe('http://example.com');
+    });
+
+    it('renders the source picker wired to onSourceChange with the current source value', function() {
+      const handlers = buildHandlers();
+      const source = { id: 3, name: 'Wyrmwood' };
+      const element = CollectionNewModalHelper.render(true, buildState({ source }), handlers);
+      const picker = findElement(element, (child) => child.type === SingleResourcePickerField);
+
+      expect(picker).not.toBeNull();
+      expect(picker.props.resource).toBe('source');
+      expect(picker.props.maxEntries).toBe(4);
+      expect(picker.props.value).toBe(source);
+      expect(picker.props.onChange).toBe(handlers.onSourceChange);
     });
 
     it('renders the photo field wired to onOpenUploadModal', function() {

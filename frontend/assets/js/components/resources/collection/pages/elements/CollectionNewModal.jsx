@@ -26,6 +26,7 @@ export default function CollectionNewModal({ show, onClose, onSuccess }) {
   const [status, setStatus] = useState('idle');
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
+  const [source, setSource] = useState(null);
   const [photoFile, setPhotoFile] = useState(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [createdId, setCreatedId] = useState(null);
@@ -51,6 +52,7 @@ export default function CollectionNewModal({ show, onClose, onSuccess }) {
     setStatus('idle');
     setName('');
     setUrl('');
+    setSource(null);
     setPhotoFile(null);
     setCreatedId(null);
   };
@@ -67,7 +69,9 @@ export default function CollectionNewModal({ show, onClose, onSuccess }) {
 
   const handleSubmit = (event) => controller.submitForm(
     event,
-    { name, url, photoFile },
+    {
+      name, url, source, photoFile,
+    },
     {
       setStatus, setFieldErrors, setCreatedId, onSuccess: handleSuccess,
     },
@@ -84,13 +88,14 @@ export default function CollectionNewModal({ show, onClose, onSuccess }) {
       {CollectionNewModalHelper.render(
         show,
         {
-          name, url, status, fieldErrors, photoPreviewUrl,
+          name, url, source, status, fieldErrors, photoPreviewUrl,
         },
         {
           onClose: handleClose,
           onSubmit: handleSubmit,
           onNameChange: (event) => setName(event.target.value),
           onUrlChange: (event) => setUrl(event.target.value),
+          onSourceChange: setSource,
           onOpenUploadModal: () => setShowUploadModal(true),
           onRetryPhotoUpload: handleRetryPhotoUpload,
           onSkipPhotoUpload: handleSuccess,

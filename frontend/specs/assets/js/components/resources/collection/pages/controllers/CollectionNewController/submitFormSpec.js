@@ -47,11 +47,11 @@ describe('CollectionNewController', function() {
         method: 'POST',
         quantityType: 'collection',
         params: {},
-        body: { name: 'Goblin Pack', url: 'http://example.com' },
+        body: { name: 'Goblin Pack', url: 'http://example.com', source_id: null },
       });
     });
 
-    it('defaults url to an empty string when none is given', async function() {
+    it('defaults url to an empty string and source_id to null when none is given', async function() {
       const controller = new CollectionNewController(setError, setFieldErrors);
 
       await controller.submitForm(
@@ -63,7 +63,25 @@ describe('CollectionNewController', function() {
       );
 
       expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
-        body: { name: 'Goblin Pack', url: '' },
+        body: { name: 'Goblin Pack', url: '', source_id: null },
+      }));
+    });
+
+    it('sends the picked source id as source_id', async function() {
+      const controller = new CollectionNewController(setError, setFieldErrors);
+
+      await controller.submitForm(
+        undefined,
+        {
+          name: 'Goblin Pack', url: '', source: { id: 3, name: 'Wyrmwood' }, photoFile: null,
+        },
+        {
+          setStatus, setFieldErrors, setCreatedId, onSuccess,
+        },
+      );
+
+      expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
+        body: { name: 'Goblin Pack', url: '', source_id: 3 },
       }));
     });
 
