@@ -2,7 +2,16 @@
 
 import factory
 
-from miniatures.models import Source, SourcePhoto, StlModel, StlModelLink, StlModelPhoto, Tag
+from miniatures.models import (
+    Collection,
+    CollectionPhoto,
+    Source,
+    SourcePhoto,
+    StlModel,
+    StlModelLink,
+    StlModelPhoto,
+    Tag,
+)
 
 
 class StlModelFactory(factory.django.DjangoModelFactory):
@@ -77,7 +86,33 @@ class TagFactory(factory.django.DjangoModelFactory):
     name = factory.Sequence(lambda n: f'Tag {n}')
 
 
+class CollectionFactory(factory.django.DjangoModelFactory):
+    """Factory for Collection."""
+
+    class Meta:
+        """Factory configuration."""
+
+        model = Collection
+
+    name = factory.Sequence(lambda n: f'Collection {n}')
+
+
+class CollectionPhotoFactory(factory.django.DjangoModelFactory):
+    """Factory for CollectionPhoto."""
+
+    class Meta:
+        """Factory configuration."""
+
+        model = CollectionPhoto
+
+    collection = factory.SubFactory(CollectionFactory)
+    path = 'photos/collections/1/photo.png'
+    ready = True
+
+
 __all__ = [
+    'CollectionFactory',
+    'CollectionPhotoFactory',
     'SourceFactory',
     'SourcePhotoFactory',
     'StlModelFactory',
