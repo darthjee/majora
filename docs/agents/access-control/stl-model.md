@@ -10,9 +10,9 @@ with its own endpoints — see [Source](source.md); `Tag` and `StlModelLink` rem
 Django-admin-only.
 
 `StlModel` also has a `collections` many-to-many field (`related_name='stl_models'` on
-[Collection](collection.md)) — mirroring `sources`'s own M2M shape, it is not yet settable
-through any `StlModel` endpoint (no create/update field accepts it); attaching a `Collection` to
-an `StlModel` is a separate, not-yet-built feature.
+[Collection](collection.md)) — mirroring `sources`'s own M2M shape, it is settable on create via
+`collection_ids` (see [Create endpoint](#create-endpoint) below) and readable on the detail
+endpoint (see [Fields](#fields) below).
 
 | Action | Who can |
 |--------|---------|
@@ -33,22 +33,27 @@ the detail endpoint's 404 response.
 
 **Detail** (`StlModelDetailSerializer`): `id`, `name`, `photo_url`, `links` (`id`, `text`, `url`,
 `link_type` — same shape as [Link](link.md)'s `GameLinkSerializer`), `sources` (`name` only, no
-`id`), `tags` (flat array of strings, not `{id, name}` objects). The create endpoint (`201`)
+`id`), `collections` (`name` only, no `id`, via `CollectionSerializer` — mirrors `sources`'s
+shape), `tags` (flat array of strings, not `{id, name}` objects). The create endpoint (`201`)
 returns this same shape.
 
 ## Create endpoint
 
-`POST /miniatures/stl_models.json` accepts `name` (required) and `tags` (optional array of
-strings, max **20** entries). `sources` is not accepted on create — new `StlModel`s always start
-with an empty `sources` list; attaching sources is a separate, not-yet-built feature. Each `tags`
-entry is trimmed/lowercased and resolved via `Tag.objects.get_or_create`, so tags are
-case-insensitively deduplicated and shared globally across `StlModel`s. A `tags` entry longer than
-`Tag.name`'s DB `max_length` (200), or a `tags` list over 20 entries, returns `400` before any DB
-write. Responses: `201` (created, `StlModelDetailSerializer` shape), `400` (validation error),
-`401` (unauthenticated), `403` (authenticated but not staff/superuser).
+`POST /miniatures/stl_models.json` accepts `name` (required), `tags` (optional array of strings,
+max **20** entries), `source_ids` (optional array of `Source` ids, default `[]`), and
+`collection_ids` (optional array of `Collection` ids, default `[]`) — each validated one-by-one via
+`PrimaryKeyRelatedField` (an unknown id in either list returns `400`) and bulk-`.set()` onto the
+new `StlModel`'s `sources`/`collections` M2Ms after creation; omitting either leaves the
+corresponding M2M empty. Each `tags` entry is trimmed/lowercased and resolved via
+`Tag.objects.get_or_create`, so tags are case-insensitively deduplicated and shared globally
+across `StlModel`s. A `tags` entry longer than `Tag.name`'s DB `max_length` (200), or a `tags`
+list over 20 entries, returns `400` before any DB write. Responses: `201` (created,
+`StlModelDetailSerializer` shape), `400` (validation error), `401` (unauthenticated), `403`
+(authenticated but not staff/superuser).
 
 ## No search/filter yet
 
 `GET /miniatures/stl_models.json` accepts no query parameters beyond the shared `Paginator`'s `page`/
 `per_page` — no name/source/tag filtering, despite issue #1017's title. Deferred to a follow-up
-issue.
+issue. (`GET /miniatures/sources.json` and `GET /miniatures/collections.json` do accept a `name`
+filter now — see [Source](source.md) and [Collection](collection.md).)

@@ -51,7 +51,9 @@ has at most one photo (`SourcePhoto`, via `Source.photo`), stored at a determini
 UUID), and each upload replaces the existing photo if one is already set rather than creating a
 new row.
 
-## No search/filter yet
+## Search/filter
 
-`GET /miniatures/sources.json` accepts no query parameters beyond the shared `Paginator`'s `page`/
-`per_page` — no name filtering.
+`GET /miniatures/sources.json` accepts an optional `name` query param (case-insensitive substring
+match on `name`, via the shared `common.query_filters.filter_by_name`), alongside the shared
+`Paginator`'s `page`/`per_page`. Omitting/blank `name` returns the full (paginated) list,
+unfiltered.
