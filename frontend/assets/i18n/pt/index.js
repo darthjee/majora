@@ -79,6 +79,7 @@ const chunkLoaders = {
   staff_user_edit_page: () => import('./staff_user_edit_page.yaml?raw'),
   staff_user_page: () => import('./staff_user_page.yaml?raw'),
   staff_users_page: () => import('./staff_users_page.yaml?raw'),
+  stl_model_edit_page: () => import('./stl_model_edit_page.yaml?raw'),
   stl_model_new_page: () => import('./stl_model_new_page.yaml?raw'),
   stl_model_page: () => import('./stl_model_page.yaml?raw'),
   stl_models_page: () => import('./stl_models_page.yaml?raw'),
