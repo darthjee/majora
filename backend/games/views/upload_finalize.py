@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from accounts.authentication import CookieTokenAuthentication
-from miniatures.models import StlModelPhoto
+from miniatures.models import SourcePhoto, StlModelPhoto
 from permissions import EndpointPermission
 
 from ..models import (
@@ -158,6 +158,13 @@ def _set_stl_model_photo(stl_model_photo):
     stl_model.save()
 
 
+def _set_source_photo(source_photo):
+    """Set the source's photo to `source_photo`, always replacing any existing one."""
+    source = source_photo.source
+    source.photo = source_photo
+    source.save()
+
+
 def _set_item_photo(item_photo):
     """Set the item's photo to `item_photo`, always replacing any existing one."""
     item = item_photo.game_item
@@ -249,12 +256,23 @@ def _stl_model_photo_permission(request, content_object):
     return require_staff(request)
 
 
+def _source_photo_permission(request, content_object):
+    """Return a permission error Response for a SourcePhoto content object, else None.
+
+    `Source` has no owning-game/ownership concept -- creation and photo upload are both
+    uniformly staff-only, so the same `require_staff` gate used by the upload-init endpoint
+    applies here too.
+    """
+    return require_staff(request)
+
+
 # Registry mapping each photo content-object type to its (permission_check, mark_ready) pair,
 # replacing the previous per-entity isinstance dispatch chains. GamePhoto (and any other/default
 # content object type) falls through to `_DEFAULT_HANDLERS`, matching prior behavior.
 _PHOTO_HANDLERS = {
     TreasurePhoto: (_treasure_photo_permission, _set_treasure_photo),
     StlModelPhoto: (_stl_model_photo_permission, _set_stl_model_photo),
+    SourcePhoto: (_source_photo_permission, _set_source_photo),
     CharacterPhoto: (_character_photo_permission, _set_character_photo_if_unset),
     GameItemPhoto: (_game_item_photo_permission, _set_item_photo),
     CharacterItemPhoto: (_character_item_photo_permission, _set_character_item_photo),
