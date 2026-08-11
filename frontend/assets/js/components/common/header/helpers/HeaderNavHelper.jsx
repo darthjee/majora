@@ -28,6 +28,28 @@ export default class HeaderNavHelper {
   }
 
   /**
+   * Renders the "Miniatures" nav dropdown, grouping the STL Models, Sources, and Collections
+   * links under one flat `state.loggedIn` gate, mirroring `renderAdminNavLinks`'s single-check
+   * dropdown shape.
+   *
+   * @param {{loggedIn: boolean}} state - header auth state.
+   * @returns {React.ReactElement|null} the Miniatures nav dropdown, or null when logged out.
+   */
+  static renderMiniaturesNavLinks(state) {
+    if (!state.loggedIn) {
+      return null;
+    }
+
+    return (
+      <NavDropdown title={Translator.t('header.nav_miniatures')} id="header-miniatures-nav-dropdown" renderMenuOnMount>
+        <NavDropdown.Item href="#/miniatures/stl_models">{Translator.t('header.nav_stl_models')}</NavDropdown.Item>
+        <NavDropdown.Item href="#/miniatures/sources">{Translator.t('header.nav_sources')}</NavDropdown.Item>
+        <NavDropdown.Item href="#/miniatures/collections">{Translator.t('header.nav_collections')}</NavDropdown.Item>
+      </NavDropdown>
+    );
+  }
+
+  /**
    * Renders the "Game" nav dropdown while viewing any route nested under
    * `/games/:game_slug/...`, listing the game's key sections.
    *
