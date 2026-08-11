@@ -1,6 +1,7 @@
 import TranslationLoader from '../../../../assets/js/i18n/TranslationLoader.js';
 import TranslationEvents from '../../../../assets/js/i18n/TranslationEvents.js';
 import Translator from '../../../../assets/js/i18n/Translator.js';
+import MajoraLogger from '../../../../assets/js/utils/logging/MajoraLogger.js';
 import * as en from '../../../../assets/i18n/en/index.js';
 import * as pt from '../../../../assets/i18n/pt/index.js';
 
@@ -41,6 +42,12 @@ const registerFakeChunk = (manifest, namespace, yaml) => {
 };
 
 describe('TranslationLoader', function() {
+  let warnSpy;
+
+  beforeEach(function() {
+    warnSpy = spyOn(MajoraLogger, 'warn');
+  });
+
   afterEach(function() {
     Translator.setLanguage('en');
   });
@@ -91,6 +98,19 @@ describe('TranslationLoader', function() {
       // regardless of the failed state — there is no retry.
       expect(() => TranslationLoader.request('en', 'loader_spec_missing_namespace')).not.toThrow();
       expect(TranslationLoader.get('en', 'loader_spec_missing_namespace')).toBeUndefined();
+    });
+
+    it('logs the rejected import at warn level with the language, namespace, and error', async function() {
+      TranslationLoader.request('en', 'loader_spec_missing_namespace_logging');
+
+      await flushAsync();
+
+      expect(warnSpy).toHaveBeenCalledWith({
+        event: 'translation-chunk-load-failed',
+        language: 'en',
+        namespace: 'loader_spec_missing_namespace_logging',
+        error: jasmine.any(Error),
+      });
     });
 
     it('does not emit a load event when the language is no longer active at resolve time', async function() {
