@@ -1,7 +1,9 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
 import TagsField, { handleTagsFieldKeyDown } from '../../../../../../assets/js/components/common/forms/TagsField.jsx';
+import RemovableBadge from '../../../../../../assets/js/components/common/badges/RemovableBadge.jsx';
 import Noop from '../../../../../../assets/js/utils/Noop.js';
+import { findElement } from './support.js';
 
 describe('TagsField', function() {
   const baseProps = {
@@ -13,6 +15,8 @@ describe('TagsField', function() {
     inputValue: '',
     onInputChange: Noop.noop,
     onAdd: Noop.noop,
+    onRemoveTag: Noop.noop,
+    removeTagLabel: 'Remove tag',
   };
 
   it('renders the label', function() {
@@ -56,6 +60,23 @@ describe('TagsField', function() {
       React.createElement(TagsField, { ...baseProps, errors: ['is too long'] })
     );
     expect(html).toContain('is too long');
+  });
+
+  it('renders the removeTagLabel as each badge remove button aria-label', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(TagsField, { ...baseProps, tags: ['goblin'] })
+    );
+    expect(html).toContain('aria-label="Remove tag"');
+  });
+
+  it('calls onRemoveTag with the tag when its badge remove button is clicked', function() {
+    const onRemoveTag = jasmine.createSpy('onRemoveTag');
+    const element = TagsField({ ...baseProps, tags: ['goblin', 'humanoid'], onRemoveTag });
+    const badge = findElement(element, (node) => node.type === RemovableBadge && node.props.text === 'goblin');
+
+    badge.props.onRemove();
+
+    expect(onRemoveTag).toHaveBeenCalledWith('goblin');
   });
 
   describe('.handleTagsFieldKeyDown', function() {

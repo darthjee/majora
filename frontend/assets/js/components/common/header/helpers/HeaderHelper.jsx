@@ -34,15 +34,7 @@ export default class HeaderHelper {
           <Navbar.Collapse id="header-navbar">
             <Nav className="me-auto">
               <Nav.Link href="#/games">{Translator.t('header.nav_games')}</Nav.Link>
-              {state.loggedIn && (
-                <Nav.Link href="#/miniatures/stl_models">{Translator.t('header.nav_stl_models')}</Nav.Link>
-              )}
-              {state.loggedIn && (
-                <Nav.Link href="#/miniatures/sources">{Translator.t('header.nav_sources')}</Nav.Link>
-              )}
-              {state.loggedIn && (
-                <Nav.Link href="#/miniatures/collections">{Translator.t('header.nav_collections')}</Nav.Link>
-              )}
+              {HeaderNavHelper.renderMiniaturesNavLinks(state)}
               {HeaderNavHelper.renderAdminNavLinks(state)}
               {HeaderNavHelper.renderGameNavLinks(state)}
               {HeaderNavHelper.renderCharacterNavLinks(state)}

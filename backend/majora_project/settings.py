@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'games',
     'staff',
     'permissions',
+    'common',
     'domains',
     'accounts',
     'versioning',

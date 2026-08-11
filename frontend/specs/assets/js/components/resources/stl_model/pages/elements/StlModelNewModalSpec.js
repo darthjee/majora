@@ -48,7 +48,14 @@ describe('StlModelNewModal', function() {
     expect(renderSpy).toHaveBeenCalledWith(
       true,
       {
-        name: '', tags: [], tagInput: '', status: 'idle', fieldErrors: {}, photoPreviewUrl: null,
+        name: '',
+        tags: [],
+        tagInput: '',
+        sources: [],
+        collections: [],
+        status: 'idle',
+        fieldErrors: {},
+        photoPreviewUrl: null,
       },
       jasmine.any(Object),
     );
@@ -102,7 +109,34 @@ describe('StlModelNewModal', function() {
     expect(() => capturedHandlers.onAddTag()).not.toThrow();
   });
 
-  it('wires onSubmit to controller.submitForm with the name/tags/photo payload and an onSuccess setter', function() {
+  it('removes a tag via onRemoveTag without throwing', function() {
+    let capturedHandlers;
+    spyOn(StlModelNewModalHelper, 'render').and.callFake((show, state, handlers) => {
+      capturedHandlers = handlers;
+      return null;
+    });
+
+    renderToStaticMarkup(React.createElement(StlModelNewModal, buildProps()));
+
+    expect(() => capturedHandlers.onRemoveTag('goblin')).not.toThrow();
+  });
+
+  it('picks sources/collections via onSourcesChange/onCollectionsChange without throwing', function() {
+    let capturedHandlers;
+    spyOn(StlModelNewModalHelper, 'render').and.callFake((show, state, handlers) => {
+      capturedHandlers = handlers;
+      return null;
+    });
+
+    renderToStaticMarkup(React.createElement(StlModelNewModal, buildProps()));
+
+    expect(() => {
+      capturedHandlers.onSourcesChange([{ id: 1, name: 'Wyrmwood' }]);
+      capturedHandlers.onCollectionsChange([{ id: 2, name: 'Dungeon Pack' }]);
+    }).not.toThrow();
+  });
+
+  it('wires onSubmit to controller.submitForm with the name/tags/sources/collections/photo payload and an onSuccess setter', function() {
     let capturedHandlers;
     spyOn(StlModelNewModalHelper, 'render').and.callFake((show, state, handlers) => {
       capturedHandlers = handlers;
@@ -116,7 +150,9 @@ describe('StlModelNewModal', function() {
 
     expect(StlModelNewController.prototype.submitForm).toHaveBeenCalledWith(
       event,
-      jasmine.objectContaining({ name: '', tags: [], photoFile: null }),
+      jasmine.objectContaining({
+        name: '', tags: [], sources: [], collections: [], photoFile: null,
+      }),
       jasmine.objectContaining({
         setStatus: jasmine.any(Function),
         setFieldErrors: jasmine.any(Function),

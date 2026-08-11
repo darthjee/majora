@@ -1,4 +1,4 @@
-import Badge from '../badges/Badge.jsx';
+import RemovableBadge from '../badges/RemovableBadge.jsx';
 import FieldErrors from './FieldErrors.jsx';
 
 /**
@@ -35,11 +35,16 @@ export function handleTagsFieldKeyDown(event, onAdd) {
  * @param {Function} props.onInputChange - Change handler for the text input.
  * @param {Function} props.onAdd - Handler invoked on both the "Add" button click and pressing
  *   Enter in the text input.
+ * @param {Function} props.onRemoveTag - Handler invoked with a tag's value when its badge's
+ *   remove button is clicked.
+ * @param {string} props.removeTagLabel - Caller-supplied translated label for each badge's
+ *   remove button `aria-label`.
  * @param {string[]} [props.errors] - Field-level error messages to display below the input.
  * @returns {React.ReactElement} Tags field element.
  */
 export default function TagsField({
-  id, label, placeholder, addLabel, tags, inputValue, onInputChange, onAdd, errors = [],
+  id, label, placeholder, addLabel, tags, inputValue, onInputChange, onAdd, onRemoveTag,
+  removeTagLabel, errors = [],
 }) {
   return (
     <div className="mb-3">
@@ -47,7 +52,7 @@ export default function TagsField({
       <div className="mb-2">
         {tags.map((tag) => (
           <span key={tag} className="me-1 d-inline-block">
-            <Badge text={tag} />
+            <RemovableBadge text={tag} onRemove={() => onRemoveTag(tag)} removeLabel={removeTagLabel} />
           </span>
         ))}
       </div>

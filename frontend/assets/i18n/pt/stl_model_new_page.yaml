@@ -4,6 +4,11 @@ stl_model_new_page:
   tags_label: Tags
   tags_input_placeholder: Digite uma tag e pressione Enter, ou separe várias com vírgulas
   add_tag: Adicionar
+  remove_tag_tooltip: Remover tag
+  sources_label: Fontes
+  sources_search_placeholder: Buscar fontes...
+  collections_label: Coleções
+  collections_search_placeholder: Buscar coleções...
   submit: Criar Modelo STL
   error: Falha ao criar o modelo STL. Tente novamente.
   photo_upload_failed: Falha ao enviar a foto. O modelo STL foi criado — você pode tentar novamente ou pular por enquanto.

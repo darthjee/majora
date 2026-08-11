@@ -5,7 +5,7 @@ import pytest
 from miniatures.models import Tag
 from miniatures.serializers import StlModelCreateSerializer
 from miniatures.serializers._tags_sync import MAX_TAGS
-from miniatures.tests.factories import TagFactory
+from miniatures.tests.factories import CollectionFactory, SourceFactory, TagFactory
 
 
 @pytest.mark.django_db
@@ -84,3 +84,53 @@ class TestStlModelCreateSerializer:
         serializer.is_valid()
         stl_model = serializer.save()
         assert stl_model.tags.count() == 0
+
+    def test_create_with_source_ids_links_given_sources(self):
+        """Test that create() links the STL model to the given sources."""
+        source = SourceFactory(name='MyMiniFactory')
+        serializer = StlModelCreateSerializer(
+            data={'name': 'Dragon Miniature', 'source_ids': [source.id]}
+        )
+        assert serializer.is_valid()
+        stl_model = serializer.save()
+        assert list(stl_model.sources.all()) == [source]
+
+    def test_create_with_no_source_ids_leaves_sources_empty(self):
+        """Test that create() with no source_ids leaves the sources M2M empty."""
+        serializer = StlModelCreateSerializer(data={'name': 'Dragon Miniature'})
+        serializer.is_valid()
+        stl_model = serializer.save()
+        assert stl_model.sources.count() == 0
+
+    def test_unknown_source_id_returns_error(self):
+        """Test that an unknown source_ids entry is rejected with a 400-worthy error."""
+        serializer = StlModelCreateSerializer(
+            data={'name': 'Dragon Miniature', 'source_ids': [999999]}
+        )
+        assert not serializer.is_valid()
+        assert 'source_ids' in serializer.errors
+
+    def test_create_with_collection_ids_links_given_collections(self):
+        """Test that create() links the STL model to the given collections."""
+        collection = CollectionFactory(name='Monster Pack')
+        serializer = StlModelCreateSerializer(
+            data={'name': 'Dragon Miniature', 'collection_ids': [collection.id]}
+        )
+        assert serializer.is_valid()
+        stl_model = serializer.save()
+        assert list(stl_model.collections.all()) == [collection]
+
+    def test_create_with_no_collection_ids_leaves_collections_empty(self):
+        """Test that create() with no collection_ids leaves the collections M2M empty."""
+        serializer = StlModelCreateSerializer(data={'name': 'Dragon Miniature'})
+        serializer.is_valid()
+        stl_model = serializer.save()
+        assert stl_model.collections.count() == 0
+
+    def test_unknown_collection_id_returns_error(self):
+        """Test that an unknown collection_ids entry is rejected with a 400-worthy error."""
+        serializer = StlModelCreateSerializer(
+            data={'name': 'Dragon Miniature', 'collection_ids': [999999]}
+        )
+        assert not serializer.is_valid()
+        assert 'collection_ids' in serializer.errors

@@ -5,6 +5,8 @@ from django.db.models.functions import Coalesce
 from django.http import Http404
 from rest_framework.response import Response
 
+from common.query_filters import filter_by_name as _common_filter_by_name
+
 from ...models import Character
 
 
@@ -63,10 +65,7 @@ def _filter_by_slain(request, queryset, slain_field):
 
 def _filter_by_character_name(request, queryset):
     """Narrow `queryset` by a case-insensitive substring match on `name` from the `name` param."""
-    name = request.query_params.get('name')
-    if name:
-        return queryset.filter(name__icontains=name)
-    return queryset
+    return _common_filter_by_name(request, queryset)
 
 
 def _filter_by_allegiance(request, queryset, allegiance_field):

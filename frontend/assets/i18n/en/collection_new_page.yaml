@@ -2,6 +2,8 @@ collection_new_page:
   title: New Collection
   name_label: Name
   url_label: Url
+  source_label: Source
+  source_search_placeholder: Search sources...
   submit: Create Collection
   error: Failed to create collection. Please try again.
   photo_upload_failed: Failed to upload the photo. The collection was created — you can retry the upload or skip it for now.

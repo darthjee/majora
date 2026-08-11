@@ -10,9 +10,9 @@ import Noop from '../../../../../utils/Noop.js';
  * Controller for the "New Collection" modal (`CollectionNewModal.jsx`).
  *
  * @description Mirrors `SourceNewController`'s deferred-photo-upload flow: the collection is
- *   created first (name + url, no photo, no source — `source` starts `null` and is assigned
- *   later, a separate not-yet-built feature), then — if a photo was picked — a second saga step
- *   uploads it against the newly created id, mirroring `SourceNewController#retryPhotoUpload`/
+ *   created first (name + url + optional `source_id`, no photo), then — if a photo was picked —
+ *   a second saga step uploads it against the newly created id, mirroring
+ *   `SourceNewController#retryPhotoUpload`/
  *   `#failPhotoUpload`. There is no page-mount redirect gate here — the modal is only reachable
  *   through a button `CollectionsHelper` already renders exclusively for staff/superuser viewers
  *   — and every terminal success calls the caller-supplied `onSuccess` (via `setters.onSuccess`)
@@ -47,8 +47,9 @@ export default class CollectionNewController extends BasePageController {
    *   a defensive guard (the modal is only reachable through a button already gated on this same
    *   check) — on failure, the general error status is set instead of navigating away.
    * @param {Event|undefined} event - Form submit event, if any.
-   * @param {{name: string, url: string, photoFile: File|null}} formValues - Raw form field
-   *   values.
+   * @param {{name: string, url: string, source: ({id: number, name: string}|null),
+   *   photoFile: File|null}} formValues - Raw form field values. `source` resolves to
+   *   `source_id` (or `null`) on submit.
    * @param {{setStatus: Function, setFieldErrors: Function, setCreatedId: Function,
    *   onSuccess: Function}} setters - Page state setters; `onSuccess` is called (with the created
    *   collection id) once creation, and its photo upload if any, has fully succeeded.
@@ -102,6 +103,7 @@ export default class CollectionNewController extends BasePageController {
       body: {
         name: formValues.name,
         url: formValues.url ?? '',
+        source_id: formValues.source?.id ?? null,
       },
     });
 

@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from common.query_filters import filter_by_name
 from games.paginator import Paginator
 from games.views.common import require_staff, validated_or_error
 
@@ -19,7 +20,8 @@ def sources_list(request):
     if request.method == 'POST':
         return _create_source(request)
 
-    page, headers = Paginator(request, Source.objects.all()).paginate()
+    queryset = filter_by_name(request, Source.objects.all())
+    page, headers = Paginator(request, queryset).paginate()
     serializer = SourceListSerializer(page, many=True)
     return skip_cache(Response(serializer.data, headers=headers))
 

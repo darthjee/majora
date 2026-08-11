@@ -9,9 +9,10 @@ companion, both in the standalone `miniatures` app) is a named grouping of relat
 
 `Collection.source` is an optional `ForeignKey` to `Source` (`on_delete=SET_NULL`), and
 `StlModel.collections` is a `ManyToManyField` back to `Collection` (`related_name='stl_models'`,
-declared on `StlModel`) — mirroring `StlModel.sources`'s own M2M shape. Neither relationship is
-settable through any endpoint yet; both start empty/unset on `Collection`/`StlModel` creation and
-are attached later via a separate, not-yet-built feature.
+declared on `StlModel`) — mirroring `StlModel.sources`'s own M2M shape. `source` is settable on
+`Collection` create via `source_id` (see [Create endpoint](#create-endpoint) below).
+`StlModel.collections` is settable on `StlModel` create via `collection_ids` — see
+[StlModel](stl-model.md#create-endpoint).
 
 | Action | Who can |
 |--------|---------|
@@ -33,8 +34,10 @@ the detail endpoint's 404 response.
 
 **Detail** (`CollectionDetailSerializer`): `id`, `name`, `url`, `photo_url`, `source` (`{id,
 name}`, or `null` when unset), `stl_models` (list of `{id, name}`, possibly empty). The create
-endpoint (`201`) returns this same shape (`source: null`, `stl_models: []`, since neither is
-settable on create).
+endpoint (`201`) returns this same shape (`source` reflects the submitted `source_id`, or `null`
+when omitted; `stl_models: []`, since a new `Collection` can't yet be linked to an `StlModel` on
+its own create — that link is only settable from the `StlModel` side, via `collection_ids` on
+`POST /miniatures/stl_models.json`).
 
 `url` is a plain `CharField` (max length 200, optional, **unique**), not a `URLField` — same
 no-format-validation deviation as [Source](source.md)'s `url`, but unlike `Source.url` it is also
@@ -45,15 +48,15 @@ url-less `Collection`s never collide under the `unique=True` constraint — a bl
 ## Create endpoint
 
 `POST /miniatures/collections.json` accepts `name` (required, DB-level `unique=True`, so a
-duplicate `name` returns `400` via DRF's automatic `UniqueValidator`) and `url` (optional,
+duplicate `name` returns `400` via DRF's automatic `UniqueValidator`), `url` (optional,
 DB-level `unique=True`, same `400`-on-duplicate behavior — but only when a non-`null` value is
 submitted; DRF's validator pipeline skips a field entirely when its value is `None`, so two
-`Collection`s each posted with no `url` never trip the validator). `source` is **not** accepted
-on create — a new `Collection` always starts with `source: null`, assigned later via a separate,
-not-yet-built feature (mirroring how `StlModel.sources` also starts empty on create). Responses:
-`201` (created, `CollectionDetailSerializer` shape), `400` (validation error, e.g. duplicate
-`name`/`url`, disallowed `url` scheme), `401` (unauthenticated), `403` (authenticated but not
-staff/superuser).
+`Collection`s each posted with no `url` never trip the validator), and `source_id` (optional,
+nullable, a `Source` id validated via `PrimaryKeyRelatedField` — an unknown id returns `400`;
+omitting it or passing `null` leaves `source` unset). Responses: `201` (created,
+`CollectionDetailSerializer` shape), `400` (validation error, e.g. duplicate `name`/`url`,
+disallowed `url` scheme, unknown `source_id`), `401` (unauthenticated), `403` (authenticated but
+not staff/superuser).
 
 ## Photo upload
 
@@ -74,7 +77,9 @@ upload), a `Collection` supports a real multi-photo gallery via `CollectionPhoto
   roles" `PATCH`) is out of scope for this resource today; gallery browsing/management endpoints
   beyond the first upload are not yet built.
 
-## No search/filter yet
+## Search/filter
 
-`GET /miniatures/collections.json` accepts no query parameters beyond the shared `Paginator`'s
-`page`/`per_page` — no name filtering.
+`GET /miniatures/collections.json` accepts an optional `name` query param (case-insensitive
+substring match on `name`, via the shared `common.query_filters.filter_by_name`), alongside the
+shared `Paginator`'s `page`/`per_page`. Omitting/blank `name` returns the full (paginated) list,
+unfiltered.

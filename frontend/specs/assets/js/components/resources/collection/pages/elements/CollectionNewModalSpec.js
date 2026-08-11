@@ -26,7 +26,7 @@ describe('CollectionNewModal', function() {
     expect(renderSpy).toHaveBeenCalledWith(
       true,
       {
-        name: '', url: '', status: 'idle', fieldErrors: {}, photoPreviewUrl: null,
+        name: '', url: '', source: null, status: 'idle', fieldErrors: {}, photoPreviewUrl: null,
       },
       jasmine.any(Object),
     );
@@ -68,7 +68,7 @@ describe('CollectionNewModal', function() {
     expect(() => capturedHandlers.onOpenUploadModal()).not.toThrow();
   });
 
-  it('wires onSubmit to controller.submitForm with the name/url/photo payload and an onSuccess setter', function() {
+  it('wires onSubmit to controller.submitForm with the name/url/source/photo payload and an onSuccess setter', function() {
     let capturedHandlers;
     spyOn(CollectionNewModalHelper, 'render').and.callFake((show, state, handlers) => {
       capturedHandlers = handlers;
@@ -82,7 +82,9 @@ describe('CollectionNewModal', function() {
 
     expect(CollectionNewController.prototype.submitForm).toHaveBeenCalledWith(
       event,
-      jasmine.objectContaining({ name: '', url: '', photoFile: null }),
+      jasmine.objectContaining({
+        name: '', url: '', source: null, photoFile: null,
+      }),
       jasmine.objectContaining({
         setStatus: jasmine.any(Function),
         setFieldErrors: jasmine.any(Function),
@@ -90,6 +92,18 @@ describe('CollectionNewModal', function() {
         onSuccess: jasmine.any(Function),
       }),
     );
+  });
+
+  it('picks a source via onSourceChange without throwing', function() {
+    let capturedHandlers;
+    spyOn(CollectionNewModalHelper, 'render').and.callFake((show, state, handlers) => {
+      capturedHandlers = handlers;
+      return null;
+    });
+
+    renderToStaticMarkup(React.createElement(CollectionNewModal, buildProps()));
+
+    expect(() => capturedHandlers.onSourceChange({ id: 3, name: 'Wyrmwood' })).not.toThrow();
   });
 
   it('wires onRetryPhotoUpload to controller.retryPhotoUpload with the created id, photo file, and an onSuccess setter', function() {

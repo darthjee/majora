@@ -3,7 +3,7 @@
 import pytest
 
 from miniatures.serializers import CollectionCreateSerializer
-from miniatures.tests.factories import CollectionFactory
+from miniatures.tests.factories import CollectionFactory, SourceFactory
 
 
 @pytest.mark.django_db
@@ -67,14 +67,39 @@ class TestCollectionCreateSerializer:
         collection = serializer.save()
         assert collection.url is None
 
-    def test_create_starts_with_no_source(self):
-        """Test that create() always leaves source unset -- it is not an accepted field."""
-        serializer = CollectionCreateSerializer(
-            data={'name': 'Monster Pack', 'source': 'ignored'}
-        )
+    def test_create_starts_with_no_source_when_source_id_omitted(self):
+        """Test that create() leaves source unset when source_id is not given."""
+        serializer = CollectionCreateSerializer(data={'name': 'Monster Pack'})
         serializer.is_valid()
         collection = serializer.save()
         assert collection.source is None
+
+    def test_create_with_valid_source_id_sets_source(self):
+        """Test that create() sets Collection.source when a valid source_id is given."""
+        source = SourceFactory(name='MyMiniFactory')
+        serializer = CollectionCreateSerializer(
+            data={'name': 'Monster Pack', 'source_id': source.id}
+        )
+        assert serializer.is_valid()
+        collection = serializer.save()
+        assert collection.source == source
+
+    def test_create_with_explicit_null_source_id_leaves_source_none(self):
+        """Test that an explicit null source_id is accepted and leaves source as None."""
+        serializer = CollectionCreateSerializer(
+            data={'name': 'Monster Pack', 'source_id': None}
+        )
+        assert serializer.is_valid()
+        collection = serializer.save()
+        assert collection.source is None
+
+    def test_unknown_source_id_returns_error(self):
+        """Test that an unknown source_id is rejected with a 400-worthy error."""
+        serializer = CollectionCreateSerializer(
+            data={'name': 'Monster Pack', 'source_id': 999999}
+        )
+        assert not serializer.is_valid()
+        assert 'source_id' in serializer.errors
 
     def test_javascript_scheme_url_is_rejected(self):
         """Test that a `javascript:` scheme url is rejected."""

@@ -46,8 +46,9 @@ export default class StlModelNewController extends BasePageController {
    *   modal is only reachable through a button already gated on this same check) — on failure, the
    *   general error status is set instead of navigating away.
    * @param {Event|undefined} event - Form submit event, if any.
-   * @param {{name: string, tags: string[], photoFile: File|null}} formValues - Raw form field
-   *   values.
+   * @param {{name: string, tags: string[], sources: {id: number, name: string}[],
+   *   collections: {id: number, name: string}[], photoFile: File|null}} formValues - Raw form
+   *   field values. `sources`/`collections` resolve to `source_ids`/`collection_ids` on submit.
    * @param {{setStatus: Function, setFieldErrors: Function, setCreatedId: Function,
    *   onSuccess: Function}} setters - Page state setters; `onSuccess` is called (with the created
    *   STL model id) once creation, and its photo upload if any, has fully succeeded.
@@ -101,6 +102,8 @@ export default class StlModelNewController extends BasePageController {
       body: {
         name: formValues.name,
         tags: formValues.tags ?? [],
+        source_ids: (formValues.sources ?? []).map((source) => source.id),
+        collection_ids: (formValues.collections ?? []).map((collection) => collection.id),
       },
     });
 

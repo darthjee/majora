@@ -1,11 +1,21 @@
 import Modal from 'react-bootstrap/cjs/Modal.js';
 import StlModelNewModalHelper
   from '../../../../../../../../../assets/js/components/resources/stl_model/pages/elements/helpers/StlModelNewModalHelper.jsx';
+import MultiResourcePickerField
+  from '../../../../../../../../../assets/js/components/common/forms/MultiResourcePickerField.jsx';
+import ResourcePickerSearch
+  from '../../../../../../../../../assets/js/components/common/forms/ResourcePickerSearch.jsx';
+import RemovableBadge from '../../../../../../../../../assets/js/components/common/badges/RemovableBadge.jsx';
 
-// Function components (e.g. FormField) are rendered by calling them with
-// their props so the search can traverse into their output; class/exotic
-// components (Modal, Modal.Header, ...) are left as-is.
-const isFunctionComponent = (type) => typeof type === 'function' && !type.prototype?.isReactComponent;
+// Function components (e.g. FormField) are rendered by calling them with their props so the
+// search can traverse into their output; class/exotic components (Modal, Modal.Header, ...) and
+// stateful components (e.g. `ResourcePickerSearch`, reached through `MultiResourcePickerField`,
+// which owns hooks and cannot be invoked directly outside of a real React render) are left as
+// opaque leaves instead.
+const STATEFUL_COMPONENTS = [ResourcePickerSearch];
+const isFunctionComponent = (type) => (
+  typeof type === 'function' && !type.prototype?.isReactComponent && !STATEFUL_COMPONENTS.includes(type)
+);
 
 const childrenOf = (node) => {
   if (isFunctionComponent(node.type)) {
@@ -66,6 +76,9 @@ describe('StlModelNewModalHelper', function() {
     onNameChange: jasmine.createSpy('onNameChange'),
     onTagInputChange: jasmine.createSpy('onTagInputChange'),
     onAddTag: jasmine.createSpy('onAddTag'),
+    onRemoveTag: jasmine.createSpy('onRemoveTag'),
+    onSourcesChange: jasmine.createSpy('onSourcesChange'),
+    onCollectionsChange: jasmine.createSpy('onCollectionsChange'),
     onOpenUploadModal: jasmine.createSpy('onOpenUploadModal'),
     onRetryPhotoUpload: jasmine.createSpy('onRetryPhotoUpload'),
     onSkipPhotoUpload: jasmine.createSpy('onSkipPhotoUpload'),
@@ -75,6 +88,8 @@ describe('StlModelNewModalHelper', function() {
     name: 'Goblin Miniature',
     tags: ['goblin'],
     tagInput: '',
+    sources: [],
+    collections: [],
     status: 'idle',
     fieldErrors: {},
     photoPreviewUrl: null,
@@ -126,6 +141,50 @@ describe('StlModelNewModalHelper', function() {
 
       expect(tagsInput).not.toBeNull();
       expect(findText(element)).toContain('goblin');
+    });
+
+    it('calls onRemoveTag with the tag when its badge remove button is clicked', function() {
+      const handlers = buildHandlers();
+      const element = StlModelNewModalHelper.render(true, buildState({ tags: ['goblin'] }), handlers);
+      const badge = findElement(element, (child) => child.type === RemovableBadge && child.props.text === 'goblin');
+
+      badge.props.onRemove();
+
+      expect(handlers.onRemoveTag).toHaveBeenCalledWith('goblin');
+    });
+
+    it('renders the sources picker wired to onSourcesChange with the current sources value', function() {
+      const handlers = buildHandlers();
+      const sources = [{ id: 1, name: 'Wyrmwood' }];
+      const element = StlModelNewModalHelper.render(true, buildState({ sources }), handlers);
+      const pickers = [];
+      findElement(element, (child) => {
+        if (child.type === MultiResourcePickerField) pickers.push(child);
+        return false;
+      });
+      const sourcesPicker = pickers.find((picker) => picker.props.resource === 'source');
+
+      expect(sourcesPicker).not.toBeUndefined();
+      expect(sourcesPicker.props.maxEntries).toBe(4);
+      expect(sourcesPicker.props.value).toBe(sources);
+      expect(sourcesPicker.props.onChange).toBe(handlers.onSourcesChange);
+    });
+
+    it('renders the collections picker wired to onCollectionsChange with the current collections value', function() {
+      const handlers = buildHandlers();
+      const collections = [{ id: 2, name: 'Dungeon Pack' }];
+      const element = StlModelNewModalHelper.render(true, buildState({ collections }), handlers);
+      const pickers = [];
+      findElement(element, (child) => {
+        if (child.type === MultiResourcePickerField) pickers.push(child);
+        return false;
+      });
+      const collectionsPicker = pickers.find((picker) => picker.props.resource === 'collection');
+
+      expect(collectionsPicker).not.toBeUndefined();
+      expect(collectionsPicker.props.maxEntries).toBe(4);
+      expect(collectionsPicker.props.value).toBe(collections);
+      expect(collectionsPicker.props.onChange).toBe(handlers.onCollectionsChange);
     });
 
     it('renders the photo field wired to onOpenUploadModal', function() {

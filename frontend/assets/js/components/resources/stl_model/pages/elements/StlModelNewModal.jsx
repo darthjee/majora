@@ -56,6 +56,8 @@ export default function StlModelNewModal({ show, onClose, onSuccess }) {
   const [name, setName] = useState('');
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
+  const [sources, setSources] = useState([]);
+  const [collections, setCollections] = useState([]);
   const [photoFile, setPhotoFile] = useState(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [createdId, setCreatedId] = useState(null);
@@ -82,6 +84,8 @@ export default function StlModelNewModal({ show, onClose, onSuccess }) {
     setName('');
     setTags([]);
     setTagInput('');
+    setSources([]);
+    setCollections([]);
     setPhotoFile(null);
     setCreatedId(null);
   };
@@ -98,7 +102,9 @@ export default function StlModelNewModal({ show, onClose, onSuccess }) {
 
   const handleSubmit = (event) => controller.submitForm(
     event,
-    { name, tags, photoFile },
+    {
+      name, tags, sources, collections, photoFile,
+    },
     {
       setStatus, setFieldErrors, setCreatedId, onSuccess: handleSuccess,
     },
@@ -108,6 +114,8 @@ export default function StlModelNewModal({ show, onClose, onSuccess }) {
     setTags((prev) => buildTagsAfterAdd(prev, tagInput));
     setTagInput('');
   };
+
+  const handleRemoveTag = (tag) => setTags((prev) => prev.filter((t) => t !== tag));
 
   const handleRetryPhotoUpload = () => controller.retryPhotoUpload(
     createdId,
@@ -120,7 +128,7 @@ export default function StlModelNewModal({ show, onClose, onSuccess }) {
       {StlModelNewModalHelper.render(
         show,
         {
-          name, tags, tagInput, status, fieldErrors, photoPreviewUrl,
+          name, tags, tagInput, sources, collections, status, fieldErrors, photoPreviewUrl,
         },
         {
           onClose: handleClose,
@@ -128,6 +136,9 @@ export default function StlModelNewModal({ show, onClose, onSuccess }) {
           onNameChange: (event) => setName(event.target.value),
           onTagInputChange: (event) => setTagInput(event.target.value),
           onAddTag: handleAddTag,
+          onRemoveTag: handleRemoveTag,
+          onSourcesChange: setSources,
+          onCollectionsChange: setCollections,
           onOpenUploadModal: () => setShowUploadModal(true),
           onRetryPhotoUpload: handleRetryPhotoUpload,
           onSkipPhotoUpload: handleSuccess,

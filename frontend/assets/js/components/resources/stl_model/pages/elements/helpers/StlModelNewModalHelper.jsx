@@ -1,28 +1,32 @@
 import Modal from 'react-bootstrap/cjs/Modal.js';
 import FormField from '../../../../../common/forms/FormField.jsx';
 import TagsField from '../../../../../common/forms/TagsField.jsx';
+import MultiResourcePickerField from '../../../../../common/forms/MultiResourcePickerField.jsx';
 import SubmitButton from '../../../../../common/buttons/SubmitButton.jsx';
 import Translator from '../../../../../../i18n/Translator.js';
 import StlModelPhotoField from '../StlModelPhotoField.jsx';
 
 /**
  * Rendering helper for the "New STL model" modal: a two-column form (photo + name on the left,
- * tags on the right) inside `Modal.Body`, with a full-width submit button as the `Modal.Footer`,
- * following the `Modal`/`Modal.Header`/`Modal.Body`/`Modal.Footer` shell pattern already used by
- * `ResourceExchangeModalHelper`/`LoginModalHelper`. Reuses the same `stl_model_new_page.*` i18n
- * keys the former standalone `/stl_models/new` page used.
+ * tags + source picker + collection picker on the right) inside `Modal.Body`, with a full-width
+ * submit button as the `Modal.Footer`, following the `Modal`/`Modal.Header`/`Modal.Body`/
+ * `Modal.Footer` shell pattern already used by `ResourceExchangeModalHelper`/`LoginModalHelper`.
+ * Reuses the same `stl_model_new_page.*` i18n keys the former standalone `/stl_models/new` page
+ * used.
  */
 export default class StlModelNewModalHelper {
   /**
    * Render the "New STL model" modal.
    *
    * @param {boolean} show - Whether the modal is visible.
-   * @param {{name: string, tags: string[], tagInput: string, status: string, fieldErrors: object,
-   *   photoPreviewUrl: string|null}} formState - Form state. `photoPreviewUrl` is a local object
-   *   URL for the picked-but-not-yet-uploaded photo, or null before a photo is picked (renders the
-   *   default `default_stl_model.png` placeholder).
+   * @param {{name: string, tags: string[], tagInput: string,
+   *   sources: {id: number, name: string}[], collections: {id: number, name: string}[],
+   *   status: string, fieldErrors: object, photoPreviewUrl: string|null}} formState - Form state.
+   *   `photoPreviewUrl` is a local object URL for the picked-but-not-yet-uploaded photo, or null
+   *   before a photo is picked (renders the default `default_stl_model.png` placeholder).
    * @param {{onClose: Function, onSubmit: Function, onNameChange: Function,
-   *   onTagInputChange: Function, onAddTag: Function, onOpenUploadModal: Function,
+   *   onTagInputChange: Function, onAddTag: Function, onRemoveTag: Function,
+   *   onSourcesChange: Function, onCollectionsChange: Function, onOpenUploadModal: Function,
    *   onRetryPhotoUpload: Function, onSkipPhotoUpload: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered "New STL model" modal.
    */
@@ -62,7 +66,27 @@ export default class StlModelNewModalHelper {
                   inputValue={formState.tagInput}
                   onInputChange={handlers.onTagInputChange}
                   onAdd={handlers.onAddTag}
+                  onRemoveTag={handlers.onRemoveTag}
+                  removeTagLabel={Translator.t('stl_model_new_page.remove_tag_tooltip')}
                   errors={formState.fieldErrors.tags ?? []}
+                />
+                <MultiResourcePickerField
+                  resource="source"
+                  maxEntries={4}
+                  value={formState.sources}
+                  onChange={handlers.onSourcesChange}
+                  label={Translator.t('stl_model_new_page.sources_label')}
+                  searchPlaceholder={Translator.t('stl_model_new_page.sources_search_placeholder')}
+                  removeLabel={Translator.t('stl_model_new_page.remove_tag_tooltip')}
+                />
+                <MultiResourcePickerField
+                  resource="collection"
+                  maxEntries={4}
+                  value={formState.collections}
+                  onChange={handlers.onCollectionsChange}
+                  label={Translator.t('stl_model_new_page.collections_label')}
+                  searchPlaceholder={Translator.t('stl_model_new_page.collections_search_placeholder')}
+                  removeLabel={Translator.t('stl_model_new_page.remove_tag_tooltip')}
                 />
               </div>
             </div>
