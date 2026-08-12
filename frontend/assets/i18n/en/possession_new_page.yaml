@@ -1,0 +1,10 @@
+possession_new_page:
+  title: Create Possession
+  name_label: Name
+  description_label: Description
+  hidden_label: Hidden
+  submit: Create Possession
+  error: Failed to create possession. Please try again.
+  photo_upload_failed: Failed to upload the photo. The possession was created — you can retry the upload or skip it for now.
+  retry_photo_upload: Retry photo upload
+  skip_photo_upload: Skip and continue

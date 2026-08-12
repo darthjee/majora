@@ -4,6 +4,7 @@ game_page:
   non_player_characters: Non-Player Characters
   treasures: Treasures
   items: Items
+  possessions: Possessions
   documents: Documents
   sessions: Sessions
   players: Players
