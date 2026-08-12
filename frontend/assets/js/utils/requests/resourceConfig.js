@@ -16,6 +16,7 @@ import characterDocumentPhotoConfig from './config/characterDocumentPhotoConfig.
 import stlModelConfig from './config/stlModelConfig.js';
 import sourceConfig from './config/sourceConfig.js';
 import collectionConfig from './config/collectionConfig.js';
+import factionConfig from './config/factionConfig.js';
 
 const RESOURCES = {
   game: gameConfig,
@@ -36,6 +37,7 @@ const RESOURCES = {
   stlModel: stlModelConfig,
   source: sourceConfig,
   collection: collectionConfig,
+  faction: factionConfig,
 };
 
 /**
@@ -62,7 +64,7 @@ export default {
    * @param {string} resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'possession'`,
    *   `'treasure'`, `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`,
    *   `'gameDocumentPhoto'`, `'gameDocumentFile'`, `'characterDocumentFile'`,
-   *   `'characterDocumentPhoto'`, `'stlModel'`, `'source'`, `'collection'`).
+   *   `'characterDocumentPhoto'`, `'stlModel'`, `'source'`, `'collection'`, `'faction'`).
    * @param {string} quantityType - `'collection'`, `'single'`, or a resource-specific key.
    * @returns {{regular: object, private: object}|null} The config entry, or `null` when no
    *   configuration exists for the given method/resource/quantity-type combination.

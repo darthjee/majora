@@ -1,0 +1,209 @@
+import GameFactionController
+  from '../../../../../../../../assets/js/components/resources/faction/pages/controllers/GameFactionController.js';
+import AccessStore from '../../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import RequestStore from '../../../../../../../../assets/js/utils/requests/RequestStore.js';
+
+describe('GameFactionController', function() {
+  let setFaction;
+  let setLoading;
+  let setError;
+  let setCanEdit;
+  let setCanUploadPhoto;
+  let client;
+  let ensureSpy;
+
+  beforeEach(function() {
+    setFaction = jasmine.createSpy('setFaction');
+    setLoading = jasmine.createSpy('setLoading');
+    setError = jasmine.createSpy('setError');
+    setCanEdit = jasmine.createSpy('setCanEdit');
+    setCanUploadPhoto = jasmine.createSpy('setCanUploadPhoto');
+    client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
+    client.currentHash.and.returnValue('#/games/demo/factions/5');
+    spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
+    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+    ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(
+      Promise.resolve({ data: { id: 5, name: 'The Silver Hand' } }),
+    );
+  });
+
+  describe('.getParamsFromHash', function() {
+    it('extracts the game slug and faction id', function() {
+      expect(GameFactionController.getParamsFromHash('#/games/demo/factions/5')).toEqual({
+        game_slug: 'demo', id: '5',
+      });
+    });
+
+    it('defaults to empty strings for a non-matching hash', function() {
+      expect(GameFactionController.getParamsFromHash('#/games/demo')).toEqual({
+        game_slug: '', id: '',
+      });
+    });
+  });
+
+  describe('#buildEffect', function() {
+    it('fetches the faction through RequestStore', async function() {
+      const cleanup = new GameFactionController(
+        setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto, client,
+      ).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(ensureSpy).toHaveBeenCalledWith({
+        componentName: 'GameFactionController',
+        resource: 'faction',
+        quantityType: 'single',
+        params: { gameSlug: 'demo', id: '5' },
+      });
+      expect(setFaction).toHaveBeenCalledWith({ id: 5, name: 'The Silver Hand' });
+      expect(setLoading).toHaveBeenCalledWith(false);
+      expect(setError).not.toHaveBeenCalled();
+
+      cleanup();
+    });
+
+    it('sets an error when the fetch rejects', async function() {
+      ensureSpy.and.returnValue(Promise.reject(new Error('network error')));
+
+      const cleanup = new GameFactionController(
+        setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto, client,
+      ).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(setError).toHaveBeenCalledWith('Unable to load faction.');
+      expect(setLoading).toHaveBeenCalledWith(false);
+
+      cleanup();
+    });
+
+    it('sets an error and skips fetching when route params are missing', function() {
+      client.currentHash.and.returnValue('#/games/demo');
+
+      const cleanup = new GameFactionController(
+        setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto, client,
+      ).buildEffect()();
+
+      expect(setError).toHaveBeenCalledWith('Unable to load faction.');
+      expect(setLoading).toHaveBeenCalledWith(false);
+      expect(ensureSpy).not.toHaveBeenCalled();
+
+      cleanup();
+    });
+
+    it('does not update state after unmount', async function() {
+      const cleanup = new GameFactionController(
+        setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto, client,
+      ).buildEffect()();
+      cleanup();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(setFaction).not.toHaveBeenCalled();
+      expect(setLoading).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('canUploadPhoto', function() {
+    const runController = async () => {
+      const cleanup = new GameFactionController(
+        setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto, client,
+      ).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      cleanup();
+    };
+
+    it('calls ensureGameAccess with the game slug independently of the faction fetch', async function() {
+      await runController();
+
+      expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');
+    });
+
+    it('is true for a superuser', async function() {
+      AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ is_superuser: true }));
+
+      await runController();
+
+      expect(setCanUploadPhoto).toHaveBeenCalledWith(true);
+    });
+
+    it('is true for staff', async function() {
+      AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ is_staff: true }));
+
+      await runController();
+
+      expect(setCanUploadPhoto).toHaveBeenCalledWith(true);
+    });
+
+    it('is true for the game DM', async function() {
+      AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ is_dm: true }));
+
+      await runController();
+
+      expect(setCanUploadPhoto).toHaveBeenCalledWith(true);
+    });
+
+    it('is true for a player', async function() {
+      AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ is_player: true }));
+
+      await runController();
+
+      expect(setCanUploadPhoto).toHaveBeenCalledWith(true);
+    });
+
+    it('is false for an unrelated authenticated user', async function() {
+      AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({
+        is_superuser: false, is_staff: false, is_dm: false, is_player: false,
+      }));
+
+      await runController();
+
+      expect(setCanUploadPhoto).toHaveBeenCalledWith(false);
+    });
+
+    it('fails closed to false when the access check rejects', async function() {
+      AccessStore.ensureGameAccess.and.returnValue(Promise.reject(new Error('nope')));
+
+      await runController();
+
+      expect(setCanUploadPhoto).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('canEdit', function() {
+    const runController = async () => {
+      const cleanup = new GameFactionController(
+        setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto, client,
+      ).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      cleanup();
+    };
+
+    it('calls ensureGamePermissions with the game slug independently of the faction fetch', async function() {
+      await runController();
+
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+    });
+
+    it('is true when the requester can edit the game (DM/staff)', async function() {
+      AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: true }));
+
+      await runController();
+
+      expect(setCanEdit).toHaveBeenCalledWith(true);
+    });
+
+    it('is false when the requester cannot edit the game', async function() {
+      AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: false }));
+
+      await runController();
+
+      expect(setCanEdit).toHaveBeenCalledWith(false);
+    });
+
+    it('fails closed to false when the permissions check rejects', async function() {
+      AccessStore.ensureGamePermissions.and.returnValue(Promise.reject(new Error('nope')));
+
+      await runController();
+
+      expect(setCanEdit).toHaveBeenCalledWith(false);
+    });
+  });
+});

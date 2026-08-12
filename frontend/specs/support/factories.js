@@ -127,3 +127,18 @@ export function buildCollection(overrides = {}) {
     ...overrides,
   };
 }
+
+/**
+ * Create a mock faction object (issue #812).
+ *
+ * @param {object} overrides - Properties to override the defaults.
+ * @returns {object} A mock faction object.
+ */
+export function buildFaction(overrides = {}) {
+  return {
+    id: 1,
+    name: 'The Silver Hand',
+    photo_path: null,
+    ...overrides,
+  };
+}
