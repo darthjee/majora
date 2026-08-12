@@ -1,0 +1,6 @@
+character_possessions_page:
+  loading: Loading possessions...
+  title: Possessions
+  hidden_label: Hidden
+  new_possession: Create Possession
+  exchange_possessions: Exchange Possessions

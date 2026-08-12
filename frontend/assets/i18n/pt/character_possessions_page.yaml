@@ -1,0 +1,6 @@
+character_possessions_page:
+  loading: Carregando posses...
+  title: Posses
+  hidden_label: Oculto
+  new_possession: Criar Posse
+  exchange_possessions: Trocar Posses

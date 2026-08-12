@@ -266,6 +266,23 @@ document_exchange_modal:
   load_error: Falha ao carregar documentos. Por favor, tente novamente.
   already_owned_error: Este documento já foi adquirido.
   generic_error: Não foi possível concluir esta ação. Por favor, tente novamente.
+possession_exchange_modal:
+  title: Troca de Posse
+  search_placeholder: Buscar posses...
+  acquire_tab: Adquirir
+  acquire_tab_tooltip: Adquire uma cópia da posse
+  remove_tab: Remover
+  remove_tab_tooltip: Remove uma posse
+  hidden_label: Oculto
+  confirm: Confirmar
+  cancel: Cancelar
+  back: Voltar
+  cancel_selection: Cancelar
+  loading: Carregando posses...
+  empty: Nenhuma posse disponível.
+  load_error: Falha ao carregar posses. Por favor, tente novamente.
+  already_owned_error: Esta posse já foi adquirida.
+  generic_error: Não foi possível concluir esta ação. Por favor, tente novamente.
 game_treasures_page:
   loading: Carregando tesouros...
   title: Tesouros
