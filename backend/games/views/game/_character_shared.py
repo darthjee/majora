@@ -422,8 +422,9 @@ def build_document_acquire_view(npc):
     def view(request, game_slug, character_id):
         """Create a CharacterDocument for the PC/NPC from a submitted GameDocument."""
         game = get_object_or_404(Game, game_slug=game_slug)
-        character = _get_character_or_404(game, character_id, npc=npc)
-        return character_document_acquire(request, game, character)
+        return character_document_acquire(
+            request, game, character_id, npc=npc, check_hidden=npc,
+        )
 
     return view
 
@@ -438,8 +439,9 @@ def build_document_acquire_all_view(npc):
         error_response = check_game_edit(request, game)
         if error_response:
             return error_response
-        character = _get_character_or_404(game, character_id, npc=npc)
-        return character_document_acquire(request, game, character, allow_hidden=True)
+        return character_document_acquire(
+            request, game, character_id, npc=npc, check_hidden=npc, allow_hidden=True,
+        )
 
     return view
 
@@ -451,8 +453,9 @@ def build_document_remove_view(npc):
     def view(request, game_slug, character_id):
         """Remove a CharacterDocument owned by the PC/NPC."""
         game = get_object_or_404(Game, game_slug=game_slug)
-        character = _get_character_or_404(game, character_id, npc=npc)
-        return character_document_remove(request, game, character)
+        return character_document_remove(
+            request, game, character_id, npc=npc, check_hidden=npc,
+        )
 
     return view
 
@@ -472,8 +475,9 @@ def build_document_remove_all_view(npc):
         error_response = _check_character_all_permission(request, game, character_id, npc)
         if error_response:
             return error_response
-        character = _get_character_or_404(game, character_id, npc=npc)
-        return character_document_remove(request, game, character, allow_hidden=True)
+        return character_document_remove(
+            request, game, character_id, npc=npc, check_hidden=npc, allow_hidden=True,
+        )
 
     return view
 
@@ -572,8 +576,7 @@ def build_item_acquire_view(npc):
     def view(request, game_slug, character_id):
         """Create a CharacterItem for the PC/NPC from a submitted GameItem."""
         game = get_object_or_404(Game, game_slug=game_slug)
-        character = _get_character_or_404(game, character_id, npc=npc)
-        return character_item_acquire(request, game, character)
+        return character_item_acquire(request, game, character_id, npc=npc, check_hidden=npc)
 
     return view
 
@@ -588,8 +591,9 @@ def build_item_acquire_all_view(npc):
         error_response = check_game_edit(request, game)
         if error_response:
             return error_response
-        character = _get_character_or_404(game, character_id, npc=npc)
-        return character_item_acquire(request, game, character, allow_hidden=True)
+        return character_item_acquire(
+            request, game, character_id, npc=npc, check_hidden=npc, allow_hidden=True,
+        )
 
     return view
 
@@ -601,8 +605,7 @@ def build_item_remove_view(npc):
     def view(request, game_slug, character_id):
         """Remove a CharacterItem owned by the PC/NPC."""
         game = get_object_or_404(Game, game_slug=game_slug)
-        character = _get_character_or_404(game, character_id, npc=npc)
-        return character_item_remove(request, game, character)
+        return character_item_remove(request, game, character_id, npc=npc, check_hidden=npc)
 
     return view
 
@@ -622,8 +625,9 @@ def build_item_remove_all_view(npc):
         error_response = _check_character_all_permission(request, game, character_id, npc)
         if error_response:
             return error_response
-        character = _get_character_or_404(game, character_id, npc=npc)
-        return character_item_remove(request, game, character, allow_hidden=True)
+        return character_item_remove(
+            request, game, character_id, npc=npc, check_hidden=npc, allow_hidden=True,
+        )
 
     return view
 

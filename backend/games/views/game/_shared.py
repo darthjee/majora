@@ -3,11 +3,11 @@
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 from django.http import Http404
-from rest_framework.response import Response
 
 from common.query_filters import filter_by_name as _common_filter_by_name
 
 from ...models import Character
+from ..common import hidden_gate_response
 
 
 def _with_treasure_value(queryset):
@@ -48,11 +48,7 @@ def _character_document_resource(character):
 
 def _hidden_gate_response(character, request):
     """Return a 404 Response with X-Skip-Cache set if character is hidden and not editable."""
-    if character.hidden and not character.can_be_edited_by(request.user):
-        response = Response(status=404)
-        response['X-Skip-Cache'] = 'true'
-        return response
-    return None
+    return hidden_gate_response(character, character, request)
 
 
 def _filter_by_slain(request, queryset, slain_field):

@@ -58,7 +58,8 @@ def character_documents_available(
     return response
 
 
-def character_document_acquire(request, game, character, allow_hidden=False):
+@check_hidden
+def character_document_acquire(request, game, character, check_hidden, allow_hidden=False):
     """Create a CharacterDocument linking `character` to a submitted GameDocument.
 
     `allow_hidden` bypasses the hidden-GameDocument 404 gate — reserved for the DM-only
@@ -94,7 +95,8 @@ def character_document_acquire(request, game, character, allow_hidden=False):
     return Response(CharacterDocumentAllSerializer(character_document).data, status=201)
 
 
-def character_document_remove(request, game, character, allow_hidden=False):
+@check_hidden
+def character_document_remove(request, game, character, check_hidden, allow_hidden=False):
     """Delete the CharacterDocument linking `character` to a submitted GameDocument.
 
     `allow_hidden` bypasses the hidden-CharacterDocument 404 gate — reserved for the DM-only

@@ -57,7 +57,8 @@ def character_items_available(
     return response
 
 
-def character_item_acquire(request, game, character, allow_hidden=False):
+@check_hidden
+def character_item_acquire(request, game, character, check_hidden, allow_hidden=False):
     """Create a CharacterItem linking `character` to a submitted GameItem.
 
     `allow_hidden` bypasses the hidden-GameItem 404 gate — reserved for the DM-only
@@ -84,7 +85,8 @@ def character_item_acquire(request, game, character, allow_hidden=False):
     return Response(CharacterItemDetailFullSerializer(character_item).data, status=201)
 
 
-def character_item_remove(request, game, character, allow_hidden=False):
+@check_hidden
+def character_item_remove(request, game, character, check_hidden, allow_hidden=False):
     """Delete the CharacterItem linking `character` to a submitted GameItem.
 
     `allow_hidden` bypasses the hidden-CharacterItem 404 gate — reserved for the DM-only
