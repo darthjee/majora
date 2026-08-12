@@ -19,6 +19,7 @@ class TestPagePermissionConfigStore:
                 'regular_edit': 'can_edit_regular',
                 'create_item': 'can_create_item',
                 'create_document': 'can_create_document',
+                'create_possession': 'can_create_possession',
                 'edit_session': 'can_edit_session',
                 'create_npc': 'can_create_npc',
             },
