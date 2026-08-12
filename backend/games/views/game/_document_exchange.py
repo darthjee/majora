@@ -10,7 +10,8 @@ from ...models import CharacterDocument
 from ...serializers import CharacterDocumentAllSerializer
 from ..common import paginated_list_response, validated_or_error
 from ..games._treasure_filters import filter_by_name
-from ._shared import _character_document_resource, _get_character_or_404, _hidden_gate_response
+from ._decorators import check_hidden
+from ._shared import _character_document_resource
 
 
 def _check_document_create(request, game, character, tier):
@@ -33,8 +34,9 @@ class _DocumentRemoveSerializer(serializers.Serializer):
     game_document_id = serializers.IntegerField()
 
 
+@check_hidden
 def character_documents_available(
-    request, game, character_id, npc, check_hidden, allow_hidden=False,
+    request, game, character, check_hidden, allow_hidden=False,
     serializer_class=None,
 ):
     """Return a paginated GameDocument catalog, minus documents `character` already owns.
@@ -44,13 +46,6 @@ def character_documents_available(
     `character.character_documents` (owned rows), excluding any GameDocument id already
     linked to the character.
     """
-    character = _get_character_or_404(game, character_id, npc)
-
-    if check_hidden:
-        error_response = _hidden_gate_response(character, request)
-        if error_response:
-            return error_response
-
     owned_ids = character.character_documents.values_list('game_document_id', flat=True)
     documents = game.documents.exclude(id__in=owned_ids)
     if not allow_hidden:

@@ -8,11 +8,12 @@ from ...serializers import CharacterTreasureSerializer
 from ..common import paginated_list_response
 from ..games._treasure_context import game_treasures_context
 from ..games._treasure_filters import filter_by_max_value, filter_by_min_value, filter_by_name
-from ._shared import _get_character_or_404, _hidden_gate_response
+from ._decorators import check_hidden
 
 
+@check_hidden
 def character_treasures(
-    request, game, character_id, npc, check_hidden, allow_hidden=False,
+    request, game, character, check_hidden, allow_hidden=False,
     serializer_class=CharacterTreasureSerializer,
 ):
     """Return a paginated list of treasures held by a specific character in a game.
@@ -29,14 +30,7 @@ def character_treasures(
     the DM-only `/treasures/all.json` variant passes `CharacterTreasureAllSerializer` instead,
     so `hidden` is only ever included in that DM-facing payload.
     """
-    character = _get_character_or_404(game, character_id, npc)
-
-    if check_hidden:
-        error_response = _hidden_gate_response(character, request)
-        if error_response:
-            return error_response
-
-    treasures = _build_character_treasure_queryset(game, character, npc, allow_hidden)
+    treasures = _build_character_treasure_queryset(game, character, character.npc, allow_hidden)
     treasures = _apply_treasure_filters(request, treasures)
     context = game_treasures_context(game)
     response = paginated_list_response(

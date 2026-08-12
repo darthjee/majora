@@ -3,10 +3,11 @@
 from rest_framework.response import Response
 
 from ...serializers import CharacterDetailSerializer
-from ._shared import _get_character_or_404, _hidden_gate_response
+from ._decorators import check_hidden
 
 
-def character_detail(request, game, character_id, npc, check_hidden):
+@check_hidden
+def character_detail(request, game, character, check_hidden):
     """Return detail for a specific character.
 
     When `check_hidden` is True, a hidden character is additionally gated behind the
@@ -20,13 +21,6 @@ def character_detail(request, game, character_id, npc, check_hidden):
     identity-blind reverse-proxy cache would replay that response — revealing the hidden
     character's existence and data — to any subsequent, unauthorized caller of the same URL.
     """
-    character = _get_character_or_404(game, character_id, npc)
-
-    if check_hidden:
-        error_response = _hidden_gate_response(character, request)
-        if error_response:
-            return error_response
-
     serializer = CharacterDetailSerializer(character, context={'request': request})
     response = Response(serializer.data)
     if character.hidden:

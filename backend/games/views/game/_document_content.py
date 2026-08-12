@@ -3,11 +3,12 @@
 from django.shortcuts import get_object_or_404
 
 from ..common import paginated_list_response
-from ._shared import _get_character_or_404, _hidden_gate_response
+from ._decorators import check_hidden
 
 
+@check_hidden
 def character_document_content(
-    request, game, character_id, document_id, npc, check_hidden, content_attr, serializer_class,
+    request, game, character, document_id, check_hidden, content_attr, serializer_class,
     allow_hidden=False,
 ):
     """Return a paginated list of a character-held document's ready files or photos.
@@ -20,13 +21,6 @@ def character_document_content(
     ignores hidden state). `GameDocument.hidden` is never consulted — a character possessing a
     document may see its files/photos regardless of whether the DM has made the document public.
     """
-    character = _get_character_or_404(game, character_id, npc)
-
-    if check_hidden:
-        error_response = _hidden_gate_response(character, request)
-        if error_response:
-            return error_response
-
     documents = character.character_documents.select_related('game_document')
     if not allow_hidden:
         documents = documents.exclude(hidden=True)
