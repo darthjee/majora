@@ -12,7 +12,6 @@ from permissions import EndpointPermission
 from ...models import Character, CharacterTreasure, GameTreasure, Treasure
 from ...serializers.games.treasures.game_treasure_fields import resolve_treasure_value
 from ..common import validated_or_error
-from ._decorators import check_hidden
 from ._shared import _character_resource
 
 
@@ -23,8 +22,7 @@ class _TreasureExchangeSerializer(serializers.Serializer):
     quantity = serializers.IntegerField(min_value=1)
 
 
-@check_hidden
-def character_treasure_buy(request, game, character, check_hidden, allow_hidden=False):
+def character_treasure_buy(request, game, character, allow_hidden=False):
     """Spend `character`'s money to buy a quantity of a treasure available in `game`.
 
     `allow_hidden` bypasses the hidden-treasure 404 gate — reserved for the DM-only
@@ -41,8 +39,7 @@ def character_treasure_buy(request, game, character, check_hidden, allow_hidden=
     return _buy(character, treasure, quantity, game)
 
 
-@check_hidden
-def character_treasure_sell(request, game, character, check_hidden):
+def character_treasure_sell(request, game, character):
     """Sell a quantity of a treasure `character` owns, refunding its value into money."""
     error_response, treasure, quantity = _authorize_and_parse(
         request, character, _find_treasure_by_id,
@@ -53,8 +50,7 @@ def character_treasure_sell(request, game, character, check_hidden):
     return _sell(character, treasure, quantity, game)
 
 
-@check_hidden
-def character_treasure_acquire(request, game, character, check_hidden, allow_hidden=False):
+def character_treasure_acquire(request, game, character, allow_hidden=False):
     """Add a quantity of a treasure available in `game` to `character`, without touching money.
 
     `allow_hidden` bypasses the hidden-treasure 404 gate — reserved for the DM-only
@@ -71,8 +67,7 @@ def character_treasure_acquire(request, game, character, check_hidden, allow_hid
     return _acquire(character, treasure, quantity, game)
 
 
-@check_hidden
-def character_treasure_remove(request, game, character, check_hidden):
+def character_treasure_remove(request, game, character):
     """Remove a quantity of a treasure `character` owns, without touching money."""
     error_response, treasure, quantity = _authorize_and_parse(
         request, character, _find_treasure_by_id,

@@ -226,17 +226,17 @@ class TestGameNpcTreasureRemoveHidden(TokenAuthRequestMixin):
         response = self._post(client, token=self.dm_token)
         assert response.status_code == 200
 
-    def test_anonymous_returns_404_for_hidden_npc(self, client):
-        """Test that an anonymous request for a hidden NPC returns 404."""
+    def test_anonymous_returns_401_for_hidden_npc(self, client):
+        """Test that an anonymous request for a hidden NPC returns 401."""
         response = self._post(client)
-        assert response.status_code == 404
+        assert response.status_code == 401
 
-    def test_unrelated_user_returns_404_for_hidden_npc(self, client):
-        """Test that an unrelated authenticated user returns 404 for a hidden NPC."""
+    def test_unrelated_user_returns_403_for_hidden_npc(self, client):
+        """Test that an unrelated authenticated user returns 403 for a hidden NPC."""
         other = UserFactory(username='other', password='secret-password')
         token = Token.objects.create(user=other)
         response = self._post(client, token=token)
-        assert response.status_code == 404
+        assert response.status_code == 403
 
 
 @pytest.mark.django_db
