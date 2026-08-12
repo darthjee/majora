@@ -14,6 +14,7 @@ from games.models import (
     GameDocumentFilePhoto,
     GameDocumentPhoto,
     GameItemPhoto,
+    GamePossessionPhoto,
     TreasurePhoto,
 )
 from games.views.common import check_game_edit, require_staff
@@ -179,6 +180,13 @@ def _set_character_item_photo(item_photo):
     item.save()
 
 
+def _set_possession_photo(possession_photo):
+    """Set the possession's photo to `possession_photo`, always replacing any existing one."""
+    possession = possession_photo.game_possession
+    possession.photo = possession_photo
+    possession.save()
+
+
 def _treasure_photo_permission(request, content_object):
     """Return a permission error Response for a TreasurePhoto content object, else None."""
     treasure = content_object.treasure
@@ -200,6 +208,14 @@ def _game_item_photo_permission(request, content_object):
     game = content_object.game_item.game
     return EndpointPermission(request.user, game=game).check(
         request, 'game_item', 'regular', 'photo_upload',
+    )
+
+
+def _game_possession_photo_permission(request, content_object):
+    """Return a permission error Response for a GamePossessionPhoto content object, else None."""
+    game = content_object.game_possession.game
+    return EndpointPermission(request.user, game=game).check(
+        request, 'game_possession', 'regular', 'photo_upload',
     )
 
 
@@ -275,6 +291,7 @@ _PHOTO_HANDLERS = {
     SourcePhoto: (_source_photo_permission, _set_source_photo),
     CharacterPhoto: (_character_photo_permission, _set_character_photo_if_unset),
     GameItemPhoto: (_game_item_photo_permission, _set_item_photo),
+    GamePossessionPhoto: (_game_possession_photo_permission, _set_possession_photo),
     CharacterItemPhoto: (_character_item_photo_permission, _set_character_item_photo),
     GameDocumentPhoto: (_document_photo_permission, _set_document_photo_if_unset),
     GameDocumentFile: (_document_file_permission, _set_document_file_if_unset),
