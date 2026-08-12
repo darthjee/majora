@@ -6,6 +6,7 @@ game_page:
   items: Items
   possessions: Possessions
   documents: Documents
+  factions: Factions
   sessions: Sessions
   players: Players
   see_all_photos: Photos

@@ -1,0 +1,4 @@
+game_factions_page:
+  title: Factions
+  loading: Loading factions...
+  new_faction: New Faction
