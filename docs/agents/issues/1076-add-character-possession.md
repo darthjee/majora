@@ -31,22 +31,24 @@ The possessions list page also has a modal to acquire and remove existing posses
 
 ### Permissions
 
-`CharacterPossession` permissions mirror `game_pc_document` / `game_npc_document` exactly — not `game_pc_item` / `game_npc_item`. Item's permission shape has extra rows (`owner` role, `photo_upload` action) that only exist because Item has per-character overridable fields, including a character-level photo. Possession has none of that, so there is no character-level `photo_upload` action — the photo lives only on `GamePossession`.
+Correction after tracing how these permission tiers are actually *used* in the view code (not just their YAML shape): `restricted.create` is not the "creation page" tier — for both Item and Document it gates the DM/owner-only bypass of the acquire/remove endpoints (the `/all.json` variants, or for Item, acquire/remove unconditionally). The actual create-from-scratch tier (Item's `/items/new` page) is `regular.create_update` (staff, player, owner). Since `CharacterPossession` supports both flows — acquiring an existing `GamePossession` via the modal, and creating a brand-new one via `/possessions/new` — its permission *actions* mirror `game_pc_item` / `game_npc_item`'s wiring, not `game_pc_document`'s (Document has no create-from-scratch action at all, so there's nothing to borrow from it there). The one thing still **not** borrowed from Item is `photo_upload`: Item needs it because it has a character-level photo override; Possession doesn't (see Attribute delegation model above), so there is no character-level `photo_upload` action.
 
-| Scope | Action | PC Possession | NPC Possession |
-|---|---|---|---|
-| restricted | `create` | `staff`, `owner` | `staff` |
-| regular | `create` | `staff`, `player` | `staff`, `player` |
+Item's exchange (acquire/remove) is unconditionally `restricted` (staff/owner), unlike Document's (which varies `restricted`/`regular` by whether the hidden-bypass `/all.json` variant is hit). Possessions are narratively significant, unique belongings (closer to Item's "has real game weight" framing than Document's lore text), so the exchange flow follows Item's stricter, unconditional-`restricted` model:
+
+| Scope | Action | Used by | PC Possession | NPC Possession |
+|---|---|---|---|---|
+| restricted | `create` | acquire / remove (unconditional, both plain and `/all.json`) | `staff`, `owner` | `staff` |
+| regular | `create_update` | create-from-scratch (`/possessions/new`) | `staff`, `player`, `owner` | `staff`, `player` |
 
 (No `photo_upload` action at the Character level.)
 
 ### Creation and edit flow
 
-Document has no character-level "new"/"edit" page at all — documents are only created at the Game level (`/games/:game_slug/documents/new`) and then acquired by a character. Only Item has a character-level creation page: `PcCharacterItemNew` POSTs to the character-scoped `items.json` endpoint, creating a new `GameItem` + `CharacterItem` together in one call (restricted permission), then uploads the photo directly to the newly-created `GameItem`. `PcCharacterItemEdit` separately edits the `CharacterItem`'s own override fields.
+Document has no character-level "new"/"edit" page at all — documents are only created at the Game level (`/games/:game_slug/documents/new`) and then acquired by a character. Only Item has a character-level creation page: `PcCharacterItemNew` POSTs to the character-scoped `items.json` endpoint, creating a new `GameItem` + `CharacterItem` together in one call (`regular.create_update` permission), then uploads the photo directly to the newly-created `GameItem`. `PcCharacterItemEdit` separately edits the `CharacterItem`'s own override fields.
 
 `CharacterPossession` follows Item's creation mechanics, without the override-field part (since it has none):
 
-- `/possessions/new`: creates `GamePossession` + `CharacterPossession` together in one call (restricted create — see Permissions above), then uploads the photo directly to the new `GamePossession`.
+- `/possessions/new`: creates `GamePossession` + `CharacterPossession` together in one call (`regular.create_update` — see Permissions above), then uploads the photo directly to the new `GamePossession`.
 - `/possessions/:id/edit` and the detail page's photo-replace: act directly on the underlying `GamePossession` through its existing endpoints (already built in #1074) — there is no character-side field to override, so these are gated by the existing `game_possession` regular permissions (`staff`, `player`), not a new "CharacterPossession edit" permission.
 
 ### Acquire and Remove
