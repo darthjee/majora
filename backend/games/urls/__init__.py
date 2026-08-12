@@ -9,7 +9,6 @@ from . import (
     players,
     system,
     treasures,
-    uploads,
 )
 
 urlpatterns = (
@@ -19,7 +18,6 @@ urlpatterns = (
     + players.urlpatterns
     + conversations.urlpatterns
     + treasures.urlpatterns
-    + uploads.urlpatterns
     + system.urlpatterns
     + permissions.urlpatterns
 )

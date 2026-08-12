@@ -4,8 +4,9 @@ import pytest
 from django.test import TestCase
 from django.utils import timezone
 
-from games.models import GamePhoto, Upload
+from games.models import GamePhoto
 from games.tests.factories import GameFactory, UserFactory
+from uploads.models import Upload
 
 
 class TestUpload(TestCase):

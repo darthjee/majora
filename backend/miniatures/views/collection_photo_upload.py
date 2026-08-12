@@ -5,9 +5,9 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import AllowAny
 
 from accounts.authentication import CookieTokenAuthentication
-from games.photo_path import PhotoPathBuilder
-from games.views._upload_init import UploadInitiator
 from games.views.common import require_staff
+from uploads.photo_path import PhotoPathBuilder
+from uploads.upload_initiator import UploadInitiator
 
 from ..models import Collection, CollectionPhoto
 from ._shared import skip_cache

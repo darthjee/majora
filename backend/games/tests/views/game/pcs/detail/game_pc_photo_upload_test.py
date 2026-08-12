@@ -5,7 +5,7 @@ import json
 import pytest
 from rest_framework.authtoken.models import Token
 
-from games.models import CharacterPhoto, Upload
+from games.models import CharacterPhoto
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     CharacterFactory,
@@ -14,6 +14,7 @@ from games.tests.factories import (
     SuperUserFactory,
     UserFactory,
 )
+from uploads.models import Upload
 
 
 @pytest.mark.django_db

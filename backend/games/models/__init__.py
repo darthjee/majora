@@ -26,7 +26,6 @@ from games.models.poll.poll_vote import PollVote
 from games.models.task import Task
 from games.models.treasure.treasure import Treasure
 from games.models.treasure.treasure_photo import TreasurePhoto
-from games.models.upload import Upload
 
 __all__ = [
     'Character',
@@ -55,5 +54,4 @@ __all__ = [
     'Task',
     'Treasure',
     'TreasurePhoto',
-    'Upload',
 ]

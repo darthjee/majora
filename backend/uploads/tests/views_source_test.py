@@ -1,23 +1,23 @@
-"""Tests for the upload finalize endpoint's StlModelPhoto handling."""
+"""Tests for the upload finalize endpoint's SourcePhoto handling."""
 
 import json
 
 from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
-from games.models import Upload
 from games.tests.factories import SuperUserFactory, UserFactory
-from miniatures.models import StlModelPhoto
-from miniatures.tests.factories import StlModelFactory
+from miniatures.models import SourcePhoto
+from miniatures.tests.factories import SourceFactory
+from uploads.models import Upload
 
 
-class TestUploadFinalizeStlModelPhoto(TestCase):
-    """Tests for PATCH /uploads/image/<upload_id>.json against an StlModelPhoto upload."""
+class TestUploadFinalizeSourcePhoto(TestCase):
+    """Tests for PATCH /uploads/image/<upload_id>.json against a SourcePhoto upload."""
 
     @classmethod
     def setUpTestData(cls):
-        """Set up an STL model, a staff user, a superuser, and a pending photo upload."""
-        cls.stl_model = StlModelFactory(name='Dragon Miniature')
+        """Set up a source, a staff user, a superuser, and a pending photo upload."""
+        cls.source = SourceFactory(name='Some Publisher')
         cls.staff_user = UserFactory(
             username='staffer', password='secret-password', is_staff=True,
         )
@@ -29,11 +29,11 @@ class TestUploadFinalizeStlModelPhoto(TestCase):
 
         cls.upload = Upload.objects.create(
             user=cls.staff_user,
-            file_path=f'photos/stl_models/{cls.stl_model.id}/photo.png',
+            file_path=f'photos/sources/{cls.source.id}/photo.png',
         )
-        cls.photo = StlModelPhoto.objects.create(
-            stl_model=cls.stl_model,
-            path=f'photos/stl_models/{cls.stl_model.id}/photo.png',
+        cls.photo = SourcePhoto.objects.create(
+            source=cls.source,
+            path=f'photos/sources/{cls.source.id}/photo.png',
             ready=False,
         )
         cls.upload.content_object = cls.photo
@@ -88,24 +88,24 @@ class TestUploadFinalizeStlModelPhoto(TestCase):
         )
         assert response.status_code == 200
 
-    def test_uploaded_status_sets_stl_model_photo_ready(self):
-        """Test that status=uploaded sets StlModelPhoto.ready to True."""
+    def test_uploaded_status_sets_source_photo_ready(self):
+        """Test that status=uploaded sets SourcePhoto.ready to True."""
         self._valid_patch(self.client, {'status': 'uploaded'}, token=self.staff_token)
         self.photo.refresh_from_db()
         assert self.photo.ready is True
 
-    def test_uploaded_status_sets_stl_model_photo(self):
-        """Test that status=uploaded sets stl_model.photo, always replacing any existing one."""
-        existing_photo = StlModelPhoto.objects.create(
-            stl_model=self.stl_model,
-            path=f'photos/stl_models/{self.stl_model.id}/existing.png',
+    def test_uploaded_status_sets_source_photo(self):
+        """Test that status=uploaded sets source.photo, always replacing any existing one."""
+        existing_photo = SourcePhoto.objects.create(
+            source=self.source,
+            path=f'photos/sources/{self.source.id}/existing.png',
             ready=True,
         )
-        self.stl_model.photo = existing_photo
-        self.stl_model.save()
+        self.source.photo = existing_photo
+        self.source.save()
 
         self._valid_patch(self.client, {'status': 'uploaded'}, token=self.staff_token)
 
-        self.stl_model.refresh_from_db()
-        assert self.stl_model.photo == self.photo
-        assert self.stl_model.photo != existing_photo
+        self.source.refresh_from_db()
+        assert self.source.photo == self.photo
+        assert self.source.photo != existing_photo

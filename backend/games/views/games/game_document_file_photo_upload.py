@@ -8,10 +8,10 @@ from rest_framework.permissions import IsAuthenticated
 
 from accounts.authentication import CookieTokenAuthentication
 from permissions import EndpointPermission
+from uploads.photo_path import PhotoPathBuilder
+from uploads.upload_initiator import UploadInitiator
 
 from ...models import Game, GameDocument, GameDocumentFile, GameDocumentFilePhoto
-from ...photo_path import PhotoPathBuilder
-from .._upload_init import UploadInitiator
 
 
 @api_view(['POST'])

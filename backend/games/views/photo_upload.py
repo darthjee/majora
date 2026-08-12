@@ -5,10 +5,10 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import IsAuthenticated
 
 from accounts.authentication import CookieTokenAuthentication
+from uploads.photo_path import PhotoPathBuilder
+from uploads.upload_initiator import UploadInitiator
 
 from ..models import Game, GamePhoto
-from ..photo_path import PhotoPathBuilder
-from ._upload_init import UploadInitiator
 from .common import check_game_edit
 
 

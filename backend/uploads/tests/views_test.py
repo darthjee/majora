@@ -15,7 +15,6 @@ from games.models import (
     GameItemPhoto,
     GamePhoto,
     TreasurePhoto,
-    Upload,
 )
 from games.tests.factories import (
     CharacterFactory,
@@ -28,6 +27,7 @@ from games.tests.factories import (
     TreasureFactory,
     UserFactory,
 )
+from uploads.models import Upload
 
 
 class TestUploadFinalizeView(TestCase):

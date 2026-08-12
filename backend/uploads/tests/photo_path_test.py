@@ -2,7 +2,7 @@
 
 import pytest
 
-from games.photo_path import PhotoPathBuilder, normalize_path_segment
+from uploads.photo_path import PhotoPathBuilder, normalize_path_segment
 
 
 class TestNormalizePathSegment:

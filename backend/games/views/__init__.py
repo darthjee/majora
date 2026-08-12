@@ -158,7 +158,6 @@ from .treasures import (
     treasure_photo_upload,
     treasures_list,
 )
-from .upload_finalize import upload_finalize
 
 __all__ = [
     'games_list',
@@ -306,7 +305,6 @@ __all__ = [
     'treasure_detail',
     'treasure_photo_upload',
     'treasures_list',
-    'upload_finalize',
     'ready',
     'access_route_config',
     'game_permissions',

@@ -43,6 +43,38 @@ of it is game-domain logic; it consumes `games`' shared helpers (`require_staff`
 - `views/`, `serializers/`, `urls.py` (flat — only 7 routes), `tests/`, `migrations/`
   (no models of its own).
 
+## uploads/
+
+Neutral, cross-app upload engine (issue #1067). Extracted out of `games` because `miniatures`
+views needed it too — `miniatures` depending on `games`'s internal upload modules was a
+backwards dependency (a domain app reaching into another domain app's internals). Flat-file
+app, mirroring the `permissions/`/`common/` convention (one model, one view — no
+`models/`/`views/` packages):
+
+- `models.py` — `Upload` (`GenericForeignKey`-based lifecycle tracker for a pending
+  photo/file upload). Kept pointing at the pre-existing `games_upload` DB table via an
+  explicit `Meta.db_table = 'games_upload'` — the model's app moved, the table did not
+  (`uploads/migrations/0001_initial.py` / `games/migrations/0091_move_upload_to_uploads_app.py`
+  are a state-only `SeparateDatabaseAndState` pair with no `database_operations`, following the
+  same add-then-remove app-split precedent as `domains/migrations/0001_initial.py` /
+  `games/migrations/0090_move_domain_models_to_domains_app.py`, minus that precedent's table
+  rename).
+- `upload_initiator.py` (`UploadInitiator`) — shared validate-and-create helper behind every
+  upload-init endpoint; still relies on `games.serializers.PhotoUploadSerializer`/
+  `FileUploadSerializer` and `games.views.common.validated_or_error`, which stay in `games`.
+- `photo_path.py` (`PhotoPathBuilder`, `normalize_path_segment`) — shared storage-path
+  sanitization/building.
+- `views.py` (`upload_finalize`) — the `PATCH /uploads/(image|file)/<id>.json` endpoint, plus
+  its `_PHOTO_HANDLERS` dispatch registry (`permission_check`, `mark_ready` per content-object
+  type). This is the one place `uploads` legitimately depends back on `games` and `miniatures`
+  (`games.views.common.{check_game_edit,require_staff}` and both apps' photo/file models) — the
+  registry has to know every content-object type it dispatches on.
+- `urls.py` — the finalize route, included directly from `majora_project/urls.py`.
+
+The ~13 thin per-entity init views (photo/item/treasure/document uploads in `games/`;
+source/stl-model/collection photo uploads in `miniatures/`) stay in their owning apps and
+import `UploadInitiator`/`PhotoPathBuilder` from here.
+
 ## permissions/
 
 Generic, YAML-config-driven permission engine, centralized here so every domain (`games`,

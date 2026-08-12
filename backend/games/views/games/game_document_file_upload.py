@@ -6,11 +6,12 @@ from rest_framework.permissions import IsAuthenticated
 
 from accounts.authentication import CookieTokenAuthentication
 from permissions import EndpointPermission
+from uploads.models import Upload
+from uploads.photo_path import PhotoPathBuilder
+from uploads.upload_initiator import UploadInitiator
 
-from ...models import Game, GameDocument, GameDocumentFile, Upload
-from ...photo_path import PhotoPathBuilder
+from ...models import Game, GameDocument, GameDocumentFile
 from ...serializers import FileUploadSerializer
-from .._upload_init import UploadInitiator
 
 
 @api_view(['POST'])
