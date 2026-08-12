@@ -5,11 +5,12 @@ from rest_framework.response import Response
 
 from ...serializers import CharacterDocumentSerializer
 from ..common import paginated_list_response
-from ._shared import _get_character_or_404, _hidden_gate_response
+from ._decorators import check_hidden
 
 
+@check_hidden
 def character_documents(
-    request, game, character_id, npc, check_hidden, allow_hidden=False,
+    request, game, character, check_hidden, allow_hidden=False,
     serializer_class=CharacterDocumentSerializer,
 ):
     """Return a paginated list of documents held by a specific character in a game.
@@ -24,13 +25,6 @@ def character_documents(
     `/documents/all.json` variants pass `CharacterDocumentAllSerializer` instead, so `hidden`
     is only ever included in that payload.
     """
-    character = _get_character_or_404(game, character_id, npc)
-
-    if check_hidden:
-        error_response = _hidden_gate_response(character, request)
-        if error_response:
-            return error_response
-
     documents = character.character_documents.select_related('game_document').all()
     if not allow_hidden:
         documents = documents.exclude(hidden=True)
@@ -40,8 +34,9 @@ def character_documents(
     return response
 
 
+@check_hidden
 def character_document_detail(
-    request, game, character_id, document_id, npc, check_hidden, allow_hidden=False,
+    request, game, character, document_id, check_hidden, allow_hidden=False,
     serializer_class=CharacterDocumentSerializer,
 ):
     """Return detail for a single document held by a specific character in a game.
@@ -52,13 +47,6 @@ def character_document_detail(
     mirrors `_items.py::character_item_detail`, minus the `description` tier — no equivalent
     exists for `CharacterDocument` (see `character_document.py`'s serializer module).
     """
-    character = _get_character_or_404(game, character_id, npc)
-
-    if check_hidden:
-        error_response = _hidden_gate_response(character, request)
-        if error_response:
-            return error_response
-
     documents = character.character_documents.select_related('game_document')
     if not allow_hidden:
         documents = documents.exclude(hidden=True)

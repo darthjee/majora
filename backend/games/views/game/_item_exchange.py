@@ -10,7 +10,8 @@ from ...models import CharacterItem
 from ...serializers import CharacterItemDetailFullSerializer
 from ..common import paginated_list_response, validated_or_error
 from ..games._treasure_filters import filter_by_name
-from ._shared import _character_item_resource, _get_character_or_404, _hidden_gate_response
+from ._decorators import check_hidden
+from ._shared import _character_item_resource
 
 
 def _check_item_create(request, game, character):
@@ -33,8 +34,9 @@ class _ItemRemoveSerializer(serializers.Serializer):
     game_item_id = serializers.IntegerField()
 
 
+@check_hidden
 def character_items_available(
-    request, game, character_id, npc, check_hidden, allow_hidden=False,
+    request, game, character, check_hidden, allow_hidden=False,
     serializer_class=None,
 ):
     """Return a paginated GameItem catalog, minus items `character` already owns.
@@ -43,13 +45,6 @@ def character_items_available(
     filtering, but queries `game.items` (the catalog) instead of `character.character_items`
     (owned rows), excluding any GameItem id already linked to the character.
     """
-    character = _get_character_or_404(game, character_id, npc)
-
-    if check_hidden:
-        error_response = _hidden_gate_response(character, request)
-        if error_response:
-            return error_response
-
     owned_ids = character.character_items.values_list('game_item_id', flat=True)
     items = game.items.exclude(id__in=owned_ids)
     if not allow_hidden:

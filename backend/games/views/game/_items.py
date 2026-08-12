@@ -5,11 +5,12 @@ from rest_framework.response import Response
 
 from ...serializers import CharacterItemDetailSerializer, CharacterItemSerializer
 from ..common import paginated_list_response
-from ._shared import _get_character_or_404, _hidden_gate_response
+from ._decorators import check_hidden
 
 
+@check_hidden
 def character_items(
-    request, game, character_id, npc, check_hidden, allow_hidden=False,
+    request, game, character, check_hidden, allow_hidden=False,
     serializer_class=CharacterItemSerializer,
 ):
     """Return a paginated list of items held by a specific character in a game.
@@ -23,13 +24,6 @@ def character_items(
     defaults to `CharacterItemSerializer`; the DM-only `/items/all.json` variants pass
     `CharacterItemAllSerializer` instead, so `hidden` is only ever included in that payload.
     """
-    character = _get_character_or_404(game, character_id, npc)
-
-    if check_hidden:
-        error_response = _hidden_gate_response(character, request)
-        if error_response:
-            return error_response
-
     items = character.character_items.select_related('game_item').all()
     if not allow_hidden:
         items = items.exclude(hidden=True)
@@ -39,8 +33,9 @@ def character_items(
     return response
 
 
+@check_hidden
 def character_item_detail(
-    request, game, character_id, item_id, npc, check_hidden, allow_hidden=False,
+    request, game, character, item_id, check_hidden, allow_hidden=False,
     serializer_class=CharacterItemDetailSerializer,
 ):
     """Return detail for a single item held by a specific character in a game.
@@ -49,13 +44,6 @@ def character_item_detail(
     (`check_hidden`) and hidden-item filtering (`allow_hidden`) apply, but the result is a
     single `CharacterItem` (404 if not found) instead of a paginated list.
     """
-    character = _get_character_or_404(game, character_id, npc)
-
-    if check_hidden:
-        error_response = _hidden_gate_response(character, request)
-        if error_response:
-            return error_response
-
     items = character.character_items.select_related('game_item')
     if not allow_hidden:
         items = items.exclude(hidden=True)
