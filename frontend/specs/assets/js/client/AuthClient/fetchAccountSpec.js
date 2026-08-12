@@ -9,7 +9,7 @@ describe('AuthClient', function() {
   describe('#fetchAccount', function() {
     itSendsAuthHeader({
       call: (token) => new AuthClient().fetchAccount(token),
-      url: '/users/account.json',
+      url: '/account/account.json',
       headers: { 'X-Skip-Cache': 'true' },
     });
   });
