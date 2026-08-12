@@ -46,7 +46,7 @@ of issue #286). Today that means:
 - Global [Treasure](access-control/treasure.md) management: Staff may create and update a
   *global* treasure (one with no owning `game`) and upload its photo, exactly like a
   Superuser. This precedent — a Staff-or-superuser-gated endpoint outside User-management
-  — already existed for `POST /users/test-email.json` (`require_staff`,
+  — already existed for `POST /staff/test-email.json` (`require_staff`,
   [endpoints.md](access-control/endpoints.md)); the Treasure surface generalizes the same
   policy rather than inventing a new one.
 

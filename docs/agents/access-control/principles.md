@@ -77,9 +77,13 @@ to name its category plus its deviations, not re-derive the shape from scratch.
 - **Account resources** — a user has full access over their own account (read and write their own
   profile/settings), except no user, regardless of role, may write `is_superuser`/`is_staff` on
   themselves (a standing privilege-escalation guard — no endpoint exposes either field as
-  self-writable today). **Known gap**: today's endpoints aren't fully unified under `/account/...`
-  yet (some, e.g. `/users/account.json`, still live under `/users/...`) — that layout gap is
-  tracked here, not fixed by reshuffling routes.
+  self-writable today). Endpoints are unified under `/account/...` (`/account/account.json`,
+  `/account/language.json`, plus the `authorization_requests` list/deny/authorize routes).
+  The adopted `accounts`-app URL-prefix convention: `users/*` is for auth/session-lifecycle
+  actions (pre-login routes, plus `logout` as a session action rather than account data);
+  `account/*` is for endpoints that read/write the caller's own account data while
+  authenticated; `staff/*` is for staff-only endpoints (e.g. `/staff/test-email.json`). Follow
+  this rule when adding new `accounts`-app routes rather than rediscovering it from scratch.
 - **Sensitive-information resources** — fields such as raw `email` or an account's real identity.
   Never exposed to `AllowAny`; readable only by the account's own owner, players in a relevant
   shared context (e.g. chat/poll participants seeing a reduced `name`/`avatar_url` view), or

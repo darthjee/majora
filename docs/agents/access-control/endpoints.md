@@ -30,11 +30,11 @@ These manage identity; they do not expose domain data beyond success/failure.
 | `/users/logout.json` | POST | Authenticated. Deletes the caller's `CacheToken` row alongside their DRF `Token` |
 | `/users/register.json` | POST | Anyone. New accounts always start `pending` |
 | `/users/status.json` | GET | Anyone. `{"logged_in": false}` when unauthenticated or `denied`; adds `"status": "pending"` when pending (the only case with a `status` key); otherwise the full logged-in shape (`username`, `user_id`, `is_superuser`/`is_staff`, `settings`, `cache_token`) |
-| `/users/test-email.json` | POST | **Staff-or-superuser** |
+| `/staff/test-email.json` | POST | **Staff-or-superuser** |
 | `/users/recover.json` | POST | Anyone. Always `200 {'sent': True}` regardless of match/status — enumeration-safe |
 | `/users/reset-password.json` | POST | Anyone (requires valid reset token) |
-| `/users/language.json` | POST | Authenticated |
-| `/users/account.json` | GET/PATCH | Authenticated; always scoped to the requester, never another user. Exposed: `name`, `email`, `avatar_url` (Gravatar-derived, `null` if no email) — an [account/sensitive-information resource](principles.md#resource-categories) |
+| `/account/language.json` | POST | Authenticated |
+| `/account/account.json` | GET/PATCH | Authenticated; always scoped to the requester, never another user. Exposed: `name`, `email`, `avatar_url` (Gravatar-derived, `null` if no email) — an [account/sensitive-information resource](principles.md#resource-categories) |
 
 ### `UserProfile.status` authentication gate
 

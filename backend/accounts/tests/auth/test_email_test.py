@@ -31,7 +31,7 @@ class TestTestEmailView(TestCase):
         token = Token.objects.create(user=user)
 
         response = self.client.post(
-            '/users/test-email.json',
+            '/staff/test-email.json',
             HTTP_AUTHORIZATION=f'Token {token.key}',
         )
 
@@ -51,7 +51,7 @@ class TestTestEmailView(TestCase):
         token = Token.objects.create(user=user)
 
         response = self.client.post(
-            '/users/test-email.json',
+            '/staff/test-email.json',
             HTTP_AUTHORIZATION=f'Token {token.key}',
         )
 
@@ -67,7 +67,7 @@ class TestTestEmailView(TestCase):
         token = Token.objects.create(user=user)
 
         response = self.client.post(
-            '/users/test-email.json',
+            '/staff/test-email.json',
             HTTP_AUTHORIZATION=f'Token {token.key}',
         )
 
@@ -79,7 +79,7 @@ class TestTestEmailView(TestCase):
 
     def test_requires_authentication(self):
         """Test that the endpoint rejects unauthenticated requests."""
-        response = self.client.post('/users/test-email.json')
+        response = self.client.post('/staff/test-email.json')
 
         assert response.status_code == 401
         assert mail.outbox == []
@@ -92,7 +92,7 @@ class TestTestEmailView(TestCase):
         token = Token.objects.create(user=user)
 
         response = self.client.post(
-            '/users/test-email.json',
+            '/staff/test-email.json',
             HTTP_AUTHORIZATION=f'Token {token.key}',
         )
 
