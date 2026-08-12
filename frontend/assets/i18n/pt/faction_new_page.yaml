@@ -1,0 +1,8 @@
+faction_new_page:
+  title: Nova Facção
+  name_label: Nome
+  submit: Criar Facção
+  error: Falha ao criar a facção. Tente novamente.
+  photo_upload_failed: Falha ao enviar a foto. A facção foi criada — você pode tentar novamente ou pular por enquanto.
+  retry_photo_upload: Tentar enviar a foto novamente
+  skip_photo_upload: Pular e continuar

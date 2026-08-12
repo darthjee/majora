@@ -21,8 +21,8 @@ list from six files under [`navi/resources/`](../../navi/resources/):
 
 - `treasures.yml` — top-level `/treasures.json` chain.
 - `games.yml` — `/games.json` chain down through each game's detail, PCs, NPCs, treasures,
-  items, possessions, photos, documents, and sessions listings (and their short-preview
-  variants).
+  items, factions, possessions, photos, documents, and sessions listings (and their
+  short-preview variants).
 - `pcs.yml` — a PC's detail and its nested photos/treasures/items/documents.
 - `npcs.yml` — an NPC's detail and its nested photos/treasures/items/documents.
 - `permissions.yml` — the entity-agnostic `permissions_*` resources (see below).
@@ -39,7 +39,7 @@ no explicit `namespace` key of their own, since every file shares the same `$NAV
 namespace and Navi merges same-namespace files together.
 
 Within `games.yml`, the chain runs from `/games.json` down through each game's detail, PCs,
-NPCs, treasures, items, possessions, photos, documents, and sessions, and from there (via
+NPCs, treasures, items, factions, possessions, photos, documents, and sessions, and from there (via
 `pcs.yml`/`npcs.yml`) to
 each character's/document's detail (and its nested photos/files/treasures/items) — the `slug`
 extracted at the top of the chain is inherited by every resource below it, so it never needs

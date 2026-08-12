@@ -15,6 +15,7 @@ from games.tests.factories.conversation import (
     MessageVisualisationFactory,
 )
 from games.tests.factories.document import CharacterDocumentFactory, GameDocumentFactory
+from games.tests.factories.faction import FactionFactory
 from games.tests.factories.game import GameFactory, PlayerFactory
 from games.tests.factories.item import CharacterItemFactory, GameItemFactory
 from games.tests.factories.poll import PollFactory, PollOptionFactory, PollVoteFactory
@@ -28,6 +29,7 @@ __all__ = [
     'CharacterItemFactory',
     'ConversationFactory',
     'ConversationParticipantFactory',
+    'FactionFactory',
     'GameDocumentFactory',
     'GameFactory',
     'GameItemFactory',

@@ -19,6 +19,7 @@ import possessionListType from './configs/possessionListType.js';
 import stlModelListType from './configs/stlModelListType.js';
 import sourceListType from './configs/sourceListType.js';
 import collectionListType from './configs/collectionListType.js';
+import factionListType from './configs/factionListType.js';
 
 /**
  * Fetch a page of a game's treasures through `RequestStore` (`treasure.collection`, `kind:
@@ -202,12 +203,12 @@ function buildCharacterItemItemHref(characterKind) {
  * (`'treasures'`, `'items'`, `'pc-items'`, `'npc-items'`, `'possessions'`, `'documents'`,
  * `'pc-documents'`, `'npc-documents'`, `'games'`, `'my-games'`, `'players'`, `'pcs'`, `'npcs'`,
  * `'pc-treasures'`, `'npc-treasures'`, `'treasures-global'`, `'stlModels'`, `'sources'`,
- * `'collections'`), matching
+ * `'collections'`, `'factions'`), matching
  * the existing `PHOTO_COMPONENTS` precedent in `ActionsOverlay.jsx`. The `games`/`my-games`/
  * `players`/`pcs`/`npcs`/`pc-treasures`/`npc-treasures`/`treasures-global`/`documents`/
- * `pc-documents`/`npc-documents`/`possessions`/`stlModels`/`sources`/`collections` entries live
- * in `./configs/`, split out of this file to keep it under the project's max-lines limit; they
- * are merged into this object below. Each entry holds:
+ * `pc-documents`/`npc-documents`/`possessions`/`stlModels`/`sources`/`collections`/`factions`
+ * entries live in `./configs/`, split out of this file to keep it under the project's max-lines
+ * limit; they are merged into this object below. Each entry holds:
  * - `fetchList(gameSlug, hashResolver, client?)` — fetches one page of list data. Every type
  *   migrated onto `RequestStore` (issue #791, phase 3/N) ignores the `client` argument (kept
  *   only where a later positional argument, e.g. `gameClient`, still needs it); the handful of
@@ -284,6 +285,7 @@ const listTypeConfig = {
   stlModels: stlModelListType,
   sources: sourceListType,
   collections: collectionListType,
+  factions: factionListType,
 };
 
 export default listTypeConfig;

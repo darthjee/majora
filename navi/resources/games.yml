@@ -31,6 +31,9 @@ resources:
         - resource: game_items
           parameters:
             slug: parsedBody.game_slug
+        - resource: game_factions
+          parameters:
+            slug: parsedBody.game_slug
         - resource: game_possessions
           parameters:
             slug: parsedBody.game_slug
@@ -153,6 +156,31 @@ resources:
 
   game_item_detail:
     - url: /games/{:slug}/items/{:id}.json
+      status: 200
+
+  game_factions:
+    - url: /games/{:slug}/factions.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_factions
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
+
+  paginated_game_factions:
+    - url: /games/{:slug}/factions.json?page={:page}&per_page={:per_page}
+      status: 200
+      actions:
+        - resource: game_faction_detail
+          parameters:
+            slug: parameters.slug
+            id: parsedBody.id
+
+  game_faction_detail:
+    - url: /games/{:slug}/factions/{:id}.json
       status: 200
 
   game_possessions:

@@ -143,6 +143,17 @@ urlpatterns = [
         views.game_npc_document_summary_all,
         name='game-document-npc-summary-all',
     ),
+    path('games/<slug:game_slug>/factions.json', views.game_factions, name='game-factions'),
+    path(
+        'games/<slug:game_slug>/factions/<int:faction_id>.json',
+        views.game_faction_detail,
+        name='game-faction-detail',
+    ),
+    path(
+        'games/<slug:game_slug>/factions/<int:faction_id>/photo_upload.json',
+        views.game_faction_photo_upload,
+        name='game-faction-photo-upload',
+    ),
     path('games/<slug:game_slug>/items.json', views.game_items, name='game-items'),
     path(
         'games/<slug:game_slug>/items/all.json',
