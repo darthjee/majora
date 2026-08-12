@@ -18,3 +18,6 @@ edit_session:
 create_npc:
   - staff
   - player
+create_faction:
+  - staff
+  - player

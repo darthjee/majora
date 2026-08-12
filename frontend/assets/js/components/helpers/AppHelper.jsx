@@ -25,6 +25,9 @@ import GamePossession from '../resources/possession/pages/GamePossession.jsx';
 import GamePossessionEdit from '../resources/possession/pages/GamePossessionEdit.jsx';
 import GamePossessionNew from '../resources/possession/pages/GamePossessionNew.jsx';
 import GamePossessions from '../resources/possession/pages/GamePossessions.jsx';
+import GameFaction from '../resources/faction/pages/GameFaction.jsx';
+import GameFactionEdit from '../resources/faction/pages/GameFactionEdit.jsx';
+import GameFactions from '../resources/faction/pages/GameFactions.jsx';
 import GameDocument from '../resources/document/pages/GameDocument.jsx';
 import GameDocumentEdit from '../resources/document/pages/GameDocumentEdit.jsx';
 import GameDocumentNew from '../resources/document/pages/GameDocumentNew.jsx';
@@ -105,6 +108,9 @@ const PAGES = {
   gamePossessionEdit: <GamePossessionEdit />,
   gamePossessionNew: <GamePossessionNew />,
   gamePossessions: <GamePossessions />,
+  gameFaction: <GameFaction />,
+  gameFactionEdit: <GameFactionEdit />,
+  gameFactions: <GameFactions />,
   gameDocument: <GameDocument />,
   gameDocumentEdit: <GameDocumentEdit />,
   gameDocumentNew: <GameDocumentNew />,

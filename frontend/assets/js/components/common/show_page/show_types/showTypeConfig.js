@@ -6,6 +6,7 @@ import possessionShowType from './configs/possessionShowType.js';
 import pcShowType from './configs/pcShowType.js';
 import npcShowType from './configs/npcShowType.js';
 import treasureShowType from './configs/treasureShowType.js';
+import factionShowType from './configs/factionShowType.js';
 
 /**
  * Per-show-type configuration consumed by `ShowPageLayout`, keyed by show type (`'document'`,
@@ -20,7 +21,9 @@ import treasureShowType from './configs/treasureShowType.js';
  * `item` is shared by `game-item`, `pc-item`, and `npc-item` alike (see `itemShowType.js`'s own
  * doc comment) rather than being split into three near-identical entries. `possession` (issue
  * #1074) is game-level only, with no PC/NPC-owned counterpart to share it with, unlike `item` —
- * see `possessionShowType.js`'s own doc comment. `pc` and `npc` share
+ * see `possessionShowType.js`'s own doc comment. `faction` (issue #812) is `Show`/`Edit`-only —
+ * no `New` variant, since faction creation is modal-based, matching `Source` — see
+ * `factionShowType.js`'s own doc comment. `pc` and `npc` share
  * their show-mode slots verbatim (the show page was already identical for both character kinds
  * before this migration), but keep separate entries since their new/edit-mode fields/gating
  * genuinely differ (see `pcShowType.js`/`npcShowType.js`'s own doc comments).
@@ -45,6 +48,7 @@ const showTypeConfig = {
   pc: pcShowType,
   npc: npcShowType,
   treasure: treasureShowType,
+  faction: factionShowType,
 };
 
 export default showTypeConfig;

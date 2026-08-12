@@ -1,0 +1,5 @@
+faction_edit_page:
+  title: Editar facção
+  name_label: Nome
+  submit: Salvar alterações
+  error: Falha ao salvar a facção. Tente novamente.

@@ -1,0 +1,8 @@
+faction_new_page:
+  title: New Faction
+  name_label: Name
+  submit: Create Faction
+  error: Failed to create faction. Please try again.
+  photo_upload_failed: Failed to upload the photo. The faction was created — you can retry the upload or skip it for now.
+  retry_photo_upload: Retry photo upload
+  skip_photo_upload: Skip and continue

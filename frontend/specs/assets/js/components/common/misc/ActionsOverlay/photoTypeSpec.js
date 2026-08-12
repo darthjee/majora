@@ -129,4 +129,18 @@ describe('ActionsOverlay', function() {
 
     expect(html).toContain('default_collection.png');
   });
+
+  it('renders a CardFactionImage when type is faction', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(ActionsOverlay, {
+        type: 'faction',
+        url: null,
+        alt: 'The Silver Hand',
+        canEdit: true,
+        onClick: Noop.noop,
+      })
+    );
+
+    expect(html).toContain('default_faction.png');
+  });
 });
