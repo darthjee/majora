@@ -14,7 +14,7 @@ describe('AuthClient', function() {
 
       await client.sendTestEmail('abc123');
 
-      expect(fetchSpy).toHaveBeenCalledWith('/users/test-email.json', jasmine.objectContaining({
+      expect(fetchSpy).toHaveBeenCalledWith('/staff/test-email.json', jasmine.objectContaining({
         method: 'POST',
         headers: {
           Accept: 'application/json',

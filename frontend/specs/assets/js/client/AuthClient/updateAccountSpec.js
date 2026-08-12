@@ -17,7 +17,7 @@ describe('AuthClient', function() {
         password: token ? 'secret' : '',
         passwordConfirmation: token ? 'secret' : '',
       }),
-      url: '/users/account.json',
+      url: '/account/account.json',
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'X-Skip-Cache': 'true' },
       body: (token) => JSON.stringify({

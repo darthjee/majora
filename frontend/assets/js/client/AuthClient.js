@@ -46,7 +46,7 @@ export default class AuthClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the test-email endpoint.
    */
   sendTestEmail(token) {
-    return this.request('/users/test-email.json', {
+    return this.request('/staff/test-email.json', {
       method: 'POST',
       headers: this.buildHeaders(token),
     });
@@ -101,7 +101,7 @@ export default class AuthClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the language endpoint.
    */
   setLanguagePreference(token, language) {
-    return this.postJson('/users/language.json', token, { language });
+    return this.postJson('/account/language.json', token, { language });
   }
 
   /**
@@ -111,7 +111,7 @@ export default class AuthClient extends BaseClient {
    * @returns {Promise<Response>} fetch response from the account endpoint.
    */
   fetchAccount(token) {
-    return this.getJson('/users/account.json', token);
+    return this.getJson('/account/account.json', token);
   }
 
   /**
@@ -126,7 +126,7 @@ export default class AuthClient extends BaseClient {
   updateAccount(token, {
     name, displayName, firstName, lastName, email, password, passwordConfirmation,
   }) {
-    return this.patchJson('/users/account.json', token, {
+    return this.patchJson('/account/account.json', token, {
       name,
       display_name: displayName,
       first_name: firstName,

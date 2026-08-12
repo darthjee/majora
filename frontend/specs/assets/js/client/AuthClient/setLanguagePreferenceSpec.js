@@ -14,7 +14,7 @@ describe('AuthClient', function() {
 
       await client.setLanguagePreference('abc123', 'en');
 
-      expect(fetchSpy).toHaveBeenCalledWith('/users/language.json', jasmine.objectContaining({
+      expect(fetchSpy).toHaveBeenCalledWith('/account/language.json', jasmine.objectContaining({
         method: 'POST',
         headers: {
           Accept: 'application/json',

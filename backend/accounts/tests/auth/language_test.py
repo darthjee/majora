@@ -21,7 +21,7 @@ class TestLanguageView:
         token = Token.objects.create(user=user)
 
         response = client.post(
-            '/users/language.json',
+            '/account/language.json',
             data=json.dumps({'language': 'pt-BR'}),
             content_type='application/json',
             HTTP_AUTHORIZATION=f'Token {token.key}',
@@ -36,7 +36,7 @@ class TestLanguageView:
         token = Token.objects.create(user=user)
 
         client.post(
-            '/users/language.json',
+            '/account/language.json',
             data=json.dumps({'language': 'fr'}),
             content_type='application/json',
             HTTP_AUTHORIZATION=f'Token {token.key}',
@@ -53,7 +53,7 @@ class TestLanguageView:
     def test_requires_authentication(self, client):
         """Test that the endpoint rejects unauthenticated requests."""
         response = client.post(
-            '/users/language.json',
+            '/account/language.json',
             data=json.dumps({'language': 'fr'}),
             content_type='application/json',
         )
