@@ -7,10 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from accounts.authentication import CookieTokenAuthentication
-from miniatures.models import SourcePhoto, StlModelPhoto
-from permissions import EndpointPermission
-
-from ..models import (
+from games.models import (
     CharacterItemPhoto,
     CharacterPhoto,
     GameDocumentFile,
@@ -18,9 +15,12 @@ from ..models import (
     GameDocumentPhoto,
     GameItemPhoto,
     TreasurePhoto,
-    Upload,
 )
-from .common import check_game_edit, require_staff
+from games.views.common import check_game_edit, require_staff
+from miniatures.models import SourcePhoto, StlModelPhoto
+from permissions import EndpointPermission
+
+from .models import Upload
 
 _FORBIDDEN = Response(status=status.HTTP_403_FORBIDDEN)
 _VALID_STATUSES = {Upload.STATUS_UPLOADING, Upload.STATUS_UPLOADED}

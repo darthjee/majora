@@ -22,7 +22,6 @@ from .models import (
     PollVote,
     Task,
     Treasure,
-    Upload,
 )
 
 
@@ -57,7 +56,6 @@ admin.site.register(CharacterDocument)
 admin.site.register(Treasure)
 admin.site.register(GameSession)
 admin.site.register(Task)
-admin.site.register(Upload)
 admin.site.register(Poll)
 admin.site.register(PollOption)
 admin.site.register(PollVote)

@@ -5,10 +5,10 @@ import json
 from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
-from games.models import Upload
 from games.tests.factories import SuperUserFactory, UserFactory
 from miniatures.models import SourcePhoto
 from miniatures.tests.factories import SourceFactory
+from uploads.models import Upload
 
 
 class TestSourcePhotoUploadView(TestCase):
