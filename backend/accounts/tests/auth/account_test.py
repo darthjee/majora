@@ -20,11 +20,11 @@ def _avatar_url_for(email):
 
 TEST_PASSWORD = get_random_string(20)
 
-ACCOUNT_URL = '/users/account.json'
+ACCOUNT_URL = '/account/account.json'
 
 
 class TestAccountView(TokenAuthRequestMixin, TestCase):
-    """Tests for the GET /users/account.json endpoint."""
+    """Tests for the GET /account/account.json endpoint."""
 
     @classmethod
     def setUpTestData(cls):
@@ -67,7 +67,7 @@ class TestAccountView(TokenAuthRequestMixin, TestCase):
 
     def test_url_by_name(self):
         """Test that the view is accessible by URL name."""
-        url = reverse('users-account')
+        url = reverse('account-account')
         response = self.client.get(url, HTTP_AUTHORIZATION=f'Token {self.token.key}')
         assert response.status_code == 200
 
@@ -78,7 +78,7 @@ class TestAccountView(TokenAuthRequestMixin, TestCase):
 
 
 class TestAccountPatchView(TokenAuthRequestMixin, TestCase):
-    """Tests for the PATCH /users/account.json endpoint."""
+    """Tests for the PATCH /account/account.json endpoint."""
 
     @classmethod
     def setUpTestData(cls):

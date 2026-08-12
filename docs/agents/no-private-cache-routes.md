@@ -15,5 +15,5 @@ each time the endpoint comes up again.
 
 | Endpoint | Module/App | Why excluded |
 |----------|------------|---------------|
-| `GET /users/account.json` | `accounts` (`accounts.views.auth.account`) | Returns PII (name, email) — too sensitive to be a private-cache candidate. |
+| `GET /account/account.json` | `accounts` (`accounts.views.auth.account`) | Returns PII (name, email) — too sensitive to be a private-cache candidate. |
 | `GET /account/authorization_requests.json` | `accounts` (`accounts.views.authorization_requests.list`) | Per-user sensitive data (pending authorization requests) — reserved from private caching. |
