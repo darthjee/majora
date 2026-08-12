@@ -43,6 +43,7 @@ regardless of any other rule listed below.
 - [CharacterTreasure](access-control/character-treasure.md)
 - [GameTreasure](access-control/game-treasure.md)
 - [GameItem](access-control/game-item.md)
+- [GamePossession](access-control/game-possession.md)
 - [CharacterItem](access-control/character-item.md)
 - [GameDocument](access-control/game-document.md)
 - [CharacterDocument](access-control/character-document.md)
