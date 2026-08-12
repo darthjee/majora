@@ -2,9 +2,10 @@
 
 from rest_framework.response import Response
 
-from ..models import Upload
-from ..serializers import PhotoUploadSerializer
-from .common import validated_or_error
+from games.serializers import PhotoUploadSerializer
+from games.views.common import validated_or_error
+
+from .models import Upload
 
 
 class UploadInitiator:

@@ -51,6 +51,11 @@ class Upload(models.Model):
     object_id = models.PositiveIntegerField(null=True, blank=True)
     content_object = GenericForeignKey('content_type', 'object_id')
 
+    class Meta:
+        """Model metadata for Upload."""
+
+        db_table = 'games_upload'
+
     def save(self, *args, **kwargs):
         """Persist the upload record, enforcing immutability after upload."""
         if self.pk is not None:

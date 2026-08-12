@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'statistics',
     'conversations',
     'miniatures',
+    'uploads',
 ]
 
 MIDDLEWARE = [
