@@ -31,6 +31,14 @@ const RESOLVERS = {
     // result is consulted for both kinds.
     summary: ({ gameSlug, kind, id }) => AccessStore.ensureCharacterPermissions(kind, gameSlug, id),
   },
+  // issue #1074: `GamePossession` is game-level only (no PC/NPC ownership, tracked separately in
+  // #1076), so both `collection` and `single` are unconditionally resolved at the game level —
+  // mirroring `item`'s own `'game'`-kind branch exactly, minus the `kind`-based branching itself
+  // (there is no other kind to branch on).
+  possession: {
+    collection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+    single: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+  },
   treasure: {
     collection: ({ gameSlug, kind }) => (
       kind === 'game' || kind === 'npcs' ? AccessStore.ensureGamePermissions(gameSlug) : NO_PERMISSIONS()
@@ -100,8 +108,8 @@ export default class RequestPermissionResolvers {
   /**
    * Resolve the current permissions object for a resource/quantity-type/params combination.
    *
-   * @param {string} resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'treasure'`,
-   *   `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`).
+   * @param {string} resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'possession'`,
+   *   `'treasure'`, `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`).
    * @param {string} quantityType - `'collection'` or `'single'`.
    * @param {object} params - Concrete params (`gameSlug`, `kind`, `id`, etc.).
    * @returns {Promise<object>} Resolves to the permissions object (e.g. `{ can_edit: boolean }`),

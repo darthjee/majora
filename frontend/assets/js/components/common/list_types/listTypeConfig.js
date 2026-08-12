@@ -15,6 +15,7 @@ import characterTreasureListTypes from './configs/characterTreasureListTypes.js'
 import globalTreasureListType from './configs/globalTreasureListType.js';
 import playersListType from './configs/playersListType.js';
 import documentListTypes from './configs/documentListTypes.js';
+import possessionListType from './configs/possessionListType.js';
 import stlModelListType from './configs/stlModelListType.js';
 import sourceListType from './configs/sourceListType.js';
 import collectionListType from './configs/collectionListType.js';
@@ -198,14 +199,15 @@ function buildCharacterItemItemHref(characterKind) {
 
 /**
  * Per-list-type configuration consumed by `ListPage`/`ListPageHelper`, keyed by list type
- * (`'treasures'`, `'items'`, `'pc-items'`, `'npc-items'`, `'documents'`, `'pc-documents'`,
- * `'npc-documents'`, `'games'`, `'my-games'`, `'players'`, `'pcs'`, `'npcs'`, `'pc-treasures'`,
- * `'npc-treasures'`, `'treasures-global'`, `'stlModels'`, `'sources'`, `'collections'`), matching
+ * (`'treasures'`, `'items'`, `'pc-items'`, `'npc-items'`, `'possessions'`, `'documents'`,
+ * `'pc-documents'`, `'npc-documents'`, `'games'`, `'my-games'`, `'players'`, `'pcs'`, `'npcs'`,
+ * `'pc-treasures'`, `'npc-treasures'`, `'treasures-global'`, `'stlModels'`, `'sources'`,
+ * `'collections'`), matching
  * the existing `PHOTO_COMPONENTS` precedent in `ActionsOverlay.jsx`. The `games`/`my-games`/
  * `players`/`pcs`/`npcs`/`pc-treasures`/`npc-treasures`/`treasures-global`/`documents`/
- * `pc-documents`/`npc-documents`/`stlModels`/`sources`/`collections` entries live in `./configs/`,
- * split out of this file to keep it under the project's max-lines limit; they are merged into
- * this object below. Each entry holds:
+ * `pc-documents`/`npc-documents`/`possessions`/`stlModels`/`sources`/`collections` entries live
+ * in `./configs/`, split out of this file to keep it under the project's max-lines limit; they
+ * are merged into this object below. Each entry holds:
  * - `fetchList(gameSlug, hashResolver, client?)` — fetches one page of list data. Every type
  *   migrated onto `RequestStore` (issue #791, phase 3/N) ignores the `client` argument (kept
  *   only where a later positional argument, e.g. `gameClient`, still needs it); the handful of
@@ -271,6 +273,7 @@ const listTypeConfig = {
     buildItemHref: buildCharacterItemItemHref('npcs'),
     itemsPerRow: 6,
   },
+  possessions: possessionListType,
   games: gamesListType,
   'my-games': myGamesListType,
   players: playersListType,
