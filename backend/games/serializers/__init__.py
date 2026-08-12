@@ -49,6 +49,9 @@ from games.serializers.games.documents.game_document_list import (
     GameDocumentListSerializer,
 )
 from games.serializers.games.documents.game_document_photo import GameDocumentPhotoSerializer
+from games.serializers.games.factions.faction_list import FactionListSerializer
+from games.serializers.games.factions.faction_photo import FactionPhotoSerializer
+from games.serializers.games.factions.faction_update import FactionUpdateSerializer
 from games.serializers.games.game_access import GameAccessSerializer
 from games.serializers.games.game_create import GameCreateSerializer
 from games.serializers.games.game_detail import GameDetailSerializer
@@ -150,6 +153,9 @@ __all__ = [
     'CharacterTreasureSerializer',
     'CharacterUpdateSerializer',
     'ConversationListSerializer',
+    'FactionListSerializer',
+    'FactionPhotoSerializer',
+    'FactionUpdateSerializer',
     'FileUploadSerializer',
     'GameAccessSerializer',
     'GameCreateSerializer',

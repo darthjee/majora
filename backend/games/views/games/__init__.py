@@ -14,6 +14,9 @@ from .game_document_photos import game_document_photos
 from .game_document_photos_all import game_document_photos_all
 from .game_documents import game_documents
 from .game_documents_all import game_documents_all
+from .game_faction_detail import game_faction_detail
+from .game_faction_photo_upload import game_faction_photo_upload
+from .game_factions import game_factions
 from .game_item_detail import game_item_detail
 from .game_item_detail_full import game_item_detail_full
 from .game_item_photo_upload import game_item_photo_upload
@@ -54,6 +57,9 @@ __all__ = [
     'game_document_file_photo_upload',
     'game_document_files',
     'game_document_files_all',
+    'game_factions',
+    'game_faction_detail',
+    'game_faction_photo_upload',
     'game_items',
     'game_items_all',
     'game_item_detail',

@@ -7,6 +7,8 @@ from games.models.character.character_item_photo import CharacterItemPhoto
 from games.models.character.character_link import CharacterLink
 from games.models.character.character_photo import CharacterPhoto
 from games.models.character.character_treasure import CharacterTreasure
+from games.models.faction.faction import Faction
+from games.models.faction.faction_photo import FactionPhoto
 from games.models.game.game import Game
 from games.models.game.game_document import GameDocument
 from games.models.game.game_document_file import GameDocumentFile
@@ -37,6 +39,8 @@ __all__ = [
     'CharacterLink',
     'CharacterPhoto',
     'CharacterTreasure',
+    'Faction',
+    'FactionPhoto',
     'Game',
     'GameDocument',
     'GameDocumentFile',
