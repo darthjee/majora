@@ -184,6 +184,31 @@ urlpatterns = [
         views.game_npc_item_summary_all,
         name='game-item-npc-summary-all',
     ),
+    path(
+        'games/<slug:game_slug>/possessions.json',
+        views.game_possessions,
+        name='game-possessions',
+    ),
+    path(
+        'games/<slug:game_slug>/possessions/all.json',
+        views.game_possessions_all,
+        name='game-possessions-all',
+    ),
+    path(
+        'games/<slug:game_slug>/possessions/<int:possession_id>.json',
+        views.game_possession_detail,
+        name='game-possession-detail',
+    ),
+    path(
+        'games/<slug:game_slug>/possessions/<int:possession_id>/full.json',
+        views.game_possession_detail_full,
+        name='game-possession-detail-full',
+    ),
+    path(
+        'games/<slug:game_slug>/possessions/<int:possession_id>/photo_upload.json',
+        views.game_possession_photo_upload,
+        name='game-possession-photo-upload',
+    ),
     path('games/<slug:game_slug>/photos.json', views.game_photos, name='game-photos'),
     path(
         'games/<slug:game_slug>/sessions.json',

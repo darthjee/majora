@@ -2,21 +2,25 @@ import documentShowType from './configs/documentShowType.js';
 import characterDocumentShowType from './configs/characterDocumentShowType.js';
 import gameShowType from './configs/gameShowType.js';
 import itemShowType from './configs/itemShowType.js';
+import possessionShowType from './configs/possessionShowType.js';
 import pcShowType from './configs/pcShowType.js';
 import npcShowType from './configs/npcShowType.js';
 import treasureShowType from './configs/treasureShowType.js';
 
 /**
  * Per-show-type configuration consumed by `ShowPageLayout`, keyed by show type (`'document'`,
- * `'character_document'`, `'game'`, `'item'`, `'pc'`, `'npc'`, `'treasure'`, and further resource
- * types as they're migrated onto the shared show/new/edit layout). Each entry holds:
+ * `'character_document'`, `'game'`, `'item'`, `'possession'`, `'pc'`, `'npc'`, `'treasure'`, and
+ * further resource types as they're migrated onto the shared show/new/edit layout). Each entry
+ * holds:
  * - `left`, `right`, `bottom` — arrays of slot entries. A plain entry (a component) renders the
  *   same in every mode; a mode-variant entry (`{Show, New, Edit}`) picks the component matching
  *   the current mode, rendering nothing for a mode it doesn't declare. Every rendered component
  *   receives the page's full rendering context (plus `mode`) spread as props.
  *
  * `item` is shared by `game-item`, `pc-item`, and `npc-item` alike (see `itemShowType.js`'s own
- * doc comment) rather than being split into three near-identical entries. `pc` and `npc` share
+ * doc comment) rather than being split into three near-identical entries. `possession` (issue
+ * #1074) is game-level only, with no PC/NPC-owned counterpart to share it with, unlike `item` —
+ * see `possessionShowType.js`'s own doc comment. `pc` and `npc` share
  * their show-mode slots verbatim (the show page was already identical for both character kinds
  * before this migration), but keep separate entries since their new/edit-mode fields/gating
  * genuinely differ (see `pcShowType.js`/`npcShowType.js`'s own doc comments).
@@ -37,6 +41,7 @@ const showTypeConfig = {
   character_document: characterDocumentShowType,
   game: gameShowType,
   item: itemShowType,
+  possession: possessionShowType,
   pc: pcShowType,
   npc: npcShowType,
   treasure: treasureShowType,

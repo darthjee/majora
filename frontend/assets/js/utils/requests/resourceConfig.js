@@ -2,6 +2,7 @@ import gameConfig from './config/gameConfig.js';
 import npcConfig from './config/npcConfig.js';
 import pcConfig from './config/pcConfig.js';
 import itemConfig from './config/itemConfig.js';
+import possessionConfig from './config/possessionConfig.js';
 import treasureConfig from './config/treasureConfig.js';
 import sessionConfig from './config/sessionConfig.js';
 import documentConfig from './config/documentConfig.js';
@@ -21,6 +22,7 @@ const RESOURCES = {
   npc: npcConfig,
   pc: pcConfig,
   item: itemConfig,
+  possession: possessionConfig,
   treasure: treasureConfig,
   session: sessionConfig,
   document: documentConfig,
@@ -57,10 +59,10 @@ export default {
    * Look up the resolved `{ regular, private }` config entry for a resource.
    *
    * @param {string} method - HTTP method (e.g. `'GET'`, `'POST'`, `'PATCH'`, `'PUT'`).
-   * @param {string} resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'treasure'`,
-   *   `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`, `'gameDocumentPhoto'`,
-   *   `'gameDocumentFile'`, `'characterDocumentFile'`, `'characterDocumentPhoto'`, `'stlModel'`,
-   *   `'source'`, `'collection'`).
+   * @param {string} resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'possession'`,
+   *   `'treasure'`, `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`,
+   *   `'gameDocumentPhoto'`, `'gameDocumentFile'`, `'characterDocumentFile'`,
+   *   `'characterDocumentPhoto'`, `'stlModel'`, `'source'`, `'collection'`).
    * @param {string} quantityType - `'collection'`, `'single'`, or a resource-specific key.
    * @returns {{regular: object, private: object}|null} The config entry, or `null` when no
    *   configuration exists for the given method/resource/quantity-type combination.

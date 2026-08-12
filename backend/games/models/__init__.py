@@ -16,6 +16,8 @@ from games.models.game.game_item import GameItem
 from games.models.game.game_item_photo import GameItemPhoto
 from games.models.game.game_link import GameLink
 from games.models.game.game_photo import GamePhoto
+from games.models.game.game_possession import GamePossession
+from games.models.game.game_possession_photo import GamePossessionPhoto
 from games.models.game.game_session import GameSession
 from games.models.game.game_session_message import GameSessionMessage
 from games.models.game.game_treasure import GameTreasure
@@ -44,6 +46,8 @@ __all__ = [
     'GameItemPhoto',
     'GameLink',
     'GamePhoto',
+    'GamePossession',
+    'GamePossessionPhoto',
     'GameSession',
     'GameSessionMessage',
     'GameTreasure',

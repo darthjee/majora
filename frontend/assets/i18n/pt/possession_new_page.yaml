@@ -1,0 +1,10 @@
+possession_new_page:
+  title: Criar Posse
+  name_label: Nome
+  description_label: Descrição
+  hidden_label: Oculto
+  submit: Criar Posse
+  error: Falha ao criar a posse. Tente novamente.
+  photo_upload_failed: Falha ao enviar a foto. A posse foi criada — você pode tentar novamente ou pular por enquanto.
+  retry_photo_upload: Tentar enviar a foto novamente
+  skip_photo_upload: Pular e continuar

@@ -81,6 +81,18 @@ from games.serializers.games.polls.poll_vote import PollVoteSerializer
 from games.serializers.games.polls.poll_vote_user import PollVoteUserSerializer
 from games.serializers.games.polls.poll_vote_write import PollVoteWriteSerializer
 from games.serializers.games.polls.session_poll_create import SessionPollCreateSerializer
+from games.serializers.games.possessions.game_possession_list import (
+    GamePossessionAllListSerializer,
+    GamePossessionDetailFullSerializer,
+    GamePossessionDetailSerializer,
+    GamePossessionListSerializer,
+)
+from games.serializers.games.possessions.game_possession_photo import (
+    GamePossessionPhotoSerializer,
+)
+from games.serializers.games.possessions.game_possession_update import (
+    GamePossessionUpdateSerializer,
+)
 from games.serializers.games.sessions.game_session_create import GameSessionCreateSerializer
 from games.serializers.games.sessions.game_session_detail import GameSessionDetailSerializer
 from games.serializers.games.sessions.game_session_list import GameSessionListSerializer
@@ -159,6 +171,12 @@ __all__ = [
     'GameListSerializer',
     'GamePermissionsSerializer',
     'GamePhotoSerializer',
+    'GamePossessionAllListSerializer',
+    'GamePossessionDetailFullSerializer',
+    'GamePossessionDetailSerializer',
+    'GamePossessionListSerializer',
+    'GamePossessionPhotoSerializer',
+    'GamePossessionUpdateSerializer',
     'GameRegularUpdateSerializer',
     'GameSessionCreateSerializer',
     'GameSessionDetailSerializer',

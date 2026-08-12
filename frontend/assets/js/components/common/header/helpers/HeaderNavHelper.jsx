@@ -70,6 +70,7 @@ export default class HeaderNavHelper {
         <NavDropdown.Item href={`#/games/${gameSlug}/npcs`}>{Translator.t('game_page.non_player_characters')}</NavDropdown.Item>
         <NavDropdown.Item href={`#/games/${gameSlug}/treasures`}>{Translator.t('game_page.treasures')}</NavDropdown.Item>
         <NavDropdown.Item href={`#/games/${gameSlug}/items`}>{Translator.t('game_page.items')}</NavDropdown.Item>
+        <NavDropdown.Item href={`#/games/${gameSlug}/possessions`}>{Translator.t('game_page.possessions')}</NavDropdown.Item>
         <NavDropdown.Item href={`#/games/${gameSlug}/documents`}>{Translator.t('game_page.documents')}</NavDropdown.Item>
         {HeaderNavHelper.#renderGameAccessNavItems(state, gameSlug)}
         <NavDropdown.Item href={`#/games/${gameSlug}/photos`}>{Translator.t('game_page.see_all_photos')}</NavDropdown.Item>
