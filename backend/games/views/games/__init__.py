@@ -20,6 +20,11 @@ from .game_item_photo_upload import game_item_photo_upload
 from .game_items import game_items
 from .game_items_all import game_items_all
 from .game_photos import game_photos
+from .game_possession_detail import game_possession_detail
+from .game_possession_detail_full import game_possession_detail_full
+from .game_possession_photo_upload import game_possession_photo_upload
+from .game_possessions import game_possessions
+from .game_possessions_all import game_possessions_all
 from .game_treasure_detail import game_treasure_detail
 from .game_treasure_link import game_treasure_link
 from .game_treasures import game_treasures
@@ -55,5 +60,10 @@ __all__ = [
     'game_item_detail_full',
     'game_item_photo_upload',
     'game_photos',
+    'game_possessions',
+    'game_possessions_all',
+    'game_possession_detail',
+    'game_possession_detail_full',
+    'game_possession_photo_upload',
     'my_games_list',
 ]

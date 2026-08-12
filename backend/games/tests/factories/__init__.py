@@ -18,6 +18,7 @@ from games.tests.factories.document import CharacterDocumentFactory, GameDocumen
 from games.tests.factories.game import GameFactory, PlayerFactory
 from games.tests.factories.item import CharacterItemFactory, GameItemFactory
 from games.tests.factories.poll import PollFactory, PollOptionFactory, PollVoteFactory
+from games.tests.factories.possession import GamePossessionFactory
 from games.tests.factories.treasure import GameTreasureFactory, TreasureFactory
 from games.tests.factories.user import SuperUserFactory, UserFactory, UserProfileFactory
 
@@ -30,6 +31,7 @@ __all__ = [
     'GameDocumentFactory',
     'GameFactory',
     'GameItemFactory',
+    'GamePossessionFactory',
     'GameTreasureFactory',
     'MessageFactory',
     'MessageVisualisationFactory',

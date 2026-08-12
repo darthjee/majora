@@ -46,6 +46,20 @@ describe('ActionsOverlay', function() {
     expect(html).toContain('default_item.png');
   });
 
+  it('renders a CardPossessionImage when type is possession', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(ActionsOverlay, {
+        type: 'possession',
+        url: null,
+        alt: 'Old Tavern',
+        canEdit: true,
+        onClick: Noop.noop,
+      })
+    );
+
+    expect(html).toContain('default_possession.png');
+  });
+
   it('renders a CardDocumentImage when type is document', function() {
     const html = renderToStaticMarkup(
       React.createElement(ActionsOverlay, {

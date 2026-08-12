@@ -1,0 +1,9 @@
+# GamePossessionCreatePermission/GamePossessionPhotoUploadPermission (issue #1074): dm/admin
+# shortcut, plus staff and any player of the game.
+regular:
+  create:
+    - staff
+    - player
+  photo_upload:
+    - staff
+    - player

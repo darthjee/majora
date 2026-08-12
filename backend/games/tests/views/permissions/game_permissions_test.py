@@ -33,6 +33,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
             'can_edit_regular': False,
             'can_create_item': False,
             'can_create_document': False,
+            'can_create_possession': False,
             'can_edit_session': False,
             'can_create_npc': False,
         }
@@ -44,6 +45,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
             'can_edit_regular': True,
             'can_create_item': True,
             'can_create_document': True,
+            'can_create_possession': True,
             'can_edit_session': True,
             'can_create_npc': True,
         }
@@ -85,6 +87,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
             'can_edit_regular': True,
             'can_create_item': True,
             'can_create_document': True,
+            'can_create_possession': True,
             'can_edit_session': True,
             'can_create_npc': True,
         }
@@ -98,6 +101,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
             'can_edit_regular': True,
             'can_create_item': True,
             'can_create_document': True,
+            'can_create_possession': True,
             'can_edit_session': True,
             'can_create_npc': True,
         }

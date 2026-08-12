@@ -19,6 +19,9 @@ describe('AppHelper', function() {
     expect(renderToStaticMarkup(AppHelper.render('gameItems', '#/games/demo/items'))).toContain(Translator.t('game_items_page.loading'));
     expect(renderToStaticMarkup(AppHelper.render('gameItemEdit', '#/games/demo/items/1/edit'))).toContain(Translator.t('item_page.loading'));
     expect(renderToStaticMarkup(AppHelper.render('gameItemNew', '#/games/demo/items/new'))).toContain(Translator.t('item_new_page.title'));
+    expect(renderToStaticMarkup(AppHelper.render('gamePossessions', '#/games/demo/possessions'))).toContain(Translator.t('game_possessions_page.loading'));
+    expect(renderToStaticMarkup(AppHelper.render('gamePossessionEdit', '#/games/demo/possessions/1/edit'))).toContain(Translator.t('possession_page.loading'));
+    expect(renderToStaticMarkup(AppHelper.render('gamePossessionNew', '#/games/demo/possessions/new'))).toContain(Translator.t('possession_new_page.title'));
     expect(renderToStaticMarkup(AppHelper.render('pcCharacterItems', '#/games/demo/pcs/1/items'))).toContain(Translator.t('character_items_page.loading'));
     expect(renderToStaticMarkup(AppHelper.render('npcCharacterItems', '#/games/demo/npcs/1/items'))).toContain(Translator.t('character_items_page.loading'));
     expect(renderToStaticMarkup(AppHelper.render('pcCharacterItemEdit', '#/games/demo/pcs/1/items/1/edit'))).toContain(Translator.t('item_page.loading'));

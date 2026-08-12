@@ -38,13 +38,14 @@ class TestPermissionsBuilderRealIdentity:
         }
 
     def test_single_resource_page_returns_its_keys_only(self):
-        """Test that build() returns exactly the game page's six response keys."""
+        """Test that build() returns exactly the game page's seven response keys."""
         builder = PermissionsBuilder(page_key='game', user=self.dm_user, game=self.game)
         assert builder.build() == {
             'can_edit': True,
             'can_edit_regular': True,
             'can_create_item': True,
             'can_create_document': True,
+            'can_create_possession': True,
             'can_edit_session': True,
             'can_create_npc': True,
         }

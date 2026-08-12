@@ -1,0 +1,7 @@
+possession_edit_page:
+  title: Edit possession
+  name_label: Name
+  description_label: Description
+  hidden_label: Hidden
+  submit: Save changes
+  error: Failed to save possession. Please try again.

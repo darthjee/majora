@@ -9,6 +9,9 @@ create_item:
 create_document:
   - staff
   - player
+create_possession:
+  - staff
+  - player
 edit_session:
   - staff
   - player

@@ -1,0 +1,5 @@
+game_possessions_page:
+  loading: Carregando posses...
+  title: Posses
+  hidden_label: Oculto
+  create_possession: Criar Posse
