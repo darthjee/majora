@@ -13,7 +13,12 @@ from ...serializers import (
     TreasureDetailSerializer,
     TreasureUpdateSerializer,
 )
-from ..common import check_game_edit, validate_with_hidden_field, validated_or_error
+from ..common import (
+    check_game_edit,
+    hidden_gate_response,
+    validate_with_hidden_field,
+    validated_or_error,
+)
 
 
 @api_view(['GET', 'PATCH'])
@@ -28,7 +33,7 @@ def game_treasure_detail(request, game_slug, treasure_id):
     treasure = _get_game_treasure_or_404(game, treasure_id)
     game_treasure = GameTreasure.objects.filter(game=game, treasure=treasure).first()
 
-    error_response = _hidden_gate_response(game_treasure, game, request)
+    error_response = hidden_gate_response(game_treasure, game, request)
     if error_response:
         return error_response
 
@@ -46,16 +51,6 @@ def _get_game_treasure_or_404(game, treasure_id):
     """Return the Treasure matching `treasure_id`, exclusive to or M2M-linked to `game`."""
     treasures = Treasure.objects.for_game(game)
     return get_object_or_404(treasures, id=treasure_id)
-
-
-def _hidden_gate_response(game_treasure, game, request):
-    """Return a 404 Response with X-Skip-Cache set if hidden and game not editable."""
-    is_hidden = game_treasure is not None and game_treasure.hidden
-    if is_hidden and not game.can_be_edited_by(request.user):
-        response = Response(status=404)
-        response['X-Skip-Cache'] = 'true'
-        return response
-    return None
 
 
 def _update_game_treasure(request, game, treasure):

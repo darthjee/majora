@@ -149,6 +149,21 @@ def paginated_list_response(request, queryset, list_serializer_cls, context=None
     return Response(serializer.data, headers=headers)
 
 
+def hidden_gate_response(entity, owner, request):
+    """Return a 404 Response (with X-Skip-Cache) if `entity` is hidden and `owner` isn't editable.
+
+    Shared by any path-scoped entity that must 404 (rather than reveal via a permission-denied
+    response) when hidden to a requester who cannot edit `owner` — e.g. a `Character` gating on
+    itself, or a `GameTreasure` gating on its `Game`.
+    """
+    is_hidden = entity is not None and entity.hidden
+    if is_hidden and not owner.can_be_edited_by(request.user):
+        response = Response(status=404)
+        response['X-Skip-Cache'] = 'true'
+        return response
+    return None
+
+
 def access_response(serializer_cls, obj, request, context_extra=None):
     """Build the shared "access" Response: serialize `obj` and skip caching."""
     context = {'request': request}
