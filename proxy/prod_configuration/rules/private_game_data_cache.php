@@ -22,14 +22,27 @@
  *
  * Uses $backendHost (not a hardcoded docker-compose service name) to match
  * this environment's rules/cache.php and rules/backend.php conventions.
+ *
+ * Domain-scoped the same way as rules/backend.php: the cache location is
+ * partitioned via DomainHash::hash(new Request()) into a `domain_<hash>`
+ * subfolder under $cacheFolder. This rule deliberately shares that folder
+ * with backend.php's cache — safe, since the two rules never match the same
+ * routes (this rule's matcher is a strict subset of backend.php's generic
+ * `.json` catch-all) and Tent further partitions by request path within the
+ * folder.
  */
 
 use Tent\Configuration;
+use Tent\Cache\DomainHash;
+use Tent\Models\Request;
+
+$privateCacheLocation = "$cacheFolder/" . DomainHash::hash(new Request());
 
 Configuration::buildRule([
     'handler' => [
         'type' => 'default_proxy',
         'host' => $backendHost,
+        'cache' => $privateCacheLocation,
         'request_hasher' => [
             'class' => 'Tent\\Cache\\PrivateRequestHasher',
             'headerName' => 'X-Cache-Token',
@@ -45,7 +58,7 @@ Configuration::buildRule([
     'middlewares' => [
         [
             'class' => 'Tent\\Middlewares\\CacheStalenessMiddleware',
-            'location' => $cacheFolder,
+            'location' => $privateCacheLocation,
             'host' => $backendHost,
             'maxAgeSeconds' => 10,
         ],
