@@ -1,0 +1,4 @@
+# Forward-looking config for a future GameDocumentPermissionsSerializer (issue #1099).
+edit:
+  - staff
+  - player
