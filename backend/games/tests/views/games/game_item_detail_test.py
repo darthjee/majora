@@ -86,11 +86,14 @@ class TestGameItemDetailPatchView(TokenAuthRequestMixin):
     """Tests for the PATCH /games/<slug>/items/<item_id>.json endpoint."""
 
     def setup_method(self):
-        """Set up a game, a DM, an unrelated user, and an item."""
+        """Set up a game, a DM, a player, an unrelated user, and an item."""
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.dm_token = Token.objects.create(user=self.dm_user)
+        self.player_user = UserFactory(username='player_user', password='secret-password')
+        PlayerFactory(name='Bob', user=self.player_user, game=self.game)
+        self.player_token = Token.objects.create(user=self.player_user)
         self.other_user = UserFactory(username='other', password='secret-password')
         self.other_token = Token.objects.create(user=self.other_user)
         self.item = GameItemFactory(
@@ -171,3 +174,21 @@ class TestGameItemDetailPatchView(TokenAuthRequestMixin):
             client, self._url(item_id=99999), {'name': 'New Name'}, token=self.dm_token,
         )
         assert response.status_code == 404
+
+    def test_staff_user_returns_200(self, client):
+        """Test that an is_staff=True user unrelated to the game can PATCH the item."""
+        staff_user = UserFactory(username='staff_user', password='secret-password', is_staff=True)
+        token = Token.objects.create(user=staff_user)
+        response = self.patch(client, self._url(), {'name': 'Staff Bow'}, token=token)
+        assert response.status_code == 200
+        self.item.refresh_from_db()
+        assert self.item.name == 'Staff Bow'
+
+    def test_player_of_game_returns_200(self, client):
+        """Test that a player of the game can PATCH the item."""
+        response = self.patch(
+            client, self._url(), {'name': 'Player Bow'}, token=self.player_token,
+        )
+        assert response.status_code == 200
+        self.item.refresh_from_db()
+        assert self.item.name == 'Player Bow'

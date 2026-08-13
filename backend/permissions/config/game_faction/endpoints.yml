@@ -1,9 +1,13 @@
 # FactionCreatePermission/FactionPhotoUploadPermission (issue #812): dm/admin
-# shortcut, plus staff and any player of the game.
+# shortcut, plus staff and any player of the game. `edit` (issue #1097) applies the same
+# rule to the PATCH endpoint.
 regular:
   create:
     - staff
     - player
   photo_upload:
+    - staff
+    - player
+  edit:
     - staff
     - player
