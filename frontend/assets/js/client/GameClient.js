@@ -45,4 +45,64 @@ export default class GameClient extends BaseClient {
     return this.getJson(`/permissions/game.json${this.buildRoleQuery(roles)}`, token, {}, signal);
   }
 
+  /**
+   * Fetches the edit permissions for a game's possessions.
+   *
+   * @param {string} gameSlug - Game slug (unused — the route is entity-agnostic, kept for
+   *   signature symmetry with the rest of the client).
+   * @param {string|null} token - Authentication token, if any.
+   * @param {AbortSignal} [signal] - Optional abort signal for the request.
+   * @param {string[]} [roles] - Roles to simulate instead of the requester's own identity
+   *   (serialized as repeated `role=` query params). Defaults to the requester's real identity.
+   * @returns {Promise<Response>} fetch response from the possession permissions endpoint.
+   */
+  fetchPossessionPermissions(gameSlug, token, signal, roles = []) {
+    return this.getJson(`/permissions/game_possession.json${this.buildRoleQuery(roles)}`, token, {}, signal);
+  }
+
+  /**
+   * Fetches the edit permissions for a game's items.
+   *
+   * @param {string} gameSlug - Game slug (unused — the route is entity-agnostic, kept for
+   *   signature symmetry with the rest of the client).
+   * @param {string|null} token - Authentication token, if any.
+   * @param {AbortSignal} [signal] - Optional abort signal for the request.
+   * @param {string[]} [roles] - Roles to simulate instead of the requester's own identity
+   *   (serialized as repeated `role=` query params). Defaults to the requester's real identity.
+   * @returns {Promise<Response>} fetch response from the item permissions endpoint.
+   */
+  fetchItemPermissions(gameSlug, token, signal, roles = []) {
+    return this.getJson(`/permissions/game_item.json${this.buildRoleQuery(roles)}`, token, {}, signal);
+  }
+
+  /**
+   * Fetches the edit permissions for a game's factions.
+   *
+   * @param {string} gameSlug - Game slug (unused — the route is entity-agnostic, kept for
+   *   signature symmetry with the rest of the client).
+   * @param {string|null} token - Authentication token, if any.
+   * @param {AbortSignal} [signal] - Optional abort signal for the request.
+   * @param {string[]} [roles] - Roles to simulate instead of the requester's own identity
+   *   (serialized as repeated `role=` query params). Defaults to the requester's real identity.
+   * @returns {Promise<Response>} fetch response from the faction permissions endpoint.
+   */
+  fetchFactionPermissions(gameSlug, token, signal, roles = []) {
+    return this.getJson(`/permissions/game_faction.json${this.buildRoleQuery(roles)}`, token, {}, signal);
+  }
+
+  /**
+   * Fetches the edit permissions for a game's documents.
+   *
+   * @param {string} gameSlug - Game slug (unused — the route is entity-agnostic, kept for
+   *   signature symmetry with the rest of the client).
+   * @param {string|null} token - Authentication token, if any.
+   * @param {AbortSignal} [signal] - Optional abort signal for the request.
+   * @param {string[]} [roles] - Roles to simulate instead of the requester's own identity
+   *   (serialized as repeated `role=` query params). Defaults to the requester's real identity.
+   * @returns {Promise<Response>} fetch response from the document permissions endpoint.
+   */
+  fetchDocumentPermissions(gameSlug, token, signal, roles = []) {
+    return this.getJson(`/permissions/game_document.json${this.buildRoleQuery(roles)}`, token, {}, signal);
+  }
+
 }

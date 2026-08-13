@@ -82,6 +82,62 @@ describe('AccessStore', function() {
     });
   });
 
+  describe('#ensurePossessionPermissions', function() {
+    it('resolves with the fetched permissions payload', async function() {
+      spyOn(GameClient.prototype, 'fetchGameAccess').and.returnValue(Promise.resolve(fakeResponse({})));
+      const fetchSpy = spyOn(GameClient.prototype, 'fetchPossessionPermissions').and.returnValue(
+        Promise.resolve(fakeResponse({ can_edit: true })),
+      );
+
+      const result = await AccessStore.ensurePossessionPermissions('demo');
+
+      expect(result).toEqual({ can_edit: true });
+      expect(fetchSpy).toHaveBeenCalledWith('demo', null, jasmine.anything(), []);
+    });
+  });
+
+  describe('#ensureItemPermissions', function() {
+    it('resolves with the fetched permissions payload', async function() {
+      spyOn(GameClient.prototype, 'fetchGameAccess').and.returnValue(Promise.resolve(fakeResponse({})));
+      const fetchSpy = spyOn(GameClient.prototype, 'fetchItemPermissions').and.returnValue(
+        Promise.resolve(fakeResponse({ can_edit: true })),
+      );
+
+      const result = await AccessStore.ensureItemPermissions('demo');
+
+      expect(result).toEqual({ can_edit: true });
+      expect(fetchSpy).toHaveBeenCalledWith('demo', null, jasmine.anything(), []);
+    });
+  });
+
+  describe('#ensureFactionPermissions', function() {
+    it('resolves with the fetched permissions payload', async function() {
+      spyOn(GameClient.prototype, 'fetchGameAccess').and.returnValue(Promise.resolve(fakeResponse({})));
+      const fetchSpy = spyOn(GameClient.prototype, 'fetchFactionPermissions').and.returnValue(
+        Promise.resolve(fakeResponse({ can_edit: true })),
+      );
+
+      const result = await AccessStore.ensureFactionPermissions('demo');
+
+      expect(result).toEqual({ can_edit: true });
+      expect(fetchSpy).toHaveBeenCalledWith('demo', null, jasmine.anything(), []);
+    });
+  });
+
+  describe('#ensureDocumentPermissions', function() {
+    it('resolves with the fetched permissions payload', async function() {
+      spyOn(GameClient.prototype, 'fetchGameAccess').and.returnValue(Promise.resolve(fakeResponse({})));
+      const fetchSpy = spyOn(GameClient.prototype, 'fetchDocumentPermissions').and.returnValue(
+        Promise.resolve(fakeResponse({ can_edit: true })),
+      );
+
+      const result = await AccessStore.ensureDocumentPermissions('demo');
+
+      expect(result).toEqual({ can_edit: true });
+      expect(fetchSpy).toHaveBeenCalledWith('demo', null, jasmine.anything(), []);
+    });
+  });
+
   describe('#ensureCharacterPermissions', function() {
     it('resolves with the fetched permissions payload, keyed by kind/game/character/roles', async function() {
       spyOn(CharacterClient.prototype, 'fetchCharacterAccess').and.returnValue(Promise.resolve(fakeResponse({})));

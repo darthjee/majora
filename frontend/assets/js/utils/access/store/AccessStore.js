@@ -76,6 +76,50 @@ export default class AccessStore {
   }
 
   /**
+   * Resolve (or start) the edit-permissions check for a game's possessions, using the role
+   * set derived from the game's own `*Access` entry or the "view as" facade.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
+   */
+  static ensurePossessionPermissions(gameSlug) {
+    return AccessStorePermissions.ensurePossession(cache, gameClient, gameSlug);
+  }
+
+  /**
+   * Resolve (or start) the edit-permissions check for a game's items, using the role
+   * set derived from the game's own `*Access` entry or the "view as" facade.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
+   */
+  static ensureItemPermissions(gameSlug) {
+    return AccessStorePermissions.ensureItem(cache, gameClient, gameSlug);
+  }
+
+  /**
+   * Resolve (or start) the edit-permissions check for a game's factions, using the role
+   * set derived from the game's own `*Access` entry or the "view as" facade.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
+   */
+  static ensureFactionPermissions(gameSlug) {
+    return AccessStorePermissions.ensureFaction(cache, gameClient, gameSlug);
+  }
+
+  /**
+   * Resolve (or start) the edit-permissions check for a game's documents, using the role
+   * set derived from the game's own `*Access` entry or the "view as" facade.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
+   */
+  static ensureDocumentPermissions(gameSlug) {
+    return AccessStorePermissions.ensureDocument(cache, gameClient, gameSlug);
+  }
+
+  /**
    * Resolve (or start) the edit-permissions check for a character, using the
    * role set derived from its own `*Access` entry or the "view as" facade.
    *

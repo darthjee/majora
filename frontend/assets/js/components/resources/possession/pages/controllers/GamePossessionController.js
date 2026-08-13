@@ -14,9 +14,9 @@ import BasePageController from '../../../../common/base/controllers/BasePageCont
  *   fail-closed on a rejected permissions check. Independently derives `canUploadPhoto` from
  *   `AccessStore.ensureGameAccess` (a wider, "who can upload" gate that also includes
  *   `is_player`), run concurrently with the possession fetch rather than chained after it. Also
- *   independently derives `canEdit` from its own `AccessStore.ensureGamePermissions` call
- *   (deduped against `RequestStore`'s own permission resolution by `AccessStore`'s cache),
- *   exposed to gate the show page's Edit button.
+ *   independently derives `canEdit` from its own `AccessStore.ensurePossessionPermissions` call
+ *   (resource-specific, backed by `/permissions/game_possession.json` — issue #1099), exposed to
+ *   gate the show page's Edit button.
  */
 export default class GamePossessionController extends BasePageController {
   /**
@@ -83,7 +83,7 @@ export default class GamePossessionController extends BasePageController {
   }
 
   #loadCanEdit(gameSlug, safeSet) {
-    return AccessStore.ensureGamePermissions(gameSlug)
+    return AccessStore.ensurePossessionPermissions(gameSlug)
       .then((permissions) => Boolean(permissions.can_edit))
       .catch(() => false)
       .then((canEdit) => safeSet(this.setCanEdit, canEdit));

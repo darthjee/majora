@@ -21,7 +21,7 @@ describe('GamePossessionController', function() {
     client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
     client.currentHash.and.returnValue('#/games/demo/possessions/5');
     spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
-    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+    spyOn(AccessStore, 'ensurePossessionPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
     ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(
       Promise.resolve({ data: { id: 5, name: 'Old Tavern' } }),
     );
@@ -176,14 +176,14 @@ describe('GamePossessionController', function() {
       cleanup();
     };
 
-    it('calls ensureGamePermissions with the game slug independently of the possession fetch', async function() {
+    it('calls ensurePossessionPermissions with the game slug independently of the possession fetch', async function() {
       await runController();
 
-      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+      expect(AccessStore.ensurePossessionPermissions).toHaveBeenCalledWith('demo');
     });
 
     it('is true when the requester can edit the game', async function() {
-      AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: true }));
+      AccessStore.ensurePossessionPermissions.and.returnValue(Promise.resolve({ can_edit: true }));
 
       await runController();
 
@@ -191,7 +191,7 @@ describe('GamePossessionController', function() {
     });
 
     it('is false when the requester cannot edit the game', async function() {
-      AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: false }));
+      AccessStore.ensurePossessionPermissions.and.returnValue(Promise.resolve({ can_edit: false }));
 
       await runController();
 
@@ -199,7 +199,7 @@ describe('GamePossessionController', function() {
     });
 
     it('fails closed to false when the permissions check rejects', async function() {
-      AccessStore.ensureGamePermissions.and.returnValue(Promise.reject(new Error('nope')));
+      AccessStore.ensurePossessionPermissions.and.returnValue(Promise.reject(new Error('nope')));
 
       await runController();
 

@@ -21,7 +21,7 @@ describe('GameDocumentController', function() {
     client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
     client.currentHash.and.returnValue('#/games/demo/documents/5');
     spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
-    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({}));
+    spyOn(AccessStore, 'ensureDocumentPermissions').and.returnValue(Promise.resolve({}));
     ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(
       Promise.resolve({ data: { id: 5, name: 'Ancient Scroll' } }),
     );
@@ -170,14 +170,14 @@ describe('GameDocumentController', function() {
       cleanup();
     };
 
-    it('calls ensureGamePermissions with the game slug independently of the document fetch', async function() {
+    it('calls ensureDocumentPermissions with the game slug independently of the document fetch', async function() {
       await runController();
 
-      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+      expect(AccessStore.ensureDocumentPermissions).toHaveBeenCalledWith('demo');
     });
 
     it('is true when the requester can edit the game', async function() {
-      AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: true }));
+      AccessStore.ensureDocumentPermissions.and.returnValue(Promise.resolve({ can_edit: true }));
 
       await runController();
 
@@ -185,7 +185,7 @@ describe('GameDocumentController', function() {
     });
 
     it('is false when the requester cannot edit the game', async function() {
-      AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: false }));
+      AccessStore.ensureDocumentPermissions.and.returnValue(Promise.resolve({ can_edit: false }));
 
       await runController();
 
@@ -193,7 +193,7 @@ describe('GameDocumentController', function() {
     });
 
     it('fails closed to false when the permissions check rejects', async function() {
-      AccessStore.ensureGamePermissions.and.returnValue(Promise.reject(new Error('nope')));
+      AccessStore.ensureDocumentPermissions.and.returnValue(Promise.reject(new Error('nope')));
 
       await runController();
 

@@ -16,9 +16,9 @@ import BasePageController from '../../../../common/base/controllers/BasePageCont
  *   `canUploadPhoto` from `AccessStore.ensureGameAccess` (a wider, "who can upload" gate that
  *   also includes `is_player`, unlike the narrower `can_edit` used to pick the fetch endpoint),
  *   run concurrently with the item fetch rather than chained after it. Also independently
- *   derives `canEdit` from its own `AccessStore.ensureGamePermissions` call (deduped against
- *   `RequestStore`'s own permission resolution by `AccessStore`'s cache, so this costs no extra
- *   network round trip), exposed to gate the show page's Edit button.
+ *   derives `canEdit` from its own `AccessStore.ensureItemPermissions` call (resource-specific,
+ *   backed by `/permissions/game_item.json` — issue #1099), exposed to gate the show page's
+ *   Edit button.
  */
 export default class GameItemController extends BasePageController {
   /**
@@ -85,7 +85,7 @@ export default class GameItemController extends BasePageController {
   }
 
   #loadCanEdit(gameSlug, safeSet) {
-    return AccessStore.ensureGamePermissions(gameSlug)
+    return AccessStore.ensureItemPermissions(gameSlug)
       .then((permissions) => Boolean(permissions.can_edit))
       .catch(() => false)
       .then((canEdit) => safeSet(this.setCanEdit, canEdit));
