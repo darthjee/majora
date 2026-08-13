@@ -17,6 +17,7 @@ from games.models import (
     GamePossessionPhoto,
     TreasurePhoto,
 )
+from games.models.base_photo import BasePhoto
 from games.tests.factories import (
     CharacterFactory,
     CharacterItemFactory,
@@ -30,6 +31,7 @@ from games.tests.factories import (
     UserFactory,
 )
 from uploads.models import Upload
+from uploads.views import _PHOTO_HANDLERS
 
 
 class TestUploadFinalizeView(TestCase):
@@ -1547,3 +1549,21 @@ class TestUploadFinalizeView(TestCase):
         assert response.status_code == 200
         self.possession_photo_by_staff.refresh_from_db()
         assert self.possession_photo_by_staff.ready is True
+
+
+# Models intentionally relying on _DEFAULT_HANDLERS instead of an explicit registry entry.
+_DEFAULT_HANDLER_MODELS = {GamePhoto}
+
+
+class TestPhotoHandlersRegistry(TestCase):
+    """Guards against a BasePhoto subclass shipping without a _PHOTO_HANDLERS entry."""
+
+    def test_every_photo_model_has_a_registered_handler(self):
+        """Test that every concrete BasePhoto subclass is registered or explicitly allowlisted."""
+        # BasePhoto.__subclasses__() only returns direct subclasses -- safe today since every
+        # photo model subclasses BasePhoto directly, with no multi-level inheritance.
+        concrete_subclasses = {
+            model for model in BasePhoto.__subclasses__() if not model._meta.abstract
+        }
+        unregistered = concrete_subclasses - set(_PHOTO_HANDLERS) - _DEFAULT_HANDLER_MODELS
+        assert not unregistered, f'Missing _PHOTO_HANDLERS entries for: {unregistered}'

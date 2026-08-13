@@ -10,6 +10,7 @@ from accounts.authentication import CookieTokenAuthentication
 from games.models import (
     CharacterItemPhoto,
     CharacterPhoto,
+    FactionPhoto,
     GameDocumentFile,
     GameDocumentFilePhoto,
     GameDocumentPhoto,
@@ -18,7 +19,7 @@ from games.models import (
     TreasurePhoto,
 )
 from games.views.common import check_game_edit, require_staff
-from miniatures.models import SourcePhoto, StlModelPhoto
+from miniatures.models import CollectionPhoto, SourcePhoto, StlModelPhoto
 from permissions import EndpointPermission
 
 from .models import Upload
@@ -187,6 +188,19 @@ def _set_possession_photo(possession_photo):
     possession.save()
 
 
+def _set_faction_photo(faction_photo):
+    """Set the faction's photo to `faction_photo`, always replacing any existing one."""
+    faction = faction_photo.faction
+    faction.photo = faction_photo
+    faction.save()
+
+
+def _set_collection_photo_if_unset(collection_photo):
+    """No-op ready marker for CollectionPhoto: promotion to Collection.photo already happens
+    at upload-init time (the first photo in the gallery), not at finalize.
+    """
+
+
 def _treasure_photo_permission(request, content_object):
     """Return a permission error Response for a TreasurePhoto content object, else None."""
     treasure = content_object.treasure
@@ -217,6 +231,24 @@ def _game_possession_photo_permission(request, content_object):
     return EndpointPermission(request.user, game=game).check(
         request, 'game_possession', 'regular', 'photo_upload',
     )
+
+
+def _faction_photo_permission(request, content_object):
+    """Return a permission error Response for a FactionPhoto content object, else None."""
+    game = content_object.faction.game
+    return EndpointPermission(request.user, game=game).check(
+        request, 'game_faction', 'regular', 'photo_upload',
+    )
+
+
+def _collection_photo_permission(request, content_object):
+    """Return a permission error Response for a CollectionPhoto content object, else None.
+
+    `Collection` has no owning-game/ownership concept -- creation and photo upload are both
+    uniformly staff-only, so the same `require_staff` gate used by the upload-init endpoint
+    applies here too.
+    """
+    return require_staff(request)
 
 
 def _character_item_photo_permission(request, content_object):
@@ -292,6 +324,8 @@ _PHOTO_HANDLERS = {
     CharacterPhoto: (_character_photo_permission, _set_character_photo_if_unset),
     GameItemPhoto: (_game_item_photo_permission, _set_item_photo),
     GamePossessionPhoto: (_game_possession_photo_permission, _set_possession_photo),
+    FactionPhoto: (_faction_photo_permission, _set_faction_photo),
+    CollectionPhoto: (_collection_photo_permission, _set_collection_photo_if_unset),
     CharacterItemPhoto: (_character_item_photo_permission, _set_character_item_photo),
     GameDocumentPhoto: (_document_photo_permission, _set_document_photo_if_unset),
     GameDocumentFile: (_document_file_permission, _set_document_file_if_unset),
