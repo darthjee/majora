@@ -35,6 +35,7 @@ class TestPermissionsBuilderRealIdentity:
             'can_delete_photo': False,
             'can_create_item': True,
             'can_upload_item_photo': True,
+            'can_create_possession': True,
         }
 
     def test_single_resource_page_returns_its_keys_only(self):
