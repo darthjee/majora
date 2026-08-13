@@ -49,6 +49,7 @@ from games.serializers.games.documents.game_document_list import (
     GameDocumentListSerializer,
 )
 from games.serializers.games.documents.game_document_photo import GameDocumentPhotoSerializer
+from games.serializers.games.documents.game_document_update import GameDocumentUpdateSerializer
 from games.serializers.games.factions.faction_list import FactionListSerializer
 from games.serializers.games.factions.faction_photo import FactionPhotoSerializer
 from games.serializers.games.factions.faction_update import FactionUpdateSerializer
@@ -166,6 +167,7 @@ __all__ = [
     'GameDocumentFileSerializer',
     'GameDocumentListSerializer',
     'GameDocumentPhotoSerializer',
+    'GameDocumentUpdateSerializer',
     'GameItemAllListSerializer',
     'GameItemDetailFullSerializer',
     'GameItemDetailSerializer',

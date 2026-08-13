@@ -1,5 +1,6 @@
 # GameDocumentCreatePermission/GameDocumentPhotoUploadPermission/GameDocumentFileUploadPermission/
 # GameDocumentFilePhotoUploadPermission: dm/admin shortcut, plus staff and any player of the game.
+# `edit` (issue #1098) applies the same rule to the PATCH endpoint.
 regular:
   create:
     - staff
@@ -11,5 +12,8 @@ regular:
     - staff
     - player
   file_photo_upload:
+    - staff
+    - player
+  edit:
     - staff
     - player
