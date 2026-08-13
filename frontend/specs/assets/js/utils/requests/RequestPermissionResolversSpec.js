@@ -77,21 +77,43 @@ describe('RequestPermissionResolvers', function() {
       expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
     });
 
-    it('resolves game-level permissions for the possession collection (issue #1074)', function() {
+    it('resolves game-level permissions for the possession collection with the game kind (issue #1074)', function() {
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
-      RequestPermissionResolvers.resolve('possession', 'collection', { gameSlug: 'demo' });
+      RequestPermissionResolvers.resolve('possession', 'collection', { gameSlug: 'demo', kind: 'game' });
 
       expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
     });
 
-    it('resolves game-level permissions for the possession single (issue #1074)', function() {
+    it('resolves game-level permissions for the possession single with the game kind (issue #1074)', function() {
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 
-      RequestPermissionResolvers.resolve('possession', 'single', { gameSlug: 'demo', id: '9' });
+      RequestPermissionResolvers.resolve('possession', 'single', { gameSlug: 'demo', kind: 'game', id: '9' });
 
       expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
     });
+
+    it('resolves character-level permissions for possession, for either character-owned kind (issue #1076)',
+      function() {
+        spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+        RequestPermissionResolvers.resolve('possession', 'collection', { gameSlug: 'demo', kind: 'npcs', id: '3' });
+        RequestPermissionResolvers.resolve('possession', 'single', { gameSlug: 'demo', kind: 'pcs', id: '3' });
+
+        expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('npcs', 'demo', '3');
+        expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('pcs', 'demo', '3');
+      });
+
+    it('resolves game-level permissions for possession.availableCollection regardless of kind (issue #1076)',
+      function() {
+        spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+        RequestPermissionResolvers.resolve('possession', 'availableCollection', {
+          gameSlug: 'demo', kind: 'pcs', id: '3',
+        });
+
+        expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+      });
 
     it('resolves game-level permissions for the npc-kind treasure collection', function() {
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));

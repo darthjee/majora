@@ -135,7 +135,7 @@ export default class GamePossessionEditController extends BasePageController {
       componentName: 'GamePossessionEditController',
       resource: 'possession',
       quantityType: 'single',
-      params: { gameSlug: params.game_slug, id: params.id },
+      params: { gameSlug: params.game_slug, kind: 'game', id: params.id },
     })
       .then(({ data }) => safeSet(this.setPossession, data))
       .catch(() => safeSet(this.setError, 'Unable to load possession.'))

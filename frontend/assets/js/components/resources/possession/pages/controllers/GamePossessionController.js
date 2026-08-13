@@ -5,11 +5,11 @@ import BasePageController from '../../../../common/base/controllers/BasePageCont
 
 /**
  * Controller for the game possession detail page (issue #1074), mirroring `GameItemController`
- * minus the "Give Item"/acquisition wiring (out of scope, tracked in #1076).
+ * minus the "Give Item"/acquisition wiring (character ownership is tracked separately in #1076).
  *
  * @description Fetches the `GamePossession` through `RequestStore.ensure({resource: 'possession',
- *   quantityType: 'single', params: {gameSlug, id}})`, which internally resolves the requester's
- *   game-level edit permission (via `RequestPermissionResolvers`) to pick between the full,
+ *   quantityType: 'single', params: {gameSlug, kind: 'game', id}})`, which internally resolves the
+ *   requester's game-level edit permission (via `RequestPermissionResolvers`) to pick between the full,
  *   hidden-inclusive `possessions/:id/full.json` and the player-facing `possessions/:id.json`,
  *   fail-closed on a rejected permissions check. Independently derives `canUploadPhoto` from
  *   `AccessStore.ensureGameAccess` (a wider, "who can upload" gate that also includes
@@ -105,7 +105,7 @@ export default class GamePossessionController extends BasePageController {
       componentName: 'GamePossessionController',
       resource: 'possession',
       quantityType: 'single',
-      params: { gameSlug: params.game_slug, id: params.id },
+      params: { gameSlug: params.game_slug, kind: 'game', id: params.id },
     })
       .then(({ data }) => safeSet(this.setPossession, data))
       .catch(() => safeSet(this.setError, 'Unable to load possession.'))

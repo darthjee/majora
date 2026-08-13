@@ -89,7 +89,7 @@ describe('listTypeConfig', function() {
             componentName: 'ListPageController',
             resource: 'possession',
             quantityType: 'collection',
-            params: { gameSlug: 'demo' },
+            params: { gameSlug: 'demo', kind: 'game' },
             query: {},
           });
           expect(result.data).toEqual([{ id: 5, name: 'Old Tavern' }]);

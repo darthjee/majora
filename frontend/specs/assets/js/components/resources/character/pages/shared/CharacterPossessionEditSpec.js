@@ -1,0 +1,189 @@
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import CharacterPossessionEdit
+  from '../../../../../../../../assets/js/components/resources/character/pages/shared/CharacterPossessionEdit.jsx';
+import BaseCharacterPossessionEditController
+  from '../../../../../../../../assets/js/components/resources/character/pages/controllers/BaseCharacterPossessionEditController.js';
+import PossessionEditHelper
+  from '../../../../../../../../assets/js/components/resources/possession/pages/helpers/PossessionEditHelper.jsx';
+import PhotoUploadModalHelper
+  from '../../../../../../../../assets/js/components/common/modals/helpers/PhotoUploadModalHelper.jsx';
+import PhotoUploadModalController
+  from '../../../../../../../../assets/js/components/common/modals/controllers/PhotoUploadModalController.js';
+import AuthStorage from '../../../../../../../../assets/js/utils/auth/AuthStorage.js';
+import Noop from '../../../../../../../../assets/js/utils/Noop.js';
+
+const loadedPossession = {
+  id: 42, name: 'Old Tavern', description: 'A cozy inn.', photo_path: '/possession.png', game_possession_id: 42,
+};
+
+/** Stub controller that synchronously loads a possession during construction. */
+class LoadedController {
+  constructor(setPossession, setLoading) {
+    setPossession(loadedPossession);
+    setLoading(false);
+  }
+
+  buildEffect() { return () => Noop.noop; }
+  submitForm() { return Promise.resolve(); }
+  // eslint-disable-next-line no-empty-function
+  applyLoadedItem() {}
+}
+
+/** Stub controller that stays in the loading state. */
+class LoadingController {
+  buildEffect() { return () => Noop.noop; }
+}
+
+/** Stub controller that synchronously sets an error during construction. */
+class ErroredController {
+  constructor(setPossession, setLoading, setError) {
+    setError('Unable to load possession.');
+    setLoading(false);
+  }
+
+  buildEffect() { return () => Noop.noop; }
+}
+
+[
+  { label: 'pcs', characterKind: 'pcs', hash: '#/games/demo/pcs/7/possessions/1/edit' },
+  { label: 'npcs', characterKind: 'npcs', hash: '#/games/demo/npcs/9/possessions/1/edit' },
+].forEach(({ label, characterKind, hash }) => {
+  describe(`CharacterPossessionEdit (${label})`, function() {
+    let originalWindow;
+    let getParamsFromHash;
+
+    beforeEach(function() {
+      originalWindow = globalThis.window;
+      globalThis.window = { location: { hash } };
+      getParamsFromHash = (currentHash) => BaseCharacterPossessionEditController
+        .getParamsFromHash(characterKind, currentHash);
+    });
+
+    afterEach(function() {
+      globalThis.window = originalWindow;
+    });
+
+    const build = (ControllerClass) => React.createElement(CharacterPossessionEdit, {
+      characterKind, ControllerClass, getParamsFromHash,
+    });
+
+    it('renders the loading state while the possession is loading', function() {
+      const html = renderToStaticMarkup(build(LoadingController));
+
+      expect(html).toContain('Loading possession...');
+    });
+
+    it('renders the error state when the possession fails to load', function() {
+      const html = renderToStaticMarkup(build(ErroredController));
+
+      expect(html).toContain('Unable to load possession.');
+    });
+
+    it('delegates to PossessionEditHelper.render with the photo path and form handlers', function() {
+      let captured;
+      spyOn(PossessionEditHelper, 'render').and.callFake((state, handlers) => {
+        captured = { state, handlers };
+        return null;
+      });
+
+      renderToStaticMarkup(build(LoadedController));
+
+      expect(captured.state.photo_path).toBe('/possession.png');
+      expect(captured.state.status).toBe('idle');
+      expect(typeof captured.handlers.onSubmit).toBe('function');
+      expect(typeof captured.handlers.onNameChange).toBe('function');
+      expect(typeof captured.handlers.onDescriptionChange).toBe('function');
+      expect(typeof captured.handlers.onHiddenChange).toBe('function');
+      expect(typeof captured.handlers.onOpenUploadModal).toBe('function');
+    });
+
+    it('delegates form submission to the controller with the character/game possession ids and current fields', function() {
+      let capturedHandlers;
+      spyOn(PossessionEditHelper, 'render').and.callFake((state, handlers) => {
+        capturedHandlers = handlers;
+        return null;
+      });
+      const submitFormSpy = spyOn(LoadedController.prototype, 'submitForm').and.returnValue(Promise.resolve());
+
+      renderToStaticMarkup(build(LoadedController));
+
+      const event = { preventDefault: Noop.noop };
+      capturedHandlers.onSubmit(event);
+
+      const { game_slug: gameSlug, character_id: characterId, id: characterPossessionId } = getParamsFromHash(hash);
+      expect(submitFormSpy).toHaveBeenCalledWith(
+        event, gameSlug, characterId, characterPossessionId, loadedPossession.game_possession_id,
+        { name: '', description: '', hidden: false }, jasmine.any(Object),
+      );
+    });
+
+    describe('upload modal', function() {
+      it('wires the modal to the uploadPath built against the underlying GamePossession id', function() {
+        spyOn(PossessionEditHelper, 'render').and.returnValue(null);
+        spyOn(AuthStorage, 'getToken').and.returnValue('auth-tok');
+        spyOn(PhotoUploadModalController.prototype, 'handleSubmit').and.returnValue(Promise.resolve());
+        let capturedHandlers;
+        spyOn(PhotoUploadModalHelper, 'render').and.callFake((show, state, handlers) => {
+          capturedHandlers = handlers;
+          return null;
+        });
+
+        renderToStaticMarkup(build(LoadedController));
+
+        capturedHandlers.onSubmit();
+
+        expect(PhotoUploadModalController.prototype.handleSubmit).toHaveBeenCalledWith(
+          '/games/demo/possessions/42/photo_upload.json',
+          null,
+          'auth-tok',
+        );
+      });
+
+      it('refetches the possession via buildEffect when the upload succeeds', function() {
+        spyOn(PossessionEditHelper, 'render').and.returnValue(null);
+        spyOn(AuthStorage, 'getToken').and.returnValue('auth-tok');
+        spyOn(PhotoUploadModalController.prototype, 'handleSubmit').and.callFake(function() {
+          this.onSuccess();
+          return Promise.resolve();
+        });
+        const buildEffectSpy = spyOn(LoadedController.prototype, 'buildEffect')
+          .and.returnValue(() => Noop.noop);
+        let capturedHandlers;
+        spyOn(PhotoUploadModalHelper, 'render').and.callFake((show, state, handlers) => {
+          capturedHandlers = handlers;
+          return null;
+        });
+
+        renderToStaticMarkup(build(LoadedController));
+
+        const callsBefore = buildEffectSpy.calls.count();
+
+        capturedHandlers.onSubmit();
+
+        expect(buildEffectSpy.calls.count()).toBe(callsBefore + 1);
+      });
+
+      it('closes without refetching when the modal is dismissed', function() {
+        spyOn(PossessionEditHelper, 'render').and.returnValue(null);
+        const buildEffectSpy = spyOn(LoadedController.prototype, 'buildEffect')
+          .and.returnValue(() => Noop.noop);
+        let capturedHandlers;
+        spyOn(PhotoUploadModalHelper, 'render').and.callFake((show, state, handlers) => {
+          capturedHandlers = handlers;
+          return null;
+        });
+
+        renderToStaticMarkup(build(LoadedController));
+
+        const callsBefore = buildEffectSpy.calls.count();
+
+        expect(() => {
+          capturedHandlers.onClose();
+          capturedHandlers.onCancel();
+        }).not.toThrow();
+        expect(buildEffectSpy.calls.count()).toBe(callsBefore);
+      });
+    });
+  });
+});

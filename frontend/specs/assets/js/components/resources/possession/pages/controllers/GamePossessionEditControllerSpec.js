@@ -51,7 +51,7 @@ describe('GamePossessionEditController', function() {
         componentName: 'GamePossessionEditController',
         resource: 'possession',
         quantityType: 'single',
-        params: { gameSlug: 'demo', id: '5' },
+        params: { gameSlug: 'demo', kind: 'game', id: '5' },
       });
       expect(setPossession).toHaveBeenCalledWith({ id: 5, name: 'Old Tavern', hidden: false });
       expect(setLoading).toHaveBeenCalledWith(false);

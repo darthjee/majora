@@ -86,7 +86,7 @@ export default class GamePossessionNewController extends BasePageController {
         resource: 'possession',
         method: 'POST',
         quantityType: 'collection',
-        params: { gameSlug },
+        params: { gameSlug, kind: 'game' },
         body: {
           name: formValues.name,
           description: formValues.description,
