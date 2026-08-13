@@ -4,8 +4,9 @@
 unique belonging within a game (a house, a boat, a tavern) — the same shape as
 [GameItem](game-item.md): its own `name`, `description`, and optional `photo` directly, plus a
 `hidden` flag scoping visibility within the game's catalog. No dedicated delete endpoint
-(Django-admin-only for superusers). Unlike `GameItem`, `GamePossession` has no PC/NPC
-ownership/acquisition — game-level CRUD only (ownership is tracked separately, see issue #1076).
+(Django-admin-only for superusers). `GamePossession` itself carries no PC/NPC ownership/
+acquisition — game-level CRUD only; ownership is tracked separately, on
+[CharacterPossession](character-possession.md) (issue #1076).
 
 Follows the [default hidden-gated collection
 pattern](principles.md#default-hidden-gated-collection-pattern). **Update**
@@ -43,6 +44,8 @@ Detail adds `description`. `/all.json`/`/full.json`/create-response add `hidden`
 
 ## Possession creation endpoint
 
-Creates only a `GamePossession` — no ownership row (unlike, e.g., a future `CharacterPossession`
-tracked in #1076). A `can_create_possession` boolean (same role gating: staff + player) is also
-exposed on [Game](game.md)'s `permissions.json`, mirroring `can_create_item`/`can_create_document`.
+Creates only a `GamePossession` — no ownership row (a [CharacterPossession](character-possession.md)
+linking it to a character is a separate, later step, either acquired via that endpoint's own
+create-from-scratch action or via the acquire flow). A `can_create_possession` boolean (same role
+gating: staff + player) is also exposed on [Game](game.md)'s `permissions.json`, mirroring
+`can_create_item`/`can_create_document`.

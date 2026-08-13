@@ -1,0 +1,4 @@
+# CharacterPermissionsSerializer's can_create_possession, for an NPC.
+create_update:
+  - staff
+  - player

@@ -266,6 +266,23 @@ document_exchange_modal:
   load_error: Unable to load documents. Please try again.
   already_owned_error: This document is already owned.
   generic_error: Unable to complete this action. Please try again.
+possession_exchange_modal:
+  title: Possession Exchange
+  search_placeholder: Search possessions...
+  acquire_tab: Acquire
+  acquire_tab_tooltip: Acquire a copy of the possession
+  remove_tab: Remove
+  remove_tab_tooltip: Removes a possession
+  hidden_label: Hidden
+  confirm: Confirm
+  cancel: Cancel
+  back: Back
+  cancel_selection: Cancel
+  loading: Loading possessions...
+  empty: No possessions available.
+  load_error: Unable to load possessions. Please try again.
+  already_owned_error: This possession is already owned.
+  generic_error: Unable to complete this action. Please try again.
 game_treasures_page:
   loading: Loading treasures...
   title: Treasures

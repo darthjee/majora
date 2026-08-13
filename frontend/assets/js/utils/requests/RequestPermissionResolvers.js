@@ -31,13 +31,22 @@ const RESOLVERS = {
     // result is consulted for both kinds.
     summary: ({ gameSlug, kind, id }) => AccessStore.ensureCharacterPermissions(kind, gameSlug, id),
   },
-  // issue #1074: `GamePossession` is game-level only (no PC/NPC ownership, tracked separately in
-  // #1076), so both `collection` and `single` are unconditionally resolved at the game level —
-  // mirroring `item`'s own `'game'`-kind branch exactly, minus the `kind`-based branching itself
-  // (there is no other kind to branch on).
+  // issue #1076: `possession` now covers both a game's own `GamePossession`s (`kind: 'game'`,
+  // issue #1074) and a PC's/NPC's held `CharacterPossession`s (`kind: 'pcs'|'npcs'`), so
+  // `collection`/`single` branch on `kind` exactly like `item`'s own resolver does.
   possession: {
-    collection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
-    single: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+    collection: ({ gameSlug, kind, id }) => (kind === 'game'
+      ? AccessStore.ensureGamePermissions(gameSlug)
+      : AccessStore.ensureCharacterPermissions(kind, gameSlug, id)),
+    single: ({ gameSlug, kind, id }) => (kind === 'game'
+      ? AccessStore.ensureGamePermissions(gameSlug)
+      : AccessStore.ensureCharacterPermissions(kind, gameSlug, id)),
+    // Unconditionally game-level, mirroring `item.availableCollection`/`document.availableCollection`
+    // exactly: `availableCollection` always backs a character-scoped path (`kind` is always
+    // `'pcs'|'npcs'`), but its `private` variant (`possessions/available/all.json`) is authorized
+    // by the DM-only `GameEditPermission` on the backend, not `CharacterEditPermission` — a PC's
+    // owning player must not get hidden-catalog visibility just from owning the character.
+    availableCollection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
   },
   treasure: {
     collection: ({ gameSlug, kind }) => (
@@ -92,10 +101,13 @@ const RESOLVERS = {
  *   in practice (no owning player, so `Character.can_be_edited_by` reduces to the same
  *   dm/admin/superuser check as `Game.can_be_edited_by`), but each resource here is still resolved
  *   through whichever call actually matches its own backend permission class, not by relying on
- *   that coincidence. `item.availableCollection` (issue #773) is the one exception to the
- *   "character-scoped path resolves at the character level" pattern: it is always
- *   game-level-gated regardless of `kind`, matching `items/available/all.json`'s own DM-only
- *   `GameEditPermission` on the backend — see the resolver's own inline comment below.
+ *   that coincidence. `possession` (issue #1076) now mirrors `item`'s own dual-family `single`/
+ *   `collection` branching exactly, on top of its pre-existing `'game'`-only shape from issue
+ *   #1074. `item.availableCollection`/`document.availableCollection`/`possession.availableCollection`
+ *   are the one exception to the "character-scoped path resolves at the character level" pattern:
+ *   they are always game-level-gated regardless of `kind`, matching their `/available/all.json`
+ *   variant's own DM-only `GameEditPermission` on the backend — see each resolver's own inline
+ *   comment below.
  *
  *   `poll`, `task`, and `staffUser` (issue #842) intentionally have no entry here at all: every
  *   variant in their `resourceConfig` files has `permission: null` and an identical

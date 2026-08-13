@@ -1,0 +1,5 @@
+# CharacterPermissionsSerializer's can_create_possession, for a PC.
+create_update:
+  - staff
+  - player
+  - owner

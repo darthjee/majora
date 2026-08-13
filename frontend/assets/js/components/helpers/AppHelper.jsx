@@ -48,6 +48,10 @@ import NpcCharacterItem from '../resources/character/pages/NpcCharacterItem.jsx'
 import NpcCharacterItemEdit from '../resources/character/pages/NpcCharacterItemEdit.jsx';
 import NpcCharacterItemNew from '../resources/character/pages/NpcCharacterItemNew.jsx';
 import NpcCharacterItems from '../resources/character/pages/NpcCharacterItems.jsx';
+import NpcCharacterPossession from '../resources/character/pages/NpcCharacterPossession.jsx';
+import NpcCharacterPossessionEdit from '../resources/character/pages/NpcCharacterPossessionEdit.jsx';
+import NpcCharacterPossessionNew from '../resources/character/pages/NpcCharacterPossessionNew.jsx';
+import NpcCharacterPossessions from '../resources/character/pages/NpcCharacterPossessions.jsx';
 import NpcCharacterDocument from '../resources/character/pages/NpcCharacterDocument.jsx';
 import NpcCharacterDocuments from '../resources/character/pages/NpcCharacterDocuments.jsx';
 import NpcCharacterPhotos from '../resources/character/pages/NpcCharacterPhotos.jsx';
@@ -58,6 +62,10 @@ import PcCharacterItem from '../resources/character/pages/PcCharacterItem.jsx';
 import PcCharacterItemEdit from '../resources/character/pages/PcCharacterItemEdit.jsx';
 import PcCharacterItemNew from '../resources/character/pages/PcCharacterItemNew.jsx';
 import PcCharacterItems from '../resources/character/pages/PcCharacterItems.jsx';
+import PcCharacterPossession from '../resources/character/pages/PcCharacterPossession.jsx';
+import PcCharacterPossessionEdit from '../resources/character/pages/PcCharacterPossessionEdit.jsx';
+import PcCharacterPossessionNew from '../resources/character/pages/PcCharacterPossessionNew.jsx';
+import PcCharacterPossessions from '../resources/character/pages/PcCharacterPossessions.jsx';
 import PcCharacterDocument from '../resources/character/pages/PcCharacterDocument.jsx';
 import PcCharacterDocuments from '../resources/character/pages/PcCharacterDocuments.jsx';
 import PcCharacterPhotos from '../resources/character/pages/PcCharacterPhotos.jsx';
@@ -132,6 +140,10 @@ const PAGES = {
   npcCharacterItem: <NpcCharacterItem />,
   npcCharacterItemEdit: <NpcCharacterItemEdit />,
   npcCharacterItemNew: <NpcCharacterItemNew />,
+  npcCharacterPossessions: <NpcCharacterPossessions />,
+  npcCharacterPossession: <NpcCharacterPossession />,
+  npcCharacterPossessionEdit: <NpcCharacterPossessionEdit />,
+  npcCharacterPossessionNew: <NpcCharacterPossessionNew />,
   npcCharacterDocument: <NpcCharacterDocument />,
   npcCharacterDocuments: <NpcCharacterDocuments />,
   pcCharacter: <PcCharacter />,
@@ -142,6 +154,10 @@ const PAGES = {
   pcCharacterItem: <PcCharacterItem />,
   pcCharacterItemEdit: <PcCharacterItemEdit />,
   pcCharacterItemNew: <PcCharacterItemNew />,
+  pcCharacterPossessions: <PcCharacterPossessions />,
+  pcCharacterPossession: <PcCharacterPossession />,
+  pcCharacterPossessionEdit: <PcCharacterPossessionEdit />,
+  pcCharacterPossessionNew: <PcCharacterPossessionNew />,
   pcCharacterDocument: <PcCharacterDocument />,
   pcCharacterDocuments: <PcCharacterDocuments />,
   recoverPassword: <RecoverPassword />,

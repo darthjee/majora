@@ -1,0 +1,17 @@
+# PC character-possession endpoint rules (issue #1076). `create` (restricted) gates the
+# acquire/remove endpoints unconditionally (both the plain and `/all.json` variants) —
+# unlike CharacterDocument's, whose tier varies restricted/regular by which variant is hit,
+# CharacterItem's exchange flow is always restricted, and Possession follows that stricter
+# model since possessions are narratively significant, unique belongings. `create_update`
+# (regular) gates create-from-scratch (`possessions.json` POST), borrowed unchanged from
+# game_pc_item's player-facing creation tier. No `photo_upload` action — the photo lives only
+# on GamePossession, never overridden at the character level.
+restricted:
+  create:
+    - staff
+    - owner
+regular:
+  create_update:
+    - staff
+    - player
+    - owner

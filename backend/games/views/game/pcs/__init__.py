@@ -36,6 +36,18 @@ from .detail.photos.game_pc_photo_deletable import game_pc_photo_deletable
 from .detail.photos.game_pc_photo_detail import game_pc_photo_detail
 from .detail.photos.game_pc_photo_set import game_pc_photo_set
 from .detail.photos.game_pc_photos import game_pc_photos
+from .detail.possessions.game_pc_possession_acquire import game_pc_possession_acquire
+from .detail.possessions.game_pc_possession_acquire_all import game_pc_possession_acquire_all
+from .detail.possessions.game_pc_possession_detail import game_pc_possession_detail
+from .detail.possessions.game_pc_possession_detail_full import game_pc_possession_detail_full
+from .detail.possessions.game_pc_possession_remove import game_pc_possession_remove
+from .detail.possessions.game_pc_possession_remove_all import game_pc_possession_remove_all
+from .detail.possessions.game_pc_possessions import game_pc_possessions
+from .detail.possessions.game_pc_possessions_all import game_pc_possessions_all
+from .detail.possessions.game_pc_possessions_available import game_pc_possessions_available
+from .detail.possessions.game_pc_possessions_available_all import (
+    game_pc_possessions_available_all,
+)
 from .detail.treasures.game_pc_treasure_acquire import game_pc_treasure_acquire
 from .detail.treasures.game_pc_treasure_acquire_all import game_pc_treasure_acquire_all
 from .detail.treasures.game_pc_treasure_buy import game_pc_treasure_buy
@@ -87,6 +99,16 @@ __all__ = [
     'game_pc_item_remove_all',
     'game_pc_item_summary',
     'game_pc_item_summary_all',
+    'game_pc_possessions',
+    'game_pc_possessions_all',
+    'game_pc_possession_detail',
+    'game_pc_possession_detail_full',
+    'game_pc_possessions_available',
+    'game_pc_possessions_available_all',
+    'game_pc_possession_acquire',
+    'game_pc_possession_acquire_all',
+    'game_pc_possession_remove',
+    'game_pc_possession_remove_all',
     'game_pc_treasures',
     'game_pc_treasure_buy',
     'game_pc_treasure_buy_all',

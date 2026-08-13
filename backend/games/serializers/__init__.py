@@ -29,6 +29,10 @@ from games.serializers.characters.character_link_write import CharacterLinkWrite
 from games.serializers.characters.character_list import CharacterListSerializer
 from games.serializers.characters.character_permissions import CharacterPermissionsSerializer
 from games.serializers.characters.character_photo import CharacterPhotoSerializer
+from games.serializers.characters.character_possession import (
+    CharacterPossessionAllSerializer,
+    CharacterPossessionSerializer,
+)
 from games.serializers.characters.character_regular_update import (
     CharacterRegularUpdateSerializer,
 )
@@ -149,6 +153,8 @@ __all__ = [
     'CharacterListSerializer',
     'CharacterPermissionsSerializer',
     'CharacterPhotoSerializer',
+    'CharacterPossessionAllSerializer',
+    'CharacterPossessionSerializer',
     'CharacterRegularUpdateSerializer',
     'CharacterTreasureAllSerializer',
     'CharacterTreasureSerializer',

@@ -52,7 +52,7 @@ describe('GamePossessionController', function() {
         componentName: 'GamePossessionController',
         resource: 'possession',
         quantityType: 'single',
-        params: { gameSlug: 'demo', id: '5' },
+        params: { gameSlug: 'demo', kind: 'game', id: '5' },
       });
       expect(setPossession).toHaveBeenCalledWith({ id: 5, name: 'Old Tavern' });
       expect(setLoading).toHaveBeenCalledWith(false);

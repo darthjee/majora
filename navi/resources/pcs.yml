@@ -36,6 +36,14 @@ resources:
           parameters:
             slug: parsedBody.game_slug
             id: parsedBody.id
+        - resource: pc_possessions
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
+        - resource: short_pc_possessions
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
 
   pc_photos:
     - url: /games/{:slug}/pcs/{:id}/photos.json
@@ -125,6 +133,26 @@ resources:
 
   short_pc_documents:
     - url: /games/{:slug}/pcs/{:id}/documents.json?per_page=5
+      status: 200
+
+  pc_possessions:
+    - url: /games/{:slug}/pcs/{:id}/possessions.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_pc_possessions
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
+
+  paginated_pc_possessions:
+    - url: /games/{:slug}/pcs/{:id}/possessions.json?page={:page}&per_page={:per_page}
+      status: 200
+
+  short_pc_possessions:
+    - url: /games/{:slug}/pcs/{:id}/possessions.json?per_page=5
       status: 200
 
   short_game_pcs:

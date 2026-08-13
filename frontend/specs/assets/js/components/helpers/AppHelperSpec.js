@@ -22,6 +22,14 @@ describe('AppHelper', function() {
     expect(renderToStaticMarkup(AppHelper.render('gamePossessions', '#/games/demo/possessions'))).toContain(Translator.t('game_possessions_page.loading'));
     expect(renderToStaticMarkup(AppHelper.render('gamePossessionEdit', '#/games/demo/possessions/1/edit'))).toContain(Translator.t('possession_page.loading'));
     expect(renderToStaticMarkup(AppHelper.render('gamePossessionNew', '#/games/demo/possessions/new'))).toContain(Translator.t('possession_new_page.title'));
+    expect(renderToStaticMarkup(AppHelper.render('pcCharacterPossessions', '#/games/demo/pcs/1/possessions'))).toContain(Translator.t('character_possessions_page.loading'));
+    expect(renderToStaticMarkup(AppHelper.render('npcCharacterPossessions', '#/games/demo/npcs/1/possessions'))).toContain(Translator.t('character_possessions_page.loading'));
+    expect(renderToStaticMarkup(AppHelper.render('pcCharacterPossession', '#/games/demo/pcs/1/possessions/1'))).toContain(Translator.t('possession_page.loading'));
+    expect(renderToStaticMarkup(AppHelper.render('npcCharacterPossession', '#/games/demo/npcs/1/possessions/1'))).toContain(Translator.t('possession_page.loading'));
+    expect(renderToStaticMarkup(AppHelper.render('pcCharacterPossessionEdit', '#/games/demo/pcs/1/possessions/1/edit'))).toContain(Translator.t('possession_page.loading'));
+    expect(renderToStaticMarkup(AppHelper.render('npcCharacterPossessionEdit', '#/games/demo/npcs/1/possessions/1/edit'))).toContain(Translator.t('possession_page.loading'));
+    expect(renderToStaticMarkup(AppHelper.render('pcCharacterPossessionNew', '#/games/demo/pcs/1/possessions/new'))).toContain(Translator.t('possession_new_page.title'));
+    expect(renderToStaticMarkup(AppHelper.render('npcCharacterPossessionNew', '#/games/demo/npcs/1/possessions/new'))).toContain(Translator.t('possession_new_page.title'));
     expect(renderToStaticMarkup(AppHelper.render('gameFactions', '#/games/demo/factions'))).toContain(Translator.t('game_factions_page.loading'));
     expect(renderToStaticMarkup(AppHelper.render('gameFaction', '#/games/demo/factions/1'))).toContain(Translator.t('faction_page.loading'));
     expect(renderToStaticMarkup(AppHelper.render('gameFactionEdit', '#/games/demo/factions/1/edit'))).toContain(Translator.t('faction_page.loading'));

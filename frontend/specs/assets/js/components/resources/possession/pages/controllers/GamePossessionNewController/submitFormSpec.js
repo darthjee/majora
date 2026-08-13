@@ -41,7 +41,7 @@ describe('GamePossessionNewController', function() {
           resource: 'possession',
           method: 'POST',
           quantityType: 'collection',
-          params: { gameSlug: 'demo' },
+          params: { gameSlug: 'demo', kind: 'game' },
           body: { name: 'Old Tavern', description: 'A cozy roadside tavern.', hidden: true },
         });
       } finally {
