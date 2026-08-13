@@ -54,3 +54,4 @@ Thumbs.db
 .claude/state
 proxy/extension/.phpunit.result.cache
 proxy/extension/vendor
+backend/coverage/
