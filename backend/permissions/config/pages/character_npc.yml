@@ -7,3 +7,5 @@ game_npc:
 game_npc_item:
   create_update: can_create_item
   photo_upload: can_upload_item_photo
+game_npc_possession:
+  create_update: can_create_possession
