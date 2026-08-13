@@ -23,3 +23,28 @@ resources:
   treasure_detail:
     - url: /treasures/{:id}.json
       status: 200
+
+  game_treasures:
+    - url: /games/{:slug}/treasures.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_treasures
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
+
+  paginated_game_treasures:
+    - url: /games/{:slug}/treasures.json?page={:page}&per_page={:per_page}
+      status: 200
+      actions:
+        - resource: game_treasure_detail
+          parameters:
+            slug: parameters.slug
+            id: parsedBody.id
+
+  game_treasure_detail:
+    - url: /games/{:slug}/treasures/{:id}.json
+      status: 200

@@ -17,34 +17,50 @@ for that client's reference.
 The Navi configuration entry file lives at
 [`navi/navi_config.yaml`](../../navi/navi_config.yaml). It holds the `web`, `workers`, and
 `failure` sections, and pulls in the `resources`/`clients` sections via a top-level `include:`
-list from six files under [`navi/resources/`](../../navi/resources/):
+list from eleven files under [`navi/resources/`](../../navi/resources/):
 
-- `treasures.yml` — top-level `/treasures.json` chain.
-- `games.yml` — `/games.json` chain down through each game's detail, PCs, NPCs, treasures,
-  items, factions, possessions, photos, documents, and sessions listings (and their
-  short-preview variants).
-- `pcs.yml` — a PC's detail and its nested photos/treasures/items/documents.
-- `npcs.yml` — an NPC's detail and its nested photos/treasures/items/documents.
+- `treasures.yml` — top-level `/treasures.json` chain, plus a game's `game_treasures` listing
+  (and its `paginated_game_treasures`/`game_treasure_detail` chain).
+- `games.yml` — `/games.json` chain down through each game's detail and photos listing (and the
+  fan-out into every other per-game resource file below).
+- `pcs.yml` — a game's PCs listing (`game_pcs`/`paginated_game_pcs`/`short_game_pcs`) plus a
+  PC's detail and its nested photos/treasures/items/documents.
+- `npcs.yml` — a game's NPCs listing (`game_npcs`/`paginated_game_npcs`/`short_game_npcs`) plus
+  an NPC's detail and its nested photos/treasures/items/documents.
+- `items.yml` — a game's items listing (`game_items`/`paginated_game_items`/`game_item_detail`).
+- `factions.yml` — a game's factions listing (`game_factions`/`paginated_game_factions`/
+  `game_faction_detail`).
+- `possessions.yml` — a game's possessions listing (`game_possessions`/
+  `paginated_game_possessions`/`game_possession_detail`).
+- `documents.yml` — a game's documents listing and each document's detail/files/photos chain
+  (`game_documents`, `paginated_game_documents`, `game_document_details`,
+  `game_document_files`, `game_document_photos`, `short_game_document_files`,
+  `short_game_document_photos`).
+- `sessions.yml` — a game's past/future/unscheduled sessions listings and session detail
+  (`game_sessions`, `paginated_game_sessions_past`, `paginated_game_sessions_future`,
+  `paginated_game_sessions_unscheduled`, `session`).
 - `permissions.yml` — the entity-agnostic `permissions_*` resources (see below).
 - `clients.yml` — the `clients.default` block (base URL, timeout, headers) used to make every
-  request in the other five files.
+  request in the other ten files.
 
-Every one of these six files declares a top-level `namespace: $NAVI_NAMEPACE` key, so every
+Every one of these eleven files declares a top-level `namespace: $NAVI_NAMEPACE` key, so every
 resource/client they declare resolves into the `$NAVI_NAMEPACE` namespace instead of the
 implicit `default` one. This is a literal, unresolved placeholder in the committed YAML —
 it's resolved at read time by whoever loads the files (see "CI (CircleCI)" and "Local testing"
 below for how each environment gives it a value). Cross-file `actions`/`paginated_actions`
-references (e.g. a resource in `games.yml` pointing at `pc`/`npc` in `pcs.yml`/`npcs.yml`) need
-no explicit `namespace` key of their own, since every file shares the same `$NAVI_NAMEPACE`
-namespace and Navi merges same-namespace files together.
+references (e.g. `paginated_games` in `games.yml` pointing at `game_pcs`/`game_npcs` in
+`pcs.yml`/`npcs.yml`, or `game_items` in `items.yml`) need no explicit `namespace` key of their
+own, since every file shares the same `$NAVI_NAMEPACE` namespace and Navi merges same-namespace
+files together.
 
-Within `games.yml`, the chain runs from `/games.json` down through each game's detail, PCs,
-NPCs, treasures, items, factions, possessions, photos, documents, and sessions, and from there (via
-`pcs.yml`/`npcs.yml`) to
-each character's/document's detail (and its nested photos/files/treasures/items) — the `slug`
-extracted at the top of the chain is inherited by every resource below it, so it never needs
-re-extracting. See the files under `navi/resources/` for the exact resource names and URL
-patterns.
+Within `games.yml`, the chain runs from `/games.json` down through each game's detail and photos
+listing, and fans out from `paginated_games` into every other per-game listing (PCs, NPCs,
+treasures, items, factions, possessions, documents, sessions) living in its own file. From the
+PCs/NPCs listings (via `pcs.yml`/`npcs.yml`) the chain continues to each character's detail (and
+its nested photos/files/treasures/items); from the documents listing (via `documents.yml`) it
+continues to each document's detail (and its nested files/photos) — the `slug` extracted at the
+top of the chain is inherited by every resource below it, so it never needs re-extracting. See
+the files under `navi/resources/` for the exact resource names and URL patterns.
 
 It also covers the entity-agnostic `permissions_*` resources (`permissions_game`,
 `permissions_treasure`, `permissions_game_treasure`, `permissions_game_pc`,
@@ -114,7 +130,7 @@ documents the flow as it affects the files this agent owns.
 
 Local dev is unaffected by the CI change above: `docker-compose up majora_navi` still runs the
 standalone `darthjee/navi-hey` server against `navi/navi_config.yaml`, which now also pulls in
-`resources/clients.yml` through the same `include:` chain as the other five resource files.
+`resources/clients.yml` through the same `include:` chain as the other ten resource files.
 
 To test the cache warmer locally, set `MAJORA_PRODUCTION_URL` in your `.env` file (defaults to
 `http://localhost:3000` in `.env.dev.sample`) and run:

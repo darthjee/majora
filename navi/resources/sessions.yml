@@ -1,0 +1,64 @@
+namespace: $NAVI_NAMEPACE
+resources:
+  game_sessions:
+    - url: /games/{:slug}/sessions/past.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_sessions_past
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
+    - url: /games/{:slug}/sessions/future.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_sessions_future
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
+    - url: /games/{:slug}/sessions/unscheduled.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_sessions_unscheduled
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
+
+  paginated_game_sessions_past:
+    - url: /games/{:slug}/sessions/past.json?page={:page}&per_page={:per_page}
+      status: 200
+      actions:
+        - resource: session
+          parameters:
+            id: parsedBody.id
+            slug: parsedBody.game_slug
+
+  paginated_game_sessions_future:
+    - url: /games/{:slug}/sessions/future.json?page={:page}&per_page={:per_page}
+      status: 200
+      actions:
+        - resource: session
+          parameters:
+            id: parsedBody.id
+            slug: parsedBody.game_slug
+
+  paginated_game_sessions_unscheduled:
+    - url: /games/{:slug}/sessions/unscheduled.json?page={:page}&per_page={:per_page}
+      status: 200
+      actions:
+        - resource: session
+          parameters:
+            id: parsedBody.id
+            slug: parsedBody.game_slug
+
+  session:
+    - url: /games/{:slug}/sessions/{:id}.json
+      status: 200
