@@ -19,4 +19,20 @@ urlpatterns = [
     ),
     path('permissions/game_pc.json', views.game_pc_permissions, name='permissions-game-pc'),
     path('permissions/game_npc.json', views.game_npc_permissions, name='permissions-game-npc'),
+    path(
+        'permissions/game_possession.json',
+        views.game_possession_permissions,
+        name='permissions-game-possession',
+    ),
+    path('permissions/game_item.json', views.game_item_permissions, name='permissions-game-item'),
+    path(
+        'permissions/game_faction.json',
+        views.game_faction_permissions,
+        name='permissions-game-faction',
+    ),
+    path(
+        'permissions/game_document.json',
+        views.game_document_permissions,
+        name='permissions-game-document',
+    ),
 ]

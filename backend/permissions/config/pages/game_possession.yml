@@ -1,0 +1,3 @@
+# GamePossessionPermissionsSerializer's response shape (page_key='game_possession').
+game_possession:
+  edit: can_edit

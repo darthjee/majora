@@ -1,0 +1,3 @@
+# GameFactionPermissionsSerializer's response shape (page_key='game_faction').
+game_faction:
+  edit: can_edit

@@ -48,11 +48,17 @@ from games.serializers.games.documents.game_document_list import (
     GameDocumentDetailSerializer,
     GameDocumentListSerializer,
 )
+from games.serializers.games.documents.game_document_permissions import (
+    GameDocumentPermissionsSerializer,
+)
 from games.serializers.games.documents.game_document_photo import GameDocumentPhotoSerializer
 from games.serializers.games.documents.game_document_update import GameDocumentUpdateSerializer
 from games.serializers.games.factions.faction_list import FactionListSerializer
 from games.serializers.games.factions.faction_photo import FactionPhotoSerializer
 from games.serializers.games.factions.faction_update import FactionUpdateSerializer
+from games.serializers.games.factions.game_faction_permissions import (
+    GameFactionPermissionsSerializer,
+)
 from games.serializers.games.game_access import GameAccessSerializer
 from games.serializers.games.game_create import GameCreateSerializer
 from games.serializers.games.game_detail import GameDetailSerializer
@@ -69,6 +75,7 @@ from games.serializers.games.items.game_item_list import (
     GameItemDetailSerializer,
     GameItemListSerializer,
 )
+from games.serializers.games.items.game_item_permissions import GameItemPermissionsSerializer
 from games.serializers.games.items.game_item_photo import GameItemPhotoSerializer
 from games.serializers.games.items.game_item_update import GameItemUpdateSerializer
 from games.serializers.games.my_games.my_games_item import MyGamesItemSerializer
@@ -90,6 +97,9 @@ from games.serializers.games.possessions.game_possession_list import (
     GamePossessionDetailFullSerializer,
     GamePossessionDetailSerializer,
     GamePossessionListSerializer,
+)
+from games.serializers.games.possessions.game_possession_permissions import (
+    GamePossessionPermissionsSerializer,
 )
 from games.serializers.games.possessions.game_possession_photo import (
     GamePossessionPhotoSerializer,
@@ -166,12 +176,15 @@ __all__ = [
     'GameDocumentDetailSerializer',
     'GameDocumentFileSerializer',
     'GameDocumentListSerializer',
+    'GameDocumentPermissionsSerializer',
     'GameDocumentPhotoSerializer',
     'GameDocumentUpdateSerializer',
+    'GameFactionPermissionsSerializer',
     'GameItemAllListSerializer',
     'GameItemDetailFullSerializer',
     'GameItemDetailSerializer',
     'GameItemListSerializer',
+    'GameItemPermissionsSerializer',
     'GameItemPhotoSerializer',
     'GameItemUpdateSerializer',
     'GameLinkSerializer',
@@ -183,6 +196,7 @@ __all__ = [
     'GamePossessionDetailFullSerializer',
     'GamePossessionDetailSerializer',
     'GamePossessionListSerializer',
+    'GamePossessionPermissionsSerializer',
     'GamePossessionPhotoSerializer',
     'GamePossessionUpdateSerializer',
     'GameRegularUpdateSerializer',

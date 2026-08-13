@@ -151,9 +151,13 @@ from .games import (
     my_games_list,
 )
 from .permissions import (
+    game_document_permissions,
+    game_faction_permissions,
+    game_item_permissions,
     game_npc_permissions,
     game_pc_permissions,
     game_permissions,
+    game_possession_permissions,
     game_treasure_permissions,
     treasure_permissions,
 )
@@ -328,4 +332,8 @@ __all__ = [
     'game_treasure_permissions',
     'game_pc_permissions',
     'game_npc_permissions',
+    'game_possession_permissions',
+    'game_item_permissions',
+    'game_faction_permissions',
+    'game_document_permissions',
 ]
