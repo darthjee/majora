@@ -3,5 +3,6 @@
     "ignored_check_patterns": [
       "Codacy"
     ]
-  }
+  },
+  "version": "0.9.3"
 }
