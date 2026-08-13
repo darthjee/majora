@@ -123,6 +123,118 @@ export default class AccessStorePermissions {
   }
 
   /**
+   * Resolve (or start) the edit-permissions check for a game's possessions (entity-agnostic,
+   * always resolved at the game level — possessions have no owner/scoped concept of their own).
+   *
+   * @param {import('../AccessCache.js').default} cache - Shared cache instance.
+   * @param {import('../../../client/GameClient.js').default} gameClient - Game client.
+   * @param {string} gameSlug - Game slug.
+   * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
+   */
+  static ensurePossession(cache, gameClient, gameSlug) {
+    const fetchForRoleSet = (roleSet) => AccessStorePermissions.#loggedEnsure(
+      cache,
+      AccessStoreKeys.possessionPermissions(gameSlug, roleSet),
+      'ensurePossession',
+      [gameSlug],
+      (signal) => gameClient.fetchPossessionPermissions(gameSlug, AuthStorage.getToken(), signal, roleSet)
+        .then(AccessStorePermissions.#parse),
+      PERMISSIONS_DEFAULT,
+      { roleSet },
+    );
+
+    return AccessStorePermissions.#selfCorrectingEnsure(
+      fetchForRoleSet,
+      AccessStoreAccess.getGame(cache, gameSlug),
+      AccessStoreAccess.ensureGame(cache, gameClient, gameSlug),
+    );
+  }
+
+  /**
+   * Resolve (or start) the edit-permissions check for a game's items (entity-agnostic, always
+   * resolved at the game level — items have no owner/scoped concept of their own).
+   *
+   * @param {import('../AccessCache.js').default} cache - Shared cache instance.
+   * @param {import('../../../client/GameClient.js').default} gameClient - Game client.
+   * @param {string} gameSlug - Game slug.
+   * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
+   */
+  static ensureItem(cache, gameClient, gameSlug) {
+    const fetchForRoleSet = (roleSet) => AccessStorePermissions.#loggedEnsure(
+      cache,
+      AccessStoreKeys.itemPermissions(gameSlug, roleSet),
+      'ensureItem',
+      [gameSlug],
+      (signal) => gameClient.fetchItemPermissions(gameSlug, AuthStorage.getToken(), signal, roleSet)
+        .then(AccessStorePermissions.#parse),
+      PERMISSIONS_DEFAULT,
+      { roleSet },
+    );
+
+    return AccessStorePermissions.#selfCorrectingEnsure(
+      fetchForRoleSet,
+      AccessStoreAccess.getGame(cache, gameSlug),
+      AccessStoreAccess.ensureGame(cache, gameClient, gameSlug),
+    );
+  }
+
+  /**
+   * Resolve (or start) the edit-permissions check for a game's factions (entity-agnostic, always
+   * resolved at the game level — factions have no owner/scoped concept of their own).
+   *
+   * @param {import('../AccessCache.js').default} cache - Shared cache instance.
+   * @param {import('../../../client/GameClient.js').default} gameClient - Game client.
+   * @param {string} gameSlug - Game slug.
+   * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
+   */
+  static ensureFaction(cache, gameClient, gameSlug) {
+    const fetchForRoleSet = (roleSet) => AccessStorePermissions.#loggedEnsure(
+      cache,
+      AccessStoreKeys.factionPermissions(gameSlug, roleSet),
+      'ensureFaction',
+      [gameSlug],
+      (signal) => gameClient.fetchFactionPermissions(gameSlug, AuthStorage.getToken(), signal, roleSet)
+        .then(AccessStorePermissions.#parse),
+      PERMISSIONS_DEFAULT,
+      { roleSet },
+    );
+
+    return AccessStorePermissions.#selfCorrectingEnsure(
+      fetchForRoleSet,
+      AccessStoreAccess.getGame(cache, gameSlug),
+      AccessStoreAccess.ensureGame(cache, gameClient, gameSlug),
+    );
+  }
+
+  /**
+   * Resolve (or start) the edit-permissions check for a game's documents (entity-agnostic, always
+   * resolved at the game level — documents have no owner/scoped concept of their own).
+   *
+   * @param {import('../AccessCache.js').default} cache - Shared cache instance.
+   * @param {import('../../../client/GameClient.js').default} gameClient - Game client.
+   * @param {string} gameSlug - Game slug.
+   * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
+   */
+  static ensureDocument(cache, gameClient, gameSlug) {
+    const fetchForRoleSet = (roleSet) => AccessStorePermissions.#loggedEnsure(
+      cache,
+      AccessStoreKeys.documentPermissions(gameSlug, roleSet),
+      'ensureDocument',
+      [gameSlug],
+      (signal) => gameClient.fetchDocumentPermissions(gameSlug, AuthStorage.getToken(), signal, roleSet)
+        .then(AccessStorePermissions.#parse),
+      PERMISSIONS_DEFAULT,
+      { roleSet },
+    );
+
+    return AccessStorePermissions.#selfCorrectingEnsure(
+      fetchForRoleSet,
+      AccessStoreAccess.getGame(cache, gameSlug),
+      AccessStoreAccess.ensureGame(cache, gameClient, gameSlug),
+    );
+  }
+
+  /**
    * Synchronously read the currently cached game permissions, without triggering a fetch.
    *
    * @param {import('../AccessCache.js').default} cache - Shared cache instance.

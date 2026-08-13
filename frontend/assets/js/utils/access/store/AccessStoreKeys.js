@@ -86,4 +86,48 @@ export default class AccessStoreKeys {
   static treasurePermissions(id, roleSet) {
     return `permissions:treasure:${id}:${roleSet.join(',')}`;
   }
+
+  /**
+   * Build the cache key for a game's possession edit permissions, scoped by role set.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string[]} roleSet - Normalized role set (see {@link AccessStoreKeys.normalizeRoles}).
+   * @returns {string} Cache key.
+   */
+  static possessionPermissions(gameSlug, roleSet) {
+    return `permissions:possession:${gameSlug}:${roleSet.join(',')}`;
+  }
+
+  /**
+   * Build the cache key for a game's item edit permissions, scoped by role set.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string[]} roleSet - Normalized role set (see {@link AccessStoreKeys.normalizeRoles}).
+   * @returns {string} Cache key.
+   */
+  static itemPermissions(gameSlug, roleSet) {
+    return `permissions:item:${gameSlug}:${roleSet.join(',')}`;
+  }
+
+  /**
+   * Build the cache key for a game's faction edit permissions, scoped by role set.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string[]} roleSet - Normalized role set (see {@link AccessStoreKeys.normalizeRoles}).
+   * @returns {string} Cache key.
+   */
+  static factionPermissions(gameSlug, roleSet) {
+    return `permissions:faction:${gameSlug}:${roleSet.join(',')}`;
+  }
+
+  /**
+   * Build the cache key for a game's document edit permissions, scoped by role set.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string[]} roleSet - Normalized role set (see {@link AccessStoreKeys.normalizeRoles}).
+   * @returns {string} Cache key.
+   */
+  static documentPermissions(gameSlug, roleSet) {
+    return `permissions:document:${gameSlug}:${roleSet.join(',')}`;
+  }
 }

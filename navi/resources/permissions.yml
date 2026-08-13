@@ -59,3 +59,51 @@ resources:
       status: 200
     - url: /permissions/game_npc.json?role=staff&role=dm&role=player&role=logged
       status: 200
+
+  permissions_game_possession:
+    - url: /permissions/game_possession.json
+      status: 200
+    - url: /permissions/game_possession.json?role=player&role=logged
+      status: 200
+    - url: /permissions/game_possession.json?role=dm&role=player&role=logged
+      status: 200
+    - url: /permissions/game_possession.json?role=staff&role=player&role=logged
+      status: 200
+    - url: /permissions/game_possession.json?role=staff&role=dm&role=player&role=logged
+      status: 200
+
+  permissions_game_item:
+    - url: /permissions/game_item.json
+      status: 200
+    - url: /permissions/game_item.json?role=player&role=logged
+      status: 200
+    - url: /permissions/game_item.json?role=dm&role=player&role=logged
+      status: 200
+    - url: /permissions/game_item.json?role=staff&role=player&role=logged
+      status: 200
+    - url: /permissions/game_item.json?role=staff&role=dm&role=player&role=logged
+      status: 200
+
+  permissions_game_faction:
+    - url: /permissions/game_faction.json
+      status: 200
+    - url: /permissions/game_faction.json?role=player&role=logged
+      status: 200
+    - url: /permissions/game_faction.json?role=dm&role=player&role=logged
+      status: 200
+    - url: /permissions/game_faction.json?role=staff&role=player&role=logged
+      status: 200
+    - url: /permissions/game_faction.json?role=staff&role=dm&role=player&role=logged
+      status: 200
+
+  permissions_game_document:
+    - url: /permissions/game_document.json
+      status: 200
+    - url: /permissions/game_document.json?role=player&role=logged
+      status: 200
+    - url: /permissions/game_document.json?role=dm&role=player&role=logged
+      status: 200
+    - url: /permissions/game_document.json?role=staff&role=player&role=logged
+      status: 200
+    - url: /permissions/game_document.json?role=staff&role=dm&role=player&role=logged
+      status: 200

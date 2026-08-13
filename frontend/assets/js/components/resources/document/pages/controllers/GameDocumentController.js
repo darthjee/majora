@@ -16,10 +16,11 @@ import BasePageController from '../../../../common/base/controllers/BasePageCont
  *   fetch rather than chained after it, mirroring `GameItemController`'s own
  *   `#loadCanUploadPhoto`. This page's Edit/file-upload/Give-Document buttons all reuse the same
  *   `canUploadPhoto` flag, since there is no separate general "edit" permission for documents.
- *   Also independently derives `canEdit` from its own `AccessStore.ensureGamePermissions` call
- *   (mirroring `GameItemController`'s own `#loadCanEdit`), exposed solely to gate which
- *   acquire-endpoint variant the give-document modal submits through — a hidden `GameDocument`
- *   can only be given via the DM/admin-only `/acquire/all.json` variant.
+ *   Also independently derives `canEdit` from its own `AccessStore.ensureDocumentPermissions`
+ *   call (resource-specific, backed by `/permissions/game_document.json` — issue #1099),
+ *   exposed solely to gate which acquire-endpoint variant the give-document modal submits
+ *   through — a hidden `GameDocument` can only be given via the DM/admin-only
+ *   `/acquire/all.json` variant.
  */
 export default class GameDocumentController extends BasePageController {
   /**
@@ -106,7 +107,7 @@ export default class GameDocumentController extends BasePageController {
   }
 
   #loadCanEdit(gameSlug, safeSet) {
-    return AccessStore.ensureGamePermissions(gameSlug)
+    return AccessStore.ensureDocumentPermissions(gameSlug)
       .then((permissions) => Boolean(permissions.can_edit))
       .catch(() => false)
       .then((canEdit) => safeSet(this.setCanEdit, canEdit));

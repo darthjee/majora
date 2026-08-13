@@ -49,4 +49,34 @@ describe('AccessStoreKeys', function() {
       expect(AccessStoreKeys.treasurePermissions(42, ['superuser'])).toBe('permissions:treasure:42:superuser');
     });
   });
+
+  describe('#possessionPermissions', function() {
+    it('builds the possession permissions cache key, scoped by role set', function() {
+      expect(AccessStoreKeys.possessionPermissions('demo', [])).toBe('permissions:possession:demo:');
+      expect(AccessStoreKeys.possessionPermissions('demo', ['dm', 'player']))
+        .toBe('permissions:possession:demo:dm,player');
+    });
+  });
+
+  describe('#itemPermissions', function() {
+    it('builds the item permissions cache key, scoped by role set', function() {
+      expect(AccessStoreKeys.itemPermissions('demo', [])).toBe('permissions:item:demo:');
+      expect(AccessStoreKeys.itemPermissions('demo', ['dm', 'player'])).toBe('permissions:item:demo:dm,player');
+    });
+  });
+
+  describe('#factionPermissions', function() {
+    it('builds the faction permissions cache key, scoped by role set', function() {
+      expect(AccessStoreKeys.factionPermissions('demo', [])).toBe('permissions:faction:demo:');
+      expect(AccessStoreKeys.factionPermissions('demo', ['dm', 'player'])).toBe('permissions:faction:demo:dm,player');
+    });
+  });
+
+  describe('#documentPermissions', function() {
+    it('builds the document permissions cache key, scoped by role set', function() {
+      expect(AccessStoreKeys.documentPermissions('demo', [])).toBe('permissions:document:demo:');
+      expect(AccessStoreKeys.documentPermissions('demo', ['dm', 'player']))
+        .toBe('permissions:document:demo:dm,player');
+    });
+  });
 });

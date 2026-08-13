@@ -11,7 +11,7 @@ describe('GamePhotosController', function() {
     stubAccessStore();
   });
 
-  it('merges can_edit from AccessStore onto the game object', async function() {
+  it('calls ensureGameAccess with the game slug', async function() {
     const setPhotos = jasmine.createSpy('setPhotos');
     const setPagination = jasmine.createSpy('setPagination');
     const setGame = jasmine.createSpy('setGame');
@@ -23,7 +23,30 @@ describe('GamePhotosController', function() {
     client.fetchIndex.and.returnValue(Promise.resolve({
       data: [], pagination: { page: 1, pages: 1, perPage: 20 },
     }));
-    AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: true }));
+
+    const cleanup = new GamePhotosController(
+      setPhotos, setPagination, setGame, setLoading, setError, client, gameClient,
+    ).buildEffect()();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');
+
+    cleanup();
+  });
+
+  it('derives can_edit from ensureGameAccess for a superuser', async function() {
+    const setPhotos = jasmine.createSpy('setPhotos');
+    const setPagination = jasmine.createSpy('setPagination');
+    const setGame = jasmine.createSpy('setGame');
+    const setLoading = jasmine.createSpy('setLoading');
+    const setError = jasmine.createSpy('setError');
+    const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
+
+    client.currentHash.and.returnValue('#/games/demo/photos');
+    client.fetchIndex.and.returnValue(Promise.resolve({
+      data: [], pagination: { page: 1, pages: 1, perPage: 20 },
+    }));
+    AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ is_superuser: true }));
 
     const cleanup = new GamePhotosController(
       setPhotos, setPagination, setGame, setLoading, setError, client, gameClient,
@@ -32,6 +55,60 @@ describe('GamePhotosController', function() {
 
     expect(setGame).toHaveBeenCalledWith(
       jasmine.objectContaining({ game_slug: 'demo', can_edit: true }),
+    );
+
+    cleanup();
+  });
+
+  it('derives can_edit from ensureGameAccess for a player', async function() {
+    const setPhotos = jasmine.createSpy('setPhotos');
+    const setPagination = jasmine.createSpy('setPagination');
+    const setGame = jasmine.createSpy('setGame');
+    const setLoading = jasmine.createSpy('setLoading');
+    const setError = jasmine.createSpy('setError');
+    const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
+
+    client.currentHash.and.returnValue('#/games/demo/photos');
+    client.fetchIndex.and.returnValue(Promise.resolve({
+      data: [], pagination: { page: 1, pages: 1, perPage: 20 },
+    }));
+    AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ is_player: true }));
+
+    const cleanup = new GamePhotosController(
+      setPhotos, setPagination, setGame, setLoading, setError, client, gameClient,
+    ).buildEffect()();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(setGame).toHaveBeenCalledWith(
+      jasmine.objectContaining({ game_slug: 'demo', can_edit: true }),
+    );
+
+    cleanup();
+  });
+
+  it('sets can_edit to false for an unrelated authenticated user', async function() {
+    const setPhotos = jasmine.createSpy('setPhotos');
+    const setPagination = jasmine.createSpy('setPagination');
+    const setGame = jasmine.createSpy('setGame');
+    const setLoading = jasmine.createSpy('setLoading');
+    const setError = jasmine.createSpy('setError');
+    const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
+
+    client.currentHash.and.returnValue('#/games/demo/photos');
+    client.fetchIndex.and.returnValue(Promise.resolve({
+      data: [], pagination: { page: 1, pages: 1, perPage: 20 },
+    }));
+    AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({
+      is_superuser: false, is_staff: false, is_dm: false, is_player: false,
+    }));
+
+    const cleanup = new GamePhotosController(
+      setPhotos, setPagination, setGame, setLoading, setError, client, gameClient,
+    ).buildEffect()();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(setGame).toHaveBeenCalledWith(
+      jasmine.objectContaining({ game_slug: 'demo', can_edit: false }),
     );
 
     cleanup();

@@ -13,10 +13,9 @@ import BasePageController from '../../../../common/base/controllers/BasePageCont
  *   Independently derives `canUploadPhoto` from `AccessStore.ensureGameAccess` (a wider, "who
  *   can upload" gate that also includes `is_player`), run concurrently with the faction fetch
  *   rather than chained after it. Also independently derives `canEdit` from its own
- *   `AccessStore.ensureGamePermissions` call (deduped against `RequestStore`'s own permission
- *   resolution by `AccessStore`'s cache), exposed to gate the show page's Edit button — `can_edit`
- *   here is the real DM/staff-only permission (per the update-permission correction documented in
- *   `docs/agents/plans/812-add-factions/plan.md`'s "Shared contracts" section), unlike
+ *   `AccessStore.ensureFactionPermissions` call (resource-specific, backed by
+ *   `/permissions/game_faction.json` — issue #1099), exposed to gate the show page's Edit
+ *   button — `can_edit` grants admin/dm as always, plus staff/player (per issue #1099), unlike
  *   `canUploadPhoto`'s broader "any player" gate.
  */
 export default class GameFactionController extends BasePageController {
@@ -84,7 +83,7 @@ export default class GameFactionController extends BasePageController {
   }
 
   #loadCanEdit(gameSlug, safeSet) {
-    return AccessStore.ensureGamePermissions(gameSlug)
+    return AccessStore.ensureFactionPermissions(gameSlug)
       .then((permissions) => Boolean(permissions.can_edit))
       .catch(() => false)
       .then((canEdit) => safeSet(this.setCanEdit, canEdit));

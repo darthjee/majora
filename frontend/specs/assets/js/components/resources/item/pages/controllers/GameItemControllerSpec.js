@@ -21,7 +21,7 @@ describe('GameItemController', function() {
     client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
     client.currentHash.and.returnValue('#/games/demo/items/5');
     spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
-    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+    spyOn(AccessStore, 'ensureItemPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
     ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(
       Promise.resolve({ data: { id: 5, name: 'Cloak of Elvenkind' } }),
     );
@@ -164,14 +164,14 @@ describe('GameItemController', function() {
       cleanup();
     };
 
-    it('calls ensureGamePermissions with the game slug independently of the item fetch', async function() {
+    it('calls ensureItemPermissions with the game slug independently of the item fetch', async function() {
       await runController();
 
-      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+      expect(AccessStore.ensureItemPermissions).toHaveBeenCalledWith('demo');
     });
 
     it('is true when the requester can edit the game', async function() {
-      AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: true }));
+      AccessStore.ensureItemPermissions.and.returnValue(Promise.resolve({ can_edit: true }));
 
       await runController();
 
@@ -179,7 +179,7 @@ describe('GameItemController', function() {
     });
 
     it('is false when the requester cannot edit the game', async function() {
-      AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: false }));
+      AccessStore.ensureItemPermissions.and.returnValue(Promise.resolve({ can_edit: false }));
 
       await runController();
 
@@ -187,7 +187,7 @@ describe('GameItemController', function() {
     });
 
     it('fails closed to false when the permissions check rejects', async function() {
-      AccessStore.ensureGamePermissions.and.returnValue(Promise.reject(new Error('nope')));
+      AccessStore.ensureItemPermissions.and.returnValue(Promise.reject(new Error('nope')));
 
       await runController();
 

@@ -90,8 +90,12 @@ export default class GamePhotosController extends BasePageController {
       return Promise.resolve();
     }
 
-    return AccessStore.ensureGamePermissions(gameSlug)
-      .then((permissions) => safeSet(this.setGame, { ...game, ...permissions }))
+    return AccessStore.ensureGameAccess(gameSlug)
+      .then((access) => safeSet(this.setGame, { ...game, can_edit: GamePhotosController.#canUploadPhoto(access) }))
       .catch(() => safeSet(this.setGame, { ...game, can_edit: false }));
+  }
+
+  static #canUploadPhoto(access) {
+    return Boolean(access.is_superuser || access.is_staff || access.is_dm || access.is_player);
   }
 }

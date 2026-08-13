@@ -21,7 +21,7 @@ describe('GameFactionController', function() {
     client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
     client.currentHash.and.returnValue('#/games/demo/factions/5');
     spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
-    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+    spyOn(AccessStore, 'ensureFactionPermissions').and.returnValue(Promise.resolve({ can_edit: false }));
     ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(
       Promise.resolve({ data: { id: 5, name: 'The Silver Hand' } }),
     );
@@ -176,14 +176,14 @@ describe('GameFactionController', function() {
       cleanup();
     };
 
-    it('calls ensureGamePermissions with the game slug independently of the faction fetch', async function() {
+    it('calls ensureFactionPermissions with the game slug independently of the faction fetch', async function() {
       await runController();
 
-      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+      expect(AccessStore.ensureFactionPermissions).toHaveBeenCalledWith('demo');
     });
 
     it('is true when the requester can edit the game (DM/staff)', async function() {
-      AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: true }));
+      AccessStore.ensureFactionPermissions.and.returnValue(Promise.resolve({ can_edit: true }));
 
       await runController();
 
@@ -191,7 +191,7 @@ describe('GameFactionController', function() {
     });
 
     it('is false when the requester cannot edit the game', async function() {
-      AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: false }));
+      AccessStore.ensureFactionPermissions.and.returnValue(Promise.resolve({ can_edit: false }));
 
       await runController();
 
@@ -199,7 +199,7 @@ describe('GameFactionController', function() {
     });
 
     it('fails closed to false when the permissions check rejects', async function() {
-      AccessStore.ensureGamePermissions.and.returnValue(Promise.reject(new Error('nope')));
+      AccessStore.ensureFactionPermissions.and.returnValue(Promise.reject(new Error('nope')));
 
       await runController();
 
