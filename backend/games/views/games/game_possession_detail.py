@@ -6,6 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from accounts.authentication import CookieTokenAuthentication
+from permissions import EndpointPermission
 
 from ...models import Game
 from ...serializers import (
@@ -13,7 +14,7 @@ from ...serializers import (
     GamePossessionDetailSerializer,
     GamePossessionUpdateSerializer,
 )
-from ..common import check_game_edit, validated_or_error
+from ..common import validated_or_error
 
 
 @api_view(['GET', 'PATCH'])
@@ -31,8 +32,10 @@ def game_possession_detail(request, game_slug, possession_id):
 
 
 def _update_possession(request, game, possession_id):
-    """Check dm/admin permission, validate the payload, persist it, and return the possession."""
-    error_response = check_game_edit(request, game)
+    """Check edit permission, validate the payload, persist it, and return the possession."""
+    error_response = EndpointPermission(request.user, game=game).check(
+        request, 'game_possession', 'regular', 'edit',
+    )
     if error_response:
         return error_response
 

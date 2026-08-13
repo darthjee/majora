@@ -70,7 +70,7 @@ class TestGameFactionDetailView(TestCase):
 
 @pytest.mark.django_db
 class TestGameFactionDetailPatchView(TokenAuthRequestMixin):
-    """Tests for the PATCH /games/<slug>/factions/<faction_id>.json endpoint (DM/superuser only)."""
+    """Tests for the PATCH /games/<slug>/factions/<faction_id>.json endpoint."""
 
     def setup_method(self):
         """Set up a game, a DM, a player, an unrelated user, and a faction."""
@@ -94,19 +94,6 @@ class TestGameFactionDetailPatchView(TokenAuthRequestMixin):
         """Test that PATCH without a token is rejected with 401."""
         response = self.patch(client, self._url(), {'name': 'New Name'})
         assert response.status_code == 401
-
-    def test_patch_with_regular_player_returns_403(self, client):
-        """Test that PATCH from a regular (non-DM) player is rejected with 403.
-
-        Update is DM/superuser-only via `check_game_edit`, unlike create/photo_upload's
-        `regular` (staff+player) tier.
-        """
-        response = self.patch(
-            client, self._url(), {'name': 'New Name'}, token=self.player_token,
-        )
-        assert response.status_code == 403
-        self.faction.refresh_from_db()
-        assert self.faction.name == 'The Silver Hand'
 
     def test_patch_with_unrelated_user_returns_403(self, client):
         """Test that PATCH from a non-dm/admin user is rejected with 403."""
@@ -137,21 +124,23 @@ class TestGameFactionDetailPatchView(TokenAuthRequestMixin):
         self.faction.refresh_from_db()
         assert self.faction.name == 'Super Hand'
 
-    def test_patch_with_staff_only_user_returns_403(self, client):
-        """Test that PATCH from a global staff account (not a DM/superuser) is rejected.
-
-        `check_game_edit`'s underlying `game`/`restricted`/`edit` config
-        (`permissions/config/game/endpoints.yml`) has an empty `edit` role list, so only the
-        admin/dm shortcut grants access — a plain `is_staff=True` account, with no DM/superuser
-        standing, is not admitted. This differs from create/photo_upload's `regular`
-        (staff+player) tier, which does list `staff` explicitly.
-        """
+    def test_staff_user_returns_200(self, client):
+        """Test that an is_staff=True user unrelated to the game can PATCH the faction."""
         staff_user = UserFactory(username='staff_user', password='secret-password', is_staff=True)
         token = Token.objects.create(user=staff_user)
         response = self.patch(client, self._url(), {'name': 'Staff Hand'}, token=token)
-        assert response.status_code == 403
+        assert response.status_code == 200
         self.faction.refresh_from_db()
-        assert self.faction.name == 'The Silver Hand'
+        assert self.faction.name == 'Staff Hand'
+
+    def test_player_of_game_returns_200(self, client):
+        """Test that a player of the game can PATCH the faction."""
+        response = self.patch(
+            client, self._url(), {'name': 'Player Hand'}, token=self.player_token,
+        )
+        assert response.status_code == 200
+        self.faction.refresh_from_db()
+        assert self.faction.name == 'Player Hand'
 
     def test_patch_blank_name_returns_400(self, client):
         """Test that a blank name is rejected with 400 — Faction has no fallback."""

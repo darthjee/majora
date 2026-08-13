@@ -7,11 +7,15 @@ merely links a game to a separately-owned `Treasure`). No dedicated delete endpo
 (Django-admin-only for superusers).
 
 Follows the [default hidden-gated collection
-pattern](principles.md#default-hidden-gated-collection-pattern), with one deviation: **Update**
-(`PATCH .../items/<item_id>.json`) is gated by plain **GameEdit** (dm/admin/superuser only, no
-staff bypass), not the broader `GameItemCreatePermission` used for Create. `GameItem.hidden` lives
-directly on the model, independent of [CharacterItem](character-item.md)'s own `hidden` on a
-character's held-item row — no buy/sell flow or NPC/PC "held item hidden" filter ties to it.
+pattern](principles.md#default-hidden-gated-collection-pattern). **Update**
+(`PATCH .../items/<item_id>.json`) uses the same broader **Regular** tier (staff + any player of
+the game) as Create, checked inline via `EndpointPermission(request.user,
+game=game).check(request, 'game_item', 'regular', 'edit')` against
+[`game_item/endpoints.yml`](../../../backend/games/permissions/config/game_item/endpoints.yml)'s
+`regular.edit` key — the dm/admin/superuser shortcut still applies via `EndpointPermission`.
+`GameItem.hidden` lives directly on the model, independent of
+[CharacterItem](character-item.md)'s own `hidden` on a character's held-item row — no buy/sell
+flow or NPC/PC "held item hidden" filter ties to it.
 
 | Endpoint | Method | Who can call |
 |----------|--------|-------------|
@@ -19,7 +23,7 @@ character's held-item row — no buy/sell flow or NPC/PC "held item hidden" filt
 | `/games/<slug>/items/all.json` | GET | **GameEdit** — includes hidden, adds `hidden` field. Always `X-Skip-Cache: true` |
 | `/games/<slug>/items/<item_id>.json` | GET | **AllowAny** — 404 if hidden or unknown |
 | `/games/<slug>/items/<item_id>/full.json` | GET | **GameEdit** — returns even if hidden, adds `hidden`. Always `X-Skip-Cache: true` |
-| `/games/<slug>/items/<item_id>.json` | PATCH | **GameEdit** (no staff bypass) |
+| `/games/<slug>/items/<item_id>.json` | PATCH | **Regular** (Staff + AnyPlayer) — roles per [`game_item/endpoints.yml`](../../../backend/games/permissions/config/game_item/endpoints.yml)'s `regular.edit` |
 | `/games/<slug>/items.json` | POST | **GameItemCreatePermission** — roles per [`game_item/endpoints.yml`](../../../backend/games/permissions/config/game_item/endpoints.yml) (`create`; no owner concept) |
 
 Both index endpoints order by `id`; `description` is omitted from both (present on detail

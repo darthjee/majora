@@ -6,16 +6,17 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from accounts.authentication import CookieTokenAuthentication
+from permissions import EndpointPermission
 
 from ...models import Game
 from ...serializers import FactionListSerializer, FactionUpdateSerializer
-from ..common import check_game_edit, validated_or_error
+from ..common import validated_or_error
 
 
 @api_view(['GET', 'PATCH'])
 @authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public; PATCH authorization is enforced inline via
-# check_game_edit (DM/superuser only).
+# EndpointPermission.check().
 @permission_classes([AllowAny])
 def game_faction_detail(request, game_slug, faction_id):
     """Return detail for, or update, a single faction belonging to a specific game."""
@@ -27,8 +28,10 @@ def game_faction_detail(request, game_slug, faction_id):
 
 
 def _update_faction(request, game, faction_id):
-    """Check dm/admin permission, validate the payload, persist it, and return the faction."""
-    error_response = check_game_edit(request, game)
+    """Check edit permission, validate the payload, persist it, and return the faction."""
+    error_response = EndpointPermission(request.user, game=game).check(
+        request, 'game_faction', 'regular', 'edit',
+    )
     if error_response:
         return error_response
 

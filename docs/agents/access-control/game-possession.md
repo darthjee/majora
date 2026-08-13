@@ -8,10 +8,13 @@ unique belonging within a game (a house, a boat, a tavern) — the same shape as
 ownership/acquisition — game-level CRUD only (ownership is tracked separately, see issue #1076).
 
 Follows the [default hidden-gated collection
-pattern](principles.md#default-hidden-gated-collection-pattern), with the same deviation as
-`GameItem`: **Update** (`PATCH .../possessions/<possession_id>.json`) is gated by plain
-**GameEdit** (dm/admin/superuser only, no staff bypass), while **Create** and **photo upload** are
-gated by the broader `game_possession` endpoint permission (staff + player, no owner concept).
+pattern](principles.md#default-hidden-gated-collection-pattern). **Update**
+(`PATCH .../possessions/<possession_id>.json`) shares the same broader **Regular** tier (staff +
+any player of the game) as **Create** and **photo upload**, checked inline via
+`EndpointPermission(request.user, game=game).check(request, 'game_possession', 'regular', 'edit')`
+against
+[`game_possession/endpoints.yml`](../../../backend/permissions/config/game_possession/endpoints.yml)'s
+`regular.edit` key — the dm/admin/superuser shortcut still applies via `EndpointPermission`.
 
 | Endpoint | Method | Who can call |
 |----------|--------|-------------|
@@ -19,7 +22,7 @@ gated by the broader `game_possession` endpoint permission (staff + player, no o
 | `/games/<slug>/possessions/all.json` | GET | **GameEdit** — includes hidden, adds `hidden` field. Always `X-Skip-Cache: true` |
 | `/games/<slug>/possessions/<possession_id>.json` | GET | **AllowAny** — 404 if hidden or unknown |
 | `/games/<slug>/possessions/<possession_id>/full.json` | GET | **GameEdit** — returns even if hidden, adds `hidden`. Always `X-Skip-Cache: true` |
-| `/games/<slug>/possessions/<possession_id>.json` | PATCH | **GameEdit** (no staff bypass) |
+| `/games/<slug>/possessions/<possession_id>.json` | PATCH | roles per [`game_possession/endpoints.yml`](../../../backend/permissions/config/game_possession/endpoints.yml) (`edit`: staff + player) |
 | `/games/<slug>/possessions.json` | POST | roles per [`game_possession/endpoints.yml`](../../../backend/permissions/config/game_possession/endpoints.yml) (`create`: staff + player; no owner concept) |
 | `/games/<slug>/possessions/<possession_id>/photo_upload.json` | POST | `IsAuthenticated` + roles per [`game_possession/endpoints.yml`](../../../backend/permissions/config/game_possession/endpoints.yml) (`photo_upload`: staff + player) |
 
