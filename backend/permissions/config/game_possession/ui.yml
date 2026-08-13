@@ -1,0 +1,4 @@
+# Forward-looking config for a future GamePossessionPermissionsSerializer (issue #1097).
+edit:
+  - staff
+  - player
