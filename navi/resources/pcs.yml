@@ -154,3 +154,28 @@ resources:
   short_pc_possessions:
     - url: /games/{:slug}/pcs/{:id}/possessions.json?per_page=5
       status: 200
+
+  short_game_pcs:
+    - url: /games/{:slug}/pcs.json?per_page=5
+      status: 200
+
+  game_pcs:
+    - url: /games/{:slug}/pcs.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_pcs
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
+
+  paginated_game_pcs:
+    - url: /games/{:slug}/pcs.json?page={:page}&per_page={:per_page}
+      status: 200
+      actions:
+        - resource: pc
+          parameters:
+            id: parsedBody.id
+            slug: parsedBody.game_slug

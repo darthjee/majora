@@ -133,3 +133,46 @@ class TestGameNpcItemRemoveView(TokenAuthRequestMixin):
         """Test that a missing game_item_id returns 400."""
         response = self._post(client, {}, token=self.dm_token)
         assert response.status_code == 400
+
+
+@pytest.mark.django_db
+class TestGameNpcItemRemoveHidden(TokenAuthRequestMixin):
+    """Tests for removing an item on behalf of a hidden NPC."""
+
+    def setup_method(self):
+        """Set up a game, a hidden NPC owning an item, and a DM."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
+        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.hidden_npc = CharacterFactory(
+            name='Secret NPC', game=self.game, npc=True, hidden=True,
+        )
+        self.game_item = GameItemFactory(game=self.game, name='Secret Blade')
+        CharacterItem.objects.create(character=self.hidden_npc, game_item=self.game_item)
+
+    def _post(self, client, token=None):
+        """Issue a POST request to remove an item from the hidden NPC."""
+        return self.post(
+            client,
+            f'/games/test-game/npcs/{self.hidden_npc.id}/items/remove.json',
+            {'game_item_id': self.game_item.id},
+            token=token,
+        )
+
+    def test_dm_can_remove_for_hidden_npc(self, client):
+        """Test that a DM can remove an item from a hidden NPC."""
+        response = self._post(client, token=self.dm_token)
+        assert response.status_code == 204
+
+    def test_anonymous_returns_404_for_hidden_npc(self, client):
+        """Test that an anonymous request for a hidden NPC returns 404."""
+        response = self._post(client)
+        assert response.status_code == 404
+
+    def test_unrelated_user_returns_404_for_hidden_npc(self, client):
+        """Test that an unrelated authenticated user returns 404 for a hidden NPC."""
+        other = UserFactory(username='other', password='secret-password')
+        token = Token.objects.create(user=other)
+        response = self._post(client, token=token)
+        assert response.status_code == 404

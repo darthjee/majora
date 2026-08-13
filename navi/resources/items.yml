@@ -1,0 +1,26 @@
+namespace: $NAVI_NAMEPACE
+resources:
+  game_items:
+    - url: /games/{:slug}/items.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_items
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
+
+  paginated_game_items:
+    - url: /games/{:slug}/items.json?page={:page}&per_page={:per_page}
+      status: 200
+      actions:
+        - resource: game_item_detail
+          parameters:
+            slug: parameters.slug
+            id: parsedBody.id
+
+  game_item_detail:
+    - url: /games/{:slug}/items/{:id}.json
+      status: 200

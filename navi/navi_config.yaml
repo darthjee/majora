@@ -14,5 +14,10 @@ include:
   - resources/games.yml
   - resources/pcs.yml
   - resources/npcs.yml
+  - resources/items.yml
+  - resources/factions.yml
+  - resources/possessions.yml
+  - resources/documents.yml
+  - resources/sessions.yml
   - resources/permissions.yml
   - resources/clients.yml

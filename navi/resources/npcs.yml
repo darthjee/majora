@@ -154,3 +154,28 @@ resources:
   short_npc_possessions:
     - url: /games/{:slug}/npcs/{:id}/possessions.json?per_page=5
       status: 200
+
+  short_game_npcs:
+    - url: /games/{:slug}/npcs.json?per_page=5
+      status: 200
+
+  game_npcs:
+    - url: /games/{:slug}/npcs.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_npcs
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
+
+  paginated_game_npcs:
+    - url: /games/{:slug}/npcs.json?page={:page}&per_page={:per_page}
+      status: 200
+      actions:
+        - resource: npc
+          parameters:
+            id: parsedBody.id
+            slug: parsedBody.game_slug

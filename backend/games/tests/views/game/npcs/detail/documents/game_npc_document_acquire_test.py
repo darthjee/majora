@@ -157,3 +157,45 @@ class TestGameNpcDocumentAcquireView(TokenAuthRequestMixin):
         """Test that a missing game_document_id returns 400."""
         response = self._post(client, {}, token=self.dm_token)
         assert response.status_code == 400
+
+
+@pytest.mark.django_db
+class TestGameNpcDocumentAcquireHidden(TokenAuthRequestMixin):
+    """Tests for acquiring a document on behalf of a hidden NPC."""
+
+    def setup_method(self):
+        """Set up a game, a hidden NPC, a DM, and an available game document."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
+        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.hidden_npc = CharacterFactory(
+            name='Secret NPC', game=self.game, npc=True, hidden=True,
+        )
+        self.game_document = GameDocumentFactory(game=self.game, name='Secret Tome')
+
+    def _post(self, client, token=None):
+        """Issue a POST request to acquire a document for the hidden NPC."""
+        return self.post(
+            client,
+            f'/games/test-game/npcs/{self.hidden_npc.id}/documents/acquire.json',
+            {'game_document_id': self.game_document.id},
+            token=token,
+        )
+
+    def test_dm_can_acquire_for_hidden_npc(self, client):
+        """Test that a DM can acquire a document for a hidden NPC."""
+        response = self._post(client, token=self.dm_token)
+        assert response.status_code == 201
+
+    def test_anonymous_returns_404_for_hidden_npc(self, client):
+        """Test that an anonymous request for a hidden NPC returns 404."""
+        response = self._post(client)
+        assert response.status_code == 404
+
+    def test_unrelated_user_returns_404_for_hidden_npc(self, client):
+        """Test that an unrelated authenticated user returns 404 for a hidden NPC."""
+        other = UserFactory(username='other', password='secret-password')
+        token = Token.objects.create(user=other)
+        response = self._post(client, token=token)
+        assert response.status_code == 404
