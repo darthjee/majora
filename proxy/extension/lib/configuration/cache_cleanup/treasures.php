@@ -53,6 +53,7 @@ return [
         ],
         'routes' => [
             '/games/:game_slug/treasures/:treasure_id.json',
+            '/treasures/:treasure_id/photo_upload.json',
         ],
     ],
     // Treasures

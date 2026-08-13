@@ -423,4 +423,65 @@ class CacheCleanupMapTest extends TestCase
             '/games/:game_slug/npcs/:character_id/items/all.json',
         ], $map['/games/:game_slug/npcs/:character_id/items/remove/all.json']);
     }
+
+    /**
+     * Uploading a GameFaction's photo must clear the faction list/detail
+     * cache targets for the game.
+     */
+    public function testFactionPhotoUploadClearsAllFactionCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/factions.json',
+            '/games/:game_slug/factions/:faction_id.json',
+        ], $map['/games/:game_slug/factions/:faction_id/photo_upload.json']);
+    }
+
+    /**
+     * Uploading a GamePossession's photo must clear the possession
+     * list/detail cache targets for the game.
+     */
+    public function testPossessionPhotoUploadClearsAllPossessionCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/possessions.json',
+            '/games/:game_slug/possessions/all.json',
+            '/games/:game_slug/possessions/:possession_id.json',
+            '/games/:game_slug/possessions/:possession_id/full.json',
+        ], $map['/games/:game_slug/possessions/:possession_id/photo_upload.json']);
+    }
+
+    /**
+     * Uploading a treasure's photo must clear the treasure list/detail cache
+     * targets, matching the existing treasure detail-mutation route.
+     */
+    public function testTreasurePhotoUploadClearsAllTreasureCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/treasures.json',
+            '/games/:game_slug/treasures/:treasure_id.json',
+            '/treasures/:treasure_id.json',
+        ], $map['/treasures/:treasure_id/photo_upload.json']);
+    }
+
+    /**
+     * Uploading a game's own cover photo must clear the game list/detail
+     * cache targets, including both games.json and my-games.json (which
+     * both embed photo_path via GameListSerializer).
+     */
+    public function testGamePhotoUploadClearsAllGameCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games.json',
+            '/my-games.json',
+            '/games/:game_slug.json',
+        ], $map['/games/:game_slug/photo_upload.json']);
+    }
 }
