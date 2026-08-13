@@ -37,9 +37,11 @@ Before a PR is considered complete, all CI checks relevant to the modified parts
 
 | Modified folder | CI job(s) | Local commands |
 |------------------|-----------|-----------------|
-| `backend/` | `pytest`, `checks` | `cd backend && poetry run pytest --cov` and `poetry run ruff check .` |
+| `backend/` | `pytest_views_characters`, `pytest_views_rest`, `pytest_all`, `checks` | `cd backend && poetry run pytest --cov` and `poetry run ruff check .` |
 | `frontend/` | `jasmine`, `frontend-checks` | `cd frontend && npm run coverage` and `npm run lint` |
-| `.circleci/`, `scripts/`, `dockerfiles/`, `docker-compose.yml`, `prod_proxy_config/` | `upload_proxy_files`, `upload_fe_files`, `link_photos`, `build-and-release`, `release`, `warm-up-cache` | No local equivalent — these run only on tagged releases. Verify changes by reading the job definitions in `.circleci/config.yml`. |
+| `proxy/` | `proxy_extension_tests` | `docker-compose run --rm proxy_tests` (see `.claude/scripts/check_proxy.sh` for the PHP lint step too) |
+| `navi/` | `warm-up-cache`, `wake-navi` | No local equivalent — these run only on tagged releases. Verify changes by reading the job definitions in `.circleci/config.yml`. |
+| `.circleci/`, `scripts/`, `dockerfiles/`, `docker-compose.yml`, `prod_proxy_config/` | `upload_proxy_files`, `upload_fe_files`, `link_photos`, `build-and-release`, `release` | No local equivalent — these run only on tagged releases. Verify changes by reading the job definitions in `.circleci/config.yml`. |
 
 If a new top-level folder is added in the future, its corresponding test and check jobs must be added to `.circleci/config.yml` and to this table before merging changes to that folder.
 

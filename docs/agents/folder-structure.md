@@ -15,8 +15,10 @@
 | `.circleci/` | CircleCI pipeline config (`config.yml`) and Navi cache-warmer config (`navi_config.yaml`). |
 | `.claude/` | Claude Code project configuration: custom agents, slash commands, and skill state. |
 | `.github/` | GitHub PR/commit message templates and Copilot instructions pointer. |
+| `navi/` | Navi cache-warmer config (`navi_config.yaml`) and per-endpoint YAML resources, run as the `majora_navi` service to warm the proxy cache after release. |
 | `Makefile` | Common development commands (`make dev-up`, `make tests`, `make setup`, etc.). |
 | `docker-compose.yml` | Full stack service definitions (app, frontend, proxy, MySQL, Navi cache warmer). |
+| `version` | Pinned base-image versions (`majora-base`, `circleci_majora-base`, `vite_majora-base`) used to tag/build shared Docker base images. |
 | `README.md` | Project overview. |
 | `LICENSE` | Project license. |
 
