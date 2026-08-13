@@ -89,11 +89,14 @@ class TestGamePossessionDetailPatchView(TokenAuthRequestMixin):
     """Tests for the PATCH /games/<slug>/possessions/<possession_id>.json endpoint."""
 
     def setup_method(self):
-        """Set up a game, a DM, an unrelated user, and a possession."""
+        """Set up a game, a DM, a player, an unrelated user, and a possession."""
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.dm_token = Token.objects.create(user=self.dm_user)
+        self.player_user = UserFactory(username='player_user', password='secret-password')
+        PlayerFactory(name='Bob', user=self.player_user, game=self.game)
+        self.player_token = Token.objects.create(user=self.player_user)
         self.other_user = UserFactory(username='other', password='secret-password')
         self.other_token = Token.objects.create(user=self.other_user)
         self.possession = GamePossessionFactory(
@@ -177,3 +180,21 @@ class TestGamePossessionDetailPatchView(TokenAuthRequestMixin):
             client, self._url(possession_id=99999), {'name': 'New Name'}, token=self.dm_token,
         )
         assert response.status_code == 404
+
+    def test_staff_user_returns_200(self, client):
+        """Test that an is_staff=True user unrelated to the game can PATCH the possession."""
+        staff_user = UserFactory(username='staff_user', password='secret-password', is_staff=True)
+        token = Token.objects.create(user=staff_user)
+        response = self.patch(client, self._url(), {'name': 'Staff Anchor'}, token=token)
+        assert response.status_code == 200
+        self.possession.refresh_from_db()
+        assert self.possession.name == 'Staff Anchor'
+
+    def test_player_of_game_returns_200(self, client):
+        """Test that a player of the game can PATCH the possession."""
+        response = self.patch(
+            client, self._url(), {'name': 'Player Anchor'}, token=self.player_token,
+        )
+        assert response.status_code == 200
+        self.possession.refresh_from_db()
+        assert self.possession.name == 'Player Anchor'

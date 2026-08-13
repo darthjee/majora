@@ -12,12 +12,15 @@ or `/full.json` hidden-inclusive variants (there is no hidden concept to gate).
 | `/games/<slug>/factions/<id>.json` | GET | **AllowAny** — 404 if unknown or in another game |
 | `/games/<slug>/factions.json` | POST | **Regular** (Staff + AnyPlayer) — roles per [`game_faction/endpoints.yml`](../../../backend/permissions/config/game_faction/endpoints.yml)'s `regular.create` |
 | `/games/<slug>/factions/<id>/photo_upload.json` | POST | **Regular** (Staff + AnyPlayer) — [`game_faction/endpoints.yml`](../../../backend/permissions/config/game_faction/endpoints.yml)'s `regular.photo_upload`; requires authentication ( `IsAuthenticated`) in addition to the role check |
-| `/games/<slug>/factions/<id>.json` | PATCH | **GameEdit** (dm/admin/superuser only, no staff bypass) — via the shared `check_game_edit` helper, same as [GameItem](game-item.md)'s update route |
+| `/games/<slug>/factions/<id>.json` | PATCH | **Regular** (Staff + AnyPlayer) — roles per [`game_faction/endpoints.yml`](../../../backend/permissions/config/game_faction/endpoints.yml)'s `regular.edit` |
 
-Both create and photo-upload use the broader `regular` (staff + any player) tier — a deliberate
-deviation from `GameItem`'s own create (`GameItemCreatePermission`, `is_staff or
-game.can_be_edited_by(user)`), decided during planning of issue #812. Update (PATCH), by
-contrast, follows `GameItem`'s pattern exactly: plain **GameEdit**, no staff bypass.
+Create, photo-upload, and update all use the broader `regular` (staff + any player) tier — a
+deliberate deviation from `GameItem`'s own create (`GameItemCreatePermission`, `is_staff or
+game.can_be_edited_by(user)`), decided during planning of issue #812. Update (PATCH) originally
+followed `GameItem`'s plain-**GameEdit** pattern, but issue #1097 aligned it with create/
+photo-upload's `regular` tier via `EndpointPermission(request.user,
+game=game).check(request, 'game_faction', 'regular', 'edit')` — the dm/admin/superuser shortcut
+still applies via `EndpointPermission`.
 
 ## Fields
 
