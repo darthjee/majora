@@ -6,6 +6,11 @@ RESOURCE_FILES=(
   navi/resources/pcs.yml
   navi/resources/permissions.yml
   navi/resources/treasures.yml
+  navi/resources/items.yml
+  navi/resources/factions.yml
+  navi/resources/possessions.yml
+  navi/resources/documents.yml
+  navi/resources/sessions.yml
   navi/resources/clients.yml
 )
 
