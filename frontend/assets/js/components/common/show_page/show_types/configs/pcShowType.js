@@ -54,6 +54,7 @@ const pcShowType = {
     { Show: buildShortListSlot('treasure') },
     { Show: buildShortListSlot('item') },
     { Show: buildShortListSlot('document') },
+    { Show: buildShortListSlot('possession') },
     { Edit: pcSubmitButton },
   ],
   bottom: [

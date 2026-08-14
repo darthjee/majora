@@ -59,4 +59,5 @@ export default {
   personX: 'bi-person-x',
   checkCircleFill: 'bi-check-circle-fill',
   close: 'bi-x-lg',
+  houseDoor: 'bi-house-door',
 };
