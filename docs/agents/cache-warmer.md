@@ -24,9 +24,12 @@ list from eleven files under [`navi/resources/`](../../navi/resources/):
 - `games.yml` — `/games.json` chain down through each game's detail and photos listing (and the
   fan-out into every other per-game resource file below).
 - `pcs.yml` — a game's PCs listing (`game_pcs`/`paginated_game_pcs`/`short_game_pcs`) plus a
-  PC's detail and its nested photos/treasures/items/documents.
+  PC's detail and its nested photos/treasures/items/documents/factions (the character-centric
+  `CharacterFaction` listing, `pc_factions`/`paginated_pc_factions`/`short_pc_factions` —
+  distinct from `factions.yml`'s game-centric `GameFaction` catalog).
 - `npcs.yml` — a game's NPCs listing (`game_npcs`/`paginated_game_npcs`/`short_game_npcs`) plus
-  an NPC's detail and its nested photos/treasures/items/documents.
+  an NPC's detail and its nested photos/treasures/items/documents/factions (`npc_factions`/
+  `paginated_npc_factions`/`short_npc_factions`, same character-centric shape as `pcs.yml`'s).
 - `items.yml` — a game's items listing (`game_items`/`paginated_game_items`/`game_item_detail`).
 - `factions.yml` — a game's factions listing and each faction's detail/characters chain
   (`game_factions`, `paginated_game_factions`, `game_faction_detail`, `game_faction_characters`,
@@ -58,10 +61,11 @@ Within `games.yml`, the chain runs from `/games.json` down through each game's d
 listing, and fans out from `paginated_games` into every other per-game listing (PCs, NPCs,
 treasures, items, factions, possessions, documents, sessions) living in its own file. From the
 PCs/NPCs listings (via `pcs.yml`/`npcs.yml`) the chain continues to each character's detail (and
-its nested photos/files/treasures/items); from the documents listing (via `documents.yml`) it
-continues to each document's detail (and its nested files/photos) — the `slug` extracted at the
-top of the chain is inherited by every resource below it, so it never needs re-extracting. See
-the files under `navi/resources/` for the exact resource names and URL patterns.
+its nested photos/files/treasures/items/factions); from the documents listing (via
+`documents.yml`) it continues to each document's detail (and its nested files/photos) — the
+`slug` extracted at the top of the chain is inherited by every resource below it, so it never
+needs re-extracting. See the files under `navi/resources/` for the exact resource names and URL
+patterns.
 
 It also covers the entity-agnostic `permissions_*` resources (`permissions_game`,
 `permissions_treasure`, `permissions_game_treasure`, `permissions_game_pc`,
