@@ -51,6 +51,14 @@ describe('ResourcePickerSearchHelper', function() {
       expect(img.props.alt).toBe('Wyrmwood');
     });
 
+    it('does not render a thumbnail when the result has no photo_url (constant mode)', function() {
+      const results = [{ id: 'elf', name: 'Elf' }];
+      const element = ResourcePickerSearchHelper.render(buildState({ results }), buildHandlers());
+      const img = findElement(element, (node) => node.type === 'img');
+
+      expect(img).toBeNull();
+    });
+
     it('calls onSelect with the picked item when a row is clicked', function() {
       const handlers = buildHandlers();
       const item = { id: 1, name: 'Wyrmwood', photo_url: null };

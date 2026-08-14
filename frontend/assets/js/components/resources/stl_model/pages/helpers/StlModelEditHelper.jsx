@@ -2,30 +2,31 @@ import React from 'react';
 import BackButton from '../../../../common/buttons/BackButton.jsx';
 import FormField from '../../../../common/forms/FormField.jsx';
 import SwitchField from '../../../../common/forms/SwitchField.jsx';
-import EnumSelectField from '../../../../common/forms/EnumSelectField.jsx';
 import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
 import SubmitButton from '../../../../common/buttons/SubmitButton.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import StlModelHelper from './StlModelHelper.jsx';
-import { TYPE_VALUES, RACE_VALUES, ROLE_VALUES } from '../../stlModelEnums.js';
+import StlModelFormFieldsHelper from './StlModelFormFieldsHelper.jsx';
 
 /**
- * Rendering helper for the STL model edit page. Shares the same `type`/`race`/`role`/`owned`
- * field pieces as `StlModelNewHelper.jsx` (both forms edit the same field set), but omits the
- * photo/tags/sources/collections fields — the update endpoint (issue #1069) only accepts
- * `name`/`owned`/`type`/`race`/`role`, matching the existing dedicated flows for the rest
- * (photo upload endpoint; no edit UI for tags/sources/collections).
+ * Rendering helper for the STL model edit page. Shares the same `type`/`races`/`roles`/`url`/
+ * `size`/`owned` field pieces as `StlModelNewHelper.jsx` (both forms edit the same field set,
+ * via `StlModelFormFieldsHelper.jsx`), but omits the photo/tags/sources/collections fields — the
+ * update endpoint only accepts `name`/`owned`/`type`/`url`/`size`/`races`/`roles`, matching the
+ * existing dedicated flows for the rest (photo upload endpoint; no edit UI for
+ * tags/sources/collections).
  */
 export default class StlModelEditHelper {
   /**
    * Render the STL model edit form.
    *
-   * @param {{name: string, owned: boolean, type: string, race: string, role: string,
-   *   status: string, fieldErrors: object}} formState - Form state. `race`/`role` are `''` for
-   *   "no selection" (converted to `null` at the controller's request-body boundary).
+   * @param {{name: string, owned: boolean, type: string, races: {id: string, name: string}[],
+   *   roles: {id: string, name: string}[], url: string, size: string, status: string,
+   *   fieldErrors: object}} formState - Form state. `size` is `''` for "no selection" (converted
+   *   to `null` at the controller's request-body boundary).
    * @param {{onSubmit: Function, onNameChange: Function, onOwnedChange: Function,
-   *   onTypeChange: Function, onRaceChange: Function, onRoleChange: Function}} handlers - Event
-   *   handlers.
+   *   onTypeChange: Function, onRacesChange: Function, onRolesChange: Function,
+   *   onUrlChange: Function, onSizeChange: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered edit page.
    */
   static render(formState, handlers) {
@@ -49,7 +50,7 @@ export default class StlModelEditHelper {
             checked={formState.owned}
             onChange={handlers.onOwnedChange}
           />
-          {StlModelEditHelper.#renderEnumFields(formState, handlers)}
+          {StlModelFormFieldsHelper.render(formState, handlers, 'stl-model-edit')}
           <SubmitButton disabled={formState.status === 'submitting'}>
             {Translator.t('stl_model_edit_page.submit')}
           </SubmitButton>
@@ -65,41 +66,6 @@ export default class StlModelEditHelper {
    */
   static renderLoading() {
     return StlModelHelper.renderLoading();
-  }
-
-  static #renderEnumFields(formState, handlers) {
-    return (
-      <>
-        <EnumSelectField
-          id="stl-model-edit-type"
-          label={Translator.t('stl_model_new_page.type_select_label')}
-          values={TYPE_VALUES}
-          translateOption={(value) => Translator.t(`stl_model_page.type_${value}`)}
-          value={formState.type}
-          onChange={handlers.onTypeChange}
-        />
-        <EnumSelectField
-          id="stl-model-edit-race"
-          label={Translator.t('stl_model_new_page.race_select_label')}
-          values={RACE_VALUES}
-          translateOption={(value) => Translator.t(`stl_model_page.race_${value}`)}
-          value={formState.race}
-          nullable
-          noneLabel={Translator.t('stl_model_new_page.race_select_none_option')}
-          onChange={handlers.onRaceChange}
-        />
-        <EnumSelectField
-          id="stl-model-edit-role"
-          label={Translator.t('stl_model_new_page.role_select_label')}
-          values={ROLE_VALUES}
-          translateOption={(value) => Translator.t(`stl_model_page.role_${value}`)}
-          value={formState.role}
-          nullable
-          noneLabel={Translator.t('stl_model_new_page.role_select_none_option')}
-          onChange={handlers.onRoleChange}
-        />
-      </>
-    );
   }
 
   static #renderError(formState) {

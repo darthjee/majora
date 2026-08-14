@@ -63,12 +63,13 @@ export default class StlModelNewController extends BasePageController {
    *   a defensive guard (the page's own mount effect already redirects unauthorized viewers
    *   away) — on failure, the general error status is set instead of navigating away.
    * @param {Event|undefined} event - Form submit event, if any.
-   * @param {{name: string, owned: boolean, type: string, race: string, role: string,
-   *   tags: string[], sources: {id: number, name: string}[],
-   *   collections: {id: number, name: string}[], photoFile: File|null}} formValues - Raw form
-   *   field values. `sources`/`collections` resolve to `source_ids`/`collection_ids` on submit;
-   *   `race`/`role` are converted from `''` (the `<select>`'s native blank-option value) to
-   *   `null` on submit.
+   * @param {{name: string, owned: boolean, type: string, url: string, size: string,
+   *   races: {id: string, name: string}[], roles: {id: string, name: string}[], tags: string[],
+   *   sources: {id: number, name: string}[], collections: {id: number, name: string}[],
+   *   photoFile: File|null}} formValues - Raw form field values. `sources`/`collections` resolve
+   *   to `source_ids`/`collection_ids` on submit; `races`/`roles` resolve to a plain
+   *   `db_value[]` (extracting each pick's `id`) on submit; `url`/`size` are converted from `''`
+   *   to `null` on submit.
    * @param {{setStatus: Function, setFieldErrors: Function,
    *   setCreatedId: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
@@ -121,8 +122,10 @@ export default class StlModelNewController extends BasePageController {
         name: formValues.name,
         owned: formValues.owned,
         type: formValues.type,
-        race: formValues.race || null,
-        role: formValues.role || null,
+        url: formValues.url || null,
+        size: formValues.size || null,
+        races: (formValues.races ?? []).map((race) => race.id),
+        roles: (formValues.roles ?? []).map((role) => role.id),
         tags: formValues.tags ?? [],
         source_ids: (formValues.sources ?? []).map((source) => source.id),
         collection_ids: (formValues.collections ?? []).map((collection) => collection.id),

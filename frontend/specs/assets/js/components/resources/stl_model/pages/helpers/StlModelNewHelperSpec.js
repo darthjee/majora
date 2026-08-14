@@ -38,8 +38,10 @@ describe('StlModelNewHelper', function() {
     onNameChange: jasmine.createSpy('onNameChange'),
     onOwnedChange: jasmine.createSpy('onOwnedChange'),
     onTypeChange: jasmine.createSpy('onTypeChange'),
-    onRaceChange: jasmine.createSpy('onRaceChange'),
-    onRoleChange: jasmine.createSpy('onRoleChange'),
+    onRacesChange: jasmine.createSpy('onRacesChange'),
+    onRolesChange: jasmine.createSpy('onRolesChange'),
+    onUrlChange: jasmine.createSpy('onUrlChange'),
+    onSizeChange: jasmine.createSpy('onSizeChange'),
     onTagInputChange: jasmine.createSpy('onTagInputChange'),
     onAddTag: jasmine.createSpy('onAddTag'),
     onRemoveTag: jasmine.createSpy('onRemoveTag'),
@@ -56,8 +58,10 @@ describe('StlModelNewHelper', function() {
     tagInput: '',
     owned: true,
     type: 'terrain',
-    race: '',
-    role: '',
+    races: [],
+    roles: [],
+    url: '',
+    size: '',
     sources: [],
     collections: [],
     status: 'idle',
@@ -101,30 +105,60 @@ describe('StlModelNewHelper', function() {
       expect(input.props.checked).toBe(true);
     });
 
-    it('renders the type/race/role selects', function() {
+    it('renders the type/url/size fields', function() {
       const html = renderToStaticMarkup(StlModelNewHelper.render(buildState(), buildHandlers()));
 
       expect(html).toContain('id="stl-model-new-type"');
-      expect(html).toContain('id="stl-model-new-race"');
-      expect(html).toContain('id="stl-model-new-role"');
+      expect(html).toContain('id="stl-model-new-url"');
+      expect(html).toContain('id="stl-model-new-size"');
     });
 
-    it('renders a blank/None option for race and role, but not for type', function() {
+    it('renders a blank/None option for size, but not for type', function() {
       const html = renderToStaticMarkup(StlModelNewHelper.render(buildState(), buildHandlers()));
 
-      expect((html.match(/<option value=""/g) ?? []).length).toBe(2);
+      expect((html.match(/<option value=""/g) ?? []).length).toBe(1);
     });
 
-    it('wires the type/race/role selects to their change handlers', function() {
+    it('wires the type/url/size fields to their change handlers', function() {
       const handlers = buildHandlers();
       const element = StlModelNewHelper.render(buildState(), handlers);
       const typeSelect = findElement(element, (child) => child.props?.id === 'stl-model-new-type');
-      const raceSelect = findElement(element, (child) => child.props?.id === 'stl-model-new-race');
-      const roleSelect = findElement(element, (child) => child.props?.id === 'stl-model-new-role');
+      const urlField = findElement(element, (child) => child.props?.id === 'stl-model-new-url');
+      const sizeSelect = findElement(element, (child) => child.props?.id === 'stl-model-new-size');
 
       expect(typeSelect.props.onChange).toBe(handlers.onTypeChange);
-      expect(raceSelect.props.onChange).toBe(handlers.onRaceChange);
-      expect(roleSelect.props.onChange).toBe(handlers.onRoleChange);
+      expect(urlField.props.onChange).toBe(handlers.onUrlChange);
+      expect(sizeSelect.props.onChange).toBe(handlers.onSizeChange);
+    });
+
+    it('renders the races picker wired to onRacesChange with the current races value', function() {
+      const handlers = buildHandlers();
+      const races = [{ id: 'elf', name: 'Elf' }];
+      const element = StlModelNewHelper.render(buildState({ races }), handlers);
+      const pickers = [];
+      findElement(element, (child) => {
+        if (child.type === MultiResourcePickerField) pickers.push(child);
+        return false;
+      });
+      const racesPicker = pickers.find((picker) => Array.isArray(picker.props.values) && picker.props.value === races);
+
+      expect(racesPicker).not.toBeUndefined();
+      expect(racesPicker.props.onChange).toBe(handlers.onRacesChange);
+    });
+
+    it('renders the roles picker wired to onRolesChange with the current roles value', function() {
+      const handlers = buildHandlers();
+      const roles = [{ id: 'wizard', name: 'Wizard' }];
+      const element = StlModelNewHelper.render(buildState({ roles }), handlers);
+      const pickers = [];
+      findElement(element, (child) => {
+        if (child.type === MultiResourcePickerField) pickers.push(child);
+        return false;
+      });
+      const rolesPicker = pickers.find((picker) => Array.isArray(picker.props.values) && picker.props.value === roles);
+
+      expect(rolesPicker).not.toBeUndefined();
+      expect(rolesPicker.props.onChange).toBe(handlers.onRolesChange);
     });
 
     it('renders the tags field with the pending tags', function() {

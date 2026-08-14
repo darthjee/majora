@@ -42,7 +42,15 @@ describe('StlModelNewController', function() {
     });
 
     const buildFormValues = () => ({
-      name: 'Goblin', owned: true, type: 'creature', race: '', role: '', tags: [], photoFile,
+      name: 'Goblin',
+      owned: true,
+      type: 'creature',
+      url: '',
+      size: '',
+      races: [],
+      roles: [],
+      tags: [],
+      photoFile,
     });
 
     it('uploads the photo and redirects to the show page when the STL model is created and the upload '

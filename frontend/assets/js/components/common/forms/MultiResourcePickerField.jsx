@@ -22,12 +22,22 @@ export function appendResourcePick(value, item) {
 /**
  * Multi-pick wrapper around `ResourcePickerSearch`: the search core stays open/usable at all
  * times, picking a result appends it (deduped by id) to `value`, rendered below as
- * `RemovableBadge`s — used for `StlModel`'s `sources`/`collections` fields.
+ * `RemovableBadge`s — used for `StlModel`'s `sources`/`collections` fields (API mode,
+ * `resource`/`maxEntries`) as well as its `races`/`roles` fields (constant mode,
+ * `values`/`translateOption`; see `ResourcePickerSearch`). In constant mode, each picked item is
+ * shaped `{id: value, name: translateOption(value)}` — `id` is the raw constant string itself,
+ * reusing the same `{id, name}`-keyed badge rendering as-is.
  *
  * @param {object} props - Component props.
- * @param {string} props.resource - Resource name to search (e.g. `'source'`, `'collection'`).
- * @param {number} props.maxEntries - Maximum results fetched per search.
- * @param {{id: number, name: string}[]} props.value - Current selection.
+ * @param {string} [props.resource] - Resource name to search (e.g. `'source'`, `'collection'`).
+ *   Ignored when `values` is given.
+ * @param {number} [props.maxEntries] - Maximum results fetched per search. Ignored when `values`
+ *   is given.
+ * @param {string[]} [props.values] - Constant list of raw `db_value`s to pick from, switching
+ *   this field into constant mode.
+ * @param {Function} [props.translateOption] - `(value) => label string` for each `values` entry.
+ *   Required when `values` is given.
+ * @param {{id: number|string, name: string}[]} props.value - Current selection.
  * @param {Function} props.onChange - Called with the new selection array on pick/remove.
  * @param {string} props.label - Translated field label.
  * @param {string} props.searchPlaceholder - Translated placeholder for the search input.
@@ -35,7 +45,8 @@ export function appendResourcePick(value, item) {
  * @returns {React.ReactElement} Rendered multi resource picker field.
  */
 export default function MultiResourcePickerField({
-  resource, maxEntries, value, onChange, label, searchPlaceholder, removeLabel,
+  resource, maxEntries, values, translateOption, value, onChange, label, searchPlaceholder,
+  removeLabel,
 }) {
   return (
     <div className="mb-3">
@@ -43,6 +54,8 @@ export default function MultiResourcePickerField({
       <ResourcePickerSearch
         resource={resource}
         maxEntries={maxEntries}
+        values={values}
+        translateOption={translateOption}
         searchPlaceholder={searchPlaceholder}
         onSelect={(item) => onChange(appendResourcePick(value, item))}
       />
