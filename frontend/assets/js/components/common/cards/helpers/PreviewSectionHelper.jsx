@@ -1,14 +1,16 @@
 import React from 'react';
 import SeeAllCard from '../SeeAllCard.jsx';
 import Translator from '../../../../i18n/Translator.js';
+import Icons from '../../../../utils/ui/Icons.js';
 
 /**
  * Rendering helper for the PreviewSection element.
  */
 export default class PreviewSectionHelper {
   /**
-   * Render a preview section with a heading, an optional empty-state message,
-   * a row of item cards (sliced to `maxItems`), and a "See all" card.
+   * Render a collapsible preview section: a clickable heading showing the item count (or a
+   * "loading" placeholder while the fetch is in flight), and, only while expanded, an optional
+   * empty-state message, a row of item cards (sliced to `maxItems`), and a "See all" card.
    *
    * @param {object[]} items - List of items to preview.
    * @param {string} title - Section heading.
@@ -17,21 +19,54 @@ export default class PreviewSectionHelper {
    * @param {number} maxItems - Maximum number of items shown before the "See all" card.
    * @param {Function} renderItem - Function `(item) => ReactElement` called for each sliced item.
    * @param {string} [emptyText] - Muted paragraph shown above the row when `items` is empty.
+   * @param {boolean} loading - Whether the caller's fetch is still in flight.
+   * @param {number} total - Total item count (from pagination metadata), shown in the title.
+   * @param {boolean} collapsed - Whether the section body is currently hidden.
+   * @param {Function} onToggle - Click handler for the heading, toggling `collapsed`.
    * @returns {React.ReactElement} Preview section element.
    */
-  static render(items, title, seeAllHref, icon, maxItems, renderItem, emptyText) {
+  static render(
+    items, title, seeAllHref, icon, maxItems, renderItem, emptyText, loading, total, collapsed, onToggle,
+  ) {
     const preview = items.slice(0, maxItems);
     const seeAllText = Translator.t('character_preview_section.see_all').replace('{{title}}', title);
+    const countText = loading ? 'loading' : total;
 
     return (
       <div className="mt-4">
-        <h2>{title}</h2>
+        {PreviewSectionHelper.#renderHeading(title, countText, collapsed, onToggle)}
+        {!collapsed && PreviewSectionHelper.#renderBody(preview, emptyText, renderItem, icon, seeAllText, seeAllHref)}
+      </div>
+    );
+  }
+
+  static #renderHeading(title, countText, collapsed, onToggle) {
+    const icon = collapsed ? Icons.caretDownSquareFill : Icons.caretUpSquareFill;
+
+    return (
+      <h2>
+        <button
+          type="button"
+          className="btn btn-link p-0 text-decoration-none"
+          aria-expanded={!collapsed}
+          onClick={onToggle}
+        >
+          <i className={`bi ${icon} me-2`} aria-hidden="true"></i>
+          {`${title} (${countText})`}
+        </button>
+      </h2>
+    );
+  }
+
+  static #renderBody(preview, emptyText, renderItem, icon, seeAllText, seeAllHref) {
+    return (
+      <>
         {PreviewSectionHelper.#renderEmptyText(preview, emptyText)}
         <div className="row">
           {preview.map(renderItem)}
           <SeeAllCard icon={icon} text={seeAllText} href={seeAllHref} />
         </div>
-      </div>
+      </>
     );
   }
 

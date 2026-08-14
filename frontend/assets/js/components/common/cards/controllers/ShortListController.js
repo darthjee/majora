@@ -13,11 +13,13 @@ export default class ShortListController {
    *   (`'pc'`, `'npc'`, `'treasure'`, `'item'`, `'document'`).
    * @param {Function} setItems - State setter for the fetched preview items.
    * @param {Function} setLoading - State setter for the loading flag.
+   * @param {Function} setTotal - State setter for the pagination total count.
    */
-  constructor(resource, setItems, setLoading) {
+  constructor(resource, setItems, setLoading, setTotal) {
     this.resource = resource;
     this.setItems = setItems;
     this.setLoading = setLoading;
+    this.setTotal = setTotal;
   }
 
   /**
@@ -42,8 +44,8 @@ export default class ShortListController {
         params: shortListResourceConfig[this.resource].buildParams(context),
         query: { per_page: maxItems },
       })
-        .then(({ data }) => this.#handleResponse(data, mounted))
-        .catch(() => this.#handleResponse([], mounted))
+        .then(({ data, pagination }) => this.#handleResponse(data, pagination, mounted))
+        .catch(() => this.#handleResponse([], { total: 0 }, mounted))
         .finally(() => {
           if (mounted) {
             this.setLoading(false);
@@ -56,11 +58,12 @@ export default class ShortListController {
     };
   }
 
-  #handleResponse(data, mounted) {
+  #handleResponse(data, pagination, mounted) {
     if (!mounted) {
       return;
     }
 
     this.setItems(Array.isArray(data) ? data : []);
+    this.setTotal(pagination.total);
   }
 }
