@@ -4,10 +4,14 @@ stl_model_new_page:
   owned_switch_label: Owned
   type_select_label: Type
   type_select_placeholder: Select a type
-  race_select_label: Race
-  race_select_none_option: None
-  role_select_label: Role
-  role_select_none_option: None
+  url_label: Url
+  url_placeholder: https://example.com/model
+  size_select_label: Size
+  size_select_none_option: None
+  races_label: Races
+  races_search_placeholder: Search races...
+  roles_label: Roles
+  roles_search_placeholder: Search roles...
   tags_label: Tags
   tags_input_placeholder: Type a tag and press Enter, or separate multiple with commas
   add_tag: Add
