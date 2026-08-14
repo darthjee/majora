@@ -1,3 +1,24 @@
 stl_models_page:
   loading: Loading STL models...
   new_stl_model: New STL Model
+  filter_name_label: Name
+  filter_name_placeholder: Search by name...
+  filter_type_label: Type
+  filter_type_none_option: Any
+  filter_race_label: Races
+  filter_race_search_placeholder: Search races...
+  filter_roles_label: Roles
+  filter_roles_search_placeholder: Search roles...
+  filter_source_label: Sources
+  filter_source_search_placeholder: Search sources...
+  filter_collection_label: Collections
+  filter_collection_search_placeholder: Search collections...
+  filter_tags_label: Tags
+  filter_tags_placeholder: Type a tag and press Enter, or separate multiple with commas
+  filter_add_tag: Add
+  filter_remove_tag_tooltip: Remove tag
+  filter_size_label: Size
+  filter_size_none_option: Any
+  filter_remove_label: Remove
+  filter_query: Query
+  filter_clear: Clear
