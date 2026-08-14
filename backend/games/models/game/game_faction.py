@@ -1,10 +1,10 @@
-"""Faction model for Majora RPG Campaign Management System."""
+"""GameFaction model for Majora RPG Campaign Management System."""
 
 from django.db import models
 from simple_history.models import HistoricalRecords
 
 
-class Faction(models.Model):
+class GameFaction(models.Model):
     """Model representing a group a character may belong to, scoped to a single game."""
 
     game = models.ForeignKey(
@@ -12,13 +12,13 @@ class Faction(models.Model):
     )
     name = models.CharField(max_length=200)
     photo = models.ForeignKey(
-        'games.FactionPhoto', on_delete=models.SET_NULL, null=True, blank=True,
+        'games.GameFactionPhoto', on_delete=models.SET_NULL, null=True, blank=True,
         related_name='+',
     )
     history = HistoricalRecords(app='versioning', user_db_constraint=False)
 
     class Meta:
-        """Metadata for the Faction model."""
+        """Metadata for the GameFaction model."""
 
         ordering = ['id']
         constraints = [

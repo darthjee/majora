@@ -1,12 +1,12 @@
-"""FactionPhoto model for Majora RPG Campaign Management System."""
+"""GameFactionPhoto model for Majora RPG Campaign Management System."""
 
 from django.db import models
 
 from games.models.base_photo import BasePhoto
-from games.models.faction.faction import Faction
+from games.models.game.game_faction import GameFaction
 
 
-class FactionPhoto(BasePhoto):
+class GameFactionPhoto(BasePhoto):
     """Model representing a photo associated with a faction."""
 
-    faction = models.ForeignKey(Faction, on_delete=models.CASCADE, related_name='photos')
+    faction = models.ForeignKey(GameFaction, on_delete=models.CASCADE, related_name='photos')

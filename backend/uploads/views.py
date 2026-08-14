@@ -10,10 +10,10 @@ from accounts.authentication import CookieTokenAuthentication
 from games.models import (
     CharacterItemPhoto,
     CharacterPhoto,
-    FactionPhoto,
     GameDocumentFile,
     GameDocumentFilePhoto,
     GameDocumentPhoto,
+    GameFactionPhoto,
     GameItemPhoto,
     GamePossessionPhoto,
     TreasurePhoto,
@@ -234,7 +234,7 @@ def _game_possession_photo_permission(request, content_object):
 
 
 def _faction_photo_permission(request, content_object):
-    """Return a permission error Response for a FactionPhoto content object, else None."""
+    """Return a permission error Response for a GameFactionPhoto content object, else None."""
     game = content_object.faction.game
     return EndpointPermission(request.user, game=game).check(
         request, 'game_faction', 'regular', 'photo_upload',
@@ -324,7 +324,7 @@ _PHOTO_HANDLERS = {
     CharacterPhoto: (_character_photo_permission, _set_character_photo_if_unset),
     GameItemPhoto: (_game_item_photo_permission, _set_item_photo),
     GamePossessionPhoto: (_game_possession_photo_permission, _set_possession_photo),
-    FactionPhoto: (_faction_photo_permission, _set_faction_photo),
+    GameFactionPhoto: (_faction_photo_permission, _set_faction_photo),
     CollectionPhoto: (_collection_photo_permission, _set_collection_photo_if_unset),
     CharacterItemPhoto: (_character_item_photo_permission, _set_character_item_photo),
     GameDocumentPhoto: (_document_photo_permission, _set_document_photo_if_unset),
