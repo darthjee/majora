@@ -19,15 +19,17 @@ import Translator from '../../../i18n/Translator.js';
  *   (`'pc'`, `'npc'`, `'treasure'`, `'item'`, `'document'`).
  * @param {number} [props.maxItems] - Maximum number of items shown before the "See all" card.
  *   Defaults to `MAX_PREVIEW_ITEMS`.
- * @returns {React.ReactElement|null} The preview section element, or `null` while loading.
+ * @returns {React.ReactElement} The preview section element, rendering its title immediately
+ *   (showing a "loading" placeholder for the count) even before the fetch resolves.
  */
 export default function ShortList({ resource, maxItems = MAX_PREVIEW_ITEMS, ...context }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
   const config = shortListResourceConfig[resource];
 
   const controller = useMemo(
-    () => new ShortListController(resource, setItems, setLoading),
+    () => new ShortListController(resource, setItems, setLoading, setTotal),
     [resource],
   );
 
@@ -42,10 +44,6 @@ export default function ShortList({ resource, maxItems = MAX_PREVIEW_ITEMS, ...c
     [controller, maxItems, gameSlug, id, isPc],
   );
 
-  if (loading) {
-    return null;
-  }
-
   return (
     <PreviewSection
       items={items}
@@ -54,6 +52,9 @@ export default function ShortList({ resource, maxItems = MAX_PREVIEW_ITEMS, ...c
       icon={config.icon}
       maxItems={maxItems}
       emptyText={config.emptyTextKey ? Translator.t(config.emptyTextKey) : undefined}
+      loading={loading}
+      total={total}
+      defaultCollapsed={loading || items.length === 0}
       renderItem={(item) => config.renderItem(
         item, context, config.action === 'navigate' ? config.buildHref(context, item) : undefined,
       )}
