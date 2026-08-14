@@ -41,6 +41,46 @@ describe('GenericClient', function() {
     expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs.json?page=3&slain=true&name=gob', jasmine.any(Object));
   });
 
+  it('serializes an array extraParams value as one repeated query entry per element', async function() {
+    fetchSpy.and.returnValue(Promise.resolve({
+      ...mockFetchJson([]),
+      headers: { get: () => null },
+    }));
+
+    const client = new GenericClient(() => '#/miniatures/stl_models?page=2');
+    await client.fetchIndex('/miniatures/stl_models.json', { race: ['elf', 'orc'], name: 'gob' });
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      '/miniatures/stl_models.json?page=2&race=elf&race=orc&name=gob', jasmine.any(Object),
+    );
+  });
+
+  it('omits an array extraParams entry entirely when the array is empty', async function() {
+    fetchSpy.and.returnValue(Promise.resolve({
+      ...mockFetchJson([]),
+      headers: { get: () => null },
+    }));
+
+    const client = new GenericClient(() => '#/miniatures/stl_models?page=2');
+    await client.fetchIndex('/miniatures/stl_models.json', { race: [] });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/miniatures/stl_models.json?page=2', jasmine.any(Object));
+  });
+
+  it('drops blank/undefined/null entries from an array extraParams value', async function() {
+    fetchSpy.and.returnValue(Promise.resolve({
+      ...mockFetchJson([]),
+      headers: { get: () => null },
+    }));
+
+    const client = new GenericClient(() => '#/miniatures/stl_models?page=2');
+    await client.fetchIndex('/miniatures/stl_models.json', { race: ['elf', '', null, undefined, 'orc'] });
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      '/miniatures/stl_models.json?page=2&race=elf&race=orc', jasmine.any(Object),
+    );
+  });
+
   it('does not send extraParams when none are given', async function() {
     fetchSpy.and.returnValue(Promise.resolve({
       ...mockFetchJson([]),

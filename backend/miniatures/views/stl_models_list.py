@@ -10,6 +10,16 @@ from games.views.common import require_staff, validated_or_error
 from ..models import StlModel
 from ..serializers import StlModelCreateSerializer, StlModelDetailSerializer, StlModelListSerializer
 from ._shared import skip_cache
+from ._stl_model_filters import (
+    filter_by_collection,
+    filter_by_name,
+    filter_by_race,
+    filter_by_roles,
+    filter_by_size,
+    filter_by_source,
+    filter_by_tags,
+    filter_by_type,
+)
 
 
 @api_view(['GET', 'POST'])
@@ -19,9 +29,24 @@ def stl_models_list(request):
     if request.method == 'POST':
         return _create_stl_model(request)
 
-    page, headers = Paginator(request, StlModel.objects.all()).paginate()
+    stl_models = _filtered_stl_models(request)
+    page, headers = Paginator(request, stl_models).paginate()
     serializer = StlModelListSerializer(page, many=True)
     return skip_cache(Response(serializer.data, headers=headers))
+
+
+def _filtered_stl_models(request):
+    """Return the STL model queryset filtered by every recognized query param, deduplicated."""
+    stl_models = StlModel.objects.all()
+    stl_models = filter_by_name(request, stl_models)
+    stl_models = filter_by_type(request, stl_models)
+    stl_models = filter_by_size(request, stl_models)
+    stl_models = filter_by_race(request, stl_models)
+    stl_models = filter_by_roles(request, stl_models)
+    stl_models = filter_by_source(request, stl_models)
+    stl_models = filter_by_collection(request, stl_models)
+    stl_models = filter_by_tags(request, stl_models)
+    return stl_models.distinct()
 
 
 def _create_stl_model(request):

@@ -1,3 +1,24 @@
 stl_models_page:
   loading: Carregando modelos STL...
   new_stl_model: Novo Modelo STL
+  filter_name_label: Nome
+  filter_name_placeholder: Buscar por nome...
+  filter_type_label: Tipo
+  filter_type_none_option: Nenhum
+  filter_race_label: Raças
+  filter_race_search_placeholder: Buscar raças...
+  filter_roles_label: Classes
+  filter_roles_search_placeholder: Buscar classes...
+  filter_source_label: Fontes
+  filter_source_search_placeholder: Buscar fontes...
+  filter_collection_label: Coleções
+  filter_collection_search_placeholder: Buscar coleções...
+  filter_tags_label: Tags
+  filter_tags_placeholder: Digite uma tag e pressione Enter, ou separe várias com vírgulas
+  filter_add_tag: Adicionar
+  filter_remove_tag_tooltip: Remover tag
+  filter_size_label: Tamanho
+  filter_size_none_option: Nenhum
+  filter_remove_label: Remover
+  filter_query: Filtrar
+  filter_clear: Limpar
