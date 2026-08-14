@@ -2,7 +2,7 @@
 
 import pytest
 
-from miniatures.models import StlModel
+from miniatures.models import StlModel, StlModelRace, StlModelRole
 from miniatures.serializers import StlModelDetailSerializer
 from miniatures.tests.factories import (
     CollectionFactory,
@@ -30,26 +30,58 @@ class TestStlModelDetailSerializer:
         assert data['name'] == 'Dragon Miniature'
         assert data['photo_url'] == 'photos/miniatures/1/photo.png'
 
-    def test_returns_owned_type_race_role(self):
-        """Test that owned, type, race, and role are returned."""
+    def test_returns_owned_type_url_size(self):
+        """Test that owned, type, url, and size are returned."""
         stl_model = StlModelFactory(
             name='Dragon Miniature', owned=False, type=StlModel.TYPE_CREATURE,
-            race=StlModel.RACE_DRAGONBORN, role=StlModel.ROLE_SORCERER,
+            url='https://example.com/model', size=StlModel.SIZE_HUGE,
         )
 
         data = StlModelDetailSerializer(stl_model).data
         assert data['owned'] is False
         assert data['type'] == StlModel.TYPE_CREATURE
-        assert data['race'] == StlModel.RACE_DRAGONBORN
-        assert data['role'] == StlModel.ROLE_SORCERER
+        assert data['url'] == 'https://example.com/model'
+        assert data['size'] == StlModel.SIZE_HUGE
 
-    def test_race_and_role_serialize_as_none_when_unset(self):
-        """Test that race and role serialize as null when unset."""
+    def test_url_and_size_serialize_as_none_when_unset(self):
+        """Test that url and size serialize as null when unset."""
         stl_model = StlModelFactory(name='Dragon Miniature')
 
         data = StlModelDetailSerializer(stl_model).data
-        assert data['race'] is None
-        assert data['role'] is None
+        assert data['url'] is None
+        assert data['size'] is None
+
+    def test_returns_races_as_flat_string_array(self):
+        """Test that races are serialized as a flat array of strings."""
+        stl_model = StlModelFactory(name='Dragon Miniature')
+        StlModelRace.objects.create(stl_model=stl_model, creature=StlModel.RACE_ELF)
+        StlModelRace.objects.create(stl_model=stl_model, creature=StlModel.RACE_DRAGON)
+
+        data = StlModelDetailSerializer(stl_model).data
+        assert set(data['races']) == {StlModel.RACE_ELF, StlModel.RACE_DRAGON}
+
+    def test_returns_empty_races_list_when_none_attached(self):
+        """Test that races serializes as an empty list when none are attached."""
+        stl_model = StlModelFactory(name='Dragon Miniature')
+
+        data = StlModelDetailSerializer(stl_model).data
+        assert data['races'] == []
+
+    def test_returns_roles_as_flat_string_array(self):
+        """Test that roles are serialized as a flat array of strings."""
+        stl_model = StlModelFactory(name='Dragon Miniature')
+        StlModelRole.objects.create(stl_model=stl_model, role=StlModel.ROLE_WIZARD)
+        StlModelRole.objects.create(stl_model=stl_model, role=StlModel.ROLE_ARCHER)
+
+        data = StlModelDetailSerializer(stl_model).data
+        assert set(data['roles']) == {StlModel.ROLE_WIZARD, StlModel.ROLE_ARCHER}
+
+    def test_returns_empty_roles_list_when_none_attached(self):
+        """Test that roles serializes as an empty list when none are attached."""
+        stl_model = StlModelFactory(name='Dragon Miniature')
+
+        data = StlModelDetailSerializer(stl_model).data
+        assert data['roles'] == []
 
     def test_photo_url_is_none_without_a_photo(self):
         """Test that photo_url resolves to None when no photo is set."""

@@ -9,14 +9,23 @@ stl_model_page:
   owned_label: Possuído
   not_owned_label: Não possuído
   type_label: Tipo
-  race_label: Raça
-  role_label: Classe
+  url_label: URL
+  size_label: Tamanho
+  races_label: Raças
+  roles_label: Classes
   none_label: Nenhum
 
   type_terrain: Terreno
   type_prop: Adereço
   type_creature: Criatura
   type_other: Outro
+
+  size_tiny: Minúsculo
+  size_small: Pequeno
+  size_medium: Médio
+  size_huge: Enorme
+  size_gargantuan: Descomunal
+  size_life: Tamanho real
 
   race_human: Humano
   race_elf: Elfo
@@ -29,6 +38,24 @@ stl_model_page:
   race_dragonborn: Dragonato
   race_orc: Orc
   race_goblin: Goblin
+  race_turtlefolk: Tartaruguídeo
+  race_cthulhufolk: Cthulhuídeo
+  race_humanoid: Humanoide
+  race_construct: Constructo
+  race_monstrosity: Monstruosidade
+  race_undead: Morto-vivo
+  race_aberration: Aberração
+  race_beast: Fera
+  race_alien: Alienígena
+  race_fiend: Corruptor
+  race_fey: Feérico
+  race_giant: Gigante
+  race_dragon: Dragão
+  race_celestial: Celestial
+  race_elemental: Elemental
+  race_cyborg: Ciborgue
+  race_plant: Planta
+  race_ooze: Limo
 
   role_barbarian: Bárbaro
   role_bard: Bardo

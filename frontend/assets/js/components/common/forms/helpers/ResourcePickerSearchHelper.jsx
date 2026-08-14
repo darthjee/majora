@@ -3,8 +3,11 @@
  */
 export default class ResourcePickerSearchHelper {
   /**
-   * Render the search input and its results list, each result rendered as an image+name row
-   * (`photo_url`/`name`, matching `SourceListSerializer`/`CollectionListSerializer`'s shape).
+   * Render the search input and its results list, each result rendered as a name row
+   * (`name`, matching `SourceListSerializer`/`CollectionListSerializer`'s shape), preceded by a
+   * thumbnail only when the result carries a `photo_url` — constant-mode results
+   * (`ResourcePickerSearch`'s `values`/`translateOption` pair, e.g. races/roles) have no
+   * `photo_url` at all, so no thumbnail (broken-image icon) is rendered for them.
    *
    * @param {{searchTerm: string, results: object[], searchPlaceholder: string}} state - Current
    *   search term, fetched results, and the caller-supplied translated placeholder.
@@ -30,7 +33,9 @@ export default class ResourcePickerSearchHelper {
               className="list-group-item list-group-item-action d-flex align-items-center gap-2"
               onClick={() => handlers.onSelect(item)}
             >
-              <img src={item.photo_url} alt={item.name} className="resource-picker-search-thumb" />
+              {item.photo_url && (
+                <img src={item.photo_url} alt={item.name} className="resource-picker-search-thumb" />
+              )}
               <span>{item.name}</span>
             </button>
           ))}

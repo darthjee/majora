@@ -4,10 +4,14 @@ stl_model_new_page:
   owned_switch_label: Possuído
   type_select_label: Tipo
   type_select_placeholder: Selecione um tipo
-  race_select_label: Raça
-  race_select_none_option: Nenhuma
-  role_select_label: Classe
-  role_select_none_option: Nenhuma
+  url_label: Url
+  url_placeholder: https://exemplo.com/modelo
+  size_select_label: Tamanho
+  size_select_none_option: Nenhum
+  races_label: Raças
+  races_search_placeholder: Buscar raças...
+  roles_label: Classes
+  roles_search_placeholder: Buscar classes...
   tags_label: Tags
   tags_input_placeholder: Digite uma tag e pressione Enter, ou separe várias com vírgulas
   add_tag: Adicionar

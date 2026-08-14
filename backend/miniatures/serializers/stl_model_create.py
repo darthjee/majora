@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from miniatures.models import Collection, Source, StlModel
 
+from ._stl_model_races_roles_sync import RacesSync, RolesSync
 from ._tags_sync import TagsSync, validate_tag_lengths, validate_tags_count
 
 
@@ -22,18 +23,29 @@ class StlModelCreateSerializer(serializers.ModelSerializer):
         source='collections', queryset=Collection.objects.all(), many=True, required=False,
         default=list,
     )
+    races = serializers.ListField(
+        child=serializers.ChoiceField(choices=StlModel.RACE_CHOICES), required=False,
+        default=list,
+    )
+    roles = serializers.ListField(
+        child=serializers.ChoiceField(choices=StlModel.ROLE_CHOICES), required=False,
+        default=list,
+    )
 
     class Meta:
         """Metadata for the StlModelCreateSerializer."""
 
         model = StlModel
-        fields = ['name', 'owned', 'type', 'race', 'role', 'tags', 'source_ids', 'collection_ids']
+        fields = [
+            'name', 'owned', 'type', 'url', 'size', 'races', 'roles', 'tags', 'source_ids',
+            'collection_ids',
+        ]
         extra_kwargs = {
             'name': {'required': True},
             'owned': {'required': False, 'default': True},
             'type': {'required': True},
-            'race': {'required': False, 'default': None},
-            'role': {'required': False, 'default': None},
+            'url': {'required': False, 'default': None},
+            'size': {'required': False, 'default': None},
         }
 
     def validate_tags(self, value):
@@ -42,12 +54,16 @@ class StlModelCreateSerializer(serializers.ModelSerializer):
         return validate_tags_count(value)
 
     def create(self, validated_data):
-        """Create the `StlModel`, get-or-create/attach `tags`, and link `sources`/`collections`."""
+        """Create the `StlModel`, attach tags/races/roles, and link sources/collections."""
         tag_names = validated_data.pop('tags', [])
         sources = validated_data.pop('sources', [])
         collections = validated_data.pop('collections', [])
+        races = validated_data.pop('races', [])
+        roles = validated_data.pop('roles', [])
         stl_model = StlModel.objects.create(**validated_data)
         TagsSync(stl_model, tag_names).apply()
+        RacesSync(stl_model, races).apply()
+        RolesSync(stl_model, roles).apply()
         stl_model.sources.set(sources)
         stl_model.collections.set(collections)
         return stl_model
