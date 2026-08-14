@@ -71,4 +71,8 @@ export const PREVIEW_LIST_TYPES = {
     titleKey: 'character_page.possessions_title',
     icon: Icons.houseDoor,
   },
+  faction: {
+    titleKey: 'character_page.factions_title',
+    icon: Icons.peopleFill,
+  },
 };

@@ -1,6 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import StlModelEditHelper
   from '../../../../../../../../assets/js/components/resources/stl_model/pages/helpers/StlModelEditHelper.jsx';
+import MultiResourcePickerField
+  from '../../../../../../../../assets/js/components/common/forms/MultiResourcePickerField.jsx';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -36,16 +38,20 @@ describe('StlModelEditHelper', function() {
     onNameChange: jasmine.createSpy('onNameChange'),
     onOwnedChange: jasmine.createSpy('onOwnedChange'),
     onTypeChange: jasmine.createSpy('onTypeChange'),
-    onRaceChange: jasmine.createSpy('onRaceChange'),
-    onRoleChange: jasmine.createSpy('onRoleChange'),
+    onRacesChange: jasmine.createSpy('onRacesChange'),
+    onRolesChange: jasmine.createSpy('onRolesChange'),
+    onUrlChange: jasmine.createSpy('onUrlChange'),
+    onSizeChange: jasmine.createSpy('onSizeChange'),
   });
 
   const buildState = (overrides = {}) => ({
     name: 'Goblin Miniature',
     owned: true,
     type: 'creature',
-    race: '',
-    role: '',
+    races: [],
+    roles: [],
+    url: '',
+    size: '',
     status: 'idle',
     fieldErrors: {},
     ...overrides,
@@ -86,16 +92,33 @@ describe('StlModelEditHelper', function() {
       expect(input.props.checked).toBe(false);
     });
 
-    it('renders the type/race/role selects wired to their change handlers', function() {
+    it('renders the type/url/size fields wired to their change handlers', function() {
       const handlers = buildHandlers();
       const element = StlModelEditHelper.render(buildState(), handlers);
       const typeSelect = findElement(element, (child) => child.props?.id === 'stl-model-edit-type');
-      const raceSelect = findElement(element, (child) => child.props?.id === 'stl-model-edit-race');
-      const roleSelect = findElement(element, (child) => child.props?.id === 'stl-model-edit-role');
+      const urlField = findElement(element, (child) => child.props?.id === 'stl-model-edit-url');
+      const sizeSelect = findElement(element, (child) => child.props?.id === 'stl-model-edit-size');
 
       expect(typeSelect.props.onChange).toBe(handlers.onTypeChange);
-      expect(raceSelect.props.onChange).toBe(handlers.onRaceChange);
-      expect(roleSelect.props.onChange).toBe(handlers.onRoleChange);
+      expect(urlField.props.onChange).toBe(handlers.onUrlChange);
+      expect(sizeSelect.props.onChange).toBe(handlers.onSizeChange);
+    });
+
+    it('renders the races/roles pickers wired to their change handlers with the current values', function() {
+      const handlers = buildHandlers();
+      const races = [{ id: 'elf', name: 'Elf' }];
+      const roles = [{ id: 'wizard', name: 'Wizard' }];
+      const element = StlModelEditHelper.render(buildState({ races, roles }), handlers);
+      const pickers = [];
+      findElement(element, (child) => {
+        if (child.type === MultiResourcePickerField) pickers.push(child);
+        return false;
+      });
+      const racesPicker = pickers.find((picker) => picker.props.value === races);
+      const rolesPicker = pickers.find((picker) => picker.props.value === roles);
+
+      expect(racesPicker.props.onChange).toBe(handlers.onRacesChange);
+      expect(rolesPicker.props.onChange).toBe(handlers.onRolesChange);
     });
 
     it('does not render photo/tags/sources/collections fields', function() {

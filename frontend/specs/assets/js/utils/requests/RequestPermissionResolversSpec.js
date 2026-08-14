@@ -198,5 +198,51 @@ describe('RequestPermissionResolvers', function() {
 
       expect(result).toEqual({});
     });
+
+    it('resolves character-level permissions for faction collection with a character kind (issue #943)',
+      function() {
+        spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+        RequestPermissionResolvers.resolve('faction', 'collection', { gameSlug: 'demo', kind: 'npcs', id: '3' });
+        RequestPermissionResolvers.resolve('faction', 'collection', { gameSlug: 'demo', kind: 'pcs', id: '3' });
+
+        expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('npcs', 'demo', '3');
+        expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('pcs', 'demo', '3');
+      });
+
+    it('resolves game-level permissions for faction collection with no character kind', function() {
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+      RequestPermissionResolvers.resolve('faction', 'collection', { gameSlug: 'demo' });
+
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+    });
+
+    it('resolves game-level permissions for faction.availableCollection regardless of kind (issue #943)',
+      function() {
+        spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+        RequestPermissionResolvers.resolve('faction', 'availableCollection', { gameSlug: 'demo', kind: 'pcs', id: '3' });
+
+        expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+      });
+
+    it('resolves game-level permissions for faction.characters (issue #943)', function() {
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+      RequestPermissionResolvers.resolve('faction', 'characters', { gameSlug: 'demo', id: '9' });
+
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+    });
+
+    it('resolves character-level permissions for faction summary, for either kind (issue #943)', function() {
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+      RequestPermissionResolvers.resolve('faction', 'summary', { gameSlug: 'demo', kind: 'npcs', id: '3' });
+      RequestPermissionResolvers.resolve('faction', 'summary', { gameSlug: 'demo', kind: 'pcs', id: '3' });
+
+      expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('npcs', 'demo', '3');
+      expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('pcs', 'demo', '3');
+    });
   });
 });

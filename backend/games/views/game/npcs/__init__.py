@@ -16,6 +16,18 @@ from .detail.documents.game_npc_documents import game_npc_documents
 from .detail.documents.game_npc_documents_all import game_npc_documents_all
 from .detail.documents.game_npc_documents_available import game_npc_documents_available
 from .detail.documents.game_npc_documents_available_all import game_npc_documents_available_all
+from .detail.factions.game_npc_faction_acquire import game_npc_faction_acquire
+from .detail.factions.game_npc_faction_acquire_all import game_npc_faction_acquire_all
+from .detail.factions.game_npc_faction_detail import game_npc_faction_detail
+from .detail.factions.game_npc_faction_detail_full import game_npc_faction_detail_full
+from .detail.factions.game_npc_faction_remove import game_npc_faction_remove
+from .detail.factions.game_npc_faction_remove_all import game_npc_faction_remove_all
+from .detail.factions.game_npc_faction_summary import game_npc_faction_summary
+from .detail.factions.game_npc_faction_summary_all import game_npc_faction_summary_all
+from .detail.factions.game_npc_factions import game_npc_factions
+from .detail.factions.game_npc_factions_all import game_npc_factions_all
+from .detail.factions.game_npc_factions_available import game_npc_factions_available
+from .detail.factions.game_npc_factions_available_all import game_npc_factions_available_all
 from .detail.game_npc_access import game_npc_access
 from .detail.game_npc_full import game_npc_full
 from .detail.game_npc_photo_upload import game_npc_photo_upload
@@ -91,6 +103,18 @@ __all__ = [
     'game_npc_document_remove_all',
     'game_npc_document_summary',
     'game_npc_document_summary_all',
+    'game_npc_factions',
+    'game_npc_factions_all',
+    'game_npc_faction_detail',
+    'game_npc_faction_detail_full',
+    'game_npc_factions_available',
+    'game_npc_factions_available_all',
+    'game_npc_faction_acquire',
+    'game_npc_faction_acquire_all',
+    'game_npc_faction_remove',
+    'game_npc_faction_remove_all',
+    'game_npc_faction_summary',
+    'game_npc_faction_summary_all',
     'game_npc_items',
     'game_npc_items_all',
     'game_npc_item_detail',

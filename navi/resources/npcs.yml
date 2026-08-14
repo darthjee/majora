@@ -36,6 +36,14 @@ resources:
           parameters:
             slug: parsedBody.game_slug
             id: parsedBody.id
+        - resource: npc_factions
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
+        - resource: short_npc_factions
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
         - resource: npc_possessions
           parameters:
             slug: parsedBody.game_slug
@@ -133,6 +141,26 @@ resources:
 
   short_npc_documents:
     - url: /games/{:slug}/npcs/{:id}/documents.json?per_page=5
+      status: 200
+
+  npc_factions:
+    - url: /games/{:slug}/npcs/{:id}/factions.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_npc_factions
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
+
+  paginated_npc_factions:
+    - url: /games/{:slug}/npcs/{:id}/factions.json?page={:page}&per_page={:per_page}
+      status: 200
+
+  short_npc_factions:
+    - url: /games/{:slug}/npcs/{:id}/factions.json?per_page=5
       status: 200
 
   npc_possessions:

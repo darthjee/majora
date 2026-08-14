@@ -1,5 +1,7 @@
 """Tests for the StlModelLink model."""
 
+import pytest
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from miniatures.models import StlModelLink
@@ -34,3 +36,17 @@ class TestStlModelLink(TestCase):
         link = StlModelLinkFactory(stl_model=self.stl_model)
         self.stl_model.delete()
         assert not StlModelLink.objects.filter(id=link.id).exists()
+
+    def test_non_http_url_raises_on_full_clean(self):
+        """Test that a non-http(s) url scheme fails full_clean() validation."""
+        link = StlModelLink(
+            stl_model=self.stl_model, text='Thingiverse', url='javascript:alert(1)',
+        )
+        with pytest.raises(ValidationError):
+            link.full_clean()
+
+    def test_malformed_url_raises_on_full_clean(self):
+        """Test that a malformed url (bare domain, no scheme) fails full_clean() validation."""
+        link = StlModelLink(stl_model=self.stl_model, text='Thingiverse', url='example.com/thing')
+        with pytest.raises(ValidationError):
+            link.full_clean()

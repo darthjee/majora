@@ -5,10 +5,10 @@ import json
 import pytest
 from rest_framework.authtoken.models import Token
 
-from games.models import FactionPhoto
+from games.models import GameFactionPhoto
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
-    FactionFactory,
+    GameFactionFactory,
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
@@ -24,7 +24,7 @@ class TestGameFactionPhotoUploadView(TokenAuthRequestMixin):
     def setup_method(self):
         """Set up a game, a faction, a DM, a player, and an unrelated user."""
         self.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
-        self.faction = FactionFactory(game=self.game, name='The Silver Hand')
+        self.faction = GameFactionFactory(game=self.game, name='The Silver Hand')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
         self.dm_token = Token.objects.create(user=self.dm_user)
@@ -71,7 +71,7 @@ class TestGameFactionPhotoUploadView(TokenAuthRequestMixin):
     def test_faction_from_different_game_returns_404(self, client):
         """Test that a faction_id belonging to a different game returns 404."""
         other_game = GameFactory(name='Other Game', game_slug='other-game')
-        other_faction = FactionFactory(game=other_game, name='The Iron Circle')
+        other_faction = GameFactionFactory(game=other_game, name='The Iron Circle')
         response = self._post(
             client, {'filename': 'photo.jpg'}, token=self.dm_token,
             faction_id=other_faction.id,
@@ -128,21 +128,21 @@ class TestGameFactionPhotoUploadView(TokenAuthRequestMixin):
         )
 
     def test_happy_path_creates_faction_photo_record(self, client):
-        """Test that the first upload creates a FactionPhoto record with ready=False."""
+        """Test that the first upload creates a GameFactionPhoto record with ready=False."""
         response = self._post(client, {'filename': 'hand.png'}, token=self.dm_token)
         data = json.loads(response.content)
         upload = Upload.objects.get(pk=data['upload_id'])
-        photo = FactionPhoto.objects.get(path=upload.file_path)
+        photo = GameFactionPhoto.objects.get(path=upload.file_path)
         assert photo.faction == self.faction
         assert photo.ready is False
-        assert FactionPhoto.objects.filter(faction=self.faction).count() == 1
+        assert GameFactionPhoto.objects.filter(faction=self.faction).count() == 1
 
     def test_upload_and_photo_share_same_file_path(self, client):
-        """Test that the Upload and FactionPhoto records share the same file_path/path."""
+        """Test that the Upload and GameFactionPhoto records share the same file_path/path."""
         response = self._post(client, {'filename': 'hand.jpg'}, token=self.dm_token)
         data = json.loads(response.content)
         upload = Upload.objects.get(pk=data['upload_id'])
-        photo = FactionPhoto.objects.get(faction=self.faction)
+        photo = GameFactionPhoto.objects.get(faction=self.faction)
         assert upload.file_path == photo.path
 
     def test_superuser_can_upload(self, client):
@@ -177,8 +177,8 @@ class TestGameFactionPhotoUploadView(TokenAuthRequestMixin):
         assert response.status_code == 201
 
     def _attach_existing_photo(self):
-        """Create and attach a FactionPhoto to `self.faction`, simulating a finalize."""
-        photo = FactionPhoto.objects.create(
+        """Create and attach a GameFactionPhoto to `self.faction`, simulating a finalize."""
+        photo = GameFactionPhoto.objects.create(
             faction=self.faction,
             path=f'photos/games/epic-quest/factions/{self.faction.id}/photo.png',
             ready=True,
@@ -188,14 +188,14 @@ class TestGameFactionPhotoUploadView(TokenAuthRequestMixin):
         return photo
 
     def test_reupload_reuses_existing_faction_photo_row(self, client):
-        """Test that re-uploading reuses the same FactionPhoto row, not a new one."""
+        """Test that re-uploading reuses the same GameFactionPhoto row, not a new one."""
         existing_photo = self._attach_existing_photo()
 
         response = self._post(client, {'filename': 'hand.jpg'}, token=self.dm_token)
         assert response.status_code == 201
 
-        assert FactionPhoto.objects.filter(faction=self.faction).count() == 1
-        photo = FactionPhoto.objects.get(faction=self.faction)
+        assert GameFactionPhoto.objects.filter(faction=self.faction).count() == 1
+        photo = GameFactionPhoto.objects.get(faction=self.faction)
         assert photo.id == existing_photo.id
         assert photo.path == f'photos/games/epic-quest/factions/{self.faction.id}/photo.jpg'
         assert photo.ready is False

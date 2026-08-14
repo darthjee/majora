@@ -3,6 +3,7 @@
 from django.db import transaction
 from rest_framework import serializers
 
+from common.serializer_fields import http_url_field
 from games.models import GameLink
 
 
@@ -18,6 +19,9 @@ class GameLinkWriteSerializer(serializers.ModelSerializer):
     # but this serializer needs `id` in validated_data to identify which link to update/delete.
     id = serializers.IntegerField(required=False)
     delete = serializers.BooleanField(required=False, default=False)
+    # Declared explicitly (rather than left to auto-mapping) so the http/https-only
+    # `URLValidator` actually runs at `is_valid()` time -- see `common.serializer_fields`.
+    url = http_url_field(max_length=200, required=False)
 
     class Meta:
         """Metadata for the GameLinkWriteSerializer."""
@@ -26,7 +30,6 @@ class GameLinkWriteSerializer(serializers.ModelSerializer):
         fields = ['id', 'text', 'url', 'link_type', 'delete']
         extra_kwargs = {
             'text': {'required': False},
-            'url': {'required': False},
             'link_type': {'required': False, 'allow_blank': True},
         }
 

@@ -20,6 +20,7 @@ import stlModelListType from './configs/stlModelListType.js';
 import sourceListType from './configs/sourceListType.js';
 import collectionListType from './configs/collectionListType.js';
 import factionListType from './configs/factionListType.js';
+import factionListTypes from './configs/factionListTypes.js';
 
 /**
  * Fetch a page of a game's treasures through `RequestStore` (`treasure.collection`, `kind:
@@ -286,6 +287,7 @@ const listTypeConfig = {
   sources: sourceListType,
   collections: collectionListType,
   factions: factionListType,
+  ...factionListTypes,
 };
 
 export default listTypeConfig;

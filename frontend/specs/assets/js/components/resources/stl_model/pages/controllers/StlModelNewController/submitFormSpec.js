@@ -29,8 +29,10 @@ describe('StlModelNewController', function() {
       name: 'Goblin',
       owned: true,
       type: 'creature',
-      race: '',
-      role: '',
+      url: '',
+      size: '',
+      races: [],
+      roles: [],
       tags: ['goblin', 'humanoid'],
       sources: [{ id: 1, name: 'Wyrmwood' }],
       collections: [{ id: 2, name: 'Dungeon Pack' }],
@@ -61,8 +63,10 @@ describe('StlModelNewController', function() {
           name: 'Goblin',
           owned: true,
           type: 'creature',
-          race: null,
-          role: null,
+          url: null,
+          size: null,
+          races: [],
+          roles: [],
           tags: ['goblin', 'humanoid'],
           source_ids: [1],
           collection_ids: [2],
@@ -70,34 +74,50 @@ describe('StlModelNewController', function() {
       });
     });
 
-    it('converts blank race/role selections to null', async function() {
+    it('converts blank url/size selections to null', async function() {
       const controller = new StlModelNewController(setError, setFieldErrors);
 
       await controller.submitForm(
         undefined,
-        buildFormValues({ race: 'elf', role: 'wizard' }),
+        buildFormValues({ url: 'https://example.com/model', size: 'huge' }),
         { setStatus, setFieldErrors, setCreatedId },
       );
 
       expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
-        body: jasmine.objectContaining({ race: 'elf', role: 'wizard' }),
+        body: jasmine.objectContaining({ url: 'https://example.com/model', size: 'huge' }),
       }));
     });
 
-    it('defaults tags/source_ids/collection_ids to empty arrays when none are given', async function() {
+    it('maps races/roles picks down to their raw db_value id', async function() {
+      const controller = new StlModelNewController(setError, setFieldErrors);
+
+      await controller.submitForm(
+        undefined,
+        buildFormValues({
+          races: [{ id: 'elf', name: 'Elf' }], roles: [{ id: 'wizard', name: 'Wizard' }],
+        }),
+        { setStatus, setFieldErrors, setCreatedId },
+      );
+
+      expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
+        body: jasmine.objectContaining({ races: ['elf'], roles: ['wizard'] }),
+      }));
+    });
+
+    it('defaults tags/source_ids/collection_ids/races/roles to empty arrays when none are given', async function() {
       const controller = new StlModelNewController(setError, setFieldErrors);
 
       await controller.submitForm(
         undefined,
         {
-          name: 'Goblin', owned: true, type: 'creature', race: '', role: '', photoFile: null,
+          name: 'Goblin', owned: true, type: 'creature', url: '', size: '', photoFile: null,
         },
         { setStatus, setFieldErrors, setCreatedId },
       );
 
       expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
         body: jasmine.objectContaining({
-          tags: [], source_ids: [], collection_ids: [],
+          tags: [], source_ids: [], collection_ids: [], races: [], roles: [],
         }),
       }));
     });

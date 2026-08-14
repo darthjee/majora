@@ -14,8 +14,8 @@ export default class StlModelHelper {
    * Render the STL model detail view: a back button, the model's picture (click-to-upload,
    * mirroring the PC/NPC detail pages, when `isStaffOrSuperUser` is true) and tags in the left
    * column, then its name (with an Edit link, when `isStaffOrSuperUser` is true),
-   * owned/type/race/role, links, sources, and collections in the right column — every field
-   * `StlModelDetailSerializer` returns.
+   * owned/type/races/roles/url/size, links, sources, and collections in the right column —
+   * every field `StlModelDetailSerializer` returns.
    *
    * @param {object} stlModel - STL model data object.
    * @param {number} stlModel.id - STL model id.
@@ -24,8 +24,11 @@ export default class StlModelHelper {
    *   back to the default placeholder image.
    * @param {boolean} [stlModel.owned] - Whether this STL model is already owned.
    * @param {string} [stlModel.type] - STL model type (`terrain`/`prop`/`creature`/`other`).
-   * @param {string|null} [stlModel.race] - STL model race, or null when unset.
-   * @param {string|null} [stlModel.role] - STL model role, or null when unset.
+   * @param {string|null} [stlModel.url] - External listing URL (e.g. MyMiniFactory/Thingiverse/
+   *   Patreon), or null when unset.
+   * @param {string|null} [stlModel.size] - STL model size, or null when unset.
+   * @param {string[]} [stlModel.races] - STL model races, empty when unset.
+   * @param {string[]} [stlModel.roles] - STL model roles, empty when unset.
    * @param {{id: number, text: string, url: string, link_type: string}[]} [stlModel.links] -
    *   External links for this STL model.
    * @param {{name: string}[]} [stlModel.sources] - Sources this STL model comes from.
@@ -59,8 +62,10 @@ export default class StlModelHelper {
             </div>
             {StlModelHelper.#renderOwned(stlModel)}
             {StlModelHelper.#renderEnumField('type', stlModel.type)}
-            {StlModelHelper.#renderEnumField('race', stlModel.race)}
-            {StlModelHelper.#renderEnumField('role', stlModel.role)}
+            {StlModelHelper.#renderEnumArray('races', stlModel.races)}
+            {StlModelHelper.#renderEnumArray('roles', stlModel.roles)}
+            {StlModelHelper.#renderEnumField('size', stlModel.size)}
+            {StlModelHelper.#renderUrl(stlModel.url)}
             {StlModelHelper.#renderLinks(stlModel.links)}
             {StlModelHelper.#renderSources(stlModel.sources)}
             {StlModelHelper.#renderCollections(stlModel.collections)}
@@ -123,6 +128,38 @@ export default class StlModelHelper {
     return (
       <p>
         <strong>{Translator.t(`stl_model_page.${field}_label`)}:</strong> {displayValue}
+      </p>
+    );
+  }
+
+  static #renderEnumArray(field, values) {
+    if (!values || values.length === 0) {
+      return null;
+    }
+
+    const singular = field.slice(0, -1);
+
+    return (
+      <div className="mt-3">
+        <h5>{Translator.t(`stl_model_page.${field}_label`)}</h5>
+        {values.map((value) => (
+          <span key={value} className="me-1 d-inline-block">
+            <Badge text={Translator.t(`stl_model_page.${singular}_${value}`)} />
+          </span>
+        ))}
+      </div>
+    );
+  }
+
+  static #renderUrl(url) {
+    if (!url) {
+      return null;
+    }
+
+    return (
+      <p>
+        <strong>{Translator.t('stl_model_page.url_label')}:</strong>{' '}
+        <a href={url} target="_blank" rel="noreferrer">{url}</a>
       </p>
     );
   }
