@@ -59,4 +59,35 @@ export default class UploadClient extends BaseClient {
       signal: AbortSignal.timeout(UPLOAD_TIMEOUT_MS),
     });
   }
+
+  /**
+   * Runs the full init-then-submit upload round trip for a single file.
+   *
+   * @description Calls initUpload, and if it does not respond ok, short-circuits to
+   *   `{ ok: false }` without calling submitUpload. Otherwise parses the init response body and
+   *   calls submitUpload with the `upload_type` taken from it, so callers never need to thread
+   *   `uploadType` through themselves. Exceptions (network errors, timeouts, malformed JSON) are
+   *   not caught here and propagate to the caller.
+   * @param {string} initPath - Full path to the photo upload init endpoint.
+   * @param {File} file - File to upload.
+   * @param {string} token - Authentication token.
+   * @param {string} [name] - Optional user-provided name for the uploaded file, forwarded to
+   *   initUpload.
+   * @returns {Promise<object>} Resolves to `{ ok, ...initData }`, where `ok` reflects the submit
+   *   step's success and `initData` is the parsed init response body (e.g. `upload_id`, `token`,
+   *   `upload_type`, and any other fields such as the newly created file's own `id`). Resolves to
+   *   `{ ok: false }` when the init step itself fails.
+   */
+  async runUploadCycle(initPath, file, token, name) {
+    const initResponse = await this.initUpload(initPath, file.name, token, name);
+
+    if (!initResponse.ok) return { ok: false };
+
+    const initData = await initResponse.json();
+    const submitResponse = await this.submitUpload(
+      initData.upload_id, initData.token, file, initData.upload_type,
+    );
+
+    return { ok: submitResponse.ok, ...initData };
+  }
 }

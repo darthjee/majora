@@ -175,7 +175,7 @@ describe('GameNpcNewController', function() {
 
     it('does not call setCharacterId or the upload client when no photoFile is provided', async function() {
       const setCharacterId = jasmine.createSpy('setCharacterId');
-      const uploadClient = jasmine.createSpyObj('uploadClient', ['initUpload', 'submitUpload']);
+      const uploadClient = jasmine.createSpyObj('uploadClient', ['runUploadCycle']);
       const controller = new GameNpcNewController(setError, setFieldErrors, characterClient, uploadClient);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
@@ -190,7 +190,7 @@ describe('GameNpcNewController', function() {
           { setStatus, setFieldErrors, setCharacterId },
         );
 
-        expect(uploadClient.initUpload).not.toHaveBeenCalled();
+        expect(uploadClient.runUploadCycle).not.toHaveBeenCalled();
         expect(setCharacterId).not.toHaveBeenCalled();
         expect(fakeWindow.location.hash).toBe('/games/demo/npcs/7');
       } finally {

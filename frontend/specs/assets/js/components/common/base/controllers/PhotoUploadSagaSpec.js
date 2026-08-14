@@ -7,42 +7,25 @@ describe('PhotoUploadSaga', function() {
     const photoFile = { name: 'photo.jpg' };
 
     beforeEach(function() {
-      uploadClient = jasmine.createSpyObj('uploadClient', ['initUpload', 'submitUpload']);
+      uploadClient = jasmine.createSpyObj('uploadClient', ['runUploadCycle']);
     });
 
-    it('returns true when init and submit both succeed', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ upload_id: 1, token: 'up-token' }),
+    it('returns true when the upload cycle succeeds', async function() {
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({
+        ok: true, upload_id: 1, token: 'up-token', upload_type: 'image',
       }));
-      uploadClient.submitUpload.and.returnValue(Promise.resolve({ ok: true }));
 
       const saga = new PhotoUploadSaga(uploadClient);
       const result = await saga.upload('/games/demo/npcs/7/photo_upload.json', photoFile, 'tok-abc');
 
-      expect(uploadClient.initUpload).toHaveBeenCalledWith(
-        '/games/demo/npcs/7/photo_upload.json', 'photo.jpg', 'tok-abc',
+      expect(uploadClient.runUploadCycle).toHaveBeenCalledWith(
+        '/games/demo/npcs/7/photo_upload.json', photoFile, 'tok-abc',
       );
-      expect(uploadClient.submitUpload).toHaveBeenCalledWith(1, 'up-token', photoFile);
       expect(result).toBe(true);
     });
 
-    it('returns false when initUpload does not respond ok', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({ ok: false, status: 422 }));
-
-      const saga = new PhotoUploadSaga(uploadClient);
-      const result = await saga.upload('/games/demo/npcs/7/photo_upload.json', photoFile, 'tok-abc');
-
-      expect(uploadClient.submitUpload).not.toHaveBeenCalled();
-      expect(result).toBe(false);
-    });
-
-    it('returns false when submitUpload does not respond ok', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ upload_id: 1, token: 'up-token' }),
-      }));
-      uploadClient.submitUpload.and.returnValue(Promise.resolve({ ok: false, status: 500 }));
+    it('returns false when the upload cycle does not succeed', async function() {
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: false }));
 
       const saga = new PhotoUploadSaga(uploadClient);
       const result = await saga.upload('/games/demo/npcs/7/photo_upload.json', photoFile, 'tok-abc');
@@ -51,7 +34,7 @@ describe('PhotoUploadSaga', function() {
     });
 
     it('returns false when the upload client throws', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.reject(new Error('network error')));
+      uploadClient.runUploadCycle.and.returnValue(Promise.reject(new Error('network error')));
 
       const saga = new PhotoUploadSaga(uploadClient);
       const result = await saga.upload('/games/demo/npcs/7/photo_upload.json', photoFile, 'tok-abc');

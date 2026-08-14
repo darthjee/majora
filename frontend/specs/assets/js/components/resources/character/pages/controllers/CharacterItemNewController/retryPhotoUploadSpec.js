@@ -18,7 +18,7 @@ describe('CharacterItemNewController', function() {
     beforeEach(function() {
       setStatus = jasmine.createSpy('setStatus');
       setGameItemId = jasmine.createSpy('setGameItemId');
-      uploadClient = jasmine.createSpyObj('uploadClient', ['initUpload', 'submitUpload']);
+      uploadClient = jasmine.createSpyObj('uploadClient', ['runUploadCycle']);
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
       spyOn(RequestStore, 'resolvePath').and.returnValue(
         Promise.resolve('/games/demo/items/5/photo_upload.json'),
@@ -27,11 +27,7 @@ describe('CharacterItemNewController', function() {
     });
 
     it('re-runs the upload-only path and redirects on success, without creating a new item', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ upload_id: 1, token: 'up-token' }),
-      }));
-      uploadClient.submitUpload.and.returnValue(Promise.resolve({ ok: true }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: true, upload_id: 1, token: 'up-token' }));
 
       const controller = new CharacterItemNewController('npcs', Noop.noop, Noop.noop, uploadClient);
       const fakeWindow = { location: { hash: '' } };
@@ -43,8 +39,8 @@ describe('CharacterItemNewController', function() {
         expect(RequestStore.resolvePath).toHaveBeenCalledWith({
           resource: 'item', method: 'POST', quantityType: 'single', params: { gameSlug: 'demo', kind: 'game', id: 5 },
         });
-        expect(uploadClient.initUpload).toHaveBeenCalledWith(
-          '/games/demo/items/5/photo_upload.json', 'photo.jpg', 'tok-abc',
+        expect(uploadClient.runUploadCycle).toHaveBeenCalledWith(
+          '/games/demo/items/5/photo_upload.json', photoFile, 'tok-abc',
         );
         expect(RequestStore.purge).toHaveBeenCalledWith({ resource: 'item' });
         expect(fakeWindow.location.hash).toBe('/games/demo/npcs/9/items');
@@ -54,7 +50,7 @@ describe('CharacterItemNewController', function() {
     });
 
     it('sets status back to photo-upload-failed when the retry also fails', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({ ok: false, status: 500 }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: false }));
 
       const controller = new CharacterItemNewController('npcs', Noop.noop, Noop.noop, uploadClient);
       const fakeWindow = { location: { hash: '' } };

@@ -17,7 +17,7 @@ describe('GameNpcNewController', function() {
     beforeEach(function() {
       setStatus = jasmine.createSpy('setStatus');
       setCharacterId = jasmine.createSpy('setCharacterId');
-      uploadClient = jasmine.createSpyObj('uploadClient', ['initUpload', 'submitUpload']);
+      uploadClient = jasmine.createSpyObj('uploadClient', ['runUploadCycle']);
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
       spyOn(RequestStore, 'resolvePath').and.returnValue(
         Promise.resolve('/games/demo/npcs/7/photo_upload.json'),
@@ -26,11 +26,7 @@ describe('GameNpcNewController', function() {
     });
 
     it('re-runs the upload-only path and redirects on success, without creating a new NPC', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ upload_id: 1, token: 'up-token' }),
-      }));
-      uploadClient.submitUpload.and.returnValue(Promise.resolve({ ok: true }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: true, upload_id: 1, token: 'up-token' }));
 
       const characterClient = jasmine.createSpyObj('characterClient', ['createNpc']);
       const controller = new GameNpcNewController(null, null, characterClient, uploadClient);
@@ -44,8 +40,8 @@ describe('GameNpcNewController', function() {
         expect(RequestStore.resolvePath).toHaveBeenCalledWith({
           resource: 'npc', method: 'POST', quantityType: 'single', params: { gameSlug: 'demo', id: 7 },
         });
-        expect(uploadClient.initUpload).toHaveBeenCalledWith(
-          '/games/demo/npcs/7/photo_upload.json', 'photo.jpg', 'tok-abc',
+        expect(uploadClient.runUploadCycle).toHaveBeenCalledWith(
+          '/games/demo/npcs/7/photo_upload.json', photoFile, 'tok-abc',
         );
         expect(RequestStore.purge).toHaveBeenCalledWith({ resource: 'npc' });
         expect(fakeWindow.location.hash).toBe('/games/demo/npcs/7');
@@ -55,7 +51,7 @@ describe('GameNpcNewController', function() {
     });
 
     it('sets status back to photo-upload-failed when the retry also fails', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({ ok: false, status: 500 }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: false }));
 
       const controller = new GameNpcNewController(null, null, null, uploadClient);
       const fakeWindow = { location: { hash: '' } };

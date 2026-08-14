@@ -18,7 +18,7 @@ describe('StlModelNewController', function() {
     beforeEach(function() {
       setStatus = jasmine.createSpy('setStatus');
       setCreatedId = jasmine.createSpy('setCreatedId');
-      uploadClient = jasmine.createSpyObj('uploadClient', ['initUpload', 'submitUpload']);
+      uploadClient = jasmine.createSpyObj('uploadClient', ['runUploadCycle']);
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
       spyOn(RequestStore, 'resolvePath').and.returnValue(
         Promise.resolve('/miniatures/stl_models/7/photo_upload.json'),
@@ -34,11 +34,7 @@ describe('StlModelNewController', function() {
 
     it('re-runs the upload-only path and redirects to the show page on success, without creating a new '
       + 'STL model', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ upload_id: 1, token: 'up-token' }),
-      }));
-      uploadClient.submitUpload.and.returnValue(Promise.resolve({ ok: true }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: true, upload_id: 1, token: 'up-token' }));
       spyOn(RequestStore, 'mutate');
 
       const controller = new StlModelNewController(null, null, uploadClient);
@@ -49,15 +45,15 @@ describe('StlModelNewController', function() {
       expect(RequestStore.resolvePath).toHaveBeenCalledWith({
         resource: 'stlModel', method: 'POST', quantityType: 'single', params: { id: 7 },
       });
-      expect(uploadClient.initUpload).toHaveBeenCalledWith(
-        '/miniatures/stl_models/7/photo_upload.json', 'photo.jpg', 'tok-abc',
+      expect(uploadClient.runUploadCycle).toHaveBeenCalledWith(
+        '/miniatures/stl_models/7/photo_upload.json', photoFile, 'tok-abc',
       );
       expect(RequestStore.purge).toHaveBeenCalledWith({ resource: 'stlModel' });
       expect(fakeWindow.location.hash).toBe('/miniatures/stl_models/7');
     });
 
     it('sets status back to photo-upload-failed when the retry also fails', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({ ok: false, status: 500 }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: false }));
 
       const controller = new StlModelNewController(null, null, uploadClient);
 

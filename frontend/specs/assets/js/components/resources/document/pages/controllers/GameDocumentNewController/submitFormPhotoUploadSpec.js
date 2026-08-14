@@ -20,7 +20,7 @@ describe('GameDocumentNewController', function() {
       setFieldErrors = jasmine.createSpy('setFieldErrors');
       setStatus = jasmine.createSpy('setStatus');
       setGameDocumentId = jasmine.createSpy('setGameDocumentId');
-      uploadClient = jasmine.createSpyObj('uploadClient', ['initUpload', 'submitUpload']);
+      uploadClient = jasmine.createSpyObj('uploadClient', ['runUploadCycle']);
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
       spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         status: 201,
@@ -39,11 +39,7 @@ describe('GameDocumentNewController', function() {
     });
 
     it('uploads the photo against the created document id and redirects when the upload succeeds', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ upload_id: 1, token: 'up-token' }),
-      }));
-      uploadClient.submitUpload.and.returnValue(Promise.resolve({ ok: true }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: true, upload_id: 1, token: 'up-token' }));
 
       const controller = new GameDocumentNewController(Noop.noop, setFieldErrors, uploadClient);
       const fakeWindow = { location: { hash: '' } };
@@ -60,10 +56,9 @@ describe('GameDocumentNewController', function() {
         expect(RequestStore.resolvePath).toHaveBeenCalledWith({
           resource: 'document', method: 'POST', quantityType: 'single', params: { gameSlug: 'demo', id: 5 },
         });
-        expect(uploadClient.initUpload).toHaveBeenCalledWith(
-          '/games/demo/documents/5/photo_upload.json', 'photo.jpg', 'tok-abc',
+        expect(uploadClient.runUploadCycle).toHaveBeenCalledWith(
+          '/games/demo/documents/5/photo_upload.json', photoFile, 'tok-abc',
         );
-        expect(uploadClient.submitUpload).toHaveBeenCalledWith(1, 'up-token', photoFile);
         expect(RequestStore.purge).toHaveBeenCalledWith({ resource: 'document' });
         expect(fakeWindow.location.hash).toBe('/games/demo/documents');
         expect(setStatus).not.toHaveBeenCalledWith('photo-upload-failed');
@@ -73,7 +68,7 @@ describe('GameDocumentNewController', function() {
     });
 
     it('sets status to photo-upload-failed and stores the document id when initUpload fails', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({ ok: false, status: 422 }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: false }));
 
       const controller = new GameDocumentNewController(Noop.noop, setFieldErrors, uploadClient);
       const fakeWindow = { location: { hash: '' } };
@@ -89,7 +84,6 @@ describe('GameDocumentNewController', function() {
 
         expect(setStatus).toHaveBeenCalledWith('photo-upload-failed');
         expect(setGameDocumentId).toHaveBeenCalledWith(5);
-        expect(uploadClient.submitUpload).not.toHaveBeenCalled();
         expect(RequestStore.purge).not.toHaveBeenCalled();
         expect(fakeWindow.location.hash).toBe('');
       } finally {
@@ -98,11 +92,7 @@ describe('GameDocumentNewController', function() {
     });
 
     it('sets status to photo-upload-failed when submitUpload fails', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ upload_id: 1, token: 'up-token' }),
-      }));
-      uploadClient.submitUpload.and.returnValue(Promise.resolve({ ok: false, status: 500 }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: false, upload_id: 1, token: 'up-token' }));
 
       const controller = new GameDocumentNewController(Noop.noop, setFieldErrors, uploadClient);
       const fakeWindow = { location: { hash: '' } };
@@ -125,7 +115,7 @@ describe('GameDocumentNewController', function() {
     });
 
     it('sets status to photo-upload-failed when the upload client throws', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.reject(new Error('network error')));
+      uploadClient.runUploadCycle.and.returnValue(Promise.reject(new Error('network error')));
 
       const controller = new GameDocumentNewController(Noop.noop, setFieldErrors, uploadClient);
       const fakeWindow = { location: { hash: '' } };
@@ -159,7 +149,7 @@ describe('GameDocumentNewController', function() {
           { setStatus, setFieldErrors, setGameDocumentId },
         );
 
-        expect(uploadClient.initUpload).not.toHaveBeenCalled();
+        expect(uploadClient.runUploadCycle).not.toHaveBeenCalled();
         expect(fakeWindow.location.hash).toBe('/games/demo/documents');
       } finally {
         delete globalThis.window;

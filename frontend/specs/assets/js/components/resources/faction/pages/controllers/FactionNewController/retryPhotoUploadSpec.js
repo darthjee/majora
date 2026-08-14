@@ -19,7 +19,7 @@ describe('FactionNewController', function() {
       setStatus = jasmine.createSpy('setStatus');
       setCreatedId = jasmine.createSpy('setCreatedId');
       onSuccess = jasmine.createSpy('onSuccess');
-      uploadClient = jasmine.createSpyObj('uploadClient', ['initUpload', 'submitUpload']);
+      uploadClient = jasmine.createSpyObj('uploadClient', ['runUploadCycle']);
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
       spyOn(RequestStore, 'resolvePath').and.returnValue(
         Promise.resolve('/games/demo/factions/7/photo_upload.json'),
@@ -28,11 +28,7 @@ describe('FactionNewController', function() {
     });
 
     it('re-runs the upload-only path and calls onSuccess on success, without creating a new faction', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ upload_id: 1, token: 'up-token' }),
-      }));
-      uploadClient.submitUpload.and.returnValue(Promise.resolve({ ok: true }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: true, upload_id: 1, token: 'up-token' }));
       spyOn(RequestStore, 'mutate');
 
       const controller = new FactionNewController(null, null, uploadClient);
@@ -43,15 +39,15 @@ describe('FactionNewController', function() {
       expect(RequestStore.resolvePath).toHaveBeenCalledWith({
         resource: 'faction', method: 'POST', quantityType: 'single', params: { gameSlug: 'demo', id: 7 },
       });
-      expect(uploadClient.initUpload).toHaveBeenCalledWith(
-        '/games/demo/factions/7/photo_upload.json', 'photo.jpg', 'tok-abc',
+      expect(uploadClient.runUploadCycle).toHaveBeenCalledWith(
+        '/games/demo/factions/7/photo_upload.json', photoFile, 'tok-abc',
       );
       expect(RequestStore.purge).toHaveBeenCalledWith({ resource: 'faction' });
       expect(onSuccess).toHaveBeenCalledWith(7);
     });
 
     it('sets status back to photo-upload-failed when the retry also fails', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({ ok: false, status: 500 }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: false }));
 
       const controller = new FactionNewController(null, null, uploadClient);
 

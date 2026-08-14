@@ -20,7 +20,7 @@ describe('CharacterItemNewController', function() {
       setFieldErrors = jasmine.createSpy('setFieldErrors');
       setStatus = jasmine.createSpy('setStatus');
       setGameItemId = jasmine.createSpy('setGameItemId');
-      uploadClient = jasmine.createSpyObj('uploadClient', ['initUpload', 'submitUpload']);
+      uploadClient = jasmine.createSpyObj('uploadClient', ['runUploadCycle']);
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
       spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         status: 201,
@@ -39,11 +39,7 @@ describe('CharacterItemNewController', function() {
     });
 
     it('uploads the photo against game_item_id and redirects to the items list when the upload succeeds', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ upload_id: 1, token: 'up-token' }),
-      }));
-      uploadClient.submitUpload.and.returnValue(Promise.resolve({ ok: true }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: true, upload_id: 1, token: 'up-token' }));
 
       const controller = new CharacterItemNewController('pcs', Noop.noop, setFieldErrors, uploadClient);
       const fakeWindow = { location: { hash: '' } };
@@ -61,10 +57,9 @@ describe('CharacterItemNewController', function() {
         expect(RequestStore.resolvePath).toHaveBeenCalledWith({
           resource: 'item', method: 'POST', quantityType: 'single', params: { gameSlug: 'demo', kind: 'game', id: 5 },
         });
-        expect(uploadClient.initUpload).toHaveBeenCalledWith(
-          '/games/demo/items/5/photo_upload.json', 'photo.jpg', 'tok-abc',
+        expect(uploadClient.runUploadCycle).toHaveBeenCalledWith(
+          '/games/demo/items/5/photo_upload.json', photoFile, 'tok-abc',
         );
-        expect(uploadClient.submitUpload).toHaveBeenCalledWith(1, 'up-token', photoFile);
         expect(RequestStore.purge).toHaveBeenCalledWith({ resource: 'item' });
         expect(fakeWindow.location.hash).toBe('/games/demo/pcs/7/items');
         expect(setStatus).not.toHaveBeenCalledWith('photo-upload-failed');
@@ -74,7 +69,7 @@ describe('CharacterItemNewController', function() {
     });
 
     it('sets status to photo-upload-failed and stores game_item_id when initUpload fails', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({ ok: false, status: 422 }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: false }));
 
       const controller = new CharacterItemNewController('pcs', Noop.noop, setFieldErrors, uploadClient);
       const fakeWindow = { location: { hash: '' } };
@@ -91,7 +86,6 @@ describe('CharacterItemNewController', function() {
 
         expect(setStatus).toHaveBeenCalledWith('photo-upload-failed');
         expect(setGameItemId).toHaveBeenCalledWith(5);
-        expect(uploadClient.submitUpload).not.toHaveBeenCalled();
         expect(RequestStore.purge).not.toHaveBeenCalled();
         expect(fakeWindow.location.hash).toBe('');
       } finally {
@@ -100,11 +94,7 @@ describe('CharacterItemNewController', function() {
     });
 
     it('sets status to photo-upload-failed when submitUpload fails', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ upload_id: 1, token: 'up-token' }),
-      }));
-      uploadClient.submitUpload.and.returnValue(Promise.resolve({ ok: false, status: 500 }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: false, upload_id: 1, token: 'up-token' }));
 
       const controller = new CharacterItemNewController('pcs', Noop.noop, setFieldErrors, uploadClient);
       const fakeWindow = { location: { hash: '' } };
@@ -128,7 +118,7 @@ describe('CharacterItemNewController', function() {
     });
 
     it('sets status to photo-upload-failed when the upload client throws', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.reject(new Error('network error')));
+      uploadClient.runUploadCycle.and.returnValue(Promise.reject(new Error('network error')));
 
       const controller = new CharacterItemNewController('pcs', Noop.noop, setFieldErrors, uploadClient);
       const fakeWindow = { location: { hash: '' } };
@@ -164,7 +154,7 @@ describe('CharacterItemNewController', function() {
           { setStatus, setFieldErrors, setGameItemId },
         );
 
-        expect(uploadClient.initUpload).not.toHaveBeenCalled();
+        expect(uploadClient.runUploadCycle).not.toHaveBeenCalled();
         expect(fakeWindow.location.hash).toBe('/games/demo/pcs/7/items');
       } finally {
         delete globalThis.window;

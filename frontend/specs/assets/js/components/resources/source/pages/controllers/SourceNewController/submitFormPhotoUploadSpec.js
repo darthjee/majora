@@ -23,7 +23,7 @@ describe('SourceNewController', function() {
         setError, setFieldErrors, setStatus, setCreatedId, onSuccess,
       } = buildContext());
       stubAccessStore(true);
-      uploadClient = jasmine.createSpyObj('uploadClient', ['initUpload', 'submitUpload']);
+      uploadClient = jasmine.createSpyObj('uploadClient', ['runUploadCycle']);
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
       spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         status: 201,
@@ -38,11 +38,7 @@ describe('SourceNewController', function() {
     const buildFormValues = () => ({ name: 'MyMiniFactory', url: '', photoFile });
 
     it('uploads the photo and calls onSuccess when the source is created and the upload succeeds', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ upload_id: 1, token: 'up-token' }),
-      }));
-      uploadClient.submitUpload.and.returnValue(Promise.resolve({ ok: true }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: true, upload_id: 1, token: 'up-token' }));
 
       const controller = new SourceNewController(setError, setFieldErrors, uploadClient);
 
@@ -57,17 +53,16 @@ describe('SourceNewController', function() {
       expect(RequestStore.resolvePath).toHaveBeenCalledWith({
         resource: 'source', method: 'POST', quantityType: 'single', params: { id: 7 },
       });
-      expect(uploadClient.initUpload).toHaveBeenCalledWith(
-        '/miniatures/sources/7/photo_upload.json', 'photo.jpg', 'tok-abc',
+      expect(uploadClient.runUploadCycle).toHaveBeenCalledWith(
+        '/miniatures/sources/7/photo_upload.json', photoFile, 'tok-abc',
       );
-      expect(uploadClient.submitUpload).toHaveBeenCalledWith(1, 'up-token', photoFile);
       expect(RequestStore.purge).toHaveBeenCalledWith({ resource: 'source' });
       expect(onSuccess).toHaveBeenCalledWith(7);
       expect(setStatus).not.toHaveBeenCalledWith('photo-upload-failed');
     });
 
     it('sets status to photo-upload-failed and keeps the created id when initUpload fails', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({ ok: false, status: 422 }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: false }));
 
       const controller = new SourceNewController(setError, setFieldErrors, uploadClient);
 
@@ -81,17 +76,12 @@ describe('SourceNewController', function() {
 
       expect(setStatus).toHaveBeenCalledWith('photo-upload-failed');
       expect(setCreatedId).toHaveBeenCalledWith(7);
-      expect(uploadClient.submitUpload).not.toHaveBeenCalled();
       expect(RequestStore.purge).not.toHaveBeenCalled();
       expect(onSuccess).not.toHaveBeenCalled();
     });
 
     it('sets status to photo-upload-failed when submitUpload fails', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ upload_id: 1, token: 'up-token' }),
-      }));
-      uploadClient.submitUpload.and.returnValue(Promise.resolve({ ok: false, status: 500 }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: false, upload_id: 1, token: 'up-token' }));
 
       const controller = new SourceNewController(setError, setFieldErrors, uploadClient);
 
@@ -109,7 +99,7 @@ describe('SourceNewController', function() {
     });
 
     it('sets status to photo-upload-failed when the upload client throws', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.reject(new Error('network error')));
+      uploadClient.runUploadCycle.and.returnValue(Promise.reject(new Error('network error')));
 
       const controller = new SourceNewController(setError, setFieldErrors, uploadClient);
 
