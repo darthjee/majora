@@ -11,7 +11,10 @@ import getCurrentHash from '../../../../utils/routing/currentHash.js';
  * renders the give-treasure modal, gated on the controller's independently-derived
  * `canUploadPhoto` flag (issue #1005 — superuser/staff/dm/player of the game, fixing the "Give
  * Treasure" button's previously-unconditional visibility); every per-character grant is still
- * checked server-side by the reused acquire endpoint. No forced page refetch on the modal's own
+ * checked server-side by the reused acquire endpoint. The modal itself is routed through the
+ * controller's independently-derived `canGiveHidden` flag (superuser/dm/staff, issue #833) so a
+ * hidden treasure can only be given through the elevated acquire endpoint, replacing the previous,
+ * too-broad `treasure?.can_edit`-driven derivation. No forced page refetch on the modal's own
  * success/close, since this page displays nothing summary-derived.
  *
  * @param {object} [props] - Component props.
@@ -24,10 +27,11 @@ export default function GameTreasure({ ControllerClass = GameTreasureController 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [canUploadPhoto, setCanUploadPhoto] = useState(false);
+  const [canGiveHidden, setCanGiveHidden] = useState(false);
   const [showGiveTreasureModal, setShowGiveTreasureModal] = useState(false);
 
   const controller = useMemo(
-    () => new ControllerClass(setTreasure, setLoading, setError, setCanUploadPhoto),
+    () => new ControllerClass(setTreasure, setLoading, setError, setCanUploadPhoto, setCanGiveHidden),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
@@ -53,7 +57,7 @@ export default function GameTreasure({ ControllerClass = GameTreasureController 
         show={showGiveTreasureModal}
         treasure={treasure ?? {}}
         gameSlug={gameSlug}
-        canEdit={Boolean(treasure?.can_edit)}
+        canGiveHidden={canGiveHidden}
         onClose={() => setShowGiveTreasureModal(false)}
       />
     </>

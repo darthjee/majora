@@ -13,12 +13,12 @@ import Noop from '../../../../../../../assets/js/utils/Noop.js';
 
 const loadedDocument = { id: 5, name: 'Ancient Scroll', description: 'A crumbling scroll.' };
 
-/** Stub controller that synchronously loads a document (with upload/edit permission) during construction. */
+/** Stub controller that synchronously loads a document (with upload/give-hidden permission) during construction. */
 class LoadedController {
-  constructor(setDocument, setLoading, setError, setCanUploadPhoto, setCanEdit) {
+  constructor(setDocument, setLoading, setError, setCanUploadPhoto, setCanGiveHidden) {
     setDocument(loadedDocument);
     setCanUploadPhoto(true);
-    setCanEdit?.(true);
+    setCanGiveHidden?.(true);
     setLoading(false);
   }
 
@@ -27,10 +27,10 @@ class LoadedController {
 
 /** Stub controller that synchronously loads a document without upload permission. */
 class LoadedWithoutUploadController {
-  constructor(setDocument, setLoading, setError, setCanUploadPhoto, setCanEdit) {
+  constructor(setDocument, setLoading, setError, setCanUploadPhoto, setCanGiveHidden) {
     setDocument(loadedDocument);
     setCanUploadPhoto(false);
-    setCanEdit?.(false);
+    setCanGiveHidden?.(false);
     setLoading(false);
   }
 

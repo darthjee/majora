@@ -16,24 +16,26 @@ import Noop from '../../../../../../../assets/js/utils/Noop.js';
 
 const loadedItem = { id: 5, name: 'Cloak of Elvenkind', description: 'A shimmering cloak.' };
 
-/** Stub controller that synchronously loads an item (with upload permission) during construction. */
+/** Stub controller that synchronously loads an item (with upload/give-hidden permission) during construction. */
 class LoadedController {
-  constructor(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto) {
+  constructor(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, setCanGiveHidden) {
     setItem(loadedItem);
     setCanEdit(true);
     setCanUploadPhoto(true);
+    setCanGiveHidden?.(true);
     setLoading(false);
   }
 
   buildEffect() { return () => Noop.noop; }
 }
 
-/** Stub controller that synchronously loads an item without upload or edit permission. */
+/** Stub controller that synchronously loads an item without upload, edit, or give-hidden permission. */
 class LoadedWithoutUploadController {
-  constructor(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto) {
+  constructor(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, setCanGiveHidden) {
     setItem(loadedItem);
     setCanEdit(false);
     setCanUploadPhoto(false);
+    setCanGiveHidden?.(false);
     setLoading(false);
   }
 
@@ -255,7 +257,7 @@ describe('GameItem', function() {
       expect(() => capturedOnGiveItemClick()).not.toThrow();
     });
 
-    it('wires the modal to the loaded item, game slug, and canEdit gating', async function() {
+    it('wires the modal to the loaded item, game slug, and canGiveHidden gating', async function() {
       spyOn(ItemDetailHelper, 'render').and.returnValue(null);
       let capturedHandlers;
       spyOn(GiveItemModalHelper, 'render').and.callFake((show, state, handlers) => {

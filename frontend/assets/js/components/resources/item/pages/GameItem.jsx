@@ -15,9 +15,10 @@ import getCurrentHash from '../../../../utils/routing/currentHash.js';
  * the photo upload modal (issue #749), gated on the controller's independently-derived
  * `canUploadPhoto` flag, mirroring `CharacterDetail`'s upload modal wiring. Also renders an Edit
  * button, gated on the controller's independently-derived `canEdit` flag (issue #782). Also
- * renders the give-item modal (issue #827), unconditionally offered (no permission gate — every
- * per-character grant is checked server-side by the reused acquire endpoint instead); no forced
- * page refetch on its own success/close, since this page displays nothing summary-derived.
+ * renders the give-item modal (issue #827), routed through the controller's independently-derived
+ * `canGiveHidden` flag (superuser/dm/staff, issue #833) so a hidden item can only be given by a
+ * dm/admin/staff caller through the elevated acquire endpoint; no forced page refetch on its own
+ * success/close, since this page displays nothing summary-derived.
  *
  * @param {object} [props] - Component props.
  * @param {Function} [props.ControllerClass] - Item controller class to instantiate, mainly for
@@ -30,11 +31,14 @@ export default function GameItem({ ControllerClass = GameItemController }) {
   const [error, setError] = useState('');
   const [canEdit, setCanEdit] = useState(false);
   const [canUploadPhoto, setCanUploadPhoto] = useState(false);
+  const [canGiveHidden, setCanGiveHidden] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showGiveItemModal, setShowGiveItemModal] = useState(false);
 
   const controller = useMemo(
-    () => new ControllerClass(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto),
+    () => new ControllerClass(
+      setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, setCanGiveHidden,
+    ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
@@ -77,7 +81,7 @@ export default function GameItem({ ControllerClass = GameItemController }) {
         show={showGiveItemModal}
         item={item ?? {}}
         gameSlug={gameSlug}
-        canEdit={canEdit}
+        canGiveHidden={canGiveHidden}
         onClose={() => setShowGiveItemModal(false)}
       />
     </>

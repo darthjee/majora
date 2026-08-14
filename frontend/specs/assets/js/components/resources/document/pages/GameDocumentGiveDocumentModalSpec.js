@@ -11,12 +11,12 @@ import Noop from '../../../../../../../assets/js/utils/Noop.js';
 
 const loadedDocument = { id: 5, name: 'Ancient Scroll', description: 'A crumbling scroll.' };
 
-/** Stub controller that synchronously loads a document (with upload/edit permission) during construction. */
+/** Stub controller that synchronously loads a document (with upload/give-hidden permission) during construction. */
 class LoadedController {
-  constructor(setDocument, setLoading, setError, setCanUploadPhoto, setCanEdit) {
+  constructor(setDocument, setLoading, setError, setCanUploadPhoto, setCanGiveHidden) {
     setDocument(loadedDocument);
     setCanUploadPhoto(true);
-    setCanEdit(true);
+    setCanGiveHidden(true);
     setLoading(false);
   }
 
@@ -56,7 +56,7 @@ describe('GameDocument give-document modal (issue #1005)', function() {
     expect(() => capturedOnGiveDocumentClick()).not.toThrow();
   });
 
-  it('wires the modal to the loaded document, game slug, and canEdit gating', async function() {
+  it('wires the modal to the loaded document, game slug, and canGiveHidden gating', async function() {
     spyOn(DocumentDetailHelper, 'render').and.returnValue(null);
     let capturedHandlers;
     spyOn(GiveDocumentModalHelper, 'render').and.callFake((show, state, handlers) => {

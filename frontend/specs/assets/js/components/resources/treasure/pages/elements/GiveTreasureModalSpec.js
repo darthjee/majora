@@ -120,10 +120,10 @@ describe('GiveTreasureModal', function() {
     }).not.toThrow();
   });
 
-  it('submits through the controller with the treasure id and canEdit, then calls onSuccess', async function() {
+  it('submits through the controller with the treasure id and canGiveHidden, then calls onSuccess', async function() {
     spyOn(GiveTreasureModalController.prototype, 'submit').and.returnValue(Promise.resolve());
     const onSuccess = jasmine.createSpy('onSuccess');
-    const { handlers } = renderModal({ canEdit: true, onSuccess });
+    const { handlers } = renderModal({ canGiveHidden: true, onSuccess });
 
     await handlers.onSubmit();
 
@@ -135,7 +135,7 @@ describe('GiveTreasureModal', function() {
     expect(onSuccess).toHaveBeenCalled();
   });
 
-  it('defaults canEdit to false when not given', async function() {
+  it('defaults canGiveHidden to false when not given', async function() {
     spyOn(GiveTreasureModalController.prototype, 'submit').and.returnValue(Promise.resolve());
     const { handlers } = renderModal();
 
