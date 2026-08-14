@@ -106,13 +106,13 @@ class TestGameNpcPossessionAcquireView(TokenAuthRequestMixin):
         )
         assert response.status_code == 403
 
-    def test_plain_player_returns_403(self, client):
-        """Test that a plain player (not staff/dm) is rejected — unconditionally restricted."""
+    def test_plain_player_can_acquire_possession(self, client):
+        """Test that a plain player of the game (not staff/dm) can acquire a possession for NPC."""
         response = self._post(
             client, {'game_possession_id': self.game_possession.id},
             token=self.plain_player_token,
         )
-        assert response.status_code == 403
+        assert response.status_code == 201
 
     def test_unknown_game_slug_returns_404(self, client):
         """Test that a non-existent game slug returns 404."""

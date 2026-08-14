@@ -1,10 +1,13 @@
-# NPC character-possession endpoint rules (issue #1076). No owner concept, mirroring
-# game_npc_item's shape — see game_pc_possession/endpoints.yml for why `create` is
-# unconditionally restricted and `create_update` is borrowed from Item's player tier.
+# NPC character-possession endpoint rules (issue #1076, #1099). No owner concept, mirroring
+# game_npc_item's shape — see game_pc_possession/endpoints.yml for the restricted/regular
+# `create` split and why `create_update` is borrowed from Item's player tier.
 restricted:
   create:
     - staff
 regular:
+  create:
+    - staff
+    - player
   create_update:
     - staff
     - player

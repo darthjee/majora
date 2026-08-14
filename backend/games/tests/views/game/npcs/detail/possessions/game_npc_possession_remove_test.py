@@ -30,6 +30,9 @@ class TestGameNpcPossessionRemoveView(TokenAuthRequestMixin):
         self.dm_token = Token.objects.create(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
         self.other_token = Token.objects.create(user=self.other_user)
+        self.plain_player_user = UserFactory(username='plain_player', password='secret-password')
+        PlayerFactory(game=self.game, user=self.plain_player_user)
+        self.plain_player_token = Token.objects.create(user=self.plain_player_user)
         self.game_possession = GamePossessionFactory(game=self.game, name='Bag End')
         self.character_possession = CharacterPossession.objects.create(
             character=self.character, game_possession=self.game_possession,
@@ -146,6 +149,14 @@ class TestGameNpcPossessionRemoveView(TokenAuthRequestMixin):
             data=json.dumps({'game_possession_id': self.game_possession.id}),
             content_type='application/json',
             HTTP_AUTHORIZATION=f'Token {self.dm_token.key}',
+        )
+        assert response.status_code == 204
+
+    def test_plain_player_can_remove_possession(self, client):
+        """Test that a plain player of the game (not staff/dm) can remove a possession for NPC."""
+        response = self._post(
+            client, {'game_possession_id': self.game_possession.id},
+            token=self.plain_player_token,
         )
         assert response.status_code == 204
 
