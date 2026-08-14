@@ -16,7 +16,11 @@ import BasePageController from '../../../../common/base/controllers/BasePageCont
  *   `AccessStore.ensureFactionPermissions` call (resource-specific, backed by
  *   `/permissions/game_faction.json` — issue #1099), exposed to gate the show page's Edit
  *   button — `can_edit` grants admin/dm as always, plus staff/player (per issue #1099), unlike
- *   `canUploadPhoto`'s broader "any player" gate.
+ *   `canUploadPhoto`'s broader "any player" gate. `canRecruitHidden` (issue #943) is derived from
+ *   the same `AccessStore.ensureGameAccess` call as `canUploadPhoto` (superuser/dm/staff, dropping
+ *   player — mirroring `GameDocumentController`'s own `canGiveHidden`, fixed in #833), gating
+ *   which acquire-endpoint variant the recruit modal submits through — a hidden character can only
+ *   be recruited via the DM/admin-only `/acquire/all.json` variant.
  */
 export default class GameFactionController extends BasePageController {
   /**
@@ -39,15 +43,22 @@ export default class GameFactionController extends BasePageController {
    * @param {Function} setError - Error setter.
    * @param {Function} setCanEdit - Setter for whether the requester may edit this faction.
    * @param {Function} setCanUploadPhoto - Setter for whether the requester may upload a photo.
+   * @param {Function} setCanRecruitHidden - Setter for whether the requester may recruit a
+   *   hidden character into this faction (issue #943, superuser/dm/staff), gating the recruit
+   *   modal's acquire-endpoint variant.
    * @param {GenericClient} [client] - Client override, mainly for tests.
    */
-  constructor(setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto, client = new GenericClient()) {
+  constructor(
+    setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto, setCanRecruitHidden,
+    client = new GenericClient(),
+  ) {
     super();
     this.setFaction = setFaction;
     this.setLoading = setLoading;
     this.setError = setError;
     this.setCanEdit = setCanEdit;
     this.setCanUploadPhoto = setCanUploadPhoto;
+    this.setCanRecruitHidden = setCanRecruitHidden;
     this.client = client;
   }
 
@@ -91,13 +102,22 @@ export default class GameFactionController extends BasePageController {
 
   #loadCanUploadPhoto(gameSlug, safeSet) {
     return AccessStore.ensureGameAccess(gameSlug)
-      .then((access) => GameFactionController.#canUploadPhoto(access))
-      .catch(() => false)
-      .then((canUploadPhoto) => safeSet(this.setCanUploadPhoto, canUploadPhoto));
+      .then((access) => {
+        safeSet(this.setCanUploadPhoto, GameFactionController.#canUploadPhoto(access));
+        safeSet(this.setCanRecruitHidden, GameFactionController.#canRecruitHidden(access));
+      })
+      .catch(() => {
+        safeSet(this.setCanUploadPhoto, false);
+        safeSet(this.setCanRecruitHidden, false);
+      });
   }
 
   static #canUploadPhoto(access) {
     return Boolean(access.is_superuser || access.is_staff || access.is_dm || access.is_player);
+  }
+
+  static #canRecruitHidden(access) {
+    return Boolean(access.is_superuser || access.is_dm || access.is_staff);
   }
 
   #fetchFaction(params, safeSet) {

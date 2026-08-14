@@ -78,6 +78,28 @@ const RESOLVERS = {
     // player) caller without the give-document modal having to decide explicitly.
     summary: ({ gameSlug, kind, id }) => AccessStore.ensureCharacterPermissions(kind, gameSlug, id),
   },
+  // issue #943: `collection` now doubles as the character-owned `CharacterFaction` listing
+  // (`kind: 'pcs'|'npcs'`, resolved at the character level, mirroring `document.collection`)
+  // alongside its pre-existing game-level `GameFaction` catalog meaning (`kind` absent or
+  // `'game'`) — `faction.collection`'s `private` `permission` is only ever non-null for the
+  // character-owned family (see `factionConfig.js`), so resolving game-level permissions for the
+  // game-level family is harmless (never actually consulted).
+  faction: {
+    collection: ({ gameSlug, kind, id }) => (kind === 'pcs' || kind === 'npcs'
+      ? AccessStore.ensureCharacterPermissions(kind, gameSlug, id)
+      : AccessStore.ensureGamePermissions(gameSlug)),
+    // Unconditionally game-level, mirroring `document.availableCollection` exactly:
+    // `availableCollection` always backs a character-scoped path (`kind` is always
+    // `'pcs'|'npcs'`), but its `private` variant (`factions/available/all.json`) is authorized by
+    // the DM-only `GameEditPermission` on the backend, not `CharacterEditPermission`.
+    availableCollection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+    // The faction show page's character-list panel: always game-level-gated (`characters/all.json`
+    // is DM/admin only), regardless of any character context.
+    characters: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+    // The recruit modal's "already enlisted" check: resolved character-level, mirroring
+    // `document.summary` exactly.
+    summary: ({ gameSlug, kind, id }) => AccessStore.ensureCharacterPermissions(kind, gameSlug, id),
+  },
 };
 
 /**
