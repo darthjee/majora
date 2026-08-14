@@ -5,7 +5,7 @@ import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 
 /**
  * Controller for the game-scoped treasure detail page (issue #1001, `canUploadPhoto` gating
- * added in #1005, `canGiveHidden` fixed in #833).
+ * added in #1005, `canGiveHidden` fixed in #833, dropped `is_staff` in #1117).
  *
  * @description Fetches the game-scoped `Treasure` through `RequestStore.ensure({resource:
  *   'treasure', quantityType: 'single', params: {gameSlug, id}})` — unlike `GameItemController`,
@@ -19,8 +19,8 @@ import getCurrentHash from '../../../../../utils/routing/currentHash.js';
  *   `canGiveHidden` from a single shared `AccessStore.ensureGameAccess` call, run concurrently
  *   with the treasure fetch rather than chained after it, mirroring `GameItemController`'s/
  *   `GameDocumentController`'s own `#loadCanUploadPhoto` — `canUploadPhoto` gates the "Give
- *   Treasure" button's visibility (issue #1005), while `canGiveHidden` (superuser/dm/staff,
- *   dropping `is_player`) gates which acquire-endpoint variant the modal itself submits through
+ *   Treasure" button's visibility (issue #1005), while `canGiveHidden` (superuser/dm,
+ *   dropping `is_player`/`is_staff`) gates which acquire-endpoint variant the modal itself submits through
  *   (issue #833, replacing the previous, too-broad `treasure.can_edit`-driven derivation).
  */
 export default class GameTreasureController extends BasePageController {
@@ -45,8 +45,8 @@ export default class GameTreasureController extends BasePageController {
    * @param {Function} setCanUploadPhoto - Setter for whether the requester may give this treasure
    *   (issue #1005).
    * @param {Function} setCanGiveHidden - Setter for whether the requester may give this treasure
-   *   even when hidden (issue #833), gating the give-treasure modal's hidden-treasure acquire
-   *   variant.
+   *   even when hidden (issue #833, superuser/dm), gating the give-treasure modal's
+   *   hidden-treasure acquire variant.
    */
   constructor(setTreasure, setLoading, setError, setCanUploadPhoto, setCanGiveHidden) {
     super();
@@ -99,7 +99,7 @@ export default class GameTreasureController extends BasePageController {
   }
 
   static #canGiveHidden(access) {
-    return Boolean(access.is_superuser || access.is_dm || access.is_staff);
+    return Boolean(access.is_superuser || access.is_dm);
   }
 
   #fetchTreasureWithAccess(gameSlug, treasureId, safeSet) {

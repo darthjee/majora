@@ -31,13 +31,13 @@ describe('GameTreasureController canGiveHidden (issue #833)', function() {
     expect(setters.setCanGiveHidden).toHaveBeenCalledWith(true);
   });
 
-  it('is true for staff', async function() {
+  it('is false for staff', async function() {
     AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ is_staff: true }));
     const setters = buildSetters();
 
     await runController('#/games/demo/treasures/1', setters);
 
-    expect(setters.setCanGiveHidden).toHaveBeenCalledWith(true);
+    expect(setters.setCanGiveHidden).toHaveBeenCalledWith(false);
   });
 
   it('is true for the game DM', async function() {
