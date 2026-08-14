@@ -14,20 +14,22 @@ const loadedTreasure = {
 
 /** Stub controller that synchronously loads a treasure (with give permission) during construction. */
 class LoadedController {
-  constructor(setTreasure, setLoading, setError, setCanUploadPhoto) {
+  constructor(setTreasure, setLoading, setError, setCanUploadPhoto, setCanGiveHidden) {
     setTreasure(loadedTreasure);
     setCanUploadPhoto?.(true);
+    setCanGiveHidden?.(false);
     setLoading(false);
   }
 
   buildEffect() { return () => Noop.noop; }
 }
 
-/** Stub controller that synchronously loads an editable treasure during construction. */
+/** Stub controller that synchronously loads a treasure the requester may give even when hidden. */
 class LoadedEditableController {
-  constructor(setTreasure, setLoading, setError, setCanUploadPhoto) {
+  constructor(setTreasure, setLoading, setError, setCanUploadPhoto, setCanGiveHidden) {
     setTreasure({ ...loadedTreasure, can_edit: true });
     setCanUploadPhoto?.(true);
+    setCanGiveHidden?.(true);
     setLoading(false);
   }
 
@@ -36,9 +38,10 @@ class LoadedEditableController {
 
 /** Stub controller that synchronously loads a treasure without give permission during construction. */
 class LoadedWithoutGivePermissionController {
-  constructor(setTreasure, setLoading, setError, setCanUploadPhoto) {
+  constructor(setTreasure, setLoading, setError, setCanUploadPhoto, setCanGiveHidden) {
     setTreasure(loadedTreasure);
     setCanUploadPhoto?.(false);
+    setCanGiveHidden?.(false);
     setLoading(false);
   }
 
@@ -147,7 +150,7 @@ describe('GameTreasure', function() {
       expect(() => capturedOnGiveTreasureClick()).not.toThrow();
     });
 
-    it('wires the modal to the loaded treasure, game slug, and canEdit gating', async function() {
+    it('wires the modal to the loaded treasure, game slug, and canGiveHidden gating', async function() {
       spyOn(GameTreasureHelper, 'render').and.returnValue(null);
       let capturedHandlers;
       spyOn(GiveTreasureModalHelper, 'render').and.callFake((show, state, handlers) => {

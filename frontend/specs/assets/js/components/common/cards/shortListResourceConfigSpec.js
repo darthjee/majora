@@ -4,6 +4,7 @@ import CharacterPreviewCard from '../../../../../../assets/js/components/common/
 import TreasurePreviewCard from '../../../../../../assets/js/components/common/cards/TreasurePreviewCard.jsx';
 import ItemPreviewCard from '../../../../../../assets/js/components/common/cards/ItemPreviewCard.jsx';
 import DocumentPreviewCard from '../../../../../../assets/js/components/common/cards/DocumentPreviewCard.jsx';
+import PossessionPreviewCard from '../../../../../../assets/js/components/common/cards/PossessionPreviewCard.jsx';
 
 describe('shortListResourceConfig', function() {
   describe('.pc', function() {
@@ -155,6 +156,36 @@ describe('shortListResourceConfig', function() {
 
     it('has an empty-state text key', function() {
       expect(documentConfig.emptyTextKey).toBe('character_documents_preview.empty');
+    });
+  });
+
+  describe('.possession', function() {
+    const { possession: possessionConfig } = shortListResourceConfig;
+    const pcContext = { game_slug: 'demo', id: 7, is_pc: true };
+
+    it('builds fetch params scoped to the character', function() {
+      expect(possessionConfig.buildParams(pcContext)).toEqual({ gameSlug: 'demo', kind: 'pcs', id: 7 });
+    });
+
+    it('builds the see-all href to the character\'s possessions page', function() {
+      expect(possessionConfig.buildSeeAllHref(pcContext)).toBe('#/games/demo/pcs/7/possessions');
+    });
+
+    it('navigates to the possession\'s own character-scoped detail page', function() {
+      expect(possessionConfig.action).toBe('navigate');
+      expect(possessionConfig.buildHref(pcContext, { id: 3 })).toBe('#/games/demo/pcs/7/possessions/3');
+    });
+
+    it('renders a PossessionPreviewCard with the resolved href', function() {
+      const item = { id: 1, name: 'Manor House' };
+      const element = possessionConfig.renderItem(item, pcContext, '#/games/demo/pcs/7/possessions/1');
+
+      expect(element.type).toBe(PossessionPreviewCard);
+      expect(element.props).toEqual({ possession: item, href: '#/games/demo/pcs/7/possessions/1' });
+    });
+
+    it('has an empty-state text key', function() {
+      expect(possessionConfig.emptyTextKey).toBe('character_possessions_preview.empty');
     });
   });
 });

@@ -24,7 +24,7 @@ class TestGamePcPossessionAcquireView(TokenAuthRequestMixin):
     def setup_method(self):
         """Set up a game, a PC, a DM, an unrelated user, and an available game possession."""
         self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.player = PlayerFactory(name='Aragorn Player')
+        self.player = PlayerFactory(name='Aragorn Player', game=self.game)
         self.owner = UserFactory(username='owner', password='secret-password')
         self.player.user = self.owner
         self.player.save()
@@ -142,13 +142,13 @@ class TestGamePcPossessionAcquireView(TokenAuthRequestMixin):
         )
         assert response.status_code == 403
 
-    def test_plain_player_returns_403(self, client):
-        """Test that a plain player (not staff/owner/dm) is rejected — always restricted."""
+    def test_plain_player_can_acquire_possession(self, client):
+        """Test that a plain player of the game (not staff/owner/dm) can acquire for another PC."""
         response = self._post(
             client, {'game_possession_id': self.game_possession.id},
             token=self.plain_player_token,
         )
-        assert response.status_code == 403
+        assert response.status_code == 201
 
     def test_unknown_game_slug_returns_404(self, client):
         """Test that a non-existent game slug returns 404."""

@@ -113,10 +113,12 @@ describe('GiveItemModal', function() {
     }).not.toThrow();
   });
 
-  it('submits through the controller with the item id, hidden flag, and canEdit, then calls onSuccess', async function() {
+  it('submits through the controller with the item id, hidden flag, and canGiveHidden, then calls onSuccess', async function() {
     spyOn(GiveItemModalController.prototype, 'submit').and.returnValue(Promise.resolve());
     const onSuccess = jasmine.createSpy('onSuccess');
-    const { handlers } = renderModal({ item: { id: 9, hidden: true }, canEdit: true, onSuccess });
+    const { handlers } = renderModal({
+      item: { id: 9, hidden: true }, canGiveHidden: true, onSuccess,
+    });
 
     await handlers.onSubmit();
 
@@ -128,7 +130,7 @@ describe('GiveItemModal', function() {
     expect(onSuccess).toHaveBeenCalled();
   });
 
-  it('defaults canEdit to false and hidden to false when not given', async function() {
+  it('defaults canGiveHidden to false and hidden to false when not given', async function() {
     spyOn(GiveItemModalController.prototype, 'submit').and.returnValue(Promise.resolve());
     const { handlers } = renderModal({ item: { id: 9 } });
 

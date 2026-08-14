@@ -20,15 +20,15 @@ const SEARCH_DEBOUNCE_MS = 300;
  *   list whenever it becomes `true`.
  * @param {object} props.item - The `GameItem` being given (`id`, `hidden`).
  * @param {string} props.gameSlug - Game slug.
- * @param {boolean} [props.canEdit] - Whether the current user may edit this item (dm/admin);
- *   routes acquire requests through the DM/admin-only endpoint, which accepts a hidden `GameItem`.
- *   Defaults to `false`.
+ * @param {boolean} [props.canGiveHidden] - Whether the current user may give this item even when
+ *   hidden (dm/admin/staff); routes acquire requests through the DM/admin-only endpoint, which
+ *   accepts a hidden `GameItem`. Defaults to `false`.
  * @param {Function} props.onClose - Handler invoked when the modal is dismissed.
  * @param {Function} [props.onSuccess] - Handler invoked once a submit has fully settled.
  * @returns {React.ReactElement} Rendered give-item modal.
  */
 export default function GiveItemModal({
-  show, item, gameSlug, canEdit = false, onClose, onSuccess,
+  show, item, gameSlug, canGiveHidden = false, onClose, onSuccess,
 }) {
   const [activeTab, setActiveTab] = useState('pcs');
   const [browse, setBrowse] = useState({
@@ -75,7 +75,7 @@ export default function GiveItemModal({
   const handleClear = () => setReceiving([]);
 
   const handleSubmit = () => controller.submit(
-    receivingRef.current, gameSlug, item.id, Boolean(item.hidden), canEdit,
+    receivingRef.current, gameSlug, item.id, Boolean(item.hidden), canGiveHidden,
     { setSubmitting, setReceiving },
   ).then(() => onSuccess?.());
 

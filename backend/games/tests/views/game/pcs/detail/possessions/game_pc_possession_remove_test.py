@@ -24,7 +24,7 @@ class TestGamePcPossessionRemoveView(TokenAuthRequestMixin):
     def setup_method(self):
         """Set up a game, a PC owning a possession, an owning player/user, and a DM."""
         self.game = GameFactory(name='Test Game', game_slug='test-game')
-        self.player = PlayerFactory(name='Aragorn Player')
+        self.player = PlayerFactory(name='Aragorn Player', game=self.game)
         self.owner = UserFactory(username='owner', password='secret-password')
         self.player.user = self.owner
         self.player.save()
@@ -36,6 +36,9 @@ class TestGamePcPossessionRemoveView(TokenAuthRequestMixin):
         self.dm_token = Token.objects.create(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
         self.other_token = Token.objects.create(user=self.other_user)
+        self.plain_player_user = UserFactory(username='plain_player', password='secret-password')
+        PlayerFactory(game=self.game, user=self.plain_player_user)
+        self.plain_player_token = Token.objects.create(user=self.plain_player_user)
         self.game_possession = GamePossessionFactory(game=self.game, name='Bag End')
         self.character_possession = CharacterPossession.objects.create(
             character=self.character, game_possession=self.game_possession,
@@ -163,6 +166,14 @@ class TestGamePcPossessionRemoveView(TokenAuthRequestMixin):
         staff_token = Token.objects.create(user=staff_user)
         response = self._post(
             client, {'game_possession_id': self.game_possession.id}, token=staff_token,
+        )
+        assert response.status_code == 204
+
+    def test_plain_player_can_remove_possession(self, client):
+        """Test that a plain player of the game (not staff/owner/dm) can remove for another PC."""
+        response = self._post(
+            client, {'game_possession_id': self.game_possession.id},
+            token=self.plain_player_token,
         )
         assert response.status_code == 204
 

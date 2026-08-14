@@ -22,15 +22,15 @@ const SEARCH_DEBOUNCE_MS = 300;
  *   list whenever it becomes `true`.
  * @param {object} props.treasure - The `Treasure` being given (`id`, `hidden`, `available_units`).
  * @param {string} props.gameSlug - Game slug.
- * @param {boolean} [props.canEdit] - Whether the current user may edit this treasure (dm/admin);
- *   routes acquire requests through the DM/admin-only endpoint, which accepts a hidden `Treasure`.
- *   Defaults to `false`.
+ * @param {boolean} [props.canGiveHidden] - Whether the current user may give this treasure even
+ *   when hidden (dm/admin/staff); routes acquire requests through the DM/admin-only endpoint,
+ *   which accepts a hidden `Treasure`. Defaults to `false`.
  * @param {Function} props.onClose - Handler invoked when the modal is dismissed.
  * @param {Function} [props.onSuccess] - Handler invoked once a submit has fully settled.
  * @returns {React.ReactElement} Rendered give-treasure modal.
  */
 export default function GiveTreasureModal({
-  show, treasure, gameSlug, canEdit = false, onClose, onSuccess,
+  show, treasure, gameSlug, canGiveHidden = false, onClose, onSuccess,
 }) {
   const [activeTab, setActiveTab] = useState('pcs');
   const [browse, setBrowse] = useState({
@@ -79,7 +79,7 @@ export default function GiveTreasureModal({
   const handleClear = () => setReceiving([]);
 
   const handleSubmit = () => controller.submit(
-    receivingRef.current, gameSlug, treasure.id, canEdit,
+    receivingRef.current, gameSlug, treasure.id, canGiveHidden,
     { setSubmitting, setReceiving },
   ).then(() => onSuccess?.());
 

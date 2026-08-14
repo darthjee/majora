@@ -23,6 +23,7 @@ const chunkLoaders = {
   character_photos_page: () => import('./character_photos_page.yaml?raw'),
   character_photos_preview: () => import('./character_photos_preview.yaml?raw'),
   character_possessions_page: () => import('./character_possessions_page.yaml?raw'),
+  character_possessions_preview: () => import('./character_possessions_preview.yaml?raw'),
   character_treasures_page: () => import('./character_treasures_page.yaml?raw'),
   character_treasures_preview: () => import('./character_treasures_preview.yaml?raw'),
   collection_new_page: () => import('./collection_new_page.yaml?raw'),

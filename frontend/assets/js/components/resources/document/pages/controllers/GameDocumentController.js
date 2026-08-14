@@ -5,22 +5,22 @@ import BasePageController from '../../../../common/base/controllers/BasePageCont
 
 /**
  * Controller for the game document detail page (issue #758, photo upload gating added in #727,
- * `canEdit` derivation added in #1005).
+ * `canGiveHidden` derivation fixed in #833).
  *
  * @description Fetches the `GameDocument` through `RequestStore.ensure({resource: 'document',
  *   quantityType: 'single', params: {gameSlug, kind: 'game', id}})`, which internally resolves
  *   the requester's game-level edit permission (via `RequestPermissionResolvers`) to pick
  *   between the full, hidden-inclusive `documents/:id/full.json` and the player-facing
- *   `documents/:id.json`, fail-closed on a rejected permissions check. Independently derives
- *   `canUploadPhoto` from `AccessStore.ensureGameAccess`, run concurrently with the document
- *   fetch rather than chained after it, mirroring `GameItemController`'s own
- *   `#loadCanUploadPhoto`. This page's Edit/file-upload/Give-Document buttons all reuse the same
- *   `canUploadPhoto` flag, since there is no separate general "edit" permission for documents.
- *   Also independently derives `canEdit` from its own `AccessStore.ensureDocumentPermissions`
- *   call (resource-specific, backed by `/permissions/game_document.json` — issue #1099),
- *   exposed solely to gate which acquire-endpoint variant the give-document modal submits
- *   through — a hidden `GameDocument` can only be given via the DM/admin-only
- *   `/acquire/all.json` variant.
+ *   `documents/:id.json`, fail-closed on a rejected permissions check. Independently derives both
+ *   `canUploadPhoto` and `canGiveHidden` from a single shared `AccessStore.ensureGameAccess` call,
+ *   run concurrently with the document fetch rather than chained after it, mirroring
+ *   `GameItemController`'s own `#loadCanUploadPhoto`. This page's Edit/file-upload/Give-Document
+ *   buttons all reuse the same `canUploadPhoto` flag, since there is no separate general "edit"
+ *   permission for documents; `canGiveHidden` (superuser/dm/staff, dropping `is_player`) instead
+ *   gates which acquire-endpoint variant the give-document modal submits through — a hidden
+ *   `GameDocument` can only be given via the DM/admin-only `/acquire/all.json` variant (issue
+ *   #833, replacing the previous, too-broad `AccessStore.ensureDocumentPermissions().can_edit`
+ *   derivation, which had no other consumer on this page).
  */
 export default class GameDocumentController extends BasePageController {
   /**
@@ -42,17 +42,18 @@ export default class GameDocumentController extends BasePageController {
    * @param {Function} setLoading - Loading setter.
    * @param {Function} setError - Error setter.
    * @param {Function} setCanUploadPhoto - Setter for whether the requester may upload a photo.
-   * @param {Function} setCanEdit - Setter for whether the requester may edit this game (issue
-   *   #1005), gating the give-document modal's hidden-document acquire variant.
+   * @param {Function} setCanGiveHidden - Setter for whether the requester may give this document
+   *   even when hidden (issue #833), gating the give-document modal's hidden-document acquire
+   *   variant.
    * @param {GenericClient} [client] - Client override, mainly for tests.
    */
-  constructor(setDocument, setLoading, setError, setCanUploadPhoto, setCanEdit, client = new GenericClient()) {
+  constructor(setDocument, setLoading, setError, setCanUploadPhoto, setCanGiveHidden, client = new GenericClient()) {
     super();
     this.setDocument = setDocument;
     this.setLoading = setLoading;
     this.setError = setError;
     this.setCanUploadPhoto = setCanUploadPhoto;
-    this.setCanEdit = setCanEdit;
+    this.setCanGiveHidden = setCanGiveHidden;
     this.client = client;
   }
 
@@ -81,8 +82,7 @@ export default class GameDocumentController extends BasePageController {
   }
 
   #loadDocument(params, safeSet) {
-    this.#loadCanUploadPhoto(params.game_slug, safeSet);
-    this.#loadCanEdit(params.game_slug, safeSet);
+    this.#loadAccessFlags(params.game_slug, safeSet);
 
     return RequestStore.ensure({
       componentName: 'GameDocumentController',
@@ -95,21 +95,23 @@ export default class GameDocumentController extends BasePageController {
       .finally(() => safeSet(this.setLoading, false));
   }
 
-  #loadCanUploadPhoto(gameSlug, safeSet) {
+  #loadAccessFlags(gameSlug, safeSet) {
     return AccessStore.ensureGameAccess(gameSlug)
-      .then((access) => GameDocumentController.#canUploadPhoto(access))
-      .catch(() => false)
-      .then((canUploadPhoto) => safeSet(this.setCanUploadPhoto, canUploadPhoto));
+      .then((access) => {
+        safeSet(this.setCanUploadPhoto, GameDocumentController.#canUploadPhoto(access));
+        safeSet(this.setCanGiveHidden, GameDocumentController.#canGiveHidden(access));
+      })
+      .catch(() => {
+        safeSet(this.setCanUploadPhoto, false);
+        safeSet(this.setCanGiveHidden, false);
+      });
   }
 
   static #canUploadPhoto(access) {
     return Boolean(access.is_superuser || access.is_staff || access.is_dm || access.is_player);
   }
 
-  #loadCanEdit(gameSlug, safeSet) {
-    return AccessStore.ensureDocumentPermissions(gameSlug)
-      .then((permissions) => Boolean(permissions.can_edit))
-      .catch(() => false)
-      .then((canEdit) => safeSet(this.setCanEdit, canEdit));
+  static #canGiveHidden(access) {
+    return Boolean(access.is_superuser || access.is_dm || access.is_staff);
   }
 }

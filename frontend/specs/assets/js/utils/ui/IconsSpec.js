@@ -60,4 +60,8 @@ describe('Icons', function() {
   it('maps filePdf to the filled PDF file icon class', function() {
     expect(Icons.filePdf).toBe('bi-file-earmark-pdf-fill');
   });
+
+  it('maps houseDoor to the house-door icon class', function() {
+    expect(Icons.houseDoor).toBe('bi-house-door');
+  });
 });

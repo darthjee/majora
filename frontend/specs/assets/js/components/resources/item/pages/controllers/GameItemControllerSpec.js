@@ -9,6 +9,7 @@ describe('GameItemController', function() {
   let setError;
   let setCanEdit;
   let setCanUploadPhoto;
+  let setCanGiveHidden;
   let client;
   let ensureSpy;
 
@@ -18,6 +19,7 @@ describe('GameItemController', function() {
     setError = jasmine.createSpy('setError');
     setCanEdit = jasmine.createSpy('setCanEdit');
     setCanUploadPhoto = jasmine.createSpy('setCanUploadPhoto');
+    setCanGiveHidden = jasmine.createSpy('setCanGiveHidden');
     client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
     client.currentHash.and.returnValue('#/games/demo/items/5');
     spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
@@ -26,6 +28,10 @@ describe('GameItemController', function() {
       Promise.resolve({ data: { id: 5, name: 'Cloak of Elvenkind' } }),
     );
   });
+
+  const buildController = () => new GameItemController(
+    setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, setCanGiveHidden, client,
+  );
 
   describe('.getParamsFromHash', function() {
     it('extracts the game slug and item id', function() {
@@ -43,7 +49,7 @@ describe('GameItemController', function() {
 
   describe('#buildEffect', function() {
     it('fetches the item through RequestStore with the game-owned kind', async function() {
-      const cleanup = new GameItemController(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client).buildEffect()();
+      const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(ensureSpy).toHaveBeenCalledWith({
@@ -62,7 +68,7 @@ describe('GameItemController', function() {
     it('sets an error when the fetch rejects', async function() {
       ensureSpy.and.returnValue(Promise.reject(new Error('network error')));
 
-      const cleanup = new GameItemController(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client).buildEffect()();
+      const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(setError).toHaveBeenCalledWith('Unable to load item.');
@@ -74,7 +80,7 @@ describe('GameItemController', function() {
     it('sets an error and skips fetching when route params are missing', function() {
       client.currentHash.and.returnValue('#/games/demo');
 
-      const cleanup = new GameItemController(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client).buildEffect()();
+      const cleanup = buildController().buildEffect()();
 
       expect(setError).toHaveBeenCalledWith('Unable to load item.');
       expect(setLoading).toHaveBeenCalledWith(false);
@@ -84,7 +90,7 @@ describe('GameItemController', function() {
     });
 
     it('does not update state after unmount', async function() {
-      const cleanup = new GameItemController(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client).buildEffect()();
+      const cleanup = buildController().buildEffect()();
       cleanup();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -95,7 +101,7 @@ describe('GameItemController', function() {
 
   describe('canUploadPhoto', function() {
     const runController = async () => {
-      const cleanup = new GameItemController(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client).buildEffect()();
+      const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
       cleanup();
     };
@@ -157,9 +163,74 @@ describe('GameItemController', function() {
     });
   });
 
+  describe('canGiveHidden (issue #833)', function() {
+    const runController = async () => {
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      cleanup();
+    };
+
+    it('derives from the same ensureGameAccess call as canUploadPhoto', async function() {
+      await runController();
+
+      expect(AccessStore.ensureGameAccess).toHaveBeenCalledTimes(1);
+      expect(AccessStore.ensureGameAccess).toHaveBeenCalledWith('demo');
+    });
+
+    it('is true for a superuser', async function() {
+      AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ is_superuser: true }));
+
+      await runController();
+
+      expect(setCanGiveHidden).toHaveBeenCalledWith(true);
+    });
+
+    it('is true for staff', async function() {
+      AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ is_staff: true }));
+
+      await runController();
+
+      expect(setCanGiveHidden).toHaveBeenCalledWith(true);
+    });
+
+    it('is true for the game DM', async function() {
+      AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ is_dm: true }));
+
+      await runController();
+
+      expect(setCanGiveHidden).toHaveBeenCalledWith(true);
+    });
+
+    it('is false for a mere player', async function() {
+      AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ is_player: true }));
+
+      await runController();
+
+      expect(setCanGiveHidden).toHaveBeenCalledWith(false);
+    });
+
+    it('is false for an unrelated authenticated user', async function() {
+      AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({
+        is_superuser: false, is_staff: false, is_dm: false, is_player: false,
+      }));
+
+      await runController();
+
+      expect(setCanGiveHidden).toHaveBeenCalledWith(false);
+    });
+
+    it('fails closed to false when the access check rejects', async function() {
+      AccessStore.ensureGameAccess.and.returnValue(Promise.reject(new Error('nope')));
+
+      await runController();
+
+      expect(setCanGiveHidden).toHaveBeenCalledWith(false);
+    });
+  });
+
   describe('canEdit', function() {
     const runController = async () => {
-      const cleanup = new GameItemController(setItem, setLoading, setError, setCanEdit, setCanUploadPhoto, client).buildEffect()();
+      const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
       cleanup();
     };

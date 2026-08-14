@@ -80,4 +80,16 @@ describe('characterPreviewConstants', function() {
       expect(PREVIEW_LIST_TYPES.document.buildAuthEndpoint).toBeUndefined();
     });
   });
+
+  describe('PREVIEW_LIST_TYPES.possession', function() {
+    it('provides the title key and icon', function() {
+      expect(PREVIEW_LIST_TYPES.possession.titleKey).toBe('character_page.possessions_title');
+      expect(PREVIEW_LIST_TYPES.possession.icon).toBe(Icons.houseDoor);
+    });
+
+    it('does not provide an endpoint builder', function() {
+      expect(PREVIEW_LIST_TYPES.possession.buildEndpoint).toBeUndefined();
+      expect(PREVIEW_LIST_TYPES.possession.buildAuthEndpoint).toBeUndefined();
+    });
+  });
 });

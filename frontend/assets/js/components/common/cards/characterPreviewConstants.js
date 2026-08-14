@@ -67,4 +67,8 @@ export const PREVIEW_LIST_TYPES = {
     titleKey: 'character_page.documents_title',
     icon: Icons.folder,
   },
+  possession: {
+    titleKey: 'character_page.possessions_title',
+    icon: Icons.houseDoor,
+  },
 };

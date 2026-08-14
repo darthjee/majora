@@ -25,10 +25,10 @@ import getCurrentHash from '../../../../utils/routing/currentHash.js';
  * file's own id (only known after the first upload cycle completes), via the `document`/
  * `filePhoto` resourceConfig entry. Also renders the give-document modal (issue #1005), gated the
  * same way as the Edit/file-upload buttons (`canUploadPhoto`); the modal itself is routed through
- * the controller's independently-derived `canEdit` flag (`canGiveHidden` prop) so a hidden
- * document can still be given by a dm/admin/staff-with-edit caller. No forced page refetch on the
- * modal's own success/close, mirroring `GiveTreasureModal`'s rationale — this page displays
- * nothing summary-derived.
+ * the controller's independently-derived `canGiveHidden` flag (superuser/dm/staff, issue #833) so
+ * a hidden document can only be given by a dm/admin/staff caller through the elevated acquire
+ * endpoint. No forced page refetch on the modal's own success/close, mirroring
+ * `GiveTreasureModal`'s rationale — this page displays nothing summary-derived.
  *
  * @param {object} [props] - Component props.
  * @param {Function} [props.ControllerClass] - Document controller class to instantiate, mainly
@@ -40,14 +40,14 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [canUploadPhoto, setCanUploadPhoto] = useState(false);
-  const [canEdit, setCanEdit] = useState(false);
+  const [canGiveHidden, setCanGiveHidden] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showFileUploadModal, setShowFileUploadModal] = useState(false);
   const [showGiveDocumentModal, setShowGiveDocumentModal] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
 
   const controller = useMemo(
-    () => new ControllerClass(setDocument, setLoading, setError, setCanUploadPhoto, setCanEdit),
+    () => new ControllerClass(setDocument, setLoading, setError, setCanUploadPhoto, setCanGiveHidden),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
@@ -120,7 +120,7 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
         show={showGiveDocumentModal}
         document={document ?? {}}
         gameSlug={gameSlug}
-        canGiveHidden={canEdit}
+        canGiveHidden={canGiveHidden}
         onClose={() => setShowGiveDocumentModal(false)}
       />
     </>

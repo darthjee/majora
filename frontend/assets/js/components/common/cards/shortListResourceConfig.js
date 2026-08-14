@@ -3,6 +3,7 @@ import CharacterPreviewCard from './CharacterPreviewCard.jsx';
 import TreasurePreviewCard from './TreasurePreviewCard.jsx';
 import ItemPreviewCard from './ItemPreviewCard.jsx';
 import DocumentPreviewCard from './DocumentPreviewCard.jsx';
+import PossessionPreviewCard from './PossessionPreviewCard.jsx';
 import { PREVIEW_LIST_TYPES } from './characterPreviewConstants.js';
 
 /**
@@ -134,6 +135,20 @@ const shortListResourceConfig = {
     ),
     renderItem: (item, context, href) => React.createElement(
       DocumentPreviewCard, { key: item.id, document: item, href },
+    ),
+  },
+  possession: {
+    titleKey: PREVIEW_LIST_TYPES.possession.titleKey,
+    icon: PREVIEW_LIST_TYPES.possession.icon,
+    emptyTextKey: 'character_possessions_preview.empty',
+    action: 'navigate',
+    buildParams: characterResourceParams,
+    buildSeeAllHref: (context) => characterResourceSeeAllHref('possession', context),
+    buildHref: (context, item) => (
+      `#/games/${context.game_slug}/${characterSegment(context)}/${context.id}/possessions/${item.id}`
+    ),
+    renderItem: (item, context, href) => React.createElement(
+      PossessionPreviewCard, { key: item.id, possession: item, href },
     ),
   },
 };

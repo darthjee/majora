@@ -137,6 +137,7 @@ character_page:
   treasures_title: Tesouros
   items_title: Itens
   documents_title: Documentos
+  possessions_title: Posses
   photos_title: Fotos
 character_status_badges:
   private_slain: Morto

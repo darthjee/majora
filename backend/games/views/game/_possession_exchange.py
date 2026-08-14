@@ -14,16 +14,10 @@ from ._decorators import check_hidden
 from ._shared import _character_possession_resource
 
 
-def _check_possession_create(request, game, character):
-    """Return an error Response if `request.user` may not create/remove a possession, else None.
-
-    Unlike `_document_exchange.py`'s tier (which varies restricted/regular by which variant
-    is hit), this always checks `restricted`/`create` — mirroring `_item_exchange.py`'s
-    `_check_item_create`, since Possession's exchange flow is unconditionally restricted
-    (issue #1076).
-    """
+def _check_possession_create(request, game, character, tier):
+    """Return an error Response if `request.user` may not create/remove a possession at `tier`."""
     return EndpointPermission(request.user, game=game, pc=character).check(
-        request, _character_possession_resource(character), 'restricted', 'create',
+        request, _character_possession_resource(character), tier, 'create',
     )
 
 
@@ -71,9 +65,12 @@ def character_possession_acquire(request, game, character, check_hidden, allow_h
     `allow_hidden` bypasses the hidden-GamePossession 404 gate — reserved for the DM-only
     `/acquire/all.json` endpoints. Mirrors `character_document_acquire`'s `get_or_create`
     duplicate handling (422 on an already-owned possession), since `CharacterPossession`
-    is `unique_together`'d like `CharacterDocument`, unlike `CharacterItem`.
+    is `unique_together`'d like `CharacterDocument`, unlike `CharacterItem`. Also selects the
+    permission tier: `restricted` (staff/owner) for `/acquire/all.json`, `regular`
+    (staff/player) for the plain `/acquire.json`.
     """
-    error_response = _check_possession_create(request, game, character)
+    tier = 'restricted' if allow_hidden else 'regular'
+    error_response = _check_possession_create(request, game, character, tier)
     if error_response:
         return error_response
 
@@ -105,9 +102,12 @@ def character_possession_remove(request, game, character, check_hidden, allow_hi
     """Delete the CharacterPossession linking `character` to a submitted GamePossession.
 
     `allow_hidden` bypasses the hidden-CharacterPossession 404 gate — reserved for the
-    DM-only `/remove/all.json` endpoints.
+    DM-only `/remove/all.json` endpoints. Also selects the permission tier: `restricted`
+    (staff/owner) for `/remove/all.json`, `regular` (staff/player) for the plain
+    `/remove.json`.
     """
-    error_response = _check_possession_create(request, game, character)
+    tier = 'restricted' if allow_hidden else 'regular'
+    error_response = _check_possession_create(request, game, character, tier)
     if error_response:
         return error_response
 
