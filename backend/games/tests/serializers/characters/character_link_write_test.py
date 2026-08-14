@@ -54,3 +54,15 @@ class TestCharacterLinkWriteSerializer:
         serializer = CharacterLinkWriteSerializer(data={'delete': True})
         assert not serializer.is_valid()
         assert 'id' in serializer.errors
+
+    def test_ftp_scheme_url_is_rejected(self):
+        """Test that an `ftp:` scheme url is rejected at is_valid() time."""
+        serializer = CharacterLinkWriteSerializer(data={'url': 'ftp://example.com'})
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors
+
+    def test_ftps_scheme_url_is_rejected(self):
+        """Test that an `ftps:` scheme url is rejected at is_valid() time."""
+        serializer = CharacterLinkWriteSerializer(data={'url': 'ftps://example.com'})
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors

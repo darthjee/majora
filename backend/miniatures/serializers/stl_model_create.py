@@ -1,7 +1,9 @@
 """StlModel create serializer for the miniatures app."""
 
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
+from common.serializer_fields import http_url_field
 from miniatures.models import Collection, Source, StlModel
 
 from ._stl_model_races_roles_sync import RacesSync, RolesSync
@@ -15,6 +17,15 @@ class StlModelCreateSerializer(serializers.ModelSerializer):
     the given `Source`s/`Collection`s; when omitted, both M2Ms start empty.
     """
 
+    # Declared explicitly (rather than left to auto-mapping) so the http/https-only
+    # `URLValidator` actually runs at `is_valid()` time -- see `common.serializer_fields`.
+    # The explicit `UniqueValidator` replaces the one DRF would otherwise auto-attach from
+    # `StlModel.url`'s `unique=True`, which auto-mapping would also stop adding once the
+    # field is declared explicitly.
+    url = http_url_field(
+        max_length=200, required=False, default=None, allow_null=True, allow_blank=True,
+        validators=[UniqueValidator(queryset=StlModel.objects.all())],
+    )
     tags = serializers.ListField(child=serializers.CharField(), required=False, default=list)
     source_ids = serializers.PrimaryKeyRelatedField(
         source='sources', queryset=Source.objects.all(), many=True, required=False, default=list,
@@ -44,7 +55,6 @@ class StlModelCreateSerializer(serializers.ModelSerializer):
             'name': {'required': True},
             'owned': {'required': False, 'default': True},
             'type': {'required': True},
-            'url': {'required': False, 'default': None},
             'size': {'required': False, 'default': None},
         }
 

@@ -1,5 +1,6 @@
 """BaseLink abstract model for Majora RPG Campaign Management System."""
 
+from django.core.validators import URLValidator
 from django.db import models
 from simple_history.models import HistoricalRecords
 
@@ -26,7 +27,7 @@ class BaseLink(models.Model):
     ]
 
     text = models.CharField(max_length=200)
-    url = models.URLField()
+    url = models.URLField(validators=[URLValidator(schemes=['http', 'https'])])
     link_type = models.CharField(
         max_length=32, choices=LINK_TYPE_CHOICES, blank=True, default=''
     )

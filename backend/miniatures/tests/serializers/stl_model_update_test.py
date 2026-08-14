@@ -92,6 +92,24 @@ class TestStlModelUpdateSerializer:
         assert not serializer.is_valid()
         assert 'url' in serializer.errors
 
+    def test_ftp_scheme_url_is_rejected(self):
+        """Test that an `ftp:` scheme url is rejected at is_valid() time."""
+        stl_model = StlModelFactory(name='Dragon Miniature')
+        serializer = StlModelUpdateSerializer(
+            stl_model, data={'url': 'ftp://example.com/model'}, partial=True,
+        )
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors
+
+    def test_ftps_scheme_url_is_rejected(self):
+        """Test that an `ftps:` scheme url is rejected at is_valid() time."""
+        stl_model = StlModelFactory(name='Dragon Miniature')
+        serializer = StlModelUpdateSerializer(
+            stl_model, data={'url': 'ftps://example.com/model'}, partial=True,
+        )
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors
+
     def test_update_replaces_races_with_given_list(self):
         """Test that update() replaces the STL model's existing races with the given list."""
         stl_model = StlModelFactory(name='Dragon Miniature')

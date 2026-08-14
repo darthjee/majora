@@ -1,5 +1,7 @@
 """Tests for the GameLink model."""
 
+import pytest
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from games.models import GameLink
@@ -101,3 +103,15 @@ class TestGameLink(TestCase):
             text='Wiki', url='http://example.com/wiki', game=self.game
         )
         assert link in self.game.links.all()
+
+    def test_non_http_url_raises_on_full_clean(self):
+        """Test that a non-http(s) url scheme fails full_clean() validation."""
+        link = GameLink(text='Rulebook', url='javascript:alert(1)', game=self.game)
+        with pytest.raises(ValidationError):
+            link.full_clean()
+
+    def test_malformed_url_raises_on_full_clean(self):
+        """Test that a malformed url (bare domain, no scheme) fails full_clean() validation."""
+        link = GameLink(text='Rulebook', url='example.com/rules', game=self.game)
+        with pytest.raises(ValidationError):
+            link.full_clean()
