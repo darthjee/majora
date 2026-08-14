@@ -2,4 +2,5 @@ faction_page:
   loading: Loading faction...
   characters_panel_title: Characters
   characters_panel_empty: No characters in this faction yet.
+  characters_panel_error: Unable to load characters. Please try again.
   recruit_button: Recruit

@@ -16,6 +16,7 @@ const chunkLoaders = {
   character_document_photos_preview: () => import('./character_document_photos_preview.yaml?raw'),
   character_documents_page: () => import('./character_documents_page.yaml?raw'),
   character_documents_preview: () => import('./character_documents_preview.yaml?raw'),
+  character_factions_page: () => import('./character_factions_page.yaml?raw'),
   character_factions_preview: () => import('./character_factions_preview.yaml?raw'),
   character_full_page: () => import('./character_full_page.yaml?raw'),
   character_info: () => import('./character_info.yaml?raw'),

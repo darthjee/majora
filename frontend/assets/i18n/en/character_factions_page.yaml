@@ -1,0 +1,5 @@
+character_factions_page:
+  loading: Loading factions...
+  title: Factions
+  hidden_label: Hidden
+  enlist_button: Enlist

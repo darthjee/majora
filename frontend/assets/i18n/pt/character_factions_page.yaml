@@ -1,0 +1,5 @@
+character_factions_page:
+  loading: Carregando facções...
+  title: Facções
+  hidden_label: Oculto
+  enlist_button: Alistar-se
