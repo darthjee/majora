@@ -17,12 +17,14 @@ class StlModelDetailSerializer(serializers.ModelSerializer):
     sources = SourceSerializer(many=True, read_only=True)
     collections = CollectionSerializer(many=True, read_only=True)
     tags = serializers.SlugRelatedField(many=True, slug_field='name', read_only=True)
+    races = serializers.SlugRelatedField(many=True, slug_field='creature', read_only=True)
+    roles = serializers.SlugRelatedField(many=True, slug_field='role', read_only=True)
 
     class Meta:
         """Metadata for the StlModelDetailSerializer."""
 
         model = StlModel
         fields = [
-            'id', 'name', 'owned', 'type', 'race', 'role', 'photo_url', 'links', 'sources',
-            'collections', 'tags',
+            'id', 'name', 'owned', 'type', 'url', 'size', 'races', 'roles', 'photo_url', 'links',
+            'sources', 'collections', 'tags',
         ]
