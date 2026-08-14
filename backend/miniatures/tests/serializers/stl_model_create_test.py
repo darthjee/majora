@@ -66,6 +66,22 @@ class TestStlModelCreateSerializer:
         assert not serializer.is_valid()
         assert 'url' in serializer.errors
 
+    def test_ftp_scheme_url_is_rejected(self):
+        """Test that an `ftp:` scheme url is rejected at is_valid() time."""
+        serializer = StlModelCreateSerializer(
+            data={**BASE_DATA, 'url': 'ftp://example.com/model'}
+        )
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors
+
+    def test_ftps_scheme_url_is_rejected(self):
+        """Test that an `ftps:` scheme url is rejected at is_valid() time."""
+        serializer = StlModelCreateSerializer(
+            data={**BASE_DATA, 'url': 'ftps://example.com/model'}
+        )
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors
+
     def test_owned_defaults_to_true_when_omitted(self):
         """Test that create() defaults owned to True when omitted."""
         serializer = StlModelCreateSerializer(data=BASE_DATA)
