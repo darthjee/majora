@@ -49,8 +49,10 @@ describe('StlModelNew', function() {
         tagInput: '',
         owned: true,
         type: 'terrain',
-        race: '',
-        role: '',
+        races: [],
+        roles: [],
+        url: '',
+        size: '',
         sources: [],
         collections: [],
         status: 'idle',
@@ -136,7 +138,7 @@ describe('StlModelNew', function() {
     }).not.toThrow();
   });
 
-  it('updates owned/type/race/role via their change handlers without throwing', function() {
+  it('updates owned/type/url/size via their change handlers without throwing', function() {
     let capturedHandlers;
     spyOn(StlModelNewHelper, 'render').and.callFake((state, handlers) => {
       capturedHandlers = handlers;
@@ -148,8 +150,23 @@ describe('StlModelNew', function() {
     expect(() => {
       capturedHandlers.onOwnedChange({ target: { checked: false } });
       capturedHandlers.onTypeChange({ target: { value: 'prop' } });
-      capturedHandlers.onRaceChange({ target: { value: 'elf' } });
-      capturedHandlers.onRoleChange({ target: { value: 'wizard' } });
+      capturedHandlers.onUrlChange({ target: { value: 'https://example.com/model' } });
+      capturedHandlers.onSizeChange({ target: { value: 'huge' } });
+    }).not.toThrow();
+  });
+
+  it('picks races/roles via onRacesChange/onRolesChange without throwing', function() {
+    let capturedHandlers;
+    spyOn(StlModelNewHelper, 'render').and.callFake((state, handlers) => {
+      capturedHandlers = handlers;
+      return null;
+    });
+
+    renderToStaticMarkup(React.createElement(StlModelNew));
+
+    expect(() => {
+      capturedHandlers.onRacesChange([{ id: 'elf', name: 'Elf' }]);
+      capturedHandlers.onRolesChange([{ id: 'wizard', name: 'Wizard' }]);
     }).not.toThrow();
   });
 
@@ -172,8 +189,10 @@ describe('StlModelNew', function() {
         tags: [],
         owned: true,
         type: 'terrain',
-        race: '',
-        role: '',
+        races: [],
+        roles: [],
+        url: '',
+        size: '',
         sources: [],
         collections: [],
         photoFile: null,

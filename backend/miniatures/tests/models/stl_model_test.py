@@ -4,7 +4,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from miniatures.models import StlModel
+from miniatures.models import StlModel, StlModelRace, StlModelRole
 from miniatures.tests.factories import (
     CollectionFactory,
     SourceFactory,
@@ -81,15 +81,15 @@ class TestStlModel(TestCase):
         stl_model = StlModelFactory(name='Dragon Miniature')
         assert stl_model.owned is True
 
-    def test_race_defaults_to_none(self):
-        """Test that race defaults to None."""
+    def test_url_defaults_to_none(self):
+        """Test that url defaults to None."""
         stl_model = StlModelFactory(name='Dragon Miniature')
-        assert stl_model.race is None
+        assert stl_model.url is None
 
-    def test_role_defaults_to_none(self):
-        """Test that role defaults to None."""
+    def test_size_defaults_to_none(self):
+        """Test that size defaults to None."""
         stl_model = StlModelFactory(name='Dragon Miniature')
-        assert stl_model.role is None
+        assert stl_model.size is None
 
     def test_type_is_required(self):
         """Test that a blank type fails full_clean() validation."""
@@ -103,14 +103,34 @@ class TestStlModel(TestCase):
         with pytest.raises(ValidationError):
             stl_model.full_clean()
 
-    def test_invalid_race_raises_on_full_clean(self):
-        """Test that an unknown race value fails full_clean() validation."""
-        stl_model = StlModel(name='Dragon Miniature', type=StlModel.TYPE_OTHER, race='not-a-race')
+    def test_invalid_size_raises_on_full_clean(self):
+        """Test that an unknown size value fails full_clean() validation."""
+        stl_model = StlModel(name='Dragon Miniature', type=StlModel.TYPE_OTHER, size='not-a-size')
         with pytest.raises(ValidationError):
             stl_model.full_clean()
 
-    def test_invalid_role_raises_on_full_clean(self):
-        """Test that an unknown role value fails full_clean() validation."""
-        stl_model = StlModel(name='Dragon Miniature', type=StlModel.TYPE_OTHER, role='not-a-role')
+    def test_non_http_url_raises_on_full_clean(self):
+        """Test that a non-http(s) url scheme fails full_clean() validation."""
+        stl_model = StlModel(
+            name='Dragon Miniature', type=StlModel.TYPE_OTHER, url='javascript:alert(1)',
+        )
         with pytest.raises(ValidationError):
             stl_model.full_clean()
+
+    def test_races_can_be_attached(self):
+        """Test that an STL model can be tagged with multiple races."""
+        stl_model = StlModelFactory(name='Dragon Miniature')
+        StlModelRace.objects.create(stl_model=stl_model, creature=StlModel.RACE_ELF)
+        StlModelRace.objects.create(stl_model=stl_model, creature=StlModel.RACE_DRAGON)
+        assert set(stl_model.races.values_list('creature', flat=True)) == {
+            StlModel.RACE_ELF, StlModel.RACE_DRAGON,
+        }
+
+    def test_roles_can_be_attached(self):
+        """Test that an STL model can be tagged with multiple roles."""
+        stl_model = StlModelFactory(name='Dragon Miniature')
+        StlModelRole.objects.create(stl_model=stl_model, role=StlModel.ROLE_WIZARD)
+        StlModelRole.objects.create(stl_model=stl_model, role=StlModel.ROLE_ARCHER)
+        assert set(stl_model.roles.values_list('role', flat=True)) == {
+            StlModel.ROLE_WIZARD, StlModel.ROLE_ARCHER,
+        }

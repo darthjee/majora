@@ -71,6 +71,32 @@ describe('MultiResourcePickerField', function() {
     expect(badge.props.removeLabel).toBe('Remove');
   });
 
+  describe('constant mode (values/translateOption)', function() {
+    it('forwards values/translateOption to the search core instead of resource/maxEntries', function() {
+      const values = ['elf', 'orc'];
+      const translateOption = (value) => value.toUpperCase();
+      const element = MultiResourcePickerField(buildProps({
+        resource: undefined, maxEntries: undefined, values, translateOption, label: 'Races',
+      }));
+      const search = findElement(element, (node) => node.type === ResourcePickerSearch);
+
+      expect(search.props.values).toBe(values);
+      expect(search.props.translateOption).toBe(translateOption);
+    });
+
+    it('appends a constant-mode pick shaped {id, name} the same way as an API-mode pick', function() {
+      const onChange = jasmine.createSpy('onChange');
+      const values = ['elf', 'orc'];
+      const translateOption = (value) => value.toUpperCase();
+      const element = MultiResourcePickerField(buildProps({ onChange, values, translateOption, value: [] }));
+      const search = findElement(element, (node) => node.type === ResourcePickerSearch);
+
+      search.props.onSelect({ id: 'elf', name: 'ELF' });
+
+      expect(onChange).toHaveBeenCalledWith([{ id: 'elf', name: 'ELF' }]);
+    });
+  });
+
   describe('.appendResourcePick', function() {
     it('appends an item not already present', function() {
       const value = [{ id: 1, name: 'Wyrmwood' }];

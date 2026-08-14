@@ -80,10 +80,11 @@ export default class StlModelEditController extends BaseEditController {
    *   or sets error status on other failures.
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string|number} id - STL model id.
-   * @param {{name: string, owned: boolean, type: string, race: string,
-   *   role: string}} formValues - Raw form field values. `race`/`role` are converted from `''`
-   *   (the `<select>`'s native blank-option value) to `null` here, matching the update
-   *   endpoint's nullable field contract.
+   * @param {{name: string, owned: boolean, type: string, url: string, size: string,
+   *   races: {id: string, name: string}[], roles: {id: string, name: string}[]}} formValues - Raw
+   *   form field values. `url`/`size` are converted from `''` (the native blank-option/input
+   *   value) to `null` here, matching the update endpoint's nullable field contract. `races`/
+   *   `roles` resolve to a plain `db_value[]` (extracting each pick's `id`).
    * @param {{setStatus: Function, setFieldErrors: Function}} setters - Page state setters.
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
@@ -101,8 +102,10 @@ export default class StlModelEditController extends BaseEditController {
           name: formValues.name,
           owned: formValues.owned,
           type: formValues.type,
-          race: formValues.race || null,
-          role: formValues.role || null,
+          url: formValues.url || null,
+          size: formValues.size || null,
+          races: (formValues.races ?? []).map((race) => race.id),
+          roles: (formValues.roles ?? []).map((role) => role.id),
         },
       }),
       `/miniatures/stl_models/${id}`,

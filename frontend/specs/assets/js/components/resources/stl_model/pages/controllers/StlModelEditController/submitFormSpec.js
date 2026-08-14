@@ -24,7 +24,14 @@ describe('StlModelEditController', function() {
     });
 
     const buildFormValues = (overrides = {}) => ({
-      name: 'Goblin Miniature', owned: true, type: 'creature', race: '', role: '', ...overrides,
+      name: 'Goblin Miniature',
+      owned: true,
+      type: 'creature',
+      url: '',
+      size: '',
+      races: [],
+      roles: [],
+      ...overrides,
     });
 
     it('prevents default, resets status/errors, and submits the fields payload', async function() {
@@ -51,7 +58,13 @@ describe('StlModelEditController', function() {
           quantityType: 'single',
           params: { id: '1' },
           body: {
-            name: 'Goblin Miniature', owned: true, type: 'creature', race: null, role: null,
+            name: 'Goblin Miniature',
+            owned: true,
+            type: 'creature',
+            url: null,
+            size: null,
+            races: [],
+            roles: [],
           },
         });
       } finally {
@@ -59,7 +72,7 @@ describe('StlModelEditController', function() {
       }
     });
 
-    it('converts blank race/role selections to null', async function() {
+    it('converts blank url/size selections to null', async function() {
       const controller = new StlModelEditController(setStlModel, setLoading, setError, setFieldErrors);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
@@ -68,19 +81,19 @@ describe('StlModelEditController', function() {
         await controller.submitForm(
           undefined,
           '1',
-          buildFormValues({ race: '', role: '' }),
+          buildFormValues({ url: '', size: '' }),
           { setStatus, setFieldErrors },
         );
 
         expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
-          body: jasmine.objectContaining({ race: null, role: null }),
+          body: jasmine.objectContaining({ url: null, size: null }),
         }));
       } finally {
         delete globalThis.window;
       }
     });
 
-    it('sends non-blank race/role selections as-is', async function() {
+    it('sends non-blank url/size selections as-is', async function() {
       const controller = new StlModelEditController(setStlModel, setLoading, setError, setFieldErrors);
       const fakeWindow = { location: { hash: '' } };
       globalThis.window = fakeWindow;
@@ -89,12 +102,35 @@ describe('StlModelEditController', function() {
         await controller.submitForm(
           undefined,
           '1',
-          buildFormValues({ race: 'elf', role: 'wizard' }),
+          buildFormValues({ url: 'https://example.com/model', size: 'huge' }),
           { setStatus, setFieldErrors },
         );
 
         expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
-          body: jasmine.objectContaining({ race: 'elf', role: 'wizard' }),
+          body: jasmine.objectContaining({ url: 'https://example.com/model', size: 'huge' }),
+        }));
+      } finally {
+        delete globalThis.window;
+      }
+    });
+
+    it('maps races/roles picks down to their raw db_value id', async function() {
+      const controller = new StlModelEditController(setStlModel, setLoading, setError, setFieldErrors);
+      const fakeWindow = { location: { hash: '' } };
+      globalThis.window = fakeWindow;
+
+      try {
+        await controller.submitForm(
+          undefined,
+          '1',
+          buildFormValues({
+            races: [{ id: 'elf', name: 'Elf' }], roles: [{ id: 'wizard', name: 'Wizard' }],
+          }),
+          { setStatus, setFieldErrors },
+        );
+
+        expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
+          body: jasmine.objectContaining({ races: ['elf'], roles: ['wizard'] }),
         }));
       } finally {
         delete globalThis.window;

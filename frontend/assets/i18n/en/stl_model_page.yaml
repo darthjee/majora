@@ -9,14 +9,23 @@ stl_model_page:
   owned_label: Owned
   not_owned_label: Not owned
   type_label: Type
-  race_label: Race
-  role_label: Role
+  url_label: URL
+  size_label: Size
+  races_label: Races
+  roles_label: Roles
   none_label: None
 
   type_terrain: Terrain
   type_prop: Prop
   type_creature: Creature
   type_other: Other
+
+  size_tiny: Tiny
+  size_small: Small
+  size_medium: Medium
+  size_huge: Huge
+  size_gargantuan: Gargantuan
+  size_life: Life-sized
 
   race_human: Human
   race_elf: Elf
@@ -29,6 +38,24 @@ stl_model_page:
   race_dragonborn: Dragonborn
   race_orc: Orc
   race_goblin: Goblin
+  race_turtlefolk: Turtlefolk
+  race_cthulhufolk: Cthulhufolk
+  race_humanoid: Humanoid
+  race_construct: Construct
+  race_monstrosity: Monstrosity
+  race_undead: Undead
+  race_aberration: Aberration
+  race_beast: Beast
+  race_alien: Alien
+  race_fiend: Fiend
+  race_fey: Fey
+  race_giant: Giant
+  race_dragon: Dragon
+  race_celestial: Celestial
+  race_elemental: Elemental
+  race_cyborg: Cyborg
+  race_plant: Plant
+  race_ooze: Ooze
 
   role_barbarian: Barbarian
   role_bard: Bard

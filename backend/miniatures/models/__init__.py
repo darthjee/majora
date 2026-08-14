@@ -7,6 +7,8 @@ from miniatures.models.source_photo import SourcePhoto
 from miniatures.models.stl_model import StlModel
 from miniatures.models.stl_model_link import StlModelLink
 from miniatures.models.stl_model_photo import StlModelPhoto
+from miniatures.models.stl_model_race import StlModelRace
+from miniatures.models.stl_model_role import StlModelRole
 from miniatures.models.tag import Tag
 
 __all__ = [
@@ -17,5 +19,7 @@ __all__ = [
     'StlModel',
     'StlModelLink',
     'StlModelPhoto',
+    'StlModelRace',
+    'StlModelRole',
     'Tag',
 ]
