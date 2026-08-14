@@ -166,3 +166,19 @@ class TestSourceCreateSerializer:
         )
         assert not serializer.is_valid()
         assert 'url' in serializer.errors
+
+    def test_ftp_scheme_url_is_rejected(self):
+        """Test that an `ftp:` scheme url is rejected at is_valid() time."""
+        serializer = SourceCreateSerializer(
+            data={'name': 'MyMiniFactory', 'url': 'ftp://example.com'}
+        )
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors
+
+    def test_ftps_scheme_url_is_rejected(self):
+        """Test that an `ftps:` scheme url is rejected at is_valid() time."""
+        serializer = SourceCreateSerializer(
+            data={'name': 'MyMiniFactory', 'url': 'ftps://example.com'}
+        )
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors

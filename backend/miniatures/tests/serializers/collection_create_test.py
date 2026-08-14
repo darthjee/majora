@@ -220,3 +220,19 @@ class TestCollectionCreateSerializer:
         )
         assert not serializer.is_valid()
         assert 'url' in serializer.errors
+
+    def test_ftp_scheme_url_is_rejected(self):
+        """Test that an `ftp:` scheme url is rejected at is_valid() time."""
+        serializer = CollectionCreateSerializer(
+            data={'name': 'Monster Pack', 'url': 'ftp://example.com/pack'}
+        )
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors
+
+    def test_ftps_scheme_url_is_rejected(self):
+        """Test that an `ftps:` scheme url is rejected at is_valid() time."""
+        serializer = CollectionCreateSerializer(
+            data={'name': 'Monster Pack', 'url': 'ftps://example.com/pack'}
+        )
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors
