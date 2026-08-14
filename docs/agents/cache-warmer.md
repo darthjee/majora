@@ -28,8 +28,9 @@ list from eleven files under [`navi/resources/`](../../navi/resources/):
 - `npcs.yml` — a game's NPCs listing (`game_npcs`/`paginated_game_npcs`/`short_game_npcs`) plus
   an NPC's detail and its nested photos/treasures/items/documents.
 - `items.yml` — a game's items listing (`game_items`/`paginated_game_items`/`game_item_detail`).
-- `factions.yml` — a game's factions listing (`game_factions`/`paginated_game_factions`/
-  `game_faction_detail`).
+- `factions.yml` — a game's factions listing and each faction's detail/characters chain
+  (`game_factions`, `paginated_game_factions`, `game_faction_detail`, `game_faction_characters`,
+  `paginated_game_faction_characters`).
 - `possessions.yml` — a game's possessions listing (`game_possessions`/
   `paginated_game_possessions`/`game_possession_detail`).
 - `documents.yml` — a game's documents listing and each document's detail/files/photos chain

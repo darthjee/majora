@@ -24,3 +24,24 @@ resources:
   game_faction_detail:
     - url: /games/{:slug}/factions/{:id}.json
       status: 200
+      actions:
+        - resource: game_faction_characters
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+
+  game_faction_characters:
+    - url: /games/{:slug}/factions/{:id}/characters.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_faction_characters
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
+
+  paginated_game_faction_characters:
+    - url: /games/{:slug}/factions/{:id}/characters.json?page={:page}&per_page={:per_page}
+      status: 200
