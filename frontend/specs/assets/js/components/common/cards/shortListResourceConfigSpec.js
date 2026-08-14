@@ -5,6 +5,7 @@ import TreasurePreviewCard from '../../../../../../assets/js/components/common/c
 import ItemPreviewCard from '../../../../../../assets/js/components/common/cards/ItemPreviewCard.jsx';
 import DocumentPreviewCard from '../../../../../../assets/js/components/common/cards/DocumentPreviewCard.jsx';
 import PossessionPreviewCard from '../../../../../../assets/js/components/common/cards/PossessionPreviewCard.jsx';
+import FactionPreviewCard from '../../../../../../assets/js/components/common/cards/FactionPreviewCard.jsx';
 
 describe('shortListResourceConfig', function() {
   describe('.pc', function() {
@@ -186,6 +187,37 @@ describe('shortListResourceConfig', function() {
 
     it('has an empty-state text key', function() {
       expect(possessionConfig.emptyTextKey).toBe('character_possessions_preview.empty');
+    });
+  });
+
+  describe('.faction', function() {
+    const { faction: factionConfig } = shortListResourceConfig;
+    const pcContext = { game_slug: 'demo', id: 7, is_pc: true };
+
+    it('builds fetch params scoped to the character', function() {
+      expect(factionConfig.buildParams(pcContext)).toEqual({ gameSlug: 'demo', kind: 'pcs', id: 7 });
+    });
+
+    it('builds the see-all href to the character\'s factions page', function() {
+      expect(factionConfig.buildSeeAllHref(pcContext)).toBe('#/games/demo/pcs/7/factions');
+    });
+
+    it('navigates to the linked GameFaction\'s own show page, not a dedicated CharacterFaction page '
+      + '(issue #943)', function() {
+      expect(factionConfig.action).toBe('navigate');
+      expect(factionConfig.buildHref(pcContext, { id: 3, game_faction_id: 11 })).toBe('#/games/demo/factions/11');
+    });
+
+    it('renders a FactionPreviewCard with the resolved href', function() {
+      const item = { id: 1, game_faction_id: 11, name: 'The Silver Hand' };
+      const element = factionConfig.renderItem(item, pcContext, '#/games/demo/factions/11');
+
+      expect(element.type).toBe(FactionPreviewCard);
+      expect(element.props).toEqual({ faction: item, href: '#/games/demo/factions/11' });
+    });
+
+    it('has an empty-state text key', function() {
+      expect(factionConfig.emptyTextKey).toBe('character_factions_preview.empty');
     });
   });
 });

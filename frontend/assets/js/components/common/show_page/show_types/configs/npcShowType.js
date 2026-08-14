@@ -98,6 +98,7 @@ const npcShowType = {
     { Show: buildShortListSlot('item') },
     { Show: buildShortListSlot('document') },
     { Show: buildShortListSlot('possession') },
+    { Show: buildShortListSlot('faction') },
     { New: npcSubmitButton, Edit: npcSubmitButton },
   ],
   bottom: [

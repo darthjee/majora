@@ -15,6 +15,10 @@ from games.serializers.characters.character_document_file import (
 from games.serializers.characters.character_document_photo import (
     CharacterDocumentPhotoSerializer,
 )
+from games.serializers.characters.character_faction import (
+    CharacterFactionAllSerializer,
+    CharacterFactionSerializer,
+)
 from games.serializers.characters.character_full import CharacterFullSerializer
 from games.serializers.characters.character_full_list import CharacterFullListSerializer
 from games.serializers.characters.character_item import (
@@ -57,12 +61,15 @@ from games.serializers.games.documents.game_document_permissions import (
 )
 from games.serializers.games.documents.game_document_photo import GameDocumentPhotoSerializer
 from games.serializers.games.documents.game_document_update import GameDocumentUpdateSerializer
-from games.serializers.games.factions.faction_list import FactionListSerializer
-from games.serializers.games.factions.faction_photo import FactionPhotoSerializer
-from games.serializers.games.factions.faction_update import FactionUpdateSerializer
+from games.serializers.games.factions.game_faction_character import (
+    GameFactionCharacterSerializer,
+)
+from games.serializers.games.factions.game_faction_list import GameFactionListSerializer
 from games.serializers.games.factions.game_faction_permissions import (
     GameFactionPermissionsSerializer,
 )
+from games.serializers.games.factions.game_faction_photo import GameFactionPhotoSerializer
+from games.serializers.games.factions.game_faction_update import GameFactionUpdateSerializer
 from games.serializers.games.game_access import GameAccessSerializer
 from games.serializers.games.game_create import GameCreateSerializer
 from games.serializers.games.game_detail import GameDetailSerializer
@@ -151,6 +158,8 @@ __all__ = [
     'CharacterDocumentFileSerializer',
     'CharacterDocumentPhotoSerializer',
     'CharacterDocumentSerializer',
+    'CharacterFactionAllSerializer',
+    'CharacterFactionSerializer',
     'CharacterFullListSerializer',
     'CharacterFullSerializer',
     'CharacterItemAllSerializer',
@@ -170,9 +179,6 @@ __all__ = [
     'CharacterTreasureSerializer',
     'CharacterUpdateSerializer',
     'ConversationListSerializer',
-    'FactionListSerializer',
-    'FactionPhotoSerializer',
-    'FactionUpdateSerializer',
     'FileUploadSerializer',
     'GameAccessSerializer',
     'GameCreateSerializer',
@@ -185,7 +191,11 @@ __all__ = [
     'GameDocumentPermissionsSerializer',
     'GameDocumentPhotoSerializer',
     'GameDocumentUpdateSerializer',
+    'GameFactionCharacterSerializer',
+    'GameFactionListSerializer',
     'GameFactionPermissionsSerializer',
+    'GameFactionPhotoSerializer',
+    'GameFactionUpdateSerializer',
     'GameItemAllListSerializer',
     'GameItemDetailFullSerializer',
     'GameItemDetailSerializer',

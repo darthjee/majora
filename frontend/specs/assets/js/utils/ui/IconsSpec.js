@@ -64,4 +64,8 @@ describe('Icons', function() {
   it('maps houseDoor to the house-door icon class', function() {
     expect(Icons.houseDoor).toBe('bi-house-door');
   });
+
+  it('maps peopleFill to the filled people icon class', function() {
+    expect(Icons.peopleFill).toBe('bi-people-fill');
+  });
 });

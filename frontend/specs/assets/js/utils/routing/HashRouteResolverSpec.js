@@ -211,6 +211,14 @@ describe('HashRouteResolver', function() {
     expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/documents').getPage()).toBe('npcCharacterDocuments');
   });
 
+  it('resolves /games/:game_slug/pcs/:character_id/factions to pcCharacterFactions, not pcCharacter', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/pcs/7/factions').getPage()).toBe('pcCharacterFactions');
+  });
+
+  it('resolves /games/:game_slug/npcs/:character_id/factions to npcCharacterFactions, not npcCharacter', function() {
+    expect(new HashRouteResolver(() => '#/games/campaign/npcs/7/factions').getPage()).toBe('npcCharacterFactions');
+  });
+
   it(
     'resolves /games/:game_slug/pcs/:character_id/documents/:id to pcCharacterDocument, not pcCharacterDocuments',
     function() {

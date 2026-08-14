@@ -1,17 +1,17 @@
-"""Tests for the upload finalize endpoint's FactionPhoto handling."""
+"""Tests for the upload finalize endpoint's GameFactionPhoto handling."""
 
 import json
 
 from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
-from games.models import FactionPhoto
-from games.tests.factories import FactionFactory, GameFactory, PlayerFactory, UserFactory
+from games.models import GameFactionPhoto
+from games.tests.factories import GameFactionFactory, GameFactory, PlayerFactory, UserFactory
 from uploads.models import Upload
 
 
-class TestUploadFinalizeFactionPhoto(TestCase):
-    """Tests for PATCH /uploads/image/<upload_id>.json against a FactionPhoto upload."""
+class TestUploadFinalizeGameFactionPhoto(TestCase):
+    """Tests for PATCH /uploads/image/<upload_id>.json against a GameFactionPhoto upload."""
 
     @classmethod
     def setUpTestData(cls):
@@ -32,13 +32,13 @@ class TestUploadFinalizeFactionPhoto(TestCase):
         )
         cls.staff_token = Token.objects.create(user=cls.staff_user)
 
-        cls.faction = FactionFactory(game=cls.game, name='The Silver Hand')
+        cls.faction = GameFactionFactory(game=cls.game, name='The Silver Hand')
 
         cls.upload = Upload.objects.create(
             user=cls.dm_user,
             file_path=f'photos/games/epic-quest-faction/factions/{cls.faction.id}/photo.jpg',
         )
-        cls.photo = FactionPhoto.objects.create(
+        cls.photo = GameFactionPhoto.objects.create(
             faction=cls.faction,
             path=f'photos/games/epic-quest-faction/factions/{cls.faction.id}/photo.jpg',
             ready=False,
@@ -52,7 +52,7 @@ class TestUploadFinalizeFactionPhoto(TestCase):
                 f'photos/games/epic-quest-faction/factions/{cls.faction.id}/photo_2.jpg'
             ),
         )
-        cls.photo_by_player_of_game = FactionPhoto.objects.create(
+        cls.photo_by_player_of_game = GameFactionPhoto.objects.create(
             faction=cls.faction,
             path=(
                 f'photos/games/epic-quest-faction/factions/{cls.faction.id}/photo_2.jpg'
@@ -68,7 +68,7 @@ class TestUploadFinalizeFactionPhoto(TestCase):
                 f'photos/games/epic-quest-faction/factions/{cls.faction.id}/photo_3.jpg'
             ),
         )
-        cls.photo_by_staff = FactionPhoto.objects.create(
+        cls.photo_by_staff = GameFactionPhoto.objects.create(
             faction=cls.faction,
             path=(
                 f'photos/games/epic-quest-faction/factions/{cls.faction.id}/photo_3.jpg'
@@ -99,14 +99,14 @@ class TestUploadFinalizeFactionPhoto(TestCase):
         )
 
     def test_unauthenticated_request_returns_401_for_faction_upload(self):
-        """Test that an unauthenticated request on a FactionPhoto upload returns 401."""
+        """Test that an unauthenticated request on a GameFactionPhoto upload returns 401."""
         response = self._patch(
             self.client, self.upload, {'status': 'uploading'}, upload_token=self.upload.token,
         )
         assert response.status_code == 401
 
     def test_unrelated_user_returns_403_for_faction_upload(self):
-        """Test that a user unrelated to the game is rejected on a FactionPhoto upload."""
+        """Test that a user unrelated to the game is rejected on a GameFactionPhoto upload."""
         other_user = UserFactory(username='other_faction', password='secret-password')
         other_token = Token.objects.create(user=other_user)
         Upload.objects.filter(pk=self.upload.pk).update(user=other_user)
@@ -120,27 +120,27 @@ class TestUploadFinalizeFactionPhoto(TestCase):
         assert response.status_code == 403
 
     def test_uploading_status_returns_200_for_faction_upload(self):
-        """Test that status=uploading returns 200 for a FactionPhoto-backed upload."""
+        """Test that status=uploading returns 200 for a GameFactionPhoto-backed upload."""
         response = self._valid_patch(self.client, {'status': 'uploading'})
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['file_path'] == self.upload.file_path
 
     def test_uploaded_status_sets_faction_photo_ready(self):
-        """Test that status=uploaded sets FactionPhoto.ready to True."""
+        """Test that status=uploaded sets GameFactionPhoto.ready to True."""
         self._valid_patch(self.client, {'status': 'uploaded'})
         self.photo.refresh_from_db()
         assert self.photo.ready is True
 
     def test_uploaded_status_sets_game_faction_photo(self):
-        """Test that status=uploaded sets Faction.photo when it was unset."""
+        """Test that status=uploaded sets GameFaction.photo when it was unset."""
         self._valid_patch(self.client, {'status': 'uploaded'})
         self.faction.refresh_from_db()
         assert self.faction.photo == self.photo
 
     def test_uploaded_status_replaces_existing_game_faction_photo(self):
-        """Test that status=uploaded replaces an existing Faction.photo (no unset guard)."""
-        existing_photo = FactionPhoto.objects.create(
+        """Test that status=uploaded replaces an existing GameFaction.photo (no unset guard)."""
+        existing_photo = GameFactionPhoto.objects.create(
             faction=self.faction,
             path=f'photos/games/epic-quest-faction/factions/{self.faction.id}/old.jpg',
             ready=True,
@@ -166,7 +166,7 @@ class TestUploadFinalizeFactionPhoto(TestCase):
         assert response.status_code == 200
 
     def test_uploaded_status_sets_faction_photo_ready_for_player_of_game(self):
-        """Test that status=uploaded sets FactionPhoto.ready for a player of the game."""
+        """Test that status=uploaded sets GameFactionPhoto.ready for a player of the game."""
         response = self._patch(
             self.client,
             self.upload_by_player_of_game,
@@ -190,7 +190,7 @@ class TestUploadFinalizeFactionPhoto(TestCase):
         assert response.status_code == 200
 
     def test_uploaded_status_sets_faction_photo_ready_for_staff(self):
-        """Test that status=uploaded sets FactionPhoto.ready for a staff user (not owner)."""
+        """Test that status=uploaded sets GameFactionPhoto.ready for a staff user (not owner)."""
         response = self._patch(
             self.client,
             self.upload_by_staff,

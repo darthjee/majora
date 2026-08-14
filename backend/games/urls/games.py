@@ -154,6 +154,42 @@ urlpatterns = [
         views.game_faction_photo_upload,
         name='game-faction-photo-upload',
     ),
+    path(
+        'games/<slug:game_slug>/factions/<int:faction_id>/characters.json',
+        views.game_faction_characters,
+        name='game-faction-characters',
+    ),
+    path(
+        'games/<slug:game_slug>/factions/<int:faction_id>/characters/all.json',
+        views.game_faction_characters_all,
+        name='game-faction-characters-all',
+    ),
+    path(
+        'games/<slug:game_slug>/factions/<int:faction_id>/pcs/<int:character_id>/summary.json',
+        views.game_pc_faction_summary,
+        name='game-faction-pc-summary',
+    ),
+    path(
+        (
+            'games/<slug:game_slug>/factions/<int:faction_id>/pcs/<int:character_id>/'
+            'summary/all.json'
+        ),
+        views.game_pc_faction_summary_all,
+        name='game-faction-pc-summary-all',
+    ),
+    path(
+        'games/<slug:game_slug>/factions/<int:faction_id>/npcs/<int:character_id>/summary.json',
+        views.game_npc_faction_summary,
+        name='game-faction-npc-summary',
+    ),
+    path(
+        (
+            'games/<slug:game_slug>/factions/<int:faction_id>/npcs/<int:character_id>/'
+            'summary/all.json'
+        ),
+        views.game_npc_faction_summary_all,
+        name='game-faction-npc-summary-all',
+    ),
     path('games/<slug:game_slug>/items.json', views.game_items, name='game-items'),
     path(
         'games/<slug:game_slug>/items/all.json',

@@ -92,4 +92,16 @@ describe('characterPreviewConstants', function() {
       expect(PREVIEW_LIST_TYPES.possession.buildAuthEndpoint).toBeUndefined();
     });
   });
+
+  describe('PREVIEW_LIST_TYPES.faction', function() {
+    it('provides the title key and icon', function() {
+      expect(PREVIEW_LIST_TYPES.faction.titleKey).toBe('character_page.factions_title');
+      expect(PREVIEW_LIST_TYPES.faction.icon).toBe(Icons.peopleFill);
+    });
+
+    it('does not provide an endpoint builder', function() {
+      expect(PREVIEW_LIST_TYPES.faction.buildEndpoint).toBeUndefined();
+      expect(PREVIEW_LIST_TYPES.faction.buildAuthEndpoint).toBeUndefined();
+    });
+  });
 });

@@ -4,6 +4,7 @@ import TreasurePreviewCard from './TreasurePreviewCard.jsx';
 import ItemPreviewCard from './ItemPreviewCard.jsx';
 import DocumentPreviewCard from './DocumentPreviewCard.jsx';
 import PossessionPreviewCard from './PossessionPreviewCard.jsx';
+import FactionPreviewCard from './FactionPreviewCard.jsx';
 import { PREVIEW_LIST_TYPES } from './characterPreviewConstants.js';
 
 /**
@@ -149,6 +150,24 @@ const shortListResourceConfig = {
     ),
     renderItem: (item, context, href) => React.createElement(
       PossessionPreviewCard, { key: item.id, possession: item, href },
+    ),
+  },
+  // issue #943: unlike `document`/`possession`/`item`, a `CharacterFaction` links out to its
+  // linked `GameFaction`'s own show page (`item.game_faction_id`) rather than to a dedicated
+  // `CharacterFaction` detail page of its own — the join carries no field
+  // (`CharacterFactionSerializer` is just `id`/`game_faction_id`/`name`/`photo_path`) that a
+  // standalone show page could usefully display beyond what the card already shows, so this
+  // issue does not introduce one.
+  faction: {
+    titleKey: PREVIEW_LIST_TYPES.faction.titleKey,
+    icon: PREVIEW_LIST_TYPES.faction.icon,
+    emptyTextKey: 'character_factions_preview.empty',
+    action: 'navigate',
+    buildParams: characterResourceParams,
+    buildSeeAllHref: (context) => characterResourceSeeAllHref('faction', context),
+    buildHref: (context, item) => `#/games/${context.game_slug}/factions/${item.game_faction_id}`,
+    renderItem: (item, context, href) => React.createElement(
+      FactionPreviewCard, { key: item.id, faction: item, href },
     ),
   },
 };

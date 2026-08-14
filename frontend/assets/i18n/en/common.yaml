@@ -138,6 +138,7 @@ character_page:
   items_title: Items
   documents_title: Documents
   possessions_title: Possessions
+  factions_title: Factions
   photos_title: Photos
 character_status_badges:
   private_slain: Slain
@@ -284,6 +285,36 @@ possession_exchange_modal:
   load_error: Unable to load possessions. Please try again.
   already_owned_error: This possession is already owned.
   generic_error: Unable to complete this action. Please try again.
+faction_exchange_modal:
+  title: Faction Exchange
+  search_placeholder: Search factions...
+  acquire_tab: Enlist
+  acquire_tab_tooltip: Enlist in the faction
+  remove_tab: Quit
+  remove_tab_tooltip: Quit the faction
+  confirm: Confirm
+  cancel: Cancel
+  back: Back
+  cancel_selection: Cancel
+  loading: Loading factions...
+  empty: No factions available.
+  load_error: Unable to load factions. Please try again.
+  already_enlisted_error: You are already enlisted in this faction.
+  generic_error: Unable to complete this action. Please try again.
+recruit_modal:
+  title: Recruit
+  pc_tab: PCs
+  npc_tab: NPCs
+  search_placeholder: Search characters...
+  cancel: Cancel
+  clear: Clear
+  submit: Submit
+  already_enlisted_tooltip: This character is already enlisted in this faction
+  remove_character_tooltip: Remove this character from the list
+  loading: Loading characters...
+  load_error: Unable to load characters. Please try again.
+  result_success: '{{name}} recruited.'
+  result_failure: 'Unable to recruit {{name}}.'
 game_treasures_page:
   loading: Loading treasures...
   title: Treasures
@@ -327,6 +358,7 @@ errors:
   treasure_already_linked: This treasure is already linked to this game.
   file_extension_not_allowed: This file type is not allowed.
   game_document_already_owned: This document is already owned.
+  game_faction_already_enlisted: This character is already enlisted in this faction.
   insufficient_funds: Insufficient funds for this purchase.
   treasure_not_enough_owned: Not enough of this item is owned.
   invalid_player_id: A valid player id is required.
