@@ -23,7 +23,7 @@ describe('GameNpcNewController', function() {
       setStatus = jasmine.createSpy('setStatus');
       setCharacterId = jasmine.createSpy('setCharacterId');
       characterClient = jasmine.createSpyObj('characterClient', ['createNpc']);
-      uploadClient = jasmine.createSpyObj('uploadClient', ['initUpload', 'submitUpload']);
+      uploadClient = jasmine.createSpyObj('uploadClient', ['runUploadCycle']);
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-abc');
       spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({
         status: 201,
@@ -40,11 +40,7 @@ describe('GameNpcNewController', function() {
     });
 
     it('uploads the photo and redirects when the NPC is created and the upload succeeds', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ upload_id: 1, token: 'up-token' }),
-      }));
-      uploadClient.submitUpload.and.returnValue(Promise.resolve({ ok: true }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: true, upload_id: 1, token: 'up-token' }));
 
       const controller = new GameNpcNewController(setError, setFieldErrors, characterClient, uploadClient);
       const fakeWindow = { location: { hash: '' } };
@@ -61,10 +57,9 @@ describe('GameNpcNewController', function() {
         expect(RequestStore.resolvePath).toHaveBeenCalledWith({
           resource: 'npc', method: 'POST', quantityType: 'single', params: { gameSlug: 'demo', id: 7 },
         });
-        expect(uploadClient.initUpload).toHaveBeenCalledWith(
-          '/games/demo/npcs/7/photo_upload.json', 'photo.jpg', 'tok-abc',
+        expect(uploadClient.runUploadCycle).toHaveBeenCalledWith(
+          '/games/demo/npcs/7/photo_upload.json', photoFile, 'tok-abc',
         );
-        expect(uploadClient.submitUpload).toHaveBeenCalledWith(1, 'up-token', photoFile);
         expect(RequestStore.purge).toHaveBeenCalledWith({ resource: 'npc' });
         expect(fakeWindow.location.hash).toBe('/games/demo/npcs/7');
         expect(setStatus).not.toHaveBeenCalledWith('photo-upload-failed');
@@ -74,7 +69,7 @@ describe('GameNpcNewController', function() {
     });
 
     it('sets status to photo-upload-failed and keeps the character id when initUpload fails', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({ ok: false, status: 422 }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: false }));
 
       const controller = new GameNpcNewController(setError, setFieldErrors, characterClient, uploadClient);
       const fakeWindow = { location: { hash: '' } };
@@ -90,7 +85,6 @@ describe('GameNpcNewController', function() {
 
         expect(setStatus).toHaveBeenCalledWith('photo-upload-failed');
         expect(setCharacterId).toHaveBeenCalledWith(7);
-        expect(uploadClient.submitUpload).not.toHaveBeenCalled();
         expect(RequestStore.purge).not.toHaveBeenCalled();
         expect(fakeWindow.location.hash).toBe('');
       } finally {
@@ -99,11 +93,7 @@ describe('GameNpcNewController', function() {
     });
 
     it('sets status to photo-upload-failed when submitUpload fails', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ upload_id: 1, token: 'up-token' }),
-      }));
-      uploadClient.submitUpload.and.returnValue(Promise.resolve({ ok: false, status: 500 }));
+      uploadClient.runUploadCycle.and.returnValue(Promise.resolve({ ok: false, upload_id: 1, token: 'up-token' }));
 
       const controller = new GameNpcNewController(setError, setFieldErrors, characterClient, uploadClient);
       const fakeWindow = { location: { hash: '' } };
@@ -126,7 +116,7 @@ describe('GameNpcNewController', function() {
     });
 
     it('sets status to photo-upload-failed when the upload client throws', async function() {
-      uploadClient.initUpload.and.returnValue(Promise.reject(new Error('network error')));
+      uploadClient.runUploadCycle.and.returnValue(Promise.reject(new Error('network error')));
 
       const controller = new GameNpcNewController(setError, setFieldErrors, characterClient, uploadClient);
       const fakeWindow = { location: { hash: '' } };

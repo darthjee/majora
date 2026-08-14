@@ -1,10 +1,9 @@
 import UploadClient from '../../../../client/UploadClient.js';
 
 /**
- * Shared create-then-upload saga step: the two-step upload flow
- * (`UploadClient#initUpload` then `#submitUpload`), used via composition by any controller that
- * needs to upload a photo against an already-created entity (e.g. `GameNpcNewController`,
- * `CharacterItemNewController`).
+ * Shared create-then-upload saga step: the two-step upload flow (`UploadClient#runUploadCycle`),
+ * used via composition by any controller that needs to upload a photo against an
+ * already-created entity (e.g. `GameNpcNewController`, `CharacterItemNewController`).
  */
 export default class PhotoUploadSaga {
   /**
@@ -26,14 +25,9 @@ export default class PhotoUploadSaga {
    */
   async upload(uploadPath, photoFile, token) {
     try {
-      const initResponse = await this.uploadClient.initUpload(uploadPath, photoFile.name, token);
+      const { ok } = await this.uploadClient.runUploadCycle(uploadPath, photoFile, token);
 
-      if (!initResponse.ok) return false;
-
-      const { upload_id: uploadId, token: uploadToken } = await initResponse.json();
-      const submitResponse = await this.uploadClient.submitUpload(uploadId, uploadToken, photoFile);
-
-      return submitResponse.ok;
+      return ok;
     } catch {
       return false;
     }
