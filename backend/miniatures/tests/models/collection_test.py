@@ -1,6 +1,7 @@
 """Tests for the Collection model."""
 
 import pytest
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.test import TestCase
 
@@ -49,6 +50,18 @@ class TestCollection(TestCase):
         second = CollectionFactory(name='Terrain Set')
         assert first.url is None
         assert second.url is None
+
+    def test_non_http_url_raises_on_full_clean(self):
+        """Test that a non-http(s) url scheme fails full_clean() validation."""
+        collection = Collection(name='Monster Pack', url='javascript:alert(1)')
+        with pytest.raises(ValidationError):
+            collection.full_clean()
+
+    def test_malformed_url_raises_on_full_clean(self):
+        """Test that a malformed url (bare domain, no scheme) fails full_clean() validation."""
+        collection = Collection(name='Monster Pack', url='example.com/pack')
+        with pytest.raises(ValidationError):
+            collection.full_clean()
 
     def test_source_defaults_to_none(self):
         """Test that a collection has no source by default."""

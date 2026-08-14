@@ -1,6 +1,7 @@
 """Tests for the Source model."""
 
 import pytest
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.test import TestCase
 
@@ -36,6 +37,18 @@ class TestSource(TestCase):
         """Test that a source's url can be set."""
         source = SourceFactory(name='MyMiniFactory', url='https://mymminifactory.com')
         assert source.url == 'https://mymminifactory.com'
+
+    def test_non_http_url_raises_on_full_clean(self):
+        """Test that a non-http(s) url scheme fails full_clean() validation."""
+        source = Source(name='MyMiniFactory', url='javascript:alert(1)')
+        with pytest.raises(ValidationError):
+            source.full_clean()
+
+    def test_malformed_url_raises_on_full_clean(self):
+        """Test that a malformed url (bare domain, no scheme) fails full_clean() validation."""
+        source = Source(name='MyMiniFactory', url='mymminifactory.com')
+        with pytest.raises(ValidationError):
+            source.full_clean()
 
     def test_photo_defaults_to_none(self):
         """Test that a source has no photo by default."""

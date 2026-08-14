@@ -1,5 +1,7 @@
 """Tests for the CharacterLink model."""
 
+import pytest
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from games.models import CharacterLink
@@ -103,3 +105,19 @@ class TestCharacterLink(TestCase):
             character=self.character,
         )
         assert str(link) == 'Backstory'
+
+    def test_non_http_url_raises_on_full_clean(self):
+        """Test that a non-http(s) url scheme fails full_clean() validation."""
+        link = CharacterLink(
+            text='Character Wiki', url='javascript:alert(1)', character=self.character,
+        )
+        with pytest.raises(ValidationError):
+            link.full_clean()
+
+    def test_malformed_url_raises_on_full_clean(self):
+        """Test that a malformed url (bare domain, no scheme) fails full_clean() validation."""
+        link = CharacterLink(
+            text='Character Wiki', url='example.com/frodo', character=self.character,
+        )
+        with pytest.raises(ValidationError):
+            link.full_clean()
