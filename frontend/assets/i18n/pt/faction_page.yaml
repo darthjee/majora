@@ -1,2 +1,5 @@
 faction_page:
   loading: Carregando facção...
+  characters_panel_title: Personagens
+  characters_panel_empty: Nenhum personagem nesta facção ainda.
+  recruit_button: Recrutar

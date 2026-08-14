@@ -16,6 +16,7 @@ const chunkLoaders = {
   character_document_photos_preview: () => import('./character_document_photos_preview.yaml?raw'),
   character_documents_page: () => import('./character_documents_page.yaml?raw'),
   character_documents_preview: () => import('./character_documents_preview.yaml?raw'),
+  character_factions_preview: () => import('./character_factions_preview.yaml?raw'),
   character_full_page: () => import('./character_full_page.yaml?raw'),
   character_info: () => import('./character_info.yaml?raw'),
   character_items_page: () => import('./character_items_page.yaml?raw'),
@@ -133,6 +134,8 @@ const commonNamespaces = [
   'give_document_modal',
   'document_exchange_modal',
   'possession_exchange_modal',
+  'faction_exchange_modal',
+  'recruit_modal',
   'game_treasures_page',
   'errors',
 ];

@@ -138,6 +138,7 @@ character_page:
   items_title: Itens
   documents_title: Documentos
   possessions_title: Posses
+  factions_title: Facções
   photos_title: Fotos
 character_status_badges:
   private_slain: Morto
@@ -284,6 +285,36 @@ possession_exchange_modal:
   load_error: Falha ao carregar posses. Por favor, tente novamente.
   already_owned_error: Esta posse já foi adquirida.
   generic_error: Não foi possível concluir esta ação. Por favor, tente novamente.
+faction_exchange_modal:
+  title: Troca de Facção
+  search_placeholder: Buscar facções...
+  acquire_tab: Alistar
+  acquire_tab_tooltip: Alistar-se na facção
+  remove_tab: Sair
+  remove_tab_tooltip: Sair da facção
+  confirm: Confirmar
+  cancel: Cancelar
+  back: Voltar
+  cancel_selection: Cancelar
+  loading: Carregando facções...
+  empty: Nenhuma facção disponível.
+  load_error: Falha ao carregar facções. Por favor, tente novamente.
+  already_enlisted_error: Você já está alistado nesta facção.
+  generic_error: Não foi possível concluir esta ação. Por favor, tente novamente.
+recruit_modal:
+  title: Recrutar
+  pc_tab: PJs
+  npc_tab: PNJs
+  search_placeholder: Buscar personagens...
+  cancel: Cancelar
+  clear: Limpar
+  submit: Enviar
+  already_enlisted_tooltip: Este personagem já está alistado nesta facção
+  remove_character_tooltip: Remove este personagem da lista
+  loading: Carregando personagens...
+  load_error: Falha ao carregar personagens. Por favor, tente novamente.
+  result_success: '{{name}} foi recrutado.'
+  result_failure: 'Não foi possível recrutar {{name}}.'
 game_treasures_page:
   loading: Carregando tesouros...
   title: Tesouros
@@ -327,6 +358,7 @@ errors:
   treasure_already_linked: Este tesouro já está vinculado a este jogo.
   file_extension_not_allowed: Este tipo de arquivo não é permitido.
   game_document_already_owned: Este documento já foi adquirido.
+  game_faction_already_enlisted: Este personagem já está alistado nesta facção.
   insufficient_funds: Fundos insuficientes para esta compra.
   treasure_not_enough_owned: Quantidade insuficiente deste item.
   invalid_player_id: É necessário um id de jogador válido.
