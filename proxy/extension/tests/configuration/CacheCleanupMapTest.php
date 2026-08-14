@@ -425,6 +425,76 @@ class CacheCleanupMapTest extends TestCase
     }
 
     /**
+     * Kicking a PC out of a faction (regular variant) must clear the PC's
+     * own entity cache targets, including its own factions list.
+     */
+    public function testPcFactionRemoveClearsAllPcCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/pcs.json',
+            '/games/:game_slug/pcs/:character_id.json',
+            '/games/:game_slug/pcs/:character_id/full.json',
+            '/games/:game_slug/pcs/:character_id/photos.json',
+            '/games/:game_slug/pcs/:character_id/factions.json',
+        ], $map['/games/:game_slug/pcs/:character_id/factions/remove.json']);
+    }
+
+    /**
+     * Kicking a PC out of a faction (DM/admin `/all` variant) must clear the
+     * same PC-scoped cache targets as the regular variant.
+     */
+    public function testPcFactionRemoveAllClearsAllPcCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/pcs.json',
+            '/games/:game_slug/pcs/:character_id.json',
+            '/games/:game_slug/pcs/:character_id/full.json',
+            '/games/:game_slug/pcs/:character_id/photos.json',
+            '/games/:game_slug/pcs/:character_id/factions.json',
+        ], $map['/games/:game_slug/pcs/:character_id/factions/remove/all.json']);
+    }
+
+    /**
+     * Kicking an NPC out of a faction (regular variant) must clear the
+     * NPC's own entity cache targets, including its own factions list.
+     */
+    public function testNpcFactionRemoveClearsAllNpcCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/npcs.json',
+            '/games/:game_slug/npcs/all.json',
+            '/games/:game_slug/npcs/:character_id.json',
+            '/games/:game_slug/npcs/:character_id/full.json',
+            '/games/:game_slug/npcs/:character_id/photos.json',
+            '/games/:game_slug/npcs/:character_id/factions.json',
+        ], $map['/games/:game_slug/npcs/:character_id/factions/remove.json']);
+    }
+
+    /**
+     * Kicking an NPC out of a faction (DM/admin `/all` variant) must clear
+     * the same NPC-scoped cache targets as the regular variant.
+     */
+    public function testNpcFactionRemoveAllClearsAllNpcCacheTargets(): void
+    {
+        $map = $this->buildCacheCleanupMap();
+
+        $this->assertSame([
+            '/games/:game_slug/npcs.json',
+            '/games/:game_slug/npcs/all.json',
+            '/games/:game_slug/npcs/:character_id.json',
+            '/games/:game_slug/npcs/:character_id/full.json',
+            '/games/:game_slug/npcs/:character_id/photos.json',
+            '/games/:game_slug/npcs/:character_id/factions.json',
+        ], $map['/games/:game_slug/npcs/:character_id/factions/remove/all.json']);
+    }
+
+    /**
      * Uploading a GameFaction's photo must clear the faction list/detail
      * cache targets for the game.
      */
