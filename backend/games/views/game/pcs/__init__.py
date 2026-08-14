@@ -16,6 +16,18 @@ from .detail.documents.game_pc_documents import game_pc_documents
 from .detail.documents.game_pc_documents_all import game_pc_documents_all
 from .detail.documents.game_pc_documents_available import game_pc_documents_available
 from .detail.documents.game_pc_documents_available_all import game_pc_documents_available_all
+from .detail.factions.game_pc_faction_acquire import game_pc_faction_acquire
+from .detail.factions.game_pc_faction_acquire_all import game_pc_faction_acquire_all
+from .detail.factions.game_pc_faction_detail import game_pc_faction_detail
+from .detail.factions.game_pc_faction_detail_full import game_pc_faction_detail_full
+from .detail.factions.game_pc_faction_remove import game_pc_faction_remove
+from .detail.factions.game_pc_faction_remove_all import game_pc_faction_remove_all
+from .detail.factions.game_pc_faction_summary import game_pc_faction_summary
+from .detail.factions.game_pc_faction_summary_all import game_pc_faction_summary_all
+from .detail.factions.game_pc_factions import game_pc_factions
+from .detail.factions.game_pc_factions_all import game_pc_factions_all
+from .detail.factions.game_pc_factions_available import game_pc_factions_available
+from .detail.factions.game_pc_factions_available_all import game_pc_factions_available_all
 from .detail.game_pc_access import game_pc_access
 from .detail.game_pc_full import game_pc_full
 from .detail.game_pc_photo_upload import game_pc_photo_upload
@@ -86,6 +98,18 @@ __all__ = [
     'game_pc_document_remove_all',
     'game_pc_document_summary',
     'game_pc_document_summary_all',
+    'game_pc_factions',
+    'game_pc_factions_all',
+    'game_pc_faction_detail',
+    'game_pc_faction_detail_full',
+    'game_pc_factions_available',
+    'game_pc_factions_available_all',
+    'game_pc_faction_acquire',
+    'game_pc_faction_acquire_all',
+    'game_pc_faction_remove',
+    'game_pc_faction_remove_all',
+    'game_pc_faction_summary',
+    'game_pc_faction_summary_all',
     'game_pc_items',
     'game_pc_items_all',
     'game_pc_item_detail',

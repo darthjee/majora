@@ -1,0 +1,8 @@
+restricted:
+  create:
+    - staff
+    - owner
+regular:
+  create:
+    - staff
+    - player

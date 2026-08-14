@@ -2,19 +2,20 @@
 
 from games.models.character.character import Character
 from games.models.character.character_document import CharacterDocument
+from games.models.character.character_faction import CharacterFaction
 from games.models.character.character_item import CharacterItem
 from games.models.character.character_item_photo import CharacterItemPhoto
 from games.models.character.character_link import CharacterLink
 from games.models.character.character_photo import CharacterPhoto
 from games.models.character.character_possession import CharacterPossession
 from games.models.character.character_treasure import CharacterTreasure
-from games.models.faction.faction import Faction
-from games.models.faction.faction_photo import FactionPhoto
 from games.models.game.game import Game
 from games.models.game.game_document import GameDocument
 from games.models.game.game_document_file import GameDocumentFile
 from games.models.game.game_document_file_photo import GameDocumentFilePhoto
 from games.models.game.game_document_photo import GameDocumentPhoto
+from games.models.game.game_faction import GameFaction
+from games.models.game.game_faction_photo import GameFactionPhoto
 from games.models.game.game_item import GameItem
 from games.models.game.game_item_photo import GameItemPhoto
 from games.models.game.game_link import GameLink
@@ -35,14 +36,15 @@ from games.models.treasure.treasure_photo import TreasurePhoto
 __all__ = [
     'Character',
     'CharacterDocument',
+    'CharacterFaction',
     'CharacterItem',
     'CharacterItemPhoto',
     'CharacterLink',
     'CharacterPhoto',
     'CharacterPossession',
     'CharacterTreasure',
-    'Faction',
-    'FactionPhoto',
+    'GameFaction',
+    'GameFactionPhoto',
     'Game',
     'GameDocument',
     'GameDocumentFile',
