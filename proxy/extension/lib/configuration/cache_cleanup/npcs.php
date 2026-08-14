@@ -22,6 +22,7 @@ $npcsEntityTargets = [
     '/games/:game_slug/npcs/:character_id.json',
     '/games/:game_slug/npcs/:character_id/full.json',
     '/games/:game_slug/npcs/:character_id/photos.json',
+    '/games/:game_slug/npcs/:character_id/factions.json',
 ];
 
 return [
@@ -43,6 +44,8 @@ return [
             '/games/:game_slug/npcs/:character_id/full.json',
             '/games/:game_slug/npcs/:character_id/photo_upload.json',
             '/games/:game_slug/npcs/:character_id/slain.json',
+            '/games/:game_slug/npcs/:character_id/factions/remove.json',
+            '/games/:game_slug/npcs/:character_id/factions/remove/all.json',
         ],
     ],
 ];
