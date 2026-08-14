@@ -22,7 +22,9 @@ def filter_by_size(request, queryset):
 
 def filter_by_race(request, queryset):
     """Filter `queryset` to STL models whose races include any of the given `race` values."""
-    values = request.query_params.getlist('race')
+    values = _filter_by_choice_list(
+        request.query_params.getlist('race'), choices=StlModel.RACE_CHOICES,
+    )
     if not values:
         return queryset
     return queryset.filter(races__creature__in=values)
@@ -30,7 +32,9 @@ def filter_by_race(request, queryset):
 
 def filter_by_roles(request, queryset):
     """Filter `queryset` to STL models whose roles include any of the given `roles` values."""
-    values = request.query_params.getlist('roles')
+    values = _filter_by_choice_list(
+        request.query_params.getlist('roles'), choices=StlModel.ROLE_CHOICES,
+    )
     if not values:
         return queryset
     return queryset.filter(roles__role__in=values)
@@ -67,6 +71,12 @@ def _filter_by_choice(request, queryset, param, choices):
     if value not in valid_values:
         return queryset
     return queryset.filter(**{param: value})
+
+
+def _filter_by_choice_list(values, choices):
+    """Return the subset of `values` that are valid members of `choices`, ignoring the rest."""
+    valid_values = {key for key, _label in choices}
+    return [value for value in values if value in valid_values]
 
 
 def _parse_ints(values):

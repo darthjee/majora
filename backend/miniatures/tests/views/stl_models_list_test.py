@@ -114,6 +114,25 @@ class TestStlModelsListView(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert {item['name'] for item in data} == {'Dragon', 'Elf'}
 
+    def test_ignores_unrecognized_race(self, client):
+        """Test that an unrecognized race value is dropped, leaving valid races applied."""
+        dragon = StlModelFactory(name='Dragon')
+        StlModelRace.objects.create(stl_model=dragon, creature=StlModel.RACE_DRAGON)
+        StlModelFactory(name='Elf')
+        response = self.get(
+            client, f'{LIST_URL}?race={StlModel.RACE_DRAGON}&race=bogus', token=self.token,
+        )
+        data = json.loads(response.content)
+        assert [item['name'] for item in data] == ['Dragon']
+
+    def test_unrecognized_race_only_returns_unfiltered_list(self, client):
+        """Test that when the only race value given is unrecognized, no race filter is applied."""
+        StlModelFactory(name='Dragon')
+        StlModelFactory(name='Elf')
+        response = self.get(client, f'{LIST_URL}?race=bogus', token=self.token)
+        data = json.loads(response.content)
+        assert len(data) == 2
+
     def test_filters_by_single_role(self, client):
         """Test that roles filters to STL models with a matching role."""
         wizard = StlModelFactory(name='Wizard')
@@ -137,6 +156,25 @@ class TestStlModelsListView(TokenAuthRequestMixin):
         )
         data = json.loads(response.content)
         assert {item['name'] for item in data} == {'Wizard', 'Fighter'}
+
+    def test_ignores_unrecognized_role(self, client):
+        """Test that an unrecognized role value is dropped, leaving valid roles applied."""
+        wizard = StlModelFactory(name='Wizard')
+        StlModelRole.objects.create(stl_model=wizard, role=StlModel.ROLE_WIZARD)
+        StlModelFactory(name='Fighter')
+        response = self.get(
+            client, f'{LIST_URL}?roles={StlModel.ROLE_WIZARD}&roles=bogus', token=self.token,
+        )
+        data = json.loads(response.content)
+        assert [item['name'] for item in data] == ['Wizard']
+
+    def test_unrecognized_role_only_returns_unfiltered_list(self, client):
+        """Test that when the only role value given is unrecognized, no role filter is applied."""
+        StlModelFactory(name='Wizard')
+        StlModelFactory(name='Fighter')
+        response = self.get(client, f'{LIST_URL}?roles=bogus', token=self.token)
+        data = json.loads(response.content)
+        assert len(data) == 2
 
     def test_filters_by_single_source(self, client):
         """Test that source filters to STL models linked to the given source id."""
