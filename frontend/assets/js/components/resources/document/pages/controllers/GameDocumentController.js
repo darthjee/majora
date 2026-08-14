@@ -5,7 +5,7 @@ import BasePageController from '../../../../common/base/controllers/BasePageCont
 
 /**
  * Controller for the game document detail page (issue #758, photo upload gating added in #727,
- * `canGiveHidden` derivation fixed in #833).
+ * `canGiveHidden` derivation fixed in #833, dropped `is_staff` in #1117).
  *
  * @description Fetches the `GameDocument` through `RequestStore.ensure({resource: 'document',
  *   quantityType: 'single', params: {gameSlug, kind: 'game', id}})`, which internally resolves
@@ -16,7 +16,7 @@ import BasePageController from '../../../../common/base/controllers/BasePageCont
  *   run concurrently with the document fetch rather than chained after it, mirroring
  *   `GameItemController`'s own `#loadCanUploadPhoto`. This page's Edit/file-upload/Give-Document
  *   buttons all reuse the same `canUploadPhoto` flag, since there is no separate general "edit"
- *   permission for documents; `canGiveHidden` (superuser/dm/staff, dropping `is_player`) instead
+ *   permission for documents; `canGiveHidden` (superuser/dm, dropping `is_player`/`is_staff`) instead
  *   gates which acquire-endpoint variant the give-document modal submits through — a hidden
  *   `GameDocument` can only be given via the DM/admin-only `/acquire/all.json` variant (issue
  *   #833, replacing the previous, too-broad `AccessStore.ensureDocumentPermissions().can_edit`
@@ -43,8 +43,8 @@ export default class GameDocumentController extends BasePageController {
    * @param {Function} setError - Error setter.
    * @param {Function} setCanUploadPhoto - Setter for whether the requester may upload a photo.
    * @param {Function} setCanGiveHidden - Setter for whether the requester may give this document
-   *   even when hidden (issue #833), gating the give-document modal's hidden-document acquire
-   *   variant.
+   *   even when hidden (issue #833, superuser/dm), gating the give-document modal's
+   *   hidden-document acquire variant.
    * @param {GenericClient} [client] - Client override, mainly for tests.
    */
   constructor(setDocument, setLoading, setError, setCanUploadPhoto, setCanGiveHidden, client = new GenericClient()) {
@@ -112,6 +112,6 @@ export default class GameDocumentController extends BasePageController {
   }
 
   static #canGiveHidden(access) {
-    return Boolean(access.is_superuser || access.is_dm || access.is_staff);
+    return Boolean(access.is_superuser || access.is_dm);
   }
 }

@@ -178,12 +178,12 @@ describe('GameFactionController', function() {
       expect(setCanRecruitHidden).toHaveBeenCalledWith(true);
     });
 
-    it('is true for staff', async function() {
+    it('is false for staff', async function() {
       AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ is_staff: true }));
 
       await runController();
 
-      expect(setCanRecruitHidden).toHaveBeenCalledWith(true);
+      expect(setCanRecruitHidden).toHaveBeenCalledWith(false);
     });
 
     it('is true for the game DM', async function() {

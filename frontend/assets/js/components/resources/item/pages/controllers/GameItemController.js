@@ -5,7 +5,7 @@ import BasePageController from '../../../../common/base/controllers/BasePageCont
 
 /**
  * Controller for the game item detail page (issue #724, photo upload gating added in #749,
- * edit button gating added in #782).
+ * edit button gating added in #782, dropped `is_staff` from `canGiveHidden` in #1117).
  *
  * @description Fetches the `GameItem` through `RequestStore.ensure({resource: 'item',
  *   quantityType: 'single', params: {gameSlug, kind: 'game', id}})`, which internally resolves
@@ -16,7 +16,7 @@ import BasePageController from '../../../../common/base/controllers/BasePageCont
  *   `canUploadPhoto` and `canGiveHidden` from a single shared `AccessStore.ensureGameAccess` call
  *   (a wider, "who can upload" gate that also includes `is_player`, unlike the narrower
  *   `can_edit` used to pick the fetch endpoint), run concurrently with the item fetch rather than
- *   chained after it. `canGiveHidden` (superuser/dm/staff, dropping `is_player`) gates which
+ *   chained after it. `canGiveHidden` (superuser/dm, dropping `is_player`/`is_staff`) gates which
  *   acquire-endpoint variant the give-item modal submits through — a hidden `GameItem` can only
  *   be given via the DM/admin-only variant (issue #833, replacing the previous, too-broad
  *   `canEdit`-driven derivation). Also independently derives `canEdit` from its own
@@ -45,7 +45,8 @@ export default class GameItemController extends BasePageController {
    * @param {Function} setCanEdit - Setter for whether the requester may edit this item.
    * @param {Function} setCanUploadPhoto - Setter for whether the requester may upload a photo.
    * @param {Function} setCanGiveHidden - Setter for whether the requester may give this item even
-   *   when hidden (issue #833), gating the give-item modal's hidden-item acquire variant.
+   *   when hidden (issue #833, superuser/dm), gating the give-item modal's hidden-item acquire
+   *   variant.
    * @param {GenericClient} [client] - Client override, mainly for tests.
    */
   constructor(
@@ -117,7 +118,7 @@ export default class GameItemController extends BasePageController {
   }
 
   static #canGiveHidden(access) {
-    return Boolean(access.is_superuser || access.is_dm || access.is_staff);
+    return Boolean(access.is_superuser || access.is_dm);
   }
 
   #fetchItem(params, safeSet) {

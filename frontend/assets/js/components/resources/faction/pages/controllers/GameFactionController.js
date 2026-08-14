@@ -17,8 +17,8 @@ import BasePageController from '../../../../common/base/controllers/BasePageCont
  *   `/permissions/game_faction.json` — issue #1099), exposed to gate the show page's Edit
  *   button — `can_edit` grants admin/dm as always, plus staff/player (per issue #1099), unlike
  *   `canUploadPhoto`'s broader "any player" gate. `canRecruitHidden` (issue #943) is derived from
- *   the same `AccessStore.ensureGameAccess` call as `canUploadPhoto` (superuser/dm/staff, dropping
- *   player — mirroring `GameDocumentController`'s own `canGiveHidden`, fixed in #833), gating
+ *   the same `AccessStore.ensureGameAccess` call as `canUploadPhoto` (superuser/dm, dropping
+ *   player/staff — mirroring `GameDocumentController`'s own `canGiveHidden`, fixed in #833/#1117), gating
  *   which acquire-endpoint variant the recruit modal submits through — a hidden character can only
  *   be recruited via the DM/admin-only `/acquire/all.json` variant.
  */
@@ -44,7 +44,7 @@ export default class GameFactionController extends BasePageController {
    * @param {Function} setCanEdit - Setter for whether the requester may edit this faction.
    * @param {Function} setCanUploadPhoto - Setter for whether the requester may upload a photo.
    * @param {Function} setCanRecruitHidden - Setter for whether the requester may recruit a
-   *   hidden character into this faction (issue #943, superuser/dm/staff), gating the recruit
+   *   hidden character into this faction (issue #943, superuser/dm), gating the recruit
    *   modal's acquire-endpoint variant.
    * @param {GenericClient} [client] - Client override, mainly for tests.
    */
@@ -117,7 +117,7 @@ export default class GameFactionController extends BasePageController {
   }
 
   static #canRecruitHidden(access) {
-    return Boolean(access.is_superuser || access.is_dm || access.is_staff);
+    return Boolean(access.is_superuser || access.is_dm);
   }
 
   #fetchFaction(params, safeSet) {
