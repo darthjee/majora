@@ -4,3 +4,4 @@ faction_page:
   characters_panel_empty: No characters in this faction yet.
   characters_panel_error: Unable to load characters. Please try again.
   recruit_button: Recruit
+  kick_button: Kick

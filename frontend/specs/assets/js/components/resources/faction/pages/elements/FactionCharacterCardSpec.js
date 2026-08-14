@@ -22,4 +22,24 @@ describe('FactionCharacterCard', function() {
 
     expect(html).toContain('href="#/games/demo/npcs/8"');
   });
+
+  it('does not render a kick button by default', function() {
+    const character = {
+      id: 5, name: 'Aragorn', type: 'pc', photo_path: null,
+    };
+    const html = renderToStaticMarkup(React.createElement(FactionCharacterCard, { character, gameSlug: 'demo' }));
+
+    expect(html).not.toContain('bi-person-x');
+  });
+
+  it('renders a kick button when canKick is true', function() {
+    const character = {
+      id: 5, name: 'Aragorn', type: 'pc', photo_path: null,
+    };
+    const html = renderToStaticMarkup(
+      React.createElement(FactionCharacterCard, { character, gameSlug: 'demo', canKick: true }),
+    );
+
+    expect(html).toContain('bi-person-x');
+  });
 });

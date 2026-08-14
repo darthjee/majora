@@ -4,3 +4,4 @@ faction_page:
   characters_panel_empty: Nenhum personagem nesta facção ainda.
   characters_panel_error: Falha ao carregar personagens. Por favor, tente novamente.
   recruit_button: Recrutar
+  kick_button: Expulsar

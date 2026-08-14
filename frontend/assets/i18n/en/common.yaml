@@ -95,6 +95,11 @@ delete_photo_confirm_modal:
   body: Are you sure you want to delete this photo? This cannot be undone.
   confirm: Delete
   cancel: Cancel
+kick_confirm_modal:
+  title: Remove from Faction
+  body: 'Remove {{character_name}} from {{faction_name}}?'
+  confirm: Kick
+  cancel: Cancel
 slain_confirm_modal:
   slain_title: Mark as Slain
   revive_title: Revive Character

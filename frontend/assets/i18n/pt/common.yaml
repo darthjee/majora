@@ -95,6 +95,11 @@ delete_photo_confirm_modal:
   body: Tem certeza de que deseja excluir esta foto? Esta ação não pode ser desfeita.
   confirm: Excluir
   cancel: Cancelar
+kick_confirm_modal:
+  title: Remover da Facção
+  body: 'Remover {{character_name}} da facção {{faction_name}}?'
+  confirm: Expulsar
+  cancel: Cancelar
 slain_confirm_modal:
   slain_title: Marcar como Morto
   revive_title: Reviver Personagem
