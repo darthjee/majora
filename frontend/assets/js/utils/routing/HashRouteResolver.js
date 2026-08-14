@@ -109,6 +109,7 @@ const ROUTES = [
 const FILTER_KEYS = [
   'public_slain', 'private_slain', 'name', 'public_allegiance', 'private_allegiance', 'status',
   'hidden', 'game_type', 'min_value', 'max_value', 'search',
+  'type', 'race', 'roles', 'source', 'collection', 'tags', 'size',
 ];
 
 /**
@@ -184,22 +185,24 @@ export default class HashRouteResolver {
   }
 
   /**
-   * Return NPC/poll/treasure filter query params from hash.
+   * Return NPC/poll/treasure/STL model filter query params from hash.
    *
+   * @description Every value present in the hash's `URLSearchParams` for a given key is
+   *   preserved (via `.getAll()`/`.append()`), not collapsed to the last one — required for the
+   *   STL model filters bar's multi-value fields (`race`/`roles`/`source`/`collection`/`tags`),
+   *   passed as repeated query params (e.g. `?race=elf&race=orc`). Scalar-only callers reading a
+   *   single key via `.get()` are unaffected, since `.get()` already returns just the first value.
    * @returns {URLSearchParams} Filter params (`public_slain`/`private_slain`/`name`/
    *   `public_allegiance`/`private_allegiance`/`status`/`hidden`/`game_type`/`min_value`/
-   *   `max_value`/`search`), only set when present in hash.
+   *   `max_value`/`search`/`type`/`race`/`roles`/`source`/`collection`/`tags`/`size`), only set
+   *   when present in hash.
    */
   getFilterParams() {
     const query = HashQueryParams.parse(this.currentHash());
     const params = new URLSearchParams();
 
     FILTER_KEYS.forEach((key) => {
-      const value = query.get(key);
-
-      if (value !== null) {
-        params.set(key, value);
-      }
+      query.getAll(key).forEach((value) => params.append(key, value));
     });
 
     return params;

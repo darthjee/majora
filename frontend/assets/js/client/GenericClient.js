@@ -103,6 +103,11 @@ export default class GenericClient extends BaseClient {
   /**
    * Merge extra query params over the resolver's pagination params.
    *
+   * @description An array value (e.g. an STL model filters bar's multi-value `race`/`roles`/
+   *   `source`/`collection`/`tags` field) is serialized as one repeated query entry per array
+   *   element (`params.append(key, v)` for each, skipping blank/undefined/null entries) instead
+   *   of a single `.set()` call, which cannot represent more than one value per key. A scalar
+   *   value keeps the existing `.set()` behavior, unaffected by this branch.
    * @param {object} extraParams - Additional query params to merge in.
    * @returns {URLSearchParams} Merged query params.
    */
@@ -110,6 +115,14 @@ export default class GenericClient extends BaseClient {
     const params = this.#resolver.getPaginationParams();
 
     Object.entries(extraParams).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        params.delete(key);
+        value
+          .filter((v) => v !== undefined && v !== null && v !== '')
+          .forEach((v) => params.append(key, v));
+        return;
+      }
+
       if (value !== undefined && value !== null && value !== '') {
         params.set(key, value);
       }

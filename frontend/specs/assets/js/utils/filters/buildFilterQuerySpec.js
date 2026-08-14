@@ -17,4 +17,17 @@ describe('buildFilterQuery', function() {
   it('returns an empty object for an empty entry list', function() {
     expect(buildFilterQuery([])).toEqual({});
   });
+
+  it('keeps a non-empty array value as-is', function() {
+    expect(buildFilterQuery([['race', ['elf', 'orc']]])).toEqual({ race: ['elf', 'orc'] });
+  });
+
+  it('omits an empty array value', function() {
+    expect(buildFilterQuery([['race', []], ['name', 'gob']])).toEqual({ name: 'gob' });
+  });
+
+  it('mixes scalar and array entries', function() {
+    expect(buildFilterQuery([['name', 'gob'], ['race', ['elf', 'orc']], ['type', '']]))
+      .toEqual({ name: 'gob', race: ['elf', 'orc'] });
+  });
 });

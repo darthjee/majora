@@ -213,8 +213,10 @@ function buildCharacterItemItemHref(characterKind) {
  * - `fetchList(gameSlug, hashResolver, client?)` — fetches one page of list data. Every type
  *   migrated onto `RequestStore` (issue #791, phase 3/N) ignores the `client` argument (kept
  *   only where a later positional argument, e.g. `gameClient`, still needs it); the handful of
- *   list types intentionally left on `fetchPermissionGatedIndex` (`documents`, `treasures-global`,
- *   `my-games`, `players`) still use it.
+ *   list types intentionally left on `fetchPermissionGatedIndex` (`documents`, `my-games`,
+ *   `players`) still use it, as do `treasures-global` and `stlModels`, both fetched directly
+ *   through `GenericClient` (issue #1107 moved `stlModels` off `RequestStore` for this, so its
+ *   filters bar's multi-value fields can be serialized via `GenericClient#fetchIndex`).
  * - `wrapperClass` — the `BaseListItem` subclass normalizing each raw entry.
  * - `filtersComponent` — filter bar rendered above the grid, or `null`.
  * - `photoType` — `ActionsOverlay`'s `type` prop for this entity's photo/avatar.

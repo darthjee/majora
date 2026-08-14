@@ -52,6 +52,30 @@ describe('HashRouteResolver params', function() {
     expect(params.toString()).toBe('status=open');
   });
 
+  it('extracts the STL model scalar filter params (name/type/size)', function() {
+    const params = new HashRouteResolver(
+      () => '#/miniatures/stl_models?name=gob&type=creature&size=small&page=2',
+    ).getFilterParams();
+    expect(params.toString()).toBe('name=gob&type=creature&size=small');
+  });
+
+  it('preserves every value of a repeated multi-value filter key (race/roles/source/collection/tags)', function() {
+    const params = new HashRouteResolver(
+      () => '#/miniatures/stl_models?race=elf&race=orc&roles=fighter&source=1&source=2'
+        + '&collection=3&tags=painted&tags=resin&page=2',
+    ).getFilterParams();
+    expect(params.getAll('race')).toEqual(['elf', 'orc']);
+    expect(params.getAll('roles')).toEqual(['fighter']);
+    expect(params.getAll('source')).toEqual(['1', '2']);
+    expect(params.getAll('collection')).toEqual(['3']);
+    expect(params.getAll('tags')).toEqual(['painted', 'resin']);
+  });
+
+  it('does not collapse a repeated key to its last value', function() {
+    const params = new HashRouteResolver(() => '#/miniatures/stl_models?race=elf&race=orc').getFilterParams();
+    expect(params.toString()).toBe('race=elf&race=orc');
+  });
+
   describe('#getParams', function() {
     it('extracts a single param for a matching path', function() {
       const resolver = new HashRouteResolver(() => '#/games/campaign');

@@ -13,4 +13,18 @@ describe('buildFilteredHref', function() {
   it('serializes a blank filter value as an empty query param', function() {
     expect(buildFilteredHref('#/treasures', { name: '' })).toBe('#/treasures?page=1&name=');
   });
+
+  it('serializes an array filter value as one repeated query entry per element', function() {
+    expect(buildFilteredHref('#/miniatures/stl_models', { race: ['elf', 'orc'] }))
+      .toBe('#/miniatures/stl_models?page=1&race=elf&race=orc');
+  });
+
+  it('mixes scalar and array filter values', function() {
+    expect(buildFilteredHref('#/miniatures/stl_models', { name: 'gob', race: ['elf', 'orc'] }))
+      .toBe('#/miniatures/stl_models?page=1&name=gob&race=elf&race=orc');
+  });
+
+  it('omits an array filter key entirely when the array is empty', function() {
+    expect(buildFilteredHref('#/miniatures/stl_models', { race: [] })).toBe('#/miniatures/stl_models?page=1');
+  });
 });
