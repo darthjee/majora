@@ -1,5 +1,6 @@
 """Collection model for the miniatures app."""
 
+from django.core.validators import URLValidator
 from django.db import models
 from simple_history.models import HistoricalRecords
 
@@ -15,8 +16,12 @@ class Collection(models.Model):
     #: `default=None` (not just `null=True, blank=True`) is required so an omitted `url` is
     #: stored as a real `NULL`, not `''` -- the DB engine's `Field.get_default()` would otherwise
     #: fall back to `''` for a `CharField`, which would collide under `unique=True` on the second
-    #: url-less `Collection`.
-    url = models.CharField(max_length=200, unique=True, null=True, blank=True, default=None)
+    #: url-less `Collection`. The scheme-restricted validator additionally rejects non-http(s)
+    #: URIs (e.g. `javascript:`) to prevent stored XSS on the show page.
+    url = models.URLField(
+        max_length=200, unique=True, null=True, blank=True, default=None,
+        validators=[URLValidator(schemes=['http', 'https'])],
+    )
     source = models.ForeignKey(
         'miniatures.Source', on_delete=models.SET_NULL, null=True, blank=True,
         related_name='collections',

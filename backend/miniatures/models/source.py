@@ -1,5 +1,6 @@
 """Source model for the miniatures app."""
 
+from django.core.validators import URLValidator
 from django.db import models
 from simple_history.models import HistoricalRecords
 
@@ -8,7 +9,10 @@ class Source(models.Model):
     """Model representing a deduplicated, global source a `StlModel` can be attributed to."""
 
     name = models.CharField(max_length=200, unique=True)
-    url = models.CharField(max_length=200, blank=True, default='')
+    url = models.URLField(
+        max_length=200, blank=True, default='',
+        validators=[URLValidator(schemes=['http', 'https'])],
+    )
     photo = models.ForeignKey(
         'miniatures.SourcePhoto', on_delete=models.SET_NULL, null=True, blank=True,
         related_name='+',
