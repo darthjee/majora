@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny
 from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game
-from ...serializers import FactionListSerializer
+from ...serializers import GameFactionListSerializer
 from ..common import paginated_list_response
 from ._faction_create import faction_create
 
@@ -22,4 +22,4 @@ def game_factions(request, game_slug):
     game = get_object_or_404(Game, game_slug=game_slug)
     if request.method == 'POST':
         return faction_create(request, game)
-    return paginated_list_response(request, game.factions.all(), FactionListSerializer)
+    return paginated_list_response(request, game.factions.all(), GameFactionListSerializer)

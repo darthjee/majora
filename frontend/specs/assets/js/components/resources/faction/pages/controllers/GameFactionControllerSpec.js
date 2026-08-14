@@ -9,6 +9,7 @@ describe('GameFactionController', function() {
   let setError;
   let setCanEdit;
   let setCanUploadPhoto;
+  let setCanRecruitHidden;
   let client;
   let ensureSpy;
 
@@ -18,6 +19,7 @@ describe('GameFactionController', function() {
     setError = jasmine.createSpy('setError');
     setCanEdit = jasmine.createSpy('setCanEdit');
     setCanUploadPhoto = jasmine.createSpy('setCanUploadPhoto');
+    setCanRecruitHidden = jasmine.createSpy('setCanRecruitHidden');
     client = jasmine.createSpyObj('client', ['currentHash', 'fetch']);
     client.currentHash.and.returnValue('#/games/demo/factions/5');
     spyOn(AccessStore, 'ensureGameAccess').and.returnValue(Promise.resolve({}));
@@ -26,6 +28,10 @@ describe('GameFactionController', function() {
       Promise.resolve({ data: { id: 5, name: 'The Silver Hand' } }),
     );
   });
+
+  const buildController = () => new GameFactionController(
+    setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto, setCanRecruitHidden, client,
+  );
 
   describe('.getParamsFromHash', function() {
     it('extracts the game slug and faction id', function() {
@@ -43,9 +49,7 @@ describe('GameFactionController', function() {
 
   describe('#buildEffect', function() {
     it('fetches the faction through RequestStore', async function() {
-      const cleanup = new GameFactionController(
-        setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto, client,
-      ).buildEffect()();
+      const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(ensureSpy).toHaveBeenCalledWith({
@@ -64,9 +68,7 @@ describe('GameFactionController', function() {
     it('sets an error when the fetch rejects', async function() {
       ensureSpy.and.returnValue(Promise.reject(new Error('network error')));
 
-      const cleanup = new GameFactionController(
-        setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto, client,
-      ).buildEffect()();
+      const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(setError).toHaveBeenCalledWith('Unable to load faction.');
@@ -78,9 +80,7 @@ describe('GameFactionController', function() {
     it('sets an error and skips fetching when route params are missing', function() {
       client.currentHash.and.returnValue('#/games/demo');
 
-      const cleanup = new GameFactionController(
-        setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto, client,
-      ).buildEffect()();
+      const cleanup = buildController().buildEffect()();
 
       expect(setError).toHaveBeenCalledWith('Unable to load faction.');
       expect(setLoading).toHaveBeenCalledWith(false);
@@ -90,9 +90,7 @@ describe('GameFactionController', function() {
     });
 
     it('does not update state after unmount', async function() {
-      const cleanup = new GameFactionController(
-        setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto, client,
-      ).buildEffect()();
+      const cleanup = buildController().buildEffect()();
       cleanup();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -103,9 +101,7 @@ describe('GameFactionController', function() {
 
   describe('canUploadPhoto', function() {
     const runController = async () => {
-      const cleanup = new GameFactionController(
-        setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto, client,
-      ).buildEffect()();
+      const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
       cleanup();
     };
@@ -167,11 +163,57 @@ describe('GameFactionController', function() {
     });
   });
 
+  describe('canRecruitHidden', function() {
+    const runController = async () => {
+      const cleanup = buildController().buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      cleanup();
+    };
+
+    it('is true for a superuser', async function() {
+      AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ is_superuser: true }));
+
+      await runController();
+
+      expect(setCanRecruitHidden).toHaveBeenCalledWith(true);
+    });
+
+    it('is true for staff', async function() {
+      AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ is_staff: true }));
+
+      await runController();
+
+      expect(setCanRecruitHidden).toHaveBeenCalledWith(true);
+    });
+
+    it('is true for the game DM', async function() {
+      AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ is_dm: true }));
+
+      await runController();
+
+      expect(setCanRecruitHidden).toHaveBeenCalledWith(true);
+    });
+
+    it('is false for a player', async function() {
+      AccessStore.ensureGameAccess.and.returnValue(Promise.resolve({ is_player: true }));
+
+      await runController();
+
+      expect(setCanRecruitHidden).toHaveBeenCalledWith(false);
+    });
+
+    it('fails closed to false when the access check rejects', async function() {
+      AccessStore.ensureGameAccess.and.returnValue(Promise.reject(new Error('nope')));
+
+      await runController();
+
+      expect(setCanRecruitHidden).toHaveBeenCalledWith(false);
+    });
+  });
+
   describe('canEdit', function() {
     const runController = async () => {
-      const cleanup = new GameFactionController(
-        setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto, client,
-      ).buildEffect()();
+      const cleanup = buildController().buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
       cleanup();
     };

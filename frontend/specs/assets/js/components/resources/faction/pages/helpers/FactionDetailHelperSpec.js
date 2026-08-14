@@ -86,6 +86,46 @@ describe('FactionDetailHelper', function() {
 
       expect(html).toContain('href="#/games/demo/factions/5/edit"');
     });
+
+    it('does not render the recruit button when canUploadPhoto is false (issue #943)', function() {
+      const faction = { id: 5, name: 'The Silver Hand' };
+      const html = renderToStaticMarkup(
+        FactionDetailHelper.render(faction, '#/games/demo/factions', '#/games/demo/factions/5/edit', false, false),
+      );
+
+      expect(html).not.toContain('Recruit');
+    });
+
+    it('renders the recruit button when canUploadPhoto is true (issue #943)', function() {
+      const faction = { id: 5, name: 'The Silver Hand' };
+      const html = renderToStaticMarkup(
+        FactionDetailHelper.render(faction, '#/games/demo/factions', '#/games/demo/factions/5/edit', false, true),
+      );
+
+      expect(html).toContain('Recruit');
+    });
+
+    it('invokes onRecruitClick when the recruit button is clicked (props wiring)', function() {
+      const faction = { id: 5, name: 'The Silver Hand' };
+      const onRecruitClick = jasmine.createSpy('onRecruitClick');
+      const element = FactionDetailHelper.render(
+        faction, '#/games/demo/factions', '#/games/demo/factions/5/edit', false, true,
+        undefined, 'demo', 0, onRecruitClick,
+      );
+
+      expect(element.props.pageActions.props.children[0].props.children.props.onClick).toBe(onRecruitClick);
+    });
+
+    it('merges game_slug and refreshToken into the show page layout context (issue #943)', function() {
+      const faction = { id: 5, name: 'The Silver Hand' };
+      const element = FactionDetailHelper.render(
+        faction, '#/games/demo/factions', '#/games/demo/factions/5/edit', false, true,
+        undefined, 'demo', 3,
+      );
+
+      expect(element.props.context.game_slug).toBe('demo');
+      expect(element.props.context.refreshToken).toBe(3);
+    });
   });
 
   describe('.renderLoading', function() {

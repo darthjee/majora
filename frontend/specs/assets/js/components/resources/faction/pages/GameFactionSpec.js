@@ -15,10 +15,11 @@ const loadedFaction = { id: 5, name: 'The Silver Hand' };
 
 /** Stub controller that synchronously loads a faction (with upload/edit permission) during construction. */
 class LoadedController {
-  constructor(setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto) {
+  constructor(setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto, setCanRecruitHidden) {
     setFaction(loadedFaction);
     setCanEdit(true);
     setCanUploadPhoto(true);
+    setCanRecruitHidden(false);
     setLoading(false);
   }
 
@@ -27,10 +28,11 @@ class LoadedController {
 
 /** Stub controller that synchronously loads a faction without upload or edit permission. */
 class LoadedWithoutUploadController {
-  constructor(setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto) {
+  constructor(setFaction, setLoading, setError, setCanEdit, setCanUploadPhoto, setCanRecruitHidden) {
     setFaction(loadedFaction);
     setCanEdit(false);
     setCanUploadPhoto(false);
+    setCanRecruitHidden(false);
     setLoading(false);
   }
 
