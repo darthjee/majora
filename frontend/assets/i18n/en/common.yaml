@@ -137,6 +137,7 @@ character_page:
   treasures_title: Treasures
   items_title: Items
   documents_title: Documents
+  possessions_title: Possessions
   photos_title: Photos
 character_status_badges:
   private_slain: Slain
