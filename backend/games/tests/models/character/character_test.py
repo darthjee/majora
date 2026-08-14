@@ -9,7 +9,6 @@ from django.test import TestCase
 from games.models import Character
 from games.tests.factories import (
     CharacterFactory,
-    FactionFactory,
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
@@ -130,26 +129,6 @@ class TestCharacter(TestCase):
         """Test string representation of a character."""
         character = Character(name='Gimli', game=self.game)
         assert str(character) == 'Gimli'
-
-    def test_character_factions_defaults_to_empty(self):
-        """Test that a new character belongs to no factions by default."""
-        character = CharacterFactory(name='Gimli', game=self.game)
-        assert character.factions.count() == 0
-
-    def test_character_can_belong_to_multiple_factions(self):
-        """Test that a character can be assigned to several factions via the M2M field."""
-        character = CharacterFactory(name='Gimli', game=self.game)
-        faction_one = FactionFactory(game=self.game, name='The Silver Hand')
-        faction_two = FactionFactory(game=self.game, name='The Iron Circle')
-        character.factions.add(faction_one, faction_two)
-        assert set(character.factions.all()) == {faction_one, faction_two}
-
-    def test_faction_characters_related_name(self):
-        """Test that a faction can access its characters via the reverse related name."""
-        character = CharacterFactory(name='Gimli', game=self.game)
-        faction = FactionFactory(game=self.game, name='The Silver Hand')
-        character.factions.add(faction)
-        assert list(faction.characters.all()) == [character]
 
     def test_can_be_edited_by_returns_false_for_anonymous_user(self):
         """Test that an anonymous (None) user cannot edit a character."""

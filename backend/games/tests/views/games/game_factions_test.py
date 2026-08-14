@@ -6,10 +6,10 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from games.models import Faction
+from games.models import GameFaction
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
-    FactionFactory,
+    GameFactionFactory,
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
@@ -34,8 +34,8 @@ class TestGameFactionsView(TestCase):
 
     def test_returns_only_game_factions(self):
         """Test that only factions belonging to the game are returned."""
-        FactionFactory(game=self.game, name='The Silver Hand')
-        FactionFactory(game=self.other_game, name='The Iron Circle')
+        GameFactionFactory(game=self.game, name='The Silver Hand')
+        GameFactionFactory(game=self.other_game, name='The Iron Circle')
         response = self.client.get('/games/test-game/factions.json')
         data = json.loads(response.content)
         assert len(data) == 1
@@ -43,7 +43,7 @@ class TestGameFactionsView(TestCase):
 
     def test_returns_id_name_photo_path_fields(self):
         """Test that list items include id, name, and photo_path fields."""
-        faction = FactionFactory(game=self.game, name='The Silver Hand')
+        faction = GameFactionFactory(game=self.game, name='The Silver Hand')
         response = self.client.get('/games/test-game/factions.json')
         data = json.loads(response.content)
         assert data[0]['id'] == faction.id
@@ -73,7 +73,7 @@ class TestGameFactionsView(TestCase):
     def test_respects_page_param(self):
         """Test that ?page=N returns the correct page of results."""
         for i in range(5):
-            FactionFactory(game=self.game, name=f'Faction {i}')
+            GameFactionFactory(game=self.game, name=f'GameFaction {i}')
         response = self.client.get('/games/test-game/factions.json?page=2&per_page=3')
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -87,8 +87,8 @@ class TestGameFactionsView(TestCase):
 
     def test_returns_factions_ordered_by_id(self):
         """Test that factions are returned ordered by id."""
-        first = FactionFactory(game=self.game, name='First Faction')
-        second = FactionFactory(game=self.game, name='Second Faction')
+        first = GameFactionFactory(game=self.game, name='First GameFaction')
+        second = GameFactionFactory(game=self.game, name='Second GameFaction')
         response = self.client.get('/games/test-game/factions.json')
         data = json.loads(response.content)
         assert [item['id'] for item in data] == [first.id, second.id]
@@ -116,7 +116,7 @@ class TestGameFactionsCreate(TokenAuthRequestMixin, TestCase):
         return self.post(client, self._url(), payload, token=token)
 
     def test_dm_can_create_faction(self):
-        """Test that the game's DM can create a bare Faction."""
+        """Test that the game's DM can create a bare GameFaction."""
         token = Token.objects.create(user=self.dm_user)
         response = self._post(self.client, {'name': 'The Silver Hand'}, token=token)
         assert response.status_code == 201
@@ -125,23 +125,23 @@ class TestGameFactionsCreate(TokenAuthRequestMixin, TestCase):
         assert data['photo_path'] is None
 
     def test_create_persists_faction(self):
-        """Test that the create endpoint persists a Faction."""
+        """Test that the create endpoint persists a GameFaction."""
         token = Token.objects.create(user=self.dm_user)
         response = self._post(self.client, {'name': 'The Silver Hand'}, token=token)
         data = json.loads(response.content)
-        faction = Faction.objects.get(id=data['id'])
+        faction = GameFaction.objects.get(id=data['id'])
         assert faction.game == self.game
         assert faction.name == 'The Silver Hand'
 
     def test_superuser_can_create_faction(self):
-        """Test that a superuser can create a bare Faction."""
+        """Test that a superuser can create a bare GameFaction."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
         response = self._post(self.client, {'name': 'The Silver Hand'}, token=token)
         assert response.status_code == 201
 
     def test_staff_can_create_faction(self):
-        """Test that a global Staff account can create a bare Faction."""
+        """Test that a global Staff account can create a bare GameFaction."""
         staff_user = UserFactory(username='staff_user', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
@@ -155,7 +155,7 @@ class TestGameFactionsCreate(TokenAuthRequestMixin, TestCase):
         assert response.status_code == 401
 
     def test_regular_player_can_create_faction(self):
-        """Test that a regular player of the game can create a bare Faction."""
+        """Test that a regular player of the game can create a bare GameFaction."""
         token = Token.objects.create(user=self.player_user)
         response = self._post(self.client, {'name': 'The Silver Hand'}, token=token)
         assert response.status_code == 201
@@ -192,7 +192,7 @@ class TestGameFactionsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_duplicate_name_in_same_game_returns_400(self):
         """Test that creating a faction with a name already used in the game returns 400."""
-        FactionFactory(game=self.game, name='The Silver Hand')
+        GameFactionFactory(game=self.game, name='The Silver Hand')
         token = Token.objects.create(user=self.dm_user)
         response = self._post(self.client, {'name': 'The Silver Hand'}, token=token)
         assert response.status_code == 400

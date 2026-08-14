@@ -9,7 +9,7 @@ from accounts.authentication import CookieTokenAuthentication
 from permissions import EndpointPermission
 
 from ...models import Game
-from ...serializers import FactionListSerializer, FactionUpdateSerializer
+from ...serializers import GameFactionListSerializer, GameFactionUpdateSerializer
 from ..common import validated_or_error
 
 
@@ -24,7 +24,7 @@ def game_faction_detail(request, game_slug, faction_id):
     if request.method == 'PATCH':
         return _update_faction(request, game, faction_id)
     faction = get_object_or_404(game.factions.all(), id=faction_id)
-    return Response(FactionListSerializer(faction).data)
+    return Response(GameFactionListSerializer(faction).data)
 
 
 def _update_faction(request, game, faction_id):
@@ -36,10 +36,10 @@ def _update_faction(request, game, faction_id):
         return error_response
 
     faction = get_object_or_404(game.factions.all(), id=faction_id)
-    serializer = FactionUpdateSerializer(faction, data=request.data, partial=True)
+    serializer = GameFactionUpdateSerializer(faction, data=request.data, partial=True)
     error_response = validated_or_error(serializer)
     if error_response:
         return error_response
 
     serializer.save()
-    return Response(FactionListSerializer(faction).data)
+    return Response(GameFactionListSerializer(faction).data)

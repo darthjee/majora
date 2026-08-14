@@ -1,11 +1,11 @@
-"""Faction list serializer for the games app."""
+"""GameFaction list serializer for the games app."""
 
 from rest_framework import serializers
 
-from games.models import Faction
+from games.models import GameFaction
 
 
-class FactionListSerializer(serializers.ModelSerializer):
+class GameFactionListSerializer(serializers.ModelSerializer):
     """Serializer for a faction's flat shape.
 
     Reused for list items, the create response, the detail response, and the update
@@ -15,7 +15,7 @@ class FactionListSerializer(serializers.ModelSerializer):
     photo_path = serializers.CharField(source='photo.path', default=None, read_only=True)
 
     class Meta:
-        """Metadata for the FactionListSerializer."""
+        """Metadata for the GameFactionListSerializer."""
 
-        model = Faction
+        model = GameFaction
         fields = ['id', 'name', 'photo_path']

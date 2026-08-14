@@ -1,15 +1,15 @@
-"""FactionPhoto serializer for the games app."""
+"""GameFactionPhoto serializer for the games app."""
 
 from rest_framework import serializers
 
-from games.models import FactionPhoto
+from games.models import GameFactionPhoto
 
 
-class FactionPhotoSerializer(serializers.ModelSerializer):
+class GameFactionPhotoSerializer(serializers.ModelSerializer):
     """Serializer for faction photos."""
 
     class Meta:
-        """Metadata for the FactionPhotoSerializer."""
+        """Metadata for the GameFactionPhotoSerializer."""
 
-        model = FactionPhoto
+        model = GameFactionPhoto
         fields = ['id', 'path']

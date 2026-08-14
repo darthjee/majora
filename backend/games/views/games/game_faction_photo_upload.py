@@ -11,7 +11,7 @@ from permissions import EndpointPermission
 from uploads.photo_path import PhotoPathBuilder
 from uploads.upload_initiator import UploadInitiator
 
-from ...models import Faction, FactionPhoto, Game
+from ...models import Game, GameFaction, GameFactionPhoto
 
 
 @api_view(['POST'])
@@ -20,7 +20,7 @@ from ...models import Faction, FactionPhoto, Game
 def game_faction_photo_upload(request, game_slug, faction_id):
     """Initialise a faction photo upload and return the upload id and token."""
     game = get_object_or_404(Game, game_slug=game_slug)
-    faction = get_object_or_404(Faction, pk=faction_id, game=game)
+    faction = get_object_or_404(GameFaction, pk=faction_id, game=game)
 
     error_response = EndpointPermission(request.user, game=game).check(
         request, 'game_faction', 'regular', 'photo_upload',
@@ -39,18 +39,18 @@ def game_faction_photo_upload(request, game_slug, faction_id):
 
 
 def _build_file_path(game_slug, faction_id, filename):
-    """Fixed, deterministic path — a Faction has at most one photo, always replaced."""
+    """Fixed, deterministic path — a GameFaction has at most one photo, always replaced."""
     _, ext = os.path.splitext(filename)
     segments = ['games', game_slug, 'factions', faction_id]
     return PhotoPathBuilder(segments, f'photo{ext}', use_uuid=False).build()
 
 
 def _reuse_or_create_photo(faction, file_path):
-    """Return the faction's existing FactionPhoto updated with `file_path`, or a new one."""
+    """Return the faction's existing GameFactionPhoto updated with `file_path`, or a new one."""
     if faction.photo_id is not None:
         photo = faction.photo
         photo.path = file_path
         photo.ready = False
         photo.save()
         return photo
-    return FactionPhoto.objects.create(faction=faction, path=file_path, ready=False)
+    return GameFactionPhoto.objects.create(faction=faction, path=file_path, ready=False)
