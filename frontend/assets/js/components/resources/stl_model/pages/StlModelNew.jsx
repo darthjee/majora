@@ -38,7 +38,7 @@ export function buildTagsAfterAdd(tags, tagInput) {
 /**
  * "New STL model" page, restoring the pre-modal (`StlModelNewModal.jsx`) full-page creation flow
  * at `/#/miniatures/stl_models/new` (issue #1069). Owns the same create/photo-upload-saga form
- * state the modal used, plus the new `owned`/`type`/`race`/`role` fields.
+ * state the modal used, plus the `owned`/`type`/`races`/`roles`/`url`/`size` fields.
  *
  * @returns {React.ReactElement} Rendered "New STL model" page.
  */
@@ -54,7 +54,7 @@ export default function StlModelNew() {
   const {
     state: fields, setField, handleChange, handleCheckboxChange,
   } = useFormState({
-    name: '', tags: [], owned: true, type: TYPE_VALUES[0], race: '', role: '',
+    name: '', tags: [], owned: true, type: TYPE_VALUES[0], races: [], roles: [], url: '', size: '',
   });
 
   const controller = useMemo(
@@ -111,8 +111,10 @@ export default function StlModelNew() {
           onNameChange: handleChange('name'),
           onOwnedChange: handleCheckboxChange('owned'),
           onTypeChange: handleChange('type'),
-          onRaceChange: handleChange('race'),
-          onRoleChange: handleChange('role'),
+          onRacesChange: (races) => setField('races', races),
+          onRolesChange: (roles) => setField('roles', roles),
+          onUrlChange: handleChange('url'),
+          onSizeChange: handleChange('size'),
           onTagInputChange: (event) => setTagInput(event.target.value),
           onAddTag: handleAddTag,
           onRemoveTag: handleRemoveTag,

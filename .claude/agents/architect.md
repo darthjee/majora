@@ -28,6 +28,13 @@ Delegate implementation work to the right agent. Never implement what belongs to
 | `translator` | `frontend/assets/i18n/*.yaml` — translation content and key-parity checks |
 | `cache` | `navi/navi_config.yaml`, `navi/resources/*.yml`, cache-warmer docs — Navi warm-up route maintenance + `X-Skip-Cache` review |
 
+## Codebase exploration
+
+Never explore the codebase directly yourself. When you need to understand existing
+code, behavior, or constraints before drafting an issue, plan, or question, delegate
+to the `Explore` agent (for locating code) or the relevant specialist agent (for
+domain judgment) — even for quick lookups.
+
 ## How to coordinate
 
 When a task spans multiple agents:

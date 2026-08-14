@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import StlModelHelper from '../../../../../../../../assets/js/components/resources/stl_model/pages/helpers/StlModelHelper.jsx';
+import Translator from '../../../../../../../../assets/js/i18n/Translator.js';
 import { buildStlModel } from '../../../../../../../support/factories.js';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
@@ -103,24 +104,68 @@ describe('StlModelHelper', function() {
       expect(html).toContain('Prop');
     });
 
-    it('renders the translated race when set', function() {
-      const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel({ race: 'elf' }), false, handlers));
+    it('does not render a races section when races is empty', function() {
+      const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel({ races: [] }), false, handlers));
+      expect(html).not.toContain('stl_model_page.races_label');
+    });
+
+    it('renders each race as a translated badge', function() {
+      spyOn(Translator, 't').and.callThrough();
+      const html = renderToStaticMarkup(
+        StlModelHelper.render(buildStlModel({ races: ['elf', 'orc'] }), false, handlers),
+      );
+
+      expect(Translator.t).toHaveBeenCalledWith('stl_model_page.races_label');
+      expect(Translator.t).toHaveBeenCalledWith('stl_model_page.race_elf');
+      expect(Translator.t).toHaveBeenCalledWith('stl_model_page.race_orc');
       expect(html).toContain('Elf');
+      expect(html).toContain('Orc');
     });
 
-    it('renders "None" when race is null', function() {
-      const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel({ race: null }), false, handlers));
-      expect(html).toContain('None');
+    it('does not render a roles section when roles is empty', function() {
+      const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel({ roles: [] }), false, handlers));
+      expect(html).not.toContain('stl_model_page.roles_label');
     });
 
-    it('renders the translated role when set', function() {
-      const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel({ role: 'wizard' }), false, handlers));
+    it('renders each role as a translated badge', function() {
+      spyOn(Translator, 't').and.callThrough();
+      const html = renderToStaticMarkup(
+        StlModelHelper.render(buildStlModel({ roles: ['wizard', 'archer'] }), false, handlers),
+      );
+
+      expect(Translator.t).toHaveBeenCalledWith('stl_model_page.roles_label');
+      expect(Translator.t).toHaveBeenCalledWith('stl_model_page.role_wizard');
+      expect(Translator.t).toHaveBeenCalledWith('stl_model_page.role_archer');
       expect(html).toContain('Wizard');
+      expect(html).toContain('Archer');
     });
 
-    it('renders "None" when role is null', function() {
-      const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel({ role: null }), false, handlers));
+    it('renders the translated size when set', function() {
+      spyOn(Translator, 't').and.callThrough();
+      renderToStaticMarkup(StlModelHelper.render(buildStlModel({ size: 'huge' }), false, handlers));
+
+      expect(Translator.t).toHaveBeenCalledWith('stl_model_page.size_label');
+      expect(Translator.t).toHaveBeenCalledWith('stl_model_page.size_huge');
+    });
+
+    it('renders "None" when size is null', function() {
+      const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel({ size: null }), false, handlers));
       expect(html).toContain('None');
+    });
+
+    it('does not render a url when url is null', function() {
+      const html = renderToStaticMarkup(StlModelHelper.render(buildStlModel({ url: null }), false, handlers));
+      expect(html).not.toContain('stl_model_page.url_label');
+    });
+
+    it('renders url as an external link when set', function() {
+      const html = renderToStaticMarkup(
+        StlModelHelper.render(buildStlModel({ url: 'https://example.com/model' }), false, handlers),
+      );
+
+      expect(html).toContain('href="https://example.com/model"');
+      expect(html).toContain('target="_blank"');
+      expect(html).toContain('rel="noreferrer"');
     });
 
     it('renders an Edit link to the edit page when isStaffOrSuperUser is true', function() {

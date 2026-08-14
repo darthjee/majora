@@ -4,36 +4,38 @@ import FormField from '../../../../common/forms/FormField.jsx';
 import TagsField from '../../../../common/forms/TagsField.jsx';
 import MultiResourcePickerField from '../../../../common/forms/MultiResourcePickerField.jsx';
 import SwitchField from '../../../../common/forms/SwitchField.jsx';
-import EnumSelectField from '../../../../common/forms/EnumSelectField.jsx';
 import SubmitButton from '../../../../common/buttons/SubmitButton.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import StlModelPhotoField from '../elements/StlModelPhotoField.jsx';
 import StlModelHelper from './StlModelHelper.jsx';
-import { TYPE_VALUES, RACE_VALUES, ROLE_VALUES } from '../../stlModelEnums.js';
+import StlModelFormFieldsHelper from './StlModelFormFieldsHelper.jsx';
 
 /**
  * Rendering helper for the "New STL model" page: a two-column form (photo, name, owned switch,
- * and type/race/role selects on the left, tags + source picker + collection picker on the
- * right), following the plain `container` page shell (issue #1069 restored this page from the
- * `StlModelNewModal.jsx` modal it used to be), with the field pieces themselves reused verbatim
- * from the former modal helper.
+ * and type/races/roles/url/size fields on the left, tags + source picker + collection picker on
+ * the right), following the plain `container` page shell (issue #1069 restored this page from
+ * the `StlModelNewModal.jsx` modal it used to be), with the field pieces themselves reused
+ * verbatim from the former modal helper (and, for `type`/`races`/`roles`/`url`/`size`, shared
+ * with `StlModelEditHelper.jsx` via `StlModelFormFieldsHelper.jsx`).
  */
 export default class StlModelNewHelper {
   /**
    * Render the "New STL model" page.
    *
    * @param {{name: string, tags: string[], tagInput: string, owned: boolean, type: string,
-   *   race: string, role: string, sources: {id: number, name: string}[],
+   *   races: {id: string, name: string}[], roles: {id: string, name: string}[], url: string,
+   *   size: string, sources: {id: number, name: string}[],
    *   collections: {id: number, name: string}[], status: string, fieldErrors: object,
    *   photoPreviewUrl: string|null}} formState - Form state. `photoPreviewUrl` is a local object
    *   URL for the picked-but-not-yet-uploaded photo, or null before a photo is picked (renders
-   *   the default `default_stl_model.png` placeholder). `race`/`role` are `''` for "no selection"
+   *   the default `default_stl_model.png` placeholder). `size` is `''` for "no selection"
    *   (converted to `null` at the controller's request-body boundary).
    * @param {{onSubmit: Function, onNameChange: Function, onOwnedChange: Function,
-   *   onTypeChange: Function, onRaceChange: Function, onRoleChange: Function,
-   *   onTagInputChange: Function, onAddTag: Function, onRemoveTag: Function,
-   *   onSourcesChange: Function, onCollectionsChange: Function, onOpenUploadModal: Function,
-   *   onRetryPhotoUpload: Function, onSkipPhotoUpload: Function}} handlers - Event handlers.
+   *   onTypeChange: Function, onRacesChange: Function, onRolesChange: Function,
+   *   onUrlChange: Function, onSizeChange: Function, onTagInputChange: Function,
+   *   onAddTag: Function, onRemoveTag: Function, onSourcesChange: Function,
+   *   onCollectionsChange: Function, onOpenUploadModal: Function, onRetryPhotoUpload: Function,
+   *   onSkipPhotoUpload: Function}} handlers - Event handlers.
    * @returns {React.ReactElement} Rendered "New STL model" page.
    */
   static render(formState, handlers) {
@@ -65,7 +67,7 @@ export default class StlModelNewHelper {
                 checked={formState.owned}
                 onChange={handlers.onOwnedChange}
               />
-              {StlModelNewHelper.#renderEnumFields(formState, handlers)}
+              {StlModelFormFieldsHelper.render(formState, handlers, 'stl-model-new')}
             </div>
             <div className="col-md-6">
               <TagsField
@@ -116,41 +118,6 @@ export default class StlModelNewHelper {
    */
   static renderLoading() {
     return StlModelHelper.renderLoading();
-  }
-
-  static #renderEnumFields(formState, handlers) {
-    return (
-      <>
-        <EnumSelectField
-          id="stl-model-new-type"
-          label={Translator.t('stl_model_new_page.type_select_label')}
-          values={TYPE_VALUES}
-          translateOption={(value) => Translator.t(`stl_model_page.type_${value}`)}
-          value={formState.type}
-          onChange={handlers.onTypeChange}
-        />
-        <EnumSelectField
-          id="stl-model-new-race"
-          label={Translator.t('stl_model_new_page.race_select_label')}
-          values={RACE_VALUES}
-          translateOption={(value) => Translator.t(`stl_model_page.race_${value}`)}
-          value={formState.race}
-          nullable
-          noneLabel={Translator.t('stl_model_new_page.race_select_none_option')}
-          onChange={handlers.onRaceChange}
-        />
-        <EnumSelectField
-          id="stl-model-new-role"
-          label={Translator.t('stl_model_new_page.role_select_label')}
-          values={ROLE_VALUES}
-          translateOption={(value) => Translator.t(`stl_model_page.role_${value}`)}
-          value={formState.role}
-          nullable
-          noneLabel={Translator.t('stl_model_new_page.role_select_none_option')}
-          onChange={handlers.onRoleChange}
-        />
-      </>
-    );
   }
 
   static #renderError(formState) {

@@ -48,15 +48,23 @@ class TestStlModelCreateSerializer:
 
     def test_unknown_race_returns_error(self):
         """Test that an unknown race value is invalid."""
-        serializer = StlModelCreateSerializer(data={**BASE_DATA, 'race': 'not-a-race'})
+        serializer = StlModelCreateSerializer(data={**BASE_DATA, 'races': ['not-a-race']})
         assert not serializer.is_valid()
-        assert 'race' in serializer.errors
+        assert 'races' in serializer.errors
 
     def test_unknown_role_returns_error(self):
         """Test that an unknown role value is invalid."""
-        serializer = StlModelCreateSerializer(data={**BASE_DATA, 'role': 'not-a-role'})
+        serializer = StlModelCreateSerializer(data={**BASE_DATA, 'roles': ['not-a-role']})
         assert not serializer.is_valid()
-        assert 'role' in serializer.errors
+        assert 'roles' in serializer.errors
+
+    def test_non_http_url_returns_error(self):
+        """Test that a non-http(s) url scheme is invalid."""
+        serializer = StlModelCreateSerializer(
+            data={**BASE_DATA, 'url': 'javascript:alert(1)'}
+        )
+        assert not serializer.is_valid()
+        assert 'url' in serializer.errors
 
     def test_owned_defaults_to_true_when_omitted(self):
         """Test that create() defaults owned to True when omitted."""
@@ -65,18 +73,48 @@ class TestStlModelCreateSerializer:
         stl_model = serializer.save()
         assert stl_model.owned is True
 
-    def test_create_persists_owned_type_race_role(self):
-        """Test that create() persists the given owned/type/race/role values."""
+    def test_create_persists_owned_type_url_size(self):
+        """Test that create() persists the given owned/type/url/size values."""
         serializer = StlModelCreateSerializer(data={
             'name': 'Dragon Miniature', 'owned': False, 'type': StlModel.TYPE_TERRAIN,
-            'race': StlModel.RACE_ELF, 'role': StlModel.ROLE_WIZARD,
+            'url': 'https://example.com/model', 'size': StlModel.SIZE_HUGE,
         })
         assert serializer.is_valid()
         stl_model = serializer.save()
         assert stl_model.owned is False
         assert stl_model.type == StlModel.TYPE_TERRAIN
-        assert stl_model.race == StlModel.RACE_ELF
-        assert stl_model.role == StlModel.ROLE_WIZARD
+        assert stl_model.url == 'https://example.com/model'
+        assert stl_model.size == StlModel.SIZE_HUGE
+
+    def test_create_attaches_given_races_and_roles(self):
+        """Test that create() attaches the given races and roles."""
+        serializer = StlModelCreateSerializer(data={
+            **BASE_DATA, 'races': [StlModel.RACE_ELF, StlModel.RACE_DRAGON],
+            'roles': [StlModel.ROLE_WIZARD],
+        })
+        assert serializer.is_valid()
+        stl_model = serializer.save()
+        assert set(stl_model.races.values_list('creature', flat=True)) == {
+            StlModel.RACE_ELF, StlModel.RACE_DRAGON,
+        }
+        assert set(stl_model.roles.values_list('role', flat=True)) == {StlModel.ROLE_WIZARD}
+
+    def test_create_with_no_races_or_roles_attaches_none(self):
+        """Test that create() with no races/roles leaves both empty."""
+        serializer = StlModelCreateSerializer(data=BASE_DATA)
+        serializer.is_valid()
+        stl_model = serializer.save()
+        assert stl_model.races.count() == 0
+        assert stl_model.roles.count() == 0
+
+    def test_create_deduplicates_repeated_race_values(self):
+        """Test that create() de-duplicates repeated race entries in the payload."""
+        serializer = StlModelCreateSerializer(
+            data={**BASE_DATA, 'races': [StlModel.RACE_ELF, StlModel.RACE_ELF]}
+        )
+        assert serializer.is_valid()
+        stl_model = serializer.save()
+        assert stl_model.races.count() == 1
 
     def test_tags_count_over_max_returns_error(self):
         """Test that more than MAX_TAGS entries is rejected."""
