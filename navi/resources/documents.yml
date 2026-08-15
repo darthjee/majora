@@ -33,6 +33,10 @@ resources:
           parameters:
             slug: parameters.slug
             id: parameters.id
+        - resource: game_document_pages
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
         - resource: short_game_document_files
           parameters:
             slug: parameters.slug
@@ -48,6 +52,10 @@ resources:
 
   game_document_photos:
     - url: /games/{:slug}/documents/{:id}/photos.json
+      status: 200
+
+  game_document_pages:
+    - url: /games/{:slug}/documents/{:id}/pages.json
       status: 200
 
   short_game_document_files:

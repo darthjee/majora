@@ -8,6 +8,7 @@ import DocumentHiddenField from '../../../../resources/document/pages/elements/s
 import DocumentSubmitButton from '../../../../resources/document/pages/elements/show/DocumentSubmitButton.jsx';
 import DocumentPhotosPreview from '../../../../resources/document/pages/elements/show/DocumentPhotosPreview.jsx';
 import DocumentFilesPreview from '../../../../resources/document/pages/elements/show/DocumentFilesPreview.jsx';
+import DocumentPagesBox from '../../../../resources/document/pages/elements/show/DocumentPagesBox.jsx';
 
 /**
  * `showTypeConfig` entry for the `document` show/new/edit pages (issue #758, `Edit`/photo-upload
@@ -26,7 +27,9 @@ import DocumentFilesPreview from '../../../../resources/document/pages/elements/
  * `bottom`'s photo/file shortlists (issue #873) are `Show`-only: both need a real, already-
  * persisted `GameDocument` id to fetch against, so they make no sense on `new`/`edit`. The files
  * shortlist is listed before the photos shortlist (issue #897): it's the more useful of the two,
- * so it takes the top slot.
+ * so it takes the top slot. `DocumentPagesBox` (issue #1126), the document's own paginated
+ * `GameDocumentPage` reader, is `Show`-only for the same reason and takes the very first `bottom`
+ * slot, above both shortlists — it's the document's actual content, more central than either.
  */
 const documentShowType = {
   left: [DocumentPhoto, { Show: DocumentNameHeading, Edit: DocumentNameHeading }],
@@ -38,6 +41,7 @@ const documentShowType = {
     { New: DocumentSubmitButton },
   ],
   bottom: [
+    { Show: DocumentPagesBox },
     { Show: DocumentFilesPreview },
     { Show: DocumentPhotosPreview },
   ],
