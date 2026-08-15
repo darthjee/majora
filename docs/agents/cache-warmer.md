@@ -36,10 +36,10 @@ list from eleven files under [`navi/resources/`](../../navi/resources/):
   `paginated_game_faction_characters`).
 - `possessions.yml` — a game's possessions listing (`game_possessions`/
   `paginated_game_possessions`/`game_possession_detail`).
-- `documents.yml` — a game's documents listing and each document's detail/files/photos chain
-  (`game_documents`, `paginated_game_documents`, `game_document_details`,
-  `game_document_files`, `game_document_photos`, `short_game_document_files`,
-  `short_game_document_photos`).
+- `documents.yml` — a game's documents listing and each document's detail/files/photos/pages
+  chain (`game_documents`, `paginated_game_documents`, `game_document_details`,
+  `game_document_files`, `game_document_photos`, `game_document_pages`,
+  `short_game_document_files`, `short_game_document_photos`).
 - `sessions.yml` — a game's past/future/unscheduled sessions listings and session detail
   (`game_sessions`, `paginated_game_sessions_past`, `paginated_game_sessions_future`,
   `paginated_game_sessions_unscheduled`, `session`).
@@ -62,7 +62,7 @@ listing, and fans out from `paginated_games` into every other per-game listing (
 treasures, items, factions, possessions, documents, sessions) living in its own file. From the
 PCs/NPCs listings (via `pcs.yml`/`npcs.yml`) the chain continues to each character's detail (and
 its nested photos/files/treasures/items/factions); from the documents listing (via
-`documents.yml`) it continues to each document's detail (and its nested files/photos) — the
+`documents.yml`) it continues to each document's detail (and its nested files/photos/pages) — the
 `slug` extracted at the top of the chain is inherited by every resource below it, so it never
 needs re-extracting. See the files under `navi/resources/` for the exact resource names and URL
 patterns.
