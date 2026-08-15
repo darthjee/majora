@@ -1,6 +1,7 @@
 import FactionCharactersPanelController
   from '../../../../../../../../../assets/js/components/resources/faction/pages/elements/controllers/FactionCharactersPanelController.js';
-import AccessStore from '../../../../../../../../../assets/js/utils/access/store/AccessStore.js';
+import RequestPermissionResolvers
+  from '../../../../../../../../../assets/js/utils/requests/RequestPermissionResolvers.js';
 import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 
 describe('FactionCharactersPanelController', function() {
@@ -9,7 +10,7 @@ describe('FactionCharactersPanelController', function() {
   beforeEach(function() {
     originalWindow = globalThis.window;
     globalThis.window = { location: { hash: '#/games/demo/factions/9' } };
-    spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+    spyOn(RequestPermissionResolvers, 'resolve').and.returnValue(Promise.resolve({ can_edit: false }));
   });
 
   afterEach(function() {
@@ -66,22 +67,24 @@ describe('FactionCharactersPanelController', function() {
 
   describe('#isDmOrAdmin', function() {
     it('resolves true when the requester can edit the game', async function() {
-      AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: true }));
+      RequestPermissionResolvers.resolve.and.returnValue(Promise.resolve({ can_edit: true }));
       const controller = new FactionCharactersPanelController();
 
       expect(await controller.isDmOrAdmin('demo')).toBe(true);
-      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+      expect(RequestPermissionResolvers.resolve).toHaveBeenCalledWith(
+        'faction', 'characters', { gameSlug: 'demo' },
+      );
     });
 
     it('resolves false when the requester cannot edit the game', async function() {
-      AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: false }));
+      RequestPermissionResolvers.resolve.and.returnValue(Promise.resolve({ can_edit: false }));
       const controller = new FactionCharactersPanelController();
 
       expect(await controller.isDmOrAdmin('demo')).toBe(false);
     });
 
     it('fails closed to false when the permissions check rejects', async function() {
-      AccessStore.ensureGamePermissions.and.returnValue(Promise.reject(new Error('nope')));
+      RequestPermissionResolvers.resolve.and.returnValue(Promise.reject(new Error('nope')));
       const controller = new FactionCharactersPanelController();
 
       expect(await controller.isDmOrAdmin('demo')).toBe(false);
@@ -106,7 +109,7 @@ describe('FactionCharactersPanelController', function() {
     });
 
     it('applies the fetched items/pagination/isDmOrAdmin on success', async function() {
-      AccessStore.ensureGamePermissions.and.returnValue(Promise.resolve({ can_edit: true }));
+      RequestPermissionResolvers.resolve.and.returnValue(Promise.resolve({ can_edit: true }));
       spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
         data: [{ id: 1, name: 'Aragorn', type: 'pc' }], pagination: { page: 1, pages: 2, perPage: 24 },
       }));
