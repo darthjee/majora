@@ -95,6 +95,16 @@ urlpatterns = [
         name='game-document-files-all',
     ),
     path(
+        'games/<slug:game_slug>/documents/<int:document_id>/pages.json',
+        views.game_document_pages,
+        name='game-document-pages',
+    ),
+    path(
+        'games/<slug:game_slug>/documents/<int:document_id>/pages/all.json',
+        views.game_document_pages_all,
+        name='game-document-pages-all',
+    ),
+    path(
         'games/<slug:game_slug>/documents/<int:document_id>/photo_upload.json',
         views.game_document_photo_upload,
         name='game-document-photo-upload',
