@@ -34,44 +34,67 @@ DM/admin kicks a character from the faction (the `remove` quantity type in
 `faction.remove` resolver entry at all — `RESOLVERS.faction` only defines
 `collection`, `availableCollection`, `characters`, and `summary` — so today
 `RequestPermissionResolvers.resolve('faction', 'remove', params)` silently
-falls back to `NO_PERMISSIONS()` (`{}`). Also note `factionConfig.js`'s header
-comment states that the `permission` field on `acquire`/`remove` mutation
-variants is "documentation-only" and that callers are expected to pass
-`variantName` explicitly for those mutations, rather than relying on
-auto-resolution — this may be a deliberate constraint for mutations (as
-opposed to reads) that needs to be confirmed/respected rather than blindly
-overridden.
+falls back to `NO_PERMISSIONS()` (`{}`).
+
+**Confirmed (via investigation): explicit `variantName` for `remove`/`acquire`
+is deliberate, not an oversight to "fix" with a new resolver.**
+`factionConfig.js`'s header comment states the `permission` field on
+`acquire`/`remove` mutation variants is "documentation-only" and that callers
+must pass `variantName` explicitly — mirroring `documentConfig.js`'s own
+shape. `RequestStore.mutate`'s own JSDoc for `variantName` spells out why:
+it exists for exactly this case, "when the caller has already decided which
+variant applies (e.g. from an already-loaded character's `can_edit`) and a
+fresh, possibly-stale-relative-to-that-decision permission re-check would
+risk picking a different variant than the payload was built for." So adding a
+`faction.remove` resolver and letting `RequestStore.mutate` auto-pick would
+go against this codebase's established, documented pattern for mutations —
+**the fix should instead have `FactionCharactersPanelController` derive
+`isDmOrAdmin` from the permissions already resolved for `fetchPage()`'s
+`faction.characters` read**, rather than adding a mutation resolver.
+
+Also worth noting for accuracy: `AccessStore.ensureGamePermissions` is backed
+by `AccessCache.ensure()`, which dedupes concurrent calls sharing the same
+cache key (`gameSlug` + role set). Since `#load()` invokes
+`Promise.all([this.isDmOrAdmin(gameSlug), this.fetchPage(gameSlug, factionId)])`,
+both calls are issued in the same synchronous tick and, in practice, already
+collapse into a single network round-trip today (the second call finds the
+first's pending cache entry). So the concrete problem this issue fixes is
+**not** a network-efficiency/double-round-trip issue — it's that
+`FactionCharactersPanelController` bypasses the `RequestStore`/
+`RequestPermissionResolvers` pattern that every other resource controller
+follows, via a direct `AccessStore` import/call that duplicates a
+permission-resolution decision `RequestStore.ensure` already makes for the
+same load.
 
 ## What needs to be done
 
 **Frontend** (`frontend/assets/js/components/resources/faction/...` and
 `frontend/assets/js/utils/requests/...`):
 
-- Investigate whether a `faction.remove` (and, if relevant, `faction.acquire`)
-  resolver can be added to `RequestPermissionResolvers.js` (mirroring the
-  existing `characters`/`summary` resolvers' use of `AccessStore.ensureGamePermissions`
-  / `AccessStore.ensureCharacterPermissions`) so that `RequestStore.mutate`
-  can auto-pick the `regular`/`private` variant for the kick action, the same
-  way reads already do.
-  - If mutation auto-pick genuinely cannot or should not be used for `remove`
-    (per the "documentation-only" caveat in `factionConfig.js`), then instead
-    fix `FactionCharactersPanelController` to derive `isDmOrAdmin` from the
-    single permissions object that `RequestStore.ensure`/`RequestPermissionResolvers`
-    already resolves for `fetchPage()`'s `faction.characters` call, rather
-    than issuing a second, independent `AccessStore.ensureGamePermissions`
-    call. Either approach removes the duplicate permission round-trip and the
-    direct `AccessStore` dependency from the controller.
-  - Whichever approach is taken, `FactionCharactersPanelController` should no
-    longer import/call `AccessStore` directly unless there's a documented
-    reason it must bypass the `RequestStore`/`RequestPermissionResolvers`
-    auto-pick mechanism — in which case that reason should be captured in a
-    code comment, consistent with how other exceptions (if any) are
-    documented elsewhere in the codebase.
-  - Update/add Jasmine specs for `FactionCharactersPanelController` (and for
-    `RequestPermissionResolvers.js` if a new resolver entry is added) to
-    cover the fixed behavior, including that only one permission check fires
-    per page load and that the kick action still picks the correct
-    regular/private endpoint for both DM/admin and non-DM/admin users.
+- Do **not** add a `faction.remove`/`faction.acquire` resolver to
+  `RequestPermissionResolvers.js` — confirmed (see Context) that explicit
+  `variantName` on `acquire`/`remove` mutations is deliberate, mirroring
+  `documentConfig.js`/`RequestStore.mutate`'s own documented rationale for
+  the `variantName` param. Auto-pick must stay reserved for reads.
+- Instead, fix `FactionCharactersPanelController` to derive `isDmOrAdmin` from
+  the single permissions object that `RequestStore.ensure`/
+  `RequestPermissionResolvers` already resolves for `fetchPage()`'s
+  `faction.characters` call (`RequestPermissionResolvers.resolve('faction',
+  'characters', { gameSlug })`, the same `can_edit` check
+  `isDmOrAdmin`/`AccessStore.ensureGamePermissions` performs today), rather
+  than issuing a second, independent `AccessStore.ensureGamePermissions` call
+  from the controller. This removes the direct `AccessStore` dependency from
+  `FactionCharactersPanelController` and routes the controller entirely
+  through the `RequestStore`/`RequestPermissionResolvers` pattern.
+  - `FactionCharactersPanelController` should no longer import/call
+    `AccessStore` directly unless there's a documented reason it must bypass
+    the `RequestStore`/`RequestPermissionResolvers` pattern — in which case
+    that reason should be captured in a code comment, consistent with how
+    other exceptions (if any) are documented elsewhere in the codebase.
+  - Update/add Jasmine specs for `FactionCharactersPanelController` to cover
+    the fixed behavior: no direct `AccessStore` call from the controller, and
+    the kick action still picks the correct regular/private endpoint (via
+    explicit `variantName`) for both DM/admin and non-DM/admin users.
 
 **Docs** (`docs/agents/issue-enhancement.md`):
 
@@ -81,34 +104,44 @@ overridden.
   existing items (Scope boundaries, Alternative solutions, Edge cases,
   Backward compatibility, Testing strategy, Performance & security
   considerations).
-- Within that item (or as a sub-bullet of it), explicitly call out: when a
-  component or controller needs to pick between a regular and a
-  restricted/permission-gated endpoint variant, it must go through
+- Within that item (or as a sub-bullet of it), explicitly call out: for
+  **reads**, when a component or controller needs to pick between a regular
+  and a restricted/permission-gated endpoint variant, it must go through
   `RequestStore`'s permission-resolver auto-pick mechanism
   (`RequestPermissionResolvers.js`) rather than calling `AccessStore`
   directly, unless there is a documented reason the component needs to
-  bypass that pattern.
+  bypass that pattern. For **mutations**, note the codebase's established
+  exception (see `RequestStore.mutate`'s `variantName` param and
+  `factionConfig.js`/`documentConfig.js`'s "documentation-only" `permission`
+  fields on `acquire`/`remove`-style variants): callers may pass an explicit
+  `variantName` derived from an already-resolved permissions check instead of
+  relying on auto-pick, to avoid a stale re-check picking a different variant
+  than the payload was built for — but that already-resolved check should
+  still come from the same `RequestStore`/`RequestPermissionResolvers` read
+  path, not a redundant direct `AccessStore` call.
 
 ## Acceptance criteria
 
-- [ ] `FactionCharactersPanelController` no longer performs a redundant,
-      independent `AccessStore.ensureGamePermissions` call when
-      `RequestStore.ensure`/`RequestPermissionResolvers` has already resolved
-      the same game's permissions for the same page load — either by adding a
-      `faction.remove` resolver to `RequestPermissionResolvers.js` and letting
-      `RequestStore.mutate` auto-pick the kick variant, or by reusing the
-      permissions object already resolved for `fetchPage()`.
+- [ ] `FactionCharactersPanelController` no longer imports/calls
+      `AccessStore` directly — `isDmOrAdmin` is derived from the permissions
+      `RequestStore.ensure`/`RequestPermissionResolvers` already resolves for
+      `fetchPage()`'s `faction.characters` call.
+- [ ] No `faction.remove`/`faction.acquire` resolver is added to
+      `RequestPermissionResolvers.js` — mutation variant selection for
+      `remove`/`acquire` continues to use explicit `variantName`, per
+      `RequestStore.mutate`'s documented rationale.
 - [ ] Any remaining direct `AccessStore` usage in `FactionCharactersPanelController`
-      (if the auto-pick mechanism cannot fully replace it) is accompanied by a
-      code comment documenting why it's necessary.
-- [ ] Jasmine specs cover the fixed permission-resolution path for both
-      `FactionCharactersPanelController` (page load and kick action) and any
-      new/changed entries in `RequestPermissionResolvers.js`.
+      (if any is still needed) is accompanied by a code comment documenting
+      why it's necessary.
+- [ ] Jasmine specs cover the fixed permission-resolution path for
+      `FactionCharactersPanelController` (page load derives `isDmOrAdmin`
+      without a direct `AccessStore` call, and the kick action still picks
+      the correct regular/private endpoint via explicit `variantName`).
 - [ ] `docs/agents/issue-enhancement.md`'s checklist gains a new "Permissions"
       item covering who can access/act on a feature and how that's resolved,
-      including the explicit rule that endpoint-variant selection must go
-      through `RequestStore`'s permission-resolver auto-pick mechanism unless
-      explicitly justified otherwise.
+      including the explicit rule that endpoint-variant selection for reads
+      must go through `RequestStore`'s permission-resolver auto-pick
+      mechanism unless explicitly justified otherwise.
 - [ ] No behavioral regression: DM/admin users still see the full character
       list (via the `/all.json` variant) and can still kick characters; non
       DM/admin users still see the restricted list and cannot kick.
