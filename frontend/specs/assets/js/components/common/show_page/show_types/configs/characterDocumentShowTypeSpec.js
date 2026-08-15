@@ -8,6 +8,8 @@ import CharacterDocumentFilesPreview
   from '../../../../../../../../assets/js/components/resources/character/pages/elements/show/CharacterDocumentFilesPreview.jsx';
 import CharacterDocumentPhotosPreview
   from '../../../../../../../../assets/js/components/resources/character/pages/elements/show/CharacterDocumentPhotosPreview.jsx';
+import CharacterDocumentPagesBox
+  from '../../../../../../../../assets/js/components/resources/character/pages/elements/show/CharacterDocumentPagesBox.jsx';
 import DescriptionBox
   from '../../../../../../../../assets/js/components/common/misc/DescriptionBox.jsx';
 
@@ -41,5 +43,21 @@ describe('characterDocumentShowType', function() {
     expect(filesEntry.New).toBeUndefined();
     expect(photosEntry.Edit).toBeUndefined();
     expect(photosEntry.New).toBeUndefined();
+  });
+
+  it('shows the pages box only in show mode, as the first bottom entry (issue #1127)', function() {
+    const pagesEntry = characterDocumentShowType.bottom.find((entry) => entry.Show === CharacterDocumentPagesBox);
+    const filesEntry = characterDocumentShowType.bottom.find((entry) => entry.Show === CharacterDocumentFilesPreview);
+    const photosEntry = characterDocumentShowType.bottom
+      .find((entry) => entry.Show === CharacterDocumentPhotosPreview);
+
+    expect(pagesEntry).toBeDefined();
+    expect(pagesEntry.Edit).toBeUndefined();
+    expect(pagesEntry.New).toBeUndefined();
+    expect(characterDocumentShowType.bottom.indexOf(pagesEntry)).toBe(0);
+    expect(characterDocumentShowType.bottom.indexOf(pagesEntry))
+      .toBeLessThan(characterDocumentShowType.bottom.indexOf(filesEntry));
+    expect(characterDocumentShowType.bottom.indexOf(pagesEntry))
+      .toBeLessThan(characterDocumentShowType.bottom.indexOf(photosEntry));
   });
 });

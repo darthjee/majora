@@ -6,6 +6,8 @@ import CharacterDocumentFilesPreview
   from '../../../../resources/character/pages/elements/show/CharacterDocumentFilesPreview.jsx';
 import CharacterDocumentPhotosPreview
   from '../../../../resources/character/pages/elements/show/CharacterDocumentPhotosPreview.jsx';
+import CharacterDocumentPagesBox
+  from '../../../../resources/character/pages/elements/show/CharacterDocumentPagesBox.jsx';
 
 /**
  * `showTypeConfig` entry for the PC/NPC `CharacterDocument` show page (issue #892, description
@@ -19,13 +21,18 @@ import CharacterDocumentPhotosPreview
  * `bottom` renders the files/photos shortlists via the dedicated `CharacterDocumentFilesPreview`/
  * `CharacterDocumentPhotosPreview` pair (mirroring `DocumentFilesPreview`/`DocumentPhotosPreview`,
  * but with no "See all" card, since no full-list page exists yet for a `CharacterDocument`'s files
- * or photos). There is still no edit/new mode at all — no `PATCH`/create endpoint exists for
- * `CharacterDocument` — so every slot entry here is `Show`-only.
+ * or photos). `CharacterDocumentPagesBox` (issue #1127) — a thin wrapper remapping this page's
+ * `game_document_id` to the `id` prop the underlying, resource-agnostic `DocumentPagesBox` (issue
+ * #1126) expects — takes the very first `bottom` slot, above both shortlists, mirroring
+ * `documentShowType`'s own placement of `DocumentPagesBox`: it's the document's actual content,
+ * more central than either. There is still no edit/new mode at all — no `PATCH`/create endpoint
+ * exists for `CharacterDocument` — so every slot entry here is `Show`-only.
  */
 const characterDocumentShowType = {
   left: [CharacterDocumentPhoto, CharacterDocumentNameHeading],
   right: [{ Show: DescriptionBox }],
   bottom: [
+    { Show: CharacterDocumentPagesBox },
     { Show: CharacterDocumentFilesPreview },
     { Show: CharacterDocumentPhotosPreview },
   ],
