@@ -39,7 +39,8 @@ list from eleven files under [`navi/resources/`](../../navi/resources/):
 - `documents.yml` — a game's documents listing and each document's detail/files/photos/pages
   chain (`game_documents`, `paginated_game_documents`, `game_document_details`,
   `game_document_files`, `game_document_photos`, `game_document_pages`,
-  `short_game_document_files`, `short_game_document_photos`).
+  `paginated_game_document_pages`, `short_game_document_files`,
+  `short_game_document_photos`).
 - `sessions.yml` — a game's past/future/unscheduled sessions listings and session detail
   (`game_sessions`, `paginated_game_sessions_past`, `paginated_game_sessions_future`,
   `paginated_game_sessions_unscheduled`, `session`).

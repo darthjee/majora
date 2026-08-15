@@ -54,8 +54,25 @@ resources:
     - url: /games/{:slug}/documents/{:id}/photos.json
       status: 200
 
+  # game_document_pages/paginated_game_document_pages only warm the public
+  # pages.json endpoint. The restricted pages/all.json variant (dm/admin only,
+  # X-Skip-Cache: true) is intentionally never warmed here — same convention
+  # already followed (but previously undocumented) for documents/all.json,
+  # documents/<id>/full.json, files/all.json and photos/all.json: their
+  # X-Skip-Cache header makes Tent bypass the cache for them at request time
+  # regardless of whether Navi warmed them.
   game_document_pages:
-    - url: /games/{:slug}/documents/{:id}/pages.json
+    - url: /games/{:slug}/documents/{:id}/pages.json?per_page=1
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_document_pages
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+
+  paginated_game_document_pages:
+    - url: /games/{:slug}/documents/{:id}/pages.json?page={:page}&per_page=1
       status: 200
 
   short_game_document_files:
