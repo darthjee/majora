@@ -85,3 +85,21 @@ see [Photo path fields](common-rules.md#photo-path-fields)), `GameDocumentFileSe
 `ready=True` files) can reflect a freshly-initiated or mid-reupload photo before its own upload is
 finalised. This is a known gap, flagged here rather than silently documented as a guarantee it
 doesn't provide.
+
+## Document pages endpoint
+
+A `GameDocument` can also hold a collection of ordered `GameDocumentPage` rows
+(`related_name='pages'`) splitting its content into pages, independent of its photo and file
+collections. Read-only for now — no create/update/delete endpoint yet (a separate, still-vague
+follow-up).
+
+| Endpoint | Method | Who can call |
+|----------|--------|-------------|
+| `/games/<slug>/documents/<document_id>/pages.json` | GET | **AllowAny** — 404 if the parent document is hidden or unknown, then paginates its pages |
+| `/games/<slug>/documents/<document_id>/pages/all.json` | GET | **GameEdit** — parent document lookup is unfiltered (includes hidden), paginated. Always `X-Skip-Cache: true` |
+
+Follows the [default hidden-gated collection pattern](principles.md#default-hidden-gated-collection-pattern),
+mirroring the document file collection's own `files`/`files/all` pair. `GameDocumentPage` has no
+`hidden` field of its own — visibility is gated entirely at the parent `GameDocument` level, so
+both endpoints share one serializer (`GameDocumentPageListSerializer`) exposing `id`, `content`,
+`order`.
