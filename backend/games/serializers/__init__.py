@@ -56,6 +56,9 @@ from games.serializers.games.documents.game_document_list import (
     GameDocumentDetailSerializer,
     GameDocumentListSerializer,
 )
+from games.serializers.games.documents.game_document_page_list import (
+    GameDocumentPageListSerializer,
+)
 from games.serializers.games.documents.game_document_permissions import (
     GameDocumentPermissionsSerializer,
 )
@@ -188,6 +191,7 @@ __all__ = [
     'GameDocumentDetailSerializer',
     'GameDocumentFileSerializer',
     'GameDocumentListSerializer',
+    'GameDocumentPageListSerializer',
     'GameDocumentPermissionsSerializer',
     'GameDocumentPhotoSerializer',
     'GameDocumentUpdateSerializer',
