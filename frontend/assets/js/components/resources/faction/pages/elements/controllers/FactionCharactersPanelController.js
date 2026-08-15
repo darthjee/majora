@@ -1,4 +1,4 @@
-import AccessStore from '../../../../../../utils/access/store/AccessStore.js';
+import RequestPermissionResolvers from '../../../../../../utils/requests/RequestPermissionResolvers.js';
 import RequestStore from '../../../../../../utils/requests/RequestStore.js';
 import HashQueryParams from '../../../../../../utils/routing/HashQueryParams.js';
 import getCurrentHash from '../../../../../../utils/routing/currentHash.js';
@@ -13,15 +13,15 @@ const GENERIC_ERROR_KEY = 'faction_exchange_modal.generic_error';
  * rather than `ShortList`'s capped-preview approach.
  *
  * @description Also (issue #1106) resolves the viewer's DM/admin-equivalent status
- *   (`AccessStore.ensureGamePermissions`'s `can_edit`) alongside every fetch — the exact same
- *   source of truth `RequestPermissionResolvers`'s own `faction.characters` resolver consults to
- *   pick between `characters.json`/`characters/all.json` — so the panel always knows which of the
- *   two endpoints actually served its current page, and can route a per-row kick request through
- *   the matching `regular`/`private` `remove` variant. Also steps back to the last valid page (and
- *   refetches) whenever a fetch resolves a `page` past `pages` (e.g. after kicking the last
- *   character off the last page), navigating there via the URL hash rather than any local
- *   pagination state, mirroring how every other pagination-driving fetch on this panel already
- *   reads `page` from the hash.
+ *   (`can_edit`, via `RequestPermissionResolvers.resolve('faction', 'characters', ...)`) alongside
+ *   every fetch — the exact same `faction.characters` resolver `RequestStore.ensure` itself
+ *   consults (via `fetchPage()`) to pick between `characters.json`/`characters/all.json` — so the
+ *   panel always knows which of the two endpoints actually served its current page, and can route
+ *   a per-row kick request through the matching `regular`/`private` `remove` variant. Also steps
+ *   back to the last valid page (and refetches) whenever a fetch resolves a `page` past `pages`
+ *   (e.g. after kicking the last character off the last page), navigating there via the URL hash
+ *   rather than any local pagination state, mirroring how every other pagination-driving fetch on
+ *   this panel already reads `page` from the hash.
  */
 export default class FactionCharactersPanelController {
   /**
@@ -48,14 +48,14 @@ export default class FactionCharactersPanelController {
 
   /**
    * Resolve whether the current viewer is DM/admin-equivalent for this game (`can_edit`, via
-   * `AccessStore.ensureGamePermissions`) — see this class's own description. Never rejects; fails
-   * closed to `false`.
+   * `RequestPermissionResolvers.resolve('faction', 'characters', ...)`) — see this class's own
+   * description. Never rejects; fails closed to `false`.
    *
    * @param {string} gameSlug - Game slug.
    * @returns {Promise<boolean>} Resolves to whether the viewer is DM/admin-equivalent.
    */
   isDmOrAdmin(gameSlug) {
-    return AccessStore.ensureGamePermissions(gameSlug)
+    return RequestPermissionResolvers.resolve('faction', 'characters', { gameSlug })
       .then((permissions) => Boolean(permissions.can_edit))
       .catch(() => false);
   }
