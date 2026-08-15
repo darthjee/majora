@@ -19,6 +19,8 @@ import DocumentPhotosPreview
   from '../../../../../../../../assets/js/components/resources/document/pages/elements/show/DocumentPhotosPreview.jsx';
 import DocumentFilesPreview
   from '../../../../../../../../assets/js/components/resources/document/pages/elements/show/DocumentFilesPreview.jsx';
+import DocumentPagesBox
+  from '../../../../../../../../assets/js/components/resources/document/pages/elements/show/DocumentPagesBox.jsx';
 
 describe('documentShowType', function() {
   it('offers the photo in the left column for show, edit, and new', function() {
@@ -90,5 +92,14 @@ describe('documentShowType', function() {
     const photosEntry = documentShowType.bottom.find((entry) => entry.Show === DocumentPhotosPreview);
 
     expect(documentShowType.bottom.indexOf(filesEntry)).toBeLessThan(documentShowType.bottom.indexOf(photosEntry));
+  });
+
+  it('shows the pages box only in show mode, as the first bottom entry (issue #1126)', function() {
+    const pagesEntry = documentShowType.bottom.find((entry) => entry.Show === DocumentPagesBox);
+
+    expect(pagesEntry).toBeDefined();
+    expect(pagesEntry.Edit).toBeUndefined();
+    expect(pagesEntry.New).toBeUndefined();
+    expect(documentShowType.bottom.indexOf(pagesEntry)).toBe(0);
   });
 });
