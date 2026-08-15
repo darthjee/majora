@@ -244,5 +244,13 @@ describe('RequestPermissionResolvers', function() {
       expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('npcs', 'demo', '3');
       expect(AccessStore.ensureCharacterPermissions).toHaveBeenCalledWith('pcs', 'demo', '3');
     });
+
+    it('resolves game-level permissions for gameDocumentPage collection (issue #1126)', function() {
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+      RequestPermissionResolvers.resolve('gameDocumentPage', 'collection', { gameSlug: 'demo', id: '9' });
+
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+    });
   });
 });

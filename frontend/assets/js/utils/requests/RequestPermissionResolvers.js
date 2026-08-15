@@ -100,6 +100,14 @@ const RESOLVERS = {
     // `document.summary` exactly.
     summary: ({ gameSlug, kind, id }) => AccessStore.ensureCharacterPermissions(kind, gameSlug, id),
   },
+  // issue #1126: `GameDocumentPage`s only ever belong to a game-level `GameDocument` in this
+  // sub-issue (`CharacterDocument` reuse is the dedicated sibling issue), so `collection` is
+  // unconditionally game-level, mirroring `document.single`'s `'game'`-kind branch — the
+  // corrected, resolver-based endpoint-selection pattern #1131 asks `FactionCharactersPanel` to
+  // catch up to (implemented here from the start, not as a manual `AccessStore` call).
+  gameDocumentPage: {
+    collection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+  },
 };
 
 /**
