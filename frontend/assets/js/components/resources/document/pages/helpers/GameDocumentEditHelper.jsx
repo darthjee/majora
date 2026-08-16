@@ -77,10 +77,7 @@ export default class GameDocumentEditHelper {
 
     return (
       <button type="button" className="btn btn-primary mt-3" onClick={onSave} disabled={saveStatus === 'saving'}>
-        {/* No dedicated `document_edit_page.save` key exists yet (translator gap, issue #1129) —
-            `view_as_modal.save` is reused as the closest existing "Save" string, since it's
-            already bundled into the eagerly-loaded `common` chunk alongside every other page. */}
-        {Translator.t('view_as_modal.save')}
+        {Translator.t('document_edit_page.save')}
       </button>
     );
   }
