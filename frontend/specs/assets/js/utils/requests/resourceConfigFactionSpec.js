@@ -74,15 +74,15 @@ describe('resourceConfig (faction, issue #812)', function() {
       expect(acquire.private.permission).toBe('can_edit');
     });
 
-    it('resolves POST.remove regular/private paths and permissions (issue #943)', function() {
+    it('resolves POST.remove regular/private paths and permissions (issue #1119)', function() {
       const remove = resourceConfig.get('POST', 'faction', 'remove');
       const params = {
-        gameSlug: 'demo', kind: 'npcs', id: '7',
+        gameSlug: 'demo', kind: 'npcs', id: '7', factionId: '9',
       };
 
-      expect(remove.regular.path(params)).toBe('/games/demo/npcs/7/factions/remove.json');
+      expect(remove.regular.path(params)).toBe('/games/demo/npcs/7/factions/9/remove.json');
       expect(remove.regular.permission).toBeNull();
-      expect(remove.private.path(params)).toBe('/games/demo/npcs/7/factions/remove/all.json');
+      expect(remove.private.path(params)).toBe('/games/demo/npcs/7/factions/9/remove/all.json');
       expect(remove.private.permission).toBe('can_edit');
     });
 

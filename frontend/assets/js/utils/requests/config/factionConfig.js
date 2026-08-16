@@ -39,6 +39,11 @@
  *   explicitly for the `POST` entries (see `AcquireFactionTabController.js`/
  *   `RemoveFactionTabController.js`), so `permission` on those is documentation-only.
  *
+ *   `remove` (issue #1119) additionally takes `factionId` — the `GameFaction` being quit/kicked
+ *   from — as part of the URL itself (`/games/:slug/:kind/:id/factions/:factionId/remove(/all).json`),
+ *   rather than in the request body, so the backend can purge that faction's own character-list
+ *   cache on removal.
+ *
  *   `characters` (issue #943) backs the faction show page's character-list panel: a faction's
  *   non-hidden `CharacterFaction`-linked characters (`/games/:slug/factions/:id/characters.json`),
  *   or every one of them, DM/admin only, always skipping cache (`/characters/all.json`). Params:
@@ -89,8 +94,12 @@ const availableAllPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}
 const acquirePath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/factions/acquire.json`;
 const acquireAllPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/factions/acquire/all.json`;
 
-const removePath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/factions/remove.json`;
-const removeAllPath = ({ gameSlug, kind, id }) => `/games/${gameSlug}/${kind}/${id}/factions/remove/all.json`;
+const removePath = ({
+  gameSlug, kind, id, factionId,
+}) => `/games/${gameSlug}/${kind}/${id}/factions/${factionId}/remove.json`;
+const removeAllPath = ({
+  gameSlug, kind, id, factionId,
+}) => `/games/${gameSlug}/${kind}/${id}/factions/${factionId}/remove/all.json`;
 
 const charactersPath = ({ gameSlug, id }) => `/games/${gameSlug}/factions/${id}/characters.json`;
 const charactersAllPath = ({ gameSlug, id }) => `/games/${gameSlug}/factions/${id}/characters/all.json`;

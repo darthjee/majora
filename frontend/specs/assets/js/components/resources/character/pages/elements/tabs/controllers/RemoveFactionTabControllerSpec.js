@@ -108,8 +108,9 @@ describe('RemoveFactionTabController', function() {
         resource: 'faction',
         method: 'POST',
         quantityType: 'remove',
-        params: { gameSlug: 'demo', kind: 'pcs', id: 7 },
-        body: { game_faction_id: 9 },
+        params: {
+          gameSlug: 'demo', kind: 'pcs', id: 7, factionId: 9,
+        },
         variantName: 'regular',
       });
       expect(result).toEqual({ ok: true });
@@ -122,7 +123,9 @@ describe('RemoveFactionTabController', function() {
       await controller.remove('demo', 7, false, { gameFactionId: 9 });
 
       expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
-        params: { gameSlug: 'demo', kind: 'npcs', id: 7 },
+        params: {
+          gameSlug: 'demo', kind: 'npcs', id: 7, factionId: 9,
+        },
       }));
     });
 
@@ -176,7 +179,7 @@ describe('RemoveFactionTabController', function() {
       await controller.confirmRemove(selected, character, setters);
 
       expect(RequestStore.mutate).toHaveBeenCalledWith(jasmine.objectContaining({
-        body: { game_faction_id: 11 },
+        params: jasmine.objectContaining({ factionId: 11 }),
       }));
     });
 
