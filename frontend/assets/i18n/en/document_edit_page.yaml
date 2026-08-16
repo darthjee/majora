@@ -1,0 +1,7 @@
+document_edit_page:
+  edit_pages: Edit pages
+  cancel: Cancel
+  pages_count: '{{count}} pages'
+  pages_save_failed: Failed to save some pages. The document was saved — you can retry the pages save or skip it for now.
+  retry_pages_save: Retry pages save
+  skip_pages_save: Skip and continue
