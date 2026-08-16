@@ -83,7 +83,6 @@ export default class RemoveFactionTabController {
    *   on failure.
    */
   remove(gameSlug, characterId, isPc, fields, canEdit = false) {
-    const body = RemoveFactionTabController.#toBody(fields);
     const kind = RemoveFactionTabController.#characterKind(isPc);
 
     return RequestStore.mutate({
@@ -91,8 +90,9 @@ export default class RemoveFactionTabController {
       resource: 'faction',
       method: 'POST',
       quantityType: 'remove',
-      params: { gameSlug, kind, id: characterId },
-      body,
+      params: {
+        gameSlug, kind, id: characterId, factionId: fields.gameFactionId,
+      },
       variantName: canEdit ? 'private' : 'regular',
     }).then((response) => this.#parseActionResponse(response));
   }
@@ -129,10 +129,6 @@ export default class RemoveFactionTabController {
       setters.onSuccess({ gameFactionId });
       setters.reload();
     });
-  }
-
-  static #toBody({ gameFactionId }) {
-    return { game_faction_id: gameFactionId };
   }
 
   static #characterKind(isPc) {

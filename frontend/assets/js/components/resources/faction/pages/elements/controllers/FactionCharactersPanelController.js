@@ -105,8 +105,9 @@ export default class FactionCharactersPanelController {
       resource: 'faction',
       method: 'POST',
       quantityType: 'remove',
-      params: { gameSlug, kind, id: character.id },
-      body: { game_faction_id: factionId },
+      params: {
+        gameSlug, kind, id: character.id, factionId,
+      },
       variantName: isDmOrAdmin ? 'private' : 'regular',
     }).then((response) => FactionCharactersPanelController.#parseActionResponse(response));
   }

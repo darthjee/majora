@@ -646,21 +646,21 @@ def build_faction_acquire_all_view(npc):
 
 
 def build_faction_remove_view(npc):
-    """Build the POST factions/remove.json view for a PC (npc=False) or NPC (npc=True)."""
+    """Build the POST factions/<faction_id>/remove.json view for a PC (npc=False) or NPC."""
 
     @_build_api_view(['POST'], AllowAny)
-    def view(request, game_slug, character_id):
+    def view(request, game_slug, character_id, faction_id):
         """Remove a CharacterFaction membership held by the PC/NPC."""
         game = get_object_or_404(Game, game_slug=game_slug)
         return character_faction_remove(
-            request, game, character_id, npc=npc, check_hidden=npc,
+            request, game, character_id, faction_id, npc=npc, check_hidden=npc,
         )
 
     return view
 
 
 def build_faction_remove_all_view(npc):
-    """Build the restricted POST factions/remove/all.json view for a PC or NPC.
+    """Build the restricted POST factions/<faction_id>/remove/all.json view for a PC or NPC.
 
     PC: dm/admin/owner (`game_pc`/`restricted`/`edit`). NPC: dm/admin (`game`/`restricted`/
     `edit`, no owner concept) — same asymmetric split `_check_character_all_permission`
@@ -668,14 +668,14 @@ def build_faction_remove_all_view(npc):
     """
 
     @_build_api_view(['POST'], AllowAny)
-    def view(request, game_slug, character_id):
+    def view(request, game_slug, character_id, faction_id):
         """Remove a CharacterFaction, including a hidden one — dm/admin(/owner for PCs) only."""
         game = get_object_or_404(Game, game_slug=game_slug)
         error_response = _check_character_all_permission(request, game, character_id, npc)
         if error_response:
             return error_response
         return character_faction_remove(
-            request, game, character_id, npc=npc, check_hidden=npc, allow_hidden=True,
+            request, game, character_id, faction_id, npc=npc, check_hidden=npc, allow_hidden=True,
         )
 
     return view

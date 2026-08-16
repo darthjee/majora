@@ -198,8 +198,9 @@ describe('FactionCharactersPanelController', function() {
         resource: 'faction',
         method: 'POST',
         quantityType: 'remove',
-        params: { gameSlug: 'demo', kind: 'pcs', id: 5 },
-        body: { game_faction_id: 9 },
+        params: {
+          gameSlug: 'demo', kind: 'pcs', id: 5, factionId: 9,
+        },
         variantName: 'regular',
       });
       expect(result).toEqual({ ok: true });
@@ -212,7 +213,9 @@ describe('FactionCharactersPanelController', function() {
       await controller.kick('demo', { id: 8, type: 'npc' }, 9, true);
 
       expect(mutateSpy).toHaveBeenCalledWith(jasmine.objectContaining({
-        params: { gameSlug: 'demo', kind: 'npcs', id: 8 },
+        params: {
+          gameSlug: 'demo', kind: 'npcs', id: 8, factionId: 9,
+        },
         variantName: 'private',
       }));
     });

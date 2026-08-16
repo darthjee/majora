@@ -22,6 +22,7 @@ $pcsEntityTargets = [
     '/games/:game_slug/pcs/:character_id/full.json',
     '/games/:game_slug/pcs/:character_id/photos.json',
     '/games/:game_slug/pcs/:character_id/factions.json',
+    '/games/:game_slug/factions/:faction_id/characters.json',
 ];
 
 return [
@@ -32,8 +33,8 @@ return [
             '/games/:game_slug/pcs/:character_id.json',
             '/games/:game_slug/pcs/:character_id/full.json',
             '/games/:game_slug/pcs/:character_id/photo_upload.json',
-            '/games/:game_slug/pcs/:character_id/factions/remove.json',
-            '/games/:game_slug/pcs/:character_id/factions/remove/all.json',
+            '/games/:game_slug/pcs/:character_id/factions/:faction_id/remove.json',
+            '/games/:game_slug/pcs/:character_id/factions/:faction_id/remove/all.json',
         ],
     ],
 ];

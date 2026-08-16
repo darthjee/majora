@@ -28,12 +28,6 @@ class _FactionAcquireSerializer(serializers.Serializer):
     hidden = serializers.BooleanField(required=False, default=None, allow_null=True)
 
 
-class _FactionRemoveSerializer(serializers.Serializer):
-    """Validate the game_faction_id payload for the remove endpoints."""
-
-    game_faction_id = serializers.IntegerField()
-
-
 @check_hidden
 def character_factions_available(
     request, game, character, check_hidden, allow_hidden=False,
@@ -93,8 +87,10 @@ def character_faction_acquire(request, game, character, check_hidden, allow_hidd
 
 
 @check_hidden
-def character_faction_remove(request, game, character, check_hidden, allow_hidden=False):
-    """Delete the CharacterFaction linking `character` to a submitted GameFaction.
+def character_faction_remove(
+    request, game, character, faction_id, check_hidden, allow_hidden=False,
+):
+    """Delete the CharacterFaction linking `character` to the `faction_id` in the URL.
 
     `allow_hidden` bypasses the hidden-CharacterFaction 404 gate — reserved for the DM-only
     `/remove/all.json` endpoints. Also selects the permission tier: `restricted` (staff/owner)
@@ -105,14 +101,7 @@ def character_faction_remove(request, game, character, check_hidden, allow_hidde
     if error_response:
         return error_response
 
-    serializer = _FactionRemoveSerializer(data=request.data)
-    error_response = validated_or_error(serializer)
-    if error_response:
-        return error_response
-
-    character_faction = character.character_factions.filter(
-        game_faction_id=serializer.validated_data['game_faction_id'],
-    ).first()
+    character_faction = character.character_factions.filter(game_faction_id=faction_id).first()
     if character_faction is None or (character_faction.hidden and not allow_hidden):
         raise Http404
 

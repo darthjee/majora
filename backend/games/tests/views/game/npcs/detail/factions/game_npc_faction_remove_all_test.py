@@ -1,7 +1,5 @@
 """Tests for the DM-only NPC faction remove-all endpoint (accepts hidden memberships)."""
 
-import json
-
 import pytest
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
@@ -20,7 +18,7 @@ from games.tests.factories import (
 
 @pytest.mark.django_db
 class TestGameNpcFactionRemoveAllView(TokenAuthRequestMixin):
-    """Tests for POST /games/<slug>/npcs/<id>/factions/remove/all.json."""
+    """Tests for POST /games/<slug>/npcs/<id>/factions/<faction_id>/remove/all.json."""
 
     def setup_method(self):
         """Set up a game, a DM, an NPC, an unrelated user, and a hidden enlisted faction."""
@@ -36,17 +34,17 @@ class TestGameNpcFactionRemoveAllView(TokenAuthRequestMixin):
             character=self.character, game_faction=self.game_faction, hidden=True,
         )
 
-    def _url(self, character_id=None, game_slug=None):
+    def _url(self, faction_id=None, character_id=None, game_slug=None):
         """Return the remove-all endpoint URL for the given character/game."""
+        faction_id = faction_id if faction_id is not None else self.game_faction.id
         character_id = character_id if character_id is not None else self.character.id
         game_slug = game_slug if game_slug is not None else self.game.game_slug
-        return f'/games/{game_slug}/npcs/{character_id}/factions/remove/all.json'
+        return f'/games/{game_slug}/npcs/{character_id}/factions/{faction_id}/remove/all.json'
 
-    def _post(self, client, token=None, character_id=None, game_slug=None):
+    def _post(self, client, token=None, faction_id=None, character_id=None, game_slug=None):
         """Issue a POST request to the remove-all endpoint, optionally with a token."""
         return self.post(
-            client, self._url(character_id, game_slug),
-            {'game_faction_id': self.game_faction.id}, token=token,
+            client, self._url(faction_id, character_id, game_slug), {}, token=token,
         )
 
     def test_dm_can_remove_a_hidden_faction(self, client):
@@ -95,12 +93,11 @@ class TestGameNpcFactionRemoveAllView(TokenAuthRequestMixin):
         """Test that the view is accessible by URL name."""
         url = reverse(
             'game-npc-faction-remove-all',
-            kwargs={'game_slug': self.game.game_slug, 'character_id': self.character.id},
+            kwargs={
+                'game_slug': self.game.game_slug,
+                'character_id': self.character.id,
+                'faction_id': self.game_faction.id,
+            },
         )
-        response = client.post(
-            url,
-            data=json.dumps({'game_faction_id': self.game_faction.id}),
-            content_type='application/json',
-            HTTP_AUTHORIZATION=f'Token {self.dm_token.key}',
-        )
+        response = self.post(client, url, {}, token=self.dm_token)
         assert response.status_code == 204

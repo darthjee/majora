@@ -438,7 +438,8 @@ class CacheCleanupMapTest extends TestCase
             '/games/:game_slug/pcs/:character_id/full.json',
             '/games/:game_slug/pcs/:character_id/photos.json',
             '/games/:game_slug/pcs/:character_id/factions.json',
-        ], $map['/games/:game_slug/pcs/:character_id/factions/remove.json']);
+            '/games/:game_slug/factions/:faction_id/characters.json',
+        ], $map['/games/:game_slug/pcs/:character_id/factions/:faction_id/remove.json']);
     }
 
     /**
@@ -455,7 +456,8 @@ class CacheCleanupMapTest extends TestCase
             '/games/:game_slug/pcs/:character_id/full.json',
             '/games/:game_slug/pcs/:character_id/photos.json',
             '/games/:game_slug/pcs/:character_id/factions.json',
-        ], $map['/games/:game_slug/pcs/:character_id/factions/remove/all.json']);
+            '/games/:game_slug/factions/:faction_id/characters.json',
+        ], $map['/games/:game_slug/pcs/:character_id/factions/:faction_id/remove/all.json']);
     }
 
     /**
@@ -473,7 +475,8 @@ class CacheCleanupMapTest extends TestCase
             '/games/:game_slug/npcs/:character_id/full.json',
             '/games/:game_slug/npcs/:character_id/photos.json',
             '/games/:game_slug/npcs/:character_id/factions.json',
-        ], $map['/games/:game_slug/npcs/:character_id/factions/remove.json']);
+            '/games/:game_slug/factions/:faction_id/characters.json',
+        ], $map['/games/:game_slug/npcs/:character_id/factions/:faction_id/remove.json']);
     }
 
     /**
@@ -491,7 +494,8 @@ class CacheCleanupMapTest extends TestCase
             '/games/:game_slug/npcs/:character_id/full.json',
             '/games/:game_slug/npcs/:character_id/photos.json',
             '/games/:game_slug/npcs/:character_id/factions.json',
-        ], $map['/games/:game_slug/npcs/:character_id/factions/remove/all.json']);
+            '/games/:game_slug/factions/:faction_id/characters.json',
+        ], $map['/games/:game_slug/npcs/:character_id/factions/:faction_id/remove/all.json']);
     }
 
     /**
