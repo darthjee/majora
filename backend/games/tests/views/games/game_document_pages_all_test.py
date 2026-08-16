@@ -6,7 +6,7 @@ import pytest
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from games.models import GameDocumentPage
+from games.models import GameDocumentPage, GameDocumentPageHistory
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
     GameDocumentFactory,
@@ -120,3 +120,100 @@ class TestGameDocumentPagesAllView(TokenAuthRequestMixin):
         )
         response = self.get(client, url, token=self.dm_token)
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestGameDocumentPagesCreateAll(TokenAuthRequestMixin):
+    """Tests for POST /games/<slug>/documents/<document_id>/pages/all.json."""
+
+    def setup_method(self):
+        """Set up a game, a DM, and an unrelated user, plus a hidden document."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
+        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.other_user = UserFactory(username='other', password='secret-password')
+        self.other_token = Token.objects.create(user=self.other_user)
+        self.hidden_document = GameDocumentFactory(
+            game=self.game, name='Secret Letter', hidden=True,
+        )
+
+    def _url(self, document_id=None, game_slug='test-game'):
+        """Return the pages/all create URL for the given document (defaults to fixture)."""
+        document_id = document_id if document_id is not None else self.hidden_document.id
+        return f'/games/{game_slug}/documents/{document_id}/pages/all.json'
+
+    def test_dm_can_create_page_for_hidden_document(self, client):
+        """Test that a DM can create a page for a hidden document."""
+        response = self.post(
+            client, self._url(), {'content': 'Secret text', 'order': 1, 'version': 1},
+            token=self.dm_token,
+        )
+        assert response.status_code == 201
+
+    def test_response_includes_x_skip_cache_header(self, client):
+        """Test that the response includes the X-Skip-Cache: true header."""
+        response = self.post(
+            client, self._url(), {'content': 'Secret text', 'order': 1, 'version': 1},
+            token=self.dm_token,
+        )
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_returns_403_for_non_dm_authenticated_user(self, client):
+        """Test that an authenticated user who is not a DM gets 403."""
+        response = self.post(
+            client, self._url(), {'content': 'Secret text', 'order': 1, 'version': 1},
+            token=self.other_token,
+        )
+        assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestGameDocumentPagesTrimAll(TokenAuthRequestMixin):
+    """Tests for DELETE /games/<slug>/documents/<document_id>/pages/all.json."""
+
+    def setup_method(self):
+        """Set up a game, a DM, an unrelated user, and a hidden document with pages."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
+        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.other_user = UserFactory(username='other', password='secret-password')
+        self.other_token = Token.objects.create(user=self.other_user)
+        self.hidden_document = GameDocumentFactory(
+            game=self.game, name='Secret Letter', hidden=True,
+        )
+        self.pages = [
+            GameDocumentPage.objects.create(
+                game_document=self.hidden_document, content=f'Page {i}', order=i, version=1,
+            )
+            for i in range(1, 4)
+        ]
+
+    def _url(self, document_id=None, game_slug='test-game'):
+        """Return the pages/all trim URL for the given document (defaults to fixture)."""
+        document_id = document_id if document_id is not None else self.hidden_document.id
+        return f'/games/{game_slug}/documents/{document_id}/pages/all.json'
+
+    def test_dm_can_trim_hidden_document_pages(self, client):
+        """Test that a DM can trim excess pages from a hidden document."""
+        response = self.delete(
+            client, self._url(), payload={'keep': 1}, token=self.dm_token,
+        )
+        assert response.status_code == 204
+        assert self.hidden_document.pages.count() == 1
+
+    def test_trim_archives_deleted_pages(self, client):
+        """Test that trimmed pages are archived into GameDocumentPageHistory."""
+        self.delete(client, self._url(), payload={'keep': 1}, token=self.dm_token)
+        history_count = GameDocumentPageHistory.objects.filter(
+            game_document=self.hidden_document,
+        ).count()
+        assert history_count == 2
+
+    def test_returns_403_for_non_dm_authenticated_user(self, client):
+        """Test that an authenticated user who is not a DM gets 403."""
+        response = self.delete(
+            client, self._url(), payload={'keep': 1}, token=self.other_token,
+        )
+        assert response.status_code == 403

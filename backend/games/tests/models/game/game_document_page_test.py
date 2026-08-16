@@ -28,6 +28,18 @@ class TestGameDocumentPage:
         page = GameDocumentPage.objects.create(game_document=self.document, order=1)
         assert page.content == ''
 
+    def test_version_defaults_to_one(self):
+        """Test that version defaults to 1 when not given."""
+        page = GameDocumentPage.objects.create(game_document=self.document, order=1)
+        assert page.version == 1
+
+    def test_version_can_be_set_explicitly(self):
+        """Test that version can be set to a value other than the default."""
+        page = GameDocumentPage.objects.create(
+            game_document=self.document, order=1, version=3,
+        )
+        assert page.version == 3
+
     def test_game_document_page_str(self):
         """Test string representation of a game document page."""
         page = GameDocumentPage(game_document=self.document, content='Text', order=3)

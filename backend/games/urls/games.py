@@ -105,6 +105,26 @@ urlpatterns = [
         name='game-document-pages-all',
     ),
     path(
+        'games/<slug:game_slug>/documents/<int:document_id>/pages/bump_version.json',
+        views.game_document_pages_bump_version,
+        name='game-document-pages-bump-version',
+    ),
+    path(
+        'games/<slug:game_slug>/documents/<int:document_id>/pages/bump_version/all.json',
+        views.game_document_pages_bump_version_all,
+        name='game-document-pages-bump-version-all',
+    ),
+    path(
+        'games/<slug:game_slug>/documents/<int:document_id>/pages/<int:page_id>.json',
+        views.game_document_page_detail,
+        name='game-document-page-detail',
+    ),
+    path(
+        'games/<slug:game_slug>/documents/<int:document_id>/pages/<int:page_id>/all.json',
+        views.game_document_page_detail_all,
+        name='game-document-page-detail-all',
+    ),
+    path(
         'games/<slug:game_slug>/documents/<int:document_id>/photo_upload.json',
         views.game_document_photo_upload,
         name='game-document-photo-upload',

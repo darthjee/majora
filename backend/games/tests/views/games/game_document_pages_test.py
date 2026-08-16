@@ -4,10 +4,16 @@ import json
 
 import pytest
 from django.urls import reverse
+from rest_framework.authtoken.models import Token
 
-from games.models import GameDocumentPage
+from games.models import GameDocumentPage, GameDocumentPageHistory
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import GameDocumentFactory, GameFactory
+from games.tests.factories import (
+    GameDocumentFactory,
+    GameFactory,
+    PlayerFactory,
+    UserFactory,
+)
 
 
 @pytest.mark.django_db
@@ -41,6 +47,15 @@ class TestGameDocumentPagesView(TokenAuthRequestMixin):
         assert data[0]['id'] == page.id
         assert data[0]['content'] == page.content
         assert data[0]['order'] == page.order
+
+    def test_returns_version_field(self, client):
+        """Test that list items include the version field."""
+        page = GameDocumentPage.objects.create(
+            game_document=self.document, content='Once upon a time...', order=1, version=2,
+        )
+        response = client.get(self._url())
+        data = json.loads(response.content)
+        assert data[0]['version'] == page.version
 
     def test_returns_pages_ordered_by_order(self, client):
         """Test that pages are returned ordered by their order field."""
@@ -118,3 +133,156 @@ class TestGameDocumentPagesView(TokenAuthRequestMixin):
         )
         response = client.get(url)
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestGameDocumentPagesCreate(TokenAuthRequestMixin):
+    """Tests for POST /games/<game_slug>/documents/<document_id>/pages.json."""
+
+    def setup_method(self):
+        """Set up a game, a DM, a player of the game, and an unrelated user."""
+        self.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
+        self.document = GameDocumentFactory(game=self.game, name='Ancient Scroll')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
+        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.player_user = UserFactory(username='player_user', password='secret-password')
+        PlayerFactory(name='Bob', user=self.player_user, game=self.game)
+        self.player_token = Token.objects.create(user=self.player_user)
+        self.other_user = UserFactory(username='other', password='secret-password')
+        self.other_token = Token.objects.create(user=self.other_user)
+
+    def _url(self, document_id=None, game_slug='epic-quest'):
+        """Return the pages create URL for the given document (defaults to fixture)."""
+        document_id = document_id if document_id is not None else self.document.id
+        return f'/games/{game_slug}/documents/{document_id}/pages.json'
+
+    def test_player_can_create_page(self, client):
+        """Test that a regular player can create a page for a non-hidden document."""
+        response = self.post(
+            client, self._url(), {'content': 'Once upon a time...', 'order': 1, 'version': 1},
+            token=self.player_token,
+        )
+        assert response.status_code == 201
+        data = json.loads(response.content)
+        assert data['content'] == 'Once upon a time...'
+        assert data['order'] == 1
+        assert data['version'] == 1
+
+    def test_create_persists_page(self, client):
+        """Test that the create endpoint persists a GameDocumentPage."""
+        self.post(
+            client, self._url(), {'content': 'Text', 'order': 1, 'version': 1},
+            token=self.player_token,
+        )
+        assert self.document.pages.count() == 1
+
+    def test_dm_can_create_page(self, client):
+        """Test that the game's DM can create a page for a non-hidden document."""
+        response = self.post(
+            client, self._url(), {'content': 'Text', 'order': 1, 'version': 1},
+            token=self.dm_token,
+        )
+        assert response.status_code == 201
+
+    def test_unauthenticated_returns_401(self, client):
+        """Test that a request without a token is rejected with 401."""
+        response = self.post(client, self._url(), {'content': 'Text', 'order': 1, 'version': 1})
+        assert response.status_code == 401
+
+    def test_unrelated_user_returns_403(self, client):
+        """Test that an authenticated user unrelated to the game is rejected with 403."""
+        response = self.post(
+            client, self._url(), {'content': 'Text', 'order': 1, 'version': 1},
+            token=self.other_token,
+        )
+        assert response.status_code == 403
+
+    def test_missing_order_returns_400(self, client):
+        """Test that a missing order returns 400."""
+        response = self.post(
+            client, self._url(), {'content': 'Text', 'version': 1}, token=self.player_token,
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'order' in data['errors']
+
+    def test_returns_404_for_hidden_document(self, client):
+        """Test that creating a page on a hidden document returns 404 on the regular endpoint."""
+        hidden_document = GameDocumentFactory(game=self.game, name='Secret Scroll', hidden=True)
+        response = self.post(
+            client, self._url(document_id=hidden_document.id),
+            {'content': 'Text', 'order': 1, 'version': 1}, token=self.player_token,
+        )
+        assert response.status_code == 404
+
+    def test_returns_404_for_unknown_document(self, client):
+        """Test that creating a page for a non-existent document returns 404."""
+        response = self.post(
+            client, self._url(document_id=99999), {'content': 'Text', 'order': 1, 'version': 1},
+            token=self.player_token,
+        )
+        assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestGameDocumentPagesTrim(TokenAuthRequestMixin):
+    """Tests for DELETE /games/<game_slug>/documents/<document_id>/pages.json."""
+
+    def setup_method(self):
+        """Set up a game, a document with pages, a DM, a player, and an unrelated user."""
+        self.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
+        self.document = GameDocumentFactory(game=self.game, name='Ancient Scroll')
+        self.pages = [
+            GameDocumentPage.objects.create(
+                game_document=self.document, content=f'Page {i}', order=i, version=1,
+            )
+            for i in range(1, 4)
+        ]
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
+        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.player_user = UserFactory(username='player_user', password='secret-password')
+        PlayerFactory(name='Bob', user=self.player_user, game=self.game)
+        self.player_token = Token.objects.create(user=self.player_user)
+        self.other_user = UserFactory(username='other', password='secret-password')
+        self.other_token = Token.objects.create(user=self.other_user)
+
+    def _url(self, document_id=None, game_slug='epic-quest'):
+        """Return the pages trim URL for the given document (defaults to fixture)."""
+        document_id = document_id if document_id is not None else self.document.id
+        return f'/games/{game_slug}/documents/{document_id}/pages.json'
+
+    def test_player_can_trim_pages(self, client):
+        """Test that a regular player can trim excess pages from a non-hidden document."""
+        response = self.delete(
+            client, self._url(), payload={'keep': 1}, token=self.player_token,
+        )
+        assert response.status_code == 204
+        assert self.document.pages.count() == 1
+
+    def test_trim_archives_deleted_pages(self, client):
+        """Test that trimmed pages are archived into GameDocumentPageHistory."""
+        self.delete(client, self._url(), payload={'keep': 1}, token=self.player_token)
+        assert GameDocumentPageHistory.objects.filter(game_document=self.document).count() == 2
+
+    def test_unauthenticated_returns_401(self, client):
+        """Test that a request without a token is rejected with 401."""
+        response = self.delete(client, self._url(), payload={'keep': 1})
+        assert response.status_code == 401
+
+    def test_unrelated_user_returns_403(self, client):
+        """Test that an authenticated user unrelated to the game is rejected with 403."""
+        response = self.delete(
+            client, self._url(), payload={'keep': 1}, token=self.other_token,
+        )
+        assert response.status_code == 403
+
+    def test_returns_404_for_hidden_document(self, client):
+        """Test that trimming a hidden document's pages returns 404 on the regular endpoint."""
+        hidden_document = GameDocumentFactory(game=self.game, name='Secret Scroll', hidden=True)
+        response = self.delete(
+            client, self._url(document_id=hidden_document.id), payload={'keep': 0},
+            token=self.player_token,
+        )
+        assert response.status_code == 404

@@ -14,6 +14,7 @@ from games.models.game.game_document import GameDocument
 from games.models.game.game_document_file import GameDocumentFile
 from games.models.game.game_document_file_photo import GameDocumentFilePhoto
 from games.models.game.game_document_page import GameDocumentPage
+from games.models.game.game_document_page_history import GameDocumentPageHistory
 from games.models.game.game_document_photo import GameDocumentPhoto
 from games.models.game.game_faction import GameFaction
 from games.models.game.game_faction_photo import GameFactionPhoto
@@ -51,6 +52,7 @@ __all__ = [
     'GameDocumentFile',
     'GameDocumentFilePhoto',
     'GameDocumentPage',
+    'GameDocumentPageHistory',
     'GameDocumentPhoto',
     'GameItem',
     'GameItemPhoto',

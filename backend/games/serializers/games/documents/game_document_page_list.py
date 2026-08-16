@@ -12,4 +12,4 @@ class GameDocumentPageListSerializer(serializers.ModelSerializer):
         """Metadata for the GameDocumentPageListSerializer."""
 
         model = GameDocumentPage
-        fields = ['id', 'content', 'order']
+        fields = ['id', 'content', 'order', 'version']

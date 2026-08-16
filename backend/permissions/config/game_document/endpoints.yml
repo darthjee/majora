@@ -17,3 +17,6 @@ regular:
   edit:
     - staff
     - player
+  page_edit:
+    - staff
+    - player
