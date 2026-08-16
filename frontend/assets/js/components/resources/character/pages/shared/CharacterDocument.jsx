@@ -27,9 +27,10 @@ export default function CharacterDocument({ characterKind, ControllerClass = Cha
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [canEditPages, setCanEditPages] = useState(false);
 
   const controller = useMemo(
-    () => new ControllerClass(characterKind, setDocument, setLoading, setError),
+    () => new ControllerClass(characterKind, setDocument, setLoading, setError, setCanEditPages),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [characterKind],
   );
@@ -48,7 +49,7 @@ export default function CharacterDocument({ characterKind, ControllerClass = Cha
   return (
     <>
       {CharacterDocumentDetailHelper.render(
-        document, backHref, gameSlug, characterKind, characterId, setSelectedPhoto,
+        document, backHref, gameSlug, characterKind, characterId, setSelectedPhoto, canEditPages,
       )}
       <PhotoViewModal
         show={selectedPhoto !== null}

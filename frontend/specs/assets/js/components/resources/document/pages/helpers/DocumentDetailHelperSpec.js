@@ -113,6 +113,22 @@ describe('DocumentDetailHelper', function() {
       expect(element.props.context.handlers.onOpenUploadModal).toBe(onUploadClick);
     });
 
+    it('threads canUploadPhoto through as canEditPages (issue #1129) — no separate general edit permission', function() {
+      const document = { id: 5, name: 'Ancient Scroll', description: '' };
+      const element = DocumentDetailHelper.render(
+        document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true,
+      );
+
+      expect(element.props.context.canEditPages).toBe(true);
+    });
+
+    it('threads canEditPages as false when canUploadPhoto is omitted', function() {
+      const document = { id: 5, name: 'Ancient Scroll', description: '' };
+      const element = DocumentDetailHelper.render(document, '#/games/demo/documents', '#/games/demo/documents/5/edit');
+
+      expect(element.props.context.canEditPages).toBe(false);
+    });
+
     it('passes gameSlug through to the show page layout context as game_slug (issue #873)', function() {
       const document = { id: 5, name: 'Ancient Scroll', description: '' };
       const element = DocumentDetailHelper.render(

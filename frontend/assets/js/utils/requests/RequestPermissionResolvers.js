@@ -107,6 +107,15 @@ const RESOLVERS = {
   // catch up to (implemented here from the start, not as a manual `AccessStore` call).
   gameDocumentPage: {
     collection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+    // issue #1129: the two new mutation-only quantityTypes (`single`, the per-page update
+    // endpoint; `bumpVersion`, the batch version-bump endpoint) resolve identically to
+    // `collection` above (unconditionally game-level) — kept as their own entries, mirroring
+    // `gameDocumentPageConfig.js`'s own `PATCH.single`/`PATCH.bumpVersion` split, even though
+    // `DocumentPagesEditBoxController` resolves permissions once per save and passes the result
+    // through `RequestStore.mutate`'s `variantName` rather than letting every individual mutate
+    // call auto-resolve through these entries.
+    single: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+    bumpVersion: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
   },
 };
 

@@ -72,11 +72,13 @@ describe('GameDocumentEdit', function() {
     let capturedBackHref;
     let capturedCanUploadPhoto;
     let capturedOnUploadClick;
-    spyOn(GameDocumentEditHelper, 'render').and.callFake((document, backHref, canUploadPhoto, onUploadClick) => {
+    let capturedPages;
+    spyOn(GameDocumentEditHelper, 'render').and.callFake((document, backHref, canUploadPhoto, onUploadClick, pages) => {
       capturedDocument = document;
       capturedBackHref = backHref;
       capturedCanUploadPhoto = canUploadPhoto;
       capturedOnUploadClick = onUploadClick;
+      capturedPages = pages;
       return null;
     });
 
@@ -86,6 +88,55 @@ describe('GameDocumentEdit', function() {
     expect(capturedBackHref).toBe('#/games/demo/documents/5');
     expect(capturedCanUploadPhoto).toBe(true);
     expect(typeof capturedOnUploadClick).toBe('function');
+    expect(capturedPages.gameSlug).toBe('demo');
+    expect(capturedPages.saveStatus).toBe('idle');
+    expect(capturedPages.pagesRef).toEqual(jasmine.objectContaining({ current: null }));
+    expect(typeof capturedPages.onSave).toBe('function');
+    expect(typeof capturedPages.onRetrySave).toBe('function');
+    expect(typeof capturedPages.onSkipSave).toBe('function');
+  });
+
+  describe('pages save orchestration (issue #1129)', function() {
+    const capturePages = () => {
+      let capturedPages;
+      spyOn(GameDocumentEditHelper, 'render').and.callFake((document, backHref, canUploadPhoto, onUploadClick, pages) => {
+        capturedPages = pages;
+        return null;
+      });
+
+      renderToStaticMarkup(React.createElement(GameDocumentEdit, { ControllerClass: LoadedController }));
+
+      return capturedPages;
+    };
+
+    it('delegates unconditionally to the pages editor\'s imperative save() entry point', async function() {
+      const pages = capturePages();
+      const saveSpy = jasmine.createSpy('save').and.returnValue(Promise.resolve({ ok: true }));
+      pages.pagesRef.current = { save: saveSpy };
+
+      await pages.onSave();
+
+      expect(saveSpy).toHaveBeenCalled();
+    });
+
+    it('exposes onRetrySave as the exact same handler as onSave (a retry naturally resumes)', function() {
+      const pages = capturePages();
+
+      expect(pages.onRetrySave).toBe(pages.onSave);
+    });
+
+    it('does not throw when onSkipSave is invoked', function() {
+      const pages = capturePages();
+
+      expect(() => pages.onSkipSave()).not.toThrow();
+    });
+
+    it('resolves without throwing when the pages save fails', async function() {
+      const pages = capturePages();
+      pages.pagesRef.current = { save: jasmine.createSpy('save').and.returnValue(Promise.resolve({ ok: false })) };
+
+      await expectAsync(pages.onSave()).toBeResolved();
+    });
   });
 
   describe('upload modal', function() {
