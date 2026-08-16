@@ -96,10 +96,17 @@ to name its category plus its deviations, not re-derive the shape from scratch.
 - **`dm`** reaches every page/endpoint scoped to the game(s) they DM.
 - **`player`** reaches every regular (`GET` + mutation) endpoint scoped to the game(s) they play
   in — never a restricted/full endpoint, unless a resource's own deviation says otherwise.
-- Only **`admin`/`staff`** reach `DELETE`-style actions. No resource in this document set exposes
-  a `DELETE` API endpoint today — every deletion is Django-admin-only (requiring `is_staff` to log
-  into the admin site at all) — so this rule currently applies at the admin-site layer, not
-  through any API route; a resource file only needs to flag it if that ever changes.
+- Only **`admin`/`staff`** reach `DELETE`-style actions. With one exception (below), no resource
+  in this document set exposes a `DELETE` API endpoint — every other deletion is Django-admin-only
+  (requiring `is_staff` to log into the admin site at all) — so this rule currently applies at the
+  admin-site layer, not through any API route, for every resource except the one noted; a resource
+  file only needs to flag it if that ever changes for it too.
+  - **Exception:** [GameDocument](game-document.md)'s page-trim `DELETE
+    /games/<slug>/documents/<document_id>/pages.json` (and its restricted `.../pages/all.json`
+    twin) is `player`/`staff`-reachable, not admin-only — a trim there is a normal part of the
+    player-facing page-edit saga (dropping now-excess pages after shrinking a document's content),
+    not an admin-only purge. See [GameDocument](game-document.md#document-pages-createupdatetrimbump-version-endpoints)
+    for the concrete permission.
 
 ## `X-Skip-Cache` rule
 

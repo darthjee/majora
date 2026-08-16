@@ -13,6 +13,7 @@ class GameDocumentPage(models.Model):
     )
     content = models.TextField(blank=True, default='')
     order = models.PositiveIntegerField()
+    version = models.PositiveIntegerField(default=1)
 
     class Meta:
         """Metadata for the GameDocumentPage model."""

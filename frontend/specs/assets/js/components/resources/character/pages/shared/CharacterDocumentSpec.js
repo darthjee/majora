@@ -10,10 +10,11 @@ import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
 const loadedDocument = { id: 1, name: 'Ancient Tome' };
 
-/** Stub controller that synchronously loads a document during construction. */
+/** Stub controller that synchronously loads a document (with pages-edit permission) during construction. */
 class LoadedController {
-  constructor(characterKind, setDocument, setLoading) {
+  constructor(characterKind, setDocument, setLoading, setError, setCanEditPages) {
     setDocument(loadedDocument);
+    setCanEditPages(true);
     setLoading(false);
   }
 
@@ -81,7 +82,9 @@ class ErroredController {
       const { character_id: characterId } = CharacterDocumentDetailController
         .getParamsFromHash(characterKind, hash);
 
-      const [document, backHref, gameSlug, kind, capturedCharacterId, onSelectPhoto] = capturedArgs;
+      const [
+        document, backHref, gameSlug, kind, capturedCharacterId, onSelectPhoto, canEditPages,
+      ] = capturedArgs;
 
       expect(document).toEqual(loadedDocument);
       expect(backHref).toBe(`#/games/demo/${characterKind}/${characterId}/documents`);
@@ -89,6 +92,7 @@ class ErroredController {
       expect(kind).toBe(characterKind);
       expect(capturedCharacterId).toBe(characterId);
       expect(onSelectPhoto).toEqual(jasmine.any(Function));
+      expect(canEditPages).toBe(true);
     });
   });
 });

@@ -57,6 +57,34 @@ describe('CharacterDocumentDetailHelper', function() {
       expect(html).not.toContain('actions-overlay-button');
       expect(html).not.toContain('/edit"');
     });
+
+    it('defaults canEditPages to false in the rendering context', function() {
+      const document = { id: 5, name: 'Ancient Tome' };
+      const element = CharacterDocumentDetailHelper.render(document, '#/games/demo/pcs/7/documents', 'demo', 'pcs', 7);
+
+      expect(element.props.context.canEditPages).toBe(false);
+    });
+
+    it('threads the given canEditPages through to the rendering context (issue #1129)', function() {
+      const document = { id: 5, name: 'Ancient Tome' };
+      const element = CharacterDocumentDetailHelper.render(
+        document, '#/games/demo/pcs/7/documents', 'demo', 'pcs', 7, undefined, true,
+      );
+
+      expect(element.props.context.canEditPages).toBe(true);
+    });
+
+    it('renders the "Edit pages" entry point (redirecting to the underlying GameDocument) when canEditPages is true',
+      function() {
+        const document = { id: 5, name: 'Ancient Tome', game_document_id: 42 };
+        const html = renderToStaticMarkup(
+          CharacterDocumentDetailHelper.render(
+            document, '#/games/demo/pcs/7/documents', 'demo', 'pcs', 7, undefined, true,
+          ),
+        );
+
+        expect(html).toContain('href="#/games/demo/documents/42/edit"');
+      });
   });
 
   describe('.renderLoading', function() {

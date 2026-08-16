@@ -69,6 +69,12 @@ export default class DocumentDetailHelper {
         context={{
           ...document,
           canUploadPhoto,
+          // issue #1129: `DocumentPagesBox`'s own "Edit pages" entry point is gated the same
+          // broad way as `canUploadPhoto` — there is no separate general "edit" permission for
+          // documents — but threaded through under its own name since `DocumentPagesBox` is
+          // resource-agnostic and shouldn't assume anything document-photo-specific about the
+          // flag it receives.
+          canEditPages: canUploadPhoto,
           game_slug: gameSlug,
           handlers: { onOpenUploadModal: onUploadClick, onSelectPhoto },
         }}

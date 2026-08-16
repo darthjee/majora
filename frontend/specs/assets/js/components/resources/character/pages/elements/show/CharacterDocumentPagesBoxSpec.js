@@ -13,16 +13,18 @@ describe('CharacterDocumentPagesBox', function() {
   const renderBox = (props) => {
     let capturedGameSlug;
     let capturedId;
+    let capturedCanEditPages;
 
-    spyOn(DocumentPagesBoxHelper, 'render').and.callFake((state, refs, gameSlug, id) => {
+    spyOn(DocumentPagesBoxHelper, 'render').and.callFake((state, refs, gameSlug, id, canEditPages) => {
       capturedGameSlug = gameSlug;
       capturedId = id;
+      capturedCanEditPages = canEditPages;
       return React.createElement('div', null, 'character-document-pages-box');
     });
 
     renderToStaticMarkup(React.createElement(CharacterDocumentPagesBox, props));
 
-    return { gameSlug: capturedGameSlug, id: capturedId };
+    return { gameSlug: capturedGameSlug, id: capturedId, canEditPages: capturedCanEditPages };
   };
 
   it('renders DocumentPagesBox with id set from game_document_id, not the CharacterDocument id', function() {
@@ -39,5 +41,21 @@ describe('CharacterDocumentPagesBox', function() {
     });
 
     expect(gameSlug).toBe('epic-quest');
+  });
+
+  it('defaults canEditPages to false', function() {
+    const { canEditPages } = renderBox({
+      game_slug: 'demo', id: 3, game_document_id: 42,
+    });
+
+    expect(canEditPages).toBe(false);
+  });
+
+  it('forwards canEditPages through to the underlying DocumentPagesBox (issue #1129)', function() {
+    const { canEditPages } = renderBox({
+      game_slug: 'demo', id: 3, game_document_id: 42, canEditPages: true,
+    });
+
+    expect(canEditPages).toBe(true);
   });
 });

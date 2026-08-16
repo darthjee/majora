@@ -90,8 +90,7 @@ doesn't provide.
 
 A `GameDocument` can also hold a collection of ordered `GameDocumentPage` rows
 (`related_name='pages'`) splitting its content into pages, independent of its photo and file
-collections. Read-only for now — no create/update/delete endpoint yet (a separate, still-vague
-follow-up).
+collections.
 
 | Endpoint | Method | Who can call |
 |----------|--------|-------------|
@@ -102,4 +101,35 @@ Follows the [default hidden-gated collection pattern](principles.md#default-hidd
 mirroring the document file collection's own `files`/`files/all` pair. `GameDocumentPage` has no
 `hidden` field of its own — visibility is gated entirely at the parent `GameDocument` level, so
 both endpoints share one serializer (`GameDocumentPageListSerializer`) exposing `id`, `content`,
-`order`.
+`order`, `version`.
+
+## Document pages create/update/trim/bump-version endpoints
+
+Every mutation gets a **regular**/**restricted** pair, dispatched by HTTP method on the same
+`pages.json`/`pages/all.json` routes as the read pair above (except per-page update and
+version-bump, which get their own sub-paths):
+
+| Action | Endpoint | Method | Who can call | Notes |
+|--------|----------|--------|--------------|-------|
+| Create page | `/games/<slug>/documents/<document_id>/pages.json` | POST | **`page_edit`** role check per [`game_document/endpoints.yml`](../../../backend/permissions/config/game_document/endpoints.yml) (`regular`: `staff`, `player`; dm/admin pass automatically) — 404 if the parent document is hidden | Write fields: `content`, `order`, `version` |
+| Create page (restricted) | `/games/<slug>/documents/<document_id>/pages/all.json` | POST | **GameEdit** (`check_game_edit`) — parent document lookup unfiltered (includes hidden) | Always `X-Skip-Cache: true` |
+| Update page | `/games/<slug>/documents/<document_id>/pages/<page_id>.json` | PATCH | Same as create (regular) — 404 if the parent document is hidden | Write fields: `content`, `version`. Archives the page's pre-update `(order, version, content)` into `GameDocumentPageHistory` first |
+| Update page (restricted) | `/games/<slug>/documents/<document_id>/pages/<page_id>/all.json` | PATCH | Same as create (restricted) | Always `X-Skip-Cache: true` |
+| Trim excess pages | `/games/<slug>/documents/<document_id>/pages.json` | DELETE | Same as create (regular) | Body: `{keep: <int>}` — archives then deletes every page with `order > keep` |
+| Trim excess pages (restricted) | `/games/<slug>/documents/<document_id>/pages/all.json` | DELETE | Same as create (restricted) | Always `X-Skip-Cache: true` |
+| Batch version bump | `/games/<slug>/documents/<document_id>/pages/bump_version.json` | PATCH | Same as create (regular) | Body: `{version, exclude_ids: [...]}` — archives then bumps `version` on every page not in `exclude_ids` |
+| Batch version bump (restricted) | `/games/<slug>/documents/<document_id>/pages/bump_version/all.json` | PATCH | Same as create (restricted) | Always `X-Skip-Cache: true` |
+
+**Deviation from the [default DELETE rule](principles.md#endpointrole-scope):** unlike every other
+resource in this document set, the regular "trim" `DELETE` endpoint above is reachable by any
+`player`/`staff` of the game, not just admin/staff via Django admin — a trim is a normal part of
+the player-facing page-edit saga (removing now-excess pages after shrinking a document's content),
+not an admin-only purge. All other resources' delete semantics are unaffected by this.
+
+`GameDocumentPage.version` is a document-wide generation counter, client-supplied (not
+server-computed) on every mutation — the backend archives each touched page's pre-save
+`(order, version, content)` into a separate `GameDocumentPageHistory` row before applying the
+change, regardless of what the client's payload contains. `GameDocumentPageHistory` is **not**
+exposed by any endpoint (no read/write API surface) — it exists purely as a Django-admin-only
+audit trail, deliberately without a foreign key to the live `GameDocumentPage` row so history
+survives that row's deletion (e.g. when a document's page count shrinks via trim).

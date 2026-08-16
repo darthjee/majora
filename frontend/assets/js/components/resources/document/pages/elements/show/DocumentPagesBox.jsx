@@ -77,9 +77,14 @@ function observeSegments(root, segmentElements, onEntries) {
  * @param {string} props.game_slug - Game slug, used to fetch pages and build pagination links.
  * @param {number|string} props.id - `GameDocument` id, used to fetch pages and build pagination
  *   links.
- * @returns {React.ReactElement|null} The pages box element, or `null` while no page is loaded.
+ * @param {boolean} [props.canEditPages] - Whether the current user may edit this document's
+ *   pages (issue #1129), gating the box's own "Edit pages" entry point. Resource-agnostic: the
+ *   caller resolves this the same way it resolves `GameDocument.jsx`'s own `canUploadPhoto`
+ *   (`AccessStore.ensureGameAccess`) — this component never fetches its own permissions.
+ * @returns {React.ReactElement|null} The pages box element, or `null` while no page is loaded and
+ *   the caller cannot edit.
  */
-export default function DocumentPagesBox({ game_slug: gameSlug, id }) {
+export default function DocumentPagesBox({ game_slug: gameSlug, id, canEditPages = false }) {
   const [state, setState] = useState(INITIAL_STATE);
   const boxRef = useRef(null);
   const bottomSentinelRef = useRef(null);
@@ -126,6 +131,6 @@ export default function DocumentPagesBox({ game_slug: gameSlug, id }) {
   );
 
   return DocumentPagesBoxHelper.render(
-    state, { boxRef, bottomSentinelRef, registerSegmentRef }, gameSlug, id,
+    state, { boxRef, bottomSentinelRef, registerSegmentRef }, gameSlug, id, canEditPages,
   );
 }

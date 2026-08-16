@@ -40,9 +40,16 @@ export default class CharacterDocumentDetailHelper {
    *   `character_id`.
    * @param {Function} [onSelectPhoto] - Handler invoked with a photo when a photo shortlist card
    *   is clicked, merged into `context.handlers` (issue #897). Defaults to a no-op.
+   * @param {boolean} [canEditPages] - Whether the current user may edit the underlying
+   *   `GameDocument`'s pages (issue #1129), threaded through to `CharacterDocumentPagesBox` (and,
+   *   from there, to the resource-agnostic `DocumentPagesBox`) — this page's "Edit GameDocumentPages"
+   *   entry point always redirects to the underlying `GameDocument`'s own edit page. Defaults to
+   *   `false`.
    * @returns {React.ReactElement} Document detail element.
    */
-  static render(document, backHref, gameSlug, characterKind, characterId, onSelectPhoto = Noop.noop) {
+  static render(
+    document, backHref, gameSlug, characterKind, characterId, onSelectPhoto = Noop.noop, canEditPages = false,
+  ) {
     return (
       <ShowPageLayout
         type="character_document"
@@ -53,6 +60,7 @@ export default class CharacterDocumentDetailHelper {
           game_slug: gameSlug,
           kind: characterKind,
           character_id: characterId,
+          canEditPages,
           handlers: { onSelectPhoto },
         }}
       />

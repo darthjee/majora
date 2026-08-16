@@ -31,6 +31,7 @@ const chunkLoaders = {
   collection_new_page: () => import('./collection_new_page.yaml?raw'),
   collection_page: () => import('./collection_page.yaml?raw'),
   collections_page: () => import('./collections_page.yaml?raw'),
+  document_edit_page: () => import('./document_edit_page.yaml?raw'),
   document_new_page: () => import('./document_new_page.yaml?raw'),
   document_page: () => import('./document_page.yaml?raw'),
   faction_edit_page: () => import('./faction_edit_page.yaml?raw'),

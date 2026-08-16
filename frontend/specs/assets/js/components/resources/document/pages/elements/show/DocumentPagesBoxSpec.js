@@ -11,12 +11,14 @@ describe('DocumentPagesBox', function() {
     let capturedRefs;
     let capturedGameSlug;
     let capturedId;
+    let capturedCanEditPages;
 
-    spyOn(DocumentPagesBoxHelper, 'render').and.callFake((state, refs, gameSlug, id) => {
+    spyOn(DocumentPagesBoxHelper, 'render').and.callFake((state, refs, gameSlug, id, canEditPages) => {
       capturedState = state;
       capturedRefs = refs;
       capturedGameSlug = gameSlug;
       capturedId = id;
+      capturedCanEditPages = canEditPages;
       return React.createElement('div', null, 'document-pages-box');
     });
 
@@ -24,6 +26,7 @@ describe('DocumentPagesBox', function() {
 
     return {
       state: capturedState, refs: capturedRefs, gameSlug: capturedGameSlug, id: capturedId,
+      canEditPages: capturedCanEditPages,
     };
   };
 
@@ -56,5 +59,17 @@ describe('DocumentPagesBox', function() {
     const html = renderToStaticMarkup(React.createElement(DocumentPagesBox, { game_slug: 'demo', id: 9 }));
 
     expect(html).toBe('');
+  });
+
+  it('defaults canEditPages to false', function() {
+    const { canEditPages } = renderBox();
+
+    expect(canEditPages).toBe(false);
+  });
+
+  it('forwards canEditPages through to the helper', function() {
+    const { canEditPages } = renderBox({ canEditPages: true });
+
+    expect(canEditPages).toBe(true);
   });
 });

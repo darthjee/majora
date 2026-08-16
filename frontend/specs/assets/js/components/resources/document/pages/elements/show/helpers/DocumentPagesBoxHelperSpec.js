@@ -17,8 +17,36 @@ describe('DocumentPagesBoxHelper', function() {
   });
 
   describe('.render', function() {
-    it('returns null when there are no loaded segments', function() {
+    it('returns null when there are no loaded segments and the caller cannot edit', function() {
       expect(DocumentPagesBoxHelper.render(buildState({ segments: [] }), buildRefs(), 'demo', 9)).toBeNull();
+    });
+
+    it('renders just the "Edit pages" link when there are no loaded segments but the caller can edit', function() {
+      const html = renderToStaticMarkup(
+        DocumentPagesBoxHelper.render(buildState({ segments: [] }), buildRefs(), 'demo', 9, true),
+      );
+
+      expect(html).toContain('Edit pages');
+      expect(html).toContain('href="#/games/demo/documents/9/edit"');
+      expect(html).not.toContain('Pages');
+    });
+
+    it('renders the "Edit pages" link alongside the pages heading when the caller can edit', function() {
+      const html = renderToStaticMarkup(
+        DocumentPagesBoxHelper.render(buildState(), buildRefs(), 'demo', 9, true),
+      );
+
+      expect(html).toContain('Edit pages');
+      expect(html).toContain('href="#/games/demo/documents/9/edit"');
+      expect(html).toContain('Pages');
+    });
+
+    it('does not render the "Edit pages" link when there are loaded segments and the caller cannot edit', function() {
+      const html = renderToStaticMarkup(
+        DocumentPagesBoxHelper.render(buildState(), buildRefs(), 'demo', 9),
+      );
+
+      expect(html).not.toContain('Edit pages');
     });
 
     it('renders the box heading and each segment as markdown', function() {

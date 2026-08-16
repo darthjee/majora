@@ -18,3 +18,14 @@ machinery) rather than a DB-level constraint — true for every current user-del
 codebase. A future raw-SQL or bulk user-purge tool should explicitly null out `history_user_id` on
 these tables (or reuse Django's ORM delete) to avoid an orphaned reference — a data-integrity
 nuance, not a crash or disclosure risk (a missing user resolves to `None` gracefully).
+
+## `GameDocumentPageHistory` — a separate, custom audit table
+
+Not a `django-simple-history` model — a hand-written table (`games` app) that archives each
+`GameDocumentPage`'s pre-save `(order, version, content)` on every create/update/trim/bump-version
+mutation, keyed by `game_document` + `order` + `version` rather than tracking one specific live
+row (deliberately no FK to the live `GameDocumentPage`, since that row can be deleted entirely
+while its history must survive). Like the `django-simple-history` tables above, it is
+**Django-admin-only — never exposed through any API endpoint or serializer.** See
+[GameDocument](game-document.md#document-pages-createupdatetrimbump-version-endpoints) for the
+mutation endpoints that write to it.

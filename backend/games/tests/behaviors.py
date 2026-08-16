@@ -52,9 +52,16 @@ class TokenAuthRequestMixin:
             **self.auth_kwargs(token),
         )
 
-    def delete(self, client, url, token=None):
-        """Issue a DELETE request to `url`, optionally authenticated with `token`."""
-        return client.delete(url, **self.auth_kwargs(token))
+    def delete(self, client, url, payload=None, token=None):
+        """Issue a DELETE request to `url`, optionally with a JSON `payload` and/or `token`."""
+        if payload is None:
+            return client.delete(url, **self.auth_kwargs(token))
+        return client.delete(
+            url,
+            data=json.dumps(payload),
+            content_type='application/json',
+            **self.auth_kwargs(token),
+        )
 
 
 class DetailNotFoundBehaviorMixin:

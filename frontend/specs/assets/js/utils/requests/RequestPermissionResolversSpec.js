@@ -252,5 +252,22 @@ describe('RequestPermissionResolvers', function() {
 
       expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
     });
+
+    it('resolves game-level permissions for gameDocumentPage single (per-page update, issue #1129)', function() {
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+      RequestPermissionResolvers.resolve('gameDocumentPage', 'single', { gameSlug: 'demo', id: '9', pageId: '3' });
+
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+    });
+
+    it('resolves game-level permissions for gameDocumentPage bumpVersion (batch version bump, issue #1129)',
+      function() {
+        spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+        RequestPermissionResolvers.resolve('gameDocumentPage', 'bumpVersion', { gameSlug: 'demo', id: '9' });
+
+        expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+      });
   });
 });

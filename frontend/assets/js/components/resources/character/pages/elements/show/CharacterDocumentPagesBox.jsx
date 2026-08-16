@@ -13,10 +13,13 @@ import DocumentPagesBox from '../../../../document/pages/elements/show/DocumentP
  * @param {string} props.game_slug - Game slug, used to fetch pages and build pagination links.
  * @param {number|string} props.game_document_id - The underlying `GameDocument`'s id, used to
  *   fetch pages and build pagination links.
+ * @param {boolean} [props.canEditPages] - Whether the current user may edit the underlying
+ *   `GameDocument`'s pages (issue #1129), forwarded as-is to `DocumentPagesBox`'s own
+ *   `canEditPages` prop.
  * @returns {React.ReactElement|null} The pages box element, or `null` while no page is loaded.
  */
 export default function CharacterDocumentPagesBox({
-  game_slug: gameSlug, game_document_id: gameDocumentId,
+  game_slug: gameSlug, game_document_id: gameDocumentId, canEditPages = false,
 }) {
-  return <DocumentPagesBox game_slug={gameSlug} id={gameDocumentId} />;
+  return <DocumentPagesBox game_slug={gameSlug} id={gameDocumentId} canEditPages={canEditPages} />;
 }

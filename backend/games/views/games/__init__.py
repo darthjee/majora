@@ -8,8 +8,15 @@ from .game_document_file_photo_upload import game_document_file_photo_upload
 from .game_document_file_upload import game_document_file_upload
 from .game_document_files import game_document_files
 from .game_document_files_all import game_document_files_all
+from .game_document_page_create import game_document_page_create, game_document_page_create_all
+from .game_document_page_detail import game_document_page_detail, game_document_page_detail_all
 from .game_document_pages import game_document_pages
 from .game_document_pages_all import game_document_pages_all
+from .game_document_pages_bump_version import (
+    game_document_pages_bump_version,
+    game_document_pages_bump_version_all,
+)
+from .game_document_pages_trim import game_document_pages_trim, game_document_pages_trim_all
 from .game_document_photo_set import game_document_photo_set
 from .game_document_photo_upload import game_document_photo_upload
 from .game_document_photos import game_document_photos
@@ -61,8 +68,16 @@ __all__ = [
     'game_document_file_photo_upload',
     'game_document_files',
     'game_document_files_all',
+    'game_document_page_create',
+    'game_document_page_create_all',
+    'game_document_page_detail',
+    'game_document_page_detail_all',
     'game_document_pages',
     'game_document_pages_all',
+    'game_document_pages_bump_version',
+    'game_document_pages_bump_version_all',
+    'game_document_pages_trim',
+    'game_document_pages_trim_all',
     'game_factions',
     'game_faction_detail',
     'game_faction_photo_upload',

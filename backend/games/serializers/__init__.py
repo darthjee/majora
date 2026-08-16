@@ -56,8 +56,20 @@ from games.serializers.games.documents.game_document_list import (
     GameDocumentDetailSerializer,
     GameDocumentListSerializer,
 )
+from games.serializers.games.documents.game_document_page_create import (
+    GameDocumentPageCreateSerializer,
+)
 from games.serializers.games.documents.game_document_page_list import (
     GameDocumentPageListSerializer,
+)
+from games.serializers.games.documents.game_document_page_update import (
+    GameDocumentPageUpdateSerializer,
+)
+from games.serializers.games.documents.game_document_pages_bump_version import (
+    GameDocumentPagesBumpVersionSerializer,
+)
+from games.serializers.games.documents.game_document_pages_trim import (
+    GameDocumentPagesTrimSerializer,
 )
 from games.serializers.games.documents.game_document_permissions import (
     GameDocumentPermissionsSerializer,
@@ -191,7 +203,11 @@ __all__ = [
     'GameDocumentDetailSerializer',
     'GameDocumentFileSerializer',
     'GameDocumentListSerializer',
+    'GameDocumentPageCreateSerializer',
     'GameDocumentPageListSerializer',
+    'GameDocumentPageUpdateSerializer',
+    'GameDocumentPagesBumpVersionSerializer',
+    'GameDocumentPagesTrimSerializer',
     'GameDocumentPermissionsSerializer',
     'GameDocumentPhotoSerializer',
     'GameDocumentUpdateSerializer',
