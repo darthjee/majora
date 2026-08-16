@@ -1,7 +1,5 @@
 """Tests for the PC faction remove (quit) endpoint."""
 
-import json
-
 import pytest
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
@@ -19,7 +17,7 @@ from games.tests.factories import (
 
 @pytest.mark.django_db
 class TestGamePcFactionRemoveView(TokenAuthRequestMixin):
-    """Tests for POST /games/<slug>/pcs/<id>/factions/remove.json."""
+    """Tests for POST /games/<slug>/pcs/<id>/factions/<faction_id>/remove.json."""
 
     def setup_method(self):
         """Set up a game, a PC enlisted in a faction, an owning player/user, and a DM."""
@@ -48,35 +46,34 @@ class TestGamePcFactionRemoveView(TokenAuthRequestMixin):
         """Return the owning player's user token."""
         return Token.objects.create(user=self.owner)
 
-    def _url(self, character_id=None, game_slug=None):
+    def _url(self, faction_id=None, character_id=None, game_slug=None):
         """Return the remove endpoint URL for the given character/game (defaults to fixtures)."""
+        faction_id = faction_id if faction_id is not None else self.game_faction.id
         character_id = character_id if character_id is not None else self.character.id
         game_slug = game_slug if game_slug is not None else self.game.game_slug
-        return f'/games/{game_slug}/pcs/{character_id}/factions/remove.json'
+        return f'/games/{game_slug}/pcs/{character_id}/factions/{faction_id}/remove.json'
 
-    def _post(self, client, payload, token=None, character_id=None, game_slug=None):
+    def _post(self, client, token=None, faction_id=None, character_id=None, game_slug=None):
         """Issue a POST request to the remove endpoint, optionally with a token."""
-        return self.post(client, self._url(character_id, game_slug), payload, token=token)
+        return self.post(
+            client, self._url(faction_id, character_id, game_slug), {}, token=token,
+        )
 
     def test_editor_can_remove_faction(self, client):
         """Test that an authorized editor can quit an enlisted faction."""
-        response = self._post(
-            client, {'game_faction_id': self.game_faction.id}, token=self._editor_token(),
-        )
+        response = self._post(client, token=self._editor_token())
         assert response.status_code == 204
 
     def test_remove_deletes_character_faction_row(self, client):
         """Test that removing deletes the CharacterFaction row."""
-        self._post(
-            client, {'game_faction_id': self.game_faction.id}, token=self._editor_token(),
-        )
+        self._post(client, token=self._editor_token())
         assert not CharacterFaction.objects.filter(id=self.character_faction.id).exists()
 
     def test_removing_never_enlisted_faction_returns_404(self, client):
         """Test that removing a faction never enlisted by the character returns 404."""
         other_faction = GameFactionFactory(game=self.game, name='Iron Circle')
         response = self._post(
-            client, {'game_faction_id': other_faction.id}, token=self._editor_token(),
+            client, token=self._editor_token(), faction_id=other_faction.id,
         )
         assert response.status_code == 404
 
@@ -86,68 +83,52 @@ class TestGamePcFactionRemoveView(TokenAuthRequestMixin):
         hidden_character_faction = CharacterFaction.objects.create(
             character=self.character, game_faction=hidden_faction, hidden=True,
         )
-        response = self._post(
-            client, {'game_faction_id': hidden_faction.id}, token=self.dm_token,
-        )
+        response = self._post(client, token=self.dm_token, faction_id=hidden_faction.id)
         assert response.status_code == 404
         assert CharacterFaction.objects.filter(id=hidden_character_faction.id).exists()
 
     def test_unauthenticated_returns_401(self, client):
         """Test that a request without a token is rejected with 401."""
-        response = self._post(client, {'game_faction_id': self.game_faction.id})
+        response = self._post(client)
         assert response.status_code == 401
 
     def test_unrelated_user_returns_403(self, client):
         """Test that an authenticated user unrelated to the game is rejected with 403."""
-        response = self._post(
-            client, {'game_faction_id': self.game_faction.id}, token=self.other_token,
-        )
+        response = self._post(client, token=self.other_token)
         assert response.status_code == 403
 
     def test_unknown_game_slug_returns_404(self, client):
         """Test that a non-existent game slug returns 404."""
-        response = self._post(
-            client, {'game_faction_id': self.game_faction.id},
-            token=self._editor_token(), game_slug='no-such-game',
-        )
+        response = self._post(client, token=self._editor_token(), game_slug='no-such-game')
         assert response.status_code == 404
 
     def test_unknown_character_id_returns_404(self, client):
         """Test that a non-existent character_id returns 404."""
-        response = self._post(
-            client, {'game_faction_id': self.game_faction.id},
-            token=self._editor_token(), character_id=99999,
-        )
+        response = self._post(client, token=self._editor_token(), character_id=99999)
         assert response.status_code == 404
 
     def test_opposite_role_id_returns_404(self, client):
         """Test that an id belonging to the opposite role returns 404."""
         other = CharacterFactory(name='Other', game=self.game, npc=True)
-        response = self._post(
-            client, {'game_faction_id': self.game_faction.id},
-            token=self._editor_token(), character_id=other.id,
-        )
+        response = self._post(client, token=self._editor_token(), character_id=other.id)
         assert response.status_code == 404
 
     def test_url_by_name(self, client):
         """Test that the view is accessible by URL name."""
         url = reverse(
             'game-pc-faction-remove',
-            kwargs={'game_slug': self.game.game_slug, 'character_id': self.character.id},
+            kwargs={
+                'game_slug': self.game.game_slug,
+                'character_id': self.character.id,
+                'faction_id': self.game_faction.id,
+            },
         )
-        response = client.post(
-            url,
-            data=json.dumps({'game_faction_id': self.game_faction.id}),
-            content_type='application/json',
-            HTTP_AUTHORIZATION=f'Token {self._editor_token().key}',
-        )
+        response = self.post(client, url, {}, token=self._editor_token())
         assert response.status_code == 204
 
     def test_dm_can_remove_faction(self, client):
         """Test that a DM of the game can remove a PC from a faction."""
-        response = self._post(
-            client, {'game_faction_id': self.game_faction.id}, token=self.dm_token,
-        )
+        response = self._post(client, token=self.dm_token)
         assert response.status_code == 204
 
     def test_staff_can_remove_faction(self, client):
@@ -156,19 +137,10 @@ class TestGamePcFactionRemoveView(TokenAuthRequestMixin):
         staff_user.is_staff = True
         staff_user.save()
         staff_token = Token.objects.create(user=staff_user)
-        response = self._post(
-            client, {'game_faction_id': self.game_faction.id}, token=staff_token,
-        )
+        response = self._post(client, token=staff_token)
         assert response.status_code == 204
 
     def test_plain_player_can_remove_faction(self, client):
         """Test that a plain player of the game (not staff/owner/dm) can remove another PC."""
-        response = self._post(
-            client, {'game_faction_id': self.game_faction.id}, token=self.plain_player_token,
-        )
+        response = self._post(client, token=self.plain_player_token)
         assert response.status_code == 204
-
-    def test_missing_game_faction_id_returns_400(self, client):
-        """Test that a missing game_faction_id returns 400."""
-        response = self._post(client, {}, token=self._editor_token())
-        assert response.status_code == 400
