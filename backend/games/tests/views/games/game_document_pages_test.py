@@ -224,6 +224,23 @@ class TestGameDocumentPagesCreate(TokenAuthRequestMixin):
         )
         assert response.status_code == 404
 
+    def test_id_and_game_document_are_not_included(self, client):
+        """Test that id and game_document in the payload have no effect on the created page."""
+        other_document = GameDocumentFactory(game=self.game, name='Other Scroll')
+        response = self.post(
+            client, self._url(),
+            {
+                'content': 'Text', 'order': 1, 'version': 1,
+                'id': 99999, 'game_document': other_document.id,
+            },
+            token=self.player_token,
+        )
+        assert response.status_code == 201
+        data = json.loads(response.content)
+        assert data['id'] != 99999
+        page = GameDocumentPage.objects.get(id=data['id'])
+        assert page.game_document_id == self.document.id
+
 
 @pytest.mark.django_db
 class TestGameDocumentPagesTrim(TokenAuthRequestMixin):

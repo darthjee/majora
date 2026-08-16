@@ -146,6 +146,22 @@ class TestGameDocumentPageDetailView(TokenAuthRequestMixin):
         )
         assert response.status_code == 200
 
+    def test_id_and_game_document_are_not_included(self, client):
+        """Test that id and game_document in the payload have no effect on the updated page."""
+        other_document = GameDocumentFactory(game=self.game, name='Other Document')
+        response = self.patch(
+            client, self._url(),
+            {
+                'content': 'New text', 'version': 2,
+                'id': 99999, 'game_document': other_document.id,
+            },
+            token=self.player_token,
+        )
+        assert response.status_code == 200
+        self.page.refresh_from_db()
+        assert self.page.id != 99999
+        assert self.page.game_document_id == self.document.id
+
 
 @pytest.mark.django_db
 class TestGameDocumentPageDetailAllView(TokenAuthRequestMixin):
