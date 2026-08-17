@@ -8,6 +8,18 @@
   "git": {
     "email": "darthjee+{agent}@gmail.com",
     "omit_model_coauthor": true,
-    "merge_body_mode": "coauthors"
+    "merge_body_mode": "coauthors",
+    "agents": {
+      "architect": "darthjee+architect@gmail.com",
+      "backend": "darthjee+backend@gmail.com",
+      "frontend": "darthjee+frontend@gmail.com",
+      "product-owner": "darthjee+product-owner@gmail.com",
+      "data-access": "darthjee+product-owner@gmail.com",
+      "cache": "darthjee+infra@gmail.com",
+      "infra": "darthjee+infra@gmail.com",
+      "proxy": "darthjee+infra@gmail.com",
+      "security": "darthjee+security@gmail.com",
+      "translator": "darthjee+translator@gmail.com"
+    }
   }
 }
