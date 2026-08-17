@@ -46,85 +46,56 @@ describe('GameDocumentEditHelper', function() {
     it('passes canUploadPhoto and onUploadClick through to the show page layout context', function() {
       const document = { id: 5, name: 'Ancient Scroll', description: '' };
       const onUploadClick = jasmine.createSpy('onUploadClick');
-      const element = GameDocumentEditHelper.render(document, '#/games/demo/documents/5', true, onUploadClick);
-      const [showPageLayout] = element.props.children;
+      const showPageLayout = GameDocumentEditHelper.render(document, '#/games/demo/documents/5', true, onUploadClick);
 
       expect(showPageLayout.props.context.canUploadPhoto).toBe(true);
       expect(showPageLayout.props.context.handlers.onOpenUploadModal).toBe(onUploadClick);
     });
   });
 
-  describe('pages editor wiring (issue #1129)', function() {
+  describe('pages editor context wiring (issue #1129, folded into ShowPageLayout by #776)', function() {
+    // The pages editor, Save button, and failure alert used to render directly here, outside
+    // `ShowPageLayout`; they now render through `documentShowType.right`'s `Edit` slot
+    // (`DocumentPagesEditSlot`, see its own spec), fed entirely by the context this helper
+    // builds — this spec only asserts that wiring reaches the context correctly.
     const document = { id: 5, name: 'Ancient Scroll', description: '' };
 
-    const pagesContainerChildren = (element) => {
-      const [, pagesContainer] = element.props.children;
+    it('folds game_slug, id and canEditPages (from canUploadPhoto) into the context', function() {
+      const showPageLayout = GameDocumentEditHelper.render(document, '#/games/demo/documents/5', true, undefined, {
+        gameSlug: 'demo',
+      });
 
-      return pagesContainer.props.children;
-    };
+      expect(showPageLayout.props.context.game_slug).toBe('demo');
+      expect(showPageLayout.props.context.id).toBe(5);
+      expect(showPageLayout.props.context.canEditPages).toBe(true);
+    });
 
-    it('renders DocumentPagesEditBox with the ref, gameSlug, document id and canEditPages', function() {
+    it('defaults canEditPages to false when canUploadPhoto is false', function() {
+      const showPageLayout = GameDocumentEditHelper.render(document, '#/games/demo/documents/5');
+
+      expect(showPageLayout.props.context.canEditPages).toBe(false);
+    });
+
+    it('folds the pages ref, save status and save handlers into the context', function() {
       const pagesRef = { current: null };
-      const element = GameDocumentEditHelper.render(document, '#/games/demo/documents/5', true, undefined, {
-        gameSlug: 'demo', pagesRef,
-      });
-      const [pagesEditBox] = pagesContainerChildren(element);
-
-      expect(pagesEditBox.props.ref).toBe(pagesRef);
-      expect(pagesEditBox.props.gameSlug).toBe('demo');
-      expect(pagesEditBox.props.id).toBe(5);
-      expect(pagesEditBox.props.canEditPages).toBe(true);
-    });
-
-    it('does not render the Save button when canUploadPhoto is false', function() {
-      const element = GameDocumentEditHelper.render(document, '#/games/demo/documents/5', false);
-      const [, saveButton] = pagesContainerChildren(element);
-
-      expect(saveButton).toBeNull();
-    });
-
-    it('renders an enabled Save button wired to onSave when canUploadPhoto is true', function() {
       const onSave = jasmine.createSpy('onSave');
-      const element = GameDocumentEditHelper.render(document, '#/games/demo/documents/5', true, undefined, {
-        onSave, saveStatus: 'idle',
-      });
-      const [, saveButton] = pagesContainerChildren(element);
-
-      expect(saveButton.props.onClick).toBe(onSave);
-      expect(saveButton.props.disabled).toBe(false);
-
-      const html = renderToStaticMarkup(element);
-      expect(html).toContain('Save');
-    });
-
-    it('disables the Save button while saving', function() {
-      const element = GameDocumentEditHelper.render(document, '#/games/demo/documents/5', true, undefined, {
-        saveStatus: 'saving',
-      });
-      const [, saveButton] = pagesContainerChildren(element);
-
-      expect(saveButton.props.disabled).toBe(true);
-    });
-
-    it('does not render the pages-save-failed alert when saveStatus is not "failed"', function() {
-      const element = GameDocumentEditHelper.render(document, '#/games/demo/documents/5', true, undefined, {
-        saveStatus: 'idle',
-      });
-      const [, , failedAlert] = pagesContainerChildren(element);
-
-      expect(failedAlert).toBeNull();
-    });
-
-    it('renders the pages-save-failed alert wired to onRetrySave/onSkipSave when saveStatus is "failed"', function() {
       const onRetrySave = jasmine.createSpy('onRetrySave');
       const onSkipSave = jasmine.createSpy('onSkipSave');
-      const element = GameDocumentEditHelper.render(document, '#/games/demo/documents/5', true, undefined, {
-        saveStatus: 'failed', onRetrySave, onSkipSave,
+      const showPageLayout = GameDocumentEditHelper.render(document, '#/games/demo/documents/5', true, undefined, {
+        pagesRef, saveStatus: 'failed', onSave, onRetrySave, onSkipSave,
       });
-      const [, , failedAlert] = pagesContainerChildren(element);
 
-      expect(failedAlert.props.onRetry).toBe(onRetrySave);
-      expect(failedAlert.props.onSkip).toBe(onSkipSave);
+      expect(showPageLayout.props.context.pagesRef).toBe(pagesRef);
+      expect(showPageLayout.props.context.saveStatus).toBe('failed');
+      expect(showPageLayout.props.context.onSave).toBe(onSave);
+      expect(showPageLayout.props.context.onRetrySave).toBe(onRetrySave);
+      expect(showPageLayout.props.context.onSkipSave).toBe(onSkipSave);
+    });
+
+    it('defaults saveStatus to idle when pages is not given', function() {
+      const showPageLayout = GameDocumentEditHelper.render(document, '#/games/demo/documents/5');
+
+      expect(showPageLayout.props.context.saveStatus).toBe('idle');
     });
   });
 

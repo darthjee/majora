@@ -45,19 +45,20 @@ describe('characterDocumentShowType', function() {
     expect(photosEntry.New).toBeUndefined();
   });
 
-  it('shows the pages box only in show mode, as the first bottom entry (issue #1127)', function() {
-    const pagesEntry = characterDocumentShowType.bottom.find((entry) => entry.Show === CharacterDocumentPagesBox);
-    const filesEntry = characterDocumentShowType.bottom.find((entry) => entry.Show === CharacterDocumentFilesPreview);
-    const photosEntry = characterDocumentShowType.bottom
-      .find((entry) => entry.Show === CharacterDocumentPhotosPreview);
+  it('shows the pages box in the right column, below the description, in show mode (issue #1127, moved from bottom by #776)', function() {
+    const descriptionEntry = characterDocumentShowType.right.find((entry) => entry.Show === DescriptionBox);
+    const pagesEntry = characterDocumentShowType.right.find((entry) => entry.Show === CharacterDocumentPagesBox);
 
     expect(pagesEntry).toBeDefined();
     expect(pagesEntry.Edit).toBeUndefined();
     expect(pagesEntry.New).toBeUndefined();
-    expect(characterDocumentShowType.bottom.indexOf(pagesEntry)).toBe(0);
-    expect(characterDocumentShowType.bottom.indexOf(pagesEntry))
-      .toBeLessThan(characterDocumentShowType.bottom.indexOf(filesEntry));
-    expect(characterDocumentShowType.bottom.indexOf(pagesEntry))
-      .toBeLessThan(characterDocumentShowType.bottom.indexOf(photosEntry));
+    expect(characterDocumentShowType.right.indexOf(pagesEntry))
+      .toBeGreaterThan(characterDocumentShowType.right.indexOf(descriptionEntry));
+  });
+
+  it('no longer renders the pages content in the bottom slot (issue #776)', function() {
+    const pagesEntry = characterDocumentShowType.bottom.find((entry) => entry.Show === CharacterDocumentPagesBox);
+
+    expect(pagesEntry).toBeUndefined();
   });
 });

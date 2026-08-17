@@ -21,6 +21,8 @@ import DocumentFilesPreview
   from '../../../../../../../../assets/js/components/resources/document/pages/elements/show/DocumentFilesPreview.jsx';
 import DocumentPagesBox
   from '../../../../../../../../assets/js/components/resources/document/pages/elements/show/DocumentPagesBox.jsx';
+import DocumentPagesEditSlot
+  from '../../../../../../../../assets/js/components/resources/document/pages/elements/edit/DocumentPagesEditSlot.jsx';
 
 describe('documentShowType', function() {
   it('offers the photo in the left column for show, edit, and new', function() {
@@ -94,12 +96,25 @@ describe('documentShowType', function() {
     expect(documentShowType.bottom.indexOf(filesEntry)).toBeLessThan(documentShowType.bottom.indexOf(photosEntry));
   });
 
-  it('shows the pages box only in show mode, as the first bottom entry (issue #1126)', function() {
-    const pagesEntry = documentShowType.bottom.find((entry) => entry.Show === DocumentPagesBox);
+  it('shows the pages box in the right column, below the description, in show mode (issue #1126, moved from bottom by #776)', function() {
+    const descriptionEntry = documentShowType.right.find((entry) => entry.Show === DescriptionBox);
+    const pagesEntry = documentShowType.right.find((entry) => entry.Show === DocumentPagesBox);
 
     expect(pagesEntry).toBeDefined();
-    expect(pagesEntry.Edit).toBeUndefined();
     expect(pagesEntry.New).toBeUndefined();
-    expect(documentShowType.bottom.indexOf(pagesEntry)).toBe(0);
+    expect(documentShowType.right.indexOf(pagesEntry))
+      .toBeGreaterThan(documentShowType.right.indexOf(descriptionEntry));
+  });
+
+  it('renders the pages editor (plus Save/failure-alert wiring) via DocumentPagesEditSlot in edit mode, same slot as the pages box (issue #1129, moved from outside ShowPageLayout by #776)', function() {
+    const pagesEntry = documentShowType.right.find((entry) => entry.Show === DocumentPagesBox);
+
+    expect(pagesEntry.Edit).toBe(DocumentPagesEditSlot);
+  });
+
+  it('no longer renders the pages content in the bottom slot (issue #776)', function() {
+    const pagesEntry = documentShowType.bottom.find((entry) => entry.Show === DocumentPagesBox);
+
+    expect(pagesEntry).toBeUndefined();
   });
 });
