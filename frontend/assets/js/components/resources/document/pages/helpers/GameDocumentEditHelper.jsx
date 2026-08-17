@@ -1,27 +1,27 @@
-import React from 'react';
 import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
 import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
 import ShowPageLayout from '../../../../common/show_page/ShowPageLayout.jsx';
-import DocumentPagesEditBox from '../elements/edit/DocumentPagesEditBox.jsx';
-import DocumentPagesSaveFailedAlert from '../elements/show/DocumentPagesSaveFailedAlert.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import Noop from '../../../../../utils/Noop.js';
 
 /**
  * Rendering helper for the game document edit page (issue #727, opt-in pages editor added in
- * #1129) — still photo-upload-only for the document's own `name`/`description`/`hidden` fields
- * (no `PATCH .../documents/:id.json` endpoint exists), but now also renders
- * {@link DocumentPagesEditBox} (read-only "Edit" affordance by default, the full infinite-textarea
- * editor once entered) plus a page-level "Save" button that unconditionally delegates to the
- * pages box's own imperative save entry point — see the issue's "Save orchestration" section.
+ * #1129, pages editor moved into `ShowPageLayout`'s `right` column by #776) — still photo-upload-
+ * only for the document's own `name`/`description`/`hidden` fields (no
+ * `PATCH .../documents/:id.json` endpoint exists), but also feeds pages-editor wiring through
+ * `ShowPageLayout`'s own context so `documentShowType`'s `right`-column `Edit` slot
+ * (`DocumentPagesEditSlot`) can render the pages editor (read-only "Edit" affordance by default,
+ * the full infinite-textarea editor once entered) plus a page-level "Save" button that
+ * unconditionally delegates to the pages box's own imperative save entry point — see the issue's
+ * "Save orchestration" section.
  */
 export default class GameDocumentEditHelper {
   /**
    * Render the document edit view through `ShowPageLayout`: a back button to the document's show
    * page (there is no form submit to redirect away on completion, so the back button is the only
    * way out — unlike `ItemEditHelper`, which has no `backHref`), then a two-column row with the
-   * document's photo/name on the left and its (read-only) description on the right, followed by
-   * the pages editor and its own Save action/failure alert (issue #1129).
+   * document's photo/name on the left and its (read-only) description plus the pages editor and
+   * its own Save action/failure alert (issue #1129) on the right.
    *
    * @param {object} document - Document data object (`GameDocument` shape).
    * @param {string} document.name - Document name.
@@ -34,7 +34,8 @@ export default class GameDocumentEditHelper {
    *   gating the pages-edit affordance and Save button (issue #1129) — there is no separate
    *   general "edit" permission for documents.
    * @param {Function} [onUploadClick] - Handler invoked when the upload button is clicked.
-   * @param {object} [pages] - Pages-editor wiring (issue #1129).
+   * @param {object} [pages] - Pages-editor wiring (issue #1129), folded into `ShowPageLayout`'s
+   *   context for `DocumentPagesEditSlot` to read.
    * @param {string} [pages.gameSlug] - Game slug, forwarded to `DocumentPagesEditBox`.
    * @param {React.Ref} [pages.pagesRef] - Imperative handle ref for `DocumentPagesEditBox`.
    * @param {string} [pages.saveStatus] - `'idle'`, `'saving'`, or `'failed'`.
@@ -49,45 +50,24 @@ export default class GameDocumentEditHelper {
     } = pages;
 
     return (
-      <>
-        <ShowPageLayout
-          type="document"
-          mode="edit"
-          backHref={backHref}
-          context={{ ...document, canUploadPhoto, handlers: { onOpenUploadModal: onUploadClick } }}
-        />
-        <div className="container">
-          <DocumentPagesEditBox
-            ref={pagesRef}
-            gameSlug={gameSlug}
-            id={document?.id}
-            canEditPages={canUploadPhoto}
-          />
-          {GameDocumentEditHelper.#renderSaveButton(canUploadPhoto, saveStatus, onSave)}
-          {GameDocumentEditHelper.#renderPagesSaveFailedAlert(saveStatus, onRetrySave, onSkipSave)}
-        </div>
-      </>
+      <ShowPageLayout
+        type="document"
+        mode="edit"
+        backHref={backHref}
+        context={{
+          ...document,
+          canUploadPhoto,
+          canEditPages: canUploadPhoto,
+          game_slug: gameSlug,
+          handlers: { onOpenUploadModal: onUploadClick },
+          pagesRef,
+          saveStatus,
+          onSave,
+          onRetrySave,
+          onSkipSave,
+        }}
+      />
     );
-  }
-
-  static #renderSaveButton(canUploadPhoto, saveStatus, onSave) {
-    if (!canUploadPhoto) {
-      return null;
-    }
-
-    return (
-      <button type="button" className="btn btn-primary mt-3" onClick={onSave} disabled={saveStatus === 'saving'}>
-        {Translator.t('document_edit_page.save')}
-      </button>
-    );
-  }
-
-  static #renderPagesSaveFailedAlert(saveStatus, onRetrySave, onSkipSave) {
-    if (saveStatus !== 'failed') {
-      return null;
-    }
-
-    return <DocumentPagesSaveFailedAlert onRetry={onRetrySave} onSkip={onSkipSave} />;
   }
 
   /**

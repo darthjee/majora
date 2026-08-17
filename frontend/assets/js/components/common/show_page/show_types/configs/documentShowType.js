@@ -9,6 +9,7 @@ import DocumentSubmitButton from '../../../../resources/document/pages/elements/
 import DocumentPhotosPreview from '../../../../resources/document/pages/elements/show/DocumentPhotosPreview.jsx';
 import DocumentFilesPreview from '../../../../resources/document/pages/elements/show/DocumentFilesPreview.jsx';
 import DocumentPagesBox from '../../../../resources/document/pages/elements/show/DocumentPagesBox.jsx';
+import DocumentPagesEditSlot from '../../../../resources/document/pages/elements/edit/DocumentPagesEditSlot.jsx';
 
 /**
  * `showTypeConfig` entry for the `document` show/new/edit pages (issue #758, `Edit`/photo-upload
@@ -24,12 +25,18 @@ import DocumentPagesBox from '../../../../resources/document/pages/elements/show
  * other fields in the right column, since there is no left column at all on `new` besides the
  * (now upload-capable) photo picker, matching `CharacterItemNewHelper`'s single-column form.
  *
+ * `DocumentPagesBox` (issue #1126), the document's own paginated `GameDocumentPage` reader, sits
+ * in `right`, directly below the description — it's the document's actual content, so it belongs
+ * next to the description it complements rather than off in the full-width `bottom` area (issue
+ * #776). On `Edit`, the same slot renders `DocumentPagesEditSlot` instead: the pages editor plus
+ * its own page-level Save button and `DocumentPagesSaveFailedAlert` (issue #1129), also moved here
+ * from their own container below the whole layout by issue #776, so the editor and its Save/
+ * failure-alert actions stay visually grouped with the document fields they act on.
+ *
  * `bottom`'s photo/file shortlists (issue #873) are `Show`-only: both need a real, already-
  * persisted `GameDocument` id to fetch against, so they make no sense on `new`/`edit`. The files
  * shortlist is listed before the photos shortlist (issue #897): it's the more useful of the two,
- * so it takes the top slot. `DocumentPagesBox` (issue #1126), the document's own paginated
- * `GameDocumentPage` reader, is `Show`-only for the same reason and takes the very first `bottom`
- * slot, above both shortlists — it's the document's actual content, more central than either.
+ * so it takes the top slot.
  */
 const documentShowType = {
   left: [DocumentPhoto, { Show: DocumentNameHeading, Edit: DocumentNameHeading }],
@@ -37,11 +44,11 @@ const documentShowType = {
     { New: DocumentTitle },
     { New: DocumentNameField },
     { Show: DescriptionBox, Edit: DescriptionBox, New: DocumentDescriptionField },
+    { Show: DocumentPagesBox, Edit: DocumentPagesEditSlot },
     { New: DocumentHiddenField },
     { New: DocumentSubmitButton },
   ],
   bottom: [
-    { Show: DocumentPagesBox },
     { Show: DocumentFilesPreview },
     { Show: DocumentPhotosPreview },
   ],
