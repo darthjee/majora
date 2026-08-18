@@ -3,6 +3,7 @@
 All React source code lives under `frontend/`. See frontend.md for the full component architecture and conventions.
 
 ## assets/
+
 Static sources — CSS (`assets/css/`), JavaScript/JSX (`assets/js/`), images (`assets/images/`).
 
 ## specs/

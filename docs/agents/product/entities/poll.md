@@ -11,4 +11,3 @@ is entirely game-scoped, not per-record. Voting (`PollVote`, linking a `Player` 
 they chose) exists at the model level but has no endpoint yet — out of scope until a follow-up
 issue. See [access-control/poll.md](access-control/poll.md) for the full endpoint and permission
 breakdown.
-

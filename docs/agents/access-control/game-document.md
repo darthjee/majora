@@ -39,6 +39,7 @@ Mirrors `GameItemCreatePermission`'s shape exactly. Creates only a `GameDocument
 exposed on [Game](game.md)'s `permissions.json`.
 
 ## Document photo endpoints
+
 The first photo ever uploaded for a document automatically becomes its display photo; no
 dedicated document-photos browsing page exists for photos beyond the current display one.
 
