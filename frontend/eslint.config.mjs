@@ -61,6 +61,8 @@ export default [
       'jsdoc/require-description': 'error',
       'security/detect-non-literal-regexp': 'error',
       'security-node/non-literal-reg-expr': 'error',
+      'security/detect-possible-timing-attacks': 'error',
+      'security-node/detect-possible-timing-attacks': 'error',
       'no-unsanitized/method': 'error',
       'no-unsanitized/property': 'error',
     },
