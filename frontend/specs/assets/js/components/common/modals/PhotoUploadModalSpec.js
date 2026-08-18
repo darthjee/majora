@@ -183,8 +183,7 @@ describe('PhotoUploadModal', function() {
           React.createElement(PhotoUploadModal, {
             show: true,
             uploadPath: '/games/my-game/documents/9/file_upload.json',
-            translationPrefix: 'file_upload_modal',
-            accept: '.pdf',
+            fileUploadOptions: { translationPrefix: 'file_upload_modal', accept: '.pdf' },
             onClose: jasmine.createSpy('onClose'),
             onSuccess: jasmine.createSpy('onSuccess'),
           })
@@ -227,8 +226,7 @@ describe('PhotoUploadModal', function() {
           React.createElement(PhotoUploadModal, {
             show: true,
             uploadPath: '/games/my-game/documents/9/file_upload.json',
-            translationPrefix: 'file_upload_modal',
-            showNameField: true,
+            fileUploadOptions: { translationPrefix: 'file_upload_modal', showNameField: true },
             onClose: jasmine.createSpy('onClose'),
             onSuccess: jasmine.createSpy('onSuccess'),
           })
@@ -250,7 +248,7 @@ describe('PhotoUploadModal', function() {
           React.createElement(PhotoUploadModal, {
             show: true,
             uploadPath: '/games/my-game/documents/9/file_upload.json',
-            showNameField: true,
+            fileUploadOptions: { showNameField: true },
             onClose: jasmine.createSpy('onClose'),
             onSuccess: jasmine.createSpy('onSuccess'),
           })

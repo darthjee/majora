@@ -140,7 +140,9 @@ describe('StlModelNewHelper', function() {
         if (child.type === MultiResourcePickerField) pickers.push(child);
         return false;
       });
-      const racesPicker = pickers.find((picker) => Array.isArray(picker.props.values) && picker.props.value === races);
+      const racesPicker = pickers.find(
+        (picker) => Array.isArray(picker.props.picker.values) && picker.props.value === races,
+      );
 
       expect(racesPicker).not.toBeUndefined();
       expect(racesPicker.props.onChange).toBe(handlers.onRacesChange);
@@ -155,7 +157,9 @@ describe('StlModelNewHelper', function() {
         if (child.type === MultiResourcePickerField) pickers.push(child);
         return false;
       });
-      const rolesPicker = pickers.find((picker) => Array.isArray(picker.props.values) && picker.props.value === roles);
+      const rolesPicker = pickers.find(
+        (picker) => Array.isArray(picker.props.picker.values) && picker.props.value === roles,
+      );
 
       expect(rolesPicker).not.toBeUndefined();
       expect(rolesPicker.props.onChange).toBe(handlers.onRolesChange);
@@ -176,7 +180,7 @@ describe('StlModelNewHelper', function() {
         if (child.type === MultiResourcePickerField) pickers.push(child);
         return false;
       });
-      const sourcesPicker = pickers.find((picker) => picker.props.resource === 'source');
+      const sourcesPicker = pickers.find((picker) => picker.props.picker.resource === 'source');
 
       expect(sourcesPicker).not.toBeUndefined();
       expect(sourcesPicker.props.value).toBe(sources);
@@ -192,7 +196,7 @@ describe('StlModelNewHelper', function() {
         if (child.type === MultiResourcePickerField) pickers.push(child);
         return false;
       });
-      const collectionsPicker = pickers.find((picker) => picker.props.resource === 'collection');
+      const collectionsPicker = pickers.find((picker) => picker.props.picker.resource === 'collection');
 
       expect(collectionsPicker).not.toBeUndefined();
       expect(collectionsPicker.props.value).toBe(collections);

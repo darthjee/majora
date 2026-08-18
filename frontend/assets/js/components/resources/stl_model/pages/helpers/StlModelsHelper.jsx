@@ -32,8 +32,10 @@ export default class StlModelsHelper {
           type="stlModels"
           basePath="#/miniatures/stl_models"
           loadingMessage={Translator.t('stl_models_page.loading')}
-          filtersProps={{ onQuery: handlers.onFilterQuery, onClear: handlers.onFilterClear }}
-          activeFilters={state.activeFilters}
+          filters={{
+            props: { onQuery: handlers.onFilterQuery, onClear: handlers.onFilterClear },
+            active: state.activeFilters,
+          }}
           refreshToken={state.refreshToken}
         />
       </>

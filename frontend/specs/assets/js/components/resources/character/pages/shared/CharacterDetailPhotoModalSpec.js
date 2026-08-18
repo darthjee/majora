@@ -100,9 +100,9 @@ describe('CharacterDetail photo modal', function() {
     spyOn(CharacterHelper, 'render').and.returnValue(null);
     let capturedCanSet;
     let capturedIsProfile;
-    spyOn(PhotoViewModalHelper, 'render').and.callFake((show, photo, alt, onClose, canSetProfilePhoto, isProfilePhoto) => {
-      capturedCanSet = canSetProfilePhoto;
-      capturedIsProfile = isProfilePhoto;
+    spyOn(PhotoViewModalHelper, 'render').and.callFake((show, photo, alt, onClose, setProfilePhoto) => {
+      capturedCanSet = setProfilePhoto.canSetProfilePhoto;
+      capturedIsProfile = setProfilePhoto.isProfilePhoto;
       return null;
     });
     spyOn(ProfilePhotoSetModalHelper, 'render').and.returnValue(null);
@@ -118,10 +118,8 @@ describe('CharacterDetail photo modal', function() {
     const buildEffectSpy = spyOn(LoadedController.prototype, 'buildEffect').and.returnValue(() => Noop.noop);
     let capturedOnSetProfilePhoto;
     spyOn(CharacterHelper, 'render').and.returnValue(null);
-    spyOn(PhotoViewModalHelper, 'render').and.callFake((
-      show, photo, alt, onClose, canSetProfilePhoto, isProfilePhoto, onSetProfilePhoto,
-    ) => {
-      capturedOnSetProfilePhoto = onSetProfilePhoto;
+    spyOn(PhotoViewModalHelper, 'render').and.callFake((show, photo, alt, onClose, setProfilePhoto) => {
+      capturedOnSetProfilePhoto = setProfilePhoto.onSetProfilePhoto;
       return null;
     });
     spyOn(ProfilePhotoSetModalHelper, 'render').and.returnValue(null);
@@ -140,10 +138,8 @@ describe('CharacterDetail photo modal', function() {
     spyOn(LoadedController.prototype, 'setProfilePhoto').and.returnValue(Promise.reject(new Error('nope')));
     let capturedOnSetProfilePhoto;
     spyOn(CharacterHelper, 'render').and.returnValue(null);
-    spyOn(PhotoViewModalHelper, 'render').and.callFake((
-      show, photo, alt, onClose, canSetProfilePhoto, isProfilePhoto, onSetProfilePhoto,
-    ) => {
-      capturedOnSetProfilePhoto = onSetProfilePhoto;
+    spyOn(PhotoViewModalHelper, 'render').and.callFake((show, photo, alt, onClose, setProfilePhoto) => {
+      capturedOnSetProfilePhoto = setProfilePhoto.onSetProfilePhoto;
       return null;
     });
     spyOn(ProfilePhotoSetModalHelper, 'render').and.returnValue(null);

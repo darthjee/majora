@@ -40,8 +40,7 @@ export default class StlModelFormFieldsHelper {
           onChange={handlers.onTypeChange}
         />
         <MultiResourcePickerField
-          values={RACE_VALUES}
-          translateOption={(value) => Translator.t(`stl_model_page.race_${value}`)}
+          picker={{ values: RACE_VALUES, translateOption: (value) => Translator.t(`stl_model_page.race_${value}`) }}
           value={formState.races}
           onChange={handlers.onRacesChange}
           label={Translator.t('stl_model_new_page.races_label')}
@@ -49,8 +48,7 @@ export default class StlModelFormFieldsHelper {
           removeLabel={Translator.t('stl_model_new_page.remove_tag_tooltip')}
         />
         <MultiResourcePickerField
-          values={ROLE_VALUES}
-          translateOption={(value) => Translator.t(`stl_model_page.role_${value}`)}
+          picker={{ values: ROLE_VALUES, translateOption: (value) => Translator.t(`stl_model_page.role_${value}`) }}
           value={formState.roles}
           onChange={handlers.onRolesChange}
           label={Translator.t('stl_model_new_page.roles_label')}

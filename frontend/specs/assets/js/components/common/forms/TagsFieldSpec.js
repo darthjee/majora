@@ -8,15 +8,19 @@ import { findElement } from './support.js';
 describe('TagsField', function() {
   const baseProps = {
     id: 'tags-field',
-    label: 'Tags',
-    placeholder: 'Add a tag',
-    addLabel: 'Add',
     tags: [],
     inputValue: '',
-    onInputChange: Noop.noop,
-    onAdd: Noop.noop,
-    onRemoveTag: Noop.noop,
-    removeTagLabel: 'Remove tag',
+    handlers: {
+      onInputChange: Noop.noop,
+      onAdd: Noop.noop,
+      onRemoveTag: Noop.noop,
+    },
+    labels: {
+      label: 'Tags',
+      placeholder: 'Add a tag',
+      addLabel: 'Add',
+      removeTagLabel: 'Remove tag',
+    },
   };
 
   it('renders the label', function() {
@@ -71,7 +75,11 @@ describe('TagsField', function() {
 
   it('calls onRemoveTag with the tag when its badge remove button is clicked', function() {
     const onRemoveTag = jasmine.createSpy('onRemoveTag');
-    const element = TagsField({ ...baseProps, tags: ['goblin', 'humanoid'], onRemoveTag });
+    const element = TagsField({
+      ...baseProps,
+      tags: ['goblin', 'humanoid'],
+      handlers: { ...baseProps.handlers, onRemoveTag },
+    });
     const badge = findElement(element, (node) => node.type === RemovableBadge && node.props.text === 'goblin');
 
     badge.props.onRemove();
