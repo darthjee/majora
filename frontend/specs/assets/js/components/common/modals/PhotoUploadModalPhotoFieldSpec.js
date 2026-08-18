@@ -40,9 +40,9 @@ describe('PhotoUploadModal showPhotoField (issue #878)', function() {
       React.createElement(PhotoUploadModal, {
         show: true,
         uploadPath: '/games/my-game/documents/9/file_upload.json',
-        translationPrefix: 'file_upload_modal',
-        showNameField: true,
-        showPhotoField: true,
+        fileUploadOptions: {
+          translationPrefix: 'file_upload_modal', showNameField: true, showPhotoField: true,
+        },
         onClose: jasmine.createSpy('onClose'),
         onSuccess: jasmine.createSpy('onSuccess'),
       })
@@ -64,9 +64,9 @@ describe('PhotoUploadModal showPhotoField (issue #878)', function() {
       React.createElement(PhotoUploadModal, {
         show: true,
         uploadPath: '/games/my-game/documents/9/file_upload.json',
-        showNameField: true,
-        showPhotoField: true,
-        photoUploadPathBuilder: () => '/photo_upload.json',
+        fileUploadOptions: {
+          showNameField: true, showPhotoField: true, photoUploadPathBuilder: () => '/photo_upload.json',
+        },
         onClose: jasmine.createSpy('onClose'),
         onSuccess: jasmine.createSpy('onSuccess'),
       })
@@ -94,9 +94,9 @@ describe('PhotoUploadModal showPhotoField (issue #878)', function() {
       React.createElement(PhotoUploadModal, {
         show: true,
         uploadPath: '/games/my-game/documents/9/file_upload.json',
-        showNameField: true,
-        showPhotoField: true,
-        photoUploadPathBuilder: () => '/photo_upload.json',
+        fileUploadOptions: {
+          showNameField: true, showPhotoField: true, photoUploadPathBuilder: () => '/photo_upload.json',
+        },
         onClose: jasmine.createSpy('onClose'),
         onSuccess: jasmine.createSpy('onSuccess'),
       })

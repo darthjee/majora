@@ -57,9 +57,9 @@ describe('AcquireTreasureTabHelper', function() {
         expect(pane.props.submitting).toBe(true);
         expect(pane.props.actionError).toBe('err');
         expect(pane.props.gameType).toBe('deadlands');
-        expect(pane.props.onQuantityChange).toBe(handlers.onQuantityChange);
-        expect(pane.props.onConfirm).toBe(handlers.onConfirm);
-        expect(pane.props.onCancel).toBe(handlers.onCancel);
+        expect(pane.props.handlers.onQuantityChange).toBe(handlers.onQuantityChange);
+        expect(pane.props.handlers.onConfirm).toBe(handlers.onConfirm);
+        expect(pane.props.handlers.onCancel).toBe(handlers.onCancel);
       });
     });
   });

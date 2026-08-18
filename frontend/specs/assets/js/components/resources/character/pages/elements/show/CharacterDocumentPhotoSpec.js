@@ -34,12 +34,12 @@ describe('CharacterDocumentPhoto', function() {
   it('includes a Hidden info-bar item when hidden is true', function() {
     const element = CharacterDocumentPhoto(buildProps({ hidden: true }));
 
-    expect(element.props.infoBarItems.length).toBe(1);
+    expect(element.props.overlayItems.infoBarItems.length).toBe(1);
   });
 
   it('has no info-bar items when hidden is false', function() {
     const element = CharacterDocumentPhoto(buildProps({ hidden: false }));
 
-    expect(element.props.infoBarItems).toEqual([]);
+    expect(element.props.overlayItems.infoBarItems).toEqual([]);
   });
 });
