@@ -4,6 +4,8 @@ import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import jasmine from 'eslint-plugin-jasmine';
 import jsdoc from 'eslint-plugin-jsdoc';
+import security from 'eslint-plugin-security';
+import securityNode from 'eslint-plugin-security-node';
 import globals from 'globals';
 
 export default [
@@ -11,7 +13,14 @@ export default [
   js.configs.recommended,
   {
     files: ['**/*.{js,jsx,mjs}'],
-    plugins: { complexity, react, 'react-hooks': reactHooks, jsdoc },
+    plugins: {
+      complexity,
+      react,
+      'react-hooks': reactHooks,
+      jsdoc,
+      security,
+      'security-node': securityNode,
+    },
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -48,6 +57,8 @@ export default [
       'jsdoc/require-returns': 'error',
       'jsdoc/require-returns-description': 'error',
       'jsdoc/require-description': 'error',
+      'security/detect-non-literal-regexp': 'error',
+      'security-node/non-literal-reg-expr': 'error',
     },
   },
   {
