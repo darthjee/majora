@@ -4,6 +4,7 @@ import CardAvatar from '../cards/CardAvatar.jsx';
 import CardTreasureImage from '../cards/CardTreasureImage.jsx';
 import CardItemImage from '../cards/CardItemImage.jsx';
 import CardPossessionImage from '../cards/CardPossessionImage.jsx';
+import CardCommonItemImage from '../cards/CardCommonItemImage.jsx';
 import CardDocumentImage from '../cards/CardDocumentImage.jsx';
 import CardStlModelImage from '../cards/CardStlModelImage.jsx';
 import CardSourceImage from '../cards/CardSourceImage.jsx';
@@ -17,6 +18,7 @@ const PHOTO_COMPONENTS = {
   treasure: CardTreasureImage,
   item: CardItemImage,
   possession: CardPossessionImage,
+  commonItem: CardCommonItemImage,
   document: CardDocumentImage,
   stl_model: CardStlModelImage,
   source: CardSourceImage,
@@ -32,13 +34,13 @@ const PHOTO_COMPONENTS = {
  *   delegates the upload button and any secondary overlay action buttons
  *   (e.g. Slain/Revive) to {@link ActionBar}.
  * @param {object} props - Component props.
- * @param {'photo'|'avatar'|'treasure'|'item'|'possession'|'document'|'stl_model'|'source'|'collection'|'faction'} [props.type] - Which
+ * @param {'photo'|'avatar'|'treasure'|'item'|'possession'|'commonItem'|'document'|'stl_model'|'source'|'collection'|'faction'} [props.type] - Which
  *   underlying image component to render: `'avatar'` uses {@link CardAvatar}, `'treasure'` uses
  *   {@link CardTreasureImage}, `'item'` uses {@link CardItemImage}, `'possession'` uses
- *   {@link CardPossessionImage}, `'document'` uses {@link CardDocumentImage}, `'stl_model'` uses
- *   {@link CardStlModelImage}, `'source'` uses {@link CardSourceImage}, `'collection'` uses
- *   {@link CardCollectionImage}, `'faction'` uses {@link CardFactionImage}, anything else
- *   (default) uses {@link CardPhoto}.
+ *   {@link CardPossessionImage}, `'commonItem'` uses {@link CardCommonItemImage}, `'document'`
+ *   uses {@link CardDocumentImage}, `'stl_model'` uses {@link CardStlModelImage}, `'source'` uses
+ *   {@link CardSourceImage}, `'collection'` uses {@link CardCollectionImage}, `'faction'` uses
+ *   {@link CardFactionImage}, anything else (default) uses {@link CardPhoto}.
  * @param {string|null} [props.url] - Image URL, or null/undefined to use the default photo.
  * @param {string} props.alt - Alt text for the image.
  * @param {boolean} [props.canEdit] - Whether the current user may upload a new photo.

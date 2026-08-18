@@ -3,6 +3,7 @@ import npcConfig from './config/npcConfig.js';
 import pcConfig from './config/pcConfig.js';
 import itemConfig from './config/itemConfig.js';
 import possessionConfig from './config/possessionConfig.js';
+import commonItemConfig from './config/commonItemConfig.js';
 import treasureConfig from './config/treasureConfig.js';
 import sessionConfig from './config/sessionConfig.js';
 import documentConfig from './config/documentConfig.js';
@@ -25,6 +26,7 @@ const RESOURCES = {
   pc: pcConfig,
   item: itemConfig,
   possession: possessionConfig,
+  commonItem: commonItemConfig,
   treasure: treasureConfig,
   session: sessionConfig,
   document: documentConfig,
@@ -64,7 +66,7 @@ export default {
    *
    * @param {string} method - HTTP method (e.g. `'GET'`, `'POST'`, `'PATCH'`, `'PUT'`).
    * @param {string} resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'possession'`,
-   *   `'treasure'`, `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`,
+   *   `'commonItem'`, `'treasure'`, `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`,
    *   `'gameDocumentPhoto'`, `'gameDocumentFile'`, `'gameDocumentPage'`, `'characterDocumentFile'`,
    *   `'characterDocumentPhoto'`, `'stlModel'`, `'source'`, `'collection'`, `'faction'`).
    * @param {string} quantityType - `'collection'`, `'single'`, or a resource-specific key.
