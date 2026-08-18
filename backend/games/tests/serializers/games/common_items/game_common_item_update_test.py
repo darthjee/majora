@@ -86,6 +86,14 @@ class TestGameCommonItemUpdateSerializer(TestCase):
         assert not serializer.is_valid()
         assert 'name' in serializer.errors
 
+    def test_negative_price_is_rejected(self):
+        """Test that a negative price is rejected."""
+        serializer = GameCommonItemUpdateSerializer(
+            self.common_item, data={'price': -1}, partial=True,
+        )
+        assert not serializer.is_valid()
+        assert 'price' in serializer.errors
+
     def test_invalid_category_is_rejected(self):
         """Test that an unrecognized category is rejected."""
         serializer = GameCommonItemUpdateSerializer(

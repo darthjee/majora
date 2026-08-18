@@ -173,6 +173,15 @@ class TestGameCommonItemDetailPatchView(TokenAuthRequestMixin):
         data = json.loads(response.content)
         assert 'name' in data['errors']
 
+    def test_patch_negative_price_returns_400(self, client):
+        """Test that a negative price is rejected with 400."""
+        response = self.patch(client, self._url(), {'price': -5}, token=self.dm_token)
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'price' in data['errors']
+        self.common_item.refresh_from_db()
+        assert self.common_item.price == 15
+
     def test_patch_invalid_category_returns_400(self, client):
         """Test that an unrecognized category is rejected with 400."""
         response = self.patch(

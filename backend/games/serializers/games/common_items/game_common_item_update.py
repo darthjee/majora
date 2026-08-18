@@ -12,9 +12,11 @@ class GameCommonItemUpdateSerializer(serializers.ModelSerializer):
     non-blank via the default `CharField` behavior.
     """
 
+    price = serializers.IntegerField(required=False, min_value=0)
+
     class Meta:
         """Metadata for the GameCommonItemUpdateSerializer."""
 
         model = GameCommonItem
         fields = ['name', 'description', 'price', 'category', 'hidden']
-        extra_kwargs = {field: {'required': False} for field in fields}
+        extra_kwargs = {field: {'required': False} for field in fields if field != 'price'}

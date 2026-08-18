@@ -14,7 +14,7 @@ class _GameCommonItemCreateSerializer(serializers.Serializer):
     """Validate the name/price/description/category/hidden payload for creating a common item."""
 
     name = serializers.CharField(max_length=200)
-    price = serializers.IntegerField()
+    price = serializers.IntegerField(min_value=0)
     description = serializers.CharField(required=False, default='', allow_blank=True)
     category = serializers.ChoiceField(
         choices=GameCommonItem.CATEGORY_CHOICES, required=False,

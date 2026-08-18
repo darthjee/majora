@@ -271,6 +271,16 @@ class TestGameCommonItemsCreate(TokenAuthRequestMixin, TestCase):
         data = json.loads(response.content)
         assert 'price' in data['errors']
 
+    def test_negative_price_returns_400(self):
+        """Test that a negative price is rejected with 400."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self._post(
+            self.client, {'name': 'Healing Potion', 'price': -1}, token=token,
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'price' in data['errors']
+
     def test_invalid_category_returns_400(self):
         """Test that an unrecognized category returns 400."""
         token = Token.objects.create(user=self.dm_user)
