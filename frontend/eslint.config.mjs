@@ -6,6 +6,7 @@ import jasmine from 'eslint-plugin-jasmine';
 import jsdoc from 'eslint-plugin-jsdoc';
 import security from 'eslint-plugin-security';
 import securityNode from 'eslint-plugin-security-node';
+import noUnsanitized from 'eslint-plugin-no-unsanitized';
 import globals from 'globals';
 
 export default [
@@ -20,6 +21,7 @@ export default [
       jsdoc,
       security,
       'security-node': securityNode,
+      'no-unsanitized': noUnsanitized,
     },
     languageOptions: {
       ecmaVersion: 'latest',
@@ -59,6 +61,8 @@ export default [
       'jsdoc/require-description': 'error',
       'security/detect-non-literal-regexp': 'error',
       'security-node/non-literal-reg-expr': 'error',
+      'no-unsanitized/method': 'error',
+      'no-unsanitized/property': 'error',
     },
   },
   {
