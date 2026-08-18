@@ -14,6 +14,7 @@ ENV HOME_DIR /home/node
 USER root
 COPY --chown=node:node --from=scripts /home/scripts/builder/yarn_builder.sh /usr/local/sbin/yarn_builder.sh
 RUN /bin/bash yarn_builder.sh
+USER node
 
 #######################
 # FINAL IMAGE

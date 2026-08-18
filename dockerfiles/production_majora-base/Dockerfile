@@ -1,6 +1,7 @@
 FROM darthjee/scripts:0.8.0 as scripts
 FROM darthjee/django:0.0.2 as base
 
+USER app
 CMD ["bin/server.sh"]
 
 ######################################
