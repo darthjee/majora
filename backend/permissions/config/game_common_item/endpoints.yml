@@ -1,0 +1,13 @@
+# GameCommonItemCreatePermission/GameCommonItemPhotoUploadPermission (issue #826): dm/admin
+# shortcut, plus staff and any player of the game. `edit` applies the same rule to the PATCH
+# endpoint.
+regular:
+  create:
+    - staff
+    - player
+  photo_upload:
+    - staff
+    - player
+  edit:
+    - staff
+    - player

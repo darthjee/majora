@@ -61,6 +61,21 @@ export default class GameClient extends BaseClient {
   }
 
   /**
+   * Fetches the edit permissions for a game's common items.
+   *
+   * @param {string} gameSlug - Game slug (unused — the route is entity-agnostic, kept for
+   *   signature symmetry with the rest of the client).
+   * @param {string|null} token - Authentication token, if any.
+   * @param {AbortSignal} [signal] - Optional abort signal for the request.
+   * @param {string[]} [roles] - Roles to simulate instead of the requester's own identity
+   *   (serialized as repeated `role=` query params). Defaults to the requester's real identity.
+   * @returns {Promise<Response>} fetch response from the common item permissions endpoint.
+   */
+  fetchCommonItemPermissions(gameSlug, token, signal, roles = []) {
+    return this.getJson(`/permissions/game_common_item.json${this.buildRoleQuery(roles)}`, token, {}, signal);
+  }
+
+  /**
    * Fetches the edit permissions for a game's items.
    *
    * @param {string} gameSlug - Game slug (unused — the route is entity-agnostic, kept for

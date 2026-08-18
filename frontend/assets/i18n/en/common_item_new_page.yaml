@@ -1,0 +1,12 @@
+common_item_new_page:
+  title: Create Common Item
+  name_label: Name
+  description_label: Description
+  price_label: Price
+  category_label: Category
+  hidden_label: Hidden
+  submit: Create Common Item
+  error: Failed to create common item. Please try again.
+  photo_upload_failed: Failed to upload the photo. The common item was created — you can retry the upload or skip it for now.
+  retry_photo_upload: Retry photo upload
+  skip_photo_upload: Skip and continue

@@ -159,6 +159,11 @@ from .game_sessions import (
 from .game_tasks import game_task_detail, game_tasks_list
 from .games import (
     game_access,
+    game_common_item_detail,
+    game_common_item_detail_full,
+    game_common_item_photo_upload,
+    game_common_items,
+    game_common_items_all,
     game_detail,
     game_document_detail,
     game_document_detail_full,
@@ -207,6 +212,7 @@ from .games import (
     my_games_list,
 )
 from .permissions import (
+    game_common_item_permissions,
     game_document_permissions,
     game_faction_permissions,
     game_item_permissions,
@@ -231,6 +237,11 @@ __all__ = [
     'games_list',
     'game_detail',
     'game_access',
+    'game_common_items',
+    'game_common_items_all',
+    'game_common_item_detail',
+    'game_common_item_detail_full',
+    'game_common_item_photo_upload',
     'game_treasures',
     'game_treasures_all',
     'game_treasures_missing',
@@ -444,6 +455,7 @@ __all__ = [
     'game_treasure_permissions',
     'game_pc_permissions',
     'game_npc_permissions',
+    'game_common_item_permissions',
     'game_possession_permissions',
     'game_item_permissions',
     'game_faction_permissions',

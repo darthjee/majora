@@ -1,0 +1,5 @@
+game_common_items_page:
+  loading: Loading common items...
+  title: Common Items
+  hidden_label: Hidden
+  create_common_item: Create Common Item

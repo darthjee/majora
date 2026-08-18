@@ -151,6 +151,34 @@ export default class AccessStorePermissions {
   }
 
   /**
+   * Resolve (or start) the edit-permissions check for a game's common items (entity-agnostic,
+   * always resolved at the game level — common items have no owner/scoped concept of their own).
+   *
+   * @param {import('../AccessCache.js').default} cache - Shared cache instance.
+   * @param {import('../../../client/GameClient.js').default} gameClient - Game client.
+   * @param {string} gameSlug - Game slug.
+   * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
+   */
+  static ensureCommonItem(cache, gameClient, gameSlug) {
+    const fetchForRoleSet = (roleSet) => AccessStorePermissions.#loggedEnsure(
+      cache,
+      AccessStoreKeys.commonItemPermissions(gameSlug, roleSet),
+      'ensureCommonItem',
+      [gameSlug],
+      (signal) => gameClient.fetchCommonItemPermissions(gameSlug, AuthStorage.getToken(), signal, roleSet)
+        .then(AccessStorePermissions.#parse),
+      PERMISSIONS_DEFAULT,
+      { roleSet },
+    );
+
+    return AccessStorePermissions.#selfCorrectingEnsure(
+      fetchForRoleSet,
+      AccessStoreAccess.getGame(cache, gameSlug),
+      AccessStoreAccess.ensureGame(cache, gameClient, gameSlug),
+    );
+  }
+
+  /**
    * Resolve (or start) the edit-permissions check for a game's items (entity-agnostic, always
    * resolved at the game level — items have no owner/scoped concept of their own).
    *

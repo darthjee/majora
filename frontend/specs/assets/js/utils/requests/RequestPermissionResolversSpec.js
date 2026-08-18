@@ -115,6 +115,22 @@ describe('RequestPermissionResolvers', function() {
         expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
       });
 
+    it('resolves game-level permissions for the commonItem collection, unconditionally (issue #826)', function() {
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+      RequestPermissionResolvers.resolve('commonItem', 'collection', { gameSlug: 'demo' });
+
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+    });
+
+    it('resolves game-level permissions for the commonItem single, unconditionally (issue #826)', function() {
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+      RequestPermissionResolvers.resolve('commonItem', 'single', { gameSlug: 'demo', id: '9' });
+
+      expect(AccessStore.ensureGamePermissions).toHaveBeenCalledWith('demo');
+    });
+
     it('resolves game-level permissions for the npc-kind treasure collection', function() {
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
 

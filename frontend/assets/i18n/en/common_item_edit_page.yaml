@@ -1,0 +1,9 @@
+common_item_edit_page:
+  title: Edit common item
+  name_label: Name
+  description_label: Description
+  price_label: Price
+  category_label: Category
+  hidden_label: Hidden
+  submit: Save changes
+  error: Failed to save common item. Please try again.

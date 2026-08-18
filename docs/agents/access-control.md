@@ -47,6 +47,7 @@ regardless of any other rule listed below.
 - [CharacterFaction](access-control/character-faction.md)
 - [GamePossession](access-control/game-possession.md)
 - [CharacterPossession](access-control/character-possession.md)
+- [GameCommonItem](access-control/game-common-item.md)
 - [CharacterItem](access-control/character-item.md)
 - [GameDocument](access-control/game-document.md)
 - [CharacterDocument](access-control/character-document.md)

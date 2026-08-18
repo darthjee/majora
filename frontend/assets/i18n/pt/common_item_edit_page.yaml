@@ -1,0 +1,9 @@
+common_item_edit_page:
+  title: Editar item comum
+  name_label: Nome
+  description_label: Descrição
+  price_label: Preço
+  category_label: Categoria
+  hidden_label: Oculto
+  submit: Salvar alterações
+  error: Falha ao salvar o item comum. Tente novamente.

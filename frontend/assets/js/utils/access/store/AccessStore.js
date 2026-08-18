@@ -98,6 +98,17 @@ export default class AccessStore {
   }
 
   /**
+   * Resolve (or start) the edit-permissions check for a game's common items, using the role
+   * set derived from the game's own `*Access` entry or the "view as" facade.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
+   */
+  static ensureCommonItemPermissions(gameSlug) {
+    return AccessStorePermissions.ensureCommonItem(cache, gameClient, gameSlug);
+  }
+
+  /**
    * Resolve (or start) the edit-permissions check for a game's factions, using the role
    * set derived from the game's own `*Access` entry or the "view as" facade.
    *

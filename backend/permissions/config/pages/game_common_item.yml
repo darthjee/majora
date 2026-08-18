@@ -1,0 +1,3 @@
+# GameCommonItemPermissionsSerializer's response shape (page_key='game_common_item').
+game_common_item:
+  edit: can_edit

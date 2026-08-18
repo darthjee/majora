@@ -1,5 +1,6 @@
 """Views for the entity-agnostic `/permissions/*.json` endpoints (issue #926)."""
 
+from .game_common_item_permissions import game_common_item_permissions
 from .game_document_permissions import game_document_permissions
 from .game_faction_permissions import game_faction_permissions
 from .game_item_permissions import game_item_permissions
@@ -16,6 +17,7 @@ __all__ = [
     'game_treasure_permissions',
     'game_pc_permissions',
     'game_npc_permissions',
+    'game_common_item_permissions',
     'game_possession_permissions',
     'game_item_permissions',
     'game_faction_permissions',

@@ -17,6 +17,7 @@ include:
   - resources/items.yml
   - resources/factions.yml
   - resources/possessions.yml
+  - resources/common_items.yml
   - resources/documents.yml
   - resources/sessions.yml
   - resources/permissions.yml

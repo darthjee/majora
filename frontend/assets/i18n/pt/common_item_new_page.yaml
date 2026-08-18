@@ -1,0 +1,12 @@
+common_item_new_page:
+  title: Criar Item Comum
+  name_label: Nome
+  description_label: Descrição
+  price_label: Preço
+  category_label: Categoria
+  hidden_label: Oculto
+  submit: Criar Item Comum
+  error: Falha ao criar o item comum. Tente novamente.
+  photo_upload_failed: Falha ao enviar a foto. O item comum foi criado — você pode tentar novamente ou pular por enquanto.
+  retry_photo_upload: Tentar enviar a foto novamente
+  skip_photo_upload: Pular e continuar

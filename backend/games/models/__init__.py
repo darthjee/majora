@@ -10,6 +10,8 @@ from games.models.character.character_photo import CharacterPhoto
 from games.models.character.character_possession import CharacterPossession
 from games.models.character.character_treasure import CharacterTreasure
 from games.models.game.game import Game
+from games.models.game.game_common_item import GameCommonItem
+from games.models.game.game_common_item_photo import GameCommonItemPhoto
 from games.models.game.game_document import GameDocument
 from games.models.game.game_document_file import GameDocumentFile
 from games.models.game.game_document_file_photo import GameDocumentFilePhoto
@@ -48,6 +50,8 @@ __all__ = [
     'GameFaction',
     'GameFactionPhoto',
     'Game',
+    'GameCommonItem',
+    'GameCommonItemPhoto',
     'GameDocument',
     'GameDocumentFile',
     'GameDocumentFilePhoto',

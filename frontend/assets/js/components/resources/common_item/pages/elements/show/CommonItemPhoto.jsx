@@ -1,0 +1,95 @@
+import React from 'react';
+import ActionsOverlay from '../../../../../common/misc/ActionsOverlay.jsx';
+import ItemCardHelper from '../../../../../common/list_types/ItemCardHelper.jsx';
+import Translator from '../../../../../../i18n/Translator.js';
+
+/**
+ * Show-mode left-column slot: the common item's photo, with an upload affordance gated on the
+ * requester's own upload permission (`canUploadPhoto`, resolved per-page) and a Hidden badge
+ * when the common item is hidden from players, delegating to `ItemCardHelper` (reused as-is, not
+ * duplicated into a `CommonItemCardHelper` — it's already generic over any `{hidden}` entity),
+ * mirroring `PossessionPhoto`.
+ *
+ * @param {object} context - Merged `ShowPageLayout` rendering context.
+ * @param {string|null} [context.photo_path] - Common item photo URL.
+ * @param {string} context.name - Common item name, used as the image's alt text.
+ * @param {boolean} [context.hidden] - Whether the common item is hidden from players.
+ * @param {boolean} [context.canUploadPhoto] - Whether the current user may upload a new photo.
+ * @param {{onOpenUploadModal: Function}} context.handlers - Event handlers.
+ * @returns {React.ReactElement} Common item photo overlay element.
+ */
+function CommonItemPhotoShow({
+  photo_path: photoPath, name, hidden, canUploadPhoto, handlers,
+}) {
+  return (
+    <ActionsOverlay
+      type="commonItem"
+      url={photoPath}
+      alt={name}
+      canEdit={Boolean(canUploadPhoto)}
+      onClick={handlers.onOpenUploadModal}
+      infoBarItems={ItemCardHelper.buildInfoBarItems({ hidden }, Translator.t('common_item_page.hidden_label'))}
+    />
+  );
+}
+
+/**
+ * Edit-mode left-column slot: the common item's photo, always editable (the edit route is
+ * already permission-gated), dimmed whenever the `hidden` switch is on, mirroring
+ * `PossessionPhoto`'s edit variant.
+ *
+ * @param {object} context - Merged `ShowPageLayout` rendering context.
+ * @param {string|null} [context.photo_path] - Common item photo URL.
+ * @param {string} context.name - Common item name, used as the image's alt text.
+ * @param {boolean} [context.hidden] - Whether the common item is currently marked hidden.
+ * @param {{onOpenUploadModal: Function}} context.handlers - Event handlers.
+ * @returns {React.ReactElement} Common item photo overlay element.
+ */
+function CommonItemPhotoEdit({
+  photo_path: photoPath, name, hidden, handlers,
+}) {
+  return (
+    <ActionsOverlay
+      type="commonItem"
+      url={photoPath}
+      alt={name}
+      canEdit
+      onClick={handlers.onOpenUploadModal}
+      dimmed={hidden}
+    />
+  );
+}
+
+/**
+ * New-mode left-column slot: a deferred photo picker, letting the user pick a photo before the
+ * underlying `GameCommonItem` exists — the picked file is held in the caller's state and
+ * uploaded only after creation succeeds, mirroring `PossessionPhoto`'s new variant.
+ *
+ * @param {object} context - Merged `ShowPageLayout` rendering context.
+ * @param {string|null} [context.photo_path] - Preview URL for the currently picked photo, if any.
+ * @param {string} context.name - Common item name field value, used as the image's alt text.
+ * @param {boolean} [context.hidden] - Whether the common item is currently marked hidden.
+ * @param {{onOpenUploadModal: Function}} context.handlers - Event handlers.
+ * @returns {React.ReactElement} Common item photo overlay element.
+ */
+function CommonItemPhotoNew({
+  photo_path: photoPath, name, hidden, handlers,
+}) {
+  return (
+    <ActionsOverlay
+      type="commonItem"
+      url={photoPath}
+      alt={name}
+      canEdit
+      onClick={handlers.onOpenUploadModal}
+      dimmed={hidden}
+    />
+  );
+}
+
+/**
+ * Mode-variant photo slot for the common item show/new/edit pages.
+ */
+const CommonItemPhoto = { Show: CommonItemPhotoShow, Edit: CommonItemPhotoEdit, New: CommonItemPhotoNew };
+
+export default CommonItemPhoto;

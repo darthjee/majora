@@ -58,6 +58,14 @@ describe('AccessStoreKeys', function() {
     });
   });
 
+  describe('#commonItemPermissions', function() {
+    it('builds the common item permissions cache key, scoped by role set', function() {
+      expect(AccessStoreKeys.commonItemPermissions('demo', [])).toBe('permissions:commonItem:demo:');
+      expect(AccessStoreKeys.commonItemPermissions('demo', ['dm', 'player']))
+        .toBe('permissions:commonItem:demo:dm,player');
+    });
+  });
+
   describe('#itemPermissions', function() {
     it('builds the item permissions cache key, scoped by role set', function() {
       expect(AccessStoreKeys.itemPermissions('demo', [])).toBe('permissions:item:demo:');

@@ -48,6 +48,12 @@ const RESOLVERS = {
     // owning player must not get hidden-catalog visibility just from owning the character.
     availableCollection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
   },
+  // issue #826: `GameCommonItem` has no character-owned family at all (unlike `possession`), so
+  // `collection`/`single` are unconditionally game-level, with no `kind` branching to speak of.
+  commonItem: {
+    collection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+    single: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+  },
   treasure: {
     collection: ({ gameSlug, kind }) => (
       kind === 'game' || kind === 'npcs' ? AccessStore.ensureGamePermissions(gameSlug) : NO_PERMISSIONS()
@@ -160,7 +166,7 @@ export default class RequestPermissionResolvers {
    * Resolve the current permissions object for a resource/quantity-type/params combination.
    *
    * @param {string} resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'possession'`,
-   *   `'treasure'`, `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`).
+   *   `'commonItem'`, `'treasure'`, `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`).
    * @param {string} quantityType - `'collection'` or `'single'`.
    * @param {object} params - Concrete params (`gameSlug`, `kind`, `id`, etc.).
    * @returns {Promise<object>} Resolves to the permissions object (e.g. `{ can_edit: boolean }`),

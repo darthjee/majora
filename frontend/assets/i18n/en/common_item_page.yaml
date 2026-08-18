@@ -1,0 +1,11 @@
+common_item_page:
+  loading: Loading common item...
+  hidden_label: Hidden
+  category:
+    potion: Potion
+    drug: Drug
+    consumable: Consumable
+    ammunition: Ammunition
+    poison: Poison
+    gear: Gear
+    other: Other

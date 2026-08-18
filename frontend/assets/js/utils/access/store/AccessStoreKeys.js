@@ -99,6 +99,17 @@ export default class AccessStoreKeys {
   }
 
   /**
+   * Build the cache key for a game's common item edit permissions, scoped by role set.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @param {string[]} roleSet - Normalized role set (see {@link AccessStoreKeys.normalizeRoles}).
+   * @returns {string} Cache key.
+   */
+  static commonItemPermissions(gameSlug, roleSet) {
+    return `permissions:commonItem:${gameSlug}:${roleSet.join(',')}`;
+  }
+
+  /**
    * Build the cache key for a game's item edit permissions, scoped by role set.
    *
    * @param {string} gameSlug - Game slug.

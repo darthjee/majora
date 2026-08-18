@@ -8,6 +8,7 @@ roles, flags, etc.) is preserved by passing overrides at the call site.
 """
 
 from games.tests.factories.character import CharacterFactory
+from games.tests.factories.common_item import GameCommonItemFactory
 from games.tests.factories.conversation import (
     ConversationFactory,
     ConversationParticipantFactory,
@@ -31,6 +32,7 @@ __all__ = [
     'CharacterPossessionFactory',
     'ConversationFactory',
     'ConversationParticipantFactory',
+    'GameCommonItemFactory',
     'GameDocumentFactory',
     'GameFactionFactory',
     'GameFactory',

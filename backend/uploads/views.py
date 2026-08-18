@@ -10,6 +10,7 @@ from accounts.authentication import CookieTokenAuthentication
 from games.models import (
     CharacterItemPhoto,
     CharacterPhoto,
+    GameCommonItemPhoto,
     GameDocumentFile,
     GameDocumentFilePhoto,
     GameDocumentPhoto,
@@ -188,6 +189,13 @@ def _set_possession_photo(possession_photo):
     possession.save()
 
 
+def _set_common_item_photo(common_item_photo):
+    """Set the common item's photo to `common_item_photo`, always replacing any existing one."""
+    common_item = common_item_photo.game_common_item
+    common_item.photo = common_item_photo
+    common_item.save()
+
+
 def _set_faction_photo(faction_photo):
     """Set the faction's photo to `faction_photo`, always replacing any existing one."""
     faction = faction_photo.faction
@@ -238,6 +246,14 @@ def _faction_photo_permission(request, content_object):
     game = content_object.faction.game
     return EndpointPermission(request.user, game=game).check(
         request, 'game_faction', 'regular', 'photo_upload',
+    )
+
+
+def _game_common_item_photo_permission(request, content_object):
+    """Return a permission error Response for a GameCommonItemPhoto content object, else None."""
+    game = content_object.game_common_item.game
+    return EndpointPermission(request.user, game=game).check(
+        request, 'game_common_item', 'regular', 'photo_upload',
     )
 
 
@@ -324,6 +340,7 @@ _PHOTO_HANDLERS = {
     CharacterPhoto: (_character_photo_permission, _set_character_photo_if_unset),
     GameItemPhoto: (_game_item_photo_permission, _set_item_photo),
     GamePossessionPhoto: (_game_possession_photo_permission, _set_possession_photo),
+    GameCommonItemPhoto: (_game_common_item_photo_permission, _set_common_item_photo),
     GameFactionPhoto: (_faction_photo_permission, _set_faction_photo),
     CollectionPhoto: (_collection_photo_permission, _set_collection_photo_if_unset),
     CharacterItemPhoto: (_character_item_photo_permission, _set_character_item_photo),

@@ -48,6 +48,18 @@ from games.serializers.characters.character_update import CharacterUpdateSeriali
 from games.serializers.characters.npcs.npc_player_create import NpcPlayerCreateSerializer
 from games.serializers.characters.npcs.npc_player_update import NpcPlayerUpdateSerializer
 from games.serializers.characters.pcs.pc_access import PcAccessSerializer
+from games.serializers.games.common_items.game_common_item_list import (
+    GameCommonItemAllListSerializer,
+    GameCommonItemDetailFullSerializer,
+    GameCommonItemDetailSerializer,
+    GameCommonItemListSerializer,
+)
+from games.serializers.games.common_items.game_common_item_permissions import (
+    GameCommonItemPermissionsSerializer,
+)
+from games.serializers.games.common_items.game_common_item_update import (
+    GameCommonItemUpdateSerializer,
+)
 from games.serializers.games.conversations.conversation_list import ConversationListSerializer
 from games.serializers.games.documents.game_document_file import GameDocumentFileSerializer
 from games.serializers.games.documents.game_document_list import (
@@ -196,6 +208,12 @@ __all__ = [
     'ConversationListSerializer',
     'FileUploadSerializer',
     'GameAccessSerializer',
+    'GameCommonItemAllListSerializer',
+    'GameCommonItemDetailFullSerializer',
+    'GameCommonItemDetailSerializer',
+    'GameCommonItemListSerializer',
+    'GameCommonItemPermissionsSerializer',
+    'GameCommonItemUpdateSerializer',
     'GameCreateSerializer',
     'GameDetailSerializer',
     'GameDocumentAllListSerializer',
