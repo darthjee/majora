@@ -42,6 +42,8 @@
     "eslint-plugin-jsdoc": "^63.0.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-security": "^4.0.1",
+    "eslint-plugin-security-node": "^1.1.4",
     "globals": "^16.5.0",
     "jasmine": "^5.0.0",
     "nyc": "^15.0.0",
