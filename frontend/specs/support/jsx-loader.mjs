@@ -44,6 +44,7 @@ export async function resolve(specifier, context, nextResolve) {
 export async function load(url, context, nextLoad) {
   if (url.endsWith('?raw')) {
     const filePath = fileURLToPath(url.slice(0, -'?raw'.length));
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- filePath comes from Node's own ESM loader url, driven only by import specifiers in this repo's own source/spec files; this loader is registered for local Jasmine runs only, never in production.
     const source = readFileSync(filePath, 'utf-8');
     return {
       format: 'module',
@@ -53,6 +54,7 @@ export async function load(url, context, nextLoad) {
   }
   if (url.endsWith('.jsx')) {
     const filePath = fileURLToPath(url);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- filePath comes from Node's own ESM loader url, driven only by import specifiers in this repo's own source/spec files; this loader is registered for local Jasmine runs only, never in production.
     const source = readFileSync(filePath, 'utf-8');
     const transformed = transformSync(source, {
       filename: filePath,
@@ -95,6 +97,7 @@ export async function load(url, context, nextLoad) {
   const [bareUrl] = url.split('?');
   if (bareUrl.endsWith('.js') && !bareUrl.includes('/node_modules/')) {
     const filePath = fileURLToPath(bareUrl);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- filePath comes from Node's own ESM loader url, driven only by import specifiers in this repo's own source/spec files; this loader is registered for local Jasmine runs only, never in production.
     const source = readFileSync(filePath, 'utf-8');
     if (source.includes('import.meta.env')) {
       // Vite statically replaces `import.meta.env.VITE_*` at build/dev time; plain Node never
