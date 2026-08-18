@@ -32,7 +32,6 @@ No JSX. Receives state setters and an optional injected client in the constructo
 A static class. All methods are `static renderXxx()` returning JSX. No state, no side
 effects (see `resources/game/pages/helpers/GamesHelper.jsx` for a reference example).
 
-
 ## Avoiding Inline JSX Conditionals
 
 Render helpers should not mix conditional logic with large chunks of markup directly inline.

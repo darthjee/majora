@@ -2,7 +2,8 @@
 
 use Tent\Configuration;
 
-Configuration::buildRule([
+Configuration::buildRule(
+    [
     'handler' => [
         'class'       => 'Tent\RequestHandlers\UploadHandler',
         'host'        => $backendHost,
@@ -12,4 +13,5 @@ Configuration::buildRule([
     'matchers' => [
         ['method' => 'POST', 'uri' => '/uploads/', 'type' => 'begins_with'],
     ],
-]);
+    ]
+);

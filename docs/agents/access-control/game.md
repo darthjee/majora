@@ -45,6 +45,7 @@ GameMaster to authorize a brand-new game.
   trustworthy — keep this assumption in mind before changing the deployment topology.
 
 ## Fields
+
 List/detail (`GET /games.json`/`GET /games/<slug>.json`): `name`, `game_slug`, `description`,
 `game_type`, links list, photos list, treasures list, `cover_photo_path` (see [Photo path
 fields](common-rules.md#photo-path-fields)). `game_type` (`dnd`/`deadlands`, default `dnd`) and
@@ -62,6 +63,7 @@ server-assigned only (`game_slug` auto-generated from `name`; `cover_photo_path`
 
 `PATCH /games/<slug>.json` has two tiers, mirroring the [Character](character.md#regular-access-for-mutation)
 regular/restricted split:
+
 - Full tier (`name`+`description`+`links`) — **GameEdit**, i.e. the plain `Update` rule from the
   default CRUD pattern above (admin/dm shortcut only).
 - Regular tier (`description`+`links` only — `name` is absent from the serializer's field set, so
@@ -84,6 +86,7 @@ endpoints](common-rules.md#access-status-endpoints-accessjson). `is_owner` is al
 standard shape per [Edit permission
 endpoints](common-rules.md#edit-permission-endpoints-permissionsjson). Beyond `can_edit`
 (**GameEdit**), exposes:
+
 - `can_create_item` — **GameItemCreatePermission**: roles per
   [`game_item/endpoints.yml`](../../../backend/games/permissions/config/game_item/endpoints.yml)
   (`create`) — broader than `can_edit`. See [GameItem](game-item.md#item-creation-endpoint).

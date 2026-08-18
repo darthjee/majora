@@ -11,4 +11,3 @@ credential; also editable as first/last name via `first_name`/`last_name`) plus 
 user's name is displayed to a general audience, e.g. session message authors and poll
 voters). Only the user themselves (`/#/my_account`) and staff (`/#/staff/users`) can see
 the real `username`; `display_name` never exposes the login credential.
-

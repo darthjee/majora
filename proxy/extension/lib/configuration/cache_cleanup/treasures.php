@@ -76,9 +76,11 @@ return [
     // pcs treasures buy/sell/acquire/remove — pcs entity targets plus the
     // PC's own treasures list.
     [
-        'targets' => array_merge($pcsEntityTargets, [
+        'targets' => array_merge(
+            $pcsEntityTargets, [
             '/games/:game_slug/pcs/:character_id/treasures.json',
-        ]),
+            ]
+        ),
         'routes' => [
             '/games/:game_slug/pcs/:character_id/treasures/buy.json',
             '/games/:game_slug/pcs/:character_id/treasures/sell.json',
@@ -90,9 +92,11 @@ return [
     // npcs treasures buy/sell/acquire/remove — npcs entity targets plus the
     // NPC's own treasures list.
     [
-        'targets' => array_merge($npcsEntityTargets, [
+        'targets' => array_merge(
+            $npcsEntityTargets, [
             '/games/:game_slug/npcs/:character_id/treasures.json',
-        ]),
+            ]
+        ),
         'routes' => [
             '/games/:game_slug/npcs/:character_id/treasures/buy.json',
             '/games/:game_slug/npcs/:character_id/treasures/sell.json',

@@ -30,19 +30,22 @@ export default class FactionDetailHelper {
    * @param {boolean} [canUploadPhoto] - Whether the current user may upload a new photo; also
    *   gates the Recruit button, mirroring `DocumentDetailHelper`'s `canUploadPhoto`/Give Document
    *   button pairing. Defaults to `false`.
-   * @param {Function} [onUploadClick] - Handler invoked when the upload button is clicked.
    * @param {string} [gameSlug] - Game slug the faction belongs to, merged into the rendering
    *   context as `game_slug` so the character-list panel can build its fetch params/hrefs.
    * @param {number} [refreshToken] - Opaque value bumped to re-trigger the character-list panel's
    *   fetch (e.g. after a successful recruit), merged into the rendering context.
-   * @param {Function} [onRecruitClick] - Handler invoked when the Recruit button is clicked.
-   *   Defaults to a no-op, matching the `canUploadPhoto` default.
+   * @param {object} [handlers] - Event handlers.
+   * @param {Function} [handlers.onUploadClick] - Handler invoked when the upload button is
+   *   clicked.
+   * @param {Function} [handlers.onRecruitClick] - Handler invoked when the Recruit button is
+   *   clicked. Defaults to a no-op, matching the `canUploadPhoto` default.
    * @returns {React.ReactElement} Faction detail element.
    */
   static render(
-    faction, backHref, editHref, canEdit = false, canUploadPhoto = false, onUploadClick,
-    gameSlug, refreshToken = 0, onRecruitClick = Noop.noop,
+    faction, backHref, editHref, canEdit = false, canUploadPhoto = false, gameSlug, refreshToken = 0, handlers = {},
   ) {
+    const { onUploadClick, onRecruitClick = Noop.noop } = handlers;
+
     return (
       <ShowPageLayout
         type="faction"

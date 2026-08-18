@@ -15,4 +15,3 @@ original section headings.
 - docs/agents/frontend/routing-pagination.md
 - docs/agents/frontend/api-client-requests.md
 - docs/agents/frontend/bootstrap-linting-tests.md
-

@@ -53,7 +53,7 @@ describe('ListPage', function() {
       canEdit: true,
     }));
 
-    renderToStaticMarkup(React.createElement(ListPage, { ...baseProps, onCanEditChange }));
+    renderToStaticMarkup(React.createElement(ListPage, { ...baseProps, handlers: { onCanEditChange } }));
 
     const cleanup = capture.getInstance().buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -85,7 +85,7 @@ describe('ListPage', function() {
       canEdit: false,
     }));
 
-    renderToStaticMarkup(React.createElement(ListPage, { ...baseProps, onItemsChange }));
+    renderToStaticMarkup(React.createElement(ListPage, { ...baseProps, handlers: { onItemsChange } }));
 
     const cleanup = capture.getInstance().buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
