@@ -16,10 +16,8 @@ function buildController(character) {
     }
 
     buildEffect() { return () => Noop.noop; }
-    // eslint-disable-next-line no-empty-function
-    applyLoadedCharacter() {}
-    // eslint-disable-next-line no-empty-function
-    submitForm() {}
+    applyLoadedCharacter() { Noop.noop(); }
+    submitForm() { Noop.noop(); }
   };
 }
 

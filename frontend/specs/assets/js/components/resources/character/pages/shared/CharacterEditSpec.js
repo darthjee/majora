@@ -14,10 +14,8 @@ import { stubRenderLoading } from '../../../../../../../support/controllerStubs.
 
 class FakeController {
   buildEffect() { return () => Noop.noop; }
-  // eslint-disable-next-line no-empty-function
-  applyLoadedCharacter() {}
-  // eslint-disable-next-line no-empty-function
-  submitForm() {}
+  applyLoadedCharacter() { Noop.noop(); }
+  submitForm() { Noop.noop(); }
 }
 
 // Sets character/loading state synchronously during render (in the useMemo
@@ -30,10 +28,8 @@ class LoadedController {
   }
 
   buildEffect() { return () => Noop.noop; }
-  // eslint-disable-next-line no-empty-function
-  applyLoadedCharacter() {}
-  // eslint-disable-next-line no-empty-function
-  submitForm() {}
+  applyLoadedCharacter() { Noop.noop(); }
+  submitForm() { Noop.noop(); }
 }
 
 describe('CharacterEdit', function() {

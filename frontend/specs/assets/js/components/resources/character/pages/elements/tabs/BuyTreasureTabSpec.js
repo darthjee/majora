@@ -7,14 +7,14 @@ import BuyTreasureTabHelper
 import BuyTreasureTabController
   from '../../../../../../../../../assets/js/components/resources/character/pages/elements/tabs/controllers/BuyTreasureTabController.js';
 import { buildCharacter } from '../../../../../../../../support/factories.js';
+import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 
 describe('BuyTreasureTab', function() {
   const character = buildCharacter({
     id: 7, game_slug: 'demo', is_pc: true, money: 500,
   });
 
-  // eslint-disable-next-line no-empty-function
-  const neverResolves = () => new Promise(() => {});
+  const neverResolves = () => new Promise(Noop.noop);
 
   const renderTab = (props = {}) => {
     let capturedState;

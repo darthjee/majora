@@ -2,6 +2,7 @@ import SessionMessagesController
   from '../../../../../../../../assets/js/components/resources/game_session/pages/controllers/SessionMessagesController.js';
 import AuthStorage from '../../../../../../../../assets/js/utils/auth/AuthStorage.js';
 import RequestStore from '../../../../../../../../assets/js/utils/requests/RequestStore.js';
+import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
 describe('SessionMessagesController', function() {
   afterEach(function() {
@@ -141,8 +142,7 @@ describe('SessionMessagesController', function() {
       const setNextEntryId = jasmine.createSpy('setNextEntryId');
       const setLoadingMore = jasmine.createSpy('setLoadingMore');
 
-      // eslint-disable-next-line no-empty-function
-      spyOn(RequestStore, 'mutate').and.returnValue(new Promise(() => {}));
+      spyOn(RequestStore, 'mutate').and.returnValue(new Promise(Noop.noop));
 
       const controller = new SessionMessagesController(setMessages, setNextEntryId, setLoadingMore);
       const setters = buildSetters();

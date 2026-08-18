@@ -6,12 +6,12 @@ import GiveDocumentModalHelper
   from '../../../../../../../../assets/js/components/resources/document/pages/elements/helpers/GiveDocumentModalHelper.jsx';
 import GiveDocumentModalController
   from '../../../../../../../../assets/js/components/resources/document/pages/elements/controllers/GiveDocumentModalController.js';
+import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
 describe('GiveDocumentModal', function() {
   const document = { id: 9, hidden: false };
 
-  // eslint-disable-next-line no-empty-function
-  const neverResolves = () => new Promise(() => {});
+  const neverResolves = () => new Promise(Noop.noop);
 
   const renderModal = (props = {}) => {
     let capturedState;

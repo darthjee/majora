@@ -6,12 +6,12 @@ import GiveTreasureModalHelper
   from '../../../../../../../../assets/js/components/resources/treasure/pages/elements/helpers/GiveTreasureModalHelper.jsx';
 import GiveTreasureModalController
   from '../../../../../../../../assets/js/components/resources/treasure/pages/elements/controllers/GiveTreasureModalController.js';
+import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
 describe('GiveTreasureModal', function() {
   const treasure = { id: 9, hidden: false, available_units: 5 };
 
-  // eslint-disable-next-line no-empty-function
-  const neverResolves = () => new Promise(() => {});
+  const neverResolves = () => new Promise(Noop.noop);
 
   const renderModal = (props = {}) => {
     let capturedState;
