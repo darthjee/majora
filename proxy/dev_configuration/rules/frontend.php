@@ -9,7 +9,8 @@ use Tent\Configuration;
 
 if (getenv('FRONTEND_DEV_MODE') === 'true') {
     // Development mode: forward to the Vite server (HMR)
-    Configuration::buildRule([
+    Configuration::buildRule(
+        [
         'handler' => [
             'type' => 'proxy',
             'host' => 'http://frontend:8080'
@@ -23,10 +24,12 @@ if (getenv('FRONTEND_DEV_MODE') === 'true') {
             ['method' => 'GET', 'uri' => '/node_modules/', 'type' => 'begins_with'],
             ['method' => 'GET', 'uri' => '/@react-refresh', 'type' => 'exact'],
         ]
-    ]);
+        ]
+    );
 } else {
     // Production mode: serve static files from docker_volumes/static/
-    Configuration::buildRule([
+    Configuration::buildRule(
+        [
         'handler' => [
             'type' => 'static',
             'location' => '/var/www/html/static'
@@ -40,8 +43,10 @@ if (getenv('FRONTEND_DEV_MODE') === 'true') {
                 'maxAgeSeconds' => 60 * 60 * 24
             ]
         ]
-    ]);
-    Configuration::buildRule([
+        ]
+    );
+    Configuration::buildRule(
+        [
         'handler' => [
             'type' => 'static',
             'location' => '/var/www/html/static'
@@ -59,5 +64,6 @@ if (getenv('FRONTEND_DEV_MODE') === 'true') {
                 'maxAgeSeconds' => 60 * 60 * 24
             ]
         ]
-    ]);
+        ]
+    );
 }

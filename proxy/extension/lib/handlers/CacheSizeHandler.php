@@ -50,10 +50,10 @@ class CacheSizeHandler extends RequestHandler
      */
     public function __construct(
         string $host,
-        ?HttpClientInterface $httpClient = null,
-        string $cachePath = '',
-        string $cacheSizeTool = 'php_walk',
-        ?DirectorySizeCalculator $calculator = null
+        ?HttpClientInterface $httpClient=null,
+        string $cachePath='',
+        string $cacheSizeTool='php_walk',
+        ?DirectorySizeCalculator $calculator=null
     ) {
         $this->client = new BackendClient($host, $httpClient);
         $this->cachePath = $cachePath;
@@ -107,11 +107,13 @@ class CacheSizeHandler extends RequestHandler
             return new Response(['httpCode' => 500, 'body' => 'Internal Server Error']);
         }
 
-        return new Response([
+        return new Response(
+            [
             'httpCode' => 200,
             'headers'  => ['Content-Type: application/json'],
             'body'     => json_encode(['size' => $size]),
-        ]);
+            ]
+        );
     }
 
     /**

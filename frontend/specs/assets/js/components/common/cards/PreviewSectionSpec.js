@@ -12,12 +12,9 @@ describe('PreviewSection', function() {
   const baseProps = {
     items: buildItems(2),
     title: 'Player Characters',
-    seeAllHref: '#/games/epic-quest/pcs',
-    icon: Icons.filePerson,
+    seeAllCard: { href: '#/games/epic-quest/pcs', icon: Icons.filePerson },
     renderItem,
-    loading: false,
-    total: 2,
-    defaultCollapsed: false,
+    sectionState: { loading: false, total: 2, defaultCollapsed: false },
   };
 
   const renderSection = (props = {}) => {
@@ -53,35 +50,37 @@ describe('PreviewSection', function() {
     expect(html).not.toContain(`Item ${MAX_PREVIEW_ITEMS + 1}`);
   });
 
-  it('forwards items, title, seeAllHref, icon, maxItems, renderItem, emptyText, loading and total', function() {
-    const args = renderSection({ emptyText: 'No PCs yet.', loading: true, total: 5 });
+  it('forwards items, title, seeAllCard, maxItems, renderItem, emptyText and sectionState', function() {
+    const args = renderSection({
+      emptyText: 'No PCs yet.',
+      sectionState: { ...baseProps.sectionState, loading: true, total: 5 },
+    });
 
     expect(args[0]).toBe(baseProps.items);
     expect(args[1]).toBe('Player Characters');
-    expect(args[2]).toBe(baseProps.seeAllHref);
-    expect(args[3]).toBe(baseProps.icon);
-    expect(args[4]).toBe(MAX_PREVIEW_ITEMS);
-    expect(args[5]).toBe(renderItem);
-    expect(args[6]).toBe('No PCs yet.');
-    expect(args[7]).toBe(true);
-    expect(args[8]).toBe(5);
+    expect(args[2]).toBe(baseProps.seeAllCard);
+    expect(args[3]).toBe(MAX_PREVIEW_ITEMS);
+    expect(args[4]).toBe(renderItem);
+    expect(args[5]).toBe('No PCs yet.');
+    expect(args[6].loading).toBe(true);
+    expect(args[6].total).toBe(5);
   });
 
   it('starts collapsed when defaultCollapsed is true', function() {
-    const args = renderSection({ defaultCollapsed: true });
+    const args = renderSection({ sectionState: { ...baseProps.sectionState, defaultCollapsed: true } });
 
-    expect(args[9]).toBe(true);
+    expect(args[6].collapsed).toBe(true);
   });
 
   it('starts expanded when defaultCollapsed is false', function() {
-    const args = renderSection({ defaultCollapsed: false });
+    const args = renderSection({ sectionState: { ...baseProps.sectionState, defaultCollapsed: false } });
 
-    expect(args[9]).toBe(false);
+    expect(args[6].collapsed).toBe(false);
   });
 
   it('exposes an onToggle handler that does not throw', function() {
     const args = renderSection();
 
-    expect(() => args[10]()).not.toThrow();
+    expect(() => args[7]()).not.toThrow();
   });
 });

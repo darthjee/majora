@@ -41,16 +41,13 @@ export default class PcCharacterEditController extends BaseCharacterEditControll
     gameClient = null,
   ) {
     super(
-      setCharacter,
-      setLoading,
-      setError,
-      setFieldErrors,
+      {
+        setCharacter, setLoading, setError, setFieldErrors,
+      },
       PcCharacterController,
       PcCharacterEditController.getPcCharacterEditParamsFromHash,
       'pcs',
-      client,
-      characterClient,
-      gameClient,
+      { client, characterClient, gameClient },
     );
   }
 }

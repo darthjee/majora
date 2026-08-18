@@ -23,4 +23,3 @@ photo-upload/money leniencies). Read it in full when implementing or reviewing a
 photo-upload, or money-edit permission.
 
 ---
-

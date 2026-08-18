@@ -162,4 +162,3 @@ is removed entirely; the frontend now gates the money-edit UI on the existing `c
 | PC photo upload (init) | Any player of the game (via `Player.games`), OR any Staff account (`user.is_staff`, global), in addition to the Editing rights above — PC-only, new `CharacterPhotoUploadPe[...] |
 | Character money edit | No dedicated endpoint (removed by issue #915) — folded into the regular narrow `PATCH` per kind: PC (`CharacterRegularEditPermission`, unchanged) or NPC (`NpcPlayerEditPermission`, now including Staff and `money`) |
 | Player roster List | Player of the game, GameMaster, Superuser, OR any Staff account (`user.is_staff`, global) — `PlayerPermission` (issue #589), gates `GET /games/:game_slug/players.json`; read-o[...] 
-

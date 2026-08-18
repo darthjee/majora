@@ -98,10 +98,10 @@ describe('CharacterTreasuresHelper', function() {
       expect(listPage.props.type).toBe('npc-treasures');
       expect(listPage.props.gameSlug).toBe('demo');
       expect(listPage.props.basePath).toBe('#/games/demo/pcs/1/treasures');
-      expect(listPage.props.filtersProps.onQuery).toBe(handlers.onFilterQuery);
-      expect(listPage.props.filtersProps.onClear).toBe(handlers.onFilterClear);
-      expect(listPage.props.filtersProps.showGameType).toBe(false);
-      expect(listPage.props.onItemsChange).toBe(handlers.onItemsChange);
+      expect(listPage.props.filters.props.onQuery).toBe(handlers.onFilterQuery);
+      expect(listPage.props.filters.props.onClear).toBe(handlers.onFilterClear);
+      expect(listPage.props.filters.props.showGameType).toBe(false);
+      expect(listPage.props.handlers.onItemsChange).toBe(handlers.onItemsChange);
     });
 
     it('preserves active filters on the ListPage', function() {
@@ -110,7 +110,7 @@ describe('CharacterTreasuresHelper', function() {
       );
       const listPage = findElement(element, (child) => child.type === ListPage);
 
-      expect(listPage.props.activeFilters).toEqual({ name: 'sword' });
+      expect(listPage.props.filters.active).toEqual({ name: 'sword' });
     });
   });
 });

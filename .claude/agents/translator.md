@@ -24,6 +24,7 @@ docker-compose run --rm majora_fe yarn check_i18n
 ```
 
 This discovers each language directory under `frontend/assets/i18n/`, merges its chunk files, and verifies every language shares the same keys and the same namespace-to-file mapping. It fails loudly on:
+
 - a missing/extra key for a language (same as before the file split — reported per language, not per file),
 - a namespace file present for one language but entirely missing for another,
 - a namespace living under a different file name for one language than another (breaks the identical layout the runtime loader and any future lazy-loading depend on),

@@ -31,6 +31,7 @@ function flattenKeys(object, prefix = '') {
  * @returns {string[]} the language codes (directory names) found.
  */
 function listLanguageDirs() {
+  // eslint-disable-next-line security/detect-non-literal-fs-filename -- I18N_DIR is derived from __dirname; entry is itself a result of readdirSync(I18N_DIR) — both trace back only to this script's own trusted location, never external input.
   return readdirSync(I18N_DIR).filter((entry) => statSync(join(I18N_DIR, entry)).isDirectory());
 }
 
@@ -44,6 +45,7 @@ function listLanguageDirs() {
 function listChunkFiles(language) {
   const dir = join(I18N_DIR, language);
 
+  // eslint-disable-next-line security/detect-non-literal-fs-filename -- dir is join(I18N_DIR, language) where language always comes from listLanguageDirs()'s own readdirSync output, never external input.
   return readdirSync(dir)
     .filter((file) => file.endsWith('.yaml'))
     .map((file) => join(dir, file));
@@ -67,6 +69,7 @@ function loadLanguage(language) {
 
   chunkPaths.forEach((filePath) => {
     const fileName = filePath.split('/').pop();
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- filePath always comes from listChunkFiles()'s own readdirSync-derived output, never external input.
     const content = readFileSync(filePath, 'utf8');
     const data = load(content) ?? {};
 

@@ -20,4 +20,3 @@ A game's full roster (its DM(s) and players, alongside each player's owned PC an
 [access-control/player.md](access-control/player.md) (issue #589). A single player of that
 roster is likewise exposed via `GET /games/:game_slug/players/:id.json` (issue #695, same
 serializer shape).
-

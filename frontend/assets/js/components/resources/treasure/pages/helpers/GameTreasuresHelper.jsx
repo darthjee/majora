@@ -54,12 +54,12 @@ export default class GameTreasuresHelper {
           basePath={state.basePath}
           loadingMessage={Translator.t('game_treasures_page.loading')}
           context={{ onUploadClick: handlers.onUploadClick }}
-          filtersProps={{
-            onQuery: handlers.onFilterQuery, onClear: handlers.onFilterClear, showGameType: false,
+          filters={{
+            props: { onQuery: handlers.onFilterQuery, onClear: handlers.onFilterClear, showGameType: false },
+            active: state.activeFilters,
           }}
-          activeFilters={state.activeFilters}
           refreshToken={state.refreshToken}
-          onCanEditChange={handlers.onCanEditChange}
+          handlers={{ onCanEditChange: handlers.onCanEditChange }}
         />
         <PhotoUploadModal
           show={state.showUploadModal}
