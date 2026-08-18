@@ -1,12 +1,12 @@
 import GiveItemModalController
   from '../../../../../../../../../../assets/js/components/resources/item/pages/elements/controllers/GiveItemModalController.js';
+import Noop from '../../../../../../../../../../assets/js/utils/Noop.js';
 
 describe('GiveItemModalController', function() {
   describe('#loadPage', function() {
     it('sets loading true before the request settles', function() {
       const controller = new GiveItemModalController();
-      // eslint-disable-next-line no-empty-function
-      spyOn(controller, 'fetchCharacterPage').and.returnValue(new Promise(() => {}));
+      spyOn(controller, 'fetchCharacterPage').and.returnValue(new Promise(Noop.noop));
       const setBrowse = jasmine.createSpy('setBrowse');
 
       controller.loadPage(1, 'demo', 'pcs', '', setBrowse);

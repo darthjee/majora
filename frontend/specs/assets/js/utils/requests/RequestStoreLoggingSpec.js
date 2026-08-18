@@ -1,5 +1,6 @@
 import RequestStoreLogging from '../../../../../assets/js/utils/requests/RequestStoreLogging.js';
 import MajoraLogger from '../../../../../assets/js/utils/logging/MajoraLogger.js';
+import Noop from '../../../../../assets/js/utils/Noop.js';
 
 describe('RequestStoreLogging', function() {
   let debugSpy;
@@ -22,8 +23,7 @@ describe('RequestStoreLogging', function() {
     it('logs the componentName, method, resource, quantityType, params, and query at debug level ' +
       'when the call starts',
     function() {
-      // eslint-disable-next-line no-empty-function
-      const requestPromise = new Promise(() => {});
+      const requestPromise = new Promise(Noop.noop);
 
       RequestStoreLogging.wrap(
         'CharacterController', 'GET', 'npc', 'single', { gameSlug: 'demo' }, { search: 'x' }, requestPromise,

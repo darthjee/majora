@@ -12,10 +12,8 @@ class LoadedController {
   }
 
   buildEffect() { return () => Noop.noop; }
-  // eslint-disable-next-line no-empty-function
-  applyLoadedCharacter() {}
-  // eslint-disable-next-line no-empty-function
-  submitForm() {}
+  applyLoadedCharacter() { Noop.noop(); }
+  submitForm() { Noop.noop(); }
 }
 
 class NoTreasureLoadedController {
@@ -25,10 +23,8 @@ class NoTreasureLoadedController {
   }
 
   buildEffect() { return () => Noop.noop; }
-  // eslint-disable-next-line no-empty-function
-  applyLoadedCharacter() {}
-  // eslint-disable-next-line no-empty-function
-  submitForm() {}
+  applyLoadedCharacter() { Noop.noop(); }
+  submitForm() { Noop.noop(); }
 }
 
 describe('CharacterEdit treasure value', function() {

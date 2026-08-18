@@ -6,10 +6,10 @@ import AddGameTreasureModalHelper
   from '../../../../../../../../assets/js/components/resources/treasure/pages/elements/helpers/AddGameTreasureModalHelper.jsx';
 import AddGameTreasureModalController
   from '../../../../../../../../assets/js/components/resources/treasure/pages/elements/controllers/AddGameTreasureModalController.js';
+import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
 describe('AddGameTreasureModal', function() {
-  // eslint-disable-next-line no-empty-function
-  const neverResolves = () => new Promise(() => {});
+  const neverResolves = () => new Promise(Noop.noop);
 
   const renderModal = (props = {}) => {
     let capturedHandlers;

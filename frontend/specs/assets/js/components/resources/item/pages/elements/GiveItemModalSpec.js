@@ -6,12 +6,12 @@ import GiveItemModalHelper
   from '../../../../../../../../assets/js/components/resources/item/pages/elements/helpers/GiveItemModalHelper.jsx';
 import GiveItemModalController
   from '../../../../../../../../assets/js/components/resources/item/pages/elements/controllers/GiveItemModalController.js';
+import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
 describe('GiveItemModal', function() {
   const item = { id: 9, hidden: false };
 
-  // eslint-disable-next-line no-empty-function
-  const neverResolves = () => new Promise(() => {});
+  const neverResolves = () => new Promise(Noop.noop);
 
   const renderModal = (props = {}) => {
     let capturedState;

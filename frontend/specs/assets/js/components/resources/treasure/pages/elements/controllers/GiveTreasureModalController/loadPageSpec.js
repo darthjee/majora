@@ -1,12 +1,12 @@
 import GiveTreasureModalController
   from '../../../../../../../../../../assets/js/components/resources/treasure/pages/elements/controllers/GiveTreasureModalController.js';
+import Noop from '../../../../../../../../../../assets/js/utils/Noop.js';
 
 describe('GiveTreasureModalController', function() {
   describe('#loadPage', function() {
     it('sets loading true before the request settles', function() {
       const controller = new GiveTreasureModalController();
-      // eslint-disable-next-line no-empty-function
-      spyOn(controller, 'fetchCharacterPage').and.returnValue(new Promise(() => {}));
+      spyOn(controller, 'fetchCharacterPage').and.returnValue(new Promise(Noop.noop));
       const setBrowse = jasmine.createSpy('setBrowse');
 
       controller.loadPage(1, 'demo', 'pcs', '', setBrowse);

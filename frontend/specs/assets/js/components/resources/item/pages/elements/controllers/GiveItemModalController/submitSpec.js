@@ -2,6 +2,7 @@ import GiveItemModalController
   from '../../../../../../../../../../assets/js/components/resources/item/pages/elements/controllers/GiveItemModalController.js';
 import RequestStore
   from '../../../../../../../../../../assets/js/utils/requests/RequestStore.js';
+import Noop from '../../../../../../../../../../assets/js/utils/Noop.js';
 
 describe('GiveItemModalController', function() {
   describe('#submit', function() {
@@ -19,8 +20,7 @@ describe('GiveItemModalController', function() {
 
     it('sets submitting true before any request settles', function() {
       const controller = new GiveItemModalController();
-      // eslint-disable-next-line no-empty-function
-      spyOn(controller, 'acquire').and.returnValue(new Promise(() => {}));
+      spyOn(controller, 'acquire').and.returnValue(new Promise(Noop.noop));
       const setters = buildSetters();
 
       controller.submit([rowA], 'demo', 9, false, false, setters);

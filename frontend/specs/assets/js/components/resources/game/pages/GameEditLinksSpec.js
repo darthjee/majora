@@ -20,8 +20,7 @@ class LoadedController {
   }
 
   buildEffect() { return () => Noop.noop; }
-  // eslint-disable-next-line no-empty-function
-  submitForm() {}
+  submitForm() { Noop.noop(); }
 }
 
 describe('GameEdit links modal', function() {

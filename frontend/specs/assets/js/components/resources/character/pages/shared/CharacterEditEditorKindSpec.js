@@ -15,10 +15,8 @@ class LoadedController {
   }
 
   buildEffect() { return () => Noop.noop; }
-  // eslint-disable-next-line no-empty-function
-  applyLoadedCharacter() {}
-  // eslint-disable-next-line no-empty-function
-  submitForm() {}
+  applyLoadedCharacter() { Noop.noop(); }
+  submitForm() { Noop.noop(); }
 }
 
 // Same as LoadedController, but simulates a player-only editor (a player of
@@ -30,10 +28,8 @@ class PlayerOnlyLoadedController {
   }
 
   buildEffect() { return () => Noop.noop; }
-  // eslint-disable-next-line no-empty-function
-  applyLoadedCharacter() {}
-  // eslint-disable-next-line no-empty-function
-  submitForm() {}
+  applyLoadedCharacter() { Noop.noop(); }
+  submitForm() { Noop.noop(); }
 }
 
 describe('CharacterEdit editor kind (player-only NPC editor vs. dm/admin)', function() {
