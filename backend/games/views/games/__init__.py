@@ -1,6 +1,11 @@
 """Views for game-level endpoints."""
 
 from .game_access import game_access
+from .game_common_item_detail import game_common_item_detail
+from .game_common_item_detail_full import game_common_item_detail_full
+from .game_common_item_photo_upload import game_common_item_photo_upload
+from .game_common_items import game_common_items
+from .game_common_items_all import game_common_items_all
 from .game_detail import game_detail
 from .game_document_detail import game_document_detail
 from .game_document_detail_full import game_document_detail_full
@@ -51,6 +56,11 @@ __all__ = [
     'games_list',
     'game_detail',
     'game_access',
+    'game_common_items',
+    'game_common_items_all',
+    'game_common_item_detail',
+    'game_common_item_detail_full',
+    'game_common_item_photo_upload',
     'game_treasures',
     'game_treasures_all',
     'game_treasures_missing',

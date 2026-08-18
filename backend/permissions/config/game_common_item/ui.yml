@@ -1,0 +1,4 @@
+# Config for GameCommonItemPermissionsSerializer (issue #826).
+edit:
+  - staff
+  - player

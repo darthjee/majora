@@ -24,6 +24,11 @@ urlpatterns = [
         views.game_possession_permissions,
         name='permissions-game-possession',
     ),
+    path(
+        'permissions/game_common_item.json',
+        views.game_common_item_permissions,
+        name='permissions-game-common-item',
+    ),
     path('permissions/game_item.json', views.game_item_permissions, name='permissions-game-item'),
     path(
         'permissions/game_faction.json',
