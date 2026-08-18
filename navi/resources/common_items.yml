@@ -1,0 +1,26 @@
+namespace: $NAVI_NAMEPACE
+resources:
+  game_common_items:
+    - url: /games/{:slug}/common_items.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_common_items
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
+
+  paginated_game_common_items:
+    - url: /games/{:slug}/common_items.json?page={:page}&per_page={:per_page}
+      status: 200
+      actions:
+        - resource: game_common_item_detail
+          parameters:
+            slug: parameters.slug
+            id: parsedBody.id
+
+  game_common_item_detail:
+    - url: /games/{:slug}/common_items/{:id}.json
+      status: 200
