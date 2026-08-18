@@ -111,11 +111,12 @@ export default function CharacterPhotos({ ControllerClass, getParamsFromHash, Ph
         photo={selectedPhoto}
         alt={alt}
         onClose={() => setSelectedPhoto(null)}
-        canSetProfilePhoto={character.can_set_profile_photo}
-        isProfilePhoto={selectedPhoto?.id === character.photo_id}
-        onSetProfilePhoto={handleSetProfilePhoto}
-        canDelete={character.can_delete_photo}
-        onDelete={handleRequestDeletePhoto}
+        setProfilePhoto={{
+          canSetProfilePhoto: character.can_set_profile_photo,
+          isProfilePhoto: selectedPhoto?.id === character.photo_id,
+          onSetProfilePhoto: handleSetProfilePhoto,
+        }}
+        deletePhoto={{ canDelete: character.can_delete_photo, onDelete: handleRequestDeletePhoto }}
       />
       <ProfilePhotoSetModal
         show={profilePhotoSet !== null}

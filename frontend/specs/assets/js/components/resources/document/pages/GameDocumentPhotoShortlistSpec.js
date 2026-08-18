@@ -102,8 +102,8 @@ describe('GameDocument photo shortlist wiring (issue #873)', function() {
   it('never offers to set the selected photo as a profile photo', function() {
     spyOn(DocumentDetailHelper, 'render').and.returnValue(null);
     let capturedCanSetProfilePhoto;
-    spyOn(PhotoViewModalHelper, 'render').and.callFake((show, photo, alt, onClose, canSetProfilePhoto) => {
-      capturedCanSetProfilePhoto = canSetProfilePhoto;
+    spyOn(PhotoViewModalHelper, 'render').and.callFake((show, photo, alt, onClose, setProfilePhoto) => {
+      capturedCanSetProfilePhoto = setProfilePhoto.canSetProfilePhoto;
       return null;
     });
 

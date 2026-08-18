@@ -101,11 +101,13 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
       <PhotoUploadModal
         show={showFileUploadModal}
         uploadPath={fileUploadPath}
-        translationPrefix="file_upload_modal"
-        accept=".pdf"
-        showNameField
-        showPhotoField
-        photoUploadPathBuilder={buildFilePhotoUploadPath}
+        fileUploadOptions={{
+          translationPrefix: 'file_upload_modal',
+          accept: '.pdf',
+          showNameField: true,
+          showPhotoField: true,
+          photoUploadPathBuilder: buildFilePhotoUploadPath,
+        }}
         onClose={() => setShowFileUploadModal(false)}
         onSuccess={buildUploadSuccessHandler(setShowFileUploadModal)}
       />
@@ -114,7 +116,7 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
         photo={selectedPhoto}
         alt={document?.name}
         onClose={() => setSelectedPhoto(null)}
-        canSetProfilePhoto={false}
+        setProfilePhoto={{ canSetProfilePhoto: false }}
       />
       <GiveDocumentModal
         show={showGiveDocumentModal}

@@ -126,8 +126,8 @@ KINDS.forEach(({ label, Component, Controller, Helper, characterKind }) => {
           return null;
         });
         let capturedModalCanSetProfilePhoto;
-        spyOn(PhotoViewModalHelper, 'render').and.callFake((show, photo, alt, onClose, canSetProfilePhoto) => {
-          capturedModalCanSetProfilePhoto = canSetProfilePhoto;
+        spyOn(PhotoViewModalHelper, 'render').and.callFake((show, photo, alt, onClose, setProfilePhoto) => {
+          capturedModalCanSetProfilePhoto = setProfilePhoto.canSetProfilePhoto;
           return null;
         });
 
@@ -170,10 +170,8 @@ KINDS.forEach(({ label, Component, Controller, Helper, characterKind }) => {
           return null;
         });
         let capturedModalCanDelete;
-        spyOn(PhotoViewModalHelper, 'render').and.callFake((
-          show, photo, alt, onClose, canSetProfilePhoto, isProfilePhoto, onSetProfilePhoto, canDelete,
-        ) => {
-          capturedModalCanDelete = canDelete;
+        spyOn(PhotoViewModalHelper, 'render').and.callFake((show, photo, alt, onClose, setProfilePhoto, deletePhoto) => {
+          capturedModalCanDelete = deletePhoto.canDelete;
           return null;
         });
 
