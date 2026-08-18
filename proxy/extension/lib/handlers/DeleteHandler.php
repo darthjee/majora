@@ -130,7 +130,7 @@ class DeleteHandler extends RequestHandler
      * file path when the photo is deletable.
      *
      * @param array $identifiers As returned by extractPathIdentifiers().
-     * @param array $headers    Raw, unfiltered incoming request headers.
+     * @param array $headers     Raw, unfiltered incoming request headers.
      * @return string The 'path' value from the backend's response body.
      * @throws BackendErrorException When the backend call fails, or the
      *                                response doesn't include a path.
