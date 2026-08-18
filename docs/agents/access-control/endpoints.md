@@ -4,6 +4,7 @@ Covers the access-route config, health check, and authentication endpoints — s
 endpoints that don't belong to any single resource above.
 
 ## Access-route config endpoint
+
 | Endpoint | Method | Who can call | Response |
 |----------|--------|-------------|----------|
 | `/access-route-config.json` | GET | **AllowAny** | Static JSON keyed by frontend page identifier |

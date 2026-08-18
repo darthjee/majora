@@ -37,8 +37,8 @@ class DeleteHandler extends RequestHandler
      */
     public function __construct(
         string $host,
-        ?HttpClientInterface $httpClient = null,
-        string $photosBasePath = ''
+        ?HttpClientInterface $httpClient=null,
+        string $photosBasePath=''
     ) {
         $this->client = new BackendClient($host, $httpClient);
         $this->photosBasePath = $photosBasePath;
@@ -91,11 +91,13 @@ class DeleteHandler extends RequestHandler
             return new Response(['httpCode' => 400, 'body' => 'Bad Request']);
         }
 
-        return new Response([
+        return new Response(
+            [
             'httpCode' => $result['httpCode'],
             'headers'  => ($result['headers'] ?? []),
             'body'     => $result['body'],
-        ]);
+            ]
+        );
     }
 
     /**

@@ -6,7 +6,8 @@ use Tent\Models\Request;
 
 $backendCacheLocation = "$cacheFolder/" . DomainHash::hash(new Request());
 
-Configuration::buildRule([
+Configuration::buildRule(
+    [
     'handler' => [
         'type' => 'default_proxy',
         'host' => $backendHost,
@@ -33,4 +34,5 @@ Configuration::buildRule([
             'maxAgeSeconds' => 10
         ]
     ]
-]);
+    ]
+);

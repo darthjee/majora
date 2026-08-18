@@ -35,10 +35,11 @@ export default class BaseCharacterEditController extends BasePageController {
   /**
    * Create a base character edit controller.
    *
-   * @param {Function} setCharacter - Character setter.
-   * @param {Function} setLoading - Loading setter.
-   * @param {Function} setError - General error setter.
-   * @param {Function} [setFieldErrors] - Per-field error setter.
+   * @param {object} characterSetters - Character state setters.
+   * @param {Function} characterSetters.setCharacter - Character setter.
+   * @param {Function} characterSetters.setLoading - Loading setter.
+   * @param {Function} characterSetters.setError - General error setter.
+   * @param {Function} [characterSetters.setFieldErrors] - Per-field error setter.
    * @param {Function} loadControllerClass - Load controller class constructor
    *   (NpcCharacterController or PcCharacterController).
    * @param {Function} getParamsFromHash - Hash param extractor for the load controller.
@@ -46,23 +47,18 @@ export default class BaseCharacterEditController extends BasePageController {
    *   used to build the post-submit redirect hash, to gate the player-writable NPC
    *   endpoint in {@link submitForm}, and to derive the `RequestStore` resource name
    *   ('npc' or 'pc') used by {@link handleSubmit}.
-   * @param {GenericClient|null} [client] - Client override, used for hash resolution.
-   * @param {CharacterClient|null} [characterClient] - Character client override.
-   * @param {GameClient|null} [gameClient] - Game client override.
+   * @param {object} [clients] - Client overrides.
+   * @param {GenericClient|null} [clients.client] - Client override, used for hash resolution.
+   * @param {CharacterClient|null} [clients.characterClient] - Character client override.
+   * @param {GameClient|null} [clients.gameClient] - Game client override.
    */
-  constructor(
-    setCharacter,
-    setLoading,
-    setError,
-    setFieldErrors = Noop.noop,
-    loadControllerClass,
-    getParamsFromHash,
-    routeSegment,
-    client = null,
-    characterClient = null,
-    gameClient = null,
-  ) {
+  constructor(characterSetters, loadControllerClass, getParamsFromHash, routeSegment, clients = {}) {
     super();
+    const {
+      setCharacter, setLoading, setError, setFieldErrors = Noop.noop,
+    } = characterSetters;
+    const { client = null, characterClient = null, gameClient = null } = clients;
+
     this.setCharacter = setCharacter;
     this.setLoading = setLoading;
     this.setError = setError;

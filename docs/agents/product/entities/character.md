@@ -9,4 +9,3 @@ either **Player Characters (PCs)** or **Non-Player Characters (NPCs)**:
 
 A character has a name, optional avatar, class, level, a public description (visible to
 all), and a private description (visible only to editors).
-

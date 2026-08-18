@@ -62,6 +62,7 @@ call signature.
 Renders a Bootstrap pagination nav. Hidden when `totalPages <= 1`.
 
 **Ellipsis pattern (when pages > 10):**
+
 - General: `« 1 2 … prev current next … last-1 last »`
 - Near start (e.g. page 3): `« 1 2 3 4 … last-1 last »`
 - Near end: same logic in reverse

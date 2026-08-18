@@ -28,7 +28,9 @@ export default function CharacterDocumentPhoto({ photo_path: photoPath, name, hi
       alt={name}
       canEdit={false}
       onClick={Noop.noop}
-      infoBarItems={ItemCardHelper.buildInfoBarItems({ hidden }, Translator.t('character_document_page.hidden_label'))}
+      overlayItems={{
+        infoBarItems: ItemCardHelper.buildInfoBarItems({ hidden }, Translator.t('character_document_page.hidden_label')),
+      }}
     />
   );
 }

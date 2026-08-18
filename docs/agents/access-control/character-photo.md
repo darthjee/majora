@@ -6,6 +6,7 @@ character detail endpoints (`photos` array) and through dedicated photo index en
 gallery and, via `Character.profile_photo`, its profile picture.
 
 ## Photo index endpoints
+
 | Endpoint | Method | Who can call | Response |
 |----------|--------|-------------|----------|
 | `/games/<slug>/pcs/<id>/photos.json` | GET | **AllowAny** | Paginated `{id, path}`, `ready=True` only |
@@ -27,6 +28,7 @@ equivalent gate. The same gate pattern is reused by
 own NPC index endpoints.
 
 ## Write access
+
 - `POST /games/<slug>/pcs\|npcs/<id>/photo_upload.json` — see [Upload](upload.md#endpoint-summary);
   creates a `CharacterPhoto` with `ready=False`.
 - `PATCH /games/<slug>/pcs\|npcs/<id>/photos/<photo_id>/set.json` ("set as profile photo") —

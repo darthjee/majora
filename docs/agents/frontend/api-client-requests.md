@@ -3,7 +3,6 @@
 `client/GenericClient.js` is the shared HTTP client (`fetchIndex`, `fetch`, `post`, `patch`)
 — read it directly for the exact method signatures.
 
-
 ## Resource Data Requests
 
 `utils/requests/` (issue #778) is a frontend-only, structure-only layer that centralizes

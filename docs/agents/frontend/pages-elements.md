@@ -13,7 +13,6 @@ Naming alone can be misleading — e.g. `TreasureExchangeModal` and `LinksEditMo
 by the `character` resource despite their generic-sounding names, while `TreasureCard` and
 `CharacterCard` are shared across resources despite their resource-specific-sounding names.
 
-
 ## Adding a New Page
 
 1. Create `components/resources/<resource>/pages/MyPage.jsx` — state declarations + effect
@@ -41,4 +40,3 @@ by the `character` resource despite their generic-sounding names, while `Treasur
    `pages/elements/controllers/` or `common/<theme>/controllers/`, respectively).
 4. If it has complex rendering: add a `helpers/MyElementHelper.jsx` alongside it (under
    `pages/elements/helpers/` or `common/<theme>/helpers/`, respectively).
-

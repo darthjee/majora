@@ -48,13 +48,10 @@ export default function ShortList({ resource, maxItems = MAX_PREVIEW_ITEMS, ...c
     <PreviewSection
       items={items}
       title={Translator.t(config.titleKey)}
-      seeAllHref={config.buildSeeAllHref(context)}
-      icon={config.icon}
+      seeAllCard={{ href: config.buildSeeAllHref(context), icon: config.icon }}
       maxItems={maxItems}
       emptyText={config.emptyTextKey ? Translator.t(config.emptyTextKey) : undefined}
-      loading={loading}
-      total={total}
-      defaultCollapsed={loading || items.length === 0}
+      sectionState={{ loading, total, defaultCollapsed: loading || items.length === 0 }}
       renderItem={(item) => config.renderItem(
         item, context, config.action === 'navigate' ? config.buildHref(context, item) : undefined,
       )}

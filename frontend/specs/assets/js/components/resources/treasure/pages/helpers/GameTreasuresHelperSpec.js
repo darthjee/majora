@@ -101,10 +101,10 @@ describe('GameTreasuresHelper', function() {
       expect(listPage.props.gameSlug).toBe('demo');
       expect(listPage.props.basePath).toBe('#/games/demo/treasures');
       expect(listPage.props.context.onUploadClick).toBe(handlers.onUploadClick);
-      expect(listPage.props.filtersProps.onQuery).toBe(handlers.onFilterQuery);
-      expect(listPage.props.filtersProps.onClear).toBe(handlers.onFilterClear);
-      expect(listPage.props.filtersProps.showGameType).toBe(false);
-      expect(listPage.props.onCanEditChange).toBe(handlers.onCanEditChange);
+      expect(listPage.props.filters.props.onQuery).toBe(handlers.onFilterQuery);
+      expect(listPage.props.filters.props.onClear).toBe(handlers.onFilterClear);
+      expect(listPage.props.filters.props.showGameType).toBe(false);
+      expect(listPage.props.handlers.onCanEditChange).toBe(handlers.onCanEditChange);
     });
 
     it('wires the photo upload modal to the selected treasure', function() {

@@ -11,4 +11,3 @@ game's GameMaster (or a superuser) may create or edit a game-exclusive treasure 
 game-scoped endpoints; the pre-existing global treasure endpoints remain superuser-only
 regardless of a treasure's `game`. See [access-control/treasure.md](access-control/treasure.md) for the full
 endpoint and permission breakdown.
-
