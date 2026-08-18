@@ -46,6 +46,7 @@ majora/
 ├── backend/              # Django backend (Python)
 ├── frontend/             # React + Vite frontend
 ├── proxy/                # PHP proxy (dartjee/tent) configuration and extensions
+├── crawler/              # STL-site crawler client (Node.js scaffold)
 ├── dockerfiles/          # Dockerfiles for each service
 ├── docker_volumes/       # Bind-mounted volumes (static assets, proxy config)
 ├── docs/                 # Project documentation

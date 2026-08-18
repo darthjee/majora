@@ -79,6 +79,7 @@ All project documentation lives under [`docs/agents/`](docs/agents/):
 | [Contributing](docs/agents/contributing.md) | Commit guidelines, PR standards, code organization, and refactoring rules. |
 | [Flow](docs/agents/flow.md) | Main runtime flow of the application. |
 | [Product Definitions](docs/agents/product.md) | Authoritative product-level concepts: entity definitions, ownership chain, GameMaster role, and editing rules. Consult before planning any issue that introduces new entities or changes access logic. |
+| [Crawler Agent](docs/agents/crawler.md) | Why the `crawler` specialist agent and its `crawler/` scaffold exist, and their relationship to the miniatures API. |
 | [Access Control](docs/agents/access-control.md) | Per-role access rules for every model and endpoint; updated alongside any new model or endpoint. |
 | [Security Guidelines](docs/agents/security-guidelines.md) | Project-specific vulnerability patterns (auth gaps, injection, insecure headers, exposed secrets, CSRF, insecure proxy rules, input validation); used by the `security` agent. |
 | [Cache Warmer](docs/agents/cache-warmer.md) | Navi setup for warming the proxy cache after release (CI and local); used by the `cache` agent. |
@@ -87,6 +88,10 @@ All project documentation lives under [`docs/agents/`](docs/agents/):
 | [How to Use Navi](docs/agents/external/HOW_TO_USE_NAVI.md) | Navi reference hub — links to per-topic pages under `docs/agents/external/navi/` (config format, chaining, pagination, CLI flags) so an agent only loads the page it needs. |
 | [Plans](docs/agents/plans/) | Implementation plans for ongoing or upcoming features. |
 | [Issues](docs/agents/issues/) | Detailed specs for open issues. |
+
+Public API documentation for external/automated consumers (not agents) lives separately
+under [`docs/guides/`](docs/guides/majora.md) — e.g. the miniatures API reference the
+`crawler` agent consumes.
 
 ### Issues (`docs/agents/issues/`)
 

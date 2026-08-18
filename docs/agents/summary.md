@@ -40,6 +40,10 @@ open the full file before loading it. For a bare link-only table of contents ins
   definitions (split under `product/entities/`), ownership chain, GameMaster role, and
   editing rules. Consult before planning any issue that introduces new entities or changes
   access logic.
+- **[Crawler Agent](crawler.md)** — Why the `crawler` specialist agent and its `crawler/`
+  scaffold exist: a future STL-site crawler that authenticates via API token and creates
+  `Source`/`StlModel` links through the miniatures API documented at
+  `docs/guides/majora/miniatures.md`.
 
 ## Access & Security
 
