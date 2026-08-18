@@ -10,7 +10,8 @@
 
 use Tent\Configuration;
 
-Configuration::buildRule([
+Configuration::buildRule(
+    [
     'handler' => [
         'type' => 'default_proxy',
         'host' => $backendHost
@@ -18,4 +19,5 @@ Configuration::buildRule([
     'matchers' => [
         ['uri' => '/admin', 'type' => 'begins_with']
     ]
-]);
+    ]
+);

@@ -1,4 +1,5 @@
 # majora
+
 Repository for information for RP games
 
 [![Build Status](https://circleci.com/gh/darthjee/majora.svg?style=shield)](https://circleci.com/gh/darthjee/majora)
@@ -20,6 +21,7 @@ The application is structured as a Django REST API backend and a React single-pa
 ## Technology Stack
 
 **Backend**
+
 - **Python 3.11 / Django 5** — Application framework
 - **Django REST Framework** — API layer
 - **MySQL 8** — Relational database
@@ -29,6 +31,7 @@ The application is structured as a Django REST API backend and a React single-pa
 - **ruff** — Linting (max line length: 100)
 
 **Frontend**
+
 - **React 19 + React Bootstrap 5** — UI framework
 - **Vite** — Build tool and dev server
 - **Jasmine + c8** — Tests and coverage
@@ -36,6 +39,7 @@ The application is structured as a Django REST API backend and a React single-pa
 - **Yarn** — Package manager
 
 **Infrastructure**
+
 - **Docker & Docker Compose** — Containerisation and orchestration
 - **[darthjee/tent](https://github.com/darthjee/tent)** — Reverse proxy (port 3000)
 
@@ -82,6 +86,7 @@ make dev-up
 ```
 
 The application will be available at:
+
 - **Full stack (proxy):** http://localhost:3000
 - **Backend API:** http://localhost:3030
 - **Frontend dev server:** http://localhost:3010

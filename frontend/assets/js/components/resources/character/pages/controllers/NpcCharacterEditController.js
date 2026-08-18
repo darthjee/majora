@@ -41,16 +41,13 @@ export default class NpcCharacterEditController extends BaseCharacterEditControl
     gameClient = null,
   ) {
     super(
-      setCharacter,
-      setLoading,
-      setError,
-      setFieldErrors,
+      {
+        setCharacter, setLoading, setError, setFieldErrors,
+      },
       NpcCharacterController,
       NpcCharacterEditController.getNpcCharacterEditParamsFromHash,
       'npcs',
-      client,
-      characterClient,
-      gameClient,
+      { client, characterClient, gameClient },
     );
   }
 }

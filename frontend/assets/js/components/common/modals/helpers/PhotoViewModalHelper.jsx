@@ -13,19 +13,23 @@ export default class PhotoViewModalHelper {
    * @param {string} [photo.path] - Photo storage path, used as the image src.
    * @param {string} alt - Alt text applied to the photo image.
    * @param {Function} onClose - Handler invoked when the modal is closed.
-   * @param {boolean} [canSetProfilePhoto] - Whether to show the "set as profile photo" button.
-   * @param {boolean} [isProfilePhoto] - Whether the displayed photo is already the profile photo.
-   * @param {Function} [onSetProfilePhoto] - Handler invoked with the photo id when the
-   *   "set as profile photo" button is clicked.
-   * @param {boolean} [canDelete] - Whether to show the delete-photo button.
-   * @param {Function} [onDelete] - Handler invoked with the photo id when the delete
+   * @param {object} [setProfilePhoto] - "Set as profile photo" button configuration.
+   * @param {boolean} [setProfilePhoto.canSetProfilePhoto] - Whether to show the "set as profile
+   *   photo" button.
+   * @param {boolean} [setProfilePhoto.isProfilePhoto] - Whether the displayed photo is already
+   *   the profile photo.
+   * @param {Function} [setProfilePhoto.onSetProfilePhoto] - Handler invoked with the photo id
+   *   when the "set as profile photo" button is clicked.
+   * @param {object} [deletePhoto] - Delete-photo button configuration.
+   * @param {boolean} [deletePhoto.canDelete] - Whether to show the delete-photo button.
+   * @param {Function} [deletePhoto.onDelete] - Handler invoked with the photo id when the delete
    *   button is clicked.
    * @returns {React.ReactElement} Photo view modal element.
    */
-  static render(
-    show, photo, alt, onClose, canSetProfilePhoto = false, isProfilePhoto = false, onSetProfilePhoto,
-    canDelete = false, onDelete,
-  ) {
+  static render(show, photo, alt, onClose, setProfilePhoto = {}, deletePhoto = {}) {
+    const { canSetProfilePhoto = false, isProfilePhoto = false, onSetProfilePhoto } = setProfilePhoto;
+    const { canDelete = false, onDelete } = deletePhoto;
+
     return (
       <Modal show={show} onHide={onClose} centered size="lg">
         <Modal.Header closeButton />

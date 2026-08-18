@@ -27,7 +27,9 @@ function DocumentPhotoShow({
       alt={name}
       canEdit={Boolean(canUploadPhoto)}
       onClick={handlers.onOpenUploadModal}
-      infoBarItems={ItemCardHelper.buildInfoBarItems({ hidden }, Translator.t('document_page.hidden_label'))}
+      overlayItems={{
+        infoBarItems: ItemCardHelper.buildInfoBarItems({ hidden }, Translator.t('document_page.hidden_label')),
+      }}
     />
   );
 }

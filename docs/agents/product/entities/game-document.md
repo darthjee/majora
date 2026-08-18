@@ -12,4 +12,3 @@ entirely read-only (no create, update, or photo upload flow) — see
 [access-control/game-document.md](access-control/game-document.md) and
 [access-control/character-document.md](access-control/character-document.md) for the full
 endpoint and permission breakdown.
-

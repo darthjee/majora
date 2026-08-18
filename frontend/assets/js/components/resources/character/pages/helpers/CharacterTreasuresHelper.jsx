@@ -43,12 +43,12 @@ export default class CharacterTreasuresHelper {
           gameSlug={state.gameSlug}
           basePath={state.basePath}
           loadingMessage={Translator.t('character_treasures_page.loading')}
-          filtersProps={{
-            onQuery: handlers.onFilterQuery, onClear: handlers.onFilterClear, showGameType: false,
+          filters={{
+            props: { onQuery: handlers.onFilterQuery, onClear: handlers.onFilterClear, showGameType: false },
+            active: state.activeFilters,
           }}
-          activeFilters={state.activeFilters}
           refreshToken={state.refreshToken}
-          onItemsChange={handlers.onItemsChange}
+          handlers={{ onItemsChange: handlers.onItemsChange }}
         />
       </>
     );

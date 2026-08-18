@@ -3,6 +3,7 @@
 This document is the authoritative checklist used by the `security` agent to review changes in the Majora project. It covers vulnerability patterns relevant to the Django backend (`backend/`) and the Tent proxy. To reduce agent context size this guidance has been split into focused pages. Use the links below to open the relevant section.
 
 Area pages:
+
 - [Authentication](./security-guidelines/authentication.md)
 - [Injection Risks](./security-guidelines/injection.md)
 - [Insecure Headers](./security-guidelines/insecure-headers.md)

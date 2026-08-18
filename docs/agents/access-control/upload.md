@@ -46,9 +46,11 @@ already proven ownership via a valid `X-Upload-Token` — otherwise a caller cou
 (403), leaking the existence and `upload_type` of an arbitrary upload it has no claim to.
 
 ## Side effect on finalisation
+
 `PATCH /uploads/<upload_type>/<id>.json` with `status=uploaded` marks the linked record
 `ready=True` and, if its owner does not already have a primary photo, sets that primary photo
 reference. Dispatches on `content_object` type:
+
 - **`GamePhoto`**: sets `Game.cover_photo` if unset. Gated by **GameEdit**.
 - **`CharacterPhoto`**: sets `Character.profile_photo` if unset. Gated by **CharacterPhotoUpload**
   for both PC and NPC.

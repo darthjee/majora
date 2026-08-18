@@ -21,9 +21,11 @@ export class TestCharacterEditController extends BaseCharacterEditController {
    */
   constructor(setCharacter, setLoading, setError, setFieldErrors, client, characterClient) {
     super(
-      setCharacter, setLoading, setError, setFieldErrors,
+      {
+        setCharacter, setLoading, setError, setFieldErrors,
+      },
       NpcCharacterController, NpcCharacterEditController.getNpcCharacterEditParamsFromHash,
-      'npcs', client, characterClient,
+      'npcs', { client, characterClient },
     );
   }
 }

@@ -44,7 +44,7 @@ describe('ActionsOverlay', function() {
       alt: 'Epic Quest',
       canEdit: true,
       onClick,
-      secondaryButtons,
+      overlayItems: { secondaryButtons },
     });
     const actionBar = findElement(rendered, (child) => child.type === ActionBar);
 
@@ -60,7 +60,7 @@ describe('ActionsOverlay', function() {
       alt: 'Epic Quest',
       canEdit: true,
       onClick: Noop.noop,
-      infoBarItems,
+      overlayItems: { infoBarItems },
     });
     const infoBar = findElement(rendered, (child) => child.type === InfoBar);
 
