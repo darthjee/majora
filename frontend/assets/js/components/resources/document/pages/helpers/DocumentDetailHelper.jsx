@@ -37,27 +37,30 @@ export default class DocumentDetailHelper {
    *   gating the Edit and file-upload buttons rendered alongside the back button —
    *   intentional, not a typo: there is no separate general "edit"/"upload file" permission for
    *   documents. Defaults to `false`.
-   * @param {Function} [onUploadClick] - Handler invoked when the photo upload button/photo is
-   *   clicked. Defaults to a no-op, matching the `canUploadPhoto` default.
-   * @param {Function} [onFileUploadClick] - Handler invoked when the file-upload button is
-   *   clicked (issue #726). Defaults to a no-op, matching the `canUploadPhoto` default.
    * @param {string} [gameSlug] - Game slug the document belongs to, merged into the rendering
    *   context as `game_slug` (issue #873) — the `GameDocument` payload itself carries no
    *   `game_slug` field, unlike a character's own detail payload, so the bottom photo/file
    *   shortlist slots (`DocumentPhotosPreview`/`DocumentFilesPreview`) need it passed in
    *   explicitly by the caller, which already resolves it from the current hash.
-   * @param {Function} [onSelectPhoto] - Handler invoked with a photo when a photo shortlist card
-   *   is clicked, merged into `context.handlers` alongside `onOpenUploadModal` (issue #873).
+   * @param {object} [handlers] - Event handlers.
+   * @param {Function} [handlers.onUploadClick] - Handler invoked when the photo upload
+   *   button/photo is clicked. Defaults to a no-op, matching the `canUploadPhoto` default.
+   * @param {Function} [handlers.onFileUploadClick] - Handler invoked when the file-upload button
+   *   is clicked (issue #726). Defaults to a no-op, matching the `canUploadPhoto` default.
+   * @param {Function} [handlers.onSelectPhoto] - Handler invoked with a photo when a photo
+   *   shortlist card is clicked, merged into `context.handlers` alongside `onOpenUploadModal`
+   *   (issue #873). Defaults to a no-op.
+   * @param {Function} [handlers.onGiveDocumentClick] - Handler invoked when the "Give Document"
+   *   button is clicked (issue #1005), gated the same way as the Edit/file-upload buttons.
    *   Defaults to a no-op.
-   * @param {Function} [onGiveDocumentClick] - Handler invoked when the "Give Document" button is
-   *   clicked (issue #1005), gated the same way as the Edit/file-upload buttons. Defaults to a
-   *   no-op.
    * @returns {React.ReactElement} Document detail element.
    */
-  static render(
-    document, backHref, editHref, canUploadPhoto = false, onUploadClick = Noop.noop,
-    onFileUploadClick = Noop.noop, gameSlug, onSelectPhoto = Noop.noop, onGiveDocumentClick = Noop.noop,
-  ) {
+  static render(document, backHref, editHref, canUploadPhoto = false, gameSlug, handlers = {}) {
+    const {
+      onUploadClick = Noop.noop, onFileUploadClick = Noop.noop, onSelectPhoto = Noop.noop,
+      onGiveDocumentClick = Noop.noop,
+    } = handlers;
+
     return (
       <ShowPageLayout
         type="document"

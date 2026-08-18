@@ -34,9 +34,7 @@ describe('GameDocument photo shortlist wiring (issue #873)', function() {
 
   it('passes the game slug through to DocumentDetailHelper.render', function() {
     let capturedGameSlug;
-    spyOn(DocumentDetailHelper, 'render').and.callFake((
-      document, backHref, editHref, canUploadPhoto, onUploadClick, onFileUploadClick, gameSlug,
-    ) => {
+    spyOn(DocumentDetailHelper, 'render').and.callFake((document, backHref, editHref, canUploadPhoto, gameSlug) => {
       capturedGameSlug = gameSlug;
       return null;
     });
@@ -49,9 +47,9 @@ describe('GameDocument photo shortlist wiring (issue #873)', function() {
   it('opens the photo view modal via the onSelectPhoto handler passed to DocumentDetailHelper', function() {
     let capturedOnSelectPhoto;
     spyOn(DocumentDetailHelper, 'render').and.callFake((
-      document, backHref, editHref, canUploadPhoto, onUploadClick, onFileUploadClick, gameSlug, onSelectPhoto,
+      document, backHref, editHref, canUploadPhoto, gameSlug, handlers,
     ) => {
-      capturedOnSelectPhoto = onSelectPhoto;
+      capturedOnSelectPhoto = handlers.onSelectPhoto;
       return null;
     });
 

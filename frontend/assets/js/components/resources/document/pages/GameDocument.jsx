@@ -87,11 +87,12 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
 
   return (
     <>
-      {DocumentDetailHelper.render(
-        document, backHref, editHref, canUploadPhoto,
-        () => setShowUploadModal(true), () => setShowFileUploadModal(true),
-        gameSlug, setSelectedPhoto, () => setShowGiveDocumentModal(true),
-      )}
+      {DocumentDetailHelper.render(document, backHref, editHref, canUploadPhoto, gameSlug, {
+        onUploadClick: () => setShowUploadModal(true),
+        onFileUploadClick: () => setShowFileUploadModal(true),
+        onSelectPhoto: setSelectedPhoto,
+        onGiveDocumentClick: () => setShowGiveDocumentModal(true),
+      })}
       <PhotoUploadModal
         show={showUploadModal}
         uploadPath={uploadPath}
