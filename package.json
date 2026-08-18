@@ -1,0 +1,11 @@
+{
+  "name": "majora-dev-tooling",
+  "private": true,
+  "devDependencies": {
+    "markdownlint-cli2": "^0.23.2"
+  },
+  "scripts": {
+    "lint_md": "markdownlint-cli2",
+    "lint_md_fix": "markdownlint-cli2 --fix"
+  }
+}

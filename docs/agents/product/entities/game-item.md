@@ -11,4 +11,3 @@ owned catalog row. A **CharacterItem** links a `GameItem` to a PC or NPC, with i
 [access-control/game-item.md](access-control/game-item.md) and
 [access-control/character-item.md](access-control/character-item.md) for the full endpoint and
 permission breakdown.
-

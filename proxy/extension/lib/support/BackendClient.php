@@ -41,7 +41,7 @@ class BackendClient
      * @param string                   $host       Backend host URL.
      * @param HttpClientInterface|null $httpClient HTTP client (defaults to CurlHttpClient).
      */
-    public function __construct(string $host, ?HttpClientInterface $httpClient = null)
+    public function __construct(string $host, ?HttpClientInterface $httpClient=null)
     {
         $this->host = $host;
         $this->httpClient = ($httpClient ?? new CurlHttpClient());
@@ -91,9 +91,9 @@ class BackendClient
         string $method,
         string $path,
         array $incomingHeaders,
-        ?string $body = null,
-        array $extraAllowedHeaders = [],
-        array $overrideHeaders = []
+        ?string $body=null,
+        array $extraAllowedHeaders=[],
+        array $overrideHeaders=[]
     ): array {
         $url = $this->url($path);
 

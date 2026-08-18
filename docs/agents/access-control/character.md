@@ -35,6 +35,7 @@ There is no PC creation endpoint.
 ## Endpoints
 
 ### Regular endpoints with a restricted counterpart
+
 - `GET`/full update `/games/<slug>/npcs.json` ↔ `/games/<slug>/npcs/all.json`
 - `GET`/full update `/games/<slug>/pcs/<id>.json` ↔ `/games/<slug>/pcs/<id>/full.json`
 - `GET`/full update `/games/<slug>/npcs/<id>.json` ↔ `/games/<slug>/npcs/<id>/full.json`
@@ -59,9 +60,11 @@ below).
 ## Filters
 
 #### `GET /games/<slug>/pcs.json`
+
 - `name=` (case-insensitive substring match)
 
 #### `GET /games/<slug>/npcs.json`
+
 - `public_allegiance=` (`ally`/`enemy`/`neutral`)
 - `public_slain=` (`true`/`false`)
 - `name=`
@@ -71,6 +74,7 @@ Invalid values are silently ignored (tolerant convention — no `400`).
 #### `GET /games/<slug>/npcs/all.json`
 
 Everything above, plus, per the [filter-visibility rule](principles.md#filter-visibility-rule):
+
 - `private_allegiance=`, `private_slain=`, `hidden=`
 
 No `?incognito=` filter exists on any endpoint.
@@ -96,6 +100,7 @@ publicly-visible per-treasure `value`/`quantity`.
 ## Field-specific deviations
 
 ### Allegiance / Slain (`public_x`/`private_x` pairs)
+
 Both follow the [public vs regular attribute pattern](principles.md#public-vs-regular-attribute-pattern)
 with no deviation. Writable via `full.json` (**CharacterEdit**); `public_slain`/`public_allegiance`
 are additionally writable via the narrow player-facing NPC PATCH (**NpcPlayerEdit**) —
@@ -104,6 +109,7 @@ PC's fields sit at the default in practice, though nothing blocks a PC's own pla
 them via `full.json`).
 
 ### `hidden`
+
 Standard [`hidden` convention](principles.md#hidden) applied to Character itself —
 `npcs.json`/`npcs/all.json` is the [default hidden-gated collection
 pattern](principles.md#default-hidden-gated-collection-pattern) applied here. Writable only via

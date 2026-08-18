@@ -5,4 +5,3 @@ editorial authority over all characters in that game. `Player.is_dm` is the sing
 of truth for DM status — there is no separate GameMaster model or table. A user may be a
 GameMaster in multiple games simultaneously (one `Player` row per game), and a game may
 have multiple GameMasters.
-
