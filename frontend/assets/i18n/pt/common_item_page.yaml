@@ -1,0 +1,11 @@
+common_item_page:
+  loading: Carregando item comum...
+  hidden_label: Oculto
+  category:
+    potion: Poção
+    drug: Droga
+    consumable: Consumível
+    ammunition: Munição
+    poison: Veneno
+    gear: Equipamento
+    other: Outro

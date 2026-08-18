@@ -1,0 +1,5 @@
+game_common_items_page:
+  loading: Carregando itens comuns...
+  title: Itens Comuns
+  hidden_label: Oculto
+  create_common_item: Criar Item Comum
