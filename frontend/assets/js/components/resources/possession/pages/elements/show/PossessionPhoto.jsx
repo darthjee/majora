@@ -28,7 +28,9 @@ function PossessionPhotoShow({
       alt={name}
       canEdit={Boolean(canUploadPhoto)}
       onClick={handlers.onOpenUploadModal}
-      infoBarItems={ItemCardHelper.buildInfoBarItems({ hidden }, Translator.t('possession_page.hidden_label'))}
+      overlayItems={{
+        infoBarItems: ItemCardHelper.buildInfoBarItems({ hidden }, Translator.t('possession_page.hidden_label')),
+      }}
     />
   );
 }

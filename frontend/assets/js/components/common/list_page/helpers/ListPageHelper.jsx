@@ -74,6 +74,7 @@ export default class ListPageHelper {
     const cardClassName = `card h-100 position-relative${extraCardClassName ? ` ${extraCardClassName}` : ''}`;
     const largeColumnClass = ListPageHelper.#largeColumnClass(config.itemsPerRow);
     const columnClassName = `col-6 col-sm-4 col-md-3 ${largeColumnClass} mb-4`;
+    const { secondaryButtons, ...actionBarProps } = config.buildActionBarProps(item, context);
 
     return (
       <div className={columnClassName} key={rawItem.id}>
@@ -82,8 +83,8 @@ export default class ListPageHelper {
             type={config.photoType}
             url={item.photoUrl}
             alt={item.displayText}
-            infoBarItems={config.buildInfoBarItems(item, context)}
-            {...config.buildActionBarProps(item, context)}
+            overlayItems={{ infoBarItems: config.buildInfoBarItems(item, context), secondaryButtons }}
+            {...actionBarProps}
           />
           {ListPageHelper.#renderCaption(item, href, config.showCaption)}
         </div>
