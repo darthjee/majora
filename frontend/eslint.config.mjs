@@ -60,6 +60,7 @@ export default [
       'jsdoc/require-returns-description': 'error',
       'jsdoc/require-description': 'error',
       'security/detect-non-literal-regexp': 'error',
+      'security/detect-non-literal-fs-filename': 'error',
       'security-node/non-literal-reg-expr': 'error',
       'security/detect-possible-timing-attacks': 'error',
       'security-node/detect-possible-timing-attacks': 'error',
