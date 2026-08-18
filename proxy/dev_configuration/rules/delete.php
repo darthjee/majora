@@ -2,7 +2,8 @@
 
 use Tent\Configuration;
 
-Configuration::buildRule([
+Configuration::buildRule(
+    [
     'handler' => [
         'class'       => 'Tent\RequestHandlers\DeleteHandler',
         'host'        => 'http://backend:8080',
@@ -15,4 +16,5 @@ Configuration::buildRule([
             'type'    => 'regex',
         ],
     ],
-]);
+    ]
+);

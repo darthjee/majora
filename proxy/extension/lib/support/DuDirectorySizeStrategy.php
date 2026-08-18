@@ -22,7 +22,7 @@ class DuDirectorySizeStrategy implements DirectorySizeStrategyInterface
      * @param ShellExecutorInterface|null $shell Shell executor (defaults to
      *                                             NativeShellExecutor).
      */
-    public function __construct(?ShellExecutorInterface $shell = null)
+    public function __construct(?ShellExecutorInterface $shell=null)
     {
         $this->shell = ($shell ?? new NativeShellExecutor());
     }

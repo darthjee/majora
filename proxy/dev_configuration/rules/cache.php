@@ -2,7 +2,8 @@
 
 use Tent\Configuration;
 
-Configuration::buildRule([
+Configuration::buildRule(
+    [
     'handler' => [
         'class'           => 'Tent\RequestHandlers\CacheSizeHandler',
         'host'            => 'http://backend:8080',
@@ -12,9 +13,11 @@ Configuration::buildRule([
     'matchers' => [
         ['method' => 'GET', 'uri' => '/staff/cache/size.json', 'type' => 'exact'],
     ],
-]);
+    ]
+);
 
-Configuration::buildRule([
+Configuration::buildRule(
+    [
     'handler' => [
         'class'      => 'Tent\RequestHandlers\CacheClearHandler',
         'host'       => 'http://backend:8080',
@@ -23,4 +26,5 @@ Configuration::buildRule([
     'matchers' => [
         ['method' => 'DELETE', 'uri' => '/staff/cache/disk.json', 'type' => 'exact'],
     ],
-]);
+    ]
+);

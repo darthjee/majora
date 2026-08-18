@@ -2,6 +2,8 @@
 <ruleset name="MajoraProxy">
     <description>PHP_CodeSniffer ruleset for proxy/, matching the sniffs Codacy already enforces.</description>
     <file>.</file>
+    <!-- Matches the phpcs exclude_paths already configured in .codacy.yml -->
+    <exclude-pattern>*/extension/tests/*</exclude-pattern>
     <rule ref="PEAR.Functions.FunctionCallSignature"/>
     <rule ref="Squiz.Functions.FunctionDeclarationArgumentSpacing"/>
 </ruleset>
